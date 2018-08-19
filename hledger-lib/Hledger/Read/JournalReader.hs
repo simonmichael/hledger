@@ -540,90 +540,6 @@ transactionp = do
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
--- old HUnit tests
-test_transactionp = 
-  let s `gives` t = do
-                      let p = runIdentity $ parseWithState mempty transactionp s
-                      assertBool "Parse success" (isRight p)
-                      let Right t2 = p
-                          -- same f = assertEqual (f t) (f t2)
-                      assertEqual "Equal date" (tdate t) (tdate t2)
-                      assertEqual "Equal date2" (tdate2 t) (tdate2 t2)
-                      assertEqual "Equal status" (tstatus t) (tstatus t2)
-                      assertEqual "Equal code" (tcode t) (tcode t2)
-                      assertEqual "Equal description" (tdescription t) (tdescription t2)
-                      assertEqual "Equal comment" (tcomment t) (tcomment t2)
-                      assertEqual "Equal tags" (ttags t) (ttags t2)
-                      assertEqual "Equal preceding comments" (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
-                      assertEqual "Equal postings" (tpostings t) (tpostings t2)
-  in TestCase $ do
-
-    T.unlines ["2015/1/1"] `gives` nulltransaction{ tdate=parsedate "2015/01/01" }
-
-    T.unlines [
-      "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
-      "    ; tcomment2",
-      "    ; ttag1: val1",
-      "    * a         $1.00  ; pcomment1",
-      "    ; pcomment2",
-      "    ; ptag1: val1",
-      "    ; ptag2: val2"
-      ]
-     `gives`
-     nulltransaction{
-      tdate=parsedate "2012/05/14",
-      tdate2=Just $ parsedate "2012/05/15",
-      tstatus=Unmarked,
-      tcode="code",
-      tdescription="desc",
-      tcomment="tcomment1\ntcomment2\nttag1: val1\n",
-      ttags=[("ttag1","val1")],
-      tpostings=[
-        nullposting{
-          pdate=Nothing,
-          pstatus=Cleared,
-          paccount="a",
-          pamount=Mixed [usd 1],
-          pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
-          ptype=RegularPosting,
-          ptags=[("ptag1","val1"),("ptag2","val2")],
-          ptransaction=Nothing
-          }
-        ],
-      tpreceding_comment_lines=""
-      }
-
-    assertBool "transactionp parses a well-formed transactionParse OK" $
-      isRight . runIdentity . parseWithState mempty transactionp $ T.unlines
-      ["2007/01/28 coopportunity"
-      ,"    expenses:food:groceries                   $47.18"
-      ,"    assets:checking                          $-47.18"
-      ,""
-      ]
-
-    let p = runIdentity $ parseWithState mempty transactionp "2009/1/1 a ;comment\n b 1\n"
-    assertEqual "transactionp should not parse a following comment as part of the description"
-      (Right "a") (tdescription <$> p)
-
-    assertBool "transactionp parses a following whitespace line" $
-      isRight . runIdentity . parseWithState mempty transactionp $ T.unlines
-        ["2012/1/1"
-        ,"  a  1"
-        ,"  b"
-        ," "
-        ]
-
-    let p = runIdentity . parseWithState mempty transactionp $ T.unlines
-             ["2009/1/1 x  ; transaction comment"
-             ," a  1  ; posting 1 comment"
-             ," ; posting 1 comment 2"
-             ," b"
-             ," ; posting 2 comment"
-             ]
-    assertBool "transactionp parses parses comments anywhere" (isRight p)
-    assertEqual "Has 2 postings" 2 (let Right t = p in length $ tpostings t)
-
--- the above as easytests, just for comparison
 transactionp_tests = tests "transactionp" [
 
    test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=parsedate "2015/01/01"}
@@ -785,7 +701,6 @@ test_postingp = TestCase $ do
 --- * more tests
 
 tests_Hledger_Read_JournalReader = TestList [
-    test_transactionp,
     test_postingp,
 
     "showParsedMarketPrice" ~: do
