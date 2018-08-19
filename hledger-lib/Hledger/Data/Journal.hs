@@ -95,6 +95,7 @@ import qualified Data.Text as T
 import Safe (headMay, headDef)
 import Data.Time.Calendar
 import Data.Tree
+import qualified EasyTest
 import System.Time (ClockTime(TOD))
 import Text.Printf
 import qualified Data.Map as M
@@ -1093,7 +1094,7 @@ easytests = tests "Journal" [
       journalAccountNamesMatching :: Query -> Journal -> [AccountName]
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
-    tests ""
+    EasyTest.tests
       [ test "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
       , test "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
       , test "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
