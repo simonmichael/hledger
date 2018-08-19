@@ -76,7 +76,6 @@ import Hledger.Data.AccountName
 import Hledger.Data.Dates (nulldate, spanContainsDate)
 
 
-instance Show Posting where show = showPosting
 
 nullposting, posting :: Posting
 nullposting = Posting

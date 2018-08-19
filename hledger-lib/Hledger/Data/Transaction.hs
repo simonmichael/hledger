@@ -62,11 +62,6 @@ import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
 
-instance Show Transaction where show = showTransactionUnelided
-
-instance Show TransactionModifier where
-    show t = "= " ++ T.unpack (tmquerytxt t) ++ "\n" ++ unlines (map show (tmpostings t))
-
 sourceFilePath :: GenericSourcePos -> FilePath
 sourceFilePath = \case
     GenericSourcePos fp _ _ -> fp

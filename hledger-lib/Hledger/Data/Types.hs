@@ -26,6 +26,7 @@ import Control.DeepSeq (NFData)
 import Data.Data
 import Data.Decimal
 import Data.Default
+import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -128,7 +129,8 @@ instance ToMarkup Quantity
 
 -- | An amount's price (none, per unit, or total) in another commodity.
 -- Note the price should be a positive number, although this is not enforced.
-data Price = NoPrice | UnitPrice Amount | TotalPrice Amount deriving (Eq,Ord,Typeable,Data,Generic)
+data Price = NoPrice | UnitPrice Amount | TotalPrice Amount 
+  deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Price
 
@@ -145,7 +147,7 @@ instance NFData AmountStyle
 
 instance Show AmountStyle where
   show AmountStyle{..} =
-    printf "AmountStyle \"%s %s %s %s %s..\""
+    printf "AmountStylePP \"%s %s %s %s %s..\""
     (show ascommodityside)
     (show ascommodityspaced)
     (show asprecision)
@@ -178,11 +180,11 @@ data Amount = Amount {
       aprice      :: Price,           -- ^ the (fixed) price for this amount, if any
       astyle      :: AmountStyle,
       amultiplier :: Bool             -- ^ amount is a multipier used in TransactionModifier postings
-    } deriving (Eq,Ord,Typeable,Data,Generic)
+    } deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Amount
 
-newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Typeable,Data,Generic)
+newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData MixedAmount
 
@@ -228,9 +230,26 @@ data Posting = Posting {
 instance NFData Posting
 
 -- The equality test for postings ignores the parent transaction's
--- identity, to avoid infinite loops.
+-- identity, to avoid recuring ad infinitum.
+-- XXX could check that it's Just or Nothing.
 instance Eq Posting where
     (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _ _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _ _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
+
+-- | Posting's show instance elides the parent transaction so as not to recurse forever.
+instance Show Posting where
+  show Posting{..} = "PostingPP {" ++ intercalate ", " [
+     ("pdate="             ++ show (show pdate))
+    ,("pdate2="            ++ show (show pdate2))
+    ,("pstatus="           ++ show (show pstatus))
+    ,("paccount="          ++ show paccount)
+    ,("pamount="           ++ show pamount)
+    ,("pcomment="          ++ show pcomment)
+    ,("ptype="             ++ show ptype)
+    ,("ptags="             ++ show ptags)
+    ,("pbalanceassertion=" ++ show pbalanceassertion)
+    ,("ptransaction="      ++ show (const "<txn>" <$> ptransaction))
+    ,("porigin="           ++ show porigin)
+    ] ++ "}"
 
 -- TODO: needs renaming, or removal if no longer needed. See also TextPosition in Hledger.UI.Editor
 -- | The position of parse errors (eg), like parsec's SourcePos but generic.
@@ -256,23 +275,23 @@ data Transaction = Transaction {
       ttags                    :: [Tag],     -- ^ tag names and values, extracted from the comment
       tpostings                :: [Posting], -- ^ this transaction's postings
       tpreceding_comment_lines :: Text       -- ^ any comment lines immediately preceding this transaction
-    } deriving (Eq,Typeable,Data,Generic)
+    } deriving (Eq,Typeable,Data,Generic,Show)
 
 instance NFData Transaction
 
 data TransactionModifier = TransactionModifier {
       tmquerytxt :: Text,
       tmpostings :: [Posting]
-    } deriving (Eq,Typeable,Data,Generic)
+    } deriving (Eq,Typeable,Data,Generic,Show)
 
 instance NFData TransactionModifier
 
--- ^ A periodic transaction rule, describing a transaction that recurs.
 nulltransactionmodifier = TransactionModifier{
   tmquerytxt = ""
  ,tmpostings = []
 }
 
+-- | A periodic transaction rule, describing a transaction that recurs.
 data PeriodicTransaction = PeriodicTransaction {
       ptperiodexpr   :: Text,     -- ^ the period expression as written
       ptinterval     :: Interval, -- ^ the interval at which this transaction recurs 

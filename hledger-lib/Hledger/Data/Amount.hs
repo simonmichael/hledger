@@ -149,13 +149,6 @@ amountstyle = AmountStyle L False 0 (Just '.') Nothing
 -------------------------------------------------------------------------------
 -- Amount
 
-instance Show Price where
-  show NoPrice        = "NoPrice"
-  show (UnitPrice a)  = "\"@ " ++ showAmountWithoutPrice a ++ "..\"" 
-  show (TotalPrice a) = "\"@@ " ++ showAmountWithoutPrice a ++ "..\""
-
-deriving instance Show Amount 
-
 instance Num Amount where
     abs a@Amount{aquantity=q}    = a{aquantity=abs q}
     signum a@Amount{aquantity=q} = a{aquantity=signum q}
@@ -434,12 +427,6 @@ commodityValue j valuationdate c
 
 -------------------------------------------------------------------------------
 -- MixedAmount
-
-instance Show MixedAmount where
-  show
-    | debugLevel < 3 = intercalate "\\n" . lines . showMixedAmountWithoutPrice
-    --  debugLevel < 6 = intercalate "\\n" . lines . showMixedAmount
-    | otherwise      = showMixedAmountDebug
 
 instance Num MixedAmount where
     fromInteger i = Mixed [fromInteger i]
