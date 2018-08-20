@@ -623,7 +623,7 @@ easytests_JournalReader = tests "JournalReader" [
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
         ,ptstatus      = Unmarked
         ,ptcode        = ""
         ,ptdescription = ""
@@ -638,7 +638,7 @@ easytests_JournalReader = tests "JournalReader" [
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
         ,ptdescription = "In 2019 we will change this\n"
         }
 
@@ -647,7 +647,7 @@ easytests_JournalReader = tests "JournalReader" [
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
         ,ptdescription = "In 2019 we will change this\n"
         }
 
@@ -679,8 +679,8 @@ easytests_JournalReader = tests "JournalReader" [
         ,pamount=Mixed [num 1]
         ,pcomment="date:2012/11/28, date2=2012/11/29,b:b\n"
         ,ptags=[("date", "2012/11/28"), ("date2=2012/11/29,b", "b")] -- TODO tag name parsed too greedily
-        ,pdate=Just $ parsedate "2012/11/28"
-        ,pdate2=Nothing  -- Just $ parsedate "2012/11/29"
+        ,pdate=Just $ fromGregorian 2012 11 28
+        ,pdate2=Nothing  -- Just $ fromGregorian 2012 11 29
         }
 
     ,test "posting dates bracket syntax" $ expectParseEq (postingp Nothing) 
@@ -711,7 +711,7 @@ easytests_JournalReader = tests "JournalReader" [
 
   ,tests "transactionp" [
   
-     test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=parsedate "2015/01/01"}
+     test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
   
     ,test "more-complex" $ expectParseEq transactionp 
       (T.unlines [
@@ -726,8 +726,8 @@ easytests_JournalReader = tests "JournalReader" [
       nulltransaction{
         tsourcepos=JournalSourcePos "" (1,7),  -- XXX why 7 here ?
         tpreceding_comment_lines="",
-        tdate=parsedate "2012/05/14",
-        tdate2=Just $ parsedate "2012/05/15",
+        tdate=fromGregorian 2012 5 14,
+        tdate2=Just $ fromGregorian 2012 5 15,
         tstatus=Unmarked,
         tcode="code",
         tdescription="desc",
@@ -814,7 +814,7 @@ easytests_JournalReader = tests "JournalReader" [
   ,test "marketpricedirectivep" $ expectParseEq marketpricedirectivep
     "P 2017/01/30 BTC $922.83\n"
     MarketPrice{
-      mpdate      = parsedate "2017/01/30",
+      mpdate      = fromGregorian 2017 1 30,
       mpcommodity = "BTC",
       mpamount    = usd 922.83
       }
