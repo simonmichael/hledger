@@ -12,6 +12,8 @@ module Hledger.Utils.Test (
   ,_test
   ,it
   ,_it
+  ,expectParse
+  ,expectParseError
   ,expectParseEq
   ,expectParseEqOn
   -- * HUnit
@@ -98,20 +100,41 @@ expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
 expectEq' x y = if x == y then E.ok else E.crash $
   "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
 
--- | Given a stateful parser runnable in IO, input text, and an 
--- expected parse result, make a Test that parses the text and compares 
--- the result, showing a nice failure message if either step fails.
+-- | Test that this stateful parser runnable in IO successfully parses 
+-- all of the given input text, showing the parse error if it fails. 
+expectParse :: (Monoid st, Eq a, Show a, HasCallStack) => 
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> E.Test ()
+expectParse parser input = do
+  ep <- E.io (runParserT (evalStateT (parser <* eof) mempty) "" input)
+  either (fail.("parse error at "++).parseErrorPretty) (const ok) ep
+
+-- | Test that this stateful parser runnable in IO fails to parse 
+-- the given input text, with a parse error containing the given string. 
+expectParseError :: (Monoid st, Eq a, Show a, HasCallStack) => 
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> String -> E.Test ()
+expectParseError parser input errstr = do
+  ep <- E.io (runParserT (evalStateT parser mempty) "" input)
+  case ep of
+    Right v -> fail $ "parse succeeded unexpectedly, producing:\n" ++ pshow v
+    Left e  -> do
+      let e' = parseErrorPretty e
+      if errstr `isInfixOf` e'
+      then ok
+      else fail $ "parse error is not as expected:\n" ++ e'
+
+-- | Like expectParse, but also test the parse result is an expected value,
+-- pretty-printing both if it fails. 
 expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
 expectParseEq parser input expected = expectParseEqOn parser input id expected
 
--- | Like expectParseEq, but also takes a transform function 
--- to call on the parse result before comparing it.
+-- | Like expectParseEq, but transform the parse result with the given function 
+-- before comparing it.
 expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
 expectParseEqOn parser input f expected = do
-  ep <- E.io $ runParserT (evalStateT parser mempty) "" input
-  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected . f) ep
+  ep <- E.io $ runParserT (evalStateT (parser <* eof) mempty) "" input
+  either (fail . ("parse error at "++) . parseErrorPretty) (expectEq' expected . f) ep
 
 -- * HUnit helpers
 
