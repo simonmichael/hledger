@@ -701,12 +701,74 @@ test_postingp = TestCase $ do
 --- * more tests
 
 tests_Hledger_Read_JournalReader = TestList [
-    test_postingp,
+    test_postingp
+  ]
 
-    "showParsedMarketPrice" ~: do
-      let mp = parseWithState mempty marketpricedirectivep "P 2017/01/30 BTC $922.83\n"
-          mpString = (fmap . fmap) showMarketPrice mp
-      mpString `is` (Just (Right "P 2017/01/30 BTC $922.83"))
+easytests = tests "JournalReader" [
+
+   tests "transactionmodifierp" [
+
+    test "basic" $ expectParseEq transactionmodifierp 
+      "= (some value expr)\n some:postings  1.\n"
+      nulltransactionmodifier {
+        tmquerytxt = "(some value expr)"
+       ,tmpostings = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
+      }
+    ]
+
+  ,tests "periodictransactionp" [
+
+    test "more-period-text-in-comment-after-one-space" $ expectParseEq periodictransactionp
+      "~ monthly from 2018/6 ;In 2019 we will change this\n" 
+      nullperiodictransaction {
+         ptperiodexpr  = "monthly from 2018/6"
+        ,ptinterval    = Months 1
+        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptstatus      = Unmarked
+        ,ptcode        = ""
+        ,ptdescription = ""
+        ,ptcomment     = "In 2019 we will change this\n"
+        ,pttags        = []
+        ,ptpostings    = []
+        }
+
+     -- TODO #807
+    ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEq periodictransactionp 
+      "~ monthly from 2018/6   In 2019 we will change this\n" 
+      nullperiodictransaction {
+         ptperiodexpr  = "monthly from 2018/6"
+        ,ptinterval    = Months 1
+        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptdescription = "In 2019 we will change this\n"
+        }
+
+    ,_test "more-period-text-in-description-after-one-space" $ expectParseEq periodictransactionp
+      "~ monthly from 2018/6 In 2019 we will change this\n" 
+      nullperiodictransaction {
+         ptperiodexpr  = "monthly from 2018/6"
+        ,ptinterval    = Months 1
+        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptdescription = "In 2019 we will change this\n"
+        }
+
+    ,_test "Next-year-in-description" $ expectParseEq periodictransactionp
+      "~ monthly  Next year blah blah\n"
+      nullperiodictransaction {
+         ptperiodexpr  = "monthly"
+        ,ptinterval    = Months 1
+        ,ptspan        = DateSpan Nothing Nothing
+        ,ptdescription = "Next year blah blah\n"
+        }
+
+    ,transactionp_tests
+
+    ,test "showParsedMarketPrice" $ expectParseEq marketpricedirectivep
+      "P 2017/01/30 BTC $922.83\n"
+      MarketPrice{
+        mpdate      = parsedate "2017/01/30",
+        mpcommodity = "BTC",
+        mpamount    = usd 922.83
+        }
 
 {- old hunit tests TODO
   ,"periodictransactionp" ~: do
@@ -784,65 +846,6 @@ tests_Hledger_Read_JournalReader = TestList [
      assertAmountParse (parseWithState mempty amountp "1 @ $2")
        (num 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
 -}
-  ]
-
-easytests = tests "JournalReader" [
-
-   tests "transactionmodifierp" [
-
-    test "basic" $ expectParseEq transactionmodifierp 
-      "= (some value expr)\n some:postings  1.\n"
-      nulltransactionmodifier {
-        tmquerytxt = "(some value expr)"
-       ,tmpostings = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
-      }
-    ]
-
-  ,tests "periodictransactionp" [
-
-    test "more-period-text-in-comment-after-one-space" $ expectParseEq periodictransactionp
-      "~ monthly from 2018/6 ;In 2019 we will change this\n" 
-      nullperiodictransaction {
-         ptperiodexpr  = "monthly from 2018/6"
-        ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
-        ,ptstatus      = Unmarked
-        ,ptcode        = ""
-        ,ptdescription = ""
-        ,ptcomment     = "In 2019 we will change this\n"
-        ,pttags        = []
-        ,ptpostings    = []
-        }
-
-     -- TODO #807
-    ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEq periodictransactionp 
-      "~ monthly from 2018/6   In 2019 we will change this\n" 
-      nullperiodictransaction {
-         ptperiodexpr  = "monthly from 2018/6"
-        ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
-        ,ptdescription = "In 2019 we will change this\n"
-        }
-
-    ,_test "more-period-text-in-description-after-one-space" $ expectParseEq periodictransactionp
-      "~ monthly from 2018/6 In 2019 we will change this\n" 
-      nullperiodictransaction {
-         ptperiodexpr  = "monthly from 2018/6"
-        ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
-        ,ptdescription = "In 2019 we will change this\n"
-        }
-
-    ,_test "Next-year-in-description" $ expectParseEq periodictransactionp
-      "~ monthly  Next year blah blah\n"
-      nullperiodictransaction {
-         ptperiodexpr  = "monthly"
-        ,ptinterval    = Months 1
-        ,ptspan        = DateSpan Nothing Nothing
-        ,ptdescription = "Next year blah blah\n"
-        }
-
-    ,transactionp_tests
 
     ]
   ]
