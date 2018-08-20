@@ -618,7 +618,7 @@ easytests_JournalReader = tests "JournalReader" [
 
   ,tests "periodictransactionp" [
 
-    test "more-period-text-in-comment-after-one-space" $ expectParseEq periodictransactionp
+    test "more period text in comment after one space" $ expectParseEq periodictransactionp
       "~ monthly from 2018/6 ;In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -633,7 +633,7 @@ easytests_JournalReader = tests "JournalReader" [
         }
 
      -- TODO #807
-    ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEq periodictransactionp 
+    ,_test "more period text in description after two spaces" $ expectParseEq periodictransactionp 
       "~ monthly from 2018/6   In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -642,7 +642,7 @@ easytests_JournalReader = tests "JournalReader" [
         ,ptdescription = "In 2019 we will change this\n"
         }
 
-    ,_test "more-period-text-in-description-after-one-space" $ expectParseEq periodictransactionp
+    ,_test "more period text in description after one space" $ expectParseEq periodictransactionp
       "~ monthly from 2018/6 In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -651,7 +651,7 @@ easytests_JournalReader = tests "JournalReader" [
         ,ptdescription = "In 2019 we will change this\n"
         }
 
-    ,_test "Next-year-in-description" $ expectParseEq periodictransactionp
+    ,_test "Next year in description" $ expectParseEq periodictransactionp
       "~ monthly  Next year blah blah\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly"
@@ -711,9 +711,9 @@ easytests_JournalReader = tests "JournalReader" [
 
   ,tests "transactionp" [
   
-     test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
+     test "just a date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
   
-    ,test "more-complex" $ expectParseEq transactionp 
+    ,test "more complex" $ expectParseEq transactionp 
       (T.unlines [
         "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
         "    ; tcomment2",

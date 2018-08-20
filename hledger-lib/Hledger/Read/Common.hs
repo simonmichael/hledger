@@ -1235,8 +1235,8 @@ tests_Hledger_Read_Common = TestList [
 easytests_Common = tests "Common" [
   tests "amountp" [
     test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
-   ,test "ends-with-decimal-mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
-   ,test "unit-price"             $ expectParseEq amountp "$10 @ €0.5" 
+   ,test "ends with decimal mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+   ,test "unit price"             $ expectParseEq amountp "$10 @ €0.5" 
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
@@ -1250,7 +1250,7 @@ easytests_Common = tests "Common" [
             ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
             } 
         } 
-   ,test "total-price"            $ expectParseEq amountp "$10 @@ €5"
+   ,test "total price"            $ expectParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
         ,aquantity=10 
