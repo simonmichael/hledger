@@ -51,20 +51,13 @@ module Hledger.Read.JournalReader (
   marketpricedirectivep,
   datetimep,
   datep,
-  -- codep,
-  -- accountnamep,
   modifiedaccountnamep,
   postingp,
-  -- amountp,
-  -- amountp',
-  -- mamountp',
-  -- numberp,
   statusp,
   emptyorcommentlinep,
   followingcommentp
 
   -- * Tests
-  ,tests_Hledger_Read_JournalReader
   ,easytests
 )
 where
@@ -76,7 +69,6 @@ import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
 import Data.Bifunctor (first)
-import Data.Functor.Identity (Identity(..))
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -540,77 +532,6 @@ transactionp = do
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
-transactionp_tests = tests "transactionp" [
-
-   test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=parsedate "2015/01/01"}
-
-  ,test "more-complex" $ expectParseEq transactionp 
-    (T.unlines [
-      "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
-      "    ; tcomment2",
-      "    ; ttag1: val1",
-      "    * a         $1.00  ; pcomment1",
-      "    ; pcomment2",
-      "    ; ptag1: val1",
-      "    ; ptag2: val2"
-      ])
-    nulltransaction{
-      tsourcepos=JournalSourcePos "" (1,7),  -- XXX why 7 here ?
-      tpreceding_comment_lines="",
-      tdate=parsedate "2012/05/14",
-      tdate2=Just $ parsedate "2012/05/15",
-      tstatus=Unmarked,
-      tcode="code",
-      tdescription="desc",
-      tcomment="tcomment1\ntcomment2\nttag1: val1\n",
-      ttags=[("ttag1","val1")],
-      tpostings=[
-        nullposting{
-          pdate=Nothing,
-          pstatus=Cleared,
-          paccount="a",
-          pamount=Mixed [usd 1],
-          pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
-          ptype=RegularPosting,
-          ptags=[("ptag1","val1"),("ptag2","val2")],
-          ptransaction=Nothing
-          }
-        ]
-    }
-
-  ,test "parses a well-formed transaction" $
-    expect $ isRight $ rjp transactionp $ T.unlines
-      ["2007/01/28 coopportunity"
-      ,"    expenses:food:groceries                   $47.18"
-      ,"    assets:checking                          $-47.18"
-      ,""
-      ]
-
-  ,test "does not parse a following comment as part of the description" $
-    expectParseEqOn transactionp "2009/1/1 a ;comment\n b 1\n" tdescription "a"
-
-  ,test "transactionp parses a following whitespace line" $
-    expect $ isRight $ rjp transactionp $ T.unlines
-      ["2012/1/1"
-      ,"  a  1"
-      ,"  b"
-      ," "
-      ]
-
-  ,test "comments everywhere, two postings parsed" $
-    expectParseEqOn transactionp 
-      (T.unlines
-        ["2009/1/1 x  ; transaction comment"
-        ," a  1  ; posting 1 comment"
-        ," ; posting 1 comment 2"
-        ," b"
-        ," ; posting 2 comment"
-        ])
-      (length . tpostings)
-      2
-
-  ]
-
 --- ** postings
 
 -- Parse the following whitespace-beginning lines as postings, posting
@@ -653,56 +574,7 @@ postingp mTransactionYear = do
    , pbalanceassertion=massertion
    }
 
-test_postingp = TestCase $ do
-    let s `gives` ep = do
-                         let parse = runIdentity $ parseWithState mempty (postingp Nothing) s
-                         assertBool "Example is parsed well" $ isRight parse
-                         let Right ap = parse
-                             same msg f = assertEqual ("Posting "++msg++" differs") (f ep) (f ap)
-                         same "date" pdate
-                         same "status" pstatus
-                         same "account" paccount
-                         -- same "amount" pamount
-                         -- more revealing:
-                         assertEqual "amount differs!" (showMixedAmountDebug $ pamount ep) (showMixedAmountDebug $ pamount ap)
-                         same "comment" pcomment
-                         same "type" ptype
-                         same "tags" ptags
-                         same "transaction" ptransaction
-    "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n" `gives`
-      posting{paccount="expenses:food:dining", pamount=Mixed [usd 10], pcomment="a: a a\nb: b b\n", ptags=[("a","a a"), ("b","b b")]}
-    
-    " a  1. ; [2012/11/28]\n" `gives`  -- trailing decimal point required to match num's asdecimalpoint
-      ("a" `post` num 1){pcomment="[2012/11/28]\n"
-                        ,pdate=parsedateM "2012/11/28"}
-
-    " a  2. ; a:a, [=2012/11/28]\n" `gives`
-      ("a" `post` num 2){pcomment="a:a, [=2012/11/28]\n"
-                        ,ptags=[("a","a")]
-                        ,pdate=Nothing}
-
-    " a  3. ; a:a\n  ; [2012/11/28=2012/11/29],b:b\n" `gives`
-      ("a" `post` num 3){pcomment="a:a\n[2012/11/28=2012/11/29],b:b\n"
-                        ,ptags=[("a","a"), ("[2012/11/28=2012/11/29],b","b")] -- XXX ugly tag name parsed
-                        ,pdate=parsedateM "2012/11/28"}
-
-    assertBool "postingp parses a quoted commodity with numbers"
-      (isRight . runIdentity $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\"\n")
-
-    assertBool "postingp parses balance assertions and fixed lot prices"
-      (isRight . runIdentity $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
-
-    -- let parse = parseWithState mempty postingp " a\n ;next-line comment\n"
-    -- assertRight parse
-    -- let Right p = parse
-    -- assertEqual "next-line comment\n" (pcomment p)
-    -- assertEqual (Just nullmixedamt) (pbalanceassertion p)
-
---- * more tests
-
-tests_Hledger_Read_JournalReader = TestList [
-    test_postingp
-  ]
+--- * tests
 
 easytests = tests "JournalReader" [
 
@@ -790,6 +662,43 @@ easytests = tests "JournalReader" [
 
     ]
 
+  ,tests "postingp" [
+     test "basic" $ expectParseEq (postingp Nothing) 
+      "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
+      posting{
+        paccount="expenses:food:dining", 
+        pamount=Mixed [usd 10], 
+        pcomment="a: a a\nb: b b\n", 
+        ptags=[("a","a a"), ("b","b b")]
+        }
+
+    ,test "posting dates" $ expectParseEq (postingp Nothing) 
+      " a  1. ; date:2012/11/28, date2=2012/11/29,b:b\n"
+      nullposting{
+         paccount="a"
+        ,pamount=Mixed [num 1]
+        ,pcomment="date:2012/11/28, date2=2012/11/29,b:b\n"
+        ,ptags=[("date", "2012/11/28"), ("date2=2012/11/29,b", "b")] -- TODO tag name parsed too greedily
+        ,pdate=Just $ parsedate "2012/11/28"
+        ,pdate2=Nothing  -- Just $ parsedate "2012/11/29"
+        }
+
+    ,test "posting dates bracket syntax" $ expectParseEq (postingp Nothing) 
+      " a  1. ; [2012/11/28=2012/11/29]\n"
+      nullposting{
+         paccount="a"
+        ,pamount=Mixed [num 1]
+        ,pcomment="[2012/11/28=2012/11/29]\n"
+        ,ptags=[]
+        ,pdate= Just $ fromGregorian 2012 11 28 
+        ,pdate2=Just $ fromGregorian 2012 11 29
+        }
+
+    ,test "quoted commodity symbol with digits" $ expectParse (postingp Nothing) "  a  1 \"DE123\"\n"
+
+    ,test "balance assertion and fixed lot price" $ expectParse (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n"
+    ]
+
   ,tests "transactionmodifierp" [
 
     test "basic" $ expectParseEq transactionmodifierp 
@@ -800,7 +709,76 @@ easytests = tests "JournalReader" [
       }
     ]
 
-  ,transactionp_tests
+  ,tests "transactionp" [
+  
+     test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=parsedate "2015/01/01"}
+  
+    ,test "more-complex" $ expectParseEq transactionp 
+      (T.unlines [
+        "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
+        "    ; tcomment2",
+        "    ; ttag1: val1",
+        "    * a         $1.00  ; pcomment1",
+        "    ; pcomment2",
+        "    ; ptag1: val1",
+        "    ; ptag2: val2"
+        ])
+      nulltransaction{
+        tsourcepos=JournalSourcePos "" (1,7),  -- XXX why 7 here ?
+        tpreceding_comment_lines="",
+        tdate=parsedate "2012/05/14",
+        tdate2=Just $ parsedate "2012/05/15",
+        tstatus=Unmarked,
+        tcode="code",
+        tdescription="desc",
+        tcomment="tcomment1\ntcomment2\nttag1: val1\n",
+        ttags=[("ttag1","val1")],
+        tpostings=[
+          nullposting{
+            pdate=Nothing,
+            pstatus=Cleared,
+            paccount="a",
+            pamount=Mixed [usd 1],
+            pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
+            ptype=RegularPosting,
+            ptags=[("ptag1","val1"),("ptag2","val2")],
+            ptransaction=Nothing
+            }
+          ]
+      }
+  
+    ,test "parses a well-formed transaction" $
+      expect $ isRight $ rjp transactionp $ T.unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries                   $47.18"
+        ,"    assets:checking                          $-47.18"
+        ,""
+        ]
+  
+    ,test "does not parse a following comment as part of the description" $
+      expectParseEqOn transactionp "2009/1/1 a ;comment\n b 1\n" tdescription "a"
+  
+    ,test "transactionp parses a following whitespace line" $
+      expect $ isRight $ rjp transactionp $ T.unlines
+        ["2012/1/1"
+        ,"  a  1"
+        ,"  b"
+        ," "
+        ]
+  
+    ,test "comments everywhere, two postings parsed" $
+      expectParseEqOn transactionp 
+        (T.unlines
+          ["2009/1/1 x  ; transaction comment"
+          ," a  1  ; posting 1 comment"
+          ," ; posting 1 comment 2"
+          ," b"
+          ," ; posting 2 comment"
+          ])
+        (length . tpostings)
+        2
+  
+    ]
 
   -- directives
 
