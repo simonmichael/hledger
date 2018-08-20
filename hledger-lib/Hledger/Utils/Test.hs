@@ -58,6 +58,7 @@ test :: T.Text -> E.Test a -> E.Test a
 test = E.scope
 
 -- | Skip the given test(s), with the same type signature as "test".
+-- If called in a monadic sequence of tests, also skips following tests.
 _test :: T.Text -> E.Test a -> E.Test a 
 _test _name = (E.skip >>) 
 
@@ -65,7 +66,8 @@ _test _name = (E.skip >>)
 it :: T.Text -> E.Test a -> E.Test a 
 it = test
 
--- | Skip the given test(s). A synonym for "_test".
+-- | Skip the given test(s), and any following tests in a monadic sequence. 
+-- A synonym for "_test".
 _it :: T.Text -> E.Test a -> E.Test a 
 _it = _test
 
@@ -73,7 +75,8 @@ _it = _test
 tests :: T.Text -> [E.Test ()] -> E.Test () 
 tests name = E.scope name . E.tests
 
--- | Skip the given list of tests, with the same type signature as "group".
+-- | Skip the given list of tests, and any following tests in a monadic sequence,
+-- with the same type signature as "group".
 _tests :: T.Text -> [E.Test ()] -> E.Test () 
 _tests _name = (E.skip >>) . E.tests
 
@@ -102,11 +105,12 @@ expectEq' x y = if x == y then E.ok else E.crash $
 
 -- | Test that this stateful parser runnable in IO successfully parses 
 -- all of the given input text, showing the parse error if it fails. 
+-- Suitable for hledger's JournalParser parsers.
 expectParse :: (Monoid st, Eq a, Show a, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> E.Test ()
 expectParse parser input = do
   ep <- E.io (runParserT (evalStateT (parser <* eof) mempty) "" input)
-  either (fail.("parse error at "++).parseErrorPretty) (const ok) ep
+  either (fail.(++"\n").("\nparse error at "++).parseErrorPretty) (const ok) ep
 
 -- | Test that this stateful parser runnable in IO fails to parse 
 -- the given input text, with a parse error containing the given string. 
@@ -115,12 +119,12 @@ expectParseError :: (Monoid st, Eq a, Show a, HasCallStack) =>
 expectParseError parser input errstr = do
   ep <- E.io (runParserT (evalStateT parser mempty) "" input)
   case ep of
-    Right v -> fail $ "parse succeeded unexpectedly, producing:\n" ++ pshow v
+    Right v -> fail $ "\nparse succeeded unexpectedly, producing:\n" ++ pshow v ++ "\n"
     Left e  -> do
       let e' = parseErrorPretty e
       if errstr `isInfixOf` e'
       then ok
-      else fail $ "parse error is not as expected:\n" ++ e'
+      else fail $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
 
 -- | Like expectParse, but also test the parse result is an expected value,
 -- pretty-printing both if it fails. 
@@ -134,7 +138,7 @@ expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
 expectParseEqOn parser input f expected = do
   ep <- E.io $ runParserT (evalStateT (parser <* eof) mempty) "" input
-  either (fail . ("parse error at "++) . parseErrorPretty) (expectEq' expected . f) ep
+  either (fail . (++"\n") . ("\nparse error at "++) . parseErrorPretty) (expectEq' expected . f) ep
 
 -- * HUnit helpers
 
