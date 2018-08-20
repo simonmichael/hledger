@@ -706,15 +706,43 @@ tests_Hledger_Read_JournalReader = TestList [
 
 easytests = tests "JournalReader" [
 
-   tests "transactionmodifierp" [
-
-    test "basic" $ expectParseEq transactionmodifierp 
-      "= (some value expr)\n some:postings  1.\n"
-      nulltransactionmodifier {
-        tmquerytxt = "(some value expr)"
-       ,tmpostings = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
-      }
+   let p = lift accountnamep :: JournalParser IO AccountName in
+   tests "accountnamep" [
+     test "basic" $ expectParse p "a:b:c"
+    ,_test "empty inner component" $ expectParseError p "a::c" ""  -- TODO
+    ,_test "empty leading component" $ expectParseError p ":b:c" "x"
+    ,_test "empty trailing component" $ expectParseError p "a:b:" "x"
     ]
+
+  -- "Parse a date in YYYY/MM/DD format.
+  -- Hyphen (-) and period (.) are also allowed as separators.
+  -- The year may be omitted if a default year has been set.
+  -- Leading zeroes may be omitted."
+  ,test "datep" $ do
+    test "YYYY/MM/DD" $ expectParseEq datep "2018/01/01" (fromGregorian 2018 1 1)
+    test "YYYY-MM-DD" $ expectParse datep "2018-01-01"
+    test "YYYY.MM.DD" $ expectParse datep "2018.01.01"
+    test "yearless date with no default year" $ expectParseError datep "1/1" "current year is unknown"
+    test "yearless date with default year" $ do 
+      ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep "1/1"
+      either (fail.("parse error at "++).parseErrorPretty) (const ok) ep
+    test "no leading zero" $ expectParse datep "2018/1/1"
+
+  ,test "datetimep" $ do
+      let
+        good = expectParse datetimep
+        bad = (\t -> expectParseError datetimep t "")
+      good "2011/1/1 00:00"
+      good "2011/1/1 23:59:59"
+      bad "2011/1/1"
+      bad "2011/1/1 24:00:00"
+      bad "2011/1/1 00:60:00"
+      bad "2011/1/1 00:00:60"
+      bad "2011/1/1 3:5:7"
+      test "timezone is parsed but ignored" $ do
+        let t = LocalTime (fromGregorian 2018 1 1) (TimeOfDay 0 0 (fromIntegral 0))
+        expectParseEq datetimep "2018/1/1 00:00-0800" t
+        expectParseEq datetimep "2018/1/1 00:00+1234" t
 
   ,tests "periodictransactionp" [
 
@@ -760,92 +788,64 @@ easytests = tests "JournalReader" [
         ,ptdescription = "Next year blah blah\n"
         }
 
-    ,transactionp_tests
-
-    ,test "showParsedMarketPrice" $ expectParseEq marketpricedirectivep
-      "P 2017/01/30 BTC $922.83\n"
-      MarketPrice{
-        mpdate      = parsedate "2017/01/30",
-        mpcommodity = "BTC",
-        mpamount    = usd 922.83
-        }
-
-{- old hunit tests TODO
-  ,"periodictransactionp" ~: do
-     assertParse (parseWithState mempty periodictransactionp "~ (some period expr)\n some:postings  1\n")
-
-  ,"directivep" ~: do
-     assertParse (parseWithState mempty directivep "!include /some/file.x\n")
-     assertParse (parseWithState mempty directivep "account some:account\n")
-     assertParse (parseWithState mempty (directivep >> directivep) "!account a\nend\n")
-
-  ,"comment" ~: do
-     assertParse (parseWithState mempty comment "; some comment \n")
-     assertParse (parseWithState mempty comment " \t; x\n")
-     assertParse (parseWithState mempty comment "#x")
-
-  ,"datep" ~: do
-     assertParse (parseWithState mempty datep "2011/1/1")
-     assertParseFailure (parseWithState mempty datep "1/1")
-     assertParse (parseWithState mempty{jpsYear=Just 2011} datep "1/1")
-
-  ,"datetimep" ~: do
-      let p = do {t <- datetimep; eof; return t}
-          bad = assertParseFailure . parseWithState mempty p
-          good = assertParse . parseWithState mempty p
-      bad "2011/1/1"
-      bad "2011/1/1 24:00:00"
-      bad "2011/1/1 00:60:00"
-      bad "2011/1/1 00:00:60"
-      good "2011/1/1 00:00"
-      good "2011/1/1 23:59:59"
-      good "2011/1/1 3:5:7"
-      -- timezone is parsed but ignored
-      let startofday = LocalTime (fromGregorian 2011 1 1) (TimeOfDay 0 0 (fromIntegral 0))
-      assertParseEqual (parseWithState mempty p "2011/1/1 00:00-0800") startofday
-      assertParseEqual (parseWithState mempty p "2011/1/1 00:00+1234") startofday
-
-  ,"defaultyeardirectivep" ~: do
-     assertParse (parseWithState mempty defaultyeardirectivep "Y 2010\n")
-     assertParse (parseWithState mempty defaultyeardirectivep "Y 10001\n")
-
-  ,"marketpricedirectivep" ~:
-    assertParseEqual (parseWithState mempty marketpricedirectivep "P 2004/05/01 XYZ $55.00\n") (MarketPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
-
-  ,"ignoredpricecommoditydirectivep" ~: do
-     assertParse (parseWithState mempty ignoredpricecommoditydirectivep "N $\n")
-
-  ,"defaultcommoditydirectivep" ~: do
-     assertParse (parseWithState mempty defaultcommoditydirectivep "D $1,000.0\n")
-
-  ,"commodityconversiondirectivep" ~: do
-     assertParse (parseWithState mempty commodityconversiondirectivep "C 1h = $50.00\n")
-
-  ,"tagdirectivep" ~: do
-     assertParse (parseWithState mempty tagdirectivep "tag foo \n")
-
-  ,"endtagdirectivep" ~: do
-     assertParse (parseWithState mempty endtagdirectivep "end tag \n")
-     assertParse (parseWithState mempty endtagdirectivep "pop \n")
-
-  ,"accountnamep" ~: do
-    assertBool "accountnamep parses a normal account name" (isRight $ parsewith accountnamep "a:b:c")
-    assertBool "accountnamep rejects an empty inner component" (isLeft $ parsewith accountnamep "a::c")
-    assertBool "accountnamep rejects an empty leading component" (isLeft $ parsewith accountnamep ":b:c")
-    assertBool "accountnamep rejects an empty trailing component" (isLeft $ parsewith accountnamep "a:b:")
-
-  ,"leftsymbolamountp" ~: do
-    assertParseEqual (parseWithState mempty leftsymbolamountp "$1")  (usd 1 `withPrecision` 0)
-    assertParseEqual (parseWithState mempty leftsymbolamountp "$-1") (usd (-1) `withPrecision` 0)
-    assertParseEqual (parseWithState mempty leftsymbolamountp "-$1") (usd (-1) `withPrecision` 0)
-
-  ,"amount" ~: do
-     let -- | compare a parse result with an expected amount, showing the debug representation for clarity
-         assertAmountParse parseresult amount =
-             (either (const "parse error") showAmountDebug parseresult) ~?= (showAmountDebug amount)
-     assertAmountParse (parseWithState mempty amountp "1 @ $2")
-       (num 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
--}
-
     ]
+
+  ,tests "transactionmodifierp" [
+
+    test "basic" $ expectParseEq transactionmodifierp 
+      "= (some value expr)\n some:postings  1.\n"
+      nulltransactionmodifier {
+        tmquerytxt = "(some value expr)"
+       ,tmpostings = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
+      }
+    ]
+
+  ,transactionp_tests
+
+  -- directives
+
+  ,tests "directivep" [
+    test "supports !" $ do 
+      expectParse directivep "!account a\n"
+      expectParse directivep "!D 1.0\n"
+    ]
+
+  ,test "accountdirectivep" $ do
+    test "account" $ expectParse accountdirectivep "account a:b\n"
+    test "does not support !" $ expectParseError accountdirectivep "!account a:b\n" ""
+
+  ,test "commodityconversiondirectivep" $ do
+     expectParse commodityconversiondirectivep "C 1h = $50.00\n"
+
+  ,test "defaultcommoditydirectivep" $ do
+     expectParse defaultcommoditydirectivep "D $1,000.0\n"
+     expectParseError defaultcommoditydirectivep "D $1000\n" "please include a decimal separator"
+
+  ,test "defaultyeardirectivep" $ do
+    test "1000" $ expectParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others
+    test "999" $ expectParseError defaultyeardirectivep "Y 999" "bad year number"
+    test "12345" $ expectParse defaultyeardirectivep "Y 12345"
+
+  ,test "ignoredpricecommoditydirectivep" $ do
+     expectParse ignoredpricecommoditydirectivep "N $\n"
+
+  ,test "includedirectivep" $ do
+    test "include" $ expectParseError includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
+    test "glob" $ expectParseError includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+
+  ,test "marketpricedirectivep" $ expectParseEq marketpricedirectivep
+    "P 2017/01/30 BTC $922.83\n"
+    MarketPrice{
+      mpdate      = parsedate "2017/01/30",
+      mpcommodity = "BTC",
+      mpamount    = usd 922.83
+      }
+
+  ,test "tagdirectivep" $ do
+     expectParse tagdirectivep "tag foo \n"
+
+  ,test "endtagdirectivep" $ do
+     expectParse endtagdirectivep "end tag \n"
+     expectParse endtagdirectivep "pop \n"
+
   ]
