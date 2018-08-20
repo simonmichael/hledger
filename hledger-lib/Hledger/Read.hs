@@ -345,7 +345,6 @@ samplejournal = readJournal' $ T.unlines
 tests_Hledger_Read = TestList $
   tests_readJournal'
   ++ [
-   tests_Hledger_Read_Common,
 --    LedgerReader.tests_Hledger_Read_LedgerReader,
    TimeclockReader.tests_Hledger_Read_TimeclockReader,
    TimedotReader.tests_Hledger_Read_TimedotReader,
