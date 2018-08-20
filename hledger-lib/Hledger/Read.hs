@@ -29,9 +29,8 @@ module Hledger.Read (
   module Hledger.Read.Common,
 
   -- * Tests
-  samplejournal,
   tests_Hledger_Read,
-  easytests,
+  easytests_Read,
 
 ) where
 
@@ -55,9 +54,8 @@ import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
 import Hledger.Data.Types
-import Hledger.Read.Common hiding (easytests)
-import qualified Hledger.Read.Common (easytests)
-import qualified Hledger.Read.JournalReader   as JournalReader
+import Hledger.Read.Common
+import Hledger.Read.JournalReader   as JournalReader
 -- import qualified Hledger.Read.LedgerReader    as LedgerReader
 import qualified Hledger.Read.TimedotReader   as TimedotReader
 import qualified Hledger.Read.TimeclockReader as TimeclockReader
@@ -361,7 +359,7 @@ tests_Hledger_Read = TestList $
 
   ]
 
-easytests = tests "Read" [
-   Hledger.Read.Common.easytests
-  ,JournalReader.easytests
+easytests_Read = tests "Read" [
+   easytests_Common
+  ,easytests_JournalReader
   ]

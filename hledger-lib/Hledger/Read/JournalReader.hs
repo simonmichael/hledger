@@ -58,7 +58,7 @@ module Hledger.Read.JournalReader (
   followingcommentp
 
   -- * Tests
-  ,easytests
+  ,easytests_JournalReader
 )
 where
 --- * imports
@@ -84,8 +84,8 @@ import Text.Printf
 import System.FilePath
 import "Glob" System.FilePath.Glob hiding (match)
 
-import Hledger.Data hiding (easytests)
-import Hledger.Read.Common hiding (easytests)
+import Hledger.Data
+import Hledger.Read.Common
 import Hledger.Read.TimeclockReader (timeclockfilep)
 import Hledger.Read.TimedotReader (timedotfilep)
 import Hledger.Utils
@@ -576,7 +576,7 @@ postingp mTransactionYear = do
 
 --- * tests
 
-easytests = tests "JournalReader" [
+easytests_JournalReader = tests "JournalReader" [
 
    let p = lift accountnamep :: JournalParser IO AccountName in
    tests "accountnamep" [

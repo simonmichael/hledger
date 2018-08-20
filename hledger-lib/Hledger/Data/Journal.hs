@@ -69,7 +69,7 @@ module Hledger.Data.Journal (
   -- * Tests
   samplejournal,
   tests_Hledger_Data_Journal,
-  easytests,
+  easytests_Journal,
 )
 where
 import Control.Applicative (Const(..))
@@ -1087,7 +1087,7 @@ tests_Hledger_Data_Journal = TestList $
   --   journalProfitAndLossAccountNames j `is` ["expenses","expenses:e","income","income:i"]
  ]
 
-easytests = tests "Journal" [
+easytests_Journal = tests "Journal" [
   test "standard account types" $ do
     let
       j = samplejournal

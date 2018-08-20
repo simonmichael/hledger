@@ -93,7 +93,7 @@ module Hledger.Read.Common (
 
   -- * tests
   tests_Hledger_Read_Common,
-  Hledger.Read.Common.easytests
+  easytests_Common,
 )
 where
 --- * imports
@@ -123,7 +123,7 @@ import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
 
-import Hledger.Data hiding (easytests)
+import Hledger.Data
 import Hledger.Utils
 
 -- $setup
@@ -1232,7 +1232,7 @@ tests_Hledger_Read_Common = TestList [
   ,test_spaceandamountormissingp
   ]
 
-easytests = tests "Common" [
+easytests_Common = tests "Common" [
   tests "amountp" [
     test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
    ,test "ends-with-decimal-mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-|
 
 The Hledger.Data library allows parsing and querying of C++ ledger-style
@@ -25,7 +26,8 @@ module Hledger.Data (
                module Hledger.Data.Transaction,
                module Hledger.Data.TransactionModifier,
                module Hledger.Data.Types,
-               tests_Hledger_Data
+               tests_Hledger_Data,
+               easytests_Data,
               )
 where
 
@@ -64,3 +66,7 @@ tests_Hledger_Data = TestList
     ,tests_Hledger_Data_Transaction
     -- ,tests_Hledger_Data_Types
     ]
+
+easytests_Data = tests "Data" [
+  easytests_Journal
+  ]

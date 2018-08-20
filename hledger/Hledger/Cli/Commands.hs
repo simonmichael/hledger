@@ -246,7 +246,7 @@ testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   let args = words' $ query_ $ reportopts_ opts
   putStrLn "\n=== easytest tests: ===\n"
-  e1 <- runEasyTests args easytests
+  e1 <- runEasyTests args easytests_Hledger
   when (not e1) $ putStr "\n"
   putStrLn "=== hunit tests: ===\n"
   e2 <- runHunitTests args tests_Hledger_Cli_Commands
