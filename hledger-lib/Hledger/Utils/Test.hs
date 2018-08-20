@@ -14,8 +14,6 @@ module Hledger.Utils.Test (
   ,_it
   ,expectParseEq
   ,expectParseEqOn
---  ,expectParseEq
---  ,expectParseEqOnIO
   -- * HUnit
   ,module Test.HUnit
   ,runHunitTests
@@ -100,39 +98,18 @@ expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
 expectEq' x y = if x == y then E.ok else E.crash $
   "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
 
--- XXX unnecessary ?
--- | Given a stateful, runnable-in-Identity-monad parser, input text, and 
+-- | Given a stateful parser runnable in IO, input text, and an 
 -- expected parse result, make a Test that parses the text and compares 
 -- the result, showing a nice failure message if either step fails.
---expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) => 
---  StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> E.Test ()
---expectParseEq parser input expected = expectParseEqOn parser input id expected
---
--- | Like expectParseEq, but also takes a transform function 
--- to call on the parse result before comparing it.
---expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) => 
---  StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> (a -> b) -> b -> E.Test ()
---expectParseEqOn parser input f expected = do
---  let ep = runIdentity $ parseWithState mempty parser input
---  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected . f) ep
---
 expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
-expectParseEq = expectParseEqIO
+expectParseEq parser input expected = expectParseEqOn parser input id expected
 
+-- | Like expectParseEq, but also takes a transform function 
+-- to call on the parse result before comparing it.
 expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
-expectParseEqOn = expectParseEqOnIO
-
--- | Like expectParseEq, but takes a parser runnable in the IO monad.
-expectParseEqIO :: (Monoid st, Eq a, Show a, HasCallStack) => 
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
-expectParseEqIO parser input expected = expectParseEqOnIO parser input id expected
-
--- | Like expectParseEqOn, but takes a parser runnable in the IO monad.
-expectParseEqOnIO :: (Monoid st, Eq b, Show b, HasCallStack) => 
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
-expectParseEqOnIO parser input f expected = do
+expectParseEqOn parser input f expected = do
   ep <- E.io $ runParserT (evalStateT parser mempty) "" input
   either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected . f) ep
 
