@@ -23,9 +23,6 @@ module Hledger.Reports.TransactionsReports (
   accountTransactionsReport,
   transactionsReportByCommodity,
   transactionRegisterDate
-
-  -- -- * Tests
-  -- tests_Hledger_Reports_TransactionsReports
 )
 where
 

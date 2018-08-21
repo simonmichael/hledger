@@ -16,7 +16,6 @@ The @accounts@ command lists account names:
 module Hledger.Cli.Commands.Accounts (
   accountsmode
  ,accounts
- ,tests_Hledger_Cli_Commands_Accounts
 ) where
 
 import Data.List
@@ -80,5 +79,3 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       render a | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a
                | otherwise   = maybeAccountNameDrop ropts a
   mapM_ (putStrLn . T.unpack . render) as'
-
-tests_Hledger_Cli_Commands_Accounts = TestList []

@@ -257,16 +257,8 @@ testcmd opts _undefined = do
 
 tests_Hledger_Cli_Commands = TestList [
    tests_Hledger
-  ,tests_Hledger_Cli_CliOptions
-  -- ,tests_Hledger_Cli_Commands_Activity
-  -- ,tests_Hledger_Cli_Commands_Add
   ,tests_Hledger_Cli_Commands_Balance
-  ,tests_Hledger_Cli_Commands_Balancesheet
-  ,tests_Hledger_Cli_Commands_Cashflow
-  ,tests_Hledger_Cli_Commands_Incomestatement
-  ,tests_Hledger_Cli_Commands_Print
   ,tests_Hledger_Cli_Commands_Register
-  -- ,tests_Hledger_Cli_Commands_Stats
 
   -- some more tests easiest to define here:
   

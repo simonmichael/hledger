@@ -60,9 +60,6 @@ module Hledger.Cli.CliOptions (
   hledgerAddons,
   topicForMode,
 
-  -- * Tests
-  tests_Hledger_Cli_CliOptions,
-
 --  -- * Convenience re-exports
 --  module Data.String.Here,
 --  module System.Console.CmdArgs.Explicit,
@@ -705,8 +702,3 @@ getDirectoryContentsSafe d =
 --     d <- getCurrentDay
 --     putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
 
--- tests
-
-tests_Hledger_Cli_CliOptions = TestList
- [
- ]

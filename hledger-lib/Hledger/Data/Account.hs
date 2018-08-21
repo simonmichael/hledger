@@ -236,8 +236,3 @@ showAccountDebug a = printf "%-25s %4s %4s %s"
                      (showMixedAmount $ aebalance a)
                      (showMixedAmount $ aibalance a)
                      (if aboring a then "b" else " " :: String)
-
-
-tests_Hledger_Data_Account = TestList [
- ]
-

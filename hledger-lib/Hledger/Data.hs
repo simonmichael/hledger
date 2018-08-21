@@ -52,12 +52,9 @@ import Hledger.Utils.Test
 
 tests_Hledger_Data = TestList
     [
-     tests_Hledger_Data_Account
-    ,tests_Hledger_Data_AccountName
+     tests_Hledger_Data_AccountName
     ,tests_Hledger_Data_Amount
-    ,tests_Hledger_Data_Commodity
     ,tests_Hledger_Data_Journal
-    ,tests_Hledger_Data_MarketPrice
     ,tests_Hledger_Data_Ledger
     ,tests_Hledger_Data_Posting
     -- ,tests_Hledger_Data_RawOptions

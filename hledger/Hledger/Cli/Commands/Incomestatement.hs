@@ -8,7 +8,6 @@ The @incomestatement@ command prints a simple income statement (profit & loss re
 module Hledger.Cli.Commands.Incomestatement (
   incomestatementmode
  ,incomestatement
- ,tests_Hledger_Cli_Commands_Incomestatement
 ) where
 
 import Data.String.Here
@@ -54,7 +53,3 @@ incomestatementmode = compoundBalanceCommandMode incomestatementSpec
 
 incomestatement :: CliOpts -> Journal -> IO ()
 incomestatement = compoundBalanceCommand incomestatementSpec
-
-tests_Hledger_Cli_Commands_Incomestatement = TestList
- [
- ]

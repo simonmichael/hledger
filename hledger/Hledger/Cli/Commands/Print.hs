@@ -11,7 +11,6 @@ module Hledger.Cli.Commands.Print (
  ,print'
  -- ,entriesReportAsText
  ,originalTransaction
- ,tests_Hledger_Cli_Commands_Print
 )
 where
 
@@ -180,8 +179,3 @@ printMatch CliOpts{reportopts_=ropts} j desc = do
       | otherwise           = Just $ snd $ head historymatches
       where
         historymatches = transactionsSimilarTo j q desc
-
--- tests
-
-tests_Hledger_Cli_Commands_Print = TestList []
-  -- tests_showTransactions

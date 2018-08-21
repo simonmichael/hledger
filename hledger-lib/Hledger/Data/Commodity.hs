@@ -79,6 +79,3 @@ conversionRate _ _ = 1
 --     commoditieswithsymbol s = filter ((s==) . symbol) cs
 --     symbols = nub $ map symbol cs
 
-tests_Hledger_Data_Commodity = TestList [
- ]
-

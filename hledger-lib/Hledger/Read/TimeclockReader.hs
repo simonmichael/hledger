@@ -47,8 +47,6 @@ module Hledger.Read.TimeclockReader (
   reader,
   -- * Misc other exports
   timeclockfilep,
-  -- * Tests
-  tests_Hledger_Read_TimeclockReader
 )
 where
 import           Prelude ()
@@ -115,6 +113,4 @@ timeclockentryp = do
   description <- T.pack . fromMaybe "" <$> lift (optional (skipSome spacenonewline >> restofline))
   return $ TimeclockEntry sourcepos (read [code]) datetime account description
 
-tests_Hledger_Read_TimeclockReader = TestList [
- ]
 

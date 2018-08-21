@@ -11,7 +11,6 @@ cash flows.)
 module Hledger.Cli.Commands.Cashflow (
   cashflowmode
  ,cashflow
- ,tests_Hledger_Cli_Commands_Cashflow
 ) where
 
 import Data.String.Here
@@ -51,7 +50,3 @@ cashflowmode = compoundBalanceCommandMode cashflowSpec
 
 cashflow :: CliOpts -> Journal -> IO ()
 cashflow = compoundBalanceCommand cashflowSpec
-
-tests_Hledger_Cli_Commands_Cashflow = TestList
- [
- ]

@@ -30,8 +30,6 @@ module Hledger.Read.TimedotReader (
   reader,
   -- * Misc other exports
   timedotfilep,
-  -- * Tests
-  tests_Hledger_Read_TimedotReader
 )
 where
 import Prelude ()
@@ -172,7 +170,3 @@ timedotdotsp :: JournalParser m Quantity
 timedotdotsp = do
   dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))
   return $ (/4) $ fromIntegral $ length dots
-
-tests_Hledger_Read_TimedotReader = TestList [
- ]
-

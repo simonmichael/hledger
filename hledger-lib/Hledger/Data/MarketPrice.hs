@@ -17,7 +17,6 @@ import qualified Data.Text as T
 import Hledger.Data.Amount
 import Hledger.Data.Dates
 import Hledger.Data.Types
-import Hledger.Utils.Test
 
 -- | Get the string representation of an market price, based on its
 -- commodity's display settings.
@@ -28,5 +27,3 @@ showMarketPrice mp = unwords
     , T.unpack (mpcommodity mp)
     , (showAmount . setAmountPrecision maxprecision) (mpamount mp)
     ]
-
-tests_Hledger_Data_MarketPrice = TestList []

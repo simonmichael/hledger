@@ -42,6 +42,5 @@ tests_Hledger_Reports = TestList $
  tests_Hledger_Reports_EntriesReport,
  tests_Hledger_Reports_PostingsReport,
  tests_Hledger_Reports_BalanceReport,
- tests_Hledger_Reports_MultiBalanceReport,
- tests_Hledger_Reports_BudgetReport
+ tests_Hledger_Reports_MultiBalanceReport
  ]

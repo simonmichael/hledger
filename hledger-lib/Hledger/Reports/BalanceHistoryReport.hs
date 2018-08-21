@@ -8,9 +8,6 @@ Account balance history report.
 
 module Hledger.Reports.BalanceHistoryReport (
   accountBalanceHistory
-
-  -- -- * Tests
-  -- tests_Hledger_Reports_BalanceReport
 )
 where
 

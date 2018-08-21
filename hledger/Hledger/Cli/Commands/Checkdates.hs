@@ -4,7 +4,6 @@
 module Hledger.Cli.Commands.Checkdates (
   checkdatesmode
  ,checkdates
- ,tests_Hledger_Cli_Commands_Checkdates
 ) where
 
 import Data.String.Here
@@ -78,7 +77,3 @@ checkTransactions compare ts =
       if compare previous current
       then acc{fa_previous=Just current}
       else acc{fa_error=Just current}
-
-tests_Hledger_Cli_Commands_Checkdates = TestList
- [
- ]
