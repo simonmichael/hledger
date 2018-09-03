@@ -826,4 +826,9 @@ easytests_JournalReader = tests "JournalReader" [
      expectParse endtagdirectivep "end tag \n"
      expectParse endtagdirectivep "pop \n"
 
+
+  ,tests "journalp" [
+    test "empty file" $ expectParseEq journalp "" nulljournal
+    ]
+
   ]

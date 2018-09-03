@@ -29,7 +29,6 @@ module Hledger.Read (
   module Hledger.Read.Common,
 
   -- * Tests
-  tests_Hledger_Read,
   easytests_Read,
 
 ) where
@@ -147,12 +146,6 @@ newJournalContent = do
 -- | Read a Journal from the given text trying all readers in turn, or throw an error.
 readJournal' :: Text -> IO Journal
 readJournal' t = readJournal def Nothing t >>= either error' return
-
-tests_readJournal' = [
-  "readJournal' parses sample journal" ~: do
-     _ <- samplejournal
-     assertBool "" True
- ]
 
 -- | @findReader mformat mpath@
 --
@@ -314,47 +307,37 @@ tryReaders iopts mpath readers txt = firstSuccessOrFirstError [] readers
 
 -- tests
 
-samplejournal = readJournal' $ T.unlines
- ["2008/01/01 income"
- ,"    assets:bank:checking  $1"
- ,"    income:salary"
- ,""
- ,"comment"
- ,"multi line comment here"
- ,"for testing purposes"
- ,"end comment"
- ,""
- ,"2008/06/01 gift"
- ,"    assets:bank:checking  $1"
- ,"    income:gifts"
- ,""
- ,"2008/06/02 save"
- ,"    assets:bank:saving  $1"
- ,"    assets:bank:checking"
- ,""
- ,"2008/06/03 * eat & shop"
- ,"    expenses:food      $1"
- ,"    expenses:supplies  $1"
- ,"    assets:cash"
- ,""
- ,"2008/12/31 * pay off"
- ,"    liabilities:debts  $1"
- ,"    assets:bank:checking"
- ]
-
-tests_Hledger_Read = TestList $
-  tests_readJournal'
-  ++ [
-   "journal" ~: do
-    r <- runExceptT $ parseWithState mempty JournalReader.journalp ""
-    assertBool "journalp should parse an empty file" (isRight $ r)
-    jE <- readJournal def Nothing "" -- don't know how to get it from journal
-    either error' (assertBool "journalp parsing an empty file should give an empty journal" . null . jtxns) jE
-
-  ]
-
 easytests_Read = tests "Read" [
    easytests_Common
   ,easytests_CsvReader
   ,easytests_JournalReader
   ]
+
+--samplejournal = readJournal' $ T.unlines
+-- ["2008/01/01 income"
+-- ,"    assets:bank:checking  $1"
+-- ,"    income:salary"
+-- ,""
+-- ,"comment"
+-- ,"multi line comment here"
+-- ,"for testing purposes"
+-- ,"end comment"
+-- ,""
+-- ,"2008/06/01 gift"
+-- ,"    assets:bank:checking  $1"
+-- ,"    income:gifts"
+-- ,""
+-- ,"2008/06/02 save"
+-- ,"    assets:bank:saving  $1"
+-- ,"    assets:bank:checking"
+-- ,""
+-- ,"2008/06/03 * eat & shop"
+-- ,"    expenses:food      $1"
+-- ,"    expenses:supplies  $1"
+-- ,"    assets:cash"
+-- ,""
+-- ,"2008/12/31 * pay off"
+-- ,"    liabilities:debts  $1"
+-- ,"    assets:bank:checking"
+-- ]
+
