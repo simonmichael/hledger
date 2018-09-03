@@ -25,7 +25,7 @@ module Hledger.Read.CsvReader (
   expandIncludes,
   transactionFromCsvRecord,
   -- * Tests
-  tests_Hledger_Read_CsvReader
+  easytests_CsvReader,
 )
 where
 import Prelude ()
@@ -832,67 +832,24 @@ parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith format
 --------------------------------------------------------------------------------
 -- tests
 
-tests_Hledger_Read_CsvReader = TestList (test_parser)
-                               -- ++ test_description_parsing)
+easytests_CsvReader = tests "CsvReader" [
+  tests "rulesp" [
+     test "empty file" $
+      expectEq' (Right rules) (parseCsvRules "unknown" "")
+  
+    ,test "trailing comments" $
+      expectEq' (Right rules{rdirectives = [("skip","")]}) (parseWithState' rules rulesp "skip\n# \n#\n")
+  
+    ,test "trailing blank lines" $
+      expectEq' (Right rules{rdirectives = [("skip","")]}) (parseWithState' rules rulesp "skip\n\n  \n")
+  
+    ,test "no final newline" $
+      expectEq' (Right rules{rdirectives=[("skip","")]}) (parseWithState' rules rulesp "skip")
 
--- test_description_parsing = [
---       "description-field 1" ~: assertParseDescription "description-field 1\n" [FormatField False Nothing Nothing (FieldNo 1)]
---     , "description-field 1 " ~: assertParseDescription "description-field 1 \n" [FormatField False Nothing Nothing (FieldNo 1)]
---     , "description-field %(1)" ~: assertParseDescription "description-field %(1)\n" [FormatField False Nothing Nothing (FieldNo 1)]
---     , "description-field %(1)/$(2)" ~: assertParseDescription "description-field %(1)/%(2)\n" [
---           FormatField False Nothing Nothing (FieldNo 1)
---         , FormatLiteral "/"
---         , FormatField False Nothing Nothing (FieldNo 2)
---         ]
---     ]
---   where
---     assertParseDescription string expected = do assertParseEqual (parseDescription string) (rules {descriptionField = expected})
---     parseDescription :: String -> Either ParseError CsvRules
---     parseDescription x = runParser descriptionfieldWrapper rules "(unknown)" x
---     descriptionfieldWrapper :: GenParser Char CsvRules CsvRules
---     descriptionfieldWrapper = do
---       descriptionfield
---       r <- getState
---       return r
+    ,test "assignment with empty value" $
+      expectEq' 
+        (Right rules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
+        (parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n")
 
-test_parser =  [
-
-   "convert rules parsing: empty file" ~: do
-     -- let assertMixedAmountParse parseresult mixedamount =
-     --         (either (const "parse error") showMixedAmountDebug parseresult) ~?= (showMixedAmountDebug mixedamount)
-    assertParseEqual (parseCsvRules "unknown" "") rules
-
-  -- ,"convert rules parsing: accountrule" ~: do
-  --    assertParseEqual (parseWithState rules accountrule "A\na\n") -- leading blank line required
-  --                ([("A",Nothing)], "a")
-
-  ,"convert rules parsing: trailing comments" ~: do
-     assertParse (parseWithState' rules rulesp "skip\n# \n#\n")
-
-  ,"convert rules parsing: trailing blank lines" ~: do
-     assertParse (parseWithState' rules rulesp "skip\n\n  \n")
-
-  ,"convert rules parsing: empty field value" ~: do
-     assertParse (parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n")
-
-  -- not supported
-  -- ,"convert rules parsing: no final newline" ~: do
-  --    assertParse (parseWithState rules csvrulesfile "A\na")
-  --    assertParse (parseWithState rules csvrulesfile "A\na\n# \n#")
-  --    assertParse (parseWithState rules csvrulesfile "A\na\n\n  ")
-
-                 -- (rules{
-                 --   -- dateField=Maybe FieldPosition,
-                 --   -- statusField=Maybe FieldPosition,
-                 --   -- codeField=Maybe FieldPosition,
-                 --   -- descriptionField=Maybe FieldPosition,
-                 --   -- amountField=Maybe FieldPosition,
-                 --   -- currencyField=Maybe FieldPosition,
-                 --   -- baseCurrency=Maybe String,
-                 --   -- baseAccount=AccountName,
-                 --   accountRules=[
-                 --        ([("A",Nothing)], "a")
-                 --       ]
-                 --  })
-
+    ]
   ]

@@ -59,7 +59,7 @@ import Hledger.Read.JournalReader   as JournalReader
 -- import qualified Hledger.Read.LedgerReader    as LedgerReader
 import qualified Hledger.Read.TimedotReader   as TimedotReader
 import qualified Hledger.Read.TimeclockReader as TimeclockReader
-import qualified Hledger.Read.CsvReader       as CsvReader
+import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
 
@@ -345,8 +345,6 @@ samplejournal = readJournal' $ T.unlines
 tests_Hledger_Read = TestList $
   tests_readJournal'
   ++ [
-   CsvReader.tests_Hledger_Read_CsvReader,
-
    "journal" ~: do
     r <- runExceptT $ parseWithState mempty JournalReader.journalp ""
     assertBool "journalp should parse an empty file" (isRight $ r)
@@ -357,5 +355,6 @@ tests_Hledger_Read = TestList $
 
 easytests_Read = tests "Read" [
    easytests_Common
+  ,easytests_CsvReader
   ,easytests_JournalReader
   ]
