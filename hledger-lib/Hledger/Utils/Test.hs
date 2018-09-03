@@ -99,10 +99,11 @@ runEasyTests args easytests = (do
   )
   `catch` (\(_::ExitCode) -> return True)
 
--- | Like easytest's expectEq, but pretty-prints the values in the failure output. 
+-- | Like easytest's expectEq (asserts the second (actual) value equals the first (expected) value)
+-- but pretty-prints the values in the failure output. 
 expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
-expectEq' x y = if x == y then E.ok else E.crash $
-  "\nexpected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
+expectEq' expected actual = if expected == actual then E.ok else E.crash $
+  "\nexpected:\n" <> T.pack (pshow expected) <> "\nbut got:\n" <> T.pack (pshow actual) <> "\n"
 
 -- | Test that this stateful parser runnable in IO successfully parses 
 -- all of the given input text, showing the parse error if it fails. 
