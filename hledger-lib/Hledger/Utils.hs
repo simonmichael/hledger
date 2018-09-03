@@ -4,6 +4,7 @@ Standard imports and utilities which are useful everywhere, or needed low
 in the module hierarchy. This is the bottom of hledger's module graph.
 
 -}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Utils (---- provide these frequently used modules - or not, for clearer api:
                           -- module Control.Monad,
@@ -216,6 +217,6 @@ sequence' ms = do
 mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
 
-tests_Hledger_Utils = TestList [
-    tests_Hledger_Utils_Text
-    ]
+easytests_Utils = tests "Utils" [
+  easytests_Text
+  ]

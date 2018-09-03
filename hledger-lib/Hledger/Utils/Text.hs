@@ -54,7 +54,8 @@ module Hledger.Utils.Text
  -- fitStringMulti,
   textPadLeftWide,
   textPadRightWide,
-  tests_Hledger_Utils_Text
+  -- -- * tests
+  easytests_Text
   )
 where
 
@@ -419,12 +420,14 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 --         | otherwise                        -> 1
 
 
-tests_Hledger_Utils_Text = TestList [
-      quoteIfSpaced "a'a" ~?= "a'a"
-    , quoteIfSpaced "a\"a" ~?= "a\"a"
-    , quoteIfSpaced "a a" ~?= "\"a a\""
-    , quoteIfSpaced "mimi's cafe" ~?= "\"mimi's cafe\""
-    , quoteIfSpaced "\"alex\" cafe" ~?= "\"\\\"alex\\\" cafe\""
-    , quoteIfSpaced "le'shan's cafe" ~?= "\"le'shan's cafe\""
-    , quoteIfSpaced "\"be'any's\" cafe" ~?= "\"\\\"be'any's\\\" cafe\""
-    ]
+easytests_Text = tests "Text" [
+   tests "quoteIfSpaced" [
+     expectEq' "a'a" (quoteIfSpaced "a'a")
+    ,expectEq' "a\"a" (quoteIfSpaced "a\"a")              
+    ,expectEq' "\"a a\"" (quoteIfSpaced "a a")               
+    ,expectEq' "\"mimi's cafe\"" (quoteIfSpaced "mimi's cafe")       
+    ,expectEq' "\"\\\"alex\\\" cafe\"" (quoteIfSpaced "\"alex\" cafe")     
+    ,expectEq' "\"le'shan's cafe\"" (quoteIfSpaced "le'shan's cafe")    
+    ,expectEq' "\"\\\"be'any's\\\" cafe\"" (quoteIfSpaced "\"be'any's\" cafe") 
+    ] 
+  ]

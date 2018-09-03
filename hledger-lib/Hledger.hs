@@ -18,10 +18,10 @@ tests_Hledger = TestList
      tests_Hledger_Data
     ,tests_Hledger_Query
     ,tests_Hledger_Reports
-    ,tests_Hledger_Utils
     ]
 
 easytests_Hledger = tests "Hledger" [
    easytests_Data
   ,easytests_Read
+  ,easytests_Utils
   ]
