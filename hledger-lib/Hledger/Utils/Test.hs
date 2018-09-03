@@ -12,6 +12,7 @@ module Hledger.Utils.Test (
   ,_test
   ,it
   ,_it
+  ,expectEq'
   ,expectParse
   ,expectParseError
   ,expectParseEq
@@ -101,7 +102,7 @@ runEasyTests args easytests = (do
 -- | Like easytest's expectEq, but pretty-prints the values in the failure output. 
 expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
 expectEq' x y = if x == y then E.ok else E.crash $
-  "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
+  "\nexpected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
 
 -- | Test that this stateful parser runnable in IO successfully parses 
 -- all of the given input text, showing the parse error if it fails. 
