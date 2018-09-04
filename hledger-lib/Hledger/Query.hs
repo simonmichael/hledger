@@ -46,9 +46,10 @@ module Hledger.Query (
   matchesMarketPrice,
   words'',
   -- * tests
-  tests_Hledger_Query
+  easytests_Query
 )
 where
+import Data.CallStack
 import Data.Data
 import Data.Either
 import Data.List
@@ -56,17 +57,16 @@ import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
--- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (readDef, headDef)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
-import Hledger.Utils hiding (words')
+import Hledger.Utils hiding (words', is)
 import Hledger.Data.Types
 import Hledger.Data.AccountName
-import Hledger.Data.Amount (amount, nullamt, usd)
+import Hledger.Data.Amount (nullamt, usd)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
@@ -116,6 +116,11 @@ instance Show Query where
   show (Empty b)     = "Empty "  ++ show b
   show (Depth n)     = "Depth "  ++ show n
   show (Tag s ms)    = "Tag "    ++ show s ++ " (" ++ show ms ++ ")"
+
+-- | A more expressive Ord, used for amt: queries. The Abs* variants
+-- compare with the absolute value of a number, ignoring sign.
+data OrdPlus = Lt | LtEq | Gt | GtEq | Eq | AbsLt | AbsLtEq | AbsGt | AbsGtEq | AbsEq
+ deriving (Show,Eq,Data,Typeable)
 
 -- | A query option changes a query's/report's behaviour and output in some way.
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
@@ -172,17 +177,6 @@ parseQuery d s = (q, opts)
     (statuspats, otherpats) = partition queryIsStatus pats''
     q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats] ++ otherpats
 
-tests_parseQuery = [
-  "parseQuery" ~: do
-    let d = nulldate -- parsedate "2011/1/1"
-    parseQuery d "acct:'expenses:autres d\233penses' desc:b" `is` (And [Acct "expenses:autres d\233penses", Desc "b"], [])
-    parseQuery d "inacct:a desc:\"b b\"" `is` (Desc "b b", [QueryOptInAcct "a"])
-    parseQuery d "inacct:a inacct:b" `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
-    parseQuery d "desc:'x x'" `is` (Desc "x x", [])
-    parseQuery d "'a a' 'b" `is` (Or [Acct "a a",Acct "'b"], [])
-    parseQuery d "\"" `is` (Acct "\"", [])
- ]
-
 -- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
@@ -208,19 +202,6 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
       doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])) >>= return . stripquotes . T.pack
       pattern :: SimpleTextParser T.Text
       pattern = fmap T.pack $ many (noneOf (" \n\r" :: [Char]))
-
-tests_words'' = [
-   "words''" ~: do
-    assertEqual "1" ["a","b"]        (words'' [] "a b")
-    assertEqual "2" ["a b"]          (words'' [] "'a b'")
-    assertEqual "3" ["not:a","b"]    (words'' [] "not:a b")
-    assertEqual "4" ["not:a b"]    (words'' [] "not:'a b'")
-    assertEqual "5" ["not:a b"]    (words'' [] "'not:a b'")
-    assertEqual "6" ["not:desc:a b"]    (words'' ["desc:"] "not:desc:'a b'")
-    let s `gives` r = assertEqual "" r (words'' prefixes s)
-    "\"acct:expenses:autres d\233penses\"" `gives` ["acct:expenses:autres d\233penses"]
-    "\"" `gives` ["\""]
- ]
 
 -- XXX
 -- keep synced with patterns below, excluding "not"
@@ -293,36 +274,7 @@ parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Left $ Tag n v where (n,v) =
 parseQueryTerm _ "" = Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 
-tests_parseQueryTerm = [
-  "parseQueryTerm" ~: do
-    let s `gives` r = parseQueryTerm nulldate s `is` r
-    "a" `gives` (Left $ Acct "a")
-    "acct:expenses:autres d\233penses" `gives` (Left $ Acct "expenses:autres d\233penses")
-    "not:desc:a b" `gives` (Left $ Not $ Desc "a b")
-    "status:1" `gives` (Left $ StatusQ Cleared)
-    "status:*" `gives` (Left $ StatusQ Cleared)
-    "status:!" `gives` (Left $ StatusQ Pending)
-    "status:0" `gives` (Left $ StatusQ Unmarked)
-    "status:" `gives` (Left $ StatusQ Unmarked)
-    "payee:x" `gives` (Left $ Tag "payee" (Just "x"))
-    "note:x" `gives` (Left $ Tag "note" (Just "x"))
-    "real:1" `gives` (Left $ Real True)
-    "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
-    "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
-    "date:20180101-201804" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
-    "inacct:a" `gives` (Right $ QueryOptInAcct "a")
-    "tag:a" `gives` (Left $ Tag "a" Nothing)
-    "tag:a=some value" `gives` (Left $ Tag "a" (Just "some value"))
-    -- "amt:<0" `gives` (Left $ Amt LT 0)
-    -- "amt:=.23" `gives` (Left $ Amt EQ 0.23)
-    -- "amt:>10000.10" `gives` (Left $ Amt GT 10000.1)
- ]
-
-
-data OrdPlus = Lt | LtEq | Gt | GtEq | Eq | AbsLt | AbsLtEq | AbsGt | AbsGtEq | AbsEq
- deriving (Show,Eq,Data,Typeable)
-
--- can fail
+-- | Parse what comes after amt: .
 parseAmountQueryTerm :: T.Text -> (OrdPlus, Quantity)
 parseAmountQueryTerm s' =
   case s' of
@@ -357,18 +309,6 @@ parseAmountQueryTerm s' =
     s               -> (AbsEq, readDef err (T.unpack s))
   where
     err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a (optionally signed) numeric quantity: " ++ T.unpack s'
-
-tests_parseAmountQueryTerm = [
-  "parseAmountQueryTerm" ~: do
-    let s `gives` r = parseAmountQueryTerm s `is` r
-    "<0" `gives` (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
-    ">0" `gives` (Gt,0) -- special case for convenience and consistency with above
-    ">10000.10" `gives` (AbsGt,10000.1)
-    "=0.23" `gives` (AbsEq,0.23)
-    "0.23" `gives` (AbsEq,0.23)
-    "<=+0.23" `gives` (LtEq,0.23)
-    "-0.23" `gives` (Eq,(-0.23))
-  ]
 
 parseTag :: T.Text -> (Regexp, Maybe Regexp)
 parseTag s | "=" `T.isInfixOf` s = (T.unpack n, Just $ tail $ T.unpack v)
@@ -412,20 +352,6 @@ simplifyQuery q =
     simplify (Date2 (DateSpan Nothing Nothing)) = Any
     simplify q = q
 
-tests_simplifyQuery = [
- "simplifyQuery" ~: do
-  let q `gives` r = assertEqual "" r (simplifyQuery q)
-  Or [Acct "a"] `gives` Acct "a"
-  Or [Any,None] `gives` Any
-  And [Any,None] `gives` None
-  And [Any,Any] `gives` Any
-  And [Acct "b",Any] `gives` Acct "b"
-  And [Any,And [Date (DateSpan Nothing Nothing)]] `gives` Any
-  And [Date (DateSpan Nothing (Just $ parsedate "2013-01-01")), Date (DateSpan (Just $ parsedate "2012-01-01") Nothing)]
-      `gives` Date (DateSpan (Just $ parsedate "2012-01-01") (Just $ parsedate "2013-01-01"))
-  And [Or [],Or [Desc "b b"]] `gives` Desc "b b"
- ]
-
 same [] = True
 same (a:as) = all (a==) as
 
@@ -439,15 +365,6 @@ filterQuery' p (And qs) = And $ map (filterQuery p) qs
 filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
 -- filterQuery' p (Not q) = Not $ filterQuery p q
 filterQuery' p q = if p q then q else Any
-
-tests_filterQuery = [
- "filterQuery" ~: do
-  let (q,p) `gives` r = assertEqual "" r (filterQuery p q)
-  (Any, queryIsDepth) `gives` Any
-  (Depth 1, queryIsDepth) `gives` Depth 1
-  (And [And [StatusQ Cleared,Depth 1]], not . queryIsDepth) `gives` StatusQ Cleared
-  -- (And [Date nulldatespan, Not (Or [Any, Depth 1])], queryIsDepth) `gives` And [Not (Or [Depth 1])]
- ]
 
 -- * accessors
 
@@ -623,20 +540,6 @@ matchesAccount (Depth d) a = accountNameLevel a <= d
 matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
 
-tests_matchesAccount = [
-   "matchesAccount" ~: do
-    assertBool "positive acct match" $ matchesAccount (Acct "b:c") "a:bb:c:d"
-    -- assertBool "acct should match at beginning" $ not $ matchesAccount (Acct True "a:b") "c:a:b"
-    let q `matches` a = assertBool "" $ q `matchesAccount` a
-    Depth 2 `matches` "a:b"
-    assertBool "" $ Depth 2 `matchesAccount` "a"
-    assertBool "" $ Depth 2 `matchesAccount` "a:b"
-    assertBool "" $ not $ Depth 2 `matchesAccount` "a:b:c"
-    assertBool "" $ Date nulldatespan `matchesAccount` "a"
-    assertBool "" $ Date2 nulldatespan `matchesAccount` "a"
-    assertBool "" $ not $ (Tag "a" Nothing) `matchesAccount` "a"
- ]
-
 matchesMixedAmount :: Query -> MixedAmount -> Bool
 matchesMixedAmount q (Mixed []) = q `matchesAmount` nullamt
 matchesMixedAmount q (Mixed as) = any (q `matchesAmount`) as
@@ -704,38 +607,6 @@ matchesPosting (Tag n v) p = case (n, v) of
   ("note", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionNote) $ ptransaction p
   (n, v) -> matchesTags n v $ postingAllTags p
 
-tests_matchesPosting = [
-   "matchesPosting" ~: do
-    -- matching posting status..
-    assertBool "positive match on cleared posting status"  $
-                   (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    assertBool "negative match on cleared posting status"  $
-               not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    assertBool "positive match on unmarked posting status" $
-                   (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    assertBool "negative match on unmarked posting status" $
-               not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    assertBool "positive match on true posting status acquired from transaction" $
-                   (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
-    assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
-    assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
-    assertBool "a" $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
-    assertBool "b" $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
-    assertBool "c" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
-    assertBool "d" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
-    assertBool "e" $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    assertBool "f" $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    assertBool "g" $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    assertBool "h" $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
-    -- a tag match on a posting also sees inherited tags
-    assertBool "i" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
-    assertBool "j" $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
-    assertBool "k" $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
-    assertBool "l" $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [amount{acommodity="shekels"}]}
-    assertBool "m" $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [amount{acommodity="shekels"}]}
- ]
-
 -- | Does the match expression match this transaction ?
 matchesTransaction :: Query -> Transaction -> Bool
 matchesTransaction (Not q) t = not $ q `matchesTransaction` t
@@ -759,20 +630,6 @@ matchesTransaction (Tag n v) t = case (n, v) of
   ("note", Just v) -> regexMatchesCI v . T.unpack . transactionNote $ t
   (n, v) -> matchesTags n v $ transactionAllTags t
 
-tests_matchesTransaction = [
-  "matchesTransaction" ~: do
-   let q `matches` t = assertBool "" $ q `matchesTransaction` t
-   Any `matches` nulltransaction
-   assertBool "" $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
-   assertBool "" $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
-   -- see posting for more tag tests
-   assertBool "" $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
-   assertBool "" $ (Tag "payee" (Just "payee")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
-   assertBool "" $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
-   -- a tag match on a transaction also matches posting tags
-   assertBool "" $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
- ]
-
 -- | Filter a list of tags by matching against their names and
 -- optionally also their values.
 matchesTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
@@ -795,14 +652,134 @@ matchesMarketPrice _ _           = True
 
 -- tests
 
-tests_Hledger_Query = TestList $
-    tests_simplifyQuery
- ++ tests_words''
- ++ tests_filterQuery
- ++ tests_parseQueryTerm
- ++ tests_parseAmountQueryTerm
- ++ tests_parseQuery
- ++ tests_matchesAccount
- ++ tests_matchesPosting
- ++ tests_matchesTransaction
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
 
+easytests_Query = tests "Query" [
+   tests "simplifyQuery" [
+    
+     (simplifyQuery $ Or [Acct "a"])      `is` (Acct "a")
+    ,(simplifyQuery $ Or [Any,None])      `is` (Any)
+    ,(simplifyQuery $ And [Any,None])     `is` (None)
+    ,(simplifyQuery $ And [Any,Any])      `is` (Any)
+    ,(simplifyQuery $ And [Acct "b",Any]) `is` (Acct "b")
+    ,(simplifyQuery $ And [Any,And [Date (DateSpan Nothing Nothing)]]) `is` (Any)
+    ,(simplifyQuery $ And [Date (DateSpan Nothing (Just $ parsedate "2013-01-01")), Date (DateSpan (Just $ parsedate "2012-01-01") Nothing)])
+      `is` (Date (DateSpan (Just $ parsedate "2012-01-01") (Just $ parsedate "2013-01-01")))
+    ,(simplifyQuery $ And [Or [],Or [Desc "b b"]]) `is` (Desc "b b")
+   ]
+  
+  ,tests "parseQuery" [
+     (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") `is` (And [Acct "expenses:autres d\233penses", Desc "b"], [])
+    ,parseQuery nulldate "inacct:a desc:\"b b\""                     `is` (Desc "b b", [QueryOptInAcct "a"])
+    ,parseQuery nulldate "inacct:a inacct:b"                         `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
+    ,parseQuery nulldate "desc:'x x'"                                `is` (Desc "x x", [])
+    ,parseQuery nulldate "'a a' 'b"                                  `is` (Or [Acct "a a",Acct "'b"], [])
+    ,parseQuery nulldate "\""                                        `is` (Acct "\"", [])
+   ]
+  
+  ,tests "words''" [
+      (words'' [] "a b")                   `is` ["a","b"]        
+    , (words'' [] "'a b'")                 `is` ["a b"]          
+    , (words'' [] "not:a b")               `is` ["not:a","b"]    
+    , (words'' [] "not:'a b'")             `is` ["not:a b"]      
+    , (words'' [] "'not:a b'")             `is` ["not:a b"]      
+    , (words'' ["desc:"] "not:desc:'a b'") `is` ["not:desc:a b"] 
+    , (words'' prefixes "\"acct:expenses:autres d\233penses\"") `is` ["acct:expenses:autres d\233penses"]
+    , (words'' prefixes "\"")              `is` ["\""]
+    ]
+  
+  ,tests "filterQuery" [
+     filterQuery queryIsDepth Any       `is` Any
+    ,filterQuery queryIsDepth (Depth 1) `is` Depth 1
+    ,filterQuery (not.queryIsDepth) (And [And [StatusQ Cleared,Depth 1]]) `is` StatusQ Cleared
+    ,filterQuery queryIsDepth (And [Date nulldatespan, Not (Or [Any, Depth 1])]) `is` Any   -- XXX unclear
+   ]
+
+  ,tests "parseQueryTerm" [
+     parseQueryTerm nulldate "a"                                `is` (Left $ Acct "a")
+    ,parseQueryTerm nulldate "acct:expenses:autres d\233penses" `is` (Left $ Acct "expenses:autres d\233penses")
+    ,parseQueryTerm nulldate "not:desc:a b"                     `is` (Left $ Not $ Desc "a b")
+    ,parseQueryTerm nulldate "status:1"                         `is` (Left $ StatusQ Cleared)
+    ,parseQueryTerm nulldate "status:*"                         `is` (Left $ StatusQ Cleared)
+    ,parseQueryTerm nulldate "status:!"                         `is` (Left $ StatusQ Pending)
+    ,parseQueryTerm nulldate "status:0"                         `is` (Left $ StatusQ Unmarked)
+    ,parseQueryTerm nulldate "status:"                          `is` (Left $ StatusQ Unmarked)
+    ,parseQueryTerm nulldate "payee:x"                          `is` (Left $ Tag "payee" (Just "x"))
+    ,parseQueryTerm nulldate "note:x"                           `is` (Left $ Tag "note" (Just "x"))
+    ,parseQueryTerm nulldate "real:1"                           `is` (Left $ Real True)
+    ,parseQueryTerm nulldate "date:2008"                        `is` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
+    ,parseQueryTerm nulldate "date:from 2012/5/17"              `is` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
+    ,parseQueryTerm nulldate "date:20180101-201804"             `is` (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
+    ,parseQueryTerm nulldate "inacct:a"                         `is` (Right $ QueryOptInAcct "a")
+    ,parseQueryTerm nulldate "tag:a"                            `is` (Left $ Tag "a" Nothing)
+    ,parseQueryTerm nulldate "tag:a=some value"                 `is` (Left $ Tag "a" (Just "some value"))
+    ,parseQueryTerm nulldate "amt:<0"                           `is` (Left $ Amt Lt 0)
+    ,parseQueryTerm nulldate "amt:>10000.10"                    `is` (Left $ Amt AbsGt 10000.1)
+   ]
+  
+  ,tests "parseAmountQueryTerm" [
+     parseAmountQueryTerm "<0"        `is` (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
+    ,parseAmountQueryTerm ">0"        `is` (Gt,0) -- special case for convenience and consistency with above
+    ,parseAmountQueryTerm ">10000.10" `is` (AbsGt,10000.1)
+    ,parseAmountQueryTerm "=0.23"     `is` (AbsEq,0.23)
+    ,parseAmountQueryTerm "0.23"      `is` (AbsEq,0.23)
+    ,parseAmountQueryTerm "<=+0.23"   `is` (LtEq,0.23)
+    ,parseAmountQueryTerm "-0.23"     `is` (Eq,(-0.23))
+    ,_test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" `is` (AbsEq,0.23)  -- XXX
+    ]
+  
+  ,tests "matchesAccount" [
+     expect $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
+    ,expect $ not $ (Acct "^a:b") `matchesAccount` "c:a:b"
+    ,expect $ Depth 2 `matchesAccount` "a"
+    ,expect $ Depth 2 `matchesAccount` "a:b"
+    ,expect $ not $ Depth 2 `matchesAccount` "a:b:c"
+    ,expect $ Date nulldatespan `matchesAccount` "a"
+    ,expect $ Date2 nulldatespan `matchesAccount` "a"
+    ,expect $ not $ (Tag "a" Nothing) `matchesAccount` "a"
+  ]
+  
+  ,tests "matchesPosting" [
+     test "positive match on cleared posting status"  $
+      expect $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+    ,test "negative match on cleared posting status"  $
+      expect $ not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+    ,test "positive match on unmarked posting status" $
+      expect $ (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+    ,test "negative match on unmarked posting status" $
+      expect $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+    ,test "positive match on true posting status acquired from transaction" $
+      expect $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
+    ,test "real:1 on real posting" $ expect $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
+    ,test "real:1 on virtual posting fails" $ expect $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    ,test "real:1 on balanced virtual posting fails" $ expect $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+    ,test "a" $ expect $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
+    ,test "b" $ expect $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
+    ,test "c" $ expect $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
+    ,test "d" $ expect $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
+    ,test "e" $ expect $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    ,test "f" $ expect $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    ,test "g" $ expect $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    ,test "h" $ expect $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
+     -- a tag match on a posting also sees inherited tags
+    ,test "i" $ expect $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    ,test "j" $ expect $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
+    ,test "k" $ expect $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
+    ,test "l" $ expect $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
+    ,test "m" $ expect $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
+  ]
+  
+  ,tests "matchesTransaction" [
+     expect $ Any `matchesTransaction` nulltransaction
+    ,expect $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
+    ,expect $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
+     -- see posting for more tag tests
+    ,expect $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
+    ,expect $ (Tag "payee" (Just "payee")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
+    ,expect $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
+     -- a tag match on a transaction also matches posting tags
+    ,expect $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
+  ]
+
+ ]

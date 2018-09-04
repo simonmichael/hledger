@@ -16,12 +16,12 @@ import           Hledger.Utils   as X
 tests_Hledger = TestList
     [
      tests_Hledger_Data
-    ,tests_Hledger_Query
     ,tests_Hledger_Reports
     ]
 
 easytests_Hledger = tests "Hledger" [
    easytests_Data
   ,easytests_Read
+  ,easytests_Query
   ,easytests_Utils
   ]
