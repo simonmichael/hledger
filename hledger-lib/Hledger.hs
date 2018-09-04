@@ -15,8 +15,7 @@ import           Hledger.Utils   as X
 
 tests_Hledger = TestList
     [
-     tests_Hledger_Data
-    ,tests_Hledger_Reports
+    tests_Hledger_Reports
     ]
 
 easytests_Hledger = tests "Hledger" [
