@@ -1,9 +1,10 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable #-}
 {-|
 
 Options common to most hledger reports.
 
 -}
+
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable #-}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
@@ -32,7 +33,7 @@ module Hledger.Reports.ReportOptions (
   specifiedStartDate,
   specifiedEndDate,
 
-  tests_Hledger_Reports_ReportOptions
+  easytests_ReportOptions
 )
 where
 
@@ -51,7 +52,7 @@ import Text.Megaparsec.Error
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 
 
 type FormatStr = String
@@ -371,36 +372,12 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery flagsq
               ++ [Or $ map StatusQ statuses_]
               ++ (maybe [] ((:[]) . Depth) depth_)
 
-tests_queryFromOpts = [
- "queryFromOpts" ~: do
-  assertEqual "" Any (queryFromOpts nulldate defreportopts)
-  assertEqual "" (Acct "a") (queryFromOpts nulldate defreportopts{query_="a"})
-  assertEqual "" (Desc "a a") (queryFromOpts nulldate defreportopts{query_="desc:'a a'"})
-  assertEqual "" (Date $ mkdatespan "2012/01/01" "2013/01/01")
-                 (queryFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01")
-                                                      ,query_="date:'to 2013'"
-                                                      })
-  assertEqual "" (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
-                 (queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"})
-  assertEqual "" (Or [Acct "a a", Acct "'b"])
-                 (queryFromOpts nulldate defreportopts{query_="'a a' 'b"})
- ]
-
 -- | Convert report options and arguments to query options.
 queryOptsFromOpts :: Day -> ReportOpts -> [QueryOpt]
 queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
   where
     flagsqopts = []
     argsqopts = snd $ parseQuery d (T.pack query_)
-
-tests_queryOptsFromOpts = [
- "queryOptsFromOpts" ~: do
-  assertEqual "" [] (queryOptsFromOpts nulldate defreportopts)
-  assertEqual "" [] (queryOptsFromOpts nulldate defreportopts{query_="a"})
-  assertEqual "" [] (queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01")
-                                                             ,query_="date:'to 2013'"
-                                                             })
- ]
 
 -- | The effective report span is the start and end dates specified by
 -- options or queries, or otherwise the earliest and latest transaction or 
@@ -441,7 +418,29 @@ specifiedStartDate ropts = fst <$> specifiedStartEndDates ropts
 specifiedEndDate :: ReportOpts -> IO (Maybe Day)
 specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 
+-- tests
 
-tests_Hledger_Reports_ReportOptions = TestList $
-    tests_queryFromOpts
- ++ tests_queryOptsFromOpts
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_ReportOptions = tests "ReportOptions" [
+   tests "queryFromOpts" [
+      (queryFromOpts nulldate defreportopts) `is` Any
+     ,(queryFromOpts nulldate defreportopts{query_="a"}) `is` (Acct "a")
+     ,(queryFromOpts nulldate defreportopts{query_="desc:'a a'"}) `is` (Desc "a a")
+     ,(queryFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01"),query_="date:'to 2013'" }) 
+      `is` (Date $ mkdatespan "2012/01/01" "2013/01/01")
+     ,(queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"}) `is` (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
+     ,(queryFromOpts nulldate defreportopts{query_="'a a' 'b"}) `is` (Or [Acct "a a", Acct "'b"])
+     ]
+
+  ,tests "queryOptsFromOpts" [
+      (queryOptsFromOpts nulldate defreportopts) `is` []
+     ,(queryOptsFromOpts nulldate defreportopts{query_="a"}) `is` []
+     ,(queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01")
+                                                                   ,query_="date:'to 2013'"
+                                                                   })
+      `is` []
+    ]
+ ]
+

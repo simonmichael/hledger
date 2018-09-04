@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
 {-|
 
 Generate several common kinds of report from a journal, as \"*Report\" -
@@ -18,9 +18,9 @@ module Hledger.Reports (
   module Hledger.Reports.MultiBalanceReports,
   module Hledger.Reports.BudgetReport,
 --   module Hledger.Reports.BalanceHistoryReport,
-
   -- * Tests
-  tests_Hledger_Reports
+  tests_Hledger_Reports,
+  easytests_Reports
 )
 where
 
@@ -36,11 +36,13 @@ import Hledger.Reports.BudgetReport
 import Hledger.Utils.Test
 
 tests_Hledger_Reports = TestList $
- -- ++ tests_isInterestingIndented
  [
- tests_Hledger_Reports_ReportOptions,
  tests_Hledger_Reports_EntriesReport,
  tests_Hledger_Reports_PostingsReport,
  tests_Hledger_Reports_BalanceReport,
  tests_Hledger_Reports_MultiBalanceReport
+ ]
+
+easytests_Reports = tests "Reports" [
+   easytests_ReportOptions
  ]
