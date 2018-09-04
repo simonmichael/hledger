@@ -68,7 +68,6 @@ module Hledger.Data.Journal (
   journalUntieTransactions,
   -- * Tests
   samplejournal,
-  tests_Hledger_Data_Journal,
   easytests_Journal,
 )
 where
@@ -83,7 +82,6 @@ import Data.Functor.Identity (Identity(..))
 import qualified Data.HashTable.ST.Cuckoo as HT
 import Data.List
 import Data.List.Extra (groupSort)
--- import Data.Map (findWithDefault)
 import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
@@ -95,16 +93,14 @@ import qualified Data.Text as T
 import Safe (headMay, headDef)
 import Data.Time.Calendar
 import Data.Tree
-import qualified EasyTest
 import System.Time (ClockTime(TOD))
 import Text.Printf
 import qualified Data.Map as M
 
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
--- import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Transaction
 import Hledger.Data.Posting
@@ -881,19 +877,6 @@ journalDateSpan secondary j
       pdates   = concatMap (catMaybes . map (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
       ts       = jtxns j
 
-test_journalDateSpan = do
- "journalDateSpan" ~: do
-  assertEqual "" (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
-                 (journalDateSpan True j)
-  where
-    j = nulljournal{jtxns = [nulltransaction{tdate = parsedate "2014/02/01"
-                                            ,tpostings = [posting{pdate=Just (parsedate "2014/01/10")}]
-                                            }
-                            ,nulltransaction{tdate = parsedate "2014/09/01"
-                                            ,tpostings = [posting{pdate2=Just (parsedate "2014/10/10")}]
-                                            }
-                            ]}
-
 -- | Apply the pivot transformation to all postings in a journal,
 -- replacing their account name by their value for the given field or tag.
 journalPivot :: Text -> Journal -> Journal
@@ -1077,28 +1060,35 @@ Right samplejournal = journalBalanceTransactions False $
           ]
          }
 
-tests_Hledger_Data_Journal = TestList $
- [
-  test_journalDateSpan
-  -- "query standard account types" ~:
-  --  do
-  --   let j = journal1
-  --   journalBalanceSheetAccountNames j `is` ["assets","assets:a","equity","equity:q","equity:q:qq","liabilities","liabilities:l"]
-  --   journalProfitAndLossAccountNames j `is` ["expenses","expenses:e","income","income:i"]
- ]
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
 
 easytests_Journal = tests "Journal" [
-  test "standard account types" $ do
+
+   test "journalDateSpan" $
+    journalDateSpan True nulljournal{
+      jtxns = [nulltransaction{tdate = parsedate "2014/02/01"
+                              ,tpostings = [posting{pdate=Just (parsedate "2014/01/10")}]
+                              }
+              ,nulltransaction{tdate = parsedate "2014/09/01"
+                              ,tpostings = [posting{pdate2=Just (parsedate "2014/10/10")}]
+                              }
+              ]
+      }
+    `is` (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
+
+  ,tests "standard account type queries" $
     let
       j = samplejournal
       journalAccountNamesMatching :: Query -> Journal -> [AccountName]
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
-    EasyTest.tests
-      [ test "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-      , test "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-      , test "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
-      , test "income"      $ expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
-      , test "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
-      ]
+    in [
+       test "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+      ,test "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
+      ,test "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
+      ,test "income"      $ expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
+      ,test "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
+    ]
+
   ]
