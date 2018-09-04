@@ -422,12 +422,12 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 
 easytests_Text = tests "Text" [
    tests "quoteIfSpaced" [
-     expectEq' "a'a" (quoteIfSpaced "a'a")
-    ,expectEq' "a\"a" (quoteIfSpaced "a\"a")              
-    ,expectEq' "\"a a\"" (quoteIfSpaced "a a")               
-    ,expectEq' "\"mimi's cafe\"" (quoteIfSpaced "mimi's cafe")       
-    ,expectEq' "\"\\\"alex\\\" cafe\"" (quoteIfSpaced "\"alex\" cafe")     
-    ,expectEq' "\"le'shan's cafe\"" (quoteIfSpaced "le'shan's cafe")    
-    ,expectEq' "\"\\\"be'any's\\\" cafe\"" (quoteIfSpaced "\"be'any's\" cafe") 
+     quoteIfSpaced "a'a" `is` "a'a"
+    ,quoteIfSpaced "a\"a" `is` "a\"a"              
+    ,quoteIfSpaced "a a" `is` "\"a a\""               
+    ,quoteIfSpaced "mimi's cafe" `is` "\"mimi's cafe\""       
+    ,quoteIfSpaced "\"alex\" cafe" `is` "\"\\\"alex\\\" cafe\""     
+    ,quoteIfSpaced "le'shan's cafe" `is` "\"le'shan's cafe\""    
+    ,quoteIfSpaced "\"be'any's\" cafe" `is` "\"\\\"be'any's\\\" cafe\"" 
     ] 
   ]

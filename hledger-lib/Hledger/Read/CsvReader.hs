@@ -833,23 +833,23 @@ parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith format
 -- tests
 
 easytests_CsvReader = tests "CsvReader" [
-  tests "rulesp" [
+   tests "parseCsvRules" [
      test "empty file" $
-      expectEq' (Right rules) (parseCsvRules "unknown" "")
-  
-    ,test "trailing comments" $
-      expectEq' (Right rules{rdirectives = [("skip","")]}) (parseWithState' rules rulesp "skip\n# \n#\n")
+      parseCsvRules "unknown" "" `is` Right rules
+    ]
+  ,tests "rulesp" [
+     test "trailing comments" $
+      parseWithState' rules rulesp "skip\n# \n#\n" `is` Right rules{rdirectives = [("skip","")]}
   
     ,test "trailing blank lines" $
-      expectEq' (Right rules{rdirectives = [("skip","")]}) (parseWithState' rules rulesp "skip\n\n  \n")
+      parseWithState' rules rulesp "skip\n\n  \n" `is` (Right rules{rdirectives = [("skip","")]})
   
     ,test "no final newline" $
-      expectEq' (Right rules{rdirectives=[("skip","")]}) (parseWithState' rules rulesp "skip")
+      parseWithState' rules rulesp "skip" `is` (Right rules{rdirectives=[("skip","")]})
 
     ,test "assignment with empty value" $
-      expectEq' 
+      parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n" `is` 
         (Right rules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
-        (parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n")
 
     ]
   ]
