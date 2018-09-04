@@ -54,7 +54,7 @@ module Hledger.Data.Posting (
   showPosting,
   -- * misc.
   showComment,
-  tests_Hledger_Data_Posting
+  easytests_Posting
 )
 where
 import Data.List
@@ -69,7 +69,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
 
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
@@ -291,28 +291,38 @@ aliasReplace (BasicAlias old new) a
 aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.unpack a -- XXX
 
 
-tests_Hledger_Data_Posting = TestList [
+-- tests
 
-  "accountNamePostingType" ~: do
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_Posting = tests "Posting" [
+
+  tests "accountNamePostingType" [
     accountNamePostingType "a" `is` RegularPosting
-    accountNamePostingType "(a)" `is` VirtualPosting
-    accountNamePostingType "[a]" `is` BalancedVirtualPosting
+    ,accountNamePostingType "(a)" `is` VirtualPosting
+    ,accountNamePostingType "[a]" `is` BalancedVirtualPosting
+  ]
 
- ,"accountNameWithoutPostingType" ~: do
+ ,tests "accountNameWithoutPostingType" [
     accountNameWithoutPostingType "(a)" `is` "a"
+  ]
 
- ,"accountNameWithPostingType" ~: do
+ ,tests "accountNameWithPostingType" [
     accountNameWithPostingType VirtualPosting "[a]" `is` "(a)"
+  ]
 
- ,"joinAccountNames" ~: do
+ ,tests "joinAccountNames" [
     "a" `joinAccountNames` "b:c" `is` "a:b:c"
-    "a" `joinAccountNames` "(b:c)" `is` "(a:b:c)"
-    "[a]" `joinAccountNames` "(b:c)" `is` "[a:b:c]"
-    "" `joinAccountNames` "a" `is` "a"
+    ,"a" `joinAccountNames` "(b:c)" `is` "(a:b:c)"
+    ,"[a]" `joinAccountNames` "(b:c)" `is` "[a:b:c]"
+    ,"" `joinAccountNames` "a" `is` "a"
+  ]
 
- ,"concatAccountNames" ~: do
+ ,tests "concatAccountNames" [
     concatAccountNames [] `is` ""
-    concatAccountNames ["a","(b)","[c:d]"] `is` "(a:b:c:d)"
+    ,concatAccountNames ["a","(b)","[c:d]"] `is` "(a:b:c:d)"
+  ]
 
  ]
 
