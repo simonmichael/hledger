@@ -255,8 +255,7 @@ testcmd opts _undefined = do
 -- collected hledger-lib + hledger hunit tests
 
 tests_Hledger_Cli_Commands = TestList [
-   tests_Hledger
-  ,tests_Hledger_Cli_Commands_Balance
+   tests_Hledger_Cli_Commands_Balance
   ,tests_Hledger_Cli_Commands_Register
 
   -- some more tests easiest to define here:

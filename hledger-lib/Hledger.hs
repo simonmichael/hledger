@@ -2,7 +2,6 @@
 
 module Hledger (
   module X
- ,tests_Hledger
  ,easytests_Hledger
 )
 where
@@ -12,10 +11,6 @@ import           Hledger.Read    as X
 import           Hledger.Reports as X
 import           Hledger.Query   as X
 import           Hledger.Utils   as X
-
-tests_Hledger = TestList
-    [
-    ]
 
 easytests_Hledger = tests "Hledger" [
    easytests_Data
