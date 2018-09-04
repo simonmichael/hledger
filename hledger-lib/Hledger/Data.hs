@@ -52,8 +52,7 @@ import Hledger.Utils.Test
 
 tests_Hledger_Data = TestList
     [
-     tests_Hledger_Data_Timeclock
-    ,tests_Hledger_Data_Transaction
+     tests_Hledger_Data_Transaction
     ]
 
 easytests_Data = tests "Data" [
@@ -62,4 +61,5 @@ easytests_Data = tests "Data" [
   ,easytests_Journal
   ,easytests_Ledger
   ,easytests_Posting
+  ,easytests_Timeclock
   ]

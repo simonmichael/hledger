@@ -8,8 +8,12 @@ converted to 'Transactions' and queried like a ledger.
 
 {-# LANGUAGE CPP, OverloadedStrings #-}
 
-module Hledger.Data.Timeclock
+module Hledger.Data.Timeclock (
+   timeclockEntriesToTransactions
+  ,easytests_Timeclock
+)
 where
+
 import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
@@ -22,7 +26,7 @@ import System.Locale (defaultTimeLocale)
 #endif
 import Text.Printf
 
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
@@ -107,38 +111,38 @@ entryFromTimeclockInOut i o
       ps       = [posting{paccount=acctname, pamount=amount, ptype=VirtualPosting, ptransaction=Just t}]
 
 
-tests_Hledger_Data_Timeclock = TestList [
+-- tests
 
-   "timeclockEntriesToTransactions" ~: do
-     today <- getCurrentDay
-     now' <- getCurrentTime
-     tz <- getCurrentTimeZone
-     let now = utcToLocalTime tz now'
-         nowstr = showtime now
-         yesterday = prevday today
-         clockin = TimeclockEntry nullsourcepos In
-         mktime d = LocalTime d . fromMaybe midnight .
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_Timeclock = tests "Timeclock" [
+  do
+   today <- io getCurrentDay
+   now' <- io getCurrentTime
+   tz <- io getCurrentTimeZone
+   let now = utcToLocalTime tz now'
+       nowstr = showtime now
+       yesterday = prevday today
+       clockin = TimeclockEntry nullsourcepos In
+       mktime d = LocalTime d . fromMaybe midnight .
 #if MIN_VERSION_time(1,5,0)
-                    parseTimeM True defaultTimeLocale "%H:%M:%S"
+                  parseTimeM True defaultTimeLocale "%H:%M:%S"
 #else
-                    parseTime defaultTimeLocale "%H:%M:%S"
+                  parseTime defaultTimeLocale "%H:%M:%S"
 #endif
-         showtime = formatTime defaultTimeLocale "%H:%M"
-         assertEntriesGiveStrings name es ss = assertEqual name ss (map (T.unpack . tdescription) $ timeclockEntriesToTransactions now es)
-
-     assertEntriesGiveStrings "started yesterday, split session at midnight"
-                                  [clockin (mktime yesterday "23:00:00") "" ""]
-                                  ["23:00-23:59","00:00-"++nowstr]
-     assertEntriesGiveStrings "split multi-day sessions at each midnight"
-                                  [clockin (mktime (addDays (-2) today) "23:00:00") "" ""]
-                                  ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
-     assertEntriesGiveStrings "auto-clock-out if needed"
-                                  [clockin (mktime today "00:00:00") "" ""]
-                                  ["00:00-"++nowstr]
-     let future = utcToLocalTime tz $ addUTCTime 100 now'
-         futurestr = showtime future
-     assertEntriesGiveStrings "use the clockin time for auto-clockout if it's in the future"
-                                  [clockin future "" ""]
-                                  [printf "%s-%s" futurestr futurestr]
-
+       showtime = formatTime defaultTimeLocale "%H:%M"
+       txndescs = map (T.unpack . tdescription) . timeclockEntriesToTransactions now 
+       future = utcToLocalTime tz $ addUTCTime 100 now'
+       futurestr = showtime future
+   tests "timeclockEntriesToTransactions" [ 
+     test "started yesterday, split session at midnight" $
+      txndescs [clockin (mktime yesterday "23:00:00") "" ""] `is` ["23:00-23:59","00:00-"++nowstr]
+     ,test "split multi-day sessions at each midnight" $
+      txndescs [clockin (mktime (addDays (-2) today) "23:00:00") "" ""] `is `["23:00-23:59","00:00-23:59","00:00-"++nowstr]
+     ,test "auto-clock-out if needed" $
+      txndescs [clockin (mktime today "00:00:00") "" ""] `is` ["00:00-"++nowstr]
+     ,test "use the clockin time for auto-clockout if it's in the future" $
+      txndescs [clockin future "" ""] `is` [printf "%s-%s" futurestr futurestr]
+     ]
  ]
