@@ -37,8 +37,6 @@ module Hledger.Cli.Commands (
 ) 
 where
 
--- import Control.Concurrent
-import Control.Monad
 import Data.Default
 import Data.List
 import Data.List.Split (splitOn)
@@ -222,14 +220,11 @@ testmode = hledgerCommandMode
 Run the unit tests built in to hledger-lib and hledger, 
 printing results on stdout and exiting with success or failure.
 
-Tests are run in two batches: easytest-based and hunit-based tests.
-If any test fails or gives an error, the exit code will be non-zero.
+If a scope argument is provided, only tests in that (exact, case-sensitive) 
+scope are run.
 
-If a pattern argument (case sensitive) is provided, only easytests 
-in that scope and only hunit tests whose name contains it are run.
-
-If a numeric second argument is provided, it will set the randomness
-seed for easytests. 
+If a numeric second argument is provided, it will set the randomness seed,
+for any tests which use randomness.
 
 FLAGS
   |]
@@ -245,13 +240,8 @@ FLAGS
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   let args = words' $ query_ $ reportopts_ opts
-  putStrLn "\n=== easytest tests: ===\n"
-  e1 <- runEasyTests args $ EasyTest.tests [easytests_Hledger, easytests_Commands]
-  when (not e1) $ putStr "\n"
-  putStrLn "=== hunit tests: ===\n"
-  e2 <- runHunitTests args tests_Hledger_Cli_Commands
-  putStrLn ""
-  if or [e1, e2] then exitFailure else exitSuccess
+  e <- runEasyTests args $ EasyTest.tests [easytests_Hledger, easytests_Commands]
+  if e then exitFailure else exitSuccess
 
 -- unit tests of hledger command-line executable
 
@@ -318,10 +308,6 @@ easytests_Commands = tests "Commands" [
   ,test "show dollars" $ showAmount (usd 1) `is` "$1.00"
 
   ,test "show hours" $ showAmount (hrs 1) `is` "1.00h"
-
- ]
-
-tests_Hledger_Cli_Commands = TestList [
 
  ]
 
