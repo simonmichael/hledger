@@ -9,8 +9,38 @@ hierarchy.
 
 -}
 
-module Hledger.Data.AccountName
+module Hledger.Data.AccountName (
+   accountLeafName
+  ,accountNameComponents
+  ,accountNameDrop
+  ,accountNameFromComponents
+  ,accountNameLevel
+  ,accountNameToAccountOnlyRegex
+  ,accountNameToAccountRegex
+  ,accountNameTreeFrom
+  ,accountRegexToAccountName
+  ,accountSummarisedName
+  ,acctsep
+  ,acctsepchar
+  ,clipAccountName
+  ,clipOrEllipsifyAccountName
+  ,elideAccountName
+  ,escapeName
+  ,expandAccountName
+  ,expandAccountNames
+  ,isAccountNamePrefixOf
+--  ,isAccountRegex 
+  ,isSubAccountNameOf
+  ,parentAccountName
+  ,parentAccountNames
+  ,subAccountNamesFrom
+  ,topAccountNames
+  ,unbudgetedAccountName
+  ,easytests_AccountName
+)
 where
+
+import Data.CallStack
 import Data.List
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
@@ -21,7 +51,7 @@ import Data.Tree
 import Text.Printf
 
 import Hledger.Data.Types
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -123,7 +153,7 @@ accountNameTreeFrom accts =
           accounttreesfrom as = [Node a (accounttreesfrom $ subs a) | a <- as]
           subs = subAccountNamesFrom (expandAccountNames accts)
 
-nullaccountnametree = Node "root" []
+--nullaccountnametree = Node "root" []
 
 -- | Elide an account name to fit in the specified width.
 -- From the ledger 2.6 news:
@@ -193,33 +223,35 @@ accountNameToAccountOnlyRegex a = printf "^%s$"  $ escapeName a -- XXX pack
 accountRegexToAccountName :: Regexp -> AccountName
 accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1" -- XXX pack
 
--- | Does this string look like an exact account-matching regular expression ?
-isAccountRegex  :: String -> Bool
-isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
+-- -- | Does this string look like an exact account-matching regular expression ?
+--isAccountRegex  :: String -> Bool
+--isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
 
-tests_Hledger_Data_AccountName = TestList
- [
-  "accountNameTreeFrom" ~: do
-    accountNameTreeFrom ["a"]       `is` Node "root" [Node "a" []]
-    accountNameTreeFrom ["a","b"]   `is` Node "root" [Node "a" [], Node "b" []]
-    accountNameTreeFrom ["a","a:b"] `is` Node "root" [Node "a" [Node "a:b" []]]
-    accountNameTreeFrom ["a:b:c"]   `is` Node "root" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
 
-  ,"expandAccountNames" ~:
+easytests_AccountName = tests "AccountName" [
+  tests "accountNameTreeFrom" [
+     accountNameTreeFrom ["a"]       `is` Node "root" [Node "a" []]
+    ,accountNameTreeFrom ["a","b"]   `is` Node "root" [Node "a" [], Node "b" []]
+    ,accountNameTreeFrom ["a","a:b"] `is` Node "root" [Node "a" [Node "a:b" []]]
+    ,accountNameTreeFrom ["a:b:c"]   `is` Node "root" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
+  ]
+  ,tests "expandAccountNames" [
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-
-  ,"isAccountNamePrefixOf" ~: do
-    "assets" `isAccountNamePrefixOf` "assets" `is` False
-    "assets" `isAccountNamePrefixOf` "assets:bank" `is` True
-    "assets" `isAccountNamePrefixOf` "assets:bank:checking" `is` True
-    "my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
-
-  ,"isSubAccountNameOf" ~: do
-    "assets" `isSubAccountNameOf` "assets" `is` False
-    "assets:bank" `isSubAccountNameOf` "assets" `is` True
-    "assets:bank:checking" `isSubAccountNameOf` "assets" `is` False
-    "assets:bank" `isSubAccountNameOf` "my assets" `is` False
-
+  ]
+  ,tests "isAccountNamePrefixOf" [
+     "assets" `isAccountNamePrefixOf` "assets" `is` False
+    ,"assets" `isAccountNamePrefixOf` "assets:bank" `is` True
+    ,"assets" `isAccountNamePrefixOf` "assets:bank:checking" `is` True
+    ,"my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
+  ]
+  ,tests "isSubAccountNameOf" [
+     "assets" `isSubAccountNameOf` "assets" `is` False
+    ,"assets:bank" `isSubAccountNameOf` "assets" `is` True
+    ,"assets:bank:checking" `isSubAccountNameOf` "assets" `is` False
+    ,"assets:bank" `isSubAccountNameOf` "my assets" `is` False
+  ]
  ]
 
