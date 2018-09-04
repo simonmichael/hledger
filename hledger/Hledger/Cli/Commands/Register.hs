@@ -12,7 +12,7 @@ module Hledger.Cli.Commands.Register (
  ,postingsReportAsText
  ,postingsReportItemAsText
  -- ,showPostingWithBalanceForVty
- ,tests_Hledger_Cli_Commands_Register
+ ,easytests_Register
 ) where
 
 import Data.List
@@ -22,7 +22,7 @@ import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Text.CSV
 
-import Hledger
+import Hledger hiding (is)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
@@ -95,17 +95,6 @@ postingsReportAsText opts (_,items) = unlines $ map (postingsReportItemAsText op
     balwidth = maximumStrict $ 12 : map (strWidth . showMixedAmount . itembal) items
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
-
-tests_postingsReportAsText = [
-  "postingsReportAsText" ~: do
-  -- "unicode in register layout" ~: do
-    j <- readJournal'
-      "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    let opts = defreportopts
-    (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is` unlines
-      ["2009/01/01 медвежья шкура       расходы:покупки                100           100"
-      ,"                                актив:наличные                -100             0"]
- ]
 
 -- | Render one register report line item as plain text. Layout is like so:
 -- @
@@ -200,5 +189,20 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
       (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
       spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
 
-tests_Hledger_Cli_Commands_Register = TestList
-  tests_postingsReportAsText
+-- tests
+
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_Register = tests "Register" [
+
+   tests "postingsReportAsText" [
+    test "unicode in register layout" $ do
+      j <- io $ readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+      let opts = defreportopts
+      (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is` unlines
+        ["2009/01/01 медвежья шкура       расходы:покупки                100           100"
+        ,"                                актив:наличные                -100             0"]
+   ]
+
+ ]

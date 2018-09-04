@@ -247,7 +247,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportHtmlRows
  ,balanceReportAsTable
  ,balanceReportTableAsText
- ,tests_Hledger_Cli_Commands_Balance
+ ,easytests_Balance
 ) where
 
 import Control.Monad (when)
@@ -263,7 +263,7 @@ import Text.Printf (printf)
 import Text.Tabular as T
 --import Text.Tabular.AsciiWide
 
-import Hledger
+import Hledger hiding (is)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
@@ -393,21 +393,6 @@ balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
                   overline   = replicate overlinewidth '-'
                 in overline : totallines
                Left _ -> []
-
-tests_balanceReportAsText = [
-  "balanceReportAsText" ~: do
-  -- "unicode in balance layout" ~: do
-    j <- readJournal'
-      "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-    let opts = defreportopts
-    balanceReportAsText opts (balanceReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is`
-      unlines
-      ["                -100  актив:наличные"
-      ,"                 100  расходы:покупки"
-      ,"--------------------"
-      ,"                   0"
-      ]
- ]
 
 {-
 :r
@@ -645,5 +630,22 @@ balanceReportTableAsText ropts = tableAsText ropts showamt
             | otherwise    =  showMixedAmountOneLineWithoutPrice
 
 
-tests_Hledger_Cli_Commands_Balance = TestList
-  tests_balanceReportAsText
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_Balance = tests "Balance" [
+
+   tests "balanceReportAsText" [
+    test "unicode in balance layout" $ do
+      j <- io $ readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+      let opts = defreportopts
+      balanceReportAsText opts (balanceReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is`
+        unlines
+        ["                -100  актив:наличные"
+        ,"                 100  расходы:покупки"
+        ,"--------------------"
+        ,"                   0"
+        ]
+  ]
+
+ ]

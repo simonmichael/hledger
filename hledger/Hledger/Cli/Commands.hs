@@ -12,7 +12,7 @@ module Hledger.Cli.Commands (
   ,builtinCommands
   ,builtinCommandNames
   ,printCommandsList
-  ,tests_Hledger_Cli_Commands
+  ,easytests_Commands
   ,module Hledger.Cli.Commands.Accounts
   ,module Hledger.Cli.Commands.Activity
   ,module Hledger.Cli.Commands.Add
@@ -49,10 +49,11 @@ import Data.String.Here
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
+import qualified EasyTest
 import System.Console.CmdArgs.Explicit as C
 import System.Exit
 
-import Hledger
+import Hledger hiding (is)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Version
 import Hledger.Cli.Commands.Accounts
@@ -245,76 +246,82 @@ testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   let args = words' $ query_ $ reportopts_ opts
   putStrLn "\n=== easytest tests: ===\n"
-  e1 <- runEasyTests args easytests_Hledger
+  e1 <- runEasyTests args $ EasyTest.tests [easytests_Hledger, easytests_Commands]
   when (not e1) $ putStr "\n"
   putStrLn "=== hunit tests: ===\n"
   e2 <- runHunitTests args tests_Hledger_Cli_Commands
   putStrLn ""
   if or [e1, e2] then exitFailure else exitSuccess
 
--- collected hledger-lib + hledger hunit tests
+-- unit tests of hledger command-line executable
 
-tests_Hledger_Cli_Commands = TestList [
-   tests_Hledger_Cli_Commands_Balance
-  ,tests_Hledger_Cli_Commands_Register
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_Commands = tests "Commands" [
+   easytests_Balance
+  ,easytests_Register
 
   -- some more tests easiest to define here:
   
-  ,"apply account directive" ~: 
-    let ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)} in
-    let sameParse str1 str2 = do j1 <- readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)
-                                 j2 <- readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
+  ,test "apply account directive" $ do 
+    let ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
+    let sameParse str1 str2 = do j1 <- io $ readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)
+                                 j2 <- io $ readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
                                  j1 `is` j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
-    in sameParse
-                         ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
-                          "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" <>
-                          "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" <>
-                          "end apply account\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" <>
-                          "end apply account\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
-                         )
-                         ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
-                          "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" <>
-                          "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" <>
-                          "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" <>
-                          "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
-                         )
+    sameParse
+     ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
+      "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" <>
+      "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" <>
+      "end apply account\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" <>
+      "end apply account\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+     )
+     ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
+      "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" <>
+      "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" <>
+      "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" <>
+      "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+     )
 
-  ,"apply account directive should preserve \"virtual\" posting type" ~: do
-    j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
+  ,test "apply account directive should preserve \"virtual\" posting type" $ do
+    j <- io $ readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
-    assertBool "" $ paccount p == "test:from"
-    assertBool "" $ ptype p == VirtualPosting
+    paccount p `is` "test:from"
+    ptype p `is` VirtualPosting
   
-  ,"account aliases" ~: do
-    j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
+  ,test "account aliases" $ do
+    j <- io $ readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
-    assertBool "" $ paccount p == "equity:draw:personal:food"
+    paccount p `is` "equity:draw:personal:food"
 
-  ,"ledgerAccountNames" ~:
+  ,test "ledgerAccountNames" $
     ledgerAccountNames ledger7 `is`
      ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
 
-  -- ,"journalCanonicaliseAmounts" ~:
+  -- ,test "journalCanonicaliseAmounts" ~:
   --  "use the greatest precision" ~:
   --   (map asprecision $ journalAmountAndPriceCommodities $ journalCanonicaliseAmounts $ journalWithAmounts ["1","2.00"]) `is` [2,2]
 
   -- don't know what this should do
-  -- ,"elideAccountName" ~: do
+  -- ,test "elideAccountName" ~: do
   --    (elideAccountName 50 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     `is` "aa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa")
   --    (elideAccountName 20 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     `is` "aa:aa:aaaaaaaaaaaaaa")
 
-  ,"default year" ~: do
-    j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return
+  ,test "default year" $ do
+    j <- io $ readJournal def Nothing defaultyear_journal_txt >>= either error' return
     tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
-    return ()
 
-  ,"show dollars" ~: showAmount (usd 1) ~?= "$1.00"
+  ,test "show dollars" $ showAmount (usd 1) `is` "$1.00"
 
-  ,"show hours" ~: showAmount (hrs 1) ~?= "1.00h"
+  ,test "show hours" $ showAmount (hrs 1) `is` "1.00h"
+
+ ]
+
+tests_Hledger_Cli_Commands = TestList [
 
  ]
 
