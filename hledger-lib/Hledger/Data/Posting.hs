@@ -69,7 +69,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
 
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
@@ -292,9 +292,6 @@ aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.un
 
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Posting = tests "Posting" [
 

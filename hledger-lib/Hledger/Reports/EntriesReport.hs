@@ -20,7 +20,7 @@ import Data.Ord
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 
 
 -- | A journal entries report is a list of whole transactions as
@@ -36,9 +36,6 @@ entriesReport opts q j =
     where
       date = transactionDateFn opts
       ts = jtxns $ journalSelectingAmountFromOpts opts j
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

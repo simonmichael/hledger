@@ -97,7 +97,7 @@ import System.Time (ClockTime(TOD))
 import Text.Printf
 import qualified Data.Map as M
 
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
@@ -1059,9 +1059,6 @@ Right samplejournal = journalBalanceTransactions False $
            }
           ]
          }
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Journal = tests "Journal" [
 

@@ -52,7 +52,7 @@ import Text.Megaparsec.Error
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils hiding (is)
+import Hledger.Utils
 
 
 type FormatStr = String
@@ -419,9 +419,6 @@ specifiedEndDate :: ReportOpts -> IO (Maybe Day)
 specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_ReportOptions = tests "ReportOptions" [
    tests "queryFromOpts" [

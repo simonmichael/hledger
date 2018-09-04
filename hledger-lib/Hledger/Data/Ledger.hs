@@ -31,7 +31,7 @@ import qualified Data.Text as T
 import Safe (headDef)
 import Text.Printf
 
-import Hledger.Utils.Test hiding (is)
+import Hledger.Utils.Test 
 import Hledger.Data.Types
 import Hledger.Data.Account
 import Hledger.Data.Journal
@@ -106,9 +106,6 @@ ledgerCommodities :: Ledger -> [CommoditySymbol]
 ledgerCommodities = M.keys . jinferredcommodities . ljournal
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Ledger = tests "Ledger" [
 

@@ -51,7 +51,7 @@ import qualified EasyTest
 import System.Console.CmdArgs.Explicit as C
 import System.Exit
 
-import Hledger hiding (is)
+import Hledger 
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Version
 import Hledger.Cli.Commands.Accounts
@@ -244,9 +244,6 @@ testcmd opts _undefined = do
   if e then exitFailure else exitSuccess
 
 -- unit tests of hledger command-line executable
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Commands = tests "Commands" [
    easytests_Balance

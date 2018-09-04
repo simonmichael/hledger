@@ -32,7 +32,7 @@ import Data.Time.Calendar
 import Hledger.Data
 import Hledger.Read (mamountp')
 import Hledger.Query
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 import Hledger.Reports.ReportOptions
 
 
@@ -179,9 +179,6 @@ Right samplejournal2 =
     }
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_BalanceReport = tests "BalanceReport" [
   tests "balanceReport" $

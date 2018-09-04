@@ -30,7 +30,7 @@ import Text.Tabular.AsciiWide
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.BalanceReport
@@ -301,9 +301,6 @@ tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
         l'         = padRightWide acctswidth <$> l
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_MultiBalanceReports = tests "MultiBalanceReports" [
   let

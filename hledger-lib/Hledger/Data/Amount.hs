@@ -133,7 +133,7 @@ import qualified Data.Map as M
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 
 
 deriving instance Show MarketPrice
@@ -670,9 +670,6 @@ mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
 
 -------------------------------------------------------------------------------
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Amount = tests "Amount" [
    tests "Amount" [

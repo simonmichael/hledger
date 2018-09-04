@@ -50,7 +50,7 @@ import Data.Tree
 import Text.Printf
 
 import Hledger.Data.Types
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -225,9 +225,6 @@ accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1
 -- -- | Does this string look like an exact account-matching regular expression ?
 --isAccountRegex  :: String -> Bool
 --isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_AccountName = tests "AccountName" [
   tests "accountNameTreeFrom" [

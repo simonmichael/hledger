@@ -56,7 +56,7 @@ import Data.Time.Calendar
 import Text.Printf
 import qualified Data.Map as Map
 
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Posting
@@ -441,9 +441,6 @@ postingSetTransaction :: Transaction -> Posting -> Posting
 postingSetTransaction t p = p{ptransaction=Just t}
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Transaction = tests "Transaction" [
 

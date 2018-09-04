@@ -3,7 +3,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Hledger.Utils.Test (
-  -- * easytest
    HasCallStack
   ,module EasyTest
   ,runEasyTests
@@ -13,42 +12,30 @@ module Hledger.Utils.Test (
   ,_test
   ,it
   ,_it
-  ,expectEq'
+  ,is
+  ,expectEqPP
   ,expectParse
   ,expectParseError
   ,expectParseEq
   ,expectParseEqOn
-  -- * HUnit
-  ,module Test.HUnit
-  ,runHunitTests
-  ,assertParse
-  ,assertParseFailure
-  ,assertParseEqual
-  ,assertParseEqual'
-  ,is
-
-) where
+) 
+where
 
 import Control.Exception
-import Control.Monad
 import Control.Monad.State.Strict (StateT, evalStateT)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
 import Data.CallStack
-import Data.Functor.Identity
 import Data.List
 import qualified Data.Text as T
 import Safe 
 import System.Exit
-import System.IO
 import Text.Megaparsec
 import Text.Megaparsec.Custom
 
 import EasyTest hiding (char, char', tests)  -- reexported
 import qualified EasyTest as E               -- used here
-import Test.HUnit hiding (Test, test)        -- reexported
-import qualified Test.HUnit as U             -- used here
 
 import Hledger.Utils.Debug (pshow)
 import Hledger.Utils.UTF8IOCompat (error')
@@ -102,9 +89,13 @@ runEasyTests args easytests = (do
 
 -- | Like easytest's expectEq (asserts the second (actual) value equals the first (expected) value)
 -- but pretty-prints the values in the failure output. 
-expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
-expectEq' expected actual = if expected == actual then E.ok else E.crash $
+expectEqPP :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
+expectEqPP expected actual = if expected == actual then E.ok else E.crash $
   "\nexpected:\n" <> T.pack (pshow expected) <> "\nbut got:\n" <> T.pack (pshow actual) <> "\n"
+
+-- | Shorter and flipped version of expectEqPP. The expected value goes last.
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEqPP
 
 -- | Test that this stateful parser runnable in IO successfully parses 
 -- all of the given input text, showing the parse error if it fails. 
@@ -141,67 +132,5 @@ expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
 expectParseEqOn parser input f expected = do
   ep <- E.io $ runParserT (evalStateT (parser <* eof) mempty) "" input
-  either (fail . (++"\n") . ("\nparse error at "++) . parseErrorPretty) (expectEq' expected . f) ep
+  either (fail . (++"\n") . ("\nparse error at "++) . parseErrorPretty) (expectEqPP expected . f) ep
 
--- * HUnit helpers
-
--- | Get a Test's label, or the empty string.
-testName :: U.Test -> String
-testName (TestLabel n _) = n
-testName _ = ""
-
--- | Flatten a Test containing TestLists into a list of single tests.
-flattenTests :: U.Test -> [U.Test]
-flattenTests (TestLabel _ t@(TestList _)) = flattenTests t
-flattenTests (TestList ts) = concatMap flattenTests ts
-flattenTests t = [t]
-
--- | Filter TestLists in a Test, recursively, preserving the structure.
-filterTests :: (U.Test -> Bool) -> U.Test -> U.Test
-filterTests p (TestLabel l ts) = TestLabel l (filterTests p ts)
-filterTests p (TestList ts) = TestList $ filter (any p . flattenTests) $ map (filterTests p) ts
-filterTests _ t = t
-
--- | Simple way to assert something is some expected value, with no label.
-is :: (Eq a, Show a) => a -> a -> Assertion
-a `is` e = assertEqual "" e a  -- XXX should it have a message ?
-
--- | Assert a parse result is successful, printing the parse error on failure.
-assertParse :: (Show t, Show e) => (Either (ParseError t e) a) -> Assertion
-assertParse parse = either (assertFailure.show) (const (return ())) parse
-
-
--- | Assert a parse result is successful, printing the parse error on failure.
-assertParseFailure :: (Either (ParseError t e) a) -> Assertion
-assertParseFailure parse = either (const $ return ()) (const $ assertFailure "parse should not have succeeded") parse
-
--- | Assert a parse result is some expected value, printing the parse error on failure.
-assertParseEqual :: (Show a, Eq a, Show t, Show e) => (Either (ParseError t e) a) -> a -> Assertion
-assertParseEqual parse expected = either (assertFailure.show) (`is` expected) parse
-
--- | Assert that the parse result returned from an identity monad is some expected value,
--- on failure printing the parse error or differing values.
-assertParseEqual' :: (Show a, Eq a, Show t, Show e) => Identity (Either (ParseError t e) a) -> a -> Assertion
-assertParseEqual' parse expected = 
-  either 
-    (assertFailure . ("parse error: "++) . pshow) 
-    (\actual -> assertEqual (unlines ["expected: " ++ show expected, " but got: " ++ show actual]) expected actual) 
-    $ runIdentity parse
-
--- | Run some hunit tests, returning True if there was a problem.
--- With arguments, runs only tests whose names contain the first argument
--- (case sensitive). 
-runHunitTests :: [String] -> U.Test -> IO Bool
-runHunitTests args hunittests = do
-  let ts = 
-        (case args of
-          a:_ -> filterTests ((a `isInfixOf`) . testName)
-          _   -> id
-        ) hunittests
-  results <- liftM (fst . flip (,) 0) $ runTestTTStdout ts
-  return $ errors results > 0 || failures results > 0
-  where
-    -- | Like runTestTT but prints to stdout.
-    runTestTTStdout t = do
-      (counts, 0) <- U.runTestText (putTextToHandle stdout True) t
-      return counts

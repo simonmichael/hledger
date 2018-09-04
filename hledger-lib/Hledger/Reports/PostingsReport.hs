@@ -26,7 +26,7 @@ import Safe (headMay, lastMay)
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils hiding (is)
+import Hledger.Utils 
 import Hledger.Reports.ReportOptions
 
 
@@ -216,9 +216,6 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
           isclipped a = accountNameLevel a >= depth
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_PostingsReport = tests "PostingsReport" [
 

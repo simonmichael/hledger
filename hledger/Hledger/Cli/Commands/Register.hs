@@ -22,7 +22,7 @@ import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Text.CSV
 
-import Hledger hiding (is)
+import Hledger 
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
@@ -190,9 +190,6 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
       spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Register = tests "Register" [
 

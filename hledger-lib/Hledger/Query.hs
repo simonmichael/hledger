@@ -63,7 +63,7 @@ import Safe (readDef, headDef)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
-import Hledger.Utils hiding (words', is)
+import Hledger.Utils hiding (words')
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount (nullamt, usd)
@@ -651,9 +651,6 @@ matchesMarketPrice _ _           = True
 
 
 -- tests
-
-is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
-is = flip expectEq'
 
 easytests_Query = tests "Query" [
    tests "simplifyQuery" [
