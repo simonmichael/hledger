@@ -38,23 +38,21 @@ import Hledger.Utils.UTF8IOCompat (error')
 -- The postings of the transformed transaction will reference it in the usual 
 -- way (ie, 'txnTieKnot' is called).
 --
--- >>> transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
 --     ping           $1.00
 --     pong           $2.00
 -- <BLANKLINE>
--- <BLANKLINE>
--- >>> transactionModifierToFunction (TransactionModifier "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
 --     ping           $1.00
 -- <BLANKLINE>
--- <BLANKLINE>
--- >>> transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
+-- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
 --     ping           $2.00
 --     pong           $6.00
 -- <BLANKLINE>
--- <BLANKLINE>
+--
 transactionModifierToFunction :: TransactionModifier -> (Transaction -> Transaction)
 transactionModifierToFunction mt = 
   \t@(tpostings -> ps) -> txnTieKnot t{ tpostings=generatePostings ps } -- TODO add modifier txn comment/tags ?

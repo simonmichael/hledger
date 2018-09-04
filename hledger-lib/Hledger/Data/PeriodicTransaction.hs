@@ -41,7 +41,7 @@ _ptgen str = do
   case checkPeriodicTransactionStartDate i s t of
     Just e  -> error' e
     Nothing ->
-      mapM_ (putStr . show) $
+      mapM_ (putStr . showTransaction) $
         runPeriodicTransaction
           nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] } 
           nulldatespan
