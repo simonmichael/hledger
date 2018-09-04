@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d57b8219639b29c3affb66a7fd2b59fd95ab75cdc827801f6dadc691643bd048
+-- hash: 642c6b4607959713188c82341f1050872ec6111a64f8e4b4cc1c1630da585baf
 
 name:           hledger-lib
 version:        1.10.99
@@ -104,7 +104,6 @@ library
   build-depends:
       Decimal
     , Glob >=0.9
-    , HUnit
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <4.12
@@ -203,7 +202,6 @@ test-suite doctests
   build-depends:
       Decimal
     , Glob >=0.7
-    , HUnit
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <4.12
@@ -303,7 +301,6 @@ test-suite easytests
   build-depends:
       Decimal
     , Glob >=0.9
-    , HUnit
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <4.12
@@ -333,108 +330,6 @@ test-suite easytests
     , safe >=0.2
     , split >=0.1
     , tabular >=0.2
-    , text >=1.2
-    , time >=1.5
-    , transformers >=0.2
-    , uglymemo
-    , utf8-string >=0.3.5
-  if (!impl(ghc >= 8.0))
-    build-depends:
-        semigroups ==0.18.*
-  default-language: Haskell2010
-
-test-suite hunittests
-  type: exitcode-stdio-1.0
-  main-is: hunittests.hs
-  other-modules:
-      Hledger
-      Hledger.Data
-      Hledger.Data.Account
-      Hledger.Data.AccountName
-      Hledger.Data.Amount
-      Hledger.Data.Commodity
-      Hledger.Data.Dates
-      Hledger.Data.Journal
-      Hledger.Data.Ledger
-      Hledger.Data.MarketPrice
-      Hledger.Data.Period
-      Hledger.Data.PeriodicTransaction
-      Hledger.Data.Posting
-      Hledger.Data.RawOptions
-      Hledger.Data.StringFormat
-      Hledger.Data.Timeclock
-      Hledger.Data.Transaction
-      Hledger.Data.TransactionModifier
-      Hledger.Data.Types
-      Hledger.Query
-      Hledger.Read
-      Hledger.Read.Common
-      Hledger.Read.CsvReader
-      Hledger.Read.JournalReader
-      Hledger.Read.TimeclockReader
-      Hledger.Read.TimedotReader
-      Hledger.Reports
-      Hledger.Reports.BalanceHistoryReport
-      Hledger.Reports.BalanceReport
-      Hledger.Reports.BudgetReport
-      Hledger.Reports.EntriesReport
-      Hledger.Reports.MultiBalanceReports
-      Hledger.Reports.PostingsReport
-      Hledger.Reports.ReportOptions
-      Hledger.Reports.ReportTypes
-      Hledger.Reports.TransactionsReports
-      Hledger.Utils
-      Hledger.Utils.Color
-      Hledger.Utils.Debug
-      Hledger.Utils.Parse
-      Hledger.Utils.Regex
-      Hledger.Utils.String
-      Hledger.Utils.Test
-      Hledger.Utils.Text
-      Hledger.Utils.Tree
-      Hledger.Utils.UTF8IOCompat
-      Text.Megaparsec.Custom
-      Text.Tabular.AsciiWide
-      Paths_hledger_lib
-  hs-source-dirs:
-      ./.
-      test
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  build-depends:
-      Decimal
-    , Glob >=0.9
-    , HUnit
-    , ansi-terminal >=0.6.2.3
-    , array
-    , base >=4.8 && <4.12
-    , base-compat-batteries >=0.10.1 && <0.11
-    , blaze-markup >=0.5.1
-    , bytestring
-    , call-stack
-    , cmdargs >=0.10
-    , containers
-    , csv
-    , data-default >=0.5
-    , deepseq
-    , directory
-    , easytest
-    , extra
-    , filepath
-    , hashtables >=1.2.3.1
-    , hledger-lib
-    , megaparsec >=6.4.1
-    , mtl
-    , mtl-compat
-    , old-time
-    , parsec >=3
-    , parser-combinators >=0.4.0
-    , pretty-show >=1.6.4
-    , regex-tdfa
-    , safe >=0.2
-    , split >=0.1
-    , tabular >=0.2
-    , test-framework
-    , test-framework-hunit
     , text >=1.2
     , time >=1.5
     , transformers >=0.2

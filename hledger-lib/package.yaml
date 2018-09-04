@@ -72,7 +72,6 @@ dependencies:
 - transformers >=0.2
 - uglymemo
 - utf8-string >=0.3.5
-- HUnit
 - extra
 - Glob >= 0.9
 # for ledger-parse:
@@ -165,14 +164,6 @@ tests:
     # ~$ mv /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o{,_DISABLE_GHC_ISSUE_15105}
     # See https://github.com/sol/doctest/issues/199,
     # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10
-
-  hunittests:
-    main: hunittests.hs
-    source-dirs: test
-    dependencies:
-    - hledger-lib
-    - test-framework
-    - test-framework-hunit
 
   easytests:
     main: easytests.hs
