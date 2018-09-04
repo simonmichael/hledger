@@ -52,17 +52,14 @@ import Hledger.Utils.Test
 
 tests_Hledger_Data = TestList
     [
-     tests_Hledger_Data_Ledger
-    ,tests_Hledger_Data_Posting
-    -- ,tests_Hledger_Data_RawOptions
-    -- ,tests_Hledger_Data_StringFormat
+     tests_Hledger_Data_Posting
     ,tests_Hledger_Data_Timeclock
     ,tests_Hledger_Data_Transaction
-    -- ,tests_Hledger_Data_Types
     ]
 
 easytests_Data = tests "Data" [
    easytests_AccountName
   ,easytests_Amount
   ,easytests_Journal
+  ,easytests_Ledger
   ]

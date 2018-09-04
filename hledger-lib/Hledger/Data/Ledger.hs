@@ -7,15 +7,31 @@ balances, and postings in each account.
 
 -}
 
-module Hledger.Data.Ledger
+{-# LANGUAGE OverloadedStrings #-}
+
+module Hledger.Data.Ledger (
+   nullledger
+  ,ledgerFromJournal
+  ,ledgerAccountNames
+  ,ledgerAccount
+  ,ledgerRootAccount
+  ,ledgerTopAccounts
+  ,ledgerLeafAccounts
+  ,ledgerAccountsMatching
+  ,ledgerPostings
+  ,ledgerDateSpan
+  ,ledgerCommodities
+  ,easytests_Ledger
+)
 where
+
 import qualified Data.Map as M
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (headDef)
 import Text.Printf
 
-import Hledger.Utils.Test
+import Hledger.Utils.Test hiding (is)
 import Hledger.Data.Types
 import Hledger.Data.Account
 import Hledger.Data.Journal
@@ -89,13 +105,17 @@ ledgerDateSpan = postingsDateSpan . ledgerPostings
 ledgerCommodities :: Ledger -> [CommoditySymbol]
 ledgerCommodities = M.keys . jinferredcommodities . ljournal
 
+-- tests
 
-tests_ledgerFromJournal = [
- "ledgerFromJournal" ~: do
-  assertEqual "" (0) (length $ ledgerPostings $ ledgerFromJournal Any nulljournal)
-  assertEqual "" (13) (length $ ledgerPostings $ ledgerFromJournal Any samplejournal)
-  assertEqual "" (7) (length $ ledgerPostings $ ledgerFromJournal (Depth 2) samplejournal)
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_Ledger = tests "Ledger" [
+
+  tests "ledgerFromJournal" [
+     (length $ ledgerPostings $ ledgerFromJournal Any nulljournal) `is` 0
+    ,(length $ ledgerPostings $ ledgerFromJournal Any samplejournal) `is` 13
+    ,(length $ ledgerPostings $ ledgerFromJournal (Depth 2) samplejournal) `is` 7
+  ]
+
  ]
-
-tests_Hledger_Data_Ledger = TestList $
-    tests_ledgerFromJournal
