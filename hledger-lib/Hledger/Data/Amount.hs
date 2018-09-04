@@ -114,7 +114,7 @@ module Hledger.Data.Amount (
   canonicaliseMixedAmount,
   -- * misc.
   ltraceamount,
-  tests_Hledger_Data_Amount
+  easytests_Amount
 ) where
 
 import Data.Char (isDigit)
@@ -133,7 +133,7 @@ import qualified Data.Map as M
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 
 
 deriving instance Show MarketPrice
@@ -486,35 +486,11 @@ normaliseHelper squashprices (Mixed as)
     combinableprices Amount{aprice=UnitPrice p1} Amount{aprice=UnitPrice p2} = p1 == p2
     combinableprices _ _ = False
 
-tests_normaliseMixedAmount = [
-  "normaliseMixedAmount" ~: do
-   -- assertEqual "missing amount is discarded" (Mixed [nullamt]) (normaliseMixedAmount $ Mixed [usd 0, missingamt])
-   assertEqual "any missing amount means a missing mixed amount" missingmixedamt (normaliseMixedAmount $ Mixed [usd 0, missingamt])
-   assertEqual "unpriced same-commodity amounts are combined" (Mixed [usd 2]) (normaliseMixedAmount $ Mixed [usd 0, usd 2])
-   -- amounts with same unit price are combined
-   normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 1]) `is` Mixed [usd 2 `at` eur 1]
-   -- amounts with different unit prices are not combined
-   normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]) `is` Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]
-   -- amounts with total prices are not combined
-   normaliseMixedAmount (Mixed  [usd 1 @@ eur 1, usd 1 @@ eur 1]) `is` Mixed [usd 1 @@ eur 1, usd 1 @@ eur 1]
- ]
-
 -- | Like normaliseMixedAmount, but combine each commodity's amounts
 -- into just one by throwing away all prices except the first. This is
 -- only used as a rendering helper, and could show a misleading price.
 normaliseMixedAmountSquashPricesForDisplay :: MixedAmount -> MixedAmount
 normaliseMixedAmountSquashPricesForDisplay = normaliseHelper True
-
-tests_normaliseMixedAmountSquashPricesForDisplay = [
-  "normaliseMixedAmountSquashPricesForDisplay" ~: do
-    normaliseMixedAmountSquashPricesForDisplay (Mixed []) `is` Mixed [nullamt]
-    assertBool "" $ isZeroMixedAmount $ normaliseMixedAmountSquashPricesForDisplay
-      (Mixed [usd 10
-             ,usd 10 @@ eur 7
-             ,usd (-10)
-             ,usd (-10) @@ eur 7
-             ])
- ]
 
 -- | Sum same-commodity amounts in a lossy way, applying the first
 -- price to the result and discarding any other prices. Only used as a
@@ -693,80 +669,108 @@ mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
 
 
 -------------------------------------------------------------------------------
--- misc
+-- tests
 
-tests_Hledger_Data_Amount = TestList $
-     tests_normaliseMixedAmount
-  ++ tests_normaliseMixedAmountSquashPricesForDisplay
-  ++ [
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
 
-  -- Amount
+easytests_Amount = tests "Amount" [
+   tests "Amount" [
 
-   "costOfAmount" ~: do
-    costOfAmount (eur 1) `is` eur 1
-    costOfAmount (eur 2){aprice=UnitPrice $ usd 2} `is` usd 4
-    costOfAmount (eur 1){aprice=TotalPrice $ usd 2} `is` usd 2
-    costOfAmount (eur (-1)){aprice=TotalPrice $ usd 2} `is` usd (-2)
-
-  ,"isZeroAmount" ~: do
-    assertBool "" $ isZeroAmount amount
-    assertBool "" $ isZeroAmount $ usd 0
-
-  ,"negating amounts" ~: do
-    let a = usd 1
-    negate a `is` a{aquantity= -1}
-    let b = (usd 1){aprice=UnitPrice $ eur 2}
-    negate b `is` b{aquantity= -1}
-
-  ,"adding amounts without prices" ~: do
-    let a1 = usd 1.23
-    let a2 = usd (-1.23)
-    let a3 = usd (-1.23)
-    (a1 + a2) `is` usd 0
-    (a1 + a3) `is` usd 0
-    (a2 + a3) `is` usd (-2.46)
-    (a3 + a3) `is` usd (-2.46)
-    sum [a1,a2,a3,-a3] `is` usd 0
-    -- highest precision is preserved
-    let ap1 = usd 1 `withPrecision` 1
-        ap3 = usd 1 `withPrecision` 3
-    asprecision (astyle $ sum [ap1,ap3]) `is` 3
-    asprecision (astyle $ sum [ap3,ap1]) `is` 3
-    -- adding different commodities assumes conversion rate 1
-    assertBool "" $ isZeroAmount (a1 - eur 1.23)
-
-  ,"showAmount" ~: do
-    showAmount (usd 0 + gbp 0) `is` "0"
-
-  -- MixedAmount
-
-  ,"adding mixed amounts to zero, the commodity and amount style are preserved" ~: do
-    sum (map (Mixed . (:[]))
-             [usd 1.25
-             ,usd (-1) `withPrecision` 3
-             ,usd (-0.25)
-             ])
-      `is` Mixed [usd 0 `withPrecision` 3]
-
-  ,"adding mixed amounts with total prices" ~: do
-    sum (map (Mixed . (:[]))
-     [usd 1 @@ eur 1
-     ,usd (-2) @@ eur 1
-     ])
-      `is` Mixed [usd 1 @@ eur 1
-                 ,usd (-2) @@ eur 1
-                 ]
-
-  ,"showMixedAmount" ~: do
-    showMixedAmount (Mixed [usd 1]) `is` "$1.00"
-    showMixedAmount (Mixed [usd 1 `at` eur 2]) `is` "$1.00 @ €2.00"
-    showMixedAmount (Mixed [usd 0]) `is` "0"
-    showMixedAmount (Mixed []) `is` "0"
-    showMixedAmount missingmixedamt `is` ""
-
-  ,"showMixedAmountWithoutPrice" ~: do
-    let a = usd 1 `at` eur 2
-    showMixedAmountWithoutPrice (Mixed [a]) `is` "$1.00"
-    showMixedAmountWithoutPrice (Mixed [a, -a]) `is` "0"
+     tests "costOfAmount" [
+       costOfAmount (eur 1) `is` eur 1
+      ,costOfAmount (eur 2){aprice=UnitPrice $ usd 2} `is` usd 4
+      ,costOfAmount (eur 1){aprice=TotalPrice $ usd 2} `is` usd 2
+      ,costOfAmount (eur (-1)){aprice=TotalPrice $ usd 2} `is` usd (-2)
+    ]
+  
+    ,tests "isZeroAmount" [
+       expect $ isZeroAmount amount
+      ,expect $ isZeroAmount $ usd 0
+    ]
+  
+    ,tests "negating amounts" [
+       negate (usd 1) `is` (usd 1){aquantity= -1}
+      ,let b = (usd 1){aprice=UnitPrice $ eur 2} in negate b `is` b{aquantity= -1}
+    ]
+  
+    ,tests "adding amounts without prices" [
+       (usd 1.23 + usd (-1.23)) `is` usd 0
+      ,(usd 1.23 + usd (-1.23)) `is` usd 0
+      ,(usd (-1.23) + usd (-1.23)) `is` usd (-2.46)
+      ,sum [usd 1.23,usd (-1.23),usd (-1.23),-(usd (-1.23))] `is` usd 0
+      -- highest precision is preserved
+      ,asprecision (astyle $ sum [usd 1 `withPrecision` 1, usd 1 `withPrecision` 3]) `is` 3
+      ,asprecision (astyle $ sum [usd 1 `withPrecision` 3, usd 1 `withPrecision` 1]) `is` 3
+      -- adding different commodities assumes conversion rate 1
+      ,expect $ isZeroAmount (usd 1.23 - eur 1.23)
+    ]
+  
+    ,tests "showAmount" [
+      showAmount (usd 0 + gbp 0) `is` "0"
+    ]
 
   ]
+
+  ,tests "MixedAmount" [
+
+     tests "adding mixed amounts to zero, the commodity and amount style are preserved" [
+      sum (map (Mixed . (:[]))
+               [usd 1.25
+               ,usd (-1) `withPrecision` 3
+               ,usd (-0.25)
+               ])
+        `is` Mixed [usd 0 `withPrecision` 3]
+    ]
+  
+    ,tests "adding mixed amounts with total prices" [
+      sum (map (Mixed . (:[]))
+       [usd 1 @@ eur 1
+       ,usd (-2) @@ eur 1
+       ])
+        `is` Mixed [usd 1 @@ eur 1
+                   ,usd (-2) @@ eur 1
+                   ]
+    ]
+  
+    ,tests "showMixedAmount" [
+       showMixedAmount (Mixed [usd 1]) `is` "$1.00"
+      ,showMixedAmount (Mixed [usd 1 `at` eur 2]) `is` "$1.00 @ €2.00"
+      ,showMixedAmount (Mixed [usd 0]) `is` "0"
+      ,showMixedAmount (Mixed []) `is` "0"
+      ,showMixedAmount missingmixedamt `is` ""
+    ]
+  
+    ,tests "showMixedAmountWithoutPrice" $
+      let a = usd 1 `at` eur 2 in 
+    [
+        showMixedAmountWithoutPrice (Mixed [a]) `is` "$1.00"
+       ,showMixedAmountWithoutPrice (Mixed [a, -a]) `is` "0"
+    ]
+  
+    ,tests "normaliseMixedAmount" [
+       test "a missing amount overrides any other amounts" $ 
+        normaliseMixedAmount (Mixed [usd 1, missingamt]) `is` missingmixedamt
+      ,test "unpriced same-commodity amounts are combined" $ 
+        normaliseMixedAmount (Mixed [usd 0, usd 2]) `is` Mixed [usd 2]
+      ,test "amounts with same unit price are combined" $ 
+        normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 1]) `is` Mixed [usd 2 `at` eur 1]
+      ,test "amounts with different unit prices are not combined" $ 
+        normaliseMixedAmount (Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]) `is` Mixed [usd 1 `at` eur 1, usd 1 `at` eur 2]
+      ,test "amounts with total prices are not combined" $
+        normaliseMixedAmount (Mixed  [usd 1 @@ eur 1, usd 1 @@ eur 1]) `is` Mixed [usd 1 @@ eur 1, usd 1 @@ eur 1]
+    ]
+  
+    ,tests "normaliseMixedAmountSquashPricesForDisplay" [
+       normaliseMixedAmountSquashPricesForDisplay (Mixed []) `is` Mixed [nullamt]
+      ,expect $ isZeroMixedAmount $ normaliseMixedAmountSquashPricesForDisplay
+        (Mixed [usd 10
+               ,usd 10 @@ eur 7
+               ,usd (-10)
+               ,usd (-10) @@ eur 7
+               ])
+    ]
+
+  ]
+
+ ]

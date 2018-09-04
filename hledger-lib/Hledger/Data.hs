@@ -52,8 +52,7 @@ import Hledger.Utils.Test
 
 tests_Hledger_Data = TestList
     [
-     tests_Hledger_Data_Amount
-    ,tests_Hledger_Data_Journal
+     tests_Hledger_Data_Journal
     ,tests_Hledger_Data_Ledger
     ,tests_Hledger_Data_Posting
     -- ,tests_Hledger_Data_RawOptions
@@ -65,5 +64,6 @@ tests_Hledger_Data = TestList
 
 easytests_Data = tests "Data" [
    easytests_AccountName
+  ,easytests_Amount
   ,easytests_Journal
   ]
