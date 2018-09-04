@@ -40,7 +40,6 @@ module Hledger.Data.AccountName (
 )
 where
 
-import Data.CallStack
 import Data.List
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid

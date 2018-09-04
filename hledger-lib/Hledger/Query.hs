@@ -49,7 +49,7 @@ module Hledger.Query (
   easytests_Query
 )
 where
-import Data.CallStack
+
 import Data.Data
 import Data.Either
 import Data.List

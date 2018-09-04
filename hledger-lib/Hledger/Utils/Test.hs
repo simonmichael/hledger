@@ -4,7 +4,8 @@
 
 module Hledger.Utils.Test (
   -- * easytest
-   module EasyTest
+   HasCallStack
+  ,module EasyTest
   ,runEasyTests
   ,tests
   ,_tests

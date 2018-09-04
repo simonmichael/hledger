@@ -40,7 +40,6 @@ where
 -- import Control.Concurrent
 import Control.Monad
 import Data.Default
--- import Data.CallStack
 import Data.List
 import Data.List.Split (splitOn)
 #if !(MIN_VERSION_base(4,11,0))
