@@ -55,6 +55,7 @@ easytests_Data = tests "Data" [
   ,easytests_Journal
   ,easytests_Ledger
   ,easytests_Posting
+  ,easytests_StringFormat
   ,easytests_Timeclock
   ,easytests_Transaction
   ]
