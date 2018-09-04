@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
 {-|
 
 Journal entries report, used by the print command.
@@ -10,7 +10,7 @@ module Hledger.Reports.EntriesReport (
   EntriesReportItem,
   entriesReport,
   -- * Tests
-  tests_Hledger_Reports_EntriesReport
+  easytests_EntriesReport
 )
 where
 
@@ -20,7 +20,7 @@ import Data.Ord
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 
 
 -- | A journal entries report is a list of whole transactions as
@@ -37,13 +37,13 @@ entriesReport opts q j =
       date = transactionDateFn opts
       ts = jtxns $ journalSelectingAmountFromOpts opts j
 
-tests_entriesReport = [
-  "entriesReport" ~: do
-    assertEqual "not acct" 1 (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal)
-    let sp = mkdatespan "2008/06/01" "2008/07/01"
-    assertEqual "date" 3 (length $ entriesReport defreportopts (Date sp) samplejournal)
- ]
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
 
-tests_Hledger_Reports_EntriesReport = TestList $
- tests_entriesReport
+easytests_EntriesReport = tests "EntriesReport" [
+  tests "entriesReport" [
+     test "not acct" $ (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal) `is` 1
+    ,test "date" $ (length $ entriesReport defreportopts (Date $ mkdatespan "2008/06/01" "2008/07/01") samplejournal) `is` 3
+  ]
+ ]
 

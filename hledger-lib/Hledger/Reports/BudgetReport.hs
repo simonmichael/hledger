@@ -353,3 +353,8 @@ budgetReportAsTable
 maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
 maybeAccountNameDrop opts a | flat_ opts = accountNameDrop (drop_ opts) a
                             | otherwise  = a
+
+-- tests
+
+easytests_BudgetReport = tests "BudgetReport" [
+ ]

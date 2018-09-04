@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
 {-|
 
 Here are several variants of a transactions report.
@@ -22,7 +22,8 @@ module Hledger.Reports.TransactionsReports (
   journalTransactionsReport,
   accountTransactionsReport,
   transactionsReportByCommodity,
-  transactionRegisterDate
+  transactionRegisterDate,
+  easytests_TransactionsReports
 )
 where
 
@@ -35,7 +36,7 @@ import Data.Time.Calendar
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
-import Hledger.Utils.Debug
+import Hledger.Utils
 
 
 -- | A transactions report includes a list of transactions
@@ -275,3 +276,7 @@ filterTransactionsReportByCommodity c (label,items) =
 
 -------------------------------------------------------------------------------
 
+-- tests
+
+easytests_TransactionsReports = tests "TransactionsReports" [
+ ]

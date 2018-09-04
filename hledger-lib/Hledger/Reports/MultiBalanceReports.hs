@@ -16,7 +16,7 @@ module Hledger.Reports.MultiBalanceReports (
   tableAsText,
 
   -- -- * Tests
-  tests_Hledger_Reports_MultiBalanceReport
+  easytests_MultiBalanceReports
 )
 where
 
@@ -30,7 +30,7 @@ import Text.Tabular.AsciiWide
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.BalanceReport
@@ -284,53 +284,6 @@ balanceReportFromMultiBalanceReport opts q j = (rows', total)
     total = headDef nullmixedamt totals
 
 
-tests_multiBalanceReport =
-  let
-    (opts,journal) `gives` r = do
-      let (eitems, etotal) = r
-          (MultiBalanceReport (_, aitems, atotal)) = multiBalanceReport opts (queryFromOpts nulldate opts) journal
-          showw (acct,acct',indent,lAmt,amt,amt') = (acct, acct', indent, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
-      assertEqual "items" (map showw eitems) (map showw aitems)
-      assertEqual "total" (showMixedAmountDebug etotal) ((\(_, b, _) -> showMixedAmountDebug b) atotal) -- we only check the sum of the totals
-    usd0 = usd 0
-    amount0 = Amount {acommodity="$", aquantity=0, aprice=NoPrice, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, amultiplier=False}
-  in [
-   "multiBalanceReport with no args on null journal" ~: do
-   (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
-
-   ,"multiBalanceReport with -H on a populated period" ~: do
-    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
-     (
-      [
-       ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
-      ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
-      ],
-      Mixed [usd0])
-
-   ,"multiBalanceReport tests the ability to have a valid history on an empty period" ~: do
-    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`
-     (
-      [
-       ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
-      ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
-      ],
-      Mixed [usd0])
-
-   ,"multiBalanceReport tests the ability to have a valid history on an empty period (More complex)" ~: do
-    (defreportopts{period_= PeriodBetween (fromGregorian 2009 1 1) (fromGregorian 2009 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
-     (
-      [
-      ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
-      ,("assets:bank:saving","saving",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
-      ,("assets:cash","cash",2, [mamountp' "$-2.00"], mamountp' "$-2.00",Mixed [amount0 {aquantity=(-2)}])
-      ,("expenses:food","food",2, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=(1)}])
-      ,("expenses:supplies","supplies",2, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=(1)}])
-      ,("income:gifts","gifts",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
-      ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
-      ],
-      Mixed [usd0])
-  ]
-
 -- common rendering helper, XXX here for now
 
 tableAsText :: ReportOpts -> (a -> String) -> Table String String a -> String
@@ -347,5 +300,56 @@ tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
         acctswidth = maximum' $ map strWidth (headerContents l)
         l'         = padRightWide acctswidth <$> l
 
-tests_Hledger_Reports_MultiBalanceReport = TestList
-  tests_multiBalanceReport
+-- tests
+
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
+
+easytests_MultiBalanceReports = tests "MultiBalanceReports" [
+  let
+    (opts,journal) `gives` r = do
+      let (eitems, etotal) = r
+          (MultiBalanceReport (_, aitems, atotal)) = multiBalanceReport opts (queryFromOpts nulldate opts) journal
+          showw (acct,acct',indent,lAmt,amt,amt') = (acct, acct', indent, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
+      (map showw aitems) `is` (map showw eitems)
+      ((\(_, b, _) -> showMixedAmountDebug b) atotal) `is` (showMixedAmountDebug etotal) -- we only check the sum of the totals
+    usd0 = usd 0
+    amount0 = Amount {acommodity="$", aquantity=0, aprice=NoPrice, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, amultiplier=False}
+  in 
+   tests "multiBalanceReport" [
+      test "null journal"  $
+      (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
+  
+     ,test "with -H on a populated period"  $
+      (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
+       (
+        [
+         ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
+        ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
+        ],
+        Mixed [usd0])
+  
+     ,test "a valid history on an empty period"  $
+      (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`
+       (
+        [
+         ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
+        ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
+        ],
+        Mixed [usd0])
+  
+     ,test "a valid history on an empty period (more complex)"  $
+      (defreportopts{period_= PeriodBetween (fromGregorian 2009 1 1) (fromGregorian 2009 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
+       (
+        [
+        ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
+        ,("assets:bank:saving","saving",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
+        ,("assets:cash","cash",2, [mamountp' "$-2.00"], mamountp' "$-2.00",Mixed [amount0 {aquantity=(-2)}])
+        ,("expenses:food","food",2, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=(1)}])
+        ,("expenses:supplies","supplies",2, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=(1)}])
+        ,("income:gifts","gifts",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
+        ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
+        ],
+        Mixed [usd0])
+    ]
+ ]

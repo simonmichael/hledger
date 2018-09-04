@@ -19,7 +19,6 @@ module Hledger.Reports (
   module Hledger.Reports.BudgetReport,
 --   module Hledger.Reports.BalanceHistoryReport,
   -- * Tests
-  tests_Hledger_Reports,
   easytests_Reports
 )
 where
@@ -35,14 +34,12 @@ import Hledger.Reports.BudgetReport
 -- import Hledger.Reports.BalanceHistoryReport
 import Hledger.Utils.Test
 
-tests_Hledger_Reports = TestList $
- [
- tests_Hledger_Reports_EntriesReport,
- tests_Hledger_Reports_PostingsReport,
- tests_Hledger_Reports_BalanceReport,
- tests_Hledger_Reports_MultiBalanceReport
- ]
-
 easytests_Reports = tests "Reports" [
-   easytests_ReportOptions
- ]
+   easytests_BalanceReport
+  ,easytests_BudgetReport
+  ,easytests_EntriesReport
+  ,easytests_MultiBalanceReports
+  ,easytests_PostingsReport
+  ,easytests_ReportOptions
+  ,easytests_TransactionsReports
+  ]

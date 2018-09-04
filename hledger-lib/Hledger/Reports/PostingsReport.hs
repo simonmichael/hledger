@@ -12,7 +12,7 @@ module Hledger.Reports.PostingsReport (
   mkpostingsReportItem,
 
   -- * Tests
-  tests_Hledger_Reports_PostingsReport
+  easytests_PostingsReport
 )
 where
 
@@ -26,7 +26,7 @@ import Safe (headMay, lastMay)
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils
+import Hledger.Utils hiding (is)
 import Hledger.Reports.ReportOptions
 
 
@@ -174,11 +174,6 @@ summarisePostingsByInterval interval wd depth showempty reportspan ps = concatMa
       summarisespan s = summarisePostingsInDateSpan s wd depth showempty (postingsinspan s)
       postingsinspan s = filter (isPostingInDateSpan' wd s) ps
 
-tests_summarisePostingsByInterval = [
-  "summarisePostingsByInterval" ~: do
-    summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] ~?= []
- ]
-
 -- | A summary posting summarises the activity in one account within a report
 -- interval. It is currently kludgily represented by a regular Posting with no
 -- description, the interval's start date stored as the posting date, and the
@@ -220,209 +215,217 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
           bal = if isclipped a then aibalance else aebalance
           isclipped a = accountNameLevel a >= depth
 
--- tests_summarisePostingsInDateSpan = [
-  --  "summarisePostingsInDateSpan" ~: do
-  --   let gives (b,e,depth,showempty,ps) =
-  --           (summarisePostingsInDateSpan (mkdatespan b e) depth showempty ps `is`)
-  --   let ps =
-  --           [
-  --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
-  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 2]}
-  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
-  --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 8]}
-  --           ]
-  --   ("2008/01/01","2009/01/01",0,9999,False,[]) `gives`
-  --    []
-  --   ("2008/01/01","2009/01/01",0,9999,True,[]) `gives`
-  --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31"}
-  --    ]
-  --   ("2008/01/01","2009/01/01",0,9999,False,ts) `gives`
-  --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
-  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 10]}
-  --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
-  --    ]
-  --   ("2008/01/01","2009/01/01",0,2,False,ts) `gives`
-  --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [usd 15]}
-  --    ]
-  --   ("2008/01/01","2009/01/01",0,1,False,ts) `gives`
-  --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [usd 15]}
-  --    ]
-  --   ("2008/01/01","2009/01/01",0,0,False,ts) `gives`
-  --    [
-  --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [usd 15]}
-  --    ]
+-- tests
 
-tests_postingsReport = [
-  "postingsReport" ~: do
+is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
+is = flip expectEq'
 
-   -- with the query specified explicitly
-   let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) `is` n
-   (Any, nulljournal) `gives` 0
-   (Any, samplejournal) `gives` 13
-   -- register --depth just clips account names
-   (Depth 2, samplejournal) `gives` 13
-   (And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
-   (And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
+easytests_PostingsReport = tests "PostingsReport" [
 
-   -- with query and/or command-line options
-   assertEqual "" 13 (length $ snd $ postingsReport defreportopts Any samplejournal)
-   assertEqual "" 11 (length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal)
-   assertEqual "" 20 (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal)
-   assertEqual ""  5 (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal)
+   tests "postingsReport" $
+    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) `is` n
+    in [
+     -- with the query specified explicitly
+      (Any, nulljournal) `gives` 0
+     ,(Any, samplejournal) `gives` 13
+     -- register --depth just clips account names
+     ,(Depth 2, samplejournal) `gives` 13
+     ,(And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
+     ,(And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
+  
+     -- with query and/or command-line options
+     ,(length $ snd $ postingsReport defreportopts Any samplejournal) `is` 13
+     ,(length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal) `is` 11
+     ,(length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal) `is` 20
+     ,(length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal) `is` 5
+  
+     -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
+     -- [(Just (parsedate "2008-01-01","income"),assets:bank:checking             $1,$1)
+     -- ,(Nothing,income:salary                   $-1,0)
+     -- ,(Just (2008-06-01,"gift"),assets:bank:checking             $1,$1)
+     -- ,(Nothing,income:gifts                    $-1,0)
+     -- ,(Just (2008-06-02,"save"),assets:bank:saving               $1,$1)
+     -- ,(Nothing,assets:bank:checking            $-1,0)
+     -- ,(Just (2008-06-03,"eat & shop"),expenses:food                    $1,$1)
+     -- ,(Nothing,expenses:supplies                $1,$2)
+     -- ,(Nothing,assets:cash                     $-2,0)
+     -- ,(Just (2008-12-31,"pay off"),liabilities:debts                $1,$1)
+     -- ,(Nothing,assets:bank:checking            $-1,0)    
 
-   -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
-   -- [(Just (parsedate "2008-01-01","income"),assets:bank:checking             $1,$1)
-   -- ,(Nothing,income:salary                   $-1,0)
-   -- ,(Just (2008-06-01,"gift"),assets:bank:checking             $1,$1)
-   -- ,(Nothing,income:gifts                    $-1,0)
-   -- ,(Just (2008-06-02,"save"),assets:bank:saving               $1,$1)
-   -- ,(Nothing,assets:bank:checking            $-1,0)
-   -- ,(Just (2008-06-03,"eat & shop"),expenses:food                    $1,$1)
-   -- ,(Nothing,expenses:supplies                $1,$2)
-   -- ,(Nothing,assets:cash                     $-2,0)
-   -- ,(Just (2008-12-31,"pay off"),liabilities:debts                $1,$1)
-   -- ,(Nothing,assets:bank:checking            $-1,0)
-   -- ]
+    {-
+        let opts = defreportopts
+        (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
+         ["2008/01/01 income               assets:bank:checking             $1           $1"
+         ,"                                income:salary                   $-1            0"
+         ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
+         ,"                                income:gifts                    $-1            0"
+         ,"2008/06/02 save                 assets:bank:saving               $1           $1"
+         ,"                                assets:bank:checking            $-1            0"
+         ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
+         ,"                                expenses:supplies                $1           $2"
+         ,"                                assets:cash                     $-2            0"
+         ,"2008/12/31 pay off              liabilities:debts                $1           $1"
+         ,"                                assets:bank:checking            $-1            0"
+         ]
+    
+      ,"postings report with cleared option" ~:
+       do
+        let opts = defreportopts{cleared_=True}
+        j <- readJournal' sample_journal_str
+        (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
+         ["2008/06/03 eat & shop           expenses:food                    $1           $1"
+         ,"                                expenses:supplies                $1           $2"
+         ,"                                assets:cash                     $-2            0"
+         ,"2008/12/31 pay off              liabilities:debts                $1           $1"
+         ,"                                assets:bank:checking            $-1            0"
+         ]
+    
+      ,"postings report with uncleared option" ~:
+       do
+        let opts = defreportopts{uncleared_=True}
+        j <- readJournal' sample_journal_str
+        (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
+         ["2008/01/01 income               assets:bank:checking             $1           $1"
+         ,"                                income:salary                   $-1            0"
+         ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
+         ,"                                income:gifts                    $-1            0"
+         ,"2008/06/02 save                 assets:bank:saving               $1           $1"
+         ,"                                assets:bank:checking            $-1            0"
+         ]
+    
+      ,"postings report sorts by date" ~:
+       do
+        j <- readJournal' $ unlines
+            ["2008/02/02 a"
+            ,"  b  1"
+            ,"  c"
+            ,""
+            ,"2008/01/01 d"
+            ,"  e  1"
+            ,"  f"
+            ]
+        let opts = defreportopts
+        registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/02/02"]
+    
+      ,"postings report with account pattern" ~:
+       do
+        j <- samplejournal
+        let opts = defreportopts{patterns_=["cash"]}
+        (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
+         ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
+         ]
+    
+      ,"postings report with account pattern, case insensitive" ~:
+       do
+        j <- samplejournal
+        let opts = defreportopts{patterns_=["cAsH"]}
+        (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
+         ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
+         ]
+    
+      ,"postings report with display expression" ~:
+       do
+        j <- samplejournal
+        let gives displayexpr =
+                (registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is`)
+                    where opts = defreportopts{display_=Just displayexpr}
+        "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
+        "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
+        "d=[2008/6/2]"  `gives` ["2008/06/02"]
+        "d>=[2008/6/2]" `gives` ["2008/06/02","2008/06/03","2008/12/31"]
+        "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
+    
+      ,"postings report with period expression" ~:
+       do
+        j <- samplejournal
+        let periodexpr `gives` dates = do
+              j' <- samplejournal
+              registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j') `is` dates
+                  where opts = defreportopts{period_=maybePeriod date1 periodexpr}
+        ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
+        "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
+        "2007" `gives` []
+        "june" `gives` ["2008/06/01","2008/06/02","2008/06/03"]
+        "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
+        "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
+        let opts = defreportopts{period_=maybePeriod date1 "yearly"}
+        (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
+         ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
+         ,"                                assets:cash                     $-2          $-1"
+         ,"                                expenses:food                    $1            0"
+         ,"                                expenses:supplies                $1           $1"
+         ,"                                income:gifts                    $-1            0"
+         ,"                                income:salary                   $-1          $-1"
+         ,"                                liabilities:debts                $1            0"
+         ]
+        let opts = defreportopts{period_=maybePeriod date1 "quarterly"}
+        registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
+        let opts = defreportopts{period_=maybePeriod date1 "quarterly",empty_=True}
+        registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
+    
+      ]
+    
+      , "postings report with depth arg" ~:
+       do
+        j <- samplejournal
+        let opts = defreportopts{depth_=Just 2}
+        (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
+         ["2008/01/01 income               assets:bank                      $1           $1"
+         ,"                                income:salary                   $-1            0"
+         ,"2008/06/01 gift                 assets:bank                      $1           $1"
+         ,"                                income:gifts                    $-1            0"
+         ,"2008/06/02 save                 assets:bank                      $1           $1"
+         ,"                                assets:bank                     $-1            0"
+         ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
+         ,"                                expenses:supplies                $1           $2"
+         ,"                                assets:cash                     $-2            0"
+         ,"2008/12/31 pay off              liabilities:debts                $1           $1"
+         ,"                                assets:bank                     $-1            0"
+         ]
+    
+    -}
+    ]
 
-{-
-    let opts = defreportopts
-    (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
-     ["2008/01/01 income               assets:bank:checking             $1           $1"
-     ,"                                income:salary                   $-1            0"
-     ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"2008/06/02 save                 assets:bank:saving               $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
-     ,"                                expenses:supplies                $1           $2"
-     ,"                                assets:cash                     $-2            0"
-     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ]
-
-  ,"postings report with cleared option" ~:
-   do
-    let opts = defreportopts{cleared_=True}
-    j <- readJournal' sample_journal_str
-    (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
-     ["2008/06/03 eat & shop           expenses:food                    $1           $1"
-     ,"                                expenses:supplies                $1           $2"
-     ,"                                assets:cash                     $-2            0"
-     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ]
-
-  ,"postings report with uncleared option" ~:
-   do
-    let opts = defreportopts{uncleared_=True}
-    j <- readJournal' sample_journal_str
-    (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
-     ["2008/01/01 income               assets:bank:checking             $1           $1"
-     ,"                                income:salary                   $-1            0"
-     ,"2008/06/01 gift                 assets:bank:checking             $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"2008/06/02 save                 assets:bank:saving               $1           $1"
-     ,"                                assets:bank:checking            $-1            0"
-     ]
-
-  ,"postings report sorts by date" ~:
-   do
-    j <- readJournal' $ unlines
-        ["2008/02/02 a"
-        ,"  b  1"
-        ,"  c"
-        ,""
-        ,"2008/01/01 d"
-        ,"  e  1"
-        ,"  f"
-        ]
-    let opts = defreportopts
-    registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/02/02"]
-
-  ,"postings report with account pattern" ~:
-   do
-    j <- samplejournal
-    let opts = defreportopts{patterns_=["cash"]}
-    (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
-     ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
-     ]
-
-  ,"postings report with account pattern, case insensitive" ~:
-   do
-    j <- samplejournal
-    let opts = defreportopts{patterns_=["cAsH"]}
-    (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
-     ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
-     ]
-
-  ,"postings report with display expression" ~:
-   do
-    j <- samplejournal
-    let gives displayexpr =
-            (registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is`)
-                where opts = defreportopts{display_=Just displayexpr}
-    "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
-    "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
-    "d=[2008/6/2]"  `gives` ["2008/06/02"]
-    "d>=[2008/6/2]" `gives` ["2008/06/02","2008/06/03","2008/12/31"]
-    "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
-
-  ,"postings report with period expression" ~:
-   do
-    j <- samplejournal
-    let periodexpr `gives` dates = do
-          j' <- samplejournal
-          registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j') `is` dates
-              where opts = defreportopts{period_=maybePeriod date1 periodexpr}
-    ""     `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
-    "2008" `gives` ["2008/01/01","2008/06/01","2008/06/02","2008/06/03","2008/12/31"]
-    "2007" `gives` []
-    "june" `gives` ["2008/06/01","2008/06/02","2008/06/03"]
-    "monthly" `gives` ["2008/01/01","2008/06/01","2008/12/01"]
-    "quarterly" `gives` ["2008/01/01","2008/04/01","2008/10/01"]
-    let opts = defreportopts{period_=maybePeriod date1 "yearly"}
-    (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
-     ["2008/01/01 - 2008/12/31         assets:bank:saving               $1           $1"
-     ,"                                assets:cash                     $-2          $-1"
-     ,"                                expenses:food                    $1            0"
-     ,"                                expenses:supplies                $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"                                income:salary                   $-1          $-1"
-     ,"                                liabilities:debts                $1            0"
-     ]
-    let opts = defreportopts{period_=maybePeriod date1 "quarterly"}
-    registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
-    let opts = defreportopts{period_=maybePeriod date1 "quarterly",empty_=True}
-    registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
-
-  ]
-
-  , "postings report with depth arg" ~:
-   do
-    j <- samplejournal
-    let opts = defreportopts{depth_=Just 2}
-    (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
-     ["2008/01/01 income               assets:bank                      $1           $1"
-     ,"                                income:salary                   $-1            0"
-     ,"2008/06/01 gift                 assets:bank                      $1           $1"
-     ,"                                income:gifts                    $-1            0"
-     ,"2008/06/02 save                 assets:bank                      $1           $1"
-     ,"                                assets:bank                     $-1            0"
-     ,"2008/06/03 eat & shop           expenses:food                    $1           $1"
-     ,"                                expenses:supplies                $1           $2"
-     ,"                                assets:cash                     $-2            0"
-     ,"2008/12/31 pay off              liabilities:debts                $1           $1"
-     ,"                                assets:bank                     $-1            0"
-     ]
-
--}
+  ,tests "summarisePostingsByInterval" [
+    tests "summarisePostingsByInterval" [
+      summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] `is` []
+      ]
+   ]
+  
+  -- ,tests_summarisePostingsInDateSpan = [
+    --  "summarisePostingsInDateSpan" ~: do
+    --   let gives (b,e,depth,showempty,ps) =
+    --           (summarisePostingsInDateSpan (mkdatespan b e) depth showempty ps `is`)
+    --   let ps =
+    --           [
+    --            nullposting{lpdescription="desc",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 2]}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
+    --           ,nullposting{lpdescription="desc",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 8]}
+    --           ]
+    --   ("2008/01/01","2009/01/01",0,9999,False,[]) `gives`
+    --    []
+    --   ("2008/01/01","2009/01/01",0,9999,True,[]) `gives`
+    --    [
+    --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31"}
+    --    ]
+    --   ("2008/01/01","2009/01/01",0,9999,False,ts) `gives`
+    --    [
+    --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",          lpamount=Mixed [usd 4]}
+    --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:dining",   lpamount=Mixed [usd 10]}
+    --    ,nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food:groceries",lpamount=Mixed [usd 1]}
+    --    ]
+    --   ("2008/01/01","2009/01/01",0,2,False,ts) `gives`
+    --    [
+    --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses:food",lpamount=Mixed [usd 15]}
+    --    ]
+    --   ("2008/01/01","2009/01/01",0,1,False,ts) `gives`
+    --    [
+    --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="expenses",lpamount=Mixed [usd 15]}
+    --    ]
+    --   ("2008/01/01","2009/01/01",0,0,False,ts) `gives`
+    --    [
+    --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [usd 15]}
+    --    ]
+  
  ]
-
-tests_Hledger_Reports_PostingsReport = TestList $
-    tests_summarisePostingsByInterval
- ++ tests_postingsReport
-
