@@ -787,20 +787,17 @@ With additional QUERY arguments, only transactions matching the query are consid
 ## test
 Run built-in unit tests.
 
-This command runs hledger's built-in unit tests and displays a quick report.
-It's mainly used during development, but it's also nice to be able to
-sanity-check your installed hledger executable at any time.
-
-It runs the unit tests built in to hledger-lib and hledger, 
-printing results on stdout and exiting with success or failure.
-
-Tests are run in two batches: easytest-based and hunit-based tests.
+Prints test names and their results on stdout.
 If any test fails or gives an error, the exit code will be non-zero.
 
-If a pattern argument (case sensitive) is provided, only easytests 
-in that scope and only hunit tests whose name contains it are run.
+Test names include a group prefix.
+If a (exact, case sensitive) group prefix, or a full test name is provided as the first argument, 
+only that group or test is run.
 
-If a numeric second argument is provided, it will set the randomness
-seed for easytests. 
+If a numeric second argument is provided, it will set the randomness seed,
+for repeatable results from tests using randomness (currently none of them). 
+
+This is mainly used by developers, but it's nice to be able to sanity-check your installed hledger executable at any time.
+All tests are expected to pass - if you ever see otherwise, something has gone wrong, please report a bug! 
 
 _include_(hledger_addons.m4.md)
