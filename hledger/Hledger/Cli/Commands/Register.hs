@@ -12,7 +12,7 @@ module Hledger.Cli.Commands.Register (
  ,postingsReportAsText
  ,postingsReportItemAsText
  -- ,showPostingWithBalanceForVty
- ,easytests_Register
+ ,tests_Register
 ) where
 
 import Data.List
@@ -191,7 +191,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
 
 -- tests
 
-easytests_Register = tests "Register" [
+tests_Register = tests "Register" [
 
    tests "postingsReportAsText" [
     test "unicode in register layout" $ do

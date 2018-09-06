@@ -10,7 +10,7 @@ module Hledger.Reports.EntriesReport (
   EntriesReportItem,
   entriesReport,
   -- * Tests
-  easytests_EntriesReport
+  tests_EntriesReport
 )
 where
 
@@ -37,7 +37,7 @@ entriesReport opts q j =
       date = transactionDateFn opts
       ts = jtxns $ journalSelectingAmountFromOpts opts j
 
-easytests_EntriesReport = tests "EntriesReport" [
+tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
      test "not acct" $ (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal) `is` 1
     ,test "date" $ (length $ entriesReport defreportopts (Date $ mkdatespan "2008/06/01" "2008/07/01") samplejournal) `is` 3

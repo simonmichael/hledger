@@ -20,7 +20,7 @@ module Hledger.Reports.BalanceReport (
   flatShowsExclusiveBalance,
 
   -- * Tests
-  easytests_BalanceReport
+  tests_BalanceReport
 )
 where
 
@@ -180,7 +180,7 @@ Right samplejournal2 =
 
 -- tests
 
-easytests_BalanceReport = tests "BalanceReport" [
+tests_BalanceReport = tests "BalanceReport" [
   tests "balanceReport" $
     let
       (opts,journal) `gives` r = do

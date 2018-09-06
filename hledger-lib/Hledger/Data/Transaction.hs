@@ -43,7 +43,7 @@ module Hledger.Data.Transaction (
   sourceFirstLine,
   showGenericSourcePos,
   -- * tests
-  easytests_Transaction
+  tests_Transaction
 )
 where
 import Data.List
@@ -442,7 +442,7 @@ postingSetTransaction t p = p{ptransaction=Just t}
 
 -- tests
 
-easytests_Transaction = tests "Transaction" [
+tests_Transaction = tests "Transaction" [
 
   tests "showTransactionUnelided" [
     showTransactionUnelided nulltransaction `is` "0000/01/01\n\n"

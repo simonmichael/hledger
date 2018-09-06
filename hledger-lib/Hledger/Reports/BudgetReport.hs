@@ -356,5 +356,5 @@ maybeAccountNameDrop opts a | flat_ opts = accountNameDrop (drop_ opts) a
 
 -- tests
 
-easytests_BudgetReport = tests "BudgetReport" [
+tests_BudgetReport = tests "BudgetReport" [
  ]

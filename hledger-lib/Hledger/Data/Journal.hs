@@ -68,7 +68,7 @@ module Hledger.Data.Journal (
   journalUntieTransactions,
   -- * Tests
   samplejournal,
-  easytests_Journal,
+  tests_Journal,
 )
 where
 import Control.Applicative (Const(..))
@@ -1060,7 +1060,7 @@ Right samplejournal = journalBalanceTransactions False $
           ]
          }
 
-easytests_Journal = tests "Journal" [
+tests_Journal = tests "Journal" [
 
    test "journalDateSpan" $
     journalDateSpan True nulljournal{

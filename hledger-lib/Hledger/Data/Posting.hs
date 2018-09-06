@@ -54,7 +54,7 @@ module Hledger.Data.Posting (
   showPosting,
   -- * misc.
   showComment,
-  easytests_Posting
+  tests_Posting
 )
 where
 import Data.List
@@ -293,7 +293,7 @@ aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.un
 
 -- tests
 
-easytests_Posting = tests "Posting" [
+tests_Posting = tests "Posting" [
 
   tests "accountNamePostingType" [
     accountNamePostingType "a" `is` RegularPosting

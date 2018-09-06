@@ -10,7 +10,7 @@ converted to 'Transactions' and queried like a ledger.
 
 module Hledger.Data.Timeclock (
    timeclockEntriesToTransactions
-  ,easytests_Timeclock
+  ,tests_Timeclock
 )
 where
 
@@ -113,7 +113,7 @@ entryFromTimeclockInOut i o
 
 -- tests
 
-easytests_Timeclock = tests "Timeclock" [
+tests_Timeclock = tests "Timeclock" [
   do
    today <- io getCurrentDay
    now' <- io getCurrentTime

@@ -29,7 +29,7 @@ module Hledger.Read (
   module Hledger.Read.Common,
 
   -- * Tests
-  easytests_Read,
+  tests_Read,
 
 ) where
 
@@ -307,10 +307,10 @@ tryReaders iopts mpath readers txt = firstSuccessOrFirstError [] readers
 
 -- tests
 
-easytests_Read = tests "Read" [
-   easytests_Common
-  ,easytests_CsvReader
-  ,easytests_JournalReader
+tests_Read = tests "Read" [
+   tests_Common
+  ,tests_CsvReader
+  ,tests_JournalReader
   ]
 
 --samplejournal = readJournal' $ T.unlines

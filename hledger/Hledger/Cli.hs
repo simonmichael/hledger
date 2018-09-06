@@ -16,7 +16,7 @@ module Hledger.Cli (
                      module Hledger.Cli.Utils,
                      module Hledger.Cli.Version,
                      module Hledger,
-                     easytests_Cli,
+                     tests_Cli,
                      module System.Console.CmdArgs.Explicit
               )
 where
@@ -29,7 +29,7 @@ import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 
-easytests_Cli = tests "Cli" [
-   easytests_Hledger
-  ,easytests_Commands
+tests_Cli = tests "Cli" [
+   tests_Hledger
+  ,tests_Commands
  ]

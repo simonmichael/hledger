@@ -92,7 +92,7 @@ module Hledger.Read.Common (
   singlespacep,
 
   -- * tests
-  easytests_Common,
+  tests_Common,
 )
 where
 --- * imports
@@ -1200,7 +1200,7 @@ match' p = do
 
 --- * tests
 
-easytests_Common = tests "Common" [
+tests_Common = tests "Common" [
 
   tests "amountp" [
     test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)

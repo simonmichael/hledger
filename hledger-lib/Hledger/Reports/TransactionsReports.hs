@@ -23,7 +23,7 @@ module Hledger.Reports.TransactionsReports (
   accountTransactionsReport,
   transactionsReportByCommodity,
   transactionRegisterDate,
-  easytests_TransactionsReports
+  tests_TransactionsReports
 )
 where
 
@@ -278,5 +278,5 @@ filterTransactionsReportByCommodity c (label,items) =
 
 -- tests
 
-easytests_TransactionsReports = tests "TransactionsReports" [
+tests_TransactionsReports = tests "TransactionsReports" [
  ]

@@ -36,7 +36,7 @@ module Hledger.Data.AccountName (
   ,subAccountNamesFrom
   ,topAccountNames
   ,unbudgetedAccountName
-  ,easytests_AccountName
+  ,tests_AccountName
 )
 where
 
@@ -226,7 +226,7 @@ accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1
 --isAccountRegex  :: String -> Bool
 --isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
 
-easytests_AccountName = tests "AccountName" [
+tests_AccountName = tests "AccountName" [
   tests "accountNameTreeFrom" [
      accountNameTreeFrom ["a"]       `is` Node "root" [Node "a" []]
     ,accountNameTreeFrom ["a","b"]   `is` Node "root" [Node "a" [], Node "b" []]

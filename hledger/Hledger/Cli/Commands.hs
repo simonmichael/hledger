@@ -12,7 +12,7 @@ module Hledger.Cli.Commands (
   ,builtinCommands
   ,builtinCommandNames
   ,printCommandsList
-  ,easytests_Commands
+  ,tests_Commands
   ,module Hledger.Cli.Commands.Accounts
   ,module Hledger.Cli.Commands.Activity
   ,module Hledger.Cli.Commands.Add
@@ -240,14 +240,14 @@ FLAGS
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   let args = words' $ query_ $ reportopts_ opts
-  e <- runEasyTests args $ EasyTest.tests [easytests_Hledger, easytests_Commands]
+  e <- runEasytests args $ EasyTest.tests [tests_Hledger, tests_Commands]
   if e then exitFailure else exitSuccess
 
 -- unit tests of hledger command-line executable
 
-easytests_Commands = tests "Commands" [
-   easytests_Balance
-  ,easytests_Register
+tests_Commands = tests "Commands" [
+   tests_Balance
+  ,tests_Register
 
   -- some more tests easiest to define here:
   

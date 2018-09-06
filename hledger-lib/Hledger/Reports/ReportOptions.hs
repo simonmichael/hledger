@@ -33,7 +33,7 @@ module Hledger.Reports.ReportOptions (
   specifiedStartDate,
   specifiedEndDate,
 
-  easytests_ReportOptions
+  tests_ReportOptions
 )
 where
 
@@ -420,7 +420,7 @@ specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 
 -- tests
 
-easytests_ReportOptions = tests "ReportOptions" [
+tests_ReportOptions = tests "ReportOptions" [
    tests "queryFromOpts" [
       (queryFromOpts nulldate defreportopts) `is` Any
      ,(queryFromOpts nulldate defreportopts{query_="a"}) `is` (Acct "a")

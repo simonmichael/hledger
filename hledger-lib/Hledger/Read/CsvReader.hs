@@ -25,7 +25,7 @@ module Hledger.Read.CsvReader (
   expandIncludes,
   transactionFromCsvRecord,
   -- * Tests
-  easytests_CsvReader,
+  tests_CsvReader,
 )
 where
 import Prelude ()
@@ -832,7 +832,7 @@ parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith format
 --------------------------------------------------------------------------------
 -- tests
 
-easytests_CsvReader = tests "CsvReader" [
+tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [
      test "empty file" $
       parseCsvRules "unknown" "" `is` Right rules

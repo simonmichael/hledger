@@ -26,7 +26,7 @@ module Hledger.Data (
                module Hledger.Data.Transaction,
                module Hledger.Data.TransactionModifier,
                module Hledger.Data.Types,
-               easytests_Data
+               tests_Data
               )
 where
 
@@ -49,13 +49,13 @@ import Hledger.Data.TransactionModifier
 import Hledger.Data.Types
 import Hledger.Utils.Test
 
-easytests_Data = tests "Data" [
-   easytests_AccountName
-  ,easytests_Amount
-  ,easytests_Journal
-  ,easytests_Ledger
-  ,easytests_Posting
-  ,easytests_StringFormat
-  ,easytests_Timeclock
-  ,easytests_Transaction
+tests_Data = tests "Data" [
+   tests_AccountName
+  ,tests_Amount
+  ,tests_Journal
+  ,tests_Ledger
+  ,tests_Posting
+  ,tests_StringFormat
+  ,tests_Timeclock
+  ,tests_Transaction
   ]

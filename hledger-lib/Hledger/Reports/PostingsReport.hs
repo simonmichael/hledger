@@ -12,7 +12,7 @@ module Hledger.Reports.PostingsReport (
   mkpostingsReportItem,
 
   -- * Tests
-  easytests_PostingsReport
+  tests_PostingsReport
 )
 where
 
@@ -217,7 +217,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
 
 -- tests
 
-easytests_PostingsReport = tests "PostingsReport" [
+tests_PostingsReport = tests "PostingsReport" [
 
    tests "postingsReport" $
     let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) `is` n

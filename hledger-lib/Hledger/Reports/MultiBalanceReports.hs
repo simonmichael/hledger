@@ -16,7 +16,7 @@ module Hledger.Reports.MultiBalanceReports (
   tableAsText,
 
   -- -- * Tests
-  easytests_MultiBalanceReports
+  tests_MultiBalanceReports
 )
 where
 
@@ -302,7 +302,7 @@ tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
 
 -- tests
 
-easytests_MultiBalanceReports = tests "MultiBalanceReports" [
+tests_MultiBalanceReports = tests "MultiBalanceReports" [
   let
     (opts,journal) `gives` r = do
       let (eitems, etotal) = r

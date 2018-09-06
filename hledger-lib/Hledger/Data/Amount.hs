@@ -114,7 +114,7 @@ module Hledger.Data.Amount (
   canonicaliseMixedAmount,
   -- * misc.
   ltraceamount,
-  easytests_Amount
+  tests_Amount
 ) where
 
 import Data.Char (isDigit)
@@ -671,7 +671,7 @@ mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
 -------------------------------------------------------------------------------
 -- tests
 
-easytests_Amount = tests "Amount" [
+tests_Amount = tests "Amount" [
    tests "Amount" [
 
      tests "costOfAmount" [

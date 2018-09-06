@@ -46,7 +46,7 @@ module Hledger.Query (
   matchesMarketPrice,
   words'',
   -- * tests
-  easytests_Query
+  tests_Query
 )
 where
 
@@ -652,7 +652,7 @@ matchesMarketPrice _ _           = True
 
 -- tests
 
-easytests_Query = tests "Query" [
+tests_Query = tests "Query" [
    tests "simplifyQuery" [
     
      (simplifyQuery $ Or [Acct "a"])      `is` (Acct "a")

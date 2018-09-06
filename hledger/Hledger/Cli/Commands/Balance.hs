@@ -247,7 +247,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportHtmlRows
  ,balanceReportAsTable
  ,balanceReportTableAsText
- ,easytests_Balance
+ ,tests_Balance
 ) where
 
 import Control.Monad (when)
@@ -630,7 +630,7 @@ balanceReportTableAsText ropts = tableAsText ropts showamt
             | otherwise    =  showMixedAmountOneLineWithoutPrice
 
 
-easytests_Balance = tests "Balance" [
+tests_Balance = tests "Balance" [
 
    tests "balanceReportAsText" [
     test "unicode in balance layout" $ do

@@ -21,7 +21,7 @@ module Hledger.Data.Ledger (
   ,ledgerPostings
   ,ledgerDateSpan
   ,ledgerCommodities
-  ,easytests_Ledger
+  ,tests_Ledger
 )
 where
 
@@ -107,7 +107,7 @@ ledgerCommodities = M.keys . jinferredcommodities . ljournal
 
 -- tests
 
-easytests_Ledger = tests "Ledger" [
+tests_Ledger = tests "Ledger" [
 
   tests "ledgerFromJournal" [
      (length $ ledgerPostings $ ledgerFromJournal Any nulljournal) `is` 0

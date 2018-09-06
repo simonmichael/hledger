@@ -10,7 +10,7 @@ module Hledger.Data.StringFormat (
         , StringFormat(..)
         , StringFormatComponent(..)
         , ReportItemField(..)
-        , easytests_StringFormat
+        , tests_StringFormat
         ) where
 
 import Prelude ()
@@ -143,7 +143,7 @@ formatStringTester fs value expected = actual `is` expected
       FormatLiteral l                   -> formatString False Nothing Nothing l
       FormatField leftJustify min max _ -> formatString leftJustify min max value
 
-easytests_StringFormat = tests "StringFormat" [
+tests_StringFormat = tests "StringFormat" [
 
    tests "formatStringHelper" [
       formatStringTester (FormatLiteral " ")                                     ""            " "

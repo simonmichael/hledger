@@ -58,7 +58,7 @@ module Hledger.Read.JournalReader (
   followingcommentp
 
   -- * Tests
-  ,easytests_JournalReader
+  ,tests_JournalReader
 )
 where
 --- * imports
@@ -576,7 +576,7 @@ postingp mTransactionYear = do
 
 --- * tests
 
-easytests_JournalReader = tests "JournalReader" [
+tests_JournalReader = tests "JournalReader" [
 
    let p = lift accountnamep :: JournalParser IO AccountName in
    tests "accountnamep" [

@@ -217,6 +217,6 @@ sequence' ms = do
 mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
 
-easytests_Utils = tests "Utils" [
-  easytests_Text
+tests_Utils = tests "Utils" [
+  tests_Text
   ]

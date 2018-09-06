@@ -6,7 +6,7 @@
 module Hledger.Utils.Test (
    HasCallStack
   ,module EasyTest
-  ,runEasyTests
+  ,runEasytests
   ,tests
   ,_tests
   ,test
@@ -70,20 +70,21 @@ tests name = E.scope name . E.tests
 _tests :: T.Text -> [E.Test ()] -> E.Test () 
 _tests _name = (E.skip >>) . E.tests
 
--- | Run some easytests, returning True if there was a problem. Catches ExitCode.
--- With arguments, runs only tests in the scope named by the first argument
--- (case sensitive). 
+-- | Run some easytest tests, catching easytest's ExitCode exception,
+-- returning True if there was a problem.
+-- With arguments, runs only the scope (or single test) named by the first argument
+-- (exact, case sensitive). 
 -- If there is a second argument, it should be an integer and will be used
 -- as the seed for randomness. 
-runEasyTests :: [String] -> E.Test () -> IO Bool
-runEasyTests args easytests = (do
+runEasytests :: [String] -> E.Test () -> IO Bool
+runEasytests args tests = (do
   case args of
-    []    -> E.run easytests
-    [a]   -> E.runOnly (T.pack a) easytests
+    []    -> E.run tests
+    [a]   -> E.runOnly (T.pack a) tests
     a:b:_ -> do
       case readMay b :: Maybe Int of
         Nothing   -> error' "the second argument should be an integer (a seed for easytest)"
-        Just seed -> E.rerunOnly seed (T.pack a) easytests
+        Just seed -> E.rerunOnly seed (T.pack a) tests
   return False
   )
   `catch` (\(_::ExitCode) -> return True)

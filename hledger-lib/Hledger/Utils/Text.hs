@@ -55,7 +55,7 @@ module Hledger.Utils.Text
   textPadLeftWide,
   textPadRightWide,
   -- -- * tests
-  easytests_Text
+  tests_Text
   )
 where
 
@@ -420,7 +420,7 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 --         | otherwise                        -> 1
 
 
-easytests_Text = tests "Text" [
+tests_Text = tests "Text" [
    tests "quoteIfSpaced" [
      quoteIfSpaced "a'a" `is` "a'a"
     ,quoteIfSpaced "a\"a" `is` "a\"a"              
