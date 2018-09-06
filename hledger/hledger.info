@@ -2256,13 +2256,21 @@ File: hledger.info,  Node: test,  Prev: tags,  Up: COMMANDS
 
 Run built-in unit tests.
 
-$ hledger test
-Cases: 74  Tried: 74  Errors: 0  Failures: 0
+   Prints test names and their results on stdout.  If any test fails or
+gives an error, the exit code will be non-zero.
 
-   This command runs hledger's built-in unit tests and displays a quick
-report.  With a regular expression argument, it selects only tests with
-matching names.  It's mainly used in development, but it's also nice to
-be able to check your hledger executable for smoke at any time.
+   Test names include a group prefix.  If a (exact, case sensitive)
+group prefix, or a full test name is provided as the first argument,
+only that group or test is run.
+
+   If a numeric second argument is provided, it will set the randomness
+seed, for repeatable results from tests using randomness (currently none
+of them).
+
+   This is mainly used by developers, but it's nice to be able to
+sanity-check your installed hledger executable at any time.  All tests
+are expected to pass - if you ever see otherwise, something has gone
+wrong, please report a bug!
 
 
 File: hledger.info,  Node: ADD-ON COMMANDS,  Prev: COMMANDS,  Up: Top
@@ -2541,33 +2549,33 @@ Node: tags76896
 Ref: #tags76994
 Node: test77230
 Ref: #test77314
-Node: ADD-ON COMMANDS77682
-Ref: #add-on-commands77792
-Node: Official add-ons79079
-Ref: #official-add-ons79219
-Node: api79306
-Ref: #api79395
-Node: ui79447
-Ref: #ui79546
-Node: web79604
-Ref: #web79693
-Node: Third party add-ons79739
-Ref: #third-party-add-ons79914
-Node: diff80049
-Ref: #diff80146
-Node: iadd80245
-Ref: #iadd80359
-Node: interest80442
-Ref: #interest80563
-Node: irr80658
-Ref: #irr80756
-Node: Experimental add-ons80834
-Ref: #experimental-add-ons80986
-Node: autosync81266
-Ref: #autosync81377
-Node: chart81616
-Ref: #chart81735
-Node: check81806
-Ref: #check81908
+Node: ADD-ON COMMANDS78022
+Ref: #add-on-commands78132
+Node: Official add-ons79419
+Ref: #official-add-ons79559
+Node: api79646
+Ref: #api79735
+Node: ui79787
+Ref: #ui79886
+Node: web79944
+Ref: #web80033
+Node: Third party add-ons80079
+Ref: #third-party-add-ons80254
+Node: diff80389
+Ref: #diff80486
+Node: iadd80585
+Ref: #iadd80699
+Node: interest80782
+Ref: #interest80903
+Node: irr80998
+Ref: #irr81096
+Node: Experimental add-ons81174
+Ref: #experimental-add-ons81326
+Node: autosync81606
+Ref: #autosync81717
+Node: chart81956
+Ref: #chart82075
+Node: check82146
+Ref: #check82248
 
 End Tag Table

@@ -1047,8 +1047,8 @@ FILE FORMAT
        For  more  details, see: balance: Budget report and Cookbook: Budgeting
        and Forecasting.
 
-        ## Transaction Modifiers
 
+   Transaction Modifiers
        Transaction modifier rules describe  changes  that  should  be  applied
        automatically  to  certain  transactions.  Currently, this means adding
        extra postings (also known as "automated postings").  Transaction modi-

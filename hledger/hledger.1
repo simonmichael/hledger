@@ -2806,20 +2806,22 @@ are considered.
 .SS test
 .PP
 Run built\-in unit tests.
-.IP
-.nf
-\f[C]
-$\ hledger\ test
-Cases:\ 74\ \ Tried:\ 74\ \ Errors:\ 0\ \ Failures:\ 0
-\f[]
-.fi
 .PP
-This command runs hledger's built\-in unit tests and displays a quick
-report.
-With a regular expression argument, it selects only tests with matching
-names.
-It's mainly used in development, but it's also nice to be able to check
-your hledger executable for smoke at any time.
+Prints test names and their results on stdout.
+If any test fails or gives an error, the exit code will be non\-zero.
+.PP
+Test names include a group prefix.
+If a (exact, case sensitive) group prefix, or a full test name is
+provided as the first argument, only that group or test is run.
+.PP
+If a numeric second argument is provided, it will set the randomness
+seed, for repeatable results from tests using randomness (currently none
+of them).
+.PP
+This is mainly used by developers, but it's nice to be able to
+sanity\-check your installed hledger executable at any time.
+All tests are expected to pass \- if you ever see otherwise, something
+has gone wrong, please report a bug!
 .SH ADD\-ON COMMANDS
 .PP
 hledger also searches for external add\-on commands, and will include
