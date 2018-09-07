@@ -93,7 +93,6 @@ dependencies:
 - filepath
 - haskeline >=0.6
 - here
-- HUnit
 - megaparsec >=6.4.1
 - mtl
 - mtl-compat

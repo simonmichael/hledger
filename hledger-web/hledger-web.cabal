@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aa549e1cadbc99bc121957427dc2801f175bc8269503971209b0d70bb1b2a53f
+-- hash: b77366b5a138b9d5a3b4c4541bfb875642f06b621bd690712d022f53ab1afbf6
 
 name:           hledger-web
 version:        1.10.99
@@ -151,8 +151,7 @@ library
   ghc-options: -Wall -fwarn-tabs
   cpp-options: -DVERSION="1.10.99"
   build-depends:
-      HUnit
-    , base >=4.8 && <4.12
+      base >=4.8 && <4.12
     , blaze-html
     , blaze-markup
     , bytestring

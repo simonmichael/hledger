@@ -52,7 +52,6 @@ dependencies:
 - directory
 - filepath
 - fsnotify >=0.2.1.2 && <0.4
-- HUnit
 - microlens >=0.4
 - microlens-platform >=0.2.3.1
 - megaparsec >=6.4.1

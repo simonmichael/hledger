@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 670748bbdefdd5950fbc676e79a7c3924edbe21ac333141915b5509e799fa071
+-- hash: 4c452bcbcd39691d37c6a2bef39b8ff256fb6ef1988ded63371560ae1cd87ca3
 
 name:           hledger
 version:        1.10.99
@@ -113,7 +113,6 @@ library
   build-depends:
       Decimal
     , Diff
-    , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
@@ -165,7 +164,6 @@ executable hledger
   cpp-options: -DVERSION="1.10.99"
   build-depends:
       Decimal
-    , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
@@ -219,7 +217,6 @@ test-suite test
   cpp-options: -DVERSION="1.10.99"
   build-depends:
       Decimal
-    , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
@@ -272,7 +269,6 @@ benchmark bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
   build-depends:
       Decimal
-    , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
