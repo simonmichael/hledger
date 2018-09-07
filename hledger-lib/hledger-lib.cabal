@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 642c6b4607959713188c82341f1050872ec6111a64f8e4b4cc1c1630da585baf
+-- hash: 7d48cc897fb582a2600c3f3405a5463b853316f4a9fae370f0a74c46576a6198
 
 name:           hledger-lib
 version:        1.10.99
@@ -111,9 +111,10 @@ library
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
+    , cassava
+    , cassava-megaparsec
     , cmdargs >=0.10
     , containers
-    , csv
     , data-default >=0.5
     , deepseq
     , directory
@@ -209,9 +210,10 @@ test-suite doctests
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
+    , cassava
+    , cassava-megaparsec
     , cmdargs >=0.10
     , containers
-    , csv
     , data-default >=0.5
     , deepseq
     , directory
@@ -308,9 +310,10 @@ test-suite easytests
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
+    , cassava
+    , cassava-megaparsec
     , cmdargs >=0.10
     , containers
-    , csv
     , data-default >=0.5
     , deepseq
     , directory

@@ -120,6 +120,7 @@ inputflags :: [Flag RawOpts]
 inputflags = [
   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use - (default: $LEDGER_FILE or $HOME/.hledger.journal)"
  ,flagReq  ["rules-file"]    (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
+ ,flagReq  ["separator"]     (\s opts -> Right $ setopt "separator" s opts) "SEPARATOR" "CSV separator (default: ,)"
  ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "rename accounts named OLD to NEW"
  ,flagNone ["anon"]          (setboolopt "anon") "anonymize accounts and payees"
  ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use some other field/tag for account names"

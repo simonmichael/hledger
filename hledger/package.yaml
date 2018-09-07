@@ -85,7 +85,6 @@ dependencies:
 - bytestring
 - cmdargs >=0.10
 - containers
-- csv
 - data-default >=0.5
 - Decimal
 - directory

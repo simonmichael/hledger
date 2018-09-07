@@ -20,12 +20,12 @@ import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
-import Text.CSV
+import Hledger.Read.CsvReader (CSV, Record, printCSV)
+import Test.HUnit()
 
-import Hledger 
+import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-
 
 registermode = (defCommandMode $ ["register"] ++ aliases) {
   modeHelp = "show postings and running total. With --date2, show and sort by secondary date instead." `withAliases` aliases

@@ -17,7 +17,8 @@ where
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
-import Text.CSV
+import Test.HUnit()
+import Hledger.Read.CsvReader (CSV, printCSV)
 
 import Hledger
 import Hledger.Cli.CliOptions

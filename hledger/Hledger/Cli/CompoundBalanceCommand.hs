@@ -18,7 +18,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit as C
-import Text.CSV
+import Hledger.Read.CsvReader (CSV, printCSV)
 import Lucid as L
 import Text.Tabular as T
 
