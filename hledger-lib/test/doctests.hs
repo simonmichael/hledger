@@ -57,7 +57,7 @@ main = do
       ++ if fslen > 1 then " files, plus any files they import:" else " file, plus any files it imports:"
     when verbose $ putStrLn $ unwords fs
 
-    doctest $ 
-      (if verbose then ("--verbose" :) else id) $ 
-      (if slow then id else ("--fast" :)) $
+    doctest $
+      (if verbose then ("--verbose" :) else id) $  -- doctest >= 0.15.0
+      (if slow then id else ("--fast" :)) $        -- doctest >= 0.11.4
       fs

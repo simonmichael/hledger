@@ -16,6 +16,7 @@ extra-deps:
 - base-compat-0.10.1
 - base-compat-batteries-0.10.1
 - criterion-1.4.1.0
+- doctest-0.16.0
 - swagger2-2.2.2
 # avoid no hashable instance for AccountName from doctests
 - hashtables-1.2.3.1

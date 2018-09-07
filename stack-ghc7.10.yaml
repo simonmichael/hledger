@@ -30,6 +30,7 @@ extra-deps:
 - criterion-1.4.1.0
 - data-clist-0.1.2.1
 - directory-1.2.7.0
+- doctest-0.16.0
 - exceptions-0.10.0
 - free-5.0.2
 - generics-sop-0.3.2.0

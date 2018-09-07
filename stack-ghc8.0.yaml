@@ -21,6 +21,7 @@ extra-deps:
 - base-compat-batteries-0.10.1
 - bifunctors-5.5.2
 - criterion-1.4.1.0
+- doctest-0.16.0
 - generics-sop-0.3.2.0
 - hashable-1.2.7.0
 - http-media-0.7.1.2
