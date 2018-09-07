@@ -21,7 +21,6 @@ import Data.Maybe
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Hledger.Read.CsvReader (CSV, Record, printCSV)
-import Test.HUnit()
 
 import Hledger
 import Hledger.Cli.CliOptions
