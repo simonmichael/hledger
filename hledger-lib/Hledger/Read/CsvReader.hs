@@ -56,7 +56,6 @@ import System.Locale (defaultTimeLocale)
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
-import qualified Data.Csv as DSCV
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMP
 import qualified Data.ByteString as B
