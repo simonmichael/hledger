@@ -94,8 +94,8 @@
 >>>2
 >>>=0
 
-# 8. reading CSV with custom separator
- printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >t.$$.csv.rules ; hledger --separator ';' -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+# 8. reading with custom separator: SSV (semicolon-separated)
+ printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >rules.$$ ; hledger --separator ';' -f csv:- --rules-file rules.$$ print && rm -rf rules.$$
 <<<
 10/2009/09;Flubber Co🎅;50;
 11/2009/09;Flubber Co🎅;;50
