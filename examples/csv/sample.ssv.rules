@@ -1,0 +1,7 @@
+account1 Assets:MyAccount
+date %1
+date-format %d/%Y/%m
+description %2
+amount-in %3
+amount-out %4
+currency $
