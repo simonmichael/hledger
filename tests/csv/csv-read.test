@@ -110,3 +110,41 @@
 
 >>>2
 >>>=0
+
+# 9. TODO: without --separator gives obscure error
+#   |
+# 1 | 10/2009/09;Flubber Co🎅;50;
+#   | ^^^^^^^^^^
+# well-formed but invalid date: 10/2009/9
+#  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >rules.$$ ; hledger -f csv:- --rules-file rules.$$ print && rm -rf rules.$$
+# <<<
+# 10/2009/09;Flubber Co🎅;50;
+# 11/2009/09;Flubber Co🎅;;50
+# >>>
+# 2009/09/10 Flubber Co🎅
+#     Assets:MyAccount             $50
+#     income:unknown              $-50
+#
+# 2009/09/11 Flubber Co🎅
+#     Assets:MyAccount            $-50
+#     expenses:unknown             $50
+#
+# >>>2
+# >>>=0
+
+# 10. reading TSV (tab-separated)  TODO user error (CSV record ["10/2009/09\tFlubber Co\127877\t50\t"] has less than two fields)
+#  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >rules.$$ ; hledger --separator "\t" -f csv:- --rules-file rules.$$ print && rm -rf rules.$$
+# <<<
+# 10/2009/09	Flubber Co🎅	50	
+# 11/2009/09	Flubber Co🎅		50
+# >>>
+# 2009/09/10 Flubber Co🎅
+#     Assets:MyAccount             $50
+#     income:unknown              $-50
+#
+# 2009/09/11 Flubber Co🎅
+#     Assets:MyAccount            $-50
+#     expenses:unknown             $50
+#
+# >>>2
+# >>>=0
