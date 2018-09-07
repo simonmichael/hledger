@@ -15,6 +15,7 @@ extra-deps:
 - aeson-1.3.1.1
 - base-compat-0.10.1
 - base-compat-batteries-0.10.1
+- cassava-megaparsec-1.0.0
 - criterion-1.4.1.0
 - doctest-0.16.0
 - swagger2-2.2.2

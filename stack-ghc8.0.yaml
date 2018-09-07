@@ -20,6 +20,7 @@ extra-deps:
 - base-compat-0.10.1
 - base-compat-batteries-0.10.1
 - bifunctors-5.5.2
+- cassava-megaparsec-1.0.0
 - criterion-1.4.1.0
 - doctest-0.16.0
 - generics-sop-0.3.2.0

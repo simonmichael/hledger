@@ -26,6 +26,7 @@ extra-deps:
 - base-orphans-0.7
 - bifunctors-5.5.2
 - brick-0.37.1
+- cassava-megaparsec-1.0.0
 - config-ini-0.2.2.0
 - criterion-1.4.1.0
 - data-clist-0.1.2.1
