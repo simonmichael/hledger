@@ -90,6 +90,9 @@ m4_define({{_inputoptions_}}, {{
 `--rules-file=RULESFILE`
 : Conversion rules file to use when reading CSV (default: FILE.rules)
 
+`--separator=CHAR`
+: Field separator to expect when reading CSV (default: ',')
+
 `--alias=OLD=NEW`
 : rename accounts named OLD to NEW
 
