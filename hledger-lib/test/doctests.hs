@@ -33,7 +33,7 @@ main = do
     pats    = filter (not . ("-" `isPrefixOf`)) args
 
   -- find source files
-  sourcefiles <- filter (not . isInfixOf "/.") <$> mconcat [ -- XXX build error with ghc 7.10
+  sourcefiles <- (filter (not . isInfixOf "/.") . concat) <$> sequence [
      glob "Hledger.hs"
     ,glob "Hledger/**/*.hs"
     ,glob "Text/**/*.hs"
