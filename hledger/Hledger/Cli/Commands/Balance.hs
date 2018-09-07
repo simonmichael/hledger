@@ -258,7 +258,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit as C
 import Lucid as L
-import Test.HUnit hiding (test)
+import Test.HUnit()
 import Text.Printf (printf)
 import Text.Tabular as T
 --import Text.Tabular.AsciiWide
