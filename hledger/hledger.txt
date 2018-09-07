@@ -134,6 +134,9 @@ OPTIONS
               Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
+       --separator=CHAR
+              Field separator to expect when reading CSV (default: `,')
+
        --alias=OLD=NEW
               rename accounts named OLD to NEW
 
@@ -332,10 +335,6 @@ OPTIONS
        Examples:
 
 
-
-
-
-
        2004/10/1,     2004-01-01,            exact  date, several sepa-
        2004.9.1                              rators allowed.   Year  is
                                              4+  digits, month is 1-12,
@@ -398,6 +397,7 @@ OPTIONS
                          rent month
        -p thismonth      all  transactions  in  the
                          current month
+
        date:2016/3/17-   the   above   written   as
                          queries instead
        date:-12/1
@@ -531,6 +531,7 @@ OPTIONS
        -p "every 2nd Monday"  -  period bound-
        aries will be on second Monday of  each
        month
+
        -p "every 11/05"  - yearly periods with
        boundaries on 5th of Nov
        -p "every 5th Nov" - same

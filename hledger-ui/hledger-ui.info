@@ -61,6 +61,9 @@ the data.
 '--rules-file=RULESFILE'
 
      Conversion rules file to use when reading CSV (default: FILE.rules)
+'--separator=CHAR'
+
+     Field separator to expect when reading CSV (default: ',')
 '--alias=OLD=NEW'
 
      rename accounts named OLD to NEW
@@ -379,17 +382,17 @@ Tag Table:
 Node: Top71
 Node: OPTIONS829
 Ref: #options926
-Node: KEYS4143
-Ref: #keys4238
-Node: SCREENS7197
-Ref: #screens7282
-Node: Accounts screen7372
-Ref: #accounts-screen7500
-Node: Register screen9730
-Ref: #register-screen9885
-Node: Transaction screen11959
-Ref: #transaction-screen12117
-Node: Error screen12987
-Ref: #error-screen13109
+Node: KEYS4226
+Ref: #keys4321
+Node: SCREENS7280
+Ref: #screens7365
+Node: Accounts screen7455
+Ref: #accounts-screen7583
+Node: Register screen9813
+Ref: #register-screen9968
+Node: Transaction screen12042
+Ref: #transaction-screen12200
+Node: Error screen13070
+Ref: #error-screen13192
 
 End Tag Table
