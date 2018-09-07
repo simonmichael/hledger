@@ -17,7 +17,8 @@ module Hledger.Data.RawOptions (
   maybestringopt,
   listofstringopt,
   intopt,
-  maybeintopt
+  maybeintopt,
+  maybecharopt
 )
 where
 
@@ -49,6 +50,9 @@ maybestringopt name = maybe Nothing (Just . T.unpack . stripquotes . T.pack) . l
 
 stringopt :: String -> RawOpts -> String
 stringopt name = fromMaybe "" . maybestringopt name
+
+maybecharopt :: String -> RawOpts -> Maybe Char
+maybecharopt name rawopts = lookup name rawopts >>= headMay
 
 listofstringopt :: String -> RawOpts -> [String]
 listofstringopt name rawopts = [v | (k,v) <- rawopts, k==name]

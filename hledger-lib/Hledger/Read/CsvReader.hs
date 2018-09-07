@@ -18,23 +18,25 @@ module Hledger.Read.CsvReader (
   reader,
   -- * Misc.
   CsvRecord,
+  CSV, Record, Field,
   -- rules,
   rulesFileFor,
   parseRulesFile,
   parseAndValidateCsvRules,
   expandIncludes,
   transactionFromCsvRecord,
+  printCSV,
   -- * Tests
   tests_CsvReader,
 )
 where
 import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (getContents)
+import "base-compat-batteries" Prelude.Compat
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
-import Data.Char (toLower, isDigit, isSpace)
+import Data.Char (toLower, isDigit, isSpace, ord)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (fromList)
 import Data.Maybe
@@ -42,6 +44,7 @@ import Data.Ord
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import Data.Time.Calendar (Day)
 #if MIN_VERSION_time(1,5,0)
@@ -53,17 +56,28 @@ import System.Locale (defaultTimeLocale)
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
-import Text.CSV (parseCSV, CSV)
+import qualified Data.Csv as Cassava
+import qualified Data.Csv.Parser.Megaparsec as CassavaMP
+import qualified Data.ByteString as B
+import Data.ByteString.Lazy (fromStrict)
+import Data.Foldable
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
-import qualified Text.Parsec as Parsec
 import Text.Printf (printf)
+import Data.Word
 
 import Hledger.Data
-import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos)
 
+type CSV = [Record]
+
+type Record = [Field]
+
+type Field = String
+
+data CSVError = CSVError (ParseError Word8 CassavaMP.ConversionError)
+    deriving Show
 
 reader :: Reader
 reader = Reader
@@ -78,7 +92,8 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f t = do
   let rulesfile = mrules_file_ iopts
-  r <- liftIO $ readJournalFromCsv rulesfile f t
+  let separator = separator_ iopts
+  r <- liftIO $ readJournalFromCsv separator rulesfile f t
   case r of Left e -> throwError e
             Right j -> return $ journalNumberAndTieTransactions j
 -- XXX does not use parseAndFinaliseJournal like the other readers
@@ -92,11 +107,11 @@ parse iopts f t = do
 -- 2. parse the CSV data, or throw a parse error
 -- 3. convert the CSV records to transactions using the rules
 -- 4. if the rules file didn't exist, create it with the default rules and filename
--- 5. return the transactions as a Journal 
+-- 5. return the transactions as a Journal
 -- @
-readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
-readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv mrulesfile csvfile csvdata =
+readJournalFromCsv :: Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
+readJournalFromCsv _ Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv separator mrulesfile csvfile csvdata =
  handle (\e -> return $ Left $ show (e :: IOException)) $ do
   let throwerr = throw.userError
 
@@ -109,7 +124,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
       dbg1IO "using conversion rules file" rulesfile
       liftIO $ (readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile))
     else return $ defaultRulesText rulesfile
-  rules <- liftIO (runExceptT $ parseAndValidateCsvRules rulesfile rulestext) >>= either throwerr return 
+  rules <- liftIO (runExceptT $ parseAndValidateCsvRules rulesfile rulestext) >>= either throwerr return
   dbg2IO "rules" rules
 
   -- apply skip directive
@@ -124,17 +139,17 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv skip .
               dbg2 "parseCsv")
-             `fmap` parseCsv parsecfilename (T.unpack csvdata)
+             `fmap` parseCsv separator parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
   -- let (headerlines, datalines) = identifyHeaderLines records
   --     mfieldnames = lastMay headerlines
 
-  let 
+  let
     -- convert CSV records to transactions
     txns = snd $ mapAccumL
-                   (\pos r -> 
+                   (\pos r ->
                       let
                         SourcePos name line col = pos
                         line' = (mkPos . (+1) . unPos) line
@@ -146,16 +161,16 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
     -- Ensure transactions are ordered chronologically.
     -- First, reverse them to get same-date transactions ordered chronologically,
-    -- if the CSV records seem to be most-recent-first, ie if there's an explicit 
+    -- if the CSV records seem to be most-recent-first, ie if there's an explicit
     -- "newest-first" directive, or if there's more than one date and the first date
     -- is more recent than the last.
-    txns' = 
+    txns' =
       (if newestfirst || mseemsnewestfirst == Just True then reverse else id) txns
       where
         newestfirst = dbg3 "newestfirst" $ isJust $ getDirective "newest-first" rules
-        mseemsnewestfirst = dbg3 "mseemsnewestfirst" $  
-          case nub $ map tdate txns of 
-            ds | length ds > 1 -> Just $ head ds > last ds 
+        mseemsnewestfirst = dbg3 "mseemsnewestfirst" $
+          case nub $ map tdate txns of
+            ds | length ds > 1 -> Just $ head ds > last ds
             _                  -> Nothing
     -- Second, sort by date.
     txns'' = sortBy (comparing tdate) txns'
@@ -166,14 +181,41 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   return $ Right nulljournal{jtxns=txns''}
 
-parseCsv :: FilePath -> String -> IO (Either Parsec.ParseError CSV)
-parseCsv path csvdata =
-  case path of
-    "-" -> liftM (parseCSV "(stdin)") getContents
-    _   -> return $ parseCSV path csvdata
+parseCsv :: Char -> FilePath -> Text -> IO (Either CSVError CSV)
+parseCsv separator filePath csvdata =
+  case filePath of
+    "-" -> liftM (parseCassava separator "(stdin)") T.getContents
+    _   -> return $ parseCassava separator filePath csvdata
+
+parseCassava :: Char -> FilePath -> Text -> Either CSVError CSV
+parseCassava separator path content =
+    case parseResult of
+        Left  msg -> Left $ CSVError msg
+        Right a   -> Right a
+    where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path lazyContent
+          lazyContent = fromStrict $ T.encodeUtf8 content
+
+decodeOptions :: Char -> Cassava.DecodeOptions
+decodeOptions separator = Cassava.defaultDecodeOptions {
+                      Cassava.decDelimiter = fromIntegral (ord separator)
+                    }
+
+parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
+parseResultToCsv = toListList . unpackFields
+    where
+        toListList = toList . fmap toList
+        unpackFields  = (fmap . fmap) (T.unpack . T.decodeUtf8)
+
+printCSV :: CSV -> String
+printCSV records = unlined (printRecord `map` records)
+    where printRecord = concat . intersperse "," . map printField
+          printField f = "\"" ++ concatMap escape f ++ "\""
+          escape '"' = "\"\""
+          escape x = [x]
+          unlined = concat . intersperse "\n"
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: Int -> Either Parsec.ParseError CSV -> Either String [CsvRecord]
+validateCsv :: Int -> Either CSVError CSV -> Either String [CsvRecord]
 validateCsv _ (Left e) = Left $ show e
 validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
   where
@@ -363,11 +405,11 @@ getDirective directivename = lookup directivename . rdirectives
 instance ShowErrorComponent String where
   showErrorComponent = id
 
--- | An error-throwing action that parses this file's content 
--- as CSV conversion rules, interpolating any included files first, 
+-- | An error-throwing action that parses this file's content
+-- as CSV conversion rules, interpolating any included files first,
 -- and runs some extra validation checks.
 parseRulesFile :: FilePath -> ExceptT String IO CsvRules
-parseRulesFile f = 
+parseRulesFile f =
   liftIO (readFilePortably f >>= expandIncludes (takeDirectory f)) >>= parseAndValidateCsvRules f
 
 -- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
@@ -381,9 +423,9 @@ expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return 
           where
             f' = dir </> dropWhile isSpace (T.unpack f)
             dir' = takeDirectory f'
-        _ -> return line 
+        _ -> return line
 
--- | An error-throwing action that parses this text as CSV conversion rules 
+-- | An error-throwing action that parses this text as CSV conversion rules
 -- and runs some extra validation checks. The file path is for error messages.
 parseAndValidateCsvRules :: FilePath -> T.Text -> ExceptT String IO CsvRules
 parseAndValidateCsvRules rulesfile s = do
@@ -513,8 +555,8 @@ journalfieldnamep = do
   lift (dbgparse 2 "trying journalfieldnamep")
   T.unpack <$> choiceInState (map (lift . string . T.pack) journalfieldnames)
 
--- Transaction fields and pseudo fields for CSV conversion. 
--- Names must precede any other name they contain, for the parser 
+-- Transaction fields and pseudo fields for CSV conversion.
+-- Names must precede any other name they contain, for the parser
 -- (amount-in before amount; date2 before date). TODO: fix
 journalfieldnames = [
    "account1"
@@ -684,7 +726,7 @@ transactionFromCsvRecord sourcepos rules record = t
     account1    = T.pack $ maybe "" render (mfieldtemplate "account1") `or` defaccount1
     account2    = T.pack $ maybe "" render (mfieldtemplate "account2") `or` defaccount2
     balance     = maybe Nothing (parsebalance.render) $ mfieldtemplate "balance"
-    parsebalance str 
+    parsebalance str
       | all isSpace str  = Nothing
       | otherwise = Just $ (either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str, nullsourcepos)
     balanceerror str err = error' $ unlines
@@ -738,7 +780,7 @@ getAmountStr rules record =
 type CsvAmountString = String
 
 -- | Canonicalise the sign in a CSV amount string.
--- Such strings can have a minus sign, negating parentheses, 
+-- Such strings can have a minus sign, negating parentheses,
 -- or any two of these (which cancels out).
 --
 -- >>> simplifySign "1"
@@ -840,15 +882,15 @@ tests_CsvReader = tests "CsvReader" [
   ,tests "rulesp" [
      test "trailing comments" $
       parseWithState' rules rulesp "skip\n# \n#\n" `is` Right rules{rdirectives = [("skip","")]}
-  
+
     ,test "trailing blank lines" $
       parseWithState' rules rulesp "skip\n\n  \n" `is` (Right rules{rdirectives = [("skip","")]})
-  
+
     ,test "no final newline" $
       parseWithState' rules rulesp "skip" `is` (Right rules{rdirectives=[("skip","")]})
 
     ,test "assignment with empty value" $
-      parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n" `is` 
+      parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n" `is`
         (Right rules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
 
     ]

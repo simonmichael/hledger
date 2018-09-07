@@ -158,6 +158,7 @@ data InputOpts = InputOpts {
      mformat_           :: Maybe StorageFormat  -- ^ a file/storage format to try, unless overridden
                                                 --   by a filename prefix. Nothing means try all.
     ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
+    ,separator_         :: Char                 -- ^ the separator to use (when reading CSV)
     ,aliases_           :: [String]             -- ^ account name aliases to apply
     ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data 
     ,ignore_assertions_ :: Bool                 -- ^ don't check balance assertions
@@ -170,13 +171,14 @@ data InputOpts = InputOpts {
 instance Default InputOpts where def = definputopts
 
 definputopts :: InputOpts
-definputopts = InputOpts def def def def def def True def def
+definputopts = InputOpts def def ',' def def def def True def def
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
 rawOptsToInputOpts rawopts = InputOpts{
    -- files_             = map (T.unpack . stripquotes . T.pack) $ listofstringopt "file" rawopts
    mformat_           = Nothing
   ,mrules_file_       = maybestringopt "rules-file" rawopts
+  ,separator_         = fromMaybe ',' (maybecharopt "separator" rawopts)
   ,aliases_           = map (T.unpack . stripquotes . T.pack) $ listofstringopt "alias" rawopts
   ,anon_              = boolopt "anon" rawopts
   ,ignore_assertions_ = boolopt "ignore-assertions" rawopts

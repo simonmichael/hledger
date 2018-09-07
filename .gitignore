@@ -6,7 +6,7 @@ _*
 # dev stuff
 .build
 .idea
-/*.iml
+*.iml
 .shake
 .tmp
 .vscode

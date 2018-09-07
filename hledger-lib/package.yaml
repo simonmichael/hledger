@@ -48,7 +48,8 @@ dependencies:
 - call-stack
 - cmdargs >=0.10
 - containers
-- csv
+- cassava
+- cassava-megaparsec
 - data-default >=0.5
 - Decimal
 - deepseq
