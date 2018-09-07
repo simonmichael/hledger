@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a0660f55b8895b60281c771662761166c2e9cc547f2ae98f6d3c12afc9739282
+-- hash: aa549e1cadbc99bc121957427dc2801f175bc8269503971209b0d70bb1b2a53f
 
 name:           hledger-web
 version:        1.10.99
@@ -183,12 +183,16 @@ library
     , wai-handler-launch >=1.3
     , warp
     , yaml
-    , yesod >=1.4 && <1.7
-    , yesod-core >=1.4 && <1.7
-    , yesod-form >=1.4 && <1.7
-    , yesod-static >=1.4 && <1.7
   if impl(ghc >=8)
     ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
+  if os(darwin) && impl(ghc < 8.0)
+    buildable: False
+  else
+    build-depends:
+        yesod >=1.4 && <1.7
+      , yesod-core >=1.4 && <1.7
+      , yesod-form >=1.4 && <1.7
+      , yesod-static >=1.4 && <1.7
   default-language: Haskell2010
 
 executable hledger-web
@@ -204,8 +208,6 @@ executable hledger-web
     , hledger-web
   if impl(ghc >=8)
     ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
-  if flag(library-only)
+  if os(darwin) && impl(ghc < 8.0)
     buildable: False
-  if flag(threaded)
-    ghc-options: -threaded
   default-language: Haskell2010
