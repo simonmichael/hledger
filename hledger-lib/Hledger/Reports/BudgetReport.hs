@@ -25,7 +25,6 @@ import qualified Data.Text as T
 --import qualified Data.Text.Lazy as TL
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
---import Text.CSV
 import Text.Printf (printf)
 import Text.Tabular as T
 --import Text.Tabular.AsciiWide
