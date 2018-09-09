@@ -659,7 +659,7 @@ hunittest: $(call def-help,hunittest, run just the hunit tests in hledger-lib )
 # doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
 # Or, could run it with ghc 8.2: 
 #	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
-doctest: $(call def-help,doctest, run just the doctest tests in hledger-lib )
+doctest: $(call def-help,doctest, run the doctests in hledger-lib module/function docs )
 	@($(STACKTEST) hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
 
 easytest: $(call def-help,easytest, run just the easytest tests in hledger-lib )
@@ -695,7 +695,7 @@ tests/addons/hledger-addon: \
 # hlinttest hlint: $(call def-help,hlinttest (or hlint),generate a hlint report)
 # 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
 
-haddocktest: $(call def-help,haddocktest, run haddock and make sure it succeeds )
+haddocktest: $(call def-help,haddocktest, run haddock to make sure it can generate docs without dying )
 	@(make --quiet haddock && echo $@ PASSED) || (echo $@ FAILED; false)
 
 cabalfiletest: $(call def-help,cabalfiletest, run cabal check to test cabal file syntax )
