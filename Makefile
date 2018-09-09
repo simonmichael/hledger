@@ -653,24 +653,20 @@ buildplantest-%: $(call def-help,buildplantest-STACKFILE, stack build --dry-run 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
 
-hunittest: $(call def-help,hunittest, run just the hunit tests in hledger-lib )
-	@($(STACKTEST) hledger-lib:test:hunittests && echo $@ PASSED) || (echo $@ FAILED; false)
-
 # doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
 # Or, could run it with ghc 8.2: 
 #	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
 doctest: $(call def-help,doctest, run the doctests in hledger-lib module/function docs )
 	@($(STACKTEST) hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
 
-easytest: $(call def-help,easytest, run just the easytest tests in hledger-lib )
+easytest: $(call def-help,easytest, run the easytest unit tests in hledger-lib )
 	@($(STACKTEST) hledger-lib:test:easytests && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# NB ensure an up to date hledger executable is built (eg make hunittest).
+# assumes an up to date hledger executable is built.
 # I think we don't do it automatically to minimise unnecessary rebuilding.
 builtintest: $(call def-help,builtintest, run hledgers built in test command)
 	@($(STACK) exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# assumes hledger is built and uses whatever build is there, avoiding excessive rebuilding
 #functest: addons tests/addons/hledger-addon 
 functest: tests/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
