@@ -266,7 +266,7 @@ accountdirectivep = do
   newline
   skipMany indentedlinep
     
-  modify' (\j -> j{jaccounts = (acct, macode) : jaccounts j})
+  modify' (\j -> j{jdeclaredaccounts = (acct, macode) : jdeclaredaccounts j})
 
 indentedlinep :: JournalParser m String
 indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
