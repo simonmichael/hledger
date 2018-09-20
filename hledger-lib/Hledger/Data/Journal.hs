@@ -529,7 +529,18 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt
+checkBalanceAssertion p@Posting{ pbalanceassertion = Just ((CommodityBalance ass),_)} amt =
+  checkBalanceAssertionCommodity p ass amt
+checkBalanceAssertion p@Posting{ pbalanceassertion = Just ((AccountBalance ass),_)} amt =
+  foldl' fold (Right ()) (amounts ass)
+    where fold (Right _) cass = checkBalanceAssertionCommodity p cass amt
+          fold err _ = err
+checkBalanceAssertion _ _ = Right ()
+
+-- | Check a component of a posting's balance assertion and return an
+-- error if it fails.
+checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
+checkBalanceAssertionCommodity p ass amt
   | isReallyZeroAmount diff = Right ()
   | True    = Left err
     where assertedcomm = acommodity ass
@@ -560,7 +571,6 @@ checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt
             (showAmount actualbal)
             (showAmount ass)
             (diffplus ++ showAmount diff)
-checkBalanceAssertion _ _ = Right ()
 
 -- | Fill in any missing amounts and check that all journal transactions
 -- balance, or return an error message. This is done after parsing all
@@ -678,8 +688,9 @@ checkInferAndRegisterAmounts (Right oldTx) = do
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
     inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setBalance (paccount p) . fst)
+      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . switchBalanceValue' setBalance setMixedBalance (paccount p) . fst)
       $ pbalanceassertion p
+    switchBalanceValue' f g a = switchBalanceValue (f a) (g a)
 
 -- | Adds a posting's amount to the posting's account balance and
 -- checks a possible balance assertion. Or if there is no amount,
@@ -704,6 +715,14 @@ setBalance acc amt = liftModifier $ \Env{ eBalances = bals } -> do
               (filter ((/= acommodity amt) . acommodity) . amounts) old
   HT.insert bals acc new
   return $ maybe new (new -) old
+
+-- | Sets all commodities comprising an account's balance to the given
+-- amounts and returns the difference from the previous balance.
+setMixedBalance :: AccountName -> MixedAmount -> CurrentBalancesModifier s MixedAmount
+setMixedBalance acc amt = liftModifier $ \Env{ eBalances = bals } -> do
+  old <- HT.lookup bals acc
+  HT.insert bals acc amt
+  return $ maybe amt (amt -) old
 
 -- | Adds an amount to an account's balance and returns the resulting balance.
 addToBalance :: AccountName -> MixedAmount -> CurrentBalancesModifier s MixedAmount

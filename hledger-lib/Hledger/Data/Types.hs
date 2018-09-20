@@ -210,7 +210,18 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
   show Pending   = "!"
   show Cleared   = "*"
 
-type BalanceAssertion = Maybe (Amount, GenericSourcePos)
+type BalanceAssertion = Maybe (BalanceValue, GenericSourcePos)
+
+data BalanceValue = CommodityBalance Amount | AccountBalance MixedAmount
+  deriving (Show,Typeable,Data,Generic)
+
+instance Eq BalanceValue where
+  CommodityBalance l == CommodityBalance r = l == r
+  AccountBalance l   == AccountBalance r   = l == r
+  CommodityBalance l == AccountBalance r   = Mixed [l] == r
+  AccountBalance l   == CommodityBalance r = l == Mixed [r]
+
+instance NFData BalanceValue
 
 data Posting = Posting {
       pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's

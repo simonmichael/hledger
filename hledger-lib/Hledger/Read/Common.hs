@@ -634,7 +634,7 @@ partialbalanceassertionp = optional $ do
     pure sourcepos
   lift (skipMany spacenonewline)
   a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
-  return (a, sourcepos)
+  return (CommodityBalance a, sourcepos)
 
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
 -- balanceassertion =
