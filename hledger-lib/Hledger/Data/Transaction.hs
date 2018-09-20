@@ -170,8 +170,7 @@ postingAsLines elideamount onelineamounts ps p = concat [
     | postingblock <- postingblocks]
   where
     postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
-    assertion = maybe "" ((" = " ++) . showamountfunction . fst) $ pbalanceassertion p
-    showamountfunction = switchBalanceValue showAmountWithZeroCommodity showMixedAmountWithZeroCommodity
+    assertion = maybe "" ((" = " ++) . showMixedAmountWithZeroCommodity . fst) $ pbalanceassertion p
     statusandaccount = indent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
           -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  

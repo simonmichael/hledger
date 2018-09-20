@@ -113,7 +113,6 @@ module Hledger.Data.Amount (
   setMixedAmountPrecision,
   canonicaliseMixedAmount,
   -- * misc.
-  switchBalanceValue,
   ltraceamount,
   tests_Amount
 ) where
@@ -598,12 +597,6 @@ showMixedAmountHelper showzerocommodity useoneline m =
          | otherwise  = vConcatRightAligned
     showamt | showzerocommodity = showAmountWithZeroCommodity
             | otherwise         = showAmount
-
--- | Take one of two actions depending on whether a 'BalanceAssertion' is in
--- the loose, compatible form or the strict one.
-switchBalanceValue :: (Amount -> a) -> (MixedAmount -> a) -> BalanceValue -> a
-switchBalanceValue f _ (CommodityBalance amt) = f amt
-switchBalanceValue _ g (AccountBalance amt) = g amt
 
 -- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount

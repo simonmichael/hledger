@@ -749,7 +749,7 @@ transactionFromCsvRecord sourcepos rules record = t
       tcomment                 = T.pack comment,
       tpreceding_comment_lines = T.pack precomment,
       tpostings                =
-        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=mapFst CommodityBalance <$> balance}
+        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=mapFst (Mixed . (:[])) <$> balance}
         ,posting {paccount=account2, pamount=amount2, ptransaction=Just t}
         ]
       }

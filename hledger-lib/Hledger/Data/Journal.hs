@@ -529,9 +529,7 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just ((CommodityBalance ass),_)} amt =
-  checkBalanceAssertionCommodity p ass amt
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just ((AccountBalance ass),_)} amt =
+checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt =
   foldl' fold (Right ()) (amounts ass)
     where fold (Right _) cass = checkBalanceAssertionCommodity p cass amt
           fold err _ = err
@@ -688,9 +686,8 @@ checkInferAndRegisterAmounts (Right oldTx) = do
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
     inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . switchBalanceValue' setBalance setMixedBalance (paccount p) . fst)
+      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setMixedBalance (paccount p) . fst)
       $ pbalanceassertion p
-    switchBalanceValue' f g a = switchBalanceValue (f a) (g a)
 
 -- | Adds a posting's amount to the posting's account balance and
 -- checks a possible balance assertion. Or if there is no amount,
@@ -705,16 +702,6 @@ addAmountAndCheckBalance _ p | hasAmount p = do
   lift $ when assrt $ ExceptT $ return $ checkBalanceAssertion p newAmt
   return p
 addAmountAndCheckBalance fallback p = fallback p
-
--- | Sets an account's balance to a given amount and returns the
--- difference of new and old amount.
-setBalance :: AccountName -> Amount -> CurrentBalancesModifier s MixedAmount
-setBalance acc amt = liftModifier $ \Env{ eBalances = bals } -> do
-  old <- HT.lookup bals acc
-  let new = Mixed $ (amt :) $ maybe []
-              (filter ((/= acommodity amt) . acommodity) . amounts) old
-  HT.insert bals acc new
-  return $ maybe new (new -) old
 
 -- | Sets all commodities comprising an account's balance to the given
 -- amounts and returns the difference from the previous balance.
