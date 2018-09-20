@@ -543,10 +543,8 @@ tests_Transaction = tests "Transaction" [
           ,"    assets:checking"
           ,""
           ]
-    ]
 
-  ,tests "showTransaction" [
-     test "show a balanced transaction, no eliding" $
+    ,test "show a balanced transaction, no eliding" $
        (let t = Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
                 [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18], ptransaction=Just t}
                 ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.18)], ptransaction=Just t}

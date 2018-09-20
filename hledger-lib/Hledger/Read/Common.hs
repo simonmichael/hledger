@@ -583,7 +583,7 @@ amountp' s =
     Left err  -> error' $ show err -- XXX should throwError
 
 -- | Parse a multi-commodity amount, comprising of multiple single amounts
--- separated by commas.
+-- separated by commas surrounded by spaces.
 mamountp :: JournalParser m MixedAmount
 mamountp = label "mixed amount" $ do
   amount <- amountp
@@ -1250,6 +1250,29 @@ tests_Common = tests "Common" [
             } 
         } 
     ]
+
+  ,tests "mamountp" [
+    test "basic"                         $ expectParseEq mamountp "$47.18"             $ Mixed [usd 47.18]
+   ,test "multiple commodities"          $ expectParseEq mamountp "$47.18 , €20,59" $ Mixed [
+       amount{
+          acommodity="$"
+         ,aquantity=47.18
+         ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just '.'}
+         }
+      ,amount{
+          acommodity="€"
+         ,aquantity=20.59
+         ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just ','}
+         }
+      ]
+   ,test "same commodity multiple times" $ expectParseEq mamountp "$10 , -$5" $ Mixed [
+       amount{
+          acommodity="$"
+         ,aquantity=5
+         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+         }
+      ]
+  ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
    tests "numberp" [
