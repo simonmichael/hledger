@@ -67,6 +67,7 @@ module Hledger.Read.Common (
   spaceandamountormissingp,
   amountp,
   amountp',
+  mamountp,
   mamountp',
   commoditysymbolp,
   priceamountp,
@@ -581,9 +582,24 @@ amountp' s =
     Right amt -> amt
     Left err  -> error' $ show err -- XXX should throwError
 
+-- | Parse a multi-commodity amount, comprising of multiple single amounts
+-- separated by commas.
+mamountp :: JournalParser m MixedAmount
+mamountp = label "mixed amount" $ do
+  amount <- amountp
+  tail <- optional $ try $ do
+    lift (skipMany spacenonewline)
+    char ','
+    lift (skipMany spacenonewline)
+    mamountp
+  return $ fromMaybe nullmixedamt tail + Mixed [amount]
+
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
-mamountp' = Mixed . (:[]) . amountp'
+mamountp' s =
+  case runParser (evalStateT (mamountp <* eof) mempty) "" (T.pack s) of
+    Right amt -> amt
+    Left err  -> error' $ show err -- XXX should throwError
 
 signp :: Num a => TextParser m (a -> a)
 signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
@@ -633,8 +649,8 @@ partialbalanceassertionp = optional $ do
     char '='
     pure sourcepos
   lift (skipMany spacenonewline)
-  a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
-  return (CommodityBalance a, sourcepos)
+  a <- mamountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
+  return (AccountBalance a, sourcepos)
 
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
 -- balanceassertion =
