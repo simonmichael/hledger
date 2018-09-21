@@ -559,7 +559,7 @@ postingp mTransactionYear = do
   lift (skipMany spacenonewline)
   amount <- option missingmixedamt $ mamountp
   lift (skipMany spacenonewline)
-  massertion <- optional $ partialbalanceassertionp
+  massertion <- optional $ balanceassertionp
   _ <- fixedlotpricep
   lift (skipMany spacenonewline)
   (comment,tags,mdate,mdate2) <- lift $ postingcommentp mTransactionYear
