@@ -64,6 +64,7 @@ import Hledger.Cli.Commands.Cashflow
 import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Close
+import Hledger.Cli.Commands.Files
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Import
 import Hledger.Cli.Commands.Incomestatement
@@ -93,6 +94,7 @@ builtinCommands = [
   ,(closemode              , close)
   ,(helpmode               , help')
   ,(importmode             , importcmd)
+  ,(filesmode              , files)
   ,(incomestatementmode    , incomestatement)
   ,(pricesmode             , prices)
   ,(printmode              , print')

@@ -140,6 +140,7 @@ library:
   - Hledger.Cli.Commands.Checkdupes
   - Hledger.Cli.Commands.Close
   - Hledger.Cli.Commands.Help
+  - Hledger.Cli.Commands.Files
   - Hledger.Cli.Commands.Import
   - Hledger.Cli.Commands.Incomestatement
   - Hledger.Cli.Commands.Prices
