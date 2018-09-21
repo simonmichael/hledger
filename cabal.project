@@ -3,3 +3,4 @@ packages: hledger-lib
           hledger-ui
           hledger-web
           hledger-api
+constraints: brick >= 0.36
