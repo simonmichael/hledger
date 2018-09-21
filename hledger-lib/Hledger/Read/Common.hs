@@ -589,7 +589,7 @@ mamountp = label "mixed amount" $ do
   amount <- amountp
   tail <- optional $ try $ do
     lift (skipMany spacenonewline)
-    char ','
+    char '+'
     lift (skipMany spacenonewline)
     mamountp
   return $ fromMaybe nullmixedamt tail + Mixed [amount]
@@ -1252,8 +1252,8 @@ tests_Common = tests "Common" [
     ]
 
   ,tests "mamountp" [
-    test "basic"                         $ expectParseEq mamountp "$47.18"             $ Mixed [usd 47.18]
-   ,test "multiple commodities"          $ expectParseEq mamountp "$47.18 , €20,59" $ Mixed [
+    test "basic"                         $ expectParseEq mamountp "$47.18"        $ Mixed [usd 47.18]
+   ,test "multiple commodities"          $ expectParseEq mamountp "$47.18+€20,59" $ Mixed [
        amount{
           acommodity="$"
          ,aquantity=47.18
@@ -1265,7 +1265,7 @@ tests_Common = tests "Common" [
          ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just ','}
          }
       ]
-   ,test "same commodity multiple times" $ expectParseEq mamountp "$10 , -$5" $ Mixed [
+   ,test "same commodity multiple times" $ expectParseEq mamountp "$10 + -$5" $ Mixed [
        amount{
           acommodity="$"
          ,aquantity=5
