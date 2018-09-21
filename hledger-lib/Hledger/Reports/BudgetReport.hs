@@ -224,7 +224,7 @@ combineBudgetAndActual
 --                acodeandname r = (acode', aname)
 --                  where
 --                    aname = first6 r
---                    macode = fromMaybe Nothing $ lookup aname $ jaccounts j
+--                    macode = fromMaybe Nothing $ lookup aname $ jdeclaredaccounts j
 --                    acode' = fromMaybe maxBound macode
 --
 --            -- Sort the report rows, representing a tree of accounts, by account code and then account name at each level.

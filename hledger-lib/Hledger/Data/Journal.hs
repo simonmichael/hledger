@@ -163,7 +163,7 @@ instance Sem.Semigroup Journal where
     ,jparsealiases              = jparsealiases              j2
     -- ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
     ,jparsetimeclockentries = jparsetimeclockentries j1 <> jparsetimeclockentries j2
-    ,jaccounts                  = jaccounts                  j1 <> jaccounts                  j2
+    ,jdeclaredaccounts                  = jdeclaredaccounts                  j1 <> jdeclaredaccounts                  j2
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
     ,jmarketprices              = jmarketprices              j1 <> jmarketprices              j2
@@ -190,7 +190,7 @@ nulljournal = Journal {
   ,jparsealiases              = []
   -- ,jparsetransactioncount     = 0
   ,jparsetimeclockentries = []
-  ,jaccounts                  = []
+  ,jdeclaredaccounts                  = []
   ,jcommodities               = M.fromList []
   ,jinferredcommodities       = M.fromList []
   ,jmarketprices              = []
@@ -256,7 +256,7 @@ journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
 
 -- | Sorted unique account names declared by account directives in this journal.
 journalAccountNamesDeclared :: Journal -> [AccountName]
-journalAccountNamesDeclared = nub . sort . map fst . jaccounts
+journalAccountNamesDeclared = nub . sort . map fst . jdeclaredaccounts
 
 -- | Sorted unique account names declared by account directives or posted to
 -- by transactions in this journal.
