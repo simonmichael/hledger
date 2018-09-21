@@ -360,7 +360,7 @@ data Journal = Journal {
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
   ,jparsetimeclockentries :: [TimeclockEntry]                   -- ^ timeclock sessions which have not been clocked out
   -- principal data
-  ,jaccounts              :: [(AccountName, Maybe AccountCode)]     -- ^ accounts that have been declared by account directives
+  ,jdeclaredaccounts      :: [(AccountName, Maybe AccountCode)]     -- ^ Accounts declared by account directives, in parse order.
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  XXX misnamed
   ,jmarketprices          :: [MarketPrice]

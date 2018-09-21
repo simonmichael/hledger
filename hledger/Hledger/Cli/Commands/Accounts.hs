@@ -11,6 +11,7 @@ The @accounts@ command lists account names:
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE CPP #-}
 
 module Hledger.Cli.Commands.Accounts (
@@ -49,6 +50,7 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
      groupUnnamed = [
       flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
      ,flagNone ["used"] (\opts -> setboolopt "used" opts) "show account names referenced by transactions"
+     ,flagNone ["codes"] (\opts -> setboolopt "codes" opts) "also show numeric account codes"
      ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
      ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
@@ -66,7 +68,7 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   let q = queryFromOpts d ropts
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
-      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ nub $ sort $ filter (matchesAccount q) $ map fst $ jaccounts j
+      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ nub $ sort $ filter (matchesAccount q) $ map fst $ jdeclaredaccounts j
       matchedps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
       matchedusedaccts = dbg1 "matchedusedaccts" $ nub $ sort $ filter (not . T.null) $ map (clipAccountName depth) $ map paccount matchedps
       used     = boolopt "used"   rawopts

@@ -92,7 +92,7 @@ tieAccountParents = tie Nothing
 
 -- | Look up an account's numeric code, if any, from the Journal and set it.
 accountSetCodeFrom :: Journal -> Account -> Account
-accountSetCodeFrom j a = a{acode=fromMaybe Nothing $ lookup (aname a) (jaccounts j)}
+accountSetCodeFrom j a = a{acode=fromMaybe Nothing $ lookup (aname a) (jdeclaredaccounts j)}
 
 -- | Get this account's parent accounts, from the nearest up to the root.
 parentAccounts :: Account -> [Account]

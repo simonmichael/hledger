@@ -266,7 +266,7 @@ getAmountStyle commodity = do
     return effectiveStyle
 
 pushAccount :: AccountName -> JournalParser m ()
-pushAccount acct = modify' (\j -> j{jaccounts = (acct, Nothing) : jaccounts j})
+pushAccount acct = modify' (\j -> j{jdeclaredaccounts = (acct, Nothing) : jdeclaredaccounts j})
 
 pushParentAccount :: AccountName -> JournalParser m ()
 pushParentAccount acct = modify' (\j -> j{jparseparentaccounts = acct : jparseparentaccounts j})
