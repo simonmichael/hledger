@@ -565,7 +565,7 @@ checkBalanceAssertionCommodity p ass amt
             (case ptransaction p of
                Nothing -> ":" -- shouldn't happen
                Just t ->  printf " in %s:\nin transaction:\n%s"
-                          (showGenericSourcePos pos) (chomp $ show t) :: String
+                          (showGenericSourcePos pos) (chomp $ T.unpack $ tdescription t) :: String
                             where pos = baposition $ fromJust $ pbalanceassertion p)
             (showPostingLine p)
             (showDate $ postingDate p)
