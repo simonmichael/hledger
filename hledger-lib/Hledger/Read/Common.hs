@@ -586,13 +586,24 @@ amountp' s =
 -- separated by commas surrounded by spaces.
 mamountp :: JournalParser m MixedAmount
 mamountp = label "mixed amount" $ do
+  minus <- option False $ try $ do
+    char '-'
+    lift (skipMany spacenonewline)
+    pure True
   amount <- amountp
   tail <- optional $ try $ do
     lift (skipMany spacenonewline)
-    char '+'
-    lift (skipMany spacenonewline)
+    tryplus <|> tryminus
     mamountp
-  return $ fromMaybe nullmixedamt tail + Mixed [amount]
+  let neg = if minus then negate else id
+  return $ fromMaybe nullmixedamt tail + Mixed [neg amount]
+    where tryplus = try $ do
+            char '+'
+            lift (skipMany spacenonewline)
+          -- Deal with the negation when we have the value itself
+          tryminus = lookAhead $ try $ do
+            char '-'
+            pure ()
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
@@ -1260,7 +1271,7 @@ tests_Common = tests "Common" [
          ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just ','}
          }
       ]
-   ,test "same commodity multiple times" $ expectParseEq mamountp "$10 + -$5" $ Mixed [
+   ,test "same commodity multiple times" $ expectParseEq mamountp "$10 + $2 - $5-$2" $ Mixed [
        amount{
           acommodity="$"
          ,aquantity=5
