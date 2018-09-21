@@ -278,6 +278,7 @@ standardAddonsHelp = [
   ,("vty", "start the curses-style interface")
   ,("web", "start the web interface")
   ,("accounts", "list account names")
+  ,("files", "list included files")
   ,("balance-csv", "output a balance report as CSV")
   ,("close", "show a transaction entry zeroing all accounts")
   ,("print-unique", "print only transactions with unique descriptions")
