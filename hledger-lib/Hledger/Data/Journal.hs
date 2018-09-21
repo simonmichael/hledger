@@ -529,10 +529,15 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt =
-  foldl' fold (Right ()) (amounts ass)
+checkBalanceAssertion p@Posting{ pamount = bal, pbalanceassertion = Just ass } amt =
+  foldl' fold (Right ()) amts'
     where fold (Right _) cass = checkBalanceAssertionCommodity p cass amt
           fold err _ = err
+          amts = amounts $ baamount ass
+          amts' = amts ++ case afexact (baflags ass) of
+            False -> []
+            True -> amounts $ flip multiplyMixedAmount 0 $ filterMixedAmount (\a -> not $ elem (acommodity a) commodities) bal
+          commodities = map acommodity amts
 checkBalanceAssertion _ _ = Right ()
 
 -- | Check a component of a posting's balance assertion and return an
@@ -561,7 +566,7 @@ checkBalanceAssertionCommodity p ass amt
                Nothing -> ":" -- shouldn't happen
                Just t ->  printf " in %s:\nin transaction:\n%s"
                           (showGenericSourcePos pos) (chomp $ show t) :: String
-                            where pos = snd $ fromJust $ pbalanceassertion p)
+                            where pos = baposition $ fromJust $ pbalanceassertion p)
             (showPostingLine p)
             (showDate $ postingDate p)
             (T.unpack $ paccount p) -- XXX pack
@@ -686,7 +691,7 @@ checkInferAndRegisterAmounts (Right oldTx) = do
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
     inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setMixedBalance (paccount p) . fst)
+      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setMixedBalance (paccount p) . baamount)
       $ pbalanceassertion p
 
 -- | Adds a posting's amount to the posting's account balance and

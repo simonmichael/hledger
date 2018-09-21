@@ -558,7 +558,8 @@ postingp mTransactionYear = do
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   lift (skipMany spacenonewline)
   amount <- option missingmixedamt $ mamountp
-  massertion <- partialbalanceassertionp
+  lift (skipMany spacenonewline)
+  massertion <- optional $ partialbalanceassertionp
   _ <- fixedlotpricep
   lift (skipMany spacenonewline)
   (comment,tags,mdate,mdate2) <- lift $ postingcommentp mTransactionYear

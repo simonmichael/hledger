@@ -642,15 +642,20 @@ priceamountp = option NoPrice $ do
   pure $ priceConstructor priceAmount
 
 partialbalanceassertionp :: JournalParser m BalanceAssertion
-partialbalanceassertionp = optional $ do
-  sourcepos <- try $ do
-    lift (skipMany spacenonewline)
-    sourcepos <- genericSourcePos <$> lift getPosition
-    char '='
-    pure sourcepos
+partialbalanceassertionp = do
+  sourcepos <- genericSourcePos <$> lift getPosition
+  char '='
+  exact <- optional $ try $ char '='
+  let flags = AssertionFlags {
+     afexact = isJust exact
+    }
   lift (skipMany spacenonewline)
   a <- mamountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
-  return (a, sourcepos)
+  return BalanceAssertion
+    { baamount = a
+    , baflags = flags
+    , baposition = sourcepos
+    }
 
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
 -- balanceassertion =

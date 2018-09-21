@@ -210,7 +210,19 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
   show Pending   = "!"
   show Cleared   = "*"
 
-type BalanceAssertion = Maybe (MixedAmount, GenericSourcePos)
+data BalanceAssertion = BalanceAssertion {
+      baamount   :: MixedAmount,
+      baflags    :: AssertionFlags,
+      baposition :: GenericSourcePos
+    } deriving (Eq,Show,Typeable,Data,Generic)
+
+instance NFData BalanceAssertion
+
+data AssertionFlags = AssertionFlags {
+      afexact :: Bool
+    } deriving (Eq,Show,Read,Typeable,Data,Generic)
+
+instance NFData AssertionFlags
 
 data Posting = Posting {
       pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
@@ -221,7 +233,7 @@ data Posting = Posting {
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype             :: PostingType,
       ptags             :: [Tag],             -- ^ tag names and values, extracted from the comment
-      pbalanceassertion :: BalanceAssertion,  -- ^ optional: the expected balance in this commodity in the account after this posting
+      pbalanceassertion :: Maybe BalanceAssertion,  -- ^ optional: the expected balance in this commodity in the account after this posting
       ptransaction      :: Maybe Transaction, -- ^ this posting's parent transaction (co-recursive types).
                                               -- Tying this knot gets tedious, Maybe makes it easier/optional.
       porigin           :: Maybe Posting      -- ^ original posting if this one is result of any transformations (one level only)

@@ -15,6 +15,10 @@ module Hledger.Data.Posting (
   nullposting,
   posting,
   post,
+  nullassertion,
+  assertion,
+  nullassertionflags,
+  assertionflags,
   -- * operations
   originalPosting,
   postingStatus,
@@ -53,6 +57,7 @@ module Hledger.Data.Posting (
   -- * rendering
   showPosting,
   -- * misc.
+  nullsourcepos,
   showComment,
   tests_Posting
 )
@@ -95,6 +100,25 @@ posting = nullposting
 
 post :: AccountName -> Amount -> Posting
 post acct amt = posting {paccount=acct, pamount=Mixed [amt]}
+
+nullsourcepos :: GenericSourcePos
+nullsourcepos = JournalSourcePos "" (1,1)
+
+nullassertion, assertion :: BalanceAssertion
+nullassertion = BalanceAssertion
+                  {baamount=nullmixedamt
+                  ,baflags=AssertionFlags
+                     {afexact=False
+                     }
+                  ,baposition=nullsourcepos
+                  }
+assertion = nullassertion
+
+nullassertionflags, assertionflags :: AssertionFlags
+nullassertionflags = AssertionFlags
+                       {afexact=False
+                       }
+assertionflags = nullassertionflags
 
 -- Get the original posting, if any.
 originalPosting :: Posting -> Posting

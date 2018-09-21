@@ -749,11 +749,15 @@ transactionFromCsvRecord sourcepos rules record = t
       tcomment                 = T.pack comment,
       tpreceding_comment_lines = T.pack precomment,
       tpostings                =
-        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=mapFst (Mixed . (:[])) <$> balance}
+        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance}
         ,posting {paccount=account2, pamount=amount2, ptransaction=Just t}
         ]
       }
-    mapFst f (a, b) = (f a, b)
+    toAssertion (a, b) = BalanceAssertion{
+      baamount   = Mixed [a],
+      baflags    = nullassertionflags,
+      baposition = b
+      }
 
 getAmountStr :: CsvRules -> CsvRecord -> Maybe String
 getAmountStr rules record =
