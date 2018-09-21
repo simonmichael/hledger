@@ -586,24 +586,29 @@ amountp' s =
 -- separated by commas surrounded by spaces.
 mamountp :: JournalParser m MixedAmount
 mamountp = label "mixed amount" $ do
-  minus <- option False $ try $ do
-    char '-'
+  sign <- optional $ do
+    s <- try (char '+') <|> try (char '-')
+    lift (skipMany spacenonewline)
+    pure s
+  paren <- option False $ try $ do
+    char '('
     lift (skipMany spacenonewline)
     pure True
-  amount <- amountp
-  tail <- optional $ try $ do
+  amount <- if paren
+            then do
+              inner <- mamountp
+              lift (skipMany spacenonewline)
+              char ')'
+              pure $ signf sign inner
+            else do
+              inner <- amountp
+              pure $ Mixed [signf sign inner]
+  tail <- option nullmixedamt $ try $ do
     lift (skipMany spacenonewline)
-    tryplus <|> tryminus
     mamountp
-  let neg = if minus then negate else id
-  return $ fromMaybe nullmixedamt tail + Mixed [neg amount]
-    where tryplus = try $ do
-            char '+'
-            lift (skipMany spacenonewline)
-          -- Deal with the negation when we have the value itself
-          tryminus = lookAhead $ try $ do
-            char '-'
-            pure ()
+  return $ amount + tail
+    where signf (Just '-') = negate
+          signf _ = id
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
@@ -1258,8 +1263,8 @@ tests_Common = tests "Common" [
     ]
 
   ,tests "mamountp" [
-    test "basic"                         $ expectParseEq mamountp "$47.18"        $ Mixed [usd 47.18]
-   ,test "multiple commodities"          $ expectParseEq mamountp "$47.18+€20,59" $ Mixed [
+    test "basic"                         $ expectParseEq mamountp "$47.18"                           $ Mixed [usd 47.18]
+   ,test "multiple commodities"          $ expectParseEq mamountp "$47.18+€20,59"                    $ Mixed [
        amount{
           acommodity="$"
          ,aquantity=47.18
@@ -1271,13 +1276,15 @@ tests_Common = tests "Common" [
          ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just ','}
          }
       ]
-   ,test "same commodity multiple times" $ expectParseEq mamountp "$10 + $2 - $5-$2" $ Mixed [
+   ,test "same commodity multiple times" $ expectParseEq mamountp "$10 + $2 - $5-$2"                 $ Mixed [
        amount{
           acommodity="$"
          ,aquantity=5
          ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
          }
       ]
+   ,test "ledger-compatible expressions" $ expectParseEq mamountp "($47.18 - $7.13)"                 $ Mixed [usd 40.05]
+   ,test "nested parentheses"            $ expectParseEq mamountp "($47.18 - ($20 + $7.13) + $5.05)" $ Mixed [usd 25.10]
   ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
