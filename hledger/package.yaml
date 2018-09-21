@@ -93,7 +93,7 @@ dependencies:
 - filepath
 - haskeline >=0.6
 - here
-- megaparsec >=6.4.1
+- megaparsec >=6.4.1 && < 7
 - mtl
 - mtl-compat
 - old-time
