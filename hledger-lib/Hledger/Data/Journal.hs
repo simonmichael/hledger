@@ -529,15 +529,16 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pamount = bal, pbalanceassertion = Just ass } amt =
-  foldl' fold (Right ()) amts'
-    where fold (Right _) cass = checkBalanceAssertionCommodity p cass amt
+checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass } bal =
+  foldl' fold (Right ()) amts0
+    where fold (Right _) cass = checkBalanceAssertionCommodity p cass bal
           fold err _ = err
           amts = amounts $ baamount ass
-          amts' = amts ++ case afexact (baflags ass) of
+          amts0 = amts ++ case afexact (baflags ass) of
             False -> []
-            True -> amounts $ flip multiplyMixedAmount 0 $ filterMixedAmount (\a -> not $ elem (acommodity a) commodities) bal
+            True -> map zero $ amounts $ filterMixedAmount (\a -> not $ elem (acommodity a) commodities) bal
           commodities = map acommodity amts
+          zero a = a { aquantity = 0 }
 checkBalanceAssertion _ _ = Right ()
 
 -- | Check a component of a posting's balance assertion and return an
