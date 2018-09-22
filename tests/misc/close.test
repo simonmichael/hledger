@@ -84,3 +84,93 @@ hledger close -f- -b2017/6/1 -e2018
     equity:opening balances
 
 >>>=0
+
+# Print just the opening transaction
+hledger close -f- -p 2016 assets liabilities --opening
+<<<
+2016/1/1 open
+    assets:bank         $100
+    assets:cash         $20
+    equity:opening
+
+2016/1/15 spend
+    expenses:sweets     $5
+    assets:cash
+
+2016/1/19 withdraw
+    assets:cash         $20
+    assets:bank
+
+2016/1/20 lend
+    liabilities         $25
+    assets:cash
+>>>
+2017/01/01 opening balances
+    assets:bank                         $80 = $80
+    assets:cash                         $10 = $10
+    liabilities                         $25 = $25
+    equity:opening balances
+
+>>>=0
+
+# Print just the closing transaction
+hledger close -f- -p 2016 assets liabilities --closing
+<<<
+2016/1/1 open
+    assets:bank         $100
+    assets:cash         $20
+    equity:opening
+
+2016/1/15 spend
+    expenses:sweets     $5
+    assets:cash
+
+2016/1/19 withdraw
+    assets:cash         $20
+    assets:bank
+
+2016/1/20 lend
+    liabilities         $25
+    assets:cash
+>>>
+2016/12/31 closing balances
+    assets:bank                        $-80 = $0
+    assets:cash                        $-10 = $0
+    liabilities                        $-25 = $0
+    equity:closing balances
+
+>>>=0
+
+# Supplying --opening --closing is the same as just "close"
+hledger close -f- -p 2016 assets liabilities --opening --closing
+<<<
+2016/1/1 open
+    assets:bank         $100
+    assets:cash         $20
+    equity:opening
+
+2016/1/15 spend
+    expenses:sweets     $5
+    assets:cash
+
+2016/1/19 withdraw
+    assets:cash         $20
+    assets:bank
+
+2016/1/20 lend
+    liabilities         $25
+    assets:cash
+>>>
+2016/12/31 closing balances
+    assets:bank                        $-80 = $0
+    assets:cash                        $-10 = $0
+    liabilities                        $-25 = $0
+    equity:closing balances
+
+2017/01/01 opening balances
+    assets:bank                         $80 = $80
+    assets:cash                         $10 = $10
+    liabilities                         $25 = $25
+    equity:opening balances
+
+>>>=0
