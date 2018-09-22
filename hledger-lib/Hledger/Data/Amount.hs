@@ -400,9 +400,7 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
 amountValue :: Journal -> Day -> Amount -> Amount
 amountValue j d a =
   case commodityValue j d (acommodity a) of
-    Just v  -> v{aquantity=aquantity v * aquantity a
-                ,aprice=aprice a
-                }
+    Just v  -> v{aquantity=aquantity v * aquantity a}
     Nothing -> a
 
 -- This is here not in Commodity.hs to use the Amount Show instance above for debugging. 

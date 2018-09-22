@@ -316,3 +316,31 @@ Budget performance in 2018/01/01:
 
 # TODO
 # 15. respect --sort-amount
+
+# 16. respect --value
+<
+P 2018/01/26 SHARE €10
+
+2018/05/17 Dividend
+    revenue:dividend       €-10
+    assets:pension          €10
+
+2018/05/17 Buy
+    assets:pension:shares   1 SHARE @ €10
+    assets:pension          €-10
+
+~ monthly from 2018/06 to 2018/07
+    assets:pension                    €1
+    assets:bank
+
+$ hledger -f - bal -M --budget --cumulative --forecast --value
+Budget performance in 2018/05/01-2018/06/30:
+
+                ||                      May                       Jun 
+================++====================================================
+ <unbudgeted>   ||    €-10                      €-10                  
+ assets:bank    ||       0                       €-1 [ 100% of   €-1] 
+ assets:pension ||     €10                       €11 [1100% of    €1] 
+----------------++----------------------------------------------------
+                ||       0                         0 [             0] 
+
