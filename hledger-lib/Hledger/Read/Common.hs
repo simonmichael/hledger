@@ -594,26 +594,27 @@ mamountp = label "mixed amount" $ do
     char '('
     lift (skipMany spacenonewline)
     pure True
-  amount <- if paren
-            then do
-              inner <- mamountp
-              lift (skipMany spacenonewline)
-              char ')'
-              pure $ signf sign inner
-            else do
-              inner <- amountp
-              pure $ Mixed [signf sign inner]
+  (amount, mult) <- if paren
+    then do
+      inner <- mamountp
+      lift (skipMany spacenonewline)
+      char ')'
+      pure $ (signf sign inner, False)
+    else do
+      inner <- amountp
+      pure $ (Mixed [signf sign inner], amultiplier inner)
   tail <- option nullmixedamt $ try $ do
     lift (skipMany spacenonewline)
     mamountp
-  let (amount', tail') = multf amount $ amounts tail
-  return $ amount' + tail'
+  return $ if mult
+    then Mixed $ amounts amount <> amounts tail
+    else multf amount $ amounts tail
     where signf (Just '-') = negate
           signf _ = id
-          multf a [] = (a, nullmixedamt)
+          multf a [] = a
           multf a (t:ts)
             | amultiplier t = multf (multiplyMixedAmount a $ aquantity t) ts
-            | otherwise     = (a, Mixed ts)
+            | otherwise     = a + Mixed ts
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
