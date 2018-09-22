@@ -606,9 +606,14 @@ mamountp = label "mixed amount" $ do
   tail <- option nullmixedamt $ try $ do
     lift (skipMany spacenonewline)
     mamountp
-  return $ amount + tail
+  let (amount', tail') = multf amount $ amounts tail
+  return $ amount' + tail'
     where signf (Just '-') = negate
           signf _ = id
+          multf a [] = (a, nullmixedamt)
+          multf a (t:ts)
+            | amultiplier t = multf (multiplyMixedAmount a $ aquantity t) ts
+            | otherwise     = (a, Mixed ts)
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
