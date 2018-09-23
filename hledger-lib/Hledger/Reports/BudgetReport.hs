@@ -178,69 +178,46 @@ combineBudgetAndActual
         acctsdone = map first6 rows1
 
     -- combine and re-sort rows
-    -- TODO: respect hierarchy in tree mode
+    -- TODO: use MBR code
     -- TODO: respect --sort-amount
     -- TODO: add --sort-budget to sort by budget goal amount
     rows :: [PeriodicReportRow (Maybe Change, Maybe BudgetGoal)] =
       sortBy (comparing first6) $ rows1 ++ rows2
--- massive duplication from multiBalanceReport to handle tree mode sorting ?
---      dbg1 "sorteditems" $
---      sortitems items
+
+--    -- like MultiBalanceReport
+--    sortedrows 
+--      | sort_amount_ opts && tree_ opts = sortTreeBURByAmount items
+--      | sort_amount_ opts               = sortFlatBURByAmount items
+--      | otherwise                       = sortBURByAccountDeclaration items
+--    
 --      where
---        sortitems
---          | sort_amount_ opts && accountlistmode_ opts == ALTree       = sortTreeMultiBalanceReportRowsByAmount
---          | sort_amount_ opts                                          = sortFlatMultiBalanceReportRowsByAmount
---          | not (sort_amount_ opts) && accountlistmode_ opts == ALTree = sortTreeMultiBalanceReportRowsByAccountCodeAndName
---          | otherwise                                                  = sortFlatMultiBalanceReportRowsByAccountCodeAndName
+--        -- Sort the report rows, representing a tree of accounts, by row total at each level.
+--        sortTreeMBRByAmount rows = sortedrows
 --          where
---            -- Sort the report rows, representing a flat account list, by row total.
---            sortFlatMultiBalanceReportRowsByAmount = sortBy (maybeflip $ comparing fifth6)
+--            anamesandrows = [(first6 r, r) | r <- rows]
+--            anames = map fst anamesandrows
+--            atotals = [(a,tot) | (a,_,_,_,tot,_) <- rows]
+--            accounttree = accountTree "root" anames
+--            accounttreewithbals = mapAccounts setibalance accounttree
 --              where
---                maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
+--                -- should not happen, but it's ugly; TODO 
+--                setibalance a = a{aibalance=fromMaybe (error "sortTreeBURByAmount 1") $ lookup (aname a) atotals}
+--            sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts) accounttreewithbals
+--            sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
+--            sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 --
---            -- Sort the report rows, representing a tree of accounts, by row total at each level.
---            -- To do this we recreate an Account tree with the row totals as balances,
---            -- so we can do a hierarchical sort, flatten again, and then reorder the
---            -- report rows similarly. Yes this is pretty long winded.
---            sortTreeMultiBalanceReportRowsByAmount rows = sortedrows
---              where
---                anamesandrows = [(first6 r, r) | r <- rows]
---                anames = map fst anamesandrows
---                atotals = [(a,tot) | (a,_,_,_,tot,_) <- rows]
---                nametree = treeFromPaths $ map expandAccountName anames
---                accounttree = nameTreeToAccount "root" nametree
---                accounttreewithbals = mapAccounts setibalance accounttree
---                  where
---                    -- this error should not happen, but it's ugly TODO
---                    setibalance a = a{aibalance=fromMaybe (error "sortTreeMultiBalanceReportRowsByAmount 1") $ lookup (aname a) atotals}
---                sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts) accounttreewithbals
---                sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
---                -- dropped the root account, also ignore any parent accounts not in rows
---                sortedrows = concatMap (\a -> maybe [] (:[]) $ lookup (aname a) anamesandrows) sortedaccounts
+--        -- Sort the report rows, representing a flat account list, by row total. 
+--        sortFlatBURByAmount = sortBy (maybeflip $ comparing fifth6)
+--          where
+--            maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
 --
---            -- Sort the report rows by account code if any, with the empty account code coming last, then account name.
---            sortFlatMultiBalanceReportRowsByAccountCodeAndName = sortBy (comparing acodeandname)
---              where
---                acodeandname r = (acode', aname)
---                  where
---                    aname = first6 r
---                    macode = fromMaybe Nothing $ lookup aname $ jdeclaredaccounts j
---                    acode' = fromMaybe maxBound macode
---
---            -- Sort the report rows, representing a tree of accounts, by account code and then account name at each level.
---            -- Convert a tree of account names, look up the account codes, sort and flatten the tree, reorder the rows.
---            sortTreeMultiBalanceReportRowsByAccountCodeAndName rows = sortedrows
---              where
---                anamesandrows = [(first6 r, r) | r <- rows]
---                anames = map fst anamesandrows
---                nametree = treeFromPaths $ map expandAccountName anames
---                accounttree = nameTreeToAccount "root" nametree
---                accounttreewithcodes = mapAccounts (accountSetCodeFrom j) accounttree
---                sortedaccounttree = sortAccountTreeByAccountCodeAndName accounttreewithcodes
---                sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
---                -- dropped the root account, also ignore any parent accounts not in rows
---                sortedrows = concatMap (\a -> maybe [] (:[]) $ lookup (aname a) anamesandrows) sortedaccounts
---
+--        -- Sort the report rows by account declaration order then account name. 
+--        sortBURByAccountDeclaration rows = sortedrows
+--          where 
+--            anamesandrows = [(first6 r, r) | r <- rows]
+--            anames = map fst anamesandrows
+--            sortedanames = sortAccountNamesByDeclaration j (tree_ opts) anames
+--            sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
     -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
     totalrow =

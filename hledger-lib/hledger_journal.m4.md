@@ -820,41 +820,63 @@ Currently this mainly helps with account name autocompletion in eg
 hledger add, hledger-iadd, hledger-web, and ledger-mode.  
 In future it will also help detect misspelled accounts.
 
-Account names can be followed by a numeric account code:
-```journal
-account assets                  1000
-account assets:bank:checking    1110
-account liabilities             2000
-account revenues                4000
-account expenses                6000
-```
-This affects how accounts are sorted in account and balance reports: 
-accounts with codes are listed before accounts without codes, and in increasing code order
-(instead of listing all accounts alphabetically). 
-Warning, this feature is incomplete; account codes do not yet affect sort order in
-
-- the `accounts` command
-- the `balance` command's single-column mode
-- flat mode balance reports
-  (to work around this, declare account codes on the subaccounts as well).
-- hledger-web's sidebar 
-
-Account codes should be all numeric digits, unique, and separated from the account name by at least two spaces (since account names may contain single spaces). 
-By convention, often the first digit indicates the type of account, 
-as in 
-[this numbering scheme](http://www.dwmbeancounter.com/BCTutorSite/Courses/ChartAccounts/lesson02-6.html) 
-and the example above.
-In future, we might use this to recognize account types.
-
 An account directive can also have indented subdirectives following it, which are currently ignored. Here is the full syntax:
 ```journal
-; account ACCTNAME  [OPTIONALCODE]
+; account ACCTNAME
 ;   [OPTIONALSUBDIRECTIVES]
 
 account assets:bank:checking   1110
   a comment
   some-tag:12345
 ```
+
+### Account display order
+
+Account directives have another purpose: they set the display order of accounts in reports.
+For example, say you have these top-level accounts:
+```shell
+$ accounts -1
+assets
+equity
+expenses
+liabilities
+misc
+other
+revenues
+```
+
+Ie without account declarations, they are displayed in alphabetical order.
+But if you add the following account directives to the journal:
+```journal
+account assets
+account liabilities
+account equity
+account revenues
+account expenses
+```
+
+the display order changes to:
+```shell
+$ accounts -1
+assets
+liabilities
+equity
+revenues
+expenses
+misc
+other
+```
+
+Ie, declared accounts first, in declaration order, followed by undeclared accounts in alphabetic order. 
+
+Warning: work in progress.
+This is supported by 
+the accounts command
+and by tabular balance reports (`balancesheet`, `balance -Y`, etc).
+It is not yet supported by
+non-tabular balance reports,
+budget reports,
+or hledger-web's sidebar. 
 
 ### Rewriting accounts
 

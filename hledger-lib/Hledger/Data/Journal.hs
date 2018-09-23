@@ -256,7 +256,7 @@ journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
 
 -- | Sorted unique account names declared by account directives in this journal.
 journalAccountNamesDeclared :: Journal -> [AccountName]
-journalAccountNamesDeclared = nub . sort . map fst . jdeclaredaccounts
+journalAccountNamesDeclared = nub . sort . jdeclaredaccounts
 
 -- | Sorted unique account names declared by account directives or posted to
 -- by transactions in this journal.
@@ -493,7 +493,8 @@ journalFinalise t path txt assrt j@Journal{jfiles=fs} =
    journalApplyCommodityStyles $
    j {jfiles        = (path,txt) : reverse fs
      ,jlastreadtime = t
-     ,jtxns         = reverse $ jtxns j -- NOTE: see addTransaction
+     ,jdeclaredaccounts = reverse $ jdeclaredaccounts j
+     ,jtxns         = reverse $ jtxns j         -- NOTE: see addTransaction
      ,jtxnmodifiers = reverse $ jtxnmodifiers j -- NOTE: see addTransactionModifier
      ,jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
      ,jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice

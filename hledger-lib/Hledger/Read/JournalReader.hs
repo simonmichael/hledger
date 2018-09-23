@@ -261,8 +261,7 @@ accountdirectivep = do
   string "account"
   lift (skipSome spacenonewline)
   acct <- modifiedaccountnamep  -- account directives can be modified by alias/apply account
-  macode' :: Maybe String <- (optional $ lift $ skipSome spacenonewline >> some digitChar)
-  let macode :: Maybe AccountCode = read <$> macode'
+  _ :: Maybe String <- (optional $ lift $ skipSome spacenonewline >> some digitChar)  -- compatibility: ignore account codes supported in 1.9/1.10
   newline
   skipMany indentedlinep
   pushDeclaredAccount acct

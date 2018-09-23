@@ -10,6 +10,7 @@ The @accounts@ command lists account names:
 
 -}
 
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE CPP #-}
@@ -19,17 +20,15 @@ module Hledger.Cli.Commands.Accounts (
  ,accounts
 ) where
 
-import Data.List
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
--- import Data.Text (Text)
+import Data.List
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
-import Prelude hiding (putStrLn)
-import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Cli.CliOptions
 
 
@@ -64,20 +63,39 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()
 accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
+
+  -- 1. identify the accounts we'll show
   d <- getCurrentDay
-  let q = queryFromOpts d ropts
+  let tree     = tree_ ropts
+      declared = boolopt "declared" rawopts
+      used     = boolopt "used"     rawopts
+      q        = queryFromOpts d ropts
+      -- a depth limit will clip and exclude account names later, but should not exclude accounts at this stage
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
-      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ nub $ sort $ filter (matchesAccount q) $ map fst $ jdeclaredaccounts j
-      matchedps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
-      matchedusedaccts = dbg1 "matchedusedaccts" $ nub $ sort $ filter (not . T.null) $ map (clipAccountName depth) $ map paccount matchedps
-      used     = boolopt "used"   rawopts
-      declared = boolopt "declared" rawopts
-      as | declared     && not used = matcheddeclaredaccts
-         | not declared && used     = matchedusedaccts
-         | otherwise                = nub $ sort $ matcheddeclaredaccts ++ matchedusedaccts
-      as' | tree_ ropts = expandAccountNames as
-          | otherwise   = as
-      render a | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a
-               | otherwise   = maybeAccountNameDrop ropts a
-  mapM_ (putStrLn . T.unpack . render) as'
+      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ filter (matchesAccount nodepthq) $ jdeclaredaccounts j
+      matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
+      accts                = dbg5 "accts to show" $ -- no need to nub/sort, accountTree will
+        if | declared     && not used -> matcheddeclaredaccts
+           | not declared && used     -> matchedusedaccts
+           | otherwise                -> matcheddeclaredaccts ++ matchedusedaccts 
+
+  -- 2. sort them by declaration order and name, at each level of their tree structure
+      sortedaccts = sortAccountNamesByDeclaration j tree accts
+
+  -- 3. if there's a depth limit, depth-clip and remove any no longer useful items 
+      clippedaccts =
+        dbg1 "clippedaccts" $
+        filter (matchesAccount q) $    -- clipping can leave accounts that no longer visibly match the query
+        nub $                          -- clipping can leave duplicates (adjacent, hopefully)
+        filter (not . T.null) $        -- depth:0 can leave nulls
+        map (clipAccountName depth) $  -- clip at depth if specified 
+        sortedaccts 
+
+  -- 4. print what remains as a list or tree, maybe applying --drop in the former case 
+  mapM_ (T.putStrLn . render) clippedaccts
+    where
+      render a 
+        | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a
+        | otherwise   = maybeAccountNameDrop ropts a
+

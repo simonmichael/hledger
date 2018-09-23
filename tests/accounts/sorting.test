@@ -1,0 +1,133 @@
+# accounts report sorting.
+
+# 1. Accounts are sorted alphabetically, at each tree level.
+# Flat mode. Unused parent accounts are not added (b).
+<
+2018/1/1
+  (b:j)  1
+
+2018/1/1
+  (c)    1
+
+2018/1/1
+  (b:i)  1
+
+2018/1/1
+  (a:k)  1
+
+$ hledger -f- acc
+a:k
+b:i
+b:j
+c
+>=
+
+
+# 2. Tree mode. Missing parent accounts are added (b).
+$ hledger -f- acc --tree
+a
+  k
+b
+  i
+  j
+c
+>=
+
+# 3. With account directives, flat mode.
+# At each tree level, declared accounts are sorted first, in
+# declaration order, followed by undeclared accounts sorted alphabetically.
+# Unused parent accounts are not added (b).
+# The b:k, b:j declarations affect the subs of b, not b itself.
+<
+account b:k
+account b:j
+account d
+
+2018/1/1
+  (a:l)  1
+
+2018/1/1
+  (b:i)  1
+
+2018/1/1
+  (b:j)  1
+
+2018/1/1
+  (b:k)  1
+
+2018/1/1
+  (c)    1
+
+2018/1/1
+  (d)    1
+
+$ hledger -f- acc
+d
+a:l
+b:k
+b:j
+b:i
+c
+>=
+
+# 4. With account directives, tree mode. 
+# Missing parent accounts are added (b).
+$ hledger -f- acc --tree
+d
+a
+  l
+b
+  k
+  j
+  i
+c
+>=
+
+# 5. With a depth limit: 
+# deeper accounts are not excluded
+# account names are clipped
+# empty clipped names are removed
+# duplicate clipped names are removed
+# non-matched clipped names are removed.
+# Flat mode.
+$ hledger -f- acc d b l --depth 1
+d
+b
+>=
+
+# # .
+# $ hledger -f- acc
+# >=
+
+# # .
+# $ hledger -f- acc
+# >=
+
+# # .
+# $ hledger -f- acc
+# >=
+
+# # .
+# $ hledger -f- acc
+# >=
+
+# # .
+# $ hledger -f- acc
+# >=
+
+# # .
+# $ hledger -f- acc
+# >=
+
+# # . With --drop:  TODO not supported ?
+# empty modified names are removed
+# duplicate modified names are removed
+# non-matched modified names are removed ?
+# modified names are sorted somehow ?
+# $ hledger -f- acc --drop 1
+# l
+# k
+# j
+# i
+# >=
+

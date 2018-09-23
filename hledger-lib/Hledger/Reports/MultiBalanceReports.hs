@@ -175,64 +175,45 @@ multiBalanceReport opts q j =
            , empty_ opts || depth == 0 || any (not . isZeroMixedAmount) displayedBals
            ]
 
+      -- TODO TBD: is it always ok to sort report rows after report has been generated ?
+      -- Or does sorting sometimes need to be done as part of the report generation ?  
       sorteditems :: [MultiBalanceReportRow] =
         dbg1 "sorteditems" $
         sortitems items
         where
           sortitems
-            | sort_amount_ opts && accountlistmode_ opts == ALTree       = sortTreeMultiBalanceReportRowsByAmount
-            | sort_amount_ opts                                          = sortFlatMultiBalanceReportRowsByAmount
-            | not (sort_amount_ opts) && accountlistmode_ opts == ALTree = sortTreeMultiBalanceReportRowsByAccountCodeAndName
-            | otherwise                                                  = sortFlatMultiBalanceReportRowsByAccountCodeAndName
+            | sort_amount_ opts && accountlistmode_ opts == ALTree       = sortTreeMBRByAmount
+            | sort_amount_ opts                                          = sortFlatMBRByAmount
+            | otherwise                                                  = sortMBRByAccountDeclaration
             where
-              -- Sort the report rows, representing a flat account list, by row total. 
-              sortFlatMultiBalanceReportRowsByAmount = sortBy (maybeflip $ comparing fifth6)
-                where
-                  maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
-
               -- Sort the report rows, representing a tree of accounts, by row total at each level.
-              -- To do this we recreate an Account tree with the row totals as balances, 
-              -- so we can do a hierarchical sort, flatten again, and then reorder the  
-              -- report rows similarly. Yes this is pretty long winded. 
-              sortTreeMultiBalanceReportRowsByAmount rows = sortedrows
+              -- Similar to sortMBRByAccountDeclaration/sortAccountNamesByDeclaration.
+              sortTreeMBRByAmount rows = sortedrows
                 where
                   anamesandrows = [(first6 r, r) | r <- rows]
                   anames = map fst anamesandrows
                   atotals = [(a,tot) | (a,_,_,_,tot,_) <- rows]
-                  nametree = treeFromPaths $ map expandAccountName anames
-                  accounttree = nameTreeToAccount "root" nametree
+                  accounttree = accountTree "root" anames
                   accounttreewithbals = mapAccounts setibalance accounttree
                     where
-                      -- this error should not happen, but it's ugly TODO 
-                      setibalance a = a{aibalance=fromMaybe (error "sortTreeMultiBalanceReportRowsByAmount 1") $ lookup (aname a) atotals}
+                      -- should not happen, but it's dangerous; TODO 
+                      setibalance a = a{aibalance=fromMaybe (error "sortTreeMBRByAmount 1") $ lookup (aname a) atotals}
                   sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts) accounttreewithbals
-                  sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
-                  -- dropped the root account, also ignore any parent accounts not in rows
-                  sortedrows = concatMap (\a -> maybe [] (:[]) $ lookup (aname a) anamesandrows) sortedaccounts 
+                  sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
+                  sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
-              -- Sort the report rows by account code if any, with the empty account code coming last, then account name. 
-              -- TODO keep children below their parent. Have to convert to tree ? 
-              sortFlatMultiBalanceReportRowsByAccountCodeAndName = sortBy (comparing acodeandname)
+              -- Sort the report rows, representing a flat account list, by row total. 
+              sortFlatMBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . fifth6))
                 where
-                  acodeandname r = (acode', aname)
-                    where
-                      aname = first6 r
-                      macode = fromMaybe Nothing $ lookup aname $ jdeclaredaccounts j
-                      acode' = fromMaybe maxBound macode 
+                  maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
 
-              -- Sort the report rows, representing a tree of accounts, by account code and then account name at each level.
-              -- Convert a tree of account names, look up the account codes, sort and flatten the tree, reorder the rows.
-              sortTreeMultiBalanceReportRowsByAccountCodeAndName rows = sortedrows
-                where
+              -- Sort the report rows by account declaration order then account name. 
+              sortMBRByAccountDeclaration rows = sortedrows
+                where 
                   anamesandrows = [(first6 r, r) | r <- rows]
                   anames = map fst anamesandrows
-                  nametree = treeFromPaths $ map expandAccountName anames
-                  accounttree = nameTreeToAccount "root" nametree
-                  accounttreewithcodes = mapAccounts (accountSetCodeFrom j) accounttree
-                  sortedaccounttree = sortAccountTreeByAccountCodeAndName accounttreewithcodes
-                  sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
-                  -- dropped the root account, also ignore any parent accounts not in rows
-                  sortedrows = concatMap (\a -> maybe [] (:[]) $ lookup (aname a) anamesandrows) sortedaccounts 
+                  sortedanames = sortAccountNamesByDeclaration j (tree_ opts) anames
+                  sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
       totals :: [MixedAmount] =
           -- dbg1 "totals" $

@@ -63,7 +63,7 @@ ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
     (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
     j'  = filterJournalAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
           filterJournalPostings q' j
-    as  = map (accountSetCodeFrom j) $ accountsFromPostings $ journalPostings j'
+    as  = accountsFromPostings $ journalPostings j'
     j'' = filterJournalPostings depthq j'
 
 -- | List a ledger's account names.
