@@ -1,9 +1,9 @@
-* balance report sorting.
+#* balance report sorting.
 # These tests are based on accounts' and somewhat duplicatory if
 # sorting code is shared between commands, but might be worth having
 # all the same.
-** Tabular balance reports
-*** Default sort without account declarations
+#** Tabular balance reports
+#*** Default sort without account declarations
 
 # 1. Rows are sorted alphabetically by account name, at each tree level. 
 # Flat mode. Unused parent accounts are not added (b).
@@ -45,7 +45,7 @@ Balance changes in 2018:
  c   ||    1 
 >=
 
-*** Default sort with account declarations
+#*** Default sort with account declarations
 
 # 3. With account directives, flat mode.
 # At each tree level, declared accounts are sorted first, in
@@ -123,7 +123,7 @@ Balance changes in 2018:
 #  k ||    1 
 # >=
 
-*** Sort by amount
+#*** Sort by amount
 
 # 5. Rows are sorted by decreasing amount (and then by account), at each tree level. 
 # Tree mode.
@@ -205,8 +205,8 @@ Balance changes in 2018:
  b ||   3X 
 >=
 
-** Non-tabular balance reports
-*** Default sort without account declarations
+#** Non-tabular balance reports
+#*** Default sort without account declarations
 
 # 10. Rows are sorted alphabetically by account name, at each tree level. 
 # Tree mode. Missing parent accounts are added (b).
@@ -239,7 +239,7 @@ $ hledger -f- bal -N --flat
                    1  c
 >=
 
-*** Default sort with account declarations
+#*** Default sort with account declarations
 
 # 12. With account directives, tree mode.
 # At each tree level, declared accounts are sorted first, in
@@ -290,7 +290,7 @@ $ hledger -f- bal -N --flat
                    1  c
 >=
 
-*** Sort by amount
+#*** Sort by amount
 
 # 14. Rows are sorted by decreasing amount (and then by account), at each tree level. 
 # Tree mode.
