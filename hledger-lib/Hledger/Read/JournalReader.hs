@@ -265,8 +265,7 @@ accountdirectivep = do
   let macode :: Maybe AccountCode = read <$> macode'
   newline
   skipMany indentedlinep
-    
-  modify' (\j -> j{jdeclaredaccounts = (acct, macode) : jdeclaredaccounts j})
+  pushDeclaredAccount acct
 
 indentedlinep :: JournalParser m String
 indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
