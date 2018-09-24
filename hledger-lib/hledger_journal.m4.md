@@ -869,14 +869,13 @@ other
 
 Ie, declared accounts first, in declaration order, followed by undeclared accounts in alphabetic order. 
 
-Warning: work in progress.
-This is supported by 
-the accounts command
-and by tabular balance reports (`balancesheet`, `balance -Y`, etc).
-It is not yet supported by
-non-tabular balance reports,
-budget reports,
-or hledger-web's sidebar. 
+Notes: 
+
+- sorting by account declaration order is not yet supported in
+budget reports (balance --budget)
+or hledger-web's sidebar.
+It should work in all other reports organised by account (accounts/balance/bs/bse/cf/is).
+- sorting is tree-aware (each group of siblings within the account tree is sorted independently). 
 
 ### Rewriting accounts
 
