@@ -845,7 +845,7 @@ other
 revenues
 ```
 
-Ie without account declarations, they are displayed in alphabetical order.
+By default, they are displayed in alphabetical order.
 But if you add the following account directives to the journal:
 ```journal
 account assets
@@ -867,15 +867,13 @@ misc
 other
 ```
 
-Ie, declared accounts first, in declaration order, followed by undeclared accounts in alphabetic order. 
+Ie, declared accounts first, in the order they were declared, followed by undeclared accounts in alphabetic order. 
 
-Notes: 
+This is supported in most reports organised by account (accounts/balance/bs/bse/cf/is).
+It is not yet supported in budget reports (balance --budget) or hledger-web's sidebar.
 
-- sorting by account declaration order is not yet supported in
-budget reports (balance --budget)
-or hledger-web's sidebar.
-It should work in all other reports organised by account (accounts/balance/bs/bse/cf/is).
-- sorting is tree-aware (each group of siblings within the account tree is sorted independently). 
+Note sorting is done at each level of the account tree (within each group of sibling accounts 
+under the same parent). 
 
 ### Rewriting accounts
 
