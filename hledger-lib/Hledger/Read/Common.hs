@@ -587,7 +587,7 @@ amountp' s =
 mamountp :: JournalParser m MixedAmount
 mamountp = label "mixed amount" $ do
   sign <- optional $ do
-    s <- try (char '+') <|> try (char '-')
+    s <- signchar
     lift (skipMany spacenonewline)
     pure s
   paren <- option False $ try $ do
@@ -604,17 +604,19 @@ mamountp = label "mixed amount" $ do
       inner <- amountp
       pure $ (Mixed [signf sign inner], amultiplier inner)
   tail <- option nullmixedamt $ try $ do
+    lookAhead $ signchar <|> try (char '*') <|> try (lift spacenonewline)
     lift (skipMany spacenonewline)
     mamountp
   return $ if mult
     then Mixed $ amounts amount <> amounts tail
-    else multf amount $ amounts tail
+    else multf amount tail
     where signf (Just '-') = negate
           signf _ = id
-          multf a [] = a
-          multf a (t:ts)
-            | amultiplier t = multf (multiplyMixedAmount a $ aquantity t) ts
-            | otherwise     = a + Mixed ts
+          signchar = try (char '+') <|> try (char '-')
+          multf a (Mixed []) = a
+          multf a m@(Mixed (t:ts))
+            | amultiplier t = multf (multiplyMixedAmount a $ aquantity t) $ Mixed ts
+            | otherwise     = a + m
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
