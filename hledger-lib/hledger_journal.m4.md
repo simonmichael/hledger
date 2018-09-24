@@ -825,7 +825,7 @@ An account directive can also have indented subdirectives following it, which ar
 ; account ACCTNAME
 ;   [OPTIONALSUBDIRECTIVES]
 
-account assets:bank:checking   1110
+account assets:bank:checking
   a comment
   some-tag:12345
 ```
