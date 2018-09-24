@@ -832,7 +832,8 @@ account assets:bank:checking
 
 ### Account display order
 
-Account directives have another purpose: they set the display order of accounts in reports.
+Account directives have another purpose: they set the order in which accounts are displayed,
+in hledger reports, hledger-ui accounts screen, hledger-web sidebar etc.
 For example, say you have these top-level accounts:
 ```shell
 $ accounts -1
@@ -867,13 +868,14 @@ misc
 other
 ```
 
-Ie, declared accounts first, in the order they were declared, followed by undeclared accounts in alphabetic order. 
+Ie, declared accounts first, in the order they were declared, followed by any undeclared accounts in alphabetic order. 
 
-This is supported in most reports organised by account (accounts/balance/bs/bse/cf/is).
-It is not yet supported in budget reports (balance --budget) or hledger-web's sidebar.
-
-Note sorting is done at each level of the account tree (within each group of sibling accounts 
-under the same parent). 
+Note that sorting is done at each level of the account tree (within each group of sibling accounts under the same parent).
+This directive:
+```journal
+account other:zoo
+``` 
+would influence the position of `zoo` among `other`'s subaccounts, but not the position of `other` among the top-level accounts.
 
 ### Rewriting accounts
 

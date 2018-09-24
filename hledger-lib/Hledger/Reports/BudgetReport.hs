@@ -35,12 +35,15 @@ import Hledger.Utils
 --import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
+import Hledger.Reports.BalanceReport (sortAccountItemsLike)
 import Hledger.Reports.MultiBalanceReports
 
 
+-- for reference:
+--
 --type MultiBalanceReportRow    = (AccountName, AccountName, Int, [MixedAmount], MixedAmount, MixedAmount)
 --type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount) -- (Totals list, sum of totals, average of totals)
-
+--
 --type PeriodicReportRow a =
 --  ( AccountName  -- ^ A full account name.
 --  , [a]          -- ^ The data value for each subperiod.
@@ -53,7 +56,9 @@ type BudgetTotal   = Total
 type BudgetAverage = Average
 
 -- | A budget report tracks expected and actual changes per account and subperiod.
-type BudgetReport = PeriodicReport (Maybe Change, Maybe BudgetGoal)
+type BudgetCell = (Maybe Change, Maybe BudgetGoal)
+type BudgetReport = PeriodicReport BudgetCell
+type BudgetReportRow = PeriodicReportRow BudgetCell
 
 -- | Calculate budget goals from all periodic transactions,
 -- actual balance changes from the regular transactions,
@@ -79,8 +84,54 @@ budgetReport ropts assrt showunbudgeted reportspan d j =
       -- it should be safe to replace it with the latter, so they combine well. 
       | interval_ ropts == NoInterval = MultiBalanceReport (actualspans, budgetgoalitems, budgetgoaltotals)
       | otherwise = budgetgoalreport 
+    budgetreport = combineBudgetAndActual budgetgoalreport' actualreport
+    sortedbudgetreport = sortBudgetReport ropts j budgetreport
   in
-    dbg1 "budgetreport" $ combineBudgetAndActual budgetgoalreport' actualreport
+    dbg1 "sortedbudgetreport" sortedbudgetreport
+
+-- | Sort a budget report's rows according to options.
+sortBudgetReport :: ReportOpts -> Journal -> BudgetReport -> BudgetReport
+sortBudgetReport ropts j (PeriodicReport (ps, rows, trow)) = PeriodicReport (ps, sortedrows, trow)
+  where
+    sortedrows 
+      | sort_amount_ ropts && tree_ ropts = sortTreeBURByActualAmount rows
+      | sort_amount_ ropts                = sortFlatBURByActualAmount rows
+      | otherwise                         = sortByAccountDeclaration rows
+
+    -- Sort a tree-mode budget report's rows by total actual amount at each level.
+    sortTreeBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow] 
+    sortTreeBURByActualAmount rows = sortedrows
+      where
+        anamesandrows = [(first6 r, r) | r <- rows]
+        anames = map fst anamesandrows
+        atotals = [(a,tot) | (a,_,_,_,(tot,_),_) <- rows]
+        accounttree = accountTree "root" anames
+        accounttreewithbals = mapAccounts setibalance accounttree
+          where
+            setibalance a = a{aibalance=
+              fromMaybe 0 $ -- when there's no actual amount, assume 0; will mess up with negative amounts ? TODO 
+              fromMaybe (error "sortTreeByAmount 1") $ -- should not happen, but it's ugly; TODO 
+              lookup (aname a) atotals
+              }
+        sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
+        sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
+        sortedrows = sortAccountItemsLike sortedanames anamesandrows 
+
+    -- Sort a flat-mode budget report's rows by total actual amount.
+    sortFlatBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow] 
+    sortFlatBURByActualAmount = sortBy (maybeflip $ comparing (fst . fifth6))
+      where
+        maybeflip = if normalbalance_ ropts == Just NormallyNegative then id else flip
+
+    -- Sort the report rows by account declaration order then account name. 
+    -- <unbudgeted> remains at the top.
+    sortByAccountDeclaration rows = sortedrows
+      where
+        (unbudgetedrow,rows') = partition ((=="<unbudgeted>").first6) rows
+        anamesandrows = [(first6 r, r) | r <- rows']
+        anames = map fst anamesandrows
+        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
+        sortedrows = unbudgetedrow ++ sortAccountItemsLike sortedanames anamesandrows 
 
 -- | Use all periodic transactions in the journal to generate 
 -- budget transactions in the specified report period.
@@ -183,41 +234,6 @@ combineBudgetAndActual
     -- TODO: add --sort-budget to sort by budget goal amount
     rows :: [PeriodicReportRow (Maybe Change, Maybe BudgetGoal)] =
       sortBy (comparing first6) $ rows1 ++ rows2
-
---    -- like MultiBalanceReport
---    sortedrows 
---      | sort_amount_ opts && tree_ opts = sortTreeBURByAmount items
---      | sort_amount_ opts               = sortFlatBURByAmount items
---      | otherwise                       = sortBURByAccountDeclaration items
---    
---      where
---        -- Sort the report rows, representing a tree of accounts, by row total at each level.
---        sortTreeMBRByAmount rows = sortedrows
---          where
---            anamesandrows = [(first6 r, r) | r <- rows]
---            anames = map fst anamesandrows
---            atotals = [(a,tot) | (a,_,_,_,tot,_) <- rows]
---            accounttree = accountTree "root" anames
---            accounttreewithbals = mapAccounts setibalance accounttree
---              where
---                -- should not happen, but it's ugly; TODO 
---                setibalance a = a{aibalance=fromMaybe (error "sortTreeBURByAmount 1") $ lookup (aname a) atotals}
---            sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts) accounttreewithbals
---            sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
---            sortedrows = sortAccountItemsLike sortedanames anamesandrows 
---
---        -- Sort the report rows, representing a flat account list, by row total. 
---        sortFlatBURByAmount = sortBy (maybeflip $ comparing fifth6)
---          where
---            maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
---
---        -- Sort the report rows by account declaration order then account name. 
---        sortBURByAccountDeclaration rows = sortedrows
---          where 
---            anamesandrows = [(first6 r, r) | r <- rows]
---            anames = map fst anamesandrows
---            sortedanames = sortAccountNamesByDeclaration j (tree_ opts) anames
---            sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
     -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
     totalrow =
