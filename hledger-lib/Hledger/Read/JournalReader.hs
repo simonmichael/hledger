@@ -106,7 +106,7 @@ reader = Reader
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts = parseAndFinaliseJournal journalp' iopts
+parse iopts = parseAndFinaliseJournal' journalp' iopts
   where
     journalp' = do 
       -- reverse parsed aliases to ensure that they are applied in order given on commandline

@@ -29,10 +29,13 @@ module Hledger.Read.Common (
   rtp,
   runJournalParser,
   rjp,
+  runErroringJournalParser,
+  rejp,
   genericSourcePos,
   journalSourcePos,
   applyTransactionModifiers,
   parseAndFinaliseJournal,
+  parseAndFinaliseJournal',
   setYear,
   getYear,
   setDefaultCommodityAndStyle,
@@ -99,7 +102,7 @@ where
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import "base-compat-batteries" Control.Monad.Compat
-import Control.Monad.Except (ExceptT(..), throwError)
+import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, second)
 import Data.Char
@@ -200,6 +203,16 @@ runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (Pars
 runJournalParser p t = runParserT (evalStateT p mempty) "" t
 rjp = runJournalParser
 
+-- | Run an erroring journal parser in some monad. See also: parseWithState.
+runErroringJournalParser, rejp
+  :: Monad m
+  => ErroringJournalParser m a
+  -> Text
+  -> m (Either FinalParseError (Either (ParseError Char CustomErr) a))
+runErroringJournalParser p t =
+  runExceptT $ runParserT (evalStateT p mempty) "" t
+rejp = runErroringJournalParser
+
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
 
@@ -221,7 +234,7 @@ applyTransactionModifiers j = j { jtxns = map applyallmodifiers $ jtxns j }
 
 -- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.
-parseAndFinaliseJournal :: JournalParser IO ParsedJournal -> InputOpts
+parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser iopts f txt = do
   t <- liftIO getClockTime
@@ -229,14 +242,38 @@ parseAndFinaliseJournal parser iopts f txt = do
   let initJournal = nulljournal
         { jparsedefaultyear = Just y
         , jincludefilestack = [f] }
+  eep <- liftIO $ runExceptT $
+    runParserT (evalStateT parser initJournal) f txt
+  case eep of
+    Left finalParseError ->
+      throwError $ finalParseErrorPretty $ attachSource f txt finalParseError
+
+    Right ep -> case ep of
+      Left e -> throwError $ customParseErrorPretty txt e
+
+      Right pj ->
+        let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
+        case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
+                          Right j -> return j
+                          Left e  -> throwError e
+
+parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
+                           -> FilePath -> Text -> ExceptT String IO Journal
+parseAndFinaliseJournal' parser iopts f txt = do
+  t <- liftIO getClockTime
+  y <- liftIO getCurrentYear
+  let initJournal = nulljournal
+        { jparsedefaultyear = Just y
+        , jincludefilestack = [f] }
   ep <- liftIO $ runParserT (evalStateT parser initJournal) f txt
   case ep of
+    Left e   -> throwError $ customParseErrorPretty txt e
+
     Right pj -> 
       let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
       case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
                         Right j -> return j
                         Left e  -> throwError e
-    Left e   -> throwError $ customParseErrorPretty txt e
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})

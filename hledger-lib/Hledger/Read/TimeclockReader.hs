@@ -78,7 +78,7 @@ reader = Reader
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse = parseAndFinaliseJournal timeclockfilep
+parse = parseAndFinaliseJournal' timeclockfilep
 
 timeclockfilep :: MonadIO m => JournalParser m ParsedJournal
 timeclockfilep = do many timeclockitemp
