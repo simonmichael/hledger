@@ -195,18 +195,20 @@ includedirectivep = do
         -- Compiling filename as a glob pattern works even if it is a literal
         fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename of
             Right x -> pure x
-            Left e -> parseErrorAt parserpos $ "Invalid glob pattern: " ++ e
+            Left e -> customFailure $
+                        parseErrorAt parserpos $ "Invalid glob pattern: " ++ e
         -- Get all matching files in the current working directory, sorting in
         -- lexicographic order to simulate the output of 'ls'.
         filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
         if (not . null) filepaths
             then pure filepaths
-            else parseErrorAt parserpos $ "No existing files match pattern: " ++ filename
+            else customFailure $ parseErrorAt parserpos $
+                   "No existing files match pattern: " ++ filename
 
     parseChild parentpos filepath = do
         parentfilestack <- fmap sourceName . statePos <$> getParserState
-        when (filepath `elem` parentfilestack)
-            $ parseErrorAt parentpos ("Cyclic include: " ++ filepath)
+        when (filepath `elem` parentfilestack) $ customFailure $
+          parseErrorAt parentpos ("Cyclic include: " ++ filepath)
 
         childInput <- lift $ readFilePortably filepath
                              `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
@@ -294,7 +296,7 @@ commoditydirectiveonelinep = do
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
-  then parseErrorAt pos pleaseincludedecimalpoint
+  then customFailure $ parseErrorAt pos pleaseincludedecimalpoint
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 pleaseincludedecimalpoint :: String
@@ -327,9 +329,9 @@ formatdirectivep expectedsym = do
   if acommodity==expectedsym
     then 
       if asdecimalpoint astyle == Nothing
-      then parseErrorAt pos pleaseincludedecimalpoint
+      then customFailure $ parseErrorAt pos pleaseincludedecimalpoint
       else return $ dbg2 "style from format subdirective" astyle
-    else parseErrorAt pos $
+    else customFailure $ parseErrorAt pos $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
 keywordp :: String -> JournalParser m ()
@@ -422,7 +424,7 @@ defaultcommoditydirectivep = do
   Amount{acommodity,astyle} <- amountp
   lift restofline
   if asdecimalpoint astyle == Nothing
-  then parseErrorAt pos pleaseincludedecimalpoint
+  then customFailure $ parseErrorAt pos pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 
 marketpricedirectivep :: JournalParser m MarketPrice
@@ -481,7 +483,7 @@ periodictransactionp = do
   (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp d)
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
-    Just e -> parseErrorAt pos e
+    Just e -> customFailure $ parseErrorAt pos e
     Nothing -> pure ()
   -- The line can end here, or it can continue with one or more spaces
   -- and then zero or more of the following fields. A bit awkward.

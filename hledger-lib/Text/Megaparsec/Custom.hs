@@ -9,7 +9,7 @@ module Text.Megaparsec.Custom (
   -- * Custom parse error type
   CustomErr,
 
-  -- * Throwing custom parse errors
+  -- * Constructing custom parse errors
   parseErrorAt,
   parseErrorAtRegion,
   withSource,
@@ -60,13 +60,12 @@ instance ShowErrorComponent CustomErr where
   showErrorComponent (ErrorWithSource _ e) = parseErrorTextPretty e
 
 
---- * Throwing custom parse errors
+--- * Constructing custom parse errors
 
 -- | Fail at a specific source position.
 
-parseErrorAt :: MonadParsec CustomErr s m => SourcePos -> String -> m a
-parseErrorAt pos msg = customFailure (ErrorFailAt pos (sourceColumn pos) msg)
-{-# INLINABLE parseErrorAt #-}
+parseErrorAt :: SourcePos -> String -> CustomErr
+parseErrorAt pos msg = ErrorFailAt pos (sourceColumn pos) msg
 
 -- | Fail at a specific source interval (within a single line). The
 -- interval is inclusive on the left and exclusive on the right; that is,
@@ -74,19 +73,17 @@ parseErrorAt pos msg = customFailure (ErrorFailAt pos (sourceColumn pos) msg)
 -- end position.
 
 parseErrorAtRegion
-  :: MonadParsec CustomErr s m
-  => SourcePos -- ^ Start position
+  :: SourcePos -- ^ Start position
   -> SourcePos -- ^ End position
   -> String    -- ^ Error message
-  -> m a
+  -> CustomErr
 parseErrorAtRegion startPos endPos msg =
   let startCol = sourceColumn startPos
       endCol' = mkPos $ subtract 1 $ unPos $ sourceColumn endPos
       endCol = if startCol <= endCol'
                     && sourceLine startPos == sourceLine endPos
                then endCol' else startCol
-  in  customFailure (ErrorFailAt startPos endCol msg)
-{-# INLINABLE parseErrorAtRegion #-}
+  in  ErrorFailAt startPos endCol msg
 
 -- | Attach a source file to a parse error. Intended for use with the
 -- 'region' parser combinator.

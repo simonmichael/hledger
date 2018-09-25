@@ -364,11 +364,11 @@ datep' mYear = do
     endPos <- getPosition
     let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
 
-    when (sep1 /= sep2) $ parseErrorAtRegion startPos endPos $
+    when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startPos endPos $
       "invalid date (mixing date separators is not allowed): " ++ dateStr
 
     case fromGregorianValid year month day of
-      Nothing -> parseErrorAtRegion startPos endPos $
+      Nothing -> customFailure $ parseErrorAtRegion startPos endPos $
                    "well-formed but invalid date: " ++ dateStr
       Just date -> pure $! date
 
@@ -379,12 +379,12 @@ datep' mYear = do
     case mYear of
       Just year ->
         case fromGregorianValid year (fromIntegral month) day of
-          Nothing -> parseErrorAtRegion startPos endPos $
+          Nothing -> customFailure $ parseErrorAtRegion startPos endPos $
                       "well-formed but invalid date: " ++ dateStr
           Just date -> pure $! date
         where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
-      Nothing -> parseErrorAtRegion startPos endPos $
+      Nothing -> customFailure $ parseErrorAtRegion startPos endPos $
         "partial date "++dateStr++" found, but the current year is unknown"
         where dateStr = show month ++ [sep] ++ show day
 
@@ -415,23 +415,24 @@ datetimep' mYear = do
       pos1 <- getPosition
       h' <- twoDigitDecimal <?> "hour"
       pos2 <- getPosition
-      unless (h' >= 0 && h' <= 23) $ parseErrorAtRegion pos1 pos2
-        "invalid time (bad hour)"
+      unless (h' >= 0 && h' <= 23) $ customFailure $
+        parseErrorAtRegion pos1 pos2 "invalid time (bad hour)"
 
       char ':' <?> "':' (hour-minute separator)"
       pos3 <- getPosition
       m' <- twoDigitDecimal <?> "minute"
       pos4 <- getPosition
-      unless (m' >= 0 && m' <= 59) $ parseErrorAtRegion pos3 pos4
-        "invalid time (bad minute)"
+      unless (m' >= 0 && m' <= 59) $ customFailure $
+        parseErrorAtRegion pos3 pos4 "invalid time (bad minute)"
 
       s' <- option 0 $ do
         char ':' <?> "':' (minute-second separator)"
         pos5 <- getPosition
         s' <- twoDigitDecimal <?> "second"
         pos6 <- getPosition
-        unless (s' >= 0 && s' <= 59) $ parseErrorAtRegion pos5 pos6
-          "invalid time (bad second)" -- we do not support leap seconds
+        unless (s' >= 0 && s' <= 59) $ customFailure $
+          parseErrorAtRegion pos5 pos6 "invalid time (bad second)"
+          -- we do not support leap seconds
         pure s'
 
       pure $ TimeOfDay h' m' (fromIntegral s')
@@ -574,7 +575,8 @@ amountwithoutpricep = do
   interpretNumber posRegion suggestedStyle ambiguousNum mExp =
     let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
     in  case fromRawNumber rawNum mExp of
-          Left errMsg -> uncurry parseErrorAtRegion posRegion errMsg
+          Left errMsg -> customFailure $
+                           uncurry parseErrorAtRegion posRegion errMsg
           Right res -> pure res
 
 -- | Parse an amount from a string, or get an error.
@@ -793,7 +795,8 @@ rawnumberp = label "number" $ do
   mExtraFragment <- optional $ lookAhead $ try $
     char ' ' *> getPosition <* digitChar
   case mExtraFragment of
-    Just pos -> parseErrorAt pos "invalid number (excessive trailing digits)"
+    Just pos -> customFailure $
+                  parseErrorAt pos "invalid number (excessive trailing digits)"
     Nothing -> pure ()
 
   return $ dbg8 "rawnumberp" rawNumber
