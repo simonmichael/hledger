@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e40335be870954ee2e9d0eb165eb5347bb0941cf9a83fbf34ea92aeb40945db4
+-- hash: 4950997d3067d59116c10a1928630e2e39d4616f722d9eb3a1bf4e85733c5d1b
 
 name:           hledger
 version:        1.10.99
@@ -95,6 +95,7 @@ library
       Hledger.Cli.Commands.Checkdupes
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Help
+      Hledger.Cli.Commands.Files
       Hledger.Cli.Commands.Import
       Hledger.Cli.Commands.Incomestatement
       Hledger.Cli.Commands.Prices
