@@ -691,9 +691,24 @@ checkInferAndRegisterAmounts (Right oldTx) = do
     (fmap void . addToBalance) styles oldTx { tpostings = newPostings }
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
-    inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setMixedBalance (paccount p) . baamount)
-      $ pbalanceassertion p
+    inferFromAssignment p = do
+      let acc = paccount p
+      case pbalanceassertion p of
+        Just ba | afexact (baflags ba) -> do
+          diff <- setMixedBalance acc $ baamount ba
+          fullPosting diff p
+        Just ba | otherwise -> do
+          old <- liftModifier $ \Env{ eBalances = bals } -> HT.lookup bals acc
+          let amt = baamount ba
+              commodities = map acommodity $ amounts amt
+          diff <- setMixedBalance acc $
+            amt + filterMixedAmount (\a -> not $ acommodity a `elem` commodities) (fromMaybe nullmixedamt old)
+          fullPosting diff p
+        Nothing -> return p
+    fullPosting amt p = return p
+      { pamount = amt
+      , porigin = Just $ originalPosting p
+      }
 
 -- | Adds a posting's amount to the posting's account balance and
 -- checks a possible balance assertion. Or if there is no amount,
