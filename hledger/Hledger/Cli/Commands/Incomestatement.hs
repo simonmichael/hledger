@@ -34,7 +34,7 @@ Note this report shows all account balances with normal positive sign
   cbcqueries  = [
      CBCSubreportSpec{
       cbcsubreporttitle="Revenues"
-     ,cbcsubreportquery=journalIncomeAccountQuery
+     ,cbcsubreportquery=journalRevenueAccountQuery
      ,cbcsubreportnormalsign=NormallyNegative
      ,cbcsubreportincreasestotal=True
      }
