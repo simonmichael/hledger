@@ -74,6 +74,7 @@ import Hledger.Cli.Commands.Printunique
 import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Registermatch
 import Hledger.Cli.Commands.Rewrite
+import Hledger.Cli.Commands.Roi
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
 
@@ -102,6 +103,7 @@ builtinCommands = [
   ,(registermode           , register)
   ,(registermatchmode      , registermatch)
   ,(rewritemode            , rewrite)
+  ,(roimode                , roi)
   ,(statsmode              , stats)
   ,(tagsmode               , tags)
   ,(testmode               , testcmd)

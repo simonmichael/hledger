@@ -757,6 +757,10 @@ Helps ledger-autosync detect already-seen transactions when importing.
 ## rewrite
 Print all transactions, adding custom postings to the matched ones.
 
+## roi
+Shows time-weighted (TWR) and money-weighted (IRR) rate of return on your investments.
+See `roi --help` for more.   
+
 ## stats
 Show some journal statistics.
 
