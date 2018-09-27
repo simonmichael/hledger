@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4950997d3067d59116c10a1928630e2e39d4616f722d9eb3a1bf4e85733c5d1b
+-- hash: 70e6e178ba5d2d6601ebf07e79fdcc19d2480a0544225da23ee3155e928fd85c
 
 name:           hledger
 version:        1.10.99
@@ -104,6 +104,7 @@ library
       Hledger.Cli.Commands.Register
       Hledger.Cli.Commands.Registermatch
       Hledger.Cli.Commands.Rewrite
+      Hledger.Cli.Commands.Roi
       Hledger.Cli.Commands.Stats
       Hledger.Cli.Commands.Tags
       Hledger.Cli.CompoundBalanceCommand
@@ -141,6 +142,7 @@ library
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -191,6 +193,7 @@ executable hledger
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -244,6 +247,7 @@ test-suite test
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , test-framework
@@ -298,6 +302,7 @@ benchmark bench
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , text >=0.11
