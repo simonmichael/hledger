@@ -53,7 +53,7 @@ module Hledger.Data.Journal (
   -- * Standard account types
   journalBalanceSheetAccountQuery,
   journalProfitAndLossAccountQuery,
-  journalIncomeAccountQuery,
+  journalRevenueAccountQuery,
   journalExpenseAccountQuery,
   journalAssetAccountQuery,
   journalLiabilityAccountQuery,
@@ -279,24 +279,65 @@ journalAccountNames = journalAccountNamesDeclaredOrImplied
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
--- standard account types
+-- queries for standard account types
 
--- | A query for Profit & Loss accounts in this journal.
--- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
-journalProfitAndLossAccountQuery  :: Journal -> Query
-journalProfitAndLossAccountQuery j = Or [journalIncomeAccountQuery j
-                                        ,journalExpenseAccountQuery j
-                                        ]
+-- | Get a query for accounts of a certain type (Asset, Liability..) in this journal.  
+-- The query will match all accounts which were declared as that type by account directives, 
+-- plus all their subaccounts which have not been declared as a different type. 
+-- If no accounts were declared as this type, the query will instead match accounts 
+-- with names matched by the provided case-insensitive regular expression.
+journalAccountTypeQuery :: AccountType -> Regexp -> Journal -> Query
+journalAccountTypeQuery atype fallbackregex j =
+  case M.lookup atype (jdeclaredaccounttypes j) of
+    Nothing -> Acct fallbackregex
+    Just as ->
+      -- XXX Query isn't able to match account type since that requires extra info from the journal. 
+      -- So we do a hacky search by name instead.
+      And [ 
+         Or $ map (Acct . accountNameToAccountRegex) as
+        ,Not $ Or $ map (Acct . accountNameToAccountRegex) differentlytypedsubs
+        ]
+      where
+        differentlytypedsubs = concat 
+          [subs | (t,bs) <- M.toList (jdeclaredaccounttypes j)
+              , t /= atype
+              , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
+          ]
 
--- | A query for Income (Revenue) accounts in this journal.
--- This is currently hard-coded to the case-insensitive regex @^(income|revenue)s?(:|$)@.
-journalIncomeAccountQuery  :: Journal -> Query
-journalIncomeAccountQuery _ = Acct "^(income|revenue)s?(:|$)"
+-- | A query for accounts in this journal which have been
+-- declared as Asset by account directives, or otherwise for
+-- accounts with names matched by the case-insensitive regular expression 
+-- @^assets?(:|$)@.
+journalAssetAccountQuery :: Journal -> Query
+journalAssetAccountQuery = journalAccountTypeQuery Asset "^assets?(:|$)"
 
--- | A query for Expense accounts in this journal.
--- This is currently hard-coded to the case-insensitive regex @^expenses?(:|$)@.
+-- | A query for accounts in this journal which have been
+-- declared as Liability by account directives, or otherwise for
+-- accounts with names matched by the case-insensitive regular expression 
+-- @^(debts?|liabilit(y|ies))(:|$)@.
+journalLiabilityAccountQuery :: Journal -> Query
+journalLiabilityAccountQuery = journalAccountTypeQuery Liability "^(debts?|liabilit(y|ies))(:|$)"
+
+-- | A query for accounts in this journal which have been
+-- declared as Equity by account directives, or otherwise for
+-- accounts with names matched by the case-insensitive regular expression 
+-- @^equity(:|$)@.
+journalEquityAccountQuery :: Journal -> Query
+journalEquityAccountQuery = journalAccountTypeQuery Equity "^equity(:|$)"
+
+-- | A query for accounts in this journal which have been
+-- declared as Revenue by account directives, or otherwise for
+-- accounts with names matched by the case-insensitive regular expression 
+-- @^(income|revenue)s?(:|$)@.
+journalRevenueAccountQuery :: Journal -> Query
+journalRevenueAccountQuery = journalAccountTypeQuery Revenue "^(income|revenue)s?(:|$)"
+
+-- | A query for accounts in this journal which have been
+-- declared as Expense by account directives, or otherwise for
+-- accounts with names matched by the case-insensitive regular expression 
+-- @^(income|revenue)s?(:|$)@.
 journalExpenseAccountQuery  :: Journal -> Query
-journalExpenseAccountQuery _ = Acct "^expenses?(:|$)"
+journalExpenseAccountQuery = journalAccountTypeQuery Expense "^expenses?(:|$)"
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
@@ -306,25 +347,17 @@ journalBalanceSheetAccountQuery j = Or [journalAssetAccountQuery j
                                        ,journalEquityAccountQuery j
                                        ]
 
--- | A query for Asset accounts in this journal.
--- This is currently hard-coded to the case-insensitive regex @^assets?(:|$)@.
-journalAssetAccountQuery  :: Journal -> Query
-journalAssetAccountQuery _ = Acct "^assets?(:|$)"
-
--- | A query for Liability accounts in this journal.
--- This is currently hard-coded to the case-insensitive regex @^(debts?|liabilit(y|ies))(:|$)@.
-journalLiabilityAccountQuery  :: Journal -> Query
-journalLiabilityAccountQuery _ = Acct "^(debts?|liabilit(y|ies))(:|$)"
-
--- | A query for Equity accounts in this journal.
--- This is currently hard-coded to the case-insensitive regex @^equity(:|$)@.
-journalEquityAccountQuery  :: Journal -> Query
-journalEquityAccountQuery _ = Acct "^equity(:|$)"
+-- | A query for Profit & Loss accounts in this journal.
+-- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
+journalProfitAndLossAccountQuery  :: Journal -> Query
+journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
+                                        ,journalExpenseAccountQuery j
+                                        ]
 
 -- | A query for Cash (-equivalent) accounts in this journal (ie,
 -- accounts which appear on the cashflow statement.)  This is currently
--- hard-coded to be all the Asset accounts except for those containing the
--- case-insensitive regex @(receivable|:A/R|:fixed)@.
+-- hard-coded to be all the Asset accounts except for those with names 
+-- containing the case-insensitive regular expression @(receivable|:A/R|:fixed)@.
 journalCashAccountQuery  :: Journal -> Query
 journalCashAccountQuery j = And [journalAssetAccountQuery j, Not $ Acct "(receivable|:A/R|:fixed)"]
 
@@ -1089,7 +1122,7 @@ tests_Journal = tests "Journal" [
        test "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
       ,test "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
       ,test "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
-      ,test "income"      $ expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
+      ,test "income"      $ expectEq (namesfrom journalRevenueAccountQuery)    ["income","income:gifts","income:salary"]
       ,test "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
     ]
 
