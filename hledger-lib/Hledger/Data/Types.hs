@@ -28,6 +28,10 @@ import Data.Decimal
 import Data.Default
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
+--XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html 
+--Note: You should use Data.Map.Strict instead of this module if:
+--You will eventually need all the values stored.
+--The stored values don't represent large virtual data structures to be lazily computed.
 import qualified Data.Map as M
 import Data.Text (Text)
 -- import qualified Data.Text as T
