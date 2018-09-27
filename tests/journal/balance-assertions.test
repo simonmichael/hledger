@@ -308,3 +308,36 @@ hledger -f - stats
 >>> /Transactions/
 >>>2
 >>>=0
+
+# 17. Exact assertions parse correctly
+hledger -f - stats
+<<<
+2016/1/1
+    a      $1
+    b
+
+2016/1/2
+    a       1 zorkmids
+    b
+
+2016/1/3
+    a         == $1 + 1 zorkmids
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 18. Exact assertions consider entire account
+hledger -f - stats
+<<<
+2016/1/1
+    a      $1
+    b
+
+2016/1/2
+    a       1 zorkmids
+    b
+
+2016/1/3
+    a       0 == $1
+>>>2 /balance assertion error.*line 10, column 15/
+>>>=1

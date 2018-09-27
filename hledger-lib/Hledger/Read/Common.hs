@@ -629,7 +629,10 @@ signp :: Num a => TextParser m (a -> a)
 signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
 
 multiplierp :: TextParser m Bool
-multiplierp = option False $ char '*' *> pure True
+multiplierp = option False $ do
+    char '*'
+    skipMany spacenonewline
+    pure True
 
 -- | This is like skipMany but it returns True if at least one element
 -- was skipped. This is helpful if you’re just using many to check if

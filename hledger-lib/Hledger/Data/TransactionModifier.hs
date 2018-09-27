@@ -99,12 +99,6 @@ tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 --tdates t = tdate t : concatMap pdates (tpostings t) ++ maybeToList (tdate2 t) where
 --    pdates p = catMaybes [pdate p, pdate2 p]
 
-postingScale :: Posting -> Maybe Quantity
-postingScale p =
-    case amounts $ pamount p of
-        [a] | amultiplier a -> Just $ aquantity a
-        _ -> Nothing
-
 -- | Converts a 'TransactionModifier''s posting to a 'Posting'-generating function,
 -- which will be used to make a new posting based on the old one (an "automated posting").
 tmPostingToFunction :: Posting -> (Posting -> Posting)
@@ -115,9 +109,14 @@ tmPostingToFunction p' =
       , pamount = amount' p
       }
   where
-    amount' = case postingScale p' of
-        Nothing -> const $ pamount p'
-        Just n -> \p -> withAmountType (head $ amounts $ pamount p') $ pamount p `divideMixedAmount` (1/n)
+    pa' = pamount p'
+    splitAmount (Mixed []) = (Nothing, nullmixedamt)
+    splitAmount m@(Mixed (a:as))
+        | amultiplier a = (Just $ aquantity a, Mixed as)
+        | otherwise = (Nothing, m)
+    amount' = case splitAmount pa' of
+        (Nothing, add) -> const $ pa' + add
+        (Just n, add) -> \p -> withAmountType (head $ amounts $ pa') $ (+) add $ pamount p `multiplyMixedAmount` n
     withAmountType amount (Mixed as) = case acommodity amount of
         "" -> Mixed as
         c -> Mixed [a{acommodity = c, astyle = astyle amount, aprice = aprice amount} | a <- as]
