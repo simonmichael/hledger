@@ -281,8 +281,8 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
 journalProfitAndLossAccountQuery  :: Journal -> Query
 journalProfitAndLossAccountQuery j = Or [journalIncomeAccountQuery j
-                                               ,journalExpenseAccountQuery j
-                                               ]
+                                        ,journalExpenseAccountQuery j
+                                        ]
 
 -- | A query for Income (Revenue) accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^(income|revenue)s?(:|$)@.
@@ -298,9 +298,9 @@ journalExpenseAccountQuery _ = Acct "^expenses?(:|$)"
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
 journalBalanceSheetAccountQuery  :: Journal -> Query
 journalBalanceSheetAccountQuery j = Or [journalAssetAccountQuery j
-                                              ,journalLiabilityAccountQuery j
-                                              ,journalEquityAccountQuery j
-                                              ]
+                                       ,journalLiabilityAccountQuery j
+                                       ,journalEquityAccountQuery j
+                                       ]
 
 -- | A query for Asset accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^assets?(:|$)@.
