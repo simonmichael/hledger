@@ -16,13 +16,18 @@ module Hledger.Utils.Test (
   ,is
   ,expectEqPP
   ,expectParse
+  ,expectParseE
   ,expectParseError
+  ,expectParseErrorE
   ,expectParseEq
+  ,expectParseEqE
   ,expectParseEqOn
+  ,expectParseEqOnE
 ) 
 where
 
 import Control.Exception
+import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.State.Strict (StateT, evalStateT)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
@@ -101,12 +106,31 @@ is = flip expectEqPP
 
 -- | Test that this stateful parser runnable in IO successfully parses 
 -- all of the given input text, showing the parse error if it fails. 
+
 -- Suitable for hledger's JournalParser parsers.
 expectParse :: (Monoid st, Eq a, Show a, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> E.Test ()
 expectParse parser input = do
   ep <- E.io (runParserT (evalStateT (parser <* eof) mempty) "" input)
   either (fail.(++"\n").("\nparse error at "++).parseErrorPretty) (const ok) ep
+
+-- Suitable for hledger's ErroringJournalParser parsers.
+expectParseE
+  :: (Monoid st, Eq a, Show a, HasCallStack)
+  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
+  -> T.Text
+  -> E.Test ()
+expectParseE parser input = do
+  let filepath = ""
+  eep <- E.io $ runExceptT $
+           runParserT (evalStateT (parser <* eof) mempty) filepath input
+  case eep of
+    Left finalErr ->
+      let prettyErr = finalParseErrorPretty $ attachSource filepath input finalErr
+      in  fail $ "parse error at " <> prettyErr
+    Right ep -> either (fail.(++"\n").("\nparse error at "++).parseErrorPretty)
+                       (const ok)
+                       ep
 
 -- | Test that this stateful parser runnable in IO fails to parse 
 -- the given input text, with a parse error containing the given string. 
@@ -122,11 +146,42 @@ expectParseError parser input errstr = do
       then ok
       else fail $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
 
+expectParseErrorE
+  :: (Monoid st, Eq a, Show a, HasCallStack)
+  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
+  -> T.Text
+  -> String
+  -> E.Test ()
+expectParseErrorE parser input errstr = do
+  let filepath = ""
+  eep <- E.io $ runExceptT $ runParserT (evalStateT parser mempty) filepath input
+  case eep of
+    Left finalErr -> do
+      let prettyErr = finalParseErrorPretty $ attachSource filepath input finalErr
+      if errstr `isInfixOf` prettyErr
+      then ok
+      else fail $ "\nparse error is not as expected:\n" ++ prettyErr ++ "\n"
+    Right ep -> case ep of
+      Right v -> fail $ "\nparse succeeded unexpectedly, producing:\n" ++ pshow v ++ "\n"
+      Left e  -> do
+        let e' = parseErrorPretty e
+        if errstr `isInfixOf` e'
+        then ok
+        else fail $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
+
 -- | Like expectParse, but also test the parse result is an expected value,
 -- pretty-printing both if it fails. 
 expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
 expectParseEq parser input expected = expectParseEqOn parser input id expected
+
+expectParseEqE
+  :: (Monoid st, Eq a, Show a, HasCallStack)
+  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
+  -> T.Text
+  -> a
+  -> E.Test ()
+expectParseEqE parser input expected = expectParseEqOnE parser input id expected
 
 -- | Like expectParseEq, but transform the parse result with the given function 
 -- before comparing it.
@@ -135,4 +190,24 @@ expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) =>
 expectParseEqOn parser input f expected = do
   ep <- E.io $ runParserT (evalStateT (parser <* eof) mempty) "" input
   either (fail . (++"\n") . ("\nparse error at "++) . parseErrorPretty) (expectEqPP expected . f) ep
+
+expectParseEqOnE
+  :: (Monoid st, Eq b, Show b, HasCallStack)
+  => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
+  -> T.Text
+  -> (a -> b)
+  -> b
+  -> E.Test ()
+expectParseEqOnE parser input f expected = do
+  let filepath = ""
+  eep <- E.io $ runExceptT $
+           runParserT (evalStateT (parser <* eof) mempty) filepath input
+  case eep of
+    Left finalErr ->
+      let prettyErr = finalParseErrorPretty $ attachSource filepath input finalErr
+      in  fail $ "parse error at " <> prettyErr
+    Right ep ->
+      either (fail . (++"\n") . ("\nparse error at "++) . parseErrorPretty)
+             (expectEqPP expected . f)
+             ep
 

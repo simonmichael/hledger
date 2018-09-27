@@ -106,7 +106,7 @@ reader = Reader
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts = parseAndFinaliseJournal' journalp' iopts
+parse iopts = parseAndFinaliseJournal journalp' iopts
   where
     journalp' = do 
       -- reverse parsed aliases to ensure that they are applied in order given on commandline
@@ -124,10 +124,10 @@ aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++qu
 -- | A journal parser. Accumulates and returns a "ParsedJournal",
 -- which should be finalised/validated before use.
 --
--- >>> rjp (journalp <* eof) "2015/1/1\n a  0\n"
--- Right Journal  with 1 transactions, 1 accounts
+-- >>> rejp (journalp <* eof) "2015/1/1\n a  0\n"
+-- Right (Right Journal  with 1 transactions, 1 accounts)
 --
-journalp :: MonadIO m => JournalParser m ParsedJournal
+journalp :: MonadIO m => ErroringJournalParser m ParsedJournal
 journalp = do
   many addJournalItemP
   eof
@@ -135,7 +135,7 @@ journalp = do
 
 -- | A side-effecting parser; parses any kind of journal item
 -- and updates the parse state accordingly.
-addJournalItemP :: MonadIO m => JournalParser m ()
+addJournalItemP :: MonadIO m => ErroringJournalParser m ()
 addJournalItemP =
   -- all journal line types can be distinguished by the first
   -- character, can use choice without backtracking
@@ -154,7 +154,7 @@ addJournalItemP =
 -- | Parse any journal directive and update the parse state accordingly.
 -- Cf http://hledger.org/manual.html#directives,
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directivep :: MonadIO m => JournalParser m ()
+directivep :: MonadIO m => ErroringJournalParser m ()
 directivep = (do
   optional $ char '!'
   choice [
@@ -174,7 +174,7 @@ directivep = (do
    ]
   ) <?> "directive"
 
-includedirectivep :: MonadIO m => JournalParser m ()
+includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   string "include"
   lift (skipSome spacenonewline)
@@ -784,8 +784,8 @@ tests_JournalReader = tests "JournalReader" [
 
   ,tests "directivep" [
     test "supports !" $ do 
-      expectParse directivep "!account a\n"
-      expectParse directivep "!D 1.0\n"
+      expectParseE directivep "!account a\n"
+      expectParseE directivep "!D 1.0\n"
     ]
 
   ,test "accountdirectivep" $ do
@@ -808,8 +808,8 @@ tests_JournalReader = tests "JournalReader" [
      expectParse ignoredpricecommoditydirectivep "N $\n"
 
   ,test "includedirectivep" $ do
-    test "include" $ expectParseError includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
-    test "glob" $ expectParseError includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+    test "include" $ expectParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
+    test "glob" $ expectParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
 
   ,test "marketpricedirectivep" $ expectParseEq marketpricedirectivep
     "P 2017/01/30 BTC $922.83\n"
@@ -828,7 +828,7 @@ tests_JournalReader = tests "JournalReader" [
 
 
   ,tests "journalp" [
-    test "empty file" $ expectParseEq journalp "" nulljournal
+    test "empty file" $ expectParseEqE journalp "" nulljournal
     ]
 
   ]
