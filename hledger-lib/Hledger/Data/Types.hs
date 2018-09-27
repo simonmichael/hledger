@@ -113,7 +113,26 @@ instance Default Interval where def = NoInterval
 instance NFData Interval
 
 type AccountName = Text
-type AccountCode = Int
+
+data AccountType =
+    Asset
+  | Liability
+  | Equity
+  | Revenue
+  | Expense
+  deriving (Show,Eq,Ord,Data,Generic)
+
+instance NFData AccountType
+
+-- not worth the trouble, letters defined in accountdirectivep for now
+--instance Read AccountType
+--  where
+--    readsPrec _ ('A' : xs) = [(Asset,     xs)]
+--    readsPrec _ ('L' : xs) = [(Liability, xs)]
+--    readsPrec _ ('E' : xs) = [(Equity,    xs)]
+--    readsPrec _ ('R' : xs) = [(Revenue,   xs)]
+--    readsPrec _ ('X' : xs) = [(Expense,   xs)]
+--    readsPrec _ _ = []
 
 data AccountAlias = BasicAlias AccountName AccountName
                   | RegexAlias Regexp Replacement
@@ -369,6 +388,7 @@ data Journal = Journal {
   ,jincludefilestack      :: [FilePath]
   -- principal data
   ,jdeclaredaccounts      :: [AccountName]                          -- ^ Accounts declared by account directives, in parse order (after journal finalisation) 
+  ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts) 
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
   ,jmarketprices          :: [MarketPrice]
