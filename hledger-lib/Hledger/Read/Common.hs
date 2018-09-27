@@ -43,6 +43,7 @@ module Hledger.Read.Common (
   getDefaultAmountStyle,
   getAmountStyle,
   pushDeclaredAccount,
+  addDeclaredAccountType,
   pushParentAccount,
   popParentAccount,
   getParentAccount,
@@ -310,6 +311,10 @@ getAmountStyle commodity = do
 
 pushDeclaredAccount :: AccountName -> JournalParser m ()
 pushDeclaredAccount acct = modify' (\j -> j{jdeclaredaccounts = acct : jdeclaredaccounts j})
+
+addDeclaredAccountType :: AccountName -> AccountType -> JournalParser m ()
+addDeclaredAccountType acct atype = 
+  modify' (\j -> j{jdeclaredaccounttypes = M.insertWith (++) atype [acct] (jdeclaredaccounttypes j)})
 
 pushParentAccount :: AccountName -> JournalParser m ()
 pushParentAccount acct = modify' (\j -> j{jparseparentaccounts = acct : jparseparentaccounts j})

@@ -69,6 +69,7 @@ import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
 import Data.Bifunctor (first)
+import Data.Maybe
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -257,10 +258,29 @@ accountdirectivep :: JournalParser m ()
 accountdirectivep = do
   string "account"
   lift (skipSome spacenonewline)
-  acct <- modifiedaccountnamep  -- account directives can be modified by alias/apply account
-  _ :: Maybe String <- (optional $ lift $ skipSome spacenonewline >> some digitChar)  -- compatibility: ignore account codes supported in 1.9/1.10
+  -- the account name, possibly modified by preceding alias or apply account directives
+  acct <- modifiedaccountnamep
+  -- and maybe something else after two or more spaces ?
+  matype :: Maybe AccountType <- lift $ fmap (fromMaybe Nothing) $ optional $ do
+    skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp 
+    choice [
+      -- a numeric account code, as supported in 1.9-1.10 ? currently ignored
+       some digitChar >> return Nothing
+      -- a letter account type code (ALERX), as added in 1.11 ?
+      ,char 'A' >> return (Just Asset) 
+      ,char 'L' >> return (Just Liability) 
+      ,char 'E' >> return (Just Equity) 
+      ,char 'R' >> return (Just Revenue) 
+      ,char 'X' >> return (Just Expense) 
+      ]
   newline
+  -- Ledger-style indented subdirectives on following lines ? ignore
   skipMany indentedlinep
+
+  -- update the journal
+  case matype of
+    Nothing    -> return ()
+    Just atype -> addDeclaredAccountType acct atype
   pushDeclaredAccount acct
 
 indentedlinep :: JournalParser m String
