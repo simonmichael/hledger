@@ -189,3 +189,5 @@ hledger -f - print --auto
 
 >>>2
 >>>=0
+
+#TODO: Test default commodities with multiples
