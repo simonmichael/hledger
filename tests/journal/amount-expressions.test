@@ -190,4 +190,34 @@ hledger -f - print --auto
 >>>2
 >>>=0
 
-#TODO: Test default commodities with multiples
+# 13. Multipliers can be distinguished from default commodities
+hledger -f - print
+<<<
+D $1,000.00
+
+2018-01-01
+    a                5 * 2
+    b              -10
+
+2018-01-02
+    a            5 CAD * 2
+    b          -10 CAD
+
+2018-01-03
+    a            5 CAD * $2
+    b            $-10
+>>>
+2018/01/01
+    a          $10.00
+    b         $-10.00
+
+2018/01/02
+    a          10 CAD
+    b         -10 CAD
+
+2018/01/03
+    a          $10.00
+    b         $-10.00
+
+>>>2
+>>>=0
