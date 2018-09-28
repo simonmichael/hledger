@@ -46,7 +46,7 @@ instance Eq Account where
 
 nullacct = Account
   { aname = ""
-  , acode = Nothing
+  , adeclarationorder = Nothing
   , aparent = Nothing
   , asubs = []
   , anumpostings = 0
@@ -67,9 +67,8 @@ accountsFromPostings ps =
     grouped = groupSort [(paccount p,pamount p) | p <- ps]
     counted = [(aname, length amts) | (aname, amts) <- grouped]
     summed =  [(aname, reduceMixedAmounts amts) | (aname, amts) <- grouped]  -- always non-empty
-    nametree = treeFromPaths $ map (expandAccountName . fst) summed
-    acctswithnames = nameTreeToAccount "root" nametree
-    acctswithnumps = mapAccounts setnumps    acctswithnames where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
+    acctstree      = accountTree "root" $ map fst summed
+    acctswithnumps = mapAccounts setnumps    acctstree      where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
     acctswithebals = mapAccounts setebalance acctswithnumps where setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
     acctswithibals = sumAccounts acctswithebals
     acctswithparents = tieAccountParents acctswithibals
@@ -77,10 +76,14 @@ accountsFromPostings ps =
   in
     acctsflattened
 
--- | Convert an AccountName tree to an Account tree
-nameTreeToAccount :: AccountName -> FastTree AccountName -> Account
-nameTreeToAccount rootname (T m) =
-    nullacct{ aname=rootname, asubs=map (uncurry nameTreeToAccount) $ M.assocs m }
+-- | Convert a list of account names to a tree of Account objects, 
+-- with just the account names filled in. 
+-- A single root account with the given name is added.
+accountTree :: AccountName -> [AccountName] -> Account
+accountTree rootname as = nullacct{aname=rootname, asubs=map (uncurry accountTree') $ M.assocs m }
+  where
+    T m = treeFromPaths $ map expandAccountName as :: FastTree AccountName
+    accountTree' a (T m) = nullacct{aname=a, asubs=map (uncurry accountTree') $ M.assocs m}
 
 -- | Tie the knot so all subaccounts' parents are set correctly.
 tieAccountParents :: Account -> Account
@@ -89,10 +92,6 @@ tieAccountParents = tie Nothing
     tie parent a@Account{..} = a'
       where
         a' = a{aparent=parent, asubs=map (tie (Just a')) asubs}
-
--- | Look up an account's numeric code, if any, from the Journal and set it.
-accountSetCodeFrom :: Journal -> Account -> Account
-accountSetCodeFrom j a = a{acode=fromMaybe Nothing $ lookup (aname a) (jdeclaredaccounts j)}
 
 -- | Get this account's parent accounts, from the nearest up to the root.
 parentAccounts :: Account -> [Account]
@@ -189,7 +188,7 @@ filterAccounts p a
     | p a       = a : concatMap (filterAccounts p) (asubs a)
     | otherwise = concatMap (filterAccounts p) (asubs a)
 
--- | Sort each level of an account tree by inclusive amount,
+-- | Sort each group of siblings in an account tree by inclusive amount,
 -- so that the accounts with largest normal balances are listed first.  
 -- The provided normal balance sign determines whether normal balances
 -- are negative or positive, affecting the sort order. Ie,
@@ -199,24 +198,54 @@ sortAccountTreeByAmount :: NormalSign -> Account -> Account
 sortAccountTreeByAmount normalsign a
   | null $ asubs a = a
   | otherwise      = a{asubs=
-                        sortBy (maybeflip $ comparing aibalance) $
+                        sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . aibalance)) $
                         map (sortAccountTreeByAmount normalsign) $ asubs a}
   where
     maybeflip | normalsign==NormallyNegative = id
               | otherwise                  = flip
 
--- | Sort each level of an account tree first by the account code
--- if any, with the empty account code sorting last, and then by
--- the account name. 
-sortAccountTreeByAccountCodeAndName :: Account -> Account
-sortAccountTreeByAccountCodeAndName a
+-- | Look up an account's declaration order, if any, from the Journal and set it.
+-- This is the relative position of its account directive 
+-- among the other account directives.
+accountSetDeclarationOrder :: Journal -> Account -> Account
+accountSetDeclarationOrder j a@Account{..} = 
+  a{adeclarationorder = findIndex (==aname) (jdeclaredaccounts j)}
+
+-- | Sort account names by the order in which they were declared in
+-- the journal, at each level of the account tree (ie within each
+-- group of siblings). Undeclared accounts are sorted last and
+-- alphabetically. 
+-- This is hledger's default sort for reports organised by account.
+-- The account list is converted to a tree temporarily, adding any
+-- missing parents; these can be kept (suitable for a tree-mode report) 
+-- or removed (suitable for a flat-mode report).
+--
+sortAccountNamesByDeclaration :: Journal -> Bool -> [AccountName] -> [AccountName]
+sortAccountNamesByDeclaration j keepparents as =
+  (if keepparents then id else filter (`elem` as)) $  -- maybe discard missing parents that were added
+  map aname $                                         -- keep just the names
+  drop 1 $                                            -- drop the root node that was added
+  flattenAccounts $                                   -- convert to an account list
+  sortAccountTreeByDeclaration $                      -- sort by declaration order (and name)
+  mapAccounts (accountSetDeclarationOrder j) $        -- add declaration order info  
+  accountTree "root"                                  -- convert to an account tree
+  as
+
+-- | Sort each group of siblings in an account tree by declaration order, then account name.
+-- So each group will contain first the declared accounts, 
+-- in the same order as their account directives were parsed, 
+-- and then the undeclared accounts, sorted by account name. 
+sortAccountTreeByDeclaration :: Account -> Account
+sortAccountTreeByDeclaration a
   | null $ asubs a = a
   | otherwise      = a{asubs=
-      sortBy (comparing accountCodeAndNameForSort) $ map sortAccountTreeByAccountCodeAndName $ asubs a}
+      sortBy (comparing accountDeclarationOrderAndName) $ 
+      map sortAccountTreeByDeclaration $ asubs a
+      }
 
-accountCodeAndNameForSort a = (acode', aname a)
+accountDeclarationOrderAndName a = (adeclarationorder', aname a)
   where
-    acode' = fromMaybe maxBound (acode a)
+    adeclarationorder' = fromMaybe maxBound (adeclarationorder a)
 
 -- | Search an account list by name.
 lookupAccount :: AccountName -> [Account] -> Maybe Account

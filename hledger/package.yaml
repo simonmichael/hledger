@@ -104,6 +104,7 @@ dependencies:
 - safe >=0.2
 - shakespeare >=2.0.2.2
 - split >=0.1
+- statistics
 - tabular >=0.2
 - temporary
 - text >=0.11
@@ -140,6 +141,7 @@ library:
   - Hledger.Cli.Commands.Checkdupes
   - Hledger.Cli.Commands.Close
   - Hledger.Cli.Commands.Help
+  - Hledger.Cli.Commands.Files
   - Hledger.Cli.Commands.Import
   - Hledger.Cli.Commands.Incomestatement
   - Hledger.Cli.Commands.Prices
@@ -148,6 +150,7 @@ library:
   - Hledger.Cli.Commands.Register
   - Hledger.Cli.Commands.Registermatch
   - Hledger.Cli.Commands.Rewrite
+  - Hledger.Cli.Commands.Roi
   - Hledger.Cli.Commands.Stats
   - Hledger.Cli.Commands.Tags
   - Hledger.Cli.CompoundBalanceCommand

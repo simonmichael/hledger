@@ -368,6 +368,10 @@ or for closing out income/expenses for a period.
 This was formerly called "equity", as in Ledger, and that alias is also accepted.
 See close --help for more.   
 
+## files
+List all files included in the journal. With a REGEX argument,
+only file names matching the regular expression (case sensitive) are shown.
+
 ## help
 Show any of the hledger manuals.
 
@@ -752,6 +756,10 @@ Helps ledger-autosync detect already-seen transactions when importing.
 
 ## rewrite
 Print all transactions, adding custom postings to the matched ones.
+
+## roi
+Shows time-weighted (TWR) and money-weighted (IRR) rate of return on your investments.
+See `roi --help` for more.   
 
 ## stats
 Show some journal statistics.

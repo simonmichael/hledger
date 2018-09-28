@@ -28,6 +28,10 @@ import Data.Decimal
 import Data.Default
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
+--XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html 
+--Note: You should use Data.Map.Strict instead of this module if:
+--You will eventually need all the values stored.
+--The stored values don't represent large virtual data structures to be lazily computed.
 import qualified Data.Map as M
 import Data.Text (Text)
 -- import qualified Data.Text as T
@@ -370,11 +374,11 @@ data Journal = Journal {
   ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
   ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
-  ,jparsetimeclockentries :: [TimeclockEntry]                   -- ^ timeclock sessions which have not been clocked out
+  ,jparsetimeclockentries :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
   -- principal data
-  ,jdeclaredaccounts      :: [(AccountName, Maybe AccountCode)]     -- ^ Accounts declared by account directives, in parse order.
+  ,jdeclaredaccounts      :: [AccountName]                          -- ^ Accounts declared by account directives, in parse order (after journal finalisation) 
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
-  ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  XXX misnamed
+  ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
   ,jmarketprices          :: [MarketPrice]
   ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
@@ -404,7 +408,7 @@ type StorageFormat = String
 -- which let you walk up or down the account tree.
 data Account = Account {
   aname                     :: AccountName,   -- ^ this account's full name
-  acode                     :: Maybe AccountCode,   -- ^ this account's numeric code, if any (not always set) 
+  adeclarationorder         :: Maybe Int  ,   -- ^ the relative position of this account's account directive, if any. Normally a natural number. 
   aebalance                 :: MixedAmount,   -- ^ this account's balance, excluding subaccounts
   asubs                     :: [Account],     -- ^ sub-accounts
   anumpostings              :: Int,           -- ^ number of postings to this account

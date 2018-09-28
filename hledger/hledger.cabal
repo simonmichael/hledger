@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4c452bcbcd39691d37c6a2bef39b8ff256fb6ef1988ded63371560ae1cd87ca3
+-- hash: 70e6e178ba5d2d6601ebf07e79fdcc19d2480a0544225da23ee3155e928fd85c
 
 name:           hledger
 version:        1.10.99
@@ -95,6 +95,7 @@ library
       Hledger.Cli.Commands.Checkdupes
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Help
+      Hledger.Cli.Commands.Files
       Hledger.Cli.Commands.Import
       Hledger.Cli.Commands.Incomestatement
       Hledger.Cli.Commands.Prices
@@ -103,6 +104,7 @@ library
       Hledger.Cli.Commands.Register
       Hledger.Cli.Commands.Registermatch
       Hledger.Cli.Commands.Rewrite
+      Hledger.Cli.Commands.Roi
       Hledger.Cli.Commands.Stats
       Hledger.Cli.Commands.Tags
       Hledger.Cli.CompoundBalanceCommand
@@ -129,7 +131,7 @@ library
     , here
     , hledger-lib >=1.10.99 && <1.11
     , lucid
-    , megaparsec >=6.4.1
+    , megaparsec >=6.4.1 && <7
     , mtl
     , mtl-compat
     , old-time
@@ -140,6 +142,7 @@ library
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -179,7 +182,7 @@ executable hledger
     , here
     , hledger
     , hledger-lib >=1.10.99 && <1.11
-    , megaparsec >=6.4.1
+    , megaparsec >=6.4.1 && <7
     , mtl
     , mtl-compat
     , old-time
@@ -190,6 +193,7 @@ executable hledger
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -232,7 +236,7 @@ test-suite test
     , here
     , hledger
     , hledger-lib >=1.10.99 && <1.11
-    , megaparsec >=6.4.1
+    , megaparsec >=6.4.1 && <7
     , mtl
     , mtl-compat
     , old-time
@@ -243,6 +247,7 @@ test-suite test
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , test-framework
@@ -286,7 +291,7 @@ benchmark bench
     , hledger
     , hledger-lib >=1.10.99 && <1.11
     , html
-    , megaparsec >=6.4.1
+    , megaparsec >=6.4.1 && <7
     , mtl
     , mtl-compat
     , old-time
@@ -297,6 +302,7 @@ benchmark bench
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
+    , statistics
     , tabular >=0.2
     , temporary
     , text >=0.11

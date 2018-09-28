@@ -7,11 +7,13 @@ module Hledger.Cli.Commands.Close (
 ) 
 where
 
+import Control.Monad (when)
 import Data.Maybe
 import Data.String.Here
 import Data.Time.Calendar
 import Hledger
 import Hledger.Cli.CliOptions
+import System.Console.CmdArgs.Explicit as C
 
 closemode = hledgerCommandMode
   [here| close equity
@@ -40,6 +42,9 @@ calculated as of end of yesterday, and the opening transaction is dated today.
 To close on some other date, use: `hledger close -e OPENINGDATE ...`.
 (-p or date: can also be used, the begin date is ignored.)
 
+You can chose to print just one of the transactions with `--opening` 
+or `--closing`.
+
 For example, carrying asset/liability balances into a new file for 2018:
 ```
 $ hledger close -f 2017.journal -e 2018/1/1 ^assets ^liab >>2017.journal
@@ -58,14 +63,20 @@ closing at end of 2017:
     assets:bank:checking  -1  ; date:2018/1/1
 ```
   |]
-  []
+  [flagNone ["opening"] (\opts -> setboolopt "opening" opts) "show just opening transaction"
+  ,flagNone ["closing"] (\opts -> setboolopt "closing" opts) "show just closing transaction"
+  ]
   [generalflagsgroup1]
   []
   ([], Just $ argsFlag "[QUERY]")
 
-close CliOpts{reportopts_=ropts} j = do
+close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   today <- getCurrentDay
   let 
+      (opening, closing) = 
+        case (boolopt "opening" rawopts, boolopt "closing" rawopts) of
+          (False, False) -> (True, True) -- by default show both opening and closing
+          (o, c) -> (o, c)
       ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
       q = queryFromOpts today ropts_
       openingdate = fromMaybe today $ queryEndDate False q
@@ -88,5 +99,6 @@ close CliOpts{reportopts_=ropts} j = do
             ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
             ]
            ++ [posting{paccount="equity:closing balances", pamount=negate balancingamt}]
-  putStr $ showTransaction (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=nps})
-  putStr $ showTransaction (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=ps})
+  when closing $ putStr $ showTransaction (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=nps})
+  when opening $ putStr $ showTransaction (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=ps})
+

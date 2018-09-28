@@ -256,7 +256,7 @@ journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
 
 -- | Sorted unique account names declared by account directives in this journal.
 journalAccountNamesDeclared :: Journal -> [AccountName]
-journalAccountNamesDeclared = nub . sort . map fst . jdeclaredaccounts
+journalAccountNamesDeclared = nub . sort . jdeclaredaccounts
 
 -- | Sorted unique account names declared by account directives or posted to
 -- by transactions in this journal.
@@ -281,8 +281,8 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
 journalProfitAndLossAccountQuery  :: Journal -> Query
 journalProfitAndLossAccountQuery j = Or [journalIncomeAccountQuery j
-                                               ,journalExpenseAccountQuery j
-                                               ]
+                                        ,journalExpenseAccountQuery j
+                                        ]
 
 -- | A query for Income (Revenue) accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^(income|revenue)s?(:|$)@.
@@ -298,9 +298,9 @@ journalExpenseAccountQuery _ = Acct "^expenses?(:|$)"
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
 journalBalanceSheetAccountQuery  :: Journal -> Query
 journalBalanceSheetAccountQuery j = Or [journalAssetAccountQuery j
-                                              ,journalLiabilityAccountQuery j
-                                              ,journalEquityAccountQuery j
-                                              ]
+                                       ,journalLiabilityAccountQuery j
+                                       ,journalEquityAccountQuery j
+                                       ]
 
 -- | A query for Asset accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^assets?(:|$)@.
@@ -493,6 +493,7 @@ journalFinalise t path txt assrt j@Journal{jfiles=fs} =
    journalApplyCommodityStyles $
    j {jfiles        = (path,txt) : reverse fs
      ,jlastreadtime = t
+     ,jdeclaredaccounts = reverse $ jdeclaredaccounts j
      ,jtxns         = reverse $ map filterMultipliers $ jtxns j -- NOTE: see addTransaction
      ,jtxnmodifiers = reverse $ jtxnmodifiers j -- NOTE: see addTransactionModifier
      ,jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
