@@ -182,11 +182,6 @@ maximum' :: Integral a => [a] -> a
 maximum' [] = 0
 maximum' xs = maximumStrict xs
 
--- | Strict version of sum that doesn’t leak space
-{-# INLINABLE sumStrict #-}
-sumStrict :: Num a => [a] -> a
-sumStrict = foldl' (+) 0
-
 -- | Strict version of maximum that doesn’t leak space
 {-# INLINABLE maximumStrict #-}
 maximumStrict :: Ord a => [a] -> a

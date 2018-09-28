@@ -66,7 +66,7 @@ accountsFromPostings ps =
   let
     grouped = groupSort [(paccount p,pamount p) | p <- ps]
     counted = [(aname, length amts) | (aname, amts) <- grouped]
-    summed =  [(aname, sumStrict amts) | (aname, amts) <- grouped]  -- always non-empty
+    summed =  [(aname, reduceMixedAmounts amts) | (aname, amts) <- grouped]  -- always non-empty
     nametree = treeFromPaths $ map (expandAccountName . fst) summed
     acctswithnames = nameTreeToAccount "root" nametree
     acctswithnumps = mapAccounts setnumps    acctswithnames where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}

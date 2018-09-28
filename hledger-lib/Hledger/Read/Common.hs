@@ -506,21 +506,24 @@ spaceandamountormissingp =
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: JournalParser m Amount
-amountp = label "amount" $ do
-  amount <- amountwithoutpricep
+amountp = amountismultiplierp False
+
+amountismultiplierp :: Bool -> JournalParser m Amount
+amountismultiplierp mult = label "amount" $ do
+  amount <- amountwithoutpricep mult
   lift $ skipMany spacenonewline
   price <- priceamountp
   pure $ amount { aprice = price }
 
-amountwithoutpricep :: JournalParser m Amount
-amountwithoutpricep = do
-  (mult, sign) <- lift $ (,) <$> multiplierp <*> signp
-  leftsymbolamountp mult sign <|> rightornosymbolamountp mult sign
+amountwithoutpricep :: Bool -> JournalParser m Amount
+amountwithoutpricep mult = do
+  sign <- lift signp
+  leftsymbolamountp sign <|> rightornosymbolamountp sign
 
   where
 
-  leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  leftsymbolamountp mult sign = label "amount" $ do
+  leftsymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  leftsymbolamountp sign = label "amount" $ do
     c <- lift commoditysymbolp
     suggestedStyle <- getAmountStyle c
     commodityspaced <- lift $ skipMany' spacenonewline
@@ -532,10 +535,10 @@ amountwithoutpricep = do
     let numRegion = (posBeforeNum, posAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-    return $ Amount c (sign (sign2 q)) NoPrice s mult
+    return $ Amount c (sign (sign2 q)) NoPrice s False
 
-  rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  rightornosymbolamountp mult sign = label "amount" $ do
+  rightornosymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  rightornosymbolamountp sign = label "amount" $ do
     posBeforeNum <- getPosition
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
@@ -548,7 +551,7 @@ amountwithoutpricep = do
         suggestedStyle <- getAmountStyle c
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-        return $ Amount c (sign q) NoPrice s mult
+        return $ Amount c (sign q) NoPrice s False
       -- no symbol amount
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
@@ -559,7 +562,7 @@ amountwithoutpricep = do
         let (c,s) = case (mult, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-        return $ Amount c (sign q) NoPrice s mult
+        return $ Amount c (sign q) NoPrice s False
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
@@ -586,37 +589,31 @@ amountp' s =
 -- separated by commas surrounded by spaces.
 mamountp :: JournalParser m MixedAmount
 mamountp = label "mixed amount" $ do
-  sign <- optional $ do
-    s <- signchar
+  opc <- option '+' $ do
+    c <- satisfy (`elem` ("+-*" :: String))
     lift (skipMany spacenonewline)
-    pure s
+    pure c
   paren <- option False $ try $ do
     char '('
     lift (skipMany spacenonewline)
     pure True
-  (amount, mult) <- if paren
+  amount <- if paren
     then do
       inner <- mamountp
       lift (skipMany spacenonewline)
       char ')'
-      pure $ (signf sign inner, False)
+      pure inner
     else do
-      inner <- amountp
-      pure $ (Mixed [signf sign inner], amultiplier inner)
+      inner <- amountismultiplierp $ opc == '*'
+      return $ Mixed [inner]
   tail <- option nullmixedamt $ try $ do
-    lookAhead $ signchar <|> try (char '*') <|> try (lift spacenonewline)
     lift (skipMany spacenonewline)
     mamountp
-  return $ if mult
-    then Mixed $ amounts amount <> amounts tail
-    else multf amount tail
-    where signf (Just '-') = negate
-          signf _ = id
-          signchar = try (char '+') <|> try (char '-')
-          multf a (Mixed []) = a
-          multf a m@(Mixed (t:ts))
-            | amultiplier t = multf (multiplyMixedAmount a $ aquantity t) $ Mixed ts
-            | otherwise     = a + m
+  let op = case opc of
+        '-' -> negate
+        '*' -> Mixed . map (\a -> a { amultiplier = True }) . amounts
+        _   -> id
+  return $ combineMixedAmounts (op amount) tail
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
@@ -627,12 +624,6 @@ mamountp' s =
 
 signp :: Num a => TextParser m (a -> a)
 signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
-
-multiplierp :: TextParser m Bool
-multiplierp = option False $ do
-    char '*'
-    skipMany spacenonewline
-    pure True
 
 -- | This is like skipMany but it returns True if at least one element
 -- was skipped. This is helpful if you’re just using many to check if
@@ -664,7 +655,7 @@ priceamountp = option NoPrice $ do
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountwithoutpricep <?> "amount (as a price)"
+  priceAmount <- amountwithoutpricep False <?> "amount (as a price)"
 
   pure $ priceConstructor priceAmount
 

@@ -28,6 +28,7 @@ module Hledger.Data.Posting (
   isEmptyPosting,
   isAssignment,
   hasAmount,
+  removeMultipliers,
   postingAllTags,
   transactionAllTags,
   relatedPostings,
@@ -157,12 +158,15 @@ hasAmount = (/= missingmixedamt) . pamount
 isAssignment :: Posting -> Bool
 isAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
 
+removeMultipliers :: Posting -> Posting
+removeMultipliers p = p { pamount = filterMixedAmount (not . amultiplier) $ pamount p }
+
 -- | Sorted unique account names referenced by these postings.
 accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nub . sort . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
-sumPostings = sumStrict . map pamount
+sumPostings = reduceMixedAmounts . map (pamount . removeMultipliers)
 
 -- | Remove all prices of a posting
 removePrices :: Posting -> Posting

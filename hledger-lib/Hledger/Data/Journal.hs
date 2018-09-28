@@ -493,11 +493,12 @@ journalFinalise t path txt assrt j@Journal{jfiles=fs} =
    journalApplyCommodityStyles $
    j {jfiles        = (path,txt) : reverse fs
      ,jlastreadtime = t
-     ,jtxns         = reverse $ jtxns j -- NOTE: see addTransaction
+     ,jtxns         = reverse $ map filterMultipliers $ jtxns j -- NOTE: see addTransaction
      ,jtxnmodifiers = reverse $ jtxnmodifiers j -- NOTE: see addTransactionModifier
      ,jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
      ,jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice
      })
+  where filterMultipliers t = t { tpostings = map removeMultipliers $ tpostings t }
 
 journalNumberAndTieTransactions = journalTieTransactions . journalNumberTransactions
 
@@ -718,7 +719,7 @@ addAmountAndCheckBalance ::
   -> Posting
   -> CurrentBalancesModifier s Posting
 addAmountAndCheckBalance _ p | hasAmount p = do
-  newAmt <- addToBalance (paccount p) $ pamount p
+  newAmt <- addToBalance (paccount p) $ pamount $ removeMultipliers p
   assrt <- R.reader eAssrt
   lift $ when assrt $ ExceptT $ return $ checkBalanceAssertion p newAmt
   return p

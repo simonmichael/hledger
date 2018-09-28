@@ -59,6 +59,7 @@ module Hledger.Data.Amount (
   costOfAmount,
   divideAmount,
   multiplyAmount,
+  multiplyAmounts,
   amountValue,
   -- ** rendering
   amountstyle,
@@ -90,6 +91,9 @@ module Hledger.Data.Amount (
   costOfMixedAmount,
   divideMixedAmount,
   multiplyMixedAmount,
+  multiplyMixedAmounts,
+  combineMixedAmounts,
+  reduceMixedAmounts,
   averageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
@@ -182,7 +186,7 @@ amt @@ priceamt = amt{aprice=TotalPrice priceamt}
 -- A zero result keeps the commodity of the second amount.
 -- The result's display style is that of the second amount, with
 -- precision set to the highest of either amount.
--- Prices are ignored and discarded.
+-- Prices and multiplier flags are ignored and discarded.
 -- Remember: the caller is responsible for ensuring both amounts have the same commodity.
 similarAmountsOp :: (Quantity -> Quantity -> Quantity) -> Amount -> Amount -> Amount
 similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{asprecision=p1}}
@@ -215,7 +219,18 @@ divideAmount a@Amount{aquantity=q} d = a{aquantity=q/d}
 
 -- | Multiply an amount's quantity by a constant.
 multiplyAmount :: Amount -> Quantity -> Amount
-multiplyAmount a@Amount{aquantity=q} d = a{aquantity=q*d}
+multiplyAmount a@Amount{aquantity=q} m = a { aquantity = q * m }
+
+-- | Multiply an amount's quantity by another, retaining the metadata of the
+-- second but the multiplier state of the first.
+multiplyAmounts :: Amount -> Amount -> Amount
+multiplyAmounts a m = case acommodity m of
+    "" -> a'
+    c  -> a' { acommodity = c
+             , astyle = astyle m
+             , aprice = aprice m
+             }
+  where a' = multiplyAmount a $ aquantity m
 
 -- | Is this amount negative ? The price is ignored.
 isNegativeAmount :: Amount -> Bool
@@ -249,7 +264,12 @@ withPrecision = flip setAmountPrecision
 -- appropriate to the current debug level. 9 shows maximum detail.
 showAmountDebug :: Amount -> String
 showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
-showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showPriceDebug aprice) (show astyle)
+showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s, amultiplier=%s}"
+  (show acommodity)
+  (show aquantity)
+  (showPriceDebug aprice)
+  (show astyle)
+  (show amultiplier)
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
@@ -473,14 +493,18 @@ normaliseHelper squashprices (Mixed as)
                _:_ -> last zeros
                _   -> nullamt
     (zeros, nonzeros) = partition isReallyZeroAmount $
-                        map sumSimilarAmountsUsingFirstPrice $
+                        map squashfn $
                         groupBy groupfn $
                         sortBy sortfn
                         as
+    squashfn [] = nullamt
+    squashfn (a:as)
+        | amultiplier a = (foldl' (*) a as) { aprice = aprice a, amultiplier = True }
+        | otherwise     = (foldl' (+) a as) { aprice = aprice a }
     sortfn  | squashprices = compare `on` acommodity
             | otherwise    = compare `on` \a -> (acommodity a, aprice a)
-    groupfn | squashprices = (==) `on` acommodity
-            | otherwise    = \a1 a2 -> acommodity a1 == acommodity a2 && combinableprices a1 a2
+    groupfn | squashprices = (==) `on` \a -> (acommodity a, amultiplier a)
+            | otherwise    = \a1 a2 -> ((==) `on` \a -> (acommodity a, amultiplier a)) a1 a2 && combinableprices a1 a2
 
     combinableprices Amount{aprice=NoPrice} Amount{aprice=NoPrice} = True
     combinableprices Amount{aprice=UnitPrice p1} Amount{aprice=UnitPrice p2} = p1 == p2
@@ -491,13 +515,6 @@ normaliseHelper squashprices (Mixed as)
 -- only used as a rendering helper, and could show a misleading price.
 normaliseMixedAmountSquashPricesForDisplay :: MixedAmount -> MixedAmount
 normaliseMixedAmountSquashPricesForDisplay = normaliseHelper True
-
--- | Sum same-commodity amounts in a lossy way, applying the first
--- price to the result and discarding any other prices. Only used as a
--- rendering helper.
-sumSimilarAmountsUsingFirstPrice :: [Amount] -> Amount
-sumSimilarAmountsUsingFirstPrice [] = nullamt
-sumSimilarAmountsUsingFirstPrice as = (sumStrict as){aprice=aprice $ head as}
 
 -- -- | Sum same-commodity amounts. If there were different prices, set
 -- -- the price to a special marker indicating "various". Only used as a
@@ -536,7 +553,27 @@ divideMixedAmount (Mixed as) d = Mixed $ map (`divideAmount` d) as
 
 -- | Multiply a mixed amount's quantities by a constant.
 multiplyMixedAmount :: MixedAmount -> Quantity -> MixedAmount
-multiplyMixedAmount (Mixed as) d = Mixed $ map (`multiplyAmount` d) as
+multiplyMixedAmount (Mixed as) m = Mixed $ map (`multiplyAmount` m) as
+
+-- | Multiply a mixed amount's quantities by an amount, potentially collapsing
+-- multiple commodities into one if the multiplier explicitly lists one, as
+-- was done previously by auto-postings.
+multiplyMixedAmounts :: MixedAmount -> Amount -> MixedAmount
+multiplyMixedAmounts (Mixed as) m = normaliseMixedAmount $ Mixed $ map (`multiplyAmounts` m) as
+
+-- | Join two mixed amounts by either multiplying or adding each component
+-- `Amount` in the second according to its `amultiplier` state. Any multipliers
+-- in the first will remain as such in the result.
+combineMixedAmounts :: MixedAmount -> MixedAmount -> MixedAmount
+combineMixedAmounts l r@(Mixed rs) = case partition amultiplier rs of
+    ([], _)  -> l + r
+    (ms, as) -> reduceMixedAmounts [multiplyMixedAmounts l m | m <- ms] + Mixed as
+
+-- | Collapse a list of mixed amounts into a single sum, applying any multipliers
+-- in the chain, and not leaking space.
+reduceMixedAmounts :: [MixedAmount] -> MixedAmount
+reduceMixedAmounts [] = nullmixedamt
+reduceMixedAmounts (a:as) = foldl' combineMixedAmounts a as
 
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount

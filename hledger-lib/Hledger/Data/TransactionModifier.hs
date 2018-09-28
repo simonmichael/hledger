@@ -106,20 +106,8 @@ tmPostingToFunction p' =
   \p -> renderPostingCommentDates $ p'
       { pdate = pdate p
       , pdate2 = pdate2 p
-      , pamount = amount' p
+      , pamount = pamount p `combineMixedAmounts` pamount p'
       }
-  where
-    pa' = pamount p'
-    splitAmount (Mixed []) = (Nothing, nullmixedamt)
-    splitAmount m@(Mixed (a:as))
-        | amultiplier a = (Just $ aquantity a, Mixed as)
-        | otherwise = (Nothing, m)
-    amount' = case splitAmount pa' of
-        (Nothing, add) -> const $ pa' + add
-        (Just n, add) -> \p -> withAmountType (head $ amounts $ pa') $ (+) add $ pamount p `multiplyMixedAmount` n
-    withAmountType amount (Mixed as) = case acommodity amount of
-        "" -> Mixed as
-        c -> Mixed [a{acommodity = c, astyle = astyle amount, aprice = aprice amount} | a <- as]
 
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }

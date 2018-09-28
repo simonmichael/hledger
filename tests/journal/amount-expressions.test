@@ -122,6 +122,7 @@ hledger -f - print
 >>>=0
 
 # 9. Multiplication respects order of operations
+#TODO: Precision should probably consider multiplier values
 hledger -f - print
 <<<
 2018-01-01
@@ -135,8 +136,22 @@ hledger -f - print
 >>>2
 >>>=0
 
-# 10. Auto-postings respect expressions
-hedger -f - print --auto
+# 10. Standard postings headed by multipliers drop them
+hledger -f - print
+<<<
+2018-01-01
+    a             *-1 + $8
+    b              *1 - $8
+>>>
+2018/01/01
+    a              $8
+    b             $-8
+
+>>>2
+>>>=0
+
+# 11. Auto-postings respect expressions
+hledger -f - print --auto
 <<<
 = a
     c             *-1 + $8
@@ -150,6 +165,26 @@ hedger -f - print --auto
     a              $5
     c              $3
     d             $-3
+    b
+
+>>>2
+>>>=0
+
+# 12. Auto-postings respect typed multiplication
+hledger -f - print --auto
+<<<
+= a
+    c             *-1 CAD + 8 CAD
+    d              *1 CAD - 8 CAD
+
+2018-01-01
+    a              $5
+    b
+>>>
+2018/01/01
+    a              $5
+    c           3 CAD
+    d          -3 CAD
     b
 
 >>>2

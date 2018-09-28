@@ -325,9 +325,9 @@ inferBalancingAmount update styles t@Transaction{tpostings=ps}
   where
     printerr s = intercalate "\n" [s, showTransactionUnelided t]
     (amountfulrealps, amountlessrealps) = partition hasAmount (realPostings t)
-    realsum = sumStrict $ map pamount amountfulrealps
+    realsum = reduceMixedAmounts $ map pamount amountfulrealps
     (amountfulbvps, amountlessbvps) = partition hasAmount (balancedVirtualPostings t)
-    bvsum = sumStrict $ map pamount amountfulbvps
+    bvsum = reduceMixedAmounts $ map pamount amountfulbvps
     inferamount p@Posting{ptype=RegularPosting}
      | not (hasAmount p) = updateAmount p realsum
     inferamount p@Posting{ptype=BalancedVirtualPosting}
@@ -393,10 +393,10 @@ priceInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
 priceInferrerFor t pt = inferprice
   where
     postings       = filter ((==pt).ptype) $ tpostings t
-    pmixedamounts  = map pamount postings
+    pmixedamounts  = map (pamount . removeMultipliers) postings
     pamounts       = concatMap amounts pmixedamounts
     pcommodities   = map acommodity pamounts
-    sumamounts     = amounts $ sumStrict pmixedamounts -- sum normalises to one amount per commodity & price
+    sumamounts     = amounts $ reduceMixedAmounts pmixedamounts
     sumcommodities = map acommodity sumamounts
     sumprices      = filter (/=NoPrice) $ map aprice sumamounts
     caninferprices = length sumcommodities == 2 && null sumprices
