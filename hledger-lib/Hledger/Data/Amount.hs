@@ -564,14 +564,17 @@ multiplyMixedAmounts (Mixed as) m = normaliseMixedAmount $ Mixed $ map (`multipl
 -- in the first will remain as such in the result.
 combineMixedAmounts :: MixedAmount -> MixedAmount -> MixedAmount
 combineMixedAmounts l r@(Mixed rs) = case partition amultiplier rs of
-    ([], _)  -> l + r
+    ([], _)  -> r
     (ms, as) -> reduceMixedAmounts [multiplyMixedAmounts l m | m <- ms] + Mixed as
 
 -- | Collapse a list of mixed amounts into a single sum, applying any multipliers
 -- in the chain, and not leaking space.
 reduceMixedAmounts :: [MixedAmount] -> MixedAmount
 reduceMixedAmounts [] = nullmixedamt
-reduceMixedAmounts (a:as) = foldl' combineMixedAmounts a as
+reduceMixedAmounts (a:as) = foldl' combineOrAddMixedAmounts a as
+  where combineOrAddMixedAmounts l r
+          | any amultiplier $ amounts r = combineMixedAmounts l r
+          | otherwise = l + r
 
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount

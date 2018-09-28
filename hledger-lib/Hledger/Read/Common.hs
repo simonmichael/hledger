@@ -590,7 +590,7 @@ amountp' s =
 mamountp :: JournalParser m MixedAmount
 mamountp = label "mixed amount" $ do
   opc <- option '+' $ do
-    c <- satisfy (`elem` ("+-*" :: String))
+    c <- ops
     lift (skipMany spacenonewline)
     pure c
   paren <- option False $ try $ do
@@ -608,12 +608,14 @@ mamountp = label "mixed amount" $ do
       return $ Mixed [inner]
   tail <- option nullmixedamt $ try $ do
     lift (skipMany spacenonewline)
+    lookAhead $ try ops
     mamountp
   let op = case opc of
         '-' -> negate
         '*' -> Mixed . map (\a -> a { amultiplier = True }) . amounts
         _   -> id
-  return $ combineMixedAmounts (op amount) tail
+  return $ reduceMixedAmounts [op amount, tail]
+  where ops = satisfy (`elem` ("+-*" :: String))
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
