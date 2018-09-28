@@ -535,7 +535,7 @@ amountwithoutpricep mult = do
     let numRegion = (posBeforeNum, posAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-    return $ Amount c (sign (sign2 q)) NoPrice s False
+    return $ Amount c (sign (sign2 q)) NoPrice s mult
 
   rightornosymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
   rightornosymbolamountp sign = label "amount" $ do
@@ -551,7 +551,7 @@ amountwithoutpricep mult = do
         suggestedStyle <- getAmountStyle c
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-        return $ Amount c (sign q) NoPrice s False
+        return $ Amount c (sign q) NoPrice s mult
       -- no symbol amount
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
@@ -562,7 +562,7 @@ amountwithoutpricep mult = do
         let (c,s) = case (mult, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-        return $ Amount c (sign q) NoPrice s False
+        return $ Amount c (sign q) NoPrice s mult
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
