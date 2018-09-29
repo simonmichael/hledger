@@ -221,3 +221,18 @@ D $1,000.00
 
 >>>2
 >>>=0
+
+# 14. Multi-commodity multipliers
+hledger -f - print
+<<<
+2018-01-01
+    a          10 GBP * ($2 + 3 CAD)
+    b
+>>>
+2018/01/01
+    a             $20
+    a          30 CAD
+    b
+
+>>>2
+>>>=0
