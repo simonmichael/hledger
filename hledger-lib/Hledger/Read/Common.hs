@@ -226,7 +226,10 @@ parseAndFinaliseJournal :: JournalParser IO ParsedJournal -> InputOpts
 parseAndFinaliseJournal parser iopts f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
-  ep <- liftIO $ runParserT (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
+  let initJournal = nulljournal
+        { jparsedefaultyear = Just y
+        , jincludefilestack = [f] }
+  ep <- liftIO $ runParserT (evalStateT parser initJournal) f txt
   case ep of
     Right pj -> 
       let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
