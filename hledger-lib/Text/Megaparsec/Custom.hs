@@ -12,7 +12,6 @@ module Text.Megaparsec.Custom (
   -- * Constructing custom parse errors
   parseErrorAt,
   parseErrorAtRegion,
-  withSource,
 
   -- * Pretty-printing custom parse errors
   customParseErrorPretty,
@@ -64,10 +63,6 @@ data CustomErr
   = ErrorFailAt SourcePos -- Starting position
                 Pos -- Ending position (column; same line as start)
                 String -- Error message
-  -- | Attach a source file to a parse error (for error reporting from
-  -- include files, e.g. with the 'region' parser combinator)
-  | ErrorWithSource Text -- Source file contents
-                    (ParseError Char CustomErr) -- The original
   deriving (Show, Eq, Ord)
 
 -- We require an 'Ord' instance for 'CustomError' so that they may be
@@ -79,7 +74,6 @@ deriving instance (Ord c, Ord e) => Ord (ParseError c e)
 
 instance ShowErrorComponent CustomErr where
   showErrorComponent (ErrorFailAt _ _ errMsg) = errMsg
-  showErrorComponent (ErrorWithSource _ e) = parseErrorTextPretty e
 
 
 --- * Constructing custom parse errors
@@ -107,13 +101,6 @@ parseErrorAtRegion startPos endPos msg =
                then endCol' else startCol
   in  ErrorFailAt startPos endCol msg
 
--- | Attach a source file to a parse error. Intended for use with the
--- 'region' parser combinator.
-
-withSource :: Text -> ParseError Char CustomErr -> ParseError Char CustomErr
-withSource s e =
-  FancyError (errorPos e) $ S.singleton $ ErrorCustom $ ErrorWithSource s e
-
 
 --- * Pretty-printing custom parse errors
 
@@ -126,9 +113,6 @@ withSource s e =
 customParseErrorPretty :: Text -> ParseError Char CustomErr -> String
 customParseErrorPretty source err = case findCustomError err of
   Nothing -> customParseErrorPretty' source err pos1
-
-  Just (ErrorWithSource customSource customErr) ->
-    customParseErrorPretty customSource customErr
 
   Just (ErrorFailAt sourcePos col errMsg) ->
     let newPositionStack = sourcePos NE.:| NE.tail (errorPos err)
@@ -200,6 +184,7 @@ data FinalParseErrorBundle' e = FinalParseErrorBundle'
 
 type FinalParseErrorBundle = FinalParseErrorBundle' CustomErr
 
+
 --- * Constructing and throwing final parse errors
 
 -- | Convert a "regular" parse error into a "final" parse error.
@@ -228,6 +213,7 @@ finalFail = finalFancyFailure . S.singleton . ErrorFail
 finalCustomFailure
   :: (MonadParsec e s m, MonadError (FinalParseError' e) m) => e -> m a
 finalCustomFailure = finalFancyFailure . S.singleton . ErrorCustom
+
 
 --- * Handling errors from include files with "final" parse errors
 
@@ -267,6 +253,7 @@ attachSource filePath sourceText finalParseError =
     ErrorBundle bundle -> bundle
       { sourceFileStack = filePath NE.<| sourceFileStack bundle
       }
+
 
 --- * Pretty-printing final parse errors
 
