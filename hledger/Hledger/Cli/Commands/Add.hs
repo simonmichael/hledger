@@ -296,7 +296,7 @@ amountAndCommentWizard EntryState{..} = do
       amountandcommentp = do
         a <- amountp
         lift (skipMany spacenonewline)
-        c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anyChar)
+        c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
         -- eof
         return (a,c)
       balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings

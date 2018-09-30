@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f7bbdd2a2c0bf60f14a1c2d1538414933ed62708598213563167d021baba748b
+-- hash: b77366b5a138b9d5a3b4c4541bfb875642f06b621bd690712d022f53ab1afbf6
 
 name:           hledger-web
 version:        1.10.99
@@ -169,7 +169,7 @@ library
     , http-client
     , http-conduit
     , json
-    , megaparsec >=6.4.1 && <7
+    , megaparsec >=6.4.1
     , mtl
     , semigroups
     , shakespeare >=2.0.2.2

@@ -193,7 +193,7 @@ transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} =
   where
     q = T.pack $ query_ ropts
     ps = map (parseposting . stripquotes . T.pack) $ listofstringopt "add-posting" rawopts
-    parseposting t = either (error' . parseErrorPretty' t') id ep 
+    parseposting t = either (error' . errorBundlePretty) id ep
       where
         ep = runIdentity (runJournalParser (postingp Nothing <* eof) t')
         t' = " " <> t <> "\n" -- inject space and newline for proper parsing

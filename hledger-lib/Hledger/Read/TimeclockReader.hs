@@ -58,7 +58,6 @@ import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Text.Megaparsec hiding (parse)
-import           Text.Megaparsec.Char
 
 import           Hledger.Data
 -- XXX too much reuse ?
@@ -105,7 +104,7 @@ timeclockfilep = do many timeclockitemp
 -- | Parse a timeclock entry.
 timeclockentryp :: JournalParser m TimeclockEntry
 timeclockentryp = do
-  sourcepos <- genericSourcePos <$> lift getPosition
+  sourcepos <- genericSourcePos <$> lift getSourcePos
   code <- oneOf ("bhioO" :: [Char])
   lift (skipSome spacenonewline)
   datetime <- datetimep

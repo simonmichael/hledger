@@ -38,7 +38,6 @@ import Control.Monad.Except
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Data.Char (toLower, isDigit, isSpace, ord)
 import "base-compat-batteries" Data.List.Compat
-import Data.List.NonEmpty (fromList)
 import Data.Maybe
 import Data.Ord
 import qualified Data.Set as S
@@ -59,12 +58,12 @@ import System.FilePath
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMP
 import qualified Data.ByteString as B
-import Data.ByteString.Lazy (fromStrict)
+import qualified Data.ByteString.Lazy as BL
 import Data.Foldable
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
+import Text.Megaparsec.Custom
 import Text.Printf (printf)
-import Data.Word
 
 import Hledger.Data
 import Hledger.Utils
@@ -76,7 +75,7 @@ type Record = [Field]
 
 type Field = String
 
-data CSVError = CSVError (ParseError Word8 CassavaMP.ConversionError)
+data CSVError = CSVError (ParseErrorBundle BL.ByteString CassavaMP.ConversionError)
     deriving Show
 
 reader :: Reader
@@ -193,7 +192,7 @@ parseCassava separator path content =
         Left  msg -> Left $ CSVError msg
         Right a   -> Right a
     where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path lazyContent
-          lazyContent = fromStrict $ T.encodeUtf8 content
+          lazyContent = BL.fromStrict $ T.encodeUtf8 content
 
 decodeOptions :: Char -> Cassava.DecodeOptions
 decodeOptions separator = Cassava.defaultDecodeOptions {
@@ -431,19 +430,19 @@ parseAndValidateCsvRules :: FilePath -> T.Text -> ExceptT String IO CsvRules
 parseAndValidateCsvRules rulesfile s = do
   let rules = parseCsvRules rulesfile s
   case rules of
-    Left e -> ExceptT $ return $ Left $ parseErrorPretty e
+    Left e -> ExceptT $ return $ Left $ customErrorBundlePretty e
     Right r -> do
                r_ <- liftIO $ runExceptT $ validateRules r
                ExceptT $ case r_ of
-                 Left  s -> return $ Left $ parseErrorPretty $ makeParseError rulesfile s
+                 Left  s -> return $ Left $ parseErrorPretty $ makeParseError s
                  Right r -> return $ Right r
 
   where
-    makeParseError :: FilePath -> String -> ParseError Char String
-    makeParseError f s = FancyError (fromList [initialPos f]) (S.singleton $ ErrorFail s)
+    makeParseError :: String -> ParseError T.Text String
+    makeParseError s = FancyError 0 (S.singleton $ ErrorFail s)
 
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
-parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char CustomErr) CsvRules
+parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
   runParser (evalStateT rulesp rules) rulesfile s
@@ -513,7 +512,7 @@ directives =
   ]
 
 directivevalp :: CsvRulesParser String
-directivevalp = anyChar `manyTill` lift eolof
+directivevalp = anySingle `manyTill` lift eolof
 
 fieldnamelistp :: CsvRulesParser [CsvFieldName]
 fieldnamelistp = (do
@@ -588,7 +587,7 @@ assignmentseparatorp = do
 fieldvalp :: CsvRulesParser String
 fieldvalp = do
   lift $ dbgparse 2 "trying fieldvalp"
-  anyChar `manyTill` lift eolof
+  anySingle `manyTill` lift eolof
 
 conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
@@ -631,7 +630,7 @@ regexp = do
   lift $ dbgparse 3 "trying regexp"
   notFollowedBy matchoperatorp
   c <- lift nonspace
-  cs <- anyChar `manyTill` lift eolof
+  cs <- anySingle `manyTill` lift eolof
   return $ strip $ c:cs
 
 -- fieldmatcher = do

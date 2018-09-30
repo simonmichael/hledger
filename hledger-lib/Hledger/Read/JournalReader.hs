@@ -180,30 +180,32 @@ includedirectivep = do
   lift (skipSome spacenonewline)
   filename <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
 
-  parentpos <- getPosition
+  parentoff <- getOffset
+  parentpos <- getSourcePos
 
-  filepaths <- getFilePaths parentpos filename
+  filepaths <- getFilePaths parentoff parentpos filename
 
   forM_ filepaths $ parseChild parentpos
 
   void newline
 
   where
-    getFilePaths :: MonadIO m => SourcePos -> FilePath -> JournalParser m [FilePath]
-    getFilePaths parserpos filename = do
+    getFilePaths
+      :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    getFilePaths parseroff parserpos filename = do
         curdir <- lift $ expandPath (takeDirectory $ sourceName parserpos) ""
                          `orRethrowIOError` (show parserpos ++ " locating " ++ filename)
         -- Compiling filename as a glob pattern works even if it is a literal
         fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename of
             Right x -> pure x
             Left e -> customFailure $
-                        parseErrorAt parserpos $ "Invalid glob pattern: " ++ e
+                        parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
         -- Get all matching files in the current working directory, sorting in
         -- lexicographic order to simulate the output of 'ls'.
         filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
         if (not . null) filepaths
             then pure filepaths
-            else customFailure $ parseErrorAt parserpos $
+            else customFailure $ parseErrorAt parseroff $
                    "No existing files match pattern: " ++ filename
 
     parseChild :: MonadIO m => SourcePos -> FilePath -> ErroringJournalParser m ()
@@ -228,7 +230,6 @@ includedirectivep = do
 
       -- discard child's parse info,  combine other fields
       put $ updatedChildj <> parentj
-
 
     newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
     newJournalWithParseStateFrom filepath j = mempty{
@@ -279,17 +280,17 @@ commoditydirectivep = commoditydirectiveonelinep <|> commoditydirectivemultiline
 -- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
 commoditydirectiveonelinep :: JournalParser m ()
 commoditydirectiveonelinep = do
-  (pos, Amount{acommodity,astyle}) <- try $ do
+  (off, Amount{acommodity,astyle}) <- try $ do
     string "commodity"
     lift (skipSome spacenonewline)
-    pos <- getPosition
+    off <- getOffset
     amount <- amountp
-    pure $ (pos, amount)
+    pure $ (off, amount)
   lift (skipMany spacenonewline)
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
-  then customFailure $ parseErrorAt pos pleaseincludedecimalpoint
+  then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 pleaseincludedecimalpoint :: String
@@ -316,15 +317,15 @@ formatdirectivep :: CommoditySymbol -> JournalParser m AmountStyle
 formatdirectivep expectedsym = do
   string "format"
   lift (skipSome spacenonewline)
-  pos <- getPosition
+  off <- getOffset
   Amount{acommodity,astyle} <- amountp
   _ <- lift followingcommentp
   if acommodity==expectedsym
     then 
       if asdecimalpoint astyle == Nothing
-      then customFailure $ parseErrorAt pos pleaseincludedecimalpoint
+      then customFailure $ parseErrorAt off pleaseincludedecimalpoint
       else return $ dbg2 "style from format subdirective" astyle
-    else customFailure $ parseErrorAt pos $
+    else customFailure $ parseErrorAt off $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
 keywordp :: String -> JournalParser m ()
@@ -366,7 +367,7 @@ basicaliasp = do
   old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
   char '='
   skipMany spacenonewline
-  new <- rstrip <$> anyChar `manyTill` eolof  -- eol in journal, eof in command lines, normally
+  new <- rstrip <$> anySingle `manyTill` eolof  -- eol in journal, eof in command lines, normally
   return $ BasicAlias (T.pack old) (T.pack new)
 
 regexaliasp :: TextParser m AccountAlias
@@ -378,7 +379,7 @@ regexaliasp = do
   skipMany spacenonewline
   char '='
   skipMany spacenonewline
-  repl <- anyChar `manyTill` eolof
+  repl <- anySingle `manyTill` eolof
   return $ RegexAlias re repl
 
 endaliasesdirectivep :: JournalParser m ()
@@ -413,11 +414,11 @@ defaultcommoditydirectivep :: JournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   lift (skipSome spacenonewline)
-  pos <- getPosition
+  off <- getOffset
   Amount{acommodity,astyle} <- amountp
   lift restofline
   if asdecimalpoint astyle == Nothing
-  then customFailure $ parseErrorAt pos pleaseincludedecimalpoint
+  then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 
 marketpricedirectivep :: JournalParser m MarketPrice
@@ -471,12 +472,12 @@ periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift $ skipMany spacenonewline
   -- a period expression
-  pos <- getPosition
+  off <- getOffset
   d <- liftIO getCurrentDay
   (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp d)
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
-    Just e -> customFailure $ parseErrorAt pos e
+    Just e -> customFailure $ parseErrorAt off e
     Nothing -> pure ()
   -- The line can end here, or it can continue with one or more spaces
   -- and then zero or more of the following fields. A bit awkward.
@@ -511,7 +512,7 @@ periodictransactionp = do
 transactionp :: JournalParser m Transaction
 transactionp = do
   -- dbgparse 0 "transactionp"
-  startpos <- getPosition
+  startpos <- getSourcePos
   date <- datep <?> "transaction"
   edate <- optional (lift $ secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
@@ -521,7 +522,7 @@ transactionp = do
   (comment, tags) <- lift transactioncommentp
   let year = first3 $ toGregorian date
   postings <- postingsp (Just year)
-  endpos <- getPosition
+  endpos <- getSourcePos
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
@@ -589,8 +590,9 @@ tests_JournalReader = tests "JournalReader" [
     test "YYYY.MM.DD" $ expectParse datep "2018.01.01"
     test "yearless date with no default year" $ expectParseError datep "1/1" "current year is unknown"
     test "yearless date with default year" $ do 
-      ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep "1/1"
-      either (fail.("parse error at "++).parseErrorPretty) (const ok) ep
+      let s = "1/1"
+      ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep s
+      either (fail.("parse error at "++).customErrorBundlePretty) (const ok) ep
     test "no leading zero" $ expectParse datep "2018/1/1"
 
   ,test "datetimep" $ do

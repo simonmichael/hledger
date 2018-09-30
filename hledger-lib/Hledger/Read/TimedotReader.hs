@@ -104,7 +104,7 @@ timedotdayp = do
 timedotentryp :: JournalParser m Transaction
 timedotentryp = do
   traceParse "  timedotentryp"
-  pos <- genericSourcePos <$> getPosition
+  pos <- genericSourcePos <$> getSourcePos
   lift (skipMany spacenonewline)
   a <- modifiedaccountnamep
   lift (skipMany spacenonewline)

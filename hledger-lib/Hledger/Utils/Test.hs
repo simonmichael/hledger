@@ -112,7 +112,9 @@ expectParse :: (Monoid st, Eq a, Show a, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> E.Test ()
 expectParse parser input = do
   ep <- E.io (runParserT (evalStateT (parser <* eof) mempty) "" input)
-  either (fail.(++"\n").("\nparse error at "++).parseErrorPretty) (const ok) ep
+  either (fail.(++"\n").("\nparse error at "++).customErrorBundlePretty)
+         (const ok)
+         ep
 
 -- Suitable for hledger's ErroringJournalParser parsers.
 expectParseE
@@ -126,11 +128,12 @@ expectParseE parser input = do
            runParserT (evalStateT (parser <* eof) mempty) filepath input
   case eep of
     Left finalErr ->
-      let prettyErr = finalParseErrorPretty $ attachSource filepath input finalErr
+      let prettyErr = finalErrorBundlePretty $ attachSource filepath input finalErr
       in  fail $ "parse error at " <> prettyErr
-    Right ep -> either (fail.(++"\n").("\nparse error at "++).parseErrorPretty)
-                       (const ok)
-                       ep
+    Right ep ->
+      either (fail.(++"\n").("\nparse error at "++).customErrorBundlePretty)
+             (const ok)
+             ep
 
 -- | Test that this stateful parser runnable in IO fails to parse 
 -- the given input text, with a parse error containing the given string. 
@@ -141,7 +144,7 @@ expectParseError parser input errstr = do
   case ep of
     Right v -> fail $ "\nparse succeeded unexpectedly, producing:\n" ++ pshow v ++ "\n"
     Left e  -> do
-      let e' = parseErrorPretty e
+      let e' = customErrorBundlePretty e
       if errstr `isInfixOf` e'
       then ok
       else fail $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
@@ -157,14 +160,14 @@ expectParseErrorE parser input errstr = do
   eep <- E.io $ runExceptT $ runParserT (evalStateT parser mempty) filepath input
   case eep of
     Left finalErr -> do
-      let prettyErr = finalParseErrorPretty $ attachSource filepath input finalErr
+      let prettyErr = finalErrorBundlePretty $ attachSource filepath input finalErr
       if errstr `isInfixOf` prettyErr
       then ok
       else fail $ "\nparse error is not as expected:\n" ++ prettyErr ++ "\n"
     Right ep -> case ep of
       Right v -> fail $ "\nparse succeeded unexpectedly, producing:\n" ++ pshow v ++ "\n"
       Left e  -> do
-        let e' = parseErrorPretty e
+        let e' = customErrorBundlePretty e
         if errstr `isInfixOf` e'
         then ok
         else fail $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
@@ -189,7 +192,9 @@ expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
 expectParseEqOn parser input f expected = do
   ep <- E.io $ runParserT (evalStateT (parser <* eof) mempty) "" input
-  either (fail . (++"\n") . ("\nparse error at "++) . parseErrorPretty) (expectEqPP expected . f) ep
+  either (fail . (++"\n") . ("\nparse error at "++) . customErrorBundlePretty)
+         (expectEqPP expected . f)
+         ep
 
 expectParseEqOnE
   :: (Monoid st, Eq b, Show b, HasCallStack)
@@ -204,10 +209,10 @@ expectParseEqOnE parser input f expected = do
            runParserT (evalStateT (parser <* eof) mempty) filepath input
   case eep of
     Left finalErr ->
-      let prettyErr = finalParseErrorPretty $ attachSource filepath input finalErr
+      let prettyErr = finalErrorBundlePretty $ attachSource filepath input finalErr
       in  fail $ "parse error at " <> prettyErr
     Right ep ->
-      either (fail . (++"\n") . ("\nparse error at "++) . parseErrorPretty)
+      either (fail . (++"\n") . ("\nparse error at "++) . customErrorBundlePretty)
              (expectEqPP expected . f)
              ep
 
