@@ -139,10 +139,6 @@ or [email](docs.html#helpfeedback):
 
 ### b2. with stack
 
-<span class=warnings>
-20180930: [build the development version](#c) instead, required for now due to the recent release of GHC 8.6.
-</span>
-
 [`stack`](http://haskell-lang.org/get-started) is the newer and easier of the Haskell build tools.
 If you prefer more control or if hledger-install failed, here's how to use stack yourself:
 
@@ -153,7 +149,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=lts-12 hledger-lib-1.10 hledger-1.10 hledger-ui-1.10.1 hledger-web-1.10 hledger-api-1.10`**\
+2. **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11`**\
     This installs the main hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     You can save some time by omitting hledger-* packages you don't want.\
     <span class=warnings>([windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
