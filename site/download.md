@@ -117,13 +117,13 @@ Eg, if you use bash:
 Now you should be able to run the hledger tools and see the expected versions. Eg:
 ```shell
 $ hledger --version
-hledger 1.10
+hledger 1.11
 $ hledger-ui --version
-hledger-ui 1.10
+hledger-ui 1.11
 $ hledger web --version
-hledger-web 1.10
+hledger-web 1.11
 $ hledger iadd --version
-This is hledger-iadd version 1.3.5
+This is hledger-iadd version 1.3.6
 ```
 
 #### Need help ?
@@ -138,6 +138,11 @@ or [email](docs.html#helpfeedback):
 <a name="b2"></a>
 
 ### b2. with stack
+
+<span class=warnings>
+20180930: installing hledger 1.11 with stack requires a development checkout for now,
+due to the recent release of GHC 8.6. See [build the development version](#c) instead.
+</span>
 
 [`stack`](http://haskell-lang.org/get-started) is the newer and easier of the Haskell build tools.
 If you prefer more control or if hledger-install failed, here's how to use stack yourself:
