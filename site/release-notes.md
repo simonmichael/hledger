@@ -8,7 +8,7 @@ h4 { margin-top:2em; }
 <ol>
 <li><a href="#hledger-install">hledger-install</a>
 <!-- <li><a href="#latest-minor-release">Latest (2018/4/30)</a> -->
-<li><a href="#hledger-1.10">hledger 1.11 (2018/9/30)</a>
+<li><a href="#hledger-1.11">hledger 1.11 (2018/9/30)</a>
 <li><a href="#hledger-1.10">hledger 1.10 (2018/6/30)</a>
 <li><a href="#hledger-1.9">hledger 1.9 (2018/3/31)</a>
 <li><a href="#hledger-1.5">hledger 1.5 (2017/12/31)</a>
