@@ -140,8 +140,7 @@ or [email](docs.html#helpfeedback):
 ### b2. with stack
 
 <span class=warnings>
-20180930: installing hledger 1.11 with stack requires a development checkout for now,
-due to the recent release of GHC 8.6. See [build the development version](#c) instead.
+20180930: [build the development version](#c) instead, required for now due to the recent release of GHC 8.6.
 </span>
 
 [`stack`](http://haskell-lang.org/get-started) is the newer and easier of the Haskell build tools.
