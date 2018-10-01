@@ -67,7 +67,6 @@ HLEDGER_API_VERSION=1.10
 HLEDGER_DIFF_VERSION=0.2.0.14
 HLEDGER_IADD_VERSION=1.3.6
 HLEDGER_INTEREST_VERSION=1.5.2
-HLEDGER_IRR_VERSION=0.1.1.15
 
 HLEDGER_MAIN_TOOLS="\
 hledger \
@@ -80,7 +79,6 @@ HLEDGER_OTHER_TOOLS="\
 hledger-diff \
 hledger-iadd \
 hledger-interest \
-hledger-irr \
 "
 
 # start of (most of) get-stack.sh, https://github.com/commercialhaskell/stack/blob/master/etc/scripts/get-stack.sh
@@ -993,12 +991,6 @@ fi
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION
-  echo
-fi
-
-if [[ $(cmpver "$(cmd_version hledger-irr 2>/dev/null)" $HLEDGER_IRR_VERSION) = 2 ]]; then
-  echo Installing hledger-irr
-  try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 echo ----------
