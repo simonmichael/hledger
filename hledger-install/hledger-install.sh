@@ -812,14 +812,20 @@ quietly_run() {
 # For the stack method, it's necessary to provide not only the package(s) you want to
 # install but also all dependencies which are not in the specified stackage $RESOLVER.
 try_install() {
-  (cd  # avoid any project-specific stack/cabal config, install at user level
-   (! has_cmd stack && has_cmd cabal && echo "using $(cabal --version)" && try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" ) ||
+  (cd  # ensure we install at user level, not in some project's stack/cabal setup
+   # cabal and not stack installed ? use cabal
+   (! has_cmd stack && has_cmd cabal && (
+    echo "no stack installed, $(cabal --version) installed; trying cabal install" && 
+    try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" )
+    ) ||
+   # use stack, installing it if missing or too old
    (ensure_stack && (
     #(try_info stack install --install-ghc "$@" --verbosity=$STACK_VERBOSITY ) ||        # existing resolver
     (try_info stack install --install-ghc $RESOLVER "$@" --verbosity="$STACK_VERBOSITY" )  # specific resolver
     )
    ) ||
-   echo Failed to install "$@"
+   # or give up
+   echo "Failed to install $@"
   )
 }
 
