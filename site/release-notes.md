@@ -79,13 +79,13 @@ fixes
 ([announcement](https://groups.google.com/forum/#!msg/hledger/))
 -->
 
-  [project](#project-wide-changes-for-1.11)
+  <!-- [project](#project-wide-changes-for-1.11) -->
+  [hledger](#hledger-1.11-1)
+<!-- | [hledger-ui](#hledger-ui-1.11) -->
+<!-- | [hledger-web](#hledger-web-1.11) -->
+<!-- | [hledger-api](#hledger-api-1.11) -->
 | [hledger-lib](#hledger-lib-1.11)
-| [hledger](#hledger-1.11-1)
-| [hledger-ui](#hledger-ui-1.11)
-| [hledger-web](#hledger-web-1.11)
-| [hledger-api](#hledger-api-1.11)
-| [credits](#credits-1.11)
+| [credits](#credits-1.10)
 
 <!-- ### project-wide changes for 1.11 -->
 
@@ -215,6 +215,16 @@ fixes
 * AutoTransaction.hs -> PeriodicTransaction.hs & TransactionModifier.hs
 
 * Hledger.Utils.Debug helpers have been renamed/cleaned up
+
+### credits 1.11
+
+Release contributors:
+Joseph Weston,
+Dmitry Astapov,
+Gaith Hallak,
+Jakub Zárybnický,
+Luca Molteni,
+SpicyCat.
 
 
 
