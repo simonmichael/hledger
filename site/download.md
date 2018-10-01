@@ -83,11 +83,11 @@ on GNU/linux, mac and freeBSD
 
 Here's the quick, non-secure way to run it:
 
- **`curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
+ **`curl -s https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
 
 And here's the more responsible way:
 
- **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
+ **`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
  **`less hledger-install.sh`**  *# do security review*\
  **`bash hledger-install.sh`**
 
