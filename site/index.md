@@ -224,21 +224,3 @@ a file format for human-friendly approximate time logging
 </div> <!-- row -->
 </div> <!-- container -->
 
-
-<!-- TWITTER -->
-
-<a name="twitter"></a>
-<div style="margin-top:4em; text-align:center; ">
-
-## [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime) on Twitter:
-
-<!-- <a href="https://twitter.com/ledgertips">@LedgerTips</a> -->
-<style>
- .twitter-timeline {
-   height: 1500px !important;
-   /* width: 70% !important; */
- }
-</style>
-<a class="twitter-timeline" data-chrome="noheader" data-dnt="true" href="https://twitter.com/search?q=%23hledger%20OR%20%23plaintextaccounting%20-RT%20-%23TheJoker" data-widget-id="707934052225945600">Tweets about #hledger OR #plaintextaccounting OR #ledgercli -RT -#TheJoker</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-
-</div>
