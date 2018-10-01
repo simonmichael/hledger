@@ -46,27 +46,22 @@ HERE
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
 #   /Users/simon/.stack/indices/Hackage/hackage-security-lock: createDirectory: already exists (File exists)
 
+# this script's name (can't use $0 when it's piped into bash)
 HLEDGER_INSTALL_TOOL=hledger-install.sh
-  # ^ this script's name (can't use $0 when it's piped into bash)
 
+# this script's version
 HLEDGER_INSTALL_VERSION=20180824
 
+# stackage version to install from when using stack
+# You can specify a different stackage version here, or comment out
+# this line to use your current global resolver, which might avoid
+# some unnecessary building.
+# Mac Sierra+ requires at least lts-8.0.
+# Old lts-6 or lts-7 would probably require tweaking the hledger install commands below.
 RESOLVER="--resolver=lts-12"
 #RESOLVER="--resolver=nightly-2018-07-09"
-  # ^ You can specify a different stackage snapshot here,
-  # or comment out this line to use your current global resolver, which might
-  # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0.
-  # lts-6 or 7 probably require tweaking the hledger install commands below.
 
-HLEDGER_LIB_VERSION=1.11
-HLEDGER_VERSION=1.11
-HLEDGER_UI_VERSION=1.11
-HLEDGER_WEB_VERSION=1.11
-HLEDGER_API_VERSION=1.11
-
-HLEDGER_DIFF_VERSION=0.2.0.14
-HLEDGER_IADD_VERSION=1.3.6
-HLEDGER_INTEREST_VERSION=1.5.2
+# things to be installed:
 
 HLEDGER_MAIN_TOOLS="\
 hledger \
@@ -81,8 +76,20 @@ hledger-iadd \
 hledger-interest \
 "
 
+HLEDGER_VERSION=1.11
+HLEDGER_LIB_VERSION=$HLEDGER_VERSION
+HLEDGER_UI_VERSION=$HLEDGER_VERSION
+HLEDGER_WEB_VERSION=$HLEDGER_VERSION
+HLEDGER_API_VERSION=$HLEDGER_VERSION
+
+HLEDGER_DIFF_VERSION=0.2.0.14
+HLEDGER_IADD_VERSION=1.3.6
+HLEDGER_INTEREST_VERSION=1.5.2
+
+
+
 # start of (most of) get-stack.sh, https://github.com/commercialhaskell/stack/blob/master/etc/scripts/get-stack.sh
-# modified at CHANGED markers
+# CHANGED marks (some of) our customisations
 
 HOME_LOCAL_BIN="$HOME/.local/bin"
 USR_LOCAL_BIN="/usr/local/bin"
