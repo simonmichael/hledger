@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "July 2018" "hledger 1.10.99" "hledger User Manuals"
+.TH "hledger" "1" "September 2018" "hledger 1.10.99" "hledger User Manuals"
 
 
 
@@ -2246,6 +2246,11 @@ boundaries, or for closing out income/expenses for a period.
 This was formerly called \[lq]equity\[rq], as in Ledger, and that alias
 is also accepted.
 See close \[en]help for more.
+.SS files
+.PP
+List all files included in the journal.
+With a REGEX argument, only file names matching the regular expression
+(case sensitive) are shown.
 .SS help
 .PP
 Show any of the hledger manuals.
@@ -2769,6 +2774,11 @@ Helps ledger\-autosync detect already\-seen transactions when importing.
 .SS rewrite
 .PP
 Print all transactions, adding custom postings to the matched ones.
+.SS roi
+.PP
+Shows time\-weighted (TWR) and money\-weighted (IRR) rate of return on
+your investments.
+See \f[C]roi\ \-\-help\f[] for more.
 .SS stats
 .PP
 Show some journal statistics.

@@ -853,6 +853,7 @@ times though.
 * Default commodity::
 * Market prices::
 * Declaring accounts::
+* Account display order::
 * Rewriting accounts::
 * Default parent account::
 
@@ -1002,7 +1003,7 @@ P 2010/1/1 € $1.40
 another commodity using these prices.
 
 
-File: hledger_journal.info,  Node: Declaring accounts,  Next: Rewriting accounts,  Prev: Market prices,  Up: Directives
+File: hledger_journal.info,  Node: Declaring accounts,  Next: Account display order,  Prev: Market prices,  Up: Directives
 
 1.14.7 Declaring accounts
 -------------------------
@@ -1016,46 +1017,71 @@ account assets:bank:checking
 hledger add, hledger-iadd, hledger-web, and ledger-mode.
 In future it will also help detect misspelled accounts.
 
-   Account names can be followed by a numeric account code:
-
-account assets                  1000
-account assets:bank:checking    1110
-account liabilities             2000
-account revenues                4000
-account expenses                6000
-
-   This affects how accounts are sorted in account and balance reports:
-accounts with codes are listed before accounts without codes, and in
-increasing code order (instead of listing all accounts alphabetically).
-Warning, this feature is incomplete; account codes do not yet affect
-sort order in
-
-   * the 'accounts' command
-   * the 'balance' command's single-column mode
-   * flat mode balance reports (to work around this, declare account
-     codes on the subaccounts as well).
-   * hledger-web's sidebar
-
-   Account codes should be all numeric digits, unique, and separated
-from the account name by at least two spaces (since account names may
-contain single spaces).  By convention, often the first digit indicates
-the type of account, as in this numbering scheme and the example above.
-In future, we might use this to recognize account types.
-
    An account directive can also have indented subdirectives following
 it, which are currently ignored.  Here is the full syntax:
 
-; account ACCTNAME  [OPTIONALCODE]
+; account ACCTNAME
 ;   [OPTIONALSUBDIRECTIVES]
 
-account assets:bank:checking   1110
+account assets:bank:checking
   a comment
   some-tag:12345
 
 
-File: hledger_journal.info,  Node: Rewriting accounts,  Next: Default parent account,  Prev: Declaring accounts,  Up: Directives
+File: hledger_journal.info,  Node: Account display order,  Next: Rewriting accounts,  Prev: Declaring accounts,  Up: Directives
 
-1.14.8 Rewriting accounts
+1.14.8 Account display order
+----------------------------
+
+Account directives have another purpose: they set the order in which
+accounts are displayed, in hledger reports, hledger-ui accounts screen,
+hledger-web sidebar etc.  For example, say you have these top-level
+accounts:
+
+$ accounts -1
+assets
+equity
+expenses
+liabilities
+misc
+other
+revenues
+
+   By default, they are displayed in alphabetical order.  But if you add
+the following account directives to the journal:
+
+account assets
+account liabilities
+account equity
+account revenues
+account expenses
+
+   the display order changes to:
+
+$ accounts -1
+assets
+liabilities
+equity
+revenues
+expenses
+misc
+other
+
+   Ie, declared accounts first, in the order they were declared,
+followed by any undeclared accounts in alphabetic order.
+
+   Note that sorting is done at each level of the account tree (within
+each group of sibling accounts under the same parent).  This directive:
+
+account other:zoo
+
+   would influence the position of 'zoo' among 'other''s subaccounts,
+but not the position of 'other' among the top-level accounts.
+
+
+File: hledger_journal.info,  Node: Rewriting accounts,  Next: Default parent account,  Prev: Account display order,  Up: Directives
+
+1.14.9 Rewriting accounts
 -------------------------
 
 You can define account alias rules which rewrite your account names, or
@@ -1083,7 +1109,7 @@ hledger-web.
 
 File: hledger_journal.info,  Node: Basic aliases,  Next: Regex aliases,  Up: Rewriting accounts
 
-1.14.8.1 Basic aliases
+1.14.9.1 Basic aliases
 ......................
 
 To set an account alias, use the 'alias' directive in your journal file.
@@ -1106,7 +1132,7 @@ alias checking = assets:bank:wells fargo:checking
 
 File: hledger_journal.info,  Node: Regex aliases,  Next: Multiple aliases,  Prev: Basic aliases,  Up: Rewriting accounts
 
-1.14.8.2 Regex aliases
+1.14.9.2 Regex aliases
 ......................
 
 There is also a more powerful variant that uses a regular expression,
@@ -1131,7 +1157,7 @@ whitespace.
 
 File: hledger_journal.info,  Node: Multiple aliases,  Next: end aliases,  Prev: Regex aliases,  Up: Rewriting accounts
 
-1.14.8.3 Multiple aliases
+1.14.9.3 Multiple aliases
 .........................
 
 You can define as many aliases as you like using directives or
@@ -1147,7 +1173,7 @@ following order:
 
 File: hledger_journal.info,  Node: end aliases,  Prev: Multiple aliases,  Up: Rewriting accounts
 
-1.14.8.4 'end aliases'
+1.14.9.4 'end aliases'
 ......................
 
 You can clear (forget) all currently defined aliases with the 'end
@@ -1158,8 +1184,8 @@ end aliases
 
 File: hledger_journal.info,  Node: Default parent account,  Prev: Rewriting accounts,  Up: Directives
 
-1.14.9 Default parent account
------------------------------
+1.14.10 Default parent account
+------------------------------
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal.  Use the 'apply account' and 'end apply
@@ -1417,41 +1443,43 @@ Node: Tags26403
 Ref: #tags26521
 Node: Directives27923
 Ref: #directives28066
-Node: Comment blocks33922
-Ref: #comment-blocks34067
-Node: Including other files34243
-Ref: #including-other-files34423
-Node: Default year34831
-Ref: #default-year35000
-Node: Declaring commodities35423
-Ref: #declaring-commodities35606
-Node: Default commodity36833
-Ref: #default-commodity37009
-Node: Market prices37645
-Ref: #market-prices37810
-Node: Declaring accounts38651
-Ref: #declaring-accounts38827
-Node: Rewriting accounts40498
-Ref: #rewriting-accounts40683
-Node: Basic aliases41417
-Ref: #basic-aliases41563
-Node: Regex aliases42267
-Ref: #regex-aliases42438
-Node: Multiple aliases43156
-Ref: #multiple-aliases43331
-Node: end aliases43829
-Ref: #end-aliases43976
-Node: Default parent account44077
-Ref: #default-parent-account44243
-Node: Periodic transactions45127
-Ref: #periodic-transactions45309
-Node: Forecasting with periodic transactions46520
-Ref: #forecasting-with-periodic-transactions46763
-Node: Budgeting with periodic transactions48450
-Ref: #budgeting-with-periodic-transactions48689
-Node: Transaction Modifiers49148
-Ref: #transaction-modifiers49311
-Node: EDITOR SUPPORT50567
-Ref: #editor-support50685
+Node: Comment blocks33948
+Ref: #comment-blocks34093
+Node: Including other files34269
+Ref: #including-other-files34449
+Node: Default year34857
+Ref: #default-year35026
+Node: Declaring commodities35449
+Ref: #declaring-commodities35632
+Node: Default commodity36859
+Ref: #default-commodity37035
+Node: Market prices37671
+Ref: #market-prices37836
+Node: Declaring accounts38677
+Ref: #declaring-accounts38856
+Node: Account display order39406
+Ref: #account-display-order39596
+Node: Rewriting accounts40617
+Ref: #rewriting-accounts40805
+Node: Basic aliases41539
+Ref: #basic-aliases41685
+Node: Regex aliases42389
+Ref: #regex-aliases42560
+Node: Multiple aliases43278
+Ref: #multiple-aliases43453
+Node: end aliases43951
+Ref: #end-aliases44098
+Node: Default parent account44199
+Ref: #default-parent-account44367
+Node: Periodic transactions45251
+Ref: #periodic-transactions45433
+Node: Forecasting with periodic transactions46644
+Ref: #forecasting-with-periodic-transactions46887
+Node: Budgeting with periodic transactions48574
+Ref: #budgeting-with-periodic-transactions48813
+Node: Transaction Modifiers49272
+Ref: #transaction-modifiers49435
+Node: EDITOR SUPPORT50691
+Ref: #editor-support50809
 
 End Tag Table

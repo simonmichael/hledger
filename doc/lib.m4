@@ -7,7 +7,7 @@ m4_define({{_webseparate_}}, m4_ifdef({{WEB && SEPARATE}},{{$1}}) )m4_dnl
 m4_define({{_webcombined_}}, m4_ifdef({{WEB && COMBINED}},{{$1}}) )m4_dnl
 m4_dnl
 m4_define({{_author_}}, {{}})m4_dnl
-m4_define({{_monthyear_}}, {{July 2018}})m4_dnl
+m4_define({{_monthyear_}}, {{September 2018}})m4_dnl
 m4_define({{_version_}}, {{1.10.99}})m4_dnl
 m4_dnl
 m4_dnl Links to dev and recent release versions of a manual.
@@ -20,6 +20,7 @@ This doc is for version **_version_** (dev).
 m4_dnl Too painful for static generation, insert from site.js instead
 m4_dnl Available versions:
 m4_dnl <a href="/$1.html">dev</a>
+m4_dnl | <a href="/doc/1.11/$1.html">1.11</a>
 m4_dnl | <a href="/doc/1.10/$1.html">1.10</a>
 m4_dnl | <a href="/doc/1.9/$1.html">1.9</a>
 m4_dnl | <a href="/doc/1.5/$1.html">1.5</a>

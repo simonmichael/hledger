@@ -1,6 +1,61 @@
 User-visible changes in the hledger command line tool.
 
 
+# 1.11 (2018/9/30)
+
+* The default display order of accounts is now influenced by
+  the order of account directives. Accounts declared by account
+  directives are displayed first (top-most), in declaration order,
+  followed by undeclared accounts in alphabetical order. Numeric
+  account codes are no longer used, and are ignored and considered
+  deprecated.
+
+  So if your accounts are displaying in a weird order after upgrading,
+  and you want them alphabetical like before, just sort your account
+  directives alphabetically.
+
+* Account sorting (by name, by declaration, by amount) is now more
+  robust and supported consistently by all commands (accounts,
+  balance, bs..) in all modes (tree & flat, tabular & non-tabular).
+
+* close: new --opening/--closing flags to print only the opening or
+  closing transaction
+
+* files: a new command to list included files
+
+* prices: query arguments are now supported. Prices can be filtered by
+  date, and postings providing transaction prices can also be filtered.
+
+* rewrite: help clarifies relation to print --auto (#745)
+
+* roi: a new command to compute return on investment, based on hledger-irr
+
+* test: has more verbose output, more informative failure messages,
+  and no longer tries to read the journal
+
+* csv: We use a more robust CSV lib (cassava) and now support
+  non-comma separators, eg --separator ';' (experimental, this flag
+  will probably become a CSV rule) (#829)
+
+* csv: interpolated field names in values are now properly case insensitive, so
+  this works:
+
+  fields  ...,Transaction_Date,...
+  date %Transaction_Date
+
+* journal: D (default commodity) directives no longer break multiplier
+  amounts in transaction modifiers (AKA automated postings) (#860)
+
+* journal: "Automated Postings" have been renamed to "Transaction Modifiers".
+
+* journal: transaction comments in transaction modifier rules are now parsed correctly. (#745)
+
+* journal: when include files form a cycle, we give an error instead
+  of hanging.
+
+* upper-case day/month names in period expressions no longer give an error (#847, #852)
+
+
 # 1.10 (2018/6/30)
 
 * journal: many parse error messages have become more informative, and
