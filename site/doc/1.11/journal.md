@@ -356,6 +356,38 @@ when an amountless posting is balanced using a price's commodity, or
 when -V is used.) If you find this causing problems, set the desired
 format with a commodity directive.
 
+#### Amount Expressions
+
+An amount may also be comprised of multiple parts joined by basic
+arithmetic operators; in this case, each individual value follows the
+structure described above, while the joins allow:
+
+-   addition, subtraction, and multiplication using the standard ASCII
+    operators (`+`, `-`, `*`), either adjacent to the amount(s) or
+    separated by spaces
+-   parenthesised (sub-)expressions, to be evaluated before any
+    operations outside them. Note, however, that all commodity symbols
+    must be attached to an amount inside the parentheses: `($10 * 0.2)`
+    works, `$(10 * 0.2)` does not.
+-   multiple commodities in the same expression
+
+Multiplication of commodities is handled a bit differently than may be
+expected; if the amount to the right of the operator includes an
+explicit commodity, that commodity replaces any to the left for
+compatibility with [automated postings](#automated-postings). If that
+right value includes multiple commodities itself (parenthesised to obey
+the order of operations), the left value is multiplied by each
+individually.
+
+As examples, with the value each expression simplifies to (if
+applicable):
+
+`$47.18-$7.13` -> `$40.05`
+`$47.18 - ($20 + $7.13)` -> `$20.05`
+`$6.10 + £4.35 * 0.8 €` -> `$6.10 + 3.48 €`
+`($6.10 + £4.35) * 0.8 €` -> `8.36 €`
+`$6.10 * (£0.2 + 0.8 €)` -> `£1.22 + 4.88 €`
+
 ### Virtual Postings
 
 When you parenthesise the account name in a posting, we call that a
@@ -459,6 +491,28 @@ you can add multiple postings (with amount 0 if necessary). But note
 that no matter how many assertions you add, you can't be sure the
 account does not contain some unexpected commodity. (We'll add support
 for this kind of total balance assertion if there's demand.)
+
+
+The asserted balance checks only the amount(s) of each listed commodity's
+balance within the (possibly larger) account balance. We could call this a
+partial balance assertion. This is compatible with Ledger, and makes it
+possible to make assertions about accounts containing multiple commodities
+without needing to manually track every commodity the account contains.
+
+To instead assert a balance to the exclusion of all other commodities, use the
+exact assertion form `==EXPECTEDBALANCE`. This ensures that the account does
+not contain some unexpected commodity, or, equivalently, that the balance of
+any unlisted commodities is 0.
+
+``` {.journal}
+2013/1/1
+  a   $1  = $1
+  b       = $-1
+
+2013/1/2
+  a   1€  = $1 + 1€
+  b  -1€  = $-1 - 1€
+```
 
 #### Assertions and subaccounts
 
@@ -1242,9 +1296,14 @@ something.):
 ```
 
 The posting amounts can be of the form `*N`, which means "the amount of
-the matched transaction's first posting, multiplied by N". They can also
-be ordinary fixed amounts. Fixed amounts with no commodity symbol will
-be given the same commodity as the matched transaction's first posting.
+the matching posting(s), multiplied by N". They can also be ordinary
+fixed amounts (which are inserted unchanged) or [amount
+expressions](#amount-expressions) headed by either (only the
+multiplication to the left of the first addition or subtraction will be
+applied to the posting value).
+
+Any postings in real transactions which attempt to use this
+multiplication-headed form will ignore the value instead.
 
 This example adds a corresponding ([unbalanced](#virtual-postings))
 budget posting to every transaction involving the `expenses:gifts`
