@@ -87,15 +87,12 @@ addForm j today = identifyForm "add" $ \extra -> do
       nulltransaction {tdate = date, tdescription = desc, tpostings = postings}
 
     dateFS = FieldSettings "date" Nothing Nothing (Just "date")
-      [("class", "form-control input-lg"), ("placeholder", "Date")]
+      [("class", "form-control input-lg")]
     descFS = FieldSettings "desc" Nothing Nothing (Just "description")
       [("class", "form-control input-lg typeahead"), ("placeholder", "Description"), ("size", "40")]
     acctFS = FieldSettings "amount" Nothing Nothing (Just "account") []
     amtFS = FieldSettings "amount" Nothing Nothing (Just "amount") []
-    dateField = checkMMap (pure . validateDate) (T.pack . show) textField
-    validateDate s =
-      first (const ("Invalid date format" :: Text)) $
-      fixSmartDateStrEither' today (T.strip s)
+    dateField = dayField
 
     listField = Field
       { fieldParse = const . pure . Right . Just . dropWhileEnd T.null
