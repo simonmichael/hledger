@@ -962,9 +962,14 @@ echo "System info:"
 quietly_run uname -rsv
 quietly_run lsb_release -a
 
-# show current installed hledger packages
+# show current installed hledger packages and install tools
 echo "Install status before:"
 print_installed_versions
+
+# show a warning if stack is too old
+if has_stack && ! has_good_stack ; then
+  echo "Note: stack $(cmd_version stack) is too old, a newer one will be installed"
+fi
 
 if [[ $STATUSFLAG ]] ; then
   exit 0
