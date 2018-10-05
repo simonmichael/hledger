@@ -630,7 +630,7 @@ tests_JournalReader = tests "JournalReader" [
         ,ptpostings    = []
         }
 
-     -- TODO #807
+     -- TODO some weaknesses in periodic transaction parsing, https://github.com/simonmichael/hledger/pull/807#issuecomment-396994403
     ,_test "more period text in description after two spaces" $ expectParseEq periodictransactionp 
       "~ monthly from 2018/6   In 2019 we will change this\n" 
       nullperiodictransaction {
