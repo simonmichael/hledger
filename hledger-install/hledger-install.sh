@@ -768,6 +768,42 @@ trap cleanup_temp_dir EXIT
 
 # hledger routines
 
+# Compare dotted number version strings, based on https://stackoverflow.com/a/4025065/84401.
+# cmpver A B's exit status *and* output is
+# 0 for A ~= B (1 is equivalent to 1.0, 1.0.0 etc.)
+# 1 for A > B
+# 2 for A < B.
+cmpver () {
+    if [[ $1 == $2 ]]
+    then
+        echo 0; return 0
+    fi
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    # fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            echo 1; return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            echo 2; return 2
+        fi
+    done
+    echo 0; return 0
+}
+
 # install stack or a newer version of stack if needed, 
 # or always with --force-install-stack, 
 # in $HOME/.local/bin
@@ -939,42 +975,6 @@ fi
   echo "no stack installed, cabal $(cabal --numeric-version) installed; trying cabal update" &&  # cf try-install()
   try_info cabal update
 )
-
-# Compare dotted number version strings, based on https://stackoverflow.com/a/4025065/84401.
-# cmpver A B's exit status *and* output is
-# 0 for A ~= B (1 is equivalent to 1.0, 1.0.0 etc.)
-# 1 for A > B
-# 2 for A < B.
-cmpver () {
-    if [[ $1 == $2 ]]
-    then
-        echo 0; return 0
-    fi
-    local IFS=.
-    local i ver1=($1) ver2=($2)
-    # fill empty fields in ver1 with zeros
-    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
-    do
-        ver1[i]=0
-    done
-    for ((i=0; i<${#ver1[@]}; i++))
-    do
-        if [[ -z ${ver2[i]} ]]
-        then
-            # fill empty fields in ver2 with zeros
-            ver2[i]=0
-        fi
-        if ((10#${ver1[i]} > 10#${ver2[i]}))
-        then
-            echo 1; return 1
-        fi
-        if ((10#${ver1[i]} < 10#${ver2[i]}))
-        then
-            echo 2; return 2
-        fi
-    done
-    echo 0; return 0
-}
 
 # try installing each package that needs installing, in turn
 echo ----------
