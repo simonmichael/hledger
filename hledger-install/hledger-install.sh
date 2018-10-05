@@ -847,9 +847,9 @@ print_cmd_version() {
   fi
 }
 
-# Show the current installation status of the hledger packages and install tools.
+# Show the current installation status of the hledger packages.
 print_installed_versions() {
-  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $HLEDGER_INSTALL_TOOL stack cabal ; do print_cmd_version "$cmd"; done
+  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $HLEDGER_INSTALL_TOOL ; do print_cmd_version "$cmd"; done
 }
 
 # Run a command, but first log it with "Trying" prepended.
@@ -947,7 +947,40 @@ fi
 
 echo "hledger-install.sh $HLEDGER_INSTALL_VERSION $(date)"
 
+# show system info
+echo "System info:"
+quietly_run uname -rsv
+quietly_run lsb_release -a
+
+# show current installed hledger packages
+echo "Install status before:"
+print_installed_versions
+
+if [[ $STATUSFLAG ]] ; then
+  exit 0
+fi
+
+# explain the planned install method
+echo "Install method:"
+# if stack is installed, use stack
+if has_stack ; then
+  echo "stack is installed, using stack to install hledger"
+  # if it's too old, explain that we'll be installing the latest
+  if ! has_good_stack ; then
+    echo "Note: installed stack $(cmd_version stack) is too old, the latest version will be installed"
+  fi
+# else if cabal is installed, use cabal
+elif has_cmd cabal ; then
+  echo "no stack installed, cabal $(cabal --numeric-version) installed; using cabal to install hledger"
+  # run cabal update to make sure it knows about latest packages
+  try_info cabal update
+# else use stack
+else
+  echo "no stack or cabal installed; stack will be installed and used to install hledger"
+fi
+
 # ensure ~/.local/bin/ in PATH
+# TODO should check ~/.cabal/bin if using cabal
 if ! on_path "$HOME_LOCAL_BIN" ; then
   echo "WARNING: this script installs hledger (and perhaps stack) in '$HOME_LOCAL_BIN'"
   echo "  but this directory is not in your PATH. Adding it temporarily. To run"
@@ -956,30 +989,6 @@ if ! on_path "$HOME_LOCAL_BIN" ; then
   echo "    echo \"export PATH=\$PATH:~/.local/bin\" >> ~/.bashrc && source ~/.bashrc"
   export PATH=$HOME_LOCAL_BIN:$PATH
 fi
-
-# show system info
-echo "System info:"
-quietly_run uname -rsv
-quietly_run lsb_release -a
-
-# show current installed hledger packages and install tools
-echo "Install status before:"
-print_installed_versions
-
-# show a warning if stack is too old
-if has_stack && ! has_good_stack ; then
-  echo "Note: stack $(cmd_version stack) is too old, a newer one will be installed"
-fi
-
-if [[ $STATUSFLAG ]] ; then
-  exit 0
-fi
-
-# if we'll be using cabal, run cabal update once at the start
-(! has_cmd stack && has_cmd cabal &&
-  echo "no stack installed, cabal $(cabal --numeric-version) installed; trying cabal update" &&  # cf try-install()
-  try_info cabal update
-)
 
 # try installing each package that needs installing, in turn
 echo ----------
@@ -1008,7 +1017,7 @@ if [[ $(cmpver "$(cmd_version hledger-api 2>/dev/null)" $HLEDGER_API_VERSION) = 
   try_install hledger-api-$HLEDGER_API_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
   echo
 fi
-exit
+
 # Third-party addons. We sometimes build these with an older version
 # of hledger[-lib], if their bounds have not been updated yet.
 if [[ $(cmpver "$(cmd_version hledger-diff 2>/dev/null)" $HLEDGER_DIFF_VERSION) = 2 ]]; then
@@ -1037,6 +1046,7 @@ print_installed_versions
 
 # warn if $HOME/.local/bin isn't in $PATH
 check_home_local_bin_on_path
+# TODO if we installed with cabal, we should check $HOME/.cabal/bin instead
 
 # TODO
 # check/require ghc-8.0.2+/lts-8+ on osx sierra+
