@@ -50,7 +50,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20181001
+HLEDGER_INSTALL_VERSION=20181005
 
 # stackage version to install from when using stack
 # You can specify a different stackage version here, or comment out
@@ -806,13 +806,20 @@ cmpver () {
 
 # install stack or a newer version of stack if needed, 
 # or always with --force-install-stack, 
-# in $HOME/.local/bin
+# in $HOME/.local/bin.
+# After installing, check that a new-enough stack is now the first in $PATH,
+# and if it's not, exit with a warning advising the user to remove the old one. 
 ensure_stack() {
   if ! has_good_stack || [[ "$FORCE_INSTALL_STACK" == "true" ]] ; then
     echo "Installing stack"
     do_os
+    if ! has_good_stack ; then
+      echo "Error: an older stack ($(cmd_version stack)) is first in \$PATH, shadowing the new version."
+      echo "Please delete or rename $(which stack) and run hledger-install again."
+      exit 1
+    fi
   fi
-  echo "using stack $(stack --version)"
+  echo "Using stack $(stack --version)"
 }
 
 # get a sed command that supports EREs
@@ -827,10 +834,10 @@ cmd_location() {
   command -v "$1"
 }
 
-# Get the given command's version, ie the first number in its --version output,
+# Get the given command's version, ie the first number in the first line of its --version output,
 # or empty string if there's a problem.
 cmd_version() {
-  (command "$1" --version 2>/dev/null | grep -E '[0-9]' | $SED -e 's/[^0-9]*([0-9][0-9.]*).*/\1/') || ""
+  (command "$1" --version 2>/dev/null | head -n1 | grep -E '[0-9]' | $SED -e 's/[^0-9]*([0-9][0-9.]*).*/\1/') || ""
 }
 
 # Check whether the given command exists with given version
@@ -863,29 +870,21 @@ quietly_run() {
   "$@" 2>/dev/null || true
 }
 
-# Try to install the executables of the given package(s) to $HOME/.local/bin,
-# trying several methods, generally from quickest to most reliable, continuing on failure.
-# Current the installation methods are:
-# - if stack is not installed and cabal is, try cabal install
-# - otherwise install stack if needed and try stack install with specific resolver and ghc
-# For the stack method, it's necessary to provide not only the package(s) you want to
-# install but also all dependencies which are not in the specified stackage $RESOLVER.
+# Try to install the executables of the given haskell package(s) and versions, 
+# using stack or cabal, logging the commands, continuing on failure.
+# It's assumed that either a new-enough stack or cabal-install is already installed.
+# stack is preferred.
+# For stack, you must specify the package(s) you want to install, plus any additional
+# dependency packages which are not in the stackage $RESOLVER configured above.
 try_install() {
-  (cd  # ensure we install at user level, not in some project's stack/cabal setup
-   # cabal and not stack installed ? use cabal
-   (! has_cmd stack && has_cmd cabal && (
-    echo "no stack installed, cabal $(cabal --numeric-version) installed; trying cabal install" &&  # cf cabal update step
-    try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" )
-    ) ||
-   # use stack, installing it if missing or too old
-   (ensure_stack && (
-    #(try_info stack install --install-ghc "$@" --verbosity=$STACK_VERBOSITY ) ||        # existing resolver
-    (try_info stack install --install-ghc $RESOLVER "$@" --verbosity="$STACK_VERBOSITY" )  # specific resolver
-    )
-   ) ||
-   # or give up
-   echo "Failed to install $@"
-  )
+  cd  # ensure we install at user level, not in some project's stack/cabal setup
+  if has_cmd stack ; then
+    try_info stack install --install-ghc $RESOLVER "$@" --verbosity="$STACK_VERBOSITY"
+  elif has_cmd cabal ; then
+    try_info cabal install "$@" --verbose="$CABAL_VERBOSITY"
+  else
+    echo "Failed to install $@"
+  fi
 }
 
 # start
@@ -948,11 +947,13 @@ fi
 echo "hledger-install.sh $HLEDGER_INSTALL_VERSION $(date)"
 
 # show system info
+echo
 echo "System info:"
 quietly_run uname -rsv
 quietly_run lsb_release -a
 
 # show current installed hledger packages
+echo
 echo "Install status before:"
 print_installed_versions
 
@@ -961,22 +962,29 @@ if [[ $STATUSFLAG ]] ; then
 fi
 
 # explain the planned install method
+echo
 echo "Install method:"
 # if stack is installed, use stack
+# || [[ "$FORCE_INSTALL_STACK" == "true" ]]  #--force-install-stack
 if has_stack ; then
-  echo "stack is installed, using stack to install hledger"
+  echo "stack $(cmd_version stack) is installed, using stack to install hledger in $HOME/.local/bin"
   # if it's too old, explain that we'll be installing the latest
   if ! has_good_stack ; then
-    echo "Note: installed stack $(cmd_version stack) is too old, the latest version will be installed"
+    echo "Note: stack $(cmd_version stack) is too old, a newer version will be installed"
   fi
+  # install stack now (or if new enough, just print its precise version)
+  ensure_stack
 # else if cabal is installed, use cabal
 elif has_cmd cabal ; then
-  echo "no stack installed, cabal $(cabal --numeric-version) installed; using cabal to install hledger"
+  echo "no stack installed, cabal $(cabal --numeric-version) installed; using cabal to install hledger in $HOME/.cabal/bin"
+  echo Using $(cabal --version)  # unquoted to squash cabal version to one line
   # run cabal update to make sure it knows about latest packages
   try_info cabal update
 # else use stack
 else
-  echo "no stack or cabal installed; stack will be installed and used to install hledger"
+  echo "no stack or cabal installed; stack will be installed and used to install hledger in $HOME/.local/bin"
+    # install stack now
+  ensure_stack
 fi
 
 # ensure ~/.local/bin/ in PATH
@@ -991,7 +999,8 @@ if ! on_path "$HOME_LOCAL_BIN" ; then
 fi
 
 # try installing each package that needs installing, in turn
-echo ----------
+echo
+echo Installing hledger packages:
 
 if [[ $(cmpver "$(cmd_version hledger 2>/dev/null)" $HLEDGER_VERSION) = 2 ]]; then
   echo Installing hledger
@@ -1038,9 +1047,8 @@ if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_V
   echo
 fi
 
-echo ----------
-
 # show new installation status
+echo
 echo "Install status after:"
 print_installed_versions
 
