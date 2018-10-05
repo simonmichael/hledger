@@ -191,7 +191,7 @@ Balance Sheet 2017/01/01
 >>>2
 >>>=0
 
-# 7. An empty section is does not disrupt the overall totals, #588
+# 7. An empty section does not disrupt the overall totals, #588
 hledger -f- balancesheet -YTA
 <<<
 2017/1/1

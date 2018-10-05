@@ -1596,6 +1596,10 @@ COMMANDS
        a  period.   This  was formerly called "equity", as in Ledger, and that
        alias is also accepted.  See close -help for more.
 
+   files
+       List all files included in the journal.  With a  REGEX  argument,  only
+       file  names matching the regular expression (case sensitive) are shown.
+
    help
        Show any of the hledger manuals.
 
@@ -1978,11 +1982,15 @@ COMMANDS
    rewrite
        Print all transactions, adding custom postings to the matched ones.
 
+   roi
+       Shows  time-weighted  (TWR)  and money-weighted (IRR) rate of return on
+       your investments.  See roi --help for more.
+
    stats
        Show some journal statistics.
 
        -o FILE --output-file=FILE
-              write  output  to  FILE.   A  file extension matching one of the
+              write output to FILE.  A file  extension  matching  one  of  the
               above formats selects that format.
 
               $ hledger stats
@@ -1997,61 +2005,61 @@ COMMANDS
               Accounts                 : 8 (depth 3)
               Commodities              : 1 ($)
 
-       The stats command displays summary information for the  whole  journal,
-       or  a matched part of it.  With a reporting interval, it shows a report
+       The  stats  command displays summary information for the whole journal,
+       or a matched part of it.  With a reporting interval, it shows a  report
        for each report period.
 
-       This command also supports output destination and output format  selec-
+       This  command also supports output destination and output format selec-
        tion.
 
    tags
-       List  all the tag names used in the journal.  With a TAGREGEX argument,
-       only tag names matching the regular expression (case  insensitive)  are
+       List all the tag names used in the journal.  With a TAGREGEX  argument,
+       only  tag  names matching the regular expression (case insensitive) are
        shown.  With additional QUERY arguments, only transactions matching the
        query are considered.
 
    test
        Run built-in unit tests.
 
-       Prints test names and their results on stdout.  If any  test  fails  or
+       Prints  test  names  and their results on stdout.  If any test fails or
        gives an error, the exit code will be non-zero.
 
-       Test  names include a group prefix.  If a (exact, case sensitive) group
-       prefix, or a full test name is provided as  the  first  argument,  only
+       Test names include a group prefix.  If a (exact, case sensitive)  group
+       prefix,  or  a  full  test name is provided as the first argument, only
        that group or test is run.
 
-       If  a  numeric  second argument is provided, it will set the randomness
-       seed, for repeatable results from  tests  using  randomness  (currently
+       If a numeric second argument is provided, it will  set  the  randomness
+       seed,  for  repeatable  results  from tests using randomness (currently
        none of them).
 
-       This  is  mainly  used  by developers, but it's nice to be able to san-
+       This is mainly used by developers, but it's nice to  be  able  to  san-
        ity-check your installed hledger executable at any time.  All tests are
        expected to pass - if you ever see otherwise, something has gone wrong,
        please report a bug!
 
 ADD-ON COMMANDS
-       hledger also searches for external add-on commands,  and  will  include
+       hledger  also  searches  for external add-on commands, and will include
        these in the commands list.  These are programs or scripts in your PATH
-       whose name starts with hledger- and ends with a recognised file  exten-
+       whose  name starts with hledger- and ends with a recognised file exten-
        sion (currently: no extension, bat,com,exe, hs,lhs,pl,py,rb,rkt,sh).
 
-       Add-ons  can  be  invoked like any hledger command, but there are a few
+       Add-ons can be invoked like any hledger command, but there  are  a  few
        things to be aware of.  Eg if the hledger-web add-on is installed,
 
        o hledger -h web  shows  hledger's  help,  while  hledger web -h  shows
          hledger-web's help.
 
-       o Flags  specific  to  the add-on must have a preceding -- to hide them
-         from hledger.  So hledger web --serve --port 9000 will  be  rejected;
+       o Flags specific to the add-on must have a preceding --  to  hide  them
+         from  hledger.   So hledger web --serve --port 9000 will be rejected;
          you must use hledger web -- --serve --port 9000.
 
-       o You    can    always    run    add-ons    directly    if   preferred:
+       o You   can    always    run    add-ons    directly    if    preferred:
          hledger-web --serve --port 9000.
 
-       Add-ons are a relatively easy way to add local features  or  experiment
-       with  new  ideas.   They  can  be  written in any language, but haskell
-       scripts have a big advantage:  they  can  use  the  same  hledger  (and
-       haskell)  library functions that built-in commands do, for command-line
+       Add-ons  are  a relatively easy way to add local features or experiment
+       with new ideas.  They can be  written  in  any  language,  but  haskell
+       scripts  have  a  big  advantage:  they  can  use the same hledger (and
+       haskell) library functions that built-in commands do, for  command-line
        options, journal parsing, reporting, etc.
 
        Here are some hledger add-ons available:
@@ -2069,7 +2077,7 @@ ADD-ON COMMANDS
        hledger-web provides a simple web interface.
 
    Third party add-ons
-       These are maintained separately, and usually updated  shortly  after  a
+       These  are  maintained  separately, and usually updated shortly after a
        hledger release.
 
    diff
@@ -2077,7 +2085,7 @@ ADD-ON COMMANDS
        journal file and another.
 
    iadd
-       hledger-iadd is a curses-style, more interactive  replacement  for  the
+       hledger-iadd  is  a  curses-style, more interactive replacement for the
        add command.
 
    interest
@@ -2085,19 +2093,19 @@ ADD-ON COMMANDS
        ing to various schemes.
 
    irr
-       hledger-irr calculates the internal rate of  return  of  an  investment
+       hledger-irr  calculates  the  internal  rate of return of an investment
        account.
 
    Experimental add-ons
-       These  are  available  in source form in the hledger repo's bin/ direc-
+       These are available in source form in the hledger  repo's  bin/  direc-
        tory; installing them is pretty easy.  They may be less mature and doc-
-       umented  than  built-in commands.  Reading and tweaking these is a good
+       umented than built-in commands.  Reading and tweaking these is  a  good
        way to start making your own!
 
    autosync
        hledger-autosync is a symbolic link for easily running ledger-autosync,
-       if  installed.   ledger-autosync  does  deduplicating conversion of OFX
-       data and some CSV formats, and can also download the data if your  bank
+       if installed.  ledger-autosync does  deduplicating  conversion  of  OFX
+       data  and some CSV formats, and can also download the data if your bank
        offers OFX Direct Connect.
 
    chart
@@ -2107,21 +2115,21 @@ ADD-ON COMMANDS
        hledger-check.hs checks more powerful account balance assertions.
 
 ENVIRONMENT
-       COLUMNS  The  screen  width used by the register command.  Default: the
+       COLUMNS The screen width used by the register  command.   Default:  the
        full terminal width.
 
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to  precede  addon command options with -- when invoked from
+       The need to precede addon command options with  --  when  invoked  from
        hledger is awkward.
 
        When input data contains non-ascii characters, a suitable system locale
@@ -2134,33 +2142,33 @@ BUGS
        In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
        add.
 
-       Not all of Ledger's journal file syntax is supported.  See file  format
+       Not  all of Ledger's journal file syntax is supported.  See file format
        differences.
 
-       On  large  data  files,  hledger  is  slower  and uses more memory than
+       On large data files, hledger  is  slower  and  uses  more  memory  than
        Ledger.
 
 TROUBLESHOOTING
-       Here are some issues you might encounter  when  you  run  hledger  (and
-       remember  you can also seek help from the IRC channel, mail list or bug
+       Here  are  some  issues  you  might encounter when you run hledger (and
+       remember you can also seek help from the IRC channel, mail list or  bug
        tracker):
 
        Successfully installed, but "No command `hledger' found"
        stack and cabal install binaries into a special directory, which should
-       be  added  to your PATH environment variable.  Eg on unix-like systems,
+       be added to your PATH environment variable.  Eg on  unix-like  systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        I set a custom LEDGER_FILE, but hledger is still using the default file
-       LEDGER_FILE  should  be  a  real environment variable, not just a shell
-       variable.  The command env | grep LEDGER_FILE should show it.  You  may
+       LEDGER_FILE should be a real environment variable,  not  just  a  shell
+       variable.   The command env | grep LEDGER_FILE should show it.  You may
        need to use export.  Here's an explanation.
 
-       "Illegal  byte  sequence"  or  "Invalid or incomplete multibyte or wide
+       "Illegal byte sequence" or "Invalid or  incomplete  multibyte  or  wide
        character" errors
        In order to handle non-ascii letters and symbols (like ), hledger needs
        an appropriate locale.  This is usually configured system-wide; you can
        also configure it temporarily.  The locale may need to be one that sup-
-       ports  UTF-8,  if you built hledger with GHC < 7.2 (or possibly always,
+       ports UTF-8, if you built hledger with GHC < 7.2 (or  possibly  always,
        I'm not sure yet).
 
        Here's  an  example  of  setting  the  locale  temporarily,  on  ubuntu
@@ -2179,7 +2187,7 @@ TROUBLESHOOTING
               $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
               $ bash --login
 
-       If  we  preferred  to  use eg fr_FR.utf8, we might have to install that
+       If we preferred to use eg fr_FR.utf8, we might  have  to  install  that
        first:
 
               $ apt-get install language-pack-fr
@@ -2200,7 +2208,7 @@ TROUBLESHOOTING
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -2214,7 +2222,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -2222,4 +2230,4 @@ SEE ALSO
 
 
 
-hledger 1.10.99                    July 2018                        hledger(1)
+hledger 1.10.99                 September 2018                      hledger(1)

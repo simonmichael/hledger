@@ -8,6 +8,7 @@ h4 { margin-top:2em; }
 <ol>
 <li><a href="#hledger-install">hledger-install</a>
 <!-- <li><a href="#latest-minor-release">Latest (2018/4/30)</a> -->
+<li><a href="#hledger-1.11">hledger 1.11 (2018/9/30)</a>
 <li><a href="#hledger-1.10">hledger 1.10 (2018/6/30)</a>
 <li><a href="#hledger-1.9">hledger 1.9 (2018/3/31)</a>
 <li><a href="#hledger-1.5">hledger 1.5 (2017/12/31)</a>
@@ -65,6 +66,166 @@ is updated frequently; here are the
 <http://hackage.haskell.org/package/hledger-web-1.9.2/changelog>  
 <http://hackage.haskell.org/package/hledger-api-1.9.1/changelog>  
 -->
+
+
+## 2018/9/30 hledger 1.11
+
+***Customisable account display order,
+support for other delimiter-separated formats (eg semicolon-separated),
+new files and roi commands,
+fixes
+***
+<!--
+([announcement](https://groups.google.com/forum/#!msg/hledger/))
+-->
+
+  <!-- [project](#project-wide-changes-for-1.11) -->
+  [hledger](#hledger-1.11-1)
+<!-- | [hledger-ui](#hledger-ui-1.11) -->
+<!-- | [hledger-web](#hledger-web-1.11) -->
+<!-- | [hledger-api](#hledger-api-1.11) -->
+| [hledger-lib](#hledger-lib-1.11)
+| [credits](#credits-1.11)
+
+<!-- ### project-wide changes for 1.11 -->
+
+
+### hledger 1.11
+
+* The default display order of accounts is now influenced by
+  the order of account directives. Accounts declared by account
+  directives are displayed first (top-most), in declaration order,
+  followed by undeclared accounts in alphabetical order. Numeric
+  account codes are no longer used, and are ignored and considered
+  deprecated.
+
+  So if your accounts are displaying in a weird order after upgrading,
+  and you want them alphabetical like before, just sort your account
+  directives alphabetically.
+
+* Account sorting (by name, by declaration, by amount) is now more
+  robust and supported consistently by all commands (accounts,
+  balance, bs..) in all modes (tree & flat, tabular & non-tabular).
+
+* close: new --opening/--closing flags to print only the opening or
+  closing transaction
+
+* files: a new command to list included files
+
+* prices: query arguments are now supported. Prices can be filtered by
+  date, and postings providing transaction prices can also be filtered.
+
+* rewrite: help clarifies relation to print --auto (#745)
+
+* roi: a new command to compute return on investment, based on hledger-irr
+
+* test: has more verbose output, more informative failure messages,
+  and no longer tries to read the journal
+
+* csv: We use a more robust CSV lib (cassava) and now support
+  non-comma separators, eg --separator ';' (experimental, this flag
+  will probably become a CSV rule) (#829)
+
+* csv: interpolated field names in values are now properly case insensitive, so
+  this works:
+
+  fields  ...,Transaction_Date,...
+  date %Transaction_Date
+
+* journal: D (default commodity) directives no longer break multiplier
+  amounts in transaction modifiers (AKA automated postings) (#860)
+
+* journal: "Automated Postings" have been renamed to "Transaction Modifiers".
+
+* journal: transaction comments in transaction modifier rules are now parsed correctly. (#745)
+
+* journal: when include files form a cycle, we give an error instead
+  of hanging.
+
+* upper-case day/month names in period expressions no longer give an error (#847, #852)
+
+### hledger-lib 1.11
+
+* compilation now works when locale is unset (#849)
+
+* all unit tests have been converted from HUnit+test-framework to easytest
+
+* doctests now run quicker by default, by skipping reloading between tests. 
+  This can be disabled by passing --slow to the doctests test suite
+  executable.
+
+* doctests test suite executable now supports --verbose, which shows
+  progress output as tests are run if doctest 0.16.0+ is installed
+  (and hopefully is harmless otherwise).
+
+* doctests now support file pattern arguments, provide more informative output.
+  Limiting to just the file(s) you're interested can make doctest start
+  much quicker. With one big caveat: you can limit the starting files,
+  but it always imports and tests all other local files those import.
+
+* a bunch of custom Show instances have been replaced with defaults,
+  for easier troubleshooting.  These were sometimes obscuring
+  important details, eg in test failure output. Our new policy is:
+  stick with default derived Show instances as far as possible, but
+  when necessary adjust them to valid haskell syntax so pretty-show
+  can pretty-print them (eg when they contain Day values, cf
+  https://github.com/haskell/time/issues/101).  By convention, when
+  fields are shown in less than full detail, and/or in double-quoted
+  pseudo syntax, we show a double period (..) in the output.
+
+* Amount has a new Show instance.  Amount's show instance hid
+  important details by default, and showing more details required
+  increasing the debug level, which was inconvenient.  Now it has a
+  single show instance which shows more information, is fairly
+  compact, and is pretty-printable.
+
+  ghci> usd 1
+  OLD:
+  Amount {acommodity="$", aquantity=1.00, ..}
+  NEW:
+  Amount {acommodity = "$", aquantity = 1.00, aprice = NoPrice, astyle = AmountStyle "L False 2 Just '.' Nothing..", amultiplier = False}
+
+  MixedAmount's show instance is unchanged, but showMixedAmountDebug
+  is affected by this change:
+
+  ghci> putStrLn $ showMixedAmountDebug $ Mixed [usd 1]
+  OLD:
+  Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}]
+  NEW:
+  Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle "L False 2 Just '.' Nothing.."}]
+
+* Same-line & next-line comments of transactions, postings, etc.
+  are now parsed a bit more precisely (followingcommentp). 
+  Previously, parsing no comment gave the same result as an empty
+  comment (a single newline); now it gives an empty string.  
+  Also, and perhaps as a consequence of the above, when there's no
+  same-line comment but there is a next-line comment, we'll insert an
+  empty first line, since otherwise next-line comments would get moved
+  up to the same line when rendered.
+
+* Hledger.Utils.Test exports HasCallStack
+
+* queryDateSpan, queryDateSpan' now intersect date AND'ed date spans
+  instead of unioning them, and docs are clearer.
+
+* pushAccount -> pushDeclaredAccount
+
+* jaccounts -> jdeclaredaccounts
+
+* AutoTransaction.hs -> PeriodicTransaction.hs & TransactionModifier.hs
+
+* Hledger.Utils.Debug helpers have been renamed/cleaned up
+
+### credits 1.11
+
+Release contributors:
+Joseph Weston,
+Dmitry Astapov,
+Gaith Hallak,
+Jakub Zárybnický,
+Luca Molteni,
+SpicyCat.
+
 
 
 ## 2018/6/30 hledger 1.10

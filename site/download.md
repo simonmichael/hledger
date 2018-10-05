@@ -83,11 +83,11 @@ on GNU/linux, mac and freeBSD
 
 Here's the quick, non-secure way to run it:
 
- **`curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
+ **`curl -s https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
 
 And here's the more responsible way:
 
- **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
+ **`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
  **`less hledger-install.sh`**  *# do security review*\
  **`bash hledger-install.sh`**
 
@@ -117,13 +117,13 @@ Eg, if you use bash:
 Now you should be able to run the hledger tools and see the expected versions. Eg:
 ```shell
 $ hledger --version
-hledger 1.10
+hledger 1.11
 $ hledger-ui --version
-hledger-ui 1.10
+hledger-ui 1.11
 $ hledger web --version
-hledger-web 1.10
+hledger-web 1.11
 $ hledger iadd --version
-This is hledger-iadd version 1.3.5
+This is hledger-iadd version 1.3.6
 ```
 
 #### Need help ?
@@ -149,7 +149,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=lts-12 hledger-lib-1.10 hledger-1.10 hledger-ui-1.10.1 hledger-web-1.10 hledger-api-1.10`**\
+2. **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11`**\
     This installs the main hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     You can save some time by omitting hledger-* packages you don't want.\
     <span class=warnings>([windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
