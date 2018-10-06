@@ -41,10 +41,12 @@ install:
 #- dir
 
 # install latest stack release
-# - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-# - 7z x stack.zip stack.exe
-# - copy stack.exe stack-release.exe
-# - stack --version
+#- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+# install latest stack prerelease
+- curl -skL -ostack.zip https://github.com/commercialhaskell/stack/releases/download/v1.9.0.1/stack-1.9.0.1-windows-i386.zip
+- 7z x stack.zip stack.exe
+- copy stack.exe stack-release.exe
+- stack --version
 
 # install latest stack 4125-cabal-style-build-tools branch
 # - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
@@ -53,13 +55,13 @@ install:
 # - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack.exe
 
 # install latest stack master
-- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
+#- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 # show the stack-installed binares that were restored from cache, can vary by instance
 #- dir C:\Users\appveyor\AppData\Roaming\local\bin
 # - stack-release upgrade --git
 #- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-master.exe
 # - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack.exe
-- stack --version
+#- stack --version
 
 #- dir
 
