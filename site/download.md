@@ -88,25 +88,15 @@ Also, here are some known build issues and workarounds:\
 
 ### b1. with hledger-install
 
-The latest version of our [hledger-install script](https://github.com/simonmichael/hledger/tree/master/hledger-install)
-([changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh))
-is recommended as the easiest and most-likely-to-just-work build method,
-on at least GNU/linux and mac (it requires /bin/bash):
+On systems with bash installed (mac, linux, unix-like windows..),
+if you don't already have stack or cabal, or if you are having trouble with them,
+[hledger-install](https://github.com/simonmichael/hledger/tree/master/hledger-install)
+is an easy and reliable way to get the latest hledger.
+It automates the install process using stack or cabal, avoiding common pitfalls.
 
-- it requires only bash and curl/wget, and internet access
-- it automates the install process using stack or cabal, avoiding common pitfalls
-- it installs stack and GHC in ~/.stack, if needed
-- it installs the latest release of hledger and addon tools in ~/.local/bin or ~/.cabal/bin
-
-Here's the quick, non-secure way to run it:
-
- **`curl -s https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
-
-And here's the more responsible way:
-
- **`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
- **`less hledger-install.sh`**  *# do security review*\
- **`bash hledger-install.sh`**
+  **`curl -s https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh > hledger-install.sh`**\
+  **`less hledger-install.sh`**  *# satisfy yourself that the script is safe*\
+  **`bash hledger-install.sh`**
 
 #### Link errors ?
 
@@ -156,55 +146,38 @@ or [email](docs.html#helpfeedback):
 
 ### b2. with stack
 
-[`stack`](http://haskell-lang.org/get-started) is the newer and easier of the Haskell build tools.
-If you prefer more control or if hledger-install failed, here's how to use stack yourself:
+[`stack`](http://haskell-lang.org/get-started) is the more reliable of the two Haskell build tools for new users.
+Here's how to use it directly:
 
-1. **Install or upgrade to the latest stack**\
-   The latest version of stack (1.7.1) is recommended, for best avoidance of ecosystem breakages.
-   If an older version fails to install hledger, you should install the latest release of stack and try again.
-   If you can get at least stack 1.3 installed, eg from your system packages, you can usually run `stack upgrade` to quickly upgrade it to the latest.
+- Use stack 1.7.1 or newer. The latest release is best.
+  On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-    On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
-
-2. **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11`**\
-    This installs the main hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
-    You can save some time by omitting hledger-* packages you don't want.\
+- **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11`**\
+    This installs the main hledger packages from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
+    To estimate the build time, add `--dry-run`. 
+    You can save some time by omitting hledger-ui, hledger-web and/or hledger-api.
+    You can kill and restart this without losing progress. 
     <span class=warnings>([windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
 
-    You can kill and restart this without losing progress. 
-    To estimate the build time, add `--dry-run`. 
-    
-    If you see "was generated with a newer version of hpack, please upgrade and try again" errors, you can ignore them.
-    (Upgrade to the latest stack release to stop them.)
-
-<!--
-    If you need to build with an older GHC version for some reason, these commands should work
-   (except on Mac Sierra which [requires at least GHC 8.0.2/lts-8](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
-   `stack install --resolver=lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`  *# (GHC 8.0.1)* \
-   `stack install --resolver=lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  *# (GHC 7.10.3)* \
---> <!-- keep synced with stack.yaml files -->
-
-3. **[If you see link errors..](#link-errors)**
-
-4. **[Set up \$PATH](#set-up-path)**
-
-5. **Install addons ?**\
-   Additional [add-on commands](/hledger.html#third-party-add-ons),
-   such as
-   [hledger-diff](http://hackage.haskell.org/package/hledger-diff),
-   [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
-   [hledger-interest](http://hackage.haskell.org/package/hledger-interest),
-   and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-   can be installed similarly to the above.
-
-6. **[Test](#test)**
-
+- As above: **[If you see link errors..](#link-errors)**, **[Set up \$PATH](#set-up-path)**, and **[Test](#test)**
 
 <a name="b3"></a>
 
 ### b3. with cabal
 
-[cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, feel free to use this in the usual way.
+[cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, feel free to use it in the usual way, eg:
+
+- **`cabal update && cabal install hledger-1.11 [hledger-ui-1.11] [hledger-web-1.11] [hledger-api-1.11]`**
+
+- **[If you see link errors..](#link-errors)**, **[Set up \$PATH](#set-up-path)**, and **[Test](#test)**, as above.
+
+\
+Additional [add-on commands](/hledger.html#third-party-add-ons)
+such as
+[hledger-diff](http://hackage.haskell.org/package/hledger-diff),
+[hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
+or [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
+can be installed similarly using stack or cabal.
 
 <a name="c"></a>
 
