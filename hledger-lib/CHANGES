@@ -2,6 +2,12 @@ API-ish changes in the hledger-lib package.
 Most user-visible changes are noted in the hledger changelog, instead.
 
 
+# 1.11.1 (2018/10/06)
+
+* add, lib: fix wrong transaction rendering in balance assertion errors
+  and when using the add command
+
+
 # 1.11 (2018/9/30)
 
 * compilation now works when locale is unset (#849)

@@ -1,6 +1,12 @@
 User-visible changes in the hledger command line tool.
 
 
+# 1.11.1 (2018/10/06)
+
+* fix wrong transaction rendering in balance assertion errors and when
+  using the add command
+
+
 # 1.11 (2018/9/30)
 
 * The default display order of accounts is now influenced by
