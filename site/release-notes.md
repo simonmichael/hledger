@@ -57,15 +57,14 @@ is updated frequently; here are the
 [latest changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh).
 
 
-<!--
+
 ## Latest minor release
 
-<http://hackage.haskell.org/package/hledger-lib-1.9.1/changelog>  
-<http://hackage.haskell.org/package/hledger-1.9.1/changelog>  
-<http://hackage.haskell.org/package/hledger-ui-1.9.1/changelog>  
-<http://hackage.haskell.org/package/hledger-web-1.9.2/changelog>  
-<http://hackage.haskell.org/package/hledger-api-1.9.1/changelog>  
--->
+<http://hackage.haskell.org/package/hledger-lib-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-ui-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-web-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-api-1.11.1/changelog>  
 
 
 ## 2018/9/30 hledger 1.11
