@@ -138,7 +138,7 @@ main = do
       webmanpages = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
       -- versions of documentation (excluding 0.27)
-      docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10" ]
+      docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10", "1.11" ]
 
       -- manuals rendered to html by pandoc
       webhtmlpages
