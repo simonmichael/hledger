@@ -4,7 +4,7 @@ stdin.
 
 File: hledger_timedot.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_timedot(5) hledger 1.10.99
+hledger_timedot(5) hledger 1.11.99
 **********************************
 
 Timedot is a plain text format for logging dated, categorised quantities

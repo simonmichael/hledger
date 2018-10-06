@@ -3,7 +3,7 @@ This is hledger-ui.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.10.99
+hledger-ui(1) hledger-ui 1.11.99
 ********************************
 
 hledger-ui is hledger's curses-style interface, providing an efficient

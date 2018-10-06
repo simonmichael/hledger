@@ -3,7 +3,7 @@ This is hledger-web.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.10.99
+hledger-web(1) hledger-web 1.11.99
 **********************************
 
 hledger-web is hledger's web interface.  It starts a simple web
