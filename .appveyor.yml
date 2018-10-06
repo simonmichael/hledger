@@ -70,7 +70,8 @@ install:
 # network 2.7.0.1 should work around it when released
 # https://github.com/haskell/network/issues/313
 # https://github.com/commercialhaskell/stack/issues/3944
-- stack --stack-yaml=stack-ghc8.2.yaml setup
+#- stack --stack-yaml=stack-ghc8.2.yaml setup
+- stack setup
 #- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 #- stack install shelltestrunner
 
@@ -80,7 +81,8 @@ install:
 # hledger-api not tried recently 
 build_script:
 #- stack build --test --copy-bins --local-bin-path=. hledger hledger-web
-- stack build --test --copy-bins --local-bin-path=. hledger hledger-web --stack-yaml=stack-ghc8.2.yaml
+# specifying network to avoid https://github.com/haskell/network/issues/313
+- stack build --test --copy-bins --local-bin-path=. hledger hledger-web network-2.7.0.2
 - 7z a -tzip hledger.zip hledger.exe hledger-web.exe
 #- hledger-install/hledger-install.sh
 #- make stacktest
