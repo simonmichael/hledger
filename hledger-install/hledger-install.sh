@@ -50,7 +50,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20181005
+HLEDGER_INSTALL_VERSION=20181006
 
 # stackage version to install from when using stack
 # You can specify a different stackage version here, or comment out
@@ -77,7 +77,7 @@ hledger-interest \
 "
 
 # latest hledger package versions, update often:
-HLEDGER_VERSION=1.11
+HLEDGER_VERSION=1.11.1
 HLEDGER_LIB_VERSION=$HLEDGER_VERSION
 HLEDGER_UI_VERSION=$HLEDGER_VERSION
 HLEDGER_WEB_VERSION=$HLEDGER_VERSION
