@@ -1,20 +1,21 @@
 # Download
 
-There are a number of ways to install hledger, with different speed/freshness/security tradeoffs:
+There are several ways to install hledger:
 
-a. [Download the binary or system package for your platform](#a.-download-a-binary-or-system-package) (quick, often not the latest version)
+a. [Download the binary or system package for your platform](#a.-download-a-binary-or-system-package) (quick install, often not up to date)
 b. [Build the latest release with hledger-install](#b.-build-the-latest-release)
   or [with stack](#b2.-with-stack)
-  or [with cabal](#b3.-with-cabal) (slow, fresh)
-c. [Build the development version with stack or cabal](#c.-build-the-development-version) (slow, super-fresh)
+  or [with cabal](#b3.-with-cabal) (slow install, up to date)
+c. [Build the development version with stack or cabal](#c.-build-the-development-version) (slow install, super-fresh)
 
 
 <a name="a"></a>
 
-## a. Download a binary or system package
+## a. Download a binary or system package for your platform
 
 <style>
 table { margin-left:1em; }
+tr { border-top:thin solid #ddd; border-bottom:thin solid #ddd; }
 div > p > strong > code { margin-left:1em; } /* top-level code lines */
 code { white-space:nowrap; }
 tr { vertical-align:top; }
@@ -39,9 +40,9 @@ a { white-space:nowrap; }
 Binaries or system packages are quickest to install, but they can be outdated or incomplete.
 (Please help/report issues to packagers.)
 
-**Available binaries and system packages:**
+**Available binaries / system packages:**
 
-| Platform             | Command/Link           | Installs&nbsp;version<br>([as&nbsp;of&nbsp;20181006](https://repology.org/metapackage/hledger/badges), latest is 1.11)
+| Platform             | Command/Link           | Installs&nbsp;version<br>([as&nbsp;of&nbsp;20181006](https://repology.org/metapackage/hledger/badges), latest is [1.11](http://hledger.org/release-notes))
 |----------------------|------------------------|----------------------------------------------------------------------------------------
 | Mac                  | **`brew install hledger`** <br><span class=warnings>[only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520)</span> | 1.10
 | Windows              | Developer binaries: **[1.10](https://ci.appveyor.com/api/buildjobs/5n63x22wvd4j24ee/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --> <br><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.10
@@ -58,13 +59,13 @@ Binaries or system packages are quickest to install, but they can be outdated or
 | NetBSD               | <span class=warnings>?</span> | 
 | OpenBSD              | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
 | &nbsp;               |
-| NixOS                | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on MacOS ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.5&nbsp;(stable), 1.11&nbsp;(unstable)
+| NixOS                | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.5&nbsp;(stable), 1.11&nbsp;(unstable)
 | Sandstorm            | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
 
 
 <a name="b"></a>
 
-## b. build the latest release
+## b. Build the latest release
 
 Good choice! You'll get the latest features mentioned in the [release notes](release-notes.html).
 Below are three ways to build the latest release, in order of preference.
@@ -207,7 +208,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
 <a name="c"></a>
 
-## c. build the development version
+## c. Build the development version
 
 Also a good choice. Our master branch is stable enough for daily use,
 and includes the [latest improvements](https://github.com/simonmichael/hledger/commits/master).
