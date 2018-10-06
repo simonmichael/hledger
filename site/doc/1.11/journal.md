@@ -1,6 +1,6 @@
 # journal format
 
-This doc is for version **1.10.99** (dev). []{.docversions}
+This doc is for version **1.11** (dev). []{.docversions}
 
 \$toc\$
 
@@ -234,9 +234,9 @@ toggle transaction status with C-c C-e, or posting status with C-c C-c.
 What "uncleared", "pending", and "cleared" actually mean is up to you.
 Here's one suggestion:
 
-  -------------------------------------------------------------------------
+  ------------------------------------------------------------------------
   status      meaning
-  ----------- -------------------------------------------------------------
+  ----------- ------------------------------------------------------------
   uncleared   recorded but not yet reconciled; needs review
 
   pending     tentatively reconciled (if needed, eg during a big
@@ -244,7 +244,7 @@ Here's one suggestion:
 
   cleared     complete, reconciled as far as possible, and considered
               correct
-  -------------------------------------------------------------------------
+  ------------------------------------------------------------------------
 
 With this scheme, you would use `-PC` to see the current balance at your
 bank, `-U` to see things which will probably hit your bank soon (like

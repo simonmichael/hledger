@@ -1,6 +1,6 @@
 # hledger
 
-This doc is for version **1.10.99** (dev). []{.docversions}
+This doc is for version **1.11** (dev). []{.docversions}
 
 \$toc\$
 
