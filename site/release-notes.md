@@ -81,9 +81,9 @@ fixes
 
   <!-- [project](#project-wide-changes-for-1.11) -->
   [hledger](#hledger-1.11-1)
-<!-- | [hledger-ui](#hledger-ui-1.11) -->
-<!-- | [hledger-web](#hledger-web-1.11) -->
-<!-- | [hledger-api](#hledger-api-1.11) -->
+| [hledger-ui](#hledger-ui-1.11)
+| [hledger-web](#hledger-web-1.11)
+| [hledger-api](#hledger-api-1.11)
 | [hledger-lib](#hledger-lib-1.11)
 | [credits](#credits-1.11)
 
@@ -143,6 +143,22 @@ fixes
   of hanging.
 
 * upper-case day/month names in period expressions no longer give an error (#847, #852)
+
+
+### hledger-ui 1.11
+
+* uses hledger-lib 1.11
+
+
+### hledger-web 1.11
+
+* uses hledger-lib 1.11
+
+
+### hledger-api 1.11
+
+* uses hledger-lib 1.11
+
 
 ### hledger-lib 1.11
 
