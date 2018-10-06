@@ -1,53 +1,65 @@
-Short announcement this quarter. Pleased to announce the release of hledger 1.11 on schedule! 
+hledger is a robust, cross-platform "plain text accounting" tool, for
+tracking money, time, stocks, cryptocurrencies or any other commodity,
+using double-entry accounting, private or shared plain text files,
+revision control, and command-line, curses or web UIs.
 
-Thanks to release contributors Joseph Weston, Dmitry Astapov, Gaith Hallak, Jakub Zárybnický, Luca Molteni, and SpicyCat.
-
-stack users will need to get a copy of hledger source and do stack install from there, due to the recent GHC 8.6 release. cabal install hledger-1.11 should work normally. 
-
-From http://hledger.org/release-notes.html#hledger-1.11 :
-
-hledger 1.11
-
-- The default display order of accounts is now influenced by the order of account directives. Accounts declared by account directives are displayed first (top-most), in declaration order, followed by undeclared accounts in alphabetical order. Numeric account codes are no longer used, and are ignored and considered deprecated.
-
-- So if your accounts are displaying in a weird order after upgrading, and you want them alphabetical like before, just sort your account directives alphabetically.
-
-- Account sorting (by name, by declaration, by amount) is now more robust and supported consistently by all commands (accounts, balance, bs..) in all modes (tree & flat, tabular & non-tabular).
-
-- close: new –opening/–closing flags to print only the opening or closing transaction
-
-- files: a new command to list included files
-
-- prices: query arguments are now supported. Prices can be filtered by date, and postings providing transaction prices can also be filtered.
-
-- rewrite: help clarifies relation to print –auto (#745)
-
-- roi: a new command to compute return on investment, based on hledger-irr
-
-- test: has more verbose output, more informative failure messages, and no longer tries to read the journal
-
-- csv: We use a more robust CSV lib (cassava) and now support non-comma separators, eg –separator ‘;’ (experimental, this flag will probably become a CSV rule) (#829)
-
-- csv: interpolated field names in values are now properly case insensitive, so this works:
-
-- fields …,Transaction_Date,… date %Transaction_Date
-
-- journal: D (default commodity) directives no longer break multiplier amounts in transaction modifiers (AKA automated postings) (#860)
-
-- journal: “Automated Postings” have been renamed to “Transaction Modifiers”.
-
-- journal: transaction comments in transaction modifier rules are now parsed correctly. (#745)
-
-- journal: when include files form a cycle, we give an error instead of hanging.
-
-- upper-case day/month names in period expressions no longer give an error (#847, #852)
+I'm pleased to announce the on-schedule release of hledger 1.12.
+Thanks to release contributors: A, B.
 
 
-Corrections:
+What's new
+----------
 
-- http://hledger.org has been updated with the latest install methods.
+hledger 1.12
 
-- hledger-install.sh now ensures a new-enough stack.
+- 
 
-- stack users don't need to fetch hledger source, but do need to specify an extra dep on the command line, eg like so: 
-stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11
+- 
+
+Full release notes are at http://hledger.org/release-notes.html#hledger-1.12
+
+
+Install
+-------
+
+All install methods are described at http://hledger.org/download .
+You can download windows binaries, or use a package manager, though in
+some cases these will install an older hledger version.  
+
+You can build the latest hledger packages with stack:
+
+$ stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 
+  hledger-1.11 [hledger-ui-1.11] [hledger-web-1.11] [hledger-api-1.11]
+
+or with cabal:
+
+$ cabal install hledger-1.11 [hledger-ui-1.11] [hledger-web-1.11] 
+  [hledger-api-1.11]
+
+If you don't have stack or cabal, or if you are having trouble,
+on systems with bash installed (mac, linux, unix-like windows..)
+hledger-install.sh is an easy and reliable way to get the latest hledger:
+
+$ curl -s https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh > hledger-install.sh
+$ less hledger-install.sh  # satisfy yourself that the script is safe
+$ bash hledger-install.sh
+
+
+Getting started
+---------------
+
+$ hledger add           # record some transactions, with guidance
+$ hledger print         # show recorded transactions
+$ hledger balance       # show totals by account
+$ hledger -h            # show quick help
+$ hledger               # list available commands
+$ hledger help          # list built-in manuals
+
+To get oriented, see the tutorials and manuals at http://hledger.org .
+To get help, say hello and ask questions in the #hledger IRC channel
+on Freenode, accessible at http://irc.hledger.org .
+New users and all forms of help are always welcome!
+
+
+Best,
+-Simon
