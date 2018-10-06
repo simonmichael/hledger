@@ -387,4 +387,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.10.99              September 2018                   hledger-ui(1)
+hledger-ui 1.11.1               September 2018                   hledger-ui(1)
