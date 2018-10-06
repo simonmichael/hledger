@@ -33,8 +33,8 @@ $ stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11
 
 or with cabal:
 
-$ cabal install hledger-1.11 [hledger-ui-1.11] [hledger-web-1.11] 
-  [hledger-api-1.11]
+$ cabal update && cabal install hledger-1.11 [hledger-ui-1.11] 
+  [hledger-web-1.11] [hledger-api-1.11]
 
 If you don't have stack or cabal, or if you are having trouble,
 on systems with bash installed (mac, linux, unix-like windows..)
