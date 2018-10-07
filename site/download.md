@@ -125,8 +125,8 @@ It automates the install process using stack or cabal, avoiding common pitfalls:
 ### b2. with stack
 
 [`stack`](http://haskell-lang.org/get-started) is the more reliable of Haskell's two build tools, for new users.
-You must use stack 1.7.1 or newer; the latest release is best.
-On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
+You need stack 1.7.1 or newer; the latest release is best.
+On 64-bit Windows, use the 64-bit version of stack.
 The following command installs the main hledger packages;
 you can save some time by omitting hledger-ui, hledger-web and/or hledger-api (optional user interfaces).
 On Windows, hledger-ui is not available.
@@ -166,7 +166,7 @@ or [email](docs.html#helpfeedback).
 #### Set up PATH
 
 After installation, make sure the install directory is in your \$PATH, preferably near the start.
-You will probably see a warning or informational message about this.
+You will probably see a message about this.
 The install directory is:
 
 |                    | on non-Windows systems | on Windows 
@@ -174,7 +174,8 @@ The install directory is:
 | If stack was used  | `$HOME/.local/bin`     | `%APPDATA%\local\bin` (eg&nbsp;`C:\Users\Joe\AppData\Roaming\local\bin`)
 | If cabal was used  | `$HOME/.cabal/bin`     | `%APPDATA%\cabal\bin`
 
-So eg if you use bash, this would take care of it:
+How to configure \$PATH is platform- and shell-specific.
+If you are using bash, this should take care of it:
 
   **`echo "export PATH=~/.local/bin:~/.cabal/bin:$PATH" >> ~/.bashrc && source ~/.bashrc`**
 
@@ -218,5 +219,5 @@ Eg, this will build and install all of the main hledger tools using stack:
 cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
 
 See the troubleshooting, PATH, and test tips [above](#b).
-Note development builds will have a .99 suffix (1.11.99 means "1.12-dev").
+Note development builds will have a .99 suffix (eg 1.11.99 means "1.12-dev").
 
