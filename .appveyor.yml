@@ -46,7 +46,7 @@ install:
 
 # install latest stack prerelease
 - curl -skLO https://github.com/commercialhaskell/stack/releases/download/v1.9.0.1/stack-1.9.0.1-windows-x86_64.tar.gz
-- 7z e -y stack.exe
+- 7z x stack-1.9.0.1-windows-x86_64.tar.gz -so | 7z e -si -ttar stack-1.9.0.1-windows-x86_64/stack.exe -aoa
 - stack --version
 
 # install latest stack 4125-cabal-style-build-tools branch
@@ -87,6 +87,7 @@ build_script:
 # use network 2.7.0.1+ to avoid https://github.com/haskell/network/issues/313
 - stack build --test --copy-bins --local-bin-path=. hledger hledger-web network-2.7.0.2
 - 7z a -tzip hledger.zip hledger.exe hledger-web.exe
+
 #- hledger-install/hledger-install.sh
 #- make stacktest
 
