@@ -38,30 +38,43 @@ a { white-space:nowrap; }
 </style>
 
 Binaries or system packages are quickest to install, but they can be outdated or incomplete.
-(Please help/report issues to packagers.)
 
 **Available binaries / system packages:**
+<div style="float:right; font-size:small;">
+(please [update this page](https://github.com/simonmichael/hledger/edit/master/site/download.md) /
+<br>report issues to packagers)
+</div>
 
 | Platform             | Command/Link           | Installs&nbsp;version<br>([as&nbsp;of&nbsp;20181006](https://repology.org/metapackage/hledger/badges), latest is [1.11](http://hledger.org/release-notes))
 |----------------------|------------------------|----------------------------------------------------------------------------------------
-| Mac                  | **`brew install hledger`** <br><span class=warnings>[only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520)</span> | 1.11
-| Windows              | Developer binaries: **[1.10](https://ci.appveyor.com/api/buildjobs/5n63x22wvd4j24ee/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --> <br><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.10
+| [Mac][]              | **`brew install hledger`** <br><span class=warnings>[only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520)</span> | 1.11
+| [Windows][]          | Developer binaries: **[1.10](https://ci.appveyor.com/api/buildjobs/5n63x22wvd4j24ee/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --> <br><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.10
 | &nbsp;               |
-| Arch&nbsp;Linux      | **`pacman -S hledger`** | 1.11
+| [Arch&nbsp;Linux][]  | **`pacman -S hledger`** | 1.11
 | CentOS               | <span class=warnings>?</span> | 
-| Debian               | **`sudo apt install hledger hledger-ui hledger-web`** | 1.0.1&nbsp;(Stable), 1.5&nbsp;(Testing), 1.10&nbsp;(Unstable)
-| Fedora               | **`sudo dnf install hledger`** | 1.2&nbsp;(27), 1.4&nbsp;(28), 1.5&nbsp;(Rawhide)
-| Gentoo               | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | 1.11
+| [Debian][]           | **`sudo apt install hledger hledger-ui hledger-web`** | 1.0.1&nbsp;(Stable), 1.5&nbsp;(Testing), 1.10&nbsp;(Unstable)
+| [Fedora][]           | **`sudo dnf install hledger`** | 1.2&nbsp;(27), 1.4&nbsp;(28), 1.5&nbsp;(Rawhide)
+| [Gentoo][]           | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | 1.11
 | RHEL                 | **`sudo dnf install hledger`** <span class=warnings>?</span> | <span class=warnings>?</span>
-| Ubuntu               | **`sudo apt install hledger hledger-ui hledger-web`** | 0.26&nbsp;(16.04&nbsp;Xenial), 1.2&nbsp;(18.04&nbsp;Bionic), 1.5&nbsp;(18.10&nbsp;Cosmic)
-| Void&nbsp;Linux      | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`** | 1.10
+| [Ubuntu][]           | **`sudo apt install hledger hledger-ui hledger-web`** | 0.26&nbsp;(16.04&nbsp;Xenial), 1.2&nbsp;(18.04&nbsp;Bionic), 1.5&nbsp;(18.10&nbsp;Cosmic)
+| [Void&nbsp;Linux][]  | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`** | 1.10
 | &nbsp;               |
 | FreeBSD              | <span class=warnings>?</span> | 
 | NetBSD               | <span class=warnings>?</span> | 
 | OpenBSD              | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
 | &nbsp;               |
-| NixOS                | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.5&nbsp;(stable), 1.11&nbsp;(unstable)
+| [NixOS][]            | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.5&nbsp;(stable), 1.11&nbsp;(unstable)
 | Sandstorm            | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
+
+[Mac]: https://formulae.brew.sh/formula/hledger
+[Windows]: https://ci.appveyor.com/project/simonmichael/hledger
+[Arch&nbsp;Linux]: https://www.archlinux.org/packages/?sort=&q=hledger
+[Debian]: https://packages.debian.org/search?searchon=names&keywords=hledger
+[Fedora]: https://apps.fedoraproject.org/packages/s/hledger
+[Gentoo]: https://gentoo.zugaina.org/Search?search=hledger
+[Ubuntu]: https://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger
+[Void&nbsp;Linux]: https://voidlinux.org/packages/?q=hledger
+[NixOS]: http://hydra.nixos.org/search?query=hledger
 
 
 <a name="b"></a>
