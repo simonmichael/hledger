@@ -244,6 +244,10 @@ FLAGS
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   let args = words' $ query_ $ reportopts_ opts
+  -- workaround for https://github.com/joelburget/easytest/issues/11 
+--  import System.IO (hSetEncoding, stdout, stderr, utf8)
+--  hSetEncoding stdout utf8
+--  hSetEncoding stderr utf8
   e <- runEasytests args $ EasyTest.tests [tests_Hledger, tests_Commands]
   if e then exitFailure else exitSuccess
 
