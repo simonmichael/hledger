@@ -46,8 +46,7 @@ install:
 
 # install latest stack prerelease
 - curl -skLO https://github.com/commercialhaskell/stack/releases/download/v1.9.0.1/stack-1.9.0.1-windows-x86_64.tar.gz
-- 7z x stack-1.9.0.1-windows-x86_64.tar.gz stack-1.9.0.1-windows-x86_64/stack.exe
-- move stack-1.9.0.1-windows-x86_64/stack.exe .
+- 7z e -y stack-1.9.0.1-windows-x86_64.tar.gz stack-1.9.0.1-windows-x86_64\stack.exe
 - stack --version
 
 # install latest stack 4125-cabal-style-build-tools branch
