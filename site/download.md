@@ -63,18 +63,35 @@ Binaries or system packages are quickest to install, but they can be outdated or
 | NetBSD               | <span class=warnings>?</span> | 
 | OpenBSD              | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
 | &nbsp;               |
-| [NixOS][]            | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.5&nbsp;(stable), 1.11&nbsp;(unstable)
+| [Nix][]              | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.5&nbsp;(stable), 1.11&nbsp;(unstable)
 | Sandstorm            | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
 
 [Mac]: https://formulae.brew.sh/formula/hledger
+[Mac contact]: mailto:
+
 [Windows]: https://ci.appveyor.com/project/simonmichael/hledger
+[Windows contact]: mailto:simon@joyful.com
+
 [Arch&nbsp;Linux]: https://www.archlinux.org/packages/?sort=&q=hledger
+[Arch&nbsp;Linux contact]: mailto:
+
 [Debian]: https://packages.debian.org/search?searchon=names&keywords=hledger
+[Debian contact]: mailto:debian-haskell@lists.debian.org
+
 [Fedora]: https://apps.fedoraproject.org/packages/s/hledger
+[Fedora contact]: mailto:
+
 [Gentoo]: https://gentoo.zugaina.org/Search?search=hledger
+[Gentoo contact]: mailto:
+
 [Ubuntu]: https://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger
+[Ubuntu contact]: mailto:
+
 [Void&nbsp;Linux]: https://voidlinux.org/packages/?q=hledger
-[NixOS]: http://hydra.nixos.org/search?query=hledger
+[Void&nbsp;Linux contact]: mailto:
+
+[Nix]: http://hydra.nixos.org/search?query=hledger
+[Nix contact]: mailto:
 
 
 <a name="b"></a>
@@ -83,19 +100,17 @@ Binaries or system packages are quickest to install, but they can be outdated or
 
 Good choice! You'll get the latest features and fixes mentioned in the [release notes](release-notes.html),
 and you'll be in a good position to give feedback and get support.
-
 Below are three ways to build the latest release, in order of preference.
-Here are some tips, just in case you need them:
+But first, some tips:
 
-- Building all of hledger for the first time could take as much as an
-  hour, 1-2G of free memory, and 1-2G of disk space.  (We make use of
-  a lot of fine Haskell software.)  You can kill and restart the
-  build without losing progress, and future builds will be much
-  faster.
+- Building all hledger tools and dependencies for the first time could
+  take as much as an hour, 1-2G of free memory, and 1-2G of disk
+  space.  You can kill and restart the build without losing progress,
+  and future builds will be much faster.
 
-- If building fails with link errors (eg: "/bin/ld.gold: error: cannot find -ltinfo"), 
+- If you get link errors (eg: "/bin/ld.gold: error: cannot find -ltinfo"), 
   you might need to install some extra system packages and try again.
-  Check the list below, or do a web search for the error message to find the required package
+  To find the right system package, check the list below, or do a web search for the error message
   (and please send updates for this list):
 
     |
@@ -115,6 +130,12 @@ Here are some tips, just in case you need them:
     [openbsd: how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)\
     [windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444)\
     </span>
+
+- If you have trouble, please send me a copy/paste of the output,
+  including the commands you typed, at least up to the first error, via
+      [paste](http://paste.hledger.org) + [IRC](http://irc.hledger.org),
+  or the [issue tracker](http://bugs.hledger.org), 
+  or [email](docs.html#helpfeedback).
 
 
 <div style="margin-left:1em; margin-bottom:2em;">
@@ -152,18 +173,9 @@ like
 [hledger-diff](http://hackage.haskell.org/package/hledger-diff),
 [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
 or [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-can be installed similarly:
+can be installed like so:
 
-  **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-1.11 hledger-ui-1.11 hledger-diff-0.2.0.14 hledger-iadd-1.3.6 hledger-interest-1.5.2`**\
-
-If you have trouble, please send me a copy/paste of the output,
-including the commands you typed, at least up to the first error,
-via 
-[paste](http://paste.hledger.org) & [IRC](http://irc.hledger.org),
-or the [issue tracker](http://bugs.hledger.org),
-or [email](docs.html#helpfeedback).
-
-
+  **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-diff-0.2.0.14 hledger-iadd-1.3.6 hledger-interest-1.5.2`**\
 
 <a name="b3"></a>
 
@@ -172,14 +184,15 @@ or [email](docs.html#helpfeedback).
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
   **`cabal update`**\
-  **`cabal install hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11`**\
+  **`cabal install hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11 hledger-diff-0.2.0.14 hledger-iadd-1.3.6 hledger-interest-1.5.2`**\
 
 </div>
 
 #### Set up PATH
 
-After installation, make sure the install directory is in your \$PATH, preferably near the start.
-You will probably see a message about this.
+You will probably see a message about where the executables were installed.
+After installation, make sure this install directory is configured in your shell's \$PATH
+(preferably near the start of it, to preempt older hledger system packages you may have installed).
 The install directory is:
 
 |                    | on non-Windows systems | on Windows 
