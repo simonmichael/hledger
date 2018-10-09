@@ -469,6 +469,14 @@ transactionmodifierp = do
   return $ TransactionModifier querytxt postings
 
 -- | Parse a periodic transaction
+--
+-- This reuses periodexprp which parses period expressions on the command line.
+-- This is awkward because periodexprp supports relative and partial dates, 
+-- which we don't really need here, and it doesn't support the notion of a
+-- default year set by a Y directive, which we do need to consider here.
+-- We resolve it as follows: in periodic transactions' period expressions,
+-- if there is a default year Y in effect, partial/relative dates are calculated
+-- relative to Y/1/1. If not, they are calculated related to today as usual.
 periodictransactionp :: MonadIO m => JournalParser m PeriodicTransaction
 periodictransactionp = do
 
@@ -477,8 +485,13 @@ periodictransactionp = do
   lift $ skipMany spacenonewline
   -- a period expression
   pos <- getPosition
-  d <- liftIO getCurrentDay
-  (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp d)
+  
+  today <- liftIO getCurrentDay
+  mdefaultyear <- getYear
+  let refdate = case mdefaultyear of
+                  Nothing -> today 
+                  Just y  -> fromGregorian y 1 1
+  (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp refdate)
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
     Just e -> parseErrorAt pos e
@@ -497,8 +510,8 @@ periodictransactionp = do
       return (s,c,desc,(cmt,ts))
     )
 
-  -- next lines
-  postings <- postingsp (Just $ first3 $ toGregorian d)
+  -- next lines; use same year determined above
+  postings <- postingsp (Just $ first3 $ toGregorian refdate)
 
   return $ nullperiodictransaction{
      ptperiodexpr=periodtxt

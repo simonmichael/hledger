@@ -1019,6 +1019,10 @@ There is an additional constraint on the period expression:
 the start date must fall on a natural boundary of the interval.
 Eg `monthly from 2018/1/1` is valid, but `monthly from 2018/1/15` is not.
 
+Partial or relative dates (M/D, D, tomorrow, last week) in the period expression
+can work (useful or not). They will be relative to today's date, unless 
+a Y default year directive is in effect, in which case they will be relative to Y/1/1.
+
 If you write a transaction description or same-line comment, 
 it must be separated from the period expression by **two or more spaces**. Eg:
 
