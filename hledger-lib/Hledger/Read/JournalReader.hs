@@ -193,10 +193,11 @@ includedirectivep = do
     getFilePaths
       :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
     getFilePaths parseroff parserpos filename = do
-        curdir <- lift $ expandPath (takeDirectory $ sourceName parserpos) ""
+        let curdir = takeDirectory (sourceName parserpos)
+        filename' <- lift $ expandHomePath filename
                          `orRethrowIOError` (show parserpos ++ " locating " ++ filename)
         -- Compiling filename as a glob pattern works even if it is a literal
-        fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename of
+        fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename' of
             Right x -> pure x
             Left e -> customFailure $
                         parseErrorAt parseroff $ "Invalid glob pattern: " ++ e

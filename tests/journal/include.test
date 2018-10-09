@@ -60,3 +60,14 @@ hledger -f - print
 <<<
 include doesnotexist.journal
 >>>=1
+
+# 6. include relative to home
+printf '2018/01/01\n (A)  1\n' >included.journal; HOME="$PWD" hledger -f - print; rm -rf included.journal
+<<<
+include ~/included.journal
+>>>
+2018/01/01
+    (A)               1
+
+>>>2
+>>>=0
