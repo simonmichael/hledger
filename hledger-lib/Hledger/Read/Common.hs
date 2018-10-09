@@ -29,10 +29,13 @@ module Hledger.Read.Common (
   rtp,
   runJournalParser,
   rjp,
+  runErroringJournalParser,
+  rejp,
   genericSourcePos,
   journalSourcePos,
   applyTransactionModifiers,
   parseAndFinaliseJournal,
+  parseAndFinaliseJournal',
   setYear,
   getYear,
   setDefaultCommodityAndStyle,
@@ -99,7 +102,7 @@ where
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import "base-compat-batteries" Control.Monad.Compat
-import Control.Monad.Except (ExceptT(..), throwError)
+import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, second)
 import Data.Char
@@ -191,14 +194,27 @@ rawOptsToInputOpts rawopts = InputOpts{
 --- * parsing utilities
 
 -- | Run a text parser in the identity monad. See also: parseWithState.
-runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char CustomErr) a
+runTextParser, rtp
+  :: TextParser Identity a -> Text -> Either (ParseErrorBundle Text CustomErr) a
 runTextParser p t =  runParser p "" t
 rtp = runTextParser
 
 -- | Run a journal parser in some monad. See also: parseWithState.
-runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (ParseError Char CustomErr) a)
+runJournalParser, rjp
+  :: Monad m
+  => JournalParser m a -> Text -> m (Either (ParseErrorBundle Text CustomErr) a)
 runJournalParser p t = runParserT (evalStateT p mempty) "" t
 rjp = runJournalParser
+
+-- | Run an erroring journal parser in some monad. See also: parseWithState.
+runErroringJournalParser, rejp
+  :: Monad m
+  => ErroringJournalParser m a
+  -> Text
+  -> m (Either FinalParseError (Either (ParseErrorBundle Text CustomErr) a))
+runErroringJournalParser p t =
+  runExceptT $ runParserT (evalStateT p mempty) "" t
+rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
@@ -221,19 +237,46 @@ applyTransactionModifiers j = j { jtxns = map applyallmodifiers $ jtxns j }
 
 -- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.
-parseAndFinaliseJournal :: JournalParser IO ParsedJournal -> InputOpts
+parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser iopts f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
-  ep <- liftIO $ runParserT (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
+  let initJournal = nulljournal
+        { jparsedefaultyear = Just y
+        , jincludefilestack = [f] }
+  eep <- liftIO $ runExceptT $
+    runParserT (evalStateT parser initJournal) f txt
+  case eep of
+    Left finalParseError ->
+      throwError $ finalErrorBundlePretty $ attachSource f txt finalParseError
+
+    Right ep -> case ep of
+      Left e -> throwError $ customErrorBundlePretty e
+
+      Right pj ->
+        let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
+        case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
+                          Right j -> return j
+                          Left e  -> throwError e
+
+parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
+                           -> FilePath -> Text -> ExceptT String IO Journal
+parseAndFinaliseJournal' parser iopts f txt = do
+  t <- liftIO getClockTime
+  y <- liftIO getCurrentYear
+  let initJournal = nulljournal
+        { jparsedefaultyear = Just y
+        , jincludefilestack = [f] }
+  ep <- liftIO $ runParserT (evalStateT parser initJournal) f txt
   case ep of
+    Left e   -> throwError $ customErrorBundlePretty e
+
     Right pj -> 
       let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
       case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
                         Right j -> return j
                         Left e  -> throwError e
-    Left e   -> throwError $ customParseErrorPretty txt e
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
@@ -345,43 +388,43 @@ datep = do
 
 datep' :: Maybe Year -> TextParser m Day
 datep' mYear = do
-  startPos <- getPosition
+  startOffset <- getOffset
   d1 <- decimal <?> "year or month"
   sep <- satisfy isDateSepChar <?> "date separator"
   d2 <- decimal <?> "month or day"
-  fullDate startPos d1 sep d2 <|> partialDate startPos mYear d1 sep d2
+  fullDate startOffset d1 sep d2 <|> partialDate startOffset mYear d1 sep d2
   <?> "full or partial date"
 
   where
 
-  fullDate :: SourcePos -> Integer -> Char -> Int -> TextParser m Day
-  fullDate startPos year sep1 month = do
+  fullDate :: Int -> Integer -> Char -> Int -> TextParser m Day
+  fullDate startOffset year sep1 month = do
     sep2 <- satisfy isDateSepChar <?> "date separator"
     day <- decimal <?> "day"
-    endPos <- getPosition
+    endOffset <- getOffset
     let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
 
-    when (sep1 /= sep2) $ parseErrorAtRegion startPos endPos $
+    when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startOffset endOffset $
       "invalid date (mixing date separators is not allowed): " ++ dateStr
 
     case fromGregorianValid year month day of
-      Nothing -> parseErrorAtRegion startPos endPos $
+      Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
                    "well-formed but invalid date: " ++ dateStr
       Just date -> pure $! date
 
   partialDate
-    :: SourcePos -> Maybe Year -> Integer -> Char -> Int -> TextParser m Day
-  partialDate startPos mYear month sep day = do
-    endPos <- getPosition
+    :: Int -> Maybe Year -> Integer -> Char -> Int -> TextParser m Day
+  partialDate startOffset mYear month sep day = do
+    endOffset <- getOffset
     case mYear of
       Just year ->
         case fromGregorianValid year (fromIntegral month) day of
-          Nothing -> parseErrorAtRegion startPos endPos $
+          Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
                       "well-formed but invalid date: " ++ dateStr
           Just date -> pure $! date
         where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
-      Nothing -> parseErrorAtRegion startPos endPos $
+      Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
         "partial date "++dateStr++" found, but the current year is unknown"
         where dateStr = show month ++ [sep] ++ show day
 
@@ -409,26 +452,27 @@ datetimep' mYear = do
   where
     timeOfDay :: TextParser m TimeOfDay
     timeOfDay = do
-      pos1 <- getPosition
+      off1 <- getOffset
       h' <- twoDigitDecimal <?> "hour"
-      pos2 <- getPosition
-      unless (h' >= 0 && h' <= 23) $ parseErrorAtRegion pos1 pos2
-        "invalid time (bad hour)"
+      off2 <- getOffset
+      unless (h' >= 0 && h' <= 23) $ customFailure $
+        parseErrorAtRegion off1 off2 "invalid time (bad hour)"
 
       char ':' <?> "':' (hour-minute separator)"
-      pos3 <- getPosition
+      off3 <- getOffset
       m' <- twoDigitDecimal <?> "minute"
-      pos4 <- getPosition
-      unless (m' >= 0 && m' <= 59) $ parseErrorAtRegion pos3 pos4
-        "invalid time (bad minute)"
+      off4 <- getOffset
+      unless (m' >= 0 && m' <= 59) $ customFailure $
+        parseErrorAtRegion off3 off4 "invalid time (bad minute)"
 
       s' <- option 0 $ do
         char ':' <?> "':' (minute-second separator)"
-        pos5 <- getPosition
+        off5 <- getOffset
         s' <- twoDigitDecimal <?> "second"
-        pos6 <- getPosition
-        unless (s' >= 0 && s' <= 59) $ parseErrorAtRegion pos5 pos6
-          "invalid time (bad second)" -- we do not support leap seconds
+        off6 <- getOffset
+        unless (s' >= 0 && s' <= 59) $ customFailure $
+          parseErrorAtRegion off5 off6 "invalid time (bad second)"
+          -- we do not support leap seconds
         pure s'
 
       pure $ TimeOfDay h' m' (fromIntegral s')
@@ -524,22 +568,22 @@ amountwithoutpricep = do
     suggestedStyle <- getAmountStyle c
     commodityspaced <- lift $ skipMany' spacenonewline
     sign2 <- lift $ signp
-    posBeforeNum <- getPosition
+    offBeforeNum <- getOffset
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
-    posAfterNum <- getPosition
-    let numRegion = (posBeforeNum, posAfterNum)
+    offAfterNum <- getOffset
+    let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
     return $ Amount c (sign (sign2 q)) NoPrice s mult
 
   rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
   rightornosymbolamountp mult sign = label "amount" $ do
-    posBeforeNum <- getPosition
+    offBeforeNum <- getOffset
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
-    posAfterNum <- getPosition
-    let numRegion = (posBeforeNum, posAfterNum)
+    offAfterNum <- getOffset
+    let numRegion = (offBeforeNum, offAfterNum)
     mSpaceAndCommodity <- lift $ optional $ try $ (,) <$> skipMany' spacenonewline <*> commoditysymbolp
     case mSpaceAndCommodity of
       -- right symbol amount
@@ -563,7 +607,7 @@ amountwithoutpricep = do
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
   interpretNumber
-    :: (SourcePos, SourcePos)
+    :: (Int, Int) -- offsets
     -> Maybe AmountStyle
     -> Either AmbiguousNumber RawNumber
     -> Maybe Int
@@ -571,7 +615,8 @@ amountwithoutpricep = do
   interpretNumber posRegion suggestedStyle ambiguousNum mExp =
     let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
     in  case fromRawNumber rawNum mExp of
-          Left errMsg -> uncurry parseErrorAtRegion posRegion errMsg
+          Left errMsg -> customFailure $
+                           uncurry parseErrorAtRegion posRegion errMsg
           Right res -> pure res
 
 -- | Parse an amount from a string, or get an error.
@@ -629,7 +674,7 @@ partialbalanceassertionp :: JournalParser m BalanceAssertion
 partialbalanceassertionp = optional $ do
   sourcepos <- try $ do
     lift (skipMany spacenonewline)
-    sourcepos <- genericSourcePos <$> lift getPosition
+    sourcepos <- genericSourcePos <$> lift getSourcePos
     char '='
     pure sourcepos
   lift (skipMany spacenonewline)
@@ -788,9 +833,10 @@ rawnumberp = label "number" $ do
     fail "invalid number (invalid use of separator)"
 
   mExtraFragment <- optional $ lookAhead $ try $
-    char ' ' *> getPosition <* digitChar
+    char ' ' *> getOffset <* digitChar
   case mExtraFragment of
-    Just pos -> parseErrorAt pos "invalid number (excessive trailing digits)"
+    Just off -> customFailure $
+                  parseErrorAt off "invalid number (excessive trailing digits)"
     Nothing -> pure ()
 
   return $ dbg8 "rawnumberp" rawNumber
@@ -1150,19 +1196,19 @@ commenttagsanddatesp mYear = do
 -- default date is provided. A missing year in DATE2 will be inferred
 -- from DATE.
 --
--- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
+-- >>> either (Left . customErrorBundlePretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
 -- Right [("date",2016-01-02),("date2",2016-03-04)]
 --
--- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[1]"
+-- >>> either (Left . customErrorBundlePretty) Right $ rtp (bracketeddatetagsp Nothing) "[1]"
 -- Left ...not a bracketed date...
 --
--- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
--- Left ...1:11:...well-formed but invalid date: 2016/1/32...
+-- >>> either (Left . customErrorBundlePretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
+-- Left ...1:2:...well-formed but invalid date: 2016/1/32...
 --
--- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[1/31]"
--- Left ...1:6:...partial date 1/31 found, but the current year is unknown...
+-- >>> either (Left . customErrorBundlePretty) Right $ rtp (bracketeddatetagsp Nothing) "[1/31]"
+-- Left ...1:2:...partial date 1/31 found, but the current year is unknown...
 --
--- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
+-- >>> either (Left . customErrorBundlePretty) Right $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
 -- Left ...1:13:...expecting month or day...
 --
 bracketeddatetagsp

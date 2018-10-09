@@ -21,7 +21,7 @@ import qualified Data.Text as T
 import Data.Time (Day)
 import Text.Blaze.Internal (Markup, preEscapedString)
 import Text.JSON
-import Text.Megaparsec (eof, parseErrorPretty, runParser)
+import Text.Megaparsec (eof, errorBundlePretty, runParser)
 import Yesod
 
 import Hledger
@@ -131,7 +131,7 @@ validatePostings a b =
     catPostings (t, t', Left (e, e')) xs = (t, t', e, e') : xs
     catPostings (t, t', Right _) xs = (t, t', Nothing, Nothing) : xs
 
-    errorToFormMsg = first (("Invalid value: " <>) . T.pack . parseErrorPretty)
+    errorToFormMsg = first (("Invalid value: " <>) . T.pack . errorBundlePretty)
     validateAccount = errorToFormMsg . runParser (accountnamep <* eof) "" . T.strip
     validateAmount = errorToFormMsg . runParser (evalStateT (amountp <* eof) mempty) "" . T.strip
 

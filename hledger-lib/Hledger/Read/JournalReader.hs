@@ -124,10 +124,10 @@ aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++qu
 -- | A journal parser. Accumulates and returns a "ParsedJournal",
 -- which should be finalised/validated before use.
 --
--- >>> rjp (journalp <* eof) "2015/1/1\n a  0\n"
--- Right Journal  with 1 transactions, 1 accounts
+-- >>> rejp (journalp <* eof) "2015/1/1\n a  0\n"
+-- Right (Right Journal  with 1 transactions, 1 accounts)
 --
-journalp :: MonadIO m => JournalParser m ParsedJournal
+journalp :: MonadIO m => ErroringJournalParser m ParsedJournal
 journalp = do
   many addJournalItemP
   eof
@@ -135,7 +135,7 @@ journalp = do
 
 -- | A side-effecting parser; parses any kind of journal item
 -- and updates the parse state accordingly.
-addJournalItemP :: MonadIO m => JournalParser m ()
+addJournalItemP :: MonadIO m => ErroringJournalParser m ()
 addJournalItemP =
   -- all journal line types can be distinguished by the first
   -- character, can use choice without backtracking
@@ -154,7 +154,7 @@ addJournalItemP =
 -- | Parse any journal directive and update the parse state accordingly.
 -- Cf http://hledger.org/manual.html#directives,
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directivep :: MonadIO m => JournalParser m ()
+directivep :: MonadIO m => ErroringJournalParser m ()
 directivep = (do
   optional $ char '!'
   choice [
@@ -174,78 +174,74 @@ directivep = (do
    ]
   ) <?> "directive"
 
-includedirectivep :: MonadIO m => JournalParser m ()
+includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   string "include"
   lift (skipSome spacenonewline)
   filename <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
 
-  parentpos <- getPosition
+  parentoff <- getOffset
+  parentpos <- getSourcePos
 
-  filepaths <- getFilePaths parentpos filename
+  filepaths <- getFilePaths parentoff parentpos filename
 
   forM_ filepaths $ parseChild parentpos
 
   void newline
 
   where
-    getFilePaths parserpos filename = do
+    getFilePaths
+      :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    getFilePaths parseroff parserpos filename = do
         curdir <- lift $ expandPath (takeDirectory $ sourceName parserpos) ""
                          `orRethrowIOError` (show parserpos ++ " locating " ++ filename)
         -- Compiling filename as a glob pattern works even if it is a literal
         fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename of
             Right x -> pure x
-            Left e -> parseErrorAt parserpos $ "Invalid glob pattern: " ++ e
+            Left e -> customFailure $
+                        parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
         -- Get all matching files in the current working directory, sorting in
         -- lexicographic order to simulate the output of 'ls'.
         filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
         if (not . null) filepaths
             then pure filepaths
-            else parseErrorAt parserpos $ "No existing files match pattern: " ++ filename
+            else customFailure $ parseErrorAt parseroff $
+                   "No existing files match pattern: " ++ filename
 
+    parseChild :: MonadIO m => SourcePos -> FilePath -> ErroringJournalParser m ()
     parseChild parentpos filepath = do
-        parentfilestack <- fmap sourceName . statePos <$> getParserState
-        when (filepath `elem` parentfilestack)
-            $ parseErrorAt parentpos ("Cyclic include: " ++ filepath)
+      parentj <- get
 
-        childInput <- lift $ readFilePortably filepath
-                             `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+      let parentfilestack = jincludefilestack parentj
+      when (filepath `elem` parentfilestack) $
+        fail ("Cyclic include: " ++ filepath)
 
-        -- save parent state
-        parentParserState <- getParserState
-        parentj <- get
+      childInput <- lift $ readFilePortably filepath
+                            `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+      let initChildj = newJournalWithParseStateFrom filepath parentj
 
-        let childj = newJournalWithParseStateFrom parentj
+      let parser = choiceInState
+            [ journalp
+            , timeclockfilep
+            , timedotfilep
+            ] -- can't include a csv file yet, that reader is special
+      updatedChildj <- journalAddFile (filepath, childInput) <$>
+                        parseIncludeFile parser initChildj filepath childInput
 
-        -- set child state
-        setInput childInput
-        pushPosition $ initialPos filepath
-        put childj
+      -- discard child's parse info,  combine other fields
+      put $ updatedChildj <> parentj
 
-        -- parse include file
-        let parsers = [ journalp
-                      , timeclockfilep
-                      , timedotfilep
-                      ] -- can't include a csv file yet, that reader is special
-        updatedChildj <- journalAddFile (filepath, childInput) <$>
-                        region (withSource childInput) (choiceInState parsers)
-
-        -- restore parent state, prepending the child's parse info
-        setParserState parentParserState
-        put $ updatedChildj <> parentj
-        -- discard child's parse info, prepend its (reversed) list data, combine other fields
-
-
-newJournalWithParseStateFrom :: Journal -> Journal
-newJournalWithParseStateFrom j = mempty{
-   jparsedefaultyear      = jparsedefaultyear j
-  ,jparsedefaultcommodity = jparsedefaultcommodity j
-  ,jparseparentaccounts   = jparseparentaccounts j
-  ,jparsealiases          = jparsealiases j
-  ,jcommodities           = jcommodities j
-  -- ,jparsetransactioncount = jparsetransactioncount j
-  ,jparsetimeclockentries = jparsetimeclockentries j
-  }
+    newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
+    newJournalWithParseStateFrom filepath j = mempty{
+      jparsedefaultyear      = jparsedefaultyear j
+      ,jparsedefaultcommodity = jparsedefaultcommodity j
+      ,jparseparentaccounts   = jparseparentaccounts j
+      ,jparsealiases          = jparsealiases j
+      ,jcommodities           = jcommodities j
+      -- ,jparsetransactioncount = jparsetransactioncount j
+      ,jparsetimeclockentries = jparsetimeclockentries j
+      ,jincludefilestack      = filepath : jincludefilestack j
+      }
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
@@ -284,17 +280,17 @@ commoditydirectivep = commoditydirectiveonelinep <|> commoditydirectivemultiline
 -- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
 commoditydirectiveonelinep :: JournalParser m ()
 commoditydirectiveonelinep = do
-  (pos, Amount{acommodity,astyle}) <- try $ do
+  (off, Amount{acommodity,astyle}) <- try $ do
     string "commodity"
     lift (skipSome spacenonewline)
-    pos <- getPosition
+    off <- getOffset
     amount <- amountp
-    pure $ (pos, amount)
+    pure $ (off, amount)
   lift (skipMany spacenonewline)
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
-  then parseErrorAt pos pleaseincludedecimalpoint
+  then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 pleaseincludedecimalpoint :: String
@@ -321,15 +317,15 @@ formatdirectivep :: CommoditySymbol -> JournalParser m AmountStyle
 formatdirectivep expectedsym = do
   string "format"
   lift (skipSome spacenonewline)
-  pos <- getPosition
+  off <- getOffset
   Amount{acommodity,astyle} <- amountp
   _ <- lift followingcommentp
   if acommodity==expectedsym
     then 
       if asdecimalpoint astyle == Nothing
-      then parseErrorAt pos pleaseincludedecimalpoint
+      then customFailure $ parseErrorAt off pleaseincludedecimalpoint
       else return $ dbg2 "style from format subdirective" astyle
-    else parseErrorAt pos $
+    else customFailure $ parseErrorAt off $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
 keywordp :: String -> JournalParser m ()
@@ -371,7 +367,7 @@ basicaliasp = do
   old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
   char '='
   skipMany spacenonewline
-  new <- rstrip <$> anyChar `manyTill` eolof  -- eol in journal, eof in command lines, normally
+  new <- rstrip <$> anySingle `manyTill` eolof  -- eol in journal, eof in command lines, normally
   return $ BasicAlias (T.pack old) (T.pack new)
 
 regexaliasp :: TextParser m AccountAlias
@@ -383,7 +379,7 @@ regexaliasp = do
   skipMany spacenonewline
   char '='
   skipMany spacenonewline
-  repl <- anyChar `manyTill` eolof
+  repl <- anySingle `manyTill` eolof
   return $ RegexAlias re repl
 
 endaliasesdirectivep :: JournalParser m ()
@@ -418,11 +414,11 @@ defaultcommoditydirectivep :: JournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   lift (skipSome spacenonewline)
-  pos <- getPosition
+  off <- getOffset
   Amount{acommodity,astyle} <- amountp
   lift restofline
   if asdecimalpoint astyle == Nothing
-  then parseErrorAt pos pleaseincludedecimalpoint
+  then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 
 marketpricedirectivep :: JournalParser m MarketPrice
@@ -484,17 +480,20 @@ periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift $ skipMany spacenonewline
   -- a period expression
+  off <- getOffset
   pos <- getPosition
   
+  -- if there's a default year in effect, use Y/1/1 as base for partial/relative dates
   today <- liftIO getCurrentDay
   mdefaultyear <- getYear
   let refdate = case mdefaultyear of
                   Nothing -> today 
                   Just y  -> fromGregorian y 1 1
   (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp refdate)
+
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
-    Just e -> parseErrorAt pos e
+    Just e -> customFailure $ parseErrorAt off e
     Nothing -> pure ()
   -- The line can end here, or it can continue with one or more spaces
   -- and then zero or more of the following fields. A bit awkward.
@@ -529,7 +528,7 @@ periodictransactionp = do
 transactionp :: JournalParser m Transaction
 transactionp = do
   -- dbgparse 0 "transactionp"
-  startpos <- getPosition
+  startpos <- getSourcePos
   date <- datep <?> "transaction"
   edate <- optional (lift $ secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
@@ -539,7 +538,7 @@ transactionp = do
   (comment, tags) <- lift transactioncommentp
   let year = first3 $ toGregorian date
   postings <- postingsp (Just year)
-  endpos <- getPosition
+  endpos <- getSourcePos
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
@@ -607,8 +606,9 @@ tests_JournalReader = tests "JournalReader" [
     test "YYYY.MM.DD" $ expectParse datep "2018.01.01"
     test "yearless date with no default year" $ expectParseError datep "1/1" "current year is unknown"
     test "yearless date with default year" $ do 
-      ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep "1/1"
-      either (fail.("parse error at "++).parseErrorPretty) (const ok) ep
+      let s = "1/1"
+      ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep s
+      either (fail.("parse error at "++).customErrorBundlePretty) (const ok) ep
     test "no leading zero" $ expectParse datep "2018/1/1"
 
   ,test "datetimep" $ do
@@ -795,8 +795,8 @@ tests_JournalReader = tests "JournalReader" [
 
   ,tests "directivep" [
     test "supports !" $ do 
-      expectParse directivep "!account a\n"
-      expectParse directivep "!D 1.0\n"
+      expectParseE directivep "!account a\n"
+      expectParseE directivep "!D 1.0\n"
     ]
 
   ,test "accountdirectivep" $ do
@@ -819,8 +819,8 @@ tests_JournalReader = tests "JournalReader" [
      expectParse ignoredpricecommoditydirectivep "N $\n"
 
   ,test "includedirectivep" $ do
-    test "include" $ expectParseError includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
-    test "glob" $ expectParseError includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+    test "include" $ expectParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
+    test "glob" $ expectParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
 
   ,test "marketpricedirectivep" $ expectParseEq marketpricedirectivep
     "P 2017/01/30 BTC $922.83\n"
@@ -839,7 +839,7 @@ tests_JournalReader = tests "JournalReader" [
 
 
   ,tests "journalp" [
-    test "empty file" $ expectParseEq journalp "" nulljournal
+    test "empty file" $ expectParseEqE journalp "" nulljournal
     ]
 
   ]

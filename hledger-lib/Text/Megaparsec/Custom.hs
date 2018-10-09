@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PackageImports #-}
@@ -9,25 +8,44 @@ module Text.Megaparsec.Custom (
   -- * Custom parse error type
   CustomErr,
 
-  -- * Throwing custom parse errors
+  -- * Constructing custom parse errors
   parseErrorAt,
   parseErrorAtRegion,
-  withSource,
 
   -- * Pretty-printing custom parse errors
-  customParseErrorPretty
+  customErrorBundlePretty,
+
+
+  -- * "Final" parse errors
+  FinalParseError,
+  FinalParseError',
+  FinalParseErrorBundle,
+  FinalParseErrorBundle',
+
+  -- * Constructing "final" parse errors
+  finalError,
+  finalFancyFailure,
+  finalFail,
+  finalCustomFailure,
+
+  -- * Pretty-printing "final" parse errors
+  finalErrorBundlePretty,
+  attachSource,
+
+  -- * Handling parse errors from include files with "final" parse errors
+  parseIncludeFile,
 )
 where
 
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (readFile)
 
+import Control.Monad.Except
+import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Foldable (asum, toList)
 import qualified Data.List.NonEmpty as NE
-import Data.Proxy (Proxy (Proxy))
 import qualified Data.Set as S
 import Data.Text (Text)
-import Data.Void (Void)
 import Text.Megaparsec
 
 
@@ -39,13 +57,9 @@ import Text.Megaparsec
 data CustomErr
   -- | Fail with a message at a specific source position interval. The
   -- interval must be contained within a single line.
-  = ErrorFailAt SourcePos -- Starting position
-                Pos -- Ending position (column; same line as start)
+  = ErrorFailAt Int -- Starting offset
+                Int -- Ending offset
                 String -- Error message
-  -- | Attach a source file to a parse error (for error reporting from
-  -- include files, e.g. with the 'region' parser combinator)
-  | ErrorWithSource Text -- Source file contents
-                    (ParseError Char CustomErr) -- The original
   deriving (Show, Eq, Ord)
 
 -- We require an 'Ord' instance for 'CustomError' so that they may be
@@ -53,76 +67,68 @@ data CustomErr
 -- derive it, but this requires an (orphan) instance for 'ParseError'.
 -- Hopefully this does not cause any trouble.
 
-deriving instance (Ord c, Ord e) => Ord (ParseError c e)
+deriving instance (Eq (Token c), Ord (Token c), Ord c, Ord e) => Ord (ParseError c e)
 
 instance ShowErrorComponent CustomErr where
   showErrorComponent (ErrorFailAt _ _ errMsg) = errMsg
-  showErrorComponent (ErrorWithSource _ e) = parseErrorTextPretty e
+  errorComponentLen (ErrorFailAt startOffset endOffset _) =
+    endOffset - startOffset
 
 
---- * Throwing custom parse errors
+--- * Constructing custom parse errors
 
--- | Fail at a specific source position.
+-- | Fail at a specific source position, given by the raw offset from the
+-- start of the input stream (the number of tokens processed at that
+-- point).
 
-parseErrorAt :: MonadParsec CustomErr s m => SourcePos -> String -> m a
-parseErrorAt pos msg = customFailure (ErrorFailAt pos (sourceColumn pos) msg)
-{-# INLINABLE parseErrorAt #-}
+parseErrorAt :: Int -> String -> CustomErr
+parseErrorAt offset msg = ErrorFailAt offset (offset+1) msg
 
--- | Fail at a specific source interval (within a single line). The
--- interval is inclusive on the left and exclusive on the right; that is,
--- it spans from the start position to just before (and not including) the
--- end position.
+-- | Fail at a specific source interval, given by the raw offsets of its
+-- endpoints from the start of the input stream (the numbers of tokens
+-- processed at those points).
+--
+-- Note that care must be taken to ensure that the specified interval does
+-- not span multiple lines of the input source, as this will not be
+-- checked.
 
 parseErrorAtRegion
-  :: MonadParsec CustomErr s m
-  => SourcePos -- ^ Start position
-  -> SourcePos -- ^ End position
-  -> String    -- ^ Error message
-  -> m a
-parseErrorAtRegion startPos endPos msg =
-  let startCol = sourceColumn startPos
-      endCol' = mkPos $ subtract 1 $ unPos $ sourceColumn endPos
-      endCol = if startCol <= endCol'
-                    && sourceLine startPos == sourceLine endPos
-               then endCol' else startCol
-  in  customFailure (ErrorFailAt startPos endCol msg)
-{-# INLINABLE parseErrorAtRegion #-}
-
--- | Attach a source file to a parse error. Intended for use with the
--- 'region' parser combinator.
-
-withSource :: Text -> ParseError Char CustomErr -> ParseError Char CustomErr
-withSource s e =
-  FancyError (errorPos e) $ S.singleton $ ErrorCustom $ ErrorWithSource s e
+  :: Int    -- ^ Start offset
+  -> Int    -- ^ End end offset
+  -> String -- ^ Error message
+  -> CustomErr
+parseErrorAtRegion startOffset endOffset msg =
+  if startOffset < endOffset
+    then ErrorFailAt startOffset endOffset msg
+    else ErrorFailAt startOffset (startOffset+1) msg
 
 
 --- * Pretty-printing custom parse errors
 
 -- | Pretty-print our custom parse errors and display the line on which
--- the parse error occured. Use this instead of 'parseErrorPretty'.
+-- the parse error occured.
 --
--- If any custom errors are present, arbitrarily take the first one (since
--- only one custom error should be used at a time).
+-- Use this instead of 'errorBundlePretty' when custom parse errors are
+-- thrown, otherwise the continuous highlighting in the pretty-printed
+-- parse error will be displaced from its proper position.
 
-customParseErrorPretty :: Text -> ParseError Char CustomErr -> String
-customParseErrorPretty source err = case findCustomError err of
-  Nothing -> customParseErrorPretty' source err pos1
-
-  Just (ErrorWithSource customSource customErr) ->
-    customParseErrorPretty customSource customErr
-
-  Just (ErrorFailAt sourcePos col errMsg) ->
-    let newPositionStack = sourcePos NE.:| NE.tail (errorPos err)
-        errorIntervalLength = mkPos $ max 1 $
-          unPos col - unPos (sourceColumn sourcePos) + 1
-
-        newErr :: ParseError Char Void
-        newErr = FancyError newPositionStack (S.singleton (ErrorFail errMsg))
-
-    in  customParseErrorPretty' source newErr errorIntervalLength
+customErrorBundlePretty :: ParseErrorBundle Text CustomErr -> String
+customErrorBundlePretty errBundle =
+  let errBundle' = errBundle
+        { bundleErrors = fmap setCustomErrorOffset $ bundleErrors errBundle }
+  in  errorBundlePretty errBundle'
 
   where
-    findCustomError :: ParseError Char CustomErr -> Maybe CustomErr
+    setCustomErrorOffset
+      :: ParseError Text CustomErr -> ParseError Text CustomErr
+    setCustomErrorOffset err = case findCustomError err of
+      Nothing -> err
+      Just errFailAt@(ErrorFailAt startOffset _ _) ->
+        FancyError startOffset $ S.singleton $ ErrorCustom errFailAt
+
+    -- If any custom errors are present, arbitrarily take the first one
+    -- (since only one custom error should be used at a time).
+    findCustomError :: ParseError Text CustomErr -> Maybe CustomErr
     findCustomError err = case err of
       FancyError _ errSet -> 
         finds (\case {ErrorCustom e -> Just e; _ -> Nothing}) errSet
@@ -132,117 +138,183 @@ customParseErrorPretty source err = case findCustomError err of
     finds f = asum . map f . toList
 
 
---- * Modified Megaparsec source
-
--- The below code has been copied from Megaparsec (v.6.4.1,
--- Text.Megaparsec.Error) and modified to suit our needs. These changes are
--- indicated by square brackets. The following copyright notice, conditions,
--- and disclaimer apply to all code below this point.
+--- * "Final" parse errors
 --
--- Copyright © 2015–2018 Megaparsec contributors<br>
--- Copyright © 2007 Paolo Martini<br>
--- Copyright © 1999–2000 Daan Leijen
+-- | A type representing "final" parse errors that cannot be backtracked
+-- from and are guaranteed to halt parsing. The anti-backtracking
+-- behaviour is implemented by an 'ExceptT' layer in the parser's monad
+-- stack, using this type as the 'ExceptT' error type.
 --
--- All rights reserved.
+-- We have three goals for this type:
+-- (1) it should be possible to convert any parse error into a "final"
+-- parse error,
+-- (2) it should be possible to take a parse error thrown from an include
+-- file and re-throw it in the parent file, and
+-- (3) the pretty-printing of "final" parse errors should be consistent
+-- with that of ordinary parse errors, but should also report a stack of
+-- files for errors thrown from include files.
 --
--- Redistribution and use in source and binary forms, with or without
--- modification, are permitted provided that the following conditions are met:
+-- In order to pretty-print a "final" parse error (goal 3), it must be
+-- bundled with include filepaths and its full source text. When a "final"
+-- parse error is thrown from within a parser, we do not have access to
+-- the full source, so we must hold the parse error until it can be joined
+-- with its source (and include filepaths, if it was thrown from an
+-- include file) by the parser's caller.
 --
--- * Redistributions of source code must retain the above copyright notice,
---   this list of conditions and the following disclaimer.
+-- A parse error with include filepaths and its full source text is
+-- represented by the 'FinalParseErrorBundle' type, while a parse error in
+-- need of either include filepaths, full source text, or both is
+-- represented by the 'FinalParseError' type.
+
+data FinalParseError' e
+  -- a parse error thrown as a "final" parse error
+  = FinalError           (ParseError Text e)
+  -- a parse error obtained from running a parser, e.g. using 'runParserT'
+  | FinalBundle          (ParseErrorBundle Text e)
+  -- a parse error thrown from an include file
+  | FinalBundleWithStack (FinalParseErrorBundle' e)
+  deriving (Show)
+
+type FinalParseError = FinalParseError' CustomErr
+
+-- We need a 'Monoid' instance for 'FinalParseError' so that 'ExceptT
+-- FinalParseError m' is an instance of Alternative and MonadPlus, which
+-- is needed to use some parser combinators, e.g. 'many'.
 --
--- * Redistributions in binary form must reproduce the above copyright notice,
---   this list of conditions and the following disclaimer in the documentation
---   and/or other materials provided with the distribution.
+-- This monoid instance simply takes the first (left-most) error.
+
+instance Semigroup (FinalParseError' e) where
+  e <> _ = e
+
+instance Monoid (FinalParseError' e) where
+  mempty = FinalError $ FancyError 0 $
+            S.singleton (ErrorFail "default parse error")
+  mappend = (<>)
+
+-- | A type bundling a 'ParseError' with its full source text, filepath,
+-- and stack of include files. Suitable for pretty-printing.
 --
--- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS “AS IS” AND ANY EXPRESS
--- OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
--- OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
--- NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT,
--- INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
--- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
--- OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
--- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
--- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
--- EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-- Megaparsec's 'ParseErrorBundle' type already bundles a parse error with
+-- its full source text and filepath, so we just add a stack of include
+-- files.
+
+data FinalParseErrorBundle' e = FinalParseErrorBundle'
+  { finalErrorBundle :: ParseErrorBundle Text e
+  , includeFileStack :: [FilePath]
+  } deriving (Show)
+
+type FinalParseErrorBundle = FinalParseErrorBundle' CustomErr
 
 
--- | Pretty-print a 'ParseError Char CustomErr' and display the line on
--- which the parse error occurred. The rendered 'String' always ends with
--- a newline.
+--- * Constructing and throwing final parse errors
 
-customParseErrorPretty'
-  :: ( ShowToken (Token s)
-     , LineToken (Token s)
-     , ShowErrorComponent e
-     , Stream s )
-  => s                 -- ^ Original input stream
-  -> ParseError (Token s) e -- ^ Parse error to render
-  -> Pos               -- ^ Length of error interval [added]
-  -> String            -- ^ Result of rendering
-customParseErrorPretty' = customParseErrorPretty_ defaultTabWidth
+-- | Convert a "regular" parse error into a "final" parse error.
+
+finalError :: ParseError Text e -> FinalParseError' e
+finalError = FinalError
+
+-- | Like megaparsec's 'fancyFailure', but as a "final" parse error.
+
+finalFancyFailure
+  :: (MonadParsec e s m, MonadError (FinalParseError' e) m)
+  => S.Set (ErrorFancy e) -> m a
+finalFancyFailure errSet = do
+  offset <- getOffset
+  throwError $ FinalError $ FancyError offset errSet
+
+-- | Like 'fail', but as a "final" parse error.
+
+finalFail
+  :: (MonadParsec e s m, MonadError (FinalParseError' e) m) => String -> m a
+finalFail = finalFancyFailure . S.singleton . ErrorFail
+
+-- | Like megaparsec's 'customFailure', but as a "final" parse error.
+
+finalCustomFailure
+  :: (MonadParsec e s m, MonadError (FinalParseError' e) m) => e -> m a
+finalCustomFailure = finalFancyFailure . S.singleton . ErrorCustom
 
 
-customParseErrorPretty_
-  :: forall s e.
-     ( ShowToken (Token s)
-     , LineToken (Token s)
-     , ShowErrorComponent e
-     , Stream s )
-  => Pos               -- ^ Tab width
-  -> s                 -- ^ Original input stream
-  -> ParseError (Token s) e -- ^ Parse error to render
-  -> Pos               -- ^ Length of error interval [added]
-  -> String            -- ^ Result of rendering
-customParseErrorPretty_ w s e l =
-  sourcePosStackPretty (errorPos e) <> ":\n" <>
-    padding <> "|\n" <>
-    lineNumber <> " | " <> rline <> "\n" <>
-    padding <> "| " <> rpadding <> highlight <> "\n" <> -- [added `highlight`]
-    parseErrorTextPretty e
+--- * Pretty-printing "final" parse errors
+
+-- | Pretty-print a "final" parse error: print the stack of include files,
+-- then apply the pretty-printer for parse error bundles. Note that
+-- 'attachSource' must be used on a "final" parse error before it can be
+-- pretty-printed.
+
+finalErrorBundlePretty :: FinalParseErrorBundle' CustomErr -> String
+finalErrorBundlePretty bundle =
+     concatMap showIncludeFilepath (includeFileStack bundle)
+  <> customErrorBundlePretty (finalErrorBundle bundle)
   where
-    epos       = NE.head (errorPos e) -- [changed from NE.last to NE.head]
-    lineNumber = (show . unPos . sourceLine) epos
-    padding    = replicate (length lineNumber + 1) ' '
-    rpadding   = replicate (unPos (sourceColumn epos) - 1) ' '
-    highlight  = replicate (unPos l) '^' -- [added]
-    rline      =
-      case rline' of
-        [] -> "<empty line>"
-        xs -> expandTab w xs
-    rline'     = fmap tokenAsChar . chunkToTokens (Proxy :: Proxy s) $
-      selectLine (sourceLine epos) s
+    showIncludeFilepath path = "in file included from " <> path <> ",\n"
 
--- | Select a line from input stream given its number.
+-- | Supply a filepath and source text to a "final" parse error so that it
+-- can be pretty-printed. You must ensure that you provide the appropriate
+-- source text and filepath.
 
-selectLine
-  :: forall s. (LineToken (Token s), Stream s)
-  => Pos               -- ^ Number of line to select
-  -> s                 -- ^ Input stream
-  -> Tokens s          -- ^ Selected line
-selectLine l = go pos1
+attachSource
+  :: FilePath -> Text -> FinalParseError' e -> FinalParseErrorBundle' e
+attachSource filePath sourceText finalParseError = case finalParseError of
+
+  -- A parse error thrown directly with the 'FinalError' constructor
+  -- requires both source and filepath.
+  FinalError parseError ->
+    let bundle = ParseErrorBundle
+          { bundleErrors = parseError NE.:| []
+          , bundlePosState = initialPosState filePath sourceText }
+    in  FinalParseErrorBundle'
+          { finalErrorBundle = bundle
+          , includeFileStack  = [] }
+
+  -- A 'ParseErrorBundle' already has the appropriate source and filepath
+  -- and so needs neither.
+  FinalBundle peBundle -> FinalParseErrorBundle'
+    { finalErrorBundle = peBundle
+    , includeFileStack = [] }
+
+  -- A parse error from a 'FinalParseErrorBundle' was thrown from an
+  -- include file, so we add the filepath to the stack.
+  FinalBundleWithStack fpeBundle -> fpeBundle
+    { includeFileStack = filePath : includeFileStack fpeBundle }
+
+
+--- * Handling parse errors from include files with "final" parse errors
+
+-- | Parse a file with the given parser and initial state, discarding the
+-- final state and re-throwing any parse errors as "final" parse errors.
+
+parseIncludeFile
+  :: Monad m
+  => StateT st (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
+  -> st
+  -> FilePath
+  -> Text
+  -> StateT st (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
+parseIncludeFile parser initialState filepath text =
+  catchError parser' handler
   where
-    go !n !s =
-      if n == l
-        then fst (takeWhile_ notNewline s)
-        else go (n <> pos1) (stripNewline $ snd (takeWhile_ notNewline s))
-    notNewline = not . tokenIsNewline
-    stripNewline s =
-      case take1_ s of
-        Nothing -> s
-        Just (_, s') -> s'
+    parser' = do
+      eResult <- lift $ lift $
+                  runParserT (evalStateT parser initialState) filepath text
+      case eResult of
+        Left parseErrorBundle -> throwError $ FinalBundle parseErrorBundle
+        Right result -> pure result
 
--- | Replace tab characters with given number of spaces.
+    -- Attach source and filepath of the include file to its parse errors
+    handler e = throwError $ FinalBundleWithStack $ attachSource filepath text e
 
-expandTab
-  :: Pos
-  -> String
-  -> String
-expandTab w' = go 0
-  where
-    go 0 []        = []
-    go 0 ('\t':xs) = go w xs
-    go 0 (x:xs)    = x : go 0 xs
-    go !n xs       = ' ' : go (n - 1) xs
-    w              = unPos w'
 
+--- * Helpers
+
+-- Like megaparsec's 'initialState', but instead for 'PosState'. Used when
+-- constructing 'ParseErrorBundle's. The values for "tab width" and "line
+-- prefix" are taken from 'initialState'.
+
+initialPosState :: FilePath -> Text -> PosState Text
+initialPosState filePath sourceText = PosState
+  { pstateInput      = sourceText
+  , pstateOffset     = 0
+  , pstateSourcePos  = initialPos filePath
+  , pstateTabWidth   = defaultTabWidth
+  , pstateLinePrefix = "" }

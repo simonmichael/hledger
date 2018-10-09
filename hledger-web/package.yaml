@@ -114,7 +114,7 @@ library:
   - http-conduit
   - http-client
   - json
-  - megaparsec >=6.4.1 && < 7
+  - megaparsec >=7.0.0 && <8
   - mtl
   - semigroups
   - shakespeare >=2.0.2.2

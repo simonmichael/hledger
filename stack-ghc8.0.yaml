@@ -20,7 +20,8 @@ extra-deps:
 - base-compat-0.10.1
 - base-compat-batteries-0.10.1
 - bifunctors-5.5.2
-- cassava-megaparsec-1.0.0
+- cassava-megaparsec-2.0.0
+- config-ini-0.2.3.0
 - criterion-1.4.1.0
 - doctest-0.16.0
 - generics-sop-0.3.2.0
@@ -29,11 +30,11 @@ extra-deps:
 - http-types-0.12.1
 - insert-ordered-containers-0.2.1.0
 - lens-4.16.1
-- megaparsec-6.4.1
+- megaparsec-7.0.1
 - microstache-1.0.1.1
 - mmorph-1.1.2
 - network-2.6.3.5
-- parser-combinators-0.4.0
+- parser-combinators-1.0.0
 - persistent-template-2.5.4
 - scientific-0.3.6.2
 - servant-0.13.0.1

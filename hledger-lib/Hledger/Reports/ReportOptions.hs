@@ -48,7 +48,7 @@ import Data.Default
 import Safe
 import System.Console.ANSI (hSupportsANSI)
 import System.IO (stdout)
-import Text.Megaparsec.Error
+import Text.Megaparsec.Custom
 
 import Hledger.Data
 import Hledger.Query
@@ -240,11 +240,11 @@ beginDatesFromRawOpts d = catMaybes . map (begindatefromrawopt d)
   where
     begindatefromrawopt d (n,v)
       | n == "begin" =
-          either (\e -> usageError $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
+          either (\e -> usageError $ "could not parse "++n++" date: "++customErrorBundlePretty e) Just $
           fixSmartDateStrEither' d (T.pack v)
       | n == "period" =
         case
-          either (\e -> usageError $ "could not parse period option: "++parseErrorPretty e) id $
+          either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) id $
           parsePeriodExpr d (stripquotes $ T.pack v)
         of
           (_, DateSpan (Just b) _) -> Just b
@@ -258,11 +258,11 @@ endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
   where
     enddatefromrawopt d (n,v)
       | n == "end" =
-          either (\e -> usageError $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
+          either (\e -> usageError $ "could not parse "++n++" date: "++customErrorBundlePretty e) Just $
           fixSmartDateStrEither' d (T.pack v)
       | n == "period" =
         case
-          either (\e -> usageError $ "could not parse period option: "++parseErrorPretty e) id $
+          either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) id $
           parsePeriodExpr d (stripquotes $ T.pack v)
         of
           (_, DateSpan _ (Just e)) -> Just e
@@ -276,7 +276,7 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
   where
     intervalfromrawopt (n,v)
       | n == "period" =
-          either (\e -> usageError $ "could not parse period option: "++parseErrorPretty e) (Just . fst) $
+          either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) (Just . fst) $
           parsePeriodExpr nulldate (stripquotes $ T.pack v) -- reference date does not affect the interval
       | n == "daily"     = Just $ Days 1
       | n == "weekly"    = Just $ Weeks 1

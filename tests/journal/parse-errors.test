@@ -12,7 +12,7 @@ hledger: -:1:5:
 1 | 2018
   |     ^
 unexpected newline
-expecting date separator or the rest of year or month
+expecting date separator or digit
 
 >=1
 

@@ -77,6 +77,7 @@ where
 
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat
+import Control.Applicative.Permutations
 import Control.Monad
 import "base-compat-batteries" Data.List.Compat
 import Data.Default
@@ -96,7 +97,7 @@ import Data.Time.LocalTime
 import Safe (headMay, lastMay, readMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
-import Text.Megaparsec.Perm
+import Text.Megaparsec.Custom
 import Text.Printf
 
 import Hledger.Data.Types
@@ -314,13 +315,14 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
-parsePeriodExpr :: Day -> Text -> Either (ParseError Char CustomErr) (Interval, DateSpan)
+parsePeriodExpr
+  :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) (Interval, DateSpan)
 parsePeriodExpr refdate s = parsewith (periodexprp refdate <* eof) (T.toLower s)
 
 -- | Like parsePeriodExpr, but call error' on failure.
 parsePeriodExpr' :: Day -> Text -> (Interval, DateSpan)
 parsePeriodExpr' refdate s =
-  either (error' . ("failed to parse:" ++) . parseErrorPretty) id $
+  either (error' . ("failed to parse:" ++) . customErrorBundlePretty) id $
   parsePeriodExpr refdate s
 
 maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
@@ -380,13 +382,14 @@ fixSmartDateStr :: Day -> Text -> String
 fixSmartDateStr d s = either
                        (\e->error' $ printf "could not parse date %s %s" (show s) (show e))
                        id
-                       $ (fixSmartDateStrEither d s :: Either (ParseError Char CustomErr) String)
+                       $ (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text CustomErr) String)
 
 -- | A safe version of fixSmartDateStr.
-fixSmartDateStrEither :: Day -> Text -> Either (ParseError Char CustomErr) String
+fixSmartDateStrEither :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) String
 fixSmartDateStrEither d = either Left (Right . showDate) . fixSmartDateStrEither' d
 
-fixSmartDateStrEither' :: Day -> Text -> Either (ParseError Char CustomErr) Day
+fixSmartDateStrEither'
+  :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) Day
 fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
                                Right sd -> Right $ fixSmartDate d sd
                                Left e -> Left e
@@ -987,7 +990,9 @@ reportingintervalp = choice' [
                           return $ DayOfMonth n,
                        do string' "every"
                           let mnth = choice' [month, mon] >>= \(_,m,_) -> return (read m)
-                          d_o_y <- makePermParser $ DayOfYear <$$> try (skipMany spacenonewline *> mnth) <||> try (skipMany spacenonewline *> nth)
+                          d_o_y <- runPermutation $
+                            DayOfYear <$> toPermutation (try (skipMany spacenonewline *> mnth))
+                                      <*> toPermutation (try (skipMany spacenonewline *> nth))
                           optOf_ "year"
                           return d_o_y,
                        do string' "every"

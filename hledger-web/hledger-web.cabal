@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3a93b8df7229c5b65b88f7003205c93bcc295013203a85e0ed937303c18d8c84
+-- hash: 443e668fdd64fb57d1d9488224df0bc6ee4e796bcc75f81655a92850ff809d34
 
 name:           hledger-web
 version:        1.11.99
@@ -127,8 +127,6 @@ flag threaded
   default: True
 
 library
-  hs-source-dirs:
-      ./.
   exposed-modules:
       Hledger.Web
       Hledger.Web.Application
@@ -148,6 +146,8 @@ library
       Hledger.Web.Widget.Common
   other-modules:
       Paths_hledger_web
+  hs-source-dirs:
+      ./.
   ghc-options: -Wall -fwarn-tabs
   cpp-options: -DVERSION="1.11.99"
   build-depends:
@@ -169,7 +169,7 @@ library
     , http-client
     , http-conduit
     , json
-    , megaparsec >=6.4.1 && <7
+    , megaparsec >=7.0.0 && <8
     , mtl
     , semigroups
     , shakespeare >=2.0.2.2

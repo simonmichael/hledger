@@ -225,7 +225,7 @@ plogAt lvl
 -- (position and next input) to the console. (See also megaparsec's dbg.)
 traceParse :: String -> TextParser m ()
 traceParse msg = do
-  pos <- getPosition
+  pos <- getSourcePos
   next <- (T.take peeklength) `fmap` getInput
   let (l,c) = (sourceLine pos, sourceColumn pos)
       s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String

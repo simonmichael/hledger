@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fc4b42dee35f79a4fed845e87b2e5c08b3c68466fe1cf59d952e6be4f15df413
+-- hash: 78515e93d6f08be6d098bdd697b951a1577e4e71c6b24ad64cf69916d3af191c
 
 name:           hledger
 version:        1.11.99
@@ -131,7 +131,7 @@ library
     , here
     , hledger-lib >=1.11.99 && <1.12
     , lucid
-    , megaparsec >=6.4.1 && <7
+    , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
     , old-time
@@ -182,7 +182,7 @@ executable hledger
     , here
     , hledger
     , hledger-lib >=1.11.99 && <1.12
-    , megaparsec >=6.4.1 && <7
+    , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
     , old-time
@@ -236,7 +236,7 @@ test-suite test
     , here
     , hledger
     , hledger-lib >=1.11.99 && <1.12
-    , megaparsec >=6.4.1 && <7
+    , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
     , old-time
@@ -291,7 +291,7 @@ benchmark bench
     , hledger
     , hledger-lib >=1.11.99 && <1.12
     , html
-    , megaparsec >=6.4.1 && <7
+    , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
     , old-time

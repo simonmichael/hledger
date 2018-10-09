@@ -112,8 +112,8 @@ esHandle _ _ = error "event handler called with wrong screen type, should not ha
 -- Temporary, we should keep the original parse error location. XXX
 hledgerparseerrorpositionp :: ParsecT Void String t (String, Int, Int)
 hledgerparseerrorpositionp = do
-  anyChar `manyTill` char '"'
-  f <- anyChar `manyTill` (oneOf ['"','\n'])
+  anySingle `manyTill` char '"'
+  f <- anySingle `manyTill` (oneOf ['"','\n'])
   string " (line "
   l <- read <$> some digitChar
   string ", column "

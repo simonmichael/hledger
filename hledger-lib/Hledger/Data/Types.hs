@@ -366,6 +366,7 @@ data Journal = Journal {
   ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
   ,jparsetimeclockentries :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
+  ,jincludefilestack      :: [FilePath]
   -- principal data
   ,jdeclaredaccounts      :: [AccountName]                          -- ^ Accounts declared by account directives, in parse order (after journal finalisation) 
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
