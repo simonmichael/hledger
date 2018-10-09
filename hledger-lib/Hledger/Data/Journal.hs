@@ -636,8 +636,8 @@ discriminateByDate tx
   | True                         = do
       when (any (isJust . pdate) $ tpostings tx) $
         throwError $ unlines $
-        ["Not supported: Transactions with balance assignments "
-        ,"AND dated postings without amount:\n"
+        ["Sorry, a dated posting with a balance assignment and no explicit amount is not"
+        ,"allowed. Write the amount, or remove the posting date or balance assignment:\n"
         , showTransaction tx]
       return 
         [(tdate tx, Right $ tx { tpostings = removePrices <$> tpostings tx })]
