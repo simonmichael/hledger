@@ -222,17 +222,17 @@ hledger -f - stats
 >>> /Transactions/
 >>>2
 >>>=0
-# 12. Having both assignements and posting dates is not supported.
+# 12. Having both assignments and posting dates is not supported.
 hledger -f - stats
 <<<
 2013/1/1
   a    $1  =$1
   b         =$-1  ; date:2012/1/1
 
->>>2  /Not supported/
+>>>2  /postings may not have both a custom date and a balance assignment/
 >>>=1
 
-# 13. Having both assignements and posting dates is not supported.
+# 13. Having both assignments and posting dates is not supported.
 hledger -f - stats
 <<<
 
@@ -246,7 +246,7 @@ hledger -f - stats
   d      = 3
 
 
->>>2  /Not supported/
+>>>2  /postings may not have both a custom date and a balance assignment/
 >>>=1
 
 # 14. Posting Date
