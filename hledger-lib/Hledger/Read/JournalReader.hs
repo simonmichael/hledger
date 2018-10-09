@@ -481,7 +481,6 @@ periodictransactionp = do
   lift $ skipMany spacenonewline
   -- a period expression
   off <- getOffset
-  pos <- getSourcePos
   
   -- if there's a default year in effect, use Y/1/1 as base for partial/relative dates
   today <- liftIO getCurrentDay
