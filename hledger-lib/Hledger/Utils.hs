@@ -4,7 +4,7 @@ Standard imports and utilities which are useful everywhere, or needed low
 in the module hierarchy. This is the bottom of hledger's module graph.
 
 -}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 
 module Hledger.Utils (---- provide these frequently used modules - or not, for clearer api:
                           -- module Control.Monad,
@@ -143,12 +143,15 @@ applyN n f | n < 1     = id
 -- Can raise an error.
 expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
-expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandPath' p
-  where
-    expandPath' ('~':'/':p)  = (</> p) <$> getHomeDirectory
-    expandPath' ('~':'\\':p) = (</> p) <$> getHomeDirectory
-    expandPath' ('~':_)      = ioError $ userError "~USERNAME in paths is not supported"
-    expandPath' p            = return p
+expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandHomePath p
+
+-- | Expand user home path indicated by tilde prefix
+expandHomePath :: FilePath -> IO FilePath
+expandHomePath = \case
+    ('~':'/':p)  -> (</> p) <$> getHomeDirectory
+    ('~':'\\':p) -> (</> p) <$> getHomeDirectory
+    ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
+    p            -> return p
 
 firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
