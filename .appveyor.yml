@@ -41,10 +41,13 @@ install:
 #- dir
 
 # install latest stack release
-# - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-# - 7z x stack.zip stack.exe
-# - copy stack.exe stack-release.exe
-# - stack --version
+#- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+#- 7z x stack.zip stack.exe
+
+# install latest stack prerelease
+- curl -skLO https://github.com/commercialhaskell/stack/releases/download/v1.9.0.1/stack-1.9.0.1-windows-x86_64.tar.gz
+- 7z x stack-1.9.0.1-windows-x86_64.tar.gz -so | 7z e -si -ttar stack-1.9.0.1-windows-x86_64/stack.exe -aoa
+- stack --version
 
 # install latest stack 4125-cabal-style-build-tools branch
 # - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
@@ -53,24 +56,25 @@ install:
 # - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack.exe
 
 # install latest stack master
-- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
+#- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 # show the stack-installed binares that were restored from cache, can vary by instance
-- dir C:\Users\appveyor\AppData\Roaming\local\bin
+#- dir C:\Users\appveyor\AppData\Roaming\local\bin
 # - stack-release upgrade --git
 #- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-master.exe
 # - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack.exe
-- stack --version
+#- stack --version
 
 #- dir
 
 #
 # install ghc
 #- stack setup
-# use ghc 8.2 to avoid a hledger-web -> network/stack build issue on windows,
-# network 2.7.0.1 should work around it when released
+# use ghc 8.2 to avoid hledger-web -> network/stack/ghc/windows build issue
 # https://github.com/haskell/network/issues/313
 # https://github.com/commercialhaskell/stack/issues/3944
-- stack --stack-yaml=stack-ghc8.2.yaml setup
+# network 2.7.0.1 is supposed to work around it
+- stack setup --stack-yaml=stack-ghc8.2.yaml 
+#- stack setup
 #- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 #- stack install shelltestrunner
 
@@ -79,9 +83,13 @@ install:
 # hledger-ui's vty dep isn't available on windows
 # hledger-api not tried recently 
 build_script:
-#- stack build --test --copy-bins --local-bin-path=. hledger hledger-web
-- stack build --test --copy-bins --local-bin-path=. hledger hledger-web --stack-yaml=stack-ghc8.2.yaml
+# use network 2.7.0.1+ to avoid https://github.com/haskell/network/issues/313
+#- stack build --test --copy-bins --local-bin-path=. hledger hledger-web network-2.7.0.2
+# use ghc 8.2 to avoid hledger-web -> network/stack/ghc/windows build issue
+# don't run test suites to avoid easytest/windows utf8 issue
+- stack build --copy-bins --local-bin-path=. hledger hledger-web --stack-yaml=stack-ghc8.2.yaml 
 - 7z a -tzip hledger.zip hledger.exe hledger-web.exe
+
 #- hledger-install/hledger-install.sh
 #- make stacktest
 

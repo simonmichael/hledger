@@ -554,7 +554,7 @@ checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt
             (case ptransaction p of
                Nothing -> ":" -- shouldn't happen
                Just t ->  printf " in %s:\nin transaction:\n%s"
-                          (showGenericSourcePos pos) (chomp $ show t) :: String
+                          (showGenericSourcePos pos) (chomp $ showTransaction t) :: String
                             where pos = snd $ fromJust $ pbalanceassertion p)
             (showPostingLine p)
             (showDate $ postingDate p)

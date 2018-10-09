@@ -104,3 +104,22 @@ hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
 2017/01/01                      assets:cash                 $10000         $9390
 >>>2
 >>>=0
+
+# TODO
+# 5. Y should affect the partial date in this periodic transaction.
+# Also the recur tag's value ?
+#hledger -f - print --forecast desc:forecast
+#<<<
+#Y 2000
+#
+#~ 2/1 forecast
+#
+#; a real transaction to set --forecast's start date
+#2000/1/1 real
+#
+#>>>
+#2000/02/01 forecast
+#    ; recur: 2000/2/1
+#
+#>>>2
+#>>>=0

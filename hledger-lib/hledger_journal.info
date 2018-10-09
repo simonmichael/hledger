@@ -4,7 +4,7 @@ stdin.
 
 File: hledger_journal.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_journal(5) hledger 1.10.99
+hledger_journal(5) hledger 1.11.99
 **********************************
 
 hledger's usual data source is a plain text file containing journal

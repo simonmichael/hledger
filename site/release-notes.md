@@ -57,15 +57,14 @@ is updated frequently; here are the
 [latest changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh).
 
 
-<!--
+
 ## Latest minor release
 
-<http://hackage.haskell.org/package/hledger-lib-1.9.1/changelog>  
-<http://hackage.haskell.org/package/hledger-1.9.1/changelog>  
-<http://hackage.haskell.org/package/hledger-ui-1.9.1/changelog>  
-<http://hackage.haskell.org/package/hledger-web-1.9.2/changelog>  
-<http://hackage.haskell.org/package/hledger-api-1.9.1/changelog>  
--->
+<http://hackage.haskell.org/package/hledger-lib-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-ui-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-web-1.11.1/changelog>  
+<http://hackage.haskell.org/package/hledger-api-1.11.1/changelog>  
 
 
 ## 2018/9/30 hledger 1.11
@@ -81,9 +80,9 @@ fixes
 
   <!-- [project](#project-wide-changes-for-1.11) -->
   [hledger](#hledger-1.11-1)
-<!-- | [hledger-ui](#hledger-ui-1.11) -->
-<!-- | [hledger-web](#hledger-web-1.11) -->
-<!-- | [hledger-api](#hledger-api-1.11) -->
+| [hledger-ui](#hledger-ui-1.11)
+| [hledger-web](#hledger-web-1.11)
+| [hledger-api](#hledger-api-1.11)
 | [hledger-lib](#hledger-lib-1.11)
 | [credits](#credits-1.11)
 
@@ -115,7 +114,7 @@ fixes
 * prices: query arguments are now supported. Prices can be filtered by
   date, and postings providing transaction prices can also be filtered.
 
-* rewrite: help clarifies relation to print --auto (#745)
+* rewrite: help clarifies relation to print --auto ([#745](https://github.com/simonmichael/hledger/issues/745))
 
 * roi: a new command to compute return on investment, based on hledger-irr
 
@@ -124,7 +123,7 @@ fixes
 
 * csv: We use a more robust CSV lib (cassava) and now support
   non-comma separators, eg --separator ';' (experimental, this flag
-  will probably become a CSV rule) (#829)
+  will probably become a CSV rule) ([#829](https://github.com/simonmichael/hledger/issues/829))
 
 * csv: interpolated field names in values are now properly case insensitive, so
   this works:
@@ -133,20 +132,36 @@ fixes
   date %Transaction_Date
 
 * journal: D (default commodity) directives no longer break multiplier
-  amounts in transaction modifiers (AKA automated postings) (#860)
+  amounts in transaction modifiers (AKA automated postings) ([#860](https://github.com/simonmichael/hledger/issues/860))
 
 * journal: "Automated Postings" have been renamed to "Transaction Modifiers".
 
-* journal: transaction comments in transaction modifier rules are now parsed correctly. (#745)
+* journal: transaction comments in transaction modifier rules are now parsed correctly. ([#745](https://github.com/simonmichael/hledger/issues/745))
 
 * journal: when include files form a cycle, we give an error instead
   of hanging.
 
-* upper-case day/month names in period expressions no longer give an error (#847, #852)
+* upper-case day/month names in period expressions no longer give an error ([#847](https://github.com/simonmichael/hledger/issues/847), [#852](https://github.com/simonmichael/hledger/issues/852))
+
+
+### hledger-ui 1.11
+
+* uses hledger-lib 1.11
+
+
+### hledger-web 1.11
+
+* uses hledger-lib 1.11
+
+
+### hledger-api 1.11
+
+* uses hledger-lib 1.11
+
 
 ### hledger-lib 1.11
 
-* compilation now works when locale is unset (#849)
+* compilation now works when locale is unset ([#849](https://github.com/simonmichael/hledger/issues/849))
 
 * all unit tests have been converted from HUnit+test-framework to easytest
 
@@ -260,7 +275,7 @@ misc fixes
 
 * readJournalFile(s) cleanup, these now use InputOpts
 
-* doctests now run a bit faster (#802)
+* doctests now run a bit faster ([#802](https://github.com/simonmichael/hledger/issues/802))
 
 
 ### hledger 1.10
@@ -268,16 +283,16 @@ misc fixes
 * journal: many parse error messages have become more informative, and
   some now show the source line and error location.
 
-* journal: `;tag:` is no longer parsed as a tag named ";tag" (#655)
+* journal: `;tag:` is no longer parsed as a tag named ";tag" ([#655](https://github.com/simonmichael/hledger/issues/655))
 
 * journal: transaction price amounts having their own price amounts is
   now a parse error
 
 * journal: amounts with space as digit group separator and trailing whitespace 
-  now parse correctly (#780)
+  now parse correctly ([#780](https://github.com/simonmichael/hledger/issues/780))
 
 * journal: in amounts containing digits and a single space, the space
-  is now interpreted as a digit group separator, not a decimal separator (#749)
+  is now interpreted as a digit group separator, not a decimal separator ([#749](https://github.com/simonmichael/hledger/issues/749))
 
 * journal: in commodity/format/D directives, the amount must now include a decimal separator.
 
@@ -298,7 +313,7 @@ misc fixes
   semantics, especially with multiple files.  The manual now describes
   their behaviour precisely.
 
-* journal: `alias` and `apply account` directives now affect `account` directives (#825)
+* journal: `alias` and `apply account` directives now affect `account` directives ([#825](https://github.com/simonmichael/hledger/issues/825))
 
 * journal: periodic transactions can now have all the usual transaction fields
   (status mark, code, description, comment), for generating more expressive
@@ -308,18 +323,18 @@ misc fixes
   expression attached as a tag named "recur".
 
 * journal: periodic transactions now start on the first instance of the 
-  recurring date, rather than the day after the last regular transaction (#750)
+  recurring date, rather than the day after the last regular transaction ([#750](https://github.com/simonmichael/hledger/issues/750))
 
 * journal: periodic transaction rules now allow period expressions relative to today's date
 
 * csv: amount-in/amount-out errors are more detailed
 
 * balance: --drop is now ignored when not in flat mode, 
-  rather than producing a corrupted report (#754)
+  rather than producing a corrupted report ([#754](https://github.com/simonmichael/hledger/issues/754))
 
 * budget: --drop now preserves the <unbudgeted> top-level account in --budget reports
 
-* register: in CSV output, the code field is now included (#746)
+* register: in CSV output, the code field is now included ([#746](https://github.com/simonmichael/hledger/issues/746))
 
 * smart dates now allow  the YYYYMM format, and are better documented
 
@@ -328,7 +343,7 @@ misc fixes
 
 ### hledger-ui 1.10
 
-* the effect of --value, --forecast, and --anon flags is now preserved on reload (#753)
+* the effect of --value, --forecast, and --anon flags is now preserved on reload ([#753](https://github.com/simonmichael/hledger/issues/753))
 
 * edit-at-transaction-position is now also supported when $EDITOR is neovim
 
@@ -422,7 +437,7 @@ found when reading files.
 customize sorting.  bal/bs/cf/is will sort accounts by account code,
 if any, then account name.
 
-* journal: support scientific number notation (#704, #706)
+* journal: support scientific number notation ([#704](https://github.com/simonmichael/hledger/issues/704), [#706](https://github.com/simonmichael/hledger/issues/706))
 
 * csv: reading a CSV file containing no records is no longer an error
 
@@ -530,23 +545,23 @@ Alvaro Fernando García.
 
 ### hledger-lib 1.5
 
-* -V/--value uses today's market prices by default, not those of last transaction date. #683, #648)
+* -V/--value uses today's market prices by default, not those of last transaction date. [#683](https://github.com/simonmichael/hledger/issues/683), [#648](https://github.com/simonmichael/hledger/issues/648))
 
 * csv: allow balance assignment (balance assertion only, no amount) in csv records (Nadrieril)
 
-* journal: allow space as digit group separator character, #330 (Mykola Orliuk)
+* journal: allow space as digit group separator character, [#330](https://github.com/simonmichael/hledger/issues/330) (Mykola Orliuk)
 
-* journal: balance assertion errors now show line of failed assertion posting, #481 (Sam Jeeves)
+* journal: balance assertion errors now show line of failed assertion posting, [#481](https://github.com/simonmichael/hledger/issues/481) (Sam Jeeves)
 
-* journal: better errors for directives, #402 (Mykola Orliuk)
+* journal: better errors for directives, [#402](https://github.com/simonmichael/hledger/issues/402) (Mykola Orliuk)
 
-* journal: better errors for included files, #660 (Mykola Orliuk)
+* journal: better errors for included files, [#660](https://github.com/simonmichael/hledger/issues/660) (Mykola Orliuk)
 
-* journal: commodity directives in parent files are inherited by included files, #487 (Mykola Orliuk)
+* journal: commodity directives in parent files are inherited by included files, [#487](https://github.com/simonmichael/hledger/issues/487) (Mykola Orliuk)
 
-* journal: commodity directives limits precision even after -B, #509 (Mykola Orliuk)
+* journal: commodity directives limits precision even after -B, [#509](https://github.com/simonmichael/hledger/issues/509) (Mykola Orliuk)
 
-* journal: decimal point/digit group separator chars are now inferred from an applicable commodity directive or default commodity directive. #399, #487 (Mykola Orliuk)
+* journal: decimal point/digit group separator chars are now inferred from an applicable commodity directive or default commodity directive. [#399](https://github.com/simonmichael/hledger/issues/399), [#487](https://github.com/simonmichael/hledger/issues/487) (Mykola Orliuk)
 
 * journal: numbers are parsed more strictly (Mykola Orliuk)
 
@@ -572,7 +587,7 @@ Alvaro Fernando García.
 
 * --forecast generates Ledger-style periodic transactions in the future (Dmitry Astapov, Mykola Orliuk)
 
-* -V/--value uses today's market prices by default, not those of last transaction date. #683, #648
+* -V/--value uses today's market prices by default, not those of last transaction date. [#683](https://github.com/simonmichael/hledger/issues/683), [#648](https://github.com/simonmichael/hledger/issues/648)
 
 * add: suggest implied (parent) and declared (by account directives) account names also
 
@@ -585,14 +600,14 @@ Alvaro Fernando García.
 * import: the output of --dry-run is now valid journal format
 
 * print: -B shows converted amounts again, as in 1.1, even without
-  -x. #551 (Mykola Orliuk, Simon Michael)
+  -x. [#551](https://github.com/simonmichael/hledger/issues/551) (Mykola Orliuk, Simon Michael)
 
 * tag: the first argument now filters tag names, additional arguments
-  filter transactions (#261)
+  filter transactions ([#261](https://github.com/simonmichael/hledger/issues/261))
 
 ### hledger-ui 1.5
 
-* fix help -> view manual (on posix platforms) #623
+* fix help -> view manual (on posix platforms) [#623](https://github.com/simonmichael/hledger/issues/623)
 
 * support -V/--value, --forecast, --auto
 
@@ -664,7 +679,7 @@ all major hledger packages. See http://hledger.org/download for details.
 * add readJournalFile[s]WithOpts, with simpler arguments and support
 for detecting new transactions since the last read.
 
-* query: add payee: and note: query terms, improve description/payee/note docs (Jakub Zárybnický, Simon Michael, #598, #608)
+* query: add payee: and note: query terms, improve description/payee/note docs (Jakub Zárybnický, Simon Michael, [#598](https://github.com/simonmichael/hledger/issues/598), [#608](https://github.com/simonmichael/hledger/issues/608))
 
 * journal, cli: make trailing whitespace significant in regex account aliases
 Trailing whitespace in the replacement part of a regular expression
@@ -685,7 +700,7 @@ This simplifies things and facilitates future improvements.
 
 * deps: allow ansi-terminal 0.7
 
-* deps: add missing parsec lower bound, possibly related to #596, fpco/stackage#2835
+* deps: add missing parsec lower bound, possibly related to [#596](https://github.com/simonmichael/hledger/issues/596), [fpco/stackage#2835](https://github.com/fpco/stackage/issues/2835)
 
 * deps: drop oldtime flag, require time 1.5+
 
@@ -695,18 +710,18 @@ This simplifies things and facilitates future improvements.
 
 <!-- 1.3.1 (2017/8/25) -->
 
-* Fix a bug with -H showing nothing for empty periods (#583, Nicholas Niro)
+* Fix a bug with -H showing nothing for empty periods ([#583](https://github.com/simonmichael/hledger/issues/583), Nicholas Niro)
 This patch fixes a bug that happened when using the -H option on
 a period without any transaction. Previously, the behavior was no
 output at all even though it should have shown the previous ending balances
 of past transactions. (This is similar to previously using -H with -E,
 but with the extra advantage of not showing empty accounts)
 
-* allow megaparsec 6 (#594)
+* allow megaparsec 6 ([#594](https://github.com/simonmichael/hledger/issues/594))
 
 * allow megaparsec-6.1 (Hans-Peter Deifel)
 
-* fix test suite with Cabal 2 (#596)
+* fix test suite with Cabal 2 ([#596](https://github.com/simonmichael/hledger/issues/596))
 
 ### hledger 1.4
 
@@ -720,9 +735,9 @@ but with the extra advantage of not showing empty accounts)
 
 * cli: accept -NUM as a shortcut for --depth=NUM (eg: -2)
 
-* cli: improve command-line help for --date2 (#604)
+* cli: improve command-line help for --date2 ([#604](https://github.com/simonmichael/hledger/issues/604))
 
-* cli: make --help and -h the same, drop --man and --info for now (#579)
+* cli: make --help and -h the same, drop --man and --info for now ([#579](https://github.com/simonmichael/hledger/issues/579))
 
 * help: offers multiple formats, accepts topic substrings.
   The separate info/man commands have been dropped. help now
@@ -734,7 +749,7 @@ but with the extra advantage of not showing empty accounts)
   - otherwise it prints on stdout
   - (and it always prints on stdout when piped). 
   You can override this with the `--info`/`--man`/`--pager`/`--cat` flags.
-  (#579)
+  ([#579](https://github.com/simonmichael/hledger/issues/579))
 
 * bal/bs/cf/is: --sort-amount/-S sorts by largest amount instead of
   account name
@@ -747,9 +762,9 @@ but with the extra advantage of not showing empty accounts)
   single final blank line.  Previously, amounts wider than the column
   headings would be separated by only a single space.
 
-* bs/is: don't let an empty subreport disable the grand totals (fixes #588)
+* bs/is: don't let an empty subreport disable the grand totals (fixes [#588](https://github.com/simonmichael/hledger/issues/588))
 
-* cf: exclude asset accounts with ":fixed" in their name (Christian G. Warden, Simon Michael, #584)
+* cf: exclude asset accounts with ":fixed" in their name (Christian G. Warden, Simon Michael, [#584](https://github.com/simonmichael/hledger/issues/584))
 
 * new balancesheetequity command: like balancesheet but also shows
   equity accounts (Nicholas Niro)
@@ -785,9 +800,9 @@ but with the extra advantage of not showing empty accounts)
 
 <!-- 1.3.1 (2017/8/25) -->
 
-* bs/is: don't let an empty subreport disable the grand totals (#588)
+* bs/is: don't let an empty subreport disable the grand totals ([#588](https://github.com/simonmichael/hledger/issues/588))
 
-* allow megaparsec 6 (#594)
+* allow megaparsec 6 ([#594](https://github.com/simonmichael/hledger/issues/594))
 
 * allow megaparsec-6.1 (Hans-Peter Deifel)
 
@@ -797,7 +812,7 @@ but with the extra advantage of not showing empty accounts)
 
 * a @FILE argument reads flags & args from FILE, one per line
 
-* enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
+* enable --pivot and --anon options, like hledger CLI ([#474](https://github.com/simonmichael/hledger/issues/474)) (Jakub Zárybnický)
 
 * accept -NUM as a shortcut for --depth NUM
 
@@ -807,7 +822,7 @@ but with the extra advantage of not showing empty accounts)
 
 <!-- # 1.3.1 (2017/8/25) -->
 
-* allow megaparsec 6 (#594, Simon Michael, Hans-Peter Deifel)
+* allow megaparsec 6 ([#594](https://github.com/simonmichael/hledger/issues/594), Simon Michael, Hans-Peter Deifel)
 
 * allow megaparsec-6.1 (Hans-Peter Deifel)
 
@@ -821,9 +836,9 @@ but with the extra advantage of not showing empty accounts)
 
 * a @FILE argument reads flags & args from FILE, one per line
 
-* enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
+* enable --pivot and --anon options, like hledger CLI ([#474](https://github.com/simonmichael/hledger/issues/474)) (Jakub Zárybnický)
 
-* web: Make "Add transaction" button tabbable (#430) (Jakub Zárybnický)
+* web: Make "Add transaction" button tabbable ([#430](https://github.com/simonmichael/hledger/issues/430)) (Jakub Zárybnický)
 
 * accept -NUM as a shortcut for --depth NUM
 
@@ -835,7 +850,7 @@ but with the extra advantage of not showing empty accounts)
 
 <!-- # 1.3.1 (2017/8/25) -->
 
-* allow megaparsec 6 (#594, Simon Michael, Hans-Peter Deifel)
+* allow megaparsec 6 ([#594](https://github.com/simonmichael/hledger/issues/594), Simon Michael, Hans-Peter Deifel)
 
 * allow megaparsec-6.1 (Hans-Peter Deifel)
 
@@ -843,7 +858,7 @@ but with the extra advantage of not showing empty accounts)
 
 ### hledger-api 1.4
 
-* api: add support for swagger2 2.1.5+ (fixes #612)
+* api: add support for swagger2 2.1.5+ (fixes [#612](https://github.com/simonmichael/hledger/issues/612))
 
 <!-- # 1.3.1 (2017/8/25) -->
 
@@ -911,19 +926,19 @@ make changelog-draft shows the commits since last tag as org nodes
 The "uncleared" transaction/posting status (and associated UI flags
 and keys) has been renamed to "unmarked" to remove ambiguity and
 confusion. See the issue and linked mail list discussion for more
-background.  (#564)
+background.  ([#564](https://github.com/simonmichael/hledger/issues/564))
 
 #### csv format
 
 In CSV conversion rules, assigning to the "balance" field name
-creates balance assertions (#537, Dmitry Astapov).
+creates balance assertions ([#537](https://github.com/simonmichael/hledger/issues/537), Dmitry Astapov).
 
-Doubled minus signs are handled more robustly (fixes #524, Nicolas
+Doubled minus signs are handled more robustly (fixes [#524](https://github.com/simonmichael/hledger/issues/524), Nicolas
 Wavrant, Simon Michael)
 
 #### Misc
 
-Multiple status: query terms are now OR'd together. (#564)
+Multiple status: query terms are now OR'd together. ([#564](https://github.com/simonmichael/hledger/issues/564))
 
 Deps: allow megaparsec 5.3.
 
@@ -936,21 +951,21 @@ and keys, have been renamed to "unmarked" to remove ambiguity and
 confusion.  This means that we have dropped the `--uncleared` flag,
 and our `-U` flag now matches only unmarked things and not pending
 ones. See the issue and linked mail list discussion for more
-background. (#564)
+background. ([#564](https://github.com/simonmichael/hledger/issues/564))
 
 Also the -P short flag has been added for --pending, and the -U/-P/-C
 flags can be combined. 
 
-bs/is: fix "Ratio has zero denominator" error (#535)
+bs/is: fix "Ratio has zero denominator" error ([#535](https://github.com/simonmichael/hledger/issues/535))
 
-bs/is/cf: fix --flat (#552) (Justin Le, Simon Michael)
+bs/is/cf: fix --flat ([#552](https://github.com/simonmichael/hledger/issues/552)) (Justin Le, Simon Michael)
 
 bal/bs/is/cf: show negative amounts in red (Simon Michael, Justin Le).
 These commands now show negative amounts in red, when hledger detects
 that ANSI codes are supported, (ie when TERM is not "dumb" and stdout
 is not being redirected or piped).
 
-print: show pending mark on postings (fixes #563).
+print: show pending mark on postings (fixes [#563](https://github.com/simonmichael/hledger/issues/563)).
 A pending mark on postings is now displayed, just like a cleared mark.
 Also there will now be a space between the mark and account name.
 
@@ -964,7 +979,7 @@ prices: add --inverted-costs flag, sort output, increase precision
 
 rewrite: add support for rewriting multipler postings into different
 commodities. For example, postings in hours can be used to generate
-postings in USD. (#557) (Christian G. Warden)
+postings in USD. ([#557](https://github.com/simonmichael/hledger/issues/557)) (Christian G. Warden)
 
 `make addons` compiles the experimental add-ons.
 
@@ -976,11 +991,11 @@ The "uncleared" status, and associated UI flags and keys, have been
 renamed to "unmarked" to remove ambiguity and confusion.  This means
 that we have dropped the `--uncleared` flag, and our `-U` flag now
 matches only unmarked things and not pending ones. See the issue and
-linked mail list discussion for more background. (#564)
+linked mail list discussion for more background. ([#564](https://github.com/simonmichael/hledger/issues/564))
 
 The P key toggles pending mode, consistent with U (unmarked) and C
 (cleared). There is also a temporary --status-toggles flag for testing
-other toggle styles; see `hledger-ui -h`. (#564)
+other toggle styles; see `hledger-ui -h`. ([#564](https://github.com/simonmichael/hledger/issues/564))
 
 There is now less "warping" of selection when lists change:
 
@@ -1013,7 +1028,7 @@ Emacs movement keys are now supported, as well as VI keys.
 In the transaction screen, amounts are now better aligned, eg when
 there are posting status marks or virtual postings.
 
-Deps: allow brick 0.19 (#575, Felix Yan, Simon Michael)
+Deps: allow brick 0.19 ([#575](https://github.com/simonmichael/hledger/issues/575), Felix Yan, Simon Michael)
 
 ### hledger-web 1.3
 
@@ -1067,7 +1082,7 @@ Michael Walker.
 
 bump stack config to latest lts,
 bump brick to 0.15.2 to allow hledger-iadd install in hledger dir,
-update cabal files to latest hpack 0.17.0/stack 1.4 format (#512),
+update cabal files to latest hpack 0.17.0/stack 1.4 format ([#512](https://github.com/simonmichael/hledger/issues/512)),
 use more accurate license tag in Cabal file (Peter Simons).
 
 #### Finance
@@ -1133,13 +1148,13 @@ been disabled, reducing build dependencies.
 
 #### Misc
 
-Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (#483) (Mykola Orliuk)
+Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% ([#483](https://github.com/simonmichael/hledger/issues/483)) (Mykola Orliuk)
 
-Fix a few spaceleaks (#413) (Moritz Kiefer)
+Fix a few spaceleaks ([#413](https://github.com/simonmichael/hledger/issues/413)) (Moritz Kiefer)
 
 Add Ledger.Parse.Text to package.yaml, fixing a potential build failure.
 
-Allow megaparsec 5.2 (#503)
+Allow megaparsec 5.2 ([#503](https://github.com/simonmichael/hledger/issues/503))
 
 Rename optserror -> usageError, consolidate with other error functions
 
@@ -1148,7 +1163,7 @@ Rename optserror -> usageError, consolidate with other error functions
 #### CLI
 
 "hledger" and "hledger -h" now print a better organised commands list
-and general usage message respectively (#297).
+and general usage message respectively ([#297](https://github.com/simonmichael/hledger/issues/297)).
 
 The common reporting flags can now be used anywhere on the command line.
 
@@ -1212,7 +1227,7 @@ handles prices better, and adds balance assertions (Mykola Orliuk).
 The rewrite command is more robust and powerful (Mykola Orliuk):
 
 - in addition to command-line rewrite options, it understands rewrite rules
-  defined in the journal, similar to Ledger's automated transactions (#99).
+  defined in the journal, similar to Ledger's automated transactions ([#99](https://github.com/simonmichael/hledger/issues/99)).
   Eg:
     ```journal
     = ^income
@@ -1237,7 +1252,7 @@ The rewrite command is more robust and powerful (Mykola Orliuk):
 #### balance
 
 A new --pretty-tables option uses unicode characters for rendering
-table borders in multicolumn reports (#522) (Moritz Kiefer)
+table borders in multicolumn reports ([#522](https://github.com/simonmichael/hledger/issues/522)) (Moritz Kiefer)
 
 #### balancesheet/cashflow/incomestatement
 
@@ -1246,43 +1261,43 @@ and generally having the same features as the balance command. (Justin Le)
 
 balancesheet has always ignored a begin date specified with a `-b` or
 `-p` option; now it also ignores a begin date specified with a `date:`
-query. (Related discussion at #531)
+query. (Related discussion at [#531](https://github.com/simonmichael/hledger/issues/531))
 
 #### print
 
-The output of print is now always a valid journal (fixes #465) (Mykola Orliuk).
+The output of print is now always a valid journal (fixes [#465](https://github.com/simonmichael/hledger/issues/465)) (Mykola Orliuk).
 
 print now tries to preserves the format of implicit/explicit balancing
 amounts and prices, by default. To print with all amounts explicit,
-use the new `--explicit/-x` flag (fixes #442). (Mykola Orliuk)
+use the new `--explicit/-x` flag (fixes [#442](https://github.com/simonmichael/hledger/issues/442)). (Mykola Orliuk)
     
-Don't lose the commodity of zero amounts/zero balance assertions (fixes #475) (Mykola Orliuk)
+Don't lose the commodity of zero amounts/zero balance assertions (fixes [#475](https://github.com/simonmichael/hledger/issues/475)) (Mykola Orliuk)
 
 #### Misc
 
-Fix a regression in the readability of option parsing errors (#478) (Hans-Peter Deifel)
+Fix a regression in the readability of option parsing errors ([#478](https://github.com/simonmichael/hledger/issues/478)) (Hans-Peter Deifel)
 
 Fix an example in Cli/Main.hs (Steven R. Baker)
 
-Allow megaparsec 5.2 (#503)
+Allow megaparsec 5.2 ([#503](https://github.com/simonmichael/hledger/issues/503))
 
 ### hledger-ui 1.2
 
-Fix a pattern match failure when pressing E on the transaction screen (fixes #508)
+Fix a pattern match failure when pressing E on the transaction screen (fixes [#508](https://github.com/simonmichael/hledger/issues/508))
 
-Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
+Accounts with ? in name had empty registers (fixes [#498](https://github.com/simonmichael/hledger/issues/498)) (Bryan Richter)
 
 Allow brick 0.16 (Joshua Chia) and brick 0.17/vty 0.15 (Peter Simons)
 
-Allow megaparsec 5.2 (fixes #503)
+Allow megaparsec 5.2 (fixes [#503](https://github.com/simonmichael/hledger/issues/503))
 
 Allow text-zipper 0.10
 
 ### hledger-web 1.2
 
-Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
+Accounts with ? in name had empty registers (fixes [#498](https://github.com/simonmichael/hledger/issues/498)) (Bryan Richter)
 
-Allow megaparsec 5.2 (fixes #503)
+Allow megaparsec 5.2 (fixes [#503](https://github.com/simonmichael/hledger/issues/503))
 
 <!-- ### hledger-api 1.2 -->
 

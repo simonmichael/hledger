@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e89846e17f78017f83d440cb2fcfe10caba2b0c4c6a61195b4faffcdd2b7a100
+-- hash: 78515e93d6f08be6d098bdd697b951a1577e4e71c6b24ad64cf69916d3af191c
 
 name:           hledger
-version:        1.11
+version:        1.11.99
 synopsis:       Command-line interface for the hledger accounting tool
 description:    This is hledger's command-line interface.
                 Its basic function is to read a plain text file describing
@@ -111,7 +111,7 @@ library
   other-modules:
       Paths_hledger
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.11"
+  cpp-options: -DVERSION="1.11.99"
   build-depends:
       Decimal
     , Diff
@@ -129,7 +129,7 @@ library
     , hashable >=1.2.4
     , haskeline >=0.6
     , here
-    , hledger-lib >=1.11 && <1.12
+    , hledger-lib >=1.11.99 && <1.12
     , lucid
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -164,7 +164,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.11"
+  cpp-options: -DVERSION="1.11.99"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -181,7 +181,7 @@ executable hledger
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.11 && <1.12
+    , hledger-lib >=1.11.99 && <1.12
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -218,7 +218,7 @@ test-suite test
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.11"
+  cpp-options: -DVERSION="1.11.99"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -235,7 +235,7 @@ test-suite test
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.11 && <1.12
+    , hledger-lib >=1.11.99 && <1.12
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -289,7 +289,7 @@ benchmark bench
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.11 && <1.12
+    , hledger-lib >=1.11.99 && <1.12
     , html
     , megaparsec >=7.0.0 && <8
     , mtl

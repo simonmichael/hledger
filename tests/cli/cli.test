@@ -20,7 +20,7 @@
 #   the command name.
 #
 # - RawOpts: the command name, options, and arguments parsed by cmdargs,
-#   as an assocation list of strings. Eg:
+#   as an association list of strings. Eg:
 #   [("command","register"),("args","a"),("debug",""),("help","")]
 #
 # - CliOpts: a RawOpts, plus the same information with some additional

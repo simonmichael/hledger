@@ -141,7 +141,7 @@ getAndAddTransactions es@EntryState{..} = (do
 confirmedTransactionWizard es@EntryState{..} = do
   t <- transactionWizard es
   -- liftIO $ hPrintf stderr {- "Transaction entered:\n%s" -} (show t)
-  output $ show t
+  output $ showTransaction t
   y <- let def = "y" in
        retryMsg "Please enter y or n." $
         parser ((fmap ('y' ==)) . headMay . map toLower . strip) $
@@ -155,7 +155,7 @@ transactionWizard es@EntryState{..} = do
   let es1@EntryState{esArgs=args1} = es{esArgs=drop 1 esArgs, esDefDate=date}
   (desc,comment) <- descriptionAndCommentWizard es1
   let mbaset = similarTransaction es1 desc
-  when (isJust mbaset) $ liftIO $ hPrintf stderr "Using this similar transaction for defaults:\n%s" (show $ fromJust mbaset)
+  when (isJust mbaset) $ liftIO $ hPrintf stderr "Using this similar transaction for defaults:\n%s" (showTransaction $ fromJust mbaset)
   let es2 = es1{esArgs=drop 1 args1, esSimilarTransaction=mbaset}
       balancedPostingsWizard = do
         ps <- postingsWizard es2{esPostings=[]}
@@ -379,7 +379,7 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
     -- unelided shows all amounts explicitly, in case there's a price, cf #283
   when (debug_ opts > 0) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
-    putStrLn =<< registerFromString (show t)
+    putStrLn =<< registerFromString (showTransaction t)
   return j{jtxns=ts++[t]}
 
 -- | Append a string, typically one or more transactions, to a journal

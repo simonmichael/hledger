@@ -3,7 +3,7 @@ This is hledger.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger(1) hledger 1.10.99
+hledger(1) hledger 1.11.99
 **************************
 
 This is hledger's command-line interface (there are also curses and web

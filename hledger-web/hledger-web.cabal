@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 60eb9cb226968eed42b507637364f5960aa6b6fb91dff8a46fcbd40295780df6
+-- hash: 443e668fdd64fb57d1d9488224df0bc6ee4e796bcc75f81655a92850ff809d34
 
 name:           hledger-web
-version:        1.11
+version:        1.11.99
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -149,7 +149,7 @@ library
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fwarn-tabs
-  cpp-options: -DVERSION="1.11"
+  cpp-options: -DVERSION="1.11.99"
   build-depends:
       base >=4.8 && <4.12
     , blaze-html
@@ -164,8 +164,8 @@ library
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.11 && <1.12
-    , hledger-lib >=1.11 && <1.12
+    , hledger >=1.11.99 && <1.12
+    , hledger-lib >=1.11.99 && <1.12
     , http-client
     , http-conduit
     , json
@@ -201,7 +201,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fwarn-tabs
-  cpp-options: -DVERSION="1.11"
+  cpp-options: -DVERSION="1.11.99"
   build-depends:
       base
     , hledger-web
