@@ -43,6 +43,9 @@ import Text.Printf
 import Hledger.Utils.Regex
 
 
+-- | A possibly incomplete date, whose missing parts will be filled from a reference date.
+-- A numeric year, month, and day of month, or the empty string for any of these.
+-- See the smartdate parser.
 type SmartDate = (String,String,String)
 
 data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
