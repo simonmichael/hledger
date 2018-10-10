@@ -812,42 +812,72 @@ to another commodity using these prices.
 
 ### Declaring accounts
 
-The `account` directive predeclares account names. The simplest form is `account ACCTNAME`, eg:
+`account` directives can be used to pre-declare some or all accounts. 
+Though not required, they can provide several benefits:
+
+- They can document your intended chart of accounts, providing a reference.
+- They can store extra information about accounts (account numbers, notes, etc.)
+- They can help hledger know your accounts' types (asset, liability, equity, revenue, expense),
+  useful for reports like balancesheet and incomestatement.
+- They control account display order in reports, allowing non-alphabetic sorting
+  (eg Revenues to appear above Expenses). 
+- They help with account name completion 
+  in the add command, hledger-iadd, hledger-web, ledger-mode etc. 
+
+Here is the full syntax:
+```journal
+account ACCTNAME  [ACCTTYPE]
+  [COMMENTS]
+```
+
+The simplest form just declares a hledger-style [account name](manual.html#account-names), eg:
 ```journal
 account assets:bank:checking
 ```
-Currently this mainly helps with account name autocompletion in eg 
-hledger add, hledger-iadd, hledger-web, and ledger-mode.  
-In future it will also help detect misspelled accounts.
 
-An account directive can also have indented subdirectives following it, which are currently ignored. Here is the full syntax:
+#### Account types
+
+hledger recognises five types of account: asset, liability, equity, revenue, expense.
+This is useful for certain accounting-aware reports, in particular [balancesheet](), [incomestatement][] and [cashflow][].
+
+[balancesheet]: manual.html#balancesheet
+[cashflow]: manual.html#cashflow
+[incomestatement]: manual.html#incomestatement
+
+If you name your top-level accounts with some variation of 
+`assets`, `liabilities`/`debts`, `equity`, `revenues`/`income`, or `expenses`,
+their types are detected automatically.
+More generally, you can declare an account's type by adding one of the letters `ALERX`
+to its account directive, separated from the account name by two or more spaces.
+Eg:
+
 ```journal
-; account ACCTNAME
-;   [OPTIONALSUBDIRECTIVES]
+account assets       A
+account liabilities  L
+account equity       E
+account revenues     R
+account expenses     X
+```
 
+#### Account comments
+
+An account directive can also have indented comments on following lines, eg:
+```journal
 account assets:bank:checking
-  a comment
-  some-tag:12345
-```
+  ; acctno:12345
+  ; a comment
+``` 
 
-### Account display order
+We also allow (and ignore) Ledger-style subdirectives, with no leading semicolon, for compatibility. 
 
-Account directives have another purpose: they set the order in which accounts are displayed,
-in hledger reports, hledger-ui accounts screen, hledger-web sidebar etc.
-For example, say you have these top-level accounts:
-```shell
-$ accounts -1
-assets
-equity
-expenses
-liabilities
-misc
-other
-revenues
-```
+Tags in account comments, like `acctno` above, currently have no effect. 
 
-By default, they are displayed in alphabetical order.
-But if you add the following account directives to the journal:
+#### Account display order
+
+Account directives also set the order in which accounts are displayed
+in reports, the hledger-ui accounts screen, the hledger-web sidebar, etc.
+Normally accounts are listed in alphabetical order, 
+but if you have eg these account directives in the journal:
 ```journal
 account assets
 account liabilities
@@ -856,19 +886,17 @@ account revenues
 account expenses
 ```
 
-the display order changes to:
+you'll see those accounts listed in declaration order, not alphabetically:
 ```shell
-$ accounts -1
+$ hledger accounts -1
 assets
 liabilities
 equity
 revenues
 expenses
-misc
-other
 ```
 
-Ie, declared accounts first, in the order they were declared, followed by any undeclared accounts in alphabetic order. 
+Undeclared accounts, if any, are displayed last, in alphabetical order.
 
 Note that sorting is done at each level of the account tree (within each group of sibling accounts under the same parent).
 This directive:
