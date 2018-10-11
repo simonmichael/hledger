@@ -1,4 +1,4 @@
-# . apply account, end apply account
+# apply account, end apply account directives
 hledger -f - accounts
 <<<
 apply account a
@@ -17,7 +17,7 @@ aa:b
 c
 >>>=0
 
-# empty multi-line commodity directive
+# commodity directive
 hledger -f - reg
 <<<
 commodity BTC
@@ -25,7 +25,7 @@ commodity BTC
 >>>2
 >>>=0
 
-# unsupported commodity sub-directive
+# commodity directive with subdirective
 hledger -f - reg
 <<<
 commodity BTC
@@ -33,3 +33,4 @@ commodity BTC
 >>>
 >>>2 /expecting "format"/
 >>>=1
+
