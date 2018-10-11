@@ -91,3 +91,22 @@ hledger balance -f- --auto
                 $-38
 >>>2
 >>>=0
+
+hledger print -f- --auto
+<<<
+= ^expenses:groceries
+    [budget:groceries]                           *-1
+    [assets:bank:checking]                        *1
+
+2018/10/7 * MARKET
+    expenses:groceries:food
+    assets:bank:checking                         $-20
+>>>
+2018/10/07 * MARKET
+    expenses:groceries:food
+    [budget:groceries]                 $-20
+    [assets:bank:checking]              $20
+    assets:bank:checking               $-20
+
+>>>2
+>>>=0
