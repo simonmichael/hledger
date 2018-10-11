@@ -254,12 +254,19 @@ parseAndFinaliseJournal parser iopts f txt = do
 
     Right ep -> case ep of
       Left e -> throwError $ customErrorBundlePretty e
-
       Right pj ->
-        let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
-        case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
-                          Right j -> return j
-                          Left e  -> throwError e
+        -- We run `journalFinalize` twice if the `auto` option is
+        -- specified, since we have to infer and check prior to
+        -- transaction modifications and then check again after.
+        let runFin = journalFinalise t f txt (not $ ignore_assertions_ iopts)
+            fj = runFin pj
+            fj' = if auto_ iopts
+                  then (applyTransactionModifiers <$> fj) >>= runFin
+                  else fj
+        in
+          case fj' of
+            Right j -> return j
+            Left e  -> throwError e
 
 parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
