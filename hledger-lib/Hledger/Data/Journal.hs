@@ -523,19 +523,21 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
 -- use.  Reverse parsed data to normal order, standardise amount
 -- formats, check/ensure that transactions are balanced, and maybe
 -- check balance assertions.
-journalFinalise :: ClockTime -> FilePath -> Text -> Bool -> ParsedJournal -> Either String Journal
-journalFinalise t path txt assrt j@Journal{jfiles=fs} =
-  journalTieTransactions <$> 
-  (journalBalanceTransactions assrt $
-   journalApplyCommodityStyles $
-   j {jfiles        = (path,txt) : reverse fs
-     ,jlastreadtime = t
-     ,jdeclaredaccounts = reverse $ jdeclaredaccounts j
-     ,jtxns         = reverse $ jtxns j         -- NOTE: see addTransaction
-     ,jtxnmodifiers = reverse $ jtxnmodifiers j -- NOTE: see addTransactionModifier
-     ,jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
-     ,jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice
-     })
+journalFinalise :: ClockTime -> FilePath -> Text -> Bool -> Bool -> ParsedJournal -> Either String Journal
+journalFinalise t path txt reorder assrt j@Journal{jfiles=fs} =
+  let j' = if reorder
+           then j {jfiles        = (path,txt) : reverse fs
+                  ,jlastreadtime = t
+                  ,jdeclaredaccounts = reverse $ jdeclaredaccounts j
+                  ,jtxns         = reverse $ jtxns j         -- NOTE: see addTransaction
+                  ,jtxnmodifiers = reverse $ jtxnmodifiers j -- NOTE: see addTransactionModifier
+                  ,jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
+                  ,jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice
+                  }
+           else j
+  in journalTieTransactions <$>
+     (journalBalanceTransactions assrt $ journalApplyCommodityStyles j')
+
 
 journalNumberAndTieTransactions = journalTieTransactions . journalNumberTransactions
 
