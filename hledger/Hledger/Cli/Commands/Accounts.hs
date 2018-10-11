@@ -49,7 +49,6 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
      groupUnnamed = [
       flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
      ,flagNone ["used"] (\opts -> setboolopt "used" opts) "show account names referenced by transactions"
-     ,flagNone ["codes"] (\opts -> setboolopt "codes" opts) "also show numeric account codes"
      ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
      ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
