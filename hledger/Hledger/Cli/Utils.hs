@@ -106,6 +106,7 @@ anonymise j
       pAnons p = p { paccount = T.intercalate (T.pack ":") . map anon . T.splitOn (T.pack ":") . paccount $ p
                    , pcomment = T.empty
                    , ptransaction = fmap tAnons . ptransaction $ p
+                   , porigin = pAnons <$> porigin p
                    }
       tAnons txn = txn { tpostings = map pAnons . tpostings $ txn
                        , tdescription = anon . tdescription $ txn
