@@ -626,7 +626,7 @@ so here is a table summarising the directives and their effects, with links to m
 
 | directive         | end directive       | subdirectives   | purpose                                                            | can affect (as of 2018/06)
 |:------------------|:--------------------|:----------------|:-------------------------------------------------------------------|:---------------------------------------------
-| [`account`]       |                     | any text        | declare an account name & optional account code                    | account code: balance reports (except `balance` single-column mode)  <!-- all entries in all files -->
+| [`account`]       |                     | any text        | document account names, declare account types & display order      | all entries in all files, before or after
 | [`alias`]         | `end aliases`       |                 | rewrite account names                                              | following inline/included entries until end of current file or end directive
 | [`apply account`] | `end apply account` |                 | prepend a common parent to account names                           | following inline/included entries until end of current file or end directive
 | [`comment`]       | `end comment`       |                 | ignore part of journal                                             | following inline/included entries until end of current file or end directive
@@ -650,8 +650,7 @@ And some definitions:
 
 |||
 |:----------------|:--------------------------------------------------------------------------------------------------------------------
-| subdirective    | optional indented directive or unparsed text lines immediately following a parent directive
-| account code    | numeric code influencing account display order in most balance reports
+| subdirective    | optional indented directive line immediately following a parent directive
 | number notation | how to interpret numbers when parsing journal entries (the identity of the decimal separator character). (Currently each commodity can have its own notation, even in the same file.)
 | display style   | how to display amounts of a commodity in reports (symbol side and spacing, digit groups, decimal separator, decimal places)
 | directive scope | which entries and (when there are multiple files) which files are affected by a directive
