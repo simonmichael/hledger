@@ -256,10 +256,23 @@ parseAndFinaliseJournal parser iopts f txt = do
       Left e -> throwError $ customErrorBundlePretty e
 
       Right pj ->
-        let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
-        case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
-                          Right j -> return j
-                          Left e  -> throwError e
+        -- If we are using automated transactions, we finalize twice:
+        -- once before and once after. However, if we are running it
+        -- twice, we don't check assertions the first time (they might
+        -- be false pending modifiers) and we don't reorder the second
+        -- time. If we are only running once, we reorder and follow
+        -- the options for checking assertions.
+        let runFin :: Bool -> Bool -> (ParsedJournal -> Either String Journal)
+            runFin reorder ignore = journalFinalise t f txt reorder ignore
+            fj = if auto_ iopts
+                 then applyTransactionModifiers <$>
+                      runFin True False pj >>=
+                      runFin False (not $ ignore_assertions_ iopts)
+                 else runFin True (not $ ignore_assertions_ iopts) pj
+        in
+          case fj of
+            Right j -> return j
+            Left e  -> throwError e
 
 parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
@@ -273,11 +286,24 @@ parseAndFinaliseJournal' parser iopts f txt = do
   case ep of
     Left e   -> throwError $ customErrorBundlePretty e
 
-    Right pj -> 
-      let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
-      case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
-                        Right j -> return j
-                        Left e  -> throwError e
+    Right pj ->
+      -- If we are using automated transactions, we finalize twice:
+      -- once before and once after. However, if we are running it
+      -- twice, we don't check assertions the first time (they might
+      -- be false pending modifiers) and we don't reorder the second
+      -- time. If we are only running once, we reorder and follow the
+      -- options for checking assertions.
+      let runFin :: Bool -> Bool -> (ParsedJournal -> Either String Journal)
+          runFin reorder ignore = journalFinalise t f txt reorder ignore
+          fj = if auto_ iopts
+               then applyTransactionModifiers <$>
+                    runFin True False pj >>=
+                    runFin False (not $ ignore_assertions_ iopts)
+               else runFin True (not $ ignore_assertions_ iopts) pj
+      in
+        case fj of
+          Right j -> return j
+          Left e  -> throwError e
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
