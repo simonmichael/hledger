@@ -846,6 +846,7 @@ This is useful for certain accounting-aware reports, in particular [balancesheet
 If you name your top-level accounts with some variation of 
 `assets`, `liabilities`/`debts`, `equity`, `revenues`/`income`, or `expenses`,
 their types are detected automatically.
+
 More generally, you can declare an account's type by adding one of the letters `ALERX`
 to its account directive, separated from the account name by two or more spaces.
 Eg:
@@ -857,6 +858,18 @@ account equity       E
 account revenues     R
 account expenses     X
 ```
+
+Note: if you ever override the types of those auto-detected english account names mentioned above, 
+you might need to help the reports a bit:
+```
+; make "liabilities" not have the liability type, who knows why
+account liabilities   E
+
+; better ensure some other account has the liability type, 
+; otherwise balancesheet would still show "liabilities" under Liabilities 
+account -             L
+```
+)   
 
 #### Account comments
 
