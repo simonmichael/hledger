@@ -70,8 +70,10 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       declared = boolopt "declared" rawopts
       used     = boolopt "used"     rawopts
       q        = queryFromOpts d ropts
-      -- a depth limit will clip and exclude account names later, but should not exclude accounts at this stage
+      -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
+      -- just the acct: part of the query will be reapplied later, after clipping
+      acctq    = dbg1 "acctq" $ filterQuery queryIsAcct q
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
       matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ filter (matchesAccount nodepthq) $ jdeclaredaccounts j
       matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
@@ -86,7 +88,7 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   -- 3. if there's a depth limit, depth-clip and remove any no longer useful items 
       clippedaccts =
         dbg1 "clippedaccts" $
-        filter (matchesAccount q) $    -- clipping can leave accounts that no longer visibly match the query
+        filter (matchesAccount acctq) $  -- clipping can leave accounts that no longer match the query, remove such
         nub $                          -- clipping can leave duplicates (adjacent, hopefully)
         filter (not . T.null) $        -- depth:0 can leave nulls
         map (clipAccountName depth) $  -- clip at depth if specified 
