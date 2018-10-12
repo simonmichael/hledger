@@ -56,7 +56,8 @@ generates interest transactions for an account according to various schemes.
 
 ### irr
 [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-calculates the internal rate of return of an investment account.
+calculates the internal rate of return of an investment account,
+but it's superseded now by the built-in [roi](#roi) command. 
 
 ## Experimental add-ons
   
