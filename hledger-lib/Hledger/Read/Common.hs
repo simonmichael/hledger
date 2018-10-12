@@ -74,7 +74,7 @@ module Hledger.Read.Common (
   mamountp',
   commoditysymbolp,
   priceamountp,
-  partialbalanceassertionp,
+  balanceassertionp,
   fixedlotpricep,
   numberp,
   fromRawNumber,
@@ -717,23 +717,16 @@ priceamountp = option NoPrice $ do
 
   pure $ priceConstructor priceAmount
 
-partialbalanceassertionp :: JournalParser m BalanceAssertion
-partialbalanceassertionp = optional $ do
+balanceassertionp :: JournalParser m BalanceAssertion
+balanceassertionp = do
   sourcepos <- genericSourcePos <$> lift getSourcePos
   char '='
   lift (skipMany spacenonewline)
   a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
-  return (a, sourcepos)
-
--- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
--- balanceassertion =
---     try (do
---           lift (skipMany spacenonewline)
---           string "=="
---           lift (skipMany spacenonewline)
---           a <- amountp -- XXX should restrict to a simple amount
---           return $ Just $ Mixed [a])
---          <|> return Nothing
+  return BalanceAssertion
+    { baamount = a
+    , baposition = sourcepos
+    }
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 fixedlotpricep :: JournalParser m (Maybe Amount)

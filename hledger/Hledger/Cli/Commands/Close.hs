@@ -85,7 +85,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmountSquashPricesForDisplay b) acctbals
       ps = [posting{paccount=a
                    ,pamount=mixed [b]
-                   ,pbalanceassertion=Just (b,nullsourcepos)
+                   ,pbalanceassertion=Just assertion{ baamount=b }
                    }
            |(a,_,_,mb) <- acctbals
            ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
@@ -93,7 +93,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
            ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
       nps = [posting{paccount=a
                     ,pamount=mixed [negate b]
-                    ,pbalanceassertion=Just (b{aquantity=0}, nullsourcepos)
+                    ,pbalanceassertion=Just assertion{ baamount=b{aquantity=0} }
                     }
             |(a,_,_,mb) <- acctbals
             ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
