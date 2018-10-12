@@ -21,7 +21,6 @@ module Hledger.Data.Journal (
   commodityStylesFromAmounts,
   journalCommodityStyles,
   journalConvertAmountsToCost,
-  journalFinalise,
   journalReverse,
   journalSetTime,
   journalSetFilePath,
@@ -522,6 +521,9 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
 
 -}
 
+-- | Reverse parsed data to normal order. This is used for post-parse
+-- processing, since data is added to the head of the list during
+-- parsing.
 journalReverse :: Journal -> Journal
 journalReverse j =
   j {jfiles            = reverse $ jfiles j
@@ -532,32 +534,13 @@ journalReverse j =
     ,jmarketprices     = reverse $ jmarketprices j
     }
 
+-- | Set clock time in journal
 journalSetTime :: ClockTime -> Journal -> Journal
 journalSetTime t j = j{ jlastreadtime = t }
 
+-- | See filepath in journal
 journalSetFilePath :: FilePath -> Text -> Journal -> Journal
 journalSetFilePath path txt j = j {jfiles = (path,txt) : jfiles j}
-
-
--- | Do post-parse processing on a parsed journal to make it ready for
--- use.  Reverse parsed data to normal order, standardise amount
--- formats, check/ensure that transactions are balanced, and maybe
--- check balance assertions.
-journalFinalise :: ClockTime -> FilePath -> Text -> Bool -> Bool -> ParsedJournal -> Either String Journal
-journalFinalise t path txt reorder assrt j@Journal{jfiles=fs} =
-  let j' = if reorder
-           then j {jfiles        = (path,txt) : reverse fs
-                  ,jlastreadtime = t
-                  ,jdeclaredaccounts = reverse $ jdeclaredaccounts j
-                  ,jtxns         = reverse $ jtxns j         -- NOTE: see addTransaction
-                  ,jtxnmodifiers = reverse $ jtxnmodifiers j -- NOTE: see addTransactionModifier
-                  ,jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
-                  ,jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice
-                  }
-           else j
-  in journalTieTransactions <$>
-     (journalBalanceTransactions assrt $ journalApplyCommodityStyles j')
-
 
 journalNumberAndTieTransactions = journalTieTransactions . journalNumberTransactions
 
