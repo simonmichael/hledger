@@ -22,6 +22,9 @@ module Hledger.Data.Journal (
   journalCommodityStyles,
   journalConvertAmountsToCost,
   journalFinalise,
+  journalReverse,
+  journalSetTime,
+  journalSetFilePath,
   journalPivot,
   -- * Filtering
   filterJournalTransactions,
@@ -518,6 +521,23 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
       (negatives,positives) = partition isnegativepat apats
 
 -}
+
+journalReverse :: Journal -> Journal
+journalReverse j =
+  j {jfiles            = reverse $ jfiles j
+    ,jdeclaredaccounts = reverse $ jdeclaredaccounts j
+    ,jtxns             = reverse $ jtxns j
+    ,jtxnmodifiers     = reverse $ jtxnmodifiers j
+    ,jperiodictxns     = reverse $ jperiodictxns j
+    ,jmarketprices     = reverse $ jmarketprices j
+    }
+
+journalSetTime :: ClockTime -> Journal -> Journal
+journalSetTime t j = j{ jlastreadtime = t }
+
+journalSetFilePath :: FilePath -> Text -> Journal -> Journal
+journalSetFilePath path txt j = j {jfiles = (path,txt) : jfiles j}
+
 
 -- | Do post-parse processing on a parsed journal to make it ready for
 -- use.  Reverse parsed data to normal order, standardise amount
