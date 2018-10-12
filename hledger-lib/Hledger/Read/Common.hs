@@ -293,13 +293,21 @@ parseAndFinaliseJournal' parser iopts f txt = do
       -- be false pending modifiers) and we don't reorder the second
       -- time. If we are only running once, we reorder and follow the
       -- options for checking assertions.
-      let runFin :: Bool -> Bool -> (ParsedJournal -> Either String Journal)
-          runFin reorder ignore = journalFinalise t f txt reorder ignore
-          fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
+      let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
                then applyTransactionModifiers <$>
-                    runFin True False pj >>=
-                    runFin False (not $ ignore_assertions_ iopts)
-               else runFin True (not $ ignore_assertions_ iopts) pj
+                    (journalBalanceTransactions False $
+                     journalReverse $
+                     journalApplyCommodityStyles pj) >>=
+                    (\j -> journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                           journalSetTime t $
+                           journalSetFilePath f txt $
+                           j)
+               else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                    journalReverse $
+                    journalApplyCommodityStyles $
+                    journalSetTime t $
+                    journalSetFilePath f txt $
+                    pj
       in
         case fj of
           Right j -> return j
