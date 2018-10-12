@@ -39,37 +39,96 @@ and then reuse them by writing `@FILENAME` in a command line.
 To prevent this expansion of `@`-arguments, precede them with a `--` argument.
 For more, see [Save frequently used options](https://github.com/simonmichael/hledger/wiki/Save-frequently-used-options).
 
-## Special characters in command line
+## Special characters in arguments and queries
 
-Option and argument values which contain "problematic" characters
-should be escaped with double quotes, backslashes, or (best) single quotes.
-Problematic characters means spaces, and also characters which are significant to your 
-command shell, such as `<`, `>`, '(', ')', '|' and '$'.
-Eg: `hledger register -p 'last year' "accounts receivable (receivable|payable)" amt:\>100`.
+In shell command lines, option and argument values which contain "problematic" characters,
+ie spaces, 
+and also characters significant to your shell such as `<`, `>`, `(`, `)`, `|` and `$`,
+should be escaped by enclosing them in quotes or by writing backslashes before the characters.
+Eg:
 
-Characters which are significant both to the shell and in 
-[regular expressions](#regular-expressions) sometimes need to be double-escaped.
-These include parentheses, the pipe symbol and the dollar sign.
-Eg, to match the dollar symbol, bash users should do: `hledger balance cur:'\$'` or 
-`hledger balance cur:\\$`.
+`hledger register -p 'last year' "accounts receivable (receivable|payable)" amt:\>100`.
 
-When hledger is invoking an addon executable (like hledger-ui), 
-options and arguments get de-escaped once more, 
-so you might need *triple*-escaping.
-Eg: `hledger ui cur:'\\$'` or `hledger ui cur:\\\\$` in bash.
+### More escaping
+
+Characters significant both to the shell and in [regular expressions](#regular-expressions) 
+may need one extra level of escaping. These include parentheses, the pipe symbol and the dollar sign.
+Eg, to match the dollar symbol, bash users should do:
+
+`hledger balance cur:'\$'`
+
+or:
+
+`hledger balance cur:\\$`
+
+### Even more escaping
+
+When hledger runs an addon executable (eg you type `hledger ui`, hledger runs `hledger-ui`), 
+it de-escapes command-line options and arguments once, so you might need to *triple*-escape.
+Eg in bash, running the ui command and matching the dollar sign, it's: 
+
+`hledger ui cur:'\\$'`
+
+or:
+
+`hledger ui cur:\\\\$`
+
+If you asked why *four* slashes above, this may help:
+
+----------------- --------
+unescaped:        `$`
+escaped:          `\$`
+double-escaped:   `\\$`
+triple-escaped:   `\\\\$`
+----------------- --------
+
 (The number of backslashes in fish shell is left as an exercise for the reader.)
 
-Inside a file used for [argument expansion](#argument-expansion), one less level of escaping is enough.
-(And in this case, backslashes seem to work better than quotes. Eg: `cur:\$`).
+You can always avoid the extra escaping for addons by running the addon directly:
+
+`hledger-ui cur:\\$`
+
+### Less escaping
+
+Inside an [argument file](#argument-expansion),
+or in the search field of hledger-ui or hledger-web, 
+or at a GHCI prompt, 
+you need one less level of escaping than at the command line.
+And backslashes may work better than quotes. 
+Eg:
+
+`ghci> :main balance cur:\$`
+
+## Command line tips
 
 If in doubt, keep things simple:
 
-- run add-on executables directly
-- write options after the command
+- write options after the command (`hledger CMD -OPTIONS ARGS`)
+- run add-on executables directly (`hledger-ui -OPTIONS ARGS`)
 - enclose problematic args in single quotes
 - if needed, also add a backslash to escape regexp metacharacters
 
-If you're really stumped, add `--debug=2` to troubleshoot.
+To find out exactly how a command line is being parsed, add `--debug=2` to troubleshoot.
+
+## Unicode characters
+
+hledger is expected to handle unicode (non-ascii) characters, 
+but this requires a well-configured environment.
+
+To handle unicode characters in the command line or input data,
+a system locale that can decode them must be configured (POSIX's default `C` locale will not work).
+Eg in bash, you could do:
+```
+export LANG=en_US.UTF-8
+```
+See [Troubleshooting](#troubleshooting) for more about this.
+
+Unicode characters should appear correctly in hledger's output.
+For the hledger and hledger-ui tools, this requires that 
+
+- your terminal supports unicode
+- the terminal's font includes the required unicode glyphs
+- the terminal is configured to display "wide" characters as double width (otherwise report alignment will be off)
 
 ## Input files
 
