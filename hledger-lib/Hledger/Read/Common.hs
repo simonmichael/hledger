@@ -719,11 +719,8 @@ priceamountp = option NoPrice $ do
 
 partialbalanceassertionp :: JournalParser m BalanceAssertion
 partialbalanceassertionp = optional $ do
-  sourcepos <- try $ do
-    lift (skipMany spacenonewline)
-    sourcepos <- genericSourcePos <$> lift getSourcePos
-    char '='
-    pure sourcepos
+  sourcepos <- genericSourcePos <$> lift getSourcePos
+  char '='
   lift (skipMany spacenonewline)
   a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
   return (a, sourcepos)
