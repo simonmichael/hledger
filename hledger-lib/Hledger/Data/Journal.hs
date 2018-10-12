@@ -22,8 +22,7 @@ module Hledger.Data.Journal (
   journalCommodityStyles,
   journalConvertAmountsToCost,
   journalReverse,
-  journalSetTime,
-  journalSetFilePath,
+  journalSetLastReadTime,
   journalPivot,
   -- * Filtering
   filterJournalTransactions,
@@ -534,13 +533,10 @@ journalReverse j =
     ,jmarketprices     = reverse $ jmarketprices j
     }
 
--- | Set clock time in journal
-journalSetTime :: ClockTime -> Journal -> Journal
-journalSetTime t j = j{ jlastreadtime = t }
+-- | Set this journal's last read time, ie when its files were last read.
+journalSetLastReadTime :: ClockTime -> Journal -> Journal
+journalSetLastReadTime t j = j{ jlastreadtime = t }
 
--- | See filepath in journal
-journalSetFilePath :: FilePath -> Text -> Journal -> Journal
-journalSetFilePath path txt j = j {jfiles = (path,txt) : jfiles j}
 
 journalNumberAndTieTransactions = journalTieTransactions . journalNumberTransactions
 

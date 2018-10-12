@@ -265,17 +265,17 @@ parseAndFinaliseJournal parser iopts f txt = do
         let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
                  then applyTransactionModifiers <$>
                       (journalBalanceTransactions False $
-                       journalSetFilePath f txt $
                        journalReverse $
                        journalApplyCommodityStyles pj) >>=
                       (\j -> journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                             journalSetTime t $
+                             journalAddFile (f, txt) $
+                             journalSetLastReadTime t $
                              j)
                  else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                      journalSetFilePath f txt $
                       journalReverse $
+                      journalAddFile (f, txt) $
                       journalApplyCommodityStyles $
-                      journalSetTime t $
+                      journalSetLastReadTime t $
                       pj
         in
           case fj of
@@ -304,17 +304,17 @@ parseAndFinaliseJournal' parser iopts f txt = do
       let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
                then applyTransactionModifiers <$>
                     (journalBalanceTransactions False $
-                      journalSetFilePath f txt $
                      journalReverse $
                      journalApplyCommodityStyles pj) >>=
                     (\j -> journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                           journalSetTime t $
+                           journalAddFile (f, txt) $
+                           journalSetLastReadTime t $
                            j)
                else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                    journalSetFilePath f txt $
                     journalReverse $
+                    journalAddFile (f, txt) $
                     journalApplyCommodityStyles $
-                    journalSetTime t $
+                    journalSetLastReadTime t $
                     pj
       in
         case fj of
