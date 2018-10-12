@@ -264,7 +264,7 @@ parseAndFinaliseJournal parser iopts f txt = do
         -- the options for checking assertions.
         let runFin :: Bool -> Bool -> (ParsedJournal -> Either String Journal)
             runFin reorder ignore = journalFinalise t f txt reorder ignore
-            fj = if auto_ iopts
+            fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
                  then applyTransactionModifiers <$>
                       runFin True False pj >>=
                       runFin False (not $ ignore_assertions_ iopts)
@@ -295,7 +295,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
       -- options for checking assertions.
       let runFin :: Bool -> Bool -> (ParsedJournal -> Either String Journal)
           runFin reorder ignore = journalFinalise t f txt reorder ignore
-          fj = if auto_ iopts
+          fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
                then applyTransactionModifiers <$>
                     runFin True False pj >>=
                     runFin False (not $ ignore_assertions_ iopts)
