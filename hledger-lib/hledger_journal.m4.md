@@ -1133,39 +1133,61 @@ Transaction modifier rules describe changes that should be applied automatically
 Currently, this means adding extra postings (also known as "automated postings").
 Transaction modifiers are enabled by the `--auto` flag.
 
-A transaction modifier rule looks a bit like a normal journal entry,
-except the first line is an equal sign (`=`) followed by a [query](manual.html#queries)
-(mnemonic: `=` suggests matching something.):
+A transaction modifier rule looks a bit like a normal transaction,
+except the first line is an equals sign followed by a [query](manual.html#queries) that matches certain postings.
+(mnemonic: `=` suggests matching):
+
 ```journal
-= expenses:gifts
-    budget:gifts  *-1
-    assets:budget  *1
+= QUERY
+    ACCT  AMT
+    ACCT  [AMT]
+    ...
 ```
 
-The posting amounts can be of the form `*N`, which means "the amount of the matched transaction's first posting, multiplied by N".
-They can also be ordinary fixed amounts. 
-Fixed amounts with no commodity symbol will be given the same commodity as the matched transaction's first posting.
+Each posting's amount can be:
 
-This example adds a corresponding ([unbalanced](#virtual-postings)) budget posting to every transaction involving the `expenses:gifts` account:
+- a normal amount  (`$2`).
+- a number (`2`). This will be assigned the commodity that was used in the matched posting. 
+- a multiplier like `*2` (a star followed by a number N).  This will be replaced by the matched posting's amount multiplied by N.
+
+Some examples:
 ```journal
-= expenses:gifts
-    (budget:gifts)  *-1
+; every time I buy food, schedule a dollar donation
+= expenses:food
+    (liabilities:charity)   $-1
 
-2017-12-14
-  expenses:gifts  $20
-  assets
+; when I buy a gift, also deduct that amount from a budget envelope subaccount
+= expenses:gifts
+    assets:checking:gifts  *-1
+    assets:checking         *1
+
+2017/12/1
+  expenses:food    $10
+  assets:checking
+
+2017/12/14
+  expenses:gifts   $20
+  assets:checking
 ```
 ```shell
 $ hledger print --auto
+2017/12/01
+    expenses:food              $10
+    assets:checking
+    (liabilities:charity)      $-1
+
 2017/12/14
     expenses:gifts             $20
-    (budget:gifts)            $-20
-    assets
+    assets:checking
+    assets:checking:gifts     -$20
+    assets:checking            $20
 ```
 
-Like postings recorded by hand, automated postings participate in
+
+Postings added by transaction modifiers participate in
 [transaction balancing, missing amount inference](#postings)
-and [balance assertions](#balance-assertions).
+and [balance assertions](#balance-assertions),
+like regular postings.
 
 # EDITOR SUPPORT
 
