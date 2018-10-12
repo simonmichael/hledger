@@ -36,6 +36,7 @@ TAGS
 /[0-9]*
 #
 *.j
+*.sw[op]
 
 # haskell stuff
 *.dyn_hi
@@ -43,11 +44,13 @@ TAGS
 *.hi
 *.p_o
 *.hp
+.cabal-sandbox/
 cabal-dev*
 cabal.project.local
 cabal.sandbox.config
 dist/
 dist-newstyle/
+.ghc.environment.*
 /Shake
 /.shake.html
 .stack-work/

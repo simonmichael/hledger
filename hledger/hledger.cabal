@@ -143,7 +143,7 @@ library
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics
+    , statistics <0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -194,7 +194,7 @@ executable hledger
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics
+    , statistics <0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -248,7 +248,7 @@ test-suite test
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics
+    , statistics <0.15
     , tabular >=0.2
     , temporary
     , test-framework
@@ -303,7 +303,7 @@ benchmark bench
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics
+    , statistics <0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
