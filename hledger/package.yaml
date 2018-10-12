@@ -104,7 +104,7 @@ dependencies:
 - safe >=0.2
 - shakespeare >=2.0.2.2
 - split >=0.1
-- statistics
+- statistics <=0.15
 - tabular >=0.2
 - temporary
 - text >=0.11
