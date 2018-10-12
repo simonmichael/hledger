@@ -12,7 +12,6 @@ tags.
 
 module Hledger.Data.Transaction (
   -- * Transaction
-  nullsourcepos,
   nulltransaction,
   txnTieKnot,
   txnUntieKnot,
@@ -76,9 +75,6 @@ showGenericSourcePos :: GenericSourcePos -> String
 showGenericSourcePos = \case
     GenericSourcePos fp line column -> show fp ++ " (line " ++ show line ++ ", column " ++ show column ++ ")"
     JournalSourcePos fp (line, line') -> show fp ++ " (lines " ++ show line ++ "-" ++ show line' ++ ")"
-
-nullsourcepos :: GenericSourcePos
-nullsourcepos = JournalSourcePos "" (1,1)
 
 nulltransaction :: Transaction
 nulltransaction = Transaction {
@@ -220,7 +216,7 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     | postingblock <- postingblocks]
   where
     postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
-    assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity . fst) $ pbalanceassertion p
+    assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity . baamount) $ pbalanceassertion p
     statusandaccount = indent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
           -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  
@@ -681,10 +677,8 @@ tests_Transaction = tests "Transaction" [
           ,"    assets:checking"
           ,""
           ]
-    ]
 
-  ,tests "showTransaction" [
-     test "show a balanced transaction, no eliding" $
+    ,test "show a balanced transaction, no eliding" $
        (let t = Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
                 [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18], ptransaction=Just t}
                 ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.18)], ptransaction=Just t}

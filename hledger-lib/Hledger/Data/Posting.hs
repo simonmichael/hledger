@@ -15,6 +15,9 @@ module Hledger.Data.Posting (
   nullposting,
   posting,
   post,
+  nullsourcepos,
+  nullassertion,
+  assertion,
   -- * operations
   originalPosting,
   postingStatus,
@@ -95,6 +98,16 @@ posting = nullposting
 
 post :: AccountName -> Amount -> Posting
 post acct amt = posting {paccount=acct, pamount=Mixed [amt]}
+
+nullsourcepos :: GenericSourcePos
+nullsourcepos = JournalSourcePos "" (1,1)
+
+nullassertion, assertion :: BalanceAssertion
+nullassertion = BalanceAssertion
+                  {baamount=nullamt
+                  ,baposition=nullsourcepos
+                  }
+assertion = nullassertion
 
 -- Get the original posting, if any.
 originalPosting :: Posting -> Posting

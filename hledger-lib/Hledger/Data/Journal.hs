@@ -568,12 +568,13 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt
+checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass } bal
   | isReallyZeroAmount diff = Right ()
   | True    = Left err
-    where assertedcomm = acommodity ass
-          actualbal = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts amt)
-          diff = ass - actualbal
+    where amt = baamount ass
+          assertedcomm = acommodity amt
+          actualbal = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts bal)
+          diff = amt - actualbal
           diffplus | isNegativeAmount diff == False = "+"
                    | otherwise = ""
           err = printf (unlines
@@ -591,13 +592,13 @@ checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt
                Nothing -> ":" -- shouldn't happen
                Just t ->  printf " in %s:\nin transaction:\n%s"
                           (showGenericSourcePos pos) (chomp $ showTransaction t) :: String
-                            where pos = snd $ fromJust $ pbalanceassertion p)
+                            where pos = baposition $ fromJust $ pbalanceassertion p)
             (showPostingLine p)
             (showDate $ postingDate p)
             (T.unpack $ paccount p) -- XXX pack
             assertedcomm
             (showAmount actualbal)
-            (showAmount ass)
+            (showAmount amt)
             (diffplus ++ showAmount diff)
 checkBalanceAssertion _ _ = Right ()
 
@@ -717,7 +718,7 @@ checkInferAndRegisterAmounts (Right oldTx) = do
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
     inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setBalance (paccount p) . fst)
+      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setBalance (paccount p) . baamount)
       $ pbalanceassertion p
 
 -- | Adds a posting's amount to the posting's account balance and

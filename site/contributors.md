@@ -8,6 +8,7 @@ hledger is brought to you by:
 -   Roman Cheplyaka - "chart" command, "add" command improvements
 -   Michael Snoyman - some additions to the Yesod web interface
 -   Marko Kocić - hlint cleanup
+-   Samuel May - exact assertions
 
 Developers who have not yet signed the contributor agreement:
 
