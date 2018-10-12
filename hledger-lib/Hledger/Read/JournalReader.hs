@@ -730,6 +730,8 @@ tests_JournalReader = tests "JournalReader" [
     ,test "quoted commodity symbol with digits" $ expectParse (postingp Nothing) "  a  1 \"DE123\"\n"
 
     ,test "balance assertion and fixed lot price" $ expectParse (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n"
+
+    ,test "balance assertion over entire contents of account" $ expectParse (postingp Nothing) "  a  $1 == $1\n"
     ]
 
   ,tests "transactionmodifierp" [
