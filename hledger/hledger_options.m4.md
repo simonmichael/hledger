@@ -39,12 +39,12 @@ and then reuse them by writing `@FILENAME` in a command line.
 To prevent this expansion of `@`-arguments, precede them with a `--` argument.
 For more, see [Save frequently used options](https://github.com/simonmichael/hledger/wiki/Save-frequently-used-options).
 
-## Special characters
+## Special characters in command line
 
-Option and argument values which contain problematic characters
+Option and argument values which contain "problematic" characters
 should be escaped with double quotes, backslashes, or (best) single quotes.
 Problematic characters means spaces, and also characters which are significant to your 
-command shell, such as less-than/greater-than.
+command shell, such as `<`, `>`, '(', ')', '|' and '$'.
 Eg: `hledger register -p 'last year' "accounts receivable (receivable|payable)" amt:\>100`.
 
 Characters which are significant both to the shell and in 
