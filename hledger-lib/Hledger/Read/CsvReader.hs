@@ -752,7 +752,7 @@ transactionFromCsvRecord sourcepos rules record = t
         ,posting {paccount=account2, pamount=amount2, ptransaction=Just t}
         ]
       }
-    toAssertion (a, b) = BalanceAssertion{
+    toAssertion (a, b) = assertion{
       baamount   = a,
       baposition = b
       }

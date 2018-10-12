@@ -568,11 +568,22 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass } bal
+checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass } bal =
+  foldl' fold (Right ()) amts
+    where fold (Right _) cass = checkBalanceAssertionCommodity p cass bal
+          fold err _ = err
+          amt = baamount ass
+          amts = amt : if baexact ass
+            then map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> acommodity a /= assertedcomm) bal
+            else []
+          assertedcomm = acommodity amt
+checkBalanceAssertion _ _ = Right ()
+
+checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
+checkBalanceAssertionCommodity p amt bal
   | isReallyZeroAmount diff = Right ()
   | True    = Left err
-    where amt = baamount ass
-          assertedcomm = acommodity amt
+    where assertedcomm = acommodity amt
           actualbal = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts bal)
           diff = amt - actualbal
           diffplus | isNegativeAmount diff == False = "+"
@@ -600,7 +611,6 @@ checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass } bal
             (showAmount actualbal)
             (showAmount amt)
             (diffplus ++ showAmount diff)
-checkBalanceAssertion _ _ = Right ()
 
 -- | Fill in any missing amounts and check that all journal transactions
 -- balance, or return an error message. This is done after parsing all
@@ -720,7 +730,10 @@ checkInferAndRegisterAmounts (Right oldTx) = do
     inferFromAssignment p = do
       let acc = paccount p
       case pbalanceassertion p of
-        Just ba -> do
+        Just ba | baexact ba -> do
+          diff <- setMixedBalance acc $ Mixed [baamount ba]
+          fullPosting diff p
+        Just ba | otherwise -> do
           old <- liftModifier $ \Env{ eBalances = bals } -> HT.lookup bals acc
           let amt = baamount ba
               assertedcomm = acommodity amt
