@@ -717,9 +717,21 @@ checkInferAndRegisterAmounts (Right oldTx) = do
     (fmap void . addToBalance) styles oldTx { tpostings = newPostings }
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
-    inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setBalance (paccount p) . baamount)
-      $ pbalanceassertion p
+    inferFromAssignment p = do
+      let acc = paccount p
+      case pbalanceassertion p of
+        Just ba -> do
+          old <- liftModifier $ \Env{ eBalances = bals } -> HT.lookup bals acc
+          let amt = baamount ba
+              assertedcomm = acommodity amt
+          diff <- setMixedBalance acc $
+            Mixed [amt] + filterMixedAmount (\a -> acommodity a /= assertedcomm) (fromMaybe nullmixedamt old)
+          fullPosting diff p
+        Nothing -> return p
+    fullPosting amt p = return p
+      { pamount = amt
+      , porigin = Just $ originalPosting p
+      }
 
 -- | Adds a posting's amount to the posting's account balance and
 -- checks a possible balance assertion. Or if there is no amount,
@@ -735,15 +747,13 @@ addAmountAndCheckBalance _ p | hasAmount p = do
   return p
 addAmountAndCheckBalance fallback p = fallback p
 
--- | Sets an account's balance to a given amount and returns the
--- difference of new and old amount.
-setBalance :: AccountName -> Amount -> CurrentBalancesModifier s MixedAmount
-setBalance acc amt = liftModifier $ \Env{ eBalances = bals } -> do
+-- | Sets all commodities comprising an account's balance to the given
+-- amounts and returns the difference from the previous balance.
+setMixedBalance :: AccountName -> MixedAmount -> CurrentBalancesModifier s MixedAmount
+setMixedBalance acc amt = liftModifier $ \Env{ eBalances = bals } -> do
   old <- HT.lookup bals acc
-  let new = Mixed $ (amt :) $ maybe []
-              (filter ((/= acommodity amt) . acommodity) . amounts) old
-  HT.insert bals acc new
-  return $ maybe new (new -) old
+  HT.insert bals acc amt
+  return $ maybe amt (amt -) old
 
 -- | Adds an amount to an account's balance and returns the resulting balance.
 addToBalance :: AccountName -> MixedAmount -> CurrentBalancesModifier s MixedAmount
