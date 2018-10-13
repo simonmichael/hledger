@@ -743,7 +743,7 @@ balanceassertionp = do
   lift (skipMany spacenonewline)
   a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
   return BalanceAssertion
-    { baamount = a
+    { baamount = Mixed [a]
     , baexact = isJust exact
     , baposition = sourcepos
     }

@@ -105,7 +105,7 @@ nullsourcepos = JournalSourcePos "" (1,1)
 
 nullassertion, assertion :: BalanceAssertion
 nullassertion = BalanceAssertion
-                  {baamount=nullamt
+                  {baamount=nullmixedamt
                   ,baexact=False
                   ,baposition=nullsourcepos
                   }

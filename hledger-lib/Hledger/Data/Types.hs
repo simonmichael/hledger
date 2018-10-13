@@ -238,7 +238,7 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
 -- | The amount to compare an account's balance to, to verify that the history
 -- leading to a given point is correct or to set the account to a known value.
 data BalanceAssertion = BalanceAssertion {
-      baamount   :: Amount,             -- ^ the expected value of a particular commodity
+      baamount   :: MixedAmount,        -- ^ the expected value of particular commodities
       baexact    :: Bool,               -- ^ whether the assertion is exclusive, and doesn't allow other commodities alongside 'baamount'
       baposition :: GenericSourcePos
     } deriving (Eq,Typeable,Data,Generic,Show)

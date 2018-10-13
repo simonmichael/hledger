@@ -570,14 +570,14 @@ journalCheckBalanceAssertions j =
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
 checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass } bal =
-  foldl' fold (Right ()) amts
+  foldl' fold (Right ()) amt0
     where fold (Right _) cass = checkBalanceAssertionCommodity p cass bal
           fold err _ = err
-          amt = baamount ass
-          amts = amt : if baexact ass
-            then map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> acommodity a /= assertedcomm) bal
+          amts = amounts $ baamount ass
+          amt0 = amts ++ if baexact ass
+            then map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> not $ elem (acommodity a) assertedcomms) bal
             else []
-          assertedcomm = acommodity amt
+          assertedcomms = map acommodity amts
 checkBalanceAssertion _ _ = Right ()
 
 checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
@@ -759,14 +759,14 @@ checkInferAndRegisterAmounts (Right oldTx) = do
       let acc = paccount p
       case pbalanceassertion p of
         Just ba | baexact ba -> do
-          diff <- setMixedBalance acc $ Mixed [baamount ba]
+          diff <- setMixedBalance acc $ baamount ba
           fullPosting diff p
         Just ba | otherwise -> do
           old <- liftModifier $ \Env{ eBalances = bals } -> HT.lookup bals acc
           let amt = baamount ba
-              assertedcomm = acommodity amt
+              assertedcomms = map acommodity $ amounts amt
           diff <- setMixedBalance acc $
-            Mixed [amt] + filterMixedAmount (\a -> acommodity a /= assertedcomm) (fromMaybe nullmixedamt old)
+            amt + filterMixedAmount (\a -> not $ acommodity a `elem` assertedcomms) (fromMaybe nullmixedamt old)
           fullPosting diff p
         Nothing -> return p
     fullPosting amt p = return p
