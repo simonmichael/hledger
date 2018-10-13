@@ -261,7 +261,7 @@ accountdirectivep = do
   -- the account name, possibly modified by preceding alias or apply account directives
   acct <- modifiedaccountnamep
   -- and maybe something else after two or more spaces ?
-  matype :: Maybe AccountType <- lift $ fmap (fromMaybe Nothing) $ optional $ do
+  matype :: Maybe AccountType <- lift $ fmap (fromMaybe Nothing) $ optional $ try $ do
     skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp 
     choice [
       -- a numeric account code, as supported in 1.9-1.10 ? currently ignored
@@ -273,8 +273,9 @@ accountdirectivep = do
       ,char 'R' >> return (Just Revenue) 
       ,char 'X' >> return (Just Expense) 
       ]
-  newline
-  -- Ledger-style indented subdirectives on following lines ? ignore
+  -- and maybe a comment on this and/or following lines ? (ignore for now)
+  (_cmt, _tags) <- lift transactioncommentp
+  -- and maybe Ledger-style subdirectives ? (ignore)
   skipMany indentedlinep
 
   -- update the journal
@@ -820,7 +821,7 @@ tests_JournalReader = tests "JournalReader" [
     ]
 
   ,test "accountdirectivep" $ do
-    test "account" $ expectParse accountdirectivep "account a:b\n"
+    test "account" $ expectParse accountdirectivep "account a:b  ; a comment and some:tag, another comment\n"
     test "does not support !" $ expectParseError accountdirectivep "!account a:b\n" ""
 
   ,test "commodityconversiondirectivep" $ do
