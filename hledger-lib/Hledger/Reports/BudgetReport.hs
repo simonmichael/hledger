@@ -341,6 +341,7 @@ budgetReportAsTable
                                      ))
 
 -- XXX here for now
+-- TODO: does not work for flat-by-default reports with --flat not specified explicitly  
 -- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
 maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
 maybeAccountNameDrop opts a | flat_ opts = accountNameDrop (drop_ opts) a

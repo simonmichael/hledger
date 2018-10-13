@@ -98,5 +98,5 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
     where
       render a 
         | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a
-        | otherwise   = maybeAccountNameDrop ropts a
+        | otherwise   = accountNameDrop (drop_ ropts) a
 
