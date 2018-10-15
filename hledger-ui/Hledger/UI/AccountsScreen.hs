@@ -80,7 +80,7 @@ asInit d reset ui@UIState{
                         as = map asItemAccountName displayitems
 
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
-    ropts' = ropts{accountlistmode_=if flat_ ropts then ALFlat else ALTree}
+    ropts' = ropts{accountlistmode_=if tree_ ropts then ALTree else ALFlat}
 
     q = queryFromOpts d ropts
 
@@ -97,7 +97,7 @@ asInit d reset ui@UIState{
     displayitem (fullacct, shortacct, indent, bal) =
       AccountsScreenItem{asItemIndentLevel        = indent
                         ,asItemAccountName        = fullacct
-                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if flat_ ropts' then fullacct else shortacct
+                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts' then shortacct else fullacct 
                         ,asItemRenderedAmounts    = map showAmountWithoutPrice amts -- like showMixedAmountOneLineWithoutPrice
                         }
       where
@@ -219,10 +219,10 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                ,if ishistorical
                 then selectedstr "historical" <+> str "/period"
                 else str "historical/" <+> selectedstr "period")
-              ,("F"
-               ,if flat_ ropts
-                then str "tree/" <+> selectedstr "flat"
-                else selectedstr "tree" <+> str "/flat")
+              ,("T"
+               ,if tree_ ropts
+                then str "flat/" <+> selectedstr "tree" 
+                else selectedstr "flat" <+> str "/tree")
               ,("-+", str "depth")
               --,("/", "filter")
               --,("DEL", "unfilter")
@@ -332,7 +332,7 @@ asHandle ui0@UIState{
 
         -- display mode/query toggles
         VtyEvent (EvKey (KChar 'H') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 'F') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleFlat ui
+        VtyEvent (EvKey (KChar 'T') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleTree ui
         VtyEvent (EvKey (KChar 'Z') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
         VtyEvent (EvKey (KChar 'R') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui

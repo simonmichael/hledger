@@ -33,7 +33,8 @@ uiflags = [
   --   "show balance change accumulated across periods (in multicolumn reports)"
   -- ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
   --   "show historical ending balance in each period (includes postings before report start date)\n "
-  ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
+  ,flagNone ["flat","F"] (\opts -> setboolopt "flat" opts) "show full account names, unindented (default)"
+  ,flagNone ["tree","T"] (\opts -> setboolopt "tree" opts) "show accounts as a tree"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
   -- ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't compress empty parent accounts on one line"
