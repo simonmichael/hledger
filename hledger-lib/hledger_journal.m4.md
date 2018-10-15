@@ -911,11 +911,14 @@ expenses
 Undeclared accounts, if any, are displayed last, in alphabetical order.
 
 Note that sorting is done at each level of the account tree (within each group of sibling accounts under the same parent).
-This directive:
+And currently, this directive:
 ```journal
 account other:zoo
 ``` 
 would influence the position of `zoo` among `other`'s subaccounts, but not the position of `other` among the top-level accounts.
+This means:
+- you will sometimes declare parent accounts (eg `account other` above) that you don't intend to post to, just to customize their display order
+- sibling accounts stay together (you couldn't display `x:y` in between `a:b` and `a:c`). 
 
 ### Rewriting accounts
 
