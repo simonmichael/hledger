@@ -1,11 +1,14 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-|
 
 -}
 
 module Hledger.UI.UIOptions
 where
+import Data.Data (Data)
 import Data.Default
+import Data.Typeable (Typeable)
 import Data.List (intercalate)
 import System.Environment
 
@@ -35,6 +38,8 @@ uiflags = [
   --   "show historical ending balance in each period (includes postings before report start date)\n "
   ,flagNone ["flat","F"] (\opts -> setboolopt "flat" opts) "show full account names, unindented (default)"
   ,flagNone ["tree","T"] (\opts -> setboolopt "tree" opts) "show accounts as a tree"
+  ,flagNone ["present"] (\opts -> setboolopt "present" opts) "exclude transactions dated later than today (default)"
+  ,flagNone ["future"] (\opts -> setboolopt "future" opts) "include transactions dated later than today"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
   -- ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't compress empty parent accounts on one line"
@@ -67,10 +72,12 @@ uimode =  (mode "hledger-ui" [("command","ui")]
 data UIOpts = UIOpts {
      watch_   :: Bool
     ,change_  :: Bool
+    ,presentorfuture_  :: PresentOrFutureOpt
     ,cliopts_ :: CliOpts
  } deriving (Show)
 
 defuiopts = UIOpts
+    def
     def
     def
     def
@@ -83,8 +90,21 @@ rawOptsToUIOpts rawopts = checkUIOpts <$> do
   return defuiopts {
               watch_   = boolopt "watch" rawopts
              ,change_  = boolopt "change" rawopts
+             ,presentorfuture_ = presentorfutureopt rawopts
              ,cliopts_ = cliopts
              }
+
+-- | Should transactions dated later than today be included ? 
+-- Like flat/tree mode, there are three states, and the meaning of default can vary by command.
+data PresentOrFutureOpt = PFDefault | PFPresent | PFFuture deriving (Eq, Show, Data, Typeable)
+instance Default PresentOrFutureOpt where def = PFDefault
+
+presentorfutureopt :: RawOpts -> PresentOrFutureOpt
+presentorfutureopt rawopts =
+  case reverse $ filter (`elem` ["present","future"]) $ map fst rawopts of
+    ("present":_) -> PFPresent
+    ("future":_)  -> PFFuture
+    _             -> PFDefault
 
 checkUIOpts :: UIOpts -> UIOpts
 checkUIOpts opts =
