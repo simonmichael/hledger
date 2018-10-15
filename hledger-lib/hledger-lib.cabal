@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 22a6817292c6f2d53f935ce939331bea06b956c94b4e391d198760704ec294b3
+-- hash: 917815650a83b2a13f50cd06148918893cb6bb4c10c26af0710f9c1a46a06e4e
 
 name:           hledger-lib
 version:        1.11.99
@@ -138,6 +138,7 @@ library
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
+    , wcwidth
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
@@ -238,6 +239,7 @@ test-suite doctests
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
+    , wcwidth
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
@@ -338,6 +340,7 @@ test-suite easytests
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
+    , wcwidth
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*

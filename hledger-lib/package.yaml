@@ -75,6 +75,7 @@ dependencies:
 - utf8-string >=0.3.5
 - extra
 - Glob >= 0.9
+- wcwidth
 # for ledger-parse:
 #- parsers >=0.5
 #- system-filepath
