@@ -74,7 +74,7 @@ themesList = [
               (borderAttr <> "bold", white `on` black & bold),
               (borderAttr <> "query", cyan `on` black & bold),
               (borderAttr <> "depth", yellow `on` black & bold),
-              (borderAttr <> "keys", white `on` black & bold),
+              (borderAttr <> "keys", black `on` white & bold),  
               (borderAttr <> "minibuffer", white `on` black & bold),
               -- ("normal"                , black `on` white),
               ("list"                  , black `on` white),      -- regular list items
