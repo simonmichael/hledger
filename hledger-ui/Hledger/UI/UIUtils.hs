@@ -92,6 +92,7 @@ helpDialog copts =
                     ,"cycle cleared/not cleared/all"
                     ,"toggle cleared filter"
                     ] !! (statusstyle-1))
+                  ,renderKey ("F", "toggle future/present")
                   ,renderKey ("R", "toggle real/all")
                   ,renderKey ("Z", "toggle nonzero/all")
                   ,renderKey ("DEL/BS", "remove filters")

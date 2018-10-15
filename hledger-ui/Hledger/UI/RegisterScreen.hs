@@ -59,7 +59,7 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
@@ -69,7 +69,9 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
     ropts' = ropts{
                depth_=Nothing
               }
-    q = queryFromOpts d ropts'
+    pfq | presentorfuture_ uopts == PFFuture = Any
+        | otherwise                          = Date $ DateSpan Nothing (Just $ addDays 1 d)
+    q = And [queryFromOpts d ropts', pfq]
 --    reportq = filterQuery (not . queryIsDepth) q
 
     (_label,items) = accountTransactionsReport ropts' j q thisacctq
@@ -131,7 +133,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                             ,aScreen=RegisterScreen{..}
                             ,aMode=mode
                             } =
@@ -235,8 +237,12 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                 else str "historical/" <+> selectedstr "period")
               ,("T"
                ,if inclusive
-                then str "this/" <+> selectedstr "+subs" 
-                else selectedstr "this" <+> str "/+subs")
+                then str "flat/" <+> selectedstr "tree" 
+                else selectedstr "flat" <+> str "/tree")
+              ,("F"
+               ,if presentorfuture_ uopts == PFFuture
+                then str "present/" <+> selectedstr "future" 
+                else selectedstr "present" <+> str "/future")
 --               ,("a", "add")
 --               ,("g", "reload")
 --               ,("q", "quit")
@@ -329,6 +335,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> rsCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
+        VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleFuture ui
 
         VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui

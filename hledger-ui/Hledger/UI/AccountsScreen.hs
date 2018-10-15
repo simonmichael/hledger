@@ -23,7 +23,7 @@ import Data.Maybe
 import Data.Monoid
 #endif
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar (Day, addDays)
 import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Lens.Micro.Platform
@@ -82,7 +82,10 @@ asInit d reset ui@UIState{
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts{accountlistmode_=if tree_ ropts then ALTree else ALFlat}
 
-    q = queryFromOpts d ropts
+    pfq | presentorfuture_ uopts == PFFuture = Any
+        | otherwise                          = Date $ DateSpan Nothing (Just $ addDays 1 d)
+    q = And [queryFromOpts d ropts, pfq]
+        
 
     -- run the report
     (items,_total) = report ropts' q j
@@ -116,7 +119,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                            ,ajournal=j
                            ,aScreen=s@AccountsScreen{}
                            ,aMode=mode
@@ -223,6 +226,10 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                ,if tree_ ropts
                 then str "flat/" <+> selectedstr "tree" 
                 else selectedstr "flat" <+> str "/tree")
+              ,("F"
+               ,if presentorfuture_ uopts == PFFuture
+                then str "present/" <+> selectedstr "future" 
+                else selectedstr "present" <+> str "/future")
               ,("-+", str "depth")
               --,("/", "filter")
               --,("DEL", "unfilter")
@@ -338,6 +345,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> asCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
+        VtyEvent (EvKey (KChar 'F') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleFuture ui
 
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui

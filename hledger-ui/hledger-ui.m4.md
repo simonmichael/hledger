@@ -44,6 +44,7 @@ hledger-ui is hledger's curses-style interface, providing an efficient full-wind
 for viewing accounts and transactions, and some limited data entry capability.
 It is easier than hledger's command-line interface, and 
 sometimes quicker and more convenient than the web interface.
+Note hledger-ui hides transactions dated in the future, by default.
 
 Like hledger, it reads _files_
 For more about this see hledger(1), hledger_journal(5) etc.
@@ -72,7 +73,13 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `-T --tree`
 : show accounts as a tree
 
-hledger input options:
+`--present`
+: exclude transactions dated later than today (default) (experimental)
+
+`--future`
+: include transactions dated later than today (experimental)
+
+ hledger input options:
 
 _inputoptions_
 
@@ -121,6 +128,12 @@ While editing the query, you can use [CTRL-a/e/d/k, BS, cursor keys](http://hack
 press `ENTER` to set it, or `ESCAPE`to cancel.
 There are also keys for quickly adjusting some common filters like account depth and transaction status (see below).
 `BACKSPACE` or `DELETE` removes all filters, showing all transactions.
+
+As mentioned above, hledger-ui hides transactions in the future by default.
+`F` toggles showing and hiding these future transactions.
+This is similar to using a query like `date:-tomorrow`, but more convenient.
+(experimental) 
+
 
 `ESCAPE` removes all filters and jumps back to the top screen.
 Or, it cancels a minibuffer edit or help dialog in progress.
@@ -211,10 +224,10 @@ Similar to the accounts screen, the historical total is affected by transactions
 If the historical total is not disturbed by a filter query, it will be the
 running historical balance you would see on a bank register for the current account. 
 
-Transactions affecting this account's subaccounts will be shown if
-the accounts screen was in tree mode, 
-or if it was in flat mode but the selected account had depth-clipped subaccounts. 
-In other words, the register always shows just the transactions contributing to the balance on the accounts screen.
+Transactions affecting this account's subaccounts will be included in the register
+if the accounts screen is in tree mode, 
+or if it's in flat mode but this account has subaccounts which are not shown due to a depth limit. 
+In other words, the register always shows the transactions contributing to the balance shown on the accounts screen.  
 Tree mode/flat mode can be toggled with `T` here also.
 
 `U` toggles filtering by [unmarked status](/journal.html#status), showing or hiding unmarked transactions. 

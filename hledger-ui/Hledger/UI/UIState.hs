@@ -124,6 +124,14 @@ toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts
     b | balancetype_ ropts == HistoricalBalance = PeriodChange
       | otherwise                               = HistoricalBalance
 
+-- | Toggle between including and excluding transactions dated later than today.
+toggleFuture :: UIState -> UIState
+toggleFuture ui@UIState{aopts=uopts@UIOpts{presentorfuture_=pf}} =
+  ui{aopts=uopts{presentorfuture_=pf'}}
+  where
+    pf' | pf == PFFuture = PFPresent
+        | otherwise      = PFFuture
+
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
 toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
