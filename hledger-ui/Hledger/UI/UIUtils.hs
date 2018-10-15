@@ -99,11 +99,11 @@ helpDialog copts =
                   ,str "accounts screen:"
                   ,renderKey ("-+0123456789", "set depth limit")
                   ,renderKey ("H", "toggle period balance (shows change) or\nhistorical balance (includes older postings)")
-                  ,renderKey ("F", "toggle tree (amounts include subaccounts) or\nflat mode (amounts exclude subaccounts\nexcept when account is depth-clipped)")
+                  ,renderKey ("T", "toggle tree (amounts include subaccounts) or\nflat mode (amounts exclude subaccounts\nexcept at depth limit)")
                   ,str " "
                   ,str "register screen:"
                   ,renderKey ("H", "toggle period or historical total")
-                  ,renderKey ("F", "toggle subaccount transaction inclusion\n(and tree/flat mode)")
+                  ,renderKey ("T", "toggle inclusion of subaccount transactions\n(and tree/flat mode on accounts screen)")
                 ]
              ]
 --           ,vBox [

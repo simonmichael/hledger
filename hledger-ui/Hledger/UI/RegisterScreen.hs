@@ -64,7 +64,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
   where
     -- gather arguments and queries
     -- XXX temp
-    inclusive = not (flat_ ropts) || rsForceInclusive
+    inclusive = tree_ ropts || rsForceInclusive
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
     ropts' = ropts{
                depth_=Nothing
@@ -186,7 +186,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
       where
         ishistorical = balancetype_ ropts == HistoricalBalance
-        inclusive = not (flat_ ropts) || rsForceInclusive
+        inclusive = tree_ ropts || rsForceInclusive
 
         toplabel =
               withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
@@ -233,10 +233,10 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                ,if ishistorical
                 then selectedstr "historical" <+> str "/period"
                 else str "historical/" <+> selectedstr "period")
-              ,("F"
+              ,("T"
                ,if inclusive
-                then selectedstr "inclusive" <+> str "/exclusive"
-                else str "inclusive/" <+> selectedstr "exclusive")
+                then str "this/" <+> selectedstr "+subs" 
+                else selectedstr "this" <+> str "/+subs")
 --               ,("a", "add")
 --               ,("g", "reload")
 --               ,("q", "quit")
@@ -323,7 +323,7 @@ rsHandle ui@UIState{
 
         -- display mode/query toggles
         VtyEvent (EvKey (KChar 'H') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleFlat ui
+        VtyEvent (EvKey (KChar 'T') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleTree ui
         VtyEvent (EvKey (KChar 'Z') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
         VtyEvent (EvKey (KChar 'R') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui

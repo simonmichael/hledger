@@ -108,13 +108,13 @@ toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
   where
     toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
 
--- | Toggle between flat and tree mode. If in the third "default" mode, go to flat mode.
-toggleFlat :: UIState -> UIState
-toggleFlat ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=toggleFlatMode ropts}}}
+-- | Toggle between flat and tree mode. If current mode is unspecified/default, assume it's flat.
+toggleTree :: UIState -> UIState
+toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=toggleTreeMode ropts}}}
   where
-    toggleFlatMode ropts@ReportOpts{accountlistmode_=ALFlat} = ropts{accountlistmode_=ALTree}
-    toggleFlatMode ropts = ropts{accountlistmode_=ALFlat}
+    toggleTreeMode ropts@ReportOpts{accountlistmode_=ALTree} = ropts{accountlistmode_=ALFlat}
+    toggleTreeMode ropts = ropts{accountlistmode_=ALTree}
 
 -- | Toggle between historical balances and period balances.
 toggleHistorical :: UIState -> UIState

@@ -66,8 +66,11 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--change`
 : show period balances (changes) at startup instead of historical balances 
 
-`--flat`
-: show full account names, unindented
+`-F --flat`
+: show full account names, unindented (default)
+
+`-T --tree`
+: show accounts as a tree
 
 hledger input options:
 
@@ -156,15 +159,14 @@ It lists accounts and their balances, like hledger's balance command.
 By default, it shows all accounts and their latest ending balances (including the balances of subaccounts).
 if you specify a query on the command line, it shows just the matched accounts and the balances from matched transactions.
 
-Account names are normally indented to show the hierarchy (tree mode).
-To see less detail, set a depth limit by pressing a number key, `1` to `9`.
-`0` shows even less detail, collapsing all accounts to a single total.
-`-` and `+` (or `=`) decrease and increase the depth limit.
-To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
+Account names are shown as a flat list by default. Press `T` to toggle tree mode. 
+In flat mode, account balances are exclusive of subaccounts, except where subaccounts are hidden by a depth limit (see below).
+In tree mode, all account balances are inclusive of subaccounts.
 
-`F` toggles flat mode, in which accounts are shown as a flat list, with their full names.
-In this mode, account balances exclude subaccounts, except for accounts at the depth limit 
-(as with hledger's balance command). 
+To see less detail, press a number key, `1` to `9`, to set a depth limit.
+Or use `-` to decrease and `+`/`=` to increase the depth limit.
+`0` shows even less detail, collapsing all accounts to a single total.
+To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
 
 `H` toggles between showing historical balances or period balances.
 Historical balances (the default) are ending balances at the end of the report period, 
@@ -209,13 +211,11 @@ Similar to the accounts screen, the historical total is affected by transactions
 If the historical total is not disturbed by a filter query, it will be the
 running historical balance you would see on a bank register for the current account. 
 
-If the accounts screen was in tree mode,
-the register screen will include transactions from both the current account and its subaccounts.
-If the accounts screen was in flat mode, and a non-depth-clipped account was selected,
-the register screen will exclude transactions from subaccounts.
-In other words, the register always shows the transactions responsible for the period balance 
-shown on the accounts screen.
-As on the accounts screen, this can be toggled with `F`.
+Transactions affecting this account's subaccounts will be shown if
+the accounts screen was in tree mode, 
+or if it was in flat mode but the selected account had depth-clipped subaccounts. 
+In other words, the register always shows just the transactions contributing to the balance on the accounts screen.
+Tree mode/flat mode can be toggled with `T` here also.
 
 `U` toggles filtering by [unmarked status](/journal.html#status), showing or hiding unmarked transactions. 
 Similarly, `P` toggles pending transactions, and `C` toggles cleared transactions.
