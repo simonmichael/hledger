@@ -192,7 +192,7 @@ setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
 resetFilter :: UIState -> UIState
 resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{
-     accountlistmode_=ALTree
+     accountlistmode_=ALFlat
     ,empty_=True
     ,statuses_=[]
     ,real_=False
