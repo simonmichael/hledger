@@ -36,7 +36,7 @@ uiflags = [
   --   "show balance change accumulated across periods (in multicolumn reports)"
   -- ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
   --   "show historical ending balance in each period (includes postings before report start date)\n "
-  ,flagNone ["flat","F"] (\opts -> setboolopt "flat" opts) "show full account names, unindented (default)"
+  ,flagNone ["flat","F"] (\opts -> setboolopt "flat" opts) "show accounts as a list (default)"
   ,flagNone ["tree","T"] (\opts -> setboolopt "tree" opts) "show accounts as a tree"
   ,flagNone ["present"] (\opts -> setboolopt "present" opts) "exclude transactions dated later than today (default)"
   ,flagNone ["future"] (\opts -> setboolopt "future" opts) "include transactions dated later than today"
