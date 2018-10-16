@@ -113,8 +113,9 @@ toggleTree :: UIState -> UIState
 toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=toggleTreeMode ropts}}}
   where
-    toggleTreeMode ropts@ReportOpts{accountlistmode_=ALTree} = ropts{accountlistmode_=ALFlat}
-    toggleTreeMode ropts = ropts{accountlistmode_=ALTree}
+    toggleTreeMode ropts
+      | accountlistmode_ ropts == ALTree = ropts{accountlistmode_=ALFlat}
+      | otherwise                        = ropts{accountlistmode_=ALTree}
 
 -- | Toggle between historical balances and period balances.
 toggleHistorical :: UIState -> UIState
