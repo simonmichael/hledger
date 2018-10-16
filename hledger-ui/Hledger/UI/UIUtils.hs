@@ -25,7 +25,7 @@ import Lens.Micro.Platform
 import System.Environment
 
 import Hledger hiding (Color)
-import Hledger.Cli (CliOpts(rawopts_))
+import Hledger.Cli (CliOpts)
 import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
@@ -35,76 +35,60 @@ import Hledger.UI.UIState
 
 -- | Draw the help dialog, called when help mode is active.
 helpDialog :: CliOpts -> Widget Name
-helpDialog copts =
+helpDialog _copts =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
       renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
-      padTopBottom 1 $ padLeftRight 1 $
+      padAll 1 $
         vBox [
            hBox [
-              padLeftRight 1 $
+              padRight (Pad 1) $
                 vBox [
-                   str "NAVIGATION"
-                  ,renderKey ("UP/DOWN/PGUP/PGDN/HOME/END", "")
-                  ,str "  move selection"
-                  ,renderKey ("RIGHT", "more detail")
-                  ,renderKey ("LEFT", "previous screen")
-                  ,str "  (or vi/emacs movement keys)"
-                  ,renderKey ("ESC", "cancel / reset to top")
+                   str "Navigation"
+                  ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/emacs/vi keys", "")
+                  ,str "      move selection"
+                  ,renderKey ("RIGHT", "show more detail")
+                  ,renderKey ("LEFT ", "go back")
+                  ,renderKey ("ESC  ", "cancel or reset")
                   ,str " "
-                  ,str "MISC"
-                  ,renderKey ("?", "toggle help")
-                  ,renderKey ("a", "add transaction (hledger add)")
-                  ,renderKey ("A", "add transaction (hledger-iadd)")
-                  ,renderKey ("E", "open editor")
-                  ,renderKey ("I", "toggle balance assertions")
-                  ,renderKey ("CTRL-l", "redraw & recenter")
-                  ,renderKey ("g", "reload data")
-                  ,renderKey ("q", "quit")
+                  ,str "Report period"
+                  ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
+                  ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")
+                  ,renderKey ("t             ", "set period to today")
                   ,str " "
-                  ,str "MANUAL"
-                  ,str "choose format:"
-                  ,renderKey ("p", "pager")
-                  ,renderKey ("m", "man")
-                  ,renderKey ("i", "info")
+                  ,str "Accounts screen"
+                  ,renderKey ("-+0123456789 ", "set depth limit")
+                  ,renderKey ("T ", "toggle tree/flat mode")
+                  ,renderKey ("H ", "period change/historical end balance")
+                  ,str " "
+                  ,str "Register screen"
+                  ,renderKey ("T ", "toggle subaccount txns\n(and accounts screen tree/flat mode)")
+                  ,renderKey ("H ", "show period total/historical total")
+                  ,str " "
                 ]
-             ,padLeftRight 1 $
+             ,padLeft (Pad 1) $ padRight (Pad 0) $
                 vBox [
-                   str "FILTERING"
-                  ,renderKey ("SHIFT-DOWN/UP", "shrink/grow report period")
-                  ,renderKey ("SHIFT-RIGHT/LEFT", "next/previous report period")
-                  ,renderKey ("t", "set report period to today")
+                   str "Filtering"
+                  ,renderKey ("/   ", "set a filter query")
+                  ,renderKey ("UPC ", "show unmarked/pending/cleared") 
+                  ,renderKey ("F   ", "show future/present txns")
+                  ,renderKey ("R   ", "show real/all postings")
+                  ,renderKey ("Z   ", "show nonzero/all amounts")
+                  ,renderKey ("DEL ", "remove filters")
                   ,str " "
-                  ,renderKey ("/", "set a filter query")
-                  ,renderKey ("U", 
-                    ["toggle unmarked/all"
-                    ,"cycle unmarked/not unmarked/all"
-                    ,"toggle unmarked filter"
-                    ] !! (statusstyle-1))
-                  ,renderKey ("P",
-                    ["toggle pending/all"
-                    ,"cycle pending/not pending/all"
-                    ,"toggle pending filter"
-                    ] !! (statusstyle-1))
-                  ,renderKey ("C",
-                    ["toggle cleared/all"
-                    ,"cycle cleared/not cleared/all"
-                    ,"toggle cleared filter"
-                    ] !! (statusstyle-1))
-                  ,renderKey ("F", "toggle future/present")
-                  ,renderKey ("R", "toggle real/all")
-                  ,renderKey ("Z", "toggle nonzero/all")
-                  ,renderKey ("DEL/BS", "remove filters")
+                  ,str "Help"
+                  ,renderKey ("?   ", "toggle this help")
+                  ,renderKey ("pmi ", "(with help showing)\nshow manual in pager/man/info")
                   ,str " "
-                  ,str "accounts screen:"
-                  ,renderKey ("-+0123456789", "set depth limit")
-                  ,renderKey ("H", "toggle period balance (shows change) or\nhistorical balance (includes older postings)")
-                  ,renderKey ("T", "toggle tree (amounts include subaccounts) or\nflat mode (amounts exclude subaccounts\nexcept at depth limit)")
-                  ,str " "
-                  ,str "register screen:"
-                  ,renderKey ("H", "toggle period or historical total")
-                  ,renderKey ("T", "toggle inclusion of subaccount transactions\n(and tree/flat mode on accounts screen)")
+                  ,str "Other"
+                  ,renderKey ("a   ", "add transaction (hledger add)")
+                  ,renderKey ("A   ", "add transaction (hledger-iadd)")
+                  ,renderKey ("E   ", "open editor")
+                  ,renderKey ("I   ", "toggle balance assertions")
+                  ,renderKey ("C-l ", "redraw & recenter")
+                  ,renderKey ("g   ", "reload data")
+                  ,renderKey ("q   ", "quit")
                 ]
              ]
 --           ,vBox [
@@ -123,7 +107,6 @@ helpDialog copts =
           ]
   where
     renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
-    statusstyle = min 3 $ fromMaybe 1 $ maybeintopt "status-toggles" $ rawopts_ copts 
 
 -- | Event handler used when help mode is active.
 -- May invoke $PAGER, less, man or info, which is likely to fail on MS Windows, TODO.
