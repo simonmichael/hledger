@@ -188,7 +188,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
       where
         ishistorical = balancetype_ ropts == HistoricalBalance
-        inclusive = tree_ ropts || rsForceInclusive
+        -- inclusive = tree_ ropts || rsForceInclusive
 
         toplabel =
               withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
@@ -236,7 +236,8 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                 then selectedstr "historical" <+> str "/period"
                 else str "historical/" <+> selectedstr "period")
               ,("T"
-               ,if inclusive
+               -- rsForceInclusive may override, but use tree_ here to ensure a visible toggle effect 
+               ,if tree_ ropts
                 then str "flat/" <+> selectedstr "tree" 
                 else selectedstr "flat" <+> str "/tree")
               ,("F"
