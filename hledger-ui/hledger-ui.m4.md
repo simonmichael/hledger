@@ -68,7 +68,7 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 : show period balances (changes) at startup instead of historical balances 
 
 `-F --flat`
-: show full account names, unindented (default)
+: show accounts as a list (default)
 
 `-T --tree`
 : show accounts as a tree
