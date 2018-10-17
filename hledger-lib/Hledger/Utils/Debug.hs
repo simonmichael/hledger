@@ -199,8 +199,8 @@ plog = plogAt 0
 -- | Log a message and a pretty-printed showable value to ./debug.log, 
 -- if the global debug level is at or above the specified level.
 -- At level 0, always logs. Otherwise, uses unsafePerformIO.
--- XXX Can fail due to log file contention if called multiple times
--- ("*** Exception: debug.log: openFile: resource busy (file is locked)").
+-- Tends to fail if called more than once, at least when built with -threaded
+-- (Exception: debug.log: openFile: resource busy (file is locked)).
 plogAt :: Show a => Int -> String -> a -> a
 plogAt lvl
     | lvl > 0 && debugLevel < lvl = flip const
