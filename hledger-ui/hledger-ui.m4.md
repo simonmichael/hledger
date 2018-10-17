@@ -73,11 +73,8 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `-T --tree`
 : show accounts as a tree
 
-`--present`
-: exclude transactions dated later than today (default) (experimental)
-
 `--future`
-: include transactions dated later than today (experimental)
+: show transactions dated later than today (normally hidden)
 
  hledger input options:
 
