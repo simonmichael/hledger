@@ -44,7 +44,11 @@ hledger-ui is hledger's curses-style interface, providing an efficient full-wind
 for viewing accounts and transactions, and some limited data entry capability.
 It is easier than hledger's command-line interface, and 
 sometimes quicker and more convenient than the web interface.
-Note hledger-ui hides transactions dated in the future, by default.
+
+Note hledger-ui has some different defaults:
+- it generates rule-based transactions and postings by default (--forecast and --auto are always on). 
+- it hides transactions dated in the future by default (change this with --future or the F key).
+Experimental.
 
 Like hledger, it reads _files_
 For more about this see hledger(1), hledger_journal(5) etc.
