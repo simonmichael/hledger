@@ -192,12 +192,15 @@ dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg9IO = ptraceAtIO 9
 
 -- | Log a message and a pretty-printed showable value to ./debug.log, then return it.
+-- Can fail, see plogAt.
 plog :: Show a => String -> a -> a
 plog = plogAt 0
 
 -- | Log a message and a pretty-printed showable value to ./debug.log, 
 -- if the global debug level is at or above the specified level.
 -- At level 0, always logs. Otherwise, uses unsafePerformIO.
+-- XXX Can fail due to log file contention if called multiple times
+-- ("*** Exception: debug.log: openFile: resource busy (file is locked)").
 plogAt :: Show a => Int -> String -> a -> a
 plogAt lvl
     | lvl > 0 && debugLevel < lvl = flip const
@@ -208,13 +211,11 @@ plogAt lvl
                       | otherwise     = " " ++ take (10 - length s) (repeat ' ')
             ls' | length ls > 1 = map (" "++) ls
                 | otherwise     = ls
-            output = s++":"++nlorspace++intercalate "\n" ls'
+            output = s++":"++nlorspace++intercalate "\n" ls'++"\n"
         in unsafePerformIO $ appendFile "debug.log" output >> return a
 
--- XXX redundant ? More/less robust than log0 ?
+-- XXX redundant ? More/less robust than plogAt ?
 -- -- | Like dbg, but writes the output to "debug.log" in the current directory.
--- -- Uses unsafePerformIO. Can fail due to log file contention if called too quickly
--- -- ("*** Exception: debug.log: openFile: resource busy (file is locked)").
 -- dbglog :: Show a => String -> a -> a
 -- dbglog label a =
 --   (unsafePerformIO $
