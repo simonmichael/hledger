@@ -170,6 +170,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       , appDraw         = \ui    -> sDraw   (aScreen ui) ui
       }
 
+  -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
+  
   if not (watch_ uopts')
   then
     void $ defaultMain brickapp ui
