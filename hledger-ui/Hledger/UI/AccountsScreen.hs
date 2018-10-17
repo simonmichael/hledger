@@ -90,6 +90,7 @@ asInit d reset ui@UIState{
     -- run the report
     (items,_total) = report ropts' q j
       where
+                 -- XXX in historical mode, --forecast throws off the starting balances
         report | balancetype_ ropts == HistoricalBalance = balanceReportFromMultiBalanceReport
                | otherwise                               = balanceReport
                     -- still using the old balanceReport for change reports as it
