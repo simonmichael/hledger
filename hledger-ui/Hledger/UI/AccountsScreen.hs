@@ -82,6 +82,8 @@ asInit d reset ui@UIState{
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts{accountlistmode_=if tree_ ropts then ALTree else ALFlat}
 
+    -- Add a date:-tomorrow to the query to exclude future txns, by default.
+    -- XXX this necessitates special handling in multiBalanceReport, at least
     pfq | presentorfuture_ uopts == PFFuture = Any
         | otherwise                          = Date $ DateSpan Nothing (Just $ addDays 1 d)
     q = And [queryFromOpts d ropts, pfq]

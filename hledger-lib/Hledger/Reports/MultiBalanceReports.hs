@@ -93,15 +93,37 @@ multiBalanceReport opts q j =
       depthless  = dbg1 "depthless" . filterQuery (not . queryIsDepth)
       datelessq  = dbg1 "datelessq"  $ filterQuery (not . queryIsDateOrDate2) q
       dateqcons  = if date2_ opts then Date2 else Date
-      precedingq = dbg1 "precedingq" $ And [datelessq, dateqcons $ DateSpan Nothing (spanStart reportspan)]
-      requestedspan  = dbg1 "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
-      requestedspan' = dbg1 "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
-      intervalspans  = dbg1 "intervalspans"  $ splitSpan (interval_ opts) requestedspan'           -- interval spans enclosing it
-      reportspan     = dbg1 "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
-                                                       (maybe Nothing spanEnd   $ lastMay intervalspans)
-      newdatesq = dbg1 "newdateq" $ dateqcons reportspan
-      reportq  = dbg1 "reportq" $ depthless $ And [datelessq, newdatesq] -- user's query enlarged to whole intervals and with no depth limit
-
+      -- The date span specified by -b/-e/-p options and query args if any.
+      requestedspan  = dbg1 "requestedspan"  $ queryDateSpan (date2_ opts) q
+      -- If the requested span is open-ended, close it using the journal's end dates.
+      -- This can still be the null (open) span if the journal is empty.
+      requestedspan' = dbg1 "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j
+      -- The list of interval spans enclosing the requested span.
+      -- This list can be empty if the journal was empty,
+      -- or if hledger-ui has added its special date:-tomorrow to the query
+      -- and all txns are in the future.
+      intervalspans  = dbg1 "intervalspans"  $ splitSpan (interval_ opts) requestedspan'           
+      -- The requested span enlarged to enclose a whole number of intervals.
+      -- This can be the null span if there were no intervals. 
+      reportspan     = dbg1 "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans)
+                                                        (maybe Nothing spanEnd   $ lastMay intervalspans)
+      -- The user's query with no depth limit, and expanded to the report span
+      -- if there is one (otherwise any date queries are left as-is, which
+      -- handles the hledger-ui+future txns case above).
+      reportq   = dbg1 "reportq" $ depthless $ 
+        if reportspan == nulldatespan 
+        then q 
+        else And [datelessq, reportspandatesq]
+          where
+            reportspandatesq = dbg1 "reportspandatesq" $ dateqcons reportspan
+      -- q projected back before the report start date, to calculate starting balances.
+      -- When there's no report start date, in case there are future txns (the hledger-ui case above),
+      -- we use emptydatespan to make sure they aren't counted as starting balance.  
+      startbalq = dbg1 "startbalq" $ And [datelessq, dateqcons precedingspan]
+        where
+          precedingspan = case spanStart reportspan of
+                            Just d  -> DateSpan Nothing (Just d)
+                            Nothing -> emptydatespan 
       ps :: [Posting] =
           dbg1 "ps" $
           journalPostings $
@@ -139,7 +161,7 @@ multiBalanceReport opts q j =
       -- starting balances and accounts from transactions before the report start date
       startacctbals = dbg1 "startacctbals" $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
           where
-            (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport opts' precedingq j
+            (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport opts' startbalq j
                                     where
                                       opts' | tree_ opts = opts{no_elide_=True}
                                             | otherwise  = opts{accountlistmode_=ALFlat}

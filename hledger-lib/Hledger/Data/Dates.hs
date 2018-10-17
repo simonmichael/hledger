@@ -48,6 +48,7 @@ module Hledger.Data.Dates (
   parsePeriodExpr,
   parsePeriodExpr',
   nulldatespan,
+  emptydatespan,
   failIfInvalidYear,
   failIfInvalidMonth,
   failIfInvalidDay,
@@ -1096,6 +1097,10 @@ mkdatespan b = DateSpan (Just $ parsedate b) . Just . parsedate
 
 nulldatespan :: DateSpan
 nulldatespan = DateSpan Nothing Nothing
+
+-- | A datespan of zero length, that matches no date.
+emptydatespan :: DateSpan
+emptydatespan = DateSpan (Just $ addDays 1 nulldate) (Just nulldate)
 
 nulldate :: Day
 nulldate = fromGregorian 0 1 1
