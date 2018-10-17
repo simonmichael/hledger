@@ -12,6 +12,11 @@ limited data entry capability.  It is easier than hledger's command-line
 interface, and sometimes quicker and more convenient than the web
 interface.
 
+   Note hledger-ui has some different defaults: - it generates
+rule-based transactions and postings by default (-forecast and -auto are
+always on).  - it hides transactions dated in the future by default
+(change this with -future or the F key).  Experimental.
+
    Like hledger, it reads data from one or more files in hledger
 journal, timeclock, timedot, or CSV format specified with '-f', or
 '$LEDGER_FILE', or '$HOME/.hledger.journal' (on windows, perhaps
@@ -48,9 +53,15 @@ the data.
 
      show period balances (changes) at startup instead of historical
      balances
-'--flat'
+'-F --flat'
 
-     show full account names, unindented
+     show accounts as a list (default)
+'-T --tree'
+
+     show accounts as a tree
+'--future'
+
+     show transactions dated later than today (normally hidden)
 
    hledger input options:
 
@@ -201,6 +212,12 @@ some common filters like account depth and transaction status (see
 below).  'BACKSPACE' or 'DELETE' removes all filters, showing all
 transactions.
 
+   As mentioned above, hledger-ui shows auto-generated periodic
+transactions, and hides future transactions (auto-generated or not) by
+default.  'F' toggles showing and hiding these future transactions.
+This is similar to using a query like 'date:-tomorrow', but more
+convenient.  (experimental)
+
    'ESCAPE' removes all filters and jumps back to the top screen.  Or,
 it cancels a minibuffer edit or help dialog in progress.
 
@@ -257,17 +274,17 @@ all accounts and their latest ending balances (including the balances of
 subaccounts).  if you specify a query on the command line, it shows just
 the matched accounts and the balances from matched transactions.
 
-   Account names are normally indented to show the hierarchy (tree
-mode).  To see less detail, set a depth limit by pressing a number key,
-'1' to '9'.  '0' shows even less detail, collapsing all accounts to a
-single total.  '-' and '+' (or '=') decrease and increase the depth
-limit.  To remove the depth limit, set it higher than the maximum
-account depth, or press 'ESCAPE'.
+   Account names are shown as a flat list by default.  Press 'T' to
+toggle tree mode.  In flat mode, account balances are exclusive of
+subaccounts, except where subaccounts are hidden by a depth limit (see
+below).  In tree mode, all account balances are inclusive of
+subaccounts.
 
-   'F' toggles flat mode, in which accounts are shown as a flat list,
-with their full names.  In this mode, account balances exclude
-subaccounts, except for accounts at the depth limit (as with hledger's
-balance command).
+   To see less detail, press a number key, '1' to '9', to set a depth
+limit.  Or use '-' to decrease and '+'/'=' to increase the depth limit.
+'0' shows even less detail, collapsing all accounts to a single total.
+To remove the depth limit, set it higher than the maximum account depth,
+or press 'ESCAPE'.
 
    'H' toggles between showing historical balances or period balances.
 Historical balances (the default) are ending balances at the end of the
@@ -318,13 +335,12 @@ a check register.  Each line represents one transaction and shows:
      not disturbed by a filter query, it will be the running historical
      balance you would see on a bank register for the current account.
 
-   If the accounts screen was in tree mode, the register screen will
-include transactions from both the current account and its subaccounts.
-If the accounts screen was in flat mode, and a non-depth-clipped account
-was selected, the register screen will exclude transactions from
-subaccounts.  In other words, the register always shows the transactions
-responsible for the period balance shown on the accounts screen.  As on
-the accounts screen, this can be toggled with 'F'.
+   Transactions affecting this account's subaccounts will be included in
+the register if the accounts screen is in tree mode, or if it's in flat
+mode but this account has subaccounts which are not shown due to a depth
+limit.  In other words, the register always shows the transactions
+contributing to the balance shown on the accounts screen.
+Tree mode/flat mode can be toggled with 'T' here also.
 
    'U' toggles filtering by unmarked status, showing or hiding unmarked
 transactions.  Similarly, 'P' toggles pending transactions, and 'C'
@@ -380,19 +396,19 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top71
-Node: OPTIONS829
-Ref: #options926
-Node: KEYS4226
-Ref: #keys4321
-Node: SCREENS7280
-Ref: #screens7365
-Node: Accounts screen7455
-Ref: #accounts-screen7583
-Node: Register screen9813
-Ref: #register-screen9968
-Node: Transaction screen12042
-Ref: #transaction-screen12200
-Node: Error screen13070
-Ref: #error-screen13192
+Node: OPTIONS1090
+Ref: #options1187
+Node: KEYS4606
+Ref: #keys4701
+Node: SCREENS7957
+Ref: #screens8042
+Node: Accounts screen8132
+Ref: #accounts-screen8260
+Node: Register screen10476
+Ref: #register-screen10631
+Node: Transaction screen12628
+Ref: #transaction-screen12786
+Node: Error screen13656
+Ref: #error-screen13778
 
 End Tag Table
