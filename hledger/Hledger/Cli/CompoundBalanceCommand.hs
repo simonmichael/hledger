@@ -14,7 +14,7 @@ module Hledger.Cli.CompoundBalanceCommand (
 ) where
 
 import Data.List (foldl')
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe,catMaybes)
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit as C
@@ -218,13 +218,19 @@ compoundBalanceSubreport ropts userq j subreportqfn subreportnormalsign = r'
     -- run the report
     q = And [subreportqfn j, userq]
     r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j
-    -- if user didn't specify --empty, now remove the all-zero rows
+    -- if user didn't specify --empty, now remove the all-zero rows, unless they have non-zero subaccounts
+    -- in this report
     r' | empty_ ropts = r
        | otherwise    = MultiBalanceReport (dates, rows', totals) 
           where
+            nonzeroaccounts =
+              dbg1 "nonzeroaccounts" $
+              catMaybes $ map (\(act,_,_,amts,_,_) ->
+                            if not (all isZeroMixedAmount amts) then Just act else Nothing) rows 
             rows' = filter (not . emptyRow) rows
               where
-                emptyRow (_,_,_,amts,_,_) = all isZeroMixedAmount amts
+                emptyRow (act,_,_,amts,_,_) =
+                  all isZeroMixedAmount amts && all (not . (act `isAccountNamePrefixOf`)) nonzeroaccounts
 
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:

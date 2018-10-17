@@ -241,3 +241,44 @@ Balance Sheet 2016/01/01
  Net:        ║          1 
 >>>2
 >>>= 0
+
+# 10. Check that accounts brought to zero by subaccount balances
+# are not erased from balancesheet
+hledger -f - balancesheet
+<<<
+2018-10-01
+   income:whatever
+   assets:bank      $100
+   assets:bank:subaccount  $10
+   assets:bank:this subaccount should disappear  $10
+
+2018-10-02
+   assets:bank:this subaccount should disappear  -$10
+   assets:bank
+
+2018-10-03
+   assets:this account should not disappear:subaccount   -$10
+   assets:this account should not disappear
+>>>
+Balance Sheet 2018/10/01-2018/10/03
+
+                                     || 2018/10/03 
+=====================================++============
+ Assets                              ||            
+-------------------------------------++------------
+ assets                              ||       $120 
+   bank                              ||       $120 
+     subaccount                      ||        $10 
+   this account should not disappear ||          0 
+     subaccount                      ||       $-10 
+-------------------------------------++------------
+                                     ||       $120 
+=====================================++============
+ Liabilities                         ||            
+-------------------------------------++------------
+-------------------------------------++------------
+                                     ||            
+=====================================++============
+ Net:                                ||       $120 
+>>>2
+>>>= 0
