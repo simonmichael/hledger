@@ -130,11 +130,11 @@ press `ENTER` to set it, or `ESCAPE`to cancel.
 There are also keys for quickly adjusting some common filters like account depth and transaction status (see below).
 `BACKSPACE` or `DELETE` removes all filters, showing all transactions.
 
-As mentioned above, hledger-ui hides transactions in the future by default.
+As mentioned above, hledger-ui shows auto-generated periodic transactions,
+and hides future transactions (auto-generated or not) by default.
 `F` toggles showing and hiding these future transactions.
 This is similar to using a query like `date:-tomorrow`, but more convenient.
 (experimental) 
-
 
 `ESCAPE` removes all filters and jumps back to the top screen.
 Or, it cancels a minibuffer edit or help dialog in progress.

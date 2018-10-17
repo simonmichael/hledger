@@ -26,6 +26,13 @@ limited data entry capability.
 It is easier than hledger's command\-line interface, and sometimes
 quicker and more convenient than the web interface.
 .PP
+Note hledger\-ui has some different defaults: \- it generates
+rule\-based transactions and postings by default (\[en]forecast and
+\[en]auto are always on).
+\- it hides transactions dated in the future by default (change this
+with \[en]future or the F key).
+Experimental.
+.PP
 Like hledger, it reads data from one or more files in hledger journal,
 timeclock, timedot, or CSV format specified with \f[C]\-f\f[], or
 \f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
@@ -59,8 +66,18 @@ show period balances (changes) at startup instead of historical balances
 .RS
 .RE
 .TP
-.B \f[C]\-\-flat\f[]
-show full account names, unindented
+.B \f[C]\-F\ \-\-flat\f[]
+show accounts as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-T\ \-\-tree\f[]
+show accounts as a tree
+.RS
+.RE
+.TP
+.B \f[C]\-\-future\f[]
+show transactions dated later than today (normally hidden)
 .RS
 .RE
 .PP
@@ -270,6 +287,14 @@ account depth and transaction status (see below).
 \f[C]BACKSPACE\f[] or \f[C]DELETE\f[] removes all filters, showing all
 transactions.
 .PP
+As mentioned above, hledger\-ui shows auto\-generated periodic
+transactions, and hides future transactions (auto\-generated or not) by
+default.
+\f[C]F\f[] toggles showing and hiding these future transactions.
+This is similar to using a query like \f[C]date:\-tomorrow\f[], but more
+convenient.
+(experimental)
+.PP
 \f[C]ESCAPE\f[] removes all filters and jumps back to the top screen.
 Or, it cancels a minibuffer edit or help dialog in progress.
 .PP
@@ -314,20 +339,20 @@ By default, it shows all accounts and their latest ending balances
 if you specify a query on the command line, it shows just the matched
 accounts and the balances from matched transactions.
 .PP
-Account names are normally indented to show the hierarchy (tree mode).
-To see less detail, set a depth limit by pressing a number key,
-\f[C]1\f[] to \f[C]9\f[].
+Account names are shown as a flat list by default.
+Press \f[C]T\f[] to toggle tree mode.
+In flat mode, account balances are exclusive of subaccounts, except
+where subaccounts are hidden by a depth limit (see below).
+In tree mode, all account balances are inclusive of subaccounts.
+.PP
+To see less detail, press a number key, \f[C]1\f[] to \f[C]9\f[], to set
+a depth limit.
+Or use \f[C]\-\f[] to decrease and \f[C]+\f[]/\f[C]=\f[] to increase the
+depth limit.
 \f[C]0\f[] shows even less detail, collapsing all accounts to a single
 total.
-\f[C]\-\f[] and \f[C]+\f[] (or \f[C]=\f[]) decrease and increase the
-depth limit.
 To remove the depth limit, set it higher than the maximum account depth,
 or press \f[C]ESCAPE\f[].
-.PP
-\f[C]F\f[] toggles flat mode, in which accounts are shown as a flat
-list, with their full names.
-In this mode, account balances exclude subaccounts, except for accounts
-at the depth limit (as with hledger's balance command).
 .PP
 \f[C]H\f[] toggles between showing historical balances or period
 balances.
@@ -380,14 +405,16 @@ If the historical total is not disturbed by a filter query, it will be
 the running historical balance you would see on a bank register for the
 current account.
 .PP
-If the accounts screen was in tree mode, the register screen will
-include transactions from both the current account and its subaccounts.
-If the accounts screen was in flat mode, and a non\-depth\-clipped
-account was selected, the register screen will exclude transactions from
-subaccounts.
-In other words, the register always shows the transactions responsible
-for the period balance shown on the accounts screen.
-As on the accounts screen, this can be toggled with \f[C]F\f[].
+Transactions affecting this account's subaccounts will be included in
+the register if the accounts screen is in tree mode, or if it's in flat
+mode but this account has subaccounts which are not shown due to a depth
+limit.
+In other words, the register always shows the transactions contributing
+to the balance shown on the accounts screen.
+.PD 0
+.P
+.PD
+Tree mode/flat mode can be toggled with \f[C]T\f[] here also.
 .PP
 \f[C]U\f[] toggles filtering by unmarked status, showing or hiding
 unmarked transactions.
