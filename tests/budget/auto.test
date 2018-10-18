@@ -110,3 +110,65 @@ hledger print -f- --auto
 
 >>>2
 >>>=0
+
+hledger print -f- --auto
+<<<
+= ^expenses:foo
+    budget:available   *-1
+    assets:checking     *1
+
+2018/10/17 * INITIAL
+    budget:available   $100
+    equity:opening
+
+2018/10/17 * SOME EXPENSE
+    expenses:foo                                 $50
+    assets:checking
+
+2018/10/17 * ASSERT
+    budget:other
+    budget:available                              =$0
+>>>
+>>>2
+hledger: cannot assign amount to account 
+
+    budget:available
+
+because it is also included in transaction modifiers.
+
+>>>=1
+
+hledger print -f- --auto
+<<<
+= ^expenses:foo
+    budget:available   *-1
+    assets:checking     *1
+
+2018/10/17 * INITIAL
+    budget:available   $100
+    equity:opening
+
+2018/10/17 * SOME EXPENSE
+    expenses:foo                                 $50
+    assets:checking
+
+2018/10/17 * ASSERT
+    budget:other
+    budget:available                            $-50=$0
+>>>
+2018/10/17 * INITIAL
+    budget:available            $100
+    equity:opening
+
+2018/10/17 * SOME EXPENSE
+    expenses:foo                 $50
+    budget:available            $-50
+    assets:checking              $50
+    assets:checking
+
+2018/10/17 * ASSERT
+    budget:other
+    budget:available            $-50 = $0
+
+>>>2
+>>>=0
