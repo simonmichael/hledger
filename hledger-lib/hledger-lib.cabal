@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 22a6817292c6f2d53f935ce939331bea06b956c94b4e391d198760704ec294b3
+-- hash: 90a6e00affee2de34a1d34c52c01445d207316b5114a60e0f890697053dacc00
 
 name:           hledger-lib
 version:        1.11.99
@@ -25,22 +27,21 @@ license:        GPL-3
 license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
     CHANGES
-    hledger_csv.5
-    hledger_csv.info
-    hledger_csv.txt
-    hledger_journal.5
-    hledger_journal.info
-    hledger_journal.txt
-    hledger_timeclock.5
-    hledger_timeclock.info
-    hledger_timeclock.txt
-    hledger_timedot.5
-    hledger_timedot.info
-    hledger_timedot.txt
     README
+    hledger_csv.5
+    hledger_csv.txt
+    hledger_csv.info
+    hledger_journal.5
+    hledger_journal.txt
+    hledger_journal.info
+    hledger_timedot.5
+    hledger_timedot.txt
+    hledger_timedot.info
+    hledger_timeclock.5
+    hledger_timeclock.txt
+    hledger_timeclock.info
 
 source-repository head
   type: git

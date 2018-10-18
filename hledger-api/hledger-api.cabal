@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 79786a2effbdf3258e88ee988c7cbbab5951550bac768bab7cbd1c9080fd198d
+-- hash: a7796b2c57190b1a9a60ea235d0249aeff513bd31e171803183335d0065c6bdf
 
 name:           hledger-api
 version:        1.11.99
@@ -26,15 +28,14 @@ license:        GPL-3
 license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
     CHANGES
+    README
     examples/01.html
     examples/02.html
     hledger-api.1
-    hledger-api.info
     hledger-api.txt
-    README
+    hledger-api.info
 
 source-repository head
   type: git

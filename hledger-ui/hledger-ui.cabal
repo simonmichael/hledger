@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fb0ef2467dcf115f1fc7a6f9d7781ec6912e7545a52921968067666c1747fff4
+-- hash: 0732dd6182685765b68edb5dd5009c0f24bc3367b4c51720b0aa2a07ecfca483
 
 name:           hledger-ui
 version:        1.11.99
@@ -27,13 +29,12 @@ license:        GPL-3
 license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
     CHANGES
-    hledger-ui.1
-    hledger-ui.info
-    hledger-ui.txt
     README
+    hledger-ui.1
+    hledger-ui.txt
+    hledger-ui.info
 
 source-repository head
   type: git

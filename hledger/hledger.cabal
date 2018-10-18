@@ -1,8 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 78515e93d6f08be6d098bdd697b951a1577e4e71c6b24ad64cf69916d3af191c
+-- hash: 35dc218f658f30998772647d4c70f40df1cbdd8a58eb21e8283d6e417fb8c1ac
 
 name:           hledger
 version:        1.11.99
@@ -27,39 +29,38 @@ license:        GPL-3
 license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
-    bench/10000x1000x10.journal
     CHANGES
-    embeddedfiles/hledger-api.1
-    embeddedfiles/hledger-api.info
-    embeddedfiles/hledger-api.txt
-    embeddedfiles/hledger-ui.1
-    embeddedfiles/hledger-ui.info
-    embeddedfiles/hledger-ui.txt
-    embeddedfiles/hledger-web.1
-    embeddedfiles/hledger-web.info
-    embeddedfiles/hledger-web.txt
-    embeddedfiles/hledger.1
-    embeddedfiles/hledger.info
-    embeddedfiles/hledger.txt
-    embeddedfiles/hledger_csv.5
-    embeddedfiles/hledger_csv.info
-    embeddedfiles/hledger_csv.txt
-    embeddedfiles/hledger_journal.5
-    embeddedfiles/hledger_journal.info
-    embeddedfiles/hledger_journal.txt
-    embeddedfiles/hledger_timeclock.5
-    embeddedfiles/hledger_timeclock.info
-    embeddedfiles/hledger_timeclock.txt
-    embeddedfiles/hledger_timedot.5
-    embeddedfiles/hledger_timedot.info
-    embeddedfiles/hledger_timedot.txt
-    hledger.1
-    hledger.info
-    hledger.txt
     README.md
     test/test.hs
+    bench/10000x1000x10.journal
+    hledger.1
+    hledger.txt
+    hledger.info
+    embeddedfiles/hledger.1
+    embeddedfiles/hledger.txt
+    embeddedfiles/hledger.info
+    embeddedfiles/hledger-api.1
+    embeddedfiles/hledger-api.txt
+    embeddedfiles/hledger-api.info
+    embeddedfiles/hledger-ui.1
+    embeddedfiles/hledger-ui.txt
+    embeddedfiles/hledger-ui.info
+    embeddedfiles/hledger-web.1
+    embeddedfiles/hledger-web.txt
+    embeddedfiles/hledger-web.info
+    embeddedfiles/hledger_journal.5
+    embeddedfiles/hledger_journal.txt
+    embeddedfiles/hledger_journal.info
+    embeddedfiles/hledger_csv.5
+    embeddedfiles/hledger_csv.txt
+    embeddedfiles/hledger_csv.info
+    embeddedfiles/hledger_timeclock.5
+    embeddedfiles/hledger_timeclock.txt
+    embeddedfiles/hledger_timeclock.info
+    embeddedfiles/hledger_timedot.5
+    embeddedfiles/hledger_timedot.txt
+    embeddedfiles/hledger_timedot.info
 
 source-repository head
   type: git
