@@ -705,7 +705,13 @@ checkUnassignablePosting :: Posting -> CurrentBalancesModifier s ()
 checkUnassignablePosting p = do
   unassignable <- R.asks eUnassignable
   if (isAssignment p && paccount p `S.member` unassignable)
-    then throwError $ "Can't assign to account: " ++ (T.unpack $ paccount p)
+    then throwError $ unlines $
+         [ "cannot assign amount to account "
+         , ""
+         , "    " ++ (T.unpack $ paccount p)
+         , ""
+         , "because it is also included in transaction modifiers."
+         ]
     else return ()
 
 
