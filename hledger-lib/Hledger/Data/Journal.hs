@@ -681,6 +681,15 @@ discriminateByDate tx
       return 
         [(tdate tx, Right $ tx { tpostings = removePrices <$> tpostings tx })]
 
+-- | Throw an error if a posting is in the unassignable set.
+checkUnassignablePosting :: Posting -> CurrentBalancesModifier s ()
+checkUnassignablePosting p = do
+  unassignable <- R.asks eUnassignable
+  if (isAssignment p && paccount p `S.member` unassignable)
+    then throwError $ "Can't assign to account: " ++ (T.unpack $ paccount p)
+    else return ()
+
+
 -- | This function takes an object describing changes to
 -- account balances on a single day - either a single posting 
 -- (from an already balanced transaction without assignments)
@@ -709,10 +718,12 @@ discriminateByDate tx
 -- and then balance and store the transaction.
 checkInferAndRegisterAmounts :: Either Posting Transaction
                              -> CurrentBalancesModifier s ()
-checkInferAndRegisterAmounts (Left p) =
+checkInferAndRegisterAmounts (Left p) = do
+  checkUnassignablePosting p
   void $ addAmountAndCheckBalance return p
 checkInferAndRegisterAmounts (Right oldTx) = do
   let ps = tpostings oldTx
+  mapM_ checkUnassignablePosting ps
   styles <- R.reader $ eStyles
   newPostings <- forM ps $ addAmountAndCheckBalance inferFromAssignment
   storeTransaction =<< balanceTransactionUpdate
