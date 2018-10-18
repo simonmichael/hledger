@@ -631,7 +631,7 @@ journalBalanceTransactionsST assrt j createStore storeIn extract =
                   (storeIn txStore) 
                   assrt
                   (Just $ journalCommodityStyles j)
-                  S.empty
+                  (getModifierAccountNames j)
     flip R.runReaderT env $ do
       dated <- fmap snd . sortBy (comparing fst) . concat
                 <$> mapM' discriminateByDate (jtxns j)
@@ -639,6 +639,14 @@ journalBalanceTransactionsST assrt j createStore storeIn extract =
     lift $ extract txStore
     where 
       size = genericLength $ journalPostings j
+
+
+-- | Collect account names in account modifiers into a set
+getModifierAccountNames :: Journal -> S.Set AccountName
+getModifierAccountNames j = S.fromList $
+                            map paccount $
+                            concatMap tmpostings $
+                            jtxnmodifiers j
 
 -- | Monad transformer stack with a reference to a mutable hashtable
 -- of current account balances and a mutable array of finished
