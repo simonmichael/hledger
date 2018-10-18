@@ -97,6 +97,7 @@ import Data.Tree
 import System.Time (ClockTime(TOD))
 import Text.Printf
 import qualified Data.Map as M
+import qualified Data.Set as S
 
 import Hledger.Utils 
 import Hledger.Data.Types
@@ -630,6 +631,7 @@ journalBalanceTransactionsST assrt j createStore storeIn extract =
                   (storeIn txStore) 
                   assrt
                   (Just $ journalCommodityStyles j)
+                  S.empty
     flip R.runReaderT env $ do
       dated <- fmap snd . sortBy (comparing fst) . concat
                 <$> mapM' discriminateByDate (jtxns j)
@@ -644,10 +646,11 @@ journalBalanceTransactionsST assrt j createStore storeIn extract =
 type CurrentBalancesModifier s = R.ReaderT (Env s) (ExceptT String (ST s))
 
 -- | Environment for 'CurrentBalancesModifier'
-data Env s = Env { eBalances :: HT.HashTable s AccountName MixedAmount
-                 , eStoreTx  :: Transaction -> ST s ()
-                 , eAssrt    :: Bool
-                 , eStyles   :: Maybe (M.Map CommoditySymbol AmountStyle) 
+data Env s = Env { eBalances     :: HT.HashTable s AccountName MixedAmount
+                 , eStoreTx      :: Transaction -> ST s ()
+                 , eAssrt        :: Bool
+                 , eStyles       :: Maybe (M.Map CommoditySymbol AmountStyle)
+                 , eUnassignable :: S.Set AccountName
                  }
 
 -- | This converts a transaction into a list of transactions or
