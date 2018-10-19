@@ -314,7 +314,7 @@ tests_MultiBalanceReports = tests "MultiBalanceReports" [
       (map showw aitems) `is` (map showw eitems)
       ((\(_, b, _) -> showMixedAmountDebug b) atotal) `is` (showMixedAmountDebug etotal) -- we only check the sum of the totals
     usd0 = usd 0
-    amount0 = Amount {acommodity="$", aquantity=0, aprice=NoPrice, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, amultiplier=False}
+    amount0 = amount {acommodity="$", aquantity=0, astyle=amountstyle {asprecision = 2}}
   in 
    tests "multiBalanceReport" [
       test "null journal"  $

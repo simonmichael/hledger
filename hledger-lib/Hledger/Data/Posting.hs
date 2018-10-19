@@ -90,6 +90,7 @@ nullposting = Posting
                 ,pcomment=""
                 ,ptype=RegularPosting
                 ,ptags=[]
+                ,pmultiplier=Nothing
                 ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
                 ,porigin=Nothing

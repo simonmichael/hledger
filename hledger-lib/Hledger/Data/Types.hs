@@ -204,9 +204,7 @@ data Amount = Amount {
       acommodity  :: CommoditySymbol,
       aquantity   :: Quantity,
       aprice      :: Price,           -- ^ the (fixed) price for this amount, if any
-      astyle      :: AmountStyle,
-      amultiplier :: Bool             -- ^ kludge: a flag marking this amount and posting as a multiplier
-                                      --   in a TMPostingRule. In a regular Posting, should always be false.
+      astyle      :: AmountStyle
     } deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Amount
@@ -256,6 +254,7 @@ data Posting = Posting {
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype             :: PostingType,
       ptags             :: [Tag],                   -- ^ tag names and values, extracted from the comment
+      pmultiplier       :: Maybe Amount,            -- ^ optional: the proportion of the base value to use in a 'TransactionModifier'
       pbalanceassertion :: Maybe BalanceAssertion,  -- ^ optional: the expected balance in this commodity in the account after this posting
       ptransaction      :: Maybe Transaction,       -- ^ this posting's parent transaction (co-recursive types).
                                                     --   Tying this knot gets tedious, Maybe makes it easier/optional.
@@ -271,7 +270,7 @@ instance NFData Posting
 -- identity, to avoid recuring ad infinitum.
 -- XXX could check that it's Just or Nothing.
 instance Eq Posting where
-    (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _ _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _ _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
+    (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 j1 _ _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 j2 _ _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2 && j1==j2
 
 -- | Posting's show instance elides the parent transaction so as not to recurse forever.
 instance Show Posting where
@@ -284,6 +283,7 @@ instance Show Posting where
     ,("pcomment="          ++ show pcomment)
     ,("ptype="             ++ show ptype)
     ,("ptags="             ++ show ptags)
+    ,("pmultiplier="       ++ show pmultiplier)
     ,("pbalanceassertion=" ++ show pbalanceassertion)
     ,("ptransaction="      ++ show (const "<txn>" <$> ptransaction))
     ,("porigin="           ++ show porigin)
