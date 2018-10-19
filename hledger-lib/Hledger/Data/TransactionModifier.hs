@@ -91,7 +91,7 @@ tmPostingRuleToFunction pr =
   where
     amount' = case pmultiplier pr of
         Nothing -> const $ pamount pr
-        Just n  -> \p ->
+        Just n  -> \p -> pamount pr +
           -- Multiply the old posting's amount by the posting rule's multiplier.
           let
             matchedamount = dbg6 "matchedamount" $ pamount p

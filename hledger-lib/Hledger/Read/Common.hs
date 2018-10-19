@@ -71,6 +71,7 @@ module Hledger.Read.Common (
   spaceandamountormissingp,
   amountp,
   amountp',
+  mamountp,
   mamountp',
   commoditysymbolp,
   priceamountp,
@@ -685,9 +686,44 @@ amountp' s =
     Right amt -> amt
     Left err  -> error' $ show err -- XXX should throwError
 
+-- | Parse a multi-commodity amount, comprising of multiple single amounts
+-- joined as an arithmetic expression.
+mamountp :: Bool -> JournalParser m MixedAmount
+mamountp requireOp = label "mixed amount" $ do
+  opc <- ( if requireOp
+           then id
+           else option '+'
+         ) $ do
+    c <- satisfy (`elem` ("+-" :: String))
+    lift (skipMany spacenonewline)
+    pure c
+  paren <- option False $ try $ do
+    char '('
+    lift (skipMany spacenonewline)
+    pure True
+  amount <- if paren
+    then do
+      inner <- mamountp False
+      lift (skipMany spacenonewline)
+      char ')'
+      pure inner
+    else do
+      inner <- amountp
+      pure $ Mixed [inner]
+  tail <- option nullmixedamt $ try $ do
+    lift (skipMany spacenonewline)
+    mamountp True
+  let op = case opc of
+        '-' -> negate
+        _   -> id
+  return $ op amount + tail
+
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
-mamountp' = Mixed . (:[]) . amountp'
+mamountp' s =
+  case runParser (evalStateT (mamountp False <* eof) mempty) "" (T.pack s) of
+    Right amt -> amt
+    Left err  -> error' $ show err -- XXX should throwError
 
 signp :: Num a => TextParser m (a -> a)
 signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
@@ -741,9 +777,9 @@ balanceassertionp = do
   char '='
   exact <- optional $ try $ char '='
   lift (skipMany spacenonewline)
-  a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
+  a <- mamountp False <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
   return BalanceAssertion
-    { baamount = Mixed [a]
+    { baamount = a
     , baexact = isJust exact
     , baposition = sourcepos
     }
@@ -1337,6 +1373,31 @@ tests_Common = tests "Common" [
             } 
         } 
     ]
+
+  ,tests "mamountp" [
+    test "basic"                         $ expectParseEq (mamountp False) "$47.18"                           $ Mixed [usd 47.18]
+   ,test "multiple commodities"          $ expectParseEq (mamountp False) "$47.18+€20,59"                    $ Mixed [
+       amount{
+          acommodity="$"
+         ,aquantity=47.18
+         ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just '.'}
+         }
+      ,amount{
+          acommodity="€"
+         ,aquantity=20.59
+         ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just ','}
+         }
+      ]
+   ,test "same commodity multiple times" $ expectParseEq (mamountp False) "$10 + $2 - $5-$2"                 $ Mixed [
+       amount{
+          acommodity="$"
+         ,aquantity=5
+         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+         }
+      ]
+   ,test "ledger-compatible expressions" $ expectParseEq (mamountp False) "($47.18 - $7.13)"                 $ Mixed [usd 40.05]
+   ,test "nested parentheses"            $ expectParseEq (mamountp False) "($47.18 - ($20 + $7.13) + $5.05)" $ Mixed [usd 25.10]
+  ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
    tests "numberp" [

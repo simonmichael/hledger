@@ -1,0 +1,163 @@
+#!/usr/bin/env shelltest
+# 1. Compatibiltiy with the example in Ledger docs
+hledger -f - print
+<<<
+2017-03-10 * KFC
+    Expenses:Food         ($10.00 + $20.00)
+    Assets:Cash
+>>>
+2017/03/10 * KFC
+    Expenses:Food          $30.00
+    Assets:Cash
+
+>>>2
+>>>=0
+
+# 2. Expressions don't require parentheses
+hledger -f - print
+<<<
+2017-03-10 * KFC
+    Expenses:Food          $10.00 + $20.00
+    Assets:Cash
+>>>
+2017/03/10 * KFC
+    Expenses:Food          $30.00
+    Assets:Cash
+
+>>>2
+>>>=0
+
+# 3. Subtraction is distributive
+hledger -f - print
+<<<
+2018-01-01
+    a             $10 -  $5 + $2  + $3
+    b             $10 - ($5 + $2) + $7
+    c
+>>>
+2018/01/01
+    a             $10
+    b             $10
+    c
+
+>>>2
+>>>=0
+
+# 4. Expressions consider the default commodity
+hledger -f - print
+<<<
+D $1,000.00
+
+2018-01-01
+    a           $10 - 5
+    b
+>>>
+2018/01/01
+    a           $5.00
+    b
+
+>>>2
+>>>=0
+
+# 5. Expressions enable multi-commodity postings
+hledger -f - print
+<<<
+2018-01-01
+    a:usd             $10
+    a:coupon                10 OMD
+    b               -($10 + 10 OMD)
+>>>
+2018/01/01
+    a:usd                $10
+    a:coupon          10 OMD
+    b                   $-10
+    b                -10 OMD
+
+>>>2
+>>>=0
+
+# 6. Expressions enable multi-commodity assertions
+hledger -f - stats
+<<<
+2018-01-01
+    a:usd             $10
+    a:coupon           10 OMD
+    b
+
+2018-01-02
+    b                   0 = -$10 - 10 OMD
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 7. Default commodities are treated alongside their explicit counterpart
+hledger -f - print
+<<<
+D $1,000.00
+
+2018-01-01
+    a          $10 + 2 - 4 CAD
+    b
+>>>
+2018/01/01
+    a          $12.00
+    a          -4 CAD
+    b
+
+>>>2
+>>>=0
+
+# 8. Auto-postings respect expressions
+hledger -f - print --auto
+<<<
+= a
+    c             *-1 + $8
+    d              *1 - $8
+    e             *-1
+    f              *1
+    g              $8
+    h             -$8
+
+2018-01-01
+    a              $5
+    b
+>>>
+2018/01/01
+    a              $5
+    c              $3
+    d             $-3
+    e             $-5
+    f              $5
+    g              $8
+    h             $-8
+    b
+
+>>>2
+>>>=0
+
+# 9. Standard postings may not be headed by multipliers
+hledger -f - print
+<<<
+2018-01-01
+    a             *-1 + $8
+    b              *1 - $8
+>>>
+>>>2 /unexpected '*'/
+>>>=1
+
+# 10. Auto-postings require an operator between multiplier and expression
+# The error message could be a bit more helpful, but at least it mentions
+# expecting a mixed amount
+hledger -f - print --auto
+<<<
+= a
+    c             *-1 $8
+    d              *1 - $8
+
+2018-01-01
+    a              $5
+    b
+>>>
+>>>2 /unexpected '8'/
+>>>=1
+

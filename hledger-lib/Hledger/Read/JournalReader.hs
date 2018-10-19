@@ -68,7 +68,6 @@ import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
-import Data.Either (fromLeft, fromRight)
 import Data.Maybe
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
@@ -601,10 +600,15 @@ postingp mTransactionYear allowCommodityMult = do
     return (status, account)
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   lift (skipMany spacenonewline)
-  value <- (if allowCommodityMult
-      then (<|>) $ Left . Just <$> try modifierp
-      else id
-    ) $ Right <$> (option missingmixedamt $ Mixed . (:[]) <$> amountp)
+  mult <- (if allowCommodityMult
+      then optional $ try modifierp
+      else return Nothing
+    )
+  lift (skipMany spacenonewline)
+  let (defamt, requireOp) = if isJust mult
+        then (nullmixedamt, True)
+        else (missingmixedamt, False)
+  amount <- option defamt $ mamountp requireOp
   lift (skipMany spacenonewline)
   massertion <- optional $ balanceassertionp
   _ <- fixedlotpricep
@@ -615,11 +619,11 @@ postingp mTransactionYear allowCommodityMult = do
    , pdate2=mdate2
    , pstatus=status
    , paccount=account'
-   , pamount=fromRight nullmixedamt value
+   , pamount=amount
    , pcomment=comment
    , ptype=ptype
    , ptags=tags
-   , pmultiplier=fromLeft Nothing value
+   , pmultiplier=mult
    , pbalanceassertion=massertion
    }
 
