@@ -446,6 +446,8 @@ Balance assertions don't work well across files specified with multiple
 -f options. Use include or [concatenate the
 files](/hledger.html#input-files) instead.
 
+<a name="exact-assertions"></a>
+
 #### Assertions and commodities
 
 The asserted balance must be a simple single-commodity amount, and in
@@ -549,7 +551,7 @@ or when adjusting a balance to reality:
 ``` {.journal}
 ; no cash left; update balance, record any untracked spending as a generic expense
 2016/1/15
-  assets:cash    = $0
+  assets:cash   == $0
   expenses:misc
 ```
 
@@ -559,6 +561,12 @@ commodity to that account since the last balance assertion or
 assignment). Note that using balance assignments makes your journal a
 little less explicit; to know the exact amount posted, you have to run
 hledger or do the calculations yourself, instead of just reading it.
+
+Note that, just as with [exact balance assertions](#exact-assertions),
+an assignment may be performed over all commodities by using a doubled
+equals sign; any unlisted commodities are set to 0. In other words, the
+second example above not only says that no dollars remain in pocket, but
+also no Euros, no rupees, etc.
 
 ### Transaction prices
 
