@@ -76,6 +76,7 @@ module Hledger.Read.Common (
   priceamountp,
   balanceassertionp,
   fixedlotpricep,
+  multiplierp,
   numberp,
   fromRawNumber,
   rawnumberp,
@@ -596,21 +597,24 @@ spaceandamountormissingp =
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: JournalParser m Amount
-amountp = label "amount" $ do
-  amount <- amountwithoutpricep
+amountp = label "amount" $ amountormultiplierp False
+
+amountormultiplierp :: Bool -> JournalParser m Amount
+amountormultiplierp isMultiplier = do
+  amount <- amountwithoutpricep isMultiplier
   lift $ skipMany spacenonewline
   price <- priceamountp
   pure $ amount { aprice = price }
 
-amountwithoutpricep :: JournalParser m Amount
-amountwithoutpricep = do
-  (mult, sign) <- lift $ (,) <$> multiplierp <*> signp
-  leftsymbolamountp mult sign <|> rightornosymbolamountp mult sign
+amountwithoutpricep :: Bool -> JournalParser m Amount
+amountwithoutpricep isMultiplier = do
+  sign <- lift $ signp
+  leftsymbolamountp sign <|> rightornosymbolamountp sign
 
   where
 
-  leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  leftsymbolamountp mult sign = label "amount" $ do
+  leftsymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  leftsymbolamountp sign = label "amount" $ do
     c <- lift commoditysymbolp
     suggestedStyle <- getAmountStyle c
     commodityspaced <- lift $ skipMany' spacenonewline
@@ -622,10 +626,10 @@ amountwithoutpricep = do
     let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-    return $ Amount c (sign (sign2 q)) NoPrice s mult
+    return $ Amount c (sign (sign2 q)) NoPrice s
 
-  rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  rightornosymbolamountp mult sign = label "amount" $ do
+  rightornosymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  rightornosymbolamountp sign = label "amount" $ do
     offBeforeNum <- getOffset
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
@@ -638,7 +642,7 @@ amountwithoutpricep = do
         suggestedStyle <- getAmountStyle c
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-        return $ Amount c (sign q) NoPrice s mult
+        return $ Amount c (sign q) NoPrice s
       -- no symbol amount
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
@@ -646,10 +650,10 @@ amountwithoutpricep = do
         -- if a default commodity has been set, apply it and its style to this amount
         -- (unless it's a multiplier in an automated posting)
         defcs <- getDefaultCommodityAndStyle
-        let (c,s) = case (mult, defcs) of
+        let (c,s) = case (isMultiplier, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-        return $ Amount c (sign q) NoPrice s mult
+        return $ Amount c (sign q) NoPrice s
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
@@ -680,8 +684,14 @@ mamountp' = Mixed . (:[]) . amountp'
 signp :: Num a => TextParser m (a -> a)
 signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
 
-multiplierp :: TextParser m Bool
-multiplierp = option False $ char '*' *> pure True
+-- | Parse a value used as a multiplier in a 'TransactionModifier' (a
+-- @*@ character followed by a value following the rules of 'amountp',
+-- except that it never takes the default commodity).
+multiplierp :: JournalParser m Amount
+multiplierp = label "multiplier" $ do
+  char '*'
+  lift $ skipMany spacenonewline
+  amountormultiplierp True
 
 -- | This is like skipMany but it returns True if at least one element
 -- was skipped. This is helpful if you’re just using many to check if
@@ -713,7 +723,7 @@ priceamountp = option NoPrice $ do
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountwithoutpricep <?> "amount (as a price)"
+  priceAmount <- amountwithoutpricep False <?> "amount (as a price)"
 
   pure $ priceConstructor priceAmount
 

@@ -47,7 +47,7 @@ import Hledger.Utils.Debug
 -- 0000/01/01
 --     ping           $1.00
 -- <BLANKLINE>
--- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
+-- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" [nullposting{paccount="pong", pmultiplier=Just $ num 3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
 --     ping           $2.00
 --     pong           $6.00
@@ -86,33 +86,27 @@ tmPostingRuleToFunction pr =
       { pdate = pdate p
       , pdate2 = pdate2 p
       , pamount = amount' p
+      , pmultiplier = Nothing
       }
   where
-    amount' = case postingRuleMultiplier pr of
+    amount' = case pmultiplier pr of
         Nothing -> const $ pamount pr
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
           let
-            pramount = dbg6 "pramount" $ head $ amounts $ pamount pr
             matchedamount = dbg6 "matchedamount" $ pamount p
             -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
             -- Approach 1: convert to a unit price and increase the display precision slightly
-            -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount 
+            -- Mixed as = dbg6 "multipliedamount" $ aquantity n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
             -- Approach 2: multiply the total price (keeping it positive) as well as the quantity 
-            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmountAndPrice` matchedamount 
+            Mixed as = dbg6 "multipliedamount" $ aquantity n `multiplyMixedAmountAndPrice` matchedamount
           in
-            case acommodity pramount of
+            case acommodity n of
               "" -> Mixed as
               -- TODO multipliers with commodity symbols are not yet a documented feature.
               -- For now: in addition to multiplying the quantity, it also replaces the 
               -- matched amount's commodity, display style, and price with those of the posting rule.   
-              c  -> Mixed [a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount} | a <- as]
-
-postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
-postingRuleMultiplier p =
-    case amounts $ pamount p of
-        [a] | amultiplier a -> Just $ aquantity a
-        _                   -> Nothing
+              c  -> Mixed [a{acommodity = c, astyle = astyle n, aprice = aprice n} | a <- as]
 
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }

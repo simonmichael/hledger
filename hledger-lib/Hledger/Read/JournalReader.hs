@@ -69,6 +69,7 @@ import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
 import Data.Bifunctor (first)
+import Data.Either (fromLeft, fromRight)
 import Data.Maybe
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
@@ -483,7 +484,7 @@ transactionmodifierp = do
   lift (skipMany spacenonewline)
   querytxt <- lift $ T.strip <$> descriptionp
   (_comment, _tags) <- lift transactioncommentp   -- TODO apply these to modified txns ?
-  postings <- postingsp Nothing
+  postings <- postingsp Nothing True
   return $ TransactionModifier querytxt postings
 
 -- | Parse a periodic transaction
@@ -531,7 +532,7 @@ periodictransactionp = do
     )
 
   -- next lines; use same year determined above
-  postings <- postingsp (Just $ first3 $ toGregorian refdate)
+  postings <- postingsp (Just $ first3 $ toGregorian refdate) False
 
   return $ nullperiodictransaction{
      ptperiodexpr=periodtxt
@@ -558,7 +559,7 @@ transactionp = do
   description <- lift $ T.strip <$> descriptionp
   (comment, tags) <- lift transactioncommentp
   let year = first3 $ toGregorian date
-  postings <- postingsp (Just year)
+  postings <- postingsp (Just year) False
   endpos <- getSourcePos
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
@@ -567,8 +568,8 @@ transactionp = do
 
 -- Parse the following whitespace-beginning lines as postings, posting
 -- tags, and/or comments (inferring year, if needed, from the given date).
-postingsp :: Maybe Year -> JournalParser m [Posting]
-postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
+postingsp :: Maybe Year -> Bool -> JournalParser m [Posting]
+postingsp mTransactionYear allowCommodityMult = many (postingp mTransactionYear allowCommodityMult) <?> "postings"
 
 -- linebeginningwithspaces :: JournalParser m String
 -- linebeginningwithspaces = do
@@ -577,8 +578,8 @@ postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 --   cs <- lift restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-postingp :: Maybe Year -> JournalParser m Posting
-postingp mTransactionYear = do
+postingp :: Maybe Year -> Bool -> JournalParser m Posting
+postingp mTransactionYear allowCommodityMult = do
   -- lift $ dbgparse 0 "postingp"
   (status, account) <- try $ do
     lift (skipSome spacenonewline)
@@ -588,7 +589,10 @@ postingp mTransactionYear = do
     return (status, account)
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   lift (skipMany spacenonewline)
-  amount <- option missingmixedamt $ Mixed . (:[]) <$> amountp
+  value <- (if allowCommodityMult
+      then (<|>) $ Left . Just <$> try multiplierp
+      else id
+    ) $ Right <$> (option missingmixedamt $ Mixed . (:[]) <$> amountp)
   lift (skipMany spacenonewline)
   massertion <- optional $ balanceassertionp
   _ <- fixedlotpricep
@@ -599,10 +603,11 @@ postingp mTransactionYear = do
    , pdate2=mdate2
    , pstatus=status
    , paccount=account'
-   , pamount=amount
+   , pamount=fromRight nullmixedamt value
    , pcomment=comment
    , ptype=ptype
    , ptags=tags
+   , pmultiplier=fromLeft Nothing value
    , pbalanceassertion=massertion
    }
 
@@ -696,7 +701,7 @@ tests_JournalReader = tests "JournalReader" [
     ]
 
   ,tests "postingp" [
-     test "basic" $ expectParseEq (postingp Nothing) 
+     test "basic" $ expectParseEq (postingp Nothing False)
       "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
       posting{
         paccount="expenses:food:dining", 
@@ -705,7 +710,7 @@ tests_JournalReader = tests "JournalReader" [
         ptags=[("a","a a"), ("b","b b")]
         }
 
-    ,test "posting dates" $ expectParseEq (postingp Nothing) 
+    ,test "posting dates" $ expectParseEq (postingp Nothing False)
       " a  1. ; date:2012/11/28, date2=2012/11/29,b:b\n"
       nullposting{
          paccount="a"
@@ -716,7 +721,7 @@ tests_JournalReader = tests "JournalReader" [
         ,pdate2=Nothing  -- Just $ fromGregorian 2012 11 29
         }
 
-    ,test "posting dates bracket syntax" $ expectParseEq (postingp Nothing) 
+    ,test "posting dates bracket syntax" $ expectParseEq (postingp Nothing False)
       " a  1. ; [2012/11/28=2012/11/29]\n"
       nullposting{
          paccount="a"
@@ -727,20 +732,27 @@ tests_JournalReader = tests "JournalReader" [
         ,pdate2=Just $ fromGregorian 2012 11 29
         }
 
-    ,test "quoted commodity symbol with digits" $ expectParse (postingp Nothing) "  a  1 \"DE123\"\n"
+    ,test "quoted commodity symbol with digits" $ expectParse (postingp Nothing False) "  a  1 \"DE123\"\n"
 
-    ,test "balance assertion and fixed lot price" $ expectParse (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n"
+    ,test "balance assertion and fixed lot price" $ expectParse (postingp Nothing False) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n"
 
-    ,test "balance assertion over entire contents of account" $ expectParse (postingp Nothing) "  a  $1 == $1\n"
+    ,test "balance assertion over entire contents of account" $ expectParse (postingp Nothing False) "  a  $1 == $1\n"
     ]
 
   ,tests "transactionmodifierp" [
 
-    test "basic" $ expectParseEq transactionmodifierp 
+     test "basic" $ expectParseEq transactionmodifierp 
       "= (some value expr)\n some:postings  1.\n"
       nulltransactionmodifier {
         tmquerytxt = "(some value expr)"
        ,tmpostingrules = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
+      }
+
+    ,test "multiplier" $ expectParseEq transactionmodifierp 
+      "= (some value expr)\n some:postings  *.33\n"
+      nulltransactionmodifier {
+        tmquerytxt = "(some value expr)"
+       ,tmpostingrules = [nullposting{paccount="some:postings", pmultiplier=Just $ (num 0.33) {astyle=amountstyle{asprecision=2}}}]
       }
     ]
 
