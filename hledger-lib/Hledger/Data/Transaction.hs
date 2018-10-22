@@ -117,7 +117,8 @@ To facilitate this, postings with explicit multi-commodity amounts
 are displayed as multiple similar postings, one per commodity.
 (Normally does not happen with this function).
 
-If there are multiple postings and the transaction appears obviously balanced
+If there are multiple postings, all with explicit amounts,
+and the transaction appears obviously balanced
 (postings sum to 0, without needing to infer conversion prices),
 the last posting's amount will not be shown.
 -}
@@ -171,7 +172,8 @@ renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentpref
 -- for `print` output.
 --
 -- Explicit amounts are shown, implicit amounts are not. 
--- If elide is true and there are multiple postings and the transaction appears obviously balanced
+-- If elide is true and there are multiple postings, all with explicit amounts,
+-- and the transaction appears obviously balanced
 -- (postings sum to 0, without needing to infer conversion prices),
 -- the last posting's amount will be made implicit (and not shown).
 --
@@ -188,7 +190,7 @@ renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentpref
 -- 
 postingsAsLines :: Bool -> Bool -> Transaction -> [Posting] -> [String]
 postingsAsLines elide onelineamounts t ps
-    | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
+    | elide && length ps > 1 && all hasAmount ps && isTransactionBalanced Nothing t -- imprecise balanced check
        = (concatMap (postingAsLines False onelineamounts ps) $ init ps) ++ postingAsLines True onelineamounts ps (last ps)
     | otherwise = concatMap (postingAsLines False onelineamounts ps) ps
 
@@ -571,6 +573,12 @@ tests_Transaction = tests "Transaction" [
             "a" `post` usd 1,
             "b" `post` hrs (-1)
             ]}
+    -- one missing amount, not the last one
+    t3 = nulltransaction{tpostings=[
+         "a" `post` usd 1
+        ,"b" `post` missingamt
+        ,"c" `post` usd (-1)
+        ]}
   in
     tests "postingsAsLines" [
 
@@ -619,6 +627,12 @@ tests_Transaction = tests "Transaction" [
           ,"    b          -1.00h"    -- explicit amount remains explicit since a conversion price would have be inferred to balance
           ]
 
+    ,test "implicit-amount-not-last" $
+      let t = t3 in postingsAsLines True False t (tpostings t) `is` [
+           "    a           $1.00" 
+          ,"    b"
+          ,"    c          $-1.00"
+          ]
    ]
 
   ,do
