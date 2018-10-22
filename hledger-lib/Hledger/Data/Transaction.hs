@@ -96,8 +96,9 @@ nulltransaction = Transaction {
                   }
 
 {-|
-Show a journal transaction, formatted for the print command. ledger 2.x's
-standard format looks like this:
+Render a journal transaction as text in the style of Ledger's print command. 
+
+Ledger 2.x's standard format looks like this:
 
 @
 yyyy/mm/dd[ *][ CODE] description.........          [  ; comment...............]
@@ -110,17 +111,37 @@ pacctwidth    = 35 minimum, no maximum  -- they were important at the time.
 pamtwidth     = 11
 pcommentwidth = no limit -- 22
 @
+
+The output will be parseable journal syntax.
+To facilitate this, postings with explicit multi-commodity amounts 
+are displayed as multiple similar postings, one per commodity.
+(Normally does not happen with this function).
+
+If there are multiple postings and the transaction appears obviously balanced
+(postings sum to 0, without needing to infer conversion prices),
+the last posting's amount will not be shown.
 -}
+-- XXX why that logic ? 
+-- XXX where is/should this be still used ? 
 showTransaction :: Transaction -> String
 showTransaction = showTransactionHelper True False
 
+-- | Like showTransaction, but does not change amounts' explicitness.
+-- Explicit amounts are shown and implicit amounts are not.
+-- The output will be parseable journal syntax.
+-- To facilitate this, postings with explicit multi-commodity amounts 
+-- are displayed as multiple similar postings, one per commodity.
+-- Most often, this is the one you want to use.
 showTransactionUnelided :: Transaction -> String
 showTransactionUnelided = showTransactionHelper False False
 
+-- | Like showTransactionUnelided, but explicit multi-commodity amounts 
+-- are shown on one line, comma-separated. In this case the output will 
+-- not be parseable journal syntax.
 showTransactionUnelidedOneLineAmounts :: Transaction -> String
 showTransactionUnelidedOneLineAmounts = showTransactionHelper False True
 
--- cf showPosting
+-- | Helper for showTransaction*. 
 showTransactionHelper :: Bool -> Bool -> Transaction -> String
 showTransactionHelper elide onelineamounts t =
     unlines $ [descriptionline]
@@ -139,21 +160,59 @@ showTransactionHelper elide onelineamounts t =
         case renderCommentLines (tcomment t) of []   -> ("",[])
                                                 c:cs -> (c,cs)
 
--- Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
+-- | Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
 renderCommentLines :: Text -> [String]
 renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentprefix ls
                                                    ls      -> map commentprefix ls
     where
       commentprefix = indent . ("; "++)
 
+-- | Given a transaction and its postings, render the postings, suitable
+-- for `print` output.
+--
+-- Explicit amounts are shown, implicit amounts are not. 
+-- If elide is true and there are multiple postings and the transaction appears obviously balanced
+-- (postings sum to 0, without needing to infer conversion prices),
+-- the last posting's amount will be made implicit (and not shown).
+--
+-- The output will be parseable journal syntax.
+-- To facilitate this, postings with explicit multi-commodity amounts 
+-- are displayed as multiple similar postings, one per commodity.
+--
+-- Explicit multi-commodity postings are shown as multiple similar postings,
+-- one for each commodity, to help produce parseable journal syntax.
+-- Or if onelineamounts is true, such amounts are shown on one line,
+-- comma-separated (and the output will not be valid journal syntax).
+--
+-- Posting amounts will be aligned with each other.
+-- 
 postingsAsLines :: Bool -> Bool -> Transaction -> [Posting] -> [String]
 postingsAsLines elide onelineamounts t ps
     | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
        = (concatMap (postingAsLines False onelineamounts ps) $ init ps) ++ postingAsLines True onelineamounts ps (last ps)
     | otherwise = concatMap (postingAsLines False onelineamounts ps) ps
 
+-- | Render one posting, on one or more lines, suitable for `print` output.  
+-- There will be an indented account name, plus one or more of status flag,
+-- posting amount, balance assertion, same-line comment, next-line comments.
+-- 
+-- If the posting's amount is implicit or if elideamount is true, no amount is shown.
+--
+-- If the posting's amount is explicit and multi-commodity, multiple similar 
+-- postings are shown, one for each commodity, to help produce parseable journal syntax.
+-- Or if onelineamounts is true, such amounts are shown on one line, comma-separated
+-- (and the output will not be valid journal syntax).
+--
+-- By default, 4 spaces (2 if there's a status flag) are shown between 
+-- account name and start of amount area, which is typically 12 chars wide
+-- and contains a right-aligned amount (so 10-12 visible spaces between 
+-- account name and amount is typical).
+-- When given a list of postings to be aligned with, the whitespace will be 
+-- increased if needed to match the posting with the longest account name.
+-- This is used to align the amounts of a transaction's postings.
+--
 postingAsLines :: Bool -> Bool -> [Posting] -> Posting -> [String]
-postingAsLines elideamount onelineamounts ps p = concat [
+postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     postingblock
     ++ newlinecomments
     | postingblock <- postingblocks]
@@ -163,7 +222,7 @@ postingAsLines elideamount onelineamounts ps p = concat [
     statusandaccount = indent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
           -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  
-          minwidth = maximum $ map ((2+) . textWidth . T.pack . pacctstr) ps
+          minwidth = maximum $ map ((2+) . textWidth . T.pack . pacctstr) pstoalignwith
           pstatusandacct p' = pstatusprefix p' ++ pacctstr p'
           pstatusprefix p' | null s    = ""
                            | otherwise = s ++ " "
@@ -177,14 +236,14 @@ postingAsLines elideamount onelineamounts ps p = concat [
       | null (amounts $ pamount p) = [""]
       | otherwise      = map (fitStringMulti (Just amtwidth) Nothing False False . showAmount ) . amounts $ pamount p
       where
-        amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) ps  -- min. 12 for backwards compatibility
+        amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) pstoalignwith  -- min. 12 for backwards compatibility
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
 
-
--- used in balance assertion error
+-- | Show a posting's status, account name and amount on one line. 
+-- Used in balance assertion errors.
 showPostingLine p =
   indent $
   if pstatus p == Cleared then "* " else "" ++
@@ -192,7 +251,8 @@ showPostingLine p =
   "    " ++
   showMixedAmountOneLine (pamount p)
 
--- | Produce posting line with all comment lines associated with it
+-- | Render a posting, at the appropriate width for aligning with
+-- its siblings if any. Used by the rewrite command. 
 showPostingLines :: Posting -> [String]
 showPostingLines p = postingAsLines False False ps p where
     ps | Just t <- ptransaction p = tpostings t
@@ -434,7 +494,7 @@ postingSetTransaction t p = p{ptransaction=Just t}
 tests_Transaction = tests "Transaction" [
 
   tests "showTransactionUnelided" [
-    showTransactionUnelided nulltransaction `is` "0000/01/01\n\n"
+     showTransactionUnelided nulltransaction `is` "0000/01/01\n\n"
     ,showTransactionUnelided nulltransaction{
       tdate=parsedate "2012/05/14",
       tdate2=Just $ parsedate "2012/05/15",
@@ -485,6 +545,81 @@ tests_Transaction = tests "Transaction" [
       "    ;   tag3: val3  "
       ]
     ]
+
+  ,let
+    -- one implicit amount 
+    timp = nulltransaction{tpostings=[
+            "a" `post` usd 1,
+            "b" `post` missingamt
+            ]}
+    -- explicit amounts, balanced
+    texp = nulltransaction{tpostings=[
+            "a" `post` usd 1,
+            "b" `post` usd (-1)
+            ]} 
+    -- explicit amount, only one posting
+    texp1 = nulltransaction{tpostings=[
+            "(a)" `post` usd 1
+            ]}
+    -- explicit amounts, two commodities, explicit balancing price
+    texp2 = nulltransaction{tpostings=[
+            "a" `post` usd 1,
+            "b" `post` (hrs (-1) `at` usd 1)
+            ]} 
+    -- explicit amounts, two commodities, implicit balancing price
+    texp2b = nulltransaction{tpostings=[
+            "a" `post` usd 1,
+            "b" `post` hrs (-1)
+            ]}
+  in
+    tests "postingsAsLines" [
+
+     test "null-transaction" $
+      let t = nulltransaction
+      in postingsAsLines True False t (tpostings t) `is` []
+
+    ,test "implicit-amount-elide-false" $
+      let t = timp in postingsAsLines False False t (tpostings t) `is` [
+           "    a           $1.00" 
+          ,"    b"                  -- implicit amount remains implicit
+          ]
+
+    ,test "implicit-amount-elide-true" $
+      let t = timp in postingsAsLines True False t (tpostings t) `is` [
+           "    a           $1.00" 
+          ,"    b"                  -- implicit amount remains implicit
+          ]
+
+    ,test "explicit-amounts-elide-false" $
+      let t = texp in postingsAsLines False False t (tpostings t) `is` [
+           "    a           $1.00" 
+          ,"    b          $-1.00"  -- both amounts remain explicit
+          ]
+
+    ,test "explicit-amounts-elide-true" $
+      let t = texp in postingsAsLines True False t (tpostings t) `is` [
+           "    a           $1.00" 
+          ,"    b"                  -- explicit amount is made implicit
+          ]
+
+    ,test "one-explicit-amount-elide-true" $
+      let t = texp1 in postingsAsLines True False t (tpostings t) `is` [
+           "    (a)           $1.00"  -- explicit amount remains explicit since only one posting 
+          ]
+
+    ,test "explicit-amounts-two-commodities-elide-true" $
+      let t = texp2 in postingsAsLines True False t (tpostings t) `is` [
+           "    a             $1.00" 
+          ,"    b"                    -- explicit amount is made implicit since txn is explicitly balanced
+          ]
+
+    ,test "explicit-amounts-not-explicitly-balanced-elide-true" $
+      let t = texp2b in postingsAsLines True False t (tpostings t) `is` [
+           "    a           $1.00" 
+          ,"    b          -1.00h"    -- explicit amount remains explicit since a conversion price would have be inferred to balance
+          ]
+
+   ]
 
   ,do
     let inferTransaction :: Transaction -> Either String Transaction

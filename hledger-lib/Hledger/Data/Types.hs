@@ -250,7 +250,10 @@ data Posting = Posting {
       pbalanceassertion :: BalanceAssertion,  -- ^ optional: the expected balance in this commodity in the account after this posting
       ptransaction      :: Maybe Transaction, -- ^ this posting's parent transaction (co-recursive types).
                                               -- Tying this knot gets tedious, Maybe makes it easier/optional.
-      porigin           :: Maybe Posting      -- ^ original posting if this one is result of any transformations (one level only)
+      porigin           :: Maybe Posting      -- ^ When this posting has been transformed in some way
+                                              --   (eg its amount or price was inferred, or the account name was
+                                              --   changed by a pivot or budget report), this references the original 
+                                              --   untransformed posting (which will have Nothing in this field).
     } deriving (Typeable,Data,Generic)
 
 instance NFData Posting
