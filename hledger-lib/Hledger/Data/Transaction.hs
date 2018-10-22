@@ -120,6 +120,8 @@ the last posting's amount will not be shown.
 -}
 -- XXX why that logic ? 
 -- XXX where is/should this be still used ? 
+-- XXX rename these, after amount expressions/mixed posting amounts lands
+--     eg showTransactionSimpleAmountsElidingLast, showTransactionSimpleAmounts, showTransaction
 showTransaction :: Transaction -> String
 showTransaction = showTransactionHelper True False
 
