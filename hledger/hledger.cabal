@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 35dc218f658f30998772647d4c70f40df1cbdd8a58eb21e8283d6e417fb8c1ac
+-- hash: 995aea33041ad8471478cf73afdbecaf642ee8f7fe6027600d9aa49f97508138
 
 name:           hledger
 version:        1.11.99
@@ -143,7 +143,7 @@ library
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <0.15
+    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -194,7 +194,7 @@ executable hledger
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <0.15
+    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -248,7 +248,7 @@ test-suite test
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <0.15
+    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , test-framework
@@ -303,7 +303,7 @@ benchmark bench
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <0.15
+    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
