@@ -146,17 +146,6 @@ renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentpref
     where
       commentprefix = indent . ("; "++)
 
--- -- Render a transaction or posting's comment as semicolon-prefixed comment lines -
--- -- an inline (same-line) comment if it's a single line, otherwise multiple indented lines.
--- commentLines' :: String -> (String, [String])
--- commentLines' s
---     | null s = ("", [])
---     | length ls == 1 = (prefix $ head ls, [])
---     | otherwise = ("", (prefix $ head ls):(map prefix $ tail ls))
---     where
---       ls = lines s
---       prefix = indent . (";"++)
-
 postingsAsLines :: Bool -> Bool -> Transaction -> [Posting] -> [String]
 postingsAsLines elide onelineamounts t ps
     | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
