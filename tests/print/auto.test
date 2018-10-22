@@ -84,3 +84,55 @@ $ hledger print -f- --auto
     assets:bank:checking               $-20
 
 >=
+
+# Rules will preserve a transaction price from the original amount.
+<
+= assets:billable:client1
+  assets:receivable:client1       *100
+  revenues:client1
+
+2018/1/1
+    (assets:billable:client1)         0.50h @ $90
+
+$ hledger -f- print --auto -x
+2018/01/01
+    (assets:billable:client1)     0.50h @ $90
+    assets:receivable:client1    50.00h @ $90
+    revenues:client1                   $-4500
+
+>=
+
+# Rules can set a new commodity in the generated amounts.
+<
+= assets:billable:client1
+  assets:receivable:client1       *$100
+  revenues:client1
+
+2018/1/1
+    (assets:billable:client1)         0.50h
+
+$ hledger -f- print --auto -x
+2018/01/01
+    (assets:billable:client1)           0.50h
+    assets:receivable:client1             $50
+    revenues:client1                     $-50
+
+>=
+
+# And/or a new transaction price.
+<
+= assets:billable:client1
+  assets:receivable:client1       *1.00 "Client1 Hours" @ $100.00
+  revenues:client1
+
+2018/1/1
+    (assets:billable:client1)         0.50h @ $90
+
+$ hledger -f- print --auto -x
+2018/01/01
+    (assets:billable:client1)                       0.50h @ $90
+    assets:receivable:client1    0.50 "Client1 Hours" @ $100.00
+    revenues:client1                                    $-50.00
+
+>=
+
