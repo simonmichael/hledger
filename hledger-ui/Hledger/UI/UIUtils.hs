@@ -54,38 +54,38 @@ helpDialog _copts =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
-      withDefAttr borderAttr $ -- color help dialog like the borders
+      withDefAttr "help" $
       renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
       padAll 1 $
         vBox [
            hBox [
               padRight (Pad 1) $
                 vBox [
-                   str "Navigation"
+                   withAttr ("help" <> "heading") $ str "Navigation"
                   ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/emacs/vi keys", "")
                   ,str "      move selection"
                   ,renderKey ("RIGHT", "show more detail")
                   ,renderKey ("LEFT ", "go back")
                   ,renderKey ("ESC  ", "cancel or reset")
                   ,str " "
-                  ,str "Report period"
+                  ,withAttr ("help" <> "heading") $ str "Report period"
                   ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
                   ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")
                   ,renderKey ("t             ", "set period to today")
                   ,str " "
-                  ,str "Accounts screen"
+                  ,withAttr ("help" <> "heading") $ str "Accounts screen"
                   ,renderKey ("-+0123456789 ", "set depth limit")
                   ,renderKey ("T ", "toggle tree/flat mode")
                   ,renderKey ("H ", "period change/historical end balance")
                   ,str " "
-                  ,str "Register screen"
+                  ,withAttr ("help" <> "heading") $ str "Register screen"
                   ,renderKey ("T ", "toggle subaccount txns\n(and accounts screen tree/flat mode)")
                   ,renderKey ("H ", "show period total/historical total")
                   ,str " "
                 ]
              ,padLeft (Pad 1) $ padRight (Pad 0) $
                 vBox [
-                   str "Filtering"
+                   withAttr ("help" <> "heading") $ str "Filtering"
                   ,renderKey ("/   ", "set a filter query")
                   ,renderKey ("UPC ", "show unmarked/pending/cleared") 
                   ,renderKey ("F   ", "show future/present txns")
@@ -93,11 +93,11 @@ helpDialog _copts =
                   ,renderKey ("Z   ", "show nonzero/all amounts")
                   ,renderKey ("DEL ", "remove filters")
                   ,str " "
-                  ,str "Help"
+                  ,withAttr ("help" <> "heading") $ str "Help"
                   ,renderKey ("?   ", "toggle this help")
                   ,renderKey ("pmi ", "(with help showing)\nshow manual in pager/man/info")
                   ,str " "
-                  ,str "Other"
+                  ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
                   ,renderKey ("A   ", "add transaction (hledger-iadd)")
                   ,renderKey ("E   ", "open editor")
@@ -122,7 +122,7 @@ helpDialog _copts =
 --             ]
           ]
   where
-    renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
+    renderKey (key,desc) = withAttr ("help" <> "key") (str key) <+> str " " <+> str desc
 
 -- | Event handler used when help mode is active.
 -- May invoke $PAGER, less, man or info, which is likely to fail on MS Windows, TODO.
@@ -177,7 +177,7 @@ borderKeysStr' :: [(String,Widget Name)] -> Widget Name
 borderKeysStr' keydescs =
   hBox $
   intersperse sep $
-  [withAttr (borderAttr <> "keys") (str keys) <+> str ":" <+> desc | (keys, desc) <- keydescs]
+  [withAttr (borderAttr <> "key") (str keys) <+> str ":" <+> desc | (keys, desc) <- keydescs]
   where
     -- sep = str " | "
     sep = str " "

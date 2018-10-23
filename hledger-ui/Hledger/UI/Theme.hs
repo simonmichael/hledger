@@ -68,14 +68,18 @@ themeNames = map fst themesList
 themesList :: [(String, AttrMap)]
 themesList = [
   ("default", attrMap
-            (black `on` white & bold) [ -- default style for this theme
-              ("error", currentAttr `withForeColor` red),
+            (black `on` white) [ -- default style for this theme
+
               (borderAttr       , white `on` black & dim),
-              (borderAttr <> "bold", white `on` black & bold),
-              (borderAttr <> "query", cyan `on` black & bold),
-              (borderAttr <> "depth", yellow `on` black & bold),
---              (borderAttr <> "keys", black `on` white & bold),  
+              (borderAttr <> "bold", currentAttr & bold),
+              (borderAttr <> "query", currentAttr `withForeColor` cyan & bold),
+              (borderAttr <> "depth", currentAttr `withForeColor` yellow & bold),
+              (borderAttr <> "key", currentAttr `withForeColor` brightWhite & bold),  
               (borderAttr <> "minibuffer", white `on` black & bold),
+
+              ("help", white `on` black & dim),
+              ("help" <> "heading", currentAttr `withForeColor` yellow),
+              ("help" <> "key", currentAttr `withForeColor` brightWhite & bold),
               -- ("normal"                , black `on` white),
               ("list"                  , black `on` white),      -- regular list items
               ("list" <> "selected"    , white `on` blue & bold), -- selected list items
@@ -88,7 +92,10 @@ themesList = [
               ("list" <> "amount" <> "increase" <> "selected", brightGreen `on` blue & bold),
               ("list" <> "amount" <> "decrease" <> "selected", brightRed `on` blue & bold),
               ("list" <> "balance" <> "positive" <> "selected",  white `on` blue & bold),
-              ("list" <> "balance" <> "negative" <> "selected", brightRed `on` blue & bold)
+              ("list" <> "balance" <> "negative" <> "selected", brightRed `on` blue & bold),
+
+              ("error", currentAttr `withForeColor` red)
+
               ]),
 
   ("terminal", attrMap
