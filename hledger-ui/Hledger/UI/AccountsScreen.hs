@@ -172,7 +172,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         ishistorical = balancetype_ ropts == HistoricalBalance
 
         toplabel =
-              files
+              withAttr ("border" <> "filename") files
           -- <+> withAttr ("border" <> "query") (str (if flat_ ropts then " flat" else ""))
           <+> nonzero
           <+> str (if ishistorical then " accounts" else " account changes")
