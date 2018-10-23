@@ -7,16 +7,16 @@
 -- http://hackage.haskell.org/package/brick-0.1/docs/Brick-Widgets-Core.html#g:5
 -- http://hackage.haskell.org/package/brick-0.1/docs/Brick-Widgets-Border.html
 
-
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.UI.Theme (
    defaultTheme
   ,getTheme
   ,themes
   ,themeNames
- ) where
+)
+where
 
 import qualified Data.Map as M
 import Data.Maybe
@@ -25,8 +25,6 @@ import Data.Monoid
 #endif
 import Graphics.Vty
 import Brick
-import Brick.Widgets.Border
-import Brick.Widgets.List
 
 defaultTheme :: AttrMap
 defaultTheme = fromMaybe (snd $ head themesList) $ getTheme "white"
@@ -65,59 +63,46 @@ themeNames = map fst themesList
 
 (&) = withStyle
 
+-- assume standard brick attr names:
+-- "border", "list", "list" <> "selected", "list" <> "selected" <> "focused"
+
 themesList :: [(String, AttrMap)]
 themesList = [
-  ("default", attrMap
-            (black `on` white) [ -- default style for this theme
+   ("default", attrMap (black `on` white) [
+     ("border"                                        , white `on` black & dim)
+    ,("border" <> "bold"                              , currentAttr & bold)
+    ,("border" <> "depth"                             , fg yellow & bold)
+    ,("border" <> "key"                               , fg brightWhite & bold)  
+    ,("border" <> "minibuffer"                        , white `on` black & bold)
+    ,("border" <> "query"                             , fg cyan & bold)
+    ,("border" <> "selected"                          , fg brightWhite & bold)
+    ,("error"                                         , fg red)
+    ,("help"                                          , white `on` black & dim)
+    ,("help" <> "heading"                             , fg yellow)
+    ,("help" <> "key"                                 , fg brightWhite & bold)
+    ,("list"                                          , black `on` white)
+    ,("list" <> "amount" <> "decrease"                , fg red)
+    ,("list" <> "amount" <> "decrease" <> "selected"  , brightRed `on` blue & bold)
+    ,("list" <> "amount" <> "increase"                , fg green)
+    ,("list" <> "amount" <> "increase" <> "selected"  , brightGreen `on` blue & bold)
+    ,("list" <> "balance" <> "negative"               , fg red)
+    ,("list" <> "balance" <> "negative" <> "selected" , brightRed `on` blue & bold)
+    ,("list" <> "balance" <> "positive"               , fg black)
+    ,("list" <> "balance" <> "positive" <> "selected" , white `on` blue & bold)
+    ,("list" <> "selected"                            , white `on` blue & bold)
+    -- ,("list" <> "accounts"                         , white `on` brightGreen)
+    -- ,("list" <> "selected"                         , black `on` brightYellow)
+  ])
 
-              (borderAttr       , white `on` black & dim),
-              (borderAttr <> "bold", currentAttr & bold),
-              (borderAttr <> "query", currentAttr `withForeColor` cyan & bold),
-              (borderAttr <> "depth", currentAttr `withForeColor` yellow & bold),
-              (borderAttr <> "key", currentAttr `withForeColor` brightWhite & bold),  
-              (borderAttr <> "minibuffer", white `on` black & bold),
+  ,("greenterm", attrMap (green `on` black) [
+    ("list" <> "selected"                             , black `on` green & bold)
+  ])
 
-              ("help", white `on` black & dim),
-              ("help" <> "heading", currentAttr `withForeColor` yellow),
-              ("help" <> "key", currentAttr `withForeColor` brightWhite & bold),
-              -- ("normal"                , black `on` white),
-              ("list"                  , black `on` white),      -- regular list items
-              ("list" <> "selected"    , white `on` blue & bold), -- selected list items
-              -- ("list" <> "selected"     , black `on` brightYellow),
-              -- ("list" <> "accounts"  , white `on` brightGreen),
-              ("list" <> "amount" <> "increase", currentAttr `withForeColor` green),
-              ("list" <> "amount" <> "decrease", currentAttr `withForeColor` red),
-              ("list" <> "balance" <> "positive",  currentAttr `withForeColor` black),
-              ("list" <> "balance" <> "negative", currentAttr `withForeColor` red),
-              ("list" <> "amount" <> "increase" <> "selected", brightGreen `on` blue & bold),
-              ("list" <> "amount" <> "decrease" <> "selected", brightRed `on` blue & bold),
-              ("list" <> "balance" <> "positive" <> "selected",  white `on` blue & bold),
-              ("list" <> "balance" <> "negative" <> "selected", brightRed `on` blue & bold),
-
-              ("error", currentAttr `withForeColor` red)
-
-              ]),
-
-  ("terminal", attrMap
-            defAttr [  -- use the current terminal's default style
-              (borderAttr       , white `on` black),
-              -- ("normal"         , defAttr),
-              (listAttr         , defAttr),
-              (listSelectedAttr , defAttr & reverseVideo & bold)
-              -- ("status"         , defAttr & reverseVideo)
-              ]),
-
-  ("greenterm", attrMap
-            (green `on` black) [
-              -- (listAttr                  , green `on` black),
-              (listSelectedAttr          , black `on` green & bold)
-              ])
-  -- ("colorful", attrMap
-  --           defAttr [
-  --             (listAttr         , defAttr & reverseVideo),
-  --             (listSelectedAttr , defAttr `withForeColor` white `withBackColor` red)
-  --             -- ("status"         , defAttr `withForeColor` black `withBackColor` green)
-  --             ])
+  ,("terminal", attrMap defAttr [
+    ("border"                                         , white `on` black),
+    ("list"                                           , defAttr),
+    ("list" <> "selected"                             , defAttr & reverseVideo & bold)
+  ])
 
   ]
 
@@ -127,4 +112,3 @@ themesList = [
 -- greenattr = defAttr `withForeColor` green
 -- reverseredattr = defAttr & reverseVideo `withForeColor` red
 -- reversegreenattr= defAttr & reverseVideo `withForeColor` green
-

@@ -193,7 +193,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           where
             files = case journalFilePaths j of
                            [] -> str ""
-                           f:_ -> withAttr ("border" <> "bold") $ str $ takeFileName f
+                           f:_ -> str $ takeFileName f
                            -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
                            -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
             querystr = query_ ropts
@@ -217,7 +217,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
           where
-            selectedstr = withAttr (borderAttr <> "query") . str
+            selectedstr = withAttr (borderAttr <> "selected") . str
             quickhelp = borderKeysStr' [
                ("?", str "help")
               ,("RIGHT", str "register")
