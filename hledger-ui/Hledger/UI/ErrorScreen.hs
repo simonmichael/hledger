@@ -12,7 +12,7 @@ module Hledger.UI.ErrorScreen
 where
 
 import Brick
--- import Brick.Widgets.Border (borderAttr)
+-- import Brick.Widgets.Border ("border")
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 #if !(MIN_VERSION_base(4,11,0))
@@ -57,7 +57,7 @@ esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
       where
         toplabel =
               withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
-              -- <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring") else str " not ignoring")
+              -- <+> (if ignore_assertions_ copts then withAttr ("border" <> "query") (str " ignoring") else str " not ignoring")
 
         bottomlabel = case mode of
                         -- Minibuffer ed -> minibuffer ed

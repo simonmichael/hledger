@@ -20,7 +20,6 @@ import Data.Time.Calendar (Day)
 import Graphics.Vty (Event(..),Key(..))
 import Brick
 import Brick.Widgets.List (listMoveTo)
-import Brick.Widgets.Border (borderAttr)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
@@ -77,7 +76,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> togglefilters
           <+> borderQueryStr (query_ ropts)
           <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
-          <+> (if ignore_assertions_ $ inputopts_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
+          <+> (if ignore_assertions_ $ inputopts_ copts then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
           where
             togglefilters =
               case concat [
@@ -86,7 +85,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                   ,if empty_ ropts then [] else ["nonzero"]
                   ] of
                 [] -> str ""
-                fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
+                fs -> withAttr ("border" <> "query") (str $ " " ++ intercalate ", " fs)
 
         bottomlabel = case mode of
                         -- Minibuffer ed -> minibuffer ed

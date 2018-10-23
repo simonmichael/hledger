@@ -14,7 +14,6 @@ where
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit
-import Brick.Widgets.Border (borderAttr)
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
@@ -174,7 +173,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
         toplabel =
               files
-          -- <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " flat" else ""))
+          -- <+> withAttr ("border" <> "query") (str (if flat_ ropts then " flat" else ""))
           <+> nonzero
           <+> str (if ishistorical then " accounts" else " account changes")
           -- <+> str (if ishistorical then " balances" else " changes")
@@ -188,7 +187,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> total
           <+> str ")"
           <+> (if ignore_assertions_ $ inputopts_ copts
-               then withAttr (borderAttr <> "query") (str " ignoring balance assertions")
+               then withAttr ("border" <> "query") (str " ignoring balance assertions")
                else str "")
           where
             files = case journalFilePaths j of
@@ -204,9 +203,9 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                   ,if real_ ropts then ["real"] else []
                   ] of
                 [] -> str ""
-                fs -> str " from " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
+                fs -> str " from " <+> withAttr ("border" <> "query") (str $ intercalate ", " fs) <+> str " txns"
             nonzero | empty_ ropts = str ""
-                    | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
+                    | otherwise    = withAttr ("border" <> "query") (str " nonzero")
             cur = str (case _asList s ^. listSelectedL of
                         Nothing -> "-"
                         Just i -> show (i + 1))
@@ -217,7 +216,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
           where
-            selectedstr = withAttr (borderAttr <> "selected") . str
+            selectedstr = withAttr ("border" <> "selected") . str
             quickhelp = borderKeysStr' [
                ("?", str "help")
               ,("RIGHT", str "register")

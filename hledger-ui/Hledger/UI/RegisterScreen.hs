@@ -26,7 +26,6 @@ import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit
-import Brick.Widgets.Border (borderAttr)
 import Lens.Micro.Platform
 import Safe
 import System.Console.ANSI
@@ -192,7 +191,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
         toplabel =
               withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
---           <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " exclusive")
+--           <+> withAttr ("border" <> "query") (str $ if inclusive then "" else " exclusive")
           <+> togglefilters
           <+> str " transactions"
           -- <+> str (if ishistorical then " historical total" else " period total")
@@ -204,7 +203,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> str "/"
           <+> total
           <+> str ")"
-          <+> (if ignore_assertions_ $ inputopts_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
+          <+> (if ignore_assertions_ $ inputopts_ copts then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
           where
             togglefilters =
               case concat [
@@ -213,7 +212,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                   ,if empty_ ropts then [] else ["nonzero"]
                   ] of
                 [] -> str ""
-                fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
+                fs -> withAttr ("border" <> "query") (str $ " " ++ intercalate ", " fs)
             cur = str $ case rsList ^. listSelectedL of
                          Nothing -> "-"
                          Just i -> show (i + 1)
@@ -226,7 +225,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
           where
-            selectedstr = withAttr (borderAttr <> "query") . str
+            selectedstr = withAttr ("border" <> "query") . str
             quickhelp = borderKeysStr' [
                ("?", str "help")
               ,("LEFT", str "back")

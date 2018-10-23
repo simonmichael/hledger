@@ -141,7 +141,7 @@ helpHandle ui ev = do
 -- | Draw the minibuffer.
 minibuffer :: Editor String Name -> Widget Name
 minibuffer ed =
-  forceAttr (borderAttr <> "minibuffer") $
+  forceAttr ("border" <> "minibuffer") $
   hBox $
 #if MIN_VERSION_brick(0,19,0)
   [txt "filter: ", renderEditor (str . unlines) True ed]
@@ -160,15 +160,15 @@ defaultLayout toplabel bottomlabel =
 
 borderQueryStr :: String -> Widget Name
 borderQueryStr ""  = str ""
-borderQueryStr qry = str " matching " <+> withAttr (borderAttr <> "query") (str qry)
+borderQueryStr qry = str " matching " <+> withAttr ("border" <> "query") (str qry)
 
 borderDepthStr :: Maybe Int -> Widget Name
 borderDepthStr Nothing  = str ""
-borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "query") (str $ "depth "++show d)
+borderDepthStr (Just d) = str " to " <+> withAttr ("border" <> "query") (str $ "depth "++show d)
 
 borderPeriodStr :: String -> Period -> Widget Name
 borderPeriodStr _           PeriodAll = str ""
-borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr (borderAttr <> "query") (str $ showPeriod p)
+borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr ("border" <> "query") (str $ showPeriod p)
 
 borderKeysStr :: [(String,String)] -> Widget Name
 borderKeysStr = borderKeysStr' . map (\(a,b) -> (a, str b))
@@ -177,7 +177,7 @@ borderKeysStr' :: [(String,Widget Name)] -> Widget Name
 borderKeysStr' keydescs =
   hBox $
   intersperse sep $
-  [withAttr (borderAttr <> "key") (str keys) <+> str ":" <+> desc | (keys, desc) <- keydescs]
+  [withAttr ("border" <> "key") (str keys) <+> str ":" <+> desc | (keys, desc) <- keydescs]
   where
     -- sep = str " | "
     sep = str " "
@@ -222,11 +222,11 @@ topBottomBorderWithLabels toplabel bottomlabel body =
           ""
           -- "  debug: "++show (_w,h')
     render $
-      hBorderWithLabel (withAttr borderAttr $ toplabel <+> str debugmsg)
+      hBorderWithLabel (withAttr "border" $ toplabel <+> str debugmsg)
       <=>
       body'
       <=>
-      hBorderWithLabel (withAttr borderAttr bottomlabel)
+      hBorderWithLabel (withAttr "border" bottomlabel)
 
 ---- XXX should be equivalent to the above, but isn't (page down goes offscreen)
 --_topBottomBorderWithLabel2 :: Widget Name -> Widget Name -> Widget Name
@@ -264,7 +264,7 @@ margin h v mcolour = \w ->
    -- applyN n border
 
 withBorderAttr :: Attr -> Widget Name -> Widget Name
-withBorderAttr attr = updateAttrMap (applyAttrMappings [(borderAttr, attr)])
+withBorderAttr attr = updateAttrMap (applyAttrMappings [("border", attr)])
 
 ---- | Like brick's continue, but first run some action to modify brick's state.
 ---- This action does not affect the app state, but might eg adjust a widget's scroll position.
