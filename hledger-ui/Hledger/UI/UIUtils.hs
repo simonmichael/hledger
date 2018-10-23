@@ -54,6 +54,7 @@ helpDialog _copts =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
+      withDefAttr borderAttr $ -- color help dialog like the borders
       renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
       padAll 1 $
         vBox [
