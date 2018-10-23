@@ -335,13 +335,13 @@ balanceTransactionUpdate :: MonadError String m
   -> Maybe (Map.Map CommoditySymbol AmountStyle)
   -> Transaction -> m Transaction
 balanceTransactionUpdate update mstyles t =
-  finalize =<< inferBalancingAmount update (fromMaybe Map.empty mstyles) t
+  (finalize =<< inferBalancingAmount update (fromMaybe Map.empty mstyles) t)
+    `catchError` (throwError . annotateErrorWithTxn t)
   where
     finalize t' = let t'' = inferBalancingPrices t'
                   in if isTransactionBalanced mstyles t''
                      then return $ txnTieKnot t''
-                     else throwError $ printerr $ nonzerobalanceerror t''
-    printerr s = intercalate "\n" [s, showTransactionUnelided t]
+                     else throwError $ nonzerobalanceerror t''
     nonzerobalanceerror :: Transaction -> String
     nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
         where
@@ -353,6 +353,8 @@ balanceTransactionUpdate update mstyles t =
                 | otherwise = "balanced virtual postings are off by "
                   ++ showMixedAmount (costOfMixedAmount bvsum)
           sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
+
+    annotateErrorWithTxn t e = intercalate "\n" [showGenericSourcePos $ tsourcepos t, e, showTransactionUnelided t]
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -368,14 +370,13 @@ inferBalancingAmount :: MonadError String m =>
                      -> m Transaction
 inferBalancingAmount update styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
-      = throwError $ printerr "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
+      = throwError "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
   | length amountlessbvps > 1
-      = throwError $ printerr "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
+      = throwError "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
   | otherwise
       = do postings <- mapM inferamount ps
            return t{tpostings=postings}
   where
-    printerr s = intercalate "\n" [s, showTransactionUnelided t]
     (amountfulrealps, amountlessrealps) = partition hasAmount (realPostings t)
     realsum = sumStrict $ map pamount amountfulrealps
     (amountfulbvps, amountlessbvps) = partition hasAmount (balancedVirtualPostings t)
