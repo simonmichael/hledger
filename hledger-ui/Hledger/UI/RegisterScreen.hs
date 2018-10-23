@@ -229,8 +229,8 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             selectedstr = withAttr (borderAttr <> "query") . str
             quickhelp = borderKeysStr' [
                ("?", str "help")
-              ,("left", str "back")
-              ,("right", str "transaction")
+              ,("LEFT", str "back")
+              ,("RIGHT", str "transaction")
               ,("H"
                ,if ishistorical
                 then selectedstr "historical" <+> str "/period"

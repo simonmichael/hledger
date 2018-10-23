@@ -220,7 +220,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             selectedstr = withAttr (borderAttr <> "query") . str
             quickhelp = borderKeysStr' [
                ("?", str "help")
-              ,("right", str "register")
+              ,("RIGHT", str "register")
               ,("H"
                ,if ishistorical
                 then selectedstr "historical" <+> str "/period"

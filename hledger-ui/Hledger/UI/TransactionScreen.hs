@@ -94,8 +94,8 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           where
             quickhelp = borderKeysStr [
                ("?", "help")
-              ,("left", "back")
-              ,("up/down", "prev/next")
+              ,("LEFT", "back")
+              ,("UP/DOWN", "prev/next")
               --,("ESC", "cancel/top")
               -- ,("a", "add")
               ,("E", "editor")
