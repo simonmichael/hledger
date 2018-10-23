@@ -62,47 +62,49 @@ themeNames :: [String]
 themeNames = map fst themesList
 
 (&) = withStyle
-
--- assume standard brick attr names:
--- "border", "list", "list" <> "selected", "list" <> "selected" <> "focused"
+active = fg brightWhite & bold
+selectbg = yellow
+select = black `on` selectbg
 
 themesList :: [(String, AttrMap)]
 themesList = [
    ("default", attrMap (black `on` white) [
      ("border"                                        , white `on` black & dim)
     ,("border" <> "bold"                              , currentAttr & bold)
-    ,("border" <> "depth"                             , fg yellow & bold)
+    ,("border" <> "depth"                             , active)
     ,("border" <> "filename"                          , currentAttr)
-    ,("border" <> "key"                               , fg brightWhite & bold)  
+    ,("border" <> "key"                               , active)  
     ,("border" <> "minibuffer"                        , white `on` black & bold)
-    ,("border" <> "query"                             , fg brightWhite & bold)
-    ,("border" <> "selected"                          , fg brightWhite & bold)
+    ,("border" <> "query"                             , active)
+    ,("border" <> "selected"                          , active)
     ,("error"                                         , fg red)
     ,("help"                                          , white `on` black & dim)
     ,("help" <> "heading"                             , fg yellow)
-    ,("help" <> "key"                                 , fg brightWhite & bold)
-    ,("list"                                          , black `on` white)
+    ,("help" <> "key"                                 , active)
+    -- ,("list"                                          , black `on` white)
+    -- ,("list" <> "amount"                              , currentAttr)
     ,("list" <> "amount" <> "decrease"                , fg red)
-    ,("list" <> "amount" <> "decrease" <> "selected"  , brightRed `on` blue & bold)
     ,("list" <> "amount" <> "increase"                , fg green)
-    ,("list" <> "amount" <> "increase" <> "selected"  , brightGreen `on` blue & bold)
+    ,("list" <> "amount" <> "decrease" <> "selected"  , red `on` selectbg & bold)
+    ,("list" <> "amount" <> "increase" <> "selected"  , green `on` selectbg & bold)
+    ,("list" <> "balance"                             , currentAttr & bold)
     ,("list" <> "balance" <> "negative"               , fg red)
-    ,("list" <> "balance" <> "negative" <> "selected" , brightRed `on` blue & bold)
     ,("list" <> "balance" <> "positive"               , fg black)
-    ,("list" <> "balance" <> "positive" <> "selected" , white `on` blue & bold)
-    ,("list" <> "selected"                            , white `on` blue & bold)
+    ,("list" <> "balance" <> "negative" <> "selected" , red `on` selectbg & bold)
+    ,("list" <> "balance" <> "positive" <> "selected" , select & bold)
+    ,("list" <> "selected"                            , select)
     -- ,("list" <> "accounts"                         , white `on` brightGreen)
     -- ,("list" <> "selected"                         , black `on` brightYellow)
   ])
 
   ,("greenterm", attrMap (green `on` black) [
-    ("list" <> "selected"                             , black `on` green & bold)
+    ("list" <> "selected"                             , black `on` green)
   ])
 
   ,("terminal", attrMap defAttr [
     ("border"                                         , white `on` black),
     ("list"                                           , defAttr),
-    ("list" <> "selected"                             , defAttr & reverseVideo & bold)
+    ("list" <> "selected"                             , defAttr & reverseVideo)
   ])
 
   ]
