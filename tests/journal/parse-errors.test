@@ -34,7 +34,12 @@ $ hledger -f - print
 # 3. So in these tests we must sometimes force the desired format, like so.
 # Now we see the error from the journal reader.
 $ hledger -f journal:- print
->2 /hledger: could not balance this transaction \(real postings are off by 1\)/
+>2 /could not balance this transaction \(real postings are off by 1\)/
+>=1
+
+# 4. We expect to have reference to line number with last posting
+$ hledger -f journal:- print
+>2 /\<2\>/
 >=1
 
 # A posting without two spaces between account and amount.
@@ -42,7 +47,7 @@ $ hledger -f journal:- print
 2018/1/1
   (a) 1
 
-# 4. hledger doesn't detect this as an error directly, it parses account name "(a) 1" and
+# 5. hledger doesn't detect this as an error directly, it parses account name "(a) 1" and
 # amount 0 here.
 $ hledger -f - print -x
 2018/01/01
@@ -50,3 +55,24 @@ $ hledger -f - print -x
 
 >=
 
+# 6. Two (or more) postings with implicit amount cannot be balanced.
+<
+2018/1/1
+  a  1
+  b
+  c
+
+$ hledger -f journal:- print
+>2 /\<4\>/
+>=1
+
+# 7. Two (or more) virtual postings with implicit amount cannot be balanced.
+<
+2018/1/1
+  [a]  1
+  [b]
+  [c]
+
+$ hledger -f journal:- print
+>2 /\<4\>/
+>=1
