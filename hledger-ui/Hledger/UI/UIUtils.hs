@@ -1,16 +1,31 @@
-{-# LANGUAGE CPP #-}
 {- | Rendering & misc. helpers. -}
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 
-module Hledger.UI.UIUtils
+module Hledger.UI.UIUtils (
+   borderDepthStr
+  ,borderKeysStr
+  ,borderKeysStr'
+  ,borderPeriodStr
+  ,borderQueryStr
+  ,defaultLayout
+  ,helpDialog
+  ,helpHandle
+  ,minibuffer
+  ,moveDownEvents
+  ,moveLeftEvents
+  ,moveRightEvents
+  ,moveUpEvents
+  ,normaliseMovementKeys
+  ,replaceHiddenAccountsNameWith
+  ,scrollSelectionToMiddle
+)
 where
 
 import Brick
 import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
--- import Brick.Widgets.Center
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Brick.Widgets.List
@@ -178,49 +193,49 @@ hiddenAccountsName = "..." -- for now
 
 -- generic
 
-topBottomBorderWithLabel :: Widget Name -> Widget Name -> Widget Name
-topBottomBorderWithLabel label = \wrapped ->
-  Widget Greedy Greedy $ do
-    c <- getContext
-    let (_w,h) = (c^.availWidthL, c^.availHeightL)
-        h' = h - 2
-        wrapped' = vLimit (h') wrapped
-        debugmsg =
-          ""
-          -- "  debug: "++show (_w,h')
-    render $
-      hBorderWithLabel (label <+> str debugmsg)
-      <=>
-      wrapped'
-      <=>
-      hBorder
+--topBottomBorderWithLabel :: Widget Name -> Widget Name -> Widget Name
+--topBottomBorderWithLabel label = \wrapped ->
+--  Widget Greedy Greedy $ do
+--    c <- getContext
+--    let (_w,h) = (c^.availWidthL, c^.availHeightL)
+--        h' = h - 2
+--        wrapped' = vLimit (h') wrapped
+--        debugmsg =
+--          ""
+--          -- "  debug: "++show (_w,h')
+--    render $
+--      hBorderWithLabel (label <+> str debugmsg)
+--      <=>
+--      wrapped'
+--      <=>
+--      hBorder
 
 topBottomBorderWithLabels :: Widget Name -> Widget Name -> Widget Name -> Widget Name
-topBottomBorderWithLabels toplabel bottomlabel = \wrapped ->
+topBottomBorderWithLabels toplabel bottomlabel body =
   Widget Greedy Greedy $ do
     c <- getContext
     let (_w,h) = (c^.availWidthL, c^.availHeightL)
         h' = h - 2
-        wrapped' = vLimit (h') wrapped
+        body' = vLimit (h') body
         debugmsg =
           ""
           -- "  debug: "++show (_w,h')
     render $
       hBorderWithLabel (toplabel <+> str debugmsg)
       <=>
-      wrapped'
+      body'
       <=>
       hBorderWithLabel bottomlabel
 
--- XXX should be equivalent to the above, but isn't (page down goes offscreen)
-_topBottomBorderWithLabel2 :: Widget Name -> Widget Name -> Widget Name
-_topBottomBorderWithLabel2 label = \wrapped ->
- let debugmsg = ""
- in hBorderWithLabel (label <+> str debugmsg)
-    <=>
-    wrapped
-    <=>
-    hBorder
+---- XXX should be equivalent to the above, but isn't (page down goes offscreen)
+--_topBottomBorderWithLabel2 :: Widget Name -> Widget Name -> Widget Name
+--_topBottomBorderWithLabel2 label = \wrapped ->
+-- let debugmsg = ""
+-- in hBorderWithLabel (label <+> str debugmsg)
+--    <=>
+--    wrapped
+--    <=>
+--    hBorder
 
 -- XXX superseded by pad, in theory
 -- | Wrap a widget in a margin with the given horizontal and vertical
@@ -250,17 +265,17 @@ margin h v mcolour = \w ->
 withBorderAttr :: Attr -> Widget Name -> Widget Name
 withBorderAttr attr = updateAttrMap (applyAttrMappings [(borderAttr, attr)])
 
--- | Like brick's continue, but first run some action to modify brick's state.
--- This action does not affect the app state, but might eg adjust a widget's scroll position.
-continueWith :: EventM n () -> ui -> EventM n (Next ui)
-continueWith brickaction ui = brickaction >> continue ui
+---- | Like brick's continue, but first run some action to modify brick's state.
+---- This action does not affect the app state, but might eg adjust a widget's scroll position.
+--continueWith :: EventM n () -> ui -> EventM n (Next ui)
+--continueWith brickaction ui = brickaction >> continue ui
 
--- | Scroll a list's viewport so that the selected item is centered in the
--- middle of the display area.
-scrollToTop :: List Name e -> EventM Name ()
-scrollToTop list = do
-  let vpname = list^.listNameL
-  setTop (viewportScroll vpname) 0 
+---- | Scroll a list's viewport so that the selected item is at the top
+---- of the display area.
+--scrollToTop :: List Name e -> EventM Name ()
+--scrollToTop list = do
+--  let vpname = list^.listNameL
+--  setTop (viewportScroll vpname) 0 
 
 -- | Scroll a list's viewport so that the selected item is centered in the
 -- middle of the display area.
