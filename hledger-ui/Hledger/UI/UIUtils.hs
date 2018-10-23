@@ -221,11 +221,11 @@ topBottomBorderWithLabels toplabel bottomlabel body =
           ""
           -- "  debug: "++show (_w,h')
     render $
-      hBorderWithLabel (toplabel <+> str debugmsg)
+      hBorderWithLabel (withAttr borderAttr $ toplabel <+> str debugmsg)
       <=>
       body'
       <=>
-      hBorderWithLabel bottomlabel
+      hBorderWithLabel (withAttr borderAttr bottomlabel)
 
 ---- XXX should be equivalent to the above, but isn't (page down goes offscreen)
 --_topBottomBorderWithLabel2 :: Widget Name -> Widget Name -> Widget Name
