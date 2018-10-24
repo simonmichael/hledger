@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7ec1692d7c6c7546bdd9fd2109f7ef00f02082133a0d732ff552d8099d3cbd7c
+-- hash: e4136e80ffc0f91a70be9ba2c2051cd80b2580f67c01bdb4d311a07d202c0a47
 
 name:           hledger-web
 version:        1.11.99
@@ -152,7 +152,7 @@ library
   ghc-options: -Wall -fwarn-tabs
   cpp-options: -DVERSION="1.11.99"
   build-depends:
-      base >=4.8 && <4.12
+      base >=4.8 && <4.13
     , blaze-html
     , blaze-markup
     , bytestring
