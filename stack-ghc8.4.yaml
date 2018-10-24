@@ -1,6 +1,6 @@
-# stack build plan using GHC 8.4.3 and recent stackage nightly
+# stack build plan using GHC 8.4.3
 
-resolver: nightly-2018-07-09
+resolver: lts-12.14
 
 packages:
 - hledger-lib
@@ -11,8 +11,8 @@ packages:
 
 extra-deps:
 - cassava-megaparsec-2.0.0
-- megaparsec-7.0.1
 - config-ini-0.2.3.0
+- megaparsec-7.0.2
 
 nix:
   pure: false
