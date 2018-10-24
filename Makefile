@@ -623,6 +623,15 @@ test: pkgtest functest \
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
 STACKTEST=$(STACK) test
 
+buildplantest: $(call def-help,buildplantest, stack build --dry-run all hledger packages ensuring an install plan with default snapshot) \
+	buildplantest-stack.yaml
+
+buildplantest-all: $(call def-help,buildplantest-all, stack build --dry-run all hledger packages ensuring an install plan with each ghc version/stackage snapshot )
+	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildplantest-$$F; done
+
+buildplantest-%: $(call def-help,buildplantest-STACKFILE, stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack-ghc8.2.yaml )
+	$(STACK) build --dry-run --test --bench --stack-yaml=$*
+
 buildtest: $(call def-help,buildtest, force-rebuild all hledger packages/modules quickly ensuring no warnings with default snapshot) \
 	buildtest-stack.yaml
 
@@ -640,15 +649,6 @@ incr-buildtest-all: $(call def-help,incr-buildtest-all, build any outdated hledg
 
 incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml. Wont detect warnings in up-to-date modules. )
 	$(STACK) build --test --bench --fast --ghc-options=-Werror --stack-yaml=$*
-
-buildplantest: $(call def-help,buildplantest, stack build --dry-run all hledger packages ensuring an install plan with default snapshot) \
-	buildplantest-stack.yaml
-
-buildplantest-all: $(call def-help,buildplantest-all, stack build --dry-run all hledger packages ensuring an install plan with each ghc version/stackage snapshot )
-	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildplantest-$$F; done
-
-buildplantest-%: $(call def-help,buildplantest-STACKFILE, stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack-ghc8.2.yaml )
-	$(STACK) build --dry-run --test --bench --stack-yaml=$*
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
