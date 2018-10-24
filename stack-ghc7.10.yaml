@@ -6,7 +6,9 @@ resolver: lts-6.35
 packages:
 - hledger-lib
 - hledger
-- hledger-ui
+# 20181024: hledger-ui plan has stopped working due to some change related to config-ini
+# (we need megaparsec 7, only config-ini's 0.2.3.0 version allows that, but it requires a newer base/GHC). 
+#- hledger-ui
 - hledger-web
 #- hledger-api
 
