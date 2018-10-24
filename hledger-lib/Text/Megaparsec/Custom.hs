@@ -2,7 +2,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving #-}
 
 module Text.Megaparsec.Custom (
   -- * Custom parse error type
@@ -66,8 +65,6 @@ data CustomErr
 -- stored in a 'Set'. The actual instance is inconsequential, so we just
 -- derive it, but this requires an (orphan) instance for 'ParseError'.
 -- Hopefully this does not cause any trouble.
-
-deriving instance (Eq (Token c), Ord (Token c), Ord c, Ord e) => Ord (ParseError c e)
 
 instance ShowErrorComponent CustomErr where
   showErrorComponent (ErrorFailAt _ _ errMsg) = errMsg
