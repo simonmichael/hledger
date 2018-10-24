@@ -67,7 +67,6 @@ cache:
 branches:
   only:
     - master
-    - travis
 
 # matrix:
 #   include:
