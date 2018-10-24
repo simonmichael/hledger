@@ -15,10 +15,7 @@ extra-deps:
 
 # hledger-lib
 - cassava-megaparsec-2.0.0
-#- easytest-0.2
-# easytest-0.2 + ghc 8.6 compatibility fix
-- github: joelburget/easytest
-  commit: 9bb30ec16671c0ec74835a52290b6508143a368f
+- easytest-0.2.1
 - megaparsec-7.0.2
 - uglymemo-0.1.0.1
 
