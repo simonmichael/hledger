@@ -16,7 +16,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.List.Split (splitOn)
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
+import Data.Monoid ((<>))
 #endif
 import Data.Maybe
 import qualified Data.Text as T
