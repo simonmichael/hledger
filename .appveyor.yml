@@ -41,13 +41,13 @@ install:
 #- dir
 
 # install latest stack release
-#- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-#- 7z x stack.zip stack.exe
+- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+- 7z x stack.zip stack.exe
 
-# install latest stack prerelease
-- curl -skLO https://github.com/commercialhaskell/stack/releases/download/v1.9.0.1/stack-1.9.0.1-windows-x86_64.tar.gz
-- 7z x stack-1.9.0.1-windows-x86_64.tar.gz -so | 7z e -si -ttar stack-1.9.0.1-windows-x86_64/stack.exe -aoa
-- stack --version
+# install a stack prerelease
+#- curl -skLO https://github.com/commercialhaskell/stack/releases/download/v1.9.0.1/stack-1.9.0.1-windows-x86_64.tar.gz
+#- 7z x stack-1.9.0.1-windows-x86_64.tar.gz -so | 7z e -si -ttar stack-1.9.0.1-windows-x86_64/stack.exe -aoa
+#- stack --version
 
 # install latest stack 4125-cabal-style-build-tools branch
 # - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
