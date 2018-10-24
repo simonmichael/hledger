@@ -3,3 +3,7 @@ packages: hledger-lib
           hledger-ui
           hledger-web
           hledger-api
+
+allow-newer:
+  brick:base
+  config-ini:containers
