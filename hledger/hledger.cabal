@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 995aea33041ad8471478cf73afdbecaf642ee8f7fe6027600d9aa49f97508138
+-- hash: 0c493cc89b0b040504bc5dfad3504ba6f45d6a93042361aa52838e7ee0563be4
 
 name:           hledger
 version:        1.11.99
@@ -117,7 +117,7 @@ library
       Decimal
     , Diff
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.12
+    , base >=4.8 && <4.13
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
     , cmdargs >=0.10
@@ -169,7 +169,7 @@ executable hledger
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.12
+    , base >=4.8 && <4.13
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
     , cmdargs >=0.10
@@ -223,7 +223,7 @@ test-suite test
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.12
+    , base >=4.8 && <4.13
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
     , cmdargs >=0.10
@@ -276,7 +276,7 @@ benchmark bench
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.12
+    , base >=4.8 && <4.13
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
     , cmdargs >=0.10

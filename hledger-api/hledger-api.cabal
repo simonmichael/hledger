@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a7796b2c57190b1a9a60ea235d0249aeff513bd31e171803183335d0065c6bdf
+-- hash: 9a4689262776b01e2b52c1aea3e473b3b94b18a79a4e5f5722bdaf48e14df1e5
 
 name:           hledger-api
 version:        1.11.99
@@ -50,7 +50,7 @@ executable hledger-api
   build-depends:
       Decimal
     , aeson
-    , base >=4.8 && <4.12
+    , base >=4.8 && <4.13
     , bytestring
     , containers
     , data-default >=0.5

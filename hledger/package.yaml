@@ -80,7 +80,7 @@ ghc-options:
 dependencies:
 - hledger-lib >=1.11.99 && <1.12
 - ansi-terminal >=0.6.2.3
-- base >=4.8 && <4.12
+- base >=4.8 && <4.13
 - base-compat-batteries >=0.10.1 && <0.11
 - bytestring
 - cmdargs >=0.10

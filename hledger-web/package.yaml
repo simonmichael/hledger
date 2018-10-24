@@ -97,7 +97,7 @@ library:
   dependencies:
   - hledger-lib >=1.11.99 && <1.12
   - hledger >=1.11.99 && <1.12
-  - base >=4.8 && <4.12
+  - base >=4.8 && <4.13
   - blaze-html
   - blaze-markup
   - bytestring
