@@ -43,6 +43,7 @@ install:
 # install latest stack release
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
+- stack --version
 
 # install a stack prerelease
 #- curl -skLO https://github.com/commercialhaskell/stack/releases/download/v1.9.0.1/stack-1.9.0.1-windows-x86_64.tar.gz
