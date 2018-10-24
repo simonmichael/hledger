@@ -86,8 +86,7 @@ build_script:
 # use network 2.7.0.1+ to avoid https://github.com/haskell/network/issues/313
 #- stack build --test --copy-bins --local-bin-path=. hledger hledger-web network-2.7.0.2
 # use ghc 8.2 to avoid hledger-web -> network/stack/ghc/windows build issue
-# don't run test suites to avoid easytest/windows utf8 issue
-- stack build --copy-bins --local-bin-path=. hledger hledger-web --stack-yaml=stack-ghc8.2.yaml 
+- stack build --test --copy-bins --local-bin-path=. hledger hledger-web --stack-yaml=stack-ghc8.2.yaml 
 - 7z a -tzip hledger.zip hledger.exe hledger-web.exe
 
 #- hledger-install/hledger-install.sh
