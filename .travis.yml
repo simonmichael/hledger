@@ -91,8 +91,13 @@ install: # command output is hidden as they complete
   # stack
   - mkdir -p ~/.local/bin
   - export PATH=~/.local/bin:$PATH
-  #- if [[ ! -x ~/.local/bin/stack ]]; then travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
+
+  # Fetch latest stack unconditionally. Do this after a stack release or if in doubt. 
+  #- travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
+
+  # Or, fetch latest stack if a stack is not already installed. Saves a little time/fragility.  
+  - if [[ ! -x ~/.local/bin/stack ]]; then travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+
   - which stack
   - type -a stack
   - stack --version
