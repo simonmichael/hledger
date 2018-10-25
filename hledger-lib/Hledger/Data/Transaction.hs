@@ -71,6 +71,8 @@ sourceFirstLine = \case
     GenericSourcePos _ line _ -> line
     JournalSourcePos _ (line, _) -> line
 
+-- | Render source position in human-readable form.
+-- Keep in sync with Hledger.UI.ErrorScreen.hledgerparseerrorpositionp (temporary). XXX
 showGenericSourcePos :: GenericSourcePos -> String
 showGenericSourcePos = \case
     GenericSourcePos fp line column -> show fp ++ " (line " ++ show line ++ ", column " ++ show column ++ ")"

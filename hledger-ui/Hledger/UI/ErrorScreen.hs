@@ -110,15 +110,27 @@ esHandle _ _ = error "event handler called with wrong screen type, should not ha
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX
+-- Keep in sync with 'Hledger.Data.Transaction.showGenericSourcePos'
 hledgerparseerrorpositionp :: ParsecT Void String t (String, Int, Int)
 hledgerparseerrorpositionp = do
   anySingle `manyTill` char '"'
   f <- anySingle `manyTill` (oneOf ['"','\n'])
-  string " (line "
-  l <- read <$> some digitChar
-  string ", column "
-  c <- read <$> some digitChar
-  return (f, l, c)
+  choice [
+      do
+          string " (line "
+          l <- read <$> some digitChar
+          string ", column "
+          c <- read <$> some digitChar
+          return (f, l, c),
+      do
+          string " (lines "
+          l <- read <$> some digitChar
+          char '-'
+          some digitChar
+          char ')'
+          return (f, l, 1)
+      ]
+
 
 -- Unconditionally reload the journal, regenerating the current screen
 -- and all previous screens in the history.
