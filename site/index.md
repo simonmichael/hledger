@@ -182,7 +182,8 @@ a file format for human-friendly approximate time logging
 [Customize default CSV accounts](https://github.com/simonmichael/hledger/wiki/Customize default CSV accounts)  
 [Track changes with version control](https://github.com/simonmichael/hledger/wiki/Track changes with version control)  
 [Use another account separator character](https://github.com/simonmichael/hledger/wiki/Use another account separator character)  
-[Full-fledged hledger](https://github.com/adept/full-fledged-hledger)  
+["Full-fledged Hledger" setup](https://github.com/adept/full-fledged-hledger)  
+["hledger: Make It So" setup](https://github.com/apauley/hledger-makeitso)
 
 ### Reporting
 
@@ -192,6 +193,7 @@ a file format for human-friendly approximate time logging
 
 ### Accounting tasks
 
+[Foreign trip expenses](https://github.com/simonmichael/hledger/wiki/Foreign trip expenses)
 [Budgeting and forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting)  
 [Project accounting](https://github.com/simonmichael/hledger/wiki/Project accounting)  
 [Track investments](https://github.com/simonmichael/hledger/wiki/Track investments)  
