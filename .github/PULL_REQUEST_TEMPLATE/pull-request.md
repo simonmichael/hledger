@@ -1,6 +1,7 @@
 Thanks for your pull request! Your work is appreciated.  
 
-We like to merge as quickly as possible without endangering the project's long term health. 
+Here are some tips for contributing pull requests to hledger.
+We like to merge as quickly as possible without endangering the project's long term health.
 Much valuable design, quality control, and knowledge sharing happens at merge time, 
 ensuring hledger remains a high quality, maintainable product.
 Some PRs will require substantial review, discussion, changes, or re-submission.
@@ -11,8 +12,6 @@ Our process is imperfect and evolving, but patience and persistence pays.
 Treat it as a golden opportunity to collaborate with experts,
 share and receive knowledge, refine your design/documentation/code,
 and improve real-world development/communication skills.
-
-Here are some tips to optimise your pull requests and minimise the risk of waste.
 
 A PR should have a clear purpose, documented in its description.
 Don't tackle too much at once.
