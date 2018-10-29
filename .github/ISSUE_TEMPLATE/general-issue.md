@@ -1,7 +1,6 @@
 ---
 name: General issue
-about: A bug report or improvement request, usually. (For user questions, consider
-  IRC or mail list instead.)
+about: A bug report or improvement request, usually.
 
 ---
 
