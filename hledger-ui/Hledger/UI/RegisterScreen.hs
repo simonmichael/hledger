@@ -225,24 +225,13 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
           where
-            selectedstr = withAttr ("border" <> "query") . str
             quickhelp = borderKeysStr' [
                ("?", str "help")
               ,("LEFT", str "back")
-              ,("RIGHT", str "transaction")
-              ,("H"
-               ,if ishistorical
-                then selectedstr "historical" <+> str "/period"
-                else str "historical/" <+> selectedstr "period")
-              ,("T"
-               -- rsForceInclusive may override, but use tree_ here to ensure a visible toggle effect 
-               ,if tree_ ropts
-                then str "flat/" <+> selectedstr "tree" 
-                else selectedstr "flat" <+> str "/tree")
-              ,("F"
-               ,if presentorfuture_ uopts == PFFuture
-                then str "present/" <+> selectedstr "future" 
-                else selectedstr "present" <+> str "/future")
+--              ,("RIGHT", str "transaction")
+              ,("T", renderToggle (tree_ ropts) "flat(-subs)" "tree(+subs)") -- rsForceInclusive may override, but use tree_ to ensure a visible toggle effect
+              ,("H", renderToggle (not ishistorical) "historical" "period")
+              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future") 
 --               ,("a", "add")
 --               ,("g", "reload")
 --               ,("q", "quit")

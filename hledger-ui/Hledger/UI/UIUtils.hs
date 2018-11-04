@@ -18,6 +18,7 @@ module Hledger.UI.UIUtils (
   ,moveRightEvents
   ,moveUpEvents
   ,normaliseMovementKeys
+  ,renderToggle
   ,replaceHiddenAccountsNameWith
   ,scrollSelectionToMiddle
 )
@@ -48,6 +49,15 @@ import Hledger.UI.UIState
 
 -- ui
 
+-- | Wrap a widget in the default hledger-ui screen layout.
+defaultLayout :: Widget Name -> Widget Name -> Widget Name -> Widget Name
+defaultLayout toplabel bottomlabel =
+  topBottomBorderWithLabels (str " "<+>toplabel<+>str " ") (str " "<+>bottomlabel<+>str " ") .
+  margin 1 0 Nothing
+  -- topBottomBorderWithLabel2 label .
+  -- padLeftRight 1 -- XXX should reduce inner widget's width by 2, but doesn't
+                    -- "the layout adjusts... if you use the core combinators"
+
 -- | Draw the help dialog, called when help mode is active.
 helpDialog :: CliOpts -> Widget Name
 helpDialog _copts =
@@ -64,7 +74,7 @@ helpDialog _copts =
                    withAttr ("help" <> "heading") $ str "Navigation"
                   ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/emacs/vi keys", "")
                   ,str "      move selection"
-                  ,renderKey ("RIGHT", "show more detail")
+                  ,renderKey ("RIGHT", "show account txns, txn detail")
                   ,renderKey ("LEFT ", "go back")
                   ,renderKey ("ESC  ", "cancel or reset")
                   ,str " "
@@ -76,11 +86,11 @@ helpDialog _copts =
                   ,withAttr ("help" <> "heading") $ str "Accounts screen"
                   ,renderKey ("-+0123456789 ", "set depth limit")
                   ,renderKey ("T ", "toggle tree/flat mode")
-                  ,renderKey ("H ", "period change/historical end balance")
+                  ,renderKey ("H ", "historical end balance/period change")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Register screen"
                   ,renderKey ("T ", "toggle subaccount txns\n(and accounts screen tree/flat mode)")
-                  ,renderKey ("H ", "show period total/historical total")
+                  ,renderKey ("H ", "show historical total/period total")
                   ,str " "
                 ]
              ,padLeft (Pad 1) $ padRight (Pad 0) $
@@ -95,7 +105,7 @@ helpDialog _copts =
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Help"
                   ,renderKey ("?   ", "toggle this help")
-                  ,renderKey ("pmi ", "(with help showing)\nshow manual in pager/man/info")
+                  ,renderKey ("pmi ", "(with this help open)\nshow manual in pager/man/info")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
@@ -149,15 +159,6 @@ minibuffer ed =
   [txt "filter: ", renderEditor True ed]
 #endif
 
--- | Wrap a widget in the default hledger-ui screen layout.
-defaultLayout :: Widget Name -> Widget Name -> Widget Name -> Widget Name
-defaultLayout toplabel bottomlabel =
-  topBottomBorderWithLabels (str " "<+>toplabel<+>str " ") (str " "<+>bottomlabel<+>str " ") .
-  margin 1 0 Nothing
-  -- topBottomBorderWithLabel2 label .
-  -- padLeftRight 1 -- XXX should reduce inner widget's width by 2, but doesn't
-                    -- "the layout adjusts... if you use the core combinators"
-
 borderQueryStr :: String -> Widget Name
 borderQueryStr ""  = str ""
 borderQueryStr qry = str " matching " <+> withAttr ("border" <> "query") (str qry)
@@ -181,6 +182,14 @@ borderKeysStr' keydescs =
   where
     -- sep = str " | "
     sep = str " "
+
+-- | Render the two states of a toggle, highlighting the active one. 
+renderToggle :: Bool -> String -> String -> Widget Name
+renderToggle isright l r =
+  let bold = withAttr ("border" <> "selected") in
+  if isright
+  then str (l++"/") <+> bold (str r) 
+  else bold (str l) <+> str ("/"++r)
 
 -- temporary shenanigans:
 

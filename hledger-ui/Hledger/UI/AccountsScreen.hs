@@ -216,23 +216,13 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
           where
-            selectedstr = withAttr ("border" <> "selected") . str
             quickhelp = borderKeysStr' [
                ("?", str "help")
-              ,("RIGHT", str "register")
-              ,("H"
-               ,if ishistorical
-                then selectedstr "historical" <+> str "/period"
-                else str "historical/" <+> selectedstr "period")
-              ,("T"
-               ,if tree_ ropts
-                then str "flat/" <+> selectedstr "tree" 
-                else selectedstr "flat" <+> str "/tree")
-              ,("F"
-               ,if presentorfuture_ uopts == PFFuture
-                then str "present/" <+> selectedstr "future" 
-                else selectedstr "present" <+> str "/future")
+--              ,("RIGHT", str "register")
               ,("-+", str "depth")
+              ,("T", renderToggle (tree_ ropts) "flat" "tree")
+              ,("H", renderToggle (not ishistorical) "end-bals" "changes")
+              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future") 
               --,("/", "filter")
               --,("DEL", "unfilter")
               --,("ESC", "cancel/top")
