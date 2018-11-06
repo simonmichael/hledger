@@ -53,9 +53,8 @@ Binaries or system packages are quickest to install, but they can be outdated or
 | [Arch&nbsp;Linux][]  | **`pacman -S hledger`** | 1.11
 | CentOS               | <span class=warnings>?</span> | 
 | [Debian][]           | **`sudo apt install hledger hledger-ui hledger-web`** | 1.0.1&nbsp;(Stable), 1.5&nbsp;(Testing), 1.10&nbsp;(Unstable)
-| [Fedora][]           | **`sudo dnf install hledger`** | 1.2&nbsp;(27), 1.4&nbsp;(28), 1.5&nbsp;(Rawhide)
+| [Fedora][],&nbsp;RHEL | **`sudo dnf install hledger`** <br>or (more complete & current):<br>**`sudo dnf copr enable kefah/HLedger && sudo dnf install hledger`** | 1.2&nbsp;(27), 1.4&nbsp;(28), 1.5&nbsp;(Rawhide)<br>or 1.9.1
 | [Gentoo][]           | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | 1.11
-| RHEL                 | **`sudo dnf install hledger`** <span class=warnings>?</span> | <span class=warnings>?</span>
 | [Ubuntu][]           | **`sudo apt install hledger hledger-ui hledger-web`** | 0.26&nbsp;(16.04&nbsp;Xenial), 1.2&nbsp;(18.04&nbsp;Bionic), 1.5&nbsp;(18.10&nbsp;Cosmic)
 | [Void&nbsp;Linux][]  | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`** | 1.10
 | &nbsp;               |
