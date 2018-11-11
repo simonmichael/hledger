@@ -1,15 +1,25 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-} -- new
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-} -- new
 
 module Text.Megaparsec.Custom (
   -- * Custom parse error type
   CustomErr,
 
-  -- * Constructing custom parse errors
+  -- * Failing with an arbitrary source position
   parseErrorAt,
   parseErrorAtRegion,
+
+  -- * Re-parsing
+  SourceExcerpt,
+  getExcerptText,
+
+  excerpt_,
+  reparseExcerpt,
 
   -- * Pretty-printing custom parse errors
   customErrorBundlePretty,
@@ -59,20 +69,33 @@ data CustomErr
   = ErrorFailAt Int -- Starting offset
                 Int -- Ending offset
                 String -- Error message
+  -- | Re-throw parse errors obtained from the "re-parsing" of an excerpt
+  -- of the source text.
+  | ErrorReparsing
+      (NE.NonEmpty (ParseError Text CustomErr)) -- Source fragment parse errors
   deriving (Show, Eq, Ord)
 
 -- We require an 'Ord' instance for 'CustomError' so that they may be
 -- stored in a 'Set'. The actual instance is inconsequential, so we just
--- derive it, but this requires an (orphan) instance for 'ParseError'.
--- Hopefully this does not cause any trouble.
+-- derive it, but the derived instance requires an (orphan) instance for
+-- 'ParseError'. Hopefully this does not cause any trouble.
+
+deriving instance Ord (ParseError Text CustomErr)
+
+-- Note: the pretty-printing of our 'CustomErr' type is only partally
+-- defined in its 'ShowErrorComponent' instance; we perform additional
+-- adjustments in 'customErrorBundlePretty'.
 
 instance ShowErrorComponent CustomErr where
   showErrorComponent (ErrorFailAt _ _ errMsg) = errMsg
+  showErrorComponent (ErrorReparsing _) = "" -- dummy value
+
   errorComponentLen (ErrorFailAt startOffset endOffset _) =
     endOffset - startOffset
+  errorComponentLen (ErrorReparsing _) = 1 -- dummy value
 
 
---- * Constructing custom parse errors
+--- * Failing with an arbitrary source position
 
 -- | Fail at a specific source position, given by the raw offset from the
 -- start of the input stream (the number of tokens processed at that
@@ -86,8 +109,7 @@ parseErrorAt offset msg = ErrorFailAt offset (offset+1) msg
 -- processed at those points).
 --
 -- Note that care must be taken to ensure that the specified interval does
--- not span multiple lines of the input source, as this will not be
--- checked.
+-- not span multiple lines of the input source. This will not be checked.
 
 parseErrorAtRegion
   :: Int    -- ^ Start offset
@@ -100,28 +122,109 @@ parseErrorAtRegion startOffset endOffset msg =
     else ErrorFailAt startOffset (startOffset+1) msg
 
 
+--- * Re-parsing
+
+-- | A fragment of source suitable for "re-parsing". The purpose of this
+-- data type is to preserve the content and source position of the excerpt
+-- so that parse errors raised during "re-parsing" may properly reference
+-- the original source.
+
+data SourceExcerpt = SourceExcerpt Int  -- Offset of beginning of excerpt
+                                   Text -- Fragment of source file
+
+-- | Get the raw text of a source excerpt.
+
+getExcerptText :: SourceExcerpt -> Text
+getExcerptText (SourceExcerpt _ txt) = txt
+
+-- | 'excerpt_ p' applies the given parser 'p' and extracts the portion of
+-- the source consumed by 'p', along with the source position of this
+-- portion. This is the only way to create a source excerpt suitable for
+-- "re-parsing" by 'reparseExcerpt'.
+
+-- This function could be extended to return the result of 'p', but we don't
+-- currently need this.
+
+excerpt_ :: MonadParsec CustomErr Text m => m a -> m SourceExcerpt
+excerpt_ p = do
+  offset <- getOffset
+  (!txt, _) <- match p
+  pure $ SourceExcerpt offset txt
+
+-- | 'reparseExcerpt s p' "re-parses" the source excerpt 's' using the
+-- parser 'p'. Parse errors raised by 'p' will be re-thrown at the source
+-- position of the source excerpt.
+--
+-- In order for the correct source file to be displayed when re-throwing
+-- parse errors, we must ensure that the source file during the use of
+-- 'reparseExcerpt s p' is the same as that during the use of 'excerpt_'
+-- that generated the source excerpt 's'. However, we can usually expect
+-- this condition to be satisfied because, at the time of writing, the
+-- only changes of source file in the codebase take place through include
+-- files, and the parser for include files neither accepts nor returns
+-- 'SourceExcerpt's.
+
+reparseExcerpt
+  :: Monad m
+  => SourceExcerpt
+  -> ParsecT CustomErr Text m a
+  -> ParsecT CustomErr Text m a
+reparseExcerpt (SourceExcerpt offset txt) p = do
+  (_, res) <- lift $ runParserT' p (offsetInitialState offset txt)
+  case res of
+    Right result -> pure result
+    Left errBundle -> customFailure $ ErrorReparsing $ bundleErrors errBundle
+
+  where
+    offsetInitialState :: Int -> s -> State s
+    offsetInitialState initialOffset s = State
+      { stateInput  = s
+      , stateOffset = initialOffset
+      , statePosState = PosState
+        { pstateInput = s
+        , pstateOffset = initialOffset
+        , pstateSourcePos = initialPos ""
+        , pstateTabWidth = defaultTabWidth
+        , pstateLinePrefix = ""
+        }
+      }
+
 --- * Pretty-printing custom parse errors
 
--- | Pretty-print our custom parse errors and display the line on which
--- the parse error occured.
+-- | Pretty-print our custom parse errors. It is necessary to use this
+-- instead of 'errorBundlePretty' when custom parse errors are thrown.
 --
--- Use this instead of 'errorBundlePretty' when custom parse errors are
--- thrown, otherwise the continuous highlighting in the pretty-printed
--- parse error will be displaced from its proper position.
+-- This function intercepts our custom parse errors and applies final
+-- adjustments ('finalizeCustomError') before passing them to
+-- 'errorBundlePretty'. These adjustments are part of the implementation
+-- of the behaviour of our custom parse errors.
+--
+-- Note: We must ensure that the offset of the 'PosState' of the provided
+-- 'ParseErrorBundle' is no larger than the offset specified by a
+-- 'ErrorFailAt' constructor. This is guaranteed if this offset is set to
+-- 0 (that is, the beginning of the source file), which is the
+-- case for 'ParseErrorBundle's returned from 'runParserT'.
 
 customErrorBundlePretty :: ParseErrorBundle Text CustomErr -> String
 customErrorBundlePretty errBundle =
-  let errBundle' = errBundle
-        { bundleErrors = fmap setCustomErrorOffset $ bundleErrors errBundle }
+  let errBundle' = errBundle { bundleErrors =
+        NE.sortWith errorOffset $ -- megaparsec requires that the list of errors be sorted by their offsets
+        bundleErrors errBundle >>= finalizeCustomError }
   in  errorBundlePretty errBundle'
 
   where
-    setCustomErrorOffset
-      :: ParseError Text CustomErr -> ParseError Text CustomErr
-    setCustomErrorOffset err = case findCustomError err of
-      Nothing -> err
+    finalizeCustomError
+      :: ParseError Text CustomErr -> NE.NonEmpty (ParseError Text CustomErr)
+    finalizeCustomError err = case findCustomError err of
+      Nothing -> pure err
+
       Just errFailAt@(ErrorFailAt startOffset _ _) ->
-        FancyError startOffset $ S.singleton $ ErrorCustom errFailAt
+        -- Adjust the offset
+        pure $ FancyError startOffset $ S.singleton $ ErrorCustom errFailAt
+
+      Just (ErrorReparsing errs) ->
+        -- Extract and finalize the inner errors
+        errs >>= finalizeCustomError
 
     -- If any custom errors are present, arbitrarily take the first one
     -- (since only one custom error should be used at a time).
