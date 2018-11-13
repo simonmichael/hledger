@@ -76,35 +76,6 @@ transactionModifierToFunction mt =
 tmParseQuery :: TransactionModifier -> (Day -> Query)
 tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 
----- | 'DateSpan' of all dates mentioned in 'Journal'
-----
----- >>> jdatespan nulljournal
----- DateSpan -
----- >>> jdatespan nulljournal{jtxns=[nulltransaction{tdate=read "2016-01-01"}] }
----- DateSpan 2016/01/01
----- >>> jdatespan nulljournal{jtxns=[nulltransaction{tdate=read "2016-01-01", tpostings=[nullposting{pdate=Just $ read "2016-02-01"}]}] }
----- DateSpan 2016/01/01-2016/02/01
---jdatespan :: Journal -> DateSpan
---jdatespan j
---        | null dates = nulldatespan
---        | otherwise = DateSpan (Just $ minimum dates) (Just $ 1 `addDays` maximum dates)
---    where
---        dates = concatMap tdates $ jtxns j
-
----- | 'DateSpan' of all dates mentioned in 'Transaction'
-----
----- >>> tdates nulltransaction
----- [0000-01-01]
---tdates :: Transaction -> [Day]
---tdates t = tdate t : concatMap pdates (tpostings t) ++ maybeToList (tdate2 t) where
---    pdates p = catMaybes [pdate p, pdate2 p]
-
-postingScale :: Posting -> Maybe Quantity
-postingScale p =
-    case amounts $ pamount p of
-        [a] | amultiplier a -> Just $ aquantity a
-        _ -> Nothing
-
 -- | Converts a 'TransactionModifier''s posting to a 'Posting'-generating function,
 -- which will be used to make a new posting based on the old one (an "automated posting").
 tmPostingToFunction :: Posting -> (Posting -> Posting)
@@ -121,6 +92,12 @@ tmPostingToFunction p' =
     withAmountType amount (Mixed as) = case acommodity amount of
         "" -> Mixed as
         c -> Mixed [a{acommodity = c, astyle = astyle amount, aprice = aprice amount} | a <- as]
+
+postingScale :: Posting -> Maybe Quantity
+postingScale p =
+    case amounts $ pamount p of
+        [a] | amultiplier a -> Just $ aquantity a
+        _ -> Nothing
 
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }

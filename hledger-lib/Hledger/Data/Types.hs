@@ -205,7 +205,7 @@ data Amount = Amount {
       aquantity   :: Quantity,
       aprice      :: Price,           -- ^ the (fixed) price for this amount, if any
       astyle      :: AmountStyle,
-      amultiplier :: Bool             -- ^ amount is a multipier used in TransactionModifier postings
+      amultiplier :: Bool             -- ^ kludge: a flag marking this amount and posting as a multipier in a TransactionModifier
     } deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Amount
