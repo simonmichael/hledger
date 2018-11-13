@@ -205,7 +205,8 @@ data Amount = Amount {
       aquantity   :: Quantity,
       aprice      :: Price,           -- ^ the (fixed) price for this amount, if any
       astyle      :: AmountStyle,
-      amultiplier :: Bool             -- ^ kludge: a flag marking this amount and posting as a multipier in a TransactionModifier
+      amultiplier :: Bool             -- ^ kludge: a flag marking this amount and posting as a multiplier
+                                      --   in a TMPostingRule. In a regular Posting, should always be false.
     } deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Amount
@@ -316,17 +317,28 @@ data Transaction = Transaction {
 
 instance NFData Transaction
 
+-- | A transaction modifier rule. This has a query which matches postings
+-- in the journal, and a list of transformations to apply to those 
+-- postings or their transactions. Currently there is one kind of transformation:
+-- the TMPostingRule, which adds a posting ("auto posting") to the transaction, 
+-- optionally setting its amount to the matched posting's amount multiplied by a constant. 
 data TransactionModifier = TransactionModifier {
       tmquerytxt :: Text,
-      tmpostings :: [Posting]
+      tmpostingrules :: [TMPostingRule]
     } deriving (Eq,Typeable,Data,Generic,Show)
 
 instance NFData TransactionModifier
 
 nulltransactionmodifier = TransactionModifier{
   tmquerytxt = ""
- ,tmpostings = []
+ ,tmpostingrules = []
 }
+
+-- | A transaction modifier transformation, which adds an extra posting
+-- to the matched posting's transaction.
+-- Can be like a regular posting, or the amount can have the amultiplier flag set,
+-- indicating that it's a multiplier for the matched posting's amount.
+type TMPostingRule = Posting
 
 -- | A periodic transaction rule, describing a transaction that recurs.
 data PeriodicTransaction = PeriodicTransaction {

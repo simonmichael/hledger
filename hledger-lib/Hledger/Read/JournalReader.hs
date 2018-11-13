@@ -740,7 +740,7 @@ tests_JournalReader = tests "JournalReader" [
       "= (some value expr)\n some:postings  1.\n"
       nulltransactionmodifier {
         tmquerytxt = "(some value expr)"
-       ,tmpostings = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
+       ,tmpostingrules = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
       }
     ]
 

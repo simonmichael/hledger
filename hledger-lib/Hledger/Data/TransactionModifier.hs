@@ -58,7 +58,7 @@ transactionModifierToFunction mt =
   \t@(tpostings -> ps) -> txnTieKnot t{ tpostings=generatePostings ps } -- TODO add modifier txn comment/tags ?
   where
     q = simplifyQuery $ tmParseQuery mt (error' "a transaction modifier's query cannot depend on current date")
-    mods = map tmPostingToFunction $ tmpostings mt
+    mods = map tmPostingRuleToFunction $ tmpostingrules mt
     generatePostings ps = [p' | p <- ps
                               , p' <- if q `matchesPosting` p then p:[ m p | m <- mods] else [p]]
     
@@ -76,28 +76,28 @@ transactionModifierToFunction mt =
 tmParseQuery :: TransactionModifier -> (Day -> Query)
 tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 
--- | Converts a 'TransactionModifier''s posting to a 'Posting'-generating function,
+-- | Converts a 'TransactionModifier''s posting rule to a 'Posting'-generating function,
 -- which will be used to make a new posting based on the old one (an "automated posting").
-tmPostingToFunction :: Posting -> (Posting -> Posting)
-tmPostingToFunction p' = 
-  \p -> renderPostingCommentDates $ p'
+tmPostingRuleToFunction :: TMPostingRule -> (Posting -> Posting)
+tmPostingRuleToFunction pr = 
+  \p -> renderPostingCommentDates $ pr
       { pdate = pdate p
       , pdate2 = pdate2 p
       , pamount = amount' p
       }
   where
-    amount' = case postingScale p' of
-        Nothing -> const $ pamount p'
-        Just n -> \p -> withAmountType (head $ amounts $ pamount p') $ pamount p `divideMixedAmount` (1/n)
-    withAmountType amount (Mixed as) = case acommodity amount of
+    amount' = case postingRuleMultiplier pr of
+        Nothing -> const $ pamount pr
+        Just n  -> \p -> withAmountType (head $ amounts $ pamount pr) $ pamount p `multiplyMixedAmount` n
+    withAmountType pramount (Mixed as) = case acommodity pramount of
         "" -> Mixed as
-        c -> Mixed [a{acommodity = c, astyle = astyle amount, aprice = aprice amount} | a <- as]
+        c  -> Mixed [a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount} | a <- as]
 
-postingScale :: Posting -> Maybe Quantity
-postingScale p =
+postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
+postingRuleMultiplier p =
     case amounts $ pamount p of
         [a] | amultiplier a -> Just $ aquantity a
-        _ -> Nothing
+        _                   -> Nothing
 
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }

@@ -189,7 +189,7 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = d
 -- provided on the command line, or throw a parse error.
 transactionModifierFromOpts :: CliOpts -> TransactionModifier
 transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} = 
-  TransactionModifier{tmquerytxt=q, tmpostings=ps}
+  TransactionModifier{tmquerytxt=q, tmpostingrules=ps}
   where
     q = T.pack $ query_ ropts
     ps = map (parseposting . stripquotes . T.pack) $ listofstringopt "add-posting" rawopts
