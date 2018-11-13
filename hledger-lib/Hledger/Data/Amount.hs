@@ -60,6 +60,7 @@ module Hledger.Data.Amount (
   divideAmount,
   multiplyAmount,
   amountValue,
+  amountTotalPriceToUnitPrice,
   -- ** rendering
   amountstyle,
   styleAmount,
@@ -99,6 +100,7 @@ module Hledger.Data.Amount (
   isReallyZeroMixedAmount,
   isReallyZeroMixedAmountCost,
   mixedAmountValue,
+  mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
   showMixedAmount,
@@ -208,6 +210,17 @@ costOfAmount a@Amount{aquantity=q, aprice=price} =
       NoPrice -> a
       UnitPrice  p@Amount{aquantity=pq} -> p{aquantity=pq * q}
       TotalPrice p@Amount{aquantity=pq} -> p{aquantity=pq * signum q}
+
+-- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
+-- Has no effect on amounts without one.
+-- Also increases the unit price's display precision to show one extra decimal place,
+-- to help the unit-priced amounts to still balance. 
+-- Does Decimal division, might be some rounding/irrational number issues.
+amountTotalPriceToUnitPrice :: Amount -> Amount
+amountTotalPriceToUnitPrice 
+  a@Amount{aquantity=q, aprice=TotalPrice pa@Amount{aquantity=pq, astyle=ps@AmountStyle{asprecision=pp}}}
+  = a{aprice = UnitPrice pa{aquantity=abs (pq/q), astyle=ps{asprecision=pp+1}}}
+amountTotalPriceToUnitPrice a = a
 
 -- | Divide an amount's quantity by a constant.
 divideAmount :: Amount -> Quantity -> Amount
@@ -664,6 +677,12 @@ canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styl
 
 mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
 mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
+
+-- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
+-- Has no effect on amounts without one. 
+-- Does Decimal division, might be some rounding/irrational number issues.
+mixedAmountTotalPriceToUnitPrice :: MixedAmount -> MixedAmount
+mixedAmountTotalPriceToUnitPrice (Mixed as) = Mixed $ map amountTotalPriceToUnitPrice as
 
 
 -------------------------------------------------------------------------------

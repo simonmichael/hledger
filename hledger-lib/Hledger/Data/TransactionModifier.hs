@@ -24,7 +24,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Query
 import Hledger.Utils.UTF8IOCompat (error')
--- import Hledger.Utils.Debug
+import Hledger.Utils.Debug
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -78,6 +78,8 @@ tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 
 -- | Converts a 'TransactionModifier''s posting rule to a 'Posting'-generating function,
 -- which will be used to make a new posting based on the old one (an "automated posting").
+-- The new posting's amount can optionally be the old posting's amount multiplied by a constant.
+-- If the old posting had a total-priced amount, the new posting's multiplied amount will be unit-priced. 
 tmPostingRuleToFunction :: TMPostingRule -> (Posting -> Posting)
 tmPostingRuleToFunction pr = 
   \p -> renderPostingCommentDates $ pr
@@ -88,10 +90,21 @@ tmPostingRuleToFunction pr =
   where
     amount' = case postingRuleMultiplier pr of
         Nothing -> const $ pamount pr
-        Just n  -> \p -> withAmountType (head $ amounts $ pamount pr) $ pamount p `multiplyMixedAmount` n
-    withAmountType pramount (Mixed as) = case acommodity pramount of
-        "" -> Mixed as
-        c  -> Mixed [a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount} | a <- as]
+        Just n  -> \p ->
+          -- Multiply the old posting's amount by the posting rule's multiplier.
+          -- Its display precision will be increased if needed to show all digits.
+          let
+            pramount = dbg6 "pramount" $ head $ amounts $ pamount pr
+            matchedamount = dbg6 "matchedamount" $ pamount p
+            unitpricedmatchedamount = dbg6 "unitpricedmatchedamount" $ mixedAmountTotalPriceToUnitPrice matchedamount
+            Mixed as = dbg6 "scaledmatchedamount" $ unitpricedmatchedamount `multiplyMixedAmount` n
+          in
+            case acommodity pramount of
+              "" -> Mixed as
+              -- TODO multipliers with commodity symbols are not yet a documented feature.
+              -- For now: in addition to multiplying the quantity, it also replaces the 
+              -- matched amount's commodity, display style, and price with those of the posting rule.   
+              c  -> Mixed [a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount} | a <- as]
 
 postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
 postingRuleMultiplier p =
