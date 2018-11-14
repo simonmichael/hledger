@@ -97,7 +97,7 @@ tmPostingRuleToFunction pr =
             pramount = dbg6 "pramount" $ head $ amounts $ pamount pr
             matchedamount = dbg6 "matchedamount" $ pamount p
             unitpricedmatchedamount = dbg6 "unitpricedmatchedamount" $ mixedAmountTotalPriceToUnitPrice matchedamount
-            Mixed as = dbg6 "scaledmatchedamount" $ unitpricedmatchedamount `multiplyMixedAmount` n
+            Mixed as = dbg6 "scaledmatchedamount" $ n `multiplyMixedAmount` unitpricedmatchedamount 
           in
             case acommodity pramount of
               "" -> Mixed as

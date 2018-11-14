@@ -49,11 +49,11 @@ prices opts j = do
 showPrice :: MarketPrice -> String
 showPrice mp = unwords ["P", show $ mpdate mp, T.unpack . quoteCommoditySymbolIfNeeded $ mpcommodity mp, showAmountWithZeroCommodity $ mpamount mp]
 
-divideAmount' :: Amount -> Quantity -> Amount
-divideAmount' a d = a' where
-    a' = (a `divideAmount` d) { astyle = style' }
+divideAmount' :: Quantity -> Amount -> Amount
+divideAmount' n a = a' where
+    a' = (n `divideAmount` a) { astyle = style' }
     style' = (astyle a) { asprecision = precision' }
-    extPrecision = (1+) . floor . logBase 10 $ (realToFrac d :: Double)
+    extPrecision = (1+) . floor . logBase 10 $ (realToFrac n :: Double)
     precision' = extPrecision + asprecision (astyle a)
 
 invertPrice :: Amount -> Amount
@@ -63,7 +63,7 @@ invertPrice a =
         UnitPrice pa -> invertPrice
             -- normalize to TotalPrice
             a { aprice = TotalPrice pa' } where
-                pa' = (pa `divideAmount` (1 / aquantity a)) { aprice = NoPrice }
+                pa' = ((1 / aquantity a) `divideAmount` pa) { aprice = NoPrice }
         TotalPrice pa ->
             a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = TotalPrice pa' } where
                 pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = NoPrice, astyle = astyle a }
@@ -75,7 +75,7 @@ amountCost d a =
         UnitPrice pa -> Just
             MarketPrice { mpdate = d, mpcommodity = acommodity a, mpamount = pa }
         TotalPrice pa -> Just
-            MarketPrice { mpdate = d, mpcommodity = acommodity a, mpamount = pa `divideAmount'` abs (aquantity a) }
+            MarketPrice { mpdate = d, mpcommodity = acommodity a, mpamount = abs (aquantity a) `divideAmount'` pa }
 
 postingCosts :: Posting -> [MarketPrice]
 postingCosts p = mapMaybe (amountCost date) . amounts $ pamount p  where

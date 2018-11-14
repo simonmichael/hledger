@@ -469,7 +469,7 @@ priceInferrerFor t pt = inferprice
             fromamount    = head $ filter ((==fromcommodity).acommodity) sumamounts
             tocommodity   = head $ filter (/=fromcommodity) sumcommodities
             toamount      = head $ filter ((==tocommodity).acommodity) sumamounts
-            unitprice     = toamount `divideAmount` (aquantity fromamount)
+            unitprice     = (aquantity fromamount) `divideAmount` toamount
             unitprecision = max 2 ((asprecision $ astyle $ toamount) + (asprecision $ astyle $ fromamount))
     inferprice p = p
 

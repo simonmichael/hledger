@@ -77,12 +77,12 @@ postingsReport opts q j = (totallabel, items)
           historical = balancetype_ opts == HistoricalBalance
           precedingsum = sumPostings precedingps
           precedingavg | null precedingps = 0
-                       | otherwise        = precedingsum `divideMixedAmount` (fromIntegral $ length precedingps)
+                       | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
           startbal | average_ opts = if historical then precedingavg else 0
                    | otherwise     = if historical then precedingsum else 0
           startnum = if historical then length precedingps + 1 else 1
-          runningcalc | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i) -- running average
-                      | otherwise     = \_ bal amt -> bal + amt                                              -- running total
+          runningcalc | average_ opts = \i avg amt -> divideMixedAmount (fromIntegral i) avg + amt - avg  -- running average
+                      | otherwise     = \_ bal amt -> bal + amt                                           -- running total
 
 totallabel = "Total"
 

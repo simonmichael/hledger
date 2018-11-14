@@ -223,12 +223,12 @@ amountTotalPriceToUnitPrice
 amountTotalPriceToUnitPrice a = a
 
 -- | Divide an amount's quantity by a constant.
-divideAmount :: Amount -> Quantity -> Amount
-divideAmount a@Amount{aquantity=q} d = a{aquantity=q/d}
+divideAmount :: Quantity -> Amount -> Amount
+divideAmount n a@Amount{aquantity=q} = a{aquantity=q/n}
 
 -- | Multiply an amount's quantity by a constant.
-multiplyAmount :: Amount -> Quantity -> Amount
-multiplyAmount a@Amount{aquantity=q} d = a{aquantity=q*d}
+multiplyAmount :: Quantity -> Amount -> Amount
+multiplyAmount n a@Amount{aquantity=q} = a{aquantity=q*n}
 
 -- | Is this amount negative ? The price is ignored.
 isNegativeAmount :: Amount -> Bool
@@ -536,23 +536,27 @@ filterMixedAmountByCommodity c (Mixed as) = Mixed as'
             []   -> [nullamt{acommodity=c}]
             as'' -> [sum as'']
 
+-- | Apply a transform to a mixed amount's component 'Amount's.
+mapMixedAmount :: (Amount -> Amount) -> MixedAmount -> MixedAmount
+mapMixedAmount f (Mixed as) = Mixed $ map f as
+
 -- | Convert a mixed amount's component amounts to the commodity of their
 -- assigned price, if any.
 costOfMixedAmount :: MixedAmount -> MixedAmount
 costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
 
 -- | Divide a mixed amount's quantities by a constant.
-divideMixedAmount :: MixedAmount -> Quantity -> MixedAmount
-divideMixedAmount (Mixed as) d = Mixed $ map (`divideAmount` d) as
+divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
+divideMixedAmount n = mapMixedAmount (divideAmount n)
 
 -- | Multiply a mixed amount's quantities by a constant.
-multiplyMixedAmount :: MixedAmount -> Quantity -> MixedAmount
-multiplyMixedAmount (Mixed as) d = Mixed $ map (`multiplyAmount` d) as
+multiplyMixedAmount :: Quantity -> MixedAmount -> MixedAmount
+multiplyMixedAmount n = mapMixedAmount (multiplyAmount n)
 
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount
 averageMixedAmounts [] = 0
-averageMixedAmounts as = sum as `divideMixedAmount` fromIntegral (length as)
+averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` sum as 
 
 -- | Is this mixed amount negative, if it can be normalised to a single commodity ?
 isNegativeMixedAmount :: MixedAmount -> Maybe Bool

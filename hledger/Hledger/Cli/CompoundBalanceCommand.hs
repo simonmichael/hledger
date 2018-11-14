@@ -187,7 +187,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
               where zeros = replicate numcols nullmixedamt
             grandtotal = sum coltotals
             grandavg | null coltotals = nullmixedamt
-                     | otherwise      = grandtotal `divideMixedAmount` fromIntegral (length coltotals)
+                     | otherwise      = fromIntegral (length coltotals) `divideMixedAmount` grandtotal 
           in 
             (coltotals, grandtotal, grandavg)
       colspans =
