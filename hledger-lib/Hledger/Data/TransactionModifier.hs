@@ -92,12 +92,14 @@ tmPostingRuleToFunction pr =
         Nothing -> const $ pamount pr
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
-          -- Its display precision will be increased if needed to show all digits.
           let
             pramount = dbg6 "pramount" $ head $ amounts $ pamount pr
             matchedamount = dbg6 "matchedamount" $ pamount p
-            unitpricedmatchedamount = dbg6 "unitpricedmatchedamount" $ mixedAmountTotalPriceToUnitPrice matchedamount
-            Mixed as = dbg6 "scaledmatchedamount" $ n `multiplyMixedAmount` unitpricedmatchedamount 
+            -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
+            -- Approach 1: convert to a unit price and increase the display precision slightly
+            -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount 
+            -- Approach 2: multiply the total price (keeping it positive) as well as the quantity 
+            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmountAndPrice` matchedamount 
           in
             case acommodity pramount of
               "" -> Mixed as

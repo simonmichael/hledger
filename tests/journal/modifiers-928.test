@@ -35,14 +35,21 @@ $ hledger -f- print --auto
 $ hledger -f- print --auto
 2018/01/01
     Expenses:Joint:Widgets     $100.00 @@ £50
-    Expenses:Joint            $-100.00 @ £0.5
-    Liabilities:Joint:Bob       $50.00 @ £0.5
-    Liabilities:Joint:Bill      $50.00 @ £0.5
+    Expenses:Joint            $-100.00 @@ £50
+    Liabilities:Joint:Bob       $50.00 @@ £25
+    Liabilities:Joint:Bill      $50.00 @@ £25
     Assets:Joint:Bank                 £-50.00
 
 >=0
+# alternate approach: convert to unit prices
+#2018/01/01
+#    Expenses:Joint:Widgets     $100.00 @@ £50
+#    Expenses:Joint            $-100.00 @ £0.5
+#    Liabilities:Joint:Bob       $50.00 @ £0.5
+#    Liabilities:Joint:Bill      $50.00 @ £0.5
+#    Assets:Joint:Bank                 £-50.00
 
-# Generating auto postings from an implicitly-priced amount. Same as above.
+# Generating auto postings from an implicitly-priced amount. Should work like the above.
 <
 = ^Expenses:Joint
     Expenses:Joint                                               *-1
@@ -56,9 +63,9 @@ $ hledger -f- print --auto
 $ hledger -f- print --auto
 2018/01/01
     Expenses:Joint:Widgets            $100.00
-    Expenses:Joint            $-100.00 @ £0.5
-    Liabilities:Joint:Bob       $50.00 @ £0.5
-    Liabilities:Joint:Bill      $50.00 @ £0.5
+    Expenses:Joint            $-100.00 @@ £50
+    Liabilities:Joint:Bob       $50.00 @@ £25
+    Liabilities:Joint:Bill      $50.00 @@ £25
     Assets:Joint:Bank                 £-50.00
 
 >=0
