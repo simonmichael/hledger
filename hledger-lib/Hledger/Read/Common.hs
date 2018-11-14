@@ -93,6 +93,7 @@ module Hledger.Read.Common (
 
   -- ** misc
   singlespacedtextp,
+  singlespacedtextsatisfyingp,
   singlespacep,
 
   -- * tests
@@ -568,17 +569,24 @@ modifiedaccountnamep = do
 accountnamep :: TextParser m AccountName
 accountnamep = singlespacedtextp
 
--- | Parse any text beginning with a non-whitespace character, until a double space or the end of input.
--- Consumes one of the following spaces, if present.
+
+-- | Parse any text beginning with a non-whitespace character, until a
+-- double space or the end of input.
 singlespacedtextp :: TextParser m T.Text
-singlespacedtextp = do
-  firstPart <- part
-  otherParts <- many $ try $ singlespacep *> part
+singlespacedtextp = singlespacedtextsatisfyingp (const True)
+
+-- | Similar to 'singlespacedtextp', except that the text must only contain
+-- characters satisfying the given predicate.
+singlespacedtextsatisfyingp :: (Char -> Bool) -> TextParser m T.Text
+singlespacedtextsatisfyingp pred = do
+  firstPart <- partp
+  otherParts <- many $ try $ singlespacep *> partp
   pure $! T.unwords $ firstPart : otherParts
   where
-    part = takeWhile1P Nothing (not . isSpace)
+    partp = takeWhile1P Nothing (\c -> pred c && not (isSpace c))
 
 -- | Parse one non-newline whitespace character that is not followed by another one.
+singlespacep :: TextParser m ()
 singlespacep = void spacenonewline *> notFollowedBy spacenonewline
 
 --- ** amounts
