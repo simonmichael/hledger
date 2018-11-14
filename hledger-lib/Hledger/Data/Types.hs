@@ -154,7 +154,7 @@ instance ToMarkup Quantity
    toMarkup = toMarkup . show
 
 -- | An amount's price (none, per unit, or total) in another commodity.
--- Note the price should be a positive number, although this is not enforced.
+-- The price amount should always be positive.
 data Price = NoPrice | UnitPrice Amount | TotalPrice Amount 
   deriving (Eq,Ord,Typeable,Data,Generic,Show)
 

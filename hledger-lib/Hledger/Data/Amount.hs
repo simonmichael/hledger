@@ -59,6 +59,8 @@ module Hledger.Data.Amount (
   costOfAmount,
   divideAmount,
   multiplyAmount,
+  divideAmountAndPrice,
+  multiplyAmountAndPrice,
   amountValue,
   amountTotalPriceToUnitPrice,
   -- ** rendering
@@ -91,6 +93,8 @@ module Hledger.Data.Amount (
   costOfMixedAmount,
   divideMixedAmount,
   multiplyMixedAmount,
+  divideMixedAmountAndPrice,
+  multiplyMixedAmountAndPrice,
   averageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
@@ -214,7 +218,7 @@ costOfAmount a@Amount{aquantity=q, aprice=price} =
 -- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
 -- Also increases the unit price's display precision to show one extra decimal place,
--- to help the unit-priced amounts to still balance. 
+-- to help keep transaction amounts balancing. 
 -- Does Decimal division, might be some rounding/irrational number issues.
 amountTotalPriceToUnitPrice :: Amount -> Amount
 amountTotalPriceToUnitPrice 
@@ -229,6 +233,22 @@ divideAmount n a@Amount{aquantity=q} = a{aquantity=q/n}
 -- | Multiply an amount's quantity by a constant.
 multiplyAmount :: Quantity -> Amount -> Amount
 multiplyAmount n a@Amount{aquantity=q} = a{aquantity=q*n}
+
+-- | Divide an amount's quantity (and its total price, if it has one) by a constant.
+-- The total price will be kept positive regardless of the multiplier's sign.
+divideAmountAndPrice :: Quantity -> Amount -> Amount
+divideAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q/n, aprice=f p}
+  where
+    f (TotalPrice a) = TotalPrice $ abs $ n `divideAmount` a
+    f p = p
+
+-- | Multiply an amount's quantity (and its total price, if it has one) by a constant.
+-- The total price will be kept positive regardless of the multiplier's sign.
+multiplyAmountAndPrice :: Quantity -> Amount -> Amount
+multiplyAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q*n, aprice=f p}
+  where
+    f (TotalPrice a) = TotalPrice $ abs $ n `multiplyAmount` a
+    f p = p
 
 -- | Is this amount negative ? The price is ignored.
 isNegativeAmount :: Amount -> Bool
@@ -552,6 +572,16 @@ divideMixedAmount n = mapMixedAmount (divideAmount n)
 -- | Multiply a mixed amount's quantities by a constant.
 multiplyMixedAmount :: Quantity -> MixedAmount -> MixedAmount
 multiplyMixedAmount n = mapMixedAmount (multiplyAmount n)
+
+-- | Divide a mixed amount's quantities (and total prices, if any) by a constant.
+-- The total prices will be kept positive regardless of the multiplier's sign.
+divideMixedAmountAndPrice :: Quantity -> MixedAmount -> MixedAmount
+divideMixedAmountAndPrice n = mapMixedAmount (divideAmountAndPrice n)
+
+-- | Multiply a mixed amount's quantities (and total prices, if any) by a constant.
+-- The total prices will be kept positive regardless of the multiplier's sign.
+multiplyMixedAmountAndPrice :: Quantity -> MixedAmount -> MixedAmount
+multiplyMixedAmountAndPrice n = mapMixedAmount (multiplyAmountAndPrice n)
 
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount
