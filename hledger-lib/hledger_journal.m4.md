@@ -1136,9 +1136,10 @@ Transaction modifier rules describe changes that should be applied automatically
 Currently, this means adding extra postings (also known as "automated postings").
 Transaction modifiers are enabled by the `--auto` flag.
 
-A transaction modifier rule looks a bit like a normal transaction,
-except the first line is an equals sign followed by a [query](manual.html#queries) that matches certain postings.
-(mnemonic: `=` suggests matching):
+A transaction modifier rule looks quite like a normal transaction,
+except the first line is an equals sign followed by a [query](manual.html#queries) that matches certain postings
+(mnemonic: `=` suggests matching).
+And each "posting" is actually a posting-generating rule:
 
 ```journal
 = QUERY
@@ -1147,11 +1148,12 @@ except the first line is an equals sign followed by a [query](manual.html#querie
     ...
 ```
 
-Each posting's amount can be:
+The posting rules look just like normal postings, except the amount can be:
 
-- a normal amount  (`$2`).
-- a number (`2`). This will be assigned the commodity that was used in the matched posting. 
-- a multiplier like `*2` (a star followed by a number N).  This will be replaced by the matched posting's amount multiplied by N.
+- a normal amount with a commodity symbol, eg `$2`. This will be used as-is.
+- a number, eg `2`. The commodity symbol (if any) from the matched posting will be added to this. 
+- a numeric multiplier, eg `*2` (a star followed by a number N).  The matched posting's amount (and total price, if any) will be multiplied by N.
+- a multiplier with a commodity symbol, eg `*$2` (a star, number N, and symbol S). The matched posting's amount will be multiplied by N, and its commodity symbol will be replaced with S.
 
 Some examples:
 ```journal
