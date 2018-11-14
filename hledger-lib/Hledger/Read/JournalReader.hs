@@ -68,7 +68,6 @@ import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
-import Data.Bifunctor (first)
 import Data.Maybe
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
@@ -510,7 +509,23 @@ periodictransactionp = do
   let refdate = case mdefaultyear of
                   Nothing -> today 
                   Just y  -> fromGregorian y 1 1
-  (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp refdate)
+  periodExcerpt <- lift $ excerpt_ $
+                    singlespacedtextsatisfyingp (\c -> c /= ';' && c /= '\n')
+  let periodtxt = T.strip $ getExcerptText periodExcerpt
+
+  -- first parsing with 'singlespacedtextp', then "re-parsing" with
+  -- 'periodexprp' saves 'periodexprp' from having to respect the single-
+  -- and double-space parsing rules
+  (interval, span) <- lift $ reparseExcerpt periodExcerpt $ do
+    pexp <- periodexprp refdate
+    (<|>) eof $ do
+      offset1 <- getOffset
+      void takeRest
+      offset2 <- getOffset
+      customFailure $ parseErrorAtRegion offset1 offset2 $
+           "remainder of period expression cannot be parsed"
+        <> "\nperhaps you need to terminate the period expression with a double space?"
+    pure pexp
 
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
@@ -657,40 +672,28 @@ tests_JournalReader = tests "JournalReader" [
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
         ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
-        ,ptstatus      = Unmarked
-        ,ptcode        = ""
         ,ptdescription = ""
         ,ptcomment     = "In 2019 we will change this\n"
-        ,pttags        = []
-        ,ptpostings    = []
         }
 
-     -- TODO some weaknesses in periodic transaction parsing, https://github.com/simonmichael/hledger/pull/807#issuecomment-396994403
-    ,_test "more period text in description after two spaces" $ expectParseEq periodictransactionp 
+    ,test "more period text in description after two spaces" $ expectParseEq periodictransactionp
       "~ monthly from 2018/6   In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
         ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
-        ,ptdescription = "In 2019 we will change this\n"
+        ,ptdescription = "In 2019 we will change this"
+        ,ptcomment     = ""
         }
 
-    ,_test "more period text in description after one space" $ expectParseEq periodictransactionp
-      "~ monthly from 2018/6 In 2019 we will change this\n" 
-      nullperiodictransaction {
-         ptperiodexpr  = "monthly from 2018/6"
-        ,ptinterval    = Months 1
-        ,ptspan        = DateSpan (Just $ fromGregorian 2018 6 1) Nothing
-        ,ptdescription = "In 2019 we will change this\n"
-        }
-
-    ,_test "Next year in description" $ expectParseEq periodictransactionp
+    ,test "Next year in description" $ expectParseEq periodictransactionp
       "~ monthly  Next year blah blah\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly"
         ,ptinterval    = Months 1
         ,ptspan        = DateSpan Nothing Nothing
-        ,ptdescription = "Next year blah blah\n"
+        ,ptdescription = "Next year blah blah"
+        ,ptcomment     = ""
         }
 
     ]

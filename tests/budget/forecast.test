@@ -111,7 +111,7 @@ hledger -f - print --forecast desc:forecast
 <<<
 Y 2000
 
-~ 2/1 forecast
+~ 2/1  forecast
 
 ; a real transaction to set the start of the forecast window
 2000/1/1 real
@@ -128,7 +128,7 @@ hledger -f - print --forecast desc:forecast
 <<<
 Y 2000
 
-~ 15 forecast
+~ 15  forecast
 
 ; a real transaction to set the start of the forecast window
 2000/1/1 real
@@ -145,7 +145,7 @@ hledger -f - print --forecast desc:forecast
 <<<
 Y 2000
 
-~ next month forecast
+~ next month  forecast
 
 ; a real transaction to set the start of the forecast window
 2000/1/1 real
