@@ -1066,14 +1066,18 @@ Partial or relative dates (M/D, D, tomorrow, last week) in the period expression
 can work (useful or not). They will be relative to today's date, unless 
 a Y default year directive is in effect, in which case they will be relative to Y/1/1.
 
-If you write a transaction description or same-line comment, 
-it must be separated from the period expression by **two or more spaces**. Eg:
+Period expressions must be terminated by **two or more spaces** if
+followed by additional fields. For example, the periodic transaction given
+below includes a transaction description "paycheck", which is separated
+from the period expression by a double space. If not for the second space,
+hledger would attempt (and fail) to parse "paycheck" as a part of the
+period expression.
 
 ```
-;                              2 or more spaces
-;                                    ||
-;                                    vv
-~ every 2 weeks from 2018/6 to 2018/9  paycheck
+;                                2 or more spaces
+;                                      ||
+;                                      vv
+~ every 2 weeks from 2018/6/4 to 2018/9  paycheck
     assets:bank:checking   $1500
     income:acme inc
 ```
