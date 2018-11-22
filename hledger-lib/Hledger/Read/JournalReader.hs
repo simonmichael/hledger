@@ -533,17 +533,14 @@ periodictransactionp = do
     Nothing -> pure ()
   -- The line can end here, or it can continue with one or more spaces
   -- and then zero or more of the following fields. A bit awkward.
-  (status, code, description, (comment, tags)) <-
-    (lift eolof >> return (Unmarked, "", "", ("", [])))
-    <|>
-    (do
-      lift $ skipSome spacenonewline 
-      s         <- lift statusp
-      c         <- lift codep
-      desc      <- lift $ T.strip <$> descriptionp
-      (cmt, ts) <- lift transactioncommentp
+  (status, code, description, (comment, tags)) <- lift $
+    (<|>) (eolof >> return (Unmarked, "", "", ("", []))) $ do
+      skipSome spacenonewline
+      s         <- statusp
+      c         <- codep
+      desc      <- T.strip <$> descriptionp
+      (cmt, ts) <- transactioncommentp
       return (s,c,desc,(cmt,ts))
-    )
 
   -- next lines; use same year determined above
   postings <- postingsp (Just $ first3 $ toGregorian refdate)
