@@ -1105,24 +1105,11 @@ haddock: \
 .SECONDEXPANSION:
 
 ########################
-# 2017 changelog process: 
-# at release time, in each package dir, make changes-show >CHANGES.org, edit, move to CHANGES. Eg:
-# for p in  hledger-lib hledger hledger-ui hledger-web hledger-api; do (cd $p; make -f../Makefile changes-show-from-hledger-1.4 >CHANGES.org); done
-# TODO: prints junk after failing help-system.mk include, make changes-show doesn't work from subdir, want to run from top dir; move to Shake
+# changelogs
 
 LASTTAG=$(shell git describe --tags --abbrev=0)
 
-changes-show: $(call def-help,changes-show, show commits affecting the current directory excluding any hledger package subdirs from the last tag as org nodes newest first )
-	@make changes-show-from-$(LASTTAG)
-
-changes-show-from-%: #$(call def-help,changes-show-from-REV, show commits affecting the current directory excluding any hledger package subdirs from this git revision onward as org nodes newest first )
-	@git log --abbrev-commit --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. -- . ':!hledger' ':!hledger-*' \
-		| sed -e 's/^\*/-/' -e 's/^ORGNODE/*/' \
-		| sed -e 's/ (Simon Michael)//'
-# would be nice to sort changes by case-insensitive name and reverse date, like 
-# git ll hledger-1.9.1.. -- hledger* | grep -v doc: | sort -f -k3,3 -k1,1r
-
-# old:
+# pre 2017:
 ## The last git revision referenced in the change notes. 
 ## (Or, if there are no change notes, the last tag.
 ## Tries hard to be warning free and run shell commands only when needed.)
@@ -1177,6 +1164,106 @@ changes-show-from-%: #$(call def-help,changes-show-from-REV, show commits affect
 #changenotes-show-last: $(CHANGENOTES) \
 #		$(call def-help,changenotes-show-last, show the last commit recorded in $(CHANGENOTES) )
 #	@git l -1 $(CHANGENOTESLASTREV)
+
+
+# 2017-2018:
+# At release time, in each package dir, dump commit log into CHANGES.org, edit and move to CHANGES. Eg:
+#  export FROM=hledger-1.11; make changes-show-$FROM >CHANGES.org; for p in  hledger-lib hledger hledger-ui hledger-web hledger-api; do (cd $p; make -f../Makefile changes-show-$FROM >CHANGES.org); done
+# where FROM could be a branch name (1.11) or a specific release tag (hledger-1.11.1, more precise)
+
+#only works in top dir, use changes-show-TAG instead
+# changes-show: $(call def-help,changes-show, show commits affecting the current directory excluding any hledger package subdirs from the last tag as org nodes newest first )
+# 	@make changes-show-from-$(LASTTAG)
+
+# --abbrev-commit shortens commit hashes. --pretty sets org-like output format.
+# ORGNODE stands in for * until any * list bullets in commit messages have been rewritten.
+# %s summary, %an author name, %n newline if needed?, %b long description, %h hash
+# :! args are exclude pathspecs, to exclude package dirs when running in top dir.
+#  https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
+# changes-show-%: #$(call def-help,changes-show-from-REV, show commits affecting the current directory excluding any hledger package subdirs from this git revision onward as org nodes newest first )
+# 	@git log \
+# 		--abbrev-commit --pretty=format:'ORGNODE %s (%an)%n%b' $*.. \
+# 		--stat \
+# 		-- . ':!hledger-lib' ':!hledger' ':!hledger-ui' ':!hledger-web' ':!hledger-api' \
+# 	| sed \
+# 		-e 's/^\*/-/' \
+# 		-e 's/^ORGNODE/*/' \
+# 		-e 's/ (Simon Michael)//' \
+# 		-e 's/\[ci skip\]//' \
+
+
+# 2018-2019:
+# goal: periodically, update all changelogs in place and save last seen commit
+
+#changes-update:
+
+changes:
+	make changes-top >CHANGES.org
+	make changes-lib >hledger-lib/CHANGES.org
+	make changes-cli >hledger/CHANGES.org
+	make changes-ui  >hledger-ui/CHANGES.org
+	make changes-web >hledger-web/CHANGES.org
+	make changes-api >hledger-api/CHANGES.org
+
+# :! args are exclude pathspecs, https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
+EXCLUDEPKGDIRS=\
+	':!hledger-lib' \
+	':!hledger' \
+	':!hledger-ui' \
+	':!hledger-web' \
+	':!hledger-api' \
+
+# -E for extended regular expressions
+# ensure bullet lists in descriptions use - not *
+# convert ORGNODE placeholders to *
+# strip most PKG: prefixes
+# strip maintainer's author name
+# strip [ci skip] lines
+# replace consecutive newlines with one
+# indent long descriptions
+CLEANUPCHANGES=sed -E \
+		-e 's/^( )*\*/\1-/' \
+		-e 's/^ORGNODE/*/' \
+		-e 's/^\* $(PKGPREFIX): /* /' \
+		-e 's/ \(Simon Michael\)//' \
+		-e 's///' \
+		-e 's/\[ci skip\]//' \
+		-e '/./,/^$$/!d' \
+		-e 's/^([^\*])/  \1/' \
+
+# --abbrev-commit shortens commit hashes
+GITLOG=git log --abbrev-commit
+
+# verbose org-like changelog format, including hashes and --stat info for troubleshooting.
+# ORGNODE stands in for * until any * list bullets in commit messages have been rewritten.
+# %s=summary, %an=author name, %n=newline if needed, %b=long description, %h=hash
+VERBOSEFMT=--pretty=format:'ORGNODE %s (%an)%n%b%h' --stat
+
+changes-%-verbose: $(call def-help,changes-PKGID-verbose, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as verbose org nodes )
+	$(eval PKGID=$*)
+	$(eval PKGDIR=$(subst -cli,,hledger-$(PKGID)))
+	$(eval PKGPREFIX=$(shell echo $(PKGDIR) | sed -e s/hledger-// -e s/^hledger$$/cli/))
+	$(eval REV=$(shell cat $(PKGDIR)/.CHANGES.seen))
+	@$(GITLOG) $(VERBOSEFMT) $(REV).. -- $(PKGDIR) | $(CLEANUPCHANGES)
+
+changes-top-verbose: $(call def-help,changes-top-verbose, show commits since the rev in .CHANGES.seen excluding hledger package subdirs as verbose org nodes )
+	$(eval REV=$(shell cat .CHANGES.seen))
+	@$(GITLOG) $(VERBOSEFMT) $(REV).. -- . $(EXCLUDEPKGDIRS) | $(CLEANUPCHANGES)
+
+# org-like changelog format suitable for changelogs/release notes
+CHANGELOGFMT=--pretty=format:'ORGNODE %s (%an)%n%b'
+
+changes-%: $(call def-help,changes-PKGDIR, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as changelog-ready org nodes )
+	$(eval PKGID=$*)
+	$(eval PKGDIR=$(subst -cli,,hledger-$(PKGID)))
+	$(eval PKGPREFIX=$(shell echo $(PKGDIR) | sed -e s/hledger-// -e s/^hledger$$/cli/))
+	$(eval REV=$(shell cat $(PKGDIR)/.CHANGES.seen))
+	@$(GITLOG) $(CHANGELOGFMT) $(REV).. -- $(PKGDIR) | $(CLEANUPCHANGES)
+
+changes-top: $(call def-help,changes-top, show commits since the rev in .CHANGES.seen excluding hledger package subdirs as changelog-ready org nodes )
+	$(eval REV=$(shell cat .CHANGES.seen))
+	@$(GITLOG) $(CHANGELOGFMT) $(REV).. -- . $(EXCLUDEPKGDIRS) | $(CLEANUPCHANGES)
+
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
