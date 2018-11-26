@@ -454,49 +454,13 @@ The asserted balance must be a simple single-commodity amount, and in
 fact the assertion checks only this commodity's balance within the
 (possibly multi-commodity) account balance. We could call this a partial
 balance assertion. This is compatible with Ledger, and makes it possible
-to make assertions about accounts containing multiple commodities. To
-assert the balance of more than a single commodity, you can add multiple
-postings (with amount 0 if necessary).
+to make assertions about accounts containing multiple commodities.
 
-To instead assert a commodity's balance to the exclusion of all others
-in an account, use the exact assertion form `==EXPECTEDBALANCE` (note
-the doubled equals sign). This, unlike multiple partial assertions,
-ensures that the account contains no unexpected commodities -- or
-equivalently, that the balance of any other commodity is 0.
-
-``` {.journal}
-2013/1/1
-  a   $1
-  a    1€
-  b  $-1
-  c   -1€
-
-2013/1/2  ; These assertions succeed
-  a    0  =  $1
-  a    0  =   1€
-  b    0 == $-1
-  c    0 ==  -1€
-
-2013/1/3  ; This assertion fails as 'a' also contains 1€
-  a    0 ==  $1
-```
-
-Unfortunately, as of now, there is no way to specify that an account
-contains exactly values of multiple commodities. Until and unless that
-capability is added, the best workaround is to isolate each commodity
-into individual subaccounts:
-
-``` {.journal}
-2013/1/1
-  a:usd   $1
-  a:euro   1€
-  b
-
-2013/1/2
-  a        0 ==  0
-  a:usd    0 == $1
-  a:euro   0 ==  1€
-```
+To assert each commodity's balance in such a multi-commodity account,
+you can add multiple postings (with amount 0 if necessary). But note
+that no matter how many assertions you add, you can't be sure the
+account does not contain some unexpected commodity. (We'll add support
+for this kind of total balance assertion if there's demand.)
 
 #### Assertions and subaccounts
 
