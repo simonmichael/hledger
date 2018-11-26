@@ -1,5 +1,5 @@
-API-ish changes in the hledger-lib package. 
-Most user-visible changes are noted in the hledger changelog, instead.
+Developer-ish changes in the hledger-lib package.
+User-visible changes are noted in the hledger changelog, instead.
 
 
 # 1.11.1 (2018/10/06)
