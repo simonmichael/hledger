@@ -169,24 +169,22 @@ renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentpref
       commentprefix = indent . ("; "++)
 
 -- | Given a transaction and its postings, render the postings, suitable
--- for `print` output.
+-- for `print` output. Normally this output will be valid journal syntax which
+-- hledger can reparse (though it may include no-longer-valid balance assertions).
 --
--- Explicit amounts are shown, implicit amounts are not. 
--- If elide is true and there are multiple postings, all with explicit amounts,
--- and the transaction appears obviously balanced
--- (postings sum to 0, without needing to infer conversion prices),
--- the last posting's amount will be made implicit (and not shown).
+-- Explicit amounts are shown, any implicit amounts are not. 
 --
--- The output will be parseable journal syntax.
--- To facilitate this, postings with explicit multi-commodity amounts 
--- are displayed as multiple similar postings, one per commodity.
+-- Setting elide to true forces the last posting's amount to be implicit, if:
+-- there are other postings, all with explicit amounts, and the transaction
+-- appears balanced.
 --
--- Explicit multi-commodity postings are shown as multiple similar postings,
--- one for each commodity, to help produce parseable journal syntax.
--- Or if onelineamounts is true, such amounts are shown on one line,
--- comma-separated (and the output will not be valid journal syntax).
---
--- Posting amounts will be aligned with each other.
+-- Postings with multicommodity explicit amounts are handled as follows:
+-- if onelineamounts is true, these amounts are shown on one line,
+-- comma-separated, and the output will not be valid journal syntax.
+-- Otherwise, they are shown as several similar postings, one per commodity.
+-- 
+-- Posting amounts will be aligned with each other, starting about 4 columns
+-- beyond the widest account name (see postingAsLines for details).
 -- 
 postingsAsLines :: Bool -> Bool -> Transaction -> [Posting] -> [String]
 postingsAsLines elide onelineamounts t ps
