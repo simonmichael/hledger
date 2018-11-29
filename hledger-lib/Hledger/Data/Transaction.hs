@@ -303,9 +303,12 @@ transactionPostingBalances t = (sumPostings $ realPostings t
                                ,sumPostings $ virtualPostings t
                                ,sumPostings $ balancedVirtualPostings t)
 
--- | Is this transaction balanced ? A balanced transaction's real
--- (non-virtual) postings sum to 0, and any balanced virtual postings
--- also sum to 0.
+-- | Does this transaction appear balanced when rendered, optionally with the
+-- given commodity display styles ? More precisely:
+-- after converting amounts to cost using explicit transaction prices if any;
+-- and summing the real postings, and summing the balanced virtual postings;
+-- and applying the given display styles if any (maybe affecting decimal places);
+-- do both totals appear to be zero when rendered ?
 isTransactionBalanced :: Maybe (Map.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
 isTransactionBalanced styles t =
     -- isReallyZeroMixedAmountCost rsum && isReallyZeroMixedAmountCost bvsum
