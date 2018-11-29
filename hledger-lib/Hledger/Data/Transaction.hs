@@ -183,6 +183,10 @@ renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentpref
 -- comma-separated, and the output will not be valid journal syntax.
 -- Otherwise, they are shown as several similar postings, one per commodity.
 -- 
+-- The output will appear to be a balanced transaction.
+-- Amounts' display precisions, which may have been limited by commodity
+-- directives, will be increased if necessary to ensure this.
+--
 -- Posting amounts will be aligned with each other, starting about 4 columns
 -- beyond the widest account name (see postingAsLines for details).
 -- 
@@ -550,6 +554,7 @@ tests_Transaction = tests "Transaction" [
       ]
     ]
 
+   -- postingsAsLines
   ,let
     -- one implicit amount 
     timp = nulltransaction{tpostings=[
@@ -580,6 +585,12 @@ tests_Transaction = tests "Transaction" [
          "a" `post` usd 1
         ,"b" `post` missingamt
         ,"c" `post` usd (-1)
+        ]}
+    -- unbalanced amounts when precision is limited (#931)
+    t4 = nulltransaction{tpostings=[
+         "a" `post` usd (-0.01)
+        ,"b" `post` usd (0.005)
+        ,"c" `post` usd (0.005)
         ]}
   in
     tests "postingsAsLines" [
@@ -635,6 +646,14 @@ tests_Transaction = tests "Transaction" [
           ,"    b"
           ,"    c          $-1.00"
           ]
+
+    ,_test "ensure-visibly-balanced" $
+      let t = t4 in postingsAsLines False False t (tpostings t) `is` [
+           "    a          $-0.01"
+          ,"    b           $0.005"
+          ,"    c           $0.005"
+          ]
+
    ]
 
   ,do
