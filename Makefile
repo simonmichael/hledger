@@ -1214,8 +1214,8 @@ EXCLUDEPKGDIRS=\
 	':!hledger-api' \
 
 # -E for extended regular expressions
-# ensure bullet lists in descriptions use - not *
-# convert ORGNODE placeholders to *
+# ensure bullet lists in descriptions use hyphens not stars
+# convert ORGNODE placeholders to stars
 # strip most PKG: prefixes
 # strip maintainer's author name
 # strip [ci skip] lines
