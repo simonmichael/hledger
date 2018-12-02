@@ -2,6 +2,57 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 1.12 (2018/12/02)
+
+* fix "Any" build error with GHC < 8.4
+
+* error screen: always show error position properly (#904) (Mykola Orliuk)
+
+* accounts screen: show correct balances when there's only periodic transactions
+
+* drop the --status-toggles flag
+
+* periodic transactions and transaction modifiers are always enabled.
+  Rule-based transactions and postings are always generated
+  (--forecast and --auto are always on).
+  Experimental.
+
+* escape key resets to flat mode.
+  Flat mode is the default at startup. Probably it should reset to tree
+  mode if --tree was used at startup.
+
+* tree mode tweaks: add --tree/-T/-F flags, make flat mode the default,  
+  toggle tree mode with T, ensure a visible effect on register screen
+
+* hide future txns by default, add --future flag, toggle with F.
+  You may have transactions dated later than today, perhaps piped from
+  print --forecast or recorded in the journal, which you don't want to
+  see except when forecasting.
+
+  By default, we now hide future transactions, showing "today's balance".
+  This can be toggled with the F key, which is easier than setting a
+  date query. --present and --future flags have been added to set the
+  initial mode.
+
+  (Experimental. Interactions with date queries have not been explored.)
+
+* quick help tweaks; try to show most useful info first
+
+* reorganise help dialog, fit content into 80x25 again
+
+* styling tweaks; cyan/blue -> white/yellow
+
+* less noisy styling in horizontal borders (#838)
+
+* register screen: positive amounts: green -> black
+  The green/red scheme helped distinguish the changes column from the
+  black/red balance column, but the default green is hard to read on
+  the pale background in some terminals. Also the changes column is
+  non-bold now.
+
+* use hledger 1.12
+
+
 # 1.11.1 (2018/10/06)
 
 * use hledger 1.11.1

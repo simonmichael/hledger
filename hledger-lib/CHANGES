@@ -1,12 +1,60 @@
 Developer-ish changes in the hledger-lib package.
-User-visible changes are noted in the hledger changelog, instead.
+User-visible changes are noted in the hledger package changelog instead.
+
+
+# 1.12 (2018/12/02)
+
+* switch to megaparsec 7 (Alex Chen)
+  We now track the stack of include files in Journal ourselves, since
+  megaparsec dropped this feature.
+
+* add 'ExceptT' layer to our parser monad again (Alex Chen)
+  We previously had a parser type, 'type ErroringJournalParser = ExceptT
+  String ...' for throwing parse errors without allowing further
+  backtracking. This parser type was removed under the assumption that it
+  would be possible to write our parser without this capability. However,
+  after a hairy backtracking bug, we would now prefer to have the option to
+  prevent backtracking.
+
+  - Define a 'FinalParseError' type specifically for the 'ExceptT' layer
+  - Any parse error can be raised as a "final" parse error
+  - Tracks the stack of include files for parser errors, anticipating the
+    removal of the tracking of stacks of include files in megaparsec 7
+    - Although a stack of include files is also tracked in the 'StateT
+      Journal' layer of the parser, it seems easier to guarantee correct
+      error messages in the 'ExceptT FinalParserError' layer
+    - This does not make the 'StateT Journal' stack redundant because the
+      'ExceptT FinalParseError' stack cannot be used to detect cycles of
+      include files
+
+* more support for location-aware parse errors when re-parsing (Alex Chen)
+
+* make 'includedirectivep' an 'ErroringJournalParser' (Alex Chen)
+
+* drop Ord instance breaking GHC 8.6 build (Peter Simons)
+
+* flip the arguments of (divide|multiply)[Mixed]Amount
+
+* showTransaction: fix a case showing multiple missing amounts
+  showTransaction could sometimes hide the last posting's amount even if
+  one of the other posting amounts was already implcit, producing invalid
+  transaction output.
+
+* plog, plogAt: add missing newline
+
+* split up journalFinalise, reorder journal finalisation steps (#893) (Jesse Rosenthal)
+  The `journalFinalise` function has been split up, allowing more granular
+  control.
+
+* journalSetTime --> journalSetLastReadTime
+
+* journalSetFilePath has been removed, use journalAddFile instead
 
 
 # 1.11.1 (2018/10/06)
 
 * add, lib: fix wrong transaction rendering in balance assertion errors
   and when using the add command
-
 
 # 1.11 (2018/9/30)
 

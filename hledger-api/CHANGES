@@ -2,8 +2,9 @@ User-visible changes in hledger-api.
 See also the hledger changelog.
 
 
-# Unreleased
+# 1.12 (2018/12/02)
 
+* use hledger 1.12
 
 
 # 1.11.1 (2018/10/06)

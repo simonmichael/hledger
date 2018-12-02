@@ -2,6 +2,13 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# 1.12 (2018/12/02)
+
+* fix duplicate package.yaml keys warned about by hpack
+
+* use hledger 1.12
+
+
 # 1.11.1 (2018/10/06)
 
 * use hledger 1.11.1

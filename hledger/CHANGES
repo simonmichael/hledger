@@ -1,6 +1,101 @@
-User-visible changes in the hledger command line tool.
+User-visible changes in the hledger command line tool (and hledger-lib).
 
 
+# 1.12 (2018/12/02)
+
+* build with GHC 8.6/base-4.12 (Peter Simons)
+
+* add required upper bound for statistics (Samuel May)
+
+* --anon anonymises more thoroughly (including linked original postings) (Moritz Kiefer)
+
+* unbalanced transaction errors now include location info (Mykola Orliuk)
+
+* accounts command: --drop also affects the default flat output, without needing an explicit --flat flag
+
+* accounts command: the --codes flag has been dropped
+
+* accounts command: filtering by non-account-name queries now works
+
+* add command: fix transaction rendering regression during data entry and in journal file
+
+* balance command: fix wrongful eliding of zero-balance parent accounts in tree mode (Dmitry Astapov)
+
+* journal format, bs/bse/cf/is commands: account directives can declare account types (#877)
+  Previously you had to use one of the standard english account names
+  (assets, liabilities..) for top-level accounts, if you wanted them to
+  appear in the right place in the balancesheet, balancesheetequity,
+  cashflow or incomestatement reports.
+
+  Now you can use your preferred account names, and use account directives
+  to declare which accounting class (Asset, Liability, Equity, Revenue or
+  eXpense) an account (and its subaccounts) belongs to, by writing one of
+  the letters A, L, E, R, X after the account name, after two or more
+  spaces. This syntax may change (see issue).  Experimental.
+
+  Currently we allow unlimited account type declarations anywhere in the
+  account tree. So you could declare a liability account somewhere under
+  assets, and maybe a revenue account under that, and another asset account
+  even further down. In such cases you start to see oddities like accounts
+  appearing in multiple places in a tree-mode report. I have left it this
+  way for now in case it helps with, eg, modelling contra accounts, or
+  combining multiple files each with their own account type
+  declarations. (In that scenario, if we only allowed type declarations on
+  top-level accounts, or only allowed a single account of each type,
+  complications seem likely.)
+
+* journal format: periodic transaction rules now require a double space separator.
+  In periodic transaction rules which specify a transaction description or
+  same-line transaction comment, this must be separated from the period
+  expression by two or more spaces, to prevent ambiguous parsing. Eg
+  this will parse correctly as "monthly" thanks to the double space:
+
+      ~ monthly  In 2020 we'll end this monthly transaction.
+
+* journal format: exact/complete balance assertions (Samuel May).
+  A stronger kind of balance assertion, written with a double equals sign,
+  asserts an account's complete account balance, not just the balance in
+  one commodity. (But only if it is a single-commodity balance, for now.)
+  Eg:
+
+      1/1
+        (a)  A 1
+        (a)  B 1
+        (a)  0   =  A 1   ; commodity A balance assertion, succeeds
+        (a)  0   == A 1   ; complete balance assertion, fails
+
+* journal format: account directives now allow whitespace or a comment after the account name
+
+* journal format: using ~ for home directory in include directives now works (#896) (Mykola Orliuk)
+
+* journal format: prevent misleading parse error messages with cyclic include directives (#853) (Alex Chen)
+
+* journal format: transaction modifier multipliers handle total-priced amounts correctly (#928).
+  Multipliers (*N) in transaction modifier rules did not multiply
+  total-priced amounts properly.  Now the total prices are also multiplied,
+  keeping the transaction balanced.
+
+* journal format: do amount inference/balance assignments/assertions before transaction modifiers (#893, #908) (Jesse Rosenthal)
+  Previously, transaction modifier (auto postings) rules were applied
+  before missing amounts were inferred. This meant amount multipliers could
+  generate too many missing-amount postings, making the transaction
+  unbalanceable (#893).
+
+  Now, missing amount inference (and balance assignments, and balance
+  assertions, which are interdependent) are done earlier, before
+  transaction modifier rules are applied (#900, #903).
+
+  Also, we now disallow the combination of balance assignments and
+  transaction modifier rules which both affect the same account, which
+  could otherwise cause confusing balance assertion failures (#912).
+  (Because assignments now generate amounts to satisfy balance assertions
+  before transaction modifier rules are applied (#908).)
+
+* journal format: periodic transaction rules are now aware of Y default year directives. (#892)
+  Ie when a default year Y is in effect, they resolve partial or relative
+  dates using Y/1/1 as the reference date, rather than today's date.
+
+ 
 # 1.11.1 (2018/10/06)
 
 * fix wrong transaction rendering in balance assertion errors and when
