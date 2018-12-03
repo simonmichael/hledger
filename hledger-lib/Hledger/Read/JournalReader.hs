@@ -824,8 +824,11 @@ tests_JournalReader = tests "JournalReader" [
     ]
 
   ,test "accountdirectivep" $ do
-    test "account" $ expectParse accountdirectivep "account a:b  ; a comment and some:tag, another comment\n"
-    test "does not support !" $ expectParseError accountdirectivep "!account a:b\n" ""
+    test "with-comment" $ expectParse accountdirectivep "account a:b  ; a comment\n"
+    test "does-not-support-!" $ expectParseError accountdirectivep "!account a:b\n" ""
+    test "account-sort-code" $ expectParse accountdirectivep "account a:b  1000\n"
+    test "account-type-code" $ expectParse accountdirectivep "account a:b  A\n"
+    test "account-type-tag" $ expectParse accountdirectivep "account a:b  ; type:asset\n"
 
   ,test "commodityconversiondirectivep" $ do
      expectParse commodityconversiondirectivep "C 1h = $50.00\n"
