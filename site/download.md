@@ -45,7 +45,7 @@ Binaries or system packages are quickest to install, but they can be outdated or
 <br>report issues to packagers)
 </div>
 
-| Platform             | Command/Link           | Installs&nbsp;version<br>([as&nbsp;of&nbsp;20181006](https://repology.org/metapackage/hledger/badges), latest is [1.11](http://hledger.org/release-notes))
+| Platform             | Command/Link           | Installs&nbsp;[version](https://repology.org/metapackage/hledger/badges)<br>(latest is [1.12](http://hledger.org/release-notes))
 |----------------------|------------------------|----------------------------------------------------------------------------------------
 | [Mac][]              | **`brew install hledger`** <br><span class=warnings>[only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520)</span> | 1.11
 | [Windows][]          | Developer binaries: **[1.11](https://ci.appveyor.com/api/buildjobs/rppu7oo05u283p0w/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --> <br><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.11
@@ -165,7 +165,7 @@ you can save some time by omitting hledger-ui, hledger-web and/or hledger-api (o
 On Windows, hledger-ui is not available.
 To estimate the build time, add `--dry-run`:
 
-  **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11`**\
+  **`stack install --resolver=lts-12 megaparsec-7.0.4 cassava-megaparsec-2.0.0 config-ini-0.2.3.0 hledger-lib-1.12 hledger-1.12 hledger-ui-1.12 hledger-web-1.12 hledger-api-1.12`**\
 
 Other [add-ons](/hledger.html#third-party-add-ons)
 like
@@ -174,7 +174,7 @@ like
 or [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 can be installed like so:
 
-  **`stack install --resolver=lts-12 cassava-megaparsec-1.0.0 hledger-lib-1.11 hledger-diff-0.2.0.14 hledger-iadd-1.3.6 hledger-interest-1.5.2`**\
+  **`stack install --resolver=lts-12 megaparsec-7.0.4 cassava-megaparsec-2.0.0 config-ini-0.2.3.0 hledger-lib-1.12 hledger-diff-0.2.0.14 hledger-iadd-1.3.6 hledger-interest-1.5.3`**\
 
 <a name="b3"></a>
 
@@ -183,7 +183,7 @@ can be installed like so:
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
   **`cabal update`**\
-  **`cabal install hledger-1.11 hledger-ui-1.11 hledger-web-1.11 hledger-api-1.11 hledger-diff-0.2.0.14 hledger-iadd-1.3.6 hledger-interest-1.5.2`**\
+  **`cabal install hledger-1.12 hledger-ui-1.12 hledger-web-1.12 hledger-api-1.12 hledger-diff-0.2.0.14 hledger-iadd-1.3.6 hledger-interest-1.5.3`**\
 
 </div>
 
@@ -211,11 +211,11 @@ If you are using bash, this should take care of it:
 You should now be able to run the hledger tools (whichever ones you installed) and see the expected versions:
 
   `$`**`hledger --version`**\
-  `hledger 1.11`\
+  `hledger 1.12`\
   `$`**`hledger-ui --version`**\
-  `hledger-ui 1.11`\
+  `hledger-ui 1.12`\
   `$`**`hledger web --version`**\
-  `hledger-web 1.11`\
+  `hledger-web 1.12`\
   `$`**`hledger iadd --version`**\
   `This is hledger-iadd version 1.3.6`\
 
@@ -244,5 +244,5 @@ Eg, this will build and install all of the main hledger tools using stack:
 cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
 
 See the troubleshooting, PATH, and test tips [above](#b).
-Note development builds will have a .99 suffix (eg 1.11.99 means "1.12-dev").
+Note development builds will have a .99 suffix (eg 1.12.99 means "1.13-dev").
 
