@@ -65,6 +65,9 @@ ghc-options:
 when:
 - condition: (flag(dev)) || (flag(library-only))
   cpp-options: -DDEVELOPMENT
+# This causes a warning when uploading to hackage:
+#Package check reported the following warnings:
+# 'ghc-options: -O0' is not needed. Use the --disable-optimization configure flag.
 - condition: flag(dev)
   ghc-options: -O0
 - condition: impl(ghc >=8)
