@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ae5e73c091e30c202086784f5bc6fc55cd31198c284be23ec13750ad4f2de6ef
+-- hash: 8e0ce73c7c86c909a78d4d06e8566f8b66bc1df89f508da0b05df073c4ecd7c9
 
 name:           hledger-lib
-version:        1.11.99
+version:        1.12
 synopsis:       Core data types, parsers and functionality for the hledger accounting tools
 description:    This is a reusable library containing hledger's core functionality.
                 .
