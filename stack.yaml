@@ -24,7 +24,6 @@ extra-deps:
 
 # hledger
 - control-monad-free-0.6.2
-- statistics-0.14.0.2
 - timeit-2.0
 - wizards-1.0.3
 

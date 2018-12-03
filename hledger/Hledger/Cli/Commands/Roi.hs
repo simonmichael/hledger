@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes,ParallelListComp #-}
+{-# LANGUAGE QuasiQuotes,ParallelListComp,CPP #-}
 {-|
 
 The @roi@ command prints internal rate of return and time-weighted rate of return for and investment.
@@ -17,7 +17,7 @@ import Text.Printf
 import Data.Function (on)
 import Data.List
 import Data.Ord
-import Statistics.Math.RootFinding
+import Numeric.RootFinding
 import Data.Decimal
 import Data.String.Here
 import System.Console.CmdArgs.Explicit as CmdArgs
@@ -216,7 +216,13 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
        (map ((:[]) . show) amounts))
                              
   -- 0% is always a solution, so require at least something here
-  case ridders 0.00001 (0.000000000001,10000) (interestSum spanEnd totalCF) of
+  case ridders 
+#if MIN_VERSION_math_functions(0,3,0)
+    (RiddersParam 100 (AbsTol 0.00001)) 
+#else
+    0.00001
+#endif
+    (0.000000000001,10000) (interestSum spanEnd totalCF) of
     Root rate -> return ((rate-1)*100)
     NotBracketed -> error "Error: No solution -- not bracketed."
     SearchFailed -> error "Error: Failed to find solution."

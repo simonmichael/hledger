@@ -45,6 +45,7 @@ extra-deps:
 - integer-logarithms-1.0.2.1
 - kan-extensions-5.1
 - lens-4.16.1
+- math-functions-0.2.1.0
 - megaparsec-7.0.1
 - microstache-1.0.1.1
 - mmorph-1.1.2

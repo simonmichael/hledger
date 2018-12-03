@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 459ec44c2ae4fd1a0f7e0f8001c3efae2a39ff8b1ef53baa0a510b0674e98c2c
+-- hash: 38ae7b05855ed1a89093bf46334c3ccd5d3e992499741befae04883a34da86b0
 
 name:           hledger
 version:        1.12
@@ -132,6 +132,7 @@ library
     , here
     , hledger-lib >=1.12 && <1.13
     , lucid
+    , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -143,7 +144,6 @@ library
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -183,6 +183,7 @@ executable hledger
     , here
     , hledger
     , hledger-lib >=1.12 && <1.13
+    , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -194,7 +195,6 @@ executable hledger
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
@@ -237,6 +237,7 @@ test-suite test
     , here
     , hledger
     , hledger-lib >=1.12 && <1.13
+    , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -248,7 +249,6 @@ test-suite test
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , test-framework
@@ -292,6 +292,7 @@ benchmark bench
     , hledger
     , hledger-lib >=1.12 && <1.13
     , html
+    , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -303,7 +304,6 @@ benchmark bench
     , safe >=0.2
     , shakespeare >=2.0.2.2
     , split >=0.1
-    , statistics <=0.15
     , tabular >=0.2
     , temporary
     , text >=0.11
