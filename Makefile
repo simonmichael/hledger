@@ -1221,6 +1221,7 @@ EXCLUDEPKGDIRS=\
 # strip [ci skip] lines
 # replace consecutive newlines with one
 # indent long descriptions
+# TODO: can't edit this with IDEA right now, it rewrites the ^M
 CLEANUPCHANGES=sed -E \
 		-e 's/^( )*\*/\1-/' \
 		-e 's/^ORGNODE/*/' \
