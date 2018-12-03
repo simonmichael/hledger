@@ -108,7 +108,7 @@ is updated frequently; here are the
 
 * balance command: fix wrongful eliding of zero-balance parent accounts in tree mode (Dmitry Astapov)  
 
-* journal format, bs/bse/cf/is commands: account directives can declare account types (#877)  
+* journal format, bs/bse/cf/is commands: account directives can declare account types ([#877](https://github.com/simonmichael/hledger/issues/877))  
   Previously you had to use one of the standard english account names
   (assets, liabilities..) for top-level accounts, if you wanted them to
   appear in the right place in the balancesheet, balancesheetequity,
@@ -153,32 +153,32 @@ is updated frequently; here are the
 
 * journal format: account directives now allow whitespace or a comment after the account name  
 
-* journal format: using ~ for home directory in include directives now works (#896) (Mykola Orliuk)  
+* journal format: using ~ for home directory in include directives now works ([#896](https://github.com/simonmichael/hledger/issues/896)) (Mykola Orliuk)  
 
-* journal format: prevent misleading parse error messages with cyclic include directives (#853) (Alex Chen)  
+* journal format: prevent misleading parse error messages with cyclic include directives ([#853](https://github.com/simonmichael/hledger/issues/853)) (Alex Chen)  
 
-* journal format: transaction modifier multipliers handle total-priced amounts correctly (#928).  
+* journal format: transaction modifier multipliers handle total-priced amounts correctly ([#928](https://github.com/simonmichael/hledger/issues/928)).  
   Multipliers (*N) in transaction modifier rules did not multiply
   total-priced amounts properly.  Now the total prices are also multiplied,
   keeping the transaction balanced.
 
-* journal format: do amount inference/balance assignments/assertions before transaction modifiers (#893, #908) (Jesse Rosenthal)  
+* journal format: do amount inference/balance assignments/assertions before transaction modifiers ([#893](https://github.com/simonmichael/hledger/issues/893), [#908](https://github.com/simonmichael/hledger/issues/908)) (Jesse Rosenthal)  
   Previously, transaction modifier (auto postings) rules were applied
   before missing amounts were inferred. This meant amount multipliers could
   generate too many missing-amount postings, making the transaction
-  unbalanceable (#893).
+  unbalanceable ([#893](https://github.com/simonmichael/hledger/issues/893)).
 
   Now, missing amount inference (and balance assignments, and balance
   assertions, which are interdependent) are done earlier, before
-  transaction modifier rules are applied (#900, #903).
+  transaction modifier rules are applied ([#900](https://github.com/simonmichael/hledger/issues/900), [#903](https://github.com/simonmichael/hledger/issues/903)).
 
   Also, we now disallow the combination of balance assignments and
   transaction modifier rules which both affect the same account, which
-  could otherwise cause confusing balance assertion failures (#912).
+  could otherwise cause confusing balance assertion failures ([#912](https://github.com/simonmichael/hledger/issues/912)).
   (Because assignments now generate amounts to satisfy balance assertions
-  before transaction modifier rules are applied (#908).)
+  before transaction modifier rules are applied ([#908](https://github.com/simonmichael/hledger/issues/908)).)
 
-* journal format: periodic transaction rules are now aware of Y default year directives. (#892)  
+* journal format: periodic transaction rules are now aware of Y default year directives. ([#892](https://github.com/simonmichael/hledger/issues/892))  
   Ie when a default year Y is in effect, they resolve partial or relative
   dates using Y/1/1 as the reference date, rather than today's date.
 
@@ -186,7 +186,7 @@ is updated frequently; here are the
 
 * fix "Any" build error with GHC < 8.4  
 
-* error screen: always show error position properly (#904) (Mykola Orliuk)  
+* error screen: always show error position properly ([#904](https://github.com/simonmichael/hledger/issues/904)) (Mykola Orliuk)  
 
 * accounts screen: show correct balances when there's only periodic transactions  
 
@@ -222,7 +222,7 @@ is updated frequently; here are the
 
 * styling tweaks; cyan/blue -> white/yellow  
 
-* less noisy styling in horizontal borders (#838)  
+* less noisy styling in horizontal borders ([#838](https://github.com/simonmichael/hledger/issues/838))  
 
 * register screen: positive amounts: green -> black  
   The green/red scheme helped distinguish the changes column from the
@@ -269,7 +269,7 @@ is updated frequently; here are the
 
 * plog, plogAt: add missing newline  
 
-* split up journalFinalise, reorder journal finalisation steps (#893) (Jesse Rosenthal)  
+* split up journalFinalise, reorder journal finalisation steps ([#893](https://github.com/simonmichael/hledger/issues/893)) (Jesse Rosenthal)  
   The `journalFinalise` function has been split up, allowing more granular
   control.
 
