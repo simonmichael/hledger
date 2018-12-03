@@ -223,7 +223,7 @@ And you can check that the unit tests pass (just for fun):
 
   `$`**`hledger test`**\
   `...`\
-  `✅  176 tests passed, no failures! 👍 🎉`\
+  `✅  188 tests passed, no failures! 👍 🎉`\
 
 
 
