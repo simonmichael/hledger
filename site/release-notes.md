@@ -54,7 +54,7 @@ h4 { margin-top:2em; }
 ### hledger-install
 
 The [hledger installer](download.html#b1.-with-hledger-install)
-is updated frequently; here are the
+is updated as needed; here are the
 [latest changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh).
 
 
