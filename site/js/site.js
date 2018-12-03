@@ -12,7 +12,7 @@ function addDocVersions() {
   var newpage = page=='manual' ? page : topic;
   $('.docversions').html('Available versions: \
 <a href="/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">dev</a> \
-| <a href="/doc/1.11/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.12</a> \
+| <a href="/doc/1.12/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.12</a> \
 | <a href="/doc/1.11/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.11</a> \
 | <a href="/doc/1.10/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.10</a> \
 | <a href="/doc/1.9/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.9</a> \
