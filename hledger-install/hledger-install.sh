@@ -50,7 +50,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20181006
+HLEDGER_INSTALL_VERSION=20181202
 
 # stackage version to install from when using stack
 # You can specify a different stackage version here, or comment out
@@ -77,22 +77,25 @@ hledger-interest \
 "
 
 # latest hledger package versions, update often:
-HLEDGER_VERSION=1.11.1
+HLEDGER_VERSION=1.12
 HLEDGER_LIB_VERSION=$HLEDGER_VERSION
 HLEDGER_UI_VERSION=$HLEDGER_VERSION
 HLEDGER_WEB_VERSION=$HLEDGER_VERSION
 HLEDGER_API_VERSION=$HLEDGER_VERSION
 HLEDGER_DIFF_VERSION=0.2.0.14
 HLEDGER_IADD_VERSION=1.3.6
-HLEDGER_INTEREST_VERSION=1.5.2
+HLEDGER_INTEREST_VERSION=1.5.3
 
 # extra dependencies that aren't in stackage:
 EXTRA_DEPS="\
-cassava-megaparsec-1.0.0 \
+cassava-megaparsec-2.0.0 \
+config-ini-0.2.3.0 \
+easytest-0.2.1 \
+megaparsec-7.0.2 \
 "
 
 # the oldest version of stack that will work:
-STACK_VERSION=1.7.1
+STACK_MIN_VERSION=1.7.1
 
 
 
@@ -661,7 +664,7 @@ has_stack() {
 # Check whether a new enough version of the 'stack' command exists
 has_good_stack() {
   has_cmd stack &&
-  [[ ! $(cmpver "$(cmd_version stack 2>/dev/null)" $STACK_VERSION) = 2 ]]
+  [[ ! $(cmpver "$(cmd_version stack 2>/dev/null)" $STACK_MIN_VERSION) = 2 ]]
 }
 
 # Check whether 'wget' command exists
