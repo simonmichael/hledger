@@ -72,6 +72,9 @@ makeinfo = "makeinfo"
 groff = "groff"
 dropDirectory2 = dropDirectory1 . dropDirectory1
 
+-- The pandoc markdown variant used in our docs:
+mdfmt = "markdown-tex_math_dollars"
+
 main = do
 
   shakeArgs
@@ -200,7 +203,7 @@ main = do
       need $ src : lib : tmpl : deps
       cmd Shell
         "m4 -P -DMAN -I" dir lib src "|"
-        pandoc "-f markdown -s --template" tmpl
+        pandoc ("-f "++mdfmt++" -s --template") tmpl
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
@@ -226,7 +229,7 @@ main = do
       need $ src : lib : deps
       cmd Shell
         "m4 -P -I" dir lib src "|"
-        pandoc "-f markdown"
+        pandoc ("-f "++mdfmt)
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
@@ -257,7 +260,7 @@ main = do
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir lib src "|"
-        pandoc "-f markdown -t markdown-fenced_divs --atx-headers"
+        pandoc ("-f "++mdfmt++" -t markdown-fenced_divs --atx-headers")
         "--lua-filter tools/pandoc-demote-headers.lua"
         ">>" out
 
@@ -306,7 +309,7 @@ main = do
             template  = "site/site.tmpl"
             siteRoot  = if "site/_site/doc//*" ?== out then "../.." else "."
         need [source, template]
-        cmd Shell pandoc "--from markdown --to html" source
+        cmd Shell pandoc ("-f "++mdfmt++" -t html") source
                          "--template"                template
                          ("--metadata=siteRoot:"  ++ siteRoot)
                          ("--metadata=title:"     ++ pageTitle)
