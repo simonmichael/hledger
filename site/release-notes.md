@@ -71,10 +71,13 @@ is updated frequently; here are the
 
 ## 2018/12/02 hledger 1.12
 
-*** ***
-<!--
-([announcement](https://groups.google.com/forum/#!msg/hledger/))
--->
+***Account type declarations,
+complete balance assertions,
+GHC 8.6 support,
+hledger-ui usability updates,
+misc fixes
+***
+([announcement](https://groups.google.com/d/topic/hledger/H7NYdvo0FeQ/discussion))
 
   <!-- [project](#project-wide-changes-for-1.12) -->
   [hledger](#hledger-1.12-1)
@@ -300,9 +303,7 @@ support for other delimiter-separated formats (eg semicolon-separated),
 new files and roi commands,
 fixes
 ***
-<!--
-([announcement](https://groups.google.com/forum/#!msg/hledger/))
--->
+([announcement](https://groups.google.com/d/topic/hledger/V62txFLaD_U/discussion))
 
   <!-- [project](#project-wide-changes-for-1.11) -->
   [hledger](#hledger-1.11-1)
