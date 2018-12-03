@@ -10,19 +10,21 @@ function addDocVersions() {
   var topic = (page=='manual' && hash) ? hash : page;
   var newhash = (page=='manual' && topic!='manual') ? ('#'+topic) : '';
   var newpage = page=='manual' ? page : topic;
+  var relpath1 = parts.includes("doc") ? "../../" : "";
+  var relpath  = parts.includes("doc") ? "../" : "doc/";
   $('.docversions').html('Available versions: \
-<a href="/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">dev</a> \
-| <a href="/doc/1.12/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.12</a> \
-| <a href="/doc/1.11/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.11</a> \
-| <a href="/doc/1.10/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.10</a> \
-| <a href="/doc/1.9/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.9</a> \
-| <a href="/doc/1.5/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.5</a> \
-| <a href="/doc/1.4/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.4</a> \
-| <a href="/doc/1.3/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.3</a> \
-| <a href="/doc/1.2/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.2</a> \
-| <a href="/doc/1.1/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.1</a> \
-| <a href="/doc/1.0/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.0</a> \
-| <a href="/doc/0.27/manual.html'+(topic=='manual' ? '' : ('#'+topic))+'">0.27</a> \
+  <a href="'+relpath1+newpage+'.html'+(page=='manual' ? newhash : '')+'">dev</a> \
+| <a href="'+relpath+'1.12/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.12</a> \
+| <a href="'+relpath+'1.11/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.11</a> \
+| <a href="'+relpath+'1.10/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.10</a> \
+| <a href="'+relpath+'1.9/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.9</a> \
+| <a href="'+relpath+'1.5/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.5</a> \
+| <a href="'+relpath+'1.4/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.4</a> \
+| <a href="'+relpath+'1.3/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.3</a> \
+| <a href="'+relpath+'1.2/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.2</a> \
+| <a href="'+relpath+'1.1/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.1</a> \
+| <a href="'+relpath+'1.0/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.0</a> \
+| <a href="'+relpath+'0.27/manual.html'+(topic=='manual' ? '' : ('#'+topic))+'">0.27</a> \
 ');
 }
 
