@@ -1,6 +1,6 @@
 # timeclock format
 
-This doc is for version **1.12** (dev). []{.docversions}
+This doc is for version **1.12**. []{.docversions}
 
 \$toc\$
 
