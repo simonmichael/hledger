@@ -1388,7 +1388,8 @@ setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version
 #	hpack --silent $(dir $*) 
 #
 gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
-	$(STACK) build --dry-run --silent --stack-yaml stack-ghc8.2.yaml
+	$(STACK) build --dry-run --silent
+# --stack-yaml stack-ghc8.2.yaml
 
 gencabal-with-hpack-%:
 	$(STACK) build --with-hpack hpack-$* --dry-run --silent --stack-yaml stack-ghc8.2.yaml
