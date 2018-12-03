@@ -2114,7 +2114,7 @@ set LANG to something other than C.
 
 ## hledger-ui
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **0.27**. <span class="docversions"></span>
 
 -   <style>
     .highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
@@ -2493,7 +2493,7 @@ program is restarted.
 
 ## hledger-web
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **0.27**. <span class="docversions"></span>
 
 ### NAME
 
@@ -2733,7 +2733,7 @@ Does not work well on small screens.
 
 ## hledger-api
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **0.27**. <span class="docversions"></span>
 
 ### NAME
 
@@ -2840,7 +2840,7 @@ awkward.
 
 ## journal format
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **0.27**. <span class="docversions"></span>
 
 ### NAME
 
@@ -3674,7 +3674,7 @@ https://twitter.com/LedgerTips/status/501767602067472384
 
 ## csv format
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **0.27**. <span class="docversions"></span>
 
 ### NAME
 
@@ -3857,7 +3857,7 @@ of same-day entries will be preserved, usually.
 
 ## timeclock format
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **0.27**. <span class="docversions"></span>
 
 ### NAME
 
@@ -3933,7 +3933,7 @@ To generate time logs, ie to clock in and clock out, you could:
 
 ## timedot format
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **0.27**. <span class="docversions"></span>
 
 ### NAME
 
