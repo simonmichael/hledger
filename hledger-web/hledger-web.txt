@@ -251,4 +251,4 @@ SEE ALSO
 
 
 
-hledger-web 1.11.99             September 2018                  hledger-web(1)
+hledger-web 1.12                 December 2018                  hledger-web(1)

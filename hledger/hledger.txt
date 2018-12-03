@@ -238,41 +238,98 @@ OPTIONS
        prevent this expansion of @-arguments, precede them with a -- argument.
        For more, see Save frequently used options.
 
-   Special characters
-       Option and argument values which contain problematic characters  should
-       be  escaped  with  double quotes, backslashes, or (best) single quotes.
-       Problematic characters means spaces, and also characters which are sig-
-       nificant  to  your  command shell, such as less-than/greater-than.  Eg:
+   Special characters in arguments and queries
+       In shell command lines, option and argument values which contain "prob-
+       lematic" characters, ie spaces, and also characters significant to your
+       shell such as <, >, (, ), | and $, should be escaped by enclosing  them
+       in quotes or by writing backslashes before the characters.  Eg:
+
        hledger register -p 'last year' "accounts receivable (receiv-
        able|payable)" amt:\>100.
 
-       Characters  which  are  significant  both  to  the shell and in regular
-       expressions sometimes need to be double-escaped.  These include  paren-
-       theses,  the  pipe symbol and the dollar sign.  Eg, to match the dollar
-       symbol, bash users should do: hledger balance cur:'\$' or  hledger bal-
-       ance cur:\\$.
+   More escaping
+       Characters significant both to the shell and in regular expressions may
+       need  one extra level of escaping.  These include parentheses, the pipe
+       symbol and the dollar sign.  Eg, to match the dollar symbol, bash users
+       should do:
 
-       When hledger is invoking an addon executable (like hledger-ui), options
-       and arguments get de-escaped once more, so you might need triple-escap-
-       ing.   Eg:  hledger ui cur:'\\$' or hledger ui cur:\\\\$ in bash.  (The
-       number of backslashes in fish shell is left  as  an  exercise  for  the
+       hledger balance cur:'\$'
+
+       or:
+
+       hledger balance cur:\\$
+
+   Even more escaping
+       When  hledger runs an addon executable (eg you type hledger ui, hledger
+       runs hledger-ui), it  de-escapes  command-line  options  and  arguments
+       once,  so  you might need to triple-escape.  Eg in bash, running the ui
+       command and matching the dollar sign, it's:
+
+       hledger ui cur:'\\$'
+
+       or:
+
+       hledger ui cur:\\\\$
+
+       If you asked why four slashes above, this may help:
+
+
+       unescaped:        $
+       escaped:          \$
+       double-escaped:   \\$
+       triple-escaped:   \\\\$
+
+       (The number of backslashes in fish shell is left as an exercise for the
        reader.)
 
-       Inside  a  file used for argument expansion, one less level of escaping
-       is enough.  (And in this case, backslashes seem  to  work  better  than
-       quotes.  Eg: cur:\$).
+       You can always avoid the extra escaping for addons by running the addon
+       directly:
 
+       hledger-ui cur:\\$
+
+   Less escaping
+       Inside an argument file, or  in  the  search  field  of  hledger-ui  or
+       hledger-web,  or  at a GHCI prompt, you need one less level of escaping
+       than at the command line.  And backslashes may work better than quotes.
+       Eg:
+
+       ghci> :main balance cur:\$
+
+   Command line tips
        If in doubt, keep things simple:
 
-       o run add-on executables directly
+       o write options after the command (hledger CMD -OPTIONS ARGS)
 
-       o write options after the command
+       o run add-on executables directly (hledger-ui -OPTIONS ARGS)
 
        o enclose problematic args in single quotes
 
        o if needed, also add a backslash to escape regexp metacharacters
 
-       If you're really stumped, add --debug=2 to troubleshoot.
+       To  find  out exactly how a command line is being parsed, add --debug=2
+       to troubleshoot.
+
+   Unicode characters
+       hledger is expected to handle unicode (non-ascii) characters, but  this
+       requires a well-configured environment.
+
+       To  handle unicode characters in the command line or input data, a sys-
+       tem locale that can decode them must be configured (POSIX's  default  C
+       locale will not work).  Eg in bash, you could do:
+
+              export LANG=en_US.UTF-8
+
+       See Troubleshooting for more about this.
+
+       Unicode  characters  should  appear correctly in hledger's output.  For
+       the hledger and hledger-ui tools, this requires that
+
+       o your terminal supports unicode
+
+       o the terminal's font includes the required unicode glyphs
+
+       o the terminal is configured to display  "wide"  characters  as  double
+         width (otherwise report alignment will be off)
 
    Input files
        hledger reads transactions from a data file (and the add command writes
@@ -340,6 +397,7 @@ OPTIONS
                                              4+  digits, month is 1-12,
                                              day is 1-31
        2004                                  start of year
+
        2004/10                               start of month
        10/1                                  month and day  in  current
                                              year
@@ -397,7 +455,6 @@ OPTIONS
                          rent month
        -p thismonth      all  transactions  in  the
                          current month
-
        date:2016/3/17-   the   above   written   as
                          queries instead
        date:-12/1
@@ -531,7 +588,6 @@ OPTIONS
        -p "every 2nd Monday"  -  period bound-
        aries will be on second Monday of  each
        month
-
        -p "every 11/05"  - yearly periods with
        boundaries on 5th of Nov
        -p "every 5th Nov" - same
@@ -2094,7 +2150,7 @@ ADD-ON COMMANDS
 
    irr
        hledger-irr  calculates  the  internal  rate of return of an investment
-       account.
+       account, but it's superseded now by the built-in roi command.
 
    Experimental add-ons
        These are available in source form in the hledger  repo's  bin/  direc-
@@ -2230,4 +2286,4 @@ SEE ALSO
 
 
 
-hledger 1.11.99                 September 2018                      hledger(1)
+hledger 1.12                     December 2018                      hledger(1)
