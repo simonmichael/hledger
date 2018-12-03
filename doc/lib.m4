@@ -17,20 +17,13 @@ m4_dnl
 m4_define({{_docversionlinks_}},m4_dnl
 This doc is for version **_version_** (dev).
 <span class="docversions">m4_dnl
-m4_dnl Too painful for static generation, insert from site.js instead
-m4_dnl Available versions:
-m4_dnl <a href="/$1.html">dev</a>
-m4_dnl | <a href="/doc/1.12/$1.html">1.12</a>
-m4_dnl | <a href="/doc/1.11/$1.html">1.11</a>
-m4_dnl | <a href="/doc/1.10/$1.html">1.10</a>
-m4_dnl | <a href="/doc/1.9/$1.html">1.9</a>
-m4_dnl | <a href="/doc/1.5/$1.html">1.5</a>
-m4_dnl | <a href="/doc/1.4/$1.html">1.4</a>
-m4_dnl | <a href="/doc/1.3/$1.html">1.3</a>
-m4_dnl | <a href="/doc/1.2/$1.html">1.2</a>
-m4_dnl | <a href="/doc/1.1/$1.html">1.1</a>
-m4_dnl | <a href="/doc/1.0/$1.html">1.0</a>
-m4_dnl | <a href="/doc/0.27/manual.html#$1">0.27</a>
+m4_dnl #(inserted by site.js, too painful for static generation)
+m4_dnl #Available versions:
+m4_dnl #<a href="/$1.html">dev</a>
+m4_dnl #| <a href="/doc/1.12/$1.html">1.12</a>
+m4_dnl #...
+m4_dnl #| <a href="/doc/1.0/$1.html">1.0</a>
+m4_dnl #| <a href="/doc/0.27/manual.html#$1">0.27</a>
 </span>)m4_dnl
 m4_dnl
 m4_define({{_toc_}},{{
