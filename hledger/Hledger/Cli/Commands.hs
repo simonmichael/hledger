@@ -176,6 +176,7 @@ Other/experimental:
  irr                      calculate internal rate of return of an investment
  print-unique             show only transactions with unique descriptions
  register-match           show best matching transaction for a description
+ roi                      calculate return on investments
  test                     run self tests
 OTHER
 Help:
