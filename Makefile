@@ -1238,7 +1238,7 @@ GITLOG=git log --abbrev-commit
 # verbose org-like changelog format, including hashes and --stat info for troubleshooting.
 # ORGNODE stands in for * until any * list bullets in commit messages have been rewritten.
 # %s=summary, %an=author name, %n=newline if needed, %b=long description, %h=hash
-VERBOSEFMT=--pretty=format:'ORGNODE %s (%an)%n%b%h' --stat
+VERBOSEFMT=--pretty=format:'ORGNODE %s (%an)  %n%b%h' --stat
 
 changes-%-verbose: $(call def-help,changes-PKGID-verbose, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as verbose org nodes )
 	$(eval PKGID=$*)
@@ -1252,7 +1252,7 @@ changes-top-verbose: $(call def-help,changes-top-verbose, show commits since the
 	@$(GITLOG) $(VERBOSEFMT) $(REV).. -- . $(EXCLUDEPKGDIRS) | $(CLEANUPCHANGES)
 
 # org-like changelog format suitable for changelogs/release notes
-CHANGELOGFMT=--pretty=format:'ORGNODE %s (%an)%n%b'
+CHANGELOGFMT=--pretty=format:'ORGNODE %s (%an)  %n%b'
 
 changes-%: $(call def-help,changes-PKGDIR, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as changelog-ready org nodes )
 	$(eval PKGID=$*)
