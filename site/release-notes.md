@@ -88,27 +88,27 @@ is updated frequently; here are the
 
 ### hledger 1.12
 
-* install script: ensure a new-enough version of stack; more informative output
+* install script: ensure a new-enough version of stack; more informative output  
 
-* build with GHC 8.6/base-4.12 (Peter Simons)
+* build with GHC 8.6/base-4.12 (Peter Simons)  
 
-* add required upper bound for statistics (Samuel May)
+* add required upper bound for statistics (Samuel May)  
 
-* --anon anonymises more thoroughly (including linked original postings) (Moritz Kiefer)
+* --anon anonymises more thoroughly (including linked original postings) (Moritz Kiefer)  
 
-* unbalanced transaction errors now include location info (Mykola Orliuk)
+* unbalanced transaction errors now include location info (Mykola Orliuk)  
 
-* accounts command: --drop also affects the default flat output, without needing an explicit --flat flag
+* accounts command: --drop also affects the default flat output, without needing an explicit --flat flag  
 
-* accounts command: the --codes flag has been dropped
+* accounts command: the --codes flag has been dropped  
 
-* accounts command: filtering by non-account-name queries now works
+* accounts command: filtering by non-account-name queries now works  
 
-* add command: fix transaction rendering regression during data entry and in journal file
+* add command: fix transaction rendering regression during data entry and in journal file  
 
-* balance command: fix wrongful eliding of zero-balance parent accounts in tree mode (Dmitry Astapov)
+* balance command: fix wrongful eliding of zero-balance parent accounts in tree mode (Dmitry Astapov)  
 
-* journal format, bs/bse/cf/is commands: account directives can declare account types (#877)
+* journal format, bs/bse/cf/is commands: account directives can declare account types (#877)  
   Previously you had to use one of the standard english account names
   (assets, liabilities..) for top-level accounts, if you wanted them to
   appear in the right place in the balancesheet, balancesheetequity,
@@ -131,7 +131,7 @@ is updated frequently; here are the
   top-level accounts, or only allowed a single account of each type,
   complications seem likely.)
 
-* journal format: periodic transaction rules now require a double space separator.
+* journal format: periodic transaction rules now require a double space separator.  
   In periodic transaction rules which specify a transaction description or
   same-line transaction comment, this must be separated from the period
   expression by two or more spaces, to prevent ambiguous parsing. Eg
@@ -139,7 +139,7 @@ is updated frequently; here are the
 
       ~ monthly  In 2020 we'll end this monthly transaction.
 
-* journal format: exact/complete balance assertions (Samuel May).
+* journal format: exact/complete balance assertions (Samuel May).  
   A stronger kind of balance assertion, written with a double equals sign,
   asserts an account's complete account balance, not just the balance in
   one commodity. (But only if it is a single-commodity balance, for now.)
@@ -151,18 +151,18 @@ is updated frequently; here are the
         (a)  0   =  A 1   ; commodity A balance assertion, succeeds
         (a)  0   == A 1   ; complete balance assertion, fails
 
-* journal format: account directives now allow whitespace or a comment after the account name
+* journal format: account directives now allow whitespace or a comment after the account name  
 
-* journal format: using ~ for home directory in include directives now works (#896) (Mykola Orliuk)
+* journal format: using ~ for home directory in include directives now works (#896) (Mykola Orliuk)  
 
-* journal format: prevent misleading parse error messages with cyclic include directives (#853) (Alex Chen)
+* journal format: prevent misleading parse error messages with cyclic include directives (#853) (Alex Chen)  
 
-* journal format: transaction modifier multipliers handle total-priced amounts correctly (#928).
+* journal format: transaction modifier multipliers handle total-priced amounts correctly (#928).  
   Multipliers (*N) in transaction modifier rules did not multiply
   total-priced amounts properly.  Now the total prices are also multiplied,
   keeping the transaction balanced.
 
-* journal format: do amount inference/balance assignments/assertions before transaction modifiers (#893, #908) (Jesse Rosenthal)
+* journal format: do amount inference/balance assignments/assertions before transaction modifiers (#893, #908) (Jesse Rosenthal)  
   Previously, transaction modifier (auto postings) rules were applied
   before missing amounts were inferred. This meant amount multipliers could
   generate too many missing-amount postings, making the transaction
@@ -178,33 +178,33 @@ is updated frequently; here are the
   (Because assignments now generate amounts to satisfy balance assertions
   before transaction modifier rules are applied (#908).)
 
-* journal format: periodic transaction rules are now aware of Y default year directives. (#892)
+* journal format: periodic transaction rules are now aware of Y default year directives. (#892)  
   Ie when a default year Y is in effect, they resolve partial or relative
   dates using Y/1/1 as the reference date, rather than today's date.
 
 ### hledger-ui 1.12
 
-* fix "Any" build error with GHC < 8.4
+* fix "Any" build error with GHC < 8.4  
 
-* error screen: always show error position properly (#904) (Mykola Orliuk)
+* error screen: always show error position properly (#904) (Mykola Orliuk)  
 
-* accounts screen: show correct balances when there's only periodic transactions
+* accounts screen: show correct balances when there's only periodic transactions  
 
-* drop the --status-toggles flag
+* drop the --status-toggles flag  
 
-* periodic transactions and transaction modifiers are always enabled.
+* periodic transactions and transaction modifiers are always enabled.  
   Rule-based transactions and postings are always generated
   (--forecast and --auto are always on).
   Experimental.
 
-* escape key resets to flat mode.
+* escape key resets to flat mode.  
   Flat mode is the default at startup. Probably it should reset to tree
   mode if --tree was used at startup.
 
-* tree mode tweaks: add --tree/-T/-F flags, make flat mode the default,  
+* tree mode tweaks: add --tree/-T/-F flags, make flat mode the default,    
   toggle tree mode with T, ensure a visible effect on register screen
 
-* hide future txns by default, add --future flag, toggle with F.
+* hide future txns by default, add --future flag, toggle with F.  
   You may have transactions dated later than today, perhaps piped from
   print --forecast or recorded in the journal, which you don't want to
   see except when forecasting.
@@ -216,81 +216,81 @@ is updated frequently; here are the
 
   (Experimental. Interactions with date queries have not been explored.)
 
-* quick help tweaks; try to show most useful info first
+* quick help tweaks; try to show most useful info first  
 
-* reorganise help dialog, fit content into 80x25 again
+* reorganise help dialog, fit content into 80x25 again  
 
-* styling tweaks; cyan/blue -> white/yellow
+* styling tweaks; cyan/blue -> white/yellow  
 
-* less noisy styling in horizontal borders (#838)
+* less noisy styling in horizontal borders (#838)  
 
-* register screen: positive amounts: green -> black
+* register screen: positive amounts: green -> black  
   The green/red scheme helped distinguish the changes column from the
   black/red balance column, but the default green is hard to read on
   the pale background in some terminals. Also the changes column is
   non-bold now.
 
-* use hledger 1.12
+* use hledger 1.12  
 
 ### hledger-web 1.12
 
-* fix duplicate package.yaml keys warned about by hpack
+* fix duplicate package.yaml keys warned about by hpack  
 
-* use hledger 1.12
+* use hledger 1.12  
 
 ### hledger-api 1.12
 
-* use hledger 1.12
+* use hledger 1.12  
 
 ### hledger-lib 1.12
 
-* switch to megaparsec 7 (Alex Chen)
+* switch to megaparsec 7 (Alex Chen)  
   We now track the stack of include files in Journal ourselves, since
   megaparsec dropped this feature.
 
-* add 'ExceptT' layer to our parser monad again (Alex Chen)
+* add 'ExceptT' layer to our parser monad again (Alex Chen)  
   This was removed under the assumption that it would be possible to
   write our parser without this capability. However, after a hairy
   backtracking bug, we would now prefer to have the option to prevent
   backtracking.
 
-* more support for location-aware parse errors when re-parsing (Alex Chen)
+* more support for location-aware parse errors when re-parsing (Alex Chen)  
 
-* make 'includedirectivep' an 'ErroringJournalParser' (Alex Chen)
+* make 'includedirectivep' an 'ErroringJournalParser' (Alex Chen)  
 
-* drop Ord instance breaking GHC 8.6 build (Peter Simons)
+* drop Ord instance breaking GHC 8.6 build (Peter Simons)  
 
-* flip the arguments of (divide|multiply)[Mixed]Amount
+* flip the arguments of (divide|multiply)[Mixed]Amount  
 
-* showTransaction: fix a case showing multiple missing amounts
+* showTransaction: fix a case showing multiple missing amounts  
   showTransaction could sometimes hide the last posting's amount even if
   one of the other posting amounts was already implcit, producing invalid
   transaction output.
 
-* plog, plogAt: add missing newline
+* plog, plogAt: add missing newline  
 
-* split up journalFinalise, reorder journal finalisation steps (#893) (Jesse Rosenthal)
+* split up journalFinalise, reorder journal finalisation steps (#893) (Jesse Rosenthal)  
   The `journalFinalise` function has been split up, allowing more granular
   control.
 
-* journalSetTime --> journalSetLastReadTime
+* journalSetTime --> journalSetLastReadTime  
 
-* journalSetFilePath has been removed, use journalAddFile instead
+* journalSetFilePath has been removed, use journalAddFile instead  
 
 ### credits 1.12
 
 Release contributors:
-Simon Michael
-Alex Chen
-Jesse Rosenthal
-Samuel May
-Mykola Orliuk
-Peter Simons
-Moritz Kiefer
-Dmitry Astapov
-Felix Yan
-Aiken Cairncross
-Nikhil Jha
+Simon Michael,
+Alex Chen,
+Jesse Rosenthal,
+Samuel May,
+Mykola Orliuk,
+Peter Simons,
+Moritz Kiefer,
+Dmitry Astapov,
+Felix Yan,
+Aiken Cairncross,
+Nikhil Jha.
 
 
 ## 2018/9/30 hledger 1.11
