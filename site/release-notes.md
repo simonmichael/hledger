@@ -8,6 +8,7 @@ h4 { margin-top:2em; }
 <ol>
 <li><a href="#hledger-install">hledger-install</a>
 <!-- <li><a href="#latest-minor-release">Latest (2018/4/30)</a> -->
+<li><a href="#hledger-1.12">hledger 1.12 (2018/12/02)</a>
 <li><a href="#hledger-1.11">hledger 1.11 (2018/9/30)</a>
 <li><a href="#hledger-1.10">hledger 1.10 (2018/6/30)</a>
 <li><a href="#hledger-1.9">hledger 1.9 (2018/3/31)</a>
@@ -58,6 +59,7 @@ is updated frequently; here are the
 
 
 
+<!--
 ## Latest minor release
 
 <http://hackage.haskell.org/package/hledger-lib-1.11.1/changelog>  
@@ -65,6 +67,230 @@ is updated frequently; here are the
 <http://hackage.haskell.org/package/hledger-ui-1.11.1/changelog>  
 <http://hackage.haskell.org/package/hledger-web-1.11.1/changelog>  
 <http://hackage.haskell.org/package/hledger-api-1.11.1/changelog>  
+-->
+
+## 2018/12/02 hledger 1.12
+
+*** ***
+<!--
+([announcement](https://groups.google.com/forum/#!msg/hledger/))
+-->
+
+  <!-- [project](#project-wide-changes-for-1.12) -->
+  [hledger](#hledger-1.12-1)
+| [hledger-ui](#hledger-ui-1.12)
+| [hledger-web](#hledger-web-1.12)
+| [hledger-api](#hledger-api-1.12)
+| [hledger-lib](#hledger-lib-1.12)
+| [credits](#credits-1.12)
+
+<!-- ### project-wide changes for 1.12 -->
+
+### hledger 1.12
+
+* install script: ensure a new-enough version of stack; more informative output
+
+* build with GHC 8.6/base-4.12 (Peter Simons)
+
+* add required upper bound for statistics (Samuel May)
+
+* --anon anonymises more thoroughly (including linked original postings) (Moritz Kiefer)
+
+* unbalanced transaction errors now include location info (Mykola Orliuk)
+
+* accounts command: --drop also affects the default flat output, without needing an explicit --flat flag
+
+* accounts command: the --codes flag has been dropped
+
+* accounts command: filtering by non-account-name queries now works
+
+* add command: fix transaction rendering regression during data entry and in journal file
+
+* balance command: fix wrongful eliding of zero-balance parent accounts in tree mode (Dmitry Astapov)
+
+* journal format, bs/bse/cf/is commands: account directives can declare account types (#877)
+  Previously you had to use one of the standard english account names
+  (assets, liabilities..) for top-level accounts, if you wanted them to
+  appear in the right place in the balancesheet, balancesheetequity,
+  cashflow or incomestatement reports.
+
+  Now you can use your preferred account names, and use account directives
+  to declare which accounting class (Asset, Liability, Equity, Revenue or
+  eXpense) an account (and its subaccounts) belongs to, by writing one of
+  the letters A, L, E, R, X after the account name, after two or more
+  spaces. This syntax may change (see issue).  Experimental.
+
+  Currently we allow unlimited account type declarations anywhere in the
+  account tree. So you could declare a liability account somewhere under
+  assets, and maybe a revenue account under that, and another asset account
+  even further down. In such cases you start to see oddities like accounts
+  appearing in multiple places in a tree-mode report. I have left it this
+  way for now in case it helps with, eg, modelling contra accounts, or
+  combining multiple files each with their own account type
+  declarations. (In that scenario, if we only allowed type declarations on
+  top-level accounts, or only allowed a single account of each type,
+  complications seem likely.)
+
+* journal format: periodic transaction rules now require a double space separator.
+  In periodic transaction rules which specify a transaction description or
+  same-line transaction comment, this must be separated from the period
+  expression by two or more spaces, to prevent ambiguous parsing. Eg
+  this will parse correctly as "monthly" thanks to the double space:
+
+      ~ monthly  In 2020 we'll end this monthly transaction.
+
+* journal format: exact/complete balance assertions (Samuel May).
+  A stronger kind of balance assertion, written with a double equals sign,
+  asserts an account's complete account balance, not just the balance in
+  one commodity. (But only if it is a single-commodity balance, for now.)
+  Eg:
+
+      1/1
+        (a)  A 1
+        (a)  B 1
+        (a)  0   =  A 1   ; commodity A balance assertion, succeeds
+        (a)  0   == A 1   ; complete balance assertion, fails
+
+* journal format: account directives now allow whitespace or a comment after the account name
+
+* journal format: using ~ for home directory in include directives now works (#896) (Mykola Orliuk)
+
+* journal format: prevent misleading parse error messages with cyclic include directives (#853) (Alex Chen)
+
+* journal format: transaction modifier multipliers handle total-priced amounts correctly (#928).
+  Multipliers (*N) in transaction modifier rules did not multiply
+  total-priced amounts properly.  Now the total prices are also multiplied,
+  keeping the transaction balanced.
+
+* journal format: do amount inference/balance assignments/assertions before transaction modifiers (#893, #908) (Jesse Rosenthal)
+  Previously, transaction modifier (auto postings) rules were applied
+  before missing amounts were inferred. This meant amount multipliers could
+  generate too many missing-amount postings, making the transaction
+  unbalanceable (#893).
+
+  Now, missing amount inference (and balance assignments, and balance
+  assertions, which are interdependent) are done earlier, before
+  transaction modifier rules are applied (#900, #903).
+
+  Also, we now disallow the combination of balance assignments and
+  transaction modifier rules which both affect the same account, which
+  could otherwise cause confusing balance assertion failures (#912).
+  (Because assignments now generate amounts to satisfy balance assertions
+  before transaction modifier rules are applied (#908).)
+
+* journal format: periodic transaction rules are now aware of Y default year directives. (#892)
+  Ie when a default year Y is in effect, they resolve partial or relative
+  dates using Y/1/1 as the reference date, rather than today's date.
+
+### hledger-ui 1.12
+
+* fix "Any" build error with GHC < 8.4
+
+* error screen: always show error position properly (#904) (Mykola Orliuk)
+
+* accounts screen: show correct balances when there's only periodic transactions
+
+* drop the --status-toggles flag
+
+* periodic transactions and transaction modifiers are always enabled.
+  Rule-based transactions and postings are always generated
+  (--forecast and --auto are always on).
+  Experimental.
+
+* escape key resets to flat mode.
+  Flat mode is the default at startup. Probably it should reset to tree
+  mode if --tree was used at startup.
+
+* tree mode tweaks: add --tree/-T/-F flags, make flat mode the default,  
+  toggle tree mode with T, ensure a visible effect on register screen
+
+* hide future txns by default, add --future flag, toggle with F.
+  You may have transactions dated later than today, perhaps piped from
+  print --forecast or recorded in the journal, which you don't want to
+  see except when forecasting.
+
+  By default, we now hide future transactions, showing "today's balance".
+  This can be toggled with the F key, which is easier than setting a
+  date query. --present and --future flags have been added to set the
+  initial mode.
+
+  (Experimental. Interactions with date queries have not been explored.)
+
+* quick help tweaks; try to show most useful info first
+
+* reorganise help dialog, fit content into 80x25 again
+
+* styling tweaks; cyan/blue -> white/yellow
+
+* less noisy styling in horizontal borders (#838)
+
+* register screen: positive amounts: green -> black
+  The green/red scheme helped distinguish the changes column from the
+  black/red balance column, but the default green is hard to read on
+  the pale background in some terminals. Also the changes column is
+  non-bold now.
+
+* use hledger 1.12
+
+### hledger-web 1.12
+
+* fix duplicate package.yaml keys warned about by hpack
+
+* use hledger 1.12
+
+### hledger-api 1.12
+
+* use hledger 1.12
+
+### hledger-lib 1.12
+
+* switch to megaparsec 7 (Alex Chen)
+  We now track the stack of include files in Journal ourselves, since
+  megaparsec dropped this feature.
+
+* add 'ExceptT' layer to our parser monad again (Alex Chen)
+  This was removed under the assumption that it would be possible to
+  write our parser without this capability. However, after a hairy
+  backtracking bug, we would now prefer to have the option to prevent
+  backtracking.
+
+* more support for location-aware parse errors when re-parsing (Alex Chen)
+
+* make 'includedirectivep' an 'ErroringJournalParser' (Alex Chen)
+
+* drop Ord instance breaking GHC 8.6 build (Peter Simons)
+
+* flip the arguments of (divide|multiply)[Mixed]Amount
+
+* showTransaction: fix a case showing multiple missing amounts
+  showTransaction could sometimes hide the last posting's amount even if
+  one of the other posting amounts was already implcit, producing invalid
+  transaction output.
+
+* plog, plogAt: add missing newline
+
+* split up journalFinalise, reorder journal finalisation steps (#893) (Jesse Rosenthal)
+  The `journalFinalise` function has been split up, allowing more granular
+  control.
+
+* journalSetTime --> journalSetLastReadTime
+
+* journalSetFilePath has been removed, use journalAddFile instead
+
+### credits 1.12
+
+Release contributors:
+Simon Michael
+Alex Chen
+Jesse Rosenthal
+Samuel May
+Mykola Orliuk
+Peter Simons
+Moritz Kiefer
+Dmitry Astapov
+Felix Yan
+Aiken Cairncross
+Nikhil Jha
 
 
 ## 2018/9/30 hledger 1.11
@@ -234,6 +460,7 @@ fixes
 ### credits 1.11
 
 Release contributors:
+Simon Michael,
 Joseph Weston,
 Dmitry Astapov,
 Gaith Hallak,
@@ -375,6 +602,7 @@ misc fixes
 ### credits 1.10
 
 Release contributors:
+Simon Michael,
 Alex Chen,
 Everett Hildenbrandt,
 Jakub Zárybnický,
@@ -404,6 +632,7 @@ budget improvements.
 ([announcement](https://groups.google.com/forum/#!topic/hledger/DifO6UbeKnU))
 
 Release contributors:
+Simon Michael,
 Eli Flanagan,
 Peter Simons,
 Christoph Nicolai,
@@ -516,6 +745,7 @@ ignores --date2.
 ([announcement](https://groups.google.com/forum/#!topic/hledger/CyNifndzZxk))
 
 Release contributors:
+Simon Michael,
 Dmitry Astapov,
 Mykola Orliuk,
 Eli Flanagan,
