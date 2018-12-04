@@ -1,6 +1,12 @@
 User-visible changes in the hledger command line tool (and hledger-lib).
 
 
+# 1.12.1 (2018/12/03)
+
+* roi: use math-functions lib instead of statistics,
+  be more stackage nightly compatible  
+
+
 # 1.12 (2018/12/02)
 
 * install script: ensure a new-enough version of stack; more informative output
