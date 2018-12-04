@@ -690,11 +690,12 @@ amountp' s =
 -- joined as an arithmetic expression.
 mamountp :: Bool -> JournalParser m MixedAmount
 mamountp requireOp = label "mixed amount" $ do
+  pos <- getOffset
   opc <- ( if requireOp
            then id
            else option '+'
          ) $ do
-    c <- satisfy (`elem` ("+-" :: String))
+    c <- oneOf ("+-" :: String)
     lift (skipMany spacenonewline)
     pure c
   paren <- option False $ try $ do
@@ -710,13 +711,40 @@ mamountp requireOp = label "mixed amount" $ do
     else do
       inner <- amountp
       pure $ Mixed [inner]
+  mult <- multiplierp pos
   tail <- option nullmixedamt $ try $ do
     lift (skipMany spacenonewline)
     mamountp True
   let op = case opc of
         '-' -> negate
         _   -> id
-  return $ op amount + tail
+  return $ multiplyMixedAmount mult (op amount) + tail
+
+multiplierp :: Int -> JournalParser m Quantity
+multiplierp startOffset = do
+  lift (skipMany spacenonewline)
+  c <- optional $ try $ oneOf ("*/" :: String)
+  case c of
+    Nothing -> return 1
+    Just c' -> do
+      lift (skipMany spacenonewline)
+      (m, _, _, _) <- lift $ numberp Nothing
+      endOffset <- getOffset
+      f <- if c' == '/'
+        then if m == 0
+             then dividebyzeroerr startOffset endOffset
+             -- The "Decimal" docs recommend against using '(/)', but the
+             -- alternate interface provided might be more cumbersome than
+             -- necessary for this circumstance, as it would require
+             -- keeping track of multiple potential results.  Maybe revisit
+             -- this as part of a larger patch focused on fair rounding?
+             else return (/ m)
+        else return (* m)
+      ms <- multiplierp startOffset
+      return $ f ms
+
+dividebyzeroerr :: Int -> Int -> JournalParser m a
+dividebyzeroerr startOffset endOffset = customFailure $ parseErrorAtRegion startOffset endOffset "attempted division by 0"
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
@@ -1376,6 +1404,7 @@ tests_Common = tests "Common" [
 
   ,tests "mamountp" [
     test "basic"                         $ expectParseEq (mamountp False) "$47.18"                           $ Mixed [usd 47.18]
+   ,test "operations"                    $ expectParseEq (mamountp False) "$6.00 + $5.00 - $4.00 / 2 * 3"    $ Mixed [usd 5.00]
    ,test "multiple commodities"          $ expectParseEq (mamountp False) "$47.18+€20,59"                    $ Mixed [
        amount{
           acommodity="$"

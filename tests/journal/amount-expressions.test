@@ -135,7 +135,27 @@ hledger -f - print --auto
 >>>2
 >>>=0
 
-# 9. Standard postings may not be headed by multipliers
+# 9. Modifiers operate on all commodities in a posting
+hledger -f - print --auto
+<<<
+= a
+    (c)           *-1 + $8
+
+2018-01-01
+    a              $5 - 5 CAD
+    b
+>>>
+2018/01/01
+    a                $5
+    a            -5 CAD
+    (c)              $3
+    (c)           5 CAD
+    b
+
+>>>2
+>>>=0
+
+# 10. Standard postings may not be headed by multipliers
 hledger -f - print
 <<<
 2018-01-01
@@ -145,7 +165,7 @@ hledger -f - print
 >>>2 /unexpected '*'/
 >>>=1
 
-# 10. Auto-postings require an operator between multiplier and expression
+# 11. Auto-postings require an operator between multiplier and expression
 # The error message could be a bit more helpful, but at least it mentions
 # expecting a mixed amount
 hledger -f - print --auto
@@ -160,4 +180,149 @@ hledger -f - print --auto
 >>>
 >>>2 /unexpected '8'/
 >>>=1
+
+# 12. Multiplication by plain values works as expected
+hledger -f - print
+<<<
+2018-01-01
+    a              $1 * 2
+    b             -$2 * 0.5
+    c              $2 * -1
+    d             -$1 * -1
+>>>
+2018/01/01
+    a              $2
+    b             $-1
+    c             $-2
+    d              $1
+
+>>>2
+>>>=0
+
+# 13. ... as does division
+hledger -f - print
+<<<
+2018-01-01
+    a           $2.00 / 2
+    b          -$1.00 / 0.5
+    c           $2.00 / -1
+    d          -$3.00 / -1
+>>>
+2018/01/01
+    a           $1.00
+    b          $-2.00
+    c          $-2.00
+    d           $3.00
+
+>>>2
+>>>=0
+
+# 14. Multiplication disallows commodities before the multiplier
+hledger -f - print
+<<<
+2018-01-01
+    a              $1 * $2
+    c
+>>>
+>>>2 /unexpected '\$'/
+>>>=1
+
+# 15. ... and after
+hledger -f - print
+<<<
+2018-01-01
+    a              $1 * 2 CAD
+    c
+>>>
+>>>2 /unexpected 'C'/
+>>>=1
+
+# 16. Division prevents divide-by-zero errors
+hledger -f - print
+<<<
+2018-01-01
+    a              $1 / 0
+    b
+>>>
+>>>2 /division by 0/
+>>>=1
+
+# 17. ... but multiplication just simplifies them
+hledger -f - print
+<<<
+2018-01-01
+    a              $1 * 0
+    b
+>>>
+2018/01/01
+    a               0
+    b
+
+>>>2
+>>>=0
+
+# 18. Multiplication and division rounds values according to the multiplicand precision
+hledger -f - print
+<<<
+2018-01-01
+    a              $3 * 0.5
+    b              $1 / 3
+    c
+>>>
+2018/01/01
+    a              $2
+    b               0
+    c
+
+>>>2
+>>>=0
+
+# 19. Commodity directives affect multiplication and division rounding
+hledger -f - print
+<<<
+commodity $1,000.00
+
+2018-01-01
+    a              $3 * 0.5
+    b              $1 / 3
+    c
+>>>
+2018/01/01
+    a           $1.50
+    b           $0.33
+    c
+
+>>>2
+>>>=0
+
+# 20. Expressions respect order of operations
+hledger -f - print
+<<<
+2018-01-01
+    a              $1 + $2  * 3 - $4
+    b             ($1 + $2) * 3 - $4
+    c
+>>>
+2018/01/01
+    a              $3
+    b              $5
+    c
+
+>>>2
+>>>=0
+
+# 21. Multiplication and division work over multiple commodities
+hledger -f - print
+<<<
+2018-01-01
+    a             ($1 + 2 CAD) * 3
+    b
+>>>
+2018/01/01
+    a              $3
+    a           6 CAD
+    b
+
+>>>2
+>>>=0
 
