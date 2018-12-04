@@ -50,7 +50,7 @@ Binaries or system packages are quickest to install, but they can be outdated or
 | [Mac][]              | **`brew install hledger`** <br><span class=warnings>[only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520)</span> | 1.11.1
 | [Windows][]          | Developer binaries: **[1.12](https://ci.appveyor.com/api/buildjobs/vcocma20843lpfdo/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --> <br><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.12
 | &nbsp;               |
-| [Arch&nbsp;Linux][]  | **`pacman -S hledger`** | 1.12
+| [Arch&nbsp;Linux][]  | **`pacman -S hledger [hledger-ui] [hledger-web] [hledger-api]`** | 1.12
 | CentOS               | <span class=warnings>?</span> | 
 | [Debian][]           | **`sudo apt install hledger hledger-ui hledger-web`** | 1.0.1&nbsp;(Stable), 1.10&nbsp;(Testing), 1.10&nbsp;(Unstable)
 | [Fedora][],&nbsp;RHEL | **`sudo dnf install hledger`** <br>or (more complete & current):<br>**`sudo dnf copr enable kefah/HLedger && sudo dnf install hledger`** | 1.2&nbsp;(27), 1.4&nbsp;(28), 1.5&nbsp;(Rawhide)<br>1.9.1 (kefah)
