@@ -2,6 +2,11 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 1.12.1 (2018/12/10)
+
+* avoid build issue with brick 0.44+ (#935)  
+
+
 # 1.12 (2018/12/02)
 
 * fix "Any" build error with GHC < 8.4
