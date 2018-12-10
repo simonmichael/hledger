@@ -1254,7 +1254,7 @@ changes-top-verbose: $(call def-help,changes-top-verbose, show commits since the
 # org-like changelog format suitable for changelogs/release notes
 CHANGELOGFMT=--pretty=format:'ORGNODE %s (%an)  %n%b'
 
-changes-%: $(call def-help,changes-PKGDIR, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as changelog-ready org nodes )
+changes-%: $(call def-help,changes-PKGID, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as changelog-ready org nodes )
 	$(eval PKGID=$*)
 	$(eval PKGDIR=$(subst -cli,,hledger-$(PKGID)))
 	$(eval PKGPREFIX=$(shell echo $(PKGDIR) | sed -e s/hledger-// -e s/^hledger$$/cli/))
