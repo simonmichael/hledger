@@ -24,7 +24,7 @@ import Data.Time.Calendar
 import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Brick
-import Brick.Widgets.List
+import Brick.Widgets.List hiding (reverse)
 import Brick.Widgets.Edit
 import Lens.Micro.Platform
 import Safe
