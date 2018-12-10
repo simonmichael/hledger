@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.6.2
 
-resolver: nightly-2018-11-19
+resolver: nightly-2018-12-10
 
 packages:
 - hledger-lib
@@ -18,25 +18,12 @@ nix:
 extra-deps:
 
 # hledger-lib
-- cassava-megaparsec-2.0.0
-- easytest-0.2.1
-- uglymemo-0.1.0.1
 
 # hledger
-- control-monad-free-0.6.2
-- timeit-2.0
-- wizards-1.0.3
 
 # hledger-ui
-- brick-0.41.3
-- config-ini-0.2.4.0
-- data-clist-0.1.2.1
-- text-zipper-0.10.1
-- word-wrap-0.4.1
 
 # hledger-web
-- json-0.9.2
-- wai-handler-launch-3.0.2.4
 
 # hledger-api
 
