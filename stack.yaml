@@ -1,6 +1,6 @@
-# stack build plan using GHC 8.6.2
+# stack build plan using GHC 8.6.3
 
-resolver: nightly-2018-12-10
+resolver: nightly-2018-12-31
 
 packages:
 - hledger-lib
@@ -16,16 +16,15 @@ nix:
 # allow-newer: true
 
 extra-deps:
-
-# hledger-lib
-
-# hledger
-
-# hledger-ui
-
-# hledger-web
-
-# hledger-api
-
-# Workaround for https://github.com/commercialhaskell/stack/issues/3922
+# hledger-lib:
+# hledger:
+# hledger-ui:
+- brick-0.46
+- text-zipper-0.10.1
+- config-ini-0.2.4.0
+- data-clist-0.1.2.2
+- word-wrap-0.4.1
+# hledger-web:
+# hledger-api:
+# Workaround for https://github.com/commercialhaskell/stack/issues/3922:
 - haskell-src-exts-1.20.3
