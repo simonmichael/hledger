@@ -194,7 +194,7 @@ a file format for human-friendly approximate time logging
 
 ### Accounting tasks
 
-[Foreign trip expenses](https://github.com/simonmichael/hledger/wiki/Foreign trip expenses)
+[Foreign trip expenses](https://github.com/simonmichael/hledger/wiki/Foreign trip expenses)  
 [Budgeting and forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting)  
 [Project accounting](https://github.com/simonmichael/hledger/wiki/Project accounting)  
 [Track investments](https://github.com/simonmichael/hledger/wiki/Track investments)  
