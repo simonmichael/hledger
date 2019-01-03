@@ -753,7 +753,7 @@ transactionFromCsvRecord sourcepos rules record = t
         ]
       }
     toAssertion (a, b) = assertion{
-      baamount   = a,
+      baamount   = Mixed [a],
       baposition = b
       }
 

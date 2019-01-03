@@ -71,11 +71,13 @@ module Hledger.Read.Common (
   spaceandamountormissingp,
   amountp,
   amountp',
+  mamountp,
   mamountp',
   commoditysymbolp,
   priceamountp,
   balanceassertionp,
   fixedlotpricep,
+  modifierp,
   numberp,
   fromRawNumber,
   rawnumberp,
@@ -604,21 +606,24 @@ spaceandamountormissingp =
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: JournalParser m Amount
-amountp = label "amount" $ do
-  amount <- amountwithoutpricep
+amountp = label "amount" $ amountormultiplierp False
+
+amountormultiplierp :: Bool -> JournalParser m Amount
+amountormultiplierp isMultiplier = do
+  amount <- amountwithoutpricep isMultiplier
   lift $ skipMany spacenonewline
   price <- priceamountp
   pure $ amount { aprice = price }
 
-amountwithoutpricep :: JournalParser m Amount
-amountwithoutpricep = do
-  (mult, sign) <- lift $ (,) <$> multiplierp <*> signp
-  leftsymbolamountp mult sign <|> rightornosymbolamountp mult sign
+amountwithoutpricep :: Bool -> JournalParser m Amount
+amountwithoutpricep isMultiplier = do
+  sign <- lift $ signp
+  leftsymbolamountp sign <|> rightornosymbolamountp sign
 
   where
 
-  leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  leftsymbolamountp mult sign = label "amount" $ do
+  leftsymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  leftsymbolamountp sign = label "amount" $ do
     c <- lift commoditysymbolp
     suggestedStyle <- getAmountStyle c
     commodityspaced <- lift $ skipMany' spacenonewline
@@ -630,10 +635,10 @@ amountwithoutpricep = do
     let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-    return $ Amount c (sign (sign2 q)) NoPrice s mult
+    return $ Amount c (sign (sign2 q)) NoPrice s
 
-  rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
-  rightornosymbolamountp mult sign = label "amount" $ do
+  rightornosymbolamountp :: (Decimal -> Decimal) -> JournalParser m Amount
+  rightornosymbolamountp sign = label "amount" $ do
     offBeforeNum <- getOffset
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
@@ -646,7 +651,7 @@ amountwithoutpricep = do
         suggestedStyle <- getAmountStyle c
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-        return $ Amount c (sign q) NoPrice s mult
+        return $ Amount c (sign q) NoPrice s
       -- no symbol amount
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
@@ -654,10 +659,10 @@ amountwithoutpricep = do
         -- if a default commodity has been set, apply it and its style to this amount
         -- (unless it's a multiplier in an automated posting)
         defcs <- getDefaultCommodityAndStyle
-        let (c,s) = case (mult, defcs) of
+        let (c,s) = case (isMultiplier, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-        return $ Amount c (sign q) NoPrice s mult
+        return $ Amount c (sign q) NoPrice s
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
@@ -681,15 +686,84 @@ amountp' s =
     Right amt -> amt
     Left err  -> error' $ show err -- XXX should throwError
 
+-- | Parse a multi-commodity amount, comprising of multiple single amounts
+-- joined as an arithmetic expression.
+mamountp :: Bool -> JournalParser m MixedAmount
+mamountp requireOp = label "mixed amount" $ do
+  pos <- getOffset
+  opc <- ( if requireOp
+           then id
+           else option '+'
+         ) $ do
+    c <- oneOf ("+-" :: String)
+    lift (skipMany spacenonewline)
+    pure c
+  paren <- option False $ try $ do
+    char '('
+    lift (skipMany spacenonewline)
+    pure True
+  amount <- if paren
+    then do
+      inner <- mamountp False
+      lift (skipMany spacenonewline)
+      char ')'
+      pure inner
+    else do
+      inner <- amountp
+      pure $ Mixed [inner]
+  mult <- multiplierp pos
+  tail <- option nullmixedamt $ try $ do
+    lift (skipMany spacenonewline)
+    mamountp True
+  let op = case opc of
+        '-' -> negate
+        _   -> id
+  return $ multiplyMixedAmount mult (op amount) + tail
+
+multiplierp :: Int -> JournalParser m Quantity
+multiplierp startOffset = do
+  lift (skipMany spacenonewline)
+  c <- optional $ try $ oneOf ("*/" :: String)
+  case c of
+    Nothing -> return 1
+    Just c' -> do
+      lift (skipMany spacenonewline)
+      (m, _, _, _) <- lift $ numberp Nothing
+      endOffset <- getOffset
+      f <- if c' == '/'
+        then if m == 0
+             then dividebyzeroerr startOffset endOffset
+             -- The "Decimal" docs recommend against using '(/)', but the
+             -- alternate interface provided might be more cumbersome than
+             -- necessary for this circumstance, as it would require
+             -- keeping track of multiple potential results.  Maybe revisit
+             -- this as part of a larger patch focused on fair rounding?
+             else return (/ m)
+        else return (* m)
+      ms <- multiplierp startOffset
+      return $ f ms
+
+dividebyzeroerr :: Int -> Int -> JournalParser m a
+dividebyzeroerr startOffset endOffset = customFailure $ parseErrorAtRegion startOffset endOffset "attempted division by 0"
+
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
-mamountp' = Mixed . (:[]) . amountp'
+mamountp' s =
+  case runParser (evalStateT (mamountp False <* eof) mempty) "" (T.pack s) of
+    Right amt -> amt
+    Left err  -> error' $ show err -- XXX should throwError
 
 signp :: Num a => TextParser m (a -> a)
 signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
 
-multiplierp :: TextParser m Bool
-multiplierp = option False $ char '*' *> pure True
+-- | Parse a value used as a multiplier in a 'TransactionModifier' (a
+-- @*@ character followed by a value following the rules of 'amountp',
+-- except that it never takes the default commodity).
+modifierp :: JournalParser m Amount
+modifierp = label "modifier" $ do
+  char '*'
+  lift $ skipMany spacenonewline
+  amountormultiplierp True
 
 -- | This is like skipMany but it returns True if at least one element
 -- was skipped. This is helpful if you’re just using many to check if
@@ -721,7 +795,7 @@ priceamountp = option NoPrice $ do
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountwithoutpricep <?> "amount (as a price)"
+  priceAmount <- amountwithoutpricep False <?> "amount (as a price)"
 
   pure $ priceConstructor priceAmount
 
@@ -731,7 +805,7 @@ balanceassertionp = do
   char '='
   exact <- optional $ try $ char '='
   lift (skipMany spacenonewline)
-  a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
+  a <- mamountp False <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
   return BalanceAssertion
     { baamount = a
     , baexact = isJust exact
@@ -1327,6 +1401,32 @@ tests_Common = tests "Common" [
             } 
         } 
     ]
+
+  ,tests "mamountp" [
+    test "basic"                         $ expectParseEq (mamountp False) "$47.18"                           $ Mixed [usd 47.18]
+   ,test "operations"                    $ expectParseEq (mamountp False) "$6.00 + $5.00 - $4.00 / 2 * 3"    $ Mixed [usd 5.00]
+   ,test "multiple commodities"          $ expectParseEq (mamountp False) "$47.18+€20,59"                    $ Mixed [
+       amount{
+          acommodity="$"
+         ,aquantity=47.18
+         ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just '.'}
+         }
+      ,amount{
+          acommodity="€"
+         ,aquantity=20.59
+         ,astyle=amountstyle{asprecision=2, asdecimalpoint=Just ','}
+         }
+      ]
+   ,test "same commodity multiple times" $ expectParseEq (mamountp False) "$10 + $2 - $5-$2"                 $ Mixed [
+       amount{
+          acommodity="$"
+         ,aquantity=5
+         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+         }
+      ]
+   ,test "ledger-compatible expressions" $ expectParseEq (mamountp False) "($47.18 - $7.13)"                 $ Mixed [usd 40.05]
+   ,test "nested parentheses"            $ expectParseEq (mamountp False) "($47.18 - ($20 + $7.13) + $5.05)" $ Mixed [usd 25.10]
+  ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
    tests "numberp" [

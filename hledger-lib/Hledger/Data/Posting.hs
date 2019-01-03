@@ -90,6 +90,7 @@ nullposting = Posting
                 ,pcomment=""
                 ,ptype=RegularPosting
                 ,ptags=[]
+                ,pmultiplier=Nothing
                 ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
                 ,porigin=Nothing
@@ -104,7 +105,7 @@ nullsourcepos = JournalSourcePos "" (1,1)
 
 nullassertion, assertion :: BalanceAssertion
 nullassertion = BalanceAssertion
-                  {baamount=nullamt
+                  {baamount=nullmixedamt
                   ,baexact=False
                   ,baposition=nullsourcepos
                   }

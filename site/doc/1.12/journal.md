@@ -356,6 +356,48 @@ when an amountless posting is balanced using a price's commodity, or
 when -V is used.) If you find this causing problems, set the desired
 format with a commodity directive.
 
+### Amount Expressions
+
+Amounts can be combined with the standard addition and subtraction operators,
+with or without spaces around them. The values don't have to share the same
+commodity, and different types of amount will simply be left existing alongside
+each other:
+
+`$1 + $2` → `$3`
+`$1-$2` → `-$1`
+`$1 + £2` → `$1 + £2`
+
+Multiplication and division also work, although the value on the right side of
+the symbol must *not* have any commodity associated with it (and, of course,
+dividing by 0 doesn't work):
+
+`$2 * 3` → `$6`
+`$5.00 / 0.5` → `$2.50`
+`$1.00 * 3 / 4` → `$0.75`
+
+Do be aware that multiplication and division will round to the same number of
+decimal places as other amounts of the same commodity display. If the length
+isn't what you were expecting (if everything else in the journal simply uses
+whole dollar amounts, for example), try inserting a [commodity
+directive](#declaring-commodities) with the proper display. Also, hledger
+doesn't try to use any fair rounding schemes, so don't rely on the product to
+be exactly the same as your bank, to the cent.
+
+`$3 * 0.5` → `$1` (without anything else in the file)
+`$1.00 / 2` → `$0.67`
+
+Finally, parentheses group amounts just like they do in any math problem. If
+you need your files to be compatible with the original ledger program, you can
+surround the entire expression with parentheses, but doing so isn't necessary
+for hledger.
+
+`$1 + $2 * 3` → `$7`
+`($1 + $2) * 3` → `$9`
+`($1 + $2 * 3)` → `$7`
+
+Note, however, that any commodity symbols must be written alongside the amounts
+they describe, not split by parentheses: `$(1 + 2)` is *not* able to be read.
+
 ### Virtual Postings
 
 When you parenthesise the account name in a posting, we call that a
@@ -1354,8 +1396,8 @@ posting-generating rule:
 The posting rules look just like normal postings, except the amount can
 be:
 
--   a normal amount with a commodity symbol, eg `$2`. This will be used
-    as-is.
+-   a normal amount or amount expression with a commodity symbol, eg `$2`. This
+    will be used as-is.
 -   a number, eg `2`. The commodity symbol (if any) from the matched
     posting will be added to this.
 -   a numeric multiplier, eg `*2` (a star followed by a number N). The
@@ -1364,6 +1406,10 @@ be:
 -   a multiplier with a commodity symbol, eg `*$2` (a star, number N,
     and symbol S). The matched posting's amount will be multiplied by N,
     and its commodity symbol will be replaced with S.
+-   either of the three previous modifiers, followed by a plus or minus sign
+    and a normal amount or amount expression, eg `*2 + $1`. The matched
+    posting's amount will be multiplied or divided as before, and the rest of
+    the expression will be added to the result.
 
 Some examples:
 
@@ -1377,12 +1423,20 @@ Some examples:
     assets:checking:gifts  *-1
     assets:checking         *1
 
+; when I buy from a local-foods marketplace, they take a portion and pass the rest to the farmer
+= expenses:food:market
+    (expenses:local)        *0.8 - $5
+
 2017/12/1
-  expenses:food    $10
+  expenses:food         $10
   assets:checking
 
 2017/12/14
-  expenses:gifts   $20
+  expenses:gifts        $20
+  assets:checking
+
+2017/12/22
+  expenses:food:market  $30
   assets:checking
 ```
 
@@ -1398,6 +1452,11 @@ $ hledger print --auto
     assets:checking
     assets:checking:gifts     -$20
     assets:checking            $20
+
+2017/12/22
+    expenses:food:market       $30
+    assets:checking
+    (expenses:local)           $19
 ```
 
 Postings added by transaction modifiers participate in [transaction
