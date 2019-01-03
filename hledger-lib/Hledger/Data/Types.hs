@@ -203,10 +203,10 @@ instance NFData Commodity
 data Amount = Amount {
       acommodity  :: CommoditySymbol,
       aquantity   :: Quantity,
-      aprice      :: Price,           -- ^ the (fixed) price for this amount, if any
-      astyle      :: AmountStyle,
-      amultiplier :: Bool             -- ^ kludge: a flag marking this amount and posting as a multiplier
+      amultiplier :: Bool,            -- ^ kludge: a flag marking this amount and posting as a multiplier
                                       --   in a TMPostingRule. In a regular Posting, should always be false.
+      astyle      :: AmountStyle,
+      aprice      :: Price            -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Amount
