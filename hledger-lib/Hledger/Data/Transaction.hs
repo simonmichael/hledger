@@ -90,7 +90,7 @@ nulltransaction = Transaction {
                     tcomment="",
                     ttags=[],
                     tpostings=[],
-                    tpreceding_comment_lines=""
+                    tprecedingcomment=""
                   }
 
 {-|
@@ -689,10 +689,10 @@ tests_Transaction = tests "Transaction" [
 
   ,tests "showTransaction" [
      test "show a balanced transaction, eliding last amount" $
-       let t = Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
+       let t = Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
                 [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18], ptransaction=Just t}
                 ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.18)], ptransaction=Just t}
-                ] ""
+                ]
        in 
         showTransaction t
          `is`
@@ -704,10 +704,10 @@ tests_Transaction = tests "Transaction" [
           ]
 
     ,test "show a balanced transaction, no eliding" $
-       (let t = Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
+       (let t = Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
                 [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18], ptransaction=Just t}
                 ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.18)], ptransaction=Just t}
-                ] ""
+                ]
         in showTransactionUnelided t)
        `is`
        (unlines
@@ -720,10 +720,10 @@ tests_Transaction = tests "Transaction" [
      -- document some cases that arise in debug/testing:
     ,test "show an unbalanced transaction, should not elide" $
        (showTransaction
-        (txnTieKnot $ Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
+        (txnTieKnot $ Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
          [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18]}
          ,posting{paccount="assets:checking", pamount=Mixed [usd (-47.19)]}
-         ] ""))
+         ]))
        `is`
        (unlines
         ["2007/01/28 coopportunity"
@@ -734,9 +734,9 @@ tests_Transaction = tests "Transaction" [
 
     ,test "show an unbalanced transaction with one posting, should not elide" $
        (showTransaction
-        (txnTieKnot $ Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
+        (txnTieKnot $ Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
          [posting{paccount="expenses:food:groceries", pamount=Mixed [usd 47.18]}
-         ] ""))
+         ]))
        `is`
        (unlines
         ["2007/01/28 coopportunity"
@@ -746,9 +746,9 @@ tests_Transaction = tests "Transaction" [
 
     ,test "show a transaction with one posting and a missing amount" $
        (showTransaction
-        (txnTieKnot $ Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
+        (txnTieKnot $ Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "coopportunity" "" []
          [posting{paccount="expenses:food:groceries", pamount=missingmixedamt}
-         ] ""))
+         ]))
        `is`
        (unlines
         ["2007/01/28 coopportunity"
@@ -758,10 +758,10 @@ tests_Transaction = tests "Transaction" [
 
     ,test "show a transaction with a priced commodityless amount" $
        (showTransaction
-        (txnTieKnot $ Transaction 0 nullsourcepos (parsedate "2010/01/01") Nothing Unmarked "" "x" "" []
+        (txnTieKnot $ Transaction 0 "" nullsourcepos (parsedate "2010/01/01") Nothing Unmarked "" "x" "" []
          [posting{paccount="a", pamount=Mixed [num 1 `at` (usd 2 `withPrecision` 0)]}
          ,posting{paccount="b", pamount= missingmixedamt}
-         ] ""))
+         ]))
        `is`
        (unlines
         ["2010/01/01 x"
@@ -774,95 +774,95 @@ tests_Transaction = tests "Transaction" [
   ,tests "balanceTransaction" [
      test "detect unbalanced entry, sign error" $
                     (expectLeft $ balanceTransaction Nothing
-                           (Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "test" "" []
+                           (Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "test" "" []
                             [posting{paccount="a", pamount=Mixed [usd 1]}
                             ,posting{paccount="b", pamount=Mixed [usd 1]}
-                            ] ""))
+                            ]))
 
     ,test "detect unbalanced entry, multiple missing amounts" $
                     (expectLeft $ balanceTransaction Nothing
-                           (Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "test" "" []
+                           (Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "test" "" []
                             [posting{paccount="a", pamount=missingmixedamt}
                             ,posting{paccount="b", pamount=missingmixedamt}
-                            ] ""))
+                            ]))
 
     ,test "one missing amount is inferred" $
          (pamount . last . tpostings <$> balanceTransaction
            Nothing
-           (Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "" "" []
+           (Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "" "" []
              [posting{paccount="a", pamount=Mixed [usd 1]}
              ,posting{paccount="b", pamount=missingmixedamt}
-             ] ""))
+             ]))
          `is` Right (Mixed [usd (-1)])
 
     ,test "conversion price is inferred" $
          (pamount . head . tpostings <$> balanceTransaction
            Nothing
-           (Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "" "" []
+           (Transaction 0 "" nullsourcepos (parsedate "2007/01/28") Nothing Unmarked "" "" "" []
              [posting{paccount="a", pamount=Mixed [usd 1.35]}
              ,posting{paccount="b", pamount=Mixed [eur (-1)]}
-             ] ""))
+             ]))
          `is` Right (Mixed [usd 1.35 @@ (eur 1 `withPrecision` maxprecision)])
 
     ,test "balanceTransaction balances based on cost if there are unit prices" $
        expectRight $
-       balanceTransaction Nothing (Transaction 0 nullsourcepos (parsedate "2011/01/01") Nothing Unmarked "" "" "" []
+       balanceTransaction Nothing (Transaction 0 "" nullsourcepos (parsedate "2011/01/01") Nothing Unmarked "" "" "" []
                            [posting{paccount="a", pamount=Mixed [usd 1 `at` eur 2]}
                            ,posting{paccount="a", pamount=Mixed [usd (-2) `at` eur 1]}
-                           ] "")
+                           ])
 
     ,test "balanceTransaction balances based on cost if there are total prices" $
        expectRight $
-       balanceTransaction Nothing (Transaction 0 nullsourcepos (parsedate "2011/01/01") Nothing Unmarked "" "" "" []
+       balanceTransaction Nothing (Transaction 0 "" nullsourcepos (parsedate "2011/01/01") Nothing Unmarked "" "" "" []
                            [posting{paccount="a", pamount=Mixed [usd 1    @@ eur 1]}
                            ,posting{paccount="a", pamount=Mixed [usd (-2) @@ eur 1]}
-                           ] "")
+                           ])
   ]
 
   ,tests "isTransactionBalanced" [
      test "detect balanced" $ expect $
-       isTransactionBalanced Nothing $ Transaction 0 nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
+       isTransactionBalanced Nothing $ Transaction 0 "" nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00]}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)]}
-             ] ""
+             ]
      
     ,test "detect unbalanced" $ expect $
-       not $ isTransactionBalanced Nothing $ Transaction 0 nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
+       not $ isTransactionBalanced Nothing $ Transaction 0 "" nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00]}
              ,posting{paccount="c", pamount=Mixed [usd (-1.01)]}
-             ] ""
+             ]
      
     ,test "detect unbalanced, one posting" $ expect $
-       not $ isTransactionBalanced Nothing $ Transaction 0 nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
+       not $ isTransactionBalanced Nothing $ Transaction 0 "" nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00]}
-             ] ""
+             ]
      
     ,test "one zero posting is considered balanced for now" $ expect $
-       isTransactionBalanced Nothing $ Transaction 0 nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
+       isTransactionBalanced Nothing $ Transaction 0 "" nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 0]}
-             ] ""
+             ]
      
     ,test "virtual postings don't need to balance" $ expect $
-       isTransactionBalanced Nothing $ Transaction 0 nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
+       isTransactionBalanced Nothing $ Transaction 0 "" nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00]}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)]}
              ,posting{paccount="d", pamount=Mixed [usd 100], ptype=VirtualPosting}
-             ] ""
+             ]
      
     ,test "balanced virtual postings need to balance among themselves" $ expect $
-       not $ isTransactionBalanced Nothing $ Transaction 0 nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
+       not $ isTransactionBalanced Nothing $ Transaction 0 "" nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00]}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)]}
              ,posting{paccount="d", pamount=Mixed [usd 100], ptype=BalancedVirtualPosting}
-             ] ""
+             ]
      
     ,test "balanced virtual postings need to balance among themselves (2)" $ expect $
-       isTransactionBalanced Nothing $ Transaction 0 nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
+       isTransactionBalanced Nothing $ Transaction 0 "" nullsourcepos (parsedate "2009/01/01") Nothing Unmarked "" "a" "" []
              [posting{paccount="b", pamount=Mixed [usd 1.00]}
              ,posting{paccount="c", pamount=Mixed [usd (-1.00)]}
              ,posting{paccount="d", pamount=Mixed [usd 100], ptype=BalancedVirtualPosting}
              ,posting{paccount="3", pamount=Mixed [usd (-100)], ptype=BalancedVirtualPosting}
-             ] ""
+             ]
      
   ]
 

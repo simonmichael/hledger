@@ -95,7 +95,7 @@ entryFromTimeclockInOut i o
             tcomment     = "",
             ttags        = [],
             tpostings    = ps,
-            tpreceding_comment_lines=""
+            tprecedingcomment=""
           }
       itime    = tldatetime i
       otime    = tldatetime o

@@ -302,8 +302,9 @@ instance NFData GenericSourcePos
 --    prevents the constraint ‘(Data p0)’ from being solved.
 --    Probable fix: use a type annotation to specify what ‘p0’ should be.
 data Transaction = Transaction {
-      tindex                   :: Integer,   -- ^ this transaction's 1-based position in the input stream, or 0 when not available
-      tsourcepos               :: GenericSourcePos,
+      tindex                   :: Integer,   -- ^ this transaction's 1-based position in the transaction stream, or 0 when not available
+      tprecedingcomment        :: Text,      -- ^ any comment lines immediately preceding this transaction
+      tsourcepos               :: GenericSourcePos,  -- ^ the file position where the date starts
       tdate                    :: Day,
       tdate2                   :: Maybe Day,
       tstatus                  :: Status,
@@ -311,8 +312,7 @@ data Transaction = Transaction {
       tdescription             :: Text,
       tcomment                 :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string
       ttags                    :: [Tag],     -- ^ tag names and values, extracted from the comment
-      tpostings                :: [Posting], -- ^ this transaction's postings
-      tpreceding_comment_lines :: Text       -- ^ any comment lines immediately preceding this transaction
+      tpostings                :: [Posting]  -- ^ this transaction's postings
     } deriving (Eq,Typeable,Data,Generic,Show)
 
 instance NFData Transaction

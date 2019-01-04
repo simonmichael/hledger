@@ -537,7 +537,7 @@ journal7 = nulljournal {jtxns =
                  ["assets:cash" `post` usd 4.82
                  ,"equity:opening balances" `post` usd (-4.82)
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot Transaction {
@@ -554,7 +554,7 @@ journal7 = nulljournal {jtxns =
                  ["expenses:vacation" `post` usd 179.92
                  ,"assets:checking" `post` usd (-179.92)
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot Transaction {
@@ -571,7 +571,7 @@ journal7 = nulljournal {jtxns =
                  ["assets:saving" `post` usd 200
                  ,"assets:checking" `post` usd (-200)
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot Transaction {
@@ -588,7 +588,7 @@ journal7 = nulljournal {jtxns =
                  ["expenses:food:dining" `post` usd 4.82
                  ,"assets:cash" `post` usd (-4.82)
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot Transaction {
@@ -605,7 +605,7 @@ journal7 = nulljournal {jtxns =
                  ["expenses:phone" `post` usd 95.11
                  ,"assets:checking" `post` usd (-95.11)
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot Transaction {
@@ -622,7 +622,7 @@ journal7 = nulljournal {jtxns =
                  ["liabilities:credit cards:discover" `post` usd 80
                  ,"assets:checking" `post` usd (-80)
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ]
          }

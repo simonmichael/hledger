@@ -198,7 +198,7 @@ Right samplejournal2 =
             [posting {paccount="assets:bank:checking", pamount=Mixed [usd 1]}
             ,posting {paccount="income:salary", pamount=missingmixedamt}
             ],
-          tpreceding_comment_lines=""
+          tprecedingcomment=""
         }
       ]
     }

@@ -1063,7 +1063,7 @@ Right samplejournal = journalBalanceTransactions False $
                  ["assets:bank:checking" `post` usd 1
                  ,"income:salary" `post` missingamt
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot $ Transaction {
@@ -1080,7 +1080,7 @@ Right samplejournal = journalBalanceTransactions False $
                  ["assets:bank:checking" `post` usd 1
                  ,"income:gifts" `post` missingamt
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot $ Transaction {
@@ -1097,7 +1097,7 @@ Right samplejournal = journalBalanceTransactions False $
                  ["assets:bank:saving" `post` usd 1
                  ,"assets:bank:checking" `post` usd (-1)
                  ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot $ Transaction {
@@ -1114,7 +1114,7 @@ Right samplejournal = journalBalanceTransactions False $
                        ,"expenses:supplies" `post` usd 1
                        ,"assets:cash" `post` missingamt
                        ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot $ Transaction {
@@ -1130,7 +1130,7 @@ Right samplejournal = journalBalanceTransactions False $
              tpostings=["assets:bank:checking" `post` usd 1
                        ,"liabilities:debts" `post` usd (-1)
                        ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ,
            txnTieKnot $ Transaction {
@@ -1146,7 +1146,7 @@ Right samplejournal = journalBalanceTransactions False $
              tpostings=["liabilities:debts" `post` usd 1
                        ,"assets:bank:checking" `post` usd (-1)
                        ],
-             tpreceding_comment_lines=""
+             tprecedingcomment=""
            }
           ]
          }

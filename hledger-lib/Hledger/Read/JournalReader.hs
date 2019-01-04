@@ -573,7 +573,7 @@ transactionp = do
   postings <- postingsp (Just year)
   endpos <- getSourcePos
   let sourcepos = journalSourcePos startpos endpos
-  return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
+  return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postings
 
 --- ** postings
 
@@ -760,7 +760,7 @@ tests_JournalReader = tests "JournalReader" [
         ])
       nulltransaction{
         tsourcepos=JournalSourcePos "" (1,7),  -- XXX why 7 here ?
-        tpreceding_comment_lines="",
+        tprecedingcomment="",
         tdate=fromGregorian 2012 5 14,
         tdate2=Just $ fromGregorian 2012 5 15,
         tstatus=Unmarked,
