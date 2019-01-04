@@ -201,8 +201,8 @@ data Commodity = Commodity {
 instance NFData Commodity
 
 data Amount = Amount {
-      acommodity  :: CommoditySymbol,
-      aquantity   :: Quantity,
+      acommodity  :: CommoditySymbol,   -- commodity symbol, or special value "AUTO"
+      aquantity   :: Quantity,          -- numeric quantity, or zero in case of "AUTO"
       aismultiplier :: Bool,            -- ^ kludge: a flag marking this amount and posting as a multiplier
                                         --   in a TMPostingRule. In a regular Posting, should always be false.
       astyle      :: AmountStyle,
