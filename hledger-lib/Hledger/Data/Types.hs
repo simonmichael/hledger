@@ -203,8 +203,8 @@ instance NFData Commodity
 data Amount = Amount {
       acommodity  :: CommoditySymbol,
       aquantity   :: Quantity,
-      amultiplier :: Bool,            -- ^ kludge: a flag marking this amount and posting as a multiplier
-                                      --   in a TMPostingRule. In a regular Posting, should always be false.
+      aismultiplier :: Bool,            -- ^ kludge: a flag marking this amount and posting as a multiplier
+                                        --   in a TMPostingRule. In a regular Posting, should always be false.
       astyle      :: AmountStyle,
       aprice      :: Price            -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Typeable,Data,Generic,Show)
@@ -336,7 +336,7 @@ nulltransactionmodifier = TransactionModifier{
 
 -- | A transaction modifier transformation, which adds an extra posting
 -- to the matched posting's transaction.
--- Can be like a regular posting, or the amount can have the amultiplier flag set,
+-- Can be like a regular posting, or the amount can have the aismultiplier flag set,
 -- indicating that it's a multiplier for the matched posting's amount.
 type TMPostingRule = Posting
 

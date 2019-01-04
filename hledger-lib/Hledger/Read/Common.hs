@@ -630,7 +630,7 @@ amountwithoutpricep = do
     let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-    return $ nullamt{acommodity=c, aquantity=sign (sign2 q), amultiplier=mult, astyle=s, aprice=NoPrice}
+    return $ nullamt{acommodity=c, aquantity=sign (sign2 q), aismultiplier=mult, astyle=s, aprice=NoPrice}
 
   rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
   rightornosymbolamountp mult sign = label "amount" $ do
@@ -646,7 +646,7 @@ amountwithoutpricep = do
         suggestedStyle <- getAmountStyle c
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-        return $ nullamt{acommodity=c, aquantity=sign q, amultiplier=mult, astyle=s, aprice=NoPrice}
+        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=NoPrice}
       -- no symbol amount
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
@@ -657,7 +657,7 @@ amountwithoutpricep = do
         let (c,s) = case (mult, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-        return $ nullamt{acommodity=c, aquantity=sign q, amultiplier=mult, astyle=s, aprice=NoPrice}
+        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=NoPrice}
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).

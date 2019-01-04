@@ -47,7 +47,7 @@ import Hledger.Utils.Debug
 -- 0000/01/01
 --     ping           $1.00
 -- <BLANKLINE>
--- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
+-- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{aismultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
 --     ping           $2.00
 --     pong           $6.00
@@ -111,7 +111,7 @@ tmPostingRuleToFunction pr =
 postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
 postingRuleMultiplier p =
     case amounts $ pamount p of
-        [a] | amultiplier a -> Just $ aquantity a
+        [a] | aismultiplier a -> Just $ aquantity a
         _                   -> Nothing
 
 renderPostingCommentDates :: Posting -> Posting
