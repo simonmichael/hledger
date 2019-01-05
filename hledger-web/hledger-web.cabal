@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5561e1638c4aa51f58f3983ce8187999995f3e67b5cd8654e8cc2f71a8bbb7da
+-- hash: 7d612fb9e126b116d0d97b8e687e8c9d4705c2e852bbe328ea42e1fab54b0c5c
 
 name:           hledger-web
-version:        1.12
+version:        1.12.99
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -150,7 +150,7 @@ library
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fwarn-tabs
-  cpp-options: -DVERSION="1.12"
+  cpp-options: -DVERSION="1.12.99"
   build-depends:
       base >=4.8 && <4.13
     , blaze-html
@@ -165,8 +165,8 @@ library
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.12 && <1.13
-    , hledger-lib >=1.12 && <1.13
+    , hledger >=1.12.99 && <1.13
+    , hledger-lib >=1.12.99 && <1.13
     , http-client
     , http-conduit
     , json
@@ -206,7 +206,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fwarn-tabs
-  cpp-options: -DVERSION="1.12"
+  cpp-options: -DVERSION="1.12.99"
   build-depends:
       base
     , hledger-web
