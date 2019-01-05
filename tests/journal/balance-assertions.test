@@ -356,3 +356,12 @@ hledger -f - stats
 >>> /Transactions/
 >>>2
 >>>=0
+
+# 20. Balance assertions may not have a price in them.
+hledger -f- stats
+<<<
+2019/01/01
+    (a)             1A = 1A @ 2B
+>>>
+>>>2 /unexpected '@'/
+>>>=1

@@ -721,7 +721,7 @@ priceamountp = option NoPrice $ do
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountwithoutpricep <?> "amount (as a price)"
+  priceAmount <- amountwithoutpricep <?> "unpriced amount (specifying a price)"
 
   pure $ priceConstructor priceAmount
 
@@ -731,14 +731,17 @@ balanceassertionp = do
   char '='
   exact <- optional $ try $ char '='
   lift (skipMany spacenonewline)
-  a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
+  a <- amountwithoutpricep <?> "unpriced amount (for a balance assertion or assignment)"
   return BalanceAssertion
     { baamount = a
     , baexact = isJust exact
     , baposition = sourcepos
     }
 
--- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
+-- Parse a Ledger-style fixed lot price: {=PRICE}
+-- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
+-- Currently we ignore these (hledger's @ PRICE is equivalent),
+-- and we don't parse a Ledger-style {PRICE} (equivalent to Ledger's @ PRICE).
 fixedlotpricep :: JournalParser m (Maybe Amount)
 fixedlotpricep = optional $ do
   try $ do
@@ -747,7 +750,7 @@ fixedlotpricep = optional $ do
   lift (skipMany spacenonewline)
   char '='
   lift (skipMany spacenonewline)
-  a <- amountp -- XXX should restrict to a simple amount
+  a <- amountwithoutpricep <?> "unpriced amount (for an ignored ledger-style fixed lot price)"
   lift (skipMany spacenonewline)
   char '}'
   return a

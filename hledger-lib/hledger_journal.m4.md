@@ -436,6 +436,11 @@ One workaround is to isolate each commodity into its own subaccount:
   a:euro   0 ==  1€
 ```
 
+### Assertions and prices
+
+Balance assertion (or assignment) amounts should not have a [price](#transaction-prices),
+as the meaning of that would be unclear.
+
 ### Assertions and subaccounts
 
 Balance assertions do not count the balance from subaccounts; they check
