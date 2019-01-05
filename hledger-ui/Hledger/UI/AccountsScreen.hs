@@ -173,19 +173,12 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
         toplabel =
               withAttr ("border" <> "filename") files
-          -- <+> withAttr ("border" <> "query") (str (if flat_ ropts then " flat" else ""))
-          <+> nonzero
-          <+> str (if ishistorical then " accounts" else " account changes")
-          -- <+> str (if ishistorical then " balances" else " changes")
+          <+> toggles
+          <+> str (" account " ++ if ishistorical then "balances" else "changes")
           <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
           <+> borderQueryStr querystr
-          <+> togglefilters
           <+> borderDepthStr mdepth
-          <+> str " ("
-          <+> cur
-          <+> str "/"
-          <+> total
-          <+> str ")"
+          <+> str (" ("++curidx++"/"++totidx++")")
           <+> (if ignore_assertions_ $ inputopts_ copts
                then withAttr ("border" <> "query") (str " ignoring balance assertions")
                else str "")
@@ -195,22 +188,20 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                            f:_ -> str $ takeFileName f
                            -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
                            -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
+            toggles = withAttr ("border" <> "query") $ str $ unwords $ concat [
+               [""]
+              ,if empty_ ropts then [] else ["nonzero"]
+              ,uiShowStatus copts $ statuses_ ropts
+              ,if real_ ropts then ["real"] else []
+              ]
             querystr = query_ ropts
             mdepth = depth_ ropts
-            togglefilters =
-              case concat [
-                   uiShowStatus copts $ statuses_ ropts
-                  ,if real_ ropts then ["real"] else []
-                  ] of
-                [] -> str ""
-                fs -> str " from " <+> withAttr ("border" <> "query") (str $ intercalate ", " fs) <+> str " txns"
-            nonzero | empty_ ropts = str ""
-                    | otherwise    = withAttr ("border" <> "query") (str " nonzero")
-            cur = str (case _asList s ^. listSelectedL of
-                        Nothing -> "-"
-                        Just i -> show (i + 1))
-            total = str $ show $ V.length nonblanks 
-            nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ s ^. asList . listElementsL
+            curidx = case _asList s ^. listSelectedL of
+                       Nothing -> "-"
+                       Just i -> show (i + 1)
+            totidx = show $ V.length nonblanks 
+              where
+                nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ s ^. asList . listElementsL
 
         bottomlabel = case mode of
                         Minibuffer ed -> minibuffer ed

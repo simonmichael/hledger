@@ -165,7 +165,7 @@ borderQueryStr qry = str " matching " <+> withAttr ("border" <> "query") (str qr
 
 borderDepthStr :: Maybe Int -> Widget Name
 borderDepthStr Nothing  = str ""
-borderDepthStr (Just d) = str " to " <+> withAttr ("border" <> "query") (str $ "depth "++show d)
+borderDepthStr (Just d) = str " to depth " <+> withAttr ("border" <> "query") (str $ show d)
 
 borderPeriodStr :: String -> Period -> Widget Name
 borderPeriodStr _           PeriodAll = str ""
