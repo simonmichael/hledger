@@ -3,8 +3,8 @@ This is hledger-api.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-api.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-api(1) hledger-api 1.12
-*******************************
+hledger-api(1) hledger-api 1.12.99
+**********************************
 
 hledger-api is a simple web API server, intended to support client-side
 web apps operating on hledger data.  It comes with a series of simple
@@ -80,7 +80,7 @@ options as shown above.
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1660
-Ref: #options1745
+Node: OPTIONS1666
+Ref: #options1751
 
 End Tag Table

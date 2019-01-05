@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "December 2018" "hledger 1.12" "hledger User Manuals"
+.TH "hledger_journal" "5" "January 2019" "hledger 1.12.99" "hledger User Manuals"
 
 
 
@@ -598,6 +598,10 @@ One workaround is to isolate each commodity into its own subaccount:
 \ \ a:euro\ \ \ 0\ ==\ \ 1€
 \f[]
 .fi
+.SS Assertions and prices
+.PP
+Balance assertion (or assignment) amounts should not have a price, as
+the meaning of that would be unclear.
 .SS Assertions and subaccounts
 .PP
 Balance assertions do not count the balance from subaccounts; they check

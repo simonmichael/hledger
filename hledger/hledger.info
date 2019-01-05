@@ -3,8 +3,8 @@ This is hledger.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger(1) hledger 1.12
-***********************
+hledger(1) hledger 1.12.99
+**************************
 
 This is hledger's command-line interface (there are also curses and web
 interfaces).  Its basic function is to read a plain text file describing
@@ -2554,152 +2554,152 @@ hledger-check.hs checks more powerful account balance assertions.
 
 Tag Table:
 Node: Top68
-Node: EXAMPLES1884
-Ref: #examples1984
-Node: OPTIONS3630
-Ref: #options3732
-Node: General options4167
-Ref: #general-options4292
-Node: Command options6974
-Ref: #command-options7125
-Node: Command arguments7523
-Ref: #command-arguments7677
-Node: Argument files7798
-Ref: #argument-files7974
-Node: Special characters in arguments and queries8240
-Ref: #special-characters-in-arguments-and-queries8474
-Node: More escaping8924
-Ref: #more-escaping9086
-Node: Even more escaping9382
-Ref: #even-more-escaping9576
-Node: Less escaping10247
-Ref: #less-escaping10409
-Node: Command line tips10654
-Ref: #command-line-tips10840
-Node: Unicode characters11217
-Ref: #unicode-characters11373
-Node: Input files12098
-Ref: #input-files12234
-Node: Smart dates14204
-Ref: #smart-dates14345
-Node: Report start & end date15751
-Ref: #report-start-end-date15923
-Node: Report intervals16988
-Ref: #report-intervals17153
-Node: Period expressions17554
-Ref: #period-expressions17714
-Node: Depth limiting21671
-Ref: #depth-limiting21815
-Node: Pivoting22157
-Ref: #pivoting22275
-Node: Cost23951
-Ref: #cost24059
-Node: Market value24177
-Ref: #market-value24312
-Node: Combining -B and -V25678
-Ref: #combining--b-and--v25841
-Node: Output destination25988
-Ref: #output-destination26150
-Node: Output format26433
-Ref: #output-format26585
-Node: Regular expressions26970
-Ref: #regular-expressions27107
-Node: QUERIES28468
-Ref: #queries28570
-Node: COMMANDS32532
-Ref: #commands32644
-Node: accounts33644
-Ref: #accounts33742
-Node: activity34988
-Ref: #activity35098
-Node: add35458
-Ref: #add35557
-Node: balance38218
-Ref: #balance38329
-Node: Classic balance report41412
-Ref: #classic-balance-report41585
-Node: Customising the classic balance report42954
-Ref: #customising-the-classic-balance-report43182
-Node: Colour support45256
-Ref: #colour-support45423
-Node: Flat mode45596
-Ref: #flat-mode45744
-Node: Depth limited balance reports46157
-Ref: #depth-limited-balance-reports46357
-Node: Multicolumn balance report46813
-Ref: #multicolumn-balance-report47011
-Node: Budget report52191
-Ref: #budget-report52334
-Ref: #output-format-155368
-Node: balancesheet55446
-Ref: #balancesheet55582
-Node: balancesheetequity57893
-Ref: #balancesheetequity58042
-Node: cashflow58579
-Ref: #cashflow58707
-Node: check-dates60830
-Ref: #check-dates60957
-Node: check-dupes61074
-Ref: #check-dupes61198
-Node: close61335
-Ref: #close61443
-Node: files61773
-Ref: #files61874
-Node: help62015
-Ref: #help62115
-Node: import63189
-Ref: #import63303
-Node: incomestatement64033
-Ref: #incomestatement64167
-Node: prices66571
-Ref: #prices66686
-Node: print66958
-Ref: #print67068
-Node: print-unique71962
-Ref: #print-unique72088
-Node: register72156
-Ref: #register72283
-Node: Custom register output76784
-Ref: #custom-register-output76913
-Node: register-match78143
-Ref: #register-match78277
-Node: rewrite78460
-Ref: #rewrite78575
-Node: roi78644
-Ref: #roi78742
-Node: stats78858
-Ref: #stats78957
-Node: tags79827
-Ref: #tags79925
-Node: test80161
-Ref: #test80245
-Node: ADD-ON COMMANDS80953
-Ref: #add-on-commands81063
-Node: Official add-ons82350
-Ref: #official-add-ons82490
-Node: api82577
-Ref: #api82666
-Node: ui82718
-Ref: #ui82817
-Node: web82875
-Ref: #web82964
-Node: Third party add-ons83010
-Ref: #third-party-add-ons83185
-Node: diff83320
-Ref: #diff83417
-Node: iadd83516
-Ref: #iadd83630
-Node: interest83713
-Ref: #interest83834
-Node: irr83929
-Ref: #irr84027
-Node: Experimental add-ons84158
-Ref: #experimental-add-ons84310
-Node: autosync84590
-Ref: #autosync84701
-Node: chart84940
-Ref: #chart85059
-Node: check85130
-Ref: #check85232
+Node: EXAMPLES1890
+Ref: #examples1990
+Node: OPTIONS3636
+Ref: #options3738
+Node: General options4173
+Ref: #general-options4298
+Node: Command options6980
+Ref: #command-options7131
+Node: Command arguments7529
+Ref: #command-arguments7683
+Node: Argument files7804
+Ref: #argument-files7980
+Node: Special characters in arguments and queries8246
+Ref: #special-characters-in-arguments-and-queries8480
+Node: More escaping8930
+Ref: #more-escaping9092
+Node: Even more escaping9388
+Ref: #even-more-escaping9582
+Node: Less escaping10253
+Ref: #less-escaping10415
+Node: Command line tips10660
+Ref: #command-line-tips10846
+Node: Unicode characters11223
+Ref: #unicode-characters11379
+Node: Input files12104
+Ref: #input-files12240
+Node: Smart dates14210
+Ref: #smart-dates14351
+Node: Report start & end date15757
+Ref: #report-start-end-date15929
+Node: Report intervals16994
+Ref: #report-intervals17159
+Node: Period expressions17560
+Ref: #period-expressions17720
+Node: Depth limiting21677
+Ref: #depth-limiting21821
+Node: Pivoting22163
+Ref: #pivoting22281
+Node: Cost23957
+Ref: #cost24065
+Node: Market value24183
+Ref: #market-value24318
+Node: Combining -B and -V25684
+Ref: #combining--b-and--v25847
+Node: Output destination25994
+Ref: #output-destination26156
+Node: Output format26439
+Ref: #output-format26591
+Node: Regular expressions26976
+Ref: #regular-expressions27113
+Node: QUERIES28474
+Ref: #queries28576
+Node: COMMANDS32538
+Ref: #commands32650
+Node: accounts33650
+Ref: #accounts33748
+Node: activity34994
+Ref: #activity35104
+Node: add35464
+Ref: #add35563
+Node: balance38224
+Ref: #balance38335
+Node: Classic balance report41418
+Ref: #classic-balance-report41591
+Node: Customising the classic balance report42960
+Ref: #customising-the-classic-balance-report43188
+Node: Colour support45262
+Ref: #colour-support45429
+Node: Flat mode45602
+Ref: #flat-mode45750
+Node: Depth limited balance reports46163
+Ref: #depth-limited-balance-reports46363
+Node: Multicolumn balance report46819
+Ref: #multicolumn-balance-report47017
+Node: Budget report52197
+Ref: #budget-report52340
+Ref: #output-format-155374
+Node: balancesheet55452
+Ref: #balancesheet55588
+Node: balancesheetequity57899
+Ref: #balancesheetequity58048
+Node: cashflow58585
+Ref: #cashflow58713
+Node: check-dates60836
+Ref: #check-dates60963
+Node: check-dupes61080
+Ref: #check-dupes61204
+Node: close61341
+Ref: #close61449
+Node: files61779
+Ref: #files61880
+Node: help62021
+Ref: #help62121
+Node: import63195
+Ref: #import63309
+Node: incomestatement64039
+Ref: #incomestatement64173
+Node: prices66577
+Ref: #prices66692
+Node: print66964
+Ref: #print67074
+Node: print-unique71968
+Ref: #print-unique72094
+Node: register72162
+Ref: #register72289
+Node: Custom register output76790
+Ref: #custom-register-output76919
+Node: register-match78149
+Ref: #register-match78283
+Node: rewrite78466
+Ref: #rewrite78581
+Node: roi78650
+Ref: #roi78748
+Node: stats78864
+Ref: #stats78963
+Node: tags79833
+Ref: #tags79931
+Node: test80167
+Ref: #test80251
+Node: ADD-ON COMMANDS80959
+Ref: #add-on-commands81069
+Node: Official add-ons82356
+Ref: #official-add-ons82496
+Node: api82583
+Ref: #api82672
+Node: ui82724
+Ref: #ui82823
+Node: web82881
+Ref: #web82970
+Node: Third party add-ons83016
+Ref: #third-party-add-ons83191
+Node: diff83326
+Ref: #diff83423
+Node: iadd83522
+Ref: #iadd83636
+Node: interest83719
+Ref: #interest83840
+Node: irr83935
+Ref: #irr84033
+Node: Experimental add-ons84164
+Ref: #experimental-add-ons84316
+Node: autosync84596
+Ref: #autosync84707
+Node: chart84946
+Ref: #chart85065
+Node: check85136
+Ref: #check85238
 
 End Tag Table
