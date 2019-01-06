@@ -366,9 +366,38 @@ hledger -f- stats
 >>>2 /unexpected '@'/
 >>>=1
 
-# 21. The calculated balance is rounded to display precision before checking.
-# Here the calculated balance is $1.005 but users, and balance assertions,
-# see it as $1.00 (because the commodity directive set display precision to 2).
+# 21. With a commodity directive limiting the display precision. 
+# Assertions pass if the difference between asserted and actual amounts
+# appears to be zero, when rendered to the greater of the standard 
+# display precision and the asserted amount's precision. 
+# Here,
+# Actual balance:       1.006
+# Asserted balence:     1.006
+# Difference:           0.000
+# Standard & asserted precisions: 2, 3
+# Difference rendered:  0.000
+# Result:               pass
+hledger -f- stats
+<<<
+commodity $1000.00
+
+2019/01/01
+    (a)             $0.006
+
+2019/01/02
+    (a)             $1.00  = $1.006
+
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 22. A rounded assertion amount can also pass. Here,
+# Actual balance:       1.006
+# Asserted balence:     1.01
+# Difference:           0.004
+# Standard & asserted precisions: 2, 2
+# Difference rendered:  0.00
+# Result:               pass
 hledger -f- stats
 <<<
 commodity $1000.00
@@ -383,7 +412,13 @@ commodity $1000.00
 >>>2
 >>>=0
 
-# 22. The asserted balance is not rounded to display precision.
+# 23. A more precise assertion amount can fail. Here,
+# Actual balance:       1.006
+# Asserted balence:     1.0061
+# Difference:           0.0001
+# Standard & asserted precisions: 2, 4
+# Difference rendered:  0.0001
+# Result:               fail
 hledger -f- stats
 <<<
 commodity $1000.00
@@ -392,8 +427,8 @@ commodity $1000.00
     (a)             $0.006
 
 2019/01/02
-    (a)             $1.00  = $1.007
+    (a)             $1.00  = $1.0061
 
 >>>
->>>2 /difference: \+\$0\.001/
+>>>2 /difference: \+\$0\.0001/
 >>>=1

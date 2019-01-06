@@ -583,16 +583,25 @@ checkBalanceAssertion p@Posting{pbalanceassertion=Just (BalanceAssertion{baamoun
                     | otherwise = []
 checkBalanceAssertion _ _ = Right ()
 
+-- | Does the difference between the asserted balance
+-- and (the corresponding part of) the actual balance
+-- appear as zero, when rendered to the greater of
+-- 1. the standard display precision for the commodity
+-- 2. the full precision of the asserted amount ?
+-- The posting is used when creating an error message.
 checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
 checkBalanceAssertionCommodity p assertedamt actualbal
-  -- this effectively compares the actual balance rounded to display precision (I believe),
-  -- with the asserted balance as written. See examples in balance assertions manual.
   | isZeroAmount diff = Right ()
   | True              = Left err
     where
+      diff =
+        -- traceWith (("diff:"++).showAmountDebug) $
+        -- traceWith (("asserted:"++).showAmountDebug)
+        assertedamt -
+        -- traceWith (("actual:"++).showAmountDebug)
+        actualbalincommodity
       assertedcomm = acommodity assertedamt
       actualbalincommodity = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts actualbal)
-      diff = assertedamt - actualbalincommodity
       diffplus | isNegativeAmount diff == False = "+"
                | otherwise = ""
       err = printf (unlines
