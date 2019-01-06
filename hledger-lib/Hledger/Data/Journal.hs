@@ -1,5 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE StandaloneDeriving, OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 
 {-|
@@ -569,54 +571,57 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass } bal =
-  foldl' fold (Right ()) amts
-    where fold (Right _) cass = checkBalanceAssertionCommodity p cass bal
-          fold err _ = err
-          amt = baamount ass
-          amts = amt : if baexact ass
-            then map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> acommodity a /= assertedcomm) bal
-            else []
-          assertedcomm = acommodity amt
+checkBalanceAssertion p@Posting{pbalanceassertion=Just (BalanceAssertion{baamount,baexact})} actualbal =
+  foldl' f (Right ()) assertedamts
+    where
+      f (Right _) assertedamt = checkBalanceAssertionCommodity p assertedamt actualbal
+      f err _                 = err
+      assertedamts = baamount : otheramts
+        where
+          assertedcomm = acommodity baamount
+          otheramts | baexact   = map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> acommodity a /= assertedcomm) actualbal
+                    | otherwise = []
 checkBalanceAssertion _ _ = Right ()
 
 checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
-checkBalanceAssertionCommodity p amt bal
+checkBalanceAssertionCommodity p assertedamt actualbal
   | isReallyZeroAmount diff = Right ()
-  | True    = Left err
-    where assertedcomm = acommodity amt
-          actualbal = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts bal)
-          diff = amt - actualbal
-          diffplus | isNegativeAmount diff == False = "+"
-                   | otherwise = ""
-          err = printf (unlines
-                        [ "balance assertion error%s",
-                          "after posting:",
-                          "%s",
-                          "balance assertion details:",
-                          "date:       %s",
-                          "account:    %s",
-                          "commodity:  %s",
-                          "calculated: %s",
-                          "asserted:   %s (difference: %s)"
-                        ])
-            (case ptransaction p of
-               Nothing -> ":" -- shouldn't happen
-               Just t ->  printf " in %s:\nin transaction:\n%s"
-                          (showGenericSourcePos pos) (chomp $ showTransaction t) :: String
-                            where pos = baposition $ fromJust $ pbalanceassertion p)
-            (showPostingLine p)
-            (showDate $ postingDate p)
-            (T.unpack $ paccount p) -- XXX pack
-            assertedcomm
-            (showAmount actualbal)
-            (showAmount amt)
-            (diffplus ++ showAmount diff)
+  | True              = Left err
+    where
+      assertedcomm = acommodity assertedamt
+      actualbalincommodity = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts actualbal)
+      diff = assertedamt - actualbalincommodity
+      diffplus | isNegativeAmount diff == False = "+"
+               | otherwise = ""
+      err = printf (unlines
+                    [ "balance assertion error%s",
+                      "after posting:",
+                      "%s",
+                      "balance assertion details:",
+                      "date:       %s",
+                      "account:    %s",
+                      "commodity:  %s",
+                      "calculated: %s",
+                      "asserted:   %s (difference: %s)"
+                    ])
+        (case ptransaction p of
+           Nothing -> ":" -- shouldn't happen
+           Just t ->  printf " in %s:\nin transaction:\n%s"
+                      (showGenericSourcePos pos) (chomp $ showTransaction t) :: String
+                        where pos = baposition $ fromJust $ pbalanceassertion p)
+        (showPostingLine p)
+        (showDate $ postingDate p)
+        (T.unpack $ paccount p) -- XXX pack
+        assertedcomm
+        (showAmount actualbalincommodity)
+        (showAmount assertedamt)
+        (diffplus ++ showAmount diff)
 
 -- | Fill in any missing amounts and check that all journal transactions
--- balance, or return an error message. This is done after parsing all
--- amounts and applying canonical commodity styles, since balancing
--- depends on display precision. Reports only the first error encountered.
+-- balance and all balance assertions pass, or return an error message.
+-- This is done after parsing all amounts and applying canonical
+-- commodity styles, since balancing depends on display precision.
+-- Reports only the first error encountered.
 journalBalanceTransactions :: Bool -> Journal -> Either String Journal
 journalBalanceTransactions assrt j =
   runST $ journalBalanceTransactionsST 
@@ -627,6 +632,8 @@ journalBalanceTransactions assrt j =
     (fmap (\txns -> j{ jtxns = txns}) . getElems) -- summarise state
 
 -- | Helper used by 'journalBalanceTransactions' and 'journalCheckBalanceAssertions'.
+-- Balances transactions, applies balance assignments, and checks balance assertions
+-- at the same time.
 journalBalanceTransactionsST ::
   Bool
   -> Journal
