@@ -2,11 +2,11 @@
 
 There are several ways to install hledger:
 
-a. [Download the binary or system package for your platform](#a.-download-a-binary-or-system-package) (quick install, often not up to date)
+a. [Download the binary or system package for your platform](#a.-download-a-binary-or-system-package) (quick install, often out of date)
 b. [Build the latest release with hledger-install](#b.-build-the-latest-release)
   or [with stack](#b2.-with-stack)
   or [with cabal](#b3.-with-cabal) (slow install, up to date)
-c. [Build the development version with stack or cabal](#c.-build-the-development-version) (slow install, super-fresh)
+c. [Build the development version with stack or cabal](#c.-build-the-development-version) (slow install, cutting edge)
 
 
 <a name="a"></a>
