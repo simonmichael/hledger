@@ -1,0 +1,20 @@
+# hledger csv conversion rules for sample.csv
+# cf http://hledger.org/manual#csv-files
+
+account1 assets:bank:checking
+
+fields date, description, amount
+
+#skip 1
+
+#date-format %-d/%-m/%Y
+#date-format %-m/%-d/%Y
+#date-format %Y-%h-%d
+
+#currency $
+
+if ITUNES
+ account2 expenses:entertainment
+
+if (TO|FROM) SAVINGS
+ account2 assets:bank:savings
