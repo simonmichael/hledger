@@ -107,13 +107,13 @@ DATEFMT is a [strptime-like date parsing pattern](http://hackage.haskell.org/pac
 which must parse the date field values completely. Examples:
 
 ``` {.rules .display-table}
-# for dates like "6/11/2013":
-date-format %-d/%-m/%Y
+# for dates like "11/06/2013":
+date-format %m/%d/%Y
 ```
 
 ``` {.rules .display-table}
-# for dates like "11/06/2013":
-date-format %m/%d/%Y
+# for dates like "6/11/2013" (note the - to make leading zeros optional):
+date-format %-d/%-m/%Y
 ```
 
 ``` {.rules .display-table}
