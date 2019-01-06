@@ -585,7 +585,9 @@ checkBalanceAssertion _ _ = Right ()
 
 checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
 checkBalanceAssertionCommodity p assertedamt actualbal
-  | isReallyZeroAmount diff = Right ()
+  -- this effectively compares the actual balance rounded to display precision (I believe),
+  -- with the asserted balance as written. See examples in balance assertions manual.
+  | isZeroAmount diff = Right ()
   | True              = Left err
     where
       assertedcomm = acommodity assertedamt

@@ -365,3 +365,35 @@ hledger -f- stats
 >>>
 >>>2 /unexpected '@'/
 >>>=1
+
+# 21. The calculated balance is rounded to display precision before checking.
+# Here the calculated balance is $1.005 but users, and balance assertions,
+# see it as $1.00 (because the commodity directive set display precision to 2).
+hledger -f- stats
+<<<
+commodity $1000.00
+
+2019/01/01
+    (a)             $0.006
+
+2019/01/02
+    (a)             $1.00  = $1.01
+
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 22. The asserted balance is not rounded to display precision.
+hledger -f- stats
+<<<
+commodity $1000.00
+
+2019/01/01
+    (a)             $0.006
+
+2019/01/02
+    (a)             $1.00  = $1.007
+
+>>>
+>>>2 /difference: \+\$0\.001/
+>>>=1

@@ -466,6 +466,34 @@ Balance assertions are checked against all postings, both real and
 [virtual](#virtual-postings). They are not affected by the `--real/-R`
 flag or `real:` query.
 
+### Assertions and precision
+
+The calculated account balance is rounded to display precision before checking.
+Eg: here the calculated balance is $1.006. The commodity directive causes
+users, and balance assertions, to see this rounded to two decimal places, ie $1.01,
+so this assertion passes:
+```journal
+commodity $1000.00
+
+2019/01/01
+    (a)             $0.006
+
+2019/01/02
+    (a)             $1.00  = $1.01
+```
+
+The asserted balance is not rounded to display precision. So this assertion fails:
+```journal
+commodity $1000.00
+
+2019/01/01
+    (a)             $0.006
+
+2019/01/02
+    (a)             $1.00  = $1.007
+# calculated: $1.01
+# asserted:   $1.007 (difference: +$0.001)
+```
 
 ## Balance Assignments
 
