@@ -468,16 +468,16 @@ flag or `real:` query.
 
 ### Assertions and precision
 
-A commodity directive which limits the display precision, can affect assertions.
+A [commodity directive](http://hledger.org/journal.html#declaring-commodities)
+which limits the display precision, can affect assertions.
 
 In general, hledger balance assertions should pass or fail as you would
-expect from visual inspection and manual summing of the amounts shown
-in reports and error messages. 
+expect from doing visual inspection and manual arithmetic with the amounts
+shown in reports and error messages, ie at display precision.
 
-More specifically, assertions pass if the difference between asserted
+More specifically, currently assertions pass if the difference between asserted
 and actual amounts appears to be zero, when rendered to the greater of
 the standard display precision and the asserted amount's precision.
-
 Here are some examples of this in action.
 
 Asserting the exact balance:
