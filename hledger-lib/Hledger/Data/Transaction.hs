@@ -35,7 +35,7 @@ module Hledger.Data.Transaction (
   showTransaction,
   showTransactionUnelided,
   showTransactionUnelidedOneLineAmounts,
-  showPostingLine,
+  -- showPostingLine,
   showPostingLines,
   -- * GenericSourcePos
   sourceFilePath,
@@ -246,14 +246,17 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
 
--- | Show a posting's status, account name and amount on one line. 
--- Used in balance assertion errors.
-showPostingLine p =
-  indent $
-  if pstatus p == Cleared then "* " else "" ++
-  showAccountName Nothing (ptype p) (paccount p) ++
-  "    " ++
-  showMixedAmountOneLine (pamount p)
+-- | Render a posting, simply. Used in balance assertion errors.
+-- showPostingLine p =
+--   indent $
+--   if pstatus p == Cleared then "* " else "" ++  -- XXX show !
+--   showAccountName Nothing (ptype p) (paccount p) ++
+--   "    " ++
+--   showMixedAmountOneLine (pamount p) ++
+--   assertion
+--   where
+--     -- XXX extract, handle ==
+--     assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity . baamount) $ pbalanceassertion p
 
 -- | Render a posting, at the appropriate width for aligning with
 -- its siblings if any. Used by the rewrite command. 

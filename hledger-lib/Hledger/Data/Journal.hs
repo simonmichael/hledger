@@ -583,50 +583,53 @@ checkBalanceAssertion p@Posting{pbalanceassertion=Just (BalanceAssertion{baamoun
                     | otherwise = []
 checkBalanceAssertion _ _ = Right ()
 
--- | Does the difference between the asserted balance
--- and (the corresponding part of) the actual balance
--- appear as zero, when rendered to the greater of
--- 1. the standard display precision for the commodity
--- 2. the full precision of the asserted amount ?
--- The posting is used when creating an error message.
+-- | Are the asserted balance and the actual balance
+-- exactly equal (disregarding display precision) ?
+-- The posting is used for creating an error message.
 checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
 checkBalanceAssertionCommodity p assertedamt actualbal
-  | isZeroAmount diff = Right ()
-  | True              = Left err
+  | pass      = Right ()
+  | otherwise = Left err
     where
-      diff =
-        -- traceWith (("diff:"++).showAmountDebug) $
-        -- traceWith (("asserted:"++).showAmountDebug)
-        assertedamt -
-        -- traceWith (("actual:"++).showAmountDebug)
-        actualbalincommodity
       assertedcomm = acommodity assertedamt
       actualbalincommodity = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts actualbal)
-      diffplus | isNegativeAmount diff == False = "+"
-               | otherwise = ""
+      pass =
+        aquantity
+        -- traceWith (("asserted:"++).showAmountDebug)
+        assertedamt ==
+        aquantity
+        -- traceWith (("actual:"++).showAmountDebug)
+        actualbalincommodity
+      diff = aquantity assertedamt - aquantity actualbalincommodity
       err = printf (unlines
-                    [ "balance assertion error%s",
-                      "after posting:",
-                      "%s",
-                      "balance assertion details:",
+                    [ "balance assertion: %s",
+                      "\nassertion details:",
                       "date:       %s",
                       "account:    %s",
                       "commodity:  %s",
-                      "calculated: %s",
-                      "asserted:   %s (difference: %s)"
+                      -- "display precision:  %d",
+                      "calculated: %s", -- (at display precision: %s)",
+                      "asserted:   %s", -- (at display precision: %s)",
+                      "difference: %s"
                     ])
         (case ptransaction p of
-           Nothing -> ":" -- shouldn't happen
-           Just t ->  printf " in %s:\nin transaction:\n%s"
-                      (showGenericSourcePos pos) (chomp $ showTransaction t) :: String
-                        where pos = baposition $ fromJust $ pbalanceassertion p)
-        (showPostingLine p)
+           Nothing -> "?" -- shouldn't happen
+           Just t ->  printf "%s\ntransaction:\n%s"
+                        (showGenericSourcePos pos)
+                        (chomp $ showTransaction t)
+                        :: String
+                        where
+                          pos = baposition $ fromJust $ pbalanceassertion p
+        )
         (showDate $ postingDate p)
         (T.unpack $ paccount p) -- XXX pack
         assertedcomm
-        (showAmount actualbalincommodity)
-        (showAmount assertedamt)
-        (diffplus ++ showAmount diff)
+        -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
+        (show $ aquantity actualbalincommodity)
+        -- (showAmount actualbalincommodity)
+        (show $ aquantity assertedamt)
+        -- (showAmount assertedamt)
+        (show diff)
 
 -- | Fill in any missing amounts and check that all journal transactions
 -- balance and all balance assertions pass, or return an error message.

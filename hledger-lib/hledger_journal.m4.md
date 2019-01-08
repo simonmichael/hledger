@@ -468,71 +468,11 @@ flag or `real:` query.
 
 ### Assertions and precision
 
-A [commodity directive](http://hledger.org/journal.html#declaring-commodities)
-which limits the display precision, can affect assertions.
-
-In general, hledger balance assertions should pass or fail as you would
-expect from doing visual inspection and manual arithmetic with the amounts
-shown in reports and error messages, ie at display precision.
-
-More specifically, currently assertions pass if the difference between asserted
-and actual amounts appears to be zero, when rendered to the greater of
-the standard display precision and the asserted amount's precision.
-Here are some examples of this in action.
-
-Asserting the exact balance:
-```journal
-commodity $1000.00
-
-2019/01/01
-    (a)             $0.006
-
-2019/01/02
-    (a)             $1.00  = $1.006
-
-; Actual balance:       1.006
-; Asserted balence:     1.006
-; Difference:           0.000
-; Standard & asserted precisions: 2, 3
-; Difference rendered:  0.000
-; Result:               pass
-```
-
-Asserting the balance rounded to fewer decimal places:
-```journal
-commodity $1000.00
-
-2019/01/01
-    (a)             $0.006
-
-2019/01/02
-    (a)             $1.00  = $1.01
-
-; Actual balance:       1.006
-; Asserted balence:     1.01
-; Difference:           0.004
-; Standard & asserted precisions: 2, 2
-; Difference rendered:  0.00
-; Result:               pass
-```
-
-Asserting an inexact balance with too many decimal places (fails):
-```journal
-commodity $1000.00
-
-2019/01/01
-    (a)             $0.006
-
-2019/01/02
-    (a)             $1.00  = $1.0061
-
-; Actual balance:       1.006
-; Asserted balence:     1.0061
-; Difference:           0.0001
-; Standard & asserted precisions: 2, 4
-; Difference rendered:  0.0001
-; Result:               fail
-```
+Balance assertions compare the exactly calculated amounts,
+which are not always what is shown by reports.
+Eg a [commodity directive](http://hledger.org/journal.html#declaring-commodities)
+may limit the display precision, but this will not affect balance assertions.
+Balance assertion failure messages show exact amounts.
 
 ## Balance Assignments
 
