@@ -525,6 +525,7 @@ periodictransactionp = do
       customFailure $ parseErrorAtRegion offset1 offset2 $
            "remainder of period expression cannot be parsed"
         <> "\nperhaps you need to terminate the period expression with a double space?"
+        <> "\na double space is required between period expression and description/comment"
     pure pexp
 
   -- In periodic transactions, the period expression has an additional constraint:
