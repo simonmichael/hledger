@@ -117,14 +117,15 @@ roi CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
     irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
     twr <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans thisSpan
     let cashFlowAmt = negate $ sum $ map snd cashFlow
+    let smallIsZero x = if abs x < 0.01 then 0.0 else x
     return [ showDate spanBegin
            , showDate (addDays (-1) spanEnd)
            , show valueBefore
            , show cashFlowAmt
            , show valueAfter
            , show (valueAfter - (valueBefore + cashFlowAmt))
-           , printf "%0.2f%%" irr
-           , printf "%0.2f%%" twr ]
+           , printf "%0.2f%%" $ smallIsZero irr
+           , printf "%0.2f%%" $ smallIsZero twr ]
 
   let table = Table 
               (Tbl.Group NoLine (map (Header . show) (take (length tableBody) [1..]))) 
