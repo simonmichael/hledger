@@ -7,7 +7,7 @@ generic-options.txt:
 	hledger -h | ./output-options.sh > $@
 
 commands.txt:
-	hledger | ./output-commands.sh > $@
+	hledger | ./output-commands.sh | grep -v ^hledger > $@
 
 commands-list.txt: commands.txt
 	paste -sd, $^ | tr -d '\n' > $@
