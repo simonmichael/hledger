@@ -1,4 +1,4 @@
-#!/bin/bash
+
 # Completion script for hledger.
 # Created using a Makefile and real hledger.
 
@@ -52,7 +52,12 @@ hledgerCompletionFunction() {
 
 	if [[ -n $completeFiles ]]; then
 	    #COMP_WORDBREAKS='= '
-	    COMPREPLY+=( $(compgen -df | grep "^$filenameSoFar") )
+	    declare -a files
+	    # This does not work because assignment to 'files' in the "pipe
+	    # subshell" has no effect!
+	    #compgen -df | grep "^$filenameSoFar" | readarray -t files
+	    readarray -t files < <(compgen -df | grep "^$filenameSoFar")
+	    COMPREPLY=( "${files[@]}" )
 
 	else
 	    COMPREPLY+=( $(grep -h "^$wordToComplete" -- "$HLEDGER_COMPLETION_TEMPDIR/commands.txt" "$HLEDGER_COMPLETION_TEMPDIR/generic-options.txt") )
