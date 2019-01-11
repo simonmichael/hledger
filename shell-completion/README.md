@@ -15,7 +15,7 @@ The completions can handle hledger's CLI:
 
 - commands and generic options
 - command-specific options
-- account names (but not yet for files named by --file)
+- account names from journal files (but not yet for files named by --file)
 - filenames for options that take a filename as argument
 
 Installation
@@ -33,7 +33,7 @@ Hint: GNU make, GNU m4, and GNU parallel must be installed to call `make`.
 The first two usually are.
 
 Then, the generated completion script must be installed. TBD.
-For now, you can use this two commands:
+For now, you can use these two commands:
 
 ```
 cp hledger-completion.bash ~/.hledger-completion.bash
@@ -50,7 +50,7 @@ again to complete it.
 Background
 ----------
 
-The Bash completion script is generated (GNU make) by parsing output of hledger,
-hledger -h, and hledger <cmd> -h. The script also uses hledger accounts for
+The Bash completion script is generated (GNU make) by parsing output of `hledger`,
+`hledger -h`, and `hledger <cmd> -h`. The script also uses `hledger accounts` for
 account name completion. I propose that the Makefile is not run at every built
 but rather manually when the CLI changes.
