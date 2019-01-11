@@ -532,17 +532,11 @@ periodictransactionp = do
   case checkPeriodicTransactionStartDate interval span periodtxt of
     Just e -> customFailure $ parseErrorAt off e
     Nothing -> pure ()
-  -- The line can end here, or it can continue with one or more spaces
-  -- and then zero or more of the following fields. A bit awkward.
-  (status, code, description, (comment, tags)) <- lift $
-    (<|>) (eolof >> return (Unmarked, "", "", ("", []))) $ do
-      skipSome spacenonewline
-      s         <- statusp
-      c         <- codep
-      desc      <- T.strip <$> descriptionp
-      (cmt, ts) <- transactioncommentp
-      return (s,c,desc,(cmt,ts))
-
+  
+  status <- lift statusp <?> "cleared status"
+  code <- lift codep <?> "transaction code"
+  description <- lift $ T.strip <$> descriptionp
+  (comment, tags) <- lift transactioncommentp
   -- next lines; use same year determined above
   postings <- postingsp (Just $ first3 $ toGregorian refdate)
 
@@ -694,6 +688,19 @@ tests_JournalReader = tests "JournalReader" [
         ,ptcomment     = ""
         }
 
+    ,test "Just date, no description" $ expectParseEq periodictransactionp
+      "~ 2019-01-04\n"
+      nullperiodictransaction {
+         ptperiodexpr  = "2019-01-04"
+        ,ptinterval    = NoInterval
+        ,ptspan        = DateSpan (Just $ fromGregorian 2019 1 4) (Just $ fromGregorian 2019 1 5)
+        ,ptdescription = ""
+        ,ptcomment     = ""
+        }
+
+    ,test "Just date, no description + empty transaction comment" $ expectParse periodictransactionp
+      "~ 2019-01-04\n  ;\n  a  1\n  b\n"
+
     ]
 
   ,tests "postingp" [
@@ -801,7 +808,16 @@ tests_JournalReader = tests "JournalReader" [
         ,"  b"
         ," "
         ]
-  
+
+    ,test "transactionp parses an empty transaction comment following whitespace line" $
+      expect $ isRight $ rjp transactionp $ T.unlines
+        ["2012/1/1"
+        ,"  ;"
+        ,"  a  1"
+        ,"  b"
+        ," "
+        ]
+
     ,test "comments everywhere, two postings parsed" $
       expectParseEqOn transactionp 
         (T.unlines
