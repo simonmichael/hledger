@@ -37,13 +37,6 @@ hledgerCompletionFunction() {
     if [[ -z $subcommand ]]; then
 
 	declare completeFiles filenameSoFar
-	echo "$precedingWord, $wordToComplete"
-	case $wordToComplete in
-	    --file=*|--rules-file=*)
-		completeFiles=1
-		filenameSoFar=${wordToComplete#*=}
-		;;
-	esac
 	case $precedingWord in
 	    -f|--file|--rules-file)
 		completeFiles=1
