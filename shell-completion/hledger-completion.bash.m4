@@ -5,14 +5,12 @@
 # No set -e because this file is sourced and is not supposed to quit the current shell.
 set -o pipefail
 
-# TODO grep "^$wordToComplete" is not safe to use if the word contains regex
-# special chars. But it might be no problem because of COMP_WORDBREAKS.
-
-# TODO Try to get file from -f --file arguments from COMP_WORDS and pass it to
-# the 'hledger accounts' call.
+# TODO grep "^$wordToComplete" is (functional) not safe to use if the word
+# contains regex special chars. But it might be no problem because of
+# COMP_WORDBREAKS.
 
 # Working with bash arrays is nasty compared to editing a text file. Consider
-# for example grepping an array or map a substitution on it.
+# for example grepping an array or mapping a substitution on it.
 # Therefore, we create temp files in RAM for completion suggestions (see below).
 
 readonly HLEDGER_COMPLETION_TEMPDIR=$(mktemp -d)
@@ -65,6 +63,10 @@ hledgerCompletionFunction() {
 
 	# Almost all subcommands accept [QUERY]
 	# -> always add accounts to completion list
+
+	# TODO Get ledger file from -f --file arguments from COMP_WORDS and pass it to
+	# the 'hledger accounts' call. Note that --rules-file - if present - must also
+	# be passed!
 
 	COMP_WORDBREAKS=' '
 	COMPREPLY+=( $(hledger accounts --flat | grep "^$wordToComplete") )
