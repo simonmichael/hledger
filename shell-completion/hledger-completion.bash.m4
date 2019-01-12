@@ -23,9 +23,6 @@ hledgerCompletionFunction() {
     declare subcommand
     for subcommand in "${COMP_WORDS[@]}"; do
 	if grep -Fxqe "$subcommand" "$HLEDGER_COMPLETION_TEMPDIR/commands.txt"; then
-	    #declare -a options
-	    #readarray -t options <(grep "^$wordToComplete" "$HLEDGER_COMPLETION_TEMPDIR/options-$subcommand.txt")
-	    #COMPREPLY+=( "${options[@]}" )
 	    COMPREPLY+=( $(grep -h "^$wordToComplete" -- "$HLEDGER_COMPLETION_TEMPDIR/options-$subcommand.txt") )
 	    break
 	fi
@@ -68,8 +65,13 @@ hledgerCompletionFunction() {
 	# the 'hledger accounts' call. Note that --rules-file - if present - must also
 	# be passed!
 
+	declare -a accounts
+	readarray -t accounts < <(hledger accounts --flat | grep "^$wordToComplete")
+	COMPREPLY+=( "${accounts[@]}" )
+	# Special characters (e.g. '-', ':') are allowed in account names.
+	# Account names with spaces must be still be quoted (e.g. '"Expens')
+	# for completion. Setting COMP_WORDBREAKS='' would not help here!
 	COMP_WORDBREAKS=' '
-	COMPREPLY+=( $(hledger accounts --flat | grep "^$wordToComplete") )
 
     fi
 
