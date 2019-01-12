@@ -5,20 +5,20 @@
 # No set -e because this file is sourced and is not supposed to quit the current shell.
 set -o pipefail
 
-# TODO grep "^$wordToComplete" is (functional) not safe to use if the word
+# Note: grep "^$wordToComplete" is (functional) not safe to use if the word
 # contains regex special chars. But it might be no problem because of
 # COMP_WORDBREAKS.
 
-# TODO compgen and compopt is pretty complicated. Piping to
+# Note: compgen and compopt is pretty complicated. Piping to
 # grep "^$wordToComplete"
 # seems like a hack - I'd rather use
 # compgen ... -- "$wordToComplete"
 # But what options to use? I don't want to use -W because it may exceed the
 # maximum command line length. -C "cat file" is not working either. It would be
-# best if compgen can read from stdin but it does not.
+# best if compgen could read from stdin but it does not.
 
-# Working with bash arrays is nasty compared to editing a text file. Consider
-# for example grepping an array or mapping a substitution on it.
+# Note: Working with bash arrays is nasty compared to editing a text file.
+# Consider for example grepping an array or mapping a substitution on it.
 # Therefore, we create temp files in RAM for completion suggestions (see below).
 
 readonly _HLEDGER_COMPLETION_TEMPDIR=$(mktemp -d)
