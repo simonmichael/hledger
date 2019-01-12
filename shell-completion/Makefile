@@ -13,7 +13,7 @@ commands-list.txt: commands.txt
 	paste -sd, $^ | tr -d '\n' > $@
 
 commands: commands.txt
-	parallel 'hledger {} -h | ./output-options.sh > options-{}.txt' < commands.txt
+	parallel -j8 'hledger {} -h | ./output-options.sh > options-{}.txt' < commands.txt
 
 hledger-completion.bash: hledger-completion.bash.m4 commands-list.txt
 	m4 hledger-completion.bash.m4 > $@
