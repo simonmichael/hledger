@@ -5,12 +5,20 @@
 # No set -e because this file is sourced and is not supposed to quit the current shell.
 set -o pipefail
 
-# TODO grep "^$wordToComplete" is (functional) not safe to use if the word
+# Note: grep "^$wordToComplete" is (functional) not safe to use if the word
 # contains regex special chars. But it might be no problem because of
 # COMP_WORDBREAKS.
 
-# Working with bash arrays is nasty compared to editing a text file. Consider
-# for example grepping an array or mapping a substitution on it.
+# Note: compgen and compopt is pretty complicated. Piping to
+# grep "^$wordToComplete"
+# seems like a hack - I'd rather use
+# compgen ... -- "$wordToComplete"
+# But what options to use? I don't want to use -W because it may exceed the
+# maximum command line length. -C "cat file" is not working either. It would be
+# best if compgen could read from stdin but it does not.
+
+# Note: Working with bash arrays is nasty compared to editing a text file.
+# Consider for example grepping an array or mapping a substitution on it.
 # Therefore, we create temp files in RAM for completion suggestions (see below).
 
 readonly _HLEDGER_COMPLETION_TEMPDIR=$(mktemp -d)
@@ -49,7 +57,9 @@ _hledger_completion_function() {
 	    # This does not work because assignment to 'files' in the "pipe
 	    # subshell" has no effect!
 	    #compgen -df | grep "^$filenameSoFar" | readarray -t files
-	    readarray -t files < <(compgen -df | grep "^$filenameSoFar")
+
+	    compopt -o filenames -o dirnames
+	    readarray -t files < <(compgen -f -- "$filenameSoFar")
 	    COMPREPLY=( "${files[@]}" )
 
 	else
@@ -116,7 +126,6 @@ bs
 bse
 cf
 is
-a
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
@@ -1850,63 +1859,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
 --sort-amount
 --output-format
 --output-file
---file
---rules-file
---separator
---alias
---anon
---pivot
---ignore-assertions
---begin
---end
---daily
---weekly
---monthly
---quarterly
---yearly
---period
---date2
---unmarked
---pending
---cleared
---real
---depth
---empty
---cost
---value
---auto
---forecast
---help
---debug
---version
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-a.txt"
--f
--I
--b
--e
--D
--W
--M
--Q
--Y
--p
--U
--C
--P
--C
--R
--N
--E
--B
--V
--h
---declared
---used
---tree
---flat
---drop
 --file
 --rules-file
 --separator
