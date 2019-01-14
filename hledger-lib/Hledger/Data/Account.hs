@@ -45,14 +45,14 @@ instance Eq Account where
              -- ]
 
 nullacct = Account
-  { aname = ""
-  , adeclarationorder = Nothing
-  , aparent = Nothing
-  , asubs = []
-  , anumpostings = 0
-  , aebalance = nullmixedamt
-  , aibalance = nullmixedamt
-  , aboring = False
+  { aname            = ""
+  , adeclarationinfo = Nothing
+  , asubs            = []
+  , aparent          = Nothing
+  , aboring          = False
+  , anumpostings     = 0
+  , aebalance        = nullmixedamt
+  , aibalance        = nullmixedamt
   }
 
 -- | Derive 1. an account tree and 2. each account's total exclusive
@@ -83,7 +83,11 @@ accountTree :: AccountName -> [AccountName] -> Account
 accountTree rootname as = nullacct{aname=rootname, asubs=map (uncurry accountTree') $ M.assocs m }
   where
     T m = treeFromPaths $ map expandAccountName as :: FastTree AccountName
-    accountTree' a (T m) = nullacct{aname=a, asubs=map (uncurry accountTree') $ M.assocs m}
+    accountTree' a (T m) =
+      nullacct{
+        aname=a
+       ,asubs=map (uncurry accountTree') $ M.assocs m
+       }
 
 -- | Tie the knot so all subaccounts' parents are set correctly.
 tieAccountParents :: Account -> Account
@@ -204,12 +208,17 @@ sortAccountTreeByAmount normalsign a
     maybeflip | normalsign==NormallyNegative = id
               | otherwise                  = flip
 
--- | Look up an account's declaration order, if any, from the Journal and set it.
--- This is the relative position of its account directive 
--- among the other account directives.
-accountSetDeclarationOrder :: Journal -> Account -> Account
-accountSetDeclarationOrder j a@Account{..} = 
-  a{adeclarationorder = findIndex (==aname) (jdeclaredaccounts j)}
+-- | Add extra info for this account derived from the Journal's
+-- account directives, if any (comment, tags, declaration order..).
+-- Currently only sets declaration order.
+-- Expects that this account is among the Journal's jdeclaredaccounts
+-- (otherwise sets declaration order to 0).
+accountSetDeclarationInfo :: Journal -> Account -> Account
+accountSetDeclarationInfo j a@Account{..} = 
+  a{adeclarationinfo=Just nullaccountdeclarationinfo{
+       adideclarationorder = fromMaybe 0 $ findIndex (==aname) (jdeclaredaccounts j)
+       }
+   }
 
 -- | Sort account names by the order in which they were declared in
 -- the journal, at each level of the account tree (ie within each
@@ -227,7 +236,7 @@ sortAccountNamesByDeclaration j keepparents as =
   drop 1 $                                            -- drop the root node that was added
   flattenAccounts $                                   -- convert to an account list
   sortAccountTreeByDeclaration $                      -- sort by declaration order (and name)
-  mapAccounts (accountSetDeclarationOrder j) $        -- add declaration order info  
+  mapAccounts (accountSetDeclarationInfo j) $         -- add declaration order info
   accountTree "root"                                  -- convert to an account tree
   as
 
@@ -243,9 +252,10 @@ sortAccountTreeByDeclaration a
       map sortAccountTreeByDeclaration $ asubs a
       }
 
+accountDeclarationOrderAndName :: Account -> (Int, AccountName)
 accountDeclarationOrderAndName a = (adeclarationorder', aname a)
   where
-    adeclarationorder' = fromMaybe maxBound (adeclarationorder a)
+    adeclarationorder' = maybe maxBound adideclarationorder $ adeclarationinfo a
 
 -- | Search an account list by name.
 lookupAccount :: AccountName -> [Account] -> Maybe Account

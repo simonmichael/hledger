@@ -439,18 +439,33 @@ type ParsedJournal = Journal
 -- The --output-format option selects one of these for output.
 type StorageFormat = String
 
--- | An account, with name, balances and links to parent/subaccounts
--- which let you walk up or down the account tree.
+-- | Extra information about an account that can be derived from
+-- its account directive (and the other account directives).
+data AccountDeclarationInfo = AccountDeclarationInfo {
+   adicomment          :: Text   -- ^ any comment lines following an account directive for this account
+  ,aditags             :: [Tag]  -- ^ tags extracted from the account comment, if any
+  ,adideclarationorder :: Int    -- ^ the relative position of this account's account directive, if any. Normally a natural number.
+} deriving (Data)
+
+nullaccountdeclarationinfo = AccountDeclarationInfo {
+   adicomment          = ""
+  ,aditags             = []
+  ,adideclarationorder = 0
+}
+
+-- | An account, with its balances, parent/subaccount relationships, etc.
+-- Only the name is required; the other fields are added when needed.
 data Account = Account {
-  aname                     :: AccountName,   -- ^ this account's full name
-  adeclarationorder         :: Maybe Int  ,   -- ^ the relative position of this account's account directive, if any. Normally a natural number. 
-  aebalance                 :: MixedAmount,   -- ^ this account's balance, excluding subaccounts
-  asubs                     :: [Account],     -- ^ sub-accounts
-  anumpostings              :: Int,           -- ^ number of postings to this account
-  -- derived from the above :
-  aibalance                 :: MixedAmount,   -- ^ this account's balance, including subaccounts
-  aparent                   :: Maybe Account, -- ^ parent account
-  aboring                   :: Bool           -- ^ used in the accounts report to label elidable parents
+   aname                     :: AccountName    -- ^ this account's full name
+  ,adeclarationinfo          :: Maybe AccountDeclarationInfo  -- ^ optional extra info from account directives
+  -- relationships in the tree
+  ,asubs                     :: [Account]      -- ^ this account's sub-accounts
+  ,aparent                   :: Maybe Account  -- ^ parent account
+  ,aboring                   :: Bool           -- ^ used in the accounts report to label elidable parents
+  -- balance information
+  ,anumpostings              :: Int            -- ^ the number of postings to this account
+  ,aebalance                 :: MixedAmount    -- ^ this account's balance, excluding subaccounts
+  ,aibalance                 :: MixedAmount    -- ^ this account's balance, including subaccounts
   } deriving (Typeable, Data, Generic)
 
 -- | Whether an account's balance is normally a positive number (in 
