@@ -253,13 +253,15 @@ orRethrowIOError io msg = do
     Right res -> pure res
     Left errMsg -> fail errMsg
 
+-- Parse an account directive, adding its info to the journal's
+-- list of account declarations.
 accountdirectivep :: JournalParser m ()
 accountdirectivep = do
   string "account"
   lift (skipSome spacenonewline)
   -- the account name, possibly modified by preceding alias or apply account directives
   acct <- modifiedaccountnamep
-  -- and maybe something else after two or more spaces ?
+  -- maybe an account type code after two or more spaces
   matype :: Maybe AccountType <- lift $ fmap (fromMaybe Nothing) $ optional $ try $ do
     skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp 
     choice [
@@ -270,16 +272,30 @@ accountdirectivep = do
       ,char 'R' >> return (Just Revenue) 
       ,char 'X' >> return (Just Expense) 
       ]
-  -- and maybe a comment on this and/or following lines ? (ignore for now)
-  (_cmt, _tags) <- lift transactioncommentp
-  -- and maybe Ledger-style subdirectives ? (ignore)
+  -- maybe a comment, on this and/or following lines
+  (cmt, tags) <- lift transactioncommentp
+  -- maybe Ledger-style subdirectives (ignored)
   skipMany indentedlinep
 
   -- update the journal
+  addAccountDeclaration (acct, cmt, tags)
   case matype of
     Nothing    -> return ()
     Just atype -> addDeclaredAccountType acct atype
-  pushDeclaredAccount acct
+
+-- Add an account declaration to the journal, auto-numbering it.
+addAccountDeclaration :: (AccountName,Text,[Tag]) -> JournalParser m ()
+addAccountDeclaration (a,cmt,tags) =
+  modify' (\j ->
+             let
+               decls = jdeclaredaccounts j
+               d     = (a, nullaccountdeclarationinfo{
+                              adicomment          = cmt
+                             ,aditags             = tags
+                             ,adideclarationorder = length decls + 1
+                             })
+             in
+               j{jdeclaredaccounts = d:decls})
 
 indentedlinep :: JournalParser m String
 indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)

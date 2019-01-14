@@ -264,7 +264,7 @@ journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
 
 -- | Sorted unique account names declared by account directives in this journal.
 journalAccountNamesDeclared :: Journal -> [AccountName]
-journalAccountNamesDeclared = nub . sort . jdeclaredaccounts
+journalAccountNamesDeclared = nub . sort . map fst . jdeclaredaccounts
 
 -- | Sorted unique account names declared by account directives or posted to
 -- by transactions in this journal.
