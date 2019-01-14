@@ -263,10 +263,8 @@ accountdirectivep = do
   matype :: Maybe AccountType <- lift $ fmap (fromMaybe Nothing) $ optional $ try $ do
     skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp 
     choice [
-      -- a numeric account code, as supported in 1.9-1.10 ? currently ignored
-       some digitChar >> return Nothing
       -- a letter account type code (ALERX), as added in 1.11 ?
-      ,char 'A' >> return (Just Asset) 
+       char 'A' >> return (Just Asset) 
       ,char 'L' >> return (Just Liability) 
       ,char 'E' >> return (Just Equity) 
       ,char 'R' >> return (Just Revenue) 
@@ -843,7 +841,6 @@ tests_JournalReader = tests "JournalReader" [
   ,test "accountdirectivep" $ do
     test "with-comment" $ expectParse accountdirectivep "account a:b  ; a comment\n"
     test "does-not-support-!" $ expectParseError accountdirectivep "!account a:b\n" ""
-    test "account-sort-code" $ expectParse accountdirectivep "account a:b  1000\n"
     test "account-type-code" $ expectParse accountdirectivep "account a:b  A\n"
     test "account-type-tag" $ expectParse accountdirectivep "account a:b  ; type:asset\n"
 
