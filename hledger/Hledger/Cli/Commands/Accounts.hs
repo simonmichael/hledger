@@ -74,7 +74,7 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       -- just the acct: part of the query will be reapplied later, after clipping
       acctq    = dbg1 "acctq" $ filterQuery queryIsAcct q
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
-      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ filter (matchesAccount nodepthq) $ jdeclaredaccounts j
+      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ filter (matchesAccount nodepthq) $ map fst $ jdeclaredaccounts j
       matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
       accts                = dbg5 "accts to show" $ -- no need to nub/sort, accountTree will
         if | declared     && not used -> matcheddeclaredaccts

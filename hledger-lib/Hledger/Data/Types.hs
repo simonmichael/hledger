@@ -410,7 +410,7 @@ data Journal = Journal {
   ,jparsetimeclockentries :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
   ,jincludefilestack      :: [FilePath]
   -- principal data
-  ,jdeclaredaccounts      :: [AccountName]                          -- ^ Accounts declared by account directives, in parse order (after journal finalisation) 
+  ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation) 
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts) 
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
@@ -444,8 +444,11 @@ type StorageFormat = String
 data AccountDeclarationInfo = AccountDeclarationInfo {
    adicomment          :: Text   -- ^ any comment lines following an account directive for this account
   ,aditags             :: [Tag]  -- ^ tags extracted from the account comment, if any
-  ,adideclarationorder :: Int    -- ^ the relative position of this account's account directive, if any. Normally a natural number.
-} deriving (Data)
+  ,adideclarationorder :: Int    -- ^ the order in which this account was declared,
+                                 --   relative to other account declarations, during parsing (1..)
+} deriving (Eq,Data,Generic)
+
+instance NFData AccountDeclarationInfo
 
 nullaccountdeclarationinfo = AccountDeclarationInfo {
    adicomment          = ""

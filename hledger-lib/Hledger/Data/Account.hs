@@ -210,15 +210,9 @@ sortAccountTreeByAmount normalsign a
 
 -- | Add extra info for this account derived from the Journal's
 -- account directives, if any (comment, tags, declaration order..).
--- Currently only sets declaration order.
--- Expects that this account is among the Journal's jdeclaredaccounts
--- (otherwise sets declaration order to 0).
 accountSetDeclarationInfo :: Journal -> Account -> Account
-accountSetDeclarationInfo j a@Account{..} = 
-  a{adeclarationinfo=Just nullaccountdeclarationinfo{
-       adideclarationorder = fromMaybe 0 $ findIndex (==aname) (jdeclaredaccounts j)
-       }
-   }
+accountSetDeclarationInfo j a@Account{..} =
+  a{ adeclarationinfo=lookup aname $ jdeclaredaccounts j }
 
 -- | Sort account names by the order in which they were declared in
 -- the journal, at each level of the account tree (ie within each

@@ -42,7 +42,6 @@ module Hledger.Read.Common (
   getDefaultCommodityAndStyle,
   getDefaultAmountStyle,
   getAmountStyle,
-  pushDeclaredAccount,
   addDeclaredAccountType,
   pushParentAccount,
   popParentAccount,
@@ -361,9 +360,6 @@ getAmountStyle commodity = do
     defaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
     let effectiveStyle = listToMaybe $ catMaybes [specificStyle, defaultStyle]
     return effectiveStyle
-
-pushDeclaredAccount :: AccountName -> JournalParser m ()
-pushDeclaredAccount acct = modify' (\j -> j{jdeclaredaccounts = acct : jdeclaredaccounts j})
 
 addDeclaredAccountType :: AccountName -> AccountType -> JournalParser m ()
 addDeclaredAccountType acct atype = 
