@@ -23,12 +23,13 @@ module Hledger.Utils.Test (
   ,expectParseEqE
   ,expectParseEqOn
   ,expectParseEqOnE
+  ,expectParseStateOn
 ) 
 where
 
 import Control.Exception
 import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.State.Strict (StateT, evalStateT)
+import Control.Monad.State.Strict (StateT, evalStateT, execStateT)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
@@ -106,7 +107,6 @@ is = flip expectEqPP
 
 -- | Test that this stateful parser runnable in IO successfully parses 
 -- all of the given input text, showing the parse error if it fails. 
-
 -- Suitable for hledger's JournalParser parsers.
 expectParse :: (Monoid st, Eq a, Show a, HasCallStack) => 
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> E.Test ()
@@ -216,3 +216,17 @@ expectParseEqOnE parser input f expected = do
              (expectEqPP expected . f)
              ep
 
+-- | Run a stateful parser in IO like expectParse, then compare the
+-- final state (the wrapped state, not megaparsec's internal state),
+-- transformed by the given function, with the given expected value.
+expectParseStateOn :: (HasCallStack, Monoid st, Eq b, Show b) =>
+     StateT st (ParsecT CustomErr T.Text IO) a
+  -> T.Text
+  -> (st -> b)
+  -> b
+  -> E.Test ()
+expectParseStateOn parser input f expected = do
+  es <- E.io $ runParserT (execStateT (parser <* eof) mempty) "" input
+  case es of
+    Left err -> fail $ (++"\n") $ ("\nparse error at "++) $ customErrorBundlePretty err
+    Right s  -> expectEqPP expected $ f s
