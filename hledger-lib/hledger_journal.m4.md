@@ -1111,18 +1111,18 @@ Partial or relative dates (M/D, D, tomorrow, last week) in the period expression
 can work (useful or not). They will be relative to today's date, unless 
 a Y default year directive is in effect, in which case they will be relative to Y/1/1.
 
-Period expressions must be terminated by **two or more spaces** if
-followed by additional fields. For example, the periodic transaction given
-below includes a transaction description "paycheck", which is separated
-from the period expression by a double space. If not for the second space,
-hledger would attempt (and fail) to parse "paycheck" as a part of the
-period expression.
+### Two spaces after the period expression
+
+If the period expression is followed by a transaction description,
+these must be separated by **two or more spaces**.
+This helps hledger know where the period expression ends, so that descriptions
+can not accidentally alter their meaning, as in this example:
 
 ```
-;                                2 or more spaces
-;                                      ||
-;                                      vv
-~ every 2 weeks from 2018/6/4 to 2018/9  paycheck
+; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2020"
+;               ||
+;               vv
+~ every 2 months  in 2020, we will review
     assets:bank:checking   $1500
     income:acme inc
 ```
