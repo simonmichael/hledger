@@ -71,3 +71,19 @@ include ~/included.journal
 
 >>>2
 >>>=0
+
+# 7. test that order of include files is maintained
+ printf 'include _b\n' >_a; touch _b; hledger -f _a stats | grep _ | sed -e 's%.*/%%'; rm -rf _a _b
+>>>
+_a
+_b
+>>>2
+>>>=0
+
+# 8. and with --auto code path
+ printf 'include _b\n=\n' >_a; touch _b; hledger -f _a stats --auto | grep _ | sed -e 's%.*/%%'; rm -rf _a _b
+>>>
+_a
+_b
+>>>2
+>>>=0
