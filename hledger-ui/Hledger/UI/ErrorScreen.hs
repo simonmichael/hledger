@@ -46,7 +46,8 @@ esInit _ _ _ = error "init function called with wrong screen type, should not ha
 esDraw :: UIState -> [Widget Name]
 esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
               ,aScreen=ErrorScreen{..}
-              ,aMode=mode} =
+              ,aMode=mode
+              } =
   case mode of
     Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
@@ -74,12 +75,12 @@ esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
 esDraw _ = error "draw function called with wrong screen type, should not happen"
 
 esHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
-esHandle ui@UIState{
-   aScreen=ErrorScreen{..}
-  ,aopts=UIOpts{cliopts_=copts}
-  ,ajournal=j
-  ,aMode=mode
-  } ev =
+esHandle ui@UIState{aScreen=ErrorScreen{..}
+                   ,aopts=UIOpts{cliopts_=copts}
+                   ,ajournal=j
+                   ,aMode=mode
+                   }
+         ev =
   case mode of
     Help ->
       case ev of

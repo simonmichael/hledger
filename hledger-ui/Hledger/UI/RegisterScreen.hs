@@ -133,9 +133,9 @@ rsInit _ _ _ = error "init function called with wrong screen type, should not ha
 
 rsDraw :: UIState -> [Widget Name]
 rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
-                            ,aScreen=RegisterScreen{..}
-                            ,aMode=mode
-                            } =
+              ,aScreen=RegisterScreen{..}
+              ,aMode=mode
+              } =
   case mode of
     Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]

@@ -49,11 +49,12 @@ tsInit _ _ _ = error "init function called with wrong screen type, should not ha
 
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
-                              ,aScreen=TransactionScreen{
-                                   tsTransaction=(i,t)
-                                  ,tsTransactions=nts
-                                  ,tsAccount=acct}
-                              ,aMode=mode} =
+              ,aScreen=TransactionScreen{tsTransaction=(i,t)
+                                        ,tsTransactions=nts
+                                        ,tsAccount=acct
+                                        }
+              ,aMode=mode
+              } =
   case mode of
     Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
@@ -106,12 +107,13 @@ tsDraw _ = error "draw function called with wrong screen type, should not happen
 
 tsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
-                                                ,tsTransactions=nts
-                                                ,tsAccount=acct}
-                    ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
-                    ,ajournal=j
-                    ,aMode=mode
-                    }
+                                               ,tsTransactions=nts
+                                               ,tsAccount=acct
+                                               }
+                   ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+                   ,ajournal=j
+                   ,aMode=mode
+                   }
          ev =
   case mode of
     Help ->

@@ -122,10 +122,10 @@ asInit _ _ _ = error "init function called with wrong screen type, should not ha
 
 asDraw :: UIState -> [Widget Name]
 asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
-                           ,ajournal=j
-                           ,aScreen=s@AccountsScreen{}
-                           ,aMode=mode
-                           } =
+              ,ajournal=j
+              ,aScreen=s@AccountsScreen{}
+              ,aMode=mode
+              } =
   case mode of
     Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
