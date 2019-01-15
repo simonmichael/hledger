@@ -1309,7 +1309,7 @@ match' p = do
 
 tests_Common = tests "Common" [
 
-  tests "amountp" [
+   tests "amountp" [
     test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
    ,test "ends with decimal mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
    ,test "unit price"             $ expectParseEq amountp "$10 @ €0.5" 
