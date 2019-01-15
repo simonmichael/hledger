@@ -446,7 +446,7 @@ data AccountDeclarationInfo = AccountDeclarationInfo {
   ,aditags             :: [Tag]  -- ^ tags extracted from the account comment, if any
   ,adideclarationorder :: Int    -- ^ the order in which this account was declared,
                                  --   relative to other account declarations, during parsing (1..)
-} deriving (Eq,Data,Generic)
+} deriving (Eq,Show,Data,Generic)
 
 instance NFData AccountDeclarationInfo
 

@@ -68,7 +68,6 @@ import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
-import Data.Maybe
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -257,31 +256,62 @@ orRethrowIOError io msg = do
 -- list of account declarations.
 accountdirectivep :: JournalParser m ()
 accountdirectivep = do
+  off <- getOffset -- XXX figure out a more precise position later
+
   string "account"
   lift (skipSome spacenonewline)
+
   -- the account name, possibly modified by preceding alias or apply account directives
   acct <- modifiedaccountnamep
-  -- maybe an account type code after two or more spaces
-  matype :: Maybe AccountType <- lift $ fmap (fromMaybe Nothing) $ optional $ try $ do
+
+  -- maybe an account type code (ALERX) after two or more spaces
+  -- XXX added in 1.11, deprecated in 1.13, remove in 1.14
+  mtypecode :: Maybe Char <- lift $ optional $ try $ do
     skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp 
-    choice [
-      -- a letter account type code (ALERX), as added in 1.11 ?
-       char 'A' >> return (Just Asset) 
-      ,char 'L' >> return (Just Liability) 
-      ,char 'E' >> return (Just Equity) 
-      ,char 'R' >> return (Just Revenue) 
-      ,char 'X' >> return (Just Expense) 
-      ]
+    choice $ map char "ALERX"
+
   -- maybe a comment, on this and/or following lines
   (cmt, tags) <- lift transactioncommentp
+  
   -- maybe Ledger-style subdirectives (ignored)
   skipMany indentedlinep
 
+  -- an account type may have been set by account type code or a tag;
+  -- the latter takes precedence
+  let
+    mtypecode' :: Maybe Text = maybe
+      (T.singleton <$> mtypecode)
+      Just
+      $ lookup accountTypeTagName tags
+    metype = parseAccountTypeCode <$> mtypecode'
+
   -- update the journal
   addAccountDeclaration (acct, cmt, tags)
-  case matype of
-    Nothing    -> return ()
-    Just atype -> addDeclaredAccountType acct atype
+  case metype of
+    Nothing         -> return ()
+    Just (Right t)  -> addDeclaredAccountType acct t
+    Just (Left err) -> customFailure $ parseErrorAt off err
+
+-- The special tag used for declaring account type. XXX change to "class" ?
+accountTypeTagName = "type"
+
+parseAccountTypeCode :: Text -> Either String AccountType
+parseAccountTypeCode s =
+  case T.toLower s of
+    "asset"     -> Right Asset
+    "a"         -> Right Asset
+    "liability" -> Right Liability
+    "l"         -> Right Liability
+    "equity"    -> Right Equity
+    "e"         -> Right Equity
+    "revenue"   -> Right Revenue
+    "r"         -> Right Revenue
+    "expense"   -> Right Expense
+    "x"         -> Right Expense
+    _           -> Left err
+  where
+    err = "invalid account type code "++T.unpack s++", should be one of " ++
+          (intercalate ", " $ ["A","L","E","R","X","ASSET","LIABILITY","EQUITY","REVENUE","EXPENSE"])
 
 -- Add an account declaration to the journal, auto-numbering it.
 addAccountDeclaration :: (AccountName,Text,[Tag]) -> JournalParser m ()
@@ -839,10 +869,16 @@ tests_JournalReader = tests "JournalReader" [
     ]
 
   ,test "accountdirectivep" $ do
-    test "with-comment" $ expectParse accountdirectivep "account a:b  ; a comment\n"
+    test "with-comment"       $ expectParse accountdirectivep "account a:b  ; a comment\n"
     test "does-not-support-!" $ expectParseError accountdirectivep "!account a:b\n" ""
-    test "account-type-code" $ expectParse accountdirectivep "account a:b  A\n"
-    test "account-type-tag" $ expectParse accountdirectivep "account a:b  ; type:asset\n"
+    test "account-type-code"  $ expectParse accountdirectivep "account a:b  A\n"
+    test "account-type-tag"   $ expectParseStateOn accountdirectivep "account a:b  ; type:asset\n"
+      jdeclaredaccounts
+      [("a:b", AccountDeclarationInfo{adicomment          = "type:asset\n"
+                                     ,aditags             = [("type","asset")]
+                                     ,adideclarationorder = 1
+                                     })
+      ]
 
   ,test "commodityconversiondirectivep" $ do
      expectParse commodityconversiondirectivep "C 1h = $50.00\n"
