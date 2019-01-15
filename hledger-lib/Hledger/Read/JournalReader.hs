@@ -66,7 +66,7 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad
-import Control.Monad.Except (ExceptT(..))
+import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict
 import Data.Maybe
 import qualified Data.Map.Strict as M
@@ -869,5 +869,13 @@ tests_JournalReader = tests "JournalReader" [
   ,tests "journalp" [
     test "empty file" $ expectParseEqE journalp "" nulljournal
     ]
+
+   -- defined here so it can use journalp
+  ,tests "parseAndFinaliseJournal" [
+    test "basic" $ do
+        ej <- io $ runExceptT $ parseAndFinaliseJournal journalp definputopts "" "2019-1-1\n"
+        let Right j = ej
+        expectEqPP [""] $ journalFilePaths j
+   ]
 
   ]
