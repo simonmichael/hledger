@@ -264,14 +264,23 @@ parseAndFinaliseJournal parser iopts f txt = do
         -- time. If we are only running once, we reorder and follow
         -- the options for checking assertions.
         let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
-                 then applyTransactionModifiers <$>
-                      (journalBalanceTransactions False $
-                       journalReverse $
-                       journalApplyCommodityStyles pj) >>=
-                      (\j -> journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                             journalAddFile (f, txt) $
-                             journalSetLastReadTime t $
-                             j)
+
+                 -- with transaction modifiers
+                 then
+                   -- first pass
+                   applyTransactionModifiers <$>
+                     (journalBalanceTransactions False $
+                      -- journalReverse $  -- can skip this one
+                      journalApplyCommodityStyles pj)
+                   -- second pass
+                   >>= (\j ->
+                      journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                      journalReverse $
+                      journalAddFile (f, txt) $
+                      journalSetLastReadTime t $
+                      j)
+
+                 -- without transaction modifiers
                  else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
                       journalReverse $
                       journalAddFile (f, txt) $
