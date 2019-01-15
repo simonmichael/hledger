@@ -856,7 +856,7 @@ to another commodity using these prices.
 
 ### Declaring accounts
 
-`account` directives can be used to pre-declare some or all accounts. 
+`account` directives can be used to pre-declare accounts. 
 Though not required, they can provide several benefits:
 
 - They can document your intended chart of accounts, providing a reference.
@@ -868,34 +868,73 @@ Though not required, they can provide several benefits:
 - They help with account name completion 
   in the add command, hledger-iadd, hledger-web, ledger-mode etc. 
 
-Here is the full syntax:
-```journal
-account ACCTNAME  [ACCTTYPE]
-  [COMMENTS]
-```
-
-The simplest form just declares a hledger-style [account name](manual.html#account-names), eg:
+The simplest form is just the word `account` followed by a hledger-style [account name](manual.html#account-names), eg:
 ```journal
 account assets:bank:checking
 ```
 
+#### Account comments
+
+[Comments](#comments), beginning with a semicolon, optionally including [tags](journal.html#tags), 
+can be written after the account name, and/or on following lines. Eg:
+```journal
+account assets:bank:checking  ; a comment
+  ; another comment
+  ; acctno:12345, a tag
+``` 
+
+Tip: comments on the same line require hledger 1.12+. 
+If you need your journal to be compatible with older hledger versions,
+write comments on the next line instead.
+
+#### Account subdirectives
+
+We also allow (and ignore) Ledger-style indented subdirectives, just for compatibility.:
+```journal
+account assets:bank:checking
+  format blah blah  ; <- subdirective, ignored
+``` 
+
+Here is the full syntax of account directives:
+```journal
+account ACCTNAME  [ACCTTYPE] [;COMMENT]
+  [;COMMENTS]
+  [LEDGER-STYLE SUBDIRECTIVES, IGNORED]
+```
+
 #### Account types
 
-hledger recognises five types of account: asset, liability, equity, revenue, expense.
-This is useful for certain accounting-aware reports, in particular [balancesheet](), [incomestatement][] and [cashflow][].
+hledger recognises five types (or classes) of account: Asset, Liability, Equity, Revenue, Expense.
+This is used by a few accounting-aware reports such as [balancesheet][], [incomestatement][] and [cashflow][].
 
 [balancesheet]: manual.html#balancesheet
 [cashflow]: manual.html#cashflow
 [incomestatement]: manual.html#incomestatement
 
+##### Auto-detected account types
+
 If you name your top-level accounts with some variation of 
 `assets`, `liabilities`/`debts`, `equity`, `revenues`/`income`, or `expenses`,
 their types are detected automatically.
 
-More generally, you can declare an account's type by adding one of the letters `ALERX`
-to its account directive, separated from the account name by two or more spaces.
-Eg:
+##### Account types declared with tags
 
+More generally, you can declare an account's type with an account directive,
+by writing a `type:` [tag](journal.html#tags) in a comment, followed by one of the words
+`Asset`, `Liability`, `Equity`, `Revenue`, `Expense`,
+or one of the letters `ALERX` (case insensitive):
+```journal
+account assets       ; type:Asset
+account liabilities  ; type:Liability
+account equity       ; type:Equity
+account revenues     ; type:Revenue
+account expenses     ; type:Expenses
+```
+
+##### Account types declared with account type codes
+
+Or, you can write one of those letters separated from the account name by two or more spaces,
+but this should probably be considered deprecated as of hledger 1.13:
 ```journal
 account assets       A
 account liabilities  L
@@ -904,37 +943,25 @@ account revenues     R
 account expenses     X
 ```
 
-Note: if you ever override the types of those auto-detected english account names mentioned above, 
-you might need to help the reports a bit:
-```
-; make "liabilities" not have the liability type, who knows why
-account liabilities   E
+##### Overriding auto-detected types
 
-; better ensure some other account has the liability type, 
-; otherwise balancesheet would still show "liabilities" under Liabilities 
-account -             L
-```
-)   
-
-#### Account comments
-
-An account directive can also have indented comments on following lines, eg:
+If you ever override the types of those auto-detected english account names mentioned above, 
+you might need to help the reports a bit. Eg:
 ```journal
-account assets:bank:checking
-  ; acctno:12345
-  ; a comment
-``` 
+; make "liabilities" not have the liability type - who knows why
+account liabilities   ; type:E
 
-We also allow (and ignore) Ledger-style subdirectives, with no leading semicolon, for compatibility. 
-
-Tags in account comments, like `acctno` above, currently have no effect. 
+; we need to ensure some other account has the liability type, 
+; otherwise balancesheet would still show "liabilities" under Liabilities 
+account -             ; type:L
+```
 
 #### Account display order
 
-Account directives also set the order in which accounts are displayed
-in reports, the hledger-ui accounts screen, the hledger-web sidebar, etc.
-Normally accounts are listed in alphabetical order, 
-but if you have eg these account directives in the journal:
+Account directives also set the order in which accounts are displayed,
+eg in reports, the hledger-ui accounts screen, and the hledger-web sidebar.
+By default accounts are listed in alphabetical order.
+But if you have these account directives in the journal:
 ```journal
 account assets
 account liabilities
@@ -943,7 +970,7 @@ account revenues
 account expenses
 ```
 
-you'll see those accounts listed in declaration order, not alphabetically:
+you'll see those accounts displayed in declaration order, not alphabetically:
 ```shell
 $ hledger accounts -1
 assets
