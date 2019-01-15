@@ -171,7 +171,7 @@ findReader Nothing (Just path) =
 -- directives & aliases do not affect subsequent sibling or parent files.
 -- They do affect included child files though. 
 -- Also the final parse state saved in the Journal does span all files.
-readJournalFiles :: InputOpts -> [FilePath] -> IO (Either String Journal)
+readJournalFiles :: InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
 readJournalFiles iopts =
   (right mconcat1 . sequence <$>) . mapM (readJournalFile iopts)
   where
