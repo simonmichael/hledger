@@ -149,6 +149,7 @@ Basic reports:
  activity                 show a chart of posting counts per interval
  aregister (ar, areg)     show transactions in a single account
  balance (b, bal)         show account balance changes or ending balances
+ files                    show input files
  prices                   show market price records
  print (p, txns)          show transactions/journal entries
  register (r, reg)        show postings to one or more accounts
