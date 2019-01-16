@@ -34,8 +34,11 @@ This command may also be useful for closing out expense/income accounts
 for a period (ie "closing the books" in accounting).
 
 Both transactions include balance assertions for the closed/reopened accounts.
+
 You probably shouldn't use status or realness queries (eg -C or -R) with this 
-command, or the balance assertions will require that query to pass. 
+command, or the balance assertions will require that query to pass.
+Likewise, if you generate them with --auto, the assertions will depend on
+any auto postings and --auto will be required to make them pass.
 
 By default, the closing transaction is dated yesterday, with balances 
 calculated as of end of yesterday, and the opening transaction is dated today.
@@ -83,17 +86,22 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       closingdate = addDays (-1) openingdate
       (acctbals,_) = balanceReportFromMultiBalanceReport ropts_ q j
       balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmountSquashPricesForDisplay b) acctbals
+
+      -- since balance assertion amounts are required to be exact, the
+      -- amounts in opening/closing transactions should be too (#941)
+      -- setprec = setFullPrecision
+      setprec = setMinimalPrecision
       ps = [posting{paccount=a
-                   ,pamount=mixed [b]
-                   ,pbalanceassertion=Just assertion{ baamount=b }
+                   ,pamount=mixed [setprec b]
+                   ,pbalanceassertion=Just assertion{ baamount=setprec b }
                    }
            |(a,_,_,mb) <- acctbals
            ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
            ]
            ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
       nps = [posting{paccount=a
-                    ,pamount=mixed [negate b]
-                    ,pbalanceassertion=Just assertion{ baamount=b{aquantity=0} }
+                    ,pamount=mixed [setprec $ negate b]
+                    ,pbalanceassertion=Just assertion{ baamount= setprec b{aquantity=0} }
                     }
             |(a,_,_,mb) <- acctbals
             ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb

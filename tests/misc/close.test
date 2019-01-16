@@ -1,5 +1,5 @@
 
-# Simple case
+# 1. Simple case
 hledger close -f- -p 2016 assets liabilities
 <<<
 2016/1/1 open
@@ -33,7 +33,7 @@ hledger close -f- -p 2016 assets liabilities
 
 >>>=0
 
-# Test aggregation of postings with prices
+# 2. Test aggregation of postings with prices
 hledger close -f- -p 2016 assets liabilities
 <<<
 Y2016
@@ -58,18 +58,18 @@ Y2016
 	liabilities:employer
 >>>
 2016/12/31 closing balances
-    assets:bank                -5,733.00 EUR = 0.00 EUR
-    liabilities:employer           -1.00 EUR = 0.00 EUR
+    assets:bank                  -5,733 EUR = 0 EUR
+    liabilities:employer             -1 EUR = 0 EUR
     equity:closing balances
 
 2017/01/01 opening balances
-    assets:bank                 5,733.00 EUR = 5,733.00 EUR
-    liabilities:employer            1.00 EUR = 1.00 EUR
+    assets:bank                    5,733 EUR = 5,733 EUR
+    liabilities:employer               1 EUR = 1 EUR
     equity:opening balances
 
 >>>=0
 
-# A begin date should be ignored
+# 3. A begin date should be ignored
 hledger close -f- -b2017/6/1 -e2018
 <<<
 2017/1/1
@@ -85,7 +85,7 @@ hledger close -f- -b2017/6/1 -e2018
 
 >>>=0
 
-# Print just the opening transaction
+# 4. Print just the opening transaction
 hledger close -f- -p 2016 assets liabilities --opening
 <<<
 2016/1/1 open
@@ -113,7 +113,7 @@ hledger close -f- -p 2016 assets liabilities --opening
 
 >>>=0
 
-# Print just the closing transaction
+# 5. Print just the closing transaction
 hledger close -f- -p 2016 assets liabilities --closing
 <<<
 2016/1/1 open
@@ -141,7 +141,7 @@ hledger close -f- -p 2016 assets liabilities --closing
 
 >>>=0
 
-# Supplying --opening --closing is the same as just "close"
+# 6. Supplying --opening --closing is the same as just "close"
 hledger close -f- -p 2016 assets liabilities --opening --closing
 <<<
 2016/1/1 open
