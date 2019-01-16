@@ -72,6 +72,9 @@ include ~/included.journal
 >>>2
 >>>=0
 
+# The next tests require hard coded file names, so are not concurrent-safe.
+# They use different file names so a single concurrent shelltest invocation will be fine.
+
 # 7. test that order of include files is maintained
  printf 'include _b\n' >_a; touch _b; hledger -f _a stats | grep _ | sed -e 's%.*/%%'; rm -rf _a _b
 >>>
@@ -81,9 +84,9 @@ _b
 >>>=0
 
 # 8. and with --auto code path
- printf 'include _b\n=\n' >_a; touch _b; hledger -f _a stats --auto | grep _ | sed -e 's%.*/%%'; rm -rf _a _b
+ printf 'include _d\n=\n' >_c; touch _d; hledger -f _c stats --auto | grep _ | sed -e 's%.*/%%'; rm -rf _c _d
 >>>
-_a
-_b
+_c
+_d
 >>>2
 >>>=0
