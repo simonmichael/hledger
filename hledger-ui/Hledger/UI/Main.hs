@@ -71,7 +71,7 @@ main = do
         | otherwise                                                = withJournalDoUICommand opts runBrickUi
 
 -- TODO fix nasty duplication of withJournalDo
--- | hledger-ui's version of withJournalDo. Enables --auto and --forecast.
+-- | hledger-ui's version of withJournalDo, which turns on --auto and --forecast.
 withJournalDoUICommand :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
 withJournalDoUICommand uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts,reportopts_=ropts}} cmd = do
   let copts' = copts{inputopts_=iopts{auto_=True}, reportopts_=ropts{forecast_=True}}

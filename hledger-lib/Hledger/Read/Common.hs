@@ -291,6 +291,8 @@ parseAndFinaliseJournal parser iopts f txt = do
             Right j -> return j
             Left e  -> throwError e
 
+-- Like parseAndFinaliseJournal but takes a (non-Erroring) JournalParser.
+-- Used for timeclock/timedot. XXX let them use parseAndFinaliseJournal instead
 parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal' parser iopts f txt = do
