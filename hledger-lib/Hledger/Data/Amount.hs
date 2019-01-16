@@ -75,6 +75,8 @@ module Hledger.Data.Amount (
   maxprecisionwithpoint,
   setAmountPrecision,
   withPrecision,
+  setFullPrecision,
+  setMinimalPrecision,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -124,7 +126,7 @@ module Hledger.Data.Amount (
 ) where
 
 import Data.Char (isDigit)
-import Data.Decimal (roundTo)
+import Data.Decimal (roundTo, decimalPlaces, normalizeDecimal)
 import Data.Function (on)
 import Data.List
 import Data.Map (findWithDefault)
@@ -277,6 +279,23 @@ setAmountPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> Int -> Amount
 withPrecision = flip setAmountPrecision
+
+-- | Increase an amount's display precision, if necessary, enough so
+-- that it will be shown exactly, with all significant decimal places
+-- (excluding trailing zeros).
+setFullPrecision :: Amount -> Amount
+setFullPrecision a = setAmountPrecision p a
+  where
+    p                = max displayprecision normalprecision
+    displayprecision = asprecision $ astyle a
+    normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
+
+-- | Set an amount's display precision to just enough so that it will
+-- be shown exactly, with all significant decimal places.
+setMinimalPrecision :: Amount -> Amount
+setMinimalPrecision a = setAmountPrecision normalprecision a
+  where
+    normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
 
 -- | Get a string representation of an amount for debugging,
 -- appropriate to the current debug level. 9 shows maximum detail.
