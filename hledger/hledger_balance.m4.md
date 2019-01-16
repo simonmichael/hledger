@@ -377,41 +377,148 @@ You can now see a monthly budget report:
 $ hledger balance -M --budget
 Budget performance in 2017/11/01-2017/12/31:
 
-                      ||                2017/11                  2017/12 
-======================++=================================================
- <unbudgeted>         ||                    $20                     $100 
- assets:bank:checking || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
- expenses:bus         ||       $49 [98% of $50]        $53 [106% of $50] 
- expenses:food        ||     $396 [99% of $400]      $412 [103% of $400] 
- expenses:movies      ||      $30 [100% of $30]            0 [0% of $30] 
- income               ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
-----------------------++-------------------------------------------------
-                      ||                      0                        0 
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
+ expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
+ expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
+ expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
+ income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 ```
-By default, only accounts with budget goals during the report period are shown.
-`--show-unbudgeted` shows unbudgeted accounts as well.
-Top-level accounts with no budget goals anywhere below them are grouped under `<unbudgeted>`.
+
+By default, only accounts with budget goals during the report period are shown. In the example
+above, transactions in `expenses:gifts` and `expenses:supplies` are counted towards `expenses` budget,
+but accounts `expenses:gifts` and `expenses:supplies` are not shown, as they don't have any budgets.
+
+
+You can use `--show-unbudgeted` shows unbudgeted accounts as well:
+```shell
+$ hledger balance -M --budget --show-unbudgeted
+Budget performance in 2017/11/01-2017/12/31:
+
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
+ expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
+ expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
+ expenses:gifts       ||      0                      $100                   
+ expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
+ expenses:supplies    ||    $20                         0                   
+ income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
+```
+
 
 You can roll over unspent budgets to next period with `--cumulative`:
 ```shell
 $ hledger balance -M --budget --cumulative
 Budget performance in 2017/11/01-2017/12/31:
 
-                      ||             2017/11/30               2017/12/31 
-======================++=================================================
- <unbudgeted>         ||                    $20                     $120 
- assets:bank:checking || $-2445 [99% of $-2480]  $-5110 [103% of $-4960] 
- expenses:bus         ||       $49 [98% of $50]      $102 [102% of $100] 
- expenses:food        ||     $396 [99% of $400]      $808 [101% of $800] 
- expenses:movies      ||      $30 [100% of $30]         $30 [50% of $60] 
- income               ||   $1950 [98% of $2000]    $4050 [101% of $4000] 
-----------------------++-------------------------------------------------
-                      ||                      0                        0
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ expenses             ||   $495 [ 103% of   $480]   $1060 [ 110% of   $960] 
+ expenses:bus         ||    $49 [  98% of    $50]    $102 [ 102% of   $100] 
+ expenses:food        ||   $396 [  99% of   $400]    $808 [ 101% of   $800] 
+ expenses:movies      ||    $30 [ 100% of    $30]     $30 [  50% of    $60] 
+ income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 ```
 
 Note, the `-S/--sort-amount` flag is not yet fully supported with `--budget`.
 
 For more examples, see [Budgeting and Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting).
+
+#### Nested budgets
+
+You can add budgets to any account in your account hierarchy. If you have budgets on both parent account and some of its children, then budget(s)
+of the child account(s) would be added to the budget of their parent, much like account balances behave.
+
+In the most simple case this means that once you add a budget to any account, all its parents would have budget as well. 
+
+To illustrate this, consider the following budget:
+```
+~ monthly from 2019/01
+    expenses:personal             $1,000.00
+    expenses:personal:electronics    $100.00
+    liabilities
+```
+
+With this, monthly budget for electronics is defined to be $100 and budget for personal expenses is an additional $1000, which implicity means
+that budget for both `expenses:personal` and `expenses` is $1100.
+
+Transactions in `expenses:personal:electronics` will be counted both towards its $100 budget and $1100 of `expenses:personal` , and transactions in any other subaccount of `expenses:personal` would be
+counted towards only towards the budget of `expenses:personal`.
+
+For example, let's consider these transactions:
+```journal
+~ monthly from 2019/01
+    expenses:personal             $1,000.00
+    expenses:personal:electronics    $100.00
+    liabilities
+
+2019/01/01 Google home hub
+    expenses:personal:electronics          $90.00
+    liabilities                           $-90.00
+
+2019/01/02 Phone screen protector
+    expenses:personal:electronics:upgrades          $10.00
+    liabilities
+
+2019/01/02 Weekly train ticket
+    expenses:personal:train tickets       $153.00
+    liabilities
+
+2019/01/03 Flowers
+    expenses:personal          $30.00
+    liabilities
+```
+
+As you can see, we have transactions in `expenses:personal:electronics:upgrades` and `expenses:personal:train tickets`, and since both of these accounts are without explicitly defined budget,
+these transactions would be counted towards budgets of `expenses:personal:electronics` and `expenses:personal` accordingly:
+
+```shell
+$ hledger balance --budget -M
+Budget performance in 2019/01:
+
+                               ||                           Jan 
+===============================++===============================
+ expenses                      ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal             ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal:electronics ||  $100.00 [ 100% of   $100.00] 
+ liabilities                   || $-283.00 [  26% of $-1100.00] 
+-------------------------------++-------------------------------
+                               ||        0 [                 0] 
+```
+
+And with `--show-unbudgeted`, we can get a better picture of budget allocation and consumption:
+```shell
+$ hledger balance --budget -M --show-unbudgeted
+Budget performance in 2019/01:
+
+                                        ||                           Jan 
+========================================++===============================
+ expenses                               ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal                      ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal:electronics          ||  $100.00 [ 100% of   $100.00] 
+ expenses:personal:electronics:upgrades ||   $10.00                      
+ expenses:personal:train tickets        ||  $153.00                      
+ liabilities                            || $-283.00 [  26% of $-1100.00] 
+----------------------------------------++-------------------------------
+                                        ||        0 [                 0] 
+```
 
 ### Output format
 
