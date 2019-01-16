@@ -270,13 +270,12 @@ parseAndFinaliseJournal parser iopts f txt = do
                    -- first pass
                    applyTransactionModifiers <$>
                      (journalBalanceTransactions False $
-                      -- journalReverse $  -- can skip this one
+                      journalReverse $
+                      journalAddFile (f, txt) $
                       journalApplyCommodityStyles pj)
                    -- second pass
                    >>= (\j ->
                       journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                      journalReverse $
-                      journalAddFile (f, txt) $
                       journalSetLastReadTime t $
                       j)
 
