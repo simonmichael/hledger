@@ -65,11 +65,16 @@ type BudgetReportRow = PeriodicReportRow BudgetCell
 -- and compare these to get a 'BudgetReport'.
 -- Unbudgeted accounts may be hidden or renamed (see budgetRollup).
 budgetReport :: ReportOpts -> Bool -> Bool -> DateSpan -> Day -> Journal -> BudgetReport
-budgetReport ropts assrt showunbudgeted reportspan d j =
+budgetReport ropts' assrt showunbudgeted reportspan d j =
   let
+    -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
+    -- and that reports with and without --show-unbudgeted make sense when compared side by side
+    ropts = ropts' { accountlistmode_ = ALTree }
     q = queryFromOpts d ropts 
     budgetedaccts = 
       dbg2 "budgetedacctsinperiod" $
+      nub $ 
+      concatMap expandAccountName $
       accountNamesFromPostings $ 
       concatMap tpostings $ 
       concatMap (flip runPeriodicTransaction reportspan) $ 
@@ -77,7 +82,7 @@ budgetReport ropts assrt showunbudgeted reportspan d j =
     actualj = dbg1 "actualj" $ budgetRollUp budgetedaccts showunbudgeted j
     budgetj = dbg1 "budgetj" $ budgetJournal assrt ropts reportspan j
     actualreport@(MultiBalanceReport (actualspans, _, _)) = dbg1 "actualreport" $ multiBalanceReport ropts  q actualj
-    budgetgoalreport@(MultiBalanceReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport ropts q budgetj
+    budgetgoalreport@(MultiBalanceReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns; 
