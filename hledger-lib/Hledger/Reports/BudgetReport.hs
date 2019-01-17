@@ -262,18 +262,24 @@ budgetReportSpan (PeriodicReport (spans, _, _)) = DateSpan (spanStart $ head spa
 
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
-budgetReportAsText ropts budgetr =
+budgetReportAsText ropts budgetr@(PeriodicReport ( _, rows, _)) =
   printf "Budget performance in %s:\n\n" (showDateSpan $ budgetReportSpan budgetr)
   ++ 
   tableAsText ropts showcell (budgetReportAsTable ropts budgetr)
   where
+    actualwidth =
+      maximum [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) amt
+      | (_, _, _, amtandgoals, _, _) <- rows
+      , (amt, _) <- amtandgoals ]
+    budgetwidth =
+      maximum [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) goal
+      | (_, _, _, amtandgoals, _, _) <- rows
+      , (_, goal) <- amtandgoals ]
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
     showcell :: (Maybe Change, Maybe BudgetGoal) -> String
     showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
       where
-        actualwidth  = 7
         percentwidth = 4
-        budgetwidth  = 5
         actual = fromMaybe 0 mactual
         actualstr = printf ("%"++show actualwidth++"s") (showamt actual)
         budgetstr = case mbudget of
