@@ -76,7 +76,8 @@ _hledger_completion_function() {
 	# be passed!
 
 	declare -a accounts
-	readarray -t accounts < <(hledger accounts --flat | grep "^$wordToComplete")
+	readarray -t accounts < <({ cat "$_HLEDGER_COMPLETION_TEMPDIR/query-filters.txt"; hledger accounts --flat; } | grep "^$wordToComplete")
+	compopt -o nospace
 	COMPREPLY+=( "${accounts[@]}" )
 	# Special characters (e.g. '-', ':') are allowed in account names.
 	# Account names with spaces must be still be quoted (e.g. '"Expens')
@@ -96,6 +97,10 @@ complete -F _hledger_completion_function hledger
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/commands.txt"
 include(`commands.txt')dnl
+TEXT
+
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/query-filters.txt"
+include(`query-filters.txt')dnl
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
