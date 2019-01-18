@@ -3,7 +3,7 @@
 
 all: command-options hledger-completion.bash
 
-hledger-completion.bash: hledger-completion.bash.m4 commands-list.txt generic-options.txt
+hledger-completion.bash: hledger-completion.bash.m4 commands-list.txt query-filters.txt generic-options.txt
 	m4 hledger-completion.bash.m4 > $@
 
 generic-options.txt:
