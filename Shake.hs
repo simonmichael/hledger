@@ -67,12 +67,16 @@ usage = unlines
   ,"./Shake --help           # show detailed Shake options, eg --color"
   ]
 
-pandoc   = "pandoc"
-makeinfo = "makeinfo"
 groff    = "groff"
+makeinfo = "makeinfo"
+pandoc   = "pandoc"
 
--- The pandoc markdown variant used in our docs:
-mdfmt = "markdown-tex_math_dollars"
+-- The kind of markdown used in our doc source files.
+fromsrcmd = "-f markdown-tex_math_dollars"
+
+-- The kind of markdown we like to generate for the website.
+towebmd = "-t markdown-fenced_divs --atx-headers"
+
 
 main = do
 
@@ -204,7 +208,7 @@ main = do
       need $ src : lib : tmpl : deps
       cmd Shell
         "m4 -P -DMAN -I" dir lib src "|"
-        pandoc ("-f "++mdfmt++" -s --template") tmpl
+        pandoc fromsrcmd "-s" "--template" tmpl
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
@@ -229,7 +233,7 @@ main = do
       need $ src : lib : deps
       cmd Shell
         "m4 -P -I" dir lib src "|"
-        pandoc ("-f "++mdfmt)
+        pandoc fromsrcmd
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
@@ -258,7 +262,7 @@ main = do
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir lib src "|"
-        pandoc ("-f "++mdfmt++" -t markdown-fenced_divs --atx-headers")
+        pandoc fromsrcmd towebmd
         "--lua-filter tools/pandoc-demote-headers.lua"
         ">>" out
 
@@ -270,7 +274,7 @@ main = do
       liftIO $ writeFile webmancombined "\\$toc\\$" -- # Big Manual\n\n -- TOC style is better without main heading,
       forM_ webmanuals $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmancombined :: Action ExitCode
-        cmd Shell pandoc f "-t markdown-fenced_divs --atx-headers"
+        cmd Shell pandoc f towebmd
           "--lua-filter tools/pandoc-drop-toc.lua"
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" webmancombined :: Action ExitCode
@@ -305,7 +309,7 @@ main = do
             template  = "site/site.tmpl"
             siteRoot  = if "site/_site/doc//*" ?== out then "../.." else "."
         need [source, template]
-        cmd Shell pandoc ("-f "++mdfmt++" -t html") source
+        cmd Shell pandoc fromsrcmd "-t html" source
                          "--template"                template
                          ("--metadata=siteRoot:"  ++ siteRoot)
                          ("--metadata=title:"     ++ pageTitle)
