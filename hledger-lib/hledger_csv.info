@@ -113,11 +113,11 @@ File: hledger_csv.info,  Node: date-format,  Next: field list,  Prev: skip,  Up:
 DATEFMT is a strptime-like date parsing pattern, which must parse the
 date field values completely.  Examples:
 
-# for dates like "6/11/2013":
-date-format %-d/%-m/%Y
-
 # for dates like "11/06/2013":
 date-format %m/%d/%Y
+
+# for dates like "6/11/2013" (note the - to make leading zeros optional):
+date-format %-d/%-m/%Y
 
 # for dates like "2013-Nov-06":
 date-format %Y-%h-%d
@@ -323,27 +323,27 @@ Node: skip2539
 Ref: #skip2633
 Node: date-format2805
 Ref: #date-format2932
-Node: field list3438
-Ref: #field-list3575
-Node: field assignment4280
-Ref: #field-assignment4435
-Node: conditional block4939
-Ref: #conditional-block5093
-Node: include5989
-Ref: #include6119
-Node: newest-first6350
-Ref: #newest-first6464
-Node: CSV TIPS6875
-Ref: #csv-tips6969
-Node: CSV ordering7087
-Ref: #csv-ordering7205
-Node: CSV accounts7386
-Ref: #csv-accounts7524
-Node: CSV amounts7778
-Ref: #csv-amounts7924
-Node: CSV balance assertions8699
-Ref: #csv-balance-assertions8881
-Node: Reading multiple CSV files9086
-Ref: #reading-multiple-csv-files9256
+Node: field list3482
+Ref: #field-list3619
+Node: field assignment4324
+Ref: #field-assignment4479
+Node: conditional block4983
+Ref: #conditional-block5137
+Node: include6033
+Ref: #include6163
+Node: newest-first6394
+Ref: #newest-first6508
+Node: CSV TIPS6919
+Ref: #csv-tips7013
+Node: CSV ordering7131
+Ref: #csv-ordering7249
+Node: CSV accounts7430
+Ref: #csv-accounts7568
+Node: CSV amounts7822
+Ref: #csv-amounts7968
+Node: CSV balance assertions8743
+Ref: #csv-balance-assertions8925
+Node: Reading multiple CSV files9130
+Ref: #reading-multiple-csv-files9300
 
 End Tag Table

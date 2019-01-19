@@ -476,6 +476,7 @@ or for reading Ledger files.
 * Assertions and prices::
 * Assertions and subaccounts::
 * Assertions and virtual postings::
+* Assertions and precision::
 
 
 File: hledger_journal.info,  Node: Assertions and ordering,  Next: Assertions and included files,  Up: Balance Assertions
@@ -599,7 +600,7 @@ $ hledger bal checking --flat
                    2
 
 
-File: hledger_journal.info,  Node: Assertions and virtual postings,  Prev: Assertions and subaccounts,  Up: Balance Assertions
+File: hledger_journal.info,  Node: Assertions and virtual postings,  Next: Assertions and precision,  Prev: Assertions and subaccounts,  Up: Balance Assertions
 
 1.9.7 Assertions and virtual postings
 -------------------------------------
@@ -607,6 +608,17 @@ File: hledger_journal.info,  Node: Assertions and virtual postings,  Prev: Asser
 Balance assertions are checked against all postings, both real and
 virtual.  They are not affected by the '--real/-R' flag or 'real:'
 query.
+
+
+File: hledger_journal.info,  Node: Assertions and precision,  Prev: Assertions and virtual postings,  Up: Balance Assertions
+
+1.9.8 Assertions and precision
+------------------------------
+
+Balance assertions compare the exactly calculated amounts, which are not
+always what is shown by reports.  Eg a commodity directive may limit the
+display precision, but this will not affect balance assertions.  Balance
+assertion failure messages show exact amounts.
 
 
 File: hledger_journal.info,  Node: Balance Assignments,  Next: Transaction prices,  Prev: Balance Assertions,  Up: FILE FORMAT
@@ -1342,30 +1354,34 @@ date must fall on a natural boundary of the interval.  Eg 'monthly from
 expression can work (useful or not).  They will be relative to today's
 date, unless a Y default year directive is in effect, in which case they
 will be relative to Y/1/1.
-
-   Period expressions must be terminated by *two or more spaces* if
-followed by additional fields.  For example, the periodic transaction
-given below includes a transaction description "paycheck", which is
-separated from the period expression by a double space.  If not for the
-second space, hledger would attempt (and fail) to parse "paycheck" as a
-part of the period expression.
-
-;                                2 or more spaces
-;                                      ||
-;                                      vv
-~ every 2 weeks from 2018/6/4 to 2018/9  paycheck
-    assets:bank:checking   $1500
-    income:acme inc
-
 * Menu:
 
+* Two spaces after the period expression::
 * Forecasting with periodic transactions::
 * Budgeting with periodic transactions::
 
 
-File: hledger_journal.info,  Node: Forecasting with periodic transactions,  Next: Budgeting with periodic transactions,  Up: Periodic transactions
+File: hledger_journal.info,  Node: Two spaces after the period expression,  Next: Forecasting with periodic transactions,  Up: Periodic transactions
 
-1.15.1 Forecasting with periodic transactions
+1.15.1 Two spaces after the period expression
+---------------------------------------------
+
+If the period expression is followed by a transaction description, these
+must be separated by *two or more spaces*.  This helps hledger know
+where the period expression ends, so that descriptions can not
+accidentally alter their meaning, as in this example:
+
+; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2020"
+;               ||
+;               vv
+~ every 2 months  in 2020, we will review
+    assets:bank:checking   $1500
+    income:acme inc
+
+
+File: hledger_journal.info,  Node: Forecasting with periodic transactions,  Next: Budgeting with periodic transactions,  Prev: Two spaces after the period expression,  Up: Periodic transactions
+
+1.15.2 Forecasting with periodic transactions
 ---------------------------------------------
 
 With the '--forecast' flag, each periodic transaction rule generates
@@ -1408,7 +1424,7 @@ disables forecast transactions on previous dates.)
 
 File: hledger_journal.info,  Node: Budgeting with periodic transactions,  Prev: Forecasting with periodic transactions,  Up: Periodic transactions
 
-1.15.2 Budgeting with periodic transactions
+1.15.3 Budgeting with periodic transactions
 -------------------------------------------
 
 With the '--budget' flag, currently supported by the balance command,
@@ -1549,71 +1565,75 @@ Node: Virtual Postings15032
 Ref: #virtual-postings15191
 Node: Balance Assertions16411
 Ref: #balance-assertions16586
-Node: Assertions and ordering17508
-Ref: #assertions-and-ordering17694
-Node: Assertions and included files18394
-Ref: #assertions-and-included-files18635
-Node: Assertions and multiple -f options18968
-Ref: #assertions-and-multiple--f-options19222
-Node: Assertions and commodities19354
-Ref: #assertions-and-commodities19584
-Node: Assertions and prices20772
-Ref: #assertions-and-prices20984
-Node: Assertions and subaccounts21093
-Ref: #assertions-and-subaccounts21320
-Node: Assertions and virtual postings21841
-Ref: #assertions-and-virtual-postings22048
-Node: Balance Assignments22190
-Ref: #balance-assignments22371
-Node: Transaction prices23491
-Ref: #transaction-prices23660
-Node: Comments25928
-Ref: #comments26062
-Node: Tags27232
-Ref: #tags27350
-Node: Directives28752
-Ref: #directives28895
-Node: Comment blocks34502
-Ref: #comment-blocks34647
-Node: Including other files34823
-Ref: #including-other-files35003
-Node: Default year35411
-Ref: #default-year35580
-Node: Declaring commodities36003
-Ref: #declaring-commodities36186
-Node: Default commodity37413
-Ref: #default-commodity37589
-Node: Market prices38225
-Ref: #market-prices38390
-Node: Declaring accounts39231
-Ref: #declaring-accounts39407
-Node: Account types40364
-Ref: #account-types40513
-Node: Account comments41587
-Ref: #account-comments41772
-Node: Account display order42093
-Ref: #account-display-order42266
-Node: Rewriting accounts43388
-Ref: #rewriting-accounts43573
-Node: Basic aliases44307
-Ref: #basic-aliases44453
-Node: Regex aliases45157
-Ref: #regex-aliases45328
-Node: Multiple aliases46046
-Ref: #multiple-aliases46221
-Node: end aliases46719
-Ref: #end-aliases46866
-Node: Default parent account46967
-Ref: #default-parent-account47133
-Node: Periodic transactions48017
-Ref: #periodic-transactions48199
-Node: Forecasting with periodic transactions49902
-Ref: #forecasting-with-periodic-transactions50145
-Node: Budgeting with periodic transactions51832
-Ref: #budgeting-with-periodic-transactions52071
-Node: Transaction Modifiers52530
-Ref: #transaction-modifiers52693
-Node: EDITOR SUPPORT54674
-Ref: #editor-support54792
+Node: Assertions and ordering17537
+Ref: #assertions-and-ordering17723
+Node: Assertions and included files18423
+Ref: #assertions-and-included-files18664
+Node: Assertions and multiple -f options18997
+Ref: #assertions-and-multiple--f-options19251
+Node: Assertions and commodities19383
+Ref: #assertions-and-commodities19613
+Node: Assertions and prices20801
+Ref: #assertions-and-prices21013
+Node: Assertions and subaccounts21122
+Ref: #assertions-and-subaccounts21349
+Node: Assertions and virtual postings21870
+Ref: #assertions-and-virtual-postings22110
+Node: Assertions and precision22252
+Ref: #assertions-and-precision22443
+Node: Balance Assignments22710
+Ref: #balance-assignments22891
+Node: Transaction prices24011
+Ref: #transaction-prices24180
+Node: Comments26448
+Ref: #comments26582
+Node: Tags27752
+Ref: #tags27870
+Node: Directives29272
+Ref: #directives29415
+Node: Comment blocks35022
+Ref: #comment-blocks35167
+Node: Including other files35343
+Ref: #including-other-files35523
+Node: Default year35931
+Ref: #default-year36100
+Node: Declaring commodities36523
+Ref: #declaring-commodities36706
+Node: Default commodity37933
+Ref: #default-commodity38109
+Node: Market prices38745
+Ref: #market-prices38910
+Node: Declaring accounts39751
+Ref: #declaring-accounts39927
+Node: Account types40884
+Ref: #account-types41033
+Node: Account comments42107
+Ref: #account-comments42292
+Node: Account display order42613
+Ref: #account-display-order42786
+Node: Rewriting accounts43908
+Ref: #rewriting-accounts44093
+Node: Basic aliases44827
+Ref: #basic-aliases44973
+Node: Regex aliases45677
+Ref: #regex-aliases45848
+Node: Multiple aliases46566
+Ref: #multiple-aliases46741
+Node: end aliases47239
+Ref: #end-aliases47386
+Node: Default parent account47487
+Ref: #default-parent-account47653
+Node: Periodic transactions48537
+Ref: #periodic-transactions48719
+Node: Two spaces after the period expression49844
+Ref: #two-spaces-after-the-period-expression50089
+Node: Forecasting with periodic transactions50574
+Ref: #forecasting-with-periodic-transactions50864
+Node: Budgeting with periodic transactions52551
+Ref: #budgeting-with-periodic-transactions52790
+Node: Transaction Modifiers53249
+Ref: #transaction-modifiers53412
+Node: EDITOR SUPPORT55393
+Ref: #editor-support55511
 
 End Tag Table
