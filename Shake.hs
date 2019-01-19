@@ -341,6 +341,7 @@ main = do
       putNormal "Cleaning generated files"
       removeFilesAfter "." webmanuals
       removeFilesAfter "." [webmancombined]
+      removeFilesAfter "." ["site/README.md", "site/CONTRIBUTING.md"]
 
     phony "Clean" $ do
       need ["clean"]
