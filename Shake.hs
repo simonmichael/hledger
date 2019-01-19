@@ -51,26 +51,24 @@ import "time"         Data.Time
 usage = unlines
   ["Usage:"
   ,"./Shake.hs               # compile this script"
-  ,"./Shake                  # show commands"
-  ,"./Shake manuals          # generate the txt/man/info manuals"
+  ,"./Shake [help]           # show commands"
+  ,"./Shake all              # generate everything"
+  ,"./Shake manuals          # generate the plaintext/man/info manuals"
   ,"./Shake website          # generate the html manuals and website"
 --   ,"./Shake manpages         # generate nroff files for man"
 --   ,"./Shake txtmanpages      # generate text man pages for embedding"
 --   ,"./Shake infomanpages     # generate info files for info"
 --   ,"./Shake webmanpages      # generate individual web man pages as markdown"
 --   ,"./Shake webmanall        # generate all-in-one web manual as markdown"
-  ,"./Shake site/doc/VER/.snapshot   # generate and save a versioned web site snapshot"
-  ,"./Shake all              # generate everything"
+  ,"./Shake site/doc/VERSION/.snapshot   # generate a versioned snapshot of the web manuals"
   ,"./Shake clean            # clean generated files"
   ,"./Shake Clean            # clean harder"
-  ,"./Shake --help           # show options, eg --color"
+  ,"./Shake --help           # show detailed Shake options, eg --color"
   ]
 
-pandoc = "pandoc" -- assume pandoc from system or user install
+pandoc   = "pandoc"
 makeinfo = "makeinfo"
--- nroff = "nroff"
-groff = "groff"
-dropDirectory2 = dropDirectory1 . dropDirectory1
+groff    = "groff"
 
 -- The pandoc markdown variant used in our docs:
 mdfmt = "markdown-tex_math_dollars"
@@ -151,7 +149,14 @@ main = do
                    , mPage  <- manpageNames
                 ]
              ++ [ mPage <.> "html"
-                   | mPage <- [ "contributors" , "download" , "ledgertips" , "index" , "intro" , "release-notes" ]
+                   | mPage <- [
+                         "contributors"
+                       , "download"
+                       , "ledgertips"
+                       , "index"
+                       , "intro"
+                       , "release-notes"
+                       ]
                 ]
              ++ [ prefix </> "manual" <.> "html"
                    | prefix <- "" : "doc/0.27" : [ "doc" </> v | v <- docversions ]
@@ -292,7 +297,9 @@ main = do
     phony "website-copy" $ do
         orig_files <- getDirectoryFiles "site" (map ("//*" <.>) webcopyfileexts)
         need [ "site/_site" </> file
-                | file <- "files/README" : orig_files
+                | file <-
+                    "files/README" :
+                    orig_files
                 , not ("_site//*" ?== file)
              ]
 
@@ -332,3 +339,7 @@ main = do
       removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
       removeFilesAfter ".shake" ["//*"]
+
+
+dropDirectory2 = dropDirectory1 . dropDirectory1
+
