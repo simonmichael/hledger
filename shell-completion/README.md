@@ -18,10 +18,49 @@ The completions can handle hledger's CLI:
 - account names from journal files (but not yet for files named by --file)
 - filenames for options that take a filename as argument
 
-Installation
-------------
+Installation for end users
+--------------------------
 
-First, generate the completion script for Bash:
+Completions are currently only implemented for the Bash shell.
+
+Please check first if the completions for hledger are already installed on your
+distribution. Refer to the last paragraph of this section for how to test that.
+
+To install the completions manually, follow this steps:
+
+- Download or copy the file `shell-completion/hledger-completion.bash` and save
+  it as `~/.hledger-completion.bash`.
+
+- Add the command `'source ~/.hledger-completion.bash'` this to the end of your
+  `~/.bashrc` file.
+
+- Then, you have to start a new Bash, e.g. by typing `bash` on the current
+  shell.
+
+Example installation script:
+
+```
+cp hledger-completion.bash ~/.hledger-completion.bash
+echo 'source ~/.hledger-completion.bash' >> ~/.bashrc
+```
+
+Now, try it by typing `hledger` (with a space after the command) and press the
+tab key twice. You should see a list of appropriate completions for hledger.
+Then you can type a part of one of the suggestions and press tab again to
+complete it.
+
+Background
+----------
+
+The Bash completion script is generated (GNU make) by parsing output of `hledger`,
+`hledger -h`, and `hledger <cmd> -h`. The script also uses `hledger accounts` for
+account name completion. I propose that the Makefile is not run at every built
+but rather manually when the CLI changes.
+
+Information for developers
+--------------------------
+
+Generate the completion script for Bash:
 
 ```
 # change into this folder:
@@ -32,11 +71,13 @@ make
 Hint: GNU make, GNU m4, and GNU parallel must be installed to call `make`.
 The first two usually are.
 
-Then, the generated completion script must be installed. TBD.
-For now, you can use these two commands:
+The generated completion script must be installed. The package maintainer for
+your distribution should be responsible for this.
+
+For now, or to live-test the script, you can use these two commands:
 
 ```
-cp hledger-completion.bash ~/.hledger-completion.bash
+ln -s hledger-completion.bash ~/.hledger-completion.bash
 echo 'source ~/.hledger-completion.bash' >> ~/.bashrc
 ```
 
@@ -44,16 +85,8 @@ After that, you have to start a new Bash, e.g. by typing `bash` on the current
 shell.
 
 Now, try it by typing `hledger` (with a space after the command) and press the
-tab key twice. Then you can type a part of one of the suggestions and press tab
-again to complete it.
-
-Background
-----------
-
-The Bash completion script is generated (GNU make) by parsing output of `hledger`,
-`hledger -h`, and `hledger <cmd> -h`. The script also uses `hledger accounts` for
-account name completion. I propose that the Makefile is not run at every built
-but rather manually when the CLI changes.
+tab key twice. You know how completions work – if not, see above in the
+Installation section.
 
 Completion scripts for other shells (e.g. Fish or Zsh)
 ------------------------------------------------------
