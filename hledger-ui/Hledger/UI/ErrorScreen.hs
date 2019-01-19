@@ -20,7 +20,7 @@ import Data.Monoid
 #endif
 import Data.Time.Calendar (Day)
 import Data.Void (Void)
-import Graphics.Vty (Event(..),Key(..))
+import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -85,6 +85,7 @@ esHandle ui@UIState{aScreen=ErrorScreen{..}
     Help ->
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         _                    -> helpHandle ui ev
 
     _ -> do
@@ -105,6 +106,7 @@ esHandle ui@UIState{aScreen=ErrorScreen{..}
 --             Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
 --             Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
         VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         _ -> continue ui
 
 esHandle _ _ = error "event handler called with wrong screen type, should not happen"

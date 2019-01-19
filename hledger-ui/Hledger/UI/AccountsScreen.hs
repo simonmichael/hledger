@@ -276,6 +276,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey KEsc   []) -> continue $ closeMinibuffer ui
         VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ map strip $ getEditContents ed
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent ev        -> do ed' <- handleEditorEvent ev ed
                                  continue $ ui{aMode=Minibuffer ed'}
         AppEvent _        -> continue ui
@@ -285,6 +286,7 @@ asHandle ui0@UIState{
     Help ->
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         _                    -> helpHandle ui ev
 
     Normal ->

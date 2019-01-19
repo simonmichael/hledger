@@ -17,7 +17,7 @@ import Data.Monoid
 #endif
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
-import Graphics.Vty (Event(..),Key(..))
+import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Brick
 import Brick.Widgets.List (listMoveTo)
 
@@ -119,6 +119,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
     Help ->
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         _                    -> helpHandle ui ev
 
     _ -> do
@@ -178,6 +179,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
           where
             ui'@UIState{aScreen=scr} = popScreen ui
             ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         _ -> continue ui
 
 tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
