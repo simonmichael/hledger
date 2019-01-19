@@ -154,6 +154,8 @@ main = do
                        , "index"
                        , "intro"
                        , "release-notes"
+                       , "README"
+                       , "CONTRIBUTING"
                        ]
                 ]
              ++ [ prefix </> "manual" <.> "html"
@@ -279,6 +281,9 @@ main = do
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" webmancombined :: Action ExitCode
 
+    -- Copy some extra markdown files from the main repo into the site.
+    ["site/README.md", "site/CONTRIBUTING.md"]  |%> \out ->
+      copyFile' (dropDirectory1 out) (map toLower out)
 
     -- WEBSITE HTML & ASSETS
 

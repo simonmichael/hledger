@@ -95,3 +95,55 @@ Could do it for past releases but no pressing need.
 In site/release-notes.md, we stopped mentioning minor releases
 around 0.27. The old minor releases should probably be removed
 or promoted to the same heading level as major releases.
+
+
+## 201901 docs reorg (#920, WIP)
+
+https://groups.google.com/forum/#!topic/hledger/t2nVr3zER8Q/discussion
+
+> > On Oct 26, 2018, at 1:47 PM, Simon Michael <simon@joyful.com> wrote:
+> >
+> > A quick heads-up: I am feeling like stepping back from github wiki, and reorganising our docs like so:
+> >
+> > Two repos:
+> >
+> > 1. hledger - code and hard docs
+> >
+> >   - code and code docs (haddock docs & doctest examples)
+> >   - developer docs (READMEs in md or org format)
+> >   - product manuals (hledger*/hledger*.m4.md)
+> >   - release notes and announcements
+> >   - HCAR entries
+> >
+> > 2. hledger-site - website and soft docs
+> >
+> >   - hledger.org content, resources, site infrastructure
+> >   - user cookbook, how-tos, articles
+> >   - links to blog posts, discussions etc.
+> >   - other resources relating to our web presence/marketing
+> >
+> > If you disagree, let's discuss. Some quick considerations:
+> >
+> > - moving docs to the wiki hasn't affected the contribution rate
+> > - using the wiki increases our dependence on github and makes our work less self-contained and future-proof
+> > - the wiki docs don't look great, aren't very flexible, & don't integrate well with our site & static docs
+> > - using two docs systems increases complexity
+> > - dev docs in the wiki are too far from the code, and compete with READMEs
+> 
+> PS:
+> 
+> - Why not go back to just one repo for everything ? Or if two repos, why not put all docs in one of them ? 
+> 
+> Dev docs are most discoverable and maintainable right there in the main repo, ie as READMEs. Likewise for API docs (haddocks) and the reference manuals (hledger*/hledger*m4.md). We want all of these updated in lock step with code/tooling changes.
+> 
+> Other ("soft") docs are needed, but these have a more relaxed process, schedule, and scope (eg bookkeeping advice). They occasionally generate a lot of noise in the commit log, and I think it's a good to keep that out of the code history. The website (home and other pages, site design, site infrastructure) generates similar commit storms and is somewhat independent of code, so it goes in the soft docs repo too.
+> 
+> These are my thoughts, but I have an open mind if you see a better way.
+> 
+> 	me (Simon Michael (sm) change) 	
+> 10/27/18
+> Still plenty of time to discuss and reconsider, but see also
+> https://github.com/simonmichael/hledger/issues/920
+> https://github.com/simonmichael/hledger/issues/921
+> 
+> I'll probably make a start on the first one (consolidating dev docs in main repo).
