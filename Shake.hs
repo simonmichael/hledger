@@ -139,7 +139,7 @@ main = do
       webmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
       -- website html pages - all manual versions plus misc pages in site/ or copied from elsewhere.
-      -- All these names will have lower-case URIs on the website.
+      -- TODO: make all have lower-case URIs on the final website.
       webhtmlpages
         = map (normalise . ("site/_site" </>))
             $ ( [ prefix </> manpageNameToUri mPage <.> "html"
@@ -283,7 +283,7 @@ main = do
 
     -- Copy some extra markdown files from the main repo into the site.
     ["site/README.md", "site/CONTRIBUTING.md"]  |%> \out ->
-      copyFile' (dropDirectory1 out) (map toLower out)
+      copyFile' (dropDirectory1 out) out -- XXX (map toLower out)
 
     -- WEBSITE HTML & ASSETS
 
