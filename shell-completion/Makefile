@@ -15,6 +15,10 @@ commands.txt:
 commands-list.txt: commands.txt
 	paste -sd, $^ | tr -d '\n' > $@
 
+#query-filters.txt:
+	# The query filters are hard to extract!
+	# hledger help --cat hledger | sed -n '/^QUERIES/,/^[A-Z]/p'
+
 command-options: commands.txt
 	parallel -j8 'hledger {} -h | ./output-options.sh > options-{}.txt' < commands.txt
 
