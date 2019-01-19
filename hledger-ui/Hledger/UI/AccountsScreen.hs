@@ -337,7 +337,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         VtyEvent e | e `elem` moveLeftEvents -> continue $ popScreen ui
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> invalidateCache >> continue ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> redraw ui
 
         -- enter register screen for selected account (if there is one), 
         -- centering its selected transaction if possible

@@ -333,7 +333,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         VtyEvent e | e `elem` moveLeftEvents  -> continue $ popScreen ui
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle rsList >> invalidateCache >> continue ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle rsList >> redraw ui
 
         -- enter transaction screen for selected transaction
         VtyEvent e | e `elem` moveRightEvents -> do

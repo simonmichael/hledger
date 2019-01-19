@@ -21,6 +21,7 @@ module Hledger.UI.UIUtils (
   ,renderToggle
   ,replaceHiddenAccountsNameWith
   ,scrollSelectionToMiddle
+  ,redraw
 )
 where
 
@@ -36,7 +37,10 @@ import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Graphics.Vty (Event(..),Key(..),Modifier(..),Color,Attr,currentAttr)
+import Graphics.Vty
+  (Event(..),Key(..),Modifier(..),Vty(..),Color,Attr,currentAttr,refresh
+  -- ,Output(displayBounds,mkDisplayContext),DisplayContext(..)
+  )
 import Lens.Micro.Platform
 import System.Environment
 
@@ -46,6 +50,10 @@ import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 
+
+-- | Tell vty to redraw the whole screen, and continue.
+redraw :: s -> EventM a (Next s)
+redraw ui = getVtyHandle >>= liftIO . refresh >> continue ui
 
 -- ui
 
