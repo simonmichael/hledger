@@ -282,6 +282,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ map strip $ getEditContents ed
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
         VtyEvent ev              -> do ed' <- handleEditorEvent ev ed
                                        continue $ ui{aMode=Minibuffer ed'}
         AppEvent _        -> continue ui
@@ -292,6 +293,7 @@ rsHandle ui@UIState{
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
         _                    -> helpHandle ui ev
 
     Normal ->
@@ -336,6 +338,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         VtyEvent e | e `elem` moveLeftEvents  -> continue $ popScreen ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle rsList >> redraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
 
         -- enter transaction screen for selected transaction
         VtyEvent e | e `elem` moveRightEvents -> do

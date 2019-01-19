@@ -82,6 +82,7 @@ when:
    else:
      dependencies:
        - brick >=0.12
+       - unix
        - vty >=5.5
 
 executables:

@@ -21,6 +21,8 @@ module Hledger.UI.UIUtils (
   ,renderToggle
   ,replaceHiddenAccountsNameWith
   ,scrollSelectionToMiddle
+  ,suspend
+  ,suspendAndRedraw
   ,redraw
 )
 where
@@ -50,6 +52,35 @@ import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 
+-- | On posix platforms, suspend the program using the system STOP signal
+-- (as control-z usually does in bash). On windows, does nothing.
+#ifdef mingw32_HOST_OS
+suspend :: IO ()
+suspend = return ()
+#else
+import System.Posix.Signals
+suspend :: IO ()
+suspend = raiseSignal sigSTOP 
+#endif
+
+-- | On posix platforms, suspend the program using the system STOP
+-- signal, returning to the original shell prompt
+-- (TODO: and restore the original terminal attributes).
+-- When the program is resumed, redraw the screen and continue.
+-- On windows, just redraws the screen.
+suspendAndRedraw :: s -> EventM a (Next s)
+suspendAndRedraw ui = do
+  -- reset terminal attributes using vty ?
+  -- Vty{outputIface=output} <- getVtyHandle
+  -- r <- displayBounds output
+  -- DisplayContext{writeDefaultAttr=_reset} <- liftIO $ (mkDisplayContext output) output r
+  -- runWrite (reset True) _someptr
+
+  -- suspend..
+  liftIO suspend
+
+  -- ..and resume
+  redraw ui
 
 -- | Tell vty to redraw the whole screen, and continue.
 redraw :: s -> EventM a (Next s)
@@ -74,7 +105,7 @@ helpDialog _copts =
     render $
       withDefAttr "help" $
       renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
-      padAll 1 $
+      padTop (Pad 1) $ padLeft (Pad 1) $ padRight (Pad 1) $
         vBox [
            hBox [
               padRight (Pad 1) $
@@ -120,8 +151,9 @@ helpDialog _copts =
                   ,renderKey ("A   ", "add transaction (hledger-iadd)")
                   ,renderKey ("E   ", "open editor")
                   ,renderKey ("I   ", "toggle balance assertions")
-                  ,renderKey ("C-l ", "redraw & recenter")
                   ,renderKey ("g   ", "reload data")
+                  ,renderKey ("C-l ", "redraw & recenter")
+                  ,renderKey ("C-z ", "suspend")
                   ,renderKey ("q   ", "quit")
                 ]
              ]

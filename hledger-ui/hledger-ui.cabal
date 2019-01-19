@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9e7f4d999a8b69e7adb4b03f99c96b7ae47113f1b11fe7ddb289e352b2632e7c
+-- hash: cb5960060c369ce0540af1659e44ad678d26cbc9dca2e8481fe8657bc8fc13ab
 
 name:           hledger-ui
 version:        1.12.99
@@ -95,6 +95,7 @@ executable hledger-ui
   else
     build-depends:
         brick >=0.12
+      , unix
       , vty >=5.5
   if flag(threaded)
     ghc-options: -threaded

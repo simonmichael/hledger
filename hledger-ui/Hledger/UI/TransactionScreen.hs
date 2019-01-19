@@ -120,6 +120,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
         _                    -> helpHandle ui ev
 
     _ -> do
@@ -180,6 +181,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
             ui'@UIState{aScreen=scr} = popScreen ui
             ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
         _ -> continue ui
 
 tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
