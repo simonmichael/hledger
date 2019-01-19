@@ -10,8 +10,7 @@ date-format %-m/%-d/%Y
 skip 1
 currency $
 
-# hopefully "debit" only appears in Transaction Type field
-if debit
+if ,debit,
  amount -%amount
 
 description: %shortdesc - %origdesc %category %account - %txntype
