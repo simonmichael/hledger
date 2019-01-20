@@ -169,7 +169,7 @@ a file format for human-friendly approximate time logging
 <div id=dev class=contentbox>
 ## Contribute
 
-**[Contributor Guide](contributing.html)**\
+**[Contributor Guide](CONTRIBUTING.html)**\
 what's to do and how to do it
 
 </div>
