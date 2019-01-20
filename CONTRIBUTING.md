@@ -1,8 +1,9 @@
 <!-- consolidating dev docs from wiki, https://github.com/simonmichael/hledger/issues/920 WIP -->
+$toc$
 
 # Contributor Guide
 
-<!-- $ toc -->
+<br clear=all>
 
 ## Quick Links
 

@@ -281,7 +281,8 @@ main = do
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" webmancombined :: Action ExitCode
 
-    -- Copy some extra markdown files from the main repo into the site.
+    -- Copy some extra markdown files from the main repo into the site
+    -- TODO adding table of contents placeholders
     ["site/README.md", "site/CONTRIBUTING.md"]  |%> \out ->
       copyFile' (dropDirectory1 out) out -- XXX (map toLower out)
 
