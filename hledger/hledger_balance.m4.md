@@ -54,7 +54,7 @@ txt, csv, html.
 : show performance compared to budget goals defined by [periodic transactions](journal.html#periodic-transactions)
 
 `--show-unbudgeted`
-: with --budget, show unbudgeted accounts also
+: with `--budget`, show unbudgeted accounts also
 
 The balance command is hledger's most versatile command.
 Note, despite the name, it is not always used for showing real-world account balances;
@@ -72,7 +72,7 @@ For a real-world account, typically you won't have all transactions in the journ
 instead you'll have all transactions after a certain date, and an "opening balances"
 transaction setting the correct starting balance on that date.
 Then the balance command will show real-world account balances.
-In some cases the -H/--historical flag is used to ensure this (more below).
+In some cases the `-H`/`--historical` flag is used to ensure this (more below).
 
 The balance command can produce several styles of report:
 
@@ -343,7 +343,7 @@ balance report, is not yet supported in multicolumn reports.
 With `--budget`, extra columns are displayed showing budget goals for each account and period, if any.
 Budget goals are defined by [periodic transactions](journal.html#periodic-transactions).
 This is very useful for comparing planned and actual income, expenses, time usage, etc.
---budget is most often combined with a [report interval](manual.html#report-intervals).
+`--budget` is most often combined with a [report interval](manual.html#report-intervals).
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
 ```journal

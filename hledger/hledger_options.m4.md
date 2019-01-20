@@ -487,7 +487,7 @@ it uses the market prices on the report end date for all columns.
 
 ## Combining -B and -V
 
-Using -B/--cost and -V/--value together is currently allowed, but the
+Using `-B`/`--cost` and `-V`/`--value` together is currently allowed, but the
 results are probably not meaningful. Let us know if you find a use for this. 
 
 ## Output destination

@@ -42,7 +42,7 @@ Show account names. Alias: a.
 : in flat mode: omit N leading account name parts
 
 This command lists account names, either declared with account directives
-(--declared), posted to (--used), or both (default).
+(`--declared`), posted to (`--used`), or both (default).
 With query arguments, only matched account names and account names 
 referenced by matched postings are shown.
 It shows a flat list by default. With `--tree`, it uses indentation to
@@ -366,7 +366,7 @@ Print closing/opening transactions that bring some or all account balances to ze
 Can be useful for bringing asset/liability balances across file boundaries,
 or for closing out income/expenses for a period.
 This was formerly called "equity", as in Ledger, and that alias is also accepted.
-See close --help for more.   
+See close `--help` for more.   
 
 ## files
 List all files included in the journal. With a REGEX argument,
@@ -414,15 +414,15 @@ the main journal file.
 `--dry-run`
 : just show the transactions to be imported
 
-The input files are specified as arguments - no need to write -f before each one.
+The input files are specified as arguments - no need to write `-f` before each one.
 So eg to add new transactions from all CSV files to the main journal, it's just: 
 `hledger import *.csv`
 
-New transactions are detected in the same way as print --new: 
+New transactions are detected in the same way as print `--new`: 
 by assuming transactions are always added to the input files in increasing date order,
 and by saving `.latest.FILE` state files.
 
-The --dry-run output is in journal format, so you can filter it, eg 
+The `--dry-run` output is in journal format, so you can filter it, eg 
 to see only uncategorised transactions: 
 ```shell
 $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
@@ -511,8 +511,8 @@ This command also supports [output destination](/manual.html#output-destination)
 
 ## prices
 Print [market price directives](/manual#market-prices) from the journal.
-With --costs, also print synthetic market prices based on [transaction prices](/manual#transaction-prices).
-With --inverted-costs, also print inverse prices based on transaction prices.
+With `--costs`, also print synthetic market prices based on [transaction prices](/manual#transaction-prices).
+With `--inverted-costs`, also print inverse prices based on transaction prices.
 Prices (and postings providing prices) can be filtered by a query.
 
 ## print
@@ -631,7 +631,7 @@ Show postings and their running total. Aliases: r, reg.
 : show historical running total/balance (includes postings before report start date)
 
 `-A --average`
-: show running average of posting amounts instead of total (implies --empty)
+: show running average of posting amounts instead of total (implies `--empty`)
 
 `-r --related`
 : show postings' siblings instead
@@ -730,7 +730,7 @@ or by using the `--width`/`-w` option.
 
 The description and account columns normally share the space equally
 (about half of (width - 40) each). You can adjust this by adding a
-description width as part of --width's argument, comma-separated:
+description width as part of `--width`'s argument, comma-separated:
 `--width W,D` . Here's a diagram:
 ```
 <--------------------------------- width (W) ---------------------------------->
