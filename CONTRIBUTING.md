@@ -1,6 +1,6 @@
 <!-- consolidating dev docs from wiki, https://github.com/simonmichael/hledger/issues/920 WIP -->
 
-# hledger Contributor Guide
+# Contributor Guide
 
 <!-- $ toc -->
 

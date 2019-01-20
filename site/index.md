@@ -72,6 +72,13 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 #reference .subcontent {
   margin-left:1em;
 }
+#dev {
+  background-color:#eee;
+  text-align:left;
+}
+#dev .subcontent {
+  margin-left:1em;
+}
 #wiki {
   background-color:#efe;
   text-align:center;
@@ -158,6 +165,15 @@ a file format for precise time logging
 a file format for human-friendly approximate time logging
 </div>
 </div>
+
+<div id=dev class=contentbox>
+## Contribute
+
+**[Contributor Guide](contributing.html)**\
+what's to do and how to do it
+
+</div>
+
 
 </div> <!-- column -->
 <div class="col-sm-4">
