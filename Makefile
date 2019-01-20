@@ -910,7 +910,7 @@ site-build: site/hakyll-std/hakyll-std site/manual.md \
 site/index.md: wiki/_Sidebar.md \
 	$(call def-help,site/index.md, update home page with ./wiki/_Sidebar content )
 	(sed -ne '1,/<!-- WIKICONTENT -->/ p'     site/index.md     ; \
-	 sed -ne '/^#.*User/,$$ p'                 wiki/_Sidebar.md \
+	 sed -ne '/^#.*Cookbook/,$$ p'            wiki/_Sidebar.md \
 	 | perl -p \
 			-e 's/\[\[([^\|]*)\|([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\2)/g;' \
 		  -e 's/\[\[([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\1)/g;' \
