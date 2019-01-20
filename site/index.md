@@ -165,58 +165,6 @@ a file format for human-friendly approximate time logging
 <div id=wiki class=contentbox>
 <div class=subcontent>
 <!-- WIKICONTENT -->
-# [User Cookbook](https://github.com/simonmichael/hledger/wiki/Home)
-
-### Getting started
-
-[hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger basics tutorial)  
-[hledger terminology](https://github.com/simonmichael/hledger/wiki/hledger terminology)  
-[Create a journal](https://github.com/simonmichael/hledger/wiki/Create a journal)  
-[Common journal entries](https://github.com/simonmichael/hledger/wiki/Common journal entries)  
-[hledger accounting concepts tutorial](https://github.com/simonmichael/hledger/wiki/hledger accounting concepts tutorial)   
-[hledger multicurrency tutorial](https://github.com/simonmichael/hledger/wiki/hledger multicurrency tutorial)       
-[FAQ](https://github.com/simonmichael/hledger/wiki/FAQ)
-
-### Data entry, import, management
-
-[Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert CSV files)  
-[Customize default CSV accounts](https://github.com/simonmichael/hledger/wiki/Customize default CSV accounts)  
-[Track changes with version control](https://github.com/simonmichael/hledger/wiki/Track changes with version control)  
-[Use another account separator character](https://github.com/simonmichael/hledger/wiki/Use another account separator character)  
-["Full-fledged Hledger" setup](https://github.com/adept/full-fledged-hledger)  
-["hledger: Make It So" setup](https://github.com/apauley/hledger-makeitso)
-
-### Reporting
-
-[hledger tags tutorial](https://github.com/simonmichael/hledger/wiki/hledger tags tutorial)  
-[Queries](https://github.com/simonmichael/hledger/wiki/Queries)  
-[Rewrite account names](https://github.com/simonmichael/hledger/wiki/Rewrite account names)  
-
-### Accounting tasks
-
-[Foreign trip expenses](https://github.com/simonmichael/hledger/wiki/Foreign trip expenses)  
-[Budgeting and forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting)  
-[Project accounting](https://github.com/simonmichael/hledger/wiki/Project accounting)  
-[Track investments](https://github.com/simonmichael/hledger/wiki/Track investments)  
-[Time planning](https://github.com/simonmichael/hledger/wiki/Time planning)
-
-### Usage tips
-
-[Addons](https://github.com/simonmichael/hledger/wiki/Addons)  
-[Mobile apps](https://github.com/simonmichael/hledger/wiki/Mobile apps)  
-[Save frequently used options](https://github.com/simonmichael/hledger/wiki/Save frequently used options)  
-
-### More..
-
-[More docs](https://github.com/simonmichael/hledger/wiki/More docs)  
-[plaintextaccounting.org](http://plaintextaccounting.org) -
-[ledger‑likes](http://plaintextaccounting.org/#ledger-likes) -
-[tools](http://plaintextaccounting.org/#related-tools) -
-[docs](http://plaintextaccounting.org/#docs) -
-[common&nbsp;tasks](http://plaintextaccounting.org/#common-tasks) -
-[discussion](http://plaintextaccounting.org/#discussion)  
-[ledger-cli.org](http://ledger-cli.org) - [docs](https://www.ledger-cli.org/docs.html) - [wiki](https://github.com/ledger/ledger/wiki)  
-[Beancount's docs](http://furius.ca/beancount/doc/index)  
 <!-- ENDWIKICONTENT -->
 </div>
 </div>
