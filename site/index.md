@@ -27,7 +27,7 @@ other commodities. It is cross platform and released under GNU GPLv3.
 <!-- [![...](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history) -->
 [![...](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github){style="min-width:102;" title="Star us!"}](https://github.com/simonmichael/hledger/)
 
-With simple yet powerful functionality accessed from command line, terminal or web browser, 
+With powerful, intuitive functionality accessible from command line, terminal or web browser, 
 hledger is a fast, secure, dependable alternative to spreadsheets, Quickbooks, GnuCash, Xero etc.
 
 The hledger project is led by Simon Michael.
