@@ -1,11 +1,8 @@
 close, equity
-
-Prints a "closing balances" transaction and an "opening balances" transaction,
+Prints a "closing balances" transaction and an "opening balances" transaction
 that bring account balances to and from zero, respectively.
-Useful for, eg:
-
-- bringing asset/liability balances forward into a new journal file
-- closing out revenues/expenses to retained earnings at the end of a period
+Useful for bringing asset/liability balances forward into a new journal file,
+or for closing out revenues/expenses to retained earnings at the end of a period.
 
 _FLAGS_
 

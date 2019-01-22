@@ -11,12 +11,21 @@ It has some special features:
   as space or comma-separated words.
 
 - A line containing just _FLAGS_ will be replaced in --help output by
-  the command's flags list. If there's no such line, the flags will be
-  displayed at the end. In the manual, no flags list is shown.
+  the command's flags list. Lines above _FLAGS_ are known as the short help.
+  If there's no such line, the flags will be displayed at the end. 
+  In the manual, no flags list is shown.
 
 - Markdown can be used to influence the appearance of the manuals,
   especially the html version. But the markup will also appear
   uninterpreted in the --help output, so use sparingly.
 
-- GHC (and ghcid etc.) won't notice changes in this file;
+- Use only one newline on the first line (or cmdargs will display the
+  short help with two newlines after each line). This also means
+  cmdargs will strip out any blank lines, which prevents use of some
+  markdown features.
+
+- Keep the width of short help lines to 76 characters or less, or
+  cmdargs will insert newlines.
+
+- GHC, stack, cabal, ghcid etc. won't notice changes in this file;
   you have to also touch the .hs file.
