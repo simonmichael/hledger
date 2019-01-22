@@ -1189,8 +1189,7 @@ The \f[C]\-V/\-\-value\f[] flag can be used to convert reported amounts
 to another commodity using these prices.
 .SS Declaring accounts
 .PP
-\f[C]account\f[] directives can be used to pre\-declare some or all
-accounts.
+\f[C]account\f[] directives can be used to pre\-declare accounts.
 Though not required, they can provide several benefits:
 .IP \[bu] 2
 They can document your intended chart of accounts, providing a
@@ -1209,38 +1208,86 @@ sorting (eg Revenues to appear above Expenses).
 They help with account name completion in the add command,
 hledger\-iadd, hledger\-web, ledger\-mode etc.
 .PP
-Here is the full syntax:
-.IP
-.nf
-\f[C]
-account\ ACCTNAME\ \ [ACCTTYPE]
-\ \ [COMMENTS]
-\f[]
-.fi
-.PP
-The simplest form just declares a hledger\-style account name, eg:
+The simplest form is just the word \f[C]account\f[] followed by a
+hledger\-style account name, eg:
 .IP
 .nf
 \f[C]
 account\ assets:bank:checking
 \f[]
 .fi
+.SS Account comments
+.PP
+Comments, beginning with a semicolon, optionally including tags, can be
+written after the account name, and/or on following lines.
+Eg:
+.IP
+.nf
+\f[C]
+account\ assets:bank:checking\ \ ;\ a\ comment
+\ \ ;\ another\ comment
+\ \ ;\ acctno:12345,\ a\ tag
+\f[]
+.fi
+.PP
+Tip: comments on the same line require hledger 1.12+.
+If you need your journal to be compatible with older hledger versions,
+write comments on the next line instead.
+.SS Account subdirectives
+.PP
+We also allow (and ignore) Ledger\-style indented subdirectives, just
+for compatibility.:
+.IP
+.nf
+\f[C]
+account\ assets:bank:checking
+\ \ format\ blah\ blah\ \ ;\ <\-\ subdirective,\ ignored
+\f[]
+.fi
+.PP
+Here is the full syntax of account directives:
+.IP
+.nf
+\f[C]
+account\ ACCTNAME\ \ [ACCTTYPE]\ [;COMMENT]
+\ \ [;COMMENTS]
+\ \ [LEDGER\-STYLE\ SUBDIRECTIVES,\ IGNORED]
+\f[]
+.fi
 .SS Account types
 .PP
-hledger recognises five types of account: asset, liability, equity,
-revenue, expense.
-This is useful for certain accounting\-aware reports, in particular
-balancesheet, incomestatement and cashflow.
+hledger recognises five types (or classes) of account: Asset, Liability,
+Equity, Revenue, Expense.
+This is used by a few accounting\-aware reports such as balancesheet,
+incomestatement and cashflow.
+.SS Auto\-detected account types
 .PP
 If you name your top\-level accounts with some variation of
 \f[C]assets\f[], \f[C]liabilities\f[]/\f[C]debts\f[], \f[C]equity\f[],
 \f[C]revenues\f[]/\f[C]income\f[], or \f[C]expenses\f[], their types are
 detected automatically.
+.SS Account types declared with tags
 .PP
-More generally, you can declare an account's type by adding one of the
-letters \f[C]ALERX\f[] to its account directive, separated from the
-account name by two or more spaces.
-Eg:
+More generally, you can declare an account's type with an account
+directive, by writing a \f[C]type:\f[] tag in a comment, followed by one
+of the words \f[C]Asset\f[], \f[C]Liability\f[], \f[C]Equity\f[],
+\f[C]Revenue\f[], \f[C]Expense\f[], or one of the letters \f[C]ALERX\f[]
+(case insensitive):
+.IP
+.nf
+\f[C]
+account\ assets\ \ \ \ \ \ \ ;\ type:Asset
+account\ liabilities\ \ ;\ type:Liability
+account\ equity\ \ \ \ \ \ \ ;\ type:Equity
+account\ revenues\ \ \ \ \ ;\ type:Revenue
+account\ expenses\ \ \ \ \ ;\ type:Expenses
+\f[]
+.fi
+.SS Account types declared with account type codes
+.PP
+Or, you can write one of those letters separated from the account name
+by two or more spaces, but this should probably be considered deprecated
+as of hledger 1.13:
 .IP
 .nf
 \f[C]
@@ -1251,46 +1298,29 @@ account\ revenues\ \ \ \ \ R
 account\ expenses\ \ \ \ \ X
 \f[]
 .fi
+.SS Overriding auto\-detected types
 .PP
-Note: if you ever override the types of those auto\-detected english
-account names mentioned above, you might need to help the reports a bit:
+If you ever override the types of those auto\-detected english account
+names mentioned above, you might need to help the reports a bit.
+Eg:
 .IP
 .nf
 \f[C]
-;\ make\ "liabilities"\ not\ have\ the\ liability\ type,\ who\ knows\ why
-account\ liabilities\ \ \ E
+;\ make\ "liabilities"\ not\ have\ the\ liability\ type\ \-\ who\ knows\ why
+account\ liabilities\ \ \ ;\ type:E
 
-;\ better\ ensure\ some\ other\ account\ has\ the\ liability\ type,\ 
+;\ we\ need\ to\ ensure\ some\ other\ account\ has\ the\ liability\ type,\ 
 ;\ otherwise\ balancesheet\ would\ still\ show\ "liabilities"\ under\ Liabilities\ 
-account\ \-\ \ \ \ \ \ \ \ \ \ \ \ \ L
+account\ \-\ \ \ \ \ \ \ \ \ \ \ \ \ ;\ type:L
 \f[]
 .fi
-.PP
-)
-.SS Account comments
-.PP
-An account directive can also have indented comments on following lines,
-eg:
-.IP
-.nf
-\f[C]
-account\ assets:bank:checking
-\ \ ;\ acctno:12345
-\ \ ;\ a\ comment
-\f[]
-.fi
-.PP
-We also allow (and ignore) Ledger\-style subdirectives, with no leading
-semicolon, for compatibility.
-.PP
-Tags in account comments, like \f[C]acctno\f[] above, currently have no
-effect.
 .SS Account display order
 .PP
-Account directives also set the order in which accounts are displayed in
-reports, the hledger\-ui accounts screen, the hledger\-web sidebar, etc.
-Normally accounts are listed in alphabetical order, but if you have eg
-these account directives in the journal:
+Account directives also set the order in which accounts are displayed,
+eg in reports, the hledger\-ui accounts screen, and the hledger\-web
+sidebar.
+By default accounts are listed in alphabetical order.
+But if you have these account directives in the journal:
 .IP
 .nf
 \f[C]
@@ -1302,7 +1332,7 @@ account\ expenses
 \f[]
 .fi
 .PP
-you'll see those accounts listed in declaration order, not
+you'll see those accounts displayed in declaration order, not
 alphabetically:
 .IP
 .nf

@@ -1055,8 +1055,8 @@ File: hledger_journal.info,  Node: Declaring accounts,  Next: Rewriting accounts
 1.14.7 Declaring accounts
 -------------------------
 
-'account' directives can be used to pre-declare some or all accounts.
-Though not required, they can provide several benefits:
+'account' directives can be used to pre-declare accounts.  Though not
+required, they can provide several benefits:
 
    * They can document your intended chart of accounts, providing a
      reference.
@@ -1070,38 +1070,80 @@ Though not required, they can provide several benefits:
    * They help with account name completion in the add command,
      hledger-iadd, hledger-web, ledger-mode etc.
 
-   Here is the full syntax:
-
-account ACCTNAME  [ACCTTYPE]
-  [COMMENTS]
-
-   The simplest form just declares a hledger-style account name, eg:
+   The simplest form is just the word 'account' followed by a
+hledger-style account name, eg:
 
 account assets:bank:checking
 
 * Menu:
 
-* Account types::
 * Account comments::
+* Account subdirectives::
+* Account types::
 * Account display order::
 
 
-File: hledger_journal.info,  Node: Account types,  Next: Account comments,  Up: Declaring accounts
+File: hledger_journal.info,  Node: Account comments,  Next: Account subdirectives,  Up: Declaring accounts
 
-1.14.7.1 Account types
+1.14.7.1 Account comments
+.........................
+
+Comments, beginning with a semicolon, optionally including tags, can be
+written after the account name, and/or on following lines.  Eg:
+
+account assets:bank:checking  ; a comment
+  ; another comment
+  ; acctno:12345, a tag
+
+   Tip: comments on the same line require hledger 1.12+.  If you need
+your journal to be compatible with older hledger versions, write
+comments on the next line instead.
+
+
+File: hledger_journal.info,  Node: Account subdirectives,  Next: Account types,  Prev: Account comments,  Up: Declaring accounts
+
+1.14.7.2 Account subdirectives
+..............................
+
+We also allow (and ignore) Ledger-style indented subdirectives, just for
+compatibility.:
+
+account assets:bank:checking
+  format blah blah  ; <- subdirective, ignored
+
+   Here is the full syntax of account directives:
+
+account ACCTNAME  [ACCTTYPE] [;COMMENT]
+  [;COMMENTS]
+  [LEDGER-STYLE SUBDIRECTIVES, IGNORED]
+
+
+File: hledger_journal.info,  Node: Account types,  Next: Account display order,  Prev: Account subdirectives,  Up: Declaring accounts
+
+1.14.7.3 Account types
 ......................
 
-hledger recognises five types of account: asset, liability, equity,
-revenue, expense.  This is useful for certain accounting-aware reports,
-in particular balancesheet, incomestatement and cashflow.
+hledger recognises five types (or classes) of account: Asset, Liability,
+Equity, Revenue, Expense.  This is used by a few accounting-aware
+reports such as balancesheet, incomestatement and cashflow.
+Auto-detected account types If you name your top-level accounts with
+some variation of 'assets', 'liabilities'/'debts', 'equity',
+'revenues'/'income', or 'expenses', their types are detected
+automatically.  Account types declared with tags More generally, you can
+declare an account's type with an account directive, by writing a
+'type:' tag in a comment, followed by one of the words 'Asset',
+'Liability', 'Equity', 'Revenue', 'Expense', or one of the letters
+'ALERX' (case insensitive):
 
-   If you name your top-level accounts with some variation of 'assets',
-'liabilities'/'debts', 'equity', 'revenues'/'income', or 'expenses',
-their types are detected automatically.
+account assets       ; type:Asset
+account liabilities  ; type:Liability
+account equity       ; type:Equity
+account revenues     ; type:Revenue
+account expenses     ; type:Expenses
 
-   More generally, you can declare an account's type by adding one of
-the letters 'ALERX' to its account directive, separated from the account
-name by two or more spaces.  Eg:
+   Account types declared with account type codes Or, you can write one
+of those letters separated from the account name by two or more spaces,
+but this should probably be considered deprecated as of hledger 1.13:
 
 account assets       A
 account liabilities  L
@@ -1109,47 +1151,27 @@ account equity       E
 account revenues     R
 account expenses     X
 
-   Note: if you ever override the types of those auto-detected english
-account names mentioned above, you might need to help the reports a bit:
+   Overriding auto-detected types If you ever override the types of
+those auto-detected english account names mentioned above, you might
+need to help the reports a bit.  Eg:
 
-; make "liabilities" not have the liability type, who knows why
-account liabilities   E
+; make "liabilities" not have the liability type - who knows why
+account liabilities   ; type:E
 
-; better ensure some other account has the liability type, 
+; we need to ensure some other account has the liability type, 
 ; otherwise balancesheet would still show "liabilities" under Liabilities 
-account -             L
-
-   )
+account -             ; type:L
 
 
-File: hledger_journal.info,  Node: Account comments,  Next: Account display order,  Prev: Account types,  Up: Declaring accounts
+File: hledger_journal.info,  Node: Account display order,  Prev: Account types,  Up: Declaring accounts
 
-1.14.7.2 Account comments
-.........................
-
-An account directive can also have indented comments on following lines,
-eg:
-
-account assets:bank:checking
-  ; acctno:12345
-  ; a comment
-
-   We also allow (and ignore) Ledger-style subdirectives, with no
-leading semicolon, for compatibility.
-
-   Tags in account comments, like 'acctno' above, currently have no
-effect.
-
-
-File: hledger_journal.info,  Node: Account display order,  Prev: Account comments,  Up: Declaring accounts
-
-1.14.7.3 Account display order
+1.14.7.4 Account display order
 ..............................
 
-Account directives also set the order in which accounts are displayed in
-reports, the hledger-ui accounts screen, the hledger-web sidebar, etc.
-Normally accounts are listed in alphabetical order, but if you have eg
-these account directives in the journal:
+Account directives also set the order in which accounts are displayed,
+eg in reports, the hledger-ui accounts screen, and the hledger-web
+sidebar.  By default accounts are listed in alphabetical order.  But if
+you have these account directives in the journal:
 
 account assets
 account liabilities
@@ -1157,7 +1179,7 @@ account equity
 account revenues
 account expenses
 
-   you'll see those accounts listed in declaration order, not
+   you'll see those accounts displayed in declaration order, not
 alphabetically:
 
 $ hledger accounts -1
@@ -1605,35 +1627,37 @@ Node: Market prices38745
 Ref: #market-prices38910
 Node: Declaring accounts39751
 Ref: #declaring-accounts39927
-Node: Account types40884
-Ref: #account-types41033
-Node: Account comments42107
-Ref: #account-comments42292
-Node: Account display order42613
-Ref: #account-display-order42786
-Node: Rewriting accounts43908
-Ref: #rewriting-accounts44093
-Node: Basic aliases44827
-Ref: #basic-aliases44973
-Node: Regex aliases45677
-Ref: #regex-aliases45848
-Node: Multiple aliases46566
-Ref: #multiple-aliases46741
-Node: end aliases47239
-Ref: #end-aliases47386
-Node: Default parent account47487
-Ref: #default-parent-account47653
-Node: Periodic transactions48537
-Ref: #periodic-transactions48719
-Node: Two spaces after the period expression49844
-Ref: #two-spaces-after-the-period-expression50089
-Node: Forecasting with periodic transactions50574
-Ref: #forecasting-with-periodic-transactions50864
-Node: Budgeting with periodic transactions52551
-Ref: #budgeting-with-periodic-transactions52790
-Node: Transaction Modifiers53249
-Ref: #transaction-modifiers53412
-Node: EDITOR SUPPORT55393
-Ref: #editor-support55511
+Node: Account comments40852
+Ref: #account-comments41015
+Node: Account subdirectives41410
+Ref: #account-subdirectives41605
+Node: Account types41918
+Ref: #account-types42102
+Node: Account display order43746
+Ref: #account-display-order43916
+Node: Rewriting accounts45045
+Ref: #rewriting-accounts45230
+Node: Basic aliases45964
+Ref: #basic-aliases46110
+Node: Regex aliases46814
+Ref: #regex-aliases46985
+Node: Multiple aliases47703
+Ref: #multiple-aliases47878
+Node: end aliases48376
+Ref: #end-aliases48523
+Node: Default parent account48624
+Ref: #default-parent-account48790
+Node: Periodic transactions49674
+Ref: #periodic-transactions49856
+Node: Two spaces after the period expression50981
+Ref: #two-spaces-after-the-period-expression51226
+Node: Forecasting with periodic transactions51711
+Ref: #forecasting-with-periodic-transactions52001
+Node: Budgeting with periodic transactions53688
+Ref: #budgeting-with-periodic-transactions53927
+Node: Transaction Modifiers54386
+Ref: #transaction-modifiers54549
+Node: EDITOR SUPPORT56530
+Ref: #editor-support56648
 
 End Tag Table

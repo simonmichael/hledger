@@ -1851,11 +1851,87 @@ File: hledger.info,  Node: close,  Next: files,  Prev: check-dupes,  Up: COMMAND
 4.10 close
 ==========
 
-Print closing/opening transactions that bring some or all account
-balances to zero and back.  Can be useful for bringing asset/liability
-balances across file boundaries, or for closing out income/expenses for
-a period.  This was formerly called "equity", as in Ledger, and that
-alias is also accepted.  See close -help for more.
+close, equity
+
+   Prints a "closing balances" transaction and an "opening balances"
+transaction, that bring account balances to and from zero, respectively.
+Useful for, eg:
+
+   * bringing asset/liability balances forward into a new journal file
+   * closing out revenues/expenses to retained earnings at the end of a
+     period
+
+   The closing transaction transfers balances to "equity:closing
+balances".  The opening transaction transfers balances from
+"equity:opening balances".  You can chose to print just one of the
+transactions by using the '--opening' or '--closing' flag.
+
+   If you split your journal files by time (eg yearly), you will
+typically run this command at the end of the year, and save the closing
+transaction as last entry of the old file, and the opening transaction
+as the first entry of the new file.  This makes the files self
+contained, so that correct balances are reported no matter which of them
+are loaded.  Ie, if you load just one file, the balances are initialised
+correctly; or if you load several files, the redundant closing/opening
+transactions cancel each other out.  (They will show up in print or
+register reports; you can exclude them with a query like
+'not:desc:'(opening|closing) balances''.)
+
+   If you're running a business, you might also use this command to
+"close the books" at the end of an accounting period, transferring
+income statement account balances to retained earnings.  (You may want
+to change the equity account name to something like "equity:retained
+earnings" for clarity.)
+
+   By default, the closing transaction is dated yesterday, the balances
+are calculated as of end of yesterday, and the opening transaction is
+dated today.  To close on some other date, use: 'hledger close -e
+OPENINGDATE'.  Eg, to close/open on the 2018/2019 boundary, use '-e
+2019'.  You can also use -p or 'date:PERIOD' (any starting date is
+ignored).
+
+   Both transactions will include balance assertions for the
+closed/reopened accounts.  You probably shouldn't use status or realness
+filters (like -C or -R or 'status:') with this command, or the generated
+balance assertions will depend on these flags.  Likewise, if you run
+this command with -auto, the balance assertions will probably always
+require -auto.
+
+   Examples:
+
+   Carrying asset/liability balances into a new file for 2019, all from
+command line.
+
+   _Warning: we use '>>' here to append; be careful not to type a single
+'>' which would wipe your journal!_
+
+$ hledger close -f 2018.journal -e 2019 assets liabilities --opening >>2019.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --closing >>2018.journal
+
+   Now:
+
+$ hledger bs -f 2019.journal                   # one file - balances are correct
+$ hledger bs -f 2018.journal -f 2019.journal   # two files - balances still correct
+$ hledger bs -f 2018.journal not:desc:closing  # to see year-end balances, must exclude closing txn
+
+   Transactions spanning the closing date can complicate matters,
+breaking balance assertions:
+
+2018/12/30 a purchase made in 2018, clearing the following year
+    expenses:food          5
+    assets:bank:checking  -5  ; [2019/1/2]
+
+   Here's one way to resolve that:
+
+; in 2018.journal:
+2018/12/30 a purchase made in 2018, clearing the following year
+    expenses:food          5
+    liabilities:pending
+
+; in 2019.journal:
+2019/1/2 clearance of last year's pending transactions
+    liabilities:pending    5 = 0
+    assets:checking
 
 
 File: hledger.info,  Node: files,  Next: help,  Prev: close,  Up: COMMANDS
@@ -2643,63 +2719,63 @@ Node: check-dupes61080
 Ref: #check-dupes61204
 Node: close61341
 Ref: #close61449
-Node: files61779
-Ref: #files61880
-Node: help62021
-Ref: #help62121
-Node: import63195
-Ref: #import63309
-Node: incomestatement64039
-Ref: #incomestatement64173
-Node: prices66577
-Ref: #prices66692
-Node: print66964
-Ref: #print67074
-Node: print-unique71968
-Ref: #print-unique72094
-Node: register72162
-Ref: #register72289
-Node: Custom register output76790
-Ref: #custom-register-output76919
-Node: register-match78149
-Ref: #register-match78283
-Node: rewrite78466
-Ref: #rewrite78581
-Node: roi78650
-Ref: #roi78748
-Node: stats78864
-Ref: #stats78963
-Node: tags79833
-Ref: #tags79931
-Node: test80167
-Ref: #test80251
-Node: ADD-ON COMMANDS80959
-Ref: #add-on-commands81069
-Node: Official add-ons82356
-Ref: #official-add-ons82496
-Node: api82583
-Ref: #api82672
-Node: ui82724
-Ref: #ui82823
-Node: web82881
-Ref: #web82970
-Node: Third party add-ons83016
-Ref: #third-party-add-ons83191
-Node: diff83326
-Ref: #diff83423
-Node: iadd83522
-Ref: #iadd83636
-Node: interest83719
-Ref: #interest83840
-Node: irr83935
-Ref: #irr84033
-Node: Experimental add-ons84164
-Ref: #experimental-add-ons84316
-Node: autosync84596
-Ref: #autosync84707
-Node: chart84946
-Ref: #chart85065
-Node: check85136
-Ref: #check85238
+Node: files64891
+Ref: #files64992
+Node: help65133
+Ref: #help65233
+Node: import66307
+Ref: #import66421
+Node: incomestatement67151
+Ref: #incomestatement67285
+Node: prices69689
+Ref: #prices69804
+Node: print70076
+Ref: #print70186
+Node: print-unique75080
+Ref: #print-unique75206
+Node: register75274
+Ref: #register75401
+Node: Custom register output79902
+Ref: #custom-register-output80031
+Node: register-match81261
+Ref: #register-match81395
+Node: rewrite81578
+Ref: #rewrite81693
+Node: roi81762
+Ref: #roi81860
+Node: stats81976
+Ref: #stats82075
+Node: tags82945
+Ref: #tags83043
+Node: test83279
+Ref: #test83363
+Node: ADD-ON COMMANDS84071
+Ref: #add-on-commands84181
+Node: Official add-ons85468
+Ref: #official-add-ons85608
+Node: api85695
+Ref: #api85784
+Node: ui85836
+Ref: #ui85935
+Node: web85993
+Ref: #web86082
+Node: Third party add-ons86128
+Ref: #third-party-add-ons86303
+Node: diff86438
+Ref: #diff86535
+Node: iadd86634
+Ref: #iadd86748
+Node: interest86831
+Ref: #interest86952
+Node: irr87047
+Ref: #irr87145
+Node: Experimental add-ons87276
+Ref: #experimental-add-ons87428
+Node: autosync87708
+Ref: #autosync87819
+Node: chart88058
+Ref: #chart88177
+Node: check88248
+Ref: #check88350
 
 End Tag Table
