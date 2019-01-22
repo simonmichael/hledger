@@ -16,56 +16,7 @@ import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit as C
 
 closemode = hledgerCommandMode
-  [here| close equity
-Print a "closing balances" transaction that brings all accounts (or with
-query arguments, just the matched accounts) to a zero (historical) balance, 
-followed by an opposite "opening balances" transaction that restores the 
-balances from zero.
-
-FLAGS
-
-The opening transaction is useful to carry over asset/liability balances 
-if you choose to start a new journal file, eg yearly. The closing transaction
-can be a useful complement, allowing you to optionally include old files 
-(for more history) without disturbing the asset/liability balances 
-(since the closing/opening pairs cancel out).
-
-This command may also be useful for closing out expense/income accounts 
-for a period (ie "closing the books" in accounting).
-
-Both transactions include balance assertions for the closed/reopened accounts.
-
-You probably shouldn't use status or realness queries (eg -C or -R) with this 
-command, or the balance assertions will require that query to pass.
-Likewise, if you generate them with --auto, the assertions will depend on
-any auto postings and --auto will be required to make them pass.
-
-By default, the closing transaction is dated yesterday, with balances 
-calculated as of end of yesterday, and the opening transaction is dated today.
-To close on some other date, use: `hledger close -e OPENINGDATE ...`.
-(-p or date: can also be used, the begin date is ignored.)
-
-You can chose to print just one of the transactions with `--opening` 
-or `--closing`.
-
-For example, carrying asset/liability balances into a new file for 2018:
-```
-$ hledger close -f 2017.journal -e 2018/1/1 ^assets ^liab >>2017.journal
-# cut & paste the opening transaction from 2017.journal to a new 2018.journal
-# now:
-$ hledger bs -f 2018.journal                   # correct balances
-$ hledger bs -f 2018.journal -f 2017.journal   # still correct
-$ hledger bs -f 2017.journal not:desc:closing  # must exclude closing txn 
-```
-
-Transactions spanning the closing date may complicate matters. Eg, if
-closing at end of 2017:
-```
-2017/12/31
-    expenses:food          1
-    assets:bank:checking  -1  ; date:2018/1/1
-```
-  |]
+  [hereFile|hledger/Hledger/Cli/Commands/Close.md|]
   [flagNone ["opening"] (\opts -> setboolopt "opening" opts) "show just opening transaction"
   ,flagNone ["closing"] (\opts -> setboolopt "closing" opts) "show just closing transaction"
   ]

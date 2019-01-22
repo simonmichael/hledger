@@ -362,11 +362,8 @@ Report account names having the same leaf but different prefixes.
 An example: http://stefanorodighiero.net/software/hledger-dupes.html
 
 ## close
-Print closing/opening transactions that bring some or all account balances to zero and back. 
-Can be useful for bringing asset/liability balances across file boundaries,
-or for closing out income/expenses for a period.
-This was formerly called "equity", as in Ledger, and that alias is also accepted.
-See close --help for more.   
+
+_include_(Hledger/Cli/Commands/Close.md)
 
 ## files
 List all files included in the journal. With a REGEX argument,

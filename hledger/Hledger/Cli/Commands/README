@@ -1,0 +1,22 @@
+hledger's built-in commands.
+
+Each command has a similarly-named module, Somecommand.hs.
+
+Each command's help is kept in Somecommand.md. 
+This file is included by Somecommand.hs to help build the command's --help output,
+and by hledger/hledger_commands.m4.md to help build the hledger manual.
+It has some special features:
+
+- The first line should specify the command name and any aliases,
+  as space or comma-separated words.
+
+- A line containing just _FLAGS_ will be replaced in --help output by
+  the command's flags list. If there's no such line, the flags will be
+  displayed at the end. In the manual, no flags list is shown.
+
+- Markdown can be used to influence the appearance of the manuals,
+  especially the html version. But the markup will also appear
+  uninterpreted in the --help output, so use sparingly.
+
+- GHC (and ghcid etc.) won't notice changes in this file;
+  you have to also touch the .hs file.
