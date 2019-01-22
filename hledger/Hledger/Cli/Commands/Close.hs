@@ -16,7 +16,9 @@ import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit as C
 
 closemode = hledgerCommandMode
-  [hereFile|hledger/Hledger/Cli/Commands/Close.md|]
+  [hereFile|Hledger/Cli/Commands/Close.md|]
+  -- XXX need the hledger/ eg for ghci.. file-embed's makeRelativeToProject should help
+  -- ($(makeRelativeToProject "Hledger/Cli/Commands/Close.md" >>= hereFileExp))
   [flagNone ["opening"] (\opts -> setboolopt "opening" opts) "show just opening transaction"
   ,flagNone ["closing"] (\opts -> setboolopt "closing" opts) "show just closing transaction"
   ]
