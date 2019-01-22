@@ -940,8 +940,8 @@ site-preview: site/hakyll-std/hakyll-std \
 	$(call def-help,site-preview, run a hakyll server to preview the website  ) #site/site
 	-cd site; hakyll-std/hakyll-std watch # -h hledger.org
 
-# open a browser on the latest site html and reload the page whenever it changes
-site-reload:
+site-livereload: \
+	$(call def-help,site-livereload, open a browser on the latest site html and reload the page whenever it changes  )
 	(sleep 1; open http://localhost:8001) &
 	livereloadx -p 8001 --static site/_site
 
