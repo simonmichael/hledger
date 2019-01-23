@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Close (
   closemode
@@ -9,16 +9,15 @@ where
 
 import Control.Monad (when)
 import Data.Maybe
-import Data.String.Here
 import Data.Time.Calendar
-import Hledger
-import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit as C
 
+import Hledger
+import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (hereFileRelativeToPackage)
+
 closemode = hledgerCommandMode
-  [hereFile|Hledger/Cli/Commands/Close.md|]
-  -- XXX need the hledger/ eg for ghci.. file-embed's makeRelativeToProject should help
-  -- ($(makeRelativeToProject "Hledger/Cli/Commands/Close.md" >>= hereFileExp))
+  $(hereFileRelativeToPackage "Hledger/Cli/Commands/Close.md")
   [flagNone ["opening"] (\opts -> setboolopt "opening" opts) "show just opening transaction"
   ,flagNone ["closing"] (\opts -> setboolopt "closing" opts) "show just closing transaction"
   ]
