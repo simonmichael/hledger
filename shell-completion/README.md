@@ -15,8 +15,9 @@ The completions can handle hledger's CLI:
 
 - commands and generic options
 - command-specific options
-- account names from journal files (but not yet for files named by --file)
 - filenames for options that take a filename as argument
+- account names from journal files (but not yet for files named by `--file`)
+- query filter keywords like `status:`, `tag:`, or `amt:`
 
 Installation for end users
 --------------------------
