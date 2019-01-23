@@ -2,7 +2,8 @@ close, equity
 Prints a "closing balances" transaction and an "opening balances" transaction
 that bring account balances to and from zero, respectively.
 Useful for bringing asset/liability balances forward into a new journal file,
-or for closing out revenues/expenses to retained earnings at the end of a period.
+or for closing out revenues/expenses to retained earnings at the end of a
+period.
 
 _FLAGS_
 
@@ -26,7 +27,7 @@ If you're running a business, you might also use this command to
 "close the books" at the end of an accounting period, transferring
 income statement account balances to retained earnings. (You may want
 to change the equity account name to something like 
-"equity:retained earnings" for clarity.)
+"equity:retained earnings".)
 
 By default, the closing transaction is dated yesterday, the balances 
 are calculated as of end of yesterday, and the opening transaction is dated today.
@@ -43,7 +44,7 @@ will probably always require --auto.
 
 Examples:
 
-Carrying asset/liability balances into a new file for 2019, all from command line.
+Carrying asset/liability balances into a new file for 2019, all from command line:
 
 *Warning: we use `>>` here to append; be careful not to type a single `>` which would wipe your journal!*
 

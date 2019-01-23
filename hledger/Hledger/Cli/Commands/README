@@ -25,7 +25,7 @@ It has some special features:
   markdown features.
 
 - Keep the width of short help lines to 76 characters or less, or
-  cmdargs will insert newlines.
+  cmdargs will insert newlines. (In Emacs: C-u 77 C-x f).
 
 - GHC, stack, cabal, ghcid etc. won't notice changes in this file;
   you have to also touch the .hs file.
