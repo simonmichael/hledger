@@ -22,7 +22,7 @@ module Hledger.Cli.CliOptions (
   generalflagsgroup3,
   defMode,
   defCommandMode,
-  quickAddonCommandMode,
+  addonCommandMode,
   hledgerCommandMode,
   argsFlag,
   showModeUsage,
@@ -194,7 +194,6 @@ defMode = Mode {
 
 -- | A cmdargs mode suitable for a hledger built-in command
 -- with the given names (primary name + optional aliases).
--- The default flags are short and long help (-h and --help).
 -- The usage message shows [QUERY] as argument.
 defCommandMode :: [Name] -> Mode RawOpts
 defCommandMode names = defMode {
@@ -211,20 +210,51 @@ defCommandMode names = defMode {
   ,modeValue=[("command", headDef "" names)]
   }
 
--- | A cmdargs mode representing the hledger add-on command with the given name.
--- Like defCommandMode, but adds a appropriate short help message if the addon name
--- is recognised, and includes hledger's common input/reporting/help flags as default.
--- Just used by hledger for generating the commands list I think (or possibly for
--- invoking the addons as well ?)
-quickAddonCommandMode :: Name -> Mode RawOpts
-quickAddonCommandMode name = (defCommandMode [name]) {
-   modeHelp = fromMaybe "" $ lookup (stripAddonExtension name) standardAddonsHelp
+-- | A cmdargs mode representing the hledger add-on command with the
+-- given name, providing hledger's common input/reporting/help flags.
+-- Just used when invoking addons.
+addonCommandMode :: Name -> Mode RawOpts
+addonCommandMode name = (defCommandMode [name]) {
+   modeHelp = ""
+     -- XXX not needed ?
+     -- fromMaybe "" $ lookup (stripAddonExtension name) [
+     --   ("addon"        , "dummy add-on command for testing")
+     --  ,("addon2"       , "dummy add-on command for testing")
+     --  ,("addon3"       , "dummy add-on command for testing")
+     --  ,("addon4"       , "dummy add-on command for testing")
+     --  ,("addon5"       , "dummy add-on command for testing")
+     --  ,("addon6"       , "dummy add-on command for testing")
+     --  ,("addon7"       , "dummy add-on command for testing")
+     --  ,("addon8"       , "dummy add-on command for testing")
+     --  ,("addon9"       , "dummy add-on command for testing")
+     --  ]
   ,modeGroupFlags = Group {
       groupUnnamed = []
      ,groupHidden = []
      ,groupNamed = [generalflagsgroup1]
      }
   }
+
+-- | Build a cmdarg mode for a hledger command,
+-- from a help template and flag/argument specifications.
+-- Reduces boilerplate a little, though the complicated cmdargs
+-- flag and argument specs are still required.
+hledgerCommandMode :: HelpTemplate -> [Flag RawOpts] -> [(Help, [Flag RawOpts])] 
+  -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
+hledgerCommandMode tmpl ungroupedflags groupedflags hiddenflags args =
+  case parseHelpTemplate tmpl of
+    Nothing -> error' $ "Could not parse help template:\n"++tmpl++"\n"
+    Just (names, shorthelp, longhelplines) ->
+      (defCommandMode names) {
+         modeHelp        = shorthelp
+        ,modeHelpSuffix  = longhelplines
+        ,modeGroupFlags  = Group {
+            groupUnnamed = ungroupedflags
+           ,groupNamed   = groupedflags
+           ,groupHidden  = hiddenflags
+           }
+        ,modeArgs = args
+        }
 
 -- | A command's documentation. Used both as part of CLI help, and as
 -- part of the hledger manual. See parseHelpTemplate.
@@ -253,53 +283,6 @@ parseHelpTemplate t =
         (shorthelpls, longhelpls) = break (== "_FLAGS_") ls
         shorthelp = unlines $ reverse $ dropWhile null $ reverse shorthelpls
         longhelplines = dropWhile null $ drop 1 longhelpls
-
--- | Build a cmdarg mode for a hledger command,
--- from a help template and flag/argument specifications.
--- Reduces boilerplate a little, though the complicated cmdargs
--- flag and argument specs are still required.
-hledgerCommandMode :: HelpTemplate -> [Flag RawOpts] -> [(Help, [Flag RawOpts])] 
-  -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
-hledgerCommandMode tmpl ungroupedflags groupedflags hiddenflags args =
-  case parseHelpTemplate tmpl of
-    Nothing -> error' $ "Could not parse help template:\n"++tmpl++"\n"
-    Just (names, shorthelp, longhelplines) ->
-      (defCommandMode names) {
-         modeHelp        = shorthelp
-        ,modeHelpSuffix  = longhelplines
-        ,modeGroupFlags  = Group {
-            groupUnnamed = ungroupedflags
-           ,groupNamed   = groupedflags
-           ,groupHidden  = hiddenflags
-           }
-        ,modeArgs = args
-        }
-
--- | Built-in descriptions for some of the known addons.
-standardAddonsHelp :: [(String,String)]
-standardAddonsHelp = [
-   ("chart", "generate simple balance pie charts")
-  ,("interest", "generate interest transaction entries")
-  ,("irr", "calculate internal rate of return")
-  ,("vty", "start the curses-style interface")
-  ,("web", "start the web interface")
-  ,("accounts", "list account names")
-  ,("files", "list included files")
-  ,("balance-csv", "output a balance report as CSV")
-  ,("close", "show a transaction entry zeroing all accounts")
-  ,("print-unique", "print only transactions with unique descriptions")
-  ,("register-csv", "output a register report as CSV")
-  ,("rewrite", "add specified postings to matched transaction entries")
-  ,("addon",  "dummy add-on command for testing")
-  ,("addon2", "dummy add-on command for testing")
-  ,("addon3", "dummy add-on command for testing")
-  ,("addon4", "dummy add-on command for testing")
-  ,("addon5", "dummy add-on command for testing")
-  ,("addon6", "dummy add-on command for testing")
-  ,("addon7", "dummy add-on command for testing")
-  ,("addon8", "dummy add-on command for testing")
-  ,("addon9", "dummy add-on command for testing")
-  ]
 
 -- | Get a mode's usage message as a nicely wrapped string.
 showModeUsage :: Mode a -> String
@@ -673,8 +656,8 @@ isHledgerExeName = isRight . parsewith hledgerexenamep . T.pack
         optional (string "." >> choice' (map (string . T.pack) addonExtensions))
         eof
 
-stripAddonExtension :: String -> String
-stripAddonExtension = regexReplace re "" where re = "\\.(" ++ intercalate "|" addonExtensions ++ ")$"
+-- stripAddonExtension :: String -> String
+-- stripAddonExtension = regexReplace re "" where re = "\\.(" ++ intercalate "|" addonExtensions ++ ")$"
 
 addonExtensions :: [String]
 addonExtensions =

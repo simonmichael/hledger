@@ -67,7 +67,7 @@ mainmode addons = defMode {
    ,groupNamed = [
      ]
     -- subcommands handled but not shown in the help:
-   ,groupHidden = map fst builtinCommands ++ map quickAddonCommandMode addons
+   ,groupHidden = map fst builtinCommands ++ map addonCommandMode addons
    }
  ,modeGroupFlags = Group {
      -- flags in named groups:
