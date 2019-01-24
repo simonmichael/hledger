@@ -291,6 +291,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
      ,flagNone ["show-unbudgeted"] (setboolopt "show-unbudgeted") "with --budget, show unbudgeted accounts also"
      ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+     ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
      ]
      ++ outputflags
     ,groupHidden = []
@@ -469,6 +470,7 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+  maybetranspose $ 
   ("Account" : map showDateSpan colspans
    ++ (if row_total_ opts then ["Total"] else [])
    ++ (if average_ opts then ["Average"] else [])
@@ -488,7 +490,10 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
            ++ (if row_total_ opts then [tot] else [])
            ++ (if average_ opts then [avg] else [])
            )]
-
+  where
+    maybetranspose | transpose_ opts = transpose
+                   | otherwise = id
+    
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
 multiBalanceReportAsHtml ropts mbr =
@@ -505,7 +510,8 @@ multiBalanceReportAsHtml ropts mbr =
 multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], Maybe (Html ()))
 multiBalanceReportHtmlRows ropts mbr =
   let
-    headingsrow:rest = multiBalanceReportAsCsv ropts mbr
+    headingsrow:rest | transpose_ ropts = error' "Sorry, --transpose is not supported with HTML output yet"
+                     | otherwise = multiBalanceReportAsCsv ropts mbr
     (bodyrows, mtotalsrow) | no_total_ ropts = (rest,      Nothing)
                            | otherwise       = (init rest, Just $ last rest)
   in
@@ -592,6 +598,7 @@ multiBalanceReportAsText opts r =
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
 balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+   maybetranspose $
    addtotalrow $ 
    Table
      (T.Group NoLine $ map Header accts)
@@ -617,7 +624,9 @@ balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,a
                                     ++ (if row_total_ opts && not (null coltotals) then [tot] else [])
                                     ++ (if average_ opts && not (null coltotals)   then [avg] else [])
                                     ))
-
+    maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
+                   | otherwise       = id
+                   
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output.

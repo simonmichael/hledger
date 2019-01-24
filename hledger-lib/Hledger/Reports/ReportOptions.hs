@@ -112,12 +112,14 @@ data ReportOpts = ReportOpts {
       --   normally positive for a more conventional display.   
     ,color_          :: Bool
     ,forecast_       :: Bool
+    ,transpose_      :: Bool
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -176,6 +178,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
     ,color_       = color
     ,forecast_    = boolopt "forecast" rawopts'
+    ,transpose_   = boolopt "transpose" rawopts'
     }
 
 -- | Do extra validation of raw option values, raising an error if there's a problem.
