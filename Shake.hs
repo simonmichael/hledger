@@ -72,10 +72,10 @@ makeinfo = "makeinfo"
 pandoc   = "pandoc"
 
 -- The kind of markdown used in our doc source files.
-fromsrcmd = "-f markdown-tex_math_dollars"
+fromsrcmd = "-f markdown-smart-tex_math_dollars"
 
 -- The kind of markdown we like to generate for the website.
-towebmd = "-t markdown-fenced_divs --atx-headers"
+towebmd = "-t markdown-smart-fenced_divs --atx-headers"
 
 
 main = do
