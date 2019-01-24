@@ -12,10 +12,12 @@ limited data entry capability.  It is easier than hledger's command-line
 interface, and sometimes quicker and more convenient than the web
 interface.
 
-   Note hledger-ui has some different defaults: - it generates
-rule-based transactions and postings by default (-forecast and -auto are
-always on).  - it hides transactions dated in the future by default
-(change this with -future or the F key).  Experimental.
+   Note hledger-ui has some different defaults (experimental):
+
+   * it generates rule-based transactions and postings by default
+     (-forecast and -auto are always on).
+   * it hides transactions dated in the future by default (change this
+     with -future or the F key).
 
    Like hledger, it reads data from one or more files in hledger
 journal, timeclock, timedot, or CSV format specified with '-f', or
@@ -396,19 +398,19 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top71
-Node: OPTIONS1090
-Ref: #options1187
-Node: KEYS4606
-Ref: #keys4701
-Node: SCREENS7957
-Ref: #screens8042
-Node: Accounts screen8132
-Ref: #accounts-screen8260
-Node: Register screen10476
-Ref: #register-screen10631
-Node: Transaction screen12628
-Ref: #transaction-screen12786
-Node: Error screen13656
-Ref: #error-screen13778
+Node: OPTIONS1106
+Ref: #options1203
+Node: KEYS4622
+Ref: #keys4717
+Node: SCREENS7973
+Ref: #screens8058
+Node: Accounts screen8148
+Ref: #accounts-screen8276
+Node: Register screen10492
+Ref: #register-screen10647
+Node: Transaction screen12644
+Ref: #transaction-screen12802
+Node: Error screen13672
+Ref: #error-screen13794
 
 End Tag Table
