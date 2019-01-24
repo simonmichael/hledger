@@ -270,7 +270,7 @@ budgetReportAsText :: ReportOpts -> BudgetReport -> String
 budgetReportAsText ropts budgetr@(PeriodicReport ( _, rows, _)) =
   printf "Budget performance in %s:\n\n" (showDateSpan $ budgetReportSpan budgetr)
   ++ 
-  tableAsText ropts showcell (budgetReportAsTable ropts budgetr)
+  tableAsText ropts showcell (maybetranspose $ budgetReportAsTable ropts budgetr)
   where
     actualwidth =
       maximum [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) amt
@@ -318,6 +318,9 @@ budgetReportAsText ropts budgetr@(PeriodicReport ( _, rows, _)) =
 
     -- don't show the budget amount in color, it messes up alignment
     showbudgetamt = showMixedAmountOneLineWithoutPrice
+
+    maybetranspose | transpose_ ropts = \(Table rh ch vals) -> Table ch rh (transpose vals)
+                   | otherwise       = id
 
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table String String (Maybe MixedAmount, Maybe MixedAmount)

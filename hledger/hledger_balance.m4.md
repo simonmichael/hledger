@@ -38,6 +38,10 @@ Show accounts and their balances. Aliases: b, bal.
 : select the output format. Supported formats:
 txt, csv, html.
 
+`--transpose`
+: transposes rows and columns in multi-column reports. Supported formats:
+txt, csv
+
 `-o FILE --output-file=FILE`
 : write output to FILE.  A file extension matching one of the above formats selects that format.
 
