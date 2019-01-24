@@ -29,7 +29,7 @@ conversion rules file named \f[C]FILE.csv.rules\f[] in the same
 directory.
 You can override this with the \f[C]\-\-rules\-file\f[] option.
 If the rules file does not exist, hledger will auto\-create one with
-some example rules, which you'll need to adjust.
+some example rules, which you\[aq]ll need to adjust.
 .PP
 At minimum, the rules file must identify the \f[C]date\f[] and
 \f[C]amount\f[] fields.
@@ -90,7 +90,7 @@ ignored.
 \f[C]skip\f[]\f[I]\f[CI]N\f[I]\f[]
 .PP
 Skip this number of CSV records at the beginning.
-You'll need this whenever your CSV data contains header lines.
+You\[aq]ll need this whenever your CSV data contains header lines.
 Eg:
 .IP
 .nf
@@ -104,8 +104,8 @@ skip\ 1
 \f[C]date\-format\f[]\f[I]\f[CI]DATEFMT\f[I]\f[]
 .PP
 When your CSV date fields are not formatted like \f[C]YYYY/MM/DD\f[] (or
-\f[C]YYYY\-MM\-DD\f[] or \f[C]YYYY.MM.DD\f[]), you'll need to specify
-the format.
+\f[C]YYYY\-MM\-DD\f[] or \f[C]YYYY.MM.DD\f[]), you\[aq]ll need to
+specify the format.
 DATEFMT is a strptime\-like date parsing pattern, which must parse the
 date field values completely.
 Examples:
@@ -140,7 +140,7 @@ date\-format\ %\-m/%\-d/%Y\ %l:%M\ %p
 .SS field list
 .PP
 \f[C]fields\f[]\f[I]\f[CI]FIELDNAME1\f[I]\f[],
-\f[I]\f[CI]FIELDNAME2\f[I]\f[]\&...
+\f[I]\f[CI]FIELDNAME2\f[I]\f[]...
 .PP
 This (a) names the CSV fields, in order (names may not contain
 whitespace; uninteresting names may be left blank), and (b) assigns them
@@ -192,7 +192,7 @@ Field assignments can be used instead of or in addition to a field list.
 .PD 0
 .P
 .PD
-\ \ \ \ \f[I]\f[CI]FIELDASSIGNMENTS\f[I]\f[]\&...
+\ \ \ \ \f[I]\f[CI]FIELDASSIGNMENTS\f[I]\f[]...
 .PP
 \f[C]if\f[]
 .PD 0
@@ -202,16 +202,16 @@ Field assignments can be used instead of or in addition to a field list.
 .PD 0
 .P
 .PD
-\f[I]\f[CI]PATTERN\f[I]\f[]\&...
+\f[I]\f[CI]PATTERN\f[I]\f[]...
 .PD 0
 .P
 .PD
-\ \ \ \ \f[I]\f[CI]FIELDASSIGNMENTS\f[I]\f[]\&...
+\ \ \ \ \f[I]\f[CI]FIELDASSIGNMENTS\f[I]\f[]...
 .PP
 This applies one or more field assignments, only to those CSV records
 matched by one of the PATTERNs.
 The patterns are case\-insensitive regular expressions which match
-anywhere within the whole CSV record (it's not yet possible to match
+anywhere within the whole CSV record (it\[aq]s not yet possible to match
 within a specific field).
 When there are multiple patterns they can be written on separate lines,
 unindented.
@@ -244,7 +244,7 @@ banking\ thru\ software
 .PP
 Include another rules file at this point.
 \f[C]RULESFILE\f[] is either an absolute file path or a path relative to
-the current file's directory.
+the current file\[aq]s directory.
 Eg:
 .IP
 .nf
@@ -261,9 +261,9 @@ Consider adding this rule if all of the following are true: you might be
 processing just one day of data, your CSV records are in reverse
 chronological order (newest first), and you care about preserving the
 order of same\-day transactions.
-It usually isn't needed, because hledger autodetects the CSV order, but
-when all CSV records have the same date it will assume they are oldest
-first.
+It usually isn\[aq]t needed, because hledger autodetects the CSV order,
+but when all CSV records have the same date it will assume they are
+oldest first.
 .SH CSV TIPS
 .SS CSV ordering
 .PP
@@ -274,8 +274,9 @@ case where you might need \f[C]newest\-first\f[], see above).
 .PP
 Each journal entry will have two postings, to \f[C]account1\f[] and
 \f[C]account2\f[] respectively.
-It's not yet possible to generate entries with more than two postings.
-It's conventional and recommended to use \f[C]account1\f[] for the
+It\[aq]s not yet possible to generate entries with more than two
+postings.
+It\[aq]s conventional and recommended to use \f[C]account1\f[] for the
 account whose CSV we are reading.
 .SS CSV amounts
 .PP

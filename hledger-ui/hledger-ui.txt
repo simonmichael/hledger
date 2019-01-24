@@ -23,9 +23,9 @@ DESCRIPTION
        web interface.
 
        Note hledger-ui has some different defaults: - it generates  rule-based
-       transactions  and  postings  by default (-forecast and -auto are always
+       transactions  and postings by default (--forecast and --auto are always
        on).  - it hides transactions dated in the future  by  default  (change
-       this with -future or the F key).  Experimental.
+       this with --future or the F key).  Experimental.
 
        Like  hledger, it reads data from one or more files in hledger journal,
        timeclock, timedot, or CSV format specified with -f,  or  $LEDGER_FILE,
@@ -73,7 +73,7 @@ OPTIONS
               FILE.rules)
 
        --separator=CHAR
-              Field separator to expect when reading CSV (default: `,')
+              Field separator to expect when reading CSV (default: ',')
 
        --alias=OLD=NEW
               rename accounts named OLD to NEW

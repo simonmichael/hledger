@@ -189,7 +189,7 @@ Conversion rules file to use when reading CSV (default: FILE.rules)
 .RE
 .TP
 .B \f[C]\-\-separator=CHAR\f[]
-Field separator to expect when reading CSV (default: `,')
+Field separator to expect when reading CSV (default: \[aq],\[aq])
 .RS
 .RE
 .TP
@@ -347,10 +347,10 @@ For more, see Save frequently used options.
 .SS Special characters in arguments and queries
 .PP
 In shell command lines, option and argument values which contain
-\[lq]problematic\[rq] characters, ie spaces, and also characters
-significant to your shell such as \f[C]<\f[], \f[C]>\f[], \f[C](\f[],
-\f[C])\f[], \f[C]|\f[] and \f[C]$\f[], should be escaped by enclosing
-them in quotes or by writing backslashes before the characters.
+"problematic" characters, ie spaces, and also characters significant to
+your shell such as \f[C]<\f[], \f[C]>\f[], \f[C](\f[], \f[C])\f[],
+\f[C]|\f[] and \f[C]$\f[], should be escaped by enclosing them in quotes
+or by writing backslashes before the characters.
 Eg:
 .PP
 \f[C]hledger\ register\ \-p\ \[aq]last\ year\[aq]\ "accounts\ receivable\ (receivable|payable)"\ amt:\\>100\f[].
@@ -371,7 +371,8 @@ or:
 When hledger runs an addon executable (eg you type \f[C]hledger\ ui\f[],
 hledger runs \f[C]hledger\-ui\f[]), it de\-escapes command\-line options
 and arguments once, so you might need to \f[I]triple\f[]\-escape.
-Eg in bash, running the ui command and matching the dollar sign, it's:
+Eg in bash, running the ui command and matching the dollar sign,
+it\[aq]s:
 .PP
 \f[C]hledger\ ui\ cur:\[aq]\\\\$\[aq]\f[]
 .PP
@@ -442,7 +443,7 @@ hledger is expected to handle unicode (non\-ascii) characters, but this
 requires a well\-configured environment.
 .PP
 To handle unicode characters in the command line or input data, a system
-locale that can decode them must be configured (POSIX's default
+locale that can decode them must be configured (POSIX\[aq]s default
 \f[C]C\f[] locale will not work).
 Eg in bash, you could do:
 .IP
@@ -454,15 +455,15 @@ export\ LANG=en_US.UTF\-8
 .PP
 See Troubleshooting for more about this.
 .PP
-Unicode characters should appear correctly in hledger's output.
+Unicode characters should appear correctly in hledger\[aq]s output.
 For the hledger and hledger\-ui tools, this requires that
 .IP \[bu] 2
 your terminal supports unicode
 .IP \[bu] 2
-the terminal's font includes the required unicode glyphs
+the terminal\[aq]s font includes the required unicode glyphs
 .IP \[bu] 2
-the terminal is configured to display \[lq]wide\[rq] characters as
-double width (otherwise report alignment will be off)
+the terminal is configured to display "wide" characters as double width
+(otherwise report alignment will be off)
 .SS Input files
 .PP
 hledger reads transactions from a data file (and the add command writes
@@ -495,11 +496,10 @@ $\ cat\ some.journal\ |\ hledger\ \-f\-
 \f[]
 .fi
 .PP
-Usually the data file is in hledger's journal format, but it can also be
-one of several other formats, listed below.
+Usually the data file is in hledger\[aq]s journal format, but it can
+also be one of several other formats, listed below.
 hledger detects the format automatically based on the file extension, or
-if that is not recognised, by trying each built\-in \[lq]reader\[rq] in
-turn:
+if that is not recognised, by trying each built\-in "reader" in turn:
 .PP
 .TS
 tab(@);
@@ -515,7 +515,7 @@ _
 T{
 \f[C]journal\f[]
 T}@T{
-hledger's journal format, also some Ledger journals
+hledger\[aq]s journal format, also some Ledger journals
 T}@T{
 \f[C]\&.journal\f[] \f[C]\&.j\f[] \f[C]\&.hledger\f[] \f[C]\&.ledger\f[]
 T}
@@ -543,8 +543,8 @@ T}
 .TE
 .PP
 If needed (eg to ensure correct error messages when a file has the
-\[lq]wrong\[rq] extension), you can force a specific reader/format by
-prepending it to the file path with a colon.
+"wrong" extension), you can force a specific reader/format by prepending
+it to the file path with a colon.
 Examples:
 .IP
 .nf
@@ -566,10 +566,11 @@ If you need those, either use the include directive, or concatenate the
 files, eg: \f[C]cat\ a.journal\ b.journal\ |\ hledger\ \-f\-\ CMD\f[].
 .SS Smart dates
 .PP
-hledger's user interfaces accept a flexible \[lq]smart date\[rq] syntax
+hledger\[aq]s user interfaces accept a flexible "smart date" syntax
 (unlike dates in the journal file).
-Smart dates allow some english words, can be relative to today's date,
-and can have less\-significant date parts omitted (defaulting to 1).
+Smart dates allow some english words, can be relative to today\[aq]s
+date, and can have less\-significant date parts omitted (defaulting to
+1).
 .PP
 Examples:
 .PP
@@ -681,7 +682,8 @@ l l.
 T{
 \f[C]\-b\ 2016/3/17\f[]
 T}@T{
-begin on St.\ Patrick's day 2016
+begin on St.
+Patrick\[aq]s day 2016
 T}
 T{
 \f[C]\-e\ 12/1\f[]
@@ -732,15 +734,16 @@ The \f[C]\-p/\-\-period\f[] option accepts period expressions, a
 shorthand way of expressing a start date, end date, and/or report
 interval all at once.
 .PP
-Here's a basic period expression specifying the first quarter of 2009.
+Here\[aq]s a basic period expression specifying the first quarter of
+2009.
 Note, hledger always treats start dates as inclusive and end dates as
 exclusive:
 .PP
 \f[C]\-p\ "from\ 2009/1/1\ to\ 2009/4/1"\f[]
 .PP
-Keywords like \[lq]from\[rq] and \[lq]to\[rq] are optional, and so are
-the spaces, as long as you don't run two dates together.
-\[lq]to\[rq] can also be written as \[lq]\-\[rq].
+Keywords like "from" and "to" are optional, and so are the spaces, as
+long as you don\[aq]t run two dates together.
+"to" can also be written as "\-".
 These are equivalent to the above:
 .PP
 .TS
@@ -802,8 +805,8 @@ everything before january 1, 2009
 T}
 .TE
 .PP
-A single date with no \[lq]from\[rq] or \[lq]to\[rq] defines both the
-start and end date like so:
+A single date with no "from" or "to" defines both the start and end date
+like so:
 .PP
 .TS
 tab(@);
@@ -811,17 +814,17 @@ l l.
 T{
 \f[C]\-p\ "2009"\f[]
 T}@T{
-the year 2009; equivalent to \[lq]2009/1/1 to 2010/1/1\[rq]
+the year 2009; equivalent to "2009/1/1 to 2010/1/1"
 T}
 T{
 \f[C]\-p\ "2009/1"\f[]
 T}@T{
-the month of jan; equivalent to \[lq]2009/1/1 to 2009/2/1\[rq]
+the month of jan; equivalent to "2009/1/1 to 2009/2/1"
 T}
 T{
 \f[C]\-p\ "2009/1/1"\f[]
 T}@T{
-just that day; equivalent to \[lq]2009/1/1 to 2009/1/2\[rq]
+just that day; equivalent to "2009/1/1 to 2009/1/2"
 T}
 .TE
 .PP
@@ -861,11 +864,11 @@ For example:
 tab(@);
 l.
 T{
-\f[C]\-p\ "weekly\ from\ 2009/1/1\ to\ 2009/4/1"\f[] \[en] starts on
+\f[C]\-p\ "weekly\ from\ 2009/1/1\ to\ 2009/4/1"\f[] \-\- starts on
 2008/12/29, closest preceeding Monday
 T}
 T{
-\f[C]\-p\ "monthly\ in\ 2008/11/25"\f[] \[en] starts on 2018/11/01
+\f[C]\-p\ "monthly\ in\ 2008/11/25"\f[] \-\- starts on 2018/11/01
 T}
 T{
 \f[C]\-p\ "quarterly\ from\ 2009\-05\-05\ to\ 2009\-06\-01"\f[] \-
@@ -892,16 +895,15 @@ Examples:
 tab(@);
 l.
 T{
-\f[C]\-p\ "bimonthly\ from\ 2008"\f[] \[en] periods will have boundaries
-on 2008/01/01, 2008/03/01, \&...
+\f[C]\-p\ "bimonthly\ from\ 2008"\f[] \-\- periods will have boundaries
+on 2008/01/01, 2008/03/01, ...
 T}
 T{
-\f[C]\-p\ "every\ 2\ weeks"\f[] \[en] starts on closest preceeding
-Monday
+\f[C]\-p\ "every\ 2\ weeks"\f[] \-\- starts on closest preceeding Monday
 T}
 T{
-\f[C]\-p\ "every\ 5\ month\ from\ 2009/03"\f[] \[en] periods will have
-boundaries on 2009/03/01, 2009/08/01, \&...
+\f[C]\-p\ "every\ 5\ month\ from\ 2009/03"\f[] \-\- periods will have
+boundaries on 2009/03/01, 2009/08/01, ...
 T}
 .TE
 .PP
@@ -920,29 +922,29 @@ Examples:
 tab(@);
 l.
 T{
-\f[C]\-p\ "every\ 2nd\ day\ of\ week"\f[] \[en] periods will go from Tue
+\f[C]\-p\ "every\ 2nd\ day\ of\ week"\f[] \-\- periods will go from Tue
 to Tue
 T}
 T{
-\f[C]\-p\ "every\ Tue"\f[] \[en] same
+\f[C]\-p\ "every\ Tue"\f[] \-\- same
 T}
 T{
-\f[C]\-p\ "every\ 15th\ day"\f[] \[en] period boundaries will be on 15th
+\f[C]\-p\ "every\ 15th\ day"\f[] \-\- period boundaries will be on 15th
 of each month
 T}
 T{
-\f[C]\-p\ "every\ 2nd\ Monday"\f[] \[en] period boundaries will be on
+\f[C]\-p\ "every\ 2nd\ Monday"\f[] \-\- period boundaries will be on
 second Monday of each month
 T}
 T{
-\f[C]\-p\ "every\ 11/05"\f[] \[en] yearly periods with boundaries on 5th
+\f[C]\-p\ "every\ 11/05"\f[] \-\- yearly periods with boundaries on 5th
 of Nov
 T}
 T{
-\f[C]\-p\ "every\ 5th\ Nov"\f[] \[en] same
+\f[C]\-p\ "every\ 5th\ Nov"\f[] \-\- same
 T}
 T{
-\f[C]\-p\ "every\ Nov\ 5th"\f[] \[en] same
+\f[C]\-p\ "every\ Nov\ 5th"\f[] \-\- same
 T}
 .TE
 .PP
@@ -977,9 +979,9 @@ will be displayed hierarchically in reports.
 .PP
 \f[C]\-\-pivot\f[] is a general option affecting all reports; you can
 think of hledger transforming the journal before any other processing,
-replacing every posting's account name with the value of the specified
-field on that posting, inheriting it from the transaction or using a
-blank value if it's not present.
+replacing every posting\[aq]s account name with the value of the
+specified field on that posting, inheriting it from the transaction or
+using a blank value if it\[aq]s not present.
 .PP
 An example:
 .IP
@@ -1027,8 +1029,8 @@ $\ hledger\ balance\ \-\-pivot\ member\ tag:member=.
 \f[]
 .fi
 .PP
-Another way (the acct: query matches against the pivoted \[lq]account
-name\[rq]):
+Another way (the acct: query matches against the pivoted "account
+name"):
 .IP
 .nf
 \f[C]
@@ -1050,9 +1052,9 @@ current market value.
 .P
 .PD
 Specifically, when there is a market price (P directive) for the
-amount's commodity, dated on or before today's date (or the report end
-date if specified), the amount will be converted to the price's
-commodity.
+amount\[aq]s commodity, dated on or before today\[aq]s date (or the
+report end date if specified), the amount will be converted to the
+price\[aq]s commodity.
 .PP
 When there are multiple applicable P directives, \-V chooses the most
 recent one, or in case of equal dates, the last\-parsed one.
@@ -1102,16 +1104,16 @@ $\ hledger\ \-f\ t.j\ bal\ \-N\ euros\ \-V
 \f[]
 .fi
 .PP
-Currently, hledger's \-V only uses market prices recorded with P
+Currently, hledger\[aq]s \-V only uses market prices recorded with P
 directives, not transaction prices (unlike Ledger).
 .PP
 Currently, \-V has a limitation in multicolumn balance reports: it uses
 the market prices on the report end date for all columns.
-(Instead of the prices on each column's end date.)
+(Instead of the prices on each column\[aq]s end date.)
 .SS Combining \-B and \-V
 .PP
-Using \-B/\[en]cost and \-V/\[en]value together is currently allowed,
-but the results are probably not meaningful.
+Using \-B/\-\-cost and \-V/\-\-value together is currently allowed, but
+the results are probably not meaningful.
 Let us know if you find a use for this.
 .SS Output destination
 .PP
@@ -1154,7 +1156,7 @@ account alias directives and options:
 \f[C]alias\ /REGEX/\ =\ REPLACEMENT\f[],
 \f[C]\-\-alias\ /REGEX/=REPLACEMENT\f[]
 .PP
-hledger's regular expressions come from the regex\-tdfa library.
+hledger\[aq]s regular expressions come from the regex\-tdfa library.
 In general they:
 .IP \[bu] 2
 are case insensitive
@@ -1186,8 +1188,8 @@ meaning to the shell and so must be escaped at least once more.
 See Special characters.
 .SH QUERIES
 .PP
-One of hledger's strengths is being able to quickly report on precise
-subsets of your data.
+One of hledger\[aq]s strengths is being able to quickly report on
+precise subsets of your data.
 Most commands accept an optional query expression, written as arguments
 after the command name, to filter the data by date, account name or
 other criteria.
@@ -1285,13 +1287,13 @@ match (or display, depending on command) accounts at or above this depth
 .TP
 .B \f[B]\f[BC]note:REGEX\f[B]\f[]
 match transaction notes (part of description right of \f[C]|\f[], or
-whole description when there's no \f[C]|\f[])
+whole description when there\[aq]s no \f[C]|\f[])
 .RS
 .RE
 .TP
 .B \f[B]\f[BC]payee:REGEX\f[B]\f[]
 match transaction payee/payer names (part of description left of
-\f[C]|\f[], or whole description when there's no \f[C]|\f[])
+\f[C]|\f[], or whole description when there\[aq]s no \f[C]|\f[])
 .RS
 .RE
 .TP
@@ -1377,7 +1379,7 @@ in flat mode: omit N leading account name parts
 .RE
 .PP
 This command lists account names, either declared with account
-directives (\[en]declared), posted to (\[en]used), or both (default).
+directives (\-\-declared), posted to (\-\-used), or both (default).
 With query arguments, only matched account names and account names
 referenced by matched postings are shown.
 It shows a flat list by default.
@@ -1459,7 +1461,7 @@ $\ hledger\ activity\ \-\-quarterly
 Prompt for transactions and add them to the journal.
 .TP
 .B \f[C]\-\-no\-new\-accounts\f[]
-don't allow creating new accounts; helps prevent typos when entering
+don\[aq]t allow creating new accounts; helps prevent typos when entering
 account names
 .RS
 .RE
@@ -1578,7 +1580,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don't show the final total row
+don\[aq]t show the final total row
 .RS
 .RE
 .TP
@@ -1588,7 +1590,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don't squash boring parent accounts (in tree mode)
+don\[aq]t squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -1600,6 +1602,12 @@ in single\-column balance reports: use this custom line format
 .B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
 select the output format.
 Supported formats: txt, csv, html.
+.RS
+.RE
+.TP
+.B \f[C]\-\-transpose\f[]
+transposes rows and columns in multi\-column reports.
+Supported formats: txt, csv
 .RS
 .RE
 .TP
@@ -1633,16 +1641,16 @@ transactions
 .RE
 .TP
 .B \f[C]\-\-show\-unbudgeted\f[]
-with \[en]budget, show unbudgeted accounts also
+with \-\-budget, show unbudgeted accounts also
 .RS
 .RE
 .PP
-The balance command is hledger's most versatile command.
+The balance command is hledger\[aq]s most versatile command.
 Note, despite the name, it is not always used for showing real\-world
 account balances; the more accounting\-aware balancesheet and
 incomestatement may be more convenient for that.
 .PP
-By default, it displays all accounts, and each account's change in
+By default, it displays all accounts, and each account\[aq]s change in
 balance during the entire period of the journal.
 Balance changes are calculated by adding up the postings in each
 account.
@@ -1650,15 +1658,15 @@ You can limit the postings matched, by a query, to see fewer accounts,
 changes over a different time period, changes from only cleared
 transactions, etc.
 .PP
-If you include an account's complete history of postings in the report,
-the balance change is equivalent to the account's current ending
-balance.
-For a real\-world account, typically you won't have all transactions in
-the journal; instead you'll have all transactions after a certain date,
-and an \[lq]opening balances\[rq] transaction setting the correct
-starting balance on that date.
+If you include an account\[aq]s complete history of postings in the
+report, the balance change is equivalent to the account\[aq]s current
+ending balance.
+For a real\-world account, typically you won\[aq]t have all transactions
+in the journal; instead you\[aq]ll have all transactions after a certain
+date, and an "opening balances" transaction setting the correct starting
+balance on that date.
 Then the balance command will show real\-world account balances.
-In some cases the \-H/\[en]historical flag is used to ensure this (more
+In some cases the \-H/\-\-historical flag is used to ensure this (more
 below).
 .PP
 The balance command can produce several styles of report:
@@ -1691,14 +1699,14 @@ At each level of the tree, accounts are sorted by account code if any,
 then by account name.
 Or with \f[C]\-S/\-\-sort\-amount\f[], by their balance amount.
 .PP
-\[lq]Boring\[rq] accounts, which contain a single interesting subaccount
-and no balance of their own, are elided into the following line for more
+"Boring" accounts, which contain a single interesting subaccount and no
+balance of their own, are elided into the following line for more
 compact output.
-(Eg above, the \[lq]liabilities\[rq] account.) Use
-\f[C]\-\-no\-elide\f[] to prevent this.
+(Eg above, the "liabilities" account.) Use \f[C]\-\-no\-elide\f[] to
+prevent this.
 .PP
-Account balances are \[lq]inclusive\[rq] \- they include the balances of
-any subaccounts.
+Account balances are "inclusive" \- they include the balances of any
+subaccounts.
 .PP
 Accounts which have zero balance (and no non\-zero subaccounts) are
 omitted.
@@ -1751,12 +1759,13 @@ MAX truncates at this width (optional)
 FIELDNAME must be enclosed in parentheses, and can be one of:
 .RS 2
 .IP \[bu] 2
-\f[C]depth_spacer\f[] \- a number of spaces equal to the account's
+\f[C]depth_spacer\f[] \- a number of spaces equal to the account\[aq]s
 depth, or if MIN is specified, MIN * depth spaces.
 .IP \[bu] 2
-\f[C]account\f[] \- the account's name
+\f[C]account\f[] \- the account\[aq]s name
 .IP \[bu] 2
-\f[C]total\f[] \- the account's balance/posted total, right justified
+\f[C]total\f[] \- the account\[aq]s balance/posted total, right
+justified
 .RE
 .PP
 Also, FMT can begin with an optional prefix to control how
@@ -1775,10 +1784,10 @@ Eg in one\-line mode, \f[C]%(depth_spacer)\f[] has no effect, instead
 .PP
 Some example formats:
 .IP \[bu] 2
-\f[C]%(total)\f[] \- the account's total
+\f[C]%(total)\f[] \- the account\[aq]s total
 .IP \[bu] 2
-\f[C]%\-20.20(account)\f[] \- the account's name, left justified, padded
-to 20 characters and clipped at 20 characters
+\f[C]%\-20.20(account)\f[] \- the account\[aq]s name, left justified,
+padded to 20 characters and clipped at 20 characters
 .IP \[bu] 2
 \f[C]%,%\-50(account)\ \ %25(total)\f[] \- account name padded to 50
 characters, total padded to 20 characters, with multiple commodities
@@ -1798,7 +1807,7 @@ the output is not being redirected or piped anywhere
 To see a flat list instead of the default hierarchical display, use
 \f[C]\-\-flat\f[].
 In this mode, accounts (unless depth\-clipped) show their full names and
-\[lq]exclusive\[rq] balance, excluding any subaccount balances.
+"exclusive" balance, excluding any subaccount balances.
 In this mode, you can also use \f[C]\-\-drop\ N\f[] to omit the first
 few account name components.
 .IP
@@ -1840,7 +1849,7 @@ There are three types of multicolumn balance report, showing different
 information:
 .IP "1." 3
 By default: each column shows the sum of postings in that period, ie the
-account's change of balance in that period.
+account\[aq]s change of balance in that period.
 This is useful eg for a monthly income statement:
 .RS 4
 .IP
@@ -1914,8 +1923,8 @@ see the hierarchy, use \f[C]\-\-tree\f[].
 With a reporting interval (like \f[C]\-\-quarterly\f[] above), the
 report start/end dates will be adjusted if necessary so that they
 encompass the displayed report periods.
-This is so that the first and last periods will be \[lq]full\[rq] and
-comparable to the others.
+This is so that the first and last periods will be "full" and comparable
+to the others.
 .PP
 The \f[C]\-E/\-\-empty\f[] flag does two things in multicolumn balance
 reports: first, the report will show all columns within the specified
@@ -1932,7 +1941,7 @@ the total for each row.
 The \f[C]\-A/\-\-average\f[] flag adds a column showing the average
 value in each row.
 .PP
-Here's an example of all three:
+Here\[aq]s an example of all three:
 .IP
 .nf
 \f[C]
@@ -1958,7 +1967,7 @@ Limitations:
 .PP
 In multicolumn reports the \f[C]\-V/\-\-value\f[] flag uses the market
 price on the report end date, for all columns (not the price on each
-column's end date).
+column\[aq]s end date).
 .PP
 Eliding of boring parent accounts in tree mode, as in the classic
 balance report, is not yet supported in multicolumn reports.
@@ -1969,7 +1978,7 @@ goals for each account and period, if any.
 Budget goals are defined by periodic transactions.
 This is very useful for comparing planned and actual income, expenses,
 time usage, etc.
-\[en]budget is most often combined with a report interval.
+\-\-budget is most often combined with a report interval.
 .PP
 For example, you can take average monthly expenses in the common expense
 categories to construct a minimal monthly budget:
@@ -2009,24 +2018,52 @@ You can now see a monthly budget report:
 $\ hledger\ balance\ \-M\ \-\-budget
 Budget\ performance\ in\ 2017/11/01\-2017/12/31:
 
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/11\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/12\ 
-======================++=================================================
-\ <unbudgeted>\ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $100\ 
-\ assets:bank:checking\ ||\ $\-2445\ [99%\ of\ $\-2480]\ \ $\-2665\ [107%\ of\ $\-2480]\ 
-\ expenses:bus\ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ $49\ [98%\ of\ $50]\ \ \ \ \ \ \ \ $53\ [106%\ of\ $50]\ 
-\ expenses:food\ \ \ \ \ \ \ \ ||\ \ \ \ \ $396\ [99%\ of\ $400]\ \ \ \ \ \ $412\ [103%\ of\ $400]\ 
-\ expenses:movies\ \ \ \ \ \ ||\ \ \ \ \ \ $30\ [100%\ of\ $30]\ \ \ \ \ \ \ \ \ \ \ \ 0\ [0%\ of\ $30]\ 
-\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $1950\ [98%\ of\ $2000]\ \ \ \ $2100\ [105%\ of\ $2000]\ 
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ 
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Nov\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Dec\ 
+======================++====================================================
+\ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-2665\ [\ 107%\ of\ $\-2480]\ 
+\ assets:bank\ \ \ \ \ \ \ \ \ \ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-2665\ [\ 107%\ of\ $\-2480]\ 
+\ assets:bank:checking\ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-2665\ [\ 107%\ of\ $\-2480]\ 
+\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $495\ [\ 103%\ of\ \ \ $480]\ \ \ \ $565\ [\ 118%\ of\ \ \ $480]\ 
+\ expenses:bus\ \ \ \ \ \ \ \ \ ||\ \ \ \ $49\ [\ \ 98%\ of\ \ \ \ $50]\ \ \ \ \ $53\ [\ 106%\ of\ \ \ \ $50]\ 
+\ expenses:food\ \ \ \ \ \ \ \ ||\ \ \ $396\ [\ \ 99%\ of\ \ \ $400]\ \ \ \ $412\ [\ 103%\ of\ \ \ $400]\ 
+\ expenses:movies\ \ \ \ \ \ ||\ \ \ \ $30\ [\ 100%\ of\ \ \ \ $30]\ \ \ \ \ \ \ 0\ [\ \ \ 0%\ of\ \ \ \ $30]\ 
+\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ $1950\ [\ \ 98%\ of\ \ $2000]\ \ \ $2100\ [\ 105%\ of\ \ $2000]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ \ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ 
 \f[]
 .fi
 .PP
 By default, only accounts with budget goals during the report period are
 shown.
-\f[C]\-\-show\-unbudgeted\f[] shows unbudgeted accounts as well.
-Top\-level accounts with no budget goals anywhere below them are grouped
-under \f[C]<unbudgeted>\f[].
+In the example above, transactions in \f[C]expenses:gifts\f[] and
+\f[C]expenses:supplies\f[] are counted towards \f[C]expenses\f[] budget,
+but accounts \f[C]expenses:gifts\f[] and \f[C]expenses:supplies\f[] are
+not shown, as they don\[aq]t have any budgets.
+.PP
+You can use \f[C]\-\-show\-unbudgeted\f[] shows unbudgeted accounts as
+well:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-M\ \-\-budget\ \-\-show\-unbudgeted
+Budget\ performance\ in\ 2017/11/01\-2017/12/31:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Nov\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Dec\ 
+======================++====================================================
+\ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-2665\ [\ 107%\ of\ $\-2480]\ 
+\ assets:bank\ \ \ \ \ \ \ \ \ \ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-2665\ [\ 107%\ of\ $\-2480]\ 
+\ assets:bank:checking\ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-2665\ [\ 107%\ of\ $\-2480]\ 
+\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $495\ [\ 103%\ of\ \ \ $480]\ \ \ \ $565\ [\ 118%\ of\ \ \ $480]\ 
+\ expenses:bus\ \ \ \ \ \ \ \ \ ||\ \ \ \ $49\ [\ \ 98%\ of\ \ \ \ $50]\ \ \ \ \ $53\ [\ 106%\ of\ \ \ \ $50]\ 
+\ expenses:food\ \ \ \ \ \ \ \ ||\ \ \ $396\ [\ \ 99%\ of\ \ \ $400]\ \ \ \ $412\ [\ 103%\ of\ \ \ $400]\ 
+\ expenses:gifts\ \ \ \ \ \ \ ||\ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+\ expenses:movies\ \ \ \ \ \ ||\ \ \ \ $30\ [\ 100%\ of\ \ \ \ $30]\ \ \ \ \ \ \ 0\ [\ \ \ 0%\ of\ \ \ \ $30]\ 
+\ expenses:supplies\ \ \ \ ||\ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ $1950\ [\ \ 98%\ of\ \ $2000]\ \ \ $2100\ [\ 105%\ of\ \ $2000]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ \ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ 
+\f[]
+.fi
 .PP
 You can roll over unspent budgets to next period with
 \f[C]\-\-cumulative\f[]:
@@ -2036,16 +2073,18 @@ You can roll over unspent budgets to next period with
 $\ hledger\ balance\ \-M\ \-\-budget\ \-\-cumulative
 Budget\ performance\ in\ 2017/11/01\-2017/12/31:
 
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ 2017/11/30\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/12/31\ 
-======================++=================================================
-\ <unbudgeted>\ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $120\ 
-\ assets:bank:checking\ ||\ $\-2445\ [99%\ of\ $\-2480]\ \ $\-5110\ [103%\ of\ $\-4960]\ 
-\ expenses:bus\ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ $49\ [98%\ of\ $50]\ \ \ \ \ \ $102\ [102%\ of\ $100]\ 
-\ expenses:food\ \ \ \ \ \ \ \ ||\ \ \ \ \ $396\ [99%\ of\ $400]\ \ \ \ \ \ $808\ [101%\ of\ $800]\ 
-\ expenses:movies\ \ \ \ \ \ ||\ \ \ \ \ \ $30\ [100%\ of\ $30]\ \ \ \ \ \ \ \ \ $30\ [50%\ of\ $60]\ 
-\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $1950\ [98%\ of\ $2000]\ \ \ \ $4050\ [101%\ of\ $4000]\ 
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Nov\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Dec\ 
+======================++====================================================
+\ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-5110\ [\ 103%\ of\ $\-4960]\ 
+\ assets:bank\ \ \ \ \ \ \ \ \ \ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-5110\ [\ 103%\ of\ $\-4960]\ 
+\ assets:bank:checking\ ||\ $\-2445\ [\ \ 99%\ of\ $\-2480]\ \ $\-5110\ [\ 103%\ of\ $\-4960]\ 
+\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $495\ [\ 103%\ of\ \ \ $480]\ \ \ $1060\ [\ 110%\ of\ \ \ $960]\ 
+\ expenses:bus\ \ \ \ \ \ \ \ \ ||\ \ \ \ $49\ [\ \ 98%\ of\ \ \ \ $50]\ \ \ \ $102\ [\ 102%\ of\ \ \ $100]\ 
+\ expenses:food\ \ \ \ \ \ \ \ ||\ \ \ $396\ [\ \ 99%\ of\ \ \ $400]\ \ \ \ $808\ [\ 101%\ of\ \ \ $800]\ 
+\ expenses:movies\ \ \ \ \ \ ||\ \ \ \ $30\ [\ 100%\ of\ \ \ \ $30]\ \ \ \ \ $30\ [\ \ 50%\ of\ \ \ \ $60]\ 
+\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ $1950\ [\ \ 98%\ of\ \ $2000]\ \ \ $4050\ [\ 101%\ of\ \ $4000]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ \ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ 
 \f[]
 .fi
 .PP
@@ -2053,6 +2092,108 @@ Note, the \f[C]\-S/\-\-sort\-amount\f[] flag is not yet fully supported
 with \f[C]\-\-budget\f[].
 .PP
 For more examples, see Budgeting and Forecasting.
+.SS Nested budgets
+.PP
+You can add budgets to any account in your account hierarchy.
+If you have budgets on both parent account and some of its children,
+then budget(s) of the child account(s) would be added to the budget of
+their parent, much like account balances behave.
+.PP
+In the most simple case this means that once you add a budget to any
+account, all its parents would have budget as well.
+.PP
+To illustrate this, consider the following budget:
+.IP
+.nf
+\f[C]
+~\ monthly\ from\ 2019/01
+\ \ \ \ expenses:personal\ \ \ \ \ \ \ \ \ \ \ \ \ $1,000.00
+\ \ \ \ expenses:personal:electronics\ \ \ \ $100.00
+\ \ \ \ liabilities
+\f[]
+.fi
+.PP
+With this, monthly budget for electronics is defined to be $100 and
+budget for personal expenses is an additional $1000, which implicity
+means that budget for both \f[C]expenses:personal\f[] and
+\f[C]expenses\f[] is $1100.
+.PP
+Transactions in \f[C]expenses:personal:electronics\f[] will be counted
+both towards its $100 budget and $1100 of \f[C]expenses:personal\f[] ,
+and transactions in any other subaccount of \f[C]expenses:personal\f[]
+would be counted towards only towards the budget of
+\f[C]expenses:personal\f[].
+.PP
+For example, let\[aq]s consider these transactions:
+.IP
+.nf
+\f[C]
+~\ monthly\ from\ 2019/01
+\ \ \ \ expenses:personal\ \ \ \ \ \ \ \ \ \ \ \ \ $1,000.00
+\ \ \ \ expenses:personal:electronics\ \ \ \ $100.00
+\ \ \ \ liabilities
+
+2019/01/01\ Google\ home\ hub
+\ \ \ \ expenses:personal:electronics\ \ \ \ \ \ \ \ \ \ $90.00
+\ \ \ \ liabilities\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-90.00
+
+2019/01/02\ Phone\ screen\ protector
+\ \ \ \ expenses:personal:electronics:upgrades\ \ \ \ \ \ \ \ \ \ $10.00
+\ \ \ \ liabilities
+
+2019/01/02\ Weekly\ train\ ticket
+\ \ \ \ expenses:personal:train\ tickets\ \ \ \ \ \ \ $153.00
+\ \ \ \ liabilities
+
+2019/01/03\ Flowers
+\ \ \ \ expenses:personal\ \ \ \ \ \ \ \ \ \ $30.00
+\ \ \ \ liabilities
+\f[]
+.fi
+.PP
+As you can see, we have transactions in
+\f[C]expenses:personal:electronics:upgrades\f[] and
+\f[C]expenses:personal:train\ tickets\f[], and since both of these
+accounts are without explicitly defined budget, these transactions would
+be counted towards budgets of \f[C]expenses:personal:electronics\f[] and
+\f[C]expenses:personal\f[] accordingly:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-budget\ \-M
+Budget\ performance\ in\ 2019/01:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Jan\ 
+===============================++===============================
+\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ $283.00\ [\ \ 26%\ of\ \ $1100.00]\ 
+\ expenses:personal\ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ $283.00\ [\ \ 26%\ of\ \ $1100.00]\ 
+\ expenses:personal:electronics\ ||\ \ $100.00\ [\ 100%\ of\ \ \ $100.00]\ 
+\ liabilities\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ $\-283.00\ [\ \ 26%\ of\ $\-1100.00]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ 
+\f[]
+.fi
+.PP
+And with \f[C]\-\-show\-unbudgeted\f[], we can get a better picture of
+budget allocation and consumption:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-budget\ \-M\ \-\-show\-unbudgeted
+Budget\ performance\ in\ 2019/01:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Jan\ 
+========================================++===============================
+\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ $283.00\ [\ \ 26%\ of\ \ $1100.00]\ 
+\ expenses:personal\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ $283.00\ [\ \ 26%\ of\ \ $1100.00]\ 
+\ expenses:personal:electronics\ \ \ \ \ \ \ \ \ \ ||\ \ $100.00\ [\ 100%\ of\ \ \ $100.00]\ 
+\ expenses:personal:electronics:upgrades\ ||\ \ \ $10.00\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+\ expenses:personal:train\ tickets\ \ \ \ \ \ \ \ ||\ \ $153.00\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+\ liabilities\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ $\-283.00\ [\ \ 26%\ of\ $\-1100.00]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ 
+\f[]
+.fi
 .SS Output format
 .PP
 The balance command supports output destination and output format
@@ -2111,7 +2252,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don't show the final total row
+don\[aq]t show the final total row
 .RS
 .RE
 .TP
@@ -2121,7 +2262,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don't squash boring parent accounts (in tree mode)
+don\[aq]t squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -2207,7 +2348,7 @@ Total:
 .SS cashflow
 .PP
 This command displays a simple cashflow statement, showing changes in
-\[lq]cash\[rq] accounts.
+"cash" accounts.
 It assumes that these accounts are under a top\-level \f[C]asset\f[]
 account (case insensitive, plural forms also allowed) and do not contain
 \f[C]receivable\f[] or \f[C]A/R\f[] in their name.
@@ -2256,7 +2397,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don't show the final total row (in simple reports)
+don\[aq]t show the final total row (in simple reports)
 .RS
 .RE
 .TP
@@ -2266,7 +2407,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don't squash boring parent accounts (in tree mode)
+don\[aq]t squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -2311,29 +2452,23 @@ selection.
 .SS check\-dates
 .PP
 Check that transactions are sorted by increasing date.
-With a query, only matched transactions' dates are checked.
+With a query, only matched transactions\[aq] dates are checked.
 .SS check\-dupes
 .PP
 Report account names having the same leaf but different prefixes.
 An example: http://stefanorodighiero.net/software/hledger\-dupes.html
 .SS close
 .PP
-close, equity
-.PP
-Prints a \[lq]closing balances\[rq] transaction and an \[lq]opening
-balances\[rq] transaction, that bring account balances to and from zero,
+close, equity Prints a "closing balances" transaction and an "opening
+balances" transaction that bring account balances to and from zero,
 respectively.
-Useful for, eg:
-.IP \[bu] 2
-bringing asset/liability balances forward into a new journal file
-.IP \[bu] 2
-closing out revenues/expenses to retained earnings at the end of a
-period
+Useful for bringing asset/liability balances forward into a new journal
+file, or for closing out revenues/expenses to retained earnings at the
+end of a period.
 .PP
-The closing transaction transfers balances to \[lq]equity:closing
-balances\[rq].
-The opening transaction transfers balances from \[lq]equity:opening
-balances\[rq].
+The closing transaction transfers balances to "equity:closing balances".
+The opening transaction transfers balances from "equity:opening
+balances".
 You can chose to print just one of the transactions by using the
 \f[C]\-\-opening\f[] or \f[C]\-\-closing\f[] flag.
 .PP
@@ -2350,11 +2485,11 @@ cancel each other out.
 with a query like
 \f[C]not:desc:\[aq](opening|closing)\ balances\[aq]\f[].)
 .PP
-If you're running a business, you might also use this command to
-\[lq]close the books\[rq] at the end of an accounting period,
-transferring income statement account balances to retained earnings.
+If you\[aq]re running a business, you might also use this command to
+"close the books" at the end of an accounting period, transferring
+income statement account balances to retained earnings.
 (You may want to change the equity account name to something like
-\[lq]equity:retained earnings\[rq] for clarity.)
+"equity:retained earnings".)
 .PP
 By default, the closing transaction is dated yesterday, the balances are
 calculated as of end of yesterday, and the opening transaction is dated
@@ -2367,16 +2502,16 @@ ignored).
 .PP
 Both transactions will include balance assertions for the
 closed/reopened accounts.
-You probably shouldn't use status or realness filters (like \-C or \-R
-or \f[C]status:\f[]) with this command, or the generated balance
+You probably shouldn\[aq]t use status or realness filters (like \-C or
+\-R or \f[C]status:\f[]) with this command, or the generated balance
 assertions will depend on these flags.
-Likewise, if you run this command with \[en]auto, the balance assertions
-will probably always require \[en]auto.
+Likewise, if you run this command with \-\-auto, the balance assertions
+will probably always require \-\-auto.
 .PP
 Examples:
 .PP
 Carrying asset/liability balances into a new file for 2019, all from
-command line.
+command line:
 .PP
 \f[I]Warning: we use \f[CI]>>\f[I] here to append; be careful not to
 type a single \f[CI]>\f[I] which would wipe your journal!\f[]
@@ -2409,7 +2544,7 @@ balance assertions:
 \f[]
 .fi
 .PP
-Here's one way to resolve that:
+Here\[aq]s one way to resolve that:
 .IP
 .nf
 \f[C]
@@ -2484,13 +2619,13 @@ just show the transactions to be imported
 The input files are specified as arguments \- no need to write \-f
 before each one.
 So eg to add new transactions from all CSV files to the main journal,
-it's just: \f[C]hledger\ import\ *.csv\f[]
+it\[aq]s just: \f[C]hledger\ import\ *.csv\f[]
 .PP
-New transactions are detected in the same way as print \[en]new: by
+New transactions are detected in the same way as print \-\-new: by
 assuming transactions are always added to the input files in increasing
 date order, and by saving \f[C]\&.latest.FILE\f[] state files.
 .PP
-The \[en]dry\-run output is in journal format, so you can filter it, eg
+The \-\-dry\-run output is in journal format, so you can filter it, eg
 to see only uncategorised transactions:
 .IP
 .nf
@@ -2550,7 +2685,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don't show the final total row
+don\[aq]t show the final total row
 .RS
 .RE
 .TP
@@ -2560,7 +2695,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don't squash boring parent accounts (in tree mode)
+don\[aq]t squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -2615,10 +2750,10 @@ selection.
 .SS prices
 .PP
 Print market price directives from the journal.
-With \[en]costs, also print synthetic market prices based on transaction
+With \-\-costs, also print synthetic market prices based on transaction
 prices.
-With \[en]inverted\-costs, also print inverse prices based on
-transaction prices.
+With \-\-inverted\-costs, also print inverse prices based on transaction
+prices.
 Prices (and postings providing prices) can be filtered by a query.
 .SS print
 .PP
@@ -2681,11 +2816,11 @@ $\ hledger\ print
 .PP
 The print command displays full journal entries (transactions) from the
 journal file in date order, tidily formatted.
-print's output is always a valid hledger journal.
+print\[aq]s output is always a valid hledger journal.
 It preserves all transaction information, but it does not preserve
 directives or inter\-transaction comments
 .PP
-Normally, the journal entry's explicit or implicit amount style is
+Normally, the journal entry\[aq]s explicit or implicit amount style is
 preserved.
 Ie when an amount is omitted in the journal, it will be omitted in the
 output.
@@ -2731,7 +2866,7 @@ See also the import command.
 .PP
 This command also supports output destination and output format
 selection.
-Here's an example of print's CSV output:
+Here\[aq]s an example of print\[aq]s CSV output:
 .IP
 .nf
 \f[C]
@@ -2751,19 +2886,19 @@ $\ hledger\ print\ \-Ocsv
 \f[]
 .fi
 .IP \[bu] 2
-There is one CSV record per posting, with the parent transaction's
+There is one CSV record per posting, with the parent transaction\[aq]s
 fields repeated.
 .IP \[bu] 2
-The \[lq]txnidx\[rq] (transaction index) field shows which postings
-belong to the same transaction.
+The "txnidx" (transaction index) field shows which postings belong to
+the same transaction.
 (This number might change if transactions are reordered within the file,
 files are parsed/included in a different order, etc.)
 .IP \[bu] 2
-The amount is separated into \[lq]commodity\[rq] (the symbol) and
-\[lq]amount\[rq] (numeric quantity) fields.
+The amount is separated into "commodity" (the symbol) and "amount"
+(numeric quantity) fields.
 .IP \[bu] 2
-The numeric amount is repeated in either the \[lq]credit\[rq] or
-\[lq]debit\[rq] column, for convenience.
+The numeric amount is repeated in either the "credit" or "debit" column,
+for convenience.
 (Those names are not accurate in the accounting sense; it just puts
 negative amounts under credit and zero or greater amounts under debit.)
 .SS print\-unique
@@ -2787,12 +2922,12 @@ start date)
 .TP
 .B \f[C]\-A\ \-\-average\f[]
 show running average of posting amounts instead of total (implies
-\[en]empty)
+\-\-empty)
 .RS
 .RE
 .TP
 .B \f[C]\-r\ \-\-related\f[]
-show postings' siblings instead
+show postings\[aq] siblings instead
 .RS
 .RE
 .TP
@@ -2817,7 +2952,7 @@ A file extension matching one of the above formats selects that format.
 The register command displays postings, one per line, and their running
 total.
 This is typically used with a query selecting a particular account, to
-see that account's activity:
+see that account\[aq]s activity:
 .IP
 .nf
 \f[C]
@@ -2890,7 +3025,7 @@ $\ hledger\ register\ \-\-monthly\ income\ \-E
 \f[]
 .fi
 .PP
-Often, you'll want to see just one line per interval.
+Often, you\[aq]ll want to see just one line per interval.
 The \f[C]\-\-depth\f[] option helps with this, causing subaccounts to be
 aggregated:
 .IP
@@ -2918,8 +3053,8 @@ variable (not a bash shell variable) or by using the
 The description and account columns normally share the space equally
 (about half of (width \- 40) each).
 You can adjust this by adding a description width as part of
-\[en]width's argument, comma\-separated: \f[C]\-\-width\ W,D\f[] .
-Here's a diagram:
+\-\-width\[aq]s argument, comma\-separated: \f[C]\-\-width\ W,D\f[] .
+Here\[aq]s a diagram:
 .IP
 .nf
 \f[C]
@@ -3011,7 +3146,7 @@ If a numeric second argument is provided, it will set the randomness
 seed, for repeatable results from tests using randomness (currently none
 of them).
 .PP
-This is mainly used by developers, but it's nice to be able to
+This is mainly used by developers, but it\[aq]s nice to be able to
 sanity\-check your installed hledger executable at any time.
 All tests are expected to pass \- if you ever see otherwise, something
 has gone wrong, please report a bug!
@@ -3028,8 +3163,8 @@ Add\-ons can be invoked like any hledger command, but there are a few
 things to be aware of.
 Eg if the \f[C]hledger\-web\f[] add\-on is installed,
 .IP \[bu] 2
-\f[C]hledger\ \-h\ web\f[] shows hledger's help, while
-\f[C]hledger\ web\ \-h\f[] shows hledger\-web's help.
+\f[C]hledger\ \-h\ web\f[] shows hledger\[aq]s help, while
+\f[C]hledger\ web\ \-h\f[] shows hledger\-web\[aq]s help.
 .IP \[bu] 2
 Flags specific to the add\-on must have a preceding \f[C]\-\-\f[] to
 hide them from hledger.
@@ -3065,8 +3200,8 @@ These are maintained separately, and usually updated shortly after a
 hledger release.
 .SS diff
 .PP
-hledger\-diff shows differences in an account's transactions between one
-journal file and another.
+hledger\-diff shows differences in an account\[aq]s transactions between
+one journal file and another.
 .SS iadd
 .PP
 hledger\-iadd is a curses\-style, more interactive replacement for the
@@ -3078,11 +3213,11 @@ according to various schemes.
 .SS irr
 .PP
 hledger\-irr calculates the internal rate of return of an investment
-account, but it's superseded now by the built\-in roi command.
+account, but it\[aq]s superseded now by the built\-in roi command.
 .SS Experimental add\-ons
 .PP
-These are available in source form in the hledger repo's bin/ directory;
-installing them is pretty easy.
+These are available in source form in the hledger repo\[aq]s bin/
+directory; installing them is pretty easy.
 They may be less mature and documented than built\-in commands.
 Reading and tweaking these is a good way to start making your own!
 .SS autosync
@@ -3128,7 +3263,7 @@ not supported.
 In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
 add.
 .PP
-Not all of Ledger's journal file syntax is supported.
+Not all of Ledger\[aq]s journal file syntax is supported.
 See file format differences.
 .PP
 On large data files, hledger is slower and uses more memory than Ledger.
@@ -3138,8 +3273,8 @@ Here are some issues you might encounter when you run hledger (and
 remember you can also seek help from the IRC channel, mail list or bug
 tracker):
 .PP
-\f[B]Successfully installed, but \[lq]No command `hledger'
-found\[rq]\f[]
+\f[B]Successfully installed, but "No command \[aq]hledger\[aq]
+found"\f[]
 .PD 0
 .P
 .PD
@@ -3157,10 +3292,10 @@ file\f[]
 shell variable.
 The command \f[C]env\ |\ grep\ LEDGER_FILE\f[] should show it.
 You may need to use \f[C]export\f[].
-Here's an explanation.
+Here\[aq]s an explanation.
 .PP
-\f[B]\[lq]Illegal byte sequence\[rq] or \[lq]Invalid or incomplete
-multibyte or wide character\[rq] errors\f[]
+\f[B]"Illegal byte sequence" or "Invalid or incomplete multibyte or wide
+character" errors\f[]
 .PD 0
 .P
 .PD
@@ -3169,9 +3304,9 @@ needs an appropriate locale.
 This is usually configured system\-wide; you can also configure it
 temporarily.
 The locale may need to be one that supports UTF\-8, if you built hledger
-with GHC < 7.2 (or possibly always, I'm not sure yet).
+with GHC < 7.2 (or possibly always, I\[aq]m not sure yet).
 .PP
-Here's an example of setting the locale temporarily, on ubuntu
+Here\[aq]s an example of setting the locale temporarily, on ubuntu
 gnu/linux:
 .IP
 .nf
@@ -3186,7 +3321,8 @@ $\ LANG=en_US.utf8\ hledger\ \-f\ my.journal\ print\ \ \ #\ <\-\ use\ it\ for\ t
 \f[]
 .fi
 .PP
-Here's one way to set it permanently, there are probably better ways:
+Here\[aq]s one way to set it permanently, there are probably better
+ways:
 .IP
 .nf
 \f[C]

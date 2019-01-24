@@ -520,7 +520,7 @@ need to write the date _after_ the last day you want to include.
 
    Examples:
 
-'-b 2016/3/17'      begin on St. Patrick's day 2016
+'-b 2016/3/17'      begin on St.  Patrick's day 2016
 '-e 12/1'           end at the start of december 1st of the current year (11/30 will be the last date included)
 '-b thismonth'      all transactions on or after the 1st of the current month
 '-p thismonth'      all transactions in the current month
@@ -1220,6 +1220,10 @@ Show accounts and their balances.  Aliases: b, bal.
 '-O FMT --output-format=FMT'
 
      select the output format.  Supported formats: txt, csv, html.
+'--transpose'
+
+     transposes rows and columns in multi-column reports.  Supported
+     formats: txt, csv
 '-o FILE --output-file=FILE'
 
      write output to FILE. A file extension matching one of the above
@@ -1585,42 +1589,158 @@ expense categories to construct a minimal monthly budget:
 $ hledger balance -M --budget
 Budget performance in 2017/11/01-2017/12/31:
 
-                      ||                2017/11                  2017/12 
-======================++=================================================
- <unbudgeted>         ||                    $20                     $100 
- assets:bank:checking || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
- expenses:bus         ||       $49 [98% of $50]        $53 [106% of $50] 
- expenses:food        ||     $396 [99% of $400]      $412 [103% of $400] 
- expenses:movies      ||      $30 [100% of $30]            0 [0% of $30] 
- income               ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
-----------------------++-------------------------------------------------
-                      ||                      0                        0 
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
+ expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
+ expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
+ expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
+ income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 
    By default, only accounts with budget goals during the report period
-are shown.  '--show-unbudgeted' shows unbudgeted accounts as well.
-Top-level accounts with no budget goals anywhere below them are grouped
-under '<unbudgeted>'.
+are shown.  In the example above, transactions in 'expenses:gifts' and
+'expenses:supplies' are counted towards 'expenses' budget, but accounts
+'expenses:gifts' and 'expenses:supplies' are not shown, as they don't
+have any budgets.
+
+   You can use '--show-unbudgeted' shows unbudgeted accounts as well:
+
+$ hledger balance -M --budget --show-unbudgeted
+Budget performance in 2017/11/01-2017/12/31:
+
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
+ expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
+ expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
+ expenses:gifts       ||      0                      $100                   
+ expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
+ expenses:supplies    ||    $20                         0                   
+ income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 
    You can roll over unspent budgets to next period with '--cumulative':
 
 $ hledger balance -M --budget --cumulative
 Budget performance in 2017/11/01-2017/12/31:
 
-                      ||             2017/11/30               2017/12/31 
-======================++=================================================
- <unbudgeted>         ||                    $20                     $120 
- assets:bank:checking || $-2445 [99% of $-2480]  $-5110 [103% of $-4960] 
- expenses:bus         ||       $49 [98% of $50]      $102 [102% of $100] 
- expenses:food        ||     $396 [99% of $400]      $808 [101% of $800] 
- expenses:movies      ||      $30 [100% of $30]         $30 [50% of $60] 
- income               ||   $1950 [98% of $2000]    $4050 [101% of $4000] 
-----------------------++-------------------------------------------------
-                      ||                      0                        0
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ expenses             ||   $495 [ 103% of   $480]   $1060 [ 110% of   $960] 
+ expenses:bus         ||    $49 [  98% of    $50]    $102 [ 102% of   $100] 
+ expenses:food        ||   $396 [  99% of   $400]    $808 [ 101% of   $800] 
+ expenses:movies      ||    $30 [ 100% of    $30]     $30 [  50% of    $60] 
+ income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 
    Note, the '-S/--sort-amount' flag is not yet fully supported with
 '--budget'.
 
    For more examples, see Budgeting and Forecasting.
+* Menu:
+
+* Nested budgets::
+
+
+File: hledger.info,  Node: Nested budgets,  Up: Budget report
+
+4.4.7.1 Nested budgets
+......................
+
+You can add budgets to any account in your account hierarchy.  If you
+have budgets on both parent account and some of its children, then
+budget(s) of the child account(s) would be added to the budget of their
+parent, much like account balances behave.
+
+   In the most simple case this means that once you add a budget to any
+account, all its parents would have budget as well.
+
+   To illustrate this, consider the following budget:
+
+~ monthly from 2019/01
+    expenses:personal             $1,000.00
+    expenses:personal:electronics    $100.00
+    liabilities
+
+   With this, monthly budget for electronics is defined to be $100 and
+budget for personal expenses is an additional $1000, which implicity
+means that budget for both 'expenses:personal' and 'expenses' is $1100.
+
+   Transactions in 'expenses:personal:electronics' will be counted both
+towards its $100 budget and $1100 of 'expenses:personal' , and
+transactions in any other subaccount of 'expenses:personal' would be
+counted towards only towards the budget of 'expenses:personal'.
+
+   For example, let's consider these transactions:
+
+~ monthly from 2019/01
+    expenses:personal             $1,000.00
+    expenses:personal:electronics    $100.00
+    liabilities
+
+2019/01/01 Google home hub
+    expenses:personal:electronics          $90.00
+    liabilities                           $-90.00
+
+2019/01/02 Phone screen protector
+    expenses:personal:electronics:upgrades          $10.00
+    liabilities
+
+2019/01/02 Weekly train ticket
+    expenses:personal:train tickets       $153.00
+    liabilities
+
+2019/01/03 Flowers
+    expenses:personal          $30.00
+    liabilities
+
+   As you can see, we have transactions in
+'expenses:personal:electronics:upgrades' and 'expenses:personal:train
+tickets', and since both of these accounts are without explicitly
+defined budget, these transactions would be counted towards budgets of
+'expenses:personal:electronics' and 'expenses:personal' accordingly:
+
+$ hledger balance --budget -M
+Budget performance in 2019/01:
+
+                               ||                           Jan 
+===============================++===============================
+ expenses                      ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal             ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal:electronics ||  $100.00 [ 100% of   $100.00] 
+ liabilities                   || $-283.00 [  26% of $-1100.00] 
+-------------------------------++-------------------------------
+                               ||        0 [                 0] 
+
+   And with '--show-unbudgeted', we can get a better picture of budget
+allocation and consumption:
+
+$ hledger balance --budget -M --show-unbudgeted
+Budget performance in 2019/01:
+
+                                        ||                           Jan 
+========================================++===============================
+ expenses                               ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal                      ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal:electronics          ||  $100.00 [ 100% of   $100.00] 
+ expenses:personal:electronics:upgrades ||   $10.00                      
+ expenses:personal:train tickets        ||  $153.00                      
+ liabilities                            || $-283.00 [  26% of $-1100.00] 
+----------------------------------------++-------------------------------
+                                        ||        0 [                 0] 
 
 4.4.8 Output format
 -------------------
@@ -1851,15 +1971,11 @@ File: hledger.info,  Node: close,  Next: files,  Prev: check-dupes,  Up: COMMAND
 4.10 close
 ==========
 
-close, equity
-
-   Prints a "closing balances" transaction and an "opening balances"
-transaction, that bring account balances to and from zero, respectively.
-Useful for, eg:
-
-   * bringing asset/liability balances forward into a new journal file
-   * closing out revenues/expenses to retained earnings at the end of a
-     period
+close, equity Prints a "closing balances" transaction and an "opening
+balances" transaction that bring account balances to and from zero,
+respectively.  Useful for bringing asset/liability balances forward into
+a new journal file, or for closing out revenues/expenses to retained
+earnings at the end of a period.
 
    The closing transaction transfers balances to "equity:closing
 balances".  The opening transaction transfers balances from
@@ -1881,7 +1997,7 @@ register reports; you can exclude them with a query like
 "close the books" at the end of an accounting period, transferring
 income statement account balances to retained earnings.  (You may want
 to change the equity account name to something like "equity:retained
-earnings" for clarity.)
+earnings".)
 
    By default, the closing transaction is dated yesterday, the balances
 are calculated as of end of yesterday, and the opening transaction is
@@ -1900,7 +2016,7 @@ require -auto.
    Examples:
 
    Carrying asset/liability balances into a new file for 2019, all from
-command line.
+command line:
 
    _Warning: we use '>>' here to append; be careful not to type a single
 '>' which would wipe your journal!_
@@ -2660,122 +2776,124 @@ Node: Smart dates14210
 Ref: #smart-dates14351
 Node: Report start & end date15757
 Ref: #report-start-end-date15929
-Node: Report intervals16994
-Ref: #report-intervals17159
-Node: Period expressions17560
-Ref: #period-expressions17720
-Node: Depth limiting21677
-Ref: #depth-limiting21821
-Node: Pivoting22163
-Ref: #pivoting22281
-Node: Cost23957
-Ref: #cost24065
-Node: Market value24183
-Ref: #market-value24318
-Node: Combining -B and -V25684
-Ref: #combining--b-and--v25847
-Node: Output destination25994
-Ref: #output-destination26156
-Node: Output format26439
-Ref: #output-format26591
-Node: Regular expressions26976
-Ref: #regular-expressions27113
-Node: QUERIES28474
-Ref: #queries28576
-Node: COMMANDS32538
-Ref: #commands32650
-Node: accounts33650
-Ref: #accounts33748
-Node: activity34994
-Ref: #activity35104
-Node: add35464
-Ref: #add35563
-Node: balance38224
-Ref: #balance38335
-Node: Classic balance report41418
-Ref: #classic-balance-report41591
-Node: Customising the classic balance report42960
-Ref: #customising-the-classic-balance-report43188
-Node: Colour support45262
-Ref: #colour-support45429
-Node: Flat mode45602
-Ref: #flat-mode45750
-Node: Depth limited balance reports46163
-Ref: #depth-limited-balance-reports46363
-Node: Multicolumn balance report46819
-Ref: #multicolumn-balance-report47017
-Node: Budget report52197
-Ref: #budget-report52340
-Ref: #output-format-155374
-Node: balancesheet55452
-Ref: #balancesheet55588
-Node: balancesheetequity57899
-Ref: #balancesheetequity58048
-Node: cashflow58585
-Ref: #cashflow58713
-Node: check-dates60836
-Ref: #check-dates60963
-Node: check-dupes61080
-Ref: #check-dupes61204
-Node: close61341
-Ref: #close61449
-Node: files64891
-Ref: #files64992
-Node: help65133
-Ref: #help65233
-Node: import66307
-Ref: #import66421
-Node: incomestatement67151
-Ref: #incomestatement67285
-Node: prices69689
-Ref: #prices69804
-Node: print70076
-Ref: #print70186
-Node: print-unique75080
-Ref: #print-unique75206
-Node: register75274
-Ref: #register75401
-Node: Custom register output79902
-Ref: #custom-register-output80031
-Node: register-match81261
-Ref: #register-match81395
-Node: rewrite81578
-Ref: #rewrite81693
-Node: roi81762
-Ref: #roi81860
-Node: stats81976
-Ref: #stats82075
-Node: tags82945
-Ref: #tags83043
-Node: test83279
-Ref: #test83363
-Node: ADD-ON COMMANDS84071
-Ref: #add-on-commands84181
-Node: Official add-ons85468
-Ref: #official-add-ons85608
-Node: api85695
-Ref: #api85784
-Node: ui85836
-Ref: #ui85935
-Node: web85993
-Ref: #web86082
-Node: Third party add-ons86128
-Ref: #third-party-add-ons86303
-Node: diff86438
-Ref: #diff86535
-Node: iadd86634
-Ref: #iadd86748
-Node: interest86831
-Ref: #interest86952
-Node: irr87047
-Ref: #irr87145
-Node: Experimental add-ons87276
-Ref: #experimental-add-ons87428
-Node: autosync87708
-Ref: #autosync87819
-Node: chart88058
-Ref: #chart88177
-Node: check88248
-Ref: #check88350
+Node: Report intervals16995
+Ref: #report-intervals17160
+Node: Period expressions17561
+Ref: #period-expressions17721
+Node: Depth limiting21678
+Ref: #depth-limiting21822
+Node: Pivoting22164
+Ref: #pivoting22282
+Node: Cost23958
+Ref: #cost24066
+Node: Market value24184
+Ref: #market-value24319
+Node: Combining -B and -V25685
+Ref: #combining--b-and--v25848
+Node: Output destination25995
+Ref: #output-destination26157
+Node: Output format26440
+Ref: #output-format26592
+Node: Regular expressions26977
+Ref: #regular-expressions27114
+Node: QUERIES28475
+Ref: #queries28577
+Node: COMMANDS32539
+Ref: #commands32651
+Node: accounts33651
+Ref: #accounts33749
+Node: activity34995
+Ref: #activity35105
+Node: add35465
+Ref: #add35564
+Node: balance38225
+Ref: #balance38336
+Node: Classic balance report41526
+Ref: #classic-balance-report41699
+Node: Customising the classic balance report43068
+Ref: #customising-the-classic-balance-report43296
+Node: Colour support45370
+Ref: #colour-support45537
+Node: Flat mode45710
+Ref: #flat-mode45858
+Node: Depth limited balance reports46271
+Ref: #depth-limited-balance-reports46471
+Node: Multicolumn balance report46927
+Ref: #multicolumn-balance-report47125
+Node: Budget report52305
+Ref: #budget-report52448
+Node: Nested budgets57152
+Ref: #nested-budgets57264
+Ref: #output-format-160764
+Node: balancesheet60842
+Ref: #balancesheet60978
+Node: balancesheetequity63289
+Ref: #balancesheetequity63438
+Node: cashflow63975
+Ref: #cashflow64103
+Node: check-dates66226
+Ref: #check-dates66353
+Node: check-dupes66470
+Ref: #check-dupes66594
+Node: close66731
+Ref: #close66839
+Node: files70253
+Ref: #files70354
+Node: help70495
+Ref: #help70595
+Node: import71669
+Ref: #import71783
+Node: incomestatement72513
+Ref: #incomestatement72647
+Node: prices75051
+Ref: #prices75166
+Node: print75438
+Ref: #print75548
+Node: print-unique80442
+Ref: #print-unique80568
+Node: register80636
+Ref: #register80763
+Node: Custom register output85264
+Ref: #custom-register-output85393
+Node: register-match86623
+Ref: #register-match86757
+Node: rewrite86940
+Ref: #rewrite87055
+Node: roi87124
+Ref: #roi87222
+Node: stats87338
+Ref: #stats87437
+Node: tags88307
+Ref: #tags88405
+Node: test88641
+Ref: #test88725
+Node: ADD-ON COMMANDS89433
+Ref: #add-on-commands89543
+Node: Official add-ons90830
+Ref: #official-add-ons90970
+Node: api91057
+Ref: #api91146
+Node: ui91198
+Ref: #ui91297
+Node: web91355
+Ref: #web91444
+Node: Third party add-ons91490
+Ref: #third-party-add-ons91665
+Node: diff91800
+Ref: #diff91897
+Node: iadd91996
+Ref: #iadd92110
+Node: interest92193
+Ref: #interest92314
+Node: irr92409
+Ref: #irr92507
+Node: Experimental add-ons92638
+Ref: #experimental-add-ons92790
+Node: autosync93070
+Ref: #autosync93181
+Node: chart93420
+Ref: #chart93539
+Node: check93610
+Ref: #check93712
 
 End Tag Table
