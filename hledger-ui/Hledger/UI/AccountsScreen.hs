@@ -278,7 +278,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ map strip $ getEditContents ed
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         VtyEvent ev        -> do ed' <- handleEditorEvent ev ed
                                  continue $ ui{aMode=Minibuffer ed'}
         AppEvent _        -> continue ui
@@ -289,7 +289,7 @@ asHandle ui0@UIState{
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _                    -> helpHandle ui ev
 
     Normal ->
@@ -343,7 +343,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         VtyEvent e | e `elem` moveLeftEvents -> continue $ popScreen ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> redraw ui
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
         -- enter register screen for selected account (if there is one), 
         -- centering its selected transaction if possible

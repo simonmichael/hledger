@@ -22,7 +22,6 @@ module Hledger.UI.UIUtils (
   ,replaceHiddenAccountsNameWith
   ,scrollSelectionToMiddle
   ,suspend
-  ,suspendAndRedraw
   ,redraw
 )
 where
@@ -52,39 +51,27 @@ import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 
--- | On posix platforms, suspend the program using the system STOP signal
--- (as control-z usually does in bash). On windows, does nothing.
+-- | On posix platforms, send the system STOP signal to suspend the
+-- current program. On windows, does nothing.
 #ifdef mingw32_HOST_OS
-suspend :: IO ()
-suspend = return ()
+suspendSignal :: IO ()
+suspendSignal = return ()
 #else
 import System.Posix.Signals
-suspend :: IO ()
-suspend = raiseSignal sigSTOP 
+suspendSignal :: IO ()
+suspendSignal = raiseSignal sigSTOP 
 #endif
 
--- | On posix platforms, suspend the program using the system STOP
--- signal, returning to the original shell prompt
--- (TODO: and restore the original terminal attributes).
--- When the program is resumed, redraw the screen and continue.
--- On windows, just redraws the screen.
-suspendAndRedraw :: s -> EventM a (Next s)
-suspendAndRedraw ui = do
-  -- reset terminal attributes using vty ?
-  -- Vty{outputIface=output} <- getVtyHandle
-  -- r <- displayBounds output
-  -- DisplayContext{writeDefaultAttr=_reset} <- liftIO $ (mkDisplayContext output) output r
-  -- runWrite (reset True) _someptr
-
-  -- suspend..
-  liftIO suspend
-
-  -- ..and resume
-  redraw ui
+-- | On posix platforms, suspend the program using the STOP signal,
+-- like control-z in bash, returning to the original shell prompt,
+-- and when resumed, continue where we left off.
+-- On windows, does nothing.
+suspend :: s -> EventM a (Next s)
+suspend st = suspendAndResume $ suspendSignal >> return st
 
 -- | Tell vty to redraw the whole screen, and continue.
 redraw :: s -> EventM a (Next s)
-redraw ui = getVtyHandle >>= liftIO . refresh >> continue ui
+redraw st = getVtyHandle >>= liftIO . refresh >> continue st
 
 -- ui
 

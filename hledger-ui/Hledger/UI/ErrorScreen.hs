@@ -86,7 +86,7 @@ esHandle ui@UIState{aScreen=ErrorScreen{..}
       case ev of
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _                    -> helpHandle ui ev
 
     _ -> do
@@ -108,7 +108,7 @@ esHandle ui@UIState{aScreen=ErrorScreen{..}
 --             Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
         VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspendAndRedraw ui
+        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _ -> continue ui
 
 esHandle _ _ = error "event handler called with wrong screen type, should not happen"
