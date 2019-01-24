@@ -224,4 +224,5 @@ instance ToSchema PostingType
 instance ToSchema Posting
 instance ToSchema Transaction
 instance ToSchema Account
+instance ToSchema AccountDeclarationInfo
 -- instance ToSchema AccountTransactionsReport
