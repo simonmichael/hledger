@@ -164,3 +164,31 @@ because it is also included in transaction modifiers.
 
 >=1
 
+## Transaction modifiers affect forecast transactions
+<
+= ^income
+  (liabilities:tax)  *.33  ; income tax
+
+~ monthly from 2016-01   paycheck
+    income:remuneration     $-100
+    income:donations         $-15
+    assets:bank
+
+2016/1/3 withdraw
+    assets:cash             $20
+    assets:bank
+
+$ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
+2016/01/03 withdraw
+    assets:cash             $20
+    assets:bank
+
+2016/02/01 paycheck
+    ; recur: monthly from 2016-01
+    income:remuneration           $-100
+    (liabilities:tax)              $-33    ; income tax
+    income:donations               $-15
+    (liabilities:tax)               $-5    ; income tax
+    assets:bank
+
+>=

@@ -164,13 +164,16 @@ journalAddForecast opts@CliOpts{reportopts_=ropts} j = do
   let forecastend = dbg2 "forecastend" $ fromMaybe (addDays 180 today) mspecifiedend
 
   let forecastspan = DateSpan (Just forecaststart) (Just forecastend)
-      forecasttxns = [ txnTieKnot t | pt <- jperiodictxns j
-                                    , t <- runPeriodicTransaction pt forecastspan
-                                    , spanContainsDate forecastspan (tdate t)
-                                    ]
+      forecasttxns =
+        -- If there are forecast transaction, lets apply transaction modifiers to them
+        map (foldr (flip (.) . transactionModifierToFunction) id (jtxnmodifiers j)) $
+        [ txnTieKnot t | pt <- jperiodictxns j
+                       , t <- runPeriodicTransaction pt forecastspan
+                       , spanContainsDate forecastspan (tdate t)
+                       ]
   return $
     if forecast_ ropts 
-      then journalBalanceTransactions' opts j{ jtxns = forecasttxns ++ jtxns j }  -- XXX wouldn't appending be better ?
+      then journalBalanceTransactions' opts j{ jtxns = concat [forecasttxns, jtxns j] }
       else j
   where      
     journalBalanceTransactions' opts j =
