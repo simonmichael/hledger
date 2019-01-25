@@ -92,8 +92,8 @@ Budget performance in 2016/12/01-2016/12/03:
  assets           || $-10 [  40% of $-25]  $-14 [  56% of $-25]  $-51 [ 204% of $-25]  $-75 [ 100% of $-75] 
  assets:cash      || $-10 [  40% of $-25]  $-14 [  56% of $-25]  $-51 [ 204% of $-25]  $-75 [ 100% of $-75] 
 
-# # 2. --show-unbudgeted
-# $ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget --show-unbudgeted
+# # 2. -E
+# $ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget -E
 # Budget performance in 2016/12/01-2016/12/03:
 
 #                               ||               2016/12/01                2016/12/02                2016/12/03 
@@ -180,8 +180,8 @@ Budget performance in 2016/12/01-2016/12/03:
    cash    || $-10 [  40% of $-25]  $-14 [  56% of $-25]  $-51 [ 204% of $-25]  $-75 [ 100% of $-75] 
 
 #** other ?
-# with --show-unbudgeted
-# $ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget --show-unbudgeted
+# with -E
+# $ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget -E
 # Budget performance in 2016/12/01-2016/12/03:
 
 #                               ||               2016/12/01                2016/12/02                2016/12/03 

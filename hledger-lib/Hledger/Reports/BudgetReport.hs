@@ -64,12 +64,13 @@ type BudgetReportRow = PeriodicReportRow BudgetCell
 -- actual balance changes from the regular transactions,
 -- and compare these to get a 'BudgetReport'.
 -- Unbudgeted accounts may be hidden or renamed (see budgetRollup).
-budgetReport :: ReportOpts -> Bool -> Bool -> DateSpan -> Day -> Journal -> BudgetReport
-budgetReport ropts' assrt showunbudgeted reportspan d j =
+budgetReport :: ReportOpts -> Bool -> DateSpan -> Day -> Journal -> BudgetReport
+budgetReport ropts' assrt reportspan d j =
   let
     -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
-    -- and that reports with and without --show-unbudgeted make sense when compared side by side
+    -- and that reports with and without --empty make sense when compared side by side
     ropts = ropts' { accountlistmode_ = ALTree }
+    showunbudgeted = empty_ ropts
     q = queryFromOpts d ropts 
     budgetedaccts = 
       dbg2 "budgetedacctsinperiod" $
@@ -162,7 +163,7 @@ budgetJournal assrt _ropts reportspan j =
 --
 -- 2. subaccounts with no budget goal are merged with their closest parent account
 --    with a budget goal, so that only budgeted accounts are shown. 
---    This can be disabled by --show-unbudgeted.
+--    This can be disabled by --empty.
 --
 budgetRollUp :: [AccountName] -> Bool -> Journal -> Journal
 budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
