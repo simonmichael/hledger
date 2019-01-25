@@ -737,9 +737,11 @@ balanceassertionp = do
   char '='
   exact <- optional $ try $ char '='
   lift (skipMany spacenonewline)
-  a <- amountwithoutpricep <?> "unpriced amount (for a balance assertion or assignment)"
+  -- allow this amount to have a price, for compatibility, but discard it
+  a <- amountp <?> "amount (for a balance assertion or assignment)"
+  let a' = a{aprice=NoPrice}
   return BalanceAssertion
-    { baamount = a
+    { baamount = a'
     , baexact = isJust exact
     , baposition = sourcepos
     }

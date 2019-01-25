@@ -439,7 +439,9 @@ One workaround is to isolate each commodity into its own subaccount:
 ### Assertions and prices
 
 Balance assertion (or assignment) amounts should not have a [price](#transaction-prices),
-as the meaning of that would be unclear.
+as the meaning of that is unclear.
+A price written there will be ignored.
+(hledger's [close](/manual.html#close) command used to generate balance assertions with prices.)
 
 ### Assertions and subaccounts
 
