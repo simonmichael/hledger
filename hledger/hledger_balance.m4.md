@@ -57,9 +57,6 @@ txt, csv
 `--budget`
 : show performance compared to budget goals defined by [periodic transactions](journal.html#periodic-transactions)
 
-`--show-unbudgeted`
-: with --budget, show unbudgeted accounts also
-
 The balance command is hledger's most versatile command.
 Note, despite the name, it is not always used for showing real-world account balances;
 the more accounting-aware [balancesheet](#balancesheet)
@@ -304,7 +301,8 @@ period (without -E, leading and trailing columns with all zeroes are
 not shown). Second, all accounts which existed at the report start
 date will be considered, not just the ones with activity during the
 report period (use -E to include low-activity accounts which would
-otherwise would be omitted).
+otherwise would be omitted). With `--budget`, `--empty` also shows
+unbudgeted accounts.
 
 The `-T/--row-total` flag adds an additional column showing the total
 for each row.
@@ -400,9 +398,9 @@ above, transactions in `expenses:gifts` and `expenses:supplies` are counted towa
 but accounts `expenses:gifts` and `expenses:supplies` are not shown, as they don't have any budgets.
 
 
-You can use `--show-unbudgeted` shows unbudgeted accounts as well:
+You can use `--empty` shows unbudgeted accounts as well:
 ```shell
-$ hledger balance -M --budget --show-unbudgeted
+$ hledger balance -M --budget --empty
 Budget performance in 2017/11/01-2017/12/31:
 
                       ||                      Nov                       Dec 
@@ -507,9 +505,9 @@ Budget performance in 2019/01:
                                ||        0 [                 0] 
 ```
 
-And with `--show-unbudgeted`, we can get a better picture of budget allocation and consumption:
+And with `--empty`, we can get a better picture of budget allocation and consumption:
 ```shell
-$ hledger balance --budget -M --show-unbudgeted
+$ hledger balance --budget -M --empty
 Budget performance in 2019/01:
 
                                         ||                           Jan 

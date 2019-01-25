@@ -289,7 +289,6 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode to display prettier tables"
      ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
      ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
-     ,flagNone ["show-unbudgeted"] (setboolopt "show-unbudgeted") "with --budget, show unbudgeted accounts also"
      ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
      ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
      ]
@@ -314,9 +313,8 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
         (True, _) -> do
           -- single or multicolumn budget report
           reportspan <- reportSpan j ropts
-          let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt showunbudgeted reportspan d j
+          let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt reportspan d j
                 where
-                  showunbudgeted = boolopt "show-unbudgeted" rawopts
                   assrt          = not $ ignore_assertions_ $ inputopts_ opts
               render = case format of
                 "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
