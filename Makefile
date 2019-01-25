@@ -151,6 +151,9 @@ MANUALSOURCEFILES:= \
 MANUALGENFILES:= \
 	hledger*/hledger*.{1,5,info,txt} \
 
+COMMANDHELPFILES:= \
+	hledger/Hledger/Cli/Commands/*.md \
+
 # site/*.md includes website source files and generated web manual files
 # WEBDOCFILES:= \
 # 	site/*.md \
@@ -163,6 +166,7 @@ WEBCODEFILES:= \
 DOCSOURCEFILES:= \
   README.md \
 	$(MANUALSOURCEFILES) \
+	$(COMMANDHELPFILES) \
 
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
@@ -1605,18 +1609,25 @@ tag: emacstags-ctags \
 
 # Tag haskell files with hasktags and just list the other main source files
 # so they will be traversed by tags-search/tags-query-replace.
-emacstags:
-	rm -f TAGS
-	hasktags -e $(SOURCEFILES)
-	for f in Makefile $(WEBCODEFILES) $(HPACKFILES) $(CABALFILES) $(DOCSOURCEFILES); do \
-		printf "\n$$f,1\n" >> TAGS; \
-	done
+# emacstags:
+# 	rm -f TAGS
+# 	hasktags -e $(SOURCEFILES)
+# 	for f in Makefile $(WEBCODEFILES) $(HPACKFILES) $(CABALFILES) $(DOCSOURCEFILES); do \
+# 		printf "\n$$f,1\n" >> TAGS; \
+# 	done
 
-# Tag haskell files with hasktags and everything else not excluded by .ctags
-# with (exuberant) ctags.
+# Tag:
+# - haskell files, with hasktags
+# - everything else not excluded by .ctags, with (exuberant) ctags
+# - files currently missed by the above, just their names (docs, hpack, cabal..)
 emacstags-ctags:
 	hasktags -e $(SOURCEFILES)
 	ctags -a -e -R  
+	for f in \
+		$(DOCSOURCEFILES) \
+		$(HPACKFILES) \
+		$(CABALFILES) \
+	; do printf "\n$$f,1\n" >> TAGS; done
 
 cleantags: \
 	$(call def-help-hide,cleantags, remove tag files )
