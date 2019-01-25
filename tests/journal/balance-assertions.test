@@ -357,11 +357,11 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 20. Balance assertions may not have a price in them.
+# 20. Balance assertions may have a price, but it's ignored
 hledger -f- stats
 <<<
 2019/01/01
-    (a)             1A = 1A @ 2B
+    (a)             1A @ 1B = 1A @ 2B
 >>>
 >>>2 /unexpected '@'/
 >>>=1
