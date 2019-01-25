@@ -43,22 +43,25 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       -- amounts in opening/closing transactions should be too (#941)
       -- setprec = setFullPrecision
       setprec = setMinimalPrecision
-      ps = [posting{paccount=a
-                   ,pamount=mixed [setprec b]
-                   ,pbalanceassertion=Just assertion{ baamount=setprec b }
-                   }
-           |(a,_,_,mb) <- acctbals
-           ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
-           ]
-           ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
-      nps = [posting{paccount=a
-                    ,pamount=mixed [setprec $ negate b]
-                    ,pbalanceassertion=Just assertion{ baamount= setprec b{aquantity=0} }
-                    }
-            |(a,_,_,mb) <- acctbals
-            ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
-            ]
-           ++ [posting{paccount="equity:closing balances", pamount=negate balancingamt}]
-  when closing $ putStr $ showTransaction (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=nps})
-  when opening $ putStr $ showTransaction (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=ps})
+
+      closingps = [posting{paccount=a
+                          ,pamount=mixed [setprec $ negate b]
+                          ,pbalanceassertion=Just assertion{baamount=setprec b{aquantity=0}}
+                          }
+                  | (a,_,_,mb) <- acctbals
+                  , b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
+                  ]
+                  ++ [posting{paccount="equity:closing balances", pamount=negate balancingamt}]
+
+      openingps = [posting{paccount=a
+                          ,pamount=mixed [setprec b]
+                          ,pbalanceassertion=Just assertion{baamount=setprec b}
+                          }
+                  | (a,_,_,mb) <- acctbals
+                  , b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
+                  ]
+                  ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
+
+  when closing $ putStr $ showTransaction (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps})
+  when opening $ putStr $ showTransaction (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps})
 
