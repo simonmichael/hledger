@@ -1,4 +1,6 @@
 #!/usr/bin/env shelltest
+# balance assertion & balance assignment tests
+
 # 1. test some balance assertions
 hledger -f - stats
 <<<
@@ -358,16 +360,46 @@ hledger -f - stats
 >>>=0
 
 # 20. Balance assertions may have a price, but it's ignored
-hledger -f- stats
+hledger -f- print
 <<<
 2019/01/01
-    (a)             1A @ 1B = 1A @ 2B
+    (a)         1A @ 1B = 1A @ 2B
 >>>
->>>2 /unexpected '@'/
->>>=1
+2019/01/01
+    (a)         1A @ 1B = 1A @ 2B
 
-# 21. The exact amounts are compared; display precision does not affect assertions.
-hledger -f- stats
+>>>=0
+
+# 21. Balance assignments may have a price, and it's used for the posting amount.
+# But not shown as part of the balance assertion in the resulting posting.
+hledger -f- print --explicit
+<<<
+2019/01/01
+    (a)                 = 1A @ 2B
+>>>
+2019/01/01
+    (a)         1A @ 2B = 1A @ 2B
+
+>>>=0
+
+# 22. close generates balance assertions without prices
+hledger -f- close -e 2019/1/2
+<<<
+2019/01/01
+    (a)         1A @ 1B = 1A @ 2B
+>>>
+2019/01/01 closing balances
+    a                              -1A @ 1B = 0A
+    equity:closing balances
+
+2019/01/02 opening balances
+    a                               1A @ 1B = 1A
+    equity:opening balances
+
+>>>=0
+
+# 23. The exact amounts are compared; display precision does not affect assertions.
+hledger -f- print
 <<<
 commodity $1000.00
 
@@ -377,12 +409,12 @@ commodity $1000.00
 2019/01/02
     (a)             $1.00  = $1.006
 
->>> /Transactions/
+>>> /2019/
 >>>2
 >>>=0
 
-# 22. This fails
-hledger -f- stats
+# 24. This fails
+hledger -f- print
 <<<
 commodity $1000.00
 
@@ -395,8 +427,8 @@ commodity $1000.00
 >>>2 /difference: 0\.004/
 >>>=1
 
-# 23. This fails
-hledger -f- stats
+# 25. This fails
+hledger -f- print
 <<<
 commodity $1000.00
 

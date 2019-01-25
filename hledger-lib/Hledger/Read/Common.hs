@@ -737,11 +737,11 @@ balanceassertionp = do
   char '='
   exact <- optional $ try $ char '='
   lift (skipMany spacenonewline)
-  -- allow this amount to have a price, for compatibility, but discard it
+  -- this amount can have a price; balance assertions ignore it,
+  -- but balance assignments will use it
   a <- amountp <?> "amount (for a balance assertion or assignment)"
-  let a' = a{aprice=NoPrice}
   return BalanceAssertion
-    { baamount = a'
+    { baamount = a
     , baexact = isJust exact
     , baposition = sourcepos
     }

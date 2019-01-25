@@ -438,10 +438,18 @@ One workaround is to isolate each commodity into its own subaccount:
 
 ### Assertions and prices
 
-Balance assertion (or assignment) amounts should not have a [price](#transaction-prices),
-as the meaning of that is unclear.
-A price written there will be ignored.
-(hledger's [close](/manual.html#close) command used to generate balance assertions with prices.)
+Balance assertions ignore [transaction prices](#transaction-prices),
+and should normally be written without one:
+
+``` journal
+2019/1/1
+  (a)     $1 @ €1 = $1
+```
+
+We do allow prices to be written there, however, and [print](/manual.html#print) shows them,
+even though they don't affect whether the assertion passes or fails.
+This is for backward compatibility (hledger's [close](/manual.html#close) command used to generate balance assertions with prices),
+and because [balance *assignments*](#balance-assignments) do use them (see below).
 
 ### Assertions and subaccounts
 
@@ -505,6 +513,20 @@ Note that using balance assignments makes your journal a little less explicit;
 to know the exact amount posted, you have to run hledger or do the calculations yourself,
 instead of just reading it.
 
+### Balance assignments and prices
+
+A [transaction price](#transaction-prices) in a balance assignment
+will cause the calculated amount to have that price attached:
+
+``` journal
+2019/1/1
+  (a)             = $1 @ €2
+```
+```
+$ hledger print --explicit
+2019/01/01
+    (a)         $1 @ €2 = $1 @ €2
+```
 
 ## Transaction prices
 
