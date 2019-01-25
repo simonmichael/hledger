@@ -19,12 +19,11 @@ compiling is recommended; run the script in interpreted mode to do that.
 
 It requires stack (https://haskell-lang.org/get-started) and
 auto-installs the packages above. Also, some rules require:
-- runhaskell
+
 - groff
 - m4
 - makeinfo
-- git
-- patch
+- pandoc
 
 Usage: see below. Also:
 
