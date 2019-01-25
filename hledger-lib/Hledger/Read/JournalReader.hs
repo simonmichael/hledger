@@ -935,7 +935,7 @@ tests_JournalReader = tests "JournalReader" [
     test "empty file" $ expectParseEqE journalp "" nulljournal
     ]
 
-   -- defined here so it can use journalp
+   -- these are defined here rather than in Common so they can use journalp
   ,tests "parseAndFinaliseJournal" [
     test "basic" $ do
         ej <- io $ runExceptT $ parseAndFinaliseJournal journalp definputopts "" "2019-1-1\n"
