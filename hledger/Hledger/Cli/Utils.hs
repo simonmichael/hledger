@@ -9,7 +9,6 @@ Hledger.Utils.
 
 module Hledger.Cli.Utils
     (
-     hereFileRelative,
      withJournalDo,
      writeOutput,
      journalTransform,
@@ -32,16 +31,12 @@ import Control.Exception as C
 import Control.Monad
 
 import Data.Hashable (hash)
-import Data.FileEmbed (makeRelativeToProject)
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.String.Here (hereFile)
 import Data.Time (Day, addDays)
 import Data.Word
-import Language.Haskell.TH.Quote (QuasiQuoter(..))
-import Language.Haskell.TH.Syntax (Q, Exp)
 import Numeric
 import Safe (readMay)
 import System.Console.CmdArgs
@@ -63,13 +58,6 @@ import Hledger.Read
 import Hledger.Reports
 import Hledger.Utils
 
--- XXX hereFile or embedFile ? QQ or TH ? does it matter ?
--- | Embed the contents of a file, given a path relative to the current package.
-hereFileRelative :: FilePath -> Q Exp
-hereFileRelative f = makeRelativeToProject f >>= hereFileExp
-  where
-    QuasiQuoter{quoteExp=hereFileExp} = hereFile
-    
 -- | Parse the user's specified journal file(s) as a Journal, maybe apply some
 -- transformations according to options, and run a hledger command with it. 
 -- Or, throw an error.

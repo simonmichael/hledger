@@ -24,57 +24,56 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
-import Data.FileEmbed
 import Data.String
 import System.IO
 import System.IO.Temp
 import System.Process
 
-import Hledger.Utils (first3, second3, third3)
+import Hledger.Utils (first3, second3, third3, embedFileRelative)
 
 type Topic = String
 
 docFiles :: [(Topic, (ByteString, ByteString, ByteString))]
 docFiles = [
    ("hledger",
-    ($(makeRelativeToProject "embeddedfiles/hledger.1" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger.1")
+    ,$(embedFileRelative "embeddedfiles/hledger.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger.info")
     ))
   ,("hledger-ui",
-    ($(makeRelativeToProject "embeddedfiles/hledger-ui.1" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger-ui.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger-ui.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger-ui.1")
+    ,$(embedFileRelative "embeddedfiles/hledger-ui.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger-ui.info")
     ))
   ,("hledger-web",
-    ($(makeRelativeToProject "embeddedfiles/hledger-web.1" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger-web.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger-web.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger-web.1")
+    ,$(embedFileRelative "embeddedfiles/hledger-web.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger-web.info")
     ))
   ,("hledger-api",
-    ($(makeRelativeToProject "embeddedfiles/hledger-api.1" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger-api.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger-api.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger-api.1")
+    ,$(embedFileRelative "embeddedfiles/hledger-api.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger-api.info")
     ))
   ,("journal",
-    ($(makeRelativeToProject "embeddedfiles/hledger_journal.5" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_journal.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_journal.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger_journal.5")
+    ,$(embedFileRelative "embeddedfiles/hledger_journal.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger_journal.info")
     ))
   ,("csv",
-    ($(makeRelativeToProject "embeddedfiles/hledger_csv.5" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_csv.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_csv.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger_csv.5")
+    ,$(embedFileRelative "embeddedfiles/hledger_csv.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger_csv.info")
     ))
   ,("timeclock",
-    ($(makeRelativeToProject "embeddedfiles/hledger_timeclock.5" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_timeclock.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_timeclock.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger_timeclock.5")
+    ,$(embedFileRelative "embeddedfiles/hledger_timeclock.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger_timeclock.info")
     ))
   ,("timedot",
-    ($(makeRelativeToProject "embeddedfiles/hledger_timedot.5" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_timedot.txt" >>= embedFile)
-    ,$(makeRelativeToProject "embeddedfiles/hledger_timedot.info" >>= embedFile)
+    ($(embedFileRelative "embeddedfiles/hledger_timedot.5")
+    ,$(embedFileRelative "embeddedfiles/hledger_timedot.txt")
+    ,$(embedFileRelative "embeddedfiles/hledger_timedot.info")
     ))
   ]
 

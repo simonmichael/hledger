@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2b1a58e0e13c29b497037f556b0bbe5836e1667dc222aafc546683392fd9c211
+-- hash: f7e09ce5d14e5c6c98b49831e7542ad9c40c969033841ca17e144a06bcda89cb
 
 name:           hledger
 version:        1.12.99
@@ -125,7 +125,6 @@ library
     , data-default >=0.5
     , directory
     , easytest
-    , file-embed >=0.0.10
     , filepath
     , hashable >=1.2.4
     , haskeline >=0.6
@@ -145,7 +144,6 @@ library
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
-    , template-haskell
     , temporary
     , text >=0.11
     , time >=1.5
@@ -178,7 +176,6 @@ executable hledger
     , data-default >=0.5
     , directory
     , easytest
-    , file-embed >=0.0.10
     , filepath
     , haskeline >=0.6
     , here
@@ -197,7 +194,6 @@ executable hledger
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
-    , template-haskell
     , temporary
     , text >=0.11
     , time >=1.5
@@ -233,7 +229,6 @@ test-suite test
     , data-default >=0.5
     , directory
     , easytest
-    , file-embed >=0.0.10
     , filepath
     , haskeline >=0.6
     , here
@@ -252,7 +247,6 @@ test-suite test
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
-    , template-haskell
     , temporary
     , test-framework
     , test-framework-hunit
@@ -288,7 +282,6 @@ benchmark bench
     , data-default >=0.5
     , directory
     , easytest
-    , file-embed >=0.0.10
     , filepath
     , haskeline >=0.6
     , here
@@ -308,7 +301,6 @@ benchmark bench
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
-    , template-haskell
     , temporary
     , text >=0.11
     , time >=1.5

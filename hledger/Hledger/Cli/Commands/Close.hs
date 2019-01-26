@@ -14,7 +14,6 @@ import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (hereFileRelative)
 
 closemode = hledgerCommandMode
   $(hereFileRelative "Hledger/Cli/Commands/Close.md")

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 510ffa940692e35167ef2f17c5eaa61f6510793dc0a902f0daac254da37fee9e
+-- hash: 83c1fff5c5877da9fe972db3b0b57fb31687fbdb4476b7ee0136e76a64e2f69e
 
 name:           hledger-lib
 version:        1.12.99
@@ -121,8 +121,10 @@ library
     , directory
     , easytest
     , extra
+    , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
+    , here
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -134,6 +136,7 @@ library
     , safe >=0.2
     , split >=0.1
     , tabular >=0.2
+    , template-haskell
     , text >=1.2
     , time >=1.5
     , transformers >=0.2
@@ -221,8 +224,10 @@ test-suite doctests
     , doctest >=0.16
     , easytest
     , extra
+    , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
+    , here
     , megaparsec >=7.0.0 && <8
     , mtl
     , mtl-compat
@@ -234,6 +239,7 @@ test-suite doctests
     , safe >=0.2
     , split >=0.1
     , tabular >=0.2
+    , template-haskell
     , text >=1.2
     , time >=1.5
     , transformers >=0.2
@@ -320,8 +326,10 @@ test-suite easytests
     , directory
     , easytest
     , extra
+    , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
+    , here
     , hledger-lib
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -334,6 +342,7 @@ test-suite easytests
     , safe >=0.2
     , split >=0.1
     , tabular >=0.2
+    , template-haskell
     , text >=1.2
     , time >=1.5
     , transformers >=0.2
