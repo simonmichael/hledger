@@ -1245,10 +1245,11 @@ Draft:
 
 Changelogs:
 
-- choose release version and date
-- add new sections at top of {doc,hledger*}/CHANGES
-- move the items from CHANGES.draft.org to these CHANGES files
-- remove CHANGES.draft.org
+- `CHANGES.md` in each package directory, and one in the top directory (project-wide changes, perhaps just for staging)
+- markdown format: - bullets, indented literal blocks
+- there's always a heading at the top whose first word is a release version or (between releases) a commit hash
+- `make changelogs` to add any new commits to the top of all changelogs
+- then clean those up manually: identify, filter, move to correct changelog, deduplicate, rewrite, sort/group
 
 Release notes:
 
