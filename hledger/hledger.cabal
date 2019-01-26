@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 725d6fac0dd1253d2b6f12ee2384d62f9204cae3c8a553906084b771b364861c
+-- hash: 2b1a58e0e13c29b497037f556b0bbe5836e1667dc222aafc546683392fd9c211
 
 name:           hledger
 version:        1.12.99
@@ -30,7 +30,7 @@ license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3
 build-type:     Simple
 extra-source-files:
-    CHANGES
+    CHANGES.md
     README.md
     test/test.hs
     bench/10000x1000x10.journal
