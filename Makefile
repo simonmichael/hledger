@@ -1127,6 +1127,9 @@ EXCLUDEPKGDIRS=\
 	':!hledger-ui' \
 	':!hledger-web' \
 	':!hledger-api' \
+	':!tests' \
+
+# XXX would like to include tests/ in hledger changelog
 
 # git log format suitable for changelogs/release notes
 # %s=subject, %an=author name, %n=newline if needed, %w=width/indent1/indent2, %b=body, %h=hash
