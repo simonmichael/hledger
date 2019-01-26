@@ -1,5 +1,19 @@
-Developer-ish changes in the hledger-lib package.
-User-visible changes are noted in the hledger package changelog instead.
+Internal/api/developer-ish changes in the hledger-lib package.
+For user-visible changes, see the hledger package changelog.
+
+# 1e5e30ae
+
+added: 
+
+- setFullPrecision
+- setMinimalPrecision
+- expectParseStateOn
+
+changed:
+
+- amultiplier -> aismultiplier
+- Amount fields reordered for clearer debug output
+- tpreceding_comment_lines -> tprecedingcomment, reordered
 
 # 1.12 (2018/12/02)
 

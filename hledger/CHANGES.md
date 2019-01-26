@@ -1,4 +1,56 @@
-User-visible changes in the hledger command line tool (and hledger-lib).
+User-visible changes in the hledger command line tool and library.
+
+
+# 1e5e30ae
+
+- journal: account directive: account sort codes like `account 1000`
+  are no longer supported. (introduced in 1.9, deprecated in 1.11)
+
+- journal: account directive: the account name can now be followed by
+  a comment on the same line
+
+- journal: account directive: account types can now be set with a
+  `type:` tag, whose value is `Asset`, `Liability`, `Equity`,
+  `Revenue`, `Expense`, `A`, `L`, `E`, `R` or `X` (case-insensitive).
+  The previous syntax (`account assets A`) is now deprecated.
+
+- journal: transaction modifiers can affect periodic transactions
+  (--auto can add postings to transactions generated with --forecast).
+  (Dmitry Astapov)
+
+- journal: fixed a periodic transaction parsing failure (Dmitry
+  Astapov)
+
+- journal: balance assertion errors now show exact amounts with all
+  decimal digits.  Previously it was possible, in case of a commodity
+  directive limiting the display precision, to have a balance
+  assertion error with asserted and actual amounts looking the
+  same. (#941)
+
+- balance --budget: budget amounts now aggregate hierarchically, like
+  account balances. Unbudgeted accounts can be shown with -E/--empty
+  (along with zero-balance accounts), and the --show-budgeted flag has
+  been dropped.  (Dmitry Astapov)
+
+- balance: a new --transpose flag switches the rows and columns of
+  tabular balance reports (in txt and csv output formats) (Dmitry
+  Astapov)
+
+- close: generated balance assertions now have exact amounts with all
+  decimal digits, ignoring display precision. Also, balance assertion
+  amounts will no longer contain prices. (#941, #824, #958)
+
+- files: added this command to the commands list
+
+- import: be silent when there's nothing to import
+
+- roi: percentages smaller than 0.01% are displayed as zero (Dmitry
+  Astapov)
+
+- stats, ui: correct file order is preserved when using --auto (#949)
+
+- comprehensive bash completion support is now provided (in the
+  hledger repo, see shell-completion/) (Jakob Schöttl)
 
 # 1.12.1 (2018/12/03)
 

@@ -1,6 +1,16 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1e5e30ae
+
+- on posix systems, control-z suspends the program
+
+- control-l now works everywhere and redraws more reliably
+
+- show clearer top status info
+
+- use hledger 1.12.99
+
 # 1.12.1 (2018/12/10)
 
 -   avoid build issue with brick 0.44+ (#935)

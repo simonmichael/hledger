@@ -1,6 +1,10 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1e5e30ae
+
+- use hledger 1.12.99
+
 # 1.12 (2018/12/02)
 
 -   fix duplicate package.yaml keys warned about by hpack
