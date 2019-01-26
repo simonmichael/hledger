@@ -9,7 +9,7 @@ Hledger.Utils.
 
 module Hledger.Cli.Utils
     (
-     hereFileRelativeToPackage,
+     hereFileRelative,
      withJournalDo,
      writeOutput,
      journalTransform,
@@ -65,8 +65,8 @@ import Hledger.Utils
 
 -- XXX hereFile or embedFile ? QQ or TH ? does it matter ?
 -- | Embed the contents of a file, given a path relative to the current package.
-hereFileRelativeToPackage :: FilePath -> Q Exp
-hereFileRelativeToPackage f = makeRelativeToProject f >>= hereFileExp
+hereFileRelative :: FilePath -> Q Exp
+hereFileRelative f = makeRelativeToProject f >>= hereFileExp
   where
     QuasiQuoter{quoteExp=hereFileExp} = hereFile
     

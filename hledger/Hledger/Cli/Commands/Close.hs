@@ -14,10 +14,10 @@ import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (hereFileRelativeToPackage)
+import Hledger.Cli.Utils (hereFileRelative)
 
 closemode = hledgerCommandMode
-  $(hereFileRelativeToPackage "Hledger/Cli/Commands/Close.md")
+  $(hereFileRelative "Hledger/Cli/Commands/Close.md")
   [flagNone ["opening"] (\opts -> setboolopt "opening" opts) "show just opening transaction"
   ,flagNone ["closing"] (\opts -> setboolopt "closing" opts) "show just closing transaction"
   ]
