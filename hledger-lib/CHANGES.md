@@ -41,11 +41,11 @@ User-visible changes are noted in the hledger package changelog instead.
 
 -   plog, plogAt: add missing newline
 
--   split up journalFinalise, reorder journal finalisation steps (\#893) (Jesse Rosenthal)
+-   split up journalFinalise, reorder journal finalisation steps (#893) (Jesse Rosenthal)
     The `journalFinalise` function has been split up, allowing more granular
     control.
 
--   journalSetTime --\> journalSetLastReadTime
+-   journalSetTime --> journalSetLastReadTime
 
 -   journalSetFilePath has been removed, use journalAddFile instead
 
@@ -56,7 +56,7 @@ User-visible changes are noted in the hledger package changelog instead.
 
 # 1.11 (2018/9/30)
 
--   compilation now works when locale is unset (\#849)
+-   compilation now works when locale is unset (#849)
 
 -   all unit tests have been converted from HUnit+test-framework to easytest
 
@@ -118,11 +118,11 @@ User-visible changes are noted in the hledger package changelog instead.
 -   queryDateSpan, queryDateSpan' now intersect date AND'ed date spans
     instead of unioning them, and docs are clearer.
 
--   pushAccount -\> pushDeclaredAccount
+-   pushAccount -> pushDeclaredAccount
 
--   jaccounts -\> jdeclaredaccounts
+-   jaccounts -> jdeclaredaccounts
 
--   AutoTransaction.hs -\> PeriodicTransaction.hs & TransactionModifier.hs
+-   AutoTransaction.hs -> PeriodicTransaction.hs & TransactionModifier.hs
 
 -   Hledger.Utils.Debug helpers have been renamed/cleaned up
 
@@ -130,7 +130,7 @@ User-visible changes are noted in the hledger package changelog instead.
 
 -   build cleanly with all supported GHC versions again (7.10 to 8.4)
 
--   support/use latest base-compat (\#794)
+-   support/use latest base-compat (#794)
 
 -   support/require megaparsec 6.4+
 
@@ -138,7 +138,7 @@ User-visible changes are noted in the hledger package changelog instead.
 
 -   readJournalFile(s) cleanup, these now use InputOpts
 
--   doctests now run a bit faster (\#802)
+-   doctests now run a bit faster (#802)
 
 # 1.9.1 (2018/4/30)
 
@@ -183,23 +183,23 @@ User-visible changes are noted in the hledger package changelog instead.
 
 # 1.5 (2017/12/31)
 
--   -V/--value uses today's market prices by default, not those of last transaction date. \#683, \#648)
+-   -V/--value uses today's market prices by default, not those of last transaction date. #683, #648)
 
 -   csv: allow balance assignment (balance assertion only, no amount) in csv records (Nadrieril)
 
--   journal: allow space as digit group separator character, \#330 (Mykola Orliuk)
+-   journal: allow space as digit group separator character, #330 (Mykola Orliuk)
 
--   journal: balance assertion errors now show line of failed assertion posting, \#481 (Sam Jeeves)
+-   journal: balance assertion errors now show line of failed assertion posting, #481 (Sam Jeeves)
 
--   journal: better errors for directives, \#402 (Mykola Orliuk)
+-   journal: better errors for directives, #402 (Mykola Orliuk)
 
--   journal: better errors for included files, \#660 (Mykola Orliuk)
+-   journal: better errors for included files, #660 (Mykola Orliuk)
 
--   journal: commodity directives in parent files are inherited by included files, \#487 (Mykola Orliuk)
+-   journal: commodity directives in parent files are inherited by included files, #487 (Mykola Orliuk)
 
--   journal: commodity directives limits precision even after -B, \#509 (Mykola Orliuk)
+-   journal: commodity directives limits precision even after -B, #509 (Mykola Orliuk)
 
--   journal: decimal point/digit group separator chars are now inferred from an applicable commodity directive or default commodity directive. \#399, \#487 (Mykola Orliuk)
+-   journal: decimal point/digit group separator chars are now inferred from an applicable commodity directive or default commodity directive. #399, #487 (Mykola Orliuk)
 
 -   journal: numbers are parsed more strictly (Mykola Orliuk)
 
@@ -219,7 +219,7 @@ User-visible changes are noted in the hledger package changelog instead.
 
 -   period expressions: support "every Tuesday", short for "every <n>th day of week" (Dmitry Astapov)
 
--   remove upper bounds on all but hledger\* and base (experimental)
+-   remove upper bounds on all but hledger* and base (experimental)
     It's rare that my deps break their api or that newer versions must
     be avoided, and very common that they release new versions which I
     must tediously and promptly test and release hackage revisions for
@@ -230,7 +230,7 @@ User-visible changes are noted in the hledger package changelog instead.
 -   add readJournalFile\[s\]WithOpts, with simpler arguments and support
     for detecting new transactions since the last read.
 
--   query: add payee: and note: query terms, improve description/payee/note docs (Jakub Zárybnický, Simon Michael, \#598, \#608)
+-   query: add payee: and note: query terms, improve description/payee/note docs (Jakub Zárybnický, Simon Michael, #598, #608)
 
 -   journal, cli: make trailing whitespace significant in regex account aliases
     Trailing whitespace in the replacement part of a regular expression
@@ -251,28 +251,28 @@ User-visible changes are noted in the hledger package changelog instead.
 
 -   deps: allow ansi-terminal 0.7
 
--   deps: add missing parsec lower bound, possibly related to \#596, fpco/stackage\#2835
+-   deps: add missing parsec lower bound, possibly related to #596, fpco/stackage#2835
 
 -   deps: drop oldtime flag, require time 1.5+
 
--   deps: remove ghc \< 7.6 support, remove obsolete CPP conditionals
+-   deps: remove ghc < 7.6 support, remove obsolete CPP conditionals
 
 -   deps: fix test suite with ghc 8.2
 
 # 1.3.1 (2017/8/25)
 
--   Fix a bug with -H showing nothing for empty periods (\#583, Nicholas Niro)
+-   Fix a bug with -H showing nothing for empty periods (#583, Nicholas Niro)
     This patch fixes a bug that happened when using the -H option on
     a period without any transaction. Previously, the behavior was no
     output at all even though it should have shown the previous ending balances
     of past transactions. (This is similar to previously using -H with -E,
     but with the extra advantage of not showing empty accounts)
 
--   allow megaparsec 6 (\#594)
+-   allow megaparsec 6 (#594)
 
 -   allow megaparsec-6.1 (Hans-Peter Deifel)
 
--   fix test suite with Cabal 2 (\#596)
+-   fix test suite with Cabal 2 (#596)
 
 # 1.3 (2017/6/30)
 
@@ -281,14 +281,14 @@ and keys, have been renamed to "unmarked" to remove ambiguity and
 confusion. This means that we have dropped the `--uncleared` flag,
 and our `-U` flag now matches only unmarked things and not pending
 ones. See the issue and linked mail list discussion for more
-background. (\#564)
+background. (#564)
 
 csv: assigning to the "balance" field name creates balance
-assertions (\#537, Dmitry Astapov).
+assertions (#537, Dmitry Astapov).
 
-csv: Doubled minus signs are handled more robustly (fixes \#524, Nicolas Wavrant, Simon Michael)
+csv: Doubled minus signs are handled more robustly (fixes #524, Nicolas Wavrant, Simon Michael)
 
-Multiple "status:" query terms are now OR'd together. (\#564)
+Multiple "status:" query terms are now OR'd together. (#564)
 
 deps: allow megaparsec 5.3.
 
@@ -311,21 +311,21 @@ been disabled, reducing build dependencies.
 
 ## Misc
 
-Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (\#483) (Mykola Orliuk)
+Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (#483) (Mykola Orliuk)
 
-Fix a few spaceleaks (\#413) (Moritz Kiefer)
+Fix a few spaceleaks (#413) (Moritz Kiefer)
 
 Add Ledger.Parse.Text to package.yaml, fixing a potential build failure.
 
-Allow megaparsec 5.2 (\#503)
+Allow megaparsec 5.2 (#503)
 
-Rename optserror -\> usageError, consolidate with other error functions
+Rename optserror -> usageError, consolidate with other error functions
 
 # 1.1 (2016/12/31)
 
 ## journal format
 
--   balance assignments are now supported (\#438, \#129, \#157, \#288)
+-   balance assignments are now supported (#438, #129, #157, #288)
 
     This feature also brings a slight performance drop (\~5%);
     optimisations welcome.
@@ -353,11 +353,11 @@ Rename optserror -\> usageError, consolidate with other error functions
 
 -   Hledger.Read api cleanups
 
--   rename dbgIO to dbg0IO, consistent with dbg0, and document a bug in dbg\*IO
+-   rename dbgIO to dbg0IO, consistent with dbg0, and document a bug in dbg*IO
 
--   make readJournalFiles \[f\] equivalent to readJournalFile f (\#437)
+-   make readJournalFiles \[f\] equivalent to readJournalFile f (#437)
 
--   more general parser types enabling reuse outside of IO (\#439)
+-   more general parser types enabling reuse outside of IO (#439)
 
 # 1.0.1 (2016/10/27)
 
@@ -384,7 +384,7 @@ Rename optserror -\> usageError, consolidate with other error functions
 
     sessions will be auto-closed at the end of the file).
 
--   transaction ids now count up rather than down (\#394)
+-   transaction ids now count up rather than down (#394)
 
 -   timeclock files no longer support default year directives
 
@@ -394,11 +394,11 @@ Rename optserror -\> usageError, consolidate with other error functions
 
 ## csv format
 
--   fix empty field assignment parsing, rule parse errors after megaparsec port (\#407) (Hans-Peter Deifel)
+-   fix empty field assignment parsing, rule parse errors after megaparsec port (#407) (Hans-Peter Deifel)
 
 ## journal format
 
--   journal files can now include timeclock or timedot files (\#320)
+-   journal files can now include timeclock or timedot files (#320)
 
     (but not yet CSV files).
 
@@ -406,16 +406,16 @@ Rename optserror -\> usageError, consolidate with other error functions
 
 -   the "commodity" directive and "format" subdirective are now supported, allowing
 
-    full control of commodity style (\#295) The commodity directive's
+    full control of commodity style (#295) The commodity directive's
     format subdirective can now be used to override the inferred
     style for a commodity, eg to increase or decrease the
-    precision. This is at least a good workaround for \#295.
+    precision. This is at least a good workaround for #295.
 
 -   Ledger-style "apply account"/"end apply account" directives are now used to set a default parent account.
 
 -   the Ledger-style "account" directive is now accepted (and ignored).
 
--   bracketed posting dates are more robust (\#304)
+-   bracketed posting dates are more robust (#304)
 
     Bracketed posting dates were fragile; they worked only if you
     wrote full 10-character dates. Also some semantics were a bit
@@ -433,11 +433,11 @@ Rename optserror -\> usageError, consolidate with other error functions
 
 ## misc
 
--   file parsers have been ported from Parsec to Megaparsec \o/ (\#289, \#366) (Alexey Shmalko, Moritz Kiefer)
+-   file parsers have been ported from Parsec to Megaparsec \o/ (#289, #366) (Alexey Shmalko, Moritz Kiefer)
 
 -   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files
 
--   file parsers have been simplified for easier troubleshooting (\#275).
+-   file parsers have been simplified for easier troubleshooting (#275).
 
     The journal/timeclock/timedot parsers, instead of constructing
     opaque journal update functions which are later applied to build
@@ -457,13 +457,13 @@ Rename optserror -\> usageError, consolidate with other error functions
     fixed a format detection issue I was seeing.
     Also, we now always try parsing stdin as journal format (not just sometimes).
 
--   all file formats now produce transaction ids, not just journal (\#394)
+-   all file formats now produce transaction ids, not just journal (#394)
 
--   git clone of the hledger repo on windows now works (\#345)
+-   git clone of the hledger repo on windows now works (#345)
 
--   added missing benchmark file (\#342)
+-   added missing benchmark file (#342)
 
--   our stack.yaml files are more compatible across stack versions (\#300)
+-   our stack.yaml files are more compatible across stack versions (#300)
 
 -   use newer file-embed to fix ghci working directory dependence (<https://github.com/snoyberg/file-embed/issues/18>)
 
@@ -490,7 +490,7 @@ Rename optserror -\> usageError, consolidate with other error functions
 
 -   reloading a journal should now reload all included files as well.
 
--   the Hledger.Read.\* modules have been reorganised for better reuse.
+-   the Hledger.Read.* modules have been reorganised for better reuse.
 
     Hledger.Read.Utils has been renamed Hledger.Read.Common
     and holds low-level parsers & utilities; high-level read
@@ -519,9 +519,9 @@ Rename optserror -\> usageError, consolidate with other error functions
 -   Utils.Regex: regular expression compilation has been memoized, and
     memoizing versions of regexReplace\[CI\] have been added, since
     compiling regular expressions every time seems to be quite
-    expensive (\#244).
+    expensive (#244).
 
--   Utils.String: strWidth is now aware of multi-line strings (\#242).
+-   Utils.String: strWidth is now aware of multi-line strings (#242).
 
 -   Read: parsers now use a consistent p suffix.
 
@@ -542,11 +542,11 @@ Rename optserror -\> usageError, consolidate with other error functions
 
 0.25.1 (2015/4/29)
 
--   support/require base-compat \>0.8 (\#245)
+-   support/require base-compat >0.8 (#245)
 
 0.25 (2015/4/7)
 
--   GHC 7.10 compatibility (\#239)
+-   GHC 7.10 compatibility (#239)
 
 0.24.1 (2015/3/15)
 
@@ -558,13 +558,13 @@ Rename optserror -\> usageError, consolidate with other error functions
 -   fix combineJournalUpdates folding order
 -   fix a regexReplaceCI bug
 -   fix a splitAtElement bug with adjacent separators
--   mostly replace slow regexpr with regex-tdfa (fixes \#189)
+-   mostly replace slow regexpr with regex-tdfa (fixes #189)
 -   use the modern Text.Parsec API
--   allow transformers 0.4\*
+-   allow transformers 0.4*
 -   regexReplace now supports backreferences
 -   Transactions now remember their parse location in the journal file
 -   export Regexp types, disambiguate CsvReader's similarly-named type
--   export failIfInvalidMonth/Day (fixes \#216)
+-   export failIfInvalidMonth/Day (fixes #216)
 -   track the commodity of zero amounts when possible
     (useful eg for hledger-web's multi-commodity charts)
 -   show posting dates in debug output
@@ -572,25 +572,25 @@ Rename optserror -\> usageError, consolidate with other error functions
 
 0.23.3 (2014/9/12)
 
--   allow transformers 0.4\*
+-   allow transformers 0.4*
 
 0.23.2 (2014/5/8)
 
--   postingsReport: also fix date sorting of displayed postings (\#184)
+-   postingsReport: also fix date sorting of displayed postings (#184)
 
 0.23.1 (2014/5/7)
 
 -   postingsReport: with disordered journal entries, postings before the
-    report start date could get wrongly included. (\#184)
+    report start date could get wrongly included. (#184)
 
 0.23 (2014/5/1)
 
--   orDatesFrom -\> spanDefaultsFrom
+-   orDatesFrom -> spanDefaultsFrom
 
 0.22.2 (2014/4/16)
 
 -   display years before 1000 with four digits, not three
--   avoid pretty-show to build with GHC \< 7.4
+-   avoid pretty-show to build with GHC < 7.4
 -   allow text 1.1, drop data-pprint to build with GHC 7.8.x
 
 0.22.1 (2014/1/6) and older: see http://hledger.org/release-notes or doc/CHANGES.md.

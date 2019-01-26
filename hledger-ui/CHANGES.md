@@ -3,13 +3,13 @@ See also the hledger changelog.
 
 # 1.12.1 (2018/12/10)
 
--   avoid build issue with brick 0.44+ (\#935)
+-   avoid build issue with brick 0.44+ (#935)
 
 # 1.12 (2018/12/02)
 
--   fix "Any" build error with GHC \< 8.4
+-   fix "Any" build error with GHC < 8.4
 
--   error screen: always show error position properly (\#904) (Mykola Orliuk)
+-   error screen: always show error position properly (#904) (Mykola Orliuk)
 
 -   accounts screen: show correct balances when there's only periodic transactions
 
@@ -43,11 +43,11 @@ See also the hledger changelog.
 
 -   reorganise help dialog, fit content into 80x25 again
 
--   styling tweaks; cyan/blue -\> white/yellow
+-   styling tweaks; cyan/blue -> white/yellow
 
--   less noisy styling in horizontal borders (\#838)
+-   less noisy styling in horizontal borders (#838)
 
--   register screen: positive amounts: green -\> black
+-   register screen: positive amounts: green -> black
     The green/red scheme helped distinguish the changes column from the
     black/red balance column, but the default green is hard to read on
     the pale background in some terminals. Also the changes column is
@@ -65,15 +65,15 @@ See also the hledger changelog.
 
 # 1.10.1 (2018/7/3)
 
--   restore support for fsnotify 0.2.1.2, as well as 0.3.x (\#833)
+-   restore support for fsnotify 0.2.1.2, as well as 0.3.x (#833)
 
--   fix a vty version bound & possibly build failures with old vty (\#494)
+-   fix a vty version bound & possibly build failures with old vty (#494)
 
 # 1.10 (2018/6/30)
 
--   the effect of --value, --forecast, and --anon flags is now preserved on reload (\#753)
+-   the effect of --value, --forecast, and --anon flags is now preserved on reload (#753)
 
--   edit-at-transaction-position is now also supported when \$EDITOR is neovim
+-   edit-at-transaction-position is now also supported when $EDITOR is neovim
 
 -   support/require fsnotify 0.3.0.1+
 
@@ -94,17 +94,17 @@ See also the hledger changelog.
 
 # 1.5 (2017/12/31)
 
--   fix help -\> view manual (on posix platforms) \#623
+-   fix help -> view manual (on posix platforms) #623
 
 -   support -V/--value, --forecast, --auto
 
--   remove upper bounds on all but hledger\* and base (experimental)
+-   remove upper bounds on all but hledger* and base (experimental)
 
 # 1.4 (2017/9/30)
 
 -   a @FILE argument reads flags & args from FILE, one per line
 
--   enable --pivot and --anon options, like hledger CLI (\#474) (Jakub Zárybnický)
+-   enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
 
 -   accept -NUM as a shortcut for --depth NUM
 
@@ -114,7 +114,7 @@ See also the hledger changelog.
 
 # 1.3.1 (2017/8/25)
 
--   allow megaparsec 6 (\#594, Simon Michael, Hans-Peter Deifel)
+-   allow megaparsec 6 (#594, Simon Michael, Hans-Peter Deifel)
 
 -   allow megaparsec-6.1 (Hans-Peter Deifel)
 
@@ -132,11 +132,11 @@ The "uncleared" status, and associated UI flags and keys, have been
 renamed to "unmarked" to remove ambiguity and confusion. This means
 that we have dropped the `--uncleared` flag, and our `-U` flag now
 matches only unmarked things and not pending ones. See the issue and
-linked mail list discussion for more background. (\#564)
+linked mail list discussion for more background. (#564)
 
 The P key toggles pending mode, consistent with U (unmarked) and C
 (cleared). There is also a temporary --status-toggles flag for testing
-other toggle styles; see `hledger-ui -h`. (\#564)
+other toggle styles; see `hledger-ui -h`. (#564)
 
 There is now less "warping" of selection when lists change:
 
@@ -169,17 +169,17 @@ hjkl and CTRL-bfnp should work wherever unmodified arrow keys work.
 In the transaction screen, amounts are now better aligned, eg when
 there are posting status marks or virtual postings.
 
-Deps: allow brick 0.19 (\#575, Felix Yan, Simon Michael)
+Deps: allow brick 0.19 (#575, Felix Yan, Simon Michael)
 
 # 1.2 (2017/3/31)
 
-Fix a pattern match failure when pressing E on the transaction screen (fixes \#508)
+Fix a pattern match failure when pressing E on the transaction screen (fixes #508)
 
-Accounts with ? in name had empty registers (fixes \#498) (Bryan Richter)
+Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
 
 Allow brick 0.16 (Joshua Chia) and brick 0.17/vty 0.15 (Peter Simons)
 
-Allow megaparsec 5.2 (fixes \#503)
+Allow megaparsec 5.2 (fixes #503)
 
 Allow text-zipper 0.10
 
@@ -249,7 +249,7 @@ Allow text-zipper 0.10
     mode/subaccount txns excluded by default. (At least, it does when
     it would make a difference.)
 
--   register transactions are filtered by realness and status (\#354).
+-   register transactions are filtered by realness and status (#354).
 
     Two fixes for the account transactions report when --real/--cleared/real:/status:
     are in effect, affecting hledger-ui and hledger-web:
@@ -274,7 +274,7 @@ Allow text-zipper 0.10
 
 ## misc
 
--   H toggles between showing "historical" or "period" balances (\#392).
+-   H toggles between showing "historical" or "period" balances (#392).
 
     By default hledger-ui now shows historical balances, which
     include transactions before the report start date (like hledger
@@ -291,7 +291,7 @@ Allow text-zipper 0.10
 
 -   a runs the add command
 
--   E runs \$HLEDGER\_UI\_EDITOR or \$EDITOR or a default editor (vi) on the journal file.
+-   E runs $HLEDGER_UI_EDITOR or $EDITOR or a default editor (vi) on the journal file.
 
     When using emacs or vi, if a transaction is selected the cursor will be positioned at its journal entry.
 
@@ -309,7 +309,7 @@ Allow text-zipper 0.10
 
 -   I toggles balance assertions checking, useful for troubleshooting
 
--   vi-style movement keys are now supported (for help, you must now use ? not h) (\#357)
+-   vi-style movement keys are now supported (for help, you must now use ? not h) (#357)
 
 -   ESC cancels minibuffer/help or clears the filter query and jumps to top screen
 

@@ -30,11 +30,11 @@ See also the hledger changelog.
 
 # 1.5 (2017/12/31)
 
--   remove upper bounds on all but hledger\* and base (experimental)
+-   remove upper bounds on all but hledger* and base (experimental)
 
 # 1.4 (2017/9/30)
 
--   api: add support for swagger2 2.1.5+ (fixes \#612)
+-   api: add support for swagger2 2.1.5+ (fixes #612)
 
 # 1.3.1 (2017/8/25)
 
@@ -52,7 +52,7 @@ see project changes at http://hledger.org/release-notes
 
 # 1.1 (2016/12/31)
 
--   serves on 127.0.0.1 by default, --host option added (\#432)
+-   serves on 127.0.0.1 by default, --host option added (#432)
 
     Consistent with hledger-web: serves only local requests by default,
     use --host=IPADDR to change this.
@@ -63,6 +63,6 @@ see project changes at http://hledger.org/release-notes
 
 ## misc
 
--   new hledger-api tool: a simple web API server with example clients (\#316)
+-   new hledger-api tool: a simple web API server with example clients (#316)
 
--   start an Angular-based API example client (\#316) (Thomas R. Koll)
+-   start an Angular-based API example client (#316) (Thomas R. Koll)
