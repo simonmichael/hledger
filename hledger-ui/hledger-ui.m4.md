@@ -235,7 +235,7 @@ Tree mode/flat mode can be toggled with `T` here also.
 Similarly, `P` toggles pending transactions, and `C` toggles cleared transactions.
 (By default, transactions with all statuses are shown;
 if you activate one or two status filters, only those transactions are shown; 
-and if you activate all three, the filter is removed.)q
+and if you activate all three, the filter is removed.)
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
