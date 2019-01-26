@@ -1,306 +1,296 @@
 Developer-ish changes in the hledger-lib package.
 User-visible changes are noted in the hledger package changelog instead.
 
-
 # 1.12 (2018/12/02)
 
-* switch to megaparsec 7 (Alex Chen)
-  We now track the stack of include files in Journal ourselves, since
-  megaparsec dropped this feature.
+-   switch to megaparsec 7 (Alex Chen)
+    We now track the stack of include files in Journal ourselves, since
+    megaparsec dropped this feature.
 
-* add 'ExceptT' layer to our parser monad again (Alex Chen)
-  We previously had a parser type, 'type ErroringJournalParser = ExceptT
-  String ...' for throwing parse errors without allowing further
-  backtracking. This parser type was removed under the assumption that it
-  would be possible to write our parser without this capability. However,
-  after a hairy backtracking bug, we would now prefer to have the option to
-  prevent backtracking.
+-   add 'ExceptT' layer to our parser monad again (Alex Chen)
+    We previously had a parser type, 'type ErroringJournalParser = ExceptT
+    String ...' for throwing parse errors without allowing further
+    backtracking. This parser type was removed under the assumption that it
+    would be possible to write our parser without this capability. However,
+    after a hairy backtracking bug, we would now prefer to have the option to
+    prevent backtracking.
 
-  - Define a 'FinalParseError' type specifically for the 'ExceptT' layer
-  - Any parse error can be raised as a "final" parse error
-  - Tracks the stack of include files for parser errors, anticipating the
-    removal of the tracking of stacks of include files in megaparsec 7
-    - Although a stack of include files is also tracked in the 'StateT
-      Journal' layer of the parser, it seems easier to guarantee correct
-      error messages in the 'ExceptT FinalParserError' layer
-    - This does not make the 'StateT Journal' stack redundant because the
-      'ExceptT FinalParseError' stack cannot be used to detect cycles of
-      include files
+    -   Define a 'FinalParseError' type specifically for the 'ExceptT' layer
+    -   Any parse error can be raised as a "final" parse error
+    -   Tracks the stack of include files for parser errors, anticipating the
+        removal of the tracking of stacks of include files in megaparsec 7
+        -   Although a stack of include files is also tracked in the 'StateT
+            Journal' layer of the parser, it seems easier to guarantee correct
+            error messages in the 'ExceptT FinalParserError' layer
+        -   This does not make the 'StateT Journal' stack redundant because the
+            'ExceptT FinalParseError' stack cannot be used to detect cycles of
+            include files
 
-* more support for location-aware parse errors when re-parsing (Alex Chen)
+-   more support for location-aware parse errors when re-parsing (Alex Chen)
 
-* make 'includedirectivep' an 'ErroringJournalParser' (Alex Chen)
+-   make 'includedirectivep' an 'ErroringJournalParser' (Alex Chen)
 
-* drop Ord instance breaking GHC 8.6 build (Peter Simons)
+-   drop Ord instance breaking GHC 8.6 build (Peter Simons)
 
-* flip the arguments of (divide|multiply)[Mixed]Amount
+-   flip the arguments of (divide\|multiply)\[Mixed\]Amount
 
-* showTransaction: fix a case showing multiple missing amounts
-  showTransaction could sometimes hide the last posting's amount even if
-  one of the other posting amounts was already implcit, producing invalid
-  transaction output.
+-   showTransaction: fix a case showing multiple missing amounts
+    showTransaction could sometimes hide the last posting's amount even if
+    one of the other posting amounts was already implcit, producing invalid
+    transaction output.
 
-* plog, plogAt: add missing newline
+-   plog, plogAt: add missing newline
 
-* split up journalFinalise, reorder journal finalisation steps (#893) (Jesse Rosenthal)
-  The `journalFinalise` function has been split up, allowing more granular
-  control.
+-   split up journalFinalise, reorder journal finalisation steps (\#893) (Jesse Rosenthal)
+    The `journalFinalise` function has been split up, allowing more granular
+    control.
 
-* journalSetTime --> journalSetLastReadTime
+-   journalSetTime --\> journalSetLastReadTime
 
-* journalSetFilePath has been removed, use journalAddFile instead
-
+-   journalSetFilePath has been removed, use journalAddFile instead
 
 # 1.11.1 (2018/10/06)
 
-* add, lib: fix wrong transaction rendering in balance assertion errors
-  and when using the add command
+-   add, lib: fix wrong transaction rendering in balance assertion errors
+    and when using the add command
 
 # 1.11 (2018/9/30)
 
-* compilation now works when locale is unset (#849)
+-   compilation now works when locale is unset (\#849)
 
-* all unit tests have been converted from HUnit+test-framework to easytest
+-   all unit tests have been converted from HUnit+test-framework to easytest
 
-* doctests now run quicker by default, by skipping reloading between tests. 
-  This can be disabled by passing --slow to the doctests test suite
-  executable.
+-   doctests now run quicker by default, by skipping reloading between tests.
+    This can be disabled by passing --slow to the doctests test suite
+    executable.
 
-* doctests test suite executable now supports --verbose, which shows
-  progress output as tests are run if doctest 0.16.0+ is installed
-  (and hopefully is harmless otherwise).
+-   doctests test suite executable now supports --verbose, which shows
+    progress output as tests are run if doctest 0.16.0+ is installed
+    (and hopefully is harmless otherwise).
 
-* doctests now support file pattern arguments, provide more informative output.
-  Limiting to just the file(s) you're interested can make doctest start
-  much quicker. With one big caveat: you can limit the starting files,
-  but it always imports and tests all other local files those import.
+-   doctests now support file pattern arguments, provide more informative output.
+    Limiting to just the file(s) you're interested can make doctest start
+    much quicker. With one big caveat: you can limit the starting files,
+    but it always imports and tests all other local files those import.
 
-* a bunch of custom Show instances have been replaced with defaults,
-  for easier troubleshooting.  These were sometimes obscuring
-  important details, eg in test failure output. Our new policy is:
-  stick with default derived Show instances as far as possible, but
-  when necessary adjust them to valid haskell syntax so pretty-show
-  can pretty-print them (eg when they contain Day values, cf
-  https://github.com/haskell/time/issues/101).  By convention, when
-  fields are shown in less than full detail, and/or in double-quoted
-  pseudo syntax, we show a double period (..) in the output.
+-   a bunch of custom Show instances have been replaced with defaults,
+    for easier troubleshooting. These were sometimes obscuring
+    important details, eg in test failure output. Our new policy is:
+    stick with default derived Show instances as far as possible, but
+    when necessary adjust them to valid haskell syntax so pretty-show
+    can pretty-print them (eg when they contain Day values, cf
+    https://github.com/haskell/time/issues/101). By convention, when
+    fields are shown in less than full detail, and/or in double-quoted
+    pseudo syntax, we show a double period (..) in the output.
 
-* Amount has a new Show instance.  Amount's show instance hid
-  important details by default, and showing more details required
-  increasing the debug level, which was inconvenient.  Now it has a
-  single show instance which shows more information, is fairly
-  compact, and is pretty-printable.
+-   Amount has a new Show instance. Amount's show instance hid
+    important details by default, and showing more details required
+    increasing the debug level, which was inconvenient. Now it has a
+    single show instance which shows more information, is fairly
+    compact, and is pretty-printable.
 
-      ghci> usd 1
-      OLD:
-      Amount {acommodity="$", aquantity=1.00, ..}
-      NEW:
-      Amount {acommodity = "$", aquantity = 1.00, aprice = NoPrice, astyle = AmountStyle "L False 2 Just '.' Nothing..", amultiplier = False}
+        ghci> usd 1
+        OLD:
+        Amount {acommodity="$", aquantity=1.00, ..}
+        NEW:
+        Amount {acommodity = "$", aquantity = 1.00, aprice = NoPrice, astyle = AmountStyle "L False 2 Just '.' Nothing..", amultiplier = False}
 
-  MixedAmount's show instance is unchanged, but showMixedAmountDebug
-  is affected by this change:
+    MixedAmount's show instance is unchanged, but showMixedAmountDebug
+    is affected by this change:
 
-      ghci> putStrLn $ showMixedAmountDebug $ Mixed [usd 1]
-      OLD:
-      Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}]
-      NEW:
-      Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle "L False 2 Just '.' Nothing.."}]
+        ghci> putStrLn $ showMixedAmountDebug $ Mixed [usd 1]
+        OLD:
+        Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}]
+        NEW:
+        Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle "L False 2 Just '.' Nothing.."}]
 
-* Same-line & next-line comments of transactions, postings, etc.
-  are now parsed a bit more precisely (followingcommentp). 
-  Previously, parsing no comment gave the same result as an empty
-  comment (a single newline); now it gives an empty string.  
-  Also, and perhaps as a consequence of the above, when there's no
-  same-line comment but there is a next-line comment, we'll insert an
-  empty first line, since otherwise next-line comments would get moved
-  up to the same line when rendered.
+-   Same-line & next-line comments of transactions, postings, etc.
+    are now parsed a bit more precisely (followingcommentp).
+    Previously, parsing no comment gave the same result as an empty
+    comment (a single newline); now it gives an empty string.\
+    Also, and perhaps as a consequence of the above, when there's no
+    same-line comment but there is a next-line comment, we'll insert an
+    empty first line, since otherwise next-line comments would get moved
+    up to the same line when rendered.
 
-* Hledger.Utils.Test exports HasCallStack
+-   Hledger.Utils.Test exports HasCallStack
 
-* queryDateSpan, queryDateSpan' now intersect date AND'ed date spans
-  instead of unioning them, and docs are clearer.
+-   queryDateSpan, queryDateSpan' now intersect date AND'ed date spans
+    instead of unioning them, and docs are clearer.
 
-* pushAccount -> pushDeclaredAccount
+-   pushAccount -\> pushDeclaredAccount
 
-* jaccounts -> jdeclaredaccounts
+-   jaccounts -\> jdeclaredaccounts
 
-* AutoTransaction.hs -> PeriodicTransaction.hs & TransactionModifier.hs
+-   AutoTransaction.hs -\> PeriodicTransaction.hs & TransactionModifier.hs
 
-* Hledger.Utils.Debug helpers have been renamed/cleaned up
-
+-   Hledger.Utils.Debug helpers have been renamed/cleaned up
 
 # 1.10 (2018/6/30)
 
-* build cleanly with all supported GHC versions again (7.10 to 8.4)
+-   build cleanly with all supported GHC versions again (7.10 to 8.4)
 
-* support/use latest base-compat (#794)
+-   support/use latest base-compat (\#794)
 
-* support/require megaparsec 6.4+
+-   support/require megaparsec 6.4+
 
-* extensive refactoring and cleanup of parsers and related types and utilities
+-   extensive refactoring and cleanup of parsers and related types and utilities
 
-* readJournalFile(s) cleanup, these now use InputOpts
+-   readJournalFile(s) cleanup, these now use InputOpts
 
-* doctests now run a bit faster (#802)
-
+-   doctests now run a bit faster (\#802)
 
 # 1.9.1 (2018/4/30)
 
-* new generic PeriodicReport, and some report-related type aliases
+-   new generic PeriodicReport, and some report-related type aliases
 
-* new BudgetReport
+-   new BudgetReport
 
-* make (readJournal|tryReader)s?WithOpts the default api, dropping "WithOpts"
+-   make (readJournal\|tryReader)s?WithOpts the default api, dropping "WithOpts"
 
-* automated postings and command line account aliases happen earlier
-  in journal processing (see hledger changelog)
-
+-   automated postings and command line account aliases happen earlier
+    in journal processing (see hledger changelog)
 
 # 1.9 (2018/3/31)
 
-* support ghc 8.4, latest deps
+-   support ghc 8.4, latest deps
 
-* when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
-found when reading files.
+-   when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
+    found when reading files.
 
-* CompoundBalanceReport amounts are now normally positive.
-The bs/bse/cf/is commands now show normal income, liability and equity
-balances as positive.  Negative numbers now indicate a contra-balance
-(eg an overdrawn checking account), a net loss, a negative net worth,
-etc.  This makes these reports more like conventional financial
-statements, and easier to read and share with others. (experimental)
+-   CompoundBalanceReport amounts are now normally positive.
+    The bs/bse/cf/is commands now show normal income, liability and equity
+    balances as positive. Negative numbers now indicate a contra-balance
+    (eg an overdrawn checking account), a net loss, a negative net worth,
+    etc. This makes these reports more like conventional financial
+    statements, and easier to read and share with others. (experimental)
 
-* splitSpan now returns no spans for an empty datespan
+-   splitSpan now returns no spans for an empty datespan
 
-* don't count periodic/modifier txns in Journal debug output
+-   don't count periodic/modifier txns in Journal debug output
 
-* lib/ui/web/api: move embedded manual files to extra-source-files
+-   lib/ui/web/api: move embedded manual files to extra-source-files
 
-* Use skipMany/skipSome for parsing spacenonewline (Moritz Kiefer)
-This avoids allocating the list of space characters only to then
-discard it.
+-   Use skipMany/skipSome for parsing spacenonewline (Moritz Kiefer)
+    This avoids allocating the list of space characters only to then
+    discard it.
 
-* rename, clarify purpose of balanceReportFromMultiBalanceReport
+-   rename, clarify purpose of balanceReportFromMultiBalanceReport
 
-* fix some hlint warnings
+-   fix some hlint warnings
 
-* add some easytest tests
-
+-   add some easytest tests
 
 # 1.5 (2017/12/31)
 
-* -V/--value uses today's market prices by default, not those of last transaction date. #683, #648)
+-   -V/--value uses today's market prices by default, not those of last transaction date. \#683, \#648)
 
-* csv: allow balance assignment (balance assertion only, no amount) in csv records (Nadrieril)
+-   csv: allow balance assignment (balance assertion only, no amount) in csv records (Nadrieril)
 
-* journal: allow space as digit group separator character, #330 (Mykola Orliuk)
+-   journal: allow space as digit group separator character, \#330 (Mykola Orliuk)
 
-* journal: balance assertion errors now show line of failed assertion posting, #481 (Sam Jeeves)
+-   journal: balance assertion errors now show line of failed assertion posting, \#481 (Sam Jeeves)
 
-* journal: better errors for directives, #402 (Mykola Orliuk)
+-   journal: better errors for directives, \#402 (Mykola Orliuk)
 
-* journal: better errors for included files, #660 (Mykola Orliuk)
+-   journal: better errors for included files, \#660 (Mykola Orliuk)
 
-* journal: commodity directives in parent files are inherited by included files, #487 (Mykola Orliuk)
+-   journal: commodity directives in parent files are inherited by included files, \#487 (Mykola Orliuk)
 
-* journal: commodity directives limits precision even after -B, #509 (Mykola Orliuk)
+-   journal: commodity directives limits precision even after -B, \#509 (Mykola Orliuk)
 
-* journal: decimal point/digit group separator chars are now inferred from an applicable commodity directive or default commodity directive. #399, #487 (Mykola Orliuk)
+-   journal: decimal point/digit group separator chars are now inferred from an applicable commodity directive or default commodity directive. \#399, \#487 (Mykola Orliuk)
 
-* journal: numbers are parsed more strictly (Mykola Orliuk)
+-   journal: numbers are parsed more strictly (Mykola Orliuk)
 
-* journal: support Ledger-style automated postings, enabled with --auto flag (Dmitry Astapov)
+-   journal: support Ledger-style automated postings, enabled with --auto flag (Dmitry Astapov)
 
-* journal: support Ledger-style periodic transactions, enabled with --forecast flag (Dmitry Astapov)
+-   journal: support Ledger-style periodic transactions, enabled with --forecast flag (Dmitry Astapov)
 
-* period expressions: fix "nth day of {week,month}", which could generate wrong intervals (Dmitry Astapov)
+-   period expressions: fix "nth day of {week,month}", which could generate wrong intervals (Dmitry Astapov)
 
-* period expressions: month names are now case-insensitive (Dmitry Astapov)
+-   period expressions: month names are now case-insensitive (Dmitry Astapov)
 
-* period expressions: stricter checking for invalid expressions (Mykola Orliuk)
+-   period expressions: stricter checking for invalid expressions (Mykola Orliuk)
 
-* period expressions: support "every 11th Nov" (Dmitry Astapov)
+-   period expressions: support "every 11th Nov" (Dmitry Astapov)
 
-* period expressions: support "every 2nd Thursday of month" (Dmitry Astapov)
+-   period expressions: support "every 2nd Thursday of month" (Dmitry Astapov)
 
-* period expressions: support "every Tuesday", short for "every <n>th day of week" (Dmitry Astapov)
+-   period expressions: support "every Tuesday", short for "every <n>th day of week" (Dmitry Astapov)
 
-* remove upper bounds on all but hledger* and base (experimental)
-  It's rare that my deps break their api or that newer versions must
-  be avoided, and very common that they release new versions which I
-  must tediously and promptly test and release hackage revisions for
-  or risk falling out of stackage. Trying it this way for a bit.
-
+-   remove upper bounds on all but hledger\* and base (experimental)
+    It's rare that my deps break their api or that newer versions must
+    be avoided, and very common that they release new versions which I
+    must tediously and promptly test and release hackage revisions for
+    or risk falling out of stackage. Trying it this way for a bit.
 
 # 1.4 (2017/9/30)
 
-* add readJournalFile[s]WithOpts, with simpler arguments and support
-for detecting new transactions since the last read.
+-   add readJournalFile\[s\]WithOpts, with simpler arguments and support
+    for detecting new transactions since the last read.
 
-* query: add payee: and note: query terms, improve description/payee/note docs (Jakub Zárybnický, Simon Michael, #598, #608)
+-   query: add payee: and note: query terms, improve description/payee/note docs (Jakub Zárybnický, Simon Michael, \#598, \#608)
 
-* journal, cli: make trailing whitespace significant in regex account aliases
-Trailing whitespace in the replacement part of a regular expression
-account alias is now significant. Eg, converting a parent account to
-just an account name prefix: --alias '/:acct:/=:acct '
+-   journal, cli: make trailing whitespace significant in regex account aliases
+    Trailing whitespace in the replacement part of a regular expression
+    account alias is now significant. Eg, converting a parent account to
+    just an account name prefix: --alias '/:acct:/=:acct'
 
-* timedot: allow a quantity of seconds, minutes, days, weeks, months
-  or years to be logged as Ns, Nm, Nd, Nw, Nmo, Ny
+-   timedot: allow a quantity of seconds, minutes, days, weeks, months
+    or years to be logged as Ns, Nm, Nd, Nw, Nmo, Ny
 
-* csv: switch the order of generated postings, so account1 is first.
-This simplifies things and facilitates future improvements.
+-   csv: switch the order of generated postings, so account1 is first.
+    This simplifies things and facilitates future improvements.
 
-* csv: show the "creating/using rules file" message only with --debug
+-   csv: show the "creating/using rules file" message only with --debug
 
-* csv: fix multiple includes in one rules file
+-   csv: fix multiple includes in one rules file
 
-* csv: add "newest-first" rule for more robust same-day ordering
+-   csv: add "newest-first" rule for more robust same-day ordering
 
-* deps: allow ansi-terminal 0.7
+-   deps: allow ansi-terminal 0.7
 
-* deps: add missing parsec lower bound, possibly related to #596, fpco/stackage#2835
+-   deps: add missing parsec lower bound, possibly related to \#596, fpco/stackage\#2835
 
-* deps: drop oldtime flag, require time 1.5+
+-   deps: drop oldtime flag, require time 1.5+
 
-* deps: remove ghc < 7.6 support, remove obsolete CPP conditionals
+-   deps: remove ghc \< 7.6 support, remove obsolete CPP conditionals
 
-* deps: fix test suite with ghc 8.2
-
+-   deps: fix test suite with ghc 8.2
 
 # 1.3.1 (2017/8/25)
 
-* Fix a bug with -H showing nothing for empty periods (#583, Nicholas Niro)
-This patch fixes a bug that happened when using the -H option on
-a period without any transaction. Previously, the behavior was no
-output at all even though it should have shown the previous ending balances
-of past transactions. (This is similar to previously using -H with -E,
-but with the extra advantage of not showing empty accounts)
+-   Fix a bug with -H showing nothing for empty periods (\#583, Nicholas Niro)
+    This patch fixes a bug that happened when using the -H option on
+    a period without any transaction. Previously, the behavior was no
+    output at all even though it should have shown the previous ending balances
+    of past transactions. (This is similar to previously using -H with -E,
+    but with the extra advantage of not showing empty accounts)
 
-* allow megaparsec 6 (#594)
+-   allow megaparsec 6 (\#594)
 
-* allow megaparsec-6.1 (Hans-Peter Deifel)
+-   allow megaparsec-6.1 (Hans-Peter Deifel)
 
-* fix test suite with Cabal 2 (#596)
-
+-   fix test suite with Cabal 2 (\#596)
 
 # 1.3 (2017/6/30)
 
 journal: The "uncleared" transaction/posting status, and associated UI flags
 and keys, have been renamed to "unmarked" to remove ambiguity and
-confusion.  This means that we have dropped the `--uncleared` flag,
+confusion. This means that we have dropped the `--uncleared` flag,
 and our `-U` flag now matches only unmarked things and not pending
-ones.  See the issue and linked mail list discussion for more
-background.  (#564)
+ones. See the issue and linked mail list discussion for more
+background. (\#564)
 
 csv: assigning to the "balance" field name creates balance
-assertions (#537, Dmitry Astapov).
+assertions (\#537, Dmitry Astapov).
 
-csv: Doubled minus signs are handled more robustly (fixes #524, Nicolas Wavrant, Simon Michael)
+csv: Doubled minus signs are handled more robustly (fixes \#524, Nicolas Wavrant, Simon Michael)
 
-Multiple "status:" query terms are now OR'd together. (#564)
+Multiple "status:" query terms are now OR'd together. (\#564)
 
 deps: allow megaparsec 5.3.
-
 
 # 1.2 (2017/3/31)
 
@@ -308,7 +298,7 @@ deps: allow megaparsec 5.3.
 
 A pipe character can optionally be used to delimit payee names in
 transaction descriptions, for more accurate querying and pivoting by
-payee.  Eg, for a description like `payee name | additional notes`,
+payee. Eg, for a description like `payee name | additional notes`,
 the two parts will be accessible as pseudo-fields/tags named `payee`
 and `note`.
 
@@ -321,24 +311,23 @@ been disabled, reducing build dependencies.
 
 ## Misc
 
-Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (#483) (Mykola Orliuk)
+Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (\#483) (Mykola Orliuk)
 
-Fix a few spaceleaks (#413) (Moritz Kiefer)
+Fix a few spaceleaks (\#413) (Moritz Kiefer)
 
 Add Ledger.Parse.Text to package.yaml, fixing a potential build failure.
 
-Allow megaparsec 5.2 (#503)
+Allow megaparsec 5.2 (\#503)
 
-Rename optserror -> usageError, consolidate with other error functions
-
+Rename optserror -\> usageError, consolidate with other error functions
 
 # 1.1 (2016/12/31)
 
 ## journal format
 
--   balance assignments are now supported (#438, #129, #157, #288)
+-   balance assignments are now supported (\#438, \#129, \#157, \#288)
 
-    This feature also brings a slight performance drop (~5%);
+    This feature also brings a slight performance drop (\~5%);
     optimisations welcome.
 
 -   also recognise `*.hledger` files as hledger journal format
@@ -346,7 +335,7 @@ Rename optserror -> usageError, consolidate with other error functions
 ## ledger format
 
 -   use ledger-parse from the ledger4 project as an alternate reader for C++ Ledger journals
-    
+
     The idea is that some day we might get better compatibility with Ledger files this way.
     Right now this reader is not very useful and will be used only if you explicitly select it with a `ledger:` prefix.
     It parses transaction dates, descriptions, accounts and amounts, and ignores everything else.
@@ -358,23 +347,21 @@ Rename optserror -> usageError, consolidate with other error functions
 ## misc
 
 -   update base lower bound to enforce GHC 7.10+
-    
+
     hledger-lib had a valid install plan with GHC 7.8, but currently requires GHC 7.10 to compile.
     Now we require base 4.8+ everywhere to ensure the right GHC version at the start.
-    
+
 -   Hledger.Read api cleanups
 
--   rename dbgIO to dbg0IO, consistent with dbg0, and document a bug in dbg*IO
+-   rename dbgIO to dbg0IO, consistent with dbg0, and document a bug in dbg\*IO
 
--   make readJournalFiles [f] equivalent to readJournalFile f (#437)
+-   make readJournalFiles \[f\] equivalent to readJournalFile f (\#437)
 
--   more general parser types enabling reuse outside of IO (#439)
-
+-   more general parser types enabling reuse outside of IO (\#439)
 
 # 1.0.1 (2016/10/27)
 
-- allow megaparsec 5.0 or 5.1
-
+-   allow megaparsec 5.0 or 5.1
 
 # 1.0 (2016/10/26)
 
@@ -383,10 +370,10 @@ Rename optserror -> usageError, consolidate with other error functions
 -   new "timedot" format for retroactive/approximate time logging.
 
     Timedot is a plain text format for logging dated, categorised
-    quantities (eg time), supported by hledger.  It is convenient
+    quantities (eg time), supported by hledger. It is convenient
     for approximate and retroactive time logging, eg when the
     real-time clock-in/out required with a timeclock file is too
-    precise or too interruptive.  It can be formatted like a bar
+    precise or too interruptive. It can be formatted like a bar
     chart, making clear at a glance where time was spent.
 
 ## timeclock format
@@ -397,7 +384,7 @@ Rename optserror -> usageError, consolidate with other error functions
 
     sessions will be auto-closed at the end of the file).
 
--   transaction ids now count up rather than down (#394)
+-   transaction ids now count up rather than down (\#394)
 
 -   timeclock files no longer support default year directives
 
@@ -407,11 +394,11 @@ Rename optserror -> usageError, consolidate with other error functions
 
 ## csv format
 
--   fix empty field assignment parsing, rule parse errors after megaparsec port (#407) (Hans-Peter Deifel)
+-   fix empty field assignment parsing, rule parse errors after megaparsec port (\#407) (Hans-Peter Deifel)
 
 ## journal format
 
--   journal files can now include timeclock or timedot files (#320)
+-   journal files can now include timeclock or timedot files (\#320)
 
     (but not yet CSV files).
 
@@ -419,16 +406,16 @@ Rename optserror -> usageError, consolidate with other error functions
 
 -   the "commodity" directive and "format" subdirective are now supported, allowing
 
-    full control of commodity style (#295) The commodity directive's
+    full control of commodity style (\#295) The commodity directive's
     format subdirective can now be used to override the inferred
     style for a commodity, eg to increase or decrease the
-    precision. This is at least a good workaround for #295.
+    precision. This is at least a good workaround for \#295.
 
 -   Ledger-style "apply account"/"end apply account" directives are now used to set a default parent account.
 
 -   the Ledger-style "account" directive is now accepted (and ignored).
 
--   bracketed posting dates are more robust (#304)
+-   bracketed posting dates are more robust (\#304)
 
     Bracketed posting dates were fragile; they worked only if you
     wrote full 10-character dates. Also some semantics were a bit
@@ -437,7 +424,7 @@ Rename optserror -> usageError, consolidate with other error functions
     it improves compatibility and might be preferable to the more
     verbose "date:" tags if you write posting dates often (as I do).
     Internally, bracketed posting dates are no longer considered to
-    be tags.  Journal comment, tag, and posting date parsers have
+    be tags. Journal comment, tag, and posting date parsers have
     been reworked, all with doctests.
 
 -   balance assertion failure messages are clearer
@@ -446,11 +433,11 @@ Rename optserror -> usageError, consolidate with other error functions
 
 ## misc
 
--   file parsers have been ported from Parsec to Megaparsec \o/ (#289, #366) (Alexey Shmalko, Moritz Kiefer)
+-   file parsers have been ported from Parsec to Megaparsec \o/ (\#289, \#366) (Alexey Shmalko, Moritz Kiefer)
 
 -   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files
 
--   file parsers have been simplified for easier troubleshooting (#275).
+-   file parsers have been simplified for easier troubleshooting (\#275).
 
     The journal/timeclock/timedot parsers, instead of constructing
     opaque journal update functions which are later applied to build
@@ -458,7 +445,7 @@ Rename optserror -> usageError, consolidate with other error functions
     parser state. This is easier to understand and debug. It also
     rules out the possibility of journal updates being a space
     leak. (They weren't, in fact this change increased memory usage
-    slightly, but that has been addressed in other ways).  The
+    slightly, but that has been addressed in other ways). The
     ParsedJournal type alias has been added to distinguish
     "being-parsed" journals and "finalised" journals.
 
@@ -467,16 +454,16 @@ Rename optserror -> usageError, consolidate with other error functions
     The Journal, Timelog and Timedot readers' detectors now check
     each line in the sample data, not just the first one. I think the
     sample data is only about 30 chars right now, but even so this
-    fixed a format detection issue I was seeing. 
+    fixed a format detection issue I was seeing.
     Also, we now always try parsing stdin as journal format (not just sometimes).
 
--   all file formats now produce transaction ids, not just journal (#394)
+-   all file formats now produce transaction ids, not just journal (\#394)
 
--   git clone of the hledger repo on windows now works (#345)
+-   git clone of the hledger repo on windows now works (\#345)
 
--   added missing benchmark file (#342)
+-   added missing benchmark file (\#342)
 
--   our stack.yaml files are more compatible across stack versions (#300)
+-   our stack.yaml files are more compatible across stack versions (\#300)
 
 -   use newer file-embed to fix ghci working directory dependence (<https://github.com/snoyberg/file-embed/issues/18>)
 
@@ -485,7 +472,7 @@ Rename optserror -> usageError, consolidate with other error functions
     (affects hledger-ui and hledger-web registers).
     The newly-named "transaction register date" is the date to be
     displayed for that transaction in a transaction register, for
-    some current account and filter query.  It is either the
+    some current account and filter query. It is either the
     transaction date from the journal ("transaction general date"),
     or if postings to the current account and matched by the
     register's filter query have their own dates, the earliest of
@@ -522,92 +509,88 @@ Rename optserror -> usageError, consolidate with other error functions
 
 -   more unit tests, start using doctest
 
-
-
-
 0.27 (2015/10/30)
 
-- The main hledger types now derive NFData, which makes it easier to
-  time things with criterion.
+-   The main hledger types now derive NFData, which makes it easier to
+    time things with criterion.
 
-- Utils has been split up more.
+-   Utils has been split up more.
 
-- Utils.Regex: regular expression compilation has been memoized, and
-  memoizing versions of regexReplace[CI] have been added, since
-  compiling regular expressions every time seems to be quite
-  expensive (#244).
- 
-- Utils.String: strWidth is now aware of multi-line strings (#242).
+-   Utils.Regex: regular expression compilation has been memoized, and
+    memoizing versions of regexReplace\[CI\] have been added, since
+    compiling regular expressions every time seems to be quite
+    expensive (\#244).
 
-- Read: parsers now use a consistent p suffix.
+-   Utils.String: strWidth is now aware of multi-line strings (\#242).
 
-- New dependencies: deepseq, uglymemo.
+-   Read: parsers now use a consistent p suffix.
 
-- All the hledger packages' cabal files are now generated from
-  simpler, less redundant yaml files by hpack, in principle. In
-  practice, manual fixups are still needed until hpack gets better,
-  but it's still a win.
+-   New dependencies: deepseq, uglymemo.
+
+-   All the hledger packages' cabal files are now generated from
+    simpler, less redundant yaml files by hpack, in principle. In
+    practice, manual fixups are still needed until hpack gets better,
+    but it's still a win.
 
 0.26 (2015/7/12)
 
-- allow year parser to handle arbitrarily large years
-- Journal's Show instance reported one too many accounts
-- some cleanup of debug trace helpers
-- tighten up some date and account name parsers (don't accept leading spaces; hadddocks)
-- drop regexpr dependency
+-   allow year parser to handle arbitrarily large years
+-   Journal's Show instance reported one too many accounts
+-   some cleanup of debug trace helpers
+-   tighten up some date and account name parsers (don't accept leading spaces; hadddocks)
+-   drop regexpr dependency
 
 0.25.1 (2015/4/29)
 
-- support/require base-compat >0.8 (#245)
+-   support/require base-compat \>0.8 (\#245)
 
 0.25 (2015/4/7)
 
-
-- GHC 7.10 compatibility (#239)
+-   GHC 7.10 compatibility (\#239)
 
 0.24.1 (2015/3/15)
 
-- fix JournalReader "ctx" compilation warning
-- add some type signatures in Utils to help make ghci-web
+-   fix JournalReader "ctx" compilation warning
+-   add some type signatures in Utils to help make ghci-web
 
 0.24 (2014/12/25)
 
-- fix combineJournalUpdates folding order
-- fix a regexReplaceCI bug
-- fix a splitAtElement bug with adjacent separators
-- mostly replace slow regexpr with regex-tdfa (fixes #189)
-- use the modern Text.Parsec API
-- allow transformers 0.4*
-- regexReplace now supports backreferences
-- Transactions now remember their parse location in the journal file
-- export Regexp types, disambiguate CsvReader's similarly-named type
-- export failIfInvalidMonth/Day (fixes #216)
-- track the commodity of zero amounts when possible
-  (useful eg for hledger-web's multi-commodity charts)
-- show posting dates in debug output
-- more debug helpers
+-   fix combineJournalUpdates folding order
+-   fix a regexReplaceCI bug
+-   fix a splitAtElement bug with adjacent separators
+-   mostly replace slow regexpr with regex-tdfa (fixes \#189)
+-   use the modern Text.Parsec API
+-   allow transformers 0.4\*
+-   regexReplace now supports backreferences
+-   Transactions now remember their parse location in the journal file
+-   export Regexp types, disambiguate CsvReader's similarly-named type
+-   export failIfInvalidMonth/Day (fixes \#216)
+-   track the commodity of zero amounts when possible
+    (useful eg for hledger-web's multi-commodity charts)
+-   show posting dates in debug output
+-   more debug helpers
 
 0.23.3 (2014/9/12)
 
-- allow transformers 0.4*
+-   allow transformers 0.4\*
 
 0.23.2 (2014/5/8)
 
-- postingsReport: also fix date sorting of displayed postings (#184)
+-   postingsReport: also fix date sorting of displayed postings (\#184)
 
 0.23.1 (2014/5/7)
 
-- postingsReport: with disordered journal entries, postings before the
-  report start date could get wrongly included. (#184)
+-   postingsReport: with disordered journal entries, postings before the
+    report start date could get wrongly included. (\#184)
 
 0.23 (2014/5/1)
 
-- orDatesFrom -> spanDefaultsFrom
+-   orDatesFrom -\> spanDefaultsFrom
 
 0.22.2 (2014/4/16)
 
-- display years before 1000 with four digits, not three
-- avoid pretty-show to build with GHC < 7.4
-- allow text 1.1, drop data-pprint to build with GHC 7.8.x
+-   display years before 1000 with four digits, not three
+-   avoid pretty-show to build with GHC \< 7.4
+-   allow text 1.1, drop data-pprint to build with GHC 7.8.x
 
 0.22.1 (2014/1/6) and older: see http://hledger.org/release-notes or doc/CHANGES.md.
