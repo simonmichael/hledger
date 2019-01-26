@@ -22,7 +22,7 @@ stability: alpha
 tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3
 
 extra-source-files:
-- CHANGES
+- CHANGES.md
 - README
 - examples/*.html
 - hledger-api.1
