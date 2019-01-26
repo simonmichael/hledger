@@ -1,6 +1,8 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 0a31ef84
+
 # 1e5e30ae
 
 - use hledger 1.12.99

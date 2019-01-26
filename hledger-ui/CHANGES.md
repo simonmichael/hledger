@@ -1,6 +1,8 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 0a31ef84
+
 # 1e5e30ae
 
 - on posix systems, control-z suspends the program

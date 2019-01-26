@@ -1,6 +1,8 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# 0a31ef84
+
 # 9bc88727
 
 - fixed pandoc typography conversion in web manuals (#954).

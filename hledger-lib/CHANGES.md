@@ -1,6 +1,8 @@
 Internal/api/developer-ish changes in the hledger-lib package.
 For user-visible changes, see the hledger package changelog.
 
+# 0a31ef84
+
 # 1e5e30ae
 
 added: 

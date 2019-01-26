@@ -1,6 +1,8 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 0a31ef84
+
 # 1e5e30ae
 
 - journal: account directive: account sort codes like `account 1000`
