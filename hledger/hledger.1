@@ -1639,11 +1639,6 @@ show performance compared to budget goals defined by periodic
 transactions
 .RS
 .RE
-.TP
-.B \f[C]\-\-show\-unbudgeted\f[]
-with \-\-budget, show unbudgeted accounts also
-.RS
-.RE
 .PP
 The balance command is hledger\[aq]s most versatile command.
 Note, despite the name, it is not always used for showing real\-world
@@ -1934,6 +1929,8 @@ Second, all accounts which existed at the report start date will be
 considered, not just the ones with activity during the report period
 (use \-E to include low\-activity accounts which would otherwise would
 be omitted).
+With \f[C]\-\-budget\f[], \f[C]\-\-empty\f[] also shows unbudgeted
+accounts.
 .PP
 The \f[C]\-T/\-\-row\-total\f[] flag adds an additional column showing
 the total for each row.
@@ -2040,12 +2037,11 @@ In the example above, transactions in \f[C]expenses:gifts\f[] and
 but accounts \f[C]expenses:gifts\f[] and \f[C]expenses:supplies\f[] are
 not shown, as they don\[aq]t have any budgets.
 .PP
-You can use \f[C]\-\-show\-unbudgeted\f[] shows unbudgeted accounts as
-well:
+You can use \f[C]\-\-empty\f[] shows unbudgeted accounts as well:
 .IP
 .nf
 \f[C]
-$\ hledger\ balance\ \-M\ \-\-budget\ \-\-show\-unbudgeted
+$\ hledger\ balance\ \-M\ \-\-budget\ \-\-empty
 Budget\ performance\ in\ 2017/11/01\-2017/12/31:
 
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Nov\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Dec\ 
@@ -2174,12 +2170,12 @@ Budget\ performance\ in\ 2019/01:
 \f[]
 .fi
 .PP
-And with \f[C]\-\-show\-unbudgeted\f[], we can get a better picture of
-budget allocation and consumption:
+And with \f[C]\-\-empty\f[], we can get a better picture of budget
+allocation and consumption:
 .IP
 .nf
 \f[C]
-$\ hledger\ balance\ \-\-budget\ \-M\ \-\-show\-unbudgeted
+$\ hledger\ balance\ \-\-budget\ \-M\ \-\-empty
 Budget\ performance\ in\ 2019/01:
 
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Jan\ 

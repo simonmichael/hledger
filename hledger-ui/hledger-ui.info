@@ -349,7 +349,7 @@ transactions.  Similarly, 'P' toggles pending transactions, and 'C'
 toggles cleared transactions.  (By default, transactions with all
 statuses are shown; if you activate one or two status filters, only
 those transactions are shown; and if you activate all three, the filter
-is removed.)q
+is removed.)
 
    'R' toggles real mode, in which virtual postings are ignored.
 
@@ -408,9 +408,9 @@ Node: Accounts screen8148
 Ref: #accounts-screen8276
 Node: Register screen10492
 Ref: #register-screen10647
-Node: Transaction screen12644
-Ref: #transaction-screen12802
-Node: Error screen13672
-Ref: #error-screen13794
+Node: Transaction screen12643
+Ref: #transaction-screen12801
+Node: Error screen13671
+Ref: #error-screen13793
 
 End Tag Table

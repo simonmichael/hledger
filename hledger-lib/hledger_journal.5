@@ -602,8 +602,21 @@ One workaround is to isolate each commodity into its own subaccount:
 .fi
 .SS Assertions and prices
 .PP
-Balance assertion (or assignment) amounts should not have a price, as
-the meaning of that would be unclear.
+Balance assertions ignore transaction prices, and should normally be
+written without one:
+.IP
+.nf
+\f[C]
+2019/1/1
+\ \ (a)\ \ \ \ \ $1\ \@\ €1\ =\ $1
+\f[]
+.fi
+.PP
+We do allow prices to be written there, however, and print shows them,
+even though they don\[aq]t affect whether the assertion passes or fails.
+This is for backward compatibility (hledger\[aq]s close command used to
+generate balance assertions with prices), and because balance
+\f[I]assignments\f[] do use them (see below).
 .SS Assertions and subaccounts
 .PP
 Balance assertions do not count the balance from subaccounts; they check
@@ -682,6 +695,25 @@ assignment).
 Note that using balance assignments makes your journal a little less
 explicit; to know the exact amount posted, you have to run hledger or do
 the calculations yourself, instead of just reading it.
+.SS Balance assignments and prices
+.PP
+A transaction price in a balance assignment will cause the calculated
+amount to have that price attached:
+.IP
+.nf
+\f[C]
+2019/1/1
+\ \ (a)\ \ \ \ \ \ \ \ \ \ \ \ \ =\ $1\ \@\ €2
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ print\ \-\-explicit
+2019/01/01
+\ \ \ \ (a)\ \ \ \ \ \ \ \ \ $1\ \@\ €2\ =\ $1\ \@\ €2
+\f[]
+.fi
 .SS Transaction prices
 .PP
 Within a transaction, you can note an amount\[aq]s price in another

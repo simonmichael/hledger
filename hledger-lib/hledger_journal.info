@@ -573,8 +573,17 @@ File: hledger_journal.info,  Node: Assertions and prices,  Next: Assertions and 
 1.9.5 Assertions and prices
 ---------------------------
 
-Balance assertion (or assignment) amounts should not have a price, as
-the meaning of that would be unclear.
+Balance assertions ignore transaction prices, and should normally be
+written without one:
+
+2019/1/1
+  (a)     $1 @ €1 = $1
+
+   We do allow prices to be written there, however, and print shows
+them, even though they don't affect whether the assertion passes or
+fails.  This is for backward compatibility (hledger's close command used
+to generate balance assertions with prices), and because balance
+_assignments_ do use them (see below).
 
 
 File: hledger_journal.info,  Node: Assertions and subaccounts,  Next: Assertions and virtual postings,  Prev: Assertions and prices,  Up: Balance Assertions
@@ -652,6 +661,25 @@ of the commodity to that account since the last balance assertion or
 assignment).  Note that using balance assignments makes your journal a
 little less explicit; to know the exact amount posted, you have to run
 hledger or do the calculations yourself, instead of just reading it.
+* Menu:
+
+* Balance assignments and prices::
+
+
+File: hledger_journal.info,  Node: Balance assignments and prices,  Up: Balance Assignments
+
+1.10.1 Balance assignments and prices
+-------------------------------------
+
+A transaction price in a balance assignment will cause the calculated
+amount to have that price attached:
+
+2019/1/1
+  (a)             = $1 @ €2
+
+$ hledger print --explicit
+2019/01/01
+    (a)         $1 @ €2 = $1 @ €2
 
 
 File: hledger_journal.info,  Node: Transaction prices,  Next: Comments,  Prev: Balance Assignments,  Up: FILE FORMAT
@@ -1597,67 +1625,69 @@ Node: Assertions and commodities19383
 Ref: #assertions-and-commodities19613
 Node: Assertions and prices20801
 Ref: #assertions-and-prices21013
-Node: Assertions and subaccounts21122
-Ref: #assertions-and-subaccounts21349
-Node: Assertions and virtual postings21870
-Ref: #assertions-and-virtual-postings22110
-Node: Assertions and precision22252
-Ref: #assertions-and-precision22443
-Node: Balance Assignments22710
-Ref: #balance-assignments22891
-Node: Transaction prices24011
-Ref: #transaction-prices24180
-Node: Comments26448
-Ref: #comments26582
-Node: Tags27752
-Ref: #tags27870
-Node: Directives29272
-Ref: #directives29415
-Node: Comment blocks35022
-Ref: #comment-blocks35167
-Node: Including other files35343
-Ref: #including-other-files35523
-Node: Default year35931
-Ref: #default-year36100
-Node: Declaring commodities36523
-Ref: #declaring-commodities36706
-Node: Default commodity37933
-Ref: #default-commodity38109
-Node: Market prices38745
-Ref: #market-prices38910
-Node: Declaring accounts39751
-Ref: #declaring-accounts39927
-Node: Account comments40852
-Ref: #account-comments41015
-Node: Account subdirectives41410
-Ref: #account-subdirectives41605
-Node: Account types41918
-Ref: #account-types42102
-Node: Account display order43746
-Ref: #account-display-order43916
-Node: Rewriting accounts45045
-Ref: #rewriting-accounts45230
-Node: Basic aliases45964
-Ref: #basic-aliases46110
-Node: Regex aliases46814
-Ref: #regex-aliases46985
-Node: Multiple aliases47703
-Ref: #multiple-aliases47878
-Node: end aliases48376
-Ref: #end-aliases48523
-Node: Default parent account48624
-Ref: #default-parent-account48790
-Node: Periodic transactions49674
-Ref: #periodic-transactions49856
-Node: Two spaces after the period expression50981
-Ref: #two-spaces-after-the-period-expression51226
-Node: Forecasting with periodic transactions51711
-Ref: #forecasting-with-periodic-transactions52001
-Node: Budgeting with periodic transactions53688
-Ref: #budgeting-with-periodic-transactions53927
-Node: Transaction Modifiers54386
-Ref: #transaction-modifiers54549
-Node: EDITOR SUPPORT56530
-Ref: #editor-support56648
+Node: Assertions and subaccounts21453
+Ref: #assertions-and-subaccounts21680
+Node: Assertions and virtual postings22201
+Ref: #assertions-and-virtual-postings22441
+Node: Assertions and precision22583
+Ref: #assertions-and-precision22774
+Node: Balance Assignments23041
+Ref: #balance-assignments23222
+Node: Balance assignments and prices24386
+Ref: #balance-assignments-and-prices24558
+Node: Transaction prices24782
+Ref: #transaction-prices24951
+Node: Comments27219
+Ref: #comments27353
+Node: Tags28523
+Ref: #tags28641
+Node: Directives30043
+Ref: #directives30186
+Node: Comment blocks35793
+Ref: #comment-blocks35938
+Node: Including other files36114
+Ref: #including-other-files36294
+Node: Default year36702
+Ref: #default-year36871
+Node: Declaring commodities37294
+Ref: #declaring-commodities37477
+Node: Default commodity38704
+Ref: #default-commodity38880
+Node: Market prices39516
+Ref: #market-prices39681
+Node: Declaring accounts40522
+Ref: #declaring-accounts40698
+Node: Account comments41623
+Ref: #account-comments41786
+Node: Account subdirectives42181
+Ref: #account-subdirectives42376
+Node: Account types42689
+Ref: #account-types42873
+Node: Account display order44517
+Ref: #account-display-order44687
+Node: Rewriting accounts45816
+Ref: #rewriting-accounts46001
+Node: Basic aliases46735
+Ref: #basic-aliases46881
+Node: Regex aliases47585
+Ref: #regex-aliases47756
+Node: Multiple aliases48474
+Ref: #multiple-aliases48649
+Node: end aliases49147
+Ref: #end-aliases49294
+Node: Default parent account49395
+Ref: #default-parent-account49561
+Node: Periodic transactions50445
+Ref: #periodic-transactions50627
+Node: Two spaces after the period expression51752
+Ref: #two-spaces-after-the-period-expression51997
+Node: Forecasting with periodic transactions52482
+Ref: #forecasting-with-periodic-transactions52772
+Node: Budgeting with periodic transactions54459
+Ref: #budgeting-with-periodic-transactions54698
+Node: Transaction Modifiers55157
+Ref: #transaction-modifiers55320
+Node: EDITOR SUPPORT57301
+Ref: #editor-support57419
 
 End Tag Table

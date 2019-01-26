@@ -314,8 +314,7 @@ SCREENS
        transactions.  Similarly, P toggles pending transactions, and C toggles
        cleared transactions.  (By default, transactions with all statuses  are
        shown;  if  you activate one or two status filters, only those transac-
-       tions are  shown;  and  if  you  activate  all  three,  the  filter  is
-       removed.)q
+       tions are shown; and if you activate all three, the filter is removed.)
 
        R toggles real mode, in which virtual postings are ignored.
 
