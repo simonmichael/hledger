@@ -149,8 +149,8 @@ User-visible changes in the hledger command line tool (and hledger-lib).
 * csv: interpolated field names in values are now properly case insensitive, so
   this works:
 
-  fields  ...,Transaction_Date,...
-  date %Transaction_Date
+      fields  ...,Transaction_Date,...
+      date %Transaction_Date
 
 * journal: D (default commodity) directives no longer break multiplier
   amounts in transaction modifiers (AKA automated postings) (#860)
@@ -378,10 +378,11 @@ ignores --date2.
 * cli: a @FILE argument reads flags & args from FILE, one per line
 
 * cli: reorganized commands list, added some new command aliases:
-  accounts: a
-  balance:  b
-  print:    p, txns
-  register: r
+
+  - accounts: a
+  - balance:  b
+  - print:    p, txns
+  - register: r
 
 * cli: accept -NUM as a shortcut for --depth=NUM (eg: -2)
 
@@ -392,12 +393,14 @@ ignores --date2.
 * help: offers multiple formats, accepts topic substrings.
   The separate info/man commands have been dropped. help now
   chooses an appropriate documentation format as follows: 
+
   - it uses info if available, 
   - otherwise man if available, 
   - otherwise $PAGER if defined, 
   - otherwise less if available, 
   - otherwise it prints on stdout
   - (and it always prints on stdout when piped). 
+
   You can override this with the `--info`/`--man`/`--pager`/`--cat` flags.
   (#579)
 
@@ -560,21 +563,19 @@ The rewrite command is more robust and powerful (Mykola Orliuk):
 - in addition to command-line rewrite options, it understands rewrite rules
   defined in the journal, similar to Ledger's automated transactions (#99).
   Eg:
-    ```journal
-    = ^income
-        (liabilities:tax)  *.33
 
-    = expenses:gifts
-        budget:gifts  *-1
-        assets:budget  *1
-    ```
+      = ^income
+          (liabilities:tax)  *.33
+
+      = expenses:gifts
+          budget:gifts  *-1
+          assets:budget  *1
 
 - it can generate diff output, allowing easier review of the proposed
   changes, and safe modification of original journal files (preserving
   file-level comments and directives). Eg:
-    ```
-    hledger-rewrite --diff Agency --add-posting 'Expenses:Taxes  *0.17' | patch
-    ```
+
+      hledger-rewrite --diff Agency --add-posting 'Expenses:Taxes  *0.17' | patch
 
 - rewrites can affect multiple postings in a transaction, not just one.
 
@@ -864,9 +865,9 @@ balance:
   style of multi-commodity amounts, if you begin the format string
   with one of:
     
-     %_  - renders amounts on multiple lines, bottom-aligned (the default)
-     %^  - renders amounts on multiple lines, top-aligned
-     %,  - renders amounts on one line, comma-separated
+      %_  - renders amounts on multiple lines, bottom-aligned (the default)
+      %^  - renders amounts on multiple lines, top-aligned
+      %,  - renders amounts on one line, comma-separated
     
 - The balance report's final total (and the line above it) now adapt
   themselves to a custom --format.
@@ -911,11 +912,11 @@ Journal format:
   proposed on the mail lists.  These are not well-formed General
   Journal entries/transactions, but here is my rationale:
     
-    - Ledger and beancount parse them
-    - if they are parsed, they should be printed
-    - they provide a convenient way to record (and report) non-transaction events
-    - they permit more gradual introduction and learning of the concepts.
-      So eg a beginner can keep a simple journal before learning about accounts and postings.
+  - Ledger and beancount parse them
+  - if they are parsed, they should be printed
+  - they provide a convenient way to record (and report) non-transaction events
+  - they permit more gradual introduction and learning of the concepts.
+    So eg a beginner can keep a simple journal before learning about accounts and postings.
 
 - Trailing whitespace after a `comment` directive is now ignored.
 
@@ -949,16 +950,20 @@ Queries:
     nor pending.
 
 activity:
+
 - activity no longer excludes 0-amount postings by default.
 
 add:
+
 - Don't show quotes around the journal file path in the "Creating..."
   message, for consistency with the subsequent "Adding..." message.
 
 balancesheet:
+
 - Accounts beginning with "debt" or now also recognised as liabilities.
 
 print:
+
 - We now limit the display precision of inferred prices. (#262)
     
     When a transaction posts to two commodities without specifying the
@@ -972,19 +977,19 @@ print:
     precision to the sum of the (max) display precisions of the
     commodities involved. An example:
     
-    hledgerdev -f- print
-    <<<
-    1/1
-        c    C 10.00
-        c    C 11.00
-        d  D -320.00
-    >>>
-    2015/01/01
-        c  C 10.00 @ D 15.2381
-        c  C 11.00 @ D 15.2381
-        d     D -320.00
-    
-    >>>=0
+        hledgerdev -f- print
+        <<<
+        1/1
+            c    C 10.00
+            c    C 11.00
+            d  D -320.00
+        >>>
+        2015/01/01
+            c  C 10.00 @ D 15.2381
+            c  C 11.00 @ D 15.2381
+            d     D -320.00
+
+        >>>=0
     
     There might still be cases where this will show more price decimal
     places than necessary. 
@@ -1000,9 +1005,11 @@ print:
     2, which helps a bit.
 
 register:
+
 - Postings with no amounts could give a runtime error in some obscure case, now fixed.
 
 stats: 
+
 - stats now supports -o/--outputfile, like register/balance/print.
 - An O(n^2) performance slowdown has been fixed, it's now much faster on large journals.
 
@@ -1067,15 +1074,16 @@ Miscellaneous:
     the available space (WIDTH-41) is divided up between these two
     columns. Here's a diagram:
     
-    <--------------------------------- width (W) ---------------------------------->
-    date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
-    DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
-    
+        <--------------------------------- width (W) ---------------------------------->
+        date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
+        DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+
     Examples:
-    $ hledger reg                 # use terminal width on posix
-    $ hledger reg -w 100          # width 100, equal description/account widths
-    $ hledger reg -w 100,40       # width 100, wider description
-    $ hledger reg -w $COLUMNS,100 # terminal width and set description width
+
+        $ hledger reg                 # use terminal width on posix
+        $ hledger reg -w 100          # width 100, equal description/account widths
+        $ hledger reg -w 100,40       # width 100, wider description
+        $ hledger reg -w $COLUMNS,100 # terminal width and set description width
 
 - balance: new -T/--row-total and -A/--average options
 
@@ -1118,6 +1126,7 @@ Miscellaneous:
 0.24 (2014/12/25)
 
 General:
+
 - fix redundant compilation when cabal installing the hledger packages
 - switch to Decimal for representing amounts (#118)
 - report interval headings (eg in balance, register reports) are shown
@@ -1125,6 +1134,7 @@ General:
 - general speedups
 
 Journal format:
+
 - detect decimal point and digit groups more robustly (#196)
 - check that transaction dates are followed by whitespace or newline
 - check that dates use a consistent separator character
@@ -1134,6 +1144,7 @@ Journal format:
   directives, like Ledger
 
 CSV format:
+
 - reading CSV data from stdin now works better
 - the rules file include directive is now relative to the current
   file's directory (#198)
@@ -1145,6 +1156,7 @@ CSV format:
   see below)
 
 CLI:
+
 - the --width and --debug options now require their argument (#149)
 - when an option is repeated, the last value takes precedence (#219).
   This is helpful eg for customising your reporting command aliases on
@@ -1163,6 +1175,7 @@ CLI:
 - balance assertions can be disabled with --ignore-assertions
 
 Account aliases:
+
 - all matching account aliases are now applied, not just one directive
   and one option
 - account aliases now match by case insensitive regular expressions
@@ -1173,6 +1186,7 @@ Account aliases:
   with \N
 
 Queries:
+
 - date:/date2: with a malformed date now reports an error instead of
   being ignored
 - amt: now supports >= or <=
@@ -1180,6 +1194,7 @@ Queries:
   "1" (fixes #227)
 
 balance:
+
 - fix: in tree mode, --drop is ignored instead of showing empty account names
 - a depth limit of 0 now shows summary items with account name "...",
   instead of an empty report (#206)
@@ -1191,6 +1206,7 @@ balance:
 - multicolumn reports' title now includes the report span
 
 register:
+
 - runs faster with large output
 - supports date2:, and date:/date2: combined with --date2, better (fixes
   #201, #221, #222)
@@ -1200,6 +1216,7 @@ register:
   Ledger
 
 Extra commands:
+
 - hledger-equity: fix end date in title; print closing entry too
 - hledger-check-dates: added
 
@@ -1226,6 +1243,7 @@ Extra commands:
 0.23 (2014/5/1)
 
 Journal format:
+
 - A # (hash) in column 0 is now also supported for starting a top-level journal comment, like Ledger.
 - The "too many missing amounts" error now reminds about the 2-space rule.
 - Fix: . (period) is no longer parsed as a valid amount.
@@ -1233,6 +1251,7 @@ Journal format:
 - Fix: + before an amount is no longer parsed as part of the commodity (#181).
 
 CLI:
+
 - Command-line help cleanups, layout improvements.
 - Descriptions are shown for known add-ons in the command list.
 - Command aliases have been simplified.
@@ -1247,6 +1266,7 @@ CLI:
   it is no longer passed through as an add-on argument.
 
 Queries:
+
 - The currency/commodity query prefix (sym:) has been renamed to cur:.
 - Currency/commodity queries are applied more strongly in register and
   balance reports, filtering out unwanted currencies entirely. Eg
@@ -1258,16 +1278,19 @@ Queries:
 - Fix: amount queries no longer give false positives on multi-commodity amounts.
 
 accounts:
+
 - An accounts command has been added, similar to Ledger's, for listing account names
   in flat or hierarchical mode.
 
 add:
+
 - Tab completion now works at all prompts, and will insert the default if the input area is empty.
 - Account and amount defaults are more robust and useful.
 - Transactions may also be completed by the enter key, when there are no more default postings.
 - Input prompts are displayed in a different colour when supported.
 
 balance:
+
 - Balance reports in flat mode now always show exclusive (subaccount-excluding) balances.
 - Balance reports in flat mode with --depth now aggregate deeper accounts at the depth limit instead of excluding them.
 - Multicolumn reports in flat mode now support --drop.
@@ -1278,12 +1301,15 @@ balance:
 - Fix: multicolumn reports now support --date2 (cf #174).
 
 balancesheet, cashflow, incomestatement:
+
 - These commands now support --flat and --drop.
 
 print:
+
 - Tag queries (tag:) will now match a transaction if any of its postings match.
 
 register:
+
 - The --display option has been dropped. To see an accurate running total which
   includes the prior starting balance, use --historical/-H (like balance). 
 - With a report interval, report start/end dates are adjusted to encompass the displayed
@@ -1291,6 +1317,7 @@ register:
 - Fix: --date2 now works with report intervals (fixes #174).
 
 Miscellaneous:
+
 - Default report dates now derive from the secondary dates when --date2 is in effect.
 - Default report dates now notice any posting dates outside the transaction dates' span.
 - Debug output improvements.

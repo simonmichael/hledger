@@ -91,20 +91,20 @@ User-visible changes are noted in the hledger package changelog instead.
   single show instance which shows more information, is fairly
   compact, and is pretty-printable.
 
-  ghci> usd 1
-  OLD:
-  Amount {acommodity="$", aquantity=1.00, ..}
-  NEW:
-  Amount {acommodity = "$", aquantity = 1.00, aprice = NoPrice, astyle = AmountStyle "L False 2 Just '.' Nothing..", amultiplier = False}
+      ghci> usd 1
+      OLD:
+      Amount {acommodity="$", aquantity=1.00, ..}
+      NEW:
+      Amount {acommodity = "$", aquantity = 1.00, aprice = NoPrice, astyle = AmountStyle "L False 2 Just '.' Nothing..", amultiplier = False}
 
   MixedAmount's show instance is unchanged, but showMixedAmountDebug
   is affected by this change:
 
-  ghci> putStrLn $ showMixedAmountDebug $ Mixed [usd 1]
-  OLD:
-  Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}]
-  NEW:
-  Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle "L False 2 Just '.' Nothing.."}]
+      ghci> putStrLn $ showMixedAmountDebug $ Mixed [usd 1]
+      OLD:
+      Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}}]
+      NEW:
+      Mixed [Amount {acommodity="$", aquantity=1.00, aprice=, astyle=AmountStyle "L False 2 Just '.' Nothing.."}]
 
 * Same-line & next-line comments of transactions, postings, etc.
   are now parsed a bit more precisely (followingcommentp). 
