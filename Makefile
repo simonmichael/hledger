@@ -1225,7 +1225,6 @@ VERBOSEFMT=--pretty=format:'- %s (%an)%n%w(0,2,2)%b%h' --stat
 
 # Format a git log message, with one of the formats above, as a changelog item:
 # ensure bullet lists in descriptions use hyphens not stars
-# strip most PKG: prefixes
 # strip maintainer's author name
 # strip [ci skip] lines
 # replace lines containing only spaces with empty lines
@@ -1233,7 +1232,6 @@ VERBOSEFMT=--pretty=format:'- %s (%an)%n%w(0,2,2)%b%h' --stat
 # replace consecutive newlines with one
 CHANGECLEANUP=$(SED) \
 		-e 's/^( )*\* /\1- /' \
-		-e 's/^\* $(PKGPREFIX): /* /' \
 		-e 's/ \(Simon Michael\)//' \
 		-e 's/\[ci skip\]//' \
 		-e 's/^  $$//' \
