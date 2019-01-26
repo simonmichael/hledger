@@ -11,6 +11,8 @@
 # - site/hakyll-std/hakyll-std (generic site-building hakyll script)
 # - perl
 
+# WARNING: don't edit this with IDEA, it rewrites CLEANUPCHANGES below
+
 # This was a reboot of Makefile.old. The old rules were commented out below,
 # to be removed or updated over the next while.
 #
@@ -945,7 +947,7 @@ site-preview: site/hakyll-std/hakyll-std \
 	-cd site; hakyll-std/hakyll-std watch # -h hledger.org
 
 site-livereload: \
-	$(call def-help,site-livereload, open a browser on the latest site html and reload the page whenever it changes  )
+	$(call def-help,site-livereload, open a browser on the latest site html and reload the page whenever it is saved  )
 	(sleep 1; open http://localhost:8001) &
 	livereloadx -p 8001 --static site/_site
 
