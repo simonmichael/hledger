@@ -1199,19 +1199,16 @@ LASTTAG=$(shell git describe --tags --abbrev=0)
 
 
 # 2018-2019:
-# goal: periodically, update all changelogs in place and save last seen commit
+# periodically: make changelogs to add new commits to all changelogs, clean up manually.
 
-#changes-update:
+# need GNU sed, it may be called gsed (eg with homebrew)
+# -E for extended regular expressions
+SED:=$(notdir $(shell which gsed || which sed)) -E
 
-changes:
-	make changes-top >CHANGES.org
-	make changes-lib >hledger-lib/CHANGES.org
-	make changes-cli >hledger/CHANGES.org
-	make changes-ui  >hledger-ui/CHANGES.org
-	make changes-web >hledger-web/CHANGES.org
-	make changes-api >hledger-api/CHANGES.org
+# --abbrev-commit for short commit hashes
+GITLOG=git log --abbrev-commit
 
-# :! args are exclude pathspecs, https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
+# git exclude pathspecs, https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
 EXCLUDEPKGDIRS=\
 	':!hledger-lib' \
 	':!hledger' \
@@ -1219,57 +1216,68 @@ EXCLUDEPKGDIRS=\
 	':!hledger-web' \
 	':!hledger-api' \
 
-# -E for extended regular expressions
+# git log format suitable for changelogs/release notes
+# %s=subject, %an=author name, %n=newline if needed, %w=width/indent1/indent2, %b=body, %h=hash
+CHANGEFMT=--pretty=format:'- %s (%an)%n%w(0,2,2)%b'
+
+# git log format like the above plus hashes and --stat info
+VERBOSEFMT=--pretty=format:'- %s (%an)%n%w(0,2,2)%b%h' --stat
+
+# Format a git log message, with one of the formats above, as a changelog item:
 # ensure bullet lists in descriptions use hyphens not stars
-# convert ORGNODE placeholders to stars
 # strip most PKG: prefixes
 # strip maintainer's author name
 # strip [ci skip] lines
+# replace lines containing only spaces with empty lines
+# strip windows carriage returns (XXX can't edit this with IDEA right now, it rewrites the ^M)
 # replace consecutive newlines with one
-# indent long descriptions
-# TODO: can't edit this with IDEA right now, it rewrites the ^M
-CLEANUPCHANGES=sed -E \
-		-e 's/^( )*\*/\1-/' \
-		-e 's/^ORGNODE/*/' \
+CHANGECLEANUP=$(SED) \
+		-e 's/^( )*\* /\1- /' \
 		-e 's/^\* $(PKGPREFIX): /* /' \
 		-e 's/ \(Simon Michael\)//' \
-		-e 's///' \
 		-e 's/\[ci skip\]//' \
+		-e 's/^  $$//' \
+		-e 's///' \
 		-e '/./,/^$$/!d' \
-		-e 's/^([^\*])/  \1/' \
 
-# --abbrev-commit shortens commit hashes
-GITLOG=git log --abbrev-commit
+#CHANGECLEANUP=cat
 
-# verbose org-like changelog format, including hashes and --stat info for troubleshooting.
-# ORGNODE stands in for * until any * list bullets in commit messages have been rewritten.
-# %s=summary, %an=author name, %n=newline if needed, %b=long description, %h=hash
-VERBOSEFMT=--pretty=format:'ORGNODE %s (%an)  %n%b%h' --stat
+changelogs: */CHANGES.md CHANGES.md \
+		$(call def-help,changelogs, update all changelogs with the latest commits )
 
-changes-%-verbose: $(call def-help,changes-PKGID-verbose, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as verbose org nodes )
-	$(eval PKGID=$*)
-	$(eval PKGDIR=$(subst -cli,,hledger-$(PKGID)))
-	$(eval PKGPREFIX=$(shell echo $(PKGDIR) | sed -e s/hledger-// -e s/^hledger$$/cli/))
-	$(eval REV=$(shell cat $(PKGDIR)/.CHANGES.seen))
-	@$(GITLOG) $(VERBOSEFMT) $(REV).. -- $(PKGDIR) | $(CLEANUPCHANGES)
+# inserts a blank line + heading + new items after line 2.
+# dry run: put echo before the last $(SED), ls Makefile | entr bash -c 'make hledger/CHANGES.md && cat hledger/CHANGES.md.new'
+%/CHANGES.md: .FORCE \
+		$(call def-help,*/CHANGES.md, add commits to the specified changelog(s) since the tag/commit in the topmost heading )
+	$(eval PKGDIR=$(dir $@))
+	$(eval PKG=$(shell echo $(PKGDIR) | $(SED) -e "s/\///;"))
+	$(eval LAST=$(shell grep -E '^#' $@ | head -1 | cut -d' ' -f2 | $(SED) -e "s/(.*\..*)/$(PKG)-\1/;"))
+	$(eval HEAD=$(shell $(GITLOG) -1 --pretty=%h -- $(PKGDIR)))
+	@( [[ $(HEAD) == $(LAST) ]] \
+	   && echo "$@: up to date" \
+	   || ( \
+	        ( printf "\n# $(HEAD)\n\n"; \
+	          $(GITLOG) $(CHANGEFMT) $(LAST).. -- $(PKGDIR) | $(CHANGECLEANUP) \
+	        ) >$@.new ; \
+	        $(SED) -i "2r $@.new" $@ ; \
+	        echo "$@: added $(LAST)..$(HEAD)" \
+	      ) \
+	 )
 
-changes-top-verbose: $(call def-help,changes-top-verbose, show commits since the rev in .CHANGES.seen excluding hledger package subdirs as verbose org nodes )
-	$(eval REV=$(shell cat .CHANGES.seen))
-	@$(GITLOG) $(VERBOSEFMT) $(REV).. -- . $(EXCLUDEPKGDIRS) | $(CLEANUPCHANGES)
+CHANGES.md: .FORCE \
+		$(call def-help,CHANGES.md, add commits to the project-wide changelog since the tag/commit in the topmost heading )
+	$(eval LAST=$(shell grep -E '^#' $@ | head -1 | cut -d' ' -f2 | $(SED) -e "s/(.*\..*)/hledger-\1/;"))
+	$(eval HEAD=$(shell $(GITLOG) -1 --pretty=%h -- . $(EXCLUDEPKGDIRS)))
+	@( [[ $(HEAD) == $(LAST) ]] \
+		 && echo "$@: up to date" \
+		 || ( \
+					( printf "\n# $(HEAD)\n\n"; $(GITLOG) $(CHANGEFMT) $(LAST).. -- . $(EXCLUDEPKGDIRS) | $(CHANGECLEANUP) ) >$@.new ; \
+					$(SED) -i "2r $@.new" $@ ; \
+					echo "$@: added $(LAST)..$(HEAD)" \
+		    ) \
+	 )
 
-# org-like changelog format suitable for changelogs/release notes
-CHANGELOGFMT=--pretty=format:'ORGNODE %s (%an)  %n%b'
-
-changes-%: $(call def-help,changes-PKGID, show commits since the rev in PKGDIR/.CHANGES.seen in PKGDIR as changelog-ready org nodes )
-	$(eval PKGID=$*)
-	$(eval PKGDIR=$(subst -cli,,hledger-$(PKGID)))
-	$(eval PKGPREFIX=$(shell echo $(PKGDIR) | sed -e s/hledger-// -e s/^hledger$$/cli/))
-	$(eval REV=$(shell cat $(PKGDIR)/.CHANGES.seen))
-	@$(GITLOG) $(CHANGELOGFMT) $(REV).. -- $(PKGDIR) | $(CLEANUPCHANGES)
-
-changes-top: $(call def-help,changes-top, show commits since the rev in .CHANGES.seen excluding hledger package subdirs as changelog-ready org nodes )
-	$(eval REV=$(shell cat .CHANGES.seen))
-	@$(GITLOG) $(CHANGELOGFMT) $(REV).. -- . $(EXCLUDEPKGDIRS) | $(CLEANUPCHANGES)
+.FORCE:
 
 
 ###############################################################################
