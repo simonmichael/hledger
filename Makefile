@@ -1113,94 +1113,6 @@ haddock: \
 ########################
 # changelogs
 
-LASTTAG=$(shell git describe --tags --abbrev=0)
-
-# pre 2017:
-## The last git revision referenced in the change notes. 
-## (Or, if there are no change notes, the last tag.
-## Tries hard to be warning free and run shell commands only when needed.)
-#CHANGENOTESLASTREV=$(subst %,,$(subst %%,$(LASTTAG),%$(shell [ -f $(CHANGENOTES) ] && (grep -E '^[a-f0-9]{8}$$' $(CHANGENOTES) | tail -1) )%))
-#
-## create change notes file if it doesn't exist.. shouldn't happen much.
-#$(CHANGENOTES):
-#	@make changenotes-start
-#
-#changenotes-template:
-#	@(\
-#		echo "* change notes for hledger-$(VERSION)" ;\
-#		echo "** hledger-lib" ;\
-#		echo "** hledger" ;\
-#		echo "** hledger-ui" ;\
-#		echo "** hledger-web" ;\
-#		echo "** hledger-api" ;\
-#		echo "** hledger-install" ;\
-#		echo "** project" ;\
-#		echo "** unsorted" ;\
-#		)
-#
-#changenotes-start: \
-#		$(call def-help,changenotes-start, add a new outline named after $(VERSIONFILE) in $(CHANGENOTES). Run after bumping $(VERSIONFILE). )
-#	@make changenotes-template >>$(CHANGENOTES)
-#
-## TODO problem: this only checks the last (bottom-most) git rev in the
-## change notes file, so after manual editing has begun this may re-add
-## commits which are already in the file.
-#changenotes-update: $(CHANGENOTES) \
-#		$(call def-help,changenotes-update, add any not-yet-added(*) commits to $(CHANGENOTES). Run periodically (* it may get this wrong once manual editing has begun). )
-#	@make changenotes-show-from-$(CHANGENOTESLASTREV) >>$(CHANGENOTES)
-#	@echo "Latest items in $(CHANGENOTES):"
-#	@make changenotes-show | tail -10
-#	@make changenotes-show-last
-#
-#changenotes-update-from-%: \
-##		$(call def-help,changenotes-update-from-REV, add commits from this git revision onward to $(CHANGENOTES) )
-#	@make changenotes-show-from-$* >>$(CHANGENOTES)
-#
-#changenotes-show-from-%: \
-##		$(call def-help,changenotes-show-from-REV, show commits from this git revision onward as org nodes )
-#	@git log --abbrev-commit --reverse --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. \
-#		| sed -e 's/^\*/-/' -e 's/^ORGNODE/***/' \
-#		| sed -e 's/ (Simon Michael)//'
-#
-#changenotes-show: $(CHANGENOTES) \
-#		$(call def-help,changenotes-show, show all the org headlines recorded in $(CHANGENOTES) )
-#	@cat $(CHANGENOTES) | grep '*'
-#
-## git l is a local alias with output like "2017-08-16 0a0e6d18 tools: make help-SECTION (HEAD -> master)"
-#changenotes-show-last: $(CHANGENOTES) \
-#		$(call def-help,changenotes-show-last, show the last commit recorded in $(CHANGENOTES) )
-#	@git l -1 $(CHANGENOTESLASTREV)
-
-
-# 2017-2018:
-# At release time, in each package dir, dump commit log into CHANGES.org, edit and move to CHANGES. Eg:
-#  export FROM=hledger-1.11; make changes-show-$FROM >CHANGES.org; for p in  hledger-lib hledger hledger-ui hledger-web hledger-api; do (cd $p; make -f../Makefile changes-show-$FROM >CHANGES.org); done
-# where FROM could be a branch name (1.11) or a specific release tag (hledger-1.11.1, more precise)
-
-#only works in top dir, use changes-show-TAG instead
-# changes-show: $(call def-help,changes-show, show commits affecting the current directory excluding any hledger package subdirs from the last tag as org nodes newest first )
-# 	@make changes-show-from-$(LASTTAG)
-
-# --abbrev-commit shortens commit hashes. --pretty sets org-like output format.
-# ORGNODE stands in for * until any * list bullets in commit messages have been rewritten.
-# %s summary, %an author name, %n newline if needed?, %b long description, %h hash
-# :! args are exclude pathspecs, to exclude package dirs when running in top dir.
-#  https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
-# changes-show-%: #$(call def-help,changes-show-from-REV, show commits affecting the current directory excluding any hledger package subdirs from this git revision onward as org nodes newest first )
-# 	@git log \
-# 		--abbrev-commit --pretty=format:'ORGNODE %s (%an)%n%b' $*.. \
-# 		--stat \
-# 		-- . ':!hledger-lib' ':!hledger' ':!hledger-ui' ':!hledger-web' ':!hledger-api' \
-# 	| sed \
-# 		-e 's/^\*/-/' \
-# 		-e 's/^ORGNODE/*/' \
-# 		-e 's/ (Simon Michael)//' \
-# 		-e 's/\[ci skip\]//' \
-
-
-# 2018-2019:
-# periodically: make changelogs to add new commits to all changelogs, clean up manually.
-
 # need GNU sed, it may be called gsed (eg with homebrew)
 # -E for extended regular expressions
 SED:=$(notdir $(shell which gsed || which sed)) -E
@@ -1240,6 +1152,7 @@ CHANGECLEANUP=$(SED) \
 
 #CHANGECLEANUP=cat
 
+# periodically run this to add new commits to changelogs, then clean up manually
 changelogs: */CHANGES.md CHANGES.md \
 		$(call def-help,changelogs, update all changelogs with the latest commits )
 
@@ -1276,6 +1189,8 @@ CHANGES.md: .FORCE \
 	 )
 
 .FORCE:
+
+#LASTTAG=$(shell git describe --tags --abbrev=0)
 
 
 ###############################################################################
