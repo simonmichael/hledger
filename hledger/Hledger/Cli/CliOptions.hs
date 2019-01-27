@@ -239,9 +239,9 @@ addonCommandMode name = (defCommandMode [name]) {
 -- from a help template and flag/argument specifications.
 -- Reduces boilerplate a little, though the complicated cmdargs
 -- flag and argument specs are still required.
-hledgerCommandMode :: HelpTemplate -> [Flag RawOpts] -> [(Help, [Flag RawOpts])] 
+hledgerCommandMode :: HelpTemplate -> [Flag RawOpts] -> [(String, [Flag RawOpts])] 
   -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
-hledgerCommandMode tmpl ungroupedflags groupedflags hiddenflags args =
+hledgerCommandMode tmpl unnamedflaggroup namedflaggroups hiddenflaggroup argsdescr =
   case parseHelpTemplate tmpl of
     Nothing -> error' $ "Could not parse help template:\n"++tmpl++"\n"
     Just (names, shorthelp, longhelplines) ->
@@ -249,11 +249,11 @@ hledgerCommandMode tmpl ungroupedflags groupedflags hiddenflags args =
          modeHelp        = shorthelp
         ,modeHelpSuffix  = longhelplines
         ,modeGroupFlags  = Group {
-            groupUnnamed = ungroupedflags
-           ,groupNamed   = groupedflags
-           ,groupHidden  = hiddenflags
+            groupUnnamed = unnamedflaggroup
+           ,groupNamed   = namedflaggroups
+           ,groupHidden  = hiddenflaggroup
            }
-        ,modeArgs = args
+        ,modeArgs        = argsdescr
         }
 
 -- | A command's documentation. Used both as part of CLI help, and as
