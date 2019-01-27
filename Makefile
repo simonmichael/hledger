@@ -1553,6 +1553,7 @@ emacstags-ctags:
 		$(DOCSOURCEFILES) \
 		$(HPACKFILES) \
 		$(CABALFILES) \
+		Shake.hs \
 	; do printf "\n$$f,1\n" >> TAGS; done
 
 cleantags: \
