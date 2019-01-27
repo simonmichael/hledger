@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 {-|
 
 Print a bar chart of posting activity per day, or other report interval. 
@@ -10,7 +12,6 @@ where
 import Data.List
 import Data.Maybe
 import Data.Ord
-import System.Console.CmdArgs.Explicit
 import Text.Printf
 
 import Hledger
@@ -18,17 +19,12 @@ import Hledger.Cli.CliOptions
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
-activitymode :: Mode RawOpts
-activitymode = (defCommandMode $ ["activity"] ++ aliases) {
-  modeHelp = "show an ascii barchart of posting counts per interval (default: daily)" `withAliases` aliases
- ,modeHelpSuffix = []
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = []
+activitymode = hledgerCommandMode
+  $(hereFileRelative "Hledger/Cli/Commands/Activity.md")
+  []
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 barchar :: Char
 barchar = '*'
