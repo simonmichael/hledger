@@ -1409,13 +1409,11 @@ $\ hledger\ activity\ \-\-quarterly
 .fi
 .SS add
 .PP
+add
+.PD 0
+.P
+.PD
 Prompt for transactions and add them to the journal.
-.TP
-.B \f[C]\-\-no\-new\-accounts\f[]
-don\[aq]t allow creating new accounts; helps prevent typos when entering
-account names
-.RS
-.RE
 .PP
 Many hledger users edit their journals directly with a text editor, or
 generate them from CSV.
@@ -1432,8 +1430,9 @@ enter \f[C]\&.\f[] or press control\-d or control\-c to exit.
 .PP
 Features:
 .IP \[bu] 2
-add tries to provide useful defaults, using the most similar recent
-transaction (by description) as a template.
+add tries to provide useful defaults, using the most similar (by
+description) recent transaction (filtered by the query, if any) as a
+template.
 .IP \[bu] 2
 You can also set the initial defaults with command line arguments.
 .IP \[bu] 2

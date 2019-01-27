@@ -1071,12 +1071,8 @@ File: hledger.info,  Node: add,  Next: balance,  Prev: activity,  Up: COMMANDS
 4.3 add
 =======
 
+add
 Prompt for transactions and add them to the journal.
-
-'--no-new-accounts'
-
-     don't allow creating new accounts; helps prevent typos when
-     entering account names
 
    Many hledger users edit their journals directly with a text editor,
 or generate them from CSV. For more interactive data entry, there is the
@@ -1092,8 +1088,9 @@ or press control-d or control-c to exit.
 
    Features:
 
-   * add tries to provide useful defaults, using the most similar recent
-     transaction (by description) as a template.
+   * add tries to provide useful defaults, using the most similar (by
+     description) recent transaction (filtered by the query, if any) as
+     a template.
    * You can also set the initial defaults with command line arguments.
    * Readline-style edit keys can be used during data entry.
    * The tab key will auto-complete whenever possible - accounts,
@@ -2768,94 +2765,94 @@ Node: activity34448
 Ref: #activity34558
 Node: add34941
 Ref: #add35040
-Node: balance37701
-Ref: #balance37812
-Node: Classic balance report40932
-Ref: #classic-balance-report41105
-Node: Customising the classic balance report42474
-Ref: #customising-the-classic-balance-report42702
-Node: Colour support44776
-Ref: #colour-support44943
-Node: Flat mode45116
-Ref: #flat-mode45264
-Node: Depth limited balance reports45677
-Ref: #depth-limited-balance-reports45877
-Node: Multicolumn balance report46333
-Ref: #multicolumn-balance-report46531
-Node: Budget report51771
-Ref: #budget-report51914
-Node: Nested budgets56598
-Ref: #nested-budgets56710
-Ref: #output-format-160190
-Node: balancesheet60268
-Ref: #balancesheet60404
-Node: balancesheetequity62715
-Ref: #balancesheetequity62864
-Node: cashflow63401
-Ref: #cashflow63529
-Node: check-dates65652
-Ref: #check-dates65779
-Node: check-dupes65896
-Ref: #check-dupes66020
-Node: close66157
-Ref: #close66265
-Node: files69678
-Ref: #files69779
-Node: help69920
-Ref: #help70020
-Node: import71094
-Ref: #import71208
-Node: incomestatement71938
-Ref: #incomestatement72072
-Node: prices74476
-Ref: #prices74591
-Node: print74863
-Ref: #print74973
-Node: print-unique79867
-Ref: #print-unique79993
-Node: register80061
-Ref: #register80188
-Node: Custom register output84689
-Ref: #custom-register-output84818
-Node: register-match86048
-Ref: #register-match86182
-Node: rewrite86365
-Ref: #rewrite86480
-Node: roi86549
-Ref: #roi86647
-Node: stats86763
-Ref: #stats86862
-Node: tags87732
-Ref: #tags87830
-Node: test88066
-Ref: #test88150
-Node: ADD-ON COMMANDS88858
-Ref: #add-on-commands88968
-Node: Official add-ons90255
-Ref: #official-add-ons90395
-Node: api90482
-Ref: #api90571
-Node: ui90623
-Ref: #ui90722
-Node: web90780
-Ref: #web90869
-Node: Third party add-ons90915
-Ref: #third-party-add-ons91090
-Node: diff91225
-Ref: #diff91322
-Node: iadd91421
-Ref: #iadd91535
-Node: interest91618
-Ref: #interest91739
-Node: irr91834
-Ref: #irr91932
-Node: Experimental add-ons92063
-Ref: #experimental-add-ons92215
-Node: autosync92495
-Ref: #autosync92606
-Node: chart92845
-Ref: #chart92964
-Node: check93035
-Ref: #check93137
+Node: balance37627
+Ref: #balance37738
+Node: Classic balance report40858
+Ref: #classic-balance-report41031
+Node: Customising the classic balance report42400
+Ref: #customising-the-classic-balance-report42628
+Node: Colour support44702
+Ref: #colour-support44869
+Node: Flat mode45042
+Ref: #flat-mode45190
+Node: Depth limited balance reports45603
+Ref: #depth-limited-balance-reports45803
+Node: Multicolumn balance report46259
+Ref: #multicolumn-balance-report46457
+Node: Budget report51697
+Ref: #budget-report51840
+Node: Nested budgets56524
+Ref: #nested-budgets56636
+Ref: #output-format-160116
+Node: balancesheet60194
+Ref: #balancesheet60330
+Node: balancesheetequity62641
+Ref: #balancesheetequity62790
+Node: cashflow63327
+Ref: #cashflow63455
+Node: check-dates65578
+Ref: #check-dates65705
+Node: check-dupes65822
+Ref: #check-dupes65946
+Node: close66083
+Ref: #close66191
+Node: files69604
+Ref: #files69705
+Node: help69846
+Ref: #help69946
+Node: import71020
+Ref: #import71134
+Node: incomestatement71864
+Ref: #incomestatement71998
+Node: prices74402
+Ref: #prices74517
+Node: print74789
+Ref: #print74899
+Node: print-unique79793
+Ref: #print-unique79919
+Node: register79987
+Ref: #register80114
+Node: Custom register output84615
+Ref: #custom-register-output84744
+Node: register-match85974
+Ref: #register-match86108
+Node: rewrite86291
+Ref: #rewrite86406
+Node: roi86475
+Ref: #roi86573
+Node: stats86689
+Ref: #stats86788
+Node: tags87658
+Ref: #tags87756
+Node: test87992
+Ref: #test88076
+Node: ADD-ON COMMANDS88784
+Ref: #add-on-commands88894
+Node: Official add-ons90181
+Ref: #official-add-ons90321
+Node: api90408
+Ref: #api90497
+Node: ui90549
+Ref: #ui90648
+Node: web90706
+Ref: #web90795
+Node: Third party add-ons90841
+Ref: #third-party-add-ons91016
+Node: diff91151
+Ref: #diff91248
+Node: iadd91347
+Ref: #iadd91461
+Node: interest91544
+Ref: #interest91665
+Node: irr91760
+Ref: #irr91858
+Node: Experimental add-ons91989
+Ref: #experimental-add-ons92141
+Node: autosync92421
+Ref: #autosync92532
+Node: chart92771
+Ref: #chart92890
+Node: check92961
+Ref: #check93063
 
 End Tag Table

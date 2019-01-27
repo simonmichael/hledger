@@ -4,6 +4,7 @@ A history-aware add command to help with data entry.
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings, PackageImports #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Add (
    addmode
@@ -46,17 +47,12 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Register (postingsReportAsText)
 
 
-addmode = (defCommandMode ["add"]) {
-  modeHelp = "prompt for transactions and add them to the journal"
- ,modeHelpSuffix = ["Defaults come from previous similar transactions; use query patterns to restrict these."]
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagNone ["no-new-accounts"]  (\opts -> setboolopt "no-new-accounts" opts) "don't allow creating new accounts"
-     ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup2]
-    }
- }
+addmode = hledgerCommandMode
+  $(hereFileRelative "Hledger/Cli/Commands/Add.md")
+  [flagNone ["no-new-accounts"]  (\opts -> setboolopt "no-new-accounts" opts) "don't allow creating new accounts"]
+  [generalflagsgroup2]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 -- | State used while entering transactions.
 data EntryState = EntryState {

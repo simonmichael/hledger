@@ -944,28 +944,26 @@ COMMANDS
               2008-10-01 **
 
    add
+       add
        Prompt for transactions and add them to the journal.
 
-       --no-new-accounts
-              don't allow creating new  accounts;  helps  prevent  typos  when
-              entering account names
-
-       Many  hledger users edit their journals directly with a text editor, or
-       generate them from CSV.  For more interactive data entry, there is  the
-       add  command, which prompts interactively on the console for new trans-
-       actions, and appends them to the journal file (if  there  are  multiple
+       Many hledger users edit their journals directly with a text editor,  or
+       generate  them from CSV.  For more interactive data entry, there is the
+       add command, which prompts interactively on the console for new  trans-
+       actions,  and  appends  them to the journal file (if there are multiple
        -f FILE options, the first file is used.) Existing transactions are not
-       changed.  This is the only hledger command that writes to  the  journal
+       changed.   This  is the only hledger command that writes to the journal
        file.
 
        To use it, just run hledger add and follow the prompts.  You can add as
-       many transactions as you like; when you are finished, enter . or  press
+       many  transactions as you like; when you are finished, enter . or press
        control-d or control-c to exit.
 
        Features:
 
-       o add  tries  to provide useful defaults, using the most similar recent
-         transaction (by description) as a template.
+       o add tries to provide useful defaults,  using  the  most  similar  (by
+         description)  recent transaction (filtered by the query, if any) as a
+         template.
 
        o You can also set the initial defaults with command line arguments.
 
