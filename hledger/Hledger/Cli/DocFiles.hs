@@ -33,6 +33,9 @@ import Hledger.Utils (first3, second3, third3, embedFileRelative)
 
 type Topic = String
 
+-- | These are all the main hledger manuals, in man, txt, and info formats.
+-- Only files under the current package directory can be embedded,
+-- so most of these are symlinked here from the other package directories.
 docFiles :: [(Topic, (ByteString, ByteString, ByteString))]
 docFiles = [
    ("hledger",
