@@ -79,6 +79,10 @@ towebmd = "-t markdown-smart-fenced_divs --atx-headers"
 
 main = do
 
+  -- hledger manual also includes the markdown files from here:
+  let commandsdir = "hledger/Hledger/Cli/Commands"
+  commandmds <- filter (".md" `isSuffixOf`) . map (commandsdir </>) <$> S.getDirectoryContents commandsdir
+
   shakeArgs
     shakeOptions{
       shakeVerbosity=Loud
@@ -207,6 +211,7 @@ main = do
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
       need $ src : lib : tmpl : deps
+      when (dir=="hledger") $ need commandmds
       cmd Shell
         "m4 -P -DMAN -I" dir lib src "|"
         pandoc fromsrcmd "-s" "--template" tmpl
@@ -232,6 +237,7 @@ main = do
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
       need $ src : lib : deps
+      when (dir=="hledger") $ need commandmds
       cmd Shell
         "m4 -P -I" dir lib src "|"
         pandoc fromsrcmd
@@ -260,6 +266,7 @@ main = do
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
       need $ src : lib : deps
+      when (manual=="hledger") $ need commandmds
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir lib src "|"
