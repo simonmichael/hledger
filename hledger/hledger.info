@@ -1969,11 +1969,13 @@ File: hledger.info,  Node: close,  Next: files,  Prev: check-dupes,  Up: COMMAND
 4.10 close
 ==========
 
-close, equity Prints a "closing balances" transaction and an "opening
-balances" transaction that bring account balances to and from zero,
-respectively.  Useful for bringing asset/liability balances forward into
-a new journal file, or for closing out revenues/expenses to retained
-earnings at the end of a period.
+close, equity
+
+   Prints a "closing balances" transaction and an "opening balances"
+transaction that bring account balances to and from zero, respectively.
+Useful for bringing asset/liability balances forward into a new journal
+file, or for closing out revenues/expenses to retained earnings at the
+end of a period.
 
    The closing transaction transfers balances to "equity:closing
 balances".  The opening transaction transfers balances from
@@ -2835,63 +2837,63 @@ Node: check-dupes66420
 Ref: #check-dupes66544
 Node: close66681
 Ref: #close66789
-Node: files70203
-Ref: #files70304
-Node: help70445
-Ref: #help70545
-Node: import71619
-Ref: #import71733
-Node: incomestatement72463
-Ref: #incomestatement72597
-Node: prices75001
-Ref: #prices75116
-Node: print75388
-Ref: #print75498
-Node: print-unique80392
-Ref: #print-unique80518
-Node: register80586
-Ref: #register80713
-Node: Custom register output85214
-Ref: #custom-register-output85343
-Node: register-match86573
-Ref: #register-match86707
-Node: rewrite86890
-Ref: #rewrite87005
-Node: roi87074
-Ref: #roi87172
-Node: stats87288
-Ref: #stats87387
-Node: tags88257
-Ref: #tags88355
-Node: test88591
-Ref: #test88675
-Node: ADD-ON COMMANDS89383
-Ref: #add-on-commands89493
-Node: Official add-ons90780
-Ref: #official-add-ons90920
-Node: api91007
-Ref: #api91096
-Node: ui91148
-Ref: #ui91247
-Node: web91305
-Ref: #web91394
-Node: Third party add-ons91440
-Ref: #third-party-add-ons91615
-Node: diff91750
-Ref: #diff91847
-Node: iadd91946
-Ref: #iadd92060
-Node: interest92143
-Ref: #interest92264
-Node: irr92359
-Ref: #irr92457
-Node: Experimental add-ons92588
-Ref: #experimental-add-ons92740
-Node: autosync93020
-Ref: #autosync93131
-Node: chart93370
-Ref: #chart93489
-Node: check93560
-Ref: #check93662
+Node: files70206
+Ref: #files70307
+Node: help70448
+Ref: #help70548
+Node: import71622
+Ref: #import71736
+Node: incomestatement72466
+Ref: #incomestatement72600
+Node: prices75004
+Ref: #prices75119
+Node: print75391
+Ref: #print75501
+Node: print-unique80395
+Ref: #print-unique80521
+Node: register80589
+Ref: #register80716
+Node: Custom register output85217
+Ref: #custom-register-output85346
+Node: register-match86576
+Ref: #register-match86710
+Node: rewrite86893
+Ref: #rewrite87008
+Node: roi87077
+Ref: #roi87175
+Node: stats87291
+Ref: #stats87390
+Node: tags88260
+Ref: #tags88358
+Node: test88594
+Ref: #test88678
+Node: ADD-ON COMMANDS89386
+Ref: #add-on-commands89496
+Node: Official add-ons90783
+Ref: #official-add-ons90923
+Node: api91010
+Ref: #api91099
+Node: ui91151
+Ref: #ui91250
+Node: web91308
+Ref: #web91397
+Node: Third party add-ons91443
+Ref: #third-party-add-ons91618
+Node: diff91753
+Ref: #diff91850
+Node: iadd91949
+Ref: #iadd92063
+Node: interest92146
+Ref: #interest92267
+Node: irr92362
+Ref: #irr92460
+Node: Experimental add-ons92591
+Ref: #experimental-add-ons92743
+Node: autosync93023
+Ref: #autosync93134
+Node: chart93373
+Ref: #chart93492
+Node: check93563
+Ref: #check93665
 
 End Tag Table

@@ -8,7 +8,12 @@ and by hledger/hledger_commands.m4.md to help build the hledger manual.
 It has some special features:
 
 - The first line should specify the command name and any aliases,
-  as space or comma-separated words.
+  as space or comma-separated words, and be terminated by a backslash
+  (forcing a line break in the output). The help content should begin on line 2.
+  Eg:
+
+      close, equity\
+      Prints a "closing balances" transaction...
 
 - A line containing just _FLAGS_ will be replaced in --help output by
   the command's flags list. Lines above _FLAGS_ are known as the short help.

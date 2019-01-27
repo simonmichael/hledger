@@ -1,4 +1,4 @@
-close, equity
+close, equity\
 Prints a "closing balances" transaction and an "opening balances" transaction
 that bring account balances to and from zero, respectively.
 Useful for bringing asset/liability balances forward into a new journal file,
