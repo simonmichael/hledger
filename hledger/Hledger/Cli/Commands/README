@@ -23,6 +23,7 @@ It has some special features:
 - Markdown can be used to influence the appearance of the manuals,
   especially the html version. But the markup will also appear
   uninterpreted in the --help output, so use sparingly.
+  m4 macros can not be used.
 
 - Use only one newline on the first line (or cmdargs will display the
   short help with two newlines after each line). This also means

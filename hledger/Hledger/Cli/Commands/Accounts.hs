@@ -13,6 +13,7 @@ The @accounts@ command lists account names:
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
 
 module Hledger.Cli.Commands.Accounts (
@@ -33,31 +34,17 @@ import Hledger.Cli.CliOptions
 
 
 -- | Command line options for this command.
-accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
-  modeHelp = "show account names" `withAliases` aliases
- ,modeHelpSuffix = [
-     "This command lists account names, either declared with account directives"
-    ,"(--declared), posted to (--used), or both (default)."
-    ,"With query arguments, only matched account names and account names" 
-    ,"referenced by matched postings are shown."
-    ,"It shows a flat list by default. With `--tree`, it uses indentation to"
-    ,"show the account hierarchy."
-    ,"In flat mode you can add `--drop N` to omit the first few account name components."
-    ,"Account names can be depth-clipped with `--depth N` or depth:N."
-   ]
- ,modeGroupFlags = C.Group {
-     groupUnnamed = [
-      flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
-     ,flagNone ["used"] (\opts -> setboolopt "used" opts) "show account names referenced by transactions"
-     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-     ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["a"]
+accountsmode = hledgerCommandMode
+  $(hereFileRelative "Hledger/Cli/Commands/Accounts.md")
+  [flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
+  ,flagNone ["used"] (\opts -> setboolopt "used" opts) "show account names referenced by transactions"
+  ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
+  ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
+  ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+  ]
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()

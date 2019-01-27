@@ -1350,36 +1350,14 @@ See also \f[C]hledger\f[] for a more organised command list, and
 \f[C]hledger\ CMD\ \-h\f[] for detailed command help.
 .SS accounts
 .PP
+accounts, a
+.PD 0
+.P
+.PD
 Show account names.
-Alias: a.
-.TP
-.B \f[C]\-\-declared\f[]
-show account names declared with account directives
-.RS
-.RE
-.TP
-.B \f[C]\-\-used\f[]
-show account names posted to by transactions
-.RS
-.RE
-.TP
-.B \f[C]\-\-tree\f[]
-show short account names and their parents, as a tree
-.RS
-.RE
-.TP
-.B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
-.RS
-.RE
-.TP
-.B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
-.RS
-.RE
 .PP
 This command lists account names, either declared with account
-directives (\-\-declared), posted to (\-\-used), or both (default).
+directives (\-\-declared), posted to (\-\-used), or both (the default).
 With query arguments, only matched account names and account names
 referenced by matched postings are shown.
 It shows a flat list by default.
@@ -1387,43 +1365,10 @@ With \f[C]\-\-tree\f[], it uses indentation to show the account
 hierarchy.
 In flat mode you can add \f[C]\-\-drop\ N\f[] to omit the first few
 account name components.
-Account names can be depth\-clipped with \f[C]\-\-depth\ N\f[] or
-depth:N.
+Account names can be depth\-clipped with \f[C]depth:N\f[] or
+\f[C]\-\-depth\ N\f[] or \f[C]\-N\f[].
 .PP
 Examples:
-.IP
-.nf
-\f[C]
-$\ hledger\ accounts\ \-\-tree
-assets
-\ \ bank
-\ \ \ \ checking
-\ \ \ \ saving
-\ \ cash
-expenses
-\ \ food
-\ \ supplies
-income
-\ \ gifts
-\ \ salary
-liabilities
-\ \ debts
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ hledger\ accounts\ \-\-drop\ 1
-bank:checking
-bank:saving
-cash
-food
-supplies
-gifts
-salary
-debts
-\f[]
-.fi
 .IP
 .nf
 \f[C]

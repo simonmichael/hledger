@@ -1020,59 +1020,19 @@ File: hledger.info,  Node: accounts,  Next: activity,  Up: COMMANDS
 4.1 accounts
 ============
 
-Show account names.  Alias: a.
-
-'--declared'
-
-     show account names declared with account directives
-'--used'
-
-     show account names posted to by transactions
-'--tree'
-
-     show short account names and their parents, as a tree
-'--flat'
-
-     show full account names, as a list (default)
-'--drop=N'
-
-     in flat mode: omit N leading account name parts
+accounts, a
+Show account names.
 
    This command lists account names, either declared with account
-directives (-declared), posted to (-used), or both (default).  With
+directives (-declared), posted to (-used), or both (the default).  With
 query arguments, only matched account names and account names referenced
 by matched postings are shown.  It shows a flat list by default.  With
 '--tree', it uses indentation to show the account hierarchy.  In flat
 mode you can add '--drop N' to omit the first few account name
-components.  Account names can be depth-clipped with '--depth N' or
-depth:N.
+components.  Account names can be depth-clipped with 'depth:N' or
+'--depth N' or '-N'.
 
    Examples:
-
-$ hledger accounts --tree
-assets
-  bank
-    checking
-    saving
-  cash
-expenses
-  food
-  supplies
-income
-  gifts
-  salary
-liabilities
-  debts
-
-$ hledger accounts --drop 1
-bank:checking
-bank:saving
-cash
-food
-supplies
-gifts
-salary
-debts
 
 $ hledger accounts
 assets:bank:checking
@@ -1970,8 +1930,7 @@ File: hledger.info,  Node: close,  Next: files,  Prev: check-dupes,  Up: COMMAND
 ==========
 
 close, equity
-
-   Prints a "closing balances" transaction and an "opening balances"
+Prints a "closing balances" transaction and an "opening balances"
 transaction that bring account balances to and from zero, respectively.
 Useful for bringing asset/liability balances forward into a new journal
 file, or for closing out revenues/expenses to retained earnings at the
@@ -2802,98 +2761,98 @@ Node: COMMANDS32539
 Ref: #commands32651
 Node: accounts33651
 Ref: #accounts33749
-Node: activity34995
-Ref: #activity35105
-Node: add35465
-Ref: #add35564
-Node: balance38225
-Ref: #balance38336
-Node: Classic balance report41456
-Ref: #classic-balance-report41629
-Node: Customising the classic balance report42998
-Ref: #customising-the-classic-balance-report43226
-Node: Colour support45300
-Ref: #colour-support45467
-Node: Flat mode45640
-Ref: #flat-mode45788
-Node: Depth limited balance reports46201
-Ref: #depth-limited-balance-reports46401
-Node: Multicolumn balance report46857
-Ref: #multicolumn-balance-report47055
-Node: Budget report52295
-Ref: #budget-report52438
-Node: Nested budgets57122
-Ref: #nested-budgets57234
-Ref: #output-format-160714
-Node: balancesheet60792
-Ref: #balancesheet60928
-Node: balancesheetequity63239
-Ref: #balancesheetequity63388
-Node: cashflow63925
-Ref: #cashflow64053
-Node: check-dates66176
-Ref: #check-dates66303
-Node: check-dupes66420
-Ref: #check-dupes66544
-Node: close66681
-Ref: #close66789
-Node: files70206
-Ref: #files70307
-Node: help70448
-Ref: #help70548
-Node: import71622
-Ref: #import71736
-Node: incomestatement72466
-Ref: #incomestatement72600
-Node: prices75004
-Ref: #prices75119
-Node: print75391
-Ref: #print75501
-Node: print-unique80395
-Ref: #print-unique80521
-Node: register80589
-Ref: #register80716
-Node: Custom register output85217
-Ref: #custom-register-output85346
-Node: register-match86576
-Ref: #register-match86710
-Node: rewrite86893
-Ref: #rewrite87008
-Node: roi87077
-Ref: #roi87175
-Node: stats87291
-Ref: #stats87390
-Node: tags88260
-Ref: #tags88358
-Node: test88594
-Ref: #test88678
-Node: ADD-ON COMMANDS89386
-Ref: #add-on-commands89496
-Node: Official add-ons90783
-Ref: #official-add-ons90923
-Node: api91010
-Ref: #api91099
-Node: ui91151
-Ref: #ui91250
-Node: web91308
-Ref: #web91397
-Node: Third party add-ons91443
-Ref: #third-party-add-ons91618
-Node: diff91753
-Ref: #diff91850
-Node: iadd91949
-Ref: #iadd92063
-Node: interest92146
-Ref: #interest92267
-Node: irr92362
-Ref: #irr92460
-Node: Experimental add-ons92591
-Ref: #experimental-add-ons92743
-Node: autosync93023
-Ref: #autosync93134
-Node: chart93373
-Ref: #chart93492
-Node: check93563
-Ref: #check93665
+Node: activity34448
+Ref: #activity34558
+Node: add34918
+Ref: #add35017
+Node: balance37678
+Ref: #balance37789
+Node: Classic balance report40909
+Ref: #classic-balance-report41082
+Node: Customising the classic balance report42451
+Ref: #customising-the-classic-balance-report42679
+Node: Colour support44753
+Ref: #colour-support44920
+Node: Flat mode45093
+Ref: #flat-mode45241
+Node: Depth limited balance reports45654
+Ref: #depth-limited-balance-reports45854
+Node: Multicolumn balance report46310
+Ref: #multicolumn-balance-report46508
+Node: Budget report51748
+Ref: #budget-report51891
+Node: Nested budgets56575
+Ref: #nested-budgets56687
+Ref: #output-format-160167
+Node: balancesheet60245
+Ref: #balancesheet60381
+Node: balancesheetequity62692
+Ref: #balancesheetequity62841
+Node: cashflow63378
+Ref: #cashflow63506
+Node: check-dates65629
+Ref: #check-dates65756
+Node: check-dupes65873
+Ref: #check-dupes65997
+Node: close66134
+Ref: #close66242
+Node: files69655
+Ref: #files69756
+Node: help69897
+Ref: #help69997
+Node: import71071
+Ref: #import71185
+Node: incomestatement71915
+Ref: #incomestatement72049
+Node: prices74453
+Ref: #prices74568
+Node: print74840
+Ref: #print74950
+Node: print-unique79844
+Ref: #print-unique79970
+Node: register80038
+Ref: #register80165
+Node: Custom register output84666
+Ref: #custom-register-output84795
+Node: register-match86025
+Ref: #register-match86159
+Node: rewrite86342
+Ref: #rewrite86457
+Node: roi86526
+Ref: #roi86624
+Node: stats86740
+Ref: #stats86839
+Node: tags87709
+Ref: #tags87807
+Node: test88043
+Ref: #test88127
+Node: ADD-ON COMMANDS88835
+Ref: #add-on-commands88945
+Node: Official add-ons90232
+Ref: #official-add-ons90372
+Node: api90459
+Ref: #api90548
+Node: ui90600
+Ref: #ui90699
+Node: web90757
+Ref: #web90846
+Node: Third party add-ons90892
+Ref: #third-party-add-ons91067
+Node: diff91202
+Ref: #diff91299
+Node: iadd91398
+Ref: #iadd91512
+Node: interest91595
+Ref: #interest91716
+Node: irr91811
+Ref: #irr91909
+Node: Experimental add-ons92040
+Ref: #experimental-add-ons92192
+Node: autosync92472
+Ref: #autosync92583
+Node: chart92822
+Ref: #chart92941
+Node: check93012
+Ref: #check93114
 
 End Tag Table

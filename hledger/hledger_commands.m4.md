@@ -24,76 +24,8 @@ for each command: name, synopsis, description, examples.
 -->
 
 ## accounts
-Show account names. Alias: a.
 
-`--declared`
-: show account names declared with account directives
-
-`--used`
-: show account names posted to by transactions
-
-`--tree`
-: show short account names and their parents, as a tree
-
-`--flat`
-: show full account names, as a list (default)
-
-`--drop=N`
-: in flat mode: omit N leading account name parts
-
-This command lists account names, either declared with account directives
-(--declared), posted to (--used), or both (default).
-With query arguments, only matched account names and account names 
-referenced by matched postings are shown.
-It shows a flat list by default. With `--tree`, it uses indentation to
-show the account hierarchy.
-In flat mode you can add `--drop N` to omit the first few account name components.
-Account names can be depth-clipped with `--depth N` or depth:N.
-
-Examples:
-
-_col3_({{
-_shell_({{
-$ hledger accounts --tree
-assets
-  bank
-    checking
-    saving
-  cash
-expenses
-  food
-  supplies
-income
-  gifts
-  salary
-liabilities
-  debts
-}})
-}},{{
-_shell_({{
-$ hledger accounts --drop 1
-bank:checking
-bank:saving
-cash
-food
-supplies
-gifts
-salary
-debts
-}})
-}},{{
-_shell_({{
-$ hledger accounts
-assets:bank:checking
-assets:bank:saving
-assets:cash
-expenses:food
-expenses:supplies
-income:gifts
-income:salary
-liabilities:debts
-}})
-}})
+_include_(Hledger/Cli/Commands/Accounts.md)
 
 ## activity
 Show an ascii barchart of posting counts per interval.
