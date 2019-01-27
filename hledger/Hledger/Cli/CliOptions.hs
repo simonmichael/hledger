@@ -279,7 +279,7 @@ parseHelpTemplate t =
     [] -> Nothing
     (l:ls) -> Just (names, shorthelp, longhelplines)
       where
-        names = words $ map (\c -> if c==',' then ' ' else c) l
+        names = words $ map (\c -> if c `elem` [',','\\'] then ' ' else c) l
         (shorthelpls, longhelpls) = break (== "_FLAGS_") ls
         shorthelp = unlines $ reverse $ dropWhile null $ reverse shorthelpls
         longhelplines = dropWhile null $ drop 1 longhelpls
