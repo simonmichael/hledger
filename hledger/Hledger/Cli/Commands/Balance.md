@@ -1,61 +1,7 @@
-## balance
-Show accounts and their balances. Aliases: b, bal.
+balance, bal, b\
+Show accounts and their balances.
 
-`--change`
-: show balance change in each period (default)
-
-`--cumulative`
-: show balance change accumulated across periods (in multicolumn reports)
-
-`-H --historical`
-: show historical ending balance in each period (includes postings before report start date)
-
-`--tree`
-: show accounts as a tree; amounts include subaccounts (default in simple reports)
-
-`--flat`
-: show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)
-
-`-A --average`
-: show a row average column (in multicolumn mode)
-
-`-T --row-total`
-: show a row total column (in multicolumn mode)
-
-`-N --no-total`
-: don't show the final total row
-
-`--drop=N`
-: omit N leading account name parts (in flat mode)
-
-`--no-elide`
-: don't squash boring parent accounts (in tree mode)
-
-`--format=LINEFORMAT`
-: in single-column balance reports: use this custom line format
-
-`-O FMT --output-format=FMT     `
-: select the output format. Supported formats:
-txt, csv, html.
-
-`--transpose`
-: transposes rows and columns in multi-column reports. Supported formats:
-txt, csv
-
-`-o FILE --output-file=FILE`
-: write output to FILE.  A file extension matching one of the above formats selects that format.
-
-`--pretty-tables`
-: use unicode to display prettier tables.
-
-`--sort-amount`
-: sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed. 
-
-`--invert`
-: display all amounts with reversed sign 
-
-`--budget`
-: show performance compared to budget goals defined by [periodic transactions](journal.html#periodic-transactions)
+_FLAGS_
 
 The balance command is hledger's most versatile command.
 Note, despite the name, it is not always used for showing real-world account balances;

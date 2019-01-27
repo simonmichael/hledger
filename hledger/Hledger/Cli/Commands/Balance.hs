@@ -235,6 +235,7 @@ Currently, empty cells show 0.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Balance (
   balancemode
@@ -268,36 +269,33 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 
 
 -- | Command line options for this command.
-balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don't show the common bal alias
-  modeHelp = "show accounts and balances" `withAliases` aliases
- ,modeGroupFlags = C.Group {
-     groupUnnamed = [
-      flagNone ["change"] (\opts -> setboolopt "change" opts)
-        "show balance change in each period (default)"
-     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
-        "show balance change accumulated across periods (in multicolumn reports)"
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
-        "show historical ending balance in each period (includes postings before report start date)\n "
-     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)\n "
-     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
-     ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
-     ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
-     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
-     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-     ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode to display prettier tables"
-     ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
-     ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
-     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-     ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
-     ]
-     ++ outputflags
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["b","bal"]
+balancemode = hledgerCommandMode
+  $(hereFileRelative "Hledger/Cli/Commands/Balance.md")
+  ([flagNone ["change"] (\opts -> setboolopt "change" opts)
+      "show balance change in each period (default)"
+   ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+      "show balance change accumulated across periods (in multicolumn reports)"
+   ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+      "show historical ending balance in each period (includes postings before report start date)\n "
+   ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
+   ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)\n "
+   ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
+   ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
+   ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
+   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
+   ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
+   ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
+   ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode to display prettier tables"
+   ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
+   ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
+   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+   ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
+   ]
+   ++ outputflags
+  )
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()

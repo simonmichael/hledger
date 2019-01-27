@@ -35,7 +35,9 @@ _include_(Hledger/Cli/Commands/Activity.md)
 
 _include_(Hledger/Cli/Commands/Add.md)
 
-_include_({{hledger_balance.m4.md}})
+## balance
+
+_include_({{Hledger/Cli/Commands/Balance.md}})
 
 ## balancesheet
   This command displays a simple balance sheet, showing historical ending
