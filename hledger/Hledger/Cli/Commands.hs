@@ -139,26 +139,25 @@ PROGVERSION
 Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]
 Commands (+ addons found in $PATH):
 
-Data entry:
- add                      add transactions using console ui
+Data entry (these commands modify the journal file):
+ add                      add transactions using guided prompts
 +iadd                     add transactions using curses ui
- import                   add new transactions from one or more import files
- edit                     open a text editor on some part of the journal
+ import                   add any new transactions from other files (eg csv)
 
-Statements:
- balancesheet (bs)        show a simple balance sheet with net worth
- balancesheetequity (bse) show a detailed balance sheet with equity
- cashflow (cf)            show a cashflow statement
- incomestatement (is)     show an income statement
+Financial reports:
+ balancesheet (bs)        show assets, liabilities and net worth
+ balancesheetequity (bse) show assets, liabilities and equity
+ cashflow (cf)            show changes in liquid assets
+ incomestatement (is)     show revenues and expenses
 
-Basic reports:
+Low-level reports:
  accounts (a)             show account names
- activity                 show a chart of posting counts per interval
- balance (b, bal)         show account balance changes or ending balances
+ activity                 show bar chart of posting counts per interval
+ balance (b, bal)         show balance changes or end balances in any accounts
  files                    show input files
  prices                   show market price records
- print (p, txns)          show transactions/journal entries
- register (r, reg)        show postings to one or more accounts
+ print (p, txns)          show journal entries (transactions)
+ register (r, reg)        show postings affecting one or more accounts
  stats                    show journal statistics
  tags                     show tag names
 
@@ -169,20 +168,20 @@ UIs:
 Generating data:
  close (equity)           generate balance-resetting transactions
 +interest                 generate interest transactions
- rewrite                  generate automated postings on matched transactions
+ rewrite                  generate automated postings/diffs (or, see --auto)
 
 Other/experimental:
-+api                      start web api server
++api                      start http api server
 +autosync                 download/deduplicate/convert OFX data
 +check                    check more powerful balance assertions
  check-dates              check transactions are ordered by date
  check-dupes              check for accounts with the same leaf name
 +diff                     compare account transactions in two journal files
-+irr                      calculate internal rate of return (obsolete, see roi)
++irr                      calculate internal rate of return (or, see roi)
  print-unique             show only transactions with unique descriptions
  register-match           show best matching transaction for a description
  roi                      calculate return on investments
- test                     run self tests
+ test                     run builtin self tests
 OTHER
 Help:
  help                     show any of the hledger manuals in various formats
@@ -191,6 +190,7 @@ Help:
 -------------------------------------------------------------------------------
 |]
 -- aregister (ar, areg)     show transactions in a single account
+-- edit                     open a text editor on some part of the journal
 
 
 -- | All names and aliases of builtin commands.
