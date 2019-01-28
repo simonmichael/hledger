@@ -1,5 +1,8 @@
 {-|
 hledger's built-in commands, and helpers for printing the commands list.
+
+New built-in commands should be added in four places below:
+the export list, the import list, builtinCommands, commandsList.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -79,8 +82,8 @@ import Hledger.Cli.Commands.Roi
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
 
-
--- | The cmdargs subcommand mode and IO action for each builtin command.
+-- | The cmdargs subcommand mode (for command-line parsing)
+-- and IO action (for doing the command's work) for each builtin command.
 -- Command actions take parsed CLI options and a (lazy) finalised journal.
 builtinCommands :: [(Mode RawOpts, CliOpts -> Journal -> IO ())]
 builtinCommands = [
@@ -110,24 +113,23 @@ builtinCommands = [
   ,(testmode               , testcmd)
   ]
 
--- | All names and aliases of builtin commands.
-builtinCommandNames :: [String]
-builtinCommandNames = concatMap (modeNames . fst) builtinCommands
-
--- | Look up a builtin command's mode and action by exact command name or alias. 
-findCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ()) 
-findCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
-
--- | A template for the commands list, containing entries (indented lines)
--- for all known and some hypothetical builtin and addon commands.
--- These will be filtered based on the commands found at runtime,  
--- except those beginning with "hledger", which are not filtered. 
--- PROGVERSION is replaced with the program name and version.
--- OTHER is replaced with an entry for each unknown addon command found. 
---  
--- The command descriptions here should be kept synced with 
--- each command's builtin help and with hledger manual's command list.
+-- | The commands list, showing command names, standard aliases,
+-- and short descriptions. This has some dynamic features, as follows:
 --
+-- PROGVERSION is replaced with the program name and version.
+--
+-- Each indented line represents a command. There are three kinds:
+--
+-- - builtin commands; these should be kept synced with the
+--   above builtinCommands and their docs (Commands/\*.md).
+--
+-- - known addon commands; these lines will be suppressed if the addon
+--   command is not found in $PATH at runtime.
+--
+-- - additional command examples beginning with "hledger".
+--
+-- OTHER is replaced with entries for any additional (unknown) addon
+-- commands found in $PATH at runtime.
 commandsList :: String
 commandsList = [here|
 -------------------------------------------------------------------------------
@@ -162,7 +164,7 @@ UIs:
  web                      start web ui
 
 Generating data:
- close                    generate balance-resetting transactions
+ close (equity)           generate balance-resetting transactions
  interest                 generate interest transactions
  rewrite                  generate automated postings on matched transactions
 
@@ -187,6 +189,15 @@ Help:
  hledger -h               show general usage
 -------------------------------------------------------------------------------
 |]
+
+
+-- | All names and aliases of builtin commands.
+builtinCommandNames :: [String]
+builtinCommandNames = concatMap (modeNames . fst) builtinCommands
+
+-- | Look up a builtin command's mode and action by exact command name or alias. 
+findCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ()) 
+findCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
 
 -- | Print the commands list, modifying the template above based on
 -- the currently available addons. Missing addons will be removed, and
@@ -220,7 +231,7 @@ commandsFromCommandsList s =
   concatMap (splitOn "|") [w | ' ':l <- lines s, let w:_ = words l]
 
 
--- The test command, defined here for easy access to other modules' tests.
+-- The test command is defined here for easy access to other modules' tests.
 
 testmode = hledgerCommandMode
   $(hereFileRelative "Hledger/Cli/Commands/Test.md")
@@ -229,10 +240,10 @@ testmode = hledgerCommandMode
   []
   ([], Just $ argsFlag "[TESTPATTERN] [SEED]")
 
--- | See testmode.
---
--- Unlike other hledger commands, this one does not operate on the user's Journal.
--- For ease of implementation the Journal parameter remains in the type signature. 
+-- | The test command.
+-- Unlike most hledger commands, this one does not read the user's journal.
+-- A 'Journal' argument remains in the type signature, but it should
+-- not be used (and would raise an error).
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   let args = words' $ query_ $ reportopts_ opts
@@ -242,6 +253,7 @@ testcmd opts _undefined = do
 --  hSetEncoding stderr utf8
   e <- runEasytests args $ EasyTest.tests [tests_Hledger, tests_Commands]
   if e then exitFailure else exitSuccess
+
 
 -- unit tests of hledger command-line executable
 
