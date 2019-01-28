@@ -5,6 +5,7 @@ A ledger-compatible @print@ command.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Print (
   printmode
@@ -25,24 +26,19 @@ import Hledger.Cli.Utils
 import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
 
 
-printmode = (defCommandMode $ ["print"] ++ aliases) {
-  modeHelp = "show transaction journal entries, sorted by date. With --date2, sort by secondary date instead." `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-         let arg = "STR" in
-         flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
-          ("show the transaction whose description is most similar to "++arg++", and is most recent")
-        ,flagNone ["explicit","x"] (setboolopt "explicit")
-          "show all amounts explicitly"
-        ,flagNone ["new"] (setboolopt "new")
-          "show only newer-dated transactions added in each file since last run"
-        ]
-        ++ outputflags
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["p","txns"]
+printmode = hledgerCommandMode
+  ($(hereFileRelative "Hledger/Cli/Commands/Print.md"))
+  [let arg = "STR" in
+   flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
+    ("show the transaction whose description is most similar to "++arg++", and is most recent")
+  ,flagNone ["explicit","x"] (setboolopt "explicit")
+    "show all amounts explicitly"
+  ,flagNone ["new"] (setboolopt "new")
+    "show only newer-dated transactions added in each file since last run"
+  ]
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()

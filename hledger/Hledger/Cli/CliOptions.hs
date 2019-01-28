@@ -40,6 +40,7 @@ module Hledger.Cli.CliOptions (
   outputFormats,
   defaultOutputFormat,
   defaultBalanceLineFormat,
+  CommandDoc,
 
   -- possibly these should move into argsToCliOpts
   -- * CLI option accessors
@@ -235,14 +236,18 @@ addonCommandMode name = (defCommandMode [name]) {
      }
   }
 
+-- | A command's documentation. Used both as part of CLI help, and as
+-- part of the hledger manual. See parseCommandDoc.
+type CommandDoc = String
+
 -- | Build a cmdarg mode for a hledger command,
 -- from a help template and flag/argument specifications.
 -- Reduces boilerplate a little, though the complicated cmdargs
 -- flag and argument specs are still required.
-hledgerCommandMode :: HelpTemplate -> [Flag RawOpts] -> [(String, [Flag RawOpts])] 
+hledgerCommandMode :: CommandDoc -> [Flag RawOpts] -> [(String, [Flag RawOpts])] 
   -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
 hledgerCommandMode tmpl unnamedflaggroup namedflaggroups hiddenflaggroup argsdescr =
-  case parseHelpTemplate tmpl of
+  case parseCommandDoc tmpl of
     Nothing -> error' $ "Could not parse help template:\n"++tmpl++"\n"
     Just (names, shorthelp, longhelplines) ->
       (defCommandMode names) {
@@ -255,10 +260,6 @@ hledgerCommandMode tmpl unnamedflaggroup namedflaggroups hiddenflaggroup argsdes
            }
         ,modeArgs        = argsdescr
         }
-
--- | A command's documentation. Used both as part of CLI help, and as
--- part of the hledger manual. See parseHelpTemplate.
-type HelpTemplate = String
 
 -- | Parse a command's documentation, as follows:
 --
@@ -273,8 +274,8 @@ type HelpTemplate = String
 -- optional again).  The manual displays the short help followed by
 -- the long help, with no flags list.
 --
-parseHelpTemplate :: HelpTemplate -> Maybe ([Name], String, [String])
-parseHelpTemplate t =
+parseCommandDoc :: CommandDoc -> Maybe ([Name], String, [String])
+parseCommandDoc t =
   case lines t of
     [] -> Nothing
     (l:ls) -> Just (names, shorthelp, longhelplines)

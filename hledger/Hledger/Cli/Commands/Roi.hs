@@ -1,4 +1,5 @@
-{-# LANGUAGE QuasiQuotes,ParallelListComp,CPP #-}
+{-# LANGUAGE ParallelListComp, CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 The @roi@ command prints internal rate of return and time-weighted rate of return for and investment.
@@ -19,7 +20,6 @@ import Data.List
 import Data.Ord
 import Numeric.RootFinding
 import Data.Decimal
-import Data.String.Here
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular as Tbl
@@ -29,31 +29,17 @@ import Hledger
 import Hledger.Cli.CliOptions
 
 
-roimode = (defCommandMode $ ["roi"]) {
-  modeHelp = "shows return on investment for your portfolio."
-  ,modeHelpSuffix=lines [here|
-This command will show you time-weighted (TWR) and money-weighted (IRR) rate of return on your investments.
-
-Command assumes that you have account(s) that hold nothing but your investments and whenever you record current appraisal/valuation of these investments you offset unrealized profit and loss into account(s) that, again, hold nothing but unrealized profit and loss.
-
-Any transactions affecting balance of investment account(s) and not originating from unrealized profit and loss account(s) are assumed to be your investments or withdrawals.
-
-At a minimum, you need to supply query (which could be just an account name) to select your investments with `--inv`, and another query to identify your profit and loss transactions with `--pnl`.
-
-Command will compute and display internalized rate of return (IRR) and time-weighted rate of return (TWR) for your investments for the time period requested. Both rates of return are annualized before display, regardless of the length of reporting interval.
-|]
-  ,modeGroupFlags = CmdArgs.Group {
-    groupUnnamed = [
-       flagNone ["cashflow"] (setboolopt "cashflow") "show all amounts that were used to compute returns"
-       , flagReq ["investment"] (\s opts -> Right $ setopt "investment" s opts) "QUERY"
-         "query to select your investment transactions"
-       , flagReq ["profit-loss","pnl"] (\s opts -> Right $ setopt "pnl" s opts) "QUERY"
-         "query to select profit-and-loss or appreciation/valuation transactions"
-       ]
-    , groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
-  }
+roimode = hledgerCommandMode
+  ($(hereFileRelative "Hledger/Cli/Commands/Roi.md"))
+  [flagNone ["cashflow"] (setboolopt "cashflow") "show all amounts that were used to compute returns"
+  ,flagReq ["investment"] (\s opts -> Right $ setopt "investment" s opts) "QUERY"
+    "query to select your investment transactions"
+  ,flagReq ["profit-loss","pnl"] (\s opts -> Right $ setopt "pnl" s opts) "QUERY"
+    "query to select profit-and-loss or appreciation/valuation transactions"
+  ]
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 -- One reporting span, 
 data OneSpan = OneSpan 

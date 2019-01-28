@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Import (
   importmode
@@ -10,7 +10,6 @@ where
 import Control.Monad
 import Data.List
 import Data.Ord
-import Data.String.Here
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
@@ -19,18 +18,7 @@ import System.Console.CmdArgs.Explicit
 import Text.Printf
 
 importmode = hledgerCommandMode
-  [here| import
-Read new transactions added to each FILE since last run, and add them to
-the main journal file. Or with --dry-run, just print the transactions 
-that would be added.
-
-Input files are provided as arguments, or glob patterns. So eg to add new 
-transactions from all CSV files to the main journal: hledger import *.csv
-
-New transactions are detected like print --new (using .latest.FILE state files)
-
-FLAGS
-  |]
+  ($(hereFileRelative "Hledger/Cli/Commands/Import.md"))
   [flagNone ["dry-run"] (\opts -> setboolopt "dry-run" opts) "just show the transactions to be imported"] 
   [generalflagsgroup1]
   []

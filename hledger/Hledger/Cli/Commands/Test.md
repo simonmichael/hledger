@@ -1,0 +1,21 @@
+test\
+Run built-in unit tests.
+
+_FLAGS_
+
+This command runs the unit tests built in to hledger-lib and hledger,
+printing test names and results on stdout.  If any test fails, the
+exit code will be non-zero.
+
+Test names include a group prefix.  If a (exact, case sensitive) group
+prefix, or a full test name is provided as the first argument, only
+that group or test is run.
+
+If a numeric second argument is provided, it will set the randomness
+seed, for repeatable results from tests using randomness (currently
+none of them).
+
+This is mainly used by developers, but it's nice to be able to
+sanity-check your installed hledger executable at any time.  All tests
+are expected to pass - if you ever see otherwise, something has gone
+wrong, please report a bug!

@@ -5,6 +5,7 @@ hledger's built-in commands, and helpers for printing the commands list.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands (
    findCommand
@@ -222,18 +223,7 @@ commandsFromCommandsList s =
 -- The test command, defined here for easy access to other modules' tests.
 
 testmode = hledgerCommandMode
-  [here| test
-Run the unit tests built in to hledger-lib and hledger, 
-printing results on stdout and exiting with success or failure.
-
-If a scope argument is provided, only tests in that (exact, case-sensitive) 
-scope are run.
-
-If a numeric second argument is provided, it will set the randomness seed,
-for any tests which use randomness.
-
-FLAGS
-  |]
+  $(hereFileRelative "Hledger/Cli/Commands/Test.md")
   []
   [generalflagsgroup3]
   []

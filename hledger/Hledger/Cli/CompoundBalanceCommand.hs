@@ -41,9 +41,7 @@ import Hledger.Cli.Utils (writeOutput)
 -- it should be added to or subtracted from the grand total.
 --
 data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
-  cbcname     :: String,              -- ^ command name
-  cbcaliases  :: [String],            -- ^ command aliases
-  cbchelp     :: String,              -- ^ command line help
+  cbcdoc      :: CommandDoc,          -- ^ the command's name(s) and documentation
   cbctitle    :: String,              -- ^ overall report title
   cbcqueries  :: [CBCSubreportSpec],  -- ^ subreport details
   cbctype     :: BalanceType          -- ^ the "balance" type (change, cumulative, historical) 
@@ -83,37 +81,35 @@ type CompoundBalanceReport =
 -- | Generate a cmdargs option-parsing mode from a compound balance command 
 -- specification.
 compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
-compoundBalanceCommandMode CompoundBalanceCommandSpec{..} = (defCommandMode $ cbcname : cbcaliases) {
-  modeHelp = cbchelp `withAliases` cbcaliases
- ,modeGroupFlags = C.Group {
-     groupUnnamed = [
-      flagNone ["change"] (\opts -> setboolopt "change" opts)
-        ("show balance change in each period" ++ defType PeriodChange)
-     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
-        ("show balance change accumulated across periods (in multicolumn reports)"
-            ++ defType CumulativeChange
-        )
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
-        ("show historical ending balance in each period (includes postings before report start date)"
-            ++ defType HistoricalBalance
-        )
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-     ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
-     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
-     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
-     ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
-     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
-     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-     ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
-     ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account code/name"
-     ,outputFormatFlag
-     ,outputFileFlag
-     ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
+compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
+  hledgerCommandMode
+    cbcdoc
+    [flagNone ["change"] (\opts -> setboolopt "change" opts)
+       ("show balance change in each period" ++ defType PeriodChange)
+    ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+       ("show balance change accumulated across periods (in multicolumn reports)"
+           ++ defType CumulativeChange
+       )
+    ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+       ("show historical ending balance in each period (includes postings before report start date)"
+           ++ defType HistoricalBalance
+       )
+    ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
+    ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+    ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
+    ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
+    ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
+    ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
+    ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
+    ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
+    ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
+    ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account code/name"
+    ,outputFormatFlag
+    ,outputFileFlag
+    ]
+    [generalflagsgroup1]
+    []
+    ([], Just $ argsFlag "[QUERY]")
  where
    defType :: BalanceType -> String
    defType bt | bt == cbctype = " (default)"

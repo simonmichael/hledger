@@ -5,6 +5,7 @@ A ledger-compatible @register@ command.
 -}
 
 {-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Register (
   registermode
@@ -26,33 +27,28 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
-registermode = (defCommandMode $ ["register"] ++ aliases) {
-  modeHelp = "show postings and running total. With --date2, show and sort by secondary date instead." `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagNone ["cumulative"]         (\opts -> setboolopt "change" opts)
-        "show running total from report start date (default)"
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
-        "show historical running total/balance (includes postings before report start date)\n "
-     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts)
-        "show running average of posting amounts instead of total (implies --empty)"
-     ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
-     ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
-      ("set output width (default: " ++
+registermode = hledgerCommandMode
+  ($(hereFileRelative "Hledger/Cli/Commands/Register.md"))
+  [flagNone ["cumulative"]         (\opts -> setboolopt "change" opts)
+     "show running total from report start date (default)"
+  ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+     "show historical running total/balance (includes postings before report start date)\n "
+  ,flagNone ["average","A"] (\opts -> setboolopt "average" opts)
+     "show running average of posting amounts instead of total (implies --empty)"
+  ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
+  ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
+     ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
-       show defaultWidth
+      show defaultWidth
 #else
-       "terminal width"
+      "terminal width"
 #endif
-       ++ " or $COLUMNS). -wN,M sets description width as well."
-       )
-    ]
-     ++ outputflags
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["r","reg"]
+      ++ " or $COLUMNS). -wN,M sets description width as well."
+     )
+  ]
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()

@@ -6,8 +6,9 @@ The help command.
 --TODO rename manuals
 --TODO substring matching
 
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Help (
 
@@ -19,36 +20,32 @@ module Hledger.Cli.Commands.Help (
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import Data.Char
+import Data.String.Here
 import Data.List
 import Data.Maybe
-import Data.String.Here
 import Safe
 import System.Console.CmdArgs.Explicit
 import System.Environment
 import System.IO
 
+import Hledger.Utils (hereFileRelative)
 import Hledger.Data.RawOptions
 import Hledger.Data.Types
 import Hledger.Cli.CliOptions
 import Hledger.Cli.DocFiles
 --import Hledger.Utils.Debug
 
-helpmode = (defCommandMode $ ["help"] ++ aliases) {
-  modeHelp = "show any of the hledger manuals, choosing the most suitable viewer (info, man, a pager, or stdout). With no argument, list the manuals." `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagNone ["info"]  (setboolopt "info")  "show the manual with info"
-     ,flagNone ["man"]   (setboolopt "man")   "show the manual with man"
-     ,flagNone ["pager"] (setboolopt "pager") "show the manual with $PAGER or less"
-     ,flagNone ["cat"]   (setboolopt "cat")   "show the manual on stdout"
-     ,flagNone ["help","h"]  (setboolopt "help")  "show this help"
-     ]
-    ,groupHidden = []
-    ,groupNamed = []
-    }
- ,modeArgs = ([], Just $ argsFlag "[MANUAL]")
-}
-  where aliases = []
+helpmode = hledgerCommandMode
+  ($(hereFileRelative "Hledger/Cli/Commands/Help.md"))
+  [flagNone ["info"]  (setboolopt "info")  "show the manual with info"
+  ,flagNone ["man"]   (setboolopt "man")   "show the manual with man"
+  ,flagNone ["pager"] (setboolopt "pager") "show the manual with $PAGER or less"
+  ,flagNone ["cat"]   (setboolopt "cat")   "show the manual on stdout"
+  ,flagNone ["help","h"]  (setboolopt "help")  "show this help"
+  ]
+  []
+  []
+  ([], Just $ argsFlag "[MANUAL]")
 
 -- | List or display one of the hledger manuals in various formats. 
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager`, `--cat` flags.

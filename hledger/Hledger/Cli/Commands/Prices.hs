@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Prices (
   pricesmode
@@ -8,7 +8,6 @@ where
 
 import Data.Maybe
 import Data.List
-import Data.String.Here
 import qualified Data.Text as T
 import Data.Time
 import Hledger
@@ -16,12 +15,7 @@ import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
 
 pricesmode = hledgerCommandMode
-  [here| prices
-Print market price directives from the journal.
-With --costs, also print synthetic market prices based on transaction prices.
-With --inverted-costs, also print inverse prices based on transaction prices.
-Prices (and postings providing prices) can be filtered by a query.
-  |]
+  ($(hereFileRelative "Hledger/Cli/Commands/Prices.md"))
   [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings"
   ,flagNone ["inverted-costs"] (setboolopt "inverted-costs") "print transaction inverted prices from postings also"]
   [generalflagsgroup1]

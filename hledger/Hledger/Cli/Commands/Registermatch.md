@@ -1,0 +1,8 @@
+register-match\
+Print the one posting whose transaction description is closest to DESC, 
+in the style of the register command.
+If there are multiple equally good matches, it shows the most recent.
+Query options (options, not arguments) can be used to restrict the search space.
+Helps ledger-autosync detect already-seen transactions when importing.
+
+_FLAGS_

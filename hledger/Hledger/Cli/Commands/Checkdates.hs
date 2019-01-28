@@ -1,27 +1,19 @@
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE NoOverloadedStrings #-} -- prevent trouble if turned on in ghci
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Checkdates (
   checkdatesmode
  ,checkdates
 ) where
 
-import Data.String.Here
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
 import Text.Printf
 
--- checkdatesmode :: Mode RawOpts
+checkdatesmode :: Mode RawOpts
 checkdatesmode = hledgerCommandMode
-  [here| check-dates
-Check that transactions are sorted by increasing date.
-With --date2, checks secondary dates instead.
-With --strict, dates must also be unique.
-With a query, only matched transactions' dates are checked.
-Reads the default journal file, or another specified with -f.
-FLAGS
-  |]
+  ($(hereFileRelative "Hledger/Cli/Commands/Checkdates.md"))
   [flagNone ["strict"] (\opts -> setboolopt "strict" opts) "makes date comparing strict"]
   [generalflagsgroup1]
   []

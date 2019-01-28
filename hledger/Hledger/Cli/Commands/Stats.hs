@@ -5,6 +5,7 @@ Print some statistics for the journal.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Stats (
   statsmode
@@ -29,17 +30,13 @@ import Prelude hiding (putStr)
 import Hledger.Cli.Utils (writeOutput)
 
 
-statsmode = (defCommandMode $ ["stats"] ++ aliases) {
-  modeHelp = "show some journal statistics" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-        flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE.  A file extension matching one of the above formats selects that format."
-        ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = []
+statsmode = hledgerCommandMode
+  ($(hereFileRelative "Hledger/Cli/Commands/Stats.md"))
+  [flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE.  A file extension matching one of the above formats selects that format."
+  ]
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 
 -- like Register.summarisePostings
 -- | Print various statistics for the journal.

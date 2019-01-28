@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Checkdupes (
   checkdupesmode
@@ -8,7 +8,6 @@ where
 
 import Data.Function
 import Data.List
-import Data.String.Here
 import qualified Data.Text as T
 import Hledger
 import Hledger.Cli.CliOptions
@@ -17,12 +16,7 @@ import Text.Printf
 
 checkdupesmode :: Mode RawOpts
 checkdupesmode = hledgerCommandMode
-  [here| check-dupes
-Reports account names having the same leaf but different prefixes. 
-In other words, two or more leaves that are categorized differently.
-Reads the default journal file, or another specified as an argument.
-An example: http://stefanorodighiero.net/software/hledger-dupes.html
-  |]
+  ($(hereFileRelative "Hledger/Cli/Commands/Checkdupes.md"))
   []
   [generalflagsgroup1]
   []

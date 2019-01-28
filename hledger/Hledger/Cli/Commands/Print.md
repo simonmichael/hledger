@@ -1,0 +1,96 @@
+print, txns, p\
+Show transaction journal entries, sorted by date. 
+
+_FLAGS_
+
+The print command displays full journal entries (transactions) from
+the journal file in date order, tidily formatted.
+With --date2, transactions are sorted by secondary date instead.
+
+print's output is always a valid [hledger journal](/journal.html).  
+It preserves all transaction information, but it does not preserve
+directives or inter-transaction comments
+
+```shell
+$ hledger print
+2008/01/01 income
+    assets:bank:checking            $1
+    income:salary                  $-1
+
+2008/06/01 gift
+    assets:bank:checking            $1
+    income:gifts                   $-1
+
+2008/06/02 save
+    assets:bank:saving              $1
+    assets:bank:checking           $-1
+
+2008/06/03 * eat & shop
+    expenses:food                $1
+    expenses:supplies            $1
+    assets:cash                 $-2
+
+2008/12/31 * pay off
+    liabilities:debts               $1
+    assets:bank:checking           $-1
+```
+
+Normally, the journal entry's explicit or implicit amount style is preserved.
+Ie when an amount is omitted in the journal, it will be omitted in the output.
+You can use the `-x`/`--explicit` flag to make all amounts explicit, which can be
+useful for troubleshooting or for making your journal more readable and
+robust against data entry errors.
+Note, `-x` will cause postings with a multi-commodity amount
+(these can arise when a multi-commodity transaction has an implicit amount)
+will be split into multiple single-commodity postings, for valid journal output.
+
+With `-B`/`--cost`, amounts with [transaction prices](/journal.html#transaction-prices)
+are converted to cost using that price. This can be used for troubleshooting.
+
+With `-m`/`--match` and a STR argument, print will show at most one transaction: the one 
+one whose description is most similar to STR, and is most recent. STR should contain at
+least two characters. If there is no similar-enough match, no transaction will be shown.
+
+With `--new`, for each FILE being read, hledger reads (and writes) a special 
+state file (`.latest.FILE` in the same directory), containing the latest transaction date(s)
+that were seen last time FILE was read. When this file is found, only transactions 
+with newer dates (and new transactions on the latest date) are printed.
+This is useful for ignoring already-seen entries in import data, such as downloaded CSV files.
+Eg:
+
+```console
+$ hledger -f bank1.csv print --new
+# shows transactions added since last print --new on this file
+```
+
+This assumes that transactions added to FILE always have same or increasing dates, 
+and that transactions on the same day do not get reordered.
+See also the [import](#import) command.    
+
+This command also supports [output destination](/manual.html#output-destination) and [output format](/manual.html#output-format) selection.
+Here's an example of print's CSV output:
+
+```shell
+$ hledger print -Ocsv
+"txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
+"1","2008/01/01","","","","income","","assets:bank:checking","1","$","","1","",""
+"1","2008/01/01","","","","income","","income:salary","-1","$","1","","",""
+"2","2008/06/01","","","","gift","","assets:bank:checking","1","$","","1","",""
+"2","2008/06/01","","","","gift","","income:gifts","-1","$","1","","",""
+"3","2008/06/02","","","","save","","assets:bank:saving","1","$","","1","",""
+"3","2008/06/02","","","","save","","assets:bank:checking","-1","$","1","","",""
+"4","2008/06/03","","*","","eat & shop","","expenses:food","1","$","","1","",""
+"4","2008/06/03","","*","","eat & shop","","expenses:supplies","1","$","","1","",""
+"4","2008/06/03","","*","","eat & shop","","assets:cash","-2","$","2","","",""
+"5","2008/12/31","","*","","pay off","","liabilities:debts","1","$","","1","",""
+"5","2008/12/31","","*","","pay off","","assets:bank:checking","-1","$","1","","",""
+```
+
+- There is one CSV record per posting, with the parent transaction's fields repeated.
+- The "txnidx" (transaction index) field shows which postings belong to the same transaction.
+  (This number might change if transactions are reordered within the file,
+  files are parsed/included in a different order, etc.)
+- The amount is separated into "commodity" (the symbol) and "amount" (numeric quantity) fields.
+- The numeric amount is repeated in either the "credit" or "debit" column, for convenience.
+  (Those names are not accurate in the accounting sense; it just puts negative amounts under
+  credit and zero or greater amounts under debit.)

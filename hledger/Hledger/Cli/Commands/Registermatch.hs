@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Registermatch (
   registermatchmode
@@ -9,24 +9,17 @@ where
 
 import Data.Char (toUpper)
 import Data.List
-import Data.String.Here
 import qualified Data.Text as T
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Register
 
 registermatchmode = hledgerCommandMode
-  [here| register-match
-Print the one posting whose transaction description is closest to DESC, 
-in the style of the register command.
-If there are multiple equally good matches, it shows the most recent.
-Query options (options, not arguments) can be used to restrict the search space.
-Helps ledger-autosync detect already-seen transactions when importing.
-  |]
+  ($(hereFileRelative "Hledger/Cli/Commands/Registermatch.md"))
   []
   [generalflagsgroup1]
   []
-  ([], Nothing)
+  ([], Just $ argsFlag "[QUERY]")
 
 registermatch :: CliOpts -> Journal -> IO ()
 registermatch opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do

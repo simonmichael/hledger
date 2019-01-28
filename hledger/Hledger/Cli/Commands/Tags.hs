@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Tags (
   tagsmode
@@ -8,20 +8,13 @@ module Hledger.Cli.Commands.Tags (
 where
 
 import Data.List
-import Data.String.Here
 import qualified Data.Text as T
 import Safe
 import Hledger
 import Hledger.Cli.CliOptions
 
 tagsmode = hledgerCommandMode
-  [here| tags
-List all the tag names used in the journal. With a TAGREGEX argument,
-only tag names matching the regular expression (case insensitive) are shown. 
-With QUERY arguments, only transactions matching the query are considered.  
-Reads the default journal file, or another specified with -f.
-FLAGS
-  |]
+  ($(hereFileRelative "Hledger/Cli/Commands/Tags.md"))
   [] -- [flagNone ["strict"] (\opts -> setboolopt "strict" opts) "makes date comparing strict"] -- 
   [generalflagsgroup1]
   []
