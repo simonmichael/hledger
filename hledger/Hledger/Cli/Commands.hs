@@ -144,51 +144,53 @@ Data entry (these commands modify the journal file):
 +iadd                     add transactions using curses ui
  import                   add any new transactions from other files (eg csv)
 
+Data management:
++autosync                 download/deduplicate/convert OFX data
++check                    check more powerful balance assertions
+ check-dates              check transactions are ordered by date
+ check-dupes              check for accounts with the same leaf name
+ close (equity)           generate balance-resetting transactions
++diff                     compare account transactions in two journal files
++interest                 generate interest transactions
+ rewrite                  generate automated postings/diffs (old, use --auto)
+
 Financial reports:
  balancesheet (bs)        show assets, liabilities and net worth
  balancesheetequity (bse) show assets, liabilities and equity
  cashflow (cf)            show changes in liquid assets
  incomestatement (is)     show revenues and expenses
++irr                      calculate internal rate of return (old, use roi)
+ roi                      show return on investments
 
 Low-level reports:
  accounts (a)             show account names
- activity                 show bar chart of posting counts per interval
+ activity                 show postings-per-interval bar charts
  balance (b, bal)         show balance changes or end balances in any accounts
- files                    show input files
+ files                    show input file paths
  prices                   show market price records
- print (p, txns)          show journal entries (transactions)
- register (r, reg)        show postings affecting one or more accounts
+ print (p, txns)          show transactions (journal entries)
+ print-unique             show only transactions with unique descriptions
+ register (r, reg)        show postings in one or more accounts & running total
+ register-match           show a recent posting that best matches a description
  stats                    show journal statistics
  tags                     show tag names
+ test                     run self tests
 
-UIs:
-+ui                       start curses ui
-+web                      start web ui
+Alternate user interfaces:
++ui                       run curses ui
++web                      run web ui
++api                      run http api server
 
-Generating data:
- close (equity)           generate balance-resetting transactions
-+interest                 generate interest transactions
- rewrite                  generate automated postings/diffs (or, see --auto)
-
-Other/experimental:
-+api                      start http api server
-+autosync                 download/deduplicate/convert OFX data
-+check                    check more powerful balance assertions
- check-dates              check transactions are ordered by date
- check-dupes              check for accounts with the same leaf name
-+diff                     compare account transactions in two journal files
-+irr                      calculate internal rate of return (or, see roi)
- print-unique             show only transactions with unique descriptions
- register-match           show best matching transaction for a description
- roi                      calculate return on investments
- test                     run builtin self tests
+Other:
 OTHER
 Help:
- help                     show any of the hledger manuals in various formats
- hledger CMD -h           show command usage
- hledger -h               show general usage
--------------------------------------------------------------------------------
+ help [MANUAL]            show the hledger manuals in various formats
+ COMMAND -h               show command's usage
+ -h                       show general usage
+ (no arguments)           show this commands list
+
 |]
+-- -------------------------------------------------------------------------------
 -- aregister (ar, areg)     show transactions in a single account
 -- edit                     open a text editor on some part of the journal
 
