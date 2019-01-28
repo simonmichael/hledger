@@ -41,6 +41,7 @@ module Hledger.Cli.Commands (
 ) 
 where
 
+import Data.Char (isSpace)
 import Data.Default
 import Data.List
 import Data.List.Split (splitOn)
@@ -114,30 +115,33 @@ builtinCommands = [
   ]
 
 -- | The commands list, showing command names, standard aliases,
--- and short descriptions. This has some dynamic features, as follows:
+-- and short descriptions. This is modified at runtime, as follows:
 --
 -- PROGVERSION is replaced with the program name and version.
 --
--- Each indented line represents a command. There are three kinds:
+-- Lines beginning with a space represent builtin commands, with format:
+--  COMMAND (ALIASES) DESCRIPTION
+-- These should be kept synced with builtinCommands above, and
+-- their docs (Commands/\*.md).
 --
--- - builtin commands; these should be kept synced with the
---   above builtinCommands and their docs (Commands/\*.md).
+-- Lines beginning with + represent known addon commands. These lines
+-- will be suppressed if hledger-CMD is not found in $PATH at runtime.
 --
--- - known addon commands; these lines will be suppressed if the addon
---   command is not found in $PATH at runtime.
+-- OTHER is replaced with additional command lines (without descriptions)
+-- for any unknown addon commands found in $PATH at runtime.
 --
--- - additional command examples beginning with "hledger".
---
--- OTHER is replaced with entries for any additional (unknown) addon
--- commands found in $PATH at runtime.
+-- TODO: generate more of this automatically.
+-- 
 commandsList :: String
 commandsList = [here|
 -------------------------------------------------------------------------------
-PROGVERSION, commands available:
+PROGVERSION
+Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]
+Commands (+ addons found in $PATH):
 
 Data entry:
  add                      add transactions using console ui
- iadd                     add transactions using curses ui
++iadd                     add transactions using curses ui
  import                   add new transactions from one or more import files
  edit                     open a text editor on some part of the journal
 
@@ -150,7 +154,6 @@ Statements:
 Basic reports:
  accounts (a)             show account names
  activity                 show a chart of posting counts per interval
- aregister (ar, areg)     show transactions in a single account
  balance (b, bal)         show account balance changes or ending balances
  files                    show input files
  prices                   show market price records
@@ -160,24 +163,22 @@ Basic reports:
  tags                     show tag names
 
 UIs:
- ui                       start curses ui
- web                      start web ui
++ui                       start curses ui
++web                      start web ui
 
 Generating data:
  close (equity)           generate balance-resetting transactions
- interest                 generate interest transactions
++interest                 generate interest transactions
  rewrite                  generate automated postings on matched transactions
 
 Other/experimental:
- api                      start web api server
- autosync                 download/deduplicate/convert OFX data
- budget                   add automated postings/txns/bucket accts
- chart                    generate simple balance pie charts
- check                    check more powerful balance assertions
++api                      start web api server
++autosync                 download/deduplicate/convert OFX data
++check                    check more powerful balance assertions
  check-dates              check transactions are ordered by date
  check-dupes              check for accounts with the same leaf name
- diff                     compare account transactions in two journal files
- irr                      calculate internal rate of return of an investment
++diff                     compare account transactions in two journal files
++irr                      calculate internal rate of return (obsolete, see roi)
  print-unique             show only transactions with unique descriptions
  register-match           show best matching transaction for a description
  roi                      calculate return on investments
@@ -189,6 +190,7 @@ Help:
  hledger -h               show general usage
 -------------------------------------------------------------------------------
 |]
+-- aregister (ar, areg)     show transactions in a single account
 
 
 -- | All names and aliases of builtin commands.
@@ -206,19 +208,20 @@ printCommandsList :: [String] -> IO ()
 printCommandsList addonsFound =
   putStr $
   regexReplace "PROGVERSION" (prognameandversion) $
-  regexReplace "OTHER" (unlines $ map (' ':) unknownCommandsFound) $
+  regexReplace "OTHER" (unlines unknownCommandsFound) $
   -- regexReplace "COUNT" (show cmdcount) $
   unlines $ concatMap adjustline $ lines $
   cmdlist
   where
     cmdlist = commandsList
     -- cmdcount = length $ commandsFromCommandsList cmdlist
-    commandsFound = builtinCommandNames ++ addonsFound
-    unknownCommandsFound = addonsFound \\ knownCommands
+    commandsFound = map (' ':) builtinCommandNames ++ map ('+':) addonsFound
+    unknownCommandsFound = map ('+':) $ addonsFound \\ knownCommands
 
-    adjustline l | " hledger " `isPrefixOf` l = [l]
-    adjustline (' ':l) | not $ w `elem` commandsFound = []
-      where w = takeWhile (not . (`elem` ['|',' '])) l
+    adjustline l         | " hledger " `isPrefixOf` l     = [l]
+    adjustline l@('+':_) | not $ cmd `elem` commandsFound = []
+      where
+        cmd = takeWhile (not . isSpace) l
     adjustline l = [l]
 
 knownCommands :: [String]
