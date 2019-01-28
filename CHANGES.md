@@ -1,6 +1,12 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# a37c18e5
+
+- make: include Shake.hs in tags
+
+- shake: manuals: also depend on new command doc files
+
 # 0a31ef84
 
 # 9bc88727

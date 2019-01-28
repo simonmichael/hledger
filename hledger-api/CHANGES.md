@@ -1,6 +1,8 @@
 User-visible changes in hledger-api.
 See also the hledger changelog.
 
+# 17cd5b22
+
 # 0a31ef84
 
 # 1e5e30ae

@@ -1,6 +1,19 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 469b7153
+
+- cli: commands list: update command descriptions
+
+- cli: commands list: show addons prefixed with +
+
+- doc: integrate CLI help & manual for remaining commands
+  & rename HelpTemplate -> CommandDoc
+
+- lib: refactor, add embedFileRelative
+
+- hereFileRelativeToPackage -> hereFileRelative
+
 # 0a31ef84
 
 # 1e5e30ae
