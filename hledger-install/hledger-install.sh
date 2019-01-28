@@ -949,6 +949,17 @@ fi
 
 echo "hledger-install.sh $HLEDGER_INSTALL_VERSION $(date)"
 
+# ensure ~/.local/bin/ in PATH
+# TODO should check ~/.cabal/bin if using cabal
+if ! on_path "$HOME_LOCAL_BIN" ; then
+  echo "WARNING: this script installs hledger (and perhaps stack) in '$HOME_LOCAL_BIN'"
+  echo "  but this directory is not in your PATH. Adding it temporarily. To run"
+  echo "  these things easily, please add it to PATH in your shell profile."
+  echo "  Eg, bash users: "
+  echo "    echo \"export PATH=\$PATH:~/.local/bin\" >> ~/.bashrc && source ~/.bashrc"
+  export PATH=$HOME_LOCAL_BIN:$PATH
+fi
+
 # show system info
 echo
 echo "System info:"
@@ -988,17 +999,6 @@ else
   echo "no stack or cabal installed; stack will be installed and used to install hledger in $HOME/.local/bin"
     # install stack now
   ensure_stack
-fi
-
-# ensure ~/.local/bin/ in PATH
-# TODO should check ~/.cabal/bin if using cabal
-if ! on_path "$HOME_LOCAL_BIN" ; then
-  echo "WARNING: this script installs hledger (and perhaps stack) in '$HOME_LOCAL_BIN'"
-  echo "  but this directory is not in your PATH. Adding it temporarily. To run"
-  echo "  these things easily, please add it to PATH in your shell profile."
-  echo "  Eg, bash users: "
-  echo "    echo \"export PATH=\$PATH:~/.local/bin\" >> ~/.bashrc && source ~/.bashrc"
-  export PATH=$HOME_LOCAL_BIN:$PATH
 fi
 
 # try installing each package that needs installing, in turn
