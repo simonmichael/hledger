@@ -225,6 +225,7 @@ what's to do and how to do it
 [Addons](https://github.com/simonmichael/hledger/wiki/Addons)  
 [Mobile apps](https://github.com/simonmichael/hledger/wiki/Mobile apps)  
 [Save frequently used options](https://github.com/simonmichael/hledger/wiki/Save frequently used options)  
+[Tab-completion of hledger commands](https://github.com/simonmichael/hledger/wiki/Tab-completion of hledger commands)  
 
 ### More..
 
