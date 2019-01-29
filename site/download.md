@@ -63,7 +63,7 @@ Binaries or system packages are quickest to install, but they can be outdated or
 | OpenBSD              | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
 | *Other:*             |
 | [Nix][]              | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.10&nbsp;(stable), 1.11.1&nbsp;(unstable)
-| Sandstorm            | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
+| [Sandstorm][]        | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
 
 [Mac]: https://formulae.brew.sh/formula/hledger
 [Mac contact]: mailto:
@@ -91,6 +91,8 @@ Binaries or system packages are quickest to install, but they can be outdated or
 
 [Nix]: http://hydra.nixos.org/search?query=hledger
 [Nix contact]: mailto:
+
+[Sandstorm]: https://sandstorm.io
 
 
 <a name="b"></a>
