@@ -133,6 +133,9 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 <div id=reference class=contentbox>
 ## Reference
 
+**[Download](download.html)**\
+All the ways to install hledger.
+
 **[Release notes](release-notes.html)**\
 What's new in each hledger version.
 
