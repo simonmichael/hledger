@@ -110,3 +110,4 @@ $ hledger reg -w $COLUMNS,40      # use terminal width, and set description widt
 This command also supports
 [output destination](/manual.html#output-destination) and
 [output format](/manual.html#output-format) selection.
+

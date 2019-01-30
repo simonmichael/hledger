@@ -377,7 +377,7 @@ main = do
       need [src]
       cmd Shell
         -- "m4 -P -DHELP -I" commandsdir lib src "|"
-        pandoc fromsrcmd src "-o" out
+        pandoc fromsrcmd src "-t plain" "-o" out
 
     -- MISC
 
