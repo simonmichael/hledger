@@ -13,7 +13,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
 
 printuniquemode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Printunique.md"))
+  ($(hereFileRelative "Hledger/Cli/Commands/Printunique.txt"))
   []
   [generalflagsgroup1]
   []

@@ -20,7 +20,7 @@ import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
 activitymode = hledgerCommandMode
-  $(hereFileRelative "Hledger/Cli/Commands/Activity.md")
+  $(hereFileRelative "Hledger/Cli/Commands/Activity.txt")
   []
   [generalflagsgroup1]
   []

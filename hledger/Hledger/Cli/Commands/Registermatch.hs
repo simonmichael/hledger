@@ -15,7 +15,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Register
 
 registermatchmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Registermatch.md"))
+  ($(hereFileRelative "Hledger/Cli/Commands/Registermatch.txt"))
   []
   [generalflagsgroup1]
   []

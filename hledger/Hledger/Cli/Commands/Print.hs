@@ -27,7 +27,7 @@ import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
 
 
 printmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Print.md"))
+  ($(hereFileRelative "Hledger/Cli/Commands/Print.txt"))
   [let arg = "STR" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("show the transaction whose description is most similar to "++arg++", and is most recent")

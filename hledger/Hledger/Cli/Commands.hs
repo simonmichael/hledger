@@ -235,7 +235,7 @@ printCommandsList addonsFound =
 -- The test command is defined here for easy access to other modules' tests.
 
 testmode = hledgerCommandMode
-  $(hereFileRelative "Hledger/Cli/Commands/Test.md")
+  $(hereFileRelative "Hledger/Cli/Commands/Test.txt")
   []
   [generalflagsgroup3]
   []

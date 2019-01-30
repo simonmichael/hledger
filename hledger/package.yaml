@@ -54,6 +54,31 @@ extra-source-files:
 - embeddedfiles/hledger_timedot.5
 - embeddedfiles/hledger_timedot.txt
 - embeddedfiles/hledger_timedot.info
+- Hledger/Cli/Commands/Accounts.txt
+- Hledger/Cli/Commands/Activity.txt
+- Hledger/Cli/Commands/Add.txt
+- Hledger/Cli/Commands/Balance.txt
+- Hledger/Cli/Commands/Balancesheet.txt
+- Hledger/Cli/Commands/Balancesheetequity.txt
+- Hledger/Cli/Commands/Cashflow.txt
+- Hledger/Cli/Commands/Checkdates.txt
+- Hledger/Cli/Commands/Checkdupes.txt
+- Hledger/Cli/Commands/Close.txt
+- Hledger/Cli/Commands/Files.txt
+- Hledger/Cli/Commands/Help.txt
+- Hledger/Cli/Commands/Import.txt
+- Hledger/Cli/Commands/Incomestatement.txt
+- Hledger/Cli/Commands/Prices.txt
+- Hledger/Cli/Commands/Print.txt
+- Hledger/Cli/Commands/Printunique.txt
+- Hledger/Cli/Commands/Register.txt
+- Hledger/Cli/Commands/Registermatch.txt
+- Hledger/Cli/Commands/Rewrite.txt
+- Hledger/Cli/Commands/Roi.txt
+- Hledger/Cli/Commands/Stats.txt
+- Hledger/Cli/Commands/Tags.txt
+- Hledger/Cli/Commands/Test.txt
+
 
 #data-files:
 

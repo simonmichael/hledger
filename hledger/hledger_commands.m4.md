@@ -46,11 +46,11 @@ _include_({{Hledger/Cli/Commands/Cashflow.md}})
 
 ## check-dates
 
-_include_({{Hledger/Cli/Commands/check-Dates.md}})
+_include_({{Hledger/Cli/Commands/Checkdates.md}})
 
 ## check-dupes
 
-_include_({{Hledger/Cli/Commands/check-Dupes.md}})
+_include_({{Hledger/Cli/Commands/Checkdupes.md}})
 
 ## close
 
@@ -82,7 +82,7 @@ _include_({{Hledger/Cli/Commands/Print.md}})
 
 ## print-unique
 
-_include_({{Hledger/Cli/Commands/print-Unique.md}})
+_include_({{Hledger/Cli/Commands/Printunique.md}})
 
 ## register
 
@@ -90,7 +90,7 @@ _include_({{Hledger/Cli/Commands/Register.md}})
 
 ## register-match
 
-_include_({{Hledger/Cli/Commands/register-Match.md}})
+_include_({{Hledger/Cli/Commands/Registermatch.md}})
 
 ## rewrite
 

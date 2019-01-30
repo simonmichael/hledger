@@ -36,7 +36,7 @@ import Hledger.Cli.DocFiles
 --import Hledger.Utils.Debug
 
 helpmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Help.md"))
+  ($(hereFileRelative "Hledger/Cli/Commands/Help.txt"))
   [flagNone ["info"]  (setboolopt "info")  "show the manual with info"
   ,flagNone ["man"]   (setboolopt "man")   "show the manual with man"
   ,flagNone ["pager"] (setboolopt "pager") "show the manual with $PAGER or less"

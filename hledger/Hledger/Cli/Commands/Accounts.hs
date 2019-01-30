@@ -35,7 +35,7 @@ import Hledger.Cli.CliOptions
 
 -- | Command line options for this command.
 accountsmode = hledgerCommandMode
-  $(hereFileRelative "Hledger/Cli/Commands/Accounts.md")
+  $(hereFileRelative "Hledger/Cli/Commands/Accounts.txt")
   [flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
   ,flagNone ["used"] (\opts -> setboolopt "used" opts) "show account names referenced by transactions"
   ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"

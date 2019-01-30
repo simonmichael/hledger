@@ -21,7 +21,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.CompoundBalanceCommand
 
 cashflowSpec = CompoundBalanceCommandSpec {
-  cbcdoc      = ($(hereFileRelative "Hledger/Cli/Commands/Cashflow.md")),
+  cbcdoc      = ($(hereFileRelative "Hledger/Cli/Commands/Cashflow.txt")),
   cbctitle    = "Cashflow Statement",
   cbcqueries  = [
      CBCSubreportSpec{

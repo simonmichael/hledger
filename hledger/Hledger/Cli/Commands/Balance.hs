@@ -270,7 +270,7 @@ import Hledger.Read.CsvReader (CSV, printCSV)
 
 -- | Command line options for this command.
 balancemode = hledgerCommandMode
-  $(hereFileRelative "Hledger/Cli/Commands/Balance.md")
+  $(hereFileRelative "Hledger/Cli/Commands/Balance.txt")
   ([flagNone ["change"] (\opts -> setboolopt "change" opts)
       "show balance change in each period (default)"
    ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)

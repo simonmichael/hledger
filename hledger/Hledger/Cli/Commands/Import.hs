@@ -18,7 +18,7 @@ import System.Console.CmdArgs.Explicit
 import Text.Printf
 
 importmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Import.md"))
+  ($(hereFileRelative "Hledger/Cli/Commands/Import.txt"))
   [flagNone ["dry-run"] (\opts -> setboolopt "dry-run" opts) "just show the transactions to be imported"] 
   [generalflagsgroup1]
   []

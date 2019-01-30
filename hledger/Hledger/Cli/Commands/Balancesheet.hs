@@ -18,7 +18,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.CompoundBalanceCommand
 
 balancesheetSpec = CompoundBalanceCommandSpec {
-  cbcdoc      = ($(hereFileRelative "Hledger/Cli/Commands/Balancesheet.md")),
+  cbcdoc      = ($(hereFileRelative "Hledger/Cli/Commands/Balancesheet.txt")),
   cbctitle    = "Balance Sheet",
   cbcqueries  = [
      CBCSubreportSpec{

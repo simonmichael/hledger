@@ -23,7 +23,7 @@ import Hledger.Cli.CliOptions
 
 -- | Command line options for this command.
 filesmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Files.md"))
+  ($(hereFileRelative "Hledger/Cli/Commands/Files.txt"))
   []
   [generalflagsgroup2]
   []
