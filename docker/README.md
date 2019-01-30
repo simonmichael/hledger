@@ -1,11 +1,28 @@
-## Build instructions
+## Instructions
 
-Build slim container with binaries only
+Build slim container with binaries only:
 ```
-docker image build --rm --tag hledger .
+./build.sh
 ```
 
-Build container suitable for development
+Build container suitable for development:
 ```
-docker image build --tag hledger --target dev .
+./build-dev.sh
 ```
+
+Run hledger-web in the container:
+```
+./run.sh /path/to/your.journal web
+```
+
+Run shell in the container (your files will be in /data):
+```
+./run.sh /path/to/your.journal bash
+```
+
+Run hledger command in the container:
+```
+./run.sh /path/to/your.journal hledger [ARGS]
+```
+
+Script `start.sh` is included inside container and used to start `hledger-web`, there is no need to run it manually.
