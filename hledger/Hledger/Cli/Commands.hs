@@ -44,7 +44,6 @@ where
 import Data.Char (isSpace)
 import Data.Default
 import Data.List
-import Data.List.Split (splitOn)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
@@ -210,7 +209,7 @@ printCommandsList :: [String] -> IO ()
 printCommandsList addonsFound =
   putStr $
   regexReplace "PROGVERSION" (prognameandversion) $
-  regexReplace "OTHER" (unlines unknownCommandsFound) $
+  regexReplace "OTHER" (unlines $ (map ('+':) unknownCommandsFound)) $
   -- regexReplace "COUNT" (show cmdcount) $
   unlines $ concatMap adjustline $ lines $
   cmdlist
@@ -218,7 +217,7 @@ printCommandsList addonsFound =
     cmdlist = commandsList
     -- cmdcount = length $ commandsFromCommandsList cmdlist
     commandsFound = map (' ':) builtinCommandNames ++ map ('+':) addonsFound
-    unknownCommandsFound = map ('+':) $ addonsFound \\ knownCommands
+    unknownCommandsFound = addonsFound \\ knownCommands
 
     adjustline l         | " hledger " `isPrefixOf` l     = [l]
     adjustline l@('+':_) | not $ cmd `elem` commandsFound = []
@@ -229,11 +228,11 @@ printCommandsList addonsFound =
 knownCommands :: [String]
 knownCommands = sort $ commandsFromCommandsList commandsList
 
--- | Extract the command names from a commands list like the above:
--- the first word (or words separated by |) of lines beginning with a space.
+-- | Extract the command names from commandsList: the first word
+-- of lines beginning with a space or + sign.
 commandsFromCommandsList :: String -> [String]
 commandsFromCommandsList s =
-  concatMap (splitOn "|") [w | ' ':l <- lines s, let w:_ = words l]
+  [w | c:l <- lines s, c `elem` [' ','+'], let w:_ = words l]
 
 
 -- The test command is defined here for easy access to other modules' tests.
