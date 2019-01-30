@@ -56,11 +56,14 @@ usage = unlines
   ,"./Shake.hs               # compile this script"
   ,"./Shake manuals          # generate the txt/man/info manuals"
   ,"./Shake website          # generate the website and web manuals"
+  ,"./Shake PKG              # build the specified hledger package, with awareness of embedded docs"
+  ,"./Shake build            # build all hledger packages, with awareness of embedded docs"
   ,"./Shake all              # generate everything"
   ,""
   ,"./Shake site/doc/VERSION/.snapshot   # save the checked-out web manuals as a versioned snapshot"
+  ,"./Shake FILE             # build any individual file"
   ,"./Shake clean            # clean generated files"
-  ,"./Shake Clean            # clean more thoroughly"
+  ,"./Shake Clean            # clean more thoroughly, including Shake's dependency cache"
   ,""
   ,"./Shake [help]           # show commands"
   ,"./Shake --help           # show detailed Shake options, eg --color"
@@ -82,6 +85,7 @@ main = do
   -- hledger manual also includes the markdown files from here:
   let commandsdir = "hledger/Hledger/Cli/Commands"
   commandmds <- filter (".md" `isSuffixOf`) . map (commandsdir </>) <$> S.getDirectoryContents commandsdir
+  let commandtxts = map (-<.> "txt") commandmds
 
   shakeArgs
     shakeOptions{
@@ -93,7 +97,7 @@ main = do
 
     phony "help" $ liftIO $ putStrLn usage
 
-    phony "all" $ need ["manuals", "website"]
+    phony "all" $ need ["manuals", "website", "build"]
 
     -- phony "compile" $ need ["Shake"]
     -- "Shake" %> \out -> do
@@ -102,13 +106,30 @@ main = do
     --   putLoud "You can now run ./Shake instead of ./Shake.hs"
 
 
-    -- MANUALS
+    -- NAMES, FILES, URIS..
 
     let
       -- documentation versions shown on the website (excluding 0.27 which is handled specially)
       docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10", "1.11", "1.12" ]
 
-      -- names, files, uris:
+      -- main package names, in standard build order
+      packages = [
+         "hledger-lib"
+        ,"hledger"
+        ,"hledger-ui"
+        ,"hledger-web"
+        ,"hledger-api"
+        ]
+
+      -- doc files (or related targets) that should be generated
+      -- before building hledger packages.
+      -- [(PKG, [TARGETS])]
+      embeddedFiles = [
+         -- hledger embeds the plain text command help files and all packages' text/nroff/info manuals
+         ("hledger", commandtxts ++ ["manuals"])
+         -- hledger-ui imports the hledger-ui manuals from hledger
+        ,("hledger-ui", ["hledger"])
+        ]
 
       -- man page names (manual names plus a man section number), in suggested reading order
       manpageNames = [
@@ -193,6 +214,8 @@ main = do
       -- hledger -> hledger.1, journal -> hledger_journal.5
       manpageUriToName u | "hledger" `isPrefixOf` u = u <.> "1"
                          | otherwise                = "hledger_" ++ u <.> "5"
+
+    -- MANUALS
 
     -- Generate the manuals in nroff, plain text and info formats.
     phony "manuals" $ do
@@ -328,6 +351,33 @@ main = do
                          "--lua-filter"              "tools/pandoc-site.lua"
                          "--output"                  out
 
+    -- HLEDGER PACKAGES/EXECUTABLES
+
+    phony "build" $ cmd Shell "stack build"
+
+    -- shortpackagenames |%> \out -> do
+    --   let pkg | out=="cli" = "hledger"
+    --           | otherwise  = "hledger-"++out
+    --   -- need ["hledger/Hledger/Cli/Commands/Close.md"]
+    --   -- need ["hledger/hledger.1"]
+    --   -- need ["hledger/hledger.info"]
+    --   -- need ["hledger/hledger.txt"]
+    --   cmd Shell "stack build" pkg
+
+    -- build (and install) any of the hledger packages, after
+    -- generating any doc files they embed or import.
+    sequence_ [ phony pkg $ do
+      need $ fromMaybe [] $ lookup pkg embeddedFiles
+      cmd Shell "stack build " pkg
+      | pkg <- packages ]
+
+    commandtxts |%> \out -> do
+      let src = out -<.> "md"
+          -- lib = "doc/lib.m4"
+      need [src]
+      cmd Shell
+        -- "m4 -P -DHELP -I" commandsdir lib src "|"
+        pandoc fromsrcmd src "-o" out
 
     -- MISC
 
