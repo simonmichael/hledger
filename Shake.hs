@@ -317,7 +317,7 @@ main = do
 
     -- WEBSITE HTML & ASSETS
 
-    phony "website" $ need $ [ "webassets" , "webhtml" ]
+    phony "website" $ need [ "webassets" , "webhtml" ]
 
     -- copy all static asset files (files with certain extensions
     -- found under sites, plus one or two more) to sites/_site/
@@ -353,19 +353,10 @@ main = do
 
     -- HLEDGER PACKAGES/EXECUTABLES
 
-    phony "build" $ cmd Shell "stack build"
+    phony "build" $ need packages
 
-    -- shortpackagenames |%> \out -> do
-    --   let pkg | out=="cli" = "hledger"
-    --           | otherwise  = "hledger-"++out
-    --   -- need ["hledger/Hledger/Cli/Commands/Close.md"]
-    --   -- need ["hledger/hledger.1"]
-    --   -- need ["hledger/hledger.info"]
-    --   -- need ["hledger/hledger.txt"]
-    --   cmd Shell "stack build" pkg
-
-    -- build (and install) any of the hledger packages, after
-    -- generating any doc files they embed or import.
+    -- build any of the hledger packages, after generating any doc
+    -- files they embed or import.
     sequence_ [ phony pkg $ do
       need $ fromMaybe [] $ lookup pkg embeddedFiles
       cmd Shell "stack build " pkg
