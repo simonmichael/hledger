@@ -577,17 +577,17 @@ ghcid-test-%: $(call def-help,ghcid-test-TESTPATTERN, start ghcid autobuilding a
 ghcid-doctest: $(call def-help,ghcid-doctest, start ghcid autobuilding and running hledger-lib doctests)
 	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
 
-ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
-	stack exec \
-		--package base-prelude \
-		--package directory \
-		--package extra \
-		--package safe \
-		--package shake \
-		--package time \
-		-- ghcid Shake.hs
-# same packages as in Shake.hs
+# keep synced with Shake.hs header
+SHAKEDEPS= \
+	--package base-prelude \
+	--package directory \
+	--package extra \
+	--package safe \
+	--package shake \
+	--package time \
 
+ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
+	stack exec $(SHAKEDEPS) -- ghcid Shake.hs
 
 # multi-package GHCI prompts
 ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
@@ -617,6 +617,9 @@ ghci-api: $(call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + h
 
 ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib doctests)
 	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
+
+ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
+	stack exec $(SHAKEDEPS) -- ghci Shake.hs
 
 
 ###############################################################################
