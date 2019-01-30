@@ -5,9 +5,9 @@ New built-in commands should be added in four places below:
 the export list, the import list, builtinCommands, commandsList.
 -}
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands (
@@ -189,9 +189,8 @@ Help:
  (no arguments)           show this commands list
 
 |]
--- -------------------------------------------------------------------------------
--- aregister (ar, areg)     show transactions in a single account
 -- edit                     open a text editor on some part of the journal
+-- aregister (ar, areg)     show transactions in a single account
 
 
 -- | All names and aliases of builtin commands.
@@ -202,6 +201,15 @@ builtinCommandNames = concatMap (modeNames . fst) builtinCommands
 findCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ()) 
 findCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
 
+-- | Extract the command names from commandsList: the first word
+-- of lines beginning with a space or + sign.
+commandsFromCommandsList :: String -> [String]
+commandsFromCommandsList s =
+  [w | c:l <- lines s, c `elem` [' ','+'], let w:_ = words l]
+
+knownCommands :: [String]
+knownCommands = sort $ commandsFromCommandsList commandsList
+
 -- | Print the commands list, modifying the template above based on
 -- the currently available addons. Missing addons will be removed, and
 -- extra addons will be added under Misc.
@@ -210,12 +218,10 @@ printCommandsList addonsFound =
   putStr $
   regexReplace "PROGVERSION" (prognameandversion) $
   regexReplace "OTHER" (unlines $ (map ('+':) unknownCommandsFound)) $
-  -- regexReplace "COUNT" (show cmdcount) $
   unlines $ concatMap adjustline $ lines $
   cmdlist
   where
     cmdlist = commandsList
-    -- cmdcount = length $ commandsFromCommandsList cmdlist
     commandsFound = map (' ':) builtinCommandNames ++ map ('+':) addonsFound
     unknownCommandsFound = addonsFound \\ knownCommands
 
@@ -224,15 +230,6 @@ printCommandsList addonsFound =
       where
         cmd = takeWhile (not . isSpace) l
     adjustline l = [l]
-
-knownCommands :: [String]
-knownCommands = sort $ commandsFromCommandsList commandsList
-
--- | Extract the command names from commandsList: the first word
--- of lines beginning with a space or + sign.
-commandsFromCommandsList :: String -> [String]
-commandsFromCommandsList s =
-  [w | c:l <- lines s, c `elem` [' ','+'], let w:_ = words l]
 
 
 -- The test command is defined here for easy access to other modules' tests.
