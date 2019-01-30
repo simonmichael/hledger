@@ -183,10 +183,10 @@ Alternate user interfaces:
 Other:
 OTHER
 Help:
- help [MANUAL]            show the hledger manuals in various formats
- COMMAND -h               show command's usage
- -h                       show general usage
  (no arguments)           show this commands list
+ -h                       show general flags
+ COMMAND -h               show flags & docs for COMMAND
+ help [MANUAL]            show hledger manuals in various formats
 
 |]
 -- edit                     open a text editor on some part of the journal
