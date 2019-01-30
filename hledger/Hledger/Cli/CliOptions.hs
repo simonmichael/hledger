@@ -246,9 +246,9 @@ type CommandDoc = String
 -- flag and argument specs are still required.
 hledgerCommandMode :: CommandDoc -> [Flag RawOpts] -> [(String, [Flag RawOpts])] 
   -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
-hledgerCommandMode tmpl unnamedflaggroup namedflaggroups hiddenflaggroup argsdescr =
-  case parseCommandDoc tmpl of
-    Nothing -> error' $ "Could not parse help template:\n"++tmpl++"\n"
+hledgerCommandMode doc unnamedflaggroup namedflaggroups hiddenflaggroup argsdescr =
+  case parseCommandDoc doc of
+    Nothing -> error' $ "Could not parse command doc:\n"++doc++"\n"
     Just (names, shorthelp, longhelplines) ->
       (defCommandMode names) {
          modeHelp        = shorthelp
