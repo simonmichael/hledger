@@ -1908,10 +1908,10 @@ COMMANDS
        particular account, to see that account's activity:
 
               $ hledger register checking
-              2008/01/01 income               assets:bank:checking            $1            $1
-              2008/06/01 gift                 assets:bank:checking            $1            $2
-              2008/06/02 save                 assets:bank:checking           $-1            $1
-              2008/12/31 pay off              assets:bank:checking           $-1             0
+              2008/01/01 income               assets:bank:checking            $1           $1
+              2008/06/01 gift                 assets:bank:checking            $1           $2
+              2008/06/02 save                 assets:bank:checking           $-1           $1
+              2008/12/31 pay off              assets:bank:checking           $-1            0
 
        With --date2, it shows and sorts by secondary date instead.
 
@@ -1920,9 +1920,9 @@ COMMANDS
        only recent activity, with a historically accurate running balance:
 
               $ hledger register checking -b 2008/6 --historical
-              2008/06/01 gift                 assets:bank:checking            $1            $2
-              2008/06/02 save                 assets:bank:checking           $-1            $1
-              2008/12/31 pay off              assets:bank:checking           $-1             0
+              2008/06/01 gift                 assets:bank:checking            $1           $2
+              2008/06/02 save                 assets:bank:checking           $-1           $1
+              2008/12/31 pay off              assets:bank:checking           $-1            0
 
        The --depth option limits the amount of sub-account detail displayed.
 
@@ -1939,33 +1939,33 @@ COMMANDS
        interval, aggregating the postings to each account:
 
               $ hledger register --monthly income
-              2008/01                 income:salary                          $-1           $-1
-              2008/06                 income:gifts                           $-1           $-2
+              2008/01                 income:salary                          $-1          $-1
+              2008/06                 income:gifts                           $-1          $-2
 
        Periods  with no activity, and summary postings with a zero amount, are
        not shown by default; use the --empty/-E flag to see them:
 
               $ hledger register --monthly income -E
-              2008/01                 income:salary                          $-1           $-1
-              2008/02                                                          0           $-1
-              2008/03                                                          0           $-1
-              2008/04                                                          0           $-1
-              2008/05                                                          0           $-1
-              2008/06                 income:gifts                           $-1           $-2
-              2008/07                                                          0           $-2
-              2008/08                                                          0           $-2
-              2008/09                                                          0           $-2
-              2008/10                                                          0           $-2
-              2008/11                                                          0           $-2
-              2008/12                                                          0           $-2
+              2008/01                 income:salary                          $-1          $-1
+              2008/02                                                          0          $-1
+              2008/03                                                          0          $-1
+              2008/04                                                          0          $-1
+              2008/05                                                          0          $-1
+              2008/06                 income:gifts                           $-1          $-2
+              2008/07                                                          0          $-2
+              2008/08                                                          0          $-2
+              2008/09                                                          0          $-2
+              2008/10                                                          0          $-2
+              2008/11                                                          0          $-2
+              2008/12                                                          0          $-2
 
        Often, you'll want to see just one  line  per  interval.   The  --depth
        option helps with this, causing subaccounts to be aggregated:
 
               $ hledger register --monthly assets --depth 1h
-              2008/01                 assets                                  $1            $1
-              2008/06                 assets                                 $-1             0
-              2008/12                 assets                                 $-1           $-1
+              2008/01                 assets                                  $1           $1
+              2008/06                 assets                                 $-1            0
+              2008/12                 assets                                 $-1          $-1
 
        Note  when using report intervals, if you specify start/end dates these
        will be adjusted outward if necessary to  contain  a  whole  number  of
@@ -1980,7 +1980,7 @@ COMMANDS
        The description and account columns normally share  the  space  equally
        (about  half  of  (width  - 40) each).  You can adjust this by adding a
        description width  as  part  of  --width's  argument,  comma-separated:
-       --width W,D .  Here's a diagram:
+       --width W,D .  Here's a diagram (won't display correctly in --help):
 
               <--------------------------------- width (W) ---------------------------------->
               date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
@@ -1993,7 +1993,7 @@ COMMANDS
               $ COLUMNS=100 hledger reg         # set with one-time environment variable
               $ export COLUMNS=100; hledger reg # set till session end (or window resize)
               $ hledger reg -w 100,40           # set overall width 100, description width 40
-              $ hledger reg -w $COLUMNS,40      # use terminal width, and set description width
+              $ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 
        This  command also supports output destination and output format selec-
        tion.

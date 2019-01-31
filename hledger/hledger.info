@@ -2142,10 +2142,10 @@ and their running total.  This is typically used with a query selecting
 a particular account, to see that account's activity:
 
 $ hledger register checking
-2008/01/01 income               assets:bank:checking            $1            $1
-2008/06/01 gift                 assets:bank:checking            $1            $2
-2008/06/02 save                 assets:bank:checking           $-1            $1
-2008/12/31 pay off              assets:bank:checking           $-1             0
+2008/01/01 income               assets:bank:checking            $1           $1
+2008/06/01 gift                 assets:bank:checking            $1           $2
+2008/06/02 save                 assets:bank:checking           $-1           $1
+2008/12/31 pay off              assets:bank:checking           $-1            0
 
    With -date2, it shows and sorts by secondary date instead.
 
@@ -2154,9 +2154,9 @@ prior postings to the running total.  This is useful when you want to
 see only recent activity, with a historically accurate running balance:
 
 $ hledger register checking -b 2008/6 --historical
-2008/06/01 gift                 assets:bank:checking            $1            $2
-2008/06/02 save                 assets:bank:checking           $-1            $1
-2008/12/31 pay off              assets:bank:checking           $-1             0
+2008/06/01 gift                 assets:bank:checking            $1           $2
+2008/06/02 save                 assets:bank:checking           $-1           $1
+2008/12/31 pay off              assets:bank:checking           $-1            0
 
    The '--depth' option limits the amount of sub-account detail
 displayed.
@@ -2174,33 +2174,33 @@ transactions of the postings which would normally be shown.
 interval, aggregating the postings to each account:
 
 $ hledger register --monthly income
-2008/01                 income:salary                          $-1           $-1
-2008/06                 income:gifts                           $-1           $-2
+2008/01                 income:salary                          $-1          $-1
+2008/06                 income:gifts                           $-1          $-2
 
    Periods with no activity, and summary postings with a zero amount,
 are not shown by default; use the '--empty'/'-E' flag to see them:
 
 $ hledger register --monthly income -E
-2008/01                 income:salary                          $-1           $-1
-2008/02                                                          0           $-1
-2008/03                                                          0           $-1
-2008/04                                                          0           $-1
-2008/05                                                          0           $-1
-2008/06                 income:gifts                           $-1           $-2
-2008/07                                                          0           $-2
-2008/08                                                          0           $-2
-2008/09                                                          0           $-2
-2008/10                                                          0           $-2
-2008/11                                                          0           $-2
-2008/12                                                          0           $-2
+2008/01                 income:salary                          $-1          $-1
+2008/02                                                          0          $-1
+2008/03                                                          0          $-1
+2008/04                                                          0          $-1
+2008/05                                                          0          $-1
+2008/06                 income:gifts                           $-1          $-2
+2008/07                                                          0          $-2
+2008/08                                                          0          $-2
+2008/09                                                          0          $-2
+2008/10                                                          0          $-2
+2008/11                                                          0          $-2
+2008/12                                                          0          $-2
 
    Often, you'll want to see just one line per interval.  The '--depth'
 option helps with this, causing subaccounts to be aggregated:
 
 $ hledger register --monthly assets --depth 1h
-2008/01                 assets                                  $1            $1
-2008/06                 assets                                 $-1             0
-2008/12                 assets                                 $-1           $-1
+2008/01                 assets                                  $1           $1
+2008/06                 assets                                 $-1            0
+2008/12                 assets                                 $-1          $-1
 
    Note when using report intervals, if you specify start/end dates
 these will be adjusted outward if necessary to contain a whole number of
@@ -2223,7 +2223,7 @@ a bash shell variable) or by using the '--width'/'-w' option.
    The description and account columns normally share the space equally
 (about half of (width - 40) each).  You can adjust this by adding a
 description width as part of -width's argument, comma-separated:
-'--width W,D' .  Here's a diagram:
+'--width W,D' .  Here's a diagram (won't display correctly in -help):
 
 <--------------------------------- width (W) ---------------------------------->
 date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
@@ -2236,7 +2236,7 @@ $ hledger reg -w 100              # use width 100
 $ COLUMNS=100 hledger reg         # set with one-time environment variable
 $ export COLUMNS=100; hledger reg # set till session end (or window resize)
 $ hledger reg -w 100,40           # set overall width 100, description width 40
-$ hledger reg -w $COLUMNS,40      # use terminal width, and set description width
+$ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 
    This command also supports output destination and output format
 selection.
@@ -2785,53 +2785,53 @@ Node: print-unique74861
 Ref: #print-unique74987
 Node: register75272
 Ref: #register75399
-Node: Custom register output79292
-Ref: #custom-register-output79421
-Node: register-match80651
-Ref: #register-match80785
-Node: rewrite81136
-Ref: #rewrite81251
-Node: Re-write rules in a file83100
-Ref: #re-write-rules-in-a-file83234
-Node: Diff output format84444
-Ref: #diff-output-format84613
-Node: rewrite vs print --auto85705
-Ref: #rewrite-vs.-print---auto85884
-Node: roi86440
-Ref: #roi86538
-Node: stats87550
-Ref: #stats87649
-Node: tags88403
-Ref: #tags88501
-Node: test88731
-Ref: #test88815
-Node: ADD-ON COMMANDS89576
-Ref: #add-on-commands89686
-Node: Official add-ons90973
-Ref: #official-add-ons91113
-Node: api91200
-Ref: #api91289
-Node: ui91341
-Ref: #ui91440
-Node: web91498
-Ref: #web91587
-Node: Third party add-ons91633
-Ref: #third-party-add-ons91808
-Node: diff91943
-Ref: #diff92040
-Node: iadd92139
-Ref: #iadd92253
-Node: interest92336
-Ref: #interest92457
-Node: irr92552
-Ref: #irr92650
-Node: Experimental add-ons92781
-Ref: #experimental-add-ons92933
-Node: autosync93213
-Ref: #autosync93324
-Node: chart93563
-Ref: #chart93682
-Node: check93753
-Ref: #check93855
+Node: Custom register output79268
+Ref: #custom-register-output79397
+Node: register-match80659
+Ref: #register-match80793
+Node: rewrite81144
+Ref: #rewrite81259
+Node: Re-write rules in a file83108
+Ref: #re-write-rules-in-a-file83242
+Node: Diff output format84452
+Ref: #diff-output-format84621
+Node: rewrite vs print --auto85713
+Ref: #rewrite-vs.-print---auto85892
+Node: roi86448
+Ref: #roi86546
+Node: stats87558
+Ref: #stats87657
+Node: tags88411
+Ref: #tags88509
+Node: test88739
+Ref: #test88823
+Node: ADD-ON COMMANDS89584
+Ref: #add-on-commands89694
+Node: Official add-ons90981
+Ref: #official-add-ons91121
+Node: api91208
+Ref: #api91297
+Node: ui91349
+Ref: #ui91448
+Node: web91506
+Ref: #web91595
+Node: Third party add-ons91641
+Ref: #third-party-add-ons91816
+Node: diff91951
+Ref: #diff92048
+Node: iadd92147
+Ref: #iadd92261
+Node: interest92344
+Ref: #interest92465
+Node: irr92560
+Ref: #irr92658
+Node: Experimental add-ons92789
+Ref: #experimental-add-ons92941
+Node: autosync93221
+Ref: #autosync93332
+Node: chart93571
+Ref: #chart93690
+Node: check93761
+Ref: #check93863
 
 End Tag Table
