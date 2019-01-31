@@ -164,7 +164,7 @@ Financial reports:
 Low-level reports:
  accounts (a)             show account names
  activity                 show postings-per-interval bar charts
- balance (b, bal)         show balance changes or end balances in any accounts
+ balance (b, bal)         show balance changes/end balances/budgets in accounts
  files                    show input file paths
  prices                   show market price records
  print (p, txns)          show transactions (journal entries)
