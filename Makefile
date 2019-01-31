@@ -1117,9 +1117,10 @@ haddock: \
 ########################
 # changelogs
 
-# need GNU sed, it may be called gsed (eg with homebrew)
 # -E for extended regular expressions
-SED:=$(notdir $(shell which gsed || which sed)) -E
+SED=sed -E
+# GNU sed, when needed. It's gsed eg with homebrew. This test may print an error message
+GSED=$(notdir $(shell which gsed || which sed)) -E
 
 # --abbrev-commit for short commit hashes
 GITLOG=git log --abbrev-commit
@@ -1165,6 +1166,7 @@ changelogs: */CHANGES.md CHANGES.md \
 
 # inserts a blank line + heading + new items after line 2.
 # dry run: put echo before the last $(SED), ls Makefile | entr bash -c 'make hledger/CHANGES.md && cat hledger/CHANGES.md.new'
+# Needs GNU sed to do the r insertion.
 %/CHANGES.md: .FORCE \
 		$(call def-help,*/CHANGES.md, add commits to the specified changelog(s) since the tag/commit in the topmost heading )
 	$(eval PKGDIR=$(dir $@))
@@ -1177,7 +1179,7 @@ changelogs: */CHANGES.md CHANGES.md \
 	        ( printf "\n# $(HEAD)\n\n"; \
 	          $(GITLOG) $(CHANGEFMT) $(LAST).. -- $(PKGDIR) | $(CHANGECLEANUP) \
 	        ) >$@.new ; \
-	        $(SED) -i "2r $@.new" $@ ; \
+	        $(GSED) -i "2r $@.new" $@ ; \
 	        echo "$@: added $(LAST)..$(HEAD)" \
 	      ) \
 	 )
