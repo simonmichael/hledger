@@ -1,11 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 17cd5b22
-
-# 0a31ef84
-
-# 1e5e30ae
+# 9fe32129
 
 - use hledger 1.12.99
 

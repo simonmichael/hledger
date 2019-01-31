@@ -1,15 +1,40 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# a37c18e5
+# afd7cae1
+
+- install: fix "stack" installation when .local/bin is not in PATH (Dmitry Astapov)
+
+- package: added helper scripts in docker/ (Dmitry Astapov)
+
+- cli: command help: reduce width, line wrapping
+  cmdargs wraps any lines longer than 78 characters.  To (mostly) avoid
+  this, we now display verbatim blocks unindented, and some of
+  register's examples have been altered to make them fit.
+
+- shake: Shake PKG (or Shake build) builds packages plus their docs
+  "stack build hledger" will not notice changes in documentation source
+  files (like hledger/Hledger/Cli/Commands/Add.md or
+  hledger-lib/hledger_journal.m4.md), but "./Shake hledger" will.
+
+  "./Shake build" builds all the packages, like a doc-aware "stack build".
+
+- make: ghci-shake
+
+- package: added Dockerfile (Dmitry Astapov)
+
+- site: download: link adept's & other docker images
+
+- site: download: link sandstorm
+
+- site: download: platform headings
+
+- site: download: fix the TOC links
+
+- site: home: link download page
+  I accidentally the link.
 
 - make: include Shake.hs in tags
-
-- shake: manuals: also depend on new command doc files
-
-# 0a31ef84
-
-# 9bc88727
 
 - fixed pandoc typography conversion in web manuals (#954).
   Eg `--` was being rendered as en-dash.

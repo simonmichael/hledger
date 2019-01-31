@@ -1,22 +1,23 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 469b7153
+# 5435150d
 
-- cli: commands list: update command descriptions
+- cli: command help: reduce width, line wrapping
+  cmdargs wraps any lines longer than 78 characters.  To (mostly) avoid
+  this, we now display verbatim blocks unindented, and some of
+  register's examples have been altered to make them fit.
 
-- cli: commands list: show addons prefixed with +
+- cli: render command help as plain text, hiding markup
+  This means committing a bunch more generated files, but it's probably
+  worthwhile, so we can have both rich hyperlinked/styled command docs
+  and clean readable command help.
+
+- cli: commands list: update, reorganise, show addons prefixed with +
 
 - doc: integrate CLI help & manual for remaining commands
-  & rename HelpTemplate -> CommandDoc
 
-- lib: refactor, add embedFileRelative
-
-- hereFileRelativeToPackage -> hereFileRelative
-
-# 0a31ef84
-
-# 1e5e30ae
+- renamed HelpTemplate -> CommandDoc
 
 - journal: account directive: account sort codes like `account 1000`
   are no longer supported. (introduced in 1.9, deprecated in 1.11)
