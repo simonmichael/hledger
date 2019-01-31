@@ -83,14 +83,14 @@ $ hledger print -Ocsv
 "5","2008/12/31","","*","","pay off","","assets:bank:checking","-1","$","1","","",""
 
 -   There is one CSV record per posting, with the parent transaction's
-fields repeated.
+    fields repeated.
 -   The "txnidx" (transaction index) field shows which postings belong
-to the same transaction. (This number might change if transactions
-are reordered within the file, files are parsed/included in a
-different order, etc.)
+    to the same transaction. (This number might change if transactions
+    are reordered within the file, files are parsed/included in a
+    different order, etc.)
 -   The amount is separated into "commodity" (the symbol) and "amount"
-(numeric quantity) fields.
+    (numeric quantity) fields.
 -   The numeric amount is repeated in either the "credit" or "debit"
-column, for convenience. (Those names are not accurate in the
-accounting sense; it just puts negative amounts under credit and
-zero or greater amounts under debit.)
+    column, for convenience. (Those names are not accurate in the
+    accounting sense; it just puts negative amounts under credit and
+    zero or greater amounts under debit.)

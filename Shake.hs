@@ -20,7 +20,6 @@ compiling is recommended; run the script in interpreted mode to do that.
 It requires stack (https://haskell-lang.org/get-started) and
 auto-installs the packages above. Also, some rules require:
 
-- GNU sed
 - groff
 - m4
 - makeinfo
@@ -85,10 +84,6 @@ towebmd = "-t markdown-smart-fenced_divs --atx-headers"
 
 
 main = do
-
-  -- try to ensure we have a modern sed
-  sed' <- readCreateProcess (shell "which gsed || which sed") ""
-  let sed = sed' ++ " -E"
 
   -- hledger manual also includes the markdown files from here:
   let commandsdir = "hledger/Hledger/Cli/Commands"
@@ -378,9 +373,7 @@ main = do
       need [src]
       cmd Shell
         -- "m4 -P -DHELP -I" commandsdir lib src "|"
-        pandoc fromsrcmd src "-t plain"
-        "|" sed "-e" ["'s/^    //'"]
-        ">" out
+        pandoc fromsrcmd src "--lua-filter" "tools/pandoc-dedent-code-blocks.lua" "-t plain" ">" out
 
     -- MISC
 

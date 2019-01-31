@@ -97,10 +97,10 @@ data fields interpolated like so:
 -   MAX truncates at this width (optional)
 -   FIELDNAME must be enclosed in parentheses, and can be one of:
 
--   depth_spacer - a number of spaces equal to the account's depth,
-    or if MIN is specified, MIN * depth spaces.
--   account - the account's name
--   total - the account's balance/posted total, right justified
+    -   depth_spacer - a number of spaces equal to the account's depth,
+        or if MIN is specified, MIN * depth spaces.
+    -   account - the account's name
+    -   total - the account's balance/posted total, right justified
 
 Also, FMT can begin with an optional prefix to control how
 multi-commodity amounts are rendered:
@@ -117,12 +117,12 @@ Some example formats:
 
 -   %(total) - the account's total
 -   %-20.20(account) - the account's name, left justified, padded to 20
-characters and clipped at 20 characters
+    characters and clipped at 20 characters
 -   %,%-50(account)  %25(total) - account name padded to 50 characters,
-total padded to 20 characters, with multiple commodities rendered on
-one line
+    total padded to 20 characters, with multiple commodities rendered on
+    one line
 -   %20(total)  %2(depth_spacer)%-(account) - the default format for the
-single-column balance report
+    single-column balance report
 
 Colour support
 
@@ -169,8 +169,8 @@ There are three types of multicolumn balance report, showing different
 information:
 
 1.  By default: each column shows the sum of postings in that period, ie
-the account's change of balance in that period. This is useful eg
-for a monthly income statement:
+    the account's change of balance in that period. This is useful eg
+    for a monthly income statement:
 
     $ hledger balance --quarterly income expenses -E
     Balance changes in 2008:
@@ -185,8 +185,8 @@ for a monthly income statement:
                        ||     $-1      $1       0       0 
 
 2.  With --cumulative: each column shows the ending balance for that
-period, accumulating the changes across periods, starting from 0 at
-the report start date:
+    period, accumulating the changes across periods, starting from 0 at
+    the report start date:
 
     $ hledger balance --quarterly income expenses -E --cumulative
     Ending balances (cumulative) in 2008:
@@ -201,10 +201,10 @@ the report start date:
                        ||         $-1           0           0           0 
 
 3.  With --historical/-H: each column shows the actual historical ending
-balance for that period, accumulating the changes across periods,
-starting from the actual balance at the report start date. This is
-useful eg for a multi-period balance sheet, and when you are showing
-only the data after a certain start date:
+    balance for that period, accumulating the changes across periods,
+    starting from the actual balance at the report start date. This is
+    useful eg for a multi-period balance sheet, and when you are showing
+    only the data after a certain start date:
 
     $ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
     Ending balances (historical) in 2008/04/01-2008/12/31:

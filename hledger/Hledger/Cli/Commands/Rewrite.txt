@@ -118,11 +118,11 @@ This command predates print --auto, and currently does much the same
 thing, but with these differences:
 
 -   with multiple files, rewrite lets rules in any file affect all other
-files. print --auto uses standard directive scoping; rules affect
-only child files.
+    files. print --auto uses standard directive scoping; rules affect
+    only child files.
 
 -   rewrite's query limits which transactions can be rewritten; all are
-printed. print --auto's query limits which transactions are printed.
+    printed. print --auto's query limits which transactions are printed.
 
 -   rewrite applies rules specified on command line or in the journal.
-print --auto applies rules specified in the journal.
+    print --auto applies rules specified in the journal.
