@@ -12,24 +12,24 @@ _FLAGS_
 
 Example:
 
-    $ hledger balancesheet
-    Balance Sheet
+$ hledger balancesheet
+Balance Sheet
 
-    Assets:
-                     $-1  assets
-                      $1    bank:saving
-                     $-2    cash
-    --------------------
-                     $-1
+Assets:
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+--------------------
+                 $-1
 
-    Liabilities:
-                      $1  liabilities:debts
-    --------------------
-                      $1
+Liabilities:
+                  $1  liabilities:debts
+--------------------
+                  $1
 
-    Total:
-    --------------------
-                       0
+Total:
+--------------------
+                   0
 
 With a reporting interval, multiple columns will be shown, one for each
 report period. As with multicolumn balance reports, you can alter the

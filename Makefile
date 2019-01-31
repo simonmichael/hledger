@@ -582,6 +582,7 @@ SHAKEDEPS= \
 	--package base-prelude \
 	--package directory \
 	--package extra \
+	--package process \
 	--package safe \
 	--package shake \
 	--package time \

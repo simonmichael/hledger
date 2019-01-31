@@ -11,27 +11,27 @@ print's output is always a valid hledger journal.
 It preserves all transaction information, but it does not preserve
 directives or inter-transaction comments
 
-    $ hledger print
-    2008/01/01 income
-        assets:bank:checking            $1
-        income:salary                  $-1
+$ hledger print
+2008/01/01 income
+    assets:bank:checking            $1
+    income:salary                  $-1
 
-    2008/06/01 gift
-        assets:bank:checking            $1
-        income:gifts                   $-1
+2008/06/01 gift
+    assets:bank:checking            $1
+    income:gifts                   $-1
 
-    2008/06/02 save
-        assets:bank:saving              $1
-        assets:bank:checking           $-1
+2008/06/02 save
+    assets:bank:saving              $1
+    assets:bank:checking           $-1
 
-    2008/06/03 * eat & shop
-        expenses:food                $1
-        expenses:supplies            $1
-        assets:cash                 $-2
+2008/06/03 * eat & shop
+    expenses:food                $1
+    expenses:supplies            $1
+    assets:cash                 $-2
 
-    2008/12/31 * pay off
-        liabilities:debts               $1
-        assets:bank:checking           $-1
+2008/12/31 * pay off
+    liabilities:debts               $1
+    assets:bank:checking           $-1
 
 Normally, the journal entry's explicit or implicit amount style is
 preserved. Ie when an amount is omitted in the journal, it will be
@@ -58,8 +58,8 @@ transactions on the latest date) are printed. This is useful for
 ignoring already-seen entries in import data, such as downloaded CSV
 files. Eg:
 
-    $ hledger -f bank1.csv print --new
-    # shows transactions added since last print --new on this file
+$ hledger -f bank1.csv print --new
+# shows transactions added since last print --new on this file
 
 This assumes that transactions added to FILE always have same or
 increasing dates, and that transactions on the same day do not get
@@ -68,29 +68,29 @@ reordered. See also the import command.
 This command also supports output destination and output format
 selection. Here's an example of print's CSV output:
 
-    $ hledger print -Ocsv
-    "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
-    "1","2008/01/01","","","","income","","assets:bank:checking","1","$","","1","",""
-    "1","2008/01/01","","","","income","","income:salary","-1","$","1","","",""
-    "2","2008/06/01","","","","gift","","assets:bank:checking","1","$","","1","",""
-    "2","2008/06/01","","","","gift","","income:gifts","-1","$","1","","",""
-    "3","2008/06/02","","","","save","","assets:bank:saving","1","$","","1","",""
-    "3","2008/06/02","","","","save","","assets:bank:checking","-1","$","1","","",""
-    "4","2008/06/03","","*","","eat & shop","","expenses:food","1","$","","1","",""
-    "4","2008/06/03","","*","","eat & shop","","expenses:supplies","1","$","","1","",""
-    "4","2008/06/03","","*","","eat & shop","","assets:cash","-2","$","2","","",""
-    "5","2008/12/31","","*","","pay off","","liabilities:debts","1","$","","1","",""
-    "5","2008/12/31","","*","","pay off","","assets:bank:checking","-1","$","1","","",""
+$ hledger print -Ocsv
+"txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
+"1","2008/01/01","","","","income","","assets:bank:checking","1","$","","1","",""
+"1","2008/01/01","","","","income","","income:salary","-1","$","1","","",""
+"2","2008/06/01","","","","gift","","assets:bank:checking","1","$","","1","",""
+"2","2008/06/01","","","","gift","","income:gifts","-1","$","1","","",""
+"3","2008/06/02","","","","save","","assets:bank:saving","1","$","","1","",""
+"3","2008/06/02","","","","save","","assets:bank:checking","-1","$","1","","",""
+"4","2008/06/03","","*","","eat & shop","","expenses:food","1","$","","1","",""
+"4","2008/06/03","","*","","eat & shop","","expenses:supplies","1","$","","1","",""
+"4","2008/06/03","","*","","eat & shop","","assets:cash","-2","$","2","","",""
+"5","2008/12/31","","*","","pay off","","liabilities:debts","1","$","","1","",""
+"5","2008/12/31","","*","","pay off","","assets:bank:checking","-1","$","1","","",""
 
 -   There is one CSV record per posting, with the parent transaction's
-    fields repeated.
+fields repeated.
 -   The "txnidx" (transaction index) field shows which postings belong
-    to the same transaction. (This number might change if transactions
-    are reordered within the file, files are parsed/included in a
-    different order, etc.)
+to the same transaction. (This number might change if transactions
+are reordered within the file, files are parsed/included in a
+different order, etc.)
 -   The amount is separated into "commodity" (the symbol) and "amount"
-    (numeric quantity) fields.
+(numeric quantity) fields.
 -   The numeric amount is repeated in either the "credit" or "debit"
-    column, for convenience. (Those names are not accurate in the
-    accounting sense; it just puts negative amounts under credit and
-    zero or greater amounts under debit.)
+column, for convenience. (Those names are not accurate in the
+accounting sense; it just puts negative amounts under credit and
+zero or greater amounts under debit.)

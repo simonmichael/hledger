@@ -9,17 +9,17 @@ each report period.
 
 Example:
 
-    $ hledger stats
-    Main journal file        : /src/hledger/examples/sample.journal
-    Included journal files   : 
-    Transactions span        : 2008-01-01 to 2009-01-01 (366 days)
-    Last transaction         : 2008-12-31 (2333 days ago)
-    Transactions             : 5 (0.0 per day)
-    Transactions last 30 days: 0 (0.0 per day)
-    Transactions last 7 days : 0 (0.0 per day)
-    Payees/descriptions      : 5
-    Accounts                 : 8 (depth 3)
-    Commodities              : 1 ($)
+$ hledger stats
+Main journal file        : /src/hledger/examples/sample.journal
+Included journal files   : 
+Transactions span        : 2008-01-01 to 2009-01-01 (366 days)
+Last transaction         : 2008-12-31 (2333 days ago)
+Transactions             : 5 (0.0 per day)
+Transactions last 30 days: 0 (0.0 per day)
+Transactions last 7 days : 0 (0.0 per day)
+Payees/descriptions      : 5
+Accounts                 : 8 (depth 3)
+Commodities              : 1 ($)
 
 This command also supports output destination and output format
 selection.

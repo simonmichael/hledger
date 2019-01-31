@@ -16,4 +16,4 @@ date order, and by saving .latest.FILE state files.
 The --dry-run output is in journal format, so you can filter it, eg to
 see only uncategorised transactions:
 
-    $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
+$ hledger import --dry ... | hledger -f- print unknown --ignore-assertions

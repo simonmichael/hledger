@@ -189,6 +189,7 @@ Help:
  help [MANUAL]            show hledger manuals in various formats
 
 |]
+-- commands                 show brief commands list
 -- edit                     open a text editor on some part of the journal
 -- aregister (ar, areg)     show transactions in a single account
 

@@ -13,12 +13,12 @@ Account names can be depth-clipped with depth:N or --depth N or -N.
 
 Examples:
 
-    $ hledger accounts
-    assets:bank:checking
-    assets:bank:saving
-    assets:cash
-    expenses:food
-    expenses:supplies
-    income:gifts
-    income:salary
-    liabilities:debts
+$ hledger accounts
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts

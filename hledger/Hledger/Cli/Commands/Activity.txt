@@ -9,8 +9,8 @@ default). With query arguments, it counts only matched transactions.
 
 Examples:
 
-    $ hledger activity --quarterly
-    2008-01-01 **
-    2008-04-01 *******
-    2008-07-01 
-    2008-10-01 **
+$ hledger activity --quarterly
+2008-01-01 **
+2008-04-01 *******
+2008-07-01 
+2008-10-01 **

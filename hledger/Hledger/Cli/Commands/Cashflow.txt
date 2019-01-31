@@ -10,19 +10,19 @@ _FLAGS_
 
 Example:
 
-    $ hledger cashflow
-    Cashflow Statement
+$ hledger cashflow
+Cashflow Statement
 
-    Cash flows:
-                     $-1  assets
-                      $1    bank:saving
-                     $-2    cash
-    --------------------
-                     $-1
+Cash flows:
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+--------------------
+                 $-1
 
-    Total:
-    --------------------
-                     $-1
+Total:
+--------------------
+                 $-1
 
 With a reporting interval, multiple columns will be shown, one for each
 report period. Normally cashflow shows changes in assets per period,

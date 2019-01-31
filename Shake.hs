@@ -20,6 +20,7 @@ compiling is recommended; run the script in interpreted mode to do that.
 It requires stack (https://haskell-lang.org/get-started) and
 auto-installs the packages above. Also, some rules require:
 
+- GNU sed
 - groff
 - m4
 - makeinfo
@@ -43,8 +44,10 @@ not having to write :: Action ExitCode after a non-final cmd
 
 import                Prelude ()
 import "base-prelude" BasePrelude
+-- keep imports synced with Makefile -> SHAKEDEPS
 import "directory"    System.Directory as S (getDirectoryContents)
 import "extra"        Data.List.Extra
+import "process"      System.Process
 import "safe"         Safe
 import "shake"        Development.Shake
 import "shake"        Development.Shake.FilePath
@@ -56,6 +59,7 @@ usage = unlines
   ,"./Shake.hs               # compile this script"
   ,"./Shake manuals          # generate the txt/man/info manuals"
   ,"./Shake website          # generate the website and web manuals"
+  ,"./Shake commandhelp      # generate the help text for hledger commands"
   ,"./Shake PKG              # build the specified hledger package, with awareness of embedded docs"
   ,"./Shake build            # build all hledger packages, with awareness of embedded docs"
   ,"./Shake all              # generate everything"
@@ -82,6 +86,10 @@ towebmd = "-t markdown-smart-fenced_divs --atx-headers"
 
 main = do
 
+  -- try to ensure we have a modern sed
+  sed' <- readCreateProcess (shell "which gsed || which sed") ""
+  let sed = sed' ++ " -E"
+
   -- hledger manual also includes the markdown files from here:
   let commandsdir = "hledger/Hledger/Cli/Commands"
   commandmds <- filter (".md" `isSuffixOf`) . map (commandsdir </>) <$> S.getDirectoryContents commandsdir
@@ -97,7 +105,7 @@ main = do
 
     phony "help" $ liftIO $ putStrLn usage
 
-    phony "all" $ need ["manuals", "website", "build"]
+    phony "all" $ need ["commandhelp", "manuals", "build", "website"]
 
     -- phony "compile" $ need ["Shake"]
     -- "Shake" %> \out -> do
@@ -159,7 +167,7 @@ main = do
       -- manuals rendered to info, ready for info (hledger/hledger.info)
       infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
 
-      -- manuals rendered to markdown, ready for conversion to html (site/hledger.md)
+      -- individual manuals rendered to markdown, ready for conversion to html (site/hledger.md)
       webmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
       -- website html pages - all manual versions plus misc pages in site/ or copied from elsewhere.
@@ -362,13 +370,17 @@ main = do
       cmd Shell "stack build " pkg
       | pkg <- packages ]
 
+    phony "commandhelp" $ need commandtxts
+    
     commandtxts |%> \out -> do
       let src = out -<.> "md"
           -- lib = "doc/lib.m4"
       need [src]
       cmd Shell
         -- "m4 -P -DHELP -I" commandsdir lib src "|"
-        pandoc fromsrcmd src "-t plain" "-o" out
+        pandoc fromsrcmd src "-t plain"
+        "|" sed "-e" ["'s/^    //'"]
+        ">" out
 
     -- MISC
 
@@ -387,6 +399,7 @@ main = do
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
+      removeFilesAfter "." commandtxts
       removeFilesAfter "." webmanuals
       removeFilesAfter "." [webmancombined]
       removeFilesAfter "." ["site/README.md", "site/CONTRIBUTING.md"]

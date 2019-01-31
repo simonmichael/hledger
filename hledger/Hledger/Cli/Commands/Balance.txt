@@ -30,19 +30,19 @@ Classic balance report
 This is the original balance report, as found in Ledger. It usually
 looks like this:
 
-    $ hledger balance
-                     $-1  assets
-                      $1    bank:saving
-                     $-2    cash
-                      $2  expenses
-                      $1    food
-                      $1    supplies
-                     $-2  income
-                     $-1    gifts
-                     $-1    salary
-                      $1  liabilities:debts
-    --------------------
-                       0
+$ hledger balance
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+                  $1  liabilities:debts
+--------------------
+                   0
 
 By default, accounts are displayed hierarchically, with subaccounts
 indented below their parent. At each level of the tree, accounts are
@@ -63,29 +63,29 @@ omitted. Use -E/--empty to show them.
 A final total is displayed by default; use -N/--no-total to suppress it,
 eg:
 
-    $ hledger balance -p 2008/6 expenses --no-total
-                      $2  expenses
-                      $1    food
-                      $1    supplies
+$ hledger balance -p 2008/6 expenses --no-total
+                  $2  expenses
+                  $1    food
+                  $1    supplies
 
 Customising the classic balance report
 
 You can customise the layout of classic balance reports with
 --format FMT:
 
-    $ hledger balance --format "%20(account) %12(total)"
-                  assets          $-1
-             bank:saving           $1
-                    cash          $-2
-                expenses           $2
-                    food           $1
-                supplies           $1
-                  income          $-2
-                   gifts          $-1
-                  salary          $-1
-       liabilities:debts           $1
-    ---------------------------------
-                                    0
+$ hledger balance --format "%20(account) %12(total)"
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
 
 The FMT format string (plus a newline) specifies the formatting applied
 to each account/balance pair. It may contain any suitable text, with
@@ -97,10 +97,10 @@ data fields interpolated like so:
 -   MAX truncates at this width (optional)
 -   FIELDNAME must be enclosed in parentheses, and can be one of:
 
-    -   depth_spacer - a number of spaces equal to the account's depth,
-        or if MIN is specified, MIN * depth spaces.
-    -   account - the account's name
-    -   total - the account's balance/posted total, right justified
+-   depth_spacer - a number of spaces equal to the account's depth,
+    or if MIN is specified, MIN * depth spaces.
+-   account - the account's name
+-   total - the account's balance/posted total, right justified
 
 Also, FMT can begin with an optional prefix to control how
 multi-commodity amounts are rendered:
@@ -117,12 +117,12 @@ Some example formats:
 
 -   %(total) - the account's total
 -   %-20.20(account) - the account's name, left justified, padded to 20
-    characters and clipped at 20 characters
+characters and clipped at 20 characters
 -   %,%-50(account)  %25(total) - account name padded to 50 characters,
-    total padded to 20 characters, with multiple commodities rendered on
-    one line
+total padded to 20 characters, with multiple commodities rendered on
+one line
 -   %20(total)  %2(depth_spacer)%-(account) - the default format for the
-    single-column balance report
+single-column balance report
 
 Colour support
 
@@ -139,9 +139,9 @@ names and "exclusive" balance, excluding any subaccount balances. In
 this mode, you can also use --drop N to omit the first few account name
 components.
 
-    $ hledger balance -p 2008/6 expenses -N --flat --drop 1
-                      $1  food
-                      $1  supplies
+$ hledger balance -p 2008/6 expenses -N --flat --drop 1
+                  $1  food
+                  $1  supplies
 
 Depth limited balance reports
 
@@ -149,11 +149,11 @@ With --depth N or depth:N or just -N, balance reports show accounts only
 to the specified numeric depth. This is very useful to summarise a
 complex set of accounts and get an overview.
 
-    $ hledger balance -N -1
-                     $-1  assets
-                      $2  expenses
-                     $-2  income
-                      $1  liabilities
+$ hledger balance -N -1
+                 $-1  assets
+                  $2  expenses
+                 $-2  income
+                  $1  liabilities
 
 Flat-mode balance reports, which normally show exclusive balances, show
 inclusive balances at the depth limit.
@@ -169,54 +169,54 @@ There are three types of multicolumn balance report, showing different
 information:
 
 1.  By default: each column shows the sum of postings in that period, ie
-    the account's change of balance in that period. This is useful eg
-    for a monthly income statement:
+the account's change of balance in that period. This is useful eg
+for a monthly income statement:
 
-        $ hledger balance --quarterly income expenses -E
-        Balance changes in 2008:
+    $ hledger balance --quarterly income expenses -E
+    Balance changes in 2008:
 
-                           ||  2008q1  2008q2  2008q3  2008q4 
-        ===================++=================================
-         expenses:food     ||       0      $1       0       0 
-         expenses:supplies ||       0      $1       0       0 
-         income:gifts      ||       0     $-1       0       0 
-         income:salary     ||     $-1       0       0       0 
-        -------------------++---------------------------------
-                           ||     $-1      $1       0       0 
+                       ||  2008q1  2008q2  2008q3  2008q4 
+    ===================++=================================
+     expenses:food     ||       0      $1       0       0 
+     expenses:supplies ||       0      $1       0       0 
+     income:gifts      ||       0     $-1       0       0 
+     income:salary     ||     $-1       0       0       0 
+    -------------------++---------------------------------
+                       ||     $-1      $1       0       0 
 
 2.  With --cumulative: each column shows the ending balance for that
-    period, accumulating the changes across periods, starting from 0 at
-    the report start date:
+period, accumulating the changes across periods, starting from 0 at
+the report start date:
 
-        $ hledger balance --quarterly income expenses -E --cumulative
-        Ending balances (cumulative) in 2008:
+    $ hledger balance --quarterly income expenses -E --cumulative
+    Ending balances (cumulative) in 2008:
 
-                           ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
-        ===================++=================================================
-         expenses:food     ||           0          $1          $1          $1 
-         expenses:supplies ||           0          $1          $1          $1 
-         income:gifts      ||           0         $-1         $-1         $-1 
-         income:salary     ||         $-1         $-1         $-1         $-1 
-        -------------------++-------------------------------------------------
-                           ||         $-1           0           0           0 
+                       ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
+    ===================++=================================================
+     expenses:food     ||           0          $1          $1          $1 
+     expenses:supplies ||           0          $1          $1          $1 
+     income:gifts      ||           0         $-1         $-1         $-1 
+     income:salary     ||         $-1         $-1         $-1         $-1 
+    -------------------++-------------------------------------------------
+                       ||         $-1           0           0           0 
 
 3.  With --historical/-H: each column shows the actual historical ending
-    balance for that period, accumulating the changes across periods,
-    starting from the actual balance at the report start date. This is
-    useful eg for a multi-period balance sheet, and when you are showing
-    only the data after a certain start date:
+balance for that period, accumulating the changes across periods,
+starting from the actual balance at the report start date. This is
+useful eg for a multi-period balance sheet, and when you are showing
+only the data after a certain start date:
 
-        $ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
-        Ending balances (historical) in 2008/04/01-2008/12/31:
+    $ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
+    Ending balances (historical) in 2008/04/01-2008/12/31:
 
-                              ||  2008/06/30  2008/09/30  2008/12/31 
-        ======================++=====================================
-         assets:bank:checking ||          $1          $1           0 
-         assets:bank:saving   ||          $1          $1          $1 
-         assets:cash          ||         $-2         $-2         $-2 
-         liabilities:debts    ||           0           0          $1 
-        ----------------------++-------------------------------------
-                              ||           0           0           0 
+                          ||  2008/06/30  2008/09/30  2008/12/31 
+    ======================++=====================================
+     assets:bank:checking ||          $1          $1           0 
+     assets:bank:saving   ||          $1          $1          $1 
+     assets:cash          ||         $-2         $-2         $-2 
+     liabilities:debts    ||           0           0          $1 
+    ----------------------++-------------------------------------
+                          ||           0           0           0 
 
 Multicolumn balance reports display accounts in flat mode by default; to
 see the hierarchy, use --tree.
@@ -242,21 +242,21 @@ row.
 
 Here's an example of all three:
 
-    $ hledger balance -Q income expenses --tree -ETA
-    Balance changes in 2008:
+$ hledger balance -Q income expenses --tree -ETA
+Balance changes in 2008:
 
-                ||  2008q1  2008q2  2008q3  2008q4    Total  Average 
-    ============++===================================================
-     expenses   ||       0      $2       0       0       $2       $1 
-       food     ||       0      $1       0       0       $1        0 
-       supplies ||       0      $1       0       0       $1        0 
-     income     ||     $-1     $-1       0       0      $-2      $-1 
-       gifts    ||       0     $-1       0       0      $-1        0 
-       salary   ||     $-1       0       0       0      $-1        0 
-    ------------++---------------------------------------------------
-                ||     $-1      $1       0       0        0        0 
+            ||  2008q1  2008q2  2008q3  2008q4    Total  Average 
+============++===================================================
+ expenses   ||       0      $2       0       0       $2       $1 
+   food     ||       0      $1       0       0       $1        0 
+   supplies ||       0      $1       0       0       $1        0 
+ income     ||     $-1     $-1       0       0      $-2      $-1 
+   gifts    ||       0     $-1       0       0      $-1        0 
+   salary   ||     $-1       0       0       0      $-1        0 
+------------++---------------------------------------------------
+            ||     $-1      $1       0       0        0        0 
 
-    # Average is rounded to the dollar here since all journal amounts are
+# Average is rounded to the dollar here since all journal amounts are
 
 Limitations:
 
@@ -278,47 +278,47 @@ a report interval.
 For example, you can take average monthly expenses in the common expense
 categories to construct a minimal monthly budget:
 
-    ;; Budget
-    ~ monthly
-      income  $2000
-      expenses:food    $400
-      expenses:bus     $50
-      expenses:movies  $30
-      assets:bank:checking
+;; Budget
+~ monthly
+  income  $2000
+  expenses:food    $400
+  expenses:bus     $50
+  expenses:movies  $30
+  assets:bank:checking
 
-    ;; Two months worth of expenses
-    2017-11-01
-      income  $1950
-      expenses:food    $396
-      expenses:bus     $49
-      expenses:movies  $30
-      expenses:supplies  $20
-      assets:bank:checking
+;; Two months worth of expenses
+2017-11-01
+  income  $1950
+  expenses:food    $396
+  expenses:bus     $49
+  expenses:movies  $30
+  expenses:supplies  $20
+  assets:bank:checking
 
-    2017-12-01
-      income  $2100
-      expenses:food    $412
-      expenses:bus     $53
-      expenses:gifts   $100
-      assets:bank:checking
+2017-12-01
+  income  $2100
+  expenses:food    $412
+  expenses:bus     $53
+  expenses:gifts   $100
+  assets:bank:checking
 
 You can now see a monthly budget report:
 
-    $ hledger balance -M --budget
-    Budget performance in 2017/11/01-2017/12/31:
+$ hledger balance -M --budget
+Budget performance in 2017/11/01-2017/12/31:
 
-                          ||                      Nov                       Dec 
-    ======================++====================================================
-     assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
-     assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
-     assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
-     expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
-     expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
-     expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
-     expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
-     income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
-    ----------------------++----------------------------------------------------
-                          ||      0 [              0]       0 [              0] 
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
+ expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
+ expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
+ expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
+ income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 
 By default, only accounts with budget goals during the report period are
 shown. In the example above, transactions in expenses:gifts and
@@ -328,41 +328,41 @@ any budgets.
 
 You can use --empty shows unbudgeted accounts as well:
 
-    $ hledger balance -M --budget --empty
-    Budget performance in 2017/11/01-2017/12/31:
+$ hledger balance -M --budget --empty
+Budget performance in 2017/11/01-2017/12/31:
 
-                          ||                      Nov                       Dec 
-    ======================++====================================================
-     assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
-     assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
-     assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
-     expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
-     expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
-     expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
-     expenses:gifts       ||      0                      $100                   
-     expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
-     expenses:supplies    ||    $20                         0                   
-     income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
-    ----------------------++----------------------------------------------------
-                          ||      0 [              0]       0 [              0] 
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
+ expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
+ expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
+ expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
+ expenses:gifts       ||      0                      $100                   
+ expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
+ expenses:supplies    ||    $20                         0                   
+ income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 
 You can roll over unspent budgets to next period with --cumulative:
 
-    $ hledger balance -M --budget --cumulative
-    Budget performance in 2017/11/01-2017/12/31:
+$ hledger balance -M --budget --cumulative
+Budget performance in 2017/11/01-2017/12/31:
 
-                          ||                      Nov                       Dec 
-    ======================++====================================================
-     assets               || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
-     assets:bank          || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
-     assets:bank:checking || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
-     expenses             ||   $495 [ 103% of   $480]   $1060 [ 110% of   $960] 
-     expenses:bus         ||    $49 [  98% of    $50]    $102 [ 102% of   $100] 
-     expenses:food        ||   $396 [  99% of   $400]    $808 [ 101% of   $800] 
-     expenses:movies      ||    $30 [ 100% of    $30]     $30 [  50% of    $60] 
-     income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
-    ----------------------++----------------------------------------------------
-                          ||      0 [              0]       0 [              0] 
+                      ||                      Nov                       Dec 
+======================++====================================================
+ assets               || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ assets:bank          || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ assets:bank:checking || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
+ expenses             ||   $495 [ 103% of   $480]   $1060 [ 110% of   $960] 
+ expenses:bus         ||    $49 [  98% of    $50]    $102 [ 102% of   $100] 
+ expenses:food        ||   $396 [  99% of   $400]    $808 [ 101% of   $800] 
+ expenses:movies      ||    $30 [ 100% of    $30]     $30 [  50% of    $60] 
+ income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
+----------------------++----------------------------------------------------
+                      ||      0 [              0]       0 [              0] 
 
 Note, the -S/--sort-amount flag is not yet fully supported with
 --budget.
@@ -381,10 +381,10 @@ account, all its parents would have budget as well.
 
 To illustrate this, consider the following budget:
 
-    ~ monthly from 2019/01
-        expenses:personal             $1,000.00
-        expenses:personal:electronics    $100.00
-        liabilities
+~ monthly from 2019/01
+    expenses:personal             $1,000.00
+    expenses:personal:electronics    $100.00
+    liabilities
 
 With this, monthly budget for electronics is defined to be $100 and
 budget for personal expenses is an additional $1000, which implicity
@@ -397,26 +397,26 @@ counted towards only towards the budget of expenses:personal.
 
 For example, let's consider these transactions:
 
-    ~ monthly from 2019/01
-        expenses:personal             $1,000.00
-        expenses:personal:electronics    $100.00
-        liabilities
+~ monthly from 2019/01
+    expenses:personal             $1,000.00
+    expenses:personal:electronics    $100.00
+    liabilities
 
-    2019/01/01 Google home hub
-        expenses:personal:electronics          $90.00
-        liabilities                           $-90.00
+2019/01/01 Google home hub
+    expenses:personal:electronics          $90.00
+    liabilities                           $-90.00
 
-    2019/01/02 Phone screen protector
-        expenses:personal:electronics:upgrades          $10.00
-        liabilities
+2019/01/02 Phone screen protector
+    expenses:personal:electronics:upgrades          $10.00
+    liabilities
 
-    2019/01/02 Weekly train ticket
-        expenses:personal:train tickets       $153.00
-        liabilities
+2019/01/02 Weekly train ticket
+    expenses:personal:train tickets       $153.00
+    liabilities
 
-    2019/01/03 Flowers
-        expenses:personal          $30.00
-        liabilities
+2019/01/03 Flowers
+    expenses:personal          $30.00
+    liabilities
 
 As you can see, we have transactions in
 expenses:personal:electronics:upgrades and
@@ -425,34 +425,34 @@ without explicitly defined budget, these transactions would be counted
 towards budgets of expenses:personal:electronics and expenses:personal
 accordingly:
 
-    $ hledger balance --budget -M
-    Budget performance in 2019/01:
+$ hledger balance --budget -M
+Budget performance in 2019/01:
 
-                                   ||                           Jan 
-    ===============================++===============================
-     expenses                      ||  $283.00 [  26% of  $1100.00] 
-     expenses:personal             ||  $283.00 [  26% of  $1100.00] 
-     expenses:personal:electronics ||  $100.00 [ 100% of   $100.00] 
-     liabilities                   || $-283.00 [  26% of $-1100.00] 
-    -------------------------------++-------------------------------
-                                   ||        0 [                 0] 
+                               ||                           Jan 
+===============================++===============================
+ expenses                      ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal             ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal:electronics ||  $100.00 [ 100% of   $100.00] 
+ liabilities                   || $-283.00 [  26% of $-1100.00] 
+-------------------------------++-------------------------------
+                               ||        0 [                 0] 
 
 And with --empty, we can get a better picture of budget allocation and
 consumption:
 
-    $ hledger balance --budget -M --empty
-    Budget performance in 2019/01:
+$ hledger balance --budget -M --empty
+Budget performance in 2019/01:
 
-                                            ||                           Jan 
-    ========================================++===============================
-     expenses                               ||  $283.00 [  26% of  $1100.00] 
-     expenses:personal                      ||  $283.00 [  26% of  $1100.00] 
-     expenses:personal:electronics          ||  $100.00 [ 100% of   $100.00] 
-     expenses:personal:electronics:upgrades ||   $10.00                      
-     expenses:personal:train tickets        ||  $153.00                      
-     liabilities                            || $-283.00 [  26% of $-1100.00] 
-    ----------------------------------------++-------------------------------
-                                            ||        0 [                 0] 
+                                        ||                           Jan 
+========================================++===============================
+ expenses                               ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal                      ||  $283.00 [  26% of  $1100.00] 
+ expenses:personal:electronics          ||  $100.00 [ 100% of   $100.00] 
+ expenses:personal:electronics:upgrades ||   $10.00                      
+ expenses:personal:train tickets        ||  $153.00                      
+ liabilities                            || $-283.00 [  26% of $-1100.00] 
+----------------------------------------++-------------------------------
+                                        ||        0 [                 0] 
 
 Output format
 
