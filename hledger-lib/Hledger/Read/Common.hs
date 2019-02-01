@@ -255,21 +255,23 @@ parseAndFinaliseJournal parser iopts f txt = do
         -- the options for checking assertions.
         let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
 
-                 -- with transaction modifiers
+                 -- transaction modifiers are active
                  then
-                   -- first pass
-                   journalModifyTransactions <$>
-                     (journalBalanceTransactions False $
+                   -- first pass, doing most of the work
+                     (
+                      (journalModifyTransactions <$>) $  -- add auto postings after balancing ? #893b fails
+                      journalBalanceTransactions False $
+                      -- journalModifyTransactions <$>   -- add auto postings before balancing ? probably #893a, #928, #938 fail
                       journalReverse $
                       journalAddFile (f, txt) $
                       journalApplyCommodityStyles pj)
-                   -- second pass
+                   -- second pass, checking balance assertions
                    >>= (\j ->
                       journalBalanceTransactions (not $ ignore_assertions_ iopts) $
                       journalSetLastReadTime t $
                       j)
 
-                 -- without transaction modifiers
+                 -- transaction modifiers are not active
                  else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
                       journalReverse $
                       journalAddFile (f, txt) $
