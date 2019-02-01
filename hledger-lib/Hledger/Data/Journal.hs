@@ -69,6 +69,7 @@ module Hledger.Data.Journal (
   journalCheckBalanceAssertions,
   journalNumberAndTieTransactions,
   journalUntieTransactions,
+  journalModifyTransactions,
   -- * Tests
   samplejournal,
   tests_Journal,
@@ -107,6 +108,7 @@ import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Dates
 import Hledger.Data.Transaction
+import Hledger.Data.TransactionModifier
 import Hledger.Data.Posting
 import Hledger.Query
 
@@ -556,6 +558,11 @@ journalTieTransactions j@Journal{jtxns=ts} = j{jtxns=map txnTieKnot ts}
 -- recursiveSize and GHCI's :sprint can work on it.
 journalUntieTransactions :: Transaction -> Transaction
 journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
+
+-- | Apply any transaction modifier rules in the journal 
+-- (adding automated postings to transactions, eg).
+journalModifyTransactions :: Journal -> Journal
+journalModifyTransactions j = j{ jtxns = modifyTransactions (jtxnmodifiers j) (jtxns j) }
 
 -- | Check any balance assertions in the journal and return an error
 -- message if any of them fail.

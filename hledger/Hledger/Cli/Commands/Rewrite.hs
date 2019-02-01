@@ -37,11 +37,9 @@ rewritemode = hledgerCommandMode
 -- TODO allow using this on unbalanced entries, eg to rewrite while editing
 
 rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do 
-  -- create re-writer
-  let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
-      applyallmodifiers = foldr (flip (.) . transactionModifierToFunction) id modifiers
   -- rewrite matched transactions
-  let j' = j{jtxns=map applyallmodifiers ts}
+  let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
+  let j' = j{jtxns=modifyTransactions modifiers ts}
   -- run the print command, showing all transactions, or show diffs
   printOrDiff rawopts opts{reportopts_=ropts{query_=""}} j j'
 

@@ -154,7 +154,7 @@ journalAddForecast opts@CliOpts{reportopts_=ropts} j = do
   let forecastspan = DateSpan (Just forecaststart) (Just forecastend)
       forecasttxns =
         -- If there are forecast transaction, lets apply transaction modifiers to them
-        map (foldr (flip (.) . transactionModifierToFunction) id (jtxnmodifiers j)) $
+        modifyTransactions (jtxnmodifiers j) $
         [ txnTieKnot t | pt <- jperiodictxns j
                        , t <- runPeriodicTransaction pt forecastspan
                        , spanContainsDate forecastspan (tdate t)

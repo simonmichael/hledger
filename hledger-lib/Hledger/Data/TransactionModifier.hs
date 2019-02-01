@@ -8,7 +8,7 @@ typically adding automated postings to them.
 
 -}
 module Hledger.Data.TransactionModifier (
-    transactionModifierToFunction
+   modifyTransactions
 )
 where
 
@@ -31,6 +31,12 @@ import Hledger.Utils.Debug
 -- >>> import Hledger.Data.Posting
 -- >>> import Hledger.Data.Transaction
 -- >>> import Hledger.Data.Journal
+
+-- | Apply all the given transaction modifiers, in turn, to each transaction.
+modifyTransactions :: [TransactionModifier] -> [Transaction] -> [Transaction]
+modifyTransactions tmods ts = map applymods ts
+  where
+    applymods = foldr (flip (.) . transactionModifierToFunction) id tmods
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function,
 -- which applies the modification(s) specified by the TransactionModifier.

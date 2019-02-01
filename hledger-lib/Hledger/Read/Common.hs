@@ -33,7 +33,6 @@ module Hledger.Read.Common (
   rejp,
   genericSourcePos,
   journalSourcePos,
-  applyTransactionModifiers,
   parseAndFinaliseJournal,
   parseAndFinaliseJournal',
   setYear,
@@ -228,14 +227,6 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ 
             | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
 
 
--- | Apply any transaction modifier rules in the journal 
--- (adding automated postings to transactions, eg).
-applyTransactionModifiers :: Journal -> Journal
-applyTransactionModifiers j = j { jtxns = map applyallmodifiers $ jtxns j }
-  where
-    applyallmodifiers = 
-      foldr (flip (.) . transactionModifierToFunction) id (jtxnmodifiers j)
-
 -- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.
 parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
@@ -267,7 +258,7 @@ parseAndFinaliseJournal parser iopts f txt = do
                  -- with transaction modifiers
                  then
                    -- first pass
-                   applyTransactionModifiers <$>
+                   journalModifyTransactions <$>
                      (journalBalanceTransactions False $
                       journalReverse $
                       journalAddFile (f, txt) $
@@ -312,7 +303,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
       -- time. If we are only running once, we reorder and follow the
       -- options for checking assertions.
       let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
-               then applyTransactionModifiers <$>
+               then journalModifyTransactions <$>
                     (journalBalanceTransactions False $
                      journalReverse $
                      journalApplyCommodityStyles pj) >>=
