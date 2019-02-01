@@ -140,7 +140,7 @@ journalApplyValue ropts j = do
 -- They end on or before the specified report end date, or 180 days from today if unspecified.
 --
 journalAddForecast :: CliOpts -> Journal -> IO Journal
-journalAddForecast opts@CliOpts{reportopts_=ropts} j = do
+journalAddForecast opts@CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
   today <- getCurrentDay
 
   -- "They start on or after the day following the latest normal transaction in the journal, or today if there are none."
@@ -153,15 +153,16 @@ journalAddForecast opts@CliOpts{reportopts_=ropts} j = do
 
   let forecastspan = DateSpan (Just forecaststart) (Just forecastend)
       forecasttxns =
-        -- If there are forecast transaction, lets apply transaction modifiers to them
-        modifyTransactions (jtxnmodifiers j) $
         [ txnTieKnot t | pt <- jperiodictxns j
                        , t <- runPeriodicTransaction pt forecastspan
                        , spanContainsDate forecastspan (tdate t)
                        ]
+      -- With --auto enabled, transaction modifiers are also applied to forecast txns
+      forecasttxns' = (if auto_ iopts then modifyTransactions (jtxnmodifiers j) else id) forecasttxns
+
   return $
     if forecast_ ropts 
-      then journalBalanceTransactions' opts j{ jtxns = concat [jtxns j, forecasttxns] }
+      then journalBalanceTransactions' opts j{ jtxns = concat [jtxns j, forecasttxns'] }
       else j
   where      
     journalBalanceTransactions' opts j =
