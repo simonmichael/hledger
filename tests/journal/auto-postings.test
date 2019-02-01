@@ -13,6 +13,7 @@
     assets:cash             $20
     assets:bank
 
+# 1. print
 $ hledger print -f- --auto
 2016/01/01 paycheck
     income:remuneration           $-100
@@ -27,7 +28,7 @@ $ hledger print -f- --auto
 
 >=
 
-# register
+# 2. register
 $ hledger register -f- --auto
 2016/01/01 paycheck             income:remuneration          $-100         $-100
                                 (liabilities:tax)             $-33         $-133
@@ -38,7 +39,7 @@ $ hledger register -f- --auto
                                 assets:bank                   $-20          $-38
 >=
 
-# balance
+# 3. balance
 $ hledger balance -f- --auto
                 $115  assets
                  $95    bank
@@ -60,6 +61,7 @@ $ hledger balance -f- --auto
   (trigger)   1
   (target)    1    = 11  ; this assertion would not fail, auto posting will be taken into account
 
+# 4.
 $ hledger register -f- --auto
 2018/01/01                      (trigger)                        1             1
                                 (target)                        10            11
@@ -76,6 +78,7 @@ $ hledger register -f- --auto
     expenses:groceries:food
     assets:bank:checking                         $-20
 
+# 5.
 $ hledger print -f- --auto
 2018/10/07 * MARKET
     expenses:groceries:food
@@ -94,6 +97,7 @@ $ hledger print -f- --auto
 2018/1/1
     (assets:billable:client1)         0.50h @ $90
 
+# 6.
 $ hledger -f- print --auto -x
 2018/01/01
     (assets:billable:client1)     0.50h @ $90
@@ -111,6 +115,7 @@ $ hledger -f- print --auto -x
 2018/1/1
     (assets:billable:client1)         0.50h
 
+# 7.
 $ hledger -f- print --auto -x
 2018/01/01
     (assets:billable:client1)           0.50h
@@ -128,6 +133,7 @@ $ hledger -f- print --auto -x
 2018/1/1
     (assets:billable:client1)         0.50h @ $90
 
+# 8.
 $ hledger -f- print --auto -x
 2018/01/01
     (assets:billable:client1)                       0.50h @ $90
@@ -154,14 +160,9 @@ $ hledger -f- print --auto -x
     budget:other
     budget:available                              =$0
 
+# 9.
 $ hledger print -f- --auto
->2
-hledger: cannot assign amount to account 
-
-    budget:available
-
-because it is also included in transaction modifiers.
-
+>2 /cannot assign amount to account/
 >=1
 
 
@@ -177,6 +178,7 @@ because it is also included in transaction modifiers.
     Expenses:Joint:Widgets                                   $100.00 @ £0.50
     Assets:Joint:Bank                                        -£50.00
 
+# 10.
 $ hledger -f- print --auto
 2018/01/01
     Expenses:Joint:Widgets     $100.00 @ £0.50
@@ -198,6 +200,7 @@ $ hledger -f- print --auto
     Expenses:Joint:Widgets                                   $100.00 @@ £50
     Assets:Joint:Bank                                        -£50.00
 
+# 11.
 $ hledger -f- print --auto
 2018/01/01
     Expenses:Joint:Widgets     $100.00 @@ £50
@@ -226,6 +229,7 @@ $ hledger -f- print --auto
     Expenses:Joint:Widgets                                   $100.00
     Assets:Joint:Bank                                        -£50.00
 
+# 12.
 $ hledger -f- print --auto
 2018/01/01
     Expenses:Joint:Widgets            $100.00
@@ -253,6 +257,7 @@ $ hledger -f- print --auto
     assets:cash             $20
     assets:bank
 
+# 13.
 $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
 2016/01/03 withdraw
     assets:cash             $20
@@ -268,7 +273,7 @@ $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
 
 >=
 
-# and they don't force --auto on
+# 14. and they don't force --auto on
 $ hledger print -f- --forecast -b 2016-01 -e 2016-03
 2016/01/03 withdraw
     assets:cash             $20
@@ -281,3 +286,44 @@ $ hledger print -f- --forecast -b 2016-01 -e 2016-03
     assets:bank
 
 >=
+
+# #893a
+<
+= ^expenses:groceries
+    [budget:groceries]                           *-1
+    [assets:bank:checking]                        *1
+
+10/7 * MARKET
+    expenses:groceries:food
+    assets:bank:checking                         $-20
+
+# 15.
+$ hledger -f- register --auto
+2019/10/07 MARKET               ex:groceries:food              $20           $20
+                                [budget:groceries]            $-20             0
+                                [as:bank:checking]             $20           $20
+                                assets:bank:checking          $-20             0
+>=
+
+# #893b, https://github.com/simonmichael/hledger/issues/893#issuecomment-459125266
+<
+= tag:tax20
+  taxes  *0.2
+
+2018/12/18
+  a    EUR -10.00    ; :tax20:
+  b    EUR 12.00
+
+# 16. Transaction balancing sees auto postings ?
+# $ hledger -f- print -x --auto
+# 2018/12/18
+#     a          EUR -10.00    ; :tax20:
+#     taxes       EUR -2.00
+#     b           EUR 12.00
+#
+# >=
+
+# 16. No, transaction must be balanced both with and without auto postings.
+$ hledger -f- print -x --auto
+>2 /could not balance/
+>=1
