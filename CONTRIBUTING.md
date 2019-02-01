@@ -1234,22 +1234,10 @@ Project documentation lives in a number of places:
 
 How to prepare changelogs & release notes
 
-Draft:
-
-- `make changelog-draft >> doc/CHANGES.draft.org` (or `>` if this is the first draft)
-- open this org file and sort the nodes (`C-c ^ a`)
-- categorisation pass 1: go through and add topic prefixes where missing
-- sort the nodes again
-- categorisation pass 2: move significant items to the appropriate package subnode as appropriate; keep "soft" items that might appear in release notes; delete the rest
-- cleanup pass: combine/rewrite items for clarity
-
 Changelogs:
 
-- `CHANGES.md` in each package directory, and one in the top directory (project-wide changes, perhaps just for staging)
-- markdown format: - bullets, indented literal blocks
-- there's always a heading at the top whose first word is a release version or (between releases) a commit hash
-- `make changelogs` to add any new commits to the top of all changelogs
-- then clean those up manually: identify, filter, move to correct changelog, deduplicate, rewrite, sort/group
+- ./Shake changelogs
+- edit the new changelog items (identify, filter, move to correct changelog, deduplicate, rewrite, sort/group)
 
 Release notes:
 

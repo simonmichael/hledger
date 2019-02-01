@@ -39,11 +39,14 @@ multiple individually accessible wildcards
 not having to write :: Action ExitCode after a non-final cmd
 -}
 
-{-# LANGUAGE PackageImports, ScopedTypeVariables #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 import                Prelude ()
 import "base-prelude" BasePrelude
--- keep imports synced with Makefile -> SHAKEDEPS
+import "base"         Control.Exception as C
+-- required packages, keep synced with Makefile -> SHAKEDEPS:
 import "directory"    System.Directory as S (getDirectoryContents)
 import "extra"        Data.List.Extra
 import "process"      System.Process
@@ -63,6 +66,7 @@ usage = unlines
   ,"./Shake build            # build all hledger packages, with awareness of embedded docs"
   ,"./Shake all              # generate everything"
   ,""
+  ,"./Shake changelogs       # update the changelogs with any new commits"
   ,"./Shake site/doc/VERSION/.snapshot   # save the checked-out web manuals as a versioned snapshot"
   ,"./Shake FILE             # build any individual file"
   ,"./Shake clean            # clean generated files"
@@ -123,6 +127,9 @@ main = do
         ,"hledger-web"
         ,"hledger-api"
         ]
+
+      changelogs = "CHANGES.md" : map (</> "CHANGES.md") packages
+      changelogsdry = map (++"-dry") changelogs
 
       -- doc files (or related targets) that should be generated
       -- before building hledger packages.
@@ -375,6 +382,90 @@ main = do
         -- "m4 -P -DHELP -I" commandsdir lib src "|"
         pandoc fromsrcmd src "--lua-filter" "tools/pandoc-dedent-code-blocks.lua" "-t plain" ">" out
 
+    -- CHANGELOGS
+
+    let
+      -- git log showing short commit hashes
+      gitlog = "git log --abbrev-commit"
+
+      -- git log formats suitable for changelogs/release notes
+      -- %s=subject, %an=author name, %n=newline if needed, %w=width/indent1/indent2, %b=body, %h=hash
+      changelogGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b'"
+      -- changelogVerboseGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b%h' --stat"
+
+      -- Format a git log message, with one of the formats above, as a changelog item
+      changelogCleanupCmd = unwords [
+         "sed -E"
+        ,"-e 's/^( )*\\* /\1- /'"        --  ensure bullet lists in descriptions use hyphens not stars
+        ,"-e 's/ \\(Simon Michael\\)//'" --  strip maintainer's author name
+        ,"-e 's/^- (doc: *)?(updated? *)?changelogs?( *updates?)?$//'"  --  strip some variants of "updated changelog"
+        ,"-e 's/^ +\\[ci skip\\] *$//'"  --  strip [ci skip] lines
+        ,"-e 's/^ +$//'"                 --  replace lines containing only spaces with empty lines
+        -- ,"-e 's/\r//'"                   --  strip windows carriage returns (XXX \r untested. IDEA doesn't like a real ^M here)
+        ,"-e '/./,/^$/!d'"               --  replace consecutive newlines with one
+        ]
+
+      -- Things to exclude when doing git log for project-wide changelog.
+      -- git exclude pathspecs, https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
+      projectChangelogExcludeDirs = unwords [
+         ":!hledger-lib"
+        ,":!hledger"
+        ,":!hledger-ui"
+        ,":!hledger-web"
+        ,":!hledger-api"
+        ,":!tests"
+        ]
+
+    -- update all changelogs with latest commits
+    phony "changelogs" $ need changelogs
+
+    -- show the changelogs updates that would be written
+    -- phony "changelogs-dry" $ need changelogsdry
+
+    -- CHANGES.md */CHANGES.md CHANGES.md-dry */CHANGES.md-dry
+    -- Add commits to the specified changelog since the tag/commit in
+    -- the topmost heading, also removing that previous heading if it
+    -- was an interim heading (a commit hash). Or (the -dry variants)
+    -- just print the new changelog items to stdout without saving.
+    phonys (\out' -> if
+      | not $ out' `elem` (changelogs ++ changelogsdry) -> Nothing
+      | otherwise -> Just $ do
+        let (out, dryrun) | "-dry" `isSuffixOf` out' = (take (length out' - 4) out', True)
+                          | otherwise                = (out', False)
+        old <- liftIO $ lines <$> readFileStrictly out
+
+        let dir = takeDirectory out
+            pkg | dir=="."  = Nothing
+                | otherwise = Just dir
+            gitlogpaths = fromMaybe projectChangelogExcludeDirs pkg
+            isnotheading = not . ("#" `isPrefixOf`)
+            iscommithash s = length s > 6 && all isAlphaNum s
+            (preamble, oldheading:rest) = span isnotheading old
+            lastversion = words oldheading !! 1
+            lastrev | iscommithash lastversion = lastversion
+                    | otherwise                = fromMaybe "hledger" pkg ++ "-" ++ lastversion
+
+        headrev <- unwords . words . fromStdout <$>
+                   (cmd Shell gitlog "-1 --pretty=%h -- " gitlogpaths :: Action (Stdout String))
+
+        if headrev == lastrev
+        then liftIO $ putStrLn $ out ++ ": up to date"
+        else do
+          newitems <- fromStdout <$>
+                        (cmd Shell gitlog changelogGitFormat (lastrev++"..") "--" gitlogpaths
+                         "|" changelogCleanupCmd :: Action (Stdout String))
+          let newcontent = "# "++headrev++"\n\n" ++ newitems
+              newfile = unlines $ concat [
+                 preamble
+                ,[newcontent]
+                ,if iscommithash lastrev then [] else [oldheading]
+                ,rest
+                ]
+          liftIO $ if dryrun
+                   then putStr newcontent
+                   else writeFile out newfile
+        )
+
     -- MISC
 
     -- Generate the web manuals based on the current checkout and save
@@ -424,4 +515,7 @@ manualNameToManpageName s
   | otherwise    = s <.> "1"
 
 dropDirectory2 = dropDirectory1 . dropDirectory1
+
+readFileStrictly :: FilePath -> IO String
+readFileStrictly f = readFile f >>= \s -> C.evaluate (length s) >> return s
 
