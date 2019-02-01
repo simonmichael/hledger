@@ -164,6 +164,81 @@ because it is also included in transaction modifiers.
 
 >=1
 
+
+# Issue #928:
+# Generating auto postings from a unit-priced amount.
+<
+= ^Expenses:Joint
+    Expenses:Joint                                               *-1
+    Liabilities:Joint:Bob                                       *0.5
+    Liabilities:Joint:Bill                                      *0.5
+    
+2018/01/01
+    Expenses:Joint:Widgets                                   $100.00 @ £0.50
+    Assets:Joint:Bank                                        -£50.00
+
+$ hledger -f- print --auto
+2018/01/01
+    Expenses:Joint:Widgets     $100.00 @ £0.50
+    Expenses:Joint            $-100.00 @ £0.50
+    Liabilities:Joint:Bob       $50.00 @ £0.50
+    Liabilities:Joint:Bill      $50.00 @ £0.50
+    Assets:Joint:Bank                  £-50.00
+
+>=0
+
+# Generating auto postings from a total-priced amount.
+<
+= ^Expenses:Joint
+    Expenses:Joint                                               *-1
+    Liabilities:Joint:Bob                                       *0.5
+    Liabilities:Joint:Bill                                      *0.5
+    
+2018/01/01
+    Expenses:Joint:Widgets                                   $100.00 @@ £50
+    Assets:Joint:Bank                                        -£50.00
+
+$ hledger -f- print --auto
+2018/01/01
+    Expenses:Joint:Widgets     $100.00 @@ £50
+    Expenses:Joint            $-100.00 @@ £50
+    Liabilities:Joint:Bob       $50.00 @@ £25
+    Liabilities:Joint:Bill      $50.00 @@ £25
+    Assets:Joint:Bank                 £-50.00
+
+>=0
+# alternate approach: convert to unit prices
+#2018/01/01
+#    Expenses:Joint:Widgets     $100.00 @@ £50
+#    Expenses:Joint            $-100.00 @ £0.5
+#    Liabilities:Joint:Bob       $50.00 @ £0.5
+#    Liabilities:Joint:Bill      $50.00 @ £0.5
+#    Assets:Joint:Bank                 £-50.00
+
+# Generating auto postings from an implicitly-priced amount. Should work like the above.
+<
+= ^Expenses:Joint
+    Expenses:Joint                                               *-1
+    Liabilities:Joint:Bob                                       *0.5
+    Liabilities:Joint:Bill                                      *0.5
+
+2018/01/01
+    Expenses:Joint:Widgets                                   $100.00
+    Assets:Joint:Bank                                        -£50.00
+
+$ hledger -f- print --auto
+2018/01/01
+    Expenses:Joint:Widgets            $100.00
+    Expenses:Joint            $-100.00 @@ £50
+    Liabilities:Joint:Bob       $50.00 @@ £25
+    Liabilities:Joint:Bill      $50.00 @@ £25
+    Assets:Joint:Bank                 £-50.00
+
+>=0
+
+#
+
+
 ## Transaction modifiers affect forecast transactions (#959)
 <
 = ^income
