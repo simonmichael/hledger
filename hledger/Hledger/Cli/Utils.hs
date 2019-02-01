@@ -161,7 +161,7 @@ journalAddForecast opts@CliOpts{reportopts_=ropts} j = do
                        ]
   return $
     if forecast_ ropts 
-      then journalBalanceTransactions' opts j{ jtxns = concat [forecasttxns, jtxns j] }
+      then journalBalanceTransactions' opts j{ jtxns = concat [jtxns j, forecasttxns] }
       else j
   where      
     journalBalanceTransactions' opts j =
