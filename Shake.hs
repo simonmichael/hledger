@@ -57,23 +57,25 @@ import "time"         Data.Time
 -- import "hledger-lib"  Hledger.Utils.Debug
 
 usage = unlines
+    ---------------------------------------79--------------------------------------
   ["Usage:"
-  ,"./Shake.hs               # compile this script"
-  ,"./Shake manuals          # generate the txt/man/info manuals"
-  ,"./Shake website          # generate the website and web manuals"
-  ,"./Shake commandhelp      # generate the help text for hledger commands"
-  ,"./Shake PKG              # build the specified hledger package, with awareness of embedded docs"
-  ,"./Shake build            # build all hledger packages, with awareness of embedded docs"
-  ,"./Shake all              # generate everything"
+  ,"./Shake.hs               (re)compile this script"
+  ,"./Shake commandhelp      build embedded help texts for the hledger CLI"
+  ,"./Shake manuals          build embedded txt/man/info manuals for all packages"
+  ,"./Shake PKG              build a single hledger package and its embedded docs"
+  ,"./Shake build            build all hledger packages and their embedded docs"
+  ,"./Shake website          build the website and web manuals"
+  ,"./Shake all              build all the above"
   ,""
-  ,"./Shake changelogs       # update the changelogs with any new commits"
-  ,"./Shake site/doc/VERSION/.snapshot   # save the checked-out web manuals as a versioned snapshot"
-  ,"./Shake FILE             # build any individual file"
-  ,"./Shake clean            # clean generated files"
-  ,"./Shake Clean            # clean more thoroughly, including Shake's dependency cache"
+  ,"./Shake FILE                        build any individual file"
+  ,"./Shake changelogs                  update the changelogs with any new commits"
+  ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
+  ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
   ,""
-  ,"./Shake [help]           # show commands"
-  ,"./Shake --help           # show detailed Shake options, eg --color"
+  ,"./Shake clean            clean help texts, manuals, staged site content"
+  ,"./Shake Clean            also clean rendered site, object files, Shake's cache"
+  ,"./Shake [help]           show these commands"
+  ,"./Shake --help           show Shake options (--color, --rebuild, ...)"
   ]
 
 groff    = "groff"
@@ -482,7 +484,7 @@ main = do
       cmd Shell "touch" out -- :: Action ExitCode
 
     phony "clean" $ do
-      putNormal "Cleaning generated files"
+      putNormal "Cleaning generated help texts, manuals, staged site content"
       removeFilesAfter "." commandtxts
       removeFilesAfter "." webmanuals
       removeFilesAfter "." [webmancombined]
@@ -490,12 +492,10 @@ main = do
 
     phony "Clean" $ do
       need ["clean"]
-      putNormal "Cleaning all site generated files"
+      putNormal "Cleaning generated site content, object files, shake build cache"
       removeFilesAfter "site" ["_*"]
-      putNormal "Cleaning object files" -- also forces rebuild of executables
       removeFilesAfter "tools"  ["*.o","*.p_o","*.hi"]
       removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
-      putNormal "Cleaning shake build files"
       removeFilesAfter ".shake" ["//*"]
 
 
