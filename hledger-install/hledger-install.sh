@@ -50,7 +50,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20181203
+HLEDGER_INSTALL_VERSION=20190201
 
 # stackage version to install from when using stack
 # You can specify a different stackage version here, or comment out
@@ -58,7 +58,7 @@ HLEDGER_INSTALL_VERSION=20181203
 # some unnecessary building.
 # Mac Sierra+ requires at least lts-8.0.
 # Old lts-6 or lts-7 would probably require tweaking the hledger install commands below.
-RESOLVER="--resolver=lts-12"
+RESOLVER="--resolver=lts-13"
 #RESOLVER="--resolver=nightly-2018-07-09"
 
 # things to be installed
@@ -77,7 +77,7 @@ hledger-interest \
 "
 
 # latest hledger package versions, update often:
-HLEDGER_VERSION=1.12
+HLEDGER_VERSION=1.13
 HLEDGER_LIB_VERSION=$HLEDGER_VERSION
 HLEDGER_UI_VERSION=$HLEDGER_VERSION
 HLEDGER_WEB_VERSION=$HLEDGER_VERSION
@@ -89,12 +89,12 @@ HLEDGER_INTEREST_VERSION=1.5.3
 # extra dependencies that aren't in stackage:
 EXTRA_DEPS="\
 cassava-megaparsec-2.0.0 \
-config-ini-0.2.3.0 \
+config-ini-0.2.4.0 \
 easytest-0.2.1 \
-megaparsec-7.0.2 \
+megaparsec-7.0.4 \
 "
 
-# the oldest version of stack that will work:
+# the oldest version of stack that might work:
 STACK_MIN_VERSION=1.7.1
 
 
