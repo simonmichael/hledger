@@ -26,18 +26,18 @@ hledger 1.13
 
 -   cli: reorganised commands list. Addons now have a + prefix.
 
--   cli: the command line help and manual section for all hledger’s
+-   cli: the command line help and manual section for all hledger's
     commands are now consistent, and generated from the same source.
 
 -   cli: comprehensive bash completion support is now provided (in
     shell-completion/). See how-to in the Cookbook. (Jakob Schöttl)
 
--   balance –budget: budget amounts now aggregate hierarchically, like
-    account balances. Unbudgeted accounts can be shown with -E/–empty
-    (along with zero-balance accounts), and the –show-budgeted flag has
+-   balance --budget: budget amounts now aggregate hierarchically, like
+    account balances. Unbudgeted accounts can be shown with -E/--empty
+    (along with zero-balance accounts), and the --show-budgeted flag has
     been dropped. (Dmitry Astapov)
 
--   balance: new –transpose flag switches the rows and columns of
+-   balance: new --transpose flag switches the rows and columns of
     tabular balance reports (in txt and csv output formats). (Dmitry
     Astapov)
 
@@ -47,12 +47,12 @@ hledger 1.13
 
 -   files: now shows up in the commands list
 
--   import: be silent when there’s nothing to import
+-   import: be silent when there's nothing to import
 
 -   roi: percentages smaller than 0.01% are displayed as zero (Dmitry
     Astapov)
 
--   stats, ui: correct file order is preserved when using –auto (#949)
+-   stats, ui: correct file order is preserved when using --auto (#949)
 
 -   journal: account directive: the account name can now be followed by
     a comment on the same line
@@ -67,8 +67,8 @@ hledger 1.13
     (introduced in 1.9, deprecated in 1.11) are no longer supported.
 
 -   journal: transaction modifiers (auto postings) can affect periodic
-    transactions (–auto can add postings to transactions generated with
-    –forecast). (Dmitry Astapov)
+    transactions (--auto can add postings to transactions generated with
+    --forecast). (Dmitry Astapov)
 
 -   journal: balance assertion errors now show exact amounts with all
     decimal digits. Previously it was possible, in case of a commodity
@@ -86,7 +86,6 @@ hledger-ui 1.13
 -   control-l now works everywhere and redraws more reliably
 
 -   the top status info is clearer
-
 
 
 Getting started:
