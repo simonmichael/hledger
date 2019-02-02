@@ -31,7 +31,7 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
-import Brick.Widgets.List
+import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL)
 import Control.Monad.IO.Class
 import Data.List
 import Data.Maybe

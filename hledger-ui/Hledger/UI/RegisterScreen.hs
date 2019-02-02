@@ -25,6 +25,7 @@ import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Brick
 import Brick.Widgets.List
+  (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList)
 import Brick.Widgets.Edit
 import Lens.Micro.Platform
 import Safe

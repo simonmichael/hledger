@@ -13,6 +13,7 @@ where
 
 import Brick
 import Brick.Widgets.List
+  (handleListEvent, list, listElementsL, listMoveDown, listMoveTo, listNameL, listSelectedElement, listSelectedL, renderList)
 import Brick.Widgets.Edit
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
