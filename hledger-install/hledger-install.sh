@@ -88,11 +88,16 @@ HLEDGER_INTEREST_VERSION=1.5.3
 
 # extra dependencies that aren't in stackage:
 EXTRA_DEPS="\
-cassava-megaparsec-2.0.0 \
+brick-0.46 \
+text-zipper-0.10.1 \
 config-ini-0.2.4.0 \
-easytest-0.2.1 \
-megaparsec-7.0.4 \
+data-clist-0.1.2.2 \
+word-wrap-0.4.1 \
 "
+# cassava-megaparsec-2.0.0 \
+# config-ini-0.2.4.0 \
+# easytest-0.2.1 \
+# megaparsec-7.0.4 \
 
 # the oldest version of stack that might work:
 STACK_MIN_VERSION=1.7.1
