@@ -31,7 +31,7 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
-import Brick.Widgets.List hiding (reverse)
+import Brick.Widgets.List
 import Control.Monad.IO.Class
 import Data.List
 import Data.Maybe
@@ -72,8 +72,6 @@ suspend st = suspendAndResume $ suspendSignal >> return st
 -- | Tell vty to redraw the whole screen, and continue.
 redraw :: s -> EventM a (Next s)
 redraw st = getVtyHandle >>= liftIO . refresh >> continue st
-
--- ui
 
 -- | Wrap a widget in the default hledger-ui screen layout.
 defaultLayout :: Widget Name -> Widget Name -> Widget Name -> Widget Name

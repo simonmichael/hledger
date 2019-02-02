@@ -12,7 +12,7 @@ module Hledger.UI.AccountsScreen
 where
 
 import Brick
-import Brick.Widgets.List hiding (reverse)
+import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)

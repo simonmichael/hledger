@@ -53,3 +53,5 @@ extra-deps:
 # newer fsnotify has a different api and may be more robust
 - fsnotify-0.3.0.1
 - Glob-0.9.2
+- brick-0.23
+- word-wrap-0.4.1
