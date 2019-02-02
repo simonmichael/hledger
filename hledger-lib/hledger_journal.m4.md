@@ -1229,12 +1229,14 @@ and
 
 
 <a name="automated-postings"></a>
+<a name="auto-postings"></a>
 
-## Transaction Modifiers
+## Transaction modifiers
 
 Transaction modifier rules describe changes that should be applied automatically to certain transactions.
-Currently, this means adding extra postings (also known as "automated postings").
-Transaction modifiers are enabled by the `--auto` flag.
+They can be enabled by using the `--auto` flag.
+Currently, just one kind of change is possible: adding extra postings.
+These rule-generated postings are known as "automated postings" or "auto postings".
 
 A transaction modifier rule looks quite like a normal transaction,
 except the first line is an equals sign followed by a [query](manual.html#queries) that matches certain postings
@@ -1248,7 +1250,7 @@ And each "posting" is actually a posting-generating rule:
     ...
 ```
 
-The posting rules look just like normal postings, except the amount can be:
+These posting rules look like normal postings, except the amount can be:
 
 - a normal amount with a commodity symbol, eg `$2`. This will be used as-is.
 - a number, eg `2`. The commodity symbol (if any) from the matched posting will be added to this. 
@@ -1288,18 +1290,24 @@ $ hledger print --auto
     assets:checking            $20
 ```
 
+### Auto postings and transaction balancing / inferred amounts / balance assertions
 
-Postings added by transaction modifiers participate in
-[transaction balancing, missing amount inference](#postings)
-and [balance assertions](#balance-assertions),
-like regular postings.
+Currently, transaction modifiers are applied / auto postings are added:
+
+- after [missing amounts are inferred, and transactions are checked for balancedness](#postings),
+- but before [balance assertions](#balance-assertions) are checked.
+
+Note this means that journal entries must be balanced both before and
+after auto postings are added. This changed in hledger 1.12+; see
+[#893](https://github.com/simonmichael/hledger/issues/893) for
+background.
 
 # EDITOR SUPPORT
 
-Add-on modes exist for various text editors, to make working with journal
-files easier. They add colour, navigation aids and helpful commands.
-For hledger users who edit the journal file directly (the majority),
-using one of these modes is quite recommended.
+Add-on modes exist for various text editors, to make working with
+journal files easier. They add colour, navigation aids and helpful
+commands.  For hledger users who edit the journal file directly (the
+majority), using one of these modes is quite recommended.
 
 These were written with Ledger in mind, but also work with hledger files:
 

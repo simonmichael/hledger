@@ -82,7 +82,7 @@ File: hledger_journal.info,  Node: FILE FORMAT,  Next: EDITOR SUPPORT,  Prev: To
 * Tags::
 * Directives::
 * Periodic transactions::
-* Transaction Modifiers::
+* Transaction modifiers::
 
 
 File: hledger_journal.info,  Node: Transactions,  Next: Postings,  Up: FILE FORMAT
@@ -1378,7 +1378,7 @@ If account aliases are present, they are applied after the default
 parent account.
 
 
-File: hledger_journal.info,  Node: Periodic transactions,  Next: Transaction Modifiers,  Prev: Directives,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Periodic transactions,  Next: Transaction modifiers,  Prev: Directives,  Up: FILE FORMAT
 
 1.15 Periodic transactions
 ==========================
@@ -1488,15 +1488,16 @@ compared in budget reports.
 and Forecasting.
 
 
-File: hledger_journal.info,  Node: Transaction Modifiers,  Prev: Periodic transactions,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Transaction modifiers,  Prev: Periodic transactions,  Up: FILE FORMAT
 
-1.16 Transaction Modifiers
+1.16 Transaction modifiers
 ==========================
 
 Transaction modifier rules describe changes that should be applied
-automatically to certain transactions.  Currently, this means adding
-extra postings (also known as "automated postings").  Transaction
-modifiers are enabled by the '--auto' flag.
+automatically to certain transactions.  They can be enabled by using the
+'--auto' flag.  Currently, just one kind of change is possible: adding
+extra postings.  These rule-generated postings are known as "automated
+postings" or "auto postings".
 
    A transaction modifier rule looks quite like a normal transaction,
 except the first line is an equals sign followed by a query that matches
@@ -1508,8 +1509,8 @@ is actually a posting-generating rule:
     ACCT  [AMT]
     ...
 
-   The posting rules look just like normal postings, except the amount
-can be:
+   These posting rules look like normal postings, except the amount can
+be:
 
    * a normal amount with a commodity symbol, eg '$2'.  This will be
      used as-is.
@@ -1553,9 +1554,26 @@ $ hledger print --auto
     assets:checking:gifts     -$20
     assets:checking            $20
 
-   Postings added by transaction modifiers participate in transaction
-balancing, missing amount inference and balance assertions, like regular
-postings.
+* Menu:
+
+* Transaction modifiers and transaction balancing / inferred amounts / balance assertions::
+
+
+File: hledger_journal.info,  Node: Transaction modifiers and transaction balancing / inferred amounts / balance assertions,  Up: Transaction modifiers
+
+1.16.1 Transaction modifiers and transaction balancing / inferred
+-----------------------------------------------------------------
+
+amounts / balance assertions Currently, transaction modifiers are
+applied / auto postings are added:
+
+   * after missing amounts are inferred, and transactions are checked
+     for balancedness,
+   * but before balance assertions are checked.
+
+   This means that journal entries must be balanced both before and
+after auto postings are added.  This has changed in hledger 1.12+.  For
+some background discussion, see #893, #928, #938.
 
 
 File: hledger_journal.info,  Node: EDITOR SUPPORT,  Prev: FILE FORMAT,  Up: Top
@@ -1685,9 +1703,11 @@ Node: Forecasting with periodic transactions52482
 Ref: #forecasting-with-periodic-transactions52772
 Node: Budgeting with periodic transactions54459
 Ref: #budgeting-with-periodic-transactions54698
-Node: Transaction Modifiers55157
+Node: Transaction modifiers55157
 Ref: #transaction-modifiers55320
-Node: EDITOR SUPPORT57301
-Ref: #editor-support57419
+Node: Transaction modifiers and transaction balancing / inferred amounts / balance assertions57312
+Ref: #transaction-modifiers-and-transaction-balancing-inferred-amounts-balance-assertions57627
+Node: EDITOR SUPPORT58034
+Ref: #editor-support58152
 
 End Tag Table

@@ -1195,15 +1195,16 @@ FILE FORMAT
        and Forecasting.
 
 
-   Transaction Modifiers
+   Transaction modifiers
        Transaction  modifier  rules  describe  changes  that should be applied
-       automatically to certain transactions.  Currently,  this  means  adding
-       extra postings (also known as "automated postings").  Transaction modi-
-       fiers are enabled by the --auto flag.
+       automatically to certain transactions.  They can be  enabled  by  using
+       the  --auto  flag.   Currently,  just  one  kind of change is possible:
+       adding extra postings.  These  rule-generated  postings  are  known  as
+       "automated postings" or "auto postings".
 
-       A transaction modifier rule looks  quite  like  a  normal  transaction,
-       except  the  first  line  is  an  equals  sign followed by a query that
-       matches certain postings (mnemonic: =  suggests  matching).   And  each
+       A  transaction  modifier  rule  looks  quite like a normal transaction,
+       except the first line is an  equals  sign  followed  by  a  query  that
+       matches  certain  postings  (mnemonic:  = suggests matching).  And each
        "posting" is actually a posting-generating rule:
 
               = QUERY
@@ -1211,20 +1212,20 @@ FILE FORMAT
                   ACCT  [AMT]
                   ...
 
-       The posting rules look just like normal postings, except the amount can
+       These posting rules look like normal postings, except  the  amount  can
        be:
 
-       o a normal amount with a commodity symbol, eg $2.  This  will  be  used
+       o a  normal  amount  with a commodity symbol, eg $2.  This will be used
          as-is.
 
        o a number, eg 2.  The commodity symbol (if any) from the matched post-
          ing will be added to this.
 
-       o a numeric multiplier, eg *2 (a star followed by  a  number  N).   The
+       o a  numeric  multiplier,  eg  *2 (a star followed by a number N).  The
          matched posting's amount (and total price, if any) will be multiplied
          by N.
 
-       o a multiplier with a commodity symbol, eg *$2 (a star, number  N,  and
+       o a  multiplier  with a commodity symbol, eg *$2 (a star, number N, and
          symbol S).  The matched posting's amount will be multiplied by N, and
          its commodity symbol will be replaced with S.
 
@@ -1259,17 +1260,27 @@ FILE FORMAT
                   assets:checking:gifts     -$20
                   assets:checking            $20
 
-       Postings added by transaction modifiers participate in transaction bal-
-       ancing,  missing  amount inference and balance assertions, like regular
-       postings.
+   Transaction modifiers and transaction balancing / inferred amounts /
+       balance assertions
+
+       Currently, transaction modifiers are applied / auto postings are added:
+
+       o after missing amounts are inferred, and transactions are checked  for
+         balancedness,
+
+       o but before balance assertions are checked.
+
+       This  means that journal entries must be balanced both before and after
+       auto postings are added.  This has changed in hledger 1.12+.  For  some
+       background discussion, see #893, #928, #938.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal  files  easier.   They add colour, navigation aids and helpful com-
-       mands.  For hledger users who  edit  the  journal  file  directly  (the
+       nal files easier.  They add colour, navigation aids  and  helpful  com-
+       mands.   For  hledger  users  who  edit  the journal file directly (the
        majority), using one of these modes is quite recommended.
 
-       These  were  written  with  Ledger  in mind, but also work with hledger
+       These were written with Ledger in mind,  but  also  work  with  hledger
        files:
 
 
@@ -1280,6 +1291,7 @@ EDITOR SUPPORT
        Sublime Text   https://github.com/ledger/ledger/wiki/Edit-
                       ing-Ledger-files-with-Sublime-Text-or-RubyMine
        Textmate       https://github.com/ledger/ledger/wiki/Using-TextMate-2
+
        Text   Wran-   https://github.com/ledger/ledger/wiki/Edit-
        gler           ing-Ledger-files-with-TextWrangler
        Visual  Stu-   https://marketplace.visualstudio.com/items?item-
@@ -1288,7 +1300,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -1302,7 +1314,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
