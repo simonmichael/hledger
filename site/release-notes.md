@@ -8,6 +8,7 @@ h4 { margin-top:2em; }
 <ol>
 <li><a href="#hledger-install">hledger-install</a>
 <!-- <li><a href="#latest-minor-release">Latest (2018/4/30)</a> -->
+<li><a href="#hledger-1.13">hledger 1.13 (2019/02/01)</a>
 <li><a href="#hledger-1.12">hledger 1.12 (2018/12/02)</a>
 <li><a href="#hledger-1.11">hledger 1.11 (2018/9/30)</a>
 <li><a href="#hledger-1.10">hledger 1.10 (2018/6/30)</a>
@@ -68,6 +69,175 @@ is updated as needed; here are the
 <http://hackage.haskell.org/package/hledger-web-1.11.1/changelog>  
 <http://hackage.haskell.org/package/hledger-api-1.11.1/changelog>  
 -->
+
+
+## 2019/02/01 hledger 1.13
+
+***Unified command CLI help/manuals, bash completions, docker support,
+improved budget report, --transpose, new account types syntax, 
+usability & bug fixes.
+***
+<!-- ([announcement](https://groups.google.com/d/topic/hledger//discussion)) -->
+
+  [project](#project-wide-changes-for-1.13)
+| [hledger](#hledger-1.13-1)
+| [hledger-ui](#hledger-ui-1.13)
+| [hledger-web](#hledger-web-1.13)
+| [hledger-api](#hledger-api-1.13)
+| [hledger-lib](#hledger-lib-1.13)
+| [credits](#credits-1.13)
+
+### project-wide changes for 1.13
+
+- packaging: A docker image providing the main hledger tools is now
+  linked on the download page. This is another way to get up-to-date
+  hledger tools without building them yourself (and, a way to run
+  hledger-ui on windows ?) (Dmitry Astapov, Simon Michael)
+
+- doc: fixed pandoc typography conversion in web manuals. Eg `--` was
+  being rendered as en-dash. ([#954](https://github.com/simonmichael/hledger/issues/954)).
+
+Developers:
+
+- developer docs have moved from the wiki into CONTRIBUTING.md ([#920](https://github.com/simonmichael/hledger/issues/920))
+
+- new streamlined changelog update process. Shake targets:
+  
+      ./Shake changelogs
+      ./Shake CHANGES.md
+      ./Shake CHANGES.md-dry
+      ./Shake PKG/CHANGES.md
+      ./Shake PKG/CHANGES.md-dry
+
+  update the project-wide and/or package changelogs, inserting new
+  commits (touching the respective directory, since the tag version or
+  commit hash which is the first word in the changelog's previous top
+  heading) at the top, formatted as changelog entries.
+
+- ./Shake PKG - builds a package plus its embedded docs.
+  ./Shake build - builds all the packages and their embedded docs.
+  ("stack build PKG" does not notice changes in embedded doc files.)
+
+- make ghci-shake - loads Shake.hs in ghci
+
+- make tags - includes doc source files, hpack/cabal files, Shake.hs
+
+- make site-livereload - opens a reloading browser view on the website html
+  (requires `livereloadx`)
+
+- added a Dockerfile and helper scripts (Dmitry Astapov)
+  
+- doc files and hpack/cabal files are included in TAGS again
+
+### hledger 1.13
+
+- cli: reorganised commands list. Addons now have a + prefix.
+
+- cli: the command line help and manual section for all hledger's
+  commands are now consistent, and generated from the same source.
+
+- cli: comprehensive bash completion support is now provided (in
+  shell-completion/). See how-to in the Cookbook. (Jakob Schöttl)
+
+- balance --budget: budget amounts now aggregate hierarchically, like
+  account balances. Unbudgeted accounts can be shown with -E/--empty
+  (along with zero-balance accounts), and the --show-budgeted flag has
+  been dropped.  (Dmitry Astapov)
+
+- balance: new --transpose flag switches the rows and columns of
+  tabular balance reports (in txt and csv output formats). (Dmitry
+  Astapov)
+
+- close: generated balance assertions now have exact amounts with all
+  decimal digits, ignoring display precision. Also, balance assertion
+  amounts will no longer contain prices.
+  ([#941](https://github.com/simonmichael/hledger/issues/941),
+  [#824](https://github.com/simonmichael/hledger/issues/824),
+  [#958](https://github.com/simonmichael/hledger/issues/958))
+
+- files: now shows up in the commands list
+
+- import: be silent when there's nothing to import
+
+- roi: percentages smaller than 0.01% are displayed as zero (Dmitry
+  Astapov)
+
+- stats, ui: correct file order is preserved when using --auto
+  ([#949](https://github.com/simonmichael/hledger/issues/949))
+
+- journal: account directive: the account name can now be followed by
+  a comment on the same line
+
+- journal: account directive: account types for the bs/bse/cf/is
+  commands can now be set with a `type:` tag, whose value is `Asset`,
+  `Liability`, `Equity`, `Revenue`, `Expense`, `A`, `L`, `E`, `R` or
+  `X` (case-insensitive).  The previous syntax (`account assets A`) is
+  now deprecated.
+
+- journal: account directive: account sort codes like `account 1000`
+  (introduced in 1.9, deprecated in 1.11) are no longer supported.
+
+- journal: transaction modifiers (auto postings) can affect periodic
+  transactions (--auto can add postings to transactions generated with
+  --forecast). (Dmitry Astapov)
+
+- journal: balance assertion errors now show exact amounts with all
+  decimal digits.  Previously it was possible, in case of a commodity
+  directive limiting the display precision, to have a balance
+  assertion error with asserted and actual amounts looking the
+  same. ([#941](https://github.com/simonmichael/hledger/issues/941))
+
+- journal: fixed a periodic transaction parsing failure
+  ([#942](https://github.com/simonmichael/hledger/issues/942)) (Dmitry
+  Astapov)
+
+### hledger-ui 1.13
+
+- on posix systems, control-z suspends the program
+
+- control-l now works everywhere and redraws more reliably
+
+- the top status info is clearer
+
+- use hledger 1.13
+
+### hledger-web 1.13
+
+- use hledger 1.13
+
+### hledger-api 1.13
+
+- use hledger 1.13
+
+### hledger-lib 1.13
+
+- in Journal's jtxns field, forecasted txns are appended rather than prepended
+
+- API changes:
+
+  added:
+  +setFullPrecision
+  +setMinimalPrecision
+  +expectParseStateOn
+  +embedFileRelative
+  +hereFileRelative
+
+  changed:
+  - amultiplier -> aismultiplier
+  - Amount fields reordered for clearer debug output
+  - tpreceding_comment_lines -> tprecedingcomment, reordered
+  - Hledger.Data.TransactionModifier.transactionModifierToFunction -> modifyTransactions
+  - Hledger.Read.Common.applyTransactionModifiers -> Hledger.Data.Journal.journalModifyTransactions
+
+  - HelpTemplate -> CommandDoc
+
+### credits 1.13
+
+Release contributors:
+Simon Michael,
+Jakob Schöttl,
+Dmitry Astapov.
+
 
 ## 2018/12/02 hledger 1.12
 
