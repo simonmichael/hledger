@@ -71,8 +71,20 @@ pool:
 
 steps:
 
-- script: stack install
+- script: curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+  displayName: 'download stack'
+- script: 7z x stack.zip stack.exe
+  displayName: 'unzip stack'
+- script: stack --version
+  displayName: 'stack --version'
+- script: stack build --copy-bins --local-bin-path=.
   displayName: 'stack install'
+- script: 7z a -tzip hledger.zip hledger.exe hledger-web.exe
+  displayName: 'zip executables'
+- task: PublishPipelineArtifact@0
+  inputs:
+    artifactName: 'hledger.zip'  #$(imageName)
+    targetPath: 'hledger.zip'
 
 # - script: docker build -f Dockerfile -t $(imageName) .
 #   displayName: 'docker build'
