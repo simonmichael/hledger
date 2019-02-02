@@ -4,8 +4,8 @@ stdin.
 
 File: hledger_timedot.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_timedot(5) hledger 1.12.99
-**********************************
+hledger_timedot(5) hledger 1.13
+*******************************
 
 Timedot is a plain text format for logging dated, categorised quantities
 (of time, usually), supported by hledger.  It is convenient for
@@ -110,7 +110,7 @@ $ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
 
 Tag Table:
 Node: Top76
-Node: FILE FORMAT813
-Ref: #file-format914
+Node: FILE FORMAT807
+Ref: #file-format908
 
 End Tag Table

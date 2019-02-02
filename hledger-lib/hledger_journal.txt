@@ -1260,8 +1260,8 @@ FILE FORMAT
                   assets:checking:gifts     -$20
                   assets:checking            $20
 
-   Transaction modifiers and transaction balancing / inferred amounts /
-       balance assertions
+   Auto postings and transaction balancing / inferred amounts / balance
+       assertions
 
        Currently, transaction modifiers are applied / auto postings are added:
 
@@ -1270,9 +1270,9 @@ FILE FORMAT
 
        o but before balance assertions are checked.
 
-       This  means that journal entries must be balanced both before and after
-       auto postings are added.  This has changed in hledger 1.12+.  For  some
-       background discussion, see #893, #928, #938.
+       Note  this  means that journal entries must be balanced both before and
+       after auto postings are added.  This changed in hledger 1.12+; see #893
+       for background.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
@@ -1322,4 +1322,4 @@ SEE ALSO
 
 
 
-hledger 1.12.99                  January 2019               hledger_journal(5)
+hledger 1.13                     February 2019              hledger_journal(5)

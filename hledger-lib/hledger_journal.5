@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "January 2019" "hledger 1.12.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "February 2019" "hledger 1.13" "hledger User Manuals"
 
 
 
@@ -1738,8 +1738,8 @@ $\ hledger\ print\ \-\-auto
 \ \ \ \ assets:checking\ \ \ \ \ \ \ \ \ \ \ \ $20
 \f[]
 .fi
-.SS Transaction modifiers and transaction balancing / inferred amounts /
-balance assertions
+.SS Auto postings and transaction balancing / inferred amounts / balance
+assertions
 .PP
 Currently, transaction modifiers are applied / auto postings are added:
 .IP \[bu] 2
@@ -1748,10 +1748,9 @@ balancedness,
 .IP \[bu] 2
 but before balance assertions are checked.
 .PP
-This means that journal entries must be balanced both before and after
-auto postings are added.
-This has changed in hledger 1.12+.
-For some background discussion, see #893, #928, #938.
+Note this means that journal entries must be balanced both before and
+after auto postings are added.
+This changed in hledger 1.12+; see #893 for background.
 .SH EDITOR SUPPORT
 .PP
 Add\-on modes exist for various text editors, to make working with
