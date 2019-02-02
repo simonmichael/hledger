@@ -69,10 +69,18 @@ pool:
   vmImage: $(imageName)
 
 steps:
+
 # - script: docker build -f Dockerfile -t $(imageName) .
 #   displayName: 'docker build'
-- script: bash hledger-install/hledger-install.sh
+
+# - script: bash hledger-install/hledger-install.sh
+#   displayName: 'hledger-install.sh'
+
+- bash: hledger-install/hledger-install.sh
+  # workingDirectory: #
   displayName: 'hledger-install.sh'
+  # failOnStderr: #
+  # env:  # mapping of environment variables to add
 
 
 # reference
@@ -174,6 +182,12 @@ steps:
 #     targetPath: 'src/MyWebApp/bin/Release/netcoreapp2.0/linux-x64/publish'
 
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/bash
+# - bash: # script path or inline
+#   workingDirectory: #
+#   displayName: #
+#   failOnStderr: #
+#   env:  # mapping of environment variables to add
+
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/command-line
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/copy-files
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/curl-upload-files
