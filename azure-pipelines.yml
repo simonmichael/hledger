@@ -11,9 +11,45 @@ trigger:
     # include: # file paths which must match to trigger a build
     # - docs/*
     exclude: # file paths which will not trigger a build
-    # - docs/README.md
-    - *.md
-    - **/README
+    - CHANGES*
+    - CONTRIBUTING*
+    - LICENSE*
+    - Makefile
+    - README*
+    - Shake.hs
+    - bin/*
+    - cabal-install.sh
+    - cabal.project
+    - checks/*
+    - dev.hs
+    - doc/*
+    - examples/*
+    - hledger-system.mk
+    - hledger-api/CHANGES*
+    - hledger-api/LICENSE*
+    - hledger-api/README*
+    - hledger-api/examples/*
+    - hledger-install/LICENSE*
+    - hledger-install/README*
+    - hledger-lib/CHANGES*
+    - hledger-lib/LICENSE*
+    - hledger-lib/README*
+    - hledger-ui/CHANGES*
+    - hledger-ui/LICENSE*
+    - hledger-ui/README*
+    - hledger-web/CHANGES*
+    - hledger-web/LICENSE*
+    - hledger-web/README*
+    - hledger-web/static/*
+    - hledger-web/templates/*
+    - hledger/CHANGES*
+    - hledger/LICENSE*
+    - hledger/README*
+    - hledger/bench/*
+    - hledger/embeddedfiles/*
+    - shell-completion/*
+    - site/*
+    - tools/*
 
 # pr: none
 
