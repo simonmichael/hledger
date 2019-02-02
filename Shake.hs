@@ -119,7 +119,7 @@ main = do
 
     let
       -- documentation versions shown on the website (excluding 0.27 which is handled specially)
-      docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10", "1.11", "1.12" ]
+      docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10", "1.11", "1.12", "1.13" ]
 
       -- main package names, in standard build order
       packages = [

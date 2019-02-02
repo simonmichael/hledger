@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 14d0eb516133f56c0d466c15ab014ce4e7d3b63a641b1ad70de250a2930e8784
+-- hash: 0f31726cb805b74d59400bb1d7502bb6c6c7f01eb41ac0272c4da6a8d94144b2
 
 name:           hledger
-version:        1.12.99
+version:        1.13
 synopsis:       Command-line interface for the hledger accounting tool
 description:    This is hledger's command-line interface.
                 Its basic function is to read a plain text file describing
@@ -136,7 +136,7 @@ library
   other-modules:
       Paths_hledger
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.12.99"
+  cpp-options: -DVERSION="1.13"
   build-depends:
       Decimal
     , Diff
@@ -153,7 +153,7 @@ library
     , hashable >=1.2.4
     , haskeline >=0.6
     , here
-    , hledger-lib >=1.12.99 && <1.13
+    , hledger-lib >=1.13 && <1.14
     , lucid
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
@@ -188,7 +188,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.12.99"
+  cpp-options: -DVERSION="1.13"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -204,7 +204,7 @@ executable hledger
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.12.99 && <1.13
+    , hledger-lib >=1.13 && <1.14
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -241,7 +241,7 @@ test-suite test
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.12.99"
+  cpp-options: -DVERSION="1.13"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -257,7 +257,7 @@ test-suite test
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.12.99 && <1.13
+    , hledger-lib >=1.13 && <1.14
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -310,7 +310,7 @@ benchmark bench
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.12.99 && <1.13
+    , hledger-lib >=1.13 && <1.14
     , html
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
