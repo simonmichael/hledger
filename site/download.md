@@ -171,7 +171,7 @@ you can save some time by omitting hledger-ui, hledger-web and/or hledger-api (o
 On Windows, hledger-ui is not available.
 To estimate the build time, add `--dry-run`:
 
-  **`stack install --resolver=lts-13 hledger-lib-1.13 hledger-1.13 hledger-ui-1.13 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-web-1.13 hledger-api-1.13`**\
+  **`stack install --resolver=lts-13 hledger-lib-1.13 hledger-1.13 hledger-ui-1.13.1 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-web-1.13 hledger-api-1.13`**\
 
 Other [add-ons](/hledger.html#third-party-add-ons)
 like
@@ -189,7 +189,7 @@ can be installed like so:
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
   **`cabal v2-update`**\
-  **`cabal v2-install hledger-1.13 hledger-ui-1.13 hledger-web-1.13 hledger-api-1.13 [hledger-diff-0.2.0.14 hledger-iadd-1.3.8 hledger-interest-1.5.3]`**\
+  **`cabal v2-install hledger-1.13 hledger-ui-1.13.1 hledger-web-1.13 hledger-api-1.13 [hledger-diff-0.2.0.14 hledger-iadd-1.3.8 hledger-interest-1.5.3]`**\
 
 </div>
 
@@ -219,7 +219,7 @@ You should now be able to run the hledger tools (whichever ones you installed) a
   `$`**`hledger --version`**\
   `hledger 1.13`\
   `$`**`hledger-ui --version`**\
-  `hledger-ui 1.13`\
+  `hledger-ui 1.13.1`\
   `$`**`hledger web --version`**\
   `hledger-web 1.13`\
   `$`**`hledger iadd --version`**\
