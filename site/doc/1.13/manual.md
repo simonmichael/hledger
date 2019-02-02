@@ -2,7 +2,7 @@
 
 ## hledger
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 
@@ -2596,7 +2596,7 @@ accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 ## hledger-ui
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 
@@ -3025,7 +3025,7 @@ program is restarted.
 
 ## hledger-web
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 
@@ -3278,7 +3278,7 @@ Does not work well on small screens.
 
 ## hledger-api
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 
@@ -3380,7 +3380,7 @@ awkward.
 
 ## journal format
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 
@@ -4908,7 +4908,7 @@ https://twitter.com/LedgerTips/status/501767602067472384
 
 ## csv format
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 
@@ -5182,7 +5182,7 @@ rules file will be used for all the CSV files being read.
 
 ## timeclock format
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 
@@ -5251,7 +5251,7 @@ To generate time logs, ie to clock in and clock out, you could:
 
 ## timedot format
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 ### NAME
 

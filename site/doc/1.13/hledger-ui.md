@@ -1,6 +1,6 @@
 # hledger-ui
 
-This doc is for version **1.13** (dev). []{.docversions}
+This doc is for version **1.13**. []{.docversions}
 
 \$toc\$
 
