@@ -180,7 +180,7 @@ like
 or [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 can be installed like so:
 
-  **`stack install --resolver=lts-13 hledger-lib-1.13 hledger-diff-0.2.0.14 hledger-iadd-1.3.7 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-interest-1.5.3`**\
+  **`stack install --resolver=lts-13 hledger-lib-1.13 hledger-diff-0.2.0.14 hledger-iadd-1.3.8 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-interest-1.5.3`**\
 
 <a name="b3"></a>
 
@@ -189,7 +189,7 @@ can be installed like so:
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
   **`cabal v2-update`**\
-  **`cabal v2-install hledger-1.13 hledger-ui-1.13 hledger-web-1.13 hledger-api-1.13 [hledger-diff-0.2.0.14 hledger-iadd-1.3.7 hledger-interest-1.5.3]`**\
+  **`cabal v2-install hledger-1.13 hledger-ui-1.13 hledger-web-1.13 hledger-api-1.13 [hledger-diff-0.2.0.14 hledger-iadd-1.3.8 hledger-interest-1.5.3]`**\
 
 </div>
 
@@ -223,7 +223,7 @@ You should now be able to run the hledger tools (whichever ones you installed) a
   `$`**`hledger web --version`**\
   `hledger-web 1.13`\
   `$`**`hledger iadd --version`**\
-  `This is hledger-iadd version 1.3.7`\
+  `This is hledger-iadd version 1.3.8`\
 
 And you can check that the unit tests pass (just for fun):
 
