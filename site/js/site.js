@@ -14,6 +14,7 @@ function addDocVersions() {
   var relpath  = parts.includes("doc") ? "../" : "doc/";
   $('.docversions').html('Available versions: \
   <a href="'+relpath1+newpage+'.html'+(page=='manual' ? newhash : '')+'">dev</a> \
+| <a href="'+relpath+'1.13/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.13</a> \
 | <a href="'+relpath+'1.12/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.12</a> \
 | <a href="'+relpath+'1.11/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.11</a> \
 | <a href="'+relpath+'1.10/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.10</a> \
