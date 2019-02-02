@@ -8,6 +8,7 @@ trigger:
     # - releases/*
   batch: true
   paths:
+    # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/file-matching-patterns
     # include: # file paths which must match to trigger a build
     # - docs/*
     exclude: # file paths which will not trigger a build
@@ -70,17 +71,24 @@ pool:
 
 steps:
 
+- script: stack install
+  displayName: 'stack install'
+
 # - script: docker build -f Dockerfile -t $(imageName) .
 #   displayName: 'docker build'
 
+# hledger-install won't run on ms windows agent: 
+# Sorry, this installer does not support your operating system: MINGW64_NT-10.0.
+# 2019-02-02T20:34:47.0085295Z See http://docs.haskellstack.org/en/stable/install_and_upgrade/
+#
 # - script: bash hledger-install/hledger-install.sh
 #   displayName: 'hledger-install.sh'
-
-- bash: hledger-install/hledger-install.sh
-  # workingDirectory: #
-  displayName: 'hledger-install.sh'
-  # failOnStderr: #
-  # env:  # mapping of environment variables to add
+#
+# - bash: hledger-install/hledger-install.sh
+#   displayName: 'hledger-install.sh'
+#   # workingDirectory: #
+#   # failOnStderr: #
+#   # env:  # mapping of environment variables to add
 
 
 # reference
