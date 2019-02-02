@@ -1,17 +1,153 @@
+# Azure Pipelines CI config
+
+# trigger: none
+trigger:
+  branches:
+    include:
+    - master
+    # - releases/*
+  batch: true
+  paths:
+    # include: # file paths which must match to trigger a build
+    # - docs/*
+    exclude: # file paths which will not trigger a build
+    # - docs/README.md
+    - *.md
+    - **/README
+
+# pr: none
+
+# variables:
+#   imageName: 'simonmichael:$(build.buildId)'
+
+strategy:
+  matrix:
+    windows:
+      imageName: 'vs2017-win2016'
+    # mac:
+    #   imageName: 'macos-10.13'
+    # linux:
+    #   imageName: 'ubuntu-16.04'
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+# - script: docker build -f Dockerfile -t $(imageName) .
+#   displayName: 'docker build'
+- script: bash hledger-install/hledger-install.sh
+  displayName: 'hledger-install.sh'
+
+
+# reference
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/build/triggers
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#trigger
+# Scheduled builds are not yet supported in YAML syntax. After you create your YAML build pipeline, you can use the designer to specify a scheduled trigger.
+# Someone must view a page in your organization regularly for CI and scheduled builds to run.
+# The YAML file in my branch is different than the YAML file in my master branch, which one is used?
+#   When you have configured a CI trigger or a PR trigger, the YAML file that is in the branch being pushed is used.
+#     For CI triggers, the YAML file that is in the branch you are pushing is evaluated to see if a CI build should be run.
+#     For PR triggers, the YAML file that is in the source branch of the PR is evaluated to see if a PR build should be run.
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#pr-trigger
+# A pull request trigger specifies what branches will cause a pull request build to run. 
+# If left unspecified, pull requests to every branch will trigger a build.
+# Note that pr is valid for GitHub, not any other Git provider.
+# pr: none
+# pr:
+#   #autoCancel: boolean # indicates whether additional pushes to a PR should cancel in-progress runs for the same PR. Defaults to true
+#   branches:
+#     include:
+#     - master
+#     - releases/*
+#   paths:
+#     include:
+#     - docs/*
+#     exclude:
+#     - docs/README.md
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?tabs=schema#job
+# You can skip the job syntax if you need only a single job with the standard options.
+# matrix and parallel are mutually-exclusive strategies for duplicating a job.
+#  The matrix strategy enables a job to be dispatched multiple times, with different variable sets. 
+#   matrix: { string1: { string2: string3 } }
+#    For each string1 in the matrix, a copy of the job will be generated. 
+#    string1 is the copy's name and will be appended to the name of the job. 
+#    For each string2, a variable called string2 with the value string3 will be available to the job.
+#  The parallel strategy specifies how many duplicates of the job should run. 
+#   This is useful for slicing up a large test matrix. The VS Test task understands how to divide the test load across the number of jobs scheduled.
+#   parallel: number
+#  The maxParallel tag restricts the amount of parallelism in both. It defaults to unlimited if not specified.
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=azure-devops&tabs=schema#pool
+# pool:
+#   name: string  # name of the pool to run this job in
+#   demands: string | [ string ]  ## see below
+#   vmImage: string # name of the vm image you want to use, only valid in the Microsoft-hosted pool
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#script
+# - script: string  # contents of the script to run
+#   displayName: string  # friendly name displayed in the UI
+#   name: string  # identifier for this step (A-Z, a-z, 0-9, and underscore)
+#   workingDirectory: string  # initial working directory for the step
+#   failOnStderr: boolean  # if the script writes to stderr, should that be treated as the step failing?
+#   condition: string
+#   continueOnError: boolean  # 'true' if future steps should run even if this step fails; defaults to 'false'
+#   enabled: boolean  # whether or not to run this step; defaults to 'true'
+#   timeoutInMinutes: number
+#   env: { string: string }  # list of environment variables to add
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/process/phases#artifact-download
+# # test and upload my code as an artifact named WebSite
+# jobs:
+# - job: Build
+#   pool:
+#     vmImage: 'ubuntu-16.04'
+#   steps:
+#   - script: npm test
+#   - task: PublishBuildArtifacts@1
+#     inputs:
+#       pathtoPublish: '$(System.DefaultWorkingDirectory)'
+#       artifactName: WebSite
+
+# # download the artifact and deploy it only if the build job succeeded
+# - job: Deploy
+#   pool:
+#     vmImage: 'ubuntu-16.04'
+#   steps:
+#   - checkout: none #skip checking out the default repository resource
+#   - task: DownloadBuildArtifacts@0
+#     displayName: 'Download Build Artifacts'
+#     inputs:
+#       artifactName: WebSite
+#       downloadPath: $(System.DefaultWorkingDirectory)
+#
+#   dependsOn: Build
+#   condition: succeeded()
+
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts
+# - task: PublishPipelineArtifact@0
+#   inputs:
+#     artifactName: 'artifactName'
+#     targetPath: 'src/MyWebApp/bin/Release/netcoreapp2.0/linux-x64/publish'
+
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/bash
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/command-line
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/copy-files
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/curl-upload-files
+
 # Docker image
 # Build a Docker image to deploy, run, or push to a container registry.
 # Add steps that use Docker Compose, tag images, push to a registry, run an image, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
-trigger:
-- master
+# - script: |
+#     docker login -u $(dockerId) -p $(dockerPw)
+#     docker push $(dockerId)/$(imageName)
 
-pool:
-  vmImage: 'Ubuntu-16.04'
-
-variables:
-  imageName: 'your-container-image-name:$(build.buildId)'
-
-steps:
-- script: docker build -f Dockerfile -t $(imageName) .
-  displayName: 'docker build'
