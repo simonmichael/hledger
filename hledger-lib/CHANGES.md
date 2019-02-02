@@ -1,21 +1,28 @@
-Internal/api/developer-ish changes in the hledger-lib package.
+Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 9fe32129
+# 1.13 (2019/02/01)
 
-added: 
+- in Journal's jtxns field, forecasted txns are appended rather than prepended
 
-- setFullPrecision
-- setMinimalPrecision
-- expectParseStateOn
-- embedFileRelative
-- hereFileRelative
+- API changes:
 
-changed:
+  added:
+  +setFullPrecision
+  +setMinimalPrecision
+  +expectParseStateOn
+  +embedFileRelative
+  +hereFileRelative
 
-- amultiplier -> aismultiplier
-- Amount fields reordered for clearer debug output
-- tpreceding_comment_lines -> tprecedingcomment, reordered
+  changed:
+  - amultiplier -> aismultiplier
+  - Amount fields reordered for clearer debug output
+  - tpreceding_comment_lines -> tprecedingcomment, reordered
+  - Hledger.Data.TransactionModifier.transactionModifierToFunction -> modifyTransactions
+  - Hledger.Read.Common.applyTransactionModifiers -> Hledger.Data.Journal.journalModifyTransactions
+
+  - HelpTemplate -> CommandDoc
+
 
 # 1.12 (2018/12/02)
 

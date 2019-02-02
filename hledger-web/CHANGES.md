@@ -1,9 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 9fe32129
+# 1.13 (2019/02/01)
 
-- use hledger 1.12.99
+- use hledger 1.13
 
 # 1.12 (2018/12/02)
 

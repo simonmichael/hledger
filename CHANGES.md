@@ -1,64 +1,49 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# afd7cae1
+# 1.13 (2019/01/02)
 
-- install: fix "stack" installation when .local/bin is not in PATH (Dmitry Astapov)
+- packaging: A docker image providing the main hledger tools is now
+  linked on the download page. This is another way to get up-to-date
+  hledger tools without building them yourself (and, a way to run
+  hledger-ui on windows ?) (Dmitry Astapov, Simon Michael)
 
-- package: added helper scripts in docker/ (Dmitry Astapov)
+- hledger-install.sh: fix installation of stack when .local/bin is not
+  in PATH (Dmitry Astapov)
 
-- cli: command help: reduce width, line wrapping
-  cmdargs wraps any lines longer than 78 characters.  To (mostly) avoid
-  this, we now display verbatim blocks unindented, and some of
-  register's examples have been altered to make them fit.
+- doc: fixed pandoc typography conversion in web manuals. Eg `--` was
+  being rendered as en-dash. (#954).
 
-- shake: Shake PKG (or Shake build) builds packages plus their docs
-  "stack build hledger" will not notice changes in documentation source
-  files (like hledger/Hledger/Cli/Commands/Add.md or
-  hledger-lib/hledger_journal.m4.md), but "./Shake hledger" will.
-
-  "./Shake build" builds all the packages, like a doc-aware "stack build".
-
-- make: ghci-shake
-
-- package: added Dockerfile (Dmitry Astapov)
-
-- site: download: link adept's & other docker images
-
-- site: download: link sandstorm
-
-- site: download: platform headings
-
-- site: download: fix the TOC links
-
-- site: home: link download page
-  I accidentally the link.
-
-- make: include Shake.hs in tags
-
-- fixed pandoc typography conversion in web manuals (#954).
-  Eg `--` was being rendered as en-dash.
+Developers:
 
 - developer docs have moved from the wiki into CONTRIBUTING.md (#920)
 
-- new streamlined changelog update process.
-  "make changelogs" updates the project-wide and package changelogs,
-  inserting new commits at the top, formatted as changelog entries.
-  New commits means commits touching that directory since the tag
-  version or commit hash which is the first word in the changelog's
-  previous top-most heading.
+- new streamlined changelog update process. Shake targets:
+  
+      ./Shake changelogs
+      ./Shake CHANGES.md
+      ./Shake CHANGES.md-dry
+      ./Shake PKG/CHANGES.md
+      ./Shake PKG/CHANGES.md-dry
 
-- new command documentation process.
-  Commands' CLI help and manual section are now generated from the same
-  source (just the `close` command so far).
+  update the project-wide and/or package changelogs, inserting new
+  commits (touching the respective directory, since the tag version or
+  commit hash which is the first word in the changelog's previous top
+  heading) at the top, formatted as changelog entries.
 
-- doc files and hpack/cabal files are included in TAGS again
+- ./Shake PKG - builds a package plus its embedded docs.
+  ./Shake build - builds all the packages and their embedded docs.
+  ("stack build PKG" does not notice changes in embedded doc files.)
+
+- make ghci-shake - loads Shake.hs in ghci
+
+- make tags - includes doc source files, hpack/cabal files, Shake.hs
 
 - make site-livereload - opens a reloading browser view on the website html
   (requires `livereloadx`)
 
-- site: home: focus on "robust"
-
-- site: remove the wasteful top nav bar, mostly
+- added a Dockerfile and helper scripts (Dmitry Astapov)
+  
+- doc files and hpack/cabal files are included in TAGS again
 
 # 1.12 (2018/12/02)
