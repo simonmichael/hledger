@@ -73,9 +73,9 @@ install:
 # hledger-ui's vty dep isn't available on windows
 # hledger-api not tried recently 
 build_script:
-- stack build --test --copy-bins --local-bin-path=. hledger hledger-web
+- stack build --test --copy-bins --local-bin-path=. hledger #hledger-web
 
-- 7z a -tzip hledger.zip hledger.exe hledger-web.exe
+- 7z a -tzip hledger.zip hledger.exe #hledger-web.exe
 
 # or use hledger-install ?
 #- hledger-install/hledger-install.sh
