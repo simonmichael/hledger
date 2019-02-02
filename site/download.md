@@ -171,7 +171,7 @@ you can save some time by omitting hledger-ui, hledger-web and/or hledger-api (o
 On Windows, hledger-ui is not available.
 To estimate the build time, add `--dry-run`:
 
-  **`stack install --resolver=lts-12 megaparsec-7.0.4 cassava-megaparsec-2.0.0 config-ini-0.2.3.0 hledger-lib-1.12 hledger-1.12 hledger-ui-1.12 hledger-web-1.12 hledger-api-1.12`**\
+  **`stack install --resolver=lts-13 hledger-lib-1.13 hledger-1.13 hledger-ui-1.13 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-web-1.13 hledger-api-1.13`**\
 
 Other [add-ons](/hledger.html#third-party-add-ons)
 like
@@ -180,7 +180,7 @@ like
 or [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 can be installed like so:
 
-  **`stack install --resolver=lts-12 megaparsec-7.0.4 cassava-megaparsec-2.0.0 config-ini-0.2.3.0 hledger-lib-1.12 hledger-diff-0.2.0.14 hledger-iadd-1.3.7 hledger-interest-1.5.3`**\
+  **`stack install --resolver=lts-13 hledger-lib-1.13 hledger-diff-0.2.0.14 hledger-iadd-1.3.7 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-interest-1.5.3`**\
 
 <a name="b3"></a>
 
@@ -188,8 +188,8 @@ can be installed like so:
 
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
-  **`cabal update`**\
-  **`cabal install hledger-1.12 hledger-ui-1.12 hledger-web-1.12 hledger-api-1.12 hledger-diff-0.2.0.14 hledger-iadd-1.3.7 hledger-interest-1.5.3`**\
+  **`cabal v2-update`**\
+  **`cabal v2-install hledger-1.13 hledger-ui-1.13 hledger-web-1.13 hledger-api-1.13 [hledger-diff-0.2.0.14 hledger-iadd-1.3.7 hledger-interest-1.5.3]`**\
 
 </div>
 
@@ -217,11 +217,11 @@ If you are using bash, this should take care of it:
 You should now be able to run the hledger tools (whichever ones you installed) and see the expected versions:
 
   `$`**`hledger --version`**\
-  `hledger 1.12`\
+  `hledger 1.13`\
   `$`**`hledger-ui --version`**\
-  `hledger-ui 1.12`\
+  `hledger-ui 1.13`\
   `$`**`hledger web --version`**\
-  `hledger-web 1.12`\
+  `hledger-web 1.13`\
   `$`**`hledger iadd --version`**\
   `This is hledger-iadd version 1.3.7`\
 
@@ -250,5 +250,5 @@ Eg, this will build and install all of the main hledger tools using stack:
 cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
 
 See the troubleshooting, PATH, and test tips [above](#b).
-Note development builds will have a .99 suffix (eg 1.12.99 means "1.13-dev").
+Note development builds will have a .99 suffix (eg 1.13.99 means "1.14-dev").
 
