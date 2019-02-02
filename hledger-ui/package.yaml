@@ -1,5 +1,5 @@
 name        : hledger-ui
-version     : '1.13'
+version     : '1.13.1'
 synopsis    : Curses-style user interface for the hledger accounting tool
 description : |
   This is hledger's curses-style interface.
@@ -37,7 +37,7 @@ flags:
     manual: false
     default: true
 
-cpp-options: -DVERSION="1.13"
+cpp-options: -DVERSION="1.13.1"
 
 dependencies:
 - hledger >=1.13 && <1.14

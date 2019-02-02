@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1.13.1 (2019/02/02)
+
+- fix build issues with older brick/stack resolvers; require brick 0.23+
+
 # 1.13 (2019/02/01)
 
 - on posix systems, control-z suspends the program
