@@ -48,7 +48,7 @@ import Hledger.Cli.Commands.Register (postingsReportAsText)
 
 
 addmode = hledgerCommandMode
-  $(hereFileRelative "Hledger/Cli/Commands/Add.txt")
+  $(embedFileRelative "Hledger/Cli/Commands/Add.txt")
   [flagNone ["no-new-accounts"]  (\opts -> setboolopt "no-new-accounts" opts) "don't allow creating new accounts"]
   [generalflagsgroup2]
   []

@@ -30,7 +30,7 @@ import Hledger.Cli.CliOptions
 
 
 roimode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Roi.txt"))
+  ($(embedFileRelative "Hledger/Cli/Commands/Roi.txt"))
   [flagNone ["cashflow"] (setboolopt "cashflow") "show all amounts that were used to compute returns"
   ,flagReq ["investment"] (\s opts -> Right $ setopt "investment" s opts) "QUERY"
     "query to select your investment transactions"

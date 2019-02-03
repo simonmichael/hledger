@@ -14,7 +14,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 
 tagsmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Tags.txt"))
+  ($(embedFileRelative "Hledger/Cli/Commands/Tags.txt"))
   [] -- [flagNone ["strict"] (\opts -> setboolopt "strict" opts) "makes date comparing strict"] -- 
   [generalflagsgroup1]
   []

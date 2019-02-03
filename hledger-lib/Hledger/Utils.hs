@@ -37,18 +37,18 @@ where
 import Control.Monad (liftM, when)
 -- import Data.Char
 import Data.Default
-import Data.FileEmbed (makeRelativeToProject, embedFile)
+import Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import Data.List
 -- import Data.Maybe
 -- import Data.PPrint
-import Data.String.Here (hereFile)
+-- import Data.String.Here (hereFile)
 import Data.Text (Text)
 import qualified Data.Text.IO as T
 import Data.Time.Clock
 import Data.Time.LocalTime
 -- import Data.Text (Text)
 -- import qualified Data.Text as T
-import Language.Haskell.TH.Quote (QuasiQuoter(..))
+-- import Language.Haskell.TH.Quote (QuasiQuoter(..))
 import Language.Haskell.TH.Syntax (Q, Exp)
 import System.Directory (getHomeDirectory)
 import System.FilePath((</>), isRelative)
@@ -225,16 +225,16 @@ mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
 
 -- | Like embedFile, but takes a path relative to the package directory.
--- Similar to hereFileRelative ?
-embedFileRelative :: FilePath -> Q Exp
-embedFileRelative f = makeRelativeToProject f >>= embedFile
-
--- | Like hereFile, but takes a path relative to the package directory.
 -- Similar to embedFileRelative ?
-hereFileRelative :: FilePath -> Q Exp
-hereFileRelative f = makeRelativeToProject f >>= hereFileExp
-  where
-    QuasiQuoter{quoteExp=hereFileExp} = hereFile
+embedFileRelative :: FilePath -> Q Exp
+embedFileRelative f = makeRelativeToProject f >>= embedStringFile
+
+-- -- | Like hereFile, but takes a path relative to the package directory.
+-- -- Similar to embedFileRelative ?
+-- hereFileRelative :: FilePath -> Q Exp
+-- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
+--   where
+--     QuasiQuoter{quoteExp=hereFileExp} = hereFile
     
 tests_Utils = tests "Utils" [
   tests_Text

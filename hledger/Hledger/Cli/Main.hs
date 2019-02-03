@@ -42,7 +42,6 @@ module Hledger.Cli.Main where
 
 import Data.Char (isDigit)
 import Data.List
-import Data.String.Here
 import Safe
 import System.Console.CmdArgs.Explicit as C
 import System.Environment
@@ -83,14 +82,15 @@ mainmode addons = defMode {
         [detailedversionflag]
         -- ++ inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
     }
- ,modeHelpSuffix = lines $ regexReplace "PROGNAME" progname [here|Examples:
-PROGNAME                         list commands
-PROGNAME CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)
-PROGNAME-CMD [OPTS] [ARGS]       or run addon commands directly
-PROGNAME -h                      show general usage
-PROGNAME CMD -h                  show command usage
-PROGNAME help [MANUAL]           show any of the hledger manuals in various formats
-|]
+ ,modeHelpSuffix = map (regexReplace "PROGNAME" progname) [
+     "Examples:"
+    ,"PROGNAME                         list commands"
+    ,"PROGNAME CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)"
+    ,"PROGNAME-CMD [OPTS] [ARGS]       or run addon commands directly"
+    ,"PROGNAME -h                      show general usage"
+    ,"PROGNAME CMD -h                  show command usage"
+    ,"PROGNAME help [MANUAL]           show any of the hledger manuals in various formats"
+    ]
  }
 
 -- | Let's go!

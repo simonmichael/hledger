@@ -28,7 +28,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
 registermode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Register.txt"))
+  ($(embedFileRelative "Hledger/Cli/Commands/Register.txt"))
   [flagNone ["cumulative"]         (\opts -> setboolopt "change" opts)
      "show running total from report start date (default)"
   ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)

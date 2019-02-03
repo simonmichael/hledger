@@ -16,7 +16,7 @@ import Text.Printf
 
 checkdupesmode :: Mode RawOpts
 checkdupesmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Checkdupes.txt"))
+  ($(embedFileRelative "Hledger/Cli/Commands/Checkdupes.txt"))
   []
   [generalflagsgroup1]
   []

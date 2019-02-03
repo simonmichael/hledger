@@ -31,7 +31,7 @@ import Hledger.Cli.Utils (writeOutput)
 
 
 statsmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Stats.txt"))
+  ($(embedFileRelative "Hledger/Cli/Commands/Stats.txt"))
   [flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE.  A file extension matching one of the above formats selects that format."
   ]
   [generalflagsgroup1]

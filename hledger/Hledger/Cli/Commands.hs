@@ -47,7 +47,6 @@ import Data.List
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
-import Data.String.Here
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -132,63 +131,63 @@ builtinCommands = [
 -- TODO: generate more of this automatically.
 -- 
 commandsList :: String
-commandsList = [here|
--------------------------------------------------------------------------------
-PROGVERSION
-Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]
-Commands (+ addons found in $PATH):
-
-Data entry (these commands modify the journal file):
- add                      add transactions using guided prompts
-+iadd                     add transactions using curses ui
- import                   add any new transactions from other files (eg csv)
-
-Data management:
-+autosync                 download/deduplicate/convert OFX data
-+check                    check more powerful balance assertions
- check-dates              check transactions are ordered by date
- check-dupes              check for accounts with the same leaf name
- close (equity)           generate balance-resetting transactions
-+diff                     compare account transactions in two journal files
-+interest                 generate interest transactions
- rewrite                  generate automated postings/diffs (old, use --auto)
-
-Financial reports:
- balancesheet (bs)        show assets, liabilities and net worth
- balancesheetequity (bse) show assets, liabilities and equity
- cashflow (cf)            show changes in liquid assets
- incomestatement (is)     show revenues and expenses
-+irr                      calculate internal rate of return (old, use roi)
- roi                      show return on investments
-
-Low-level reports:
- accounts (a)             show account names
- activity                 show postings-per-interval bar charts
- balance (b, bal)         show balance changes/end balances/budgets in accounts
- files                    show input file paths
- prices                   show market price records
- print (p, txns)          show transactions (journal entries)
- print-unique             show only transactions with unique descriptions
- register (r, reg)        show postings in one or more accounts & running total
- register-match           show a recent posting that best matches a description
- stats                    show journal statistics
- tags                     show tag names
- test                     run self tests
-
-Alternate user interfaces:
-+ui                       run curses ui
-+web                      run web ui
-+api                      run http api server
-
-Other:
-OTHER
-Help:
- (no arguments)           show this commands list
- -h                       show general flags
- COMMAND -h               show flags & docs for COMMAND
- help [MANUAL]            show hledger manuals in various formats
-
-|]
+commandsList = unlines [
+   "-------------------------------------------------------------------------------"
+  ,"PROGVERSION"
+  ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]"
+  ,"Commands (+ addons found in $PATH):"
+  ,""
+  ,"Data entry (these commands modify the journal file):"
+  ," add                      add transactions using guided prompts"
+  ,"+iadd                     add transactions using curses ui"
+  ," import                   add any new transactions from other files (eg csv)"
+  ,""
+  ,"Data management:"
+  ,"+autosync                 download/deduplicate/convert OFX data"
+  ,"+check                    check more powerful balance assertions"
+  ," check-dates              check transactions are ordered by date"
+  ," check-dupes              check for accounts with the same leaf name"
+  ," close (equity)           generate balance-resetting transactions"
+  ,"+diff                     compare account transactions in two journal files"
+  ,"+interest                 generate interest transactions"
+  ," rewrite                  generate automated postings/diffs (old, use --auto)"
+  ,""
+  ,"Financial reports:"
+  ," balancesheet (bs)        show assets, liabilities and net worth"
+  ," balancesheetequity (bse) show assets, liabilities and equity"
+  ," cashflow (cf)            show changes in liquid assets"
+  ," incomestatement (is)     show revenues and expenses"
+  ,"+irr                      calculate internal rate of return (old, use roi)"
+  ," roi                      show return on investments"
+  ,""
+  ,"Low-level reports:"
+  ," accounts (a)             show account names"
+  ," activity                 show postings-per-interval bar charts"
+  ," balance (b, bal)         show balance changes/end balances/budgets in accounts"
+  ," files                    show input file paths"
+  ," prices                   show market price records"
+  ," print (p, txns)          show transactions (journal entries)"
+  ," print-unique             show only transactions with unique descriptions"
+  ," register (r, reg)        show postings in one or more accounts & running total"
+  ," register-match           show a recent posting that best matches a description"
+  ," stats                    show journal statistics"
+  ," tags                     show tag names"
+  ," test                     run self tests"
+  ,""
+  ,"Alternate user interfaces:"
+  ,"+ui                       run curses ui"
+  ,"+web                      run web ui"
+  ,"+api                      run http api server"
+  ,""
+  ,"Other:"
+  ,"OTHER"
+  ,"Help:"
+  ," (no arguments)           show this commands list"
+  ," -h                       show general flags"
+  ," COMMAND -h               show flags & docs for COMMAND"
+  ," help [MANUAL]            show hledger manuals in various formats"
+  ,""
+  ]
 -- commands                 show brief commands list
 -- edit                     open a text editor on some part of the journal
 -- aregister (ar, areg)     show transactions in a single account
@@ -236,7 +235,7 @@ printCommandsList addonsFound =
 -- The test command is defined here for easy access to other modules' tests.
 
 testmode = hledgerCommandMode
-  $(hereFileRelative "Hledger/Cli/Commands/Test.txt")
+  $(embedFileRelative "Hledger/Cli/Commands/Test.txt")
   []
   [generalflagsgroup3]
   []

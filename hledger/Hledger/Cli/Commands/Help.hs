@@ -20,7 +20,6 @@ module Hledger.Cli.Commands.Help (
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import Data.Char
-import Data.String.Here
 import Data.List
 import Data.Maybe
 import Safe
@@ -28,7 +27,7 @@ import System.Console.CmdArgs.Explicit
 import System.Environment
 import System.IO
 
-import Hledger.Utils (hereFileRelative)
+import Hledger.Utils (embedFileRelative)
 import Hledger.Data.RawOptions
 import Hledger.Data.Types
 import Hledger.Cli.CliOptions
@@ -36,7 +35,7 @@ import Hledger.Cli.DocFiles
 --import Hledger.Utils.Debug
 
 helpmode = hledgerCommandMode
-  ($(hereFileRelative "Hledger/Cli/Commands/Help.txt"))
+  ($(embedFileRelative "Hledger/Cli/Commands/Help.txt"))
   [flagNone ["info"]  (setboolopt "info")  "show the manual with info"
   ,flagNone ["man"]   (setboolopt "man")   "show the manual with man"
   ,flagNone ["pager"] (setboolopt "pager") "show the manual with $PAGER or less"
@@ -74,9 +73,10 @@ help' opts _ = do
       | pagerprog `elem` exes           = pager
       | otherwise                       = cat 
   case topic of
-    Nothing -> putStrLn $ [here|
-Please choose a manual by typing "hledger help MANUAL" (any substring is ok).
-A viewer (info, man, a pager, or stdout) will be auto-selected,
-or type "hledger help -h" to see options. Manuals available:
-|] ++ "\n " ++ intercalate " " docTopics
+    Nothing -> putStrLn $ unlines [
+       "Please choose a manual by typing \"hledger help MANUAL\" (any substring is ok)."
+      ,"A viewer (info, man, a pager, or stdout) will be auto-selected,"
+      ,"or type \"hledger help -h\" to see options. Manuals available:"
+      ]
+      ++ "\n " ++ intercalate " " docTopics
     Just t  -> viewer t

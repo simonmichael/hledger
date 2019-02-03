@@ -116,7 +116,6 @@ dependencies:
 - easytest
 - filepath
 - haskeline >=0.6
-- here
 - megaparsec >=7.0.0 && <8
 - mtl
 - mtl-compat
