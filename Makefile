@@ -173,7 +173,6 @@ DOCSOURCEFILES:= \
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(HPACKFILES) \
-	hledger-api/hledger-api.hs \
 	doc/lib.m4 \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
@@ -1198,11 +1197,6 @@ updatedate: setdate $(call def-help,updatedate, set date in manuals to current m
 	perl -pe "s/(hledger(-\w+)?) *== *((\d+\.)*\d+) *$$/\$$1 ==$(VERSION)/" -i $@                                  # hledgerX == A
 	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *$$/\$$1 >=$(VERSION)/" -i $@                                 # hledgerX >= A
 	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+) *$$/\$$1 >=$(VERSION) && <\$$5/" -i $@  # hledgerX >= A && < B
-
-# update hledger-api's version strings
-hledger-api/hledger-api.hs: $(VERSIONFILE)
-	perl -pe "s/(hledgerApiVersion=)\"((\d+\.)*\d+)\" *$$/\$$1\"$(VERSION)\"/" -i $@
-	perl -pe "s/(.*?hledger-api +)((\d+\.)*\d+)(.*)$$/\$${1}$(VERSION)\$$4/" -i $@
 
 # update version string used in generated docs
 doc/lib.m4: $(VERSIONFILE)

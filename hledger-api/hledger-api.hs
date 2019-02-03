@@ -37,12 +37,17 @@ import           Text.Printf
 import Hledger.Query
 import Hledger.Cli hiding (Reader, version)
 
-hledgerApiVersion="1.13"
+#ifdef VERSION
+hledgerApiVersion = VERSION
+#else
+hledgerApiVersion = "dev build"
+#endif
 
 -- https://github.com/docopt/docopt.hs#readme
+-- XXX VERSION is "X.Y" and the quotes appear in the output
 doc :: Docopt
 doc = [docopt|
-hledger-api 1.13
+hledger-api VERSION
 
 Serves hledger data and reports as a JSON web API.
 
