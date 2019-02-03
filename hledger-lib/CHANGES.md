@@ -1,6 +1,10 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.13.1 (2019/02/02)
+
+- stop depending on here to avoid haskell-src-meta/stackage blockage.
+
 # 1.13 (2019/02/01)
 
 - in Journal's jtxns field, forecasted txns are appended rather than prepended

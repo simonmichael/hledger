@@ -1,6 +1,10 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.13.1 (2019/02/02)
+
+- stop depending on here to avoid haskell-src-meta/stackage blockage.
+
 # 1.13 (2019/02/01)
 
 - cli: reorganised commands list. Addons now have a + prefix.
