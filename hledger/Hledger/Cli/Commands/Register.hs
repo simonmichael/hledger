@@ -29,7 +29,7 @@ import Hledger.Cli.Utils
 
 registermode = hledgerCommandMode
   ($(embedFileRelative "Hledger/Cli/Commands/Register.txt"))
-  [flagNone ["cumulative"]         (\opts -> setboolopt "change" opts)
+  ([flagNone ["cumulative"]         (\opts -> setboolopt "change" opts)
      "show running total from report start date (default)"
   ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
      "show historical running total/balance (includes postings before report start date)\n "
@@ -45,7 +45,7 @@ registermode = hledgerCommandMode
 #endif
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
-  ]
+  ] ++ outputflags)
   [generalflagsgroup1]
   []
   ([], Just $ argsFlag "[QUERY]")

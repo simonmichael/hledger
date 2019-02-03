@@ -28,14 +28,14 @@ import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
 
 printmode = hledgerCommandMode
   ($(embedFileRelative "Hledger/Cli/Commands/Print.txt"))
-  [let arg = "STR" in
+  ([let arg = "STR" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("show the transaction whose description is most similar to "++arg++", and is most recent")
   ,flagNone ["explicit","x"] (setboolopt "explicit")
     "show all amounts explicitly"
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
-  ]
+  ] ++ outputflags)
   [generalflagsgroup1]
   []
   ([], Just $ argsFlag "[QUERY]")
