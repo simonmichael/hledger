@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 23ad53c1065d2d491ad11197683363d92136d6117de4ea6cc258865b82b5fc52
+-- hash: a3b985db2886f124f83c06d2753ba621ed2598501eb0371a4cf46c84f0d553e2
 
 name:           hledger
-version:        1.13
+version:        1.13.1
 synopsis:       Command-line interface for the hledger accounting tool
 description:    This is hledger's command-line interface.
                 Its basic function is to read a plain text file describing
@@ -136,7 +136,7 @@ library
   other-modules:
       Paths_hledger
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.13"
+  cpp-options: -DVERSION="1.13.1"
   build-depends:
       Decimal
     , Diff
@@ -152,7 +152,7 @@ library
     , filepath
     , hashable >=1.2.4
     , haskeline >=0.6
-    , hledger-lib >=1.13 && <1.14
+    , hledger-lib >=1.13.1 && <1.14
     , lucid
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
@@ -187,7 +187,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.13"
+  cpp-options: -DVERSION="1.13.1"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -202,7 +202,7 @@ executable hledger
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.13 && <1.14
+    , hledger-lib >=1.13.1 && <1.14
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -239,7 +239,7 @@ test-suite test
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.13"
+  cpp-options: -DVERSION="1.13.1"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -254,7 +254,7 @@ test-suite test
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.13 && <1.14
+    , hledger-lib >=1.13.1 && <1.14
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -306,7 +306,7 @@ benchmark bench
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.13 && <1.14
+    , hledger-lib >=1.13.1 && <1.14
     , html
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
