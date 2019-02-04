@@ -76,6 +76,8 @@ usage = unlines
   ,"./Shake Clean            also clean rendered site, object files, Shake's cache"
   ,"./Shake [help]           show these commands"
   ,"./Shake --help           show Shake options (--color, --rebuild, ...)"
+  ,""
+  ,"See also: make help"
   ]
 
 groff    = "groff"

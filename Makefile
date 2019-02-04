@@ -988,4 +988,5 @@ Clean: stackclean cabalclean cleanghc cleantags clean-manpages \
 
 -include local.mk
 
-#$(call def-help-heading,------------------)
+$(call def-help-heading,)
+$(call def-help-heading,See also ./Shake help   (after make Shake))
