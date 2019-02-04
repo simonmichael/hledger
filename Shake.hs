@@ -241,16 +241,17 @@ main = do
     -- Generate nroff man pages suitable for man output.
     phony "manmanuals" $ need nroffmanuals
     nroffmanuals |%> \out -> do -- hledger/hledger.1
-      let src = manpageNameToManualName out <.> "m4.md"
-          lib = "doc/common.m4"
-          dir = takeDirectory out
-          tmpl = "doc/manpage.nroff"
+      let src       = manpageNameToManualName out <.> "m4.md"
+          commonm4  = "doc/common.m4"
+          dir       = takeDirectory out
+          packagem4 = dir </> "defs.m4"
+          tmpl      = "doc/manpage.nroff"
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-      need $ src : lib : tmpl : deps
+      need $ [src, commonm4, packagem4, tmpl] ++ deps
       when (dir=="hledger") $ need commandmds
       cmd Shell
-        "m4 -P -DMAN -I" dir lib src "|"
+        "m4 -P -DMAN -I" dir commonm4 packagem4 src "|"
         pandoc fromsrcmd "-s" "--template" tmpl
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
@@ -268,15 +269,16 @@ main = do
     -- Generate Info manuals suitable for viewing with info.
     phony "infomanuals" $ need infomanuals
     infomanuals |%> \out -> do -- hledger/hledger.info
-      let src = out -<.> "m4.md"
-          lib = "doc/common.m4"
-          dir = takeDirectory out
+      let src       = out -<.> "m4.md"
+          commonm4  = "doc/common.m4"
+          dir       = takeDirectory out
+          packagem4 = dir </> "defs.m4"
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-      need $ src : lib : deps
+      need $ [src, commonm4, packagem4] ++ deps
       when (dir=="hledger") $ need commandmds
       cmd Shell
-        "m4 -P -I" dir lib src "|"
+        "m4 -P -I" dir commonm4 packagem4 src "|"
         pandoc fromsrcmd
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
@@ -291,22 +293,23 @@ main = do
     -- and pandoc to tweak content.
     phony "webmanuals" $ need webmanuals
     webmanuals |%> \out -> do -- site/hledger.md
-      let manpage = manpageUriToName $ dropExtension $ takeFileName out -- hledger
-          manual  = manpageNameToManualName manpage
-          dir     = manpageDir manpage
-          src     = dir </> manual <.> "m4.md"
-          lib     = "doc/common.m4"
-          heading = let h = manual
-                    in if "hledger_" `isPrefixOf` h
-                       then drop 8 h ++ " format"
-                       else h
+      let manpage   = manpageUriToName $ dropExtension $ takeFileName out -- hledger
+          manual    = manpageNameToManualName manpage
+          dir       = manpageDir manpage
+          src       = dir </> manual <.> "m4.md"
+          commonm4  = "doc/common.m4"
+          packagem4 = dir </> "defs.m4"
+          heading   = let h = manual
+                      in if "hledger_" `isPrefixOf` h
+                         then drop 8 h ++ " format"
+                         else h
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-      need $ src : lib : deps
+      need $ [src, commonm4, packagem4] ++ deps
       when (manual=="hledger") $ need commandmds
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
       cmd Shell
-        "m4 -P -DMAN -DWEB -I" dir lib src "|"
+        "m4 -P -DMAN -DWEB -I" dir commonm4 packagem4 src "|"
         pandoc fromsrcmd towebmd
         "--lua-filter tools/pandoc-demote-headers.lua"
         ">>" out
@@ -380,10 +383,8 @@ main = do
     
     commandtxts |%> \out -> do
       let src = out -<.> "md"
-          -- lib = "doc/common.m4"
       need [src]
       cmd Shell
-        -- "m4 -P -DHELP -I" commandsdir lib src "|"
         pandoc fromsrcmd src "--lua-filter" "tools/pandoc-dedent-code-blocks.lua" "-t plain" ">" out
 
     -- CHANGELOGS

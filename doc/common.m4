@@ -1,4 +1,5 @@
-m4_dnl Common m4 macro definitions used in hledger docs (all packages).
+m4_dnl m4 macro definitions used in all hledger package docs.
+m4_dnl m4 commands in Shake.hs always load this file first.
 m4_dnl
 m4_dnl "m4_dnl" causes the rest of the line to be ignored.
 m4_dnl
@@ -8,17 +9,23 @@ m4_dnl
 m4_dnl _MACRO_ will be the naming convention for our macros
 m4_define({{_include_}},     m4_defn({{m4_include}})              )m4_dnl
 m4_dnl
+m4_dnl These can be defined here or (with higher precedence) in PACKAGE/defs.m4:
+m4_dnl
+m4_dnl Author to show in man pages.
+m4_define({{_author_}}, {{}})m4_dnl
+m4_dnl
+m4_dnl Date to show in man pages. Updated by make setdate.
+m4_define({{_monthyear_}}, {{February 2019}})m4_dnl
+m4_dnl
+m4_dnl Program version. Updated by make setversion.
+m4_define({{_version_}}, {{1.13}})m4_dnl
+m4_dnl
 m4_dnl Macros for conditionally including format-specific content
 m4_dnl $1 is the manual's web slug: hledger, hledger-ui, journal, csv etc.
 m4_define({{_man_}},         m4_ifdef({{MAN}},{{$1}})             )m4_dnl
 m4_define({{_web_}},         m4_ifdef({{WEB}},{{$1}})             )m4_dnl
 m4_define({{_webseparate_}}, m4_ifdef({{WEB && SEPARATE}},{{$1}}) )m4_dnl
 m4_define({{_webcombined_}}, m4_ifdef({{WEB && COMBINED}},{{$1}}) )m4_dnl
-m4_dnl
-m4_dnl Author/date/version macros. These are updated by make setdate, setversion etc.
-m4_define({{_author_}}, {{}})m4_dnl
-m4_define({{_monthyear_}}, {{February 2019}})m4_dnl
-m4_define({{_version_}}, {{1.13}})m4_dnl
 m4_dnl
 m4_dnl Links to dev and recent release versions of a manual.
 m4_dnl The actual links are inserted dynamically by site.js, static generation was much too painful.
