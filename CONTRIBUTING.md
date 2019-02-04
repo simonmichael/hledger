@@ -1196,6 +1196,81 @@ Finally, for quick, fine-grained performance measurements when troubleshooting o
 
 
 
+## Version numbers
+
+Some old version numbering goals:
+
+1. automation, robustness, simplicity, platform independence
+
+2. cabal versions must be all-numeric
+
+3. release versions can be concise (without extra .0's)
+
+4. releases should have a corresponding VCS tag
+
+5. development builds should have a precise version appearing in --version
+
+6. development builds should generate cabal packages with non-confusing versions
+
+7. there should be a way to mark builds/releases as alpha or beta
+
+8. avoid unnecessary compiling and linking
+
+9. minimise VCS noise and syncing issues (commits, unrecorded changes)
+
+Current policy:
+
+- We (should) follow <http://haskell.org/haskellwiki/Package_versioning_policy>
+
+- The "full release version" is ma.jor.minor, where minor is 0 for a
+  normal release or 1..n for bugfix releases. Each component is a
+  natural number (can be >= 10). Eg: 1.13 major release, 1.13.1
+  bugfix release.
+
+- The "release version", which we prefer to use when possible, is
+  just ma.jor when minor is 0. Ie elide the dot zero.
+
+- The build version is ma.jor.minor+patches, where patches is the number
+  of patches applied in the current repo since the last release tag.
+
+- `hledger --version` shows the release version or build version as
+  appropriate.
+
+- Release tags in the VCS are like PKG-VERSION. Eg hledger-1.13,
+- hledger-ui-1.13.1.
+
+hledger version numbers appear in:
+
+- the project's .version file. This is the source of truth.
+  `make setversion` propagates this version number to:
+
+- each package's package.yaml file. Here the package version, a CPP
+  VERSION macro, and bounds on other hledger packages (like >=
+  hledger-lib-VERSION && < hledger-lib-NEXTMAJORVERSION) are
+  declared. `make gencabal` or `stack build [--dry-run]`
+  propagates these to packages' .cabal files.
+
+- hledger/Hledger/Cli/Version.hs assigns VERSION to a global
+  constant accessible by other hledger code.
+
+- the doc/lib.m4 file, where it is assigned to the _version_ m4 macro.
+  Shake propagates this to all documentation generated with m4
+  (*.m4.md files).
+
+- site/js/site.js, which defines hyperlinks corresponding to all
+- released versions.
+
+- git tags for package releases, as mentioned above
+
+- the --version output (and sometimes --help output) of all hledger*
+  executables
+
+- hackage tarball filenames
+
+- hackage uris
+
+
+
 ## Sample journals
 
 Synthetic data files like `examples/100x100x10.journal` are useful for benchmarks and testing.

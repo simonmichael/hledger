@@ -692,67 +692,13 @@ haddock: \
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
-#$(call def-help-subheading,see also developer guide -> how to -> do a release)
 
-# TODO update this:
-
-# # Version numbering. See also .version and Version.hs.
-# #
-# # hledger's version number appears in:
-# #  hledger --version
-# #  hledger's cabal file
-# #  darcs tags
-# #  hackage tarball filenames
-# #  hackage pages
-# #
-# # Some old version numbering goals:
-# # 1 automation, robustness, simplicity, platform independence
-# # 2 cabal versions must be all-numeric
-# # 3 release versions can be concise (without extra .0's)
-# # 4 releases should have a corresponding darcs tag
-# # 5 development builds should have a precise version appearing in --version
-# # 6 development builds should generate cabal packages with non-confusing versions
-# # 7 there should be a way to mark builds/releases as alpha or beta
-# # 8 it should be easy to darcs get the .0 release even after bugfix releases
-# # 9 avoid unnecessary compiling and linking
-# # 10 minimise rcs noise and syncing issues (commits, unrecorded changes)
-# #
-# # Current policy:
-# #
-# # - We follow http://haskell.org/haskellwiki/Package_versioning_policy
-# #
-# # - The full release version is ma.jor.minor, where minor is 0 for a
-# #   normal release or 1..n for bugfix releases.
-# #
-# # - The elided release version is ma.jor when minor is 0. We use it for
-# #   hackage releases when possible, trusting it doesn't cause trouble..
-# #
-# # - The build version is ma.jor.minor+patches, where patches is the number
-# #   of patches applied in the current repo since the last release tag.
-# #
-# # - The release tag in the repo is the full release version.
-# #
-# # - hledger --version shows the release version or build version as
-# #   appropriate.
-# #
-# # - The .version file must be updated manually before a release.
-# #
-# # - "make" updates the version in most other places, and defines PATCHES.
-# #   Note "cabal build" should also do this but doesn't yet.
-# #
-# # - "make release" additionally records the main version number-affected
-# #   files, and tags the repo with the release tag.
-
-# TODO revive these:
-
-# old examples: 
-# a normal release: echo 0.7   >.version; make release
-# a bugfix release: echo 0.7.1 >.version; make release
-#release: releasetest bumpversion tagrelease $(call def-help,release, prepare a release and tag the repo )
-
-#publish: hackageupload pushdocs $(call def-help,upload, publish latest hackage packages and docs )
-
-#releaseandpublish: release upload $(call def-help,releaseandupload, prepare a release and publish )
+# old/desired release process:
+#  a normal release: echo 0.7   >.version; make release
+#  a bugfix release: echo 0.7.1 >.version; make release
+#release: releasetest bumpversion tagrelease $(call def-help,release, prepare and test a release and tag the repo )
+#publish: hackageupload pushtags $(call def-help,upload, publish latest hackage packages and push tags to github )
+#releaseandpublish: release upload $(call def-help,releaseandpublish, release and upload and publish updated docs )
 
 ISCLEAN=git diff-index --quiet HEAD --
 
@@ -771,6 +717,16 @@ setdate: $(call def-help,setdate, set date in manuals to current month and year 
 updatedate: setdate $(call def-help,updatedate, set date in manuals to current month and year and commit )
 	git commit -m "bump manual date to $(MONTHYEAR)" doc/lib.m4
 
+# Updating version numbers. See CONTRIBUTING.md Version numbers
+
+# updateversion: setdate setversion $(call def-help,updateversion, update manual date and update version strings & (lower) bounds from $(VERSIONFILE) and commit )
+# 	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
+# 	git commit -m "bump version strings & bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+
+# XXX start with early targets isclean-$(VERSIONSENSITIVEFILES) (fails due to glob) and isdirty-$(VERSIONFILE) ?
+setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
+	@echo "if this is a new major version, please manually update upper bounds in */package.yaml before generating cabal files"
+
 # update a package yaml file's version, -DVERSION, and hledger lower bounds (upper bounds must be changed manually)
 %/package.yaml: $(VERSIONFILE)
 	perl -pe "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@                                                       # version: 'A'
@@ -784,28 +740,10 @@ doc/lib.m4: $(VERSIONFILE)
 	perl -pe "s/^(m4_define\({{_version_}}, *{{)((\d+\.)*\d+)(}}\)m4_dnl *)$$/\$${1}$(VERSION)\$${4}/" -i $@
 	@echo "please manually check/update _docversionlinks_ in doc/lib.m4"
 
-# XXX obsolete ?
-# update version string in manual
-#site/manual-start.md: $(VERSIONFILE)
-#	perl -p -e "s/(this version documents hledger and hledger-web) +[0-9.]+/\1 $(VERSION)/" -i $@
-
-# XXX start with early targets isclean-$(VERSIONSENSITIVEFILES) (fails due to glob) and isdirty-$(VERSIONFILE) ?
-setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
-	@echo "if this is a new major version, please manually update upper bounds in */package.yaml before generating cabal files"
-
-# TODO: combine updateversion/updatecabal
-# minor version bump: make setdate setversion gencabal
-# major version bump: make setdate setversion, fix upper bounds in package.yamls, make gencabal
-
-# updateversion: setdate setversion $(call def-help,updateversion, update manual date and update version strings & (lower) bounds from $(VERSIONFILE) and commit )
-# 	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
-# 	git commit -m "bump version strings & bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
-
 # (re)generate a cabal file from its package.yaml definition 
 # XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
 #%.cabal: $$(dir $$@)package.yaml
 #	hpack --silent $(dir $*) 
-#
 gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
 	$(STACK) build --dry-run --silent
 # --stack-yaml stack-ghc8.2.yaml
