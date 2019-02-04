@@ -32,14 +32,14 @@
 ###############################################################################
 # MAKEFILE HELP SYSTEM
 
-# This defines the def-help* functions for describing make rules
-# (see this file for usage details), and a default "help" rule.
-# Every user-relevant rule in this makefile should use def-help to
-# describe itself.
+# This defines the def-help* functions for generating makefile help
+# (see the file for more details), and a "help" target (our default).
+# Every useful rule in this makefile should use def-help to describe itself.
+# "make" or "make help" will show these descriptions.
 -include help-system.mk
 
-# Show all this makefile's rule descriptions on "make" or "make help";
-# or just  matching descriptions on "make help-SUBSTR" or "make SUBSTR-help".
+# Some calls and dummy targets to augment the default help output.
+# Also, help-SUBSTR and SUBSTR-help targets to show only matching help.
 $(call def-help-heading,Main rules in the hledger project Makefile:)
 $(call def-help-subheading,HELP:)
 dummy1: $(call def-help,[help], list documented rules in this makefile )
@@ -722,13 +722,16 @@ setdate: $(call def-help,setdate, set date in manuals to current month and year 
 updatedate: setdate $(call def-help,updatedate, set date in manuals to current month and year and commit )
 	git commit -m "bump manual date to $(MONTHYEAR)" doc/lib.m4
 
-# Updating version numbers. See CONTRIBUTING.md Version numbers
+# Updating version numbers.  See VERSIONSENSITIVEFILES etc. defined
+# above, and CONTRIBUTING.md > Version numbers.
+
+showversions:
+	@grep 'version *:' */package.yaml
 
 # updateversion: setdate setversion $(call def-help,updateversion, update manual date and update version strings & (lower) bounds from $(VERSIONFILE) and commit )
 # 	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
 # 	git commit -m "bump version strings & bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
-# XXX start with early targets isclean-$(VERSIONSENSITIVEFILES) (fails due to glob) and isdirty-$(VERSIONFILE) ?
 setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
 	@echo "if this is a new major version, please manually update upper bounds in */package.yaml before generating cabal files"
 
