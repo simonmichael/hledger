@@ -242,7 +242,7 @@ main = do
     phony "manmanuals" $ need nroffmanuals
     nroffmanuals |%> \out -> do -- hledger/hledger.1
       let src = manpageNameToManualName out <.> "m4.md"
-          lib = "doc/lib.m4"
+          lib = "doc/common.m4"
           dir = takeDirectory out
           tmpl = "doc/manpage.nroff"
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
@@ -269,7 +269,7 @@ main = do
     phony "infomanuals" $ need infomanuals
     infomanuals |%> \out -> do -- hledger/hledger.info
       let src = out -<.> "m4.md"
-          lib = "doc/lib.m4"
+          lib = "doc/common.m4"
           dir = takeDirectory out
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
@@ -295,7 +295,7 @@ main = do
           manual  = manpageNameToManualName manpage
           dir     = manpageDir manpage
           src     = dir </> manual <.> "m4.md"
-          lib     = "doc/lib.m4"
+          lib     = "doc/common.m4"
           heading = let h = manual
                     in if "hledger_" `isPrefixOf` h
                        then drop 8 h ++ " format"
@@ -380,7 +380,7 @@ main = do
     
     commandtxts |%> \out -> do
       let src = out -<.> "md"
-          -- lib = "doc/lib.m4"
+          -- lib = "doc/common.m4"
       need [src]
       cmd Shell
         -- "m4 -P -DHELP -I" commandsdir lib src "|"

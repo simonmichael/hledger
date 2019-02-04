@@ -1,6 +1,11 @@
+m4_dnl Common m4 macro definitions used in hledger docs (all packages).
+m4_dnl
+m4_dnl "m4_dnl" causes the rest of the line to be ignored.
+m4_dnl
+m4_dnl {{ }} will be our quoting delimiters
 m4_changequote({{,}})m4_dnl
 m4_dnl
-m4_dnl _MACRO_ will be our convention
+m4_dnl _MACRO_ will be the naming convention for our macros
 m4_define({{_include_}},     m4_defn({{m4_include}})              )m4_dnl
 m4_dnl
 m4_dnl Macros for conditionally including format-specific content
@@ -204,4 +209,7 @@ m4_define({{_LEDGER_FILE_}}, {{
 The journal file path when not specified with `-f`.
 Default: `~/.hledger.journal` (on windows, perhaps `C:/Users/USER/.hledger.journal`).
 }} )m4_dnl
+m4_dnl
+m4_dnl Dummy macro to strip _FLAGS_ marker in command docs.
+m4_define({{_FLAGS_}}, {{}})m4_dnl
 m4_dnl

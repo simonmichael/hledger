@@ -138,7 +138,7 @@ CABALFILES:= \
 	hledger-*/*.cabal \
 
 MANUALSOURCEFILES:= \
-	doc/lib.m4 \
+	doc/common.m4 \
 	*/*.m4.md \
 
 MANUALGENFILES:= \
@@ -165,7 +165,7 @@ DOCSOURCEFILES:= \
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(HPACKFILES) \
-	doc/lib.m4 \
+	doc/common.m4 \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -715,12 +715,11 @@ iscleanwd:
 isclean-%:
 	@$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
 
-#	@$(ISCLEAN) doc/lib.m4 || (echo "please clean doc/lib.m4 first"; false)
 setdate: $(call def-help,setdate, set date in manuals to current month and year )
-	perl -pe "s/^(m4_define\({{_monthyear_}}, *{{)[^}]*(}}\)m4_dnl *)$$/\$${1}$(MONTHYEAR)\$${2}/" -i doc/lib.m4
+	perl -pe "s/^(m4_define\({{_monthyear_}}, *{{)[^}]*(}}\)m4_dnl *)$$/\$${1}$(MONTHYEAR)\$${2}/" -i doc/common.m4
 
 updatedate: setdate $(call def-help,updatedate, set date in manuals to current month and year and commit )
-	git commit -m "bump manual date to $(MONTHYEAR)" doc/lib.m4
+	git commit -m "bump manual date to $(MONTHYEAR)" doc/common.m4
 
 # Updating version numbers.  See VERSIONSENSITIVEFILES etc. defined
 # above, and CONTRIBUTING.md > Version numbers.
@@ -744,9 +743,9 @@ setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version
 	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+) *$$/\$$1 >=$(VERSION) && <\$$5/" -i $@  # hledgerX >= A && < B
 
 # update version string used in generated docs
-doc/lib.m4: $(VERSIONFILE)
+doc/common.m4: $(VERSIONFILE)
 	perl -pe "s/^(m4_define\({{_version_}}, *{{)((\d+\.)*\d+)(}}\)m4_dnl *)$$/\$${1}$(VERSION)\$${4}/" -i $@
-	@echo "please manually check/update _docversionlinks_ in doc/lib.m4"
+	@echo "please manually check/update _docversionlinks_ in doc/common.m4"
 
 # (re)generate a cabal file from its package.yaml definition 
 # XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
