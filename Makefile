@@ -158,6 +158,7 @@ WEBCODEFILES:= \
 
 DOCSOURCEFILES:= \
   README.md \
+  CONTRIBUTING.md \
 	$(MANUALSOURCEFILES) \
 	$(COMMANDHELPFILES) \
 
@@ -631,8 +632,12 @@ quickheap-%: hledgerprof samplejournals \
 ###############################################################################
 $(call def-help-subheading,DOCUMENTATION: (see also Shake.hs))
 
+site-liverender: Shake \
+		$(call def-help,site-liverender, update the website html when source files are saved  )
+	ls $(DOCSOURCEFILES) | entr ./Shake website
+
 site-livereload: \
-	$(call def-help,site-livereload, open a browser on the latest site html and reload the page whenever it is saved  )
+		$(call def-help,site-livereload, open a browser on the website html and reload the page when it updates  )
 	(sleep 1; open http://localhost:8001) &
 	livereloadx -p 8001 --static site/_site
 
