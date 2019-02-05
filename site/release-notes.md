@@ -76,7 +76,7 @@ is updated as needed; here are the
 improved budget report, --transpose, new account types syntax, 
 usability & bug fixes.
 ***
-<!-- ([announcement](https://groups.google.com/d/topic/hledger//discussion)) -->
+([announcement](https://groups.google.com/d/topic/hledger/ffkwwkcHmmU/discussion))
 
   [project](#project-wide-changes-for-1.13)
 | [hledger](#hledger-1.13-1)
