@@ -162,19 +162,12 @@ DOCSOURCEFILES:= \
 	$(MANUALSOURCEFILES) \
 	$(COMMANDHELPFILES) \
 
-# files which should be updated when the version changes
-VERSIONSENSITIVEFILES=\
-	$(HPACKFILES) \
-	doc/common.m4 \
-
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
 
-# master file defining the current release/build version
-VERSIONFILE=.version
-
-# two or three-part version string, whatever's in VERSION
-VERSION=$(shell cat $(VERSIONFILE))
+# Two or three-part version string, set as program version in builds made by this makefile.
+# We use hledger CLI's current version (XXX for all packages, which isn't quite right).
+VERSION=$(shell cat hledger/.version)
 
 # the number of commits since the last tag
 PATCHLEVEL=$(shell git describe --tags --match 'hledger-[0-9]*' --long | awk -F- '{print $$3}')
@@ -721,32 +714,6 @@ setdate: $(call def-help,setdate, set date in manuals to current month and year 
 updatedate: setdate $(call def-help,updatedate, set date in manuals to current month and year and commit )
 	git commit -m "bump manual date to $(MONTHYEAR)" doc/common.m4
 
-# Updating version numbers.  See VERSIONSENSITIVEFILES etc. defined
-# above, and CONTRIBUTING.md > Version numbers.
-
-showversions:
-	@grep 'version *:' */package.yaml
-
-# updateversion: setdate setversion $(call def-help,updateversion, update manual date and update version strings & (lower) bounds from $(VERSIONFILE) and commit )
-# 	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
-# 	git commit -m "bump version strings & bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
-
-setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
-	@echo "if this is a new major version, please manually update upper bounds in */package.yaml before generating cabal files"
-
-# update a package yaml file's version, -DVERSION, and hledger lower bounds (upper bounds must be changed manually)
-%/package.yaml: $(VERSIONFILE)
-	perl -pe "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@                                                       # version: 'A'
-	perl -pe "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@                                                      # -DVERSION="A"
-	perl -pe "s/(hledger(-\w+)?) *== *((\d+\.)*\d+) *$$/\$$1 ==$(VERSION)/" -i $@                                  # hledgerX == A
-	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *$$/\$$1 >=$(VERSION)/" -i $@                                 # hledgerX >= A
-	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+) *$$/\$$1 >=$(VERSION) && <\$$5/" -i $@  # hledgerX >= A && < B
-
-# update version string used in generated docs
-doc/common.m4: $(VERSIONFILE)
-	perl -pe "s/^(m4_define\({{_version_}}, *{{)((\d+\.)*\d+)(}}\)m4_dnl *)$$/\$${1}$(VERSION)\$${4}/" -i $@
-	@echo "please manually check/update _docversionlinks_ in doc/common.m4"
-
 # (re)generate a cabal file from its package.yaml definition 
 # XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
 #%.cabal: $$(dir $$@)package.yaml
@@ -774,10 +741,6 @@ updateembeddeddocs: genmanuals gencommandhelp $(call def-help,updatemanuals, reg
 	@read -p "please review changes then press enter to commit $(shell ls hledger*/hledger*.{1,5,info,txt})"
 	git commit -m "update embedded docs" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
 
-
-tagrelease: \
-	$(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
-	for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
 
 # hackageupload-dry: \
 # 	$(call def-help,hackageupload-dry,\

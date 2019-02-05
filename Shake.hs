@@ -24,6 +24,7 @@ auto-installs the packages above. Also, some rules require:
 - m4
 - makeinfo
 - pandoc
+- sed
 
 Usage: see below. Also:
 
@@ -68,6 +69,7 @@ usage = unlines
   ,"./Shake all              build all the above"
   ,""
   ,"./Shake FILE                        build any individual file"
+  ,"./Shake setversion                  update all packages from PKG/.version"
   ,"./Shake changelogs                  update the changelogs with any new commits"
   ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
   ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
@@ -83,6 +85,7 @@ usage = unlines
 groff    = "groff"
 makeinfo = "makeinfo"
 pandoc   = "pandoc"
+sed      = "sed -E"  -- assume only the features of BSD sed
 
 -- The kind of markdown used in our doc source files.
 fromsrcmd = "-f markdown-smart-tex_math_dollars"
@@ -400,7 +403,7 @@ main = do
 
       -- Format a git log message, with one of the formats above, as a changelog item
       changelogCleanupCmd = unwords [
-         "sed -E"
+         sed
         ,"-e 's/^( )*\\* /\1- /'"        --  ensure bullet lists in descriptions use hyphens not stars
         ,"-e 's/ \\(Simon Michael\\)//'" --  strip maintainer's author name
         ,"-e 's/^- (doc: *)?(updated? *)?changelogs?( *updates?)?$//'"  --  strip some variants of "updated changelog"
@@ -471,6 +474,90 @@ main = do
                    else writeFile out newfile
         )
 
+    -- VERSION NUMBERS
+
+    -- Given the desired version string saved in PKG/.version, update
+    -- it everywhere needed in the package. See also CONTRIBUTING.md >
+    -- Version numbers.
+
+    let inAllPackages f = map (</> f) packages
+
+    phony "setversion" $ need $
+         inAllPackages "defs.m4"
+      ++ inAllPackages "package.yaml"
+
+    -- PKG/defs.m4 <- PKG/.version
+    "hledger*/defs.m4" %> \out -> do
+      let versionfile = takeDirectory out </> ".version"
+      need [versionfile]
+      version <- ((head . words) <$>) $ liftIO $ readFile versionfile
+      cmd_ Shell sed "-i -e" ("'s/(_version_}}, *){{[^}]+/\\1{{"++version++"/'") out
+
+    -- PKG/package.yaml <- PKG/.version
+    "hledger*/package.yaml" %> \out -> do
+      let versionfile = takeDirectory out </> ".version"
+      need [versionfile]
+      version <- ((head . words) <$>) $ liftIO $ readFile versionfile
+      let ma:jor:_ = splitOn "." version
+          nextmajorversion = intercalate "." $ ma : (show $ read jor+1) : []
+
+      -- One simple task: update some strings in a small text file.
+      -- Several ugly solutions:
+      --
+      -- 1. use haskell list utils. Tedious.
+      -- old <- liftIO $ readFileStrictly out
+      -- let isversionline s = "version" `isPrefixOf` (dropWhile isSpace $ takeWhile (not.(`elem` " :")) s)
+      --     (before, _:after) = break isversionline $ lines old
+      --     -- oldversion = words versionline !! 1
+      --     new = unlines $ before ++ ["version: "++version] ++ after
+      -- liftIO $ writeFile out new
+      --
+      -- 2. use regular expressions in haskell. Haskell has no portable,
+      -- featureful, replacing, backreference-supporting regex lib yet.
+      --
+      -- 3. use sed. Have to assume non-GNU sed, eg on mac.
+
+      -- Things to update in package.yaml:
+      --
+      --  version: VER
+      cmd_ Shell sed "-i -e" ("'s/(^version *:).*/\\1 "++version++"/'") out
+      --
+      --  -DVERSION="VER"
+      cmd_ Shell sed "-i -e" ("'s/(-DVERSION=)\"[^\"]+/\\1\""++version++"/'") out
+      --
+      --  this package's dependencies on other hledger packages (typically hledger-lib, hledger)
+      --
+      --  This one is a bit tricky, and we do it with these limitations:
+      --  a. We handle bounds in one of these forms (allowing extra whitespace):
+      --     ==A
+      --     >A
+      --     >=A
+      --     >A && <B
+      --     >=A && <B
+      --  b. We set
+      --     the new lower bound to:         this package's new version, V
+      --     the new upper bound if any, to: the next major version after V
+      --     both of which may not be what's desired.
+      --  c. We convert > bounds to >= bounds.
+      --
+      --  hledger[-PKG] ==LOWER
+      let versionre = "([0-9]+\\.)*[0-9]+"  -- 2 or 3 part version number regexp
+      cmd_ Shell sed "-i -e" ("'s/(hledger(-[a-z]+)?) *== *"++versionre++" *$/\\1 == "++version++"/'") out
+      --
+      --  hledger[-PKG] >[=]LOWER
+      cmd_ Shell sed "-i -e" ("'s/(hledger(-[a-z]+)?) *>=? *"++versionre++" *$/\\1 >= "++version++"/'") out
+      --
+      --  hledger[-PKG] >[=]LOWER && <UPPER
+      let
+        pat = "(hledger(-[a-z]+)?) *>=? *"++versionre++" *&& *< *"++versionre++" *$"
+        rpl = "\\1 >="++version++" \\&\\& <"++nextmajorversion -- This was a beast. These ampersands must be backslash-escaped.
+        arg = "'s/"++pat++"/"++rpl++"/'"
+      cmd_ Shell sed "-i -e" arg out
+
+      -- tagrelease: \
+      --   $(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
+      --   for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
+       
     -- MISC
 
     -- Generate the web manuals based on the current checkout and save
@@ -485,6 +572,8 @@ main = do
       cmd Shell "cp" "site/manual.md" snapshot :: Action ExitCode
       cmd Shell "cp -r site/images" snapshot :: Action ExitCode
       cmd Shell "touch" out -- :: Action ExitCode
+
+    -- Cleanup.
 
     phony "clean" $ do
       putNormal "Cleaning generated help texts, manuals, staged site content"
