@@ -86,7 +86,13 @@ usage = unlines
 groff    = "groff"
 makeinfo = "makeinfo"
 pandoc   = "pandoc"
-sed      = "sed -E"  -- assume only the features of BSD sed
+
+-- Must support both BSD sed and GNU sed. Tips:
+-- BSD:
+-- use [a-z] [0-9] instead of \w \d etc.
+-- GNU:
+-- backslash-escape {
+sed      = "sed -E"
 
 -- The kind of markdown used in our doc source files.
 fromsrcmd = "-f markdown-smart-tex_math_dollars"
@@ -515,7 +521,7 @@ main = do
       let versionfile = takeDirectory out </> ".version"
       need [versionfile]
       version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-      cmd_ Shell sed "-i -e" ("'s/(_version_}}, *){{[^}]+/\\1{{"++version++"/'") out
+      cmd_ Shell sed "-i -e" ("'s/(_version_}}, *)\{\{[^}]+/\\1{{"++version++"/'") out
 
     -- PKG/package.yaml <- PKG/.version
     "hledger*/package.yaml" %> \out -> do
