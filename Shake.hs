@@ -521,7 +521,7 @@ main = do
       let versionfile = takeDirectory out </> ".version"
       need [versionfile]
       version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-      cmd_ Shell sed "-i -e" ("'s/(_version_}}, *)\{\{[^}]+/\\1{{"++version++"/'") out
+      cmd_ Shell sed "-i -e" ("'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/'") out
 
     -- PKG/package.yaml <- PKG/.version
     "hledger*/package.yaml" %> \out -> do
