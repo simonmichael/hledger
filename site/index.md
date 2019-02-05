@@ -185,7 +185,7 @@ what's to do and how to do it
 <div id=wiki class=contentbox>
 <div class=subcontent>
 <!-- WIKICONTENT -->
-## [Cookbook](https://github.com/simonmichael/hledger/wiki/Cookbook)
+## [Wiki/Cookbook](https://github.com/simonmichael/hledger/wiki/Home)
 
 ### Getting started
 
