@@ -1198,27 +1198,31 @@ Finally, for quick, fine-grained performance measurements when troubleshooting o
 
 ## Version numbers
 
+Some places version numbers appear:
+
+- --version (and sometimes --help) output of all hledger* executables
+- web manuals on hledger.org
+- download page
+- changelogs
+- release notes
+- release announcements
+- hackage/stackage uris
+- cabal tarball filenames
+- platform-specific packages
+
 Some old version numbering goals:
 
 1. automation, robustness, simplicity, platform independence
-
 2. cabal versions must be all-numeric
-
 3. release versions can be concise (without extra .0's)
-
 4. releases should have a corresponding VCS tag
-
 5. development builds should have a precise version appearing in --version
-
 6. development builds should generate cabal packages with non-confusing versions
-
 7. there should be a way to mark builds/releases as alpha or beta
-
 8. avoid unnecessary compiling and linking
-
 9. minimise VCS noise and syncing issues (commits, unrecorded changes)
 
-Current policy:
+Current version numbering policy:
 
 - We (should) follow <http://haskell.org/haskellwiki/Package_versioning_policy>
 
@@ -1239,37 +1243,39 @@ Current policy:
 - Release tags in the VCS are like PKG-VERSION. Eg hledger-1.13,
 - hledger-ui-1.13.1.
 
-hledger version numbers appear in:
+Current process:
 
-- the project's .version file. This is the source of truth.
-  `make setversion` propagates this version number to:
+- In each hledger package directory there's a `.version` file
+  containing its desired version number.
+  
+- After changing a `.version` file: run `./Shake setversion` to
+  propagate the versions to all other places in the packages where
+  they should appear. This is not perfect (see Shake.hs) so review and
+  manually adjust the proposed changes before committing.  Those
+  places include (you can also run these rules individually):
 
-- each package's package.yaml file. Here the package version, a CPP
-  VERSION macro, and bounds on other hledger packages (like >=
-  hledger-lib-VERSION && < hledger-lib-NEXTMAJORVERSION) are
-  declared. `make gencabal` or `stack build [--dry-run]`
-  propagates these to packages' .cabal files.
+  - `PKG/package.yaml` contains the cabal package version declaration,
+    bounds on other hledger packages, and a CPP VERSION macro used in
+    `hledger/Hledger/Cli/Version.hs`. Changes in package.yaml will be
+    propagated to `PKG/PKG.cabal` on the next stack or Shake build, or
+    by `make gencabal`.
 
-- hledger/Hledger/Cli/Version.hs assigns VERSION to a global
-  constant accessible by other hledger code.
+  - `PKG/defs.m4` contains the _version_ macro used in documentation
+    source files (*.m4.md).
 
-- the doc/lib.m4 file, where it is assigned to the _version_ m4 macro.
-  Shake propagates this to all documentation generated with m4
-  (*.m4.md files).
+- At release time:
 
-- site/js/site.js, which defines hyperlinks corresponding to all
-- released versions.
+  - `./Shake PKG/CHANGES.md-finalise` converts the topmost heading, if
+    it is an interim heading (just a commit hash), to a permanent
+    heading containing the version and today's date.
 
-- git tags for package releases, as mentioned above
+  - for each package being released, a PKG-VERSION git tag is created.
 
-- the --version output (and sometimes --help output) of all hledger*
-  executables
+- At major release time:
 
-- hackage tarball filenames
-
-- hackage uris
-
-
+  - A new snapshot of the reference docs is added to the website, by
+    `./Shake site/doc/VERSION/.snapshot`, and added to the links in
+    `site/js/site.js`.
 
 ## Sample journals
 
