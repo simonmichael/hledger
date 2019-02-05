@@ -45,7 +45,7 @@ Binaries or system packages are quickest to install, but they can be outdated or
 <br>report issues to packagers)
 </div>
 
-| Platform             | Command/Link           | Installs&nbsp;[version](https://repology.org/metapackage/hledger/badges)<br>(latest is [1.13.1](http://hledger.org/release-notes))
+| Platform             | Command/Link           | Installs&nbsp;[version](https://repology.org/metapackage/hledger/badges)<br>(latest is [1.13.2](http://hledger.org/release-notes)) <!-- <- hledger package's latest version -->
 |----------------------|------------------------|----------------------------------------------------------------------------------------
 | [Mac][]              | **`brew install hledger`** <br><span class=warnings>[only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520)</span> | 1.11.1
 | [Windows][]          | Developer binaries: **[1.12](https://ci.appveyor.com/api/buildjobs/vcocma20843lpfdo/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --> <br><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.12
@@ -171,7 +171,7 @@ you can save some time by omitting hledger-ui, hledger-web and/or hledger-api (o
 On Windows, hledger-ui is not available.
 To estimate the build time, add `--dry-run`:
 
-  **`stack install --resolver=lts-13 hledger-lib-1.13.1 hledger-1.13.1 hledger-ui-1.13.1 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-web-1.13 hledger-api-1.13`**\
+  **`stack install --resolver=lts-13 hledger-lib-1.13.1 hledger-1.13.2 hledger-ui-1.13.1 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1 hledger-web-1.13 hledger-api-1.13`**\
 
 Other [add-ons](/hledger.html#third-party-add-ons)
 like
@@ -189,7 +189,7 @@ can be installed like so:
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
   **`cabal v2-update`**\
-  **`cabal v2-install hledger-1.13.1 hledger-ui-1.13.1 hledger-web-1.13 hledger-api-1.13 [hledger-diff-0.2.0.14 hledger-iadd-1.3.8 hledger-interest-1.5.3]`**\
+  **`cabal v2-install hledger-1.13.2 hledger-ui-1.13.1 hledger-web-1.13 hledger-api-1.13 [hledger-diff-0.2.0.14 hledger-iadd-1.3.8 hledger-interest-1.5.3]`**\
 
 </div>
 
@@ -217,7 +217,7 @@ If you are using bash, this should take care of it:
 You should now be able to run the hledger tools (whichever ones you installed) and see the expected versions:
 
   `$`**`hledger --version`**\
-  `hledger 1.13.1`\
+  `hledger 1.13.2`\
   `$`**`hledger-ui --version`**\
   `hledger-ui 1.13.1`\
   `$`**`hledger web --version`**\
