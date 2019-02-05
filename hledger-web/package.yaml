@@ -1,5 +1,5 @@
 name: hledger-web
-version: '1.13'
+version: 1.13
 synopsis: Web interface for the hledger accounting tool
 description: |
   This is hledger's web interface.

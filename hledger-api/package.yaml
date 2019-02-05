@@ -1,5 +1,5 @@
 name: hledger-api
-version: '1.13'
+version: 1.13
 synopsis: Web API server for the hledger accounting tool
 description: |
   This is a simple web API server for hledger data.
