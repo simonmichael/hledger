@@ -72,6 +72,7 @@ usage = unlines
   ,"./Shake setversion                  update all packages from PKG/.version"
   ,"./Shake changelogs                  update the changelogs with any new commits"
   ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
+  ,"./Shake [PKG/]CHANGES.md-finalise   set final release heading in this changelog"
   ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
   ,""
   ,"./Shake clean            clean help texts, manuals, staged site content"
@@ -136,7 +137,6 @@ main = do
         ]
 
       changelogs = "CHANGES.md" : map (</> "CHANGES.md") packages
-      changelogsdry = map (++"-dry") changelogs
 
       -- doc files (or related targets) that should be generated
       -- before building hledger packages.
@@ -430,13 +430,13 @@ main = do
     -- show the changelogs updates that would be written
     -- phony "changelogs-dry" $ need changelogsdry
 
-    -- CHANGES.md */CHANGES.md CHANGES.md-dry */CHANGES.md-dry
+    -- [PKG/]CHANGES.md[-dry] <- git log
     -- Add commits to the specified changelog since the tag/commit in
     -- the topmost heading, also removing that previous heading if it
     -- was an interim heading (a commit hash). Or (the -dry variants)
     -- just print the new changelog items to stdout without saving.
     phonys (\out' -> if
-      | not $ out' `elem` (changelogs ++ changelogsdry) -> Nothing
+      | not $ out' `elem` (changelogs ++ map (++"-dry") changelogs) -> Nothing
       | otherwise -> Just $ do
         let (out, dryrun) | "-dry" `isSuffixOf` out' = (take (length out' - 4) out', True)
                           | otherwise                = (out', False)
@@ -472,6 +472,30 @@ main = do
           liftIO $ if dryrun
                    then putStr newcontent
                    else writeFile out newfile
+        )
+
+    -- [PKG/]CHANGES.md-finalise <- PKG/.version
+    -- Converts the specified changelog's topmost heading, if it is an
+    -- interim heading (a commit hash), to a permanent heading
+    -- containing the intended release version (from .version) and
+    -- today's date.  For the project CHANGES.md, the version number
+    -- in hledger/.version is used.
+    phonys (\out' -> let suffix = "-finalise" in if
+      | not $ out' `elem` (map (++suffix) changelogs) -> Nothing
+      | otherwise -> Just $ do
+        let
+          out = take (length out' - length suffix) out'
+          versiondir = case takeDirectory out of
+                         "." -> "hledger"
+                         d   -> d
+          versionfile = versiondir </> ".version"
+        need [versionfile]
+        version <- ((head . words) <$>) $ liftIO $ readFile versionfile
+        old     <- liftIO $ readFileStrictly out
+        date    <- liftIO getCurrentDay
+        let (before, _:after) = break ("# " `isPrefixOf`) $ lines old
+            new = unlines $ before ++ ["# "++version++" "++show date] ++ after
+        liftIO $ writeFile out new
         )
 
     -- VERSION NUMBERS
@@ -611,3 +635,8 @@ dropDirectory2 = dropDirectory1 . dropDirectory1
 readFileStrictly :: FilePath -> IO String
 readFileStrictly f = readFile f >>= \s -> C.evaluate (length s) >> return s
 
+-- | Get the current local date.
+getCurrentDay :: IO Day
+getCurrentDay = do
+  t <- getZonedTime
+  return $ localDay (zonedTimeToLocalTime t)
