@@ -68,6 +68,8 @@ usage = unlines
   ,"./Shake website          build the website and web manuals"
   ,"./Shake all              build all the above"
   ,""
+  ,"./Shake mainpages                   build the web pages from the main repo"
+  ,"./Shake wikipages                   build the web pages from the wiki repo"
   ,"./Shake FILE                        build any individual file"
   ,"./Shake setversion                  update all packages from PKG/.version"
   ,"./Shake changelogs                  update the changelogs with any new commits"
@@ -107,6 +109,8 @@ main = do
   let commandsdir = "hledger/Hledger/Cli/Commands"
   commandmds <- filter (".md" `isSuffixOf`) . map (commandsdir </>) <$> S.getDirectoryContents commandsdir
   let commandtxts = map (-<.> "txt") commandmds
+  let wikidir = "wiki"
+  wikipagenames <- map dropExtension . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents wikidir
 
   shakeArgs
     shakeOptions{
@@ -185,9 +189,10 @@ main = do
       -- individual manuals rendered to markdown, ready for conversion to html (site/hledger.md)
       webmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
-      -- website html pages - all manual versions plus misc pages in site/ or copied from elsewhere.
+      -- website pages kept in the main repo: all manual versions,
+      -- misc pages in site/, some pages copied from elsewhere.
       -- TODO: make all have lower-case URIs on the final website.
-      webhtmlpages
+      mainpageshtml
         = map (normalise . ("site/_site" </>))
             $ ( [ prefix </> manpageNameToUri mPage <.> "html"
                    | prefix <- "" : [ "doc" </> v | v <- docversions ]
@@ -209,6 +214,9 @@ main = do
                    | prefix <- "" : "doc/0.27" : [ "doc" </> v | v <- docversions ]
                 ]
               )
+
+      -- website pages kept in the wiki: cookbook content
+      wikipageshtml = map (normalise . ("site/_site" </>) . (<.> ".html")) wikipagenames
 
       -- manuals rendered to markdown and combined, ready for web rendering
       webmancombined = "site/manual.md"
@@ -343,7 +351,7 @@ main = do
 
     -- WEBSITE HTML & ASSETS
 
-    phony "website" $ need [ "webassets" , "webhtml" ]
+    phony "website" $ need [ "webassets" , "mainpages", "wikipages" ]
 
     -- copy all static asset files (files with certain extensions
     -- found under sites, plus one or two more) to sites/_site/
@@ -360,22 +368,30 @@ main = do
     "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webassetexts ] |%> \out -> do
         copyFile' ("site" </> dropDirectory2 out) out
 
-    -- render all website pages as html, saved in sites/_site/
-    phony "webhtml" $ need webhtmlpages
+    -- render all web pages from the main repo (manuals, home, download, relnotes etc) as html, saved in site/_site/
+    phony "mainpages" $ need mainpageshtml
+
+    -- render all pages from the wiki as html, saved in site/_site/.
+    -- We assume there are no path collisions with mainrepopages.
+    phony "wikipages" $ need wikipageshtml
 
     -- render one website page as html, saved in sites/_site/
     "site/_site//*.html" %> \out -> do
-        let source    = "site" </> dropDirectory2 out -<.> "md"
-            pageTitle = takeBaseName out
+        let name = takeBaseName out
+            source
+              | name `elem` wikipagenames = "wiki" </> name <.> "md"
+              | otherwise                 = "site" </> name <.> "md"
             template  = "site/site.tmpl"
             siteRoot  = if "site/_site/doc//*" ?== out then "../.." else "."
         need [source, template]
         cmd Shell pandoc fromsrcmd "-t html" source
                          "--template"                template
                          ("--metadata=siteRoot:"  ++ siteRoot)
-                         ("--metadata=title:"     ++ pageTitle)
+                         ("--metadata=title:"     ++ name)
                          "--lua-filter"              "tools/pandoc-site.lua"
                          "--output"                  out
+
+    -- render one wiki page as html, saved in site/_site/.
 
     -- HLEDGER PACKAGES/EXECUTABLES
 
