@@ -1,5 +1,5 @@
 name: hledger-web
-version: 1.13
+version: 1.13.99
 synopsis: Web interface for the hledger accounting tool
 description: |
   This is hledger's web interface.
@@ -79,7 +79,7 @@ when:
 
 library:
   source-dirs: .
-  cpp-options: -DVERSION="1.13"
+  cpp-options: -DVERSION="1.13.99"
   exposed-modules:
   - Hledger.Web
   - Hledger.Web.Application
@@ -98,8 +98,8 @@ library:
   - Hledger.Web.Widget.AddForm
   - Hledger.Web.Widget.Common
   dependencies:
-  - hledger-lib >=1.13 && <1.14
-  - hledger >=1.13 && <1.14
+  - hledger-lib >=1.13.99 && <1.14
+  - hledger >=1.13.99 && <1.14
   - base >=4.8 && <4.13
   - blaze-html
   - blaze-markup
@@ -145,7 +145,7 @@ executables:
   hledger-web:
     source-dirs: app
     main: main.hs
-    cpp-options: -DVERSION="1.13"
+    cpp-options: -DVERSION="1.13.99"
     dependencies:
     - base
     - hledger-web
@@ -162,7 +162,7 @@ executables:
 #   test:
 #     source-dirs: tests
 #     main: main.hs
-#     cpp-options: -DVERSION="1.13"
+#     cpp-options: -DVERSION="1.13.99"
 #     dependencies:
 #     - base
 #     - hledger-web
