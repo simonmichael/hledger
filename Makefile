@@ -162,6 +162,7 @@ DOCSOURCEFILES:= \
 	$(MANUALSOURCEFILES) \
 	$(COMMANDHELPFILES) \
 	site/*.md \
+	wiki/*.md \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -625,21 +626,6 @@ quickheap-%: hledgerprof samplejournals \
 
 ###############################################################################
 $(call def-help-subheading,DOCUMENTATION: (see also Shake.hs))
-
-site/index.md-push: \
-		$(call def-help,site/index.md-push, update home page with ./wiki/_Sidebar content and push if changed )
-	(sed -ne '1,/<!-- WIKICONTENT -->/ p'     site/index.md     ; \
-	 sed -ne '/^#.*Cookbook/,$$ p'            wiki/_Sidebar.md \
-	 | perl -p \
-	    -e 's/\[\[([^\|]*)\|([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\2)/g;' \
-	    -e 's/\[\[([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\1)/g;' \
-	    -e 's/^# >/##/;' \
-	 ; \
-	 sed -ne '/<!-- ENDWIKICONTENT -->/,$$ p' site/index.md     ) \
-	> site/_index.md.$$$$ && \
-	mv site/_index.md.$$$$ site/index.md
-	git diff --quiet site/index.md || \
-	  (git commit -q -m 'site: home: latest wiki links' -m '[ci skip]' site/index.md && git push)
 
 site-liverender: Shake \
 		$(call def-help,site-liverender, update the website html when source files are saved  )

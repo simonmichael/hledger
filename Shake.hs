@@ -4,6 +4,7 @@
    --package base-prelude
    --package directory
    --package extra
+   --package regex
    --package safe
    --package shake
    --package time
@@ -41,7 +42,9 @@ not having to write :: Action ExitCode after a non-final cmd
 -}
 
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import                Prelude ()
@@ -51,6 +54,8 @@ import "base"         Control.Exception as C
 import "directory"    System.Directory as S (getDirectoryContents)
 import "extra"        Data.List.Extra
 import "process"      System.Process
+import "regex"        Text.RE.TDFA.String
+import "regex"        Text.RE.Replace
 import "safe"         Safe
 import "shake"        Development.Shake
 import "shake"        Development.Shake.FilePath
@@ -70,6 +75,7 @@ usage = unlines
   ,""
   ,"./Shake mainpages                   build the web pages from the main repo"
   ,"./Shake wikipages                   build the web pages from the wiki repo"
+  -- ,"./Shake site/index.md               update wiki links on the website home page"
   ,"./Shake FILE                        build any individual file"
   ,"./Shake setversion                  update all packages from PKG/.version"
   ,"./Shake changelogs                  update the changelogs with any new commits"
@@ -368,28 +374,43 @@ main = do
     "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webassetexts ] |%> \out -> do
         copyFile' ("site" </> dropDirectory2 out) out
 
+    -- embed the wiki's table of contents into the main site's home page
+    "site/index.md" %> \out -> do
+      wikicontent <- readFile' "wiki/_Sidebar.md"
+      old <- liftIO $ readFileStrictly "site/index.md"
+      let (startmarker, endmarker) = ("<!-- WIKICONTENT -->", "<!-- ENDWIKICONTENT -->")
+          (before, after') = break (startmarker `isPrefixOf`) $ lines old
+          (_, after)       = break (endmarker   `isPrefixOf`) $ after'
+          new = unlines $ concat [before, [startmarker], lines wikicontent, after]
+      liftIO $ writeFile out new
+
     -- render all web pages from the main repo (manuals, home, download, relnotes etc) as html, saved in site/_site/
     phony "mainpages" $ need mainpageshtml
 
     -- render all pages from the wiki as html, saved in site/_site/.
-    -- We assume there are no path collisions with mainrepopages.
+    -- We assume there are no filename collisions with mainpages.
     phony "wikipages" $ need wikipageshtml
 
-    -- render one website page as html, saved in sites/_site/
+    -- render one website page (main or wiki) as html, saved in sites/_site/.
+    -- In case it's a wiki page, we capture pandoc's output for final processing,
+    -- and hyperlink any github-style wikilinks.
     "site/_site//*.html" %> \out -> do
         let name = takeBaseName out
+            iswikipage = name `elem` wikipagenames
             source
-              | name `elem` wikipagenames = "wiki" </> name <.> "md"
-              | otherwise                 = "site" </> name <.> "md"
+              | iswikipage = "wiki" </> name <.> "md"
+              | otherwise  = "site" </> name <.> "md"
             template  = "site/site.tmpl"
             siteRoot  = if "site/_site/doc//*" ?== out then "../.." else "."
         need [source, template]
-        cmd Shell pandoc fromsrcmd "-t html" source
-                         "--template"                template
-                         ("--metadata=siteRoot:"  ++ siteRoot)
-                         ("--metadata=title:"     ++ name)
-                         "--lua-filter"              "tools/pandoc-site.lua"
-                         "--output"                  out
+        -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
+        Stdin . wikify <$> (readFile' source) >>=
+          (cmd Shell pandoc fromsrcmd "-t html"
+                           "--template"                template
+                           ("--metadata=siteRoot:"  ++ siteRoot)
+                           ("--metadata=title:"     ++ name)
+                           "--lua-filter=tools/pandoc-site.lua"
+                           "-o" out)
 
     -- render one wiki page as html, saved in site/_site/.
 
@@ -662,3 +683,47 @@ getCurrentDay :: IO Day
 getCurrentDay = do
   t <- getZonedTime
   return $ localDay (zonedTimeToLocalTime t)
+
+-- | Convert Github-style wikilinks to hledger website links.
+wikify :: String -> String
+wikify =
+  replaceBy wikilinkre         wikilinkReplace         .
+  replaceBy labelledwikilinkre labelledwikilinkReplace
+  
+-- couldn't figure out how to use match subgroups, so we don't
+-- wikilinkre         = [re|\[\[$([^]]+)]]|]                -- [[A]]
+-- labelledwikilinkre = [re|\[\[$([^(|)]+)\|$([^]]*)\]\]|]  -- [[A|B]]
+wikilinkre         = [re|\[\[[^]]+]]|]             -- [[A]]
+labelledwikilinkre = [re|\[\[[^(|)]+\|[^]]*\]\]|]  -- [[A|B]]. The | is parenthesised to avoid ending the quasiquoter
+
+-- wikilinkReplace _ loc@RELocation{locationCapture} cap@Capture{capturedText} =
+wikilinkReplace _ _ Capture{capturedText} =
+  -- trace (show (loc,cap)) $
+  Just $ "["++name++"]("++uri++")"
+  where
+    name = init $ init $ drop 2 capturedText
+    uri  = nameToUri name
+
+-- labelledwikilinkReplace _ loc@RELocation{locationCapture} cap@Capture{capturedText} =
+labelledwikilinkReplace _ _ Capture{capturedText} =
+  Just $ "["++label++"]("++uri++")"
+  where
+    [label,name] = take 2 $ (splitOn "|" $ init $ init $ drop 2 capturedText) ++ [""]
+    uri = nameToUri name
+
+nameToUri = (++".html") . intercalate "-" . words
+
+-- | Easier regex replace helper. Replaces each occurrence of a
+-- regular expression in src, by transforming each matched text with
+-- the given function.
+replaceBy re f src = replaceAllCaptures TOP f $ src *=~ re
+
+-- not powerful enough, saved for reference:
+-- wikify = (*=~/ wikilinkreplace) . (*=~/ labelledwikilinkreplace)
+--   where
+--     -- [[A]] -> [A](.../A)
+--     wikilinkreplace :: SearchReplace RE String
+--     wikilinkreplace = [ed|\[\[$([^]]+)]]///[$1]($1.html)|]
+--     -- [[A|B]] -> [A](.../B)
+--     labelledwikilinkreplace :: SearchReplace RE String
+--     labelledwikilinkreplace = [ed|\[\[$([^(|)]+)\|$([^]]*)\]\]///[$1]($2.html)|]
