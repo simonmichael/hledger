@@ -26,23 +26,23 @@ prognameandversion :: String
 prognameandversion = progname ++ " " ++ version :: String
 
 uiflags = [
-  -- flagNone ["debug-ui"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"
-   flagNone ["watch"] (\opts -> setboolopt "watch" opts) "watch for data and date changes and reload automatically"
+  -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
+   flagNone ["watch"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
-  ,flagNone ["change"] (\opts -> setboolopt "change" opts)
+  ,flagNone ["change"] (setboolopt "change")
     "show period balances (changes) at startup instead of historical balances"
-  -- ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+  -- ,flagNone ["cumulative"] (setboolopt "cumulative")
   --   "show balance change accumulated across periods (in multicolumn reports)"
-  -- ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+  -- ,flagNone ["historical","H"] (setboolopt "historical")
   --   "show historical ending balance in each period (includes postings before report start date)\n "
-  ,flagNone ["flat","F"] (\opts -> setboolopt "flat" opts) "show accounts as a list (default)"
-  ,flagNone ["tree","T"] (\opts -> setboolopt "tree" opts) "show accounts as a tree"
---  ,flagNone ["present"] (\opts -> setboolopt "present" opts) "exclude transactions dated later than today (default)"
-  ,flagNone ["future"] (\opts -> setboolopt "future" opts) "show transactions dated later than today (normally hidden)"
+  ,flagNone ["flat","F"] (setboolopt "flat") "show accounts as a list (default)"
+  ,flagNone ["tree","T"] (setboolopt "tree") "show accounts as a tree"
+--  ,flagNone ["present"] (setboolopt "present") "exclude transactions dated later than today (default)"
+  ,flagNone ["future"] (setboolopt "future") "show transactions dated later than today (normally hidden)"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
-  -- ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't compress empty parent accounts on one line"
+  -- ,flagNone ["no-elide"] (setboolopt "no-elide") "don't compress empty parent accounts on one line"
  ]
 
 --uimode :: Mode [([Char], [Char])]

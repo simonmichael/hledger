@@ -14,7 +14,7 @@ import Text.Printf
 checkdatesmode :: Mode RawOpts
 checkdatesmode = hledgerCommandMode
   ($(embedFileRelative "Hledger/Cli/Commands/Checkdates.txt"))
-  [flagNone ["strict"] (\opts -> setboolopt "strict" opts) "makes date comparing strict"]
+  [flagNone ["strict"] (setboolopt "strict") "makes date comparing strict"]
   [generalflagsgroup1]
   []
   ([], Just $ argsFlag "[QUERY]")

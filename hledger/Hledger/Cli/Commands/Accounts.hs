@@ -36,10 +36,10 @@ import Hledger.Cli.CliOptions
 -- | Command line options for this command.
 accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
-  [flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
-  ,flagNone ["used"] (\opts -> setboolopt "used" opts) "show account names referenced by transactions"
-  ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
-  ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
+  [flagNone ["declared"] (setboolopt "declared") "show account names declared with account directives"
+  ,flagNone ["used"] (setboolopt "used") "show account names referenced by transactions"
+  ,flagNone ["tree"] (setboolopt "tree") "show short account names, as a tree"
+  ,flagNone ["flat"] (setboolopt "flat") "show full account names, as a list (default)"
   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
   ]
   [generalflagsgroup1]

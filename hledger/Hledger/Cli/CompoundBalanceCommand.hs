@@ -84,26 +84,26 @@ compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
 compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
     cbcdoc
-    [flagNone ["change"] (\opts -> setboolopt "change" opts)
+    [flagNone ["change"] (setboolopt "change")
        ("show balance change in each period" ++ defType PeriodChange)
-    ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+    ,flagNone ["cumulative"] (setboolopt "cumulative")
        ("show balance change accumulated across periods (in multicolumn reports)"
            ++ defType CumulativeChange
        )
-    ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+    ,flagNone ["historical","H"] (setboolopt "historical")
        ("show historical ending balance in each period (includes postings before report start date)"
            ++ defType HistoricalBalance
        )
-    ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
+    ,flagNone ["flat"] (setboolopt "flat") "show accounts as a list"
     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-    ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
-    ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
-    ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
-    ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
-    ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
+    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
+    ,flagNone ["tree"] (setboolopt "tree") "show accounts as a tree; amounts include subaccounts (default in simple reports)"
+    ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
+    ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
+    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-    ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
-    ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account code/name"
+    ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode when displaying tables"
+    ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,outputFormatFlag
     ,outputFileFlag
     ]
