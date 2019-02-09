@@ -116,7 +116,8 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
   where
     beforestartq = dbg1 "beforestartq" $ dateqtype $ DateSpan Nothing mstart
     beforeandduringps =
-      dbg1 "ps4" $ sortBy (comparing sortdate) $                               -- sort postings by date or date2
+      dbg1 "ps5" $ sortBy (comparing sortdate) $                               -- sort postings by date or date2
+      dbg1 "ps4" $ (if invert_ opts then map negatePostingAmount else id) $    -- with --invert, invert amounts
       dbg1 "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
       dbg1 "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
       dbg1 "ps1" $ filter (beforeandduringq `matchesPosting`) $                -- filter postings by the query, with no start date or depth limit
@@ -134,6 +135,9 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
       | otherwise = Date
       where
         dateq = dbg1 "dateq" $ filterQuery queryIsDateOrDate2 $ dbg1 "q" q  -- XXX confused by multiple date:/date2: ?
+
+negatePostingAmount :: Posting -> Posting
+negatePostingAmount p = p { pamount = negate $ pamount p }
 
 -- | Generate postings report line items from a list of postings or (with
 -- non-Nothing dates attached) summary postings.
