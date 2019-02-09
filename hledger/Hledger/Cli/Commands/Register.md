@@ -40,6 +40,16 @@ It works best when showing just one account and one commodity.
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
 
+The `--invert` flag negates all amounts.
+For example, it can be used on an income account where amounts are normally
+displayed as negative numbers.
+It's also useful to show postings on the checking account together with the
+related account:
+
+```
+$ hledger register --related --invert assets:checking
+```
+
 With a [reporting interval](#reporting-interval), register shows
 summary postings, one per interval, aggregating the postings to each account:
 
