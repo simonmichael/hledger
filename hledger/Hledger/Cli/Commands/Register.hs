@@ -29,13 +29,13 @@ import Hledger.Cli.Utils
 
 registermode = hledgerCommandMode
   ($(embedFileRelative "Hledger/Cli/Commands/Register.txt"))
-  ([flagNone ["cumulative"]         (\opts -> setboolopt "change" opts)
+  ([flagNone ["cumulative"] (setboolopt "change")
      "show running total from report start date (default)"
-  ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+  ,flagNone ["historical","H"] (setboolopt "historical")
      "show historical running total/balance (includes postings before report start date)\n "
-  ,flagNone ["average","A"] (\opts -> setboolopt "average" opts)
+  ,flagNone ["average","A"] (setboolopt "average")
      "show running average of posting amounts instead of total (implies --empty)"
-  ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
+  ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS

@@ -19,7 +19,7 @@ import Text.Printf
 
 importmode = hledgerCommandMode
   ($(embedFileRelative "Hledger/Cli/Commands/Import.txt"))
-  [flagNone ["dry-run"] (\opts -> setboolopt "dry-run" opts) "just show the transactions to be imported"] 
+  [flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"] 
   [generalflagsgroup1]
   []
   ([], Just $ argsFlag "FILE [...]")

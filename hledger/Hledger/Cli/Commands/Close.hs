@@ -17,8 +17,8 @@ import Hledger.Cli.CliOptions
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["opening"] (\opts -> setboolopt "opening" opts) "show just opening transaction"
-  ,flagNone ["closing"] (\opts -> setboolopt "closing" opts) "show just closing transaction"
+  [flagNone ["opening"] (setboolopt "opening") "show just opening transaction"
+  ,flagNone ["closing"] (setboolopt "closing") "show just closing transaction"
   ]
   [generalflagsgroup1]
   []
