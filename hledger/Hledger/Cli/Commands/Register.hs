@@ -36,6 +36,7 @@ registermode = hledgerCommandMode
   ,flagNone ["average","A"] (setboolopt "average")
      "show running average of posting amounts instead of total (implies --empty)"
   ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
+  ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
