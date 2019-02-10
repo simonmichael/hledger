@@ -38,7 +38,6 @@ Shake wishes:
 just one shake import
 wildcards in phony rules
 multiple individually accessible wildcards
-not having to write :: Action ExitCode after a non-final cmd
 -}
 
 {-# LANGUAGE MultiWayIf #-}
@@ -344,11 +343,11 @@ main = do
       need webmanuals
       liftIO $ writeFile webmancombined "\\$toc\\$" -- # Big Manual\n\n -- TOC style is better without main heading,
       forM_ webmanuals $ \f -> do -- site/hledger.md, site/journal.md
-        cmd Shell ("printf '\\n\\n' >>") webmancombined :: Action ExitCode
-        cmd Shell pandoc f towebmd
+        cmd_ Shell ("printf '\\n\\n' >>") webmancombined
+        cmd_ Shell pandoc f towebmd
           "--lua-filter tools/pandoc-drop-toc.lua"
           "--lua-filter tools/pandoc-demote-headers.lua"
-          ">>" webmancombined :: Action ExitCode
+          ">>" webmancombined
 
     -- Copy some extra markdown files from the main repo into the site
     -- TODO adding table of contents placeholders
@@ -357,7 +356,11 @@ main = do
 
     -- WEBSITE HTML & ASSETS
 
-    phony "website" $ need [ "webassets" , "mainpages", "wikipages" ]
+    phony "website" $ need [
+       "webassets"
+      ,"mainpages"
+      ,"wikipages"
+      ]
 
     -- copy all static asset files (files with certain extensions
     -- found under sites, plus one or two more) to sites/_site/
@@ -633,12 +636,12 @@ main = do
     "site/doc/*/.snapshot" %> \out -> do
       need $ webmancombined : webmanuals
       let snapshot = takeDirectory out
-      cmd Shell "mkdir -p" snapshot :: Action ExitCode
-      forM_ webmanuals $ \f -> do -- site/hledger.md, site/journal.md
-        cmd Shell "cp" f (snapshot </> takeFileName f) :: Action ExitCode
-      cmd Shell "cp" "site/manual.md" snapshot :: Action ExitCode
-      cmd Shell "cp -r site/images" snapshot :: Action ExitCode
-      cmd Shell "touch" out -- :: Action ExitCode
+      cmd_ Shell "mkdir -p" snapshot
+      forM_ webmanuals $ \f -> -- site/hledger.md, site/journal.md
+        cmd_ Shell "cp" f (snapshot </> takeFileName f)
+      cmd_ Shell "cp" "site/manual.md" snapshot
+      cmd_ Shell "cp -r site/images" snapshot
+      cmd_ Shell "touch" out
 
     -- Cleanup.
 
