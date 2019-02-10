@@ -8,9 +8,12 @@ main() {
     tmp=$(mktemp)
     cat > "$tmp"
 
-    sed -rn 's/^ ([-a-z]+).*/\1/gp' "$tmp"
+    # Do not output mistaken commands that start with a dash (e.g. -h)
+    sed -rn 's/^ ([-a-z]+).*/\1/gp' "$tmp" \
+	| grep -v ^-
 
-    # Do not output single letter commands, it's not useful.
+    # Output single command aliases in parenthesis:
+    # Do not output single letter command aliases, it's not useful.
     sed -rn 's/^ .*\(([a-z]+)\).*/\1/gp' "$tmp" \
 	| grep -v ^.$
 
