@@ -115,7 +115,7 @@ main = do
   commandmds <- filter (".md" `isSuffixOf`) . map (commandsdir </>) <$> S.getDirectoryContents commandsdir
   let commandtxts = map (-<.> "txt") commandmds
   let wikidir = "wiki"
-  wikipagenames <- map dropExtension . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents wikidir
+  wikipagefilenames <- map dropExtension . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents wikidir
 
   shakeArgs
     shakeOptions{
@@ -221,7 +221,7 @@ main = do
               )
 
       -- website pages kept in the wiki: cookbook content
-      wikipageshtml = map (normalise . ("site/_site" </>) . (<.> ".html")) wikipagenames
+      wikipageshtml = map (normalise . ("site/_site" </>) . (<.> ".html")) wikipagefilenames
 
       -- manuals rendered to markdown and combined, ready for web rendering
       webmancombined = "site/manual.md"
@@ -379,12 +379,12 @@ main = do
 
     -- embed the wiki's table of contents into the main site's home page
     "site/index.md" %> \out -> do
-      wikicontent <- readFile' "wiki/_Sidebar.md"
+      wikicontent <- dropWhile (not . ("#" `isPrefixOf`)) . lines <$> readFile' "wiki/Home.md"
       old <- liftIO $ readFileStrictly "site/index.md"
       let (startmarker, endmarker) = ("<!-- WIKICONTENT -->", "<!-- ENDWIKICONTENT -->")
           (before, after') = break (startmarker `isPrefixOf`) $ lines old
           (_, after)       = break (endmarker   `isPrefixOf`) $ after'
-          new = unlines $ concat [before, [startmarker], lines wikicontent, after]
+          new = unlines $ concat [before, [startmarker], wikicontent, after]
       liftIO $ writeFile out new
 
     -- render all web pages from the main repo (manuals, home, download, relnotes etc) as html, saved in site/_site/
@@ -398,22 +398,23 @@ main = do
     -- In case it's a wiki page, we capture pandoc's output for final processing,
     -- and hyperlink any github-style wikilinks.
     "site/_site//*.html" %> \out -> do
-        let name = takeBaseName out
-            iswikipage = name `elem` wikipagenames
+        let filename = takeBaseName out
+            pagename = fileNameToPageName filename
+            iswikipage = filename `elem` wikipagefilenames
             source
-              | iswikipage = "wiki" </> name <.> "md"
-              | otherwise  = "site" </> name <.> "md"
-            template  = "site/site.tmpl"
-            siteRoot  = if "site/_site/doc//*" ?== out then "../.." else "."
+              | iswikipage = "wiki" </> filename <.> "md"
+              | otherwise  = "site" </> filename <.> "md"
+            template = "site/site.tmpl"
+            siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
         need [source, template]
         -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
-        Stdin . wikify <$> (readFile' source) >>=
+        Stdin . wikify (if iswikipage then Just (fileNameToPageName filename) else Nothing) <$> (readFile' source) >>=
           (cmd Shell pandoc fromsrcmd "-t html"
-                           "--template"                template
-                           ("--metadata=siteRoot:"  ++ siteRoot)
-                           ("--metadata=title:"     ++ name)
+                           "--template" template
+                           ("--metadata=siteRoot:" ++ siteRoot)
+                           ("--metadata=\"title:" ++ pagename ++ "\"")
                            "--lua-filter=tools/pandoc-site.lua"
-                           "-o" out)
+                           "-o" out )
 
     -- render one wiki page as html, saved in site/_site/.
 
@@ -687,9 +688,13 @@ getCurrentDay = do
   t <- getZonedTime
   return $ localDay (zonedTimeToLocalTime t)
 
+type Markdown = String
+
 -- | Convert Github-style wikilinks to hledger website links.
-wikify :: String -> String
-wikify =
+-- If a heading is provided, prepend that as a top-level markdown heading.
+wikify :: Maybe String -> Markdown -> Markdown
+wikify mheading =
+  maybe id ((++).(++"\n\n").("# "++)) mheading .
   replaceBy wikilinkre         wikilinkReplace         .
   replaceBy labelledwikilinkre labelledwikilinkReplace
   
@@ -705,16 +710,18 @@ wikilinkReplace _ _ Capture{capturedText} =
   Just $ "["++name++"]("++uri++")"
   where
     name = init $ init $ drop 2 capturedText
-    uri  = nameToUri name
+    uri  = pageNameToUri name
 
 -- labelledwikilinkReplace _ loc@RELocation{locationCapture} cap@Capture{capturedText} =
 labelledwikilinkReplace _ _ Capture{capturedText} =
   Just $ "["++label++"]("++uri++")"
   where
     [label,name] = take 2 $ (splitOn "|" $ init $ init $ drop 2 capturedText) ++ [""]
-    uri = nameToUri name
+    uri = pageNameToUri name
 
-nameToUri = (++".html") . intercalate "-" . words
+pageNameToUri = (++".html") . intercalate "-" . words
+
+fileNameToPageName = unwords . splitOn "-"
 
 -- | Easier regex replace helper. Replaces each occurrence of a
 -- regular expression in src, by transforming each matched text with
