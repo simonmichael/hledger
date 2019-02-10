@@ -7,7 +7,7 @@ hledger-completion.bash: hledger-completion.bash.m4 commands-list.txt query-filt
 	m4 hledger-completion.bash.m4 > $@
 
 generic-options.txt:
-	hledger -h | ./output-options.sh > $@
+	hledger -h | ./output-options.sh | sort -u > $@
 
 commands.txt:
 	hledger | ./output-commands.sh | grep -v ^hledger > $@
@@ -20,7 +20,8 @@ commands-list.txt: commands.txt
 	# hledger help --cat hledger | sed -n '/^QUERIES/,/^[A-Z]/p'
 
 command-options: commands.txt
-	parallel -j8 'hledger {} -h | ./output-options.sh > options-{}.txt' < commands.txt
+	parallel -j8 'hledger {} -h | ./output-options.sh | sort -u > options-{}.txt' < commands.txt
 
 clean:
-	rm -f *.txt hledger-completion.bash
+	rm -f commands*.txt generic-options.txt options-*.txt
+	rm -f hledger-completion.bash
