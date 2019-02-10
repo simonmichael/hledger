@@ -11,6 +11,9 @@ generic-options.txt:
 
 commands.txt:
 	hledger | ./output-commands.sh | grep -v ^hledger > $@
+	echo ui  >> $@
+	echo web >> $@
+	echo api >> $@
 
 commands-list.txt: commands.txt
 	paste -sd, $^ | tr -d '\n' > $@
