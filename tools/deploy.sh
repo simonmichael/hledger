@@ -19,16 +19,15 @@ git pull && \
 # fetch latest wiki content
 printf "wiki: " && git -C wiki pull && \
 
-# add latest wiki sidebar links to home page, and push right away so we can keep pulling 
-make --no-print-directory site/index.md-push && \
-
 # ensure GHC can handle non-ascii
 export LANG=en_US.UTF-8 && \
 
 # ensure latest Shake is built
-./Shake.hs \
+./Shake.hs && \
 
-# update website's generated content (eg manuals) and html
+
+# update website
+./Shake site/index.md && \
 ./Shake website \
 
 # print and log to:
