@@ -66,10 +66,12 @@ usage = unlines
   ["Usage:"
   ,"./Shake.hs               (re)compile this script"
   ,"./Shake commandhelp      build embedded help texts for the hledger CLI"
-  ,"./Shake manuals          build embedded txt/man/info manuals for all packages"
+  ,"./Shake manuals          build txt/man/info/html manuals for all packages"
+  ,"./Shake oldmanuals       build old versions of html manuals for all packages"
   ,"./Shake PKG              build a single hledger package and its embedded docs"
   ,"./Shake build            build all hledger packages and their embedded docs"
   ,"./Shake website          build the website and web manuals"
+  ,"./Shake website-all      build the website and all web manual versions"
   ,"./Shake all              build all the above"
   ,""
   ,"./Shake mainpages                   build the web pages from the main repo"
@@ -139,8 +141,8 @@ main = do
     -- NAMES, FILES, URIS..
 
     let
-      -- documentation versions shown on the website (excluding 0.27 which is handled specially)
-      docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10", "1.11", "1.12", "1.13" ]
+      -- documentation versions shown on the website
+      docversions = [ "0.27", "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10", "1.11", "1.12", "1.13" ]
 
       -- main package names, in standard build order
       packages = [
@@ -192,39 +194,37 @@ main = do
       infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
 
       -- individual manuals rendered to markdown, ready for conversion to html (site/hledger.md)
-      webmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
+      mdmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
-      -- website pages kept in the main repo: all manual versions,
-      -- misc pages in site/, some pages copied from elsewhere.
-      -- TODO: make all have lower-case URIs on the final website.
-      mainpageshtml
-        = map (normalise . ("site/_site" </>))
-            $ ( [ prefix </> manpageNameToUri mPage <.> "html"
-                   | prefix <- "" : [ "doc" </> v | v <- docversions ]
-                   , mPage  <- manpageNames
-                ]
-             ++ [ mPage <.> "html"
-                   | mPage <- [
-                         "contributors"
-                       , "download"
-                       , "ledgertips"
-                       , "index"
-                       , "intro"
-                       , "release-notes"
-                       , "README"
-                       , "CONTRIBUTING"
-                       ]
-                ]
-             ++ [ prefix </> "manual" <.> "html"
-                   | prefix <- "" : "doc/0.27" : [ "doc" </> v | v <- docversions ]
-                ]
-              )
+      -- latest version of the manuals rendered to html
+      htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames++["manual"]]
 
-      -- website pages kept in the wiki: cookbook content
+      -- old versions of the manuals rendered to html
+      oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
+        [ v </> manpageNameToUri p | v <- docversions, v>="1.0", p <- manpageNames ++ ["manual"] ] ++
+        [ v </> "manual"           | v <- docversions, v <"1.0" ]  -- before 1.0 there was only the combined manual
+
+      -- the html for website pages kept in the main repo
+      mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) [
+        -- from site/*.md
+         "contributors"
+        ,"download"
+        ,"ledgertips"
+        ,"index"
+        ,"intro"
+        ,"release-notes"
+        -- some copied from elsewhere
+        ,"README"
+        ,"CONTRIBUTING"
+        ]
+
+      -- the html for website pages kept in the wiki repo (cookbook content)
       wikipageshtml = map (normalise . ("site/_site" </>) . (<.> ".html")) wikipagefilenames
 
+      -- TODO: make website URIs lower-case ?
+
       -- manuals rendered to markdown and combined, ready for web rendering
-      webmancombined = "site/manual.md"
+      mdcombinedmanual = "site/manual.md"
 
       -- extensions of static web asset files, to be copied to the website
       webassetexts = ["png", "gif", "cur", "js", "css", "eot", "ttf", "woff", "svg"]
@@ -254,14 +254,15 @@ main = do
     -- MANUALS
 
     -- Generate the manuals in nroff, plain text and info formats.
-    phony "manuals" $ do
-      need $
-        nroffmanuals
-        ++ infomanuals
-        ++ txtmanuals
+    phony "manuals" $ need $ concat [
+       nroffmanuals
+      ,infomanuals
+      ,txtmanuals
+      ,htmlmanuals
+      ]
 
     -- Generate nroff man pages suitable for man output.
-    phony "manmanuals" $ need nroffmanuals
+    phony "nroffmanuals" $ need nroffmanuals
     nroffmanuals |%> \out -> do -- hledger/hledger.1
       let src       = manpageNameToManualName out <.> "m4.md"
           commonm4  = "doc/common.m4"
@@ -313,8 +314,8 @@ main = do
 
     -- Generate the individual web manuals' markdown source, using m4
     -- and pandoc to tweak content.
-    phony "webmanuals" $ need webmanuals
-    webmanuals |%> \out -> do -- site/hledger.md
+    phony "mdmanuals" $ need mdmanuals
+    mdmanuals |%> \out -> do -- site/hledger.md
       let manpage   = manpageUriToName $ dropExtension $ takeFileName out -- hledger
           manual    = manpageNameToManualName manpage
           dir       = manpageDir manpage
@@ -338,16 +339,16 @@ main = do
 
     -- Generate the combined web manual's markdown source, by
     -- concatenating tweaked versions of the individual manuals.
-    phony "webmancombined" $ need [ webmancombined ]
-    webmancombined %> \out -> do
-      need webmanuals
-      liftIO $ writeFile webmancombined "\\$toc\\$" -- # Big Manual\n\n -- TOC style is better without main heading,
-      forM_ webmanuals $ \f -> do -- site/hledger.md, site/journal.md
-        cmd_ Shell ("printf '\\n\\n' >>") webmancombined
+    phony "mdcombinedmanual" $ need [ mdcombinedmanual ]
+    mdcombinedmanual %> \out -> do
+      need mdmanuals
+      liftIO $ writeFile mdcombinedmanual "\\$toc\\$" -- # Big Manual\n\n -- TOC style is better without main heading,
+      forM_ mdmanuals $ \f -> do -- site/hledger.md, site/journal.md
+        cmd_ Shell ("printf '\\n\\n' >>") mdcombinedmanual
         cmd_ Shell pandoc f towebmd
           "--lua-filter tools/pandoc-drop-toc.lua"
           "--lua-filter tools/pandoc-demote-headers.lua"
-          ">>" webmancombined
+          ">>" mdcombinedmanual
 
     -- Copy some extra markdown files from the main repo into the site
     -- TODO adding table of contents placeholders
@@ -360,6 +361,12 @@ main = do
        "webassets"
       ,"mainpages"
       ,"wikipages"
+      ,"htmlmanuals"
+      ]
+
+    phony "website-all" $ need [
+       "website"
+      ,"oldmanuals"
       ]
 
     -- copy all static asset files (files with certain extensions
@@ -377,7 +384,7 @@ main = do
     "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webassetexts ] |%> \out -> do
         copyFile' ("site" </> dropDirectory2 out) out
 
-    -- embed the wiki's table of contents into the main site's home page
+    -- embed the wiki's latest table of contents into the main site's home page
     "site/index.md" %> \out -> do
       wikicontent <- dropWhile (not . ("#" `isPrefixOf`)) . lines <$> readFile' "wiki/Home.md"
       old <- liftIO $ readFileStrictly "site/index.md"
@@ -394,29 +401,33 @@ main = do
     -- We assume there are no filename collisions with mainpages.
     phony "wikipages" $ need wikipageshtml
 
-    -- render one website page (main or wiki) as html, saved in sites/_site/.
-    -- In case it's a wiki page, we capture pandoc's output for final processing,
-    -- and hyperlink any github-style wikilinks.
+    phony "htmlmanuals" $ need htmlmanuals
+
+    phony "oldmanuals" $ need oldhtmlmanuals
+
+    -- Render one website page (main or wiki) as html, saved in sites/_site/.
+    -- Wiki pages will have a heading prepended.
+    -- All pages will have github-style wiki links hyperlinked.
     "site/_site//*.html" %> \out -> do
         let filename = takeBaseName out
             pagename = fileNameToPageName filename
             iswikipage = filename `elem` wikipagefilenames
+            isoldmanual = "site/_site/doc/" `isPrefixOf` out
             source
-              | iswikipage = "wiki" </> filename <.> "md"
-              | otherwise  = "site" </> filename <.> "md"
+              | iswikipage  = "wiki" </> filename <.> "md"
+              | isoldmanual = "site" </> (drop 11 $ dropExtension out) <.> "md"
+              | otherwise   = "site" </> filename <.> "md"
             template = "site/site.tmpl"
             siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
         need [source, template]
         -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
-        Stdin . wikify (if iswikipage then Just (fileNameToPageName filename) else Nothing) <$> (readFile' source) >>=
-          (cmd Shell pandoc fromsrcmd "-t html"
+        Stdin . wikiLink . (if iswikipage then addHeading pagename else id) <$> (readFile' source) >>=
+          (cmd Shell pandoc "-" fromsrcmd "-t html"
                            "--template" template
                            ("--metadata=siteRoot:" ++ siteRoot)
                            ("--metadata=\"title:" ++ pagename ++ "\"")
                            "--lua-filter=tools/pandoc-site.lua"
                            "-o" out )
-
-    -- render one wiki page as html, saved in site/_site/.
 
     -- HLEDGER PACKAGES/EXECUTABLES
 
@@ -635,10 +646,10 @@ main = do
     -- them as the specified versioned snapshot in site/doc/VER/ .
     -- .snapshot is a dummy file.
     "site/doc/*/.snapshot" %> \out -> do
-      need $ webmancombined : webmanuals
+      need $ mdcombinedmanual : mdmanuals
       let snapshot = takeDirectory out
       cmd_ Shell "mkdir -p" snapshot
-      forM_ webmanuals $ \f -> -- site/hledger.md, site/journal.md
+      forM_ mdmanuals $ \f -> -- site/hledger.md, site/journal.md
         cmd_ Shell "cp" f (snapshot </> takeFileName f)
       cmd_ Shell "cp" "site/manual.md" snapshot
       cmd_ Shell "cp -r site/images" snapshot
@@ -649,8 +660,8 @@ main = do
     phony "clean" $ do
       putNormal "Cleaning generated help texts, manuals, staged site content"
       removeFilesAfter "." commandtxts
-      removeFilesAfter "." webmanuals
-      removeFilesAfter "." [webmancombined]
+      removeFilesAfter "." mdmanuals
+      removeFilesAfter "." [mdcombinedmanual]
       removeFilesAfter "." ["site/README.md", "site/CONTRIBUTING.md"]
 
     phony "Clean" $ do
@@ -688,16 +699,22 @@ getCurrentDay = do
   t <- getZonedTime
   return $ localDay (zonedTimeToLocalTime t)
 
+-- markdown helpers
+
 type Markdown = String
 
+-- | Prepend a markdown heading.
+addHeading :: String -> Markdown -> Markdown
+addHeading h = (("# "++h++"\n\n")++)
+
 -- | Convert Github-style wikilinks to hledger website links.
--- If a heading is provided, prepend that as a top-level markdown heading.
-wikify :: Maybe String -> Markdown -> Markdown
-wikify mheading =
-  maybe id ((++).(++"\n\n").("# "++)) mheading .
+wikiLink :: Markdown -> Markdown
+wikiLink =
   replaceBy wikilinkre         wikilinkReplace         .
   replaceBy labelledwikilinkre labelledwikilinkReplace
   
+-- regex stuff
+
 -- couldn't figure out how to use match subgroups, so we don't
 -- wikilinkre         = [re|\[\[$([^]]+)]]|]                -- [[A]]
 -- labelledwikilinkre = [re|\[\[$([^(|)]+)\|$([^]]*)\]\]|]  -- [[A|B]]
