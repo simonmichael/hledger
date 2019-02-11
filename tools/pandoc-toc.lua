@@ -5,14 +5,6 @@ function Header(h)
   return h
 end
 
-function isTocBlock(blk)
-  if not (blk.t               == "Para")  then return false end
-  if not  blk.content[1]                  then return false end
-  if not (blk.content[1].t    == "Str")   then return false end
-  if not (blk.content[1].text == "$toc$") then return false end
-  return true
-end
-
 function markupLink(hAttr, headerText)
   local headerId         = hAttr.identifier
   local headerProperties = hAttr.attributes
@@ -43,13 +35,25 @@ function createTable(elems)
   return {navBegin, contentsP, markupElements(elems), navEnd}
 end
 
+function isTocMarker(blk)
+  local tocMarker = "$TOC$"
+  if not (blk.t               == "Para")  then return false end
+  if not  blk.content[1]                  then return false end
+  if not (blk.content[1].t    == "Str")   then return false end
+  return blk.content[1].text == tocMarker
+end
+
 function Pandoc(doc)
   newBlocks = {}
   tocBlocks = createTable(pandoc.utils.hierarchicalize(headers))
   for _,blk in pairs(doc.blocks) do
-    if isTocBlock(blk) then
-      for _,tocBlk in pairs(tocBlocks) do
-        table.insert(newBlocks, tocBlk)
+    -- replace a TOC placeholder with the table of contents,
+    -- or nothing if there's less than two headings
+    if isTocMarker(blk) then
+      if #headers > 1 then
+        for _,tocBlk in pairs(tocBlocks) do
+          table.insert(newBlocks, tocBlk)
+        end
       end
     else
       table.insert(newBlocks, blk)

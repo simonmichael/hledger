@@ -342,7 +342,7 @@ main = do
     phony "mdcombinedmanual" $ need [ mdcombinedmanual ]
     mdcombinedmanual %> \out -> do
       need mdmanuals
-      liftIO $ writeFile mdcombinedmanual "\\$toc\\$" -- # Big Manual\n\n -- TOC style is better without main heading,
+      liftIO $ writeFile mdcombinedmanual $ addToc ""
       forM_ mdmanuals $ \f -> do -- site/hledger.md, site/journal.md
         cmd_ Shell ("printf '\\n\\n' >>") mdcombinedmanual
         cmd_ Shell pandoc f towebmd
@@ -406,7 +406,7 @@ main = do
     phony "oldmanuals" $ need oldhtmlmanuals
 
     -- Render one website page (main or wiki) as html, saved in sites/_site/.
-    -- Wiki pages will have a heading prepended.
+    -- Wiki pages will have a heading and TOC placeholder prepended.
     -- All pages will have github-style wiki links hyperlinked.
     "site/_site//*.html" %> \out -> do
         let filename = takeBaseName out
@@ -420,13 +420,13 @@ main = do
             template = "site/site.tmpl"
             siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
         need [source, template]
-        -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
-        Stdin . wikiLink . (if iswikipage then addHeading pagename else id) <$> (readFile' source) >>=
+        -- read markdown source, link any wikilinks, maybe add a heading and TOC, pipe it to pandoc, write html out
+        Stdin . wikiLink . (if iswikipage then addHeading pagename . addToc else id) <$> (readFile' source) >>=
           (cmd Shell pandoc "-" fromsrcmd "-t html"
                            "--template" template
                            ("--metadata=siteRoot:" ++ siteRoot)
                            ("--metadata=\"title:" ++ pagename ++ "\"")
-                           "--lua-filter=tools/pandoc-site.lua"
+                           "--lua-filter=tools/pandoc-toc.lua"
                            "-o" out )
 
     -- HLEDGER PACKAGES/EXECUTABLES
@@ -706,6 +706,11 @@ type Markdown = String
 -- | Prepend a markdown heading.
 addHeading :: String -> Markdown -> Markdown
 addHeading h = (("# "++h++"\n\n")++)
+
+-- | Prepend a table of contents placeholder.
+addToc :: Markdown -> Markdown
+addToc = ((tocMarker++"\n\n")++)
+  where tocMarker = "$TOC$"
 
 -- | Convert Github-style wikilinks to hledger website links.
 wikiLink :: Markdown -> Markdown
