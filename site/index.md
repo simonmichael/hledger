@@ -192,7 +192,7 @@ Making good software and documentation costs a lot.
 [[hledger basics tutorial]]  
 [[hledger terminology]]  
 [[Create a journal]]  
-[[hledger accounting concepts tutorial]]   
+[[hledger accounting concepts]]   
 [[Common journal entries]]  
 
 ### Managing data
