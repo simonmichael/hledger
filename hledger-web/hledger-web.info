@@ -3,8 +3,8 @@ This is hledger-web.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.13
-*******************************
+hledger-web(1) hledger-web 1.13.99
+**********************************
 
 hledger-web is hledger's web interface.  It starts a simple web
 application for browsing and adding transactions, and optionally opens
@@ -212,7 +212,7 @@ this, insert a '--' argument before.)
 
 Tag Table:
 Node: Top72
-Node: OPTIONS3154
-Ref: #options3239
+Node: OPTIONS3160
+Ref: #options3245
 
 End Tag Table

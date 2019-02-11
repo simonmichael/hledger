@@ -87,20 +87,19 @@ web app detects changes made by other means and will show the new data
 on the next request. If a change makes the file unparseable,
 hledger-web will show an error until the file has been fixed.
 
----
-# disabled
-# edit form
-# Note: unlike any other hledger command, `web` can alter existing journal
-# data, via the edit form.  A numbered backup of the file is saved on
-# each edit, normally (ie if file permissions allow, disk is not full, etc.)
-# Also, there is no built-in access control. So unless you run it behind an
-# authenticating proxy, any visitor to your server will be able to see and
-# overwrite the journal file (and included files.)
-# hledger-web disallows edits which would leave the journal file not in
-# valid [journal format](#journal). If the file becomes unparseable
-# by other means, hledger-web will show an error until the file has been
-# fixed.
-...
+<!--
+edit form
+Note: unlike any other hledger command, `web` can alter existing journal
+data, via the edit form.  A numbered backup of the file is saved on
+each edit, normally (ie if file permissions allow, disk is not full, etc.)
+Also, there is no built-in access control. So unless you run it behind an
+authenticating proxy, any visitor to your server will be able to see and
+overwrite the journal file (and included files.)
+hledger-web disallows edits which would leave the journal file not in
+valid [journal format](#journal). If the file becomes unparseable
+by other means, hledger-web will show an error until the file has been
+fixed.
+-->
 
 # OPTIONS
 

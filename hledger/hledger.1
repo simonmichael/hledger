@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "February 2019" "hledger 1.13" "hledger User Manuals"
+.TH "hledger" "1" "February 2019" "hledger 1.13.99" "hledger User Manuals"
 
 
 
@@ -2658,6 +2658,18 @@ It works best when showing just one account and one commodity.
 The \f[C]\-\-related\f[]/\f[C]\-r\f[] flag shows the \f[I]other\f[]
 postings in the transactions of the postings which would normally be
 shown.
+.PP
+The \f[C]\-\-invert\f[] flag negates all amounts.
+For example, it can be used on an income account where amounts are
+normally displayed as negative numbers.
+It\[aq]s also useful to show postings on the checking account together
+with the related account:
+.IP
+.nf
+\f[C]
+$\ hledger\ register\ \-\-related\ \-\-invert\ assets:checking
+\f[]
+.fi
 .PP
 With a reporting interval, register shows summary postings, one per
 interval, aggregating the postings to each account:
