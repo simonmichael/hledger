@@ -107,14 +107,12 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 |
 |-------------------|----------------------------------------------------------------------------|
 | IRC:              | [#hledger](http://irc.hledger.org) on Freenode <!-- [chat log](http://ircbrowse.net/browse/hledger); --> <!-- see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1) --> <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
-| Twitter:          | [#hledger,<br>#plaintextaccounting](#twitter) <!-- *Social!* -->
+| Twitter:          | [#hledger,<br>#plaintextaccounting](#twitter)
 | Reddit:           | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/)
-| Mail list:        | [list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com) <!-- *Slightly less quick, more eyeballs.* -->
-| Issues:           | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all) <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
+| Hacker News:      | [stories](https://hn.algolia.com/?query=hledger&sort=byDate&prefix&page=0&dateRange=all&type=story), [comments](https://hn.algolia.com/?query=hledger&sort=byDate&prefix=false&page=0&dateRange=all&type=comment)
+| Mail list:        | [list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com)
+| Issues:           | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all), [open issues](CONTRIBUTING.html#open-issues)&nbsp;(overview)
 | Other:            | [simon@joyful.com](mailto:simon@joyful.com)
-<!-- | hledger-web demo&nbsp;&nbsp; | [demo.hledger.org](http://demo.hledger.org) -->
-<!-- | hledger-web on Sandstorm&nbsp;&nbsp; | [hledger-web app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20) -->
-<!-- | hledger-api demo        | <\!-- [demo.hledger.org/api](http://demo.hledger.org/api/swagger.json), -\-> [in swagger editor](http://editor.swagger.io/#/?import=demo.hledger.org/api/swagger.json&no-proxy) -->
 </div> <!-- column -->
 
 </div>
@@ -194,6 +192,7 @@ Making good software and documentation costs a lot.
 [[Create a journal]]  
 [[hledger accounting concepts]]   
 [[Common journal entries]]  
+[[FAQ]]  
 
 ### Managing data
 
@@ -228,7 +227,6 @@ Making good software and documentation costs a lot.
 
 ### More..
 
-[[FAQ]]  
 [[More docs]]  
 [plaintextaccounting.org](http://plaintextaccounting.org)  
 ([software](http://plaintextaccounting.org/#software),
