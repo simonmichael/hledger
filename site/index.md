@@ -222,6 +222,7 @@ Making good software and documentation costs a lot.
 ### Usage tips
 
 [[Addons]]  
+[[Editor configuration]]  
 [[Mobile apps]]  
 [[Save frequently used options]]  
 [[Scripting]]  
