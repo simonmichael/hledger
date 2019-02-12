@@ -222,11 +222,11 @@ Making good software and documentation costs a lot.
 ### Usage tips
 
 [[Addons]]  
+[[Command-line completion]]  
 [[Editor configuration]]  
 [[Mobile apps]]  
 [[Save frequently used options]]  
 [[Scripting]]  
-[[Tab-completion of hledger commands]]  
 
 ### See also...
 
