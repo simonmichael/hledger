@@ -1304,27 +1304,10 @@ background.
 
 # EDITOR SUPPORT
 
-Add-on modes exist for various text editors, to make working with
-journal files easier. They add colour, navigation aids and helpful
-commands.  For hledger users who edit the journal file directly (the
-majority), using one of these modes is quite recommended.
-
-These were written with Ledger in mind, but also work with hledger files:
-
-| Editor              |                                                                                            |  
-| ------------------- | ------------------------------------------------------------------------------------------ |  
-| Emacs               | <http://www.ledger-cli.org/3.0/doc/ledger-mode.html>                                       |  
-| Vim                 | <https://github.com/ledger/vim-ledger>                                                     |  
-| Sublime Text        | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-Sublime-Text-or-RubyMine> |  
-| Textmate            | <https://github.com/ledger/ledger/wiki/Using-TextMate-2>                                   |  
-| Text Wrangler &nbsp;| <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler>             |  
-| Visual Studio Code  | <https://marketplace.visualstudio.com/items?itemName=mark-hansen.hledger-vscode>           |  
-
-<!-- Some related LedgerTips:
-https://twitter.com/LedgerTips/status/504061626233159681
-https://twitter.com/LedgerTips/status/502820400276193280
-https://twitter.com/LedgerTips/status/502503912084361216
-https://twitter.com/LedgerTips/status/501767602067472384
--->
-
-
+Helper modes exist for popular text editors, which make working with
+journal files easier. They add colour, formatting, tab completion, and
+helpful commands, and are quite recommended if you edit your journal
+with a text editor. They include ledger-mode or hledger-mode for
+Emacs, vim-ledger for Vim, hledger-vscode for Visual Studio Code, and
+others. See the Cookbook at hledger.org for more the latest
+information.
