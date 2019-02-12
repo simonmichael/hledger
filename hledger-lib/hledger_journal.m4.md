@@ -1309,5 +1309,5 @@ journal files easier. They add colour, formatting, tab completion, and
 helpful commands, and are quite recommended if you edit your journal
 with a text editor. They include ledger-mode or hledger-mode for
 Emacs, vim-ledger for Vim, hledger-vscode for Visual Studio Code, and
-others. See the Cookbook at hledger.org for more the latest
+others. See the [[Cookbook]] at hledger.org for the latest
 information.
