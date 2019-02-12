@@ -1,5 +1,5 @@
 <!-- consolidating dev docs from wiki, https://github.com/simonmichael/hledger/issues/920 WIP -->
-$toc$
+$TOC$
 
 <style>
 /* table styles */

@@ -30,7 +30,7 @@ This doc is for version **_version_** (dev).
 m4_dnl
 m4_dnl Insert a table of contents marker, which doc build scripts will populate.
 m4_define({{_toc_}},{{
-\$toc\$
+\$TOC\$
 }})m4_dnl
 m4_dnl
 m4_dnl Helpers for generating table markup.
