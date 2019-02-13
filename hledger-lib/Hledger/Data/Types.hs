@@ -239,9 +239,29 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
 
 -- | The amount to compare an account's balance to, to verify that the history
 -- leading to a given point is correct or to set the account to a known value.
+--
+-- Different kinds of balance assertion (from #290):
+--
+-- * simple assertions: single-commodity, non-total, subaccount-exclusive
+--   assertions, as in Ledger (syntax: `=`). See definitions below.
+--
+-- * subaccount-inclusive assertions: asserting the balance of an account
+--   including all its subaccounts' balances. Not implemented, proposed by #290.
+--
+-- * multicommodity assertions: writing multiple amounts separated by + to
+--   assert a multicommodity balance, in a single assertion. Not implemented,
+--   proposed by #934.  In current hledger you can assert a multicommodity
+--   balance by using multiple postings/assertions.  But in either case, the
+--   balance might contain additional unasserted commodities. To disallow that
+--   you need...
+--
+-- * total assertions: asserting that the balance is as written, with no extra
+--   commodities in the account. Added by #902, with syntax `==`. I sometimes
+--   wish this was the default behaviour, of `=`.
+--
 data BalanceAssertion = BalanceAssertion {
-      baamount   :: Amount,             -- ^ the expected value of a particular commodity
-      baexact    :: Bool,               -- ^ whether the assertion is exclusive, and doesn't allow other commodities alongside 'baamount'
+      baamount   :: Amount,             -- ^ the expected balance of a single commodity
+      baexact    :: Bool,               -- ^ whether the assertion is total, ie disallowing amounts in other commodities
       baposition :: GenericSourcePos
     } deriving (Eq,Typeable,Data,Generic,Show)
 
@@ -256,7 +276,8 @@ data Posting = Posting {
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype             :: PostingType,
       ptags             :: [Tag],                   -- ^ tag names and values, extracted from the comment
-      pbalanceassertion :: Maybe BalanceAssertion,  -- ^ optional: the expected balance in this commodity in the account after this posting
+      pbalanceassertion :: Maybe BalanceAssertion,  -- ^ an expected balance in the account after this posting,
+                                                    --   in a single commodity, excluding subaccounts.
       ptransaction      :: Maybe Transaction,       -- ^ this posting's parent transaction (co-recursive types).
                                                     --   Tying this knot gets tedious, Maybe makes it easier/optional.
       porigin           :: Maybe Posting            -- ^ When this posting has been transformed in some way
