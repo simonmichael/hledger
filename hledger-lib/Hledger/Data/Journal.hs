@@ -90,7 +90,6 @@ import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Data.Ord
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -672,7 +671,7 @@ journalBalanceTransactionsST assrt j createStore storeIn extract =
                   (Just $ journalCommodityStyles j)
                   (getModifierAccountNames j)
     flip R.runReaderT env $ do
-      dated <- fmap snd . sortBy (comparing fst) . concat
+      dated <- fmap snd . sortOn fst . concat
                 <$> mapM' discriminateByDate (jtxns j)
       mapM' checkInferAndRegisterAmounts dated
     lift $ extract txStore
@@ -714,33 +713,33 @@ discriminateByDate :: Transaction
   -> CurrentBalancesModifier s [(Day, Either Posting Transaction)]
 discriminateByDate tx
   | null (assignmentPostings tx) = do
-      styles <- R.reader $ eStyles
-      balanced <- lift $ ExceptT $ return $ balanceTransaction styles tx
-      storeTransaction balanced
-      return $ 
-        fmap (postingDate &&& (Left . removePrices)) $ tpostings $ balanced
-  | True                         = do
-      when (any (isJust . pdate) $ tpostings tx) $
-        throwError $ unlines $
-        ["postings may not have both a custom date and a balance assignment."
-        ,"Write the posting amount explicitly, or remove the posting date:\n"
-        , showTransaction tx]
-      return 
-        [(tdate tx, Right $ tx { tpostings = removePrices <$> tpostings tx })]
+    styles <- R.reader $ eStyles
+    balanced <- lift $ ExceptT $ return $ balanceTransaction styles tx
+    storeTransaction balanced
+    return $ fmap (postingDate &&& (Left . removePrices)) $ tpostings $ balanced
+  | otherwise = do
+    when (any (isJust . pdate) $ tpostings tx) $
+      throwError $
+      unlines $
+      [ "postings may not have both a custom date and a balance assignment."
+      , "Write the posting amount explicitly, or remove the posting date:\n"
+      , showTransaction tx
+      ]
+    return [(tdate tx, Right $ tx {tpostings = removePrices <$> tpostings tx})]
 
 -- | Throw an error if a posting is in the unassignable set.
 checkUnassignablePosting :: Posting -> CurrentBalancesModifier s ()
 checkUnassignablePosting p = do
   unassignable <- R.asks eUnassignable
-  if (isAssignment p && paccount p `S.member` unassignable)
-    then throwError $ unlines $
-         [ "cannot assign amount to account "
-         , ""
-         , "    " ++ (T.unpack $ paccount p)
-         , ""
-         , "because it is also included in transaction modifiers."
-         ]
-    else return ()
+  when (isAssignment p && paccount p `S.member` unassignable) $
+    throwError $
+    unlines $
+    [ "cannot assign amount to account "
+    , ""
+    , "    " ++ T.unpack (paccount p)
+    , ""
+    , "because it is also included in transaction modifiers."
+    ]
 
 
 -- | This function takes an object describing changes to
@@ -789,7 +788,7 @@ checkInferAndRegisterAmounts (Right oldTx) = do
         Just ba | baexact ba -> do
           diff <- setMixedBalance acc $ Mixed [baamount ba]
           fullPosting diff p
-        Just ba | otherwise -> do
+        Just ba -> do
           old <- liftModifier $ \Env{ eBalances = bals } -> HT.lookup bals acc
           let amt = baamount ba
               assertedcomm = acommodity amt
@@ -884,13 +883,12 @@ commodityStylesFromAmounts amts = M.fromList commstyles
 -- That is: the style of the first, and the maximum precision of all.
 canonicalStyleFrom :: [AmountStyle] -> AmountStyle
 canonicalStyleFrom [] = amountstyle
-canonicalStyleFrom ss@(first:_) =
-  first{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+canonicalStyleFrom ss@(first:_) = first {asprecision = prec, asdecimalpoint = mdec, asdigitgroups = mgrps}
   where
-    mgrps = maybe Nothing Just $ headMay $ catMaybes $ map asdigitgroups ss
+    mgrps = headMay $ mapMaybe asdigitgroups ss
     -- precision is maximum of all precisions
     prec = maximumStrict $ map asprecision ss
-    mdec  = Just $ headDef '.' $ catMaybes $ map asdecimalpoint ss
+    mdec = Just $ headDef '.' $ mapMaybe asdecimalpoint ss
     -- precision is that of first amount with a decimal point
     -- (mdec, prec) =
     --   case filter (isJust . asdecimalpoint) ss of
@@ -993,7 +991,7 @@ journalDateSpan secondary j
       latest   = maximumStrict dates
       dates    = pdates ++ tdates
       tdates   = map (if secondary then transactionDate2 else tdate) ts
-      pdates   = concatMap (catMaybes . map (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
+      pdates   = concatMap (mapMaybe (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
       ts       = jtxns j
 
 -- | Apply the pivot transformation to all postings in a journal,

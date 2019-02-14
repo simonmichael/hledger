@@ -66,7 +66,6 @@ import Data.MemoUgly (memo)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Data.Ord
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -176,7 +175,7 @@ postingDate2 p = headDef nulldate $ catMaybes dates
   where dates = [pdate2 p
                 ,maybe Nothing tdate2 $ ptransaction p
                 ,pdate p
-                ,maybe Nothing (Just . tdate) $ ptransaction p
+                ,fmap tdate (ptransaction p)
                 ]
 
 -- | Get a posting's status. This is cleared or pending if those are
@@ -237,14 +236,14 @@ isEmptyPosting = isZeroMixedAmount . pamount
 postingsDateSpan :: [Posting] -> DateSpan
 postingsDateSpan [] = DateSpan Nothing Nothing
 postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
-    where ps' = sortBy (comparing postingDate) ps
+    where ps' = sortOn postingDate ps
 
 -- --date2-sensitive version, as above.
 postingsDateSpan' :: WhichDate -> [Posting] -> DateSpan
 postingsDateSpan' _  [] = DateSpan Nothing Nothing
 postingsDateSpan' wd ps = DateSpan (Just $ postingdate $ head ps') (Just $ addDays 1 $ postingdate $ last ps')
     where
-      ps' = sortBy (comparing postingdate) ps
+      ps' = sortOn postingdate ps
       postingdate = if wd == PrimaryDate then postingDate else postingDate2
 
 -- AccountName stuff that depends on PostingType

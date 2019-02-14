@@ -74,6 +74,7 @@ timeclockEntriesToTransactions now (i:o:rest)
       (idate,odate) = (localDay itime,localDay otime)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
+{- HLINT ignore timeclockEntriesToTransactions -}
 
 -- | Convert a timeclock clockin and clockout entry to an equivalent journal
 -- transaction, representing the time expenditure. Note this entry is  not balanced,

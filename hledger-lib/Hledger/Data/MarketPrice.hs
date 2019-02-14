@@ -8,8 +8,6 @@ value of things at a given date.
 
 -}
 
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
-
 module Hledger.Data.MarketPrice
 where
 import qualified Data.Text as T

@@ -126,21 +126,15 @@ showDateSpanMonthAbbrev = showPeriodMonthAbbrev . dateSpanAsPeriod
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
-getCurrentDay = do
-    t <- getZonedTime
-    return $ localDay (zonedTimeToLocalTime t)
+getCurrentDay = localDay . zonedTimeToLocalTime <$> getZonedTime
 
 -- | Get the current local month number.
 getCurrentMonth :: IO Int
-getCurrentMonth = do
-  (_,m,_) <- toGregorian `fmap` getCurrentDay
-  return m
+getCurrentMonth = second3 . toGregorian <$> getCurrentDay
 
 -- | Get the current local year.
 getCurrentYear :: IO Integer
-getCurrentYear = do
-  (y,_,_) <- toGregorian `fmap` getCurrentDay
-  return y
+getCurrentYear = first3 . toGregorian <$> getCurrentDay
 
 elapsedSeconds :: Fractional a => UTCTime -> UTCTime -> a
 elapsedSeconds t1 = realToFrac . diffUTCTime t1
@@ -380,14 +374,13 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
 -- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
 -- the provided reference date, or raise an error.
 fixSmartDateStr :: Day -> Text -> String
-fixSmartDateStr d s = either
-                       (\e->error' $ printf "could not parse date %s %s" (show s) (show e))
-                       id
-                       $ (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text CustomErr) String)
+fixSmartDateStr d s =
+  either (error' . printf "could not parse date %s %s" (show s) . show) id $
+  (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text CustomErr) String)
 
 -- | A safe version of fixSmartDateStr.
 fixSmartDateStrEither :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) String
-fixSmartDateStrEither d = either Left (Right . showDate) . fixSmartDateStrEither' d
+fixSmartDateStrEither d = fmap showDate . fixSmartDateStrEither' d
 
 fixSmartDateStrEither'
   :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) Day
@@ -469,34 +462,34 @@ fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
 -- "2009/01/01"
 --
 fixSmartDate :: Day -> SmartDate -> Day
-fixSmartDate refdate sdate = fix sdate
-    where
-      fix :: SmartDate -> Day
-      fix ("","","today")       = fromGregorian ry rm rd
-      fix ("","this","day")     = fromGregorian ry rm rd
-      fix ("","","yesterday")   = prevday refdate
-      fix ("","last","day")     = prevday refdate
-      fix ("","","tomorrow")    = nextday refdate
-      fix ("","next","day")     = nextday refdate
-      fix ("","last","week")    = prevweek refdate
-      fix ("","this","week")    = thisweek refdate
-      fix ("","next","week")    = nextweek refdate
-      fix ("","last","month")   = prevmonth refdate
-      fix ("","this","month")   = thismonth refdate
-      fix ("","next","month")   = nextmonth refdate
-      fix ("","last","quarter") = prevquarter refdate
-      fix ("","this","quarter") = thisquarter refdate
-      fix ("","next","quarter") = nextquarter refdate
-      fix ("","last","year")    = prevyear refdate
-      fix ("","this","year")    = thisyear refdate
-      fix ("","next","year")    = nextyear refdate
-      fix ("","",d)             = fromGregorian ry rm (read d)
-      fix ("",m,"")             = fromGregorian ry (read m) 1
-      fix ("",m,d)              = fromGregorian ry (read m) (read d)
-      fix (y,"","")             = fromGregorian (read y) 1 1
-      fix (y,m,"")              = fromGregorian (read y) (read m) 1
-      fix (y,m,d)               = fromGregorian (read y) (read m) (read d)
-      (ry,rm,rd) = toGregorian refdate
+fixSmartDate refdate = fix
+  where
+    fix :: SmartDate -> Day
+    fix ("", "", "today") = fromGregorian ry rm rd
+    fix ("", "this", "day") = fromGregorian ry rm rd
+    fix ("", "", "yesterday") = prevday refdate
+    fix ("", "last", "day") = prevday refdate
+    fix ("", "", "tomorrow") = nextday refdate
+    fix ("", "next", "day") = nextday refdate
+    fix ("", "last", "week") = prevweek refdate
+    fix ("", "this", "week") = thisweek refdate
+    fix ("", "next", "week") = nextweek refdate
+    fix ("", "last", "month") = prevmonth refdate
+    fix ("", "this", "month") = thismonth refdate
+    fix ("", "next", "month") = nextmonth refdate
+    fix ("", "last", "quarter") = prevquarter refdate
+    fix ("", "this", "quarter") = thisquarter refdate
+    fix ("", "next", "quarter") = nextquarter refdate
+    fix ("", "last", "year") = prevyear refdate
+    fix ("", "this", "year") = thisyear refdate
+    fix ("", "next", "year") = nextyear refdate
+    fix ("", "", d) = fromGregorian ry rm (read d)
+    fix ("", m, "") = fromGregorian ry (read m) 1
+    fix ("", m, d) = fromGregorian ry (read m) (read d)
+    fix (y, "", "") = fromGregorian (read y) 1 1
+    fix (y, m, "") = fromGregorian (read y) (read m) 1
+    fix (y, m, d) = fromGregorian (read y) (read m) (read d)
+    (ry, rm, rd) = toGregorian refdate
 
 prevday :: Day -> Day
 prevday = addDays (-1)
@@ -764,7 +757,7 @@ smartdateonly = do
   eof
   return d
 
-datesepchars :: [Char]
+datesepchars :: String
 datesepchars = "/-."
 
 datesepchar :: TextParser m Char
@@ -980,8 +973,7 @@ reportingintervalp = choice' [
                           return $ DayOfWeek n,
                        do string' "every"
                           skipMany spacenonewline
-                          n <- weekday
-                          return $ DayOfWeek n,
+                          DayOfWeek <$> weekday,
                        do string' "every"
                           skipMany spacenonewline
                           n <- nth
@@ -1034,7 +1026,7 @@ reportingintervalp = choice' [
              return $ intcons 1,
           do string' "every"
              skipMany spacenonewline
-             n <- fmap read $ some digitChar
+             n <- read <$> some digitChar
              skipMany spacenonewline
              string' plural'
              return $ intcons n
@@ -1061,8 +1053,7 @@ doubledatespanp rdate = do
   b <- smartdate
   skipMany spacenonewline
   optional (choice [string' "to", string' "-"] >> skipMany spacenonewline)
-  e <- smartdate
-  return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
+  DateSpan (Just $ fixSmartDate rdate b) . Just . fixSmartDate rdate <$> smartdate
 
 fromdatespanp :: Day -> TextParser m DateSpan
 fromdatespanp rdate = do
@@ -1081,14 +1072,12 @@ fromdatespanp rdate = do
 todatespanp :: Day -> TextParser m DateSpan
 todatespanp rdate = do
   choice [string' "to", string' "-"] >> skipMany spacenonewline
-  e <- smartdate
-  return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
+  DateSpan Nothing . Just . fixSmartDate rdate <$> smartdate
 
 justdatespanp :: Day -> TextParser m DateSpan
 justdatespanp rdate = do
   optional (string' "in" >> skipMany spacenonewline)
-  d <- smartdate
-  return $ spanFromSmartDate rdate d
+  spanFromSmartDate rdate <$> smartdate
 
 -- | Make a datespan from two valid date strings parseable by parsedate
 -- (or raise an error). Eg: mkdatespan \"2011/1/1\" \"2011/12/31\".

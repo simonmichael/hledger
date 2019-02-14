@@ -46,7 +46,7 @@ boolopt :: String -> RawOpts -> Bool
 boolopt = inRawOpts
 
 maybestringopt :: String -> RawOpts -> Maybe String
-maybestringopt name = maybe Nothing (Just . T.unpack . stripquotes . T.pack) . lookup name . reverse
+maybestringopt name = fmap (T.unpack . stripquotes . T.pack) . lookup name . reverse
 
 stringopt :: String -> RawOpts -> String
 stringopt name = fromMaybe "" . maybestringopt name

@@ -26,7 +26,7 @@ import Hledger.Utils
 
 
 -- characters that may not be used in a non-quoted commodity symbol
-nonsimplecommoditychars = "0123456789-+.@*;\n \"{}=" :: [Char]
+nonsimplecommoditychars = "0123456789-+.@*;\n \"{}=" :: String
 
 isNonsimpleCommodityChar :: Char -> Bool
 isNonsimpleCommodityChar c = isDigit c || c `textElem` otherChars

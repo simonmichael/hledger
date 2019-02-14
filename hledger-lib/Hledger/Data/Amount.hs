@@ -132,7 +132,6 @@ import Data.List
 import Data.Map (findWithDefault)
 import Data.Maybe
 import Data.Time.Calendar (Day)
-import Data.Ord (comparing)
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (maximumDef)
@@ -469,7 +468,7 @@ commodityValue j valuationdate c
   where
     dbg = dbg8 ("using market price for "++T.unpack c)
     applicableprices =
-      [p | p <- sortBy (comparing mpdate) $ jmarketprices j
+      [p | p <- sortOn mpdate $ jmarketprices j
       , mpcommodity p == c
       , mpdate p <= valuationdate
       ]

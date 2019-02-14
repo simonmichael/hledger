@@ -107,7 +107,7 @@ formatliteralp = do
     s <- some c
     return $ FormatLiteral s
     where
-      isPrintableButNotPercentage x = isPrint x && (not $ x == '%')
+      isPrintableButNotPercentage x = isPrint x && x /= '%'
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
@@ -133,7 +133,7 @@ fieldp = do
     <|> try (string "date" >> return DescriptionField)
     <|> try (string "description" >> return DescriptionField)
     <|> try (string "total" >> return TotalField)
-    <|> try (some digitChar >>= (\s -> return $ FieldNo $ read s))
+    <|> try ((FieldNo . read) <$> some digitChar)
 
 ----------------------------------------------------------------------
 
