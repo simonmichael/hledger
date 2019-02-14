@@ -34,7 +34,7 @@ import Hledger.Utils.Debug
 
 -- | Apply all the given transaction modifiers, in turn, to each transaction.
 modifyTransactions :: [TransactionModifier] -> [Transaction] -> [Transaction]
-modifyTransactions tmods ts = map applymods ts
+modifyTransactions tmods = map applymods
   where
     applymods = foldr (flip (.) . transactionModifierToFunction) id tmods
 

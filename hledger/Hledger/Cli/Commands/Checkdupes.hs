@@ -16,7 +16,7 @@ import Text.Printf
 
 checkdupesmode :: Mode RawOpts
 checkdupesmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Checkdupes.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Checkdupes.txt")
   []
   [generalflagsgroup1]
   []
@@ -40,4 +40,4 @@ checkdupes' l = zip dupLeafs dupAccountNames
           . sortBy (compare `on` fst)
 
 render :: (String, [AccountName]) -> IO ()
-render (leafName, accountNameL) = printf "%s as %s\n" leafName (concat $ intersperse ", " (map T.unpack accountNameL))
+render (leafName, accountNameL) = printf "%s as %s\n" leafName (intercalate ", " (map T.unpack accountNameL))

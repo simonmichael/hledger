@@ -9,7 +9,6 @@ where
 
 import Control.Monad
 import Data.List
-import Data.Ord
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
@@ -18,7 +17,7 @@ import System.Console.CmdArgs.Explicit
 import Text.Printf
 
 importmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Import.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
   [flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"] 
   [generalflagsgroup1]
   []
@@ -36,7 +35,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
       case enewj of
         Left e     -> error' e 
         Right newj ->
-          case sortBy (comparing tdate) $ jtxns newj of
+          case sortOn tdate $ jtxns newj of
             [] -> return ()
             newts | dryrun -> do
               printf "; would import %d new transactions:\n\n" (length newts)
@@ -44,5 +43,5 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
               -- length (jtxns newj) `seq` print' opts{rawopts_=("explicit",""):rawopts} newj
               mapM_ (putStr . showTransactionUnelided) newts
             newts -> do
-              foldM (flip journalAddTransaction opts) j newts  -- gets forced somehow.. (how ?)
+              foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
               printf "imported %d new transactions\n" (length newts)

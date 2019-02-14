@@ -23,7 +23,7 @@ import Hledger.Cli.CliOptions
 
 -- | Command line options for this command.
 filesmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Files.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Files.txt")
   []
   [generalflagsgroup2]
   []
@@ -34,7 +34,7 @@ files :: CliOpts -> Journal -> IO ()
 files CliOpts{rawopts_=rawopts} j = do
   let args = listofstringopt "args" rawopts
       regex = headMay args
-      files = (maybe id (filter . regexMatches) regex) 
+      files = maybe id (filter . regexMatches) regex 
               $ map fst 
               $ jfiles j
   mapM_ putStrLn files

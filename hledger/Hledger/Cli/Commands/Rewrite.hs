@@ -23,7 +23,7 @@ import Text.Megaparsec
 import qualified Data.Algorithm.Diff as D
 
 rewritemode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Rewrite.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Rewrite.txt")
   [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
            "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
   ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"

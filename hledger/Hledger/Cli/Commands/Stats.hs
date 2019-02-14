@@ -31,7 +31,7 @@ import Hledger.Cli.Utils (writeOutput)
 
 
 statsmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Stats.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Stats.txt")
   [flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE."
   ]
   [generalflagsgroup1]
@@ -78,12 +78,12 @@ showLedgerStats l today span =
            where
              j = ljournal l
              path = journalFilePath j
-             ts = sortBy (comparing tdate) $ filter (spanContainsDate span . tdate) $ jtxns j
+             ts = sortOn tdate $ filter (spanContainsDate span . tdate) $ jtxns j
              as = nub $ map paccount $ concatMap tpostings ts
-             cs = Map.keys $ commodityStylesFromAmounts $ concatMap amounts $ map pamount $ concatMap tpostings ts
+             cs = Map.keys $ commodityStylesFromAmounts $ concatMap (amounts . pamount) $ concatMap tpostings ts
              lastdate | null ts = Nothing
                       | otherwise = Just $ tdate $ last ts
-             lastelapsed = maybe Nothing (Just . diffDays today) lastdate
+             lastelapsed = fmap (diffDays today) lastdate
              showelapsed Nothing = ""
              showelapsed (Just days) = printf " (%d %s)" days' direction
                                        where days' = abs days

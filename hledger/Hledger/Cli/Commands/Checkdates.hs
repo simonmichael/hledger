@@ -13,7 +13,7 @@ import Text.Printf
 
 checkdatesmode :: Mode RawOpts
 checkdatesmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Checkdates.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Checkdates.txt")
   [flagNone ["strict"] (setboolopt "strict") "makes date comparing strict"]
   [generalflagsgroup1]
   []
@@ -61,11 +61,10 @@ foldWhile fold acc (a:as) =
 
 checkTransactions :: (Transaction -> Transaction -> Bool)
  -> [Transaction] -> FoldAcc Transaction Transaction
-checkTransactions compare ts =
-  foldWhile fold FoldAcc{fa_error=Nothing, fa_previous=Nothing} ts
+checkTransactions compare = foldWhile f FoldAcc{fa_error=Nothing, fa_previous=Nothing}
   where
-    fold current acc@FoldAcc{fa_previous=Nothing} = acc{fa_previous=Just current}
-    fold current acc@FoldAcc{fa_previous=Just previous} =
+    f current acc@FoldAcc{fa_previous=Nothing} = acc{fa_previous=Just current}
+    f current acc@FoldAcc{fa_previous=Just previous} =
       if compare previous current
       then acc{fa_previous=Just current}
       else acc{fa_error=Just current}

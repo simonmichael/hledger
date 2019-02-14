@@ -35,7 +35,7 @@ import Hledger.Cli.DocFiles
 --import Hledger.Utils.Debug
 
 helpmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Help.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Help.txt")
   [flagNone ["info"]  (setboolopt "info")  "show the manual with info"
   ,flagNone ["man"]   (setboolopt "man")   "show the manual with man"
   ,flagNone ["pager"] (setboolopt "pager") "show the manual with $PAGER or less"
@@ -78,5 +78,5 @@ help' opts _ = do
       ,"A viewer (info, man, a pager, or stdout) will be auto-selected,"
       ,"or type \"hledger help -h\" to see options. Manuals available:"
       ]
-      ++ "\n " ++ intercalate " " docTopics
+      ++ "\n " ++ unwords docTopics
     Just t  -> viewer t

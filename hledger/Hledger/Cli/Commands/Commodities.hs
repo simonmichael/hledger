@@ -23,7 +23,7 @@ import Hledger.Cli.CliOptions
 
 -- | Command line options for this command.
 commoditiesmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Commodities.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Commodities.txt")
   []
   [generalflagsgroup2]
   []

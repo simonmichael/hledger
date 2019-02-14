@@ -17,7 +17,6 @@ import Data.Time.Calendar
 import Text.Printf
 import Data.Function (on)
 import Data.List
-import Data.Ord
 import Numeric.RootFinding
 import Data.Decimal
 import System.Console.CmdArgs.Explicit as CmdArgs
@@ -30,7 +29,7 @@ import Hledger.Cli.CliOptions
 
 
 roimode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Roi.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Roi.txt")
   [flagNone ["cashflow"] (setboolopt "cashflow") "show all amounts that were used to compute returns"
   ,flagReq ["investment"] (\s opts -> Right $ setopt "investment" s opts) "QUERY"
     "query to select your investment transactions"
@@ -81,7 +80,7 @@ roi CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
             splitSpan interval $
             spanIntersect journalSpan wholeSpan
 
-  tableBody <- (flip mapM) spans $ \(DateSpan (Just spanBegin) (Just spanEnd)) -> do
+  tableBody <- forM spans $ \(DateSpan (Just spanBegin) (Just spanEnd)) -> do
     -- Spans are [spanBegin,spanEnd), and spanEnd is 1 day after then actual end date we are interested in
     let 
       valueBefore =
@@ -130,28 +129,28 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
         -- Aggregate all entries for a single day, assuming that intraday interest is negligible
         map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, sum cash))
         $ groupBy ((==) `on` fst)
-        $ sortBy (comparing fst) 
+        $ sortOn fst 
         $ map (\(d,a) -> (d, negate a)) 
         $ filter ((/=0).snd) cashFlow
     
   let units = 
         tail $
-        (flip scanl) 
-        (0,0,0,initialUnits)
-        (\(_,_,_,unitBalance) (date, amt) -> 
-          let valueOnDate = 
-                total trans (And [investmentsQuery, Date (DateSpan Nothing (Just date))])
-              unitPrice = if unitBalance == 0.0 then initialUnitPrice else valueOnDate / unitBalance
-              unitsBoughtOrSold = amt / unitPrice
-          in
-           (valueOnDate, unitsBoughtOrSold, unitPrice, unitBalance + unitsBoughtOrSold)
-        )  
-        cashflow
+        scanl
+          (\(_, _, _, unitBalance) (date, amt) ->
+             let valueOnDate = total trans (And [investmentsQuery, Date (DateSpan Nothing (Just date))])
+                 unitPrice =
+                   if unitBalance == 0.0
+                     then initialUnitPrice
+                     else valueOnDate / unitBalance
+                 unitsBoughtOrSold = amt / unitPrice
+              in (valueOnDate, unitsBoughtOrSold, unitPrice, unitBalance + unitsBoughtOrSold))
+          (0, 0, 0, initialUnits)
+          cashflow
   
   let finalUnitBalance = if null units then initialUnits else let (_,_,_,u) = last units in u
       finalUnitPrice = valueAfter / finalUnitBalance
       totalTWR = roundTo 2 $ (finalUnitPrice - initialUnitPrice)
-      years = (fromIntegral $ diffDays spanEnd spanBegin)/365 :: Double
+      years = fromIntegral (diffDays spanEnd spanBegin) / 365 :: Double
       annualizedTWR = 100*((1+(realToFrac totalTWR/100))**(1/years)-1) :: Double
         
   let s d = show $ roundTo 2 d 
@@ -191,7 +190,7 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
 
       postfix = (spanEnd, valueAfter)
 
-      totalCF = filter ((/=0) . snd) $ prefix : (sortBy (comparing fst) cashFlow) ++ [postfix]
+      totalCF = filter ((/=0) . snd) $ prefix : (sortOn fst cashFlow) ++ [postfix]
 
   when showCashFlow $ do
     printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd)) 
@@ -218,7 +217,7 @@ type CashFlow = [(Day, Quantity)]
 
 interestSum :: Day -> CashFlow -> Double -> Double
 interestSum referenceDay cf rate = sum $ map go cf
-    where go (t,m) = (fromRational $ toRational m) * (rate ** (fromIntegral (referenceDay `diffDays` t) / 365))
+    where go (t,m) = fromRational (toRational m) * (rate ** (fromIntegral (referenceDay `diffDays` t) / 365))
 
 
 calculateCashFlow :: [Transaction] -> Query -> CashFlow

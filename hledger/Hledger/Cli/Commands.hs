@@ -230,7 +230,7 @@ printCommandsList addonsFound =
     unknownCommandsFound = addonsFound \\ knownCommands
 
     adjustline l         | " hledger " `isPrefixOf` l     = [l]
-    adjustline l@('+':_) | not $ cmd `elem` commandsFound = []
+    adjustline l@('+':_) | cmd `notElem` commandsFound = []
       where
         cmd = takeWhile (not . isSpace) l
     adjustline l = [l]

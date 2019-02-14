@@ -235,7 +235,7 @@ postingsBalanced ps = isRight $ balanceTransaction Nothing nulltransaction{tpost
 
 accountWizard EntryState{..} = do
   let pnum = length esPostings + 1
-      historicalp = maybe Nothing (Just . (!! (pnum-1)) . (++ (repeat nullposting)) . tpostings) esSimilarTransaction
+      historicalp = fmap ((!! (pnum - 1)) . (++ (repeat nullposting)) . tpostings) esSimilarTransaction
       historicalacct = case historicalp of Just p  -> showAccountName Nothing (ptype p) (paccount p)
                                            Nothing -> ""
       def = headDef historicalacct esArgs
@@ -259,7 +259,7 @@ accountWizard EntryState{..} = do
           flip evalState esJournal $ runParserT (accountnamep <* eof) "" (T.pack s) -- otherwise, try to parse the input as an accountname
         where
           validateAccount :: Text -> Maybe Text
-          validateAccount t | no_new_accounts_ esOpts && not (t `elem` journalAccountNamesDeclaredOrImplied esJournal) = Nothing
+          validateAccount t | no_new_accounts_ esOpts && notElem t (journalAccountNamesDeclaredOrImplied esJournal) = Nothing
                             | otherwise = Just t
       dbg1 = id -- strace
 
@@ -436,9 +436,9 @@ compareDescriptions s t = compareStrings s' t'
 -- Todo: check out http://nlp.fi.muni.cz/raslan/2008/raslan08.pdf#page=14 .
 compareStrings :: String -> String -> Double
 compareStrings "" "" = 1
-compareStrings (_:[]) "" = 0
-compareStrings "" (_:[]) = 0
-compareStrings (a:[]) (b:[]) = if toUpper a == toUpper b then 1 else 0
+compareStrings [_] "" = 0
+compareStrings "" [_] = 0
+compareStrings [a] [b] = if toUpper a == toUpper b then 1 else 0
 compareStrings s1 s2 = 2 * commonpairs / totalpairs
     where
       pairs1      = S.fromList $ wordLetterPairs $ uppercase s1

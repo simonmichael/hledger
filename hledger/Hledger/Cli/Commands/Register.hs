@@ -28,7 +28,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
 registermode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Register.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Register.txt")
   ([flagNone ["cumulative"] (setboolopt "change")
      "show running total from report start date (default)"
   ,flagNone ["historical","H"] (setboolopt "historical")
@@ -119,17 +119,17 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
   -- use elide*Width to be wide-char-aware
   -- trace (show (totalwidth, datewidth, descwidth, acctwidth, amtwidth, balwidth)) $
   intercalate "\n" $
-    [concat [fitString (Just datewidth) (Just datewidth) True True date
-            ," "
-            ,fitString (Just descwidth) (Just descwidth) True True desc
-            ,"  "
-            ,fitString (Just acctwidth) (Just acctwidth) True True acct
-            ,"  "
-            ,fitString (Just amtwidth) (Just amtwidth) True False amtfirstline
-            ,"  "
-            ,fitString (Just balwidth) (Just balwidth) True False balfirstline
-            ]]
-    ++
+    concat [fitString (Just datewidth) (Just datewidth) True True date
+           ," "
+           ,fitString (Just descwidth) (Just descwidth) True True desc
+           ,"  "
+           ,fitString (Just acctwidth) (Just acctwidth) True True acct
+           ,"  "
+           ,fitString (Just amtwidth) (Just amtwidth) True False amtfirstline
+           ,"  "
+           ,fitString (Just balwidth) (Just balwidth) True False balfirstline
+           ]
+    :
     [concat [spacer
             ,fitString (Just amtwidth) (Just amtwidth) True False a
             ,"  "

@@ -15,7 +15,7 @@ import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
 
 pricesmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Prices.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Prices.txt")
   [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings"
   ,flagNone ["inverted-costs"] (setboolopt "inverted-costs") "print transaction inverted prices from postings also"]
   [generalflagsgroup1]

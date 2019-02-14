@@ -11,7 +11,6 @@ where
 
 import Data.List
 import Data.Maybe
-import Data.Ord
 import Text.Printf
 
 import Hledger
@@ -47,7 +46,7 @@ showHistogram opts q j = concatMap (printDayWith countBar) spanps
       -- same as Register
       -- should count transactions, not postings ?
       -- ps = sortBy (comparing postingDate) $ filterempties $ filter matchapats $ filterdepth $ journalPostings j
-      ps = sortBy (comparing postingDate) $ filter (q `matchesPosting`) $ journalPostings j
+      ps = sortOn postingDate $ filter (q `matchesPosting`) $ journalPostings j
 
 printDayWith f (DateSpan b _, ps) = printf "%s %s\n" (show $ fromJust b) (f ps)
 

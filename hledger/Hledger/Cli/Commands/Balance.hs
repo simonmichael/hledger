@@ -236,6 +236,7 @@ Currently, empty cells show 0.
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Cli.Commands.Balance (
   balancemode
@@ -465,27 +466,27 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
 -- The CSV will always include the initial headings row,
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
-multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
   maybetranspose $ 
   ("Account" : map showDateSpan colspans
-   ++ (if row_total_ opts then ["Total"] else [])
-   ++ (if average_ opts then ["Average"] else [])
+   ++ ["Total"   | row_total_]
+   ++ ["Average" | average_]
   ) :
   [T.unpack (maybeAccountNameDrop opts a) :
    map showMixedAmountOneLineWithoutPrice
    (amts
-    ++ (if row_total_ opts then [rowtot] else [])
-    ++ (if average_ opts then [rowavg] else []))
+    ++ [rowtot | row_total_]
+    ++ [rowavg | average_])
   | (a, _, _, amts, rowtot, rowavg) <- items]
   ++
   if no_total_ opts
   then []
-  else [["Total:"]
-        ++ map showMixedAmountOneLineWithoutPrice (
-           coltotals
-           ++ (if row_total_ opts then [tot] else [])
-           ++ (if average_ opts then [avg] else [])
-           )]
+  else ["Total:" :
+        map showMixedAmountOneLineWithoutPrice (
+          coltotals
+          ++ [tot | row_total_]
+          ++ [avg | average_]
+          )]
   where
     maybetranspose | transpose_ opts = transpose
                    | otherwise = id
@@ -499,7 +500,7 @@ multiBalanceReportAsHtml ropts mbr =
     table_ $ mconcat $
          [headingsrow]
       ++ bodyrows
-      ++ maybe [] (:[]) mtotalsrow
+      ++ maybeToList mtotalsrow
 
 -- | Render the HTML table rows for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
@@ -593,7 +594,7 @@ multiBalanceReportAsText opts r =
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
-balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+balanceReportAsTable opts@ReportOpts{average_, row_total_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
    maybetranspose $
    addtotalrow $ 
    Table
@@ -605,20 +606,20 @@ balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,a
        PeriodChange -> showDateSpanMonthAbbrev
        _            -> maybe "" (showDate . prevday) . spanEnd
     colheadings = map mkDate colspans
-                  ++ (if row_total_ opts then ["  Total"] else [])
-                  ++ (if average_ opts then ["Average"] else [])
+                  ++ ["  Total" | row_total_]
+                  ++ ["Average" | average_]
     accts = map renderacct items
     renderacct (a,a',i,_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
       | otherwise  = T.unpack $ maybeAccountNameDrop opts a
     rowvals (_,_,_,as,rowtot,rowavg) = as
-                             ++ (if row_total_ opts then [rowtot] else [])
-                             ++ (if average_ opts then [rowavg] else [])
+                             ++ [rowtot | row_total_]
+                             ++ [rowavg | average_]
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ (row "" $
                                     coltotals
-                                    ++ (if row_total_ opts && not (null coltotals) then [tot] else [])
-                                    ++ (if average_ opts && not (null coltotals)   then [avg] else [])
+                                    ++ [tot | row_total_ && not (null coltotals)]
+                                    ++ [avg | average_   && not (null coltotals)]
                                     ))
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id

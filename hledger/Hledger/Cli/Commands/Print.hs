@@ -27,7 +27,7 @@ import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
 
 
 printmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Print.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
   ([let arg = "STR" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("show the transaction whose description is most similar to "++arg++", and is most recent")
@@ -66,10 +66,7 @@ entriesReportAsText opts = concatMap (showTransactionUnelided . gettxn)
     -- Original vs inferred transactions/postings were causing problems here, disabling -B (#551).
     -- Use the explicit one if -B or -x are active.
     -- This passes tests; does it also mean -B sometimes shows missing amounts unnecessarily ?  
-    useexplicittxn = or
-      [ boolopt "explicit" $ rawopts_ opts
-      , cost_ $ reportopts_ opts
-      ]
+    useexplicittxn = boolopt "explicit" (rawopts_ opts) || cost_ (reportopts_ opts)
 
 -- Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names.
@@ -147,7 +144,7 @@ postingToCSV p =
     let commodity = T.unpack c in
     let credit = if q < 0 then showAmount $ negate a_ else "" in
     let debit  = if q >= 0 then showAmount a_ else "" in
-    account:amount:commodity:credit:debit:status:comment:[])
+    [account, amount, commodity, credit, debit, status, comment])
    amounts
   where
     Mixed amounts = pamount p

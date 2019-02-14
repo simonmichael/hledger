@@ -15,7 +15,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Register
 
 registermatchmode = hledgerCommandMode
-  ($(embedFileRelative "Hledger/Cli/Commands/Registermatch.txt"))
+  $(embedFileRelative "Hledger/Cli/Commands/Registermatch.txt")
   []
   [generalflagsgroup1]
   []
@@ -60,7 +60,7 @@ similarPosting ps desc =
 --     ((,t):_) = Just t
 --     []       = Nothing
 
-compareDescriptions :: [Char] -> [Char] -> Double
+compareDescriptions :: String -> String -> Double
 compareDescriptions s t = compareStrings s' t'
     where s' = simplify s
           t' = simplify t
@@ -72,9 +72,9 @@ compareDescriptions s t = compareStrings s' t'
 -- with a modification for short strings.
 compareStrings :: String -> String -> Double
 compareStrings "" "" = 1
-compareStrings (_:[]) "" = 0
-compareStrings "" (_:[]) = 0
-compareStrings (a:[]) (b:[]) = if toUpper a == toUpper b then 1 else 0
+compareStrings [_] "" = 0
+compareStrings "" [_] = 0
+compareStrings [a] [b] = if toUpper a == toUpper b then 1 else 0
 compareStrings s1 s2 = 2.0 * fromIntegral i / fromIntegral u
     where
       i = length $ intersect pairs1 pairs2
