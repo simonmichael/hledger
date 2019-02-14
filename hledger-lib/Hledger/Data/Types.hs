@@ -26,6 +26,7 @@ import Control.DeepSeq (NFData)
 import Data.Data
 import Data.Decimal
 import Data.Default
+import Data.Functor (($>))
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html 
@@ -289,7 +290,7 @@ data Posting = Posting {
 instance NFData Posting
 
 -- The equality test for postings ignores the parent transaction's
--- identity, to avoid recuring ad infinitum.
+-- identity, to avoid recurring ad infinitum.
 -- XXX could check that it's Just or Nothing.
 instance Eq Posting where
     (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _ _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _ _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
@@ -297,17 +298,17 @@ instance Eq Posting where
 -- | Posting's show instance elides the parent transaction so as not to recurse forever.
 instance Show Posting where
   show Posting{..} = "PostingPP {" ++ intercalate ", " [
-     ("pdate="             ++ show (show pdate))
-    ,("pdate2="            ++ show (show pdate2))
-    ,("pstatus="           ++ show (show pstatus))
-    ,("paccount="          ++ show paccount)
-    ,("pamount="           ++ show pamount)
-    ,("pcomment="          ++ show pcomment)
-    ,("ptype="             ++ show ptype)
-    ,("ptags="             ++ show ptags)
-    ,("pbalanceassertion=" ++ show pbalanceassertion)
-    ,("ptransaction="      ++ show (const "<txn>" <$> ptransaction))
-    ,("porigin="           ++ show porigin)
+     "pdate="             ++ show (show pdate)
+    ,"pdate2="            ++ show (show pdate2)
+    ,"pstatus="           ++ show (show pstatus)
+    ,"paccount="          ++ show paccount
+    ,"pamount="           ++ show pamount
+    ,"pcomment="          ++ show pcomment
+    ,"ptype="             ++ show ptype
+    ,"ptags="             ++ show ptags
+    ,"pbalanceassertion=" ++ show pbalanceassertion
+    ,"ptransaction="      ++ show (ptransaction $> "txn")
+    ,"porigin="           ++ show porigin
     ] ++ "}"
 
 -- TODO: needs renaming, or removal if no longer needed. See also TextPosition in Hledger.UI.Editor
