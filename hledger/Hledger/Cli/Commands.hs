@@ -27,6 +27,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Checkdates
   ,module Hledger.Cli.Commands.Checkdupes
   ,module Hledger.Cli.Commands.Close
+  ,module Hledger.Cli.Commands.Commodities
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
@@ -67,6 +68,7 @@ import Hledger.Cli.Commands.Cashflow
 import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Close
+import Hledger.Cli.Commands.Commodities
 import Hledger.Cli.Commands.Files
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Import
@@ -96,6 +98,7 @@ builtinCommands = [
   ,(checkdatesmode         , checkdates)
   ,(checkdupesmode         , checkdupes)
   ,(closemode              , close)
+  ,(commoditiesmode        , commodities)
   ,(helpmode               , help')
   ,(importmode             , importcmd)
   ,(filesmode              , files)
@@ -164,6 +167,7 @@ commandsList = unlines [
   ," accounts (a)             show account names"
   ," activity                 show postings-per-interval bar charts"
   ," balance (b, bal)         show balance changes/end balances/budgets in accounts"
+  ," commodities              show commodity/currency symbols"
   ," files                    show input file paths"
   ," prices                   show market price records"
   ," print (p, txns)          show transactions (journal entries)"

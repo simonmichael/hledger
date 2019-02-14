@@ -163,6 +163,7 @@ library:
   - Hledger.Cli.Commands.Checkdates
   - Hledger.Cli.Commands.Checkdupes
   - Hledger.Cli.Commands.Close
+  - Hledger.Cli.Commands.Commodities
   - Hledger.Cli.Commands.Help
   - Hledger.Cli.Commands.Files
   - Hledger.Cli.Commands.Import
