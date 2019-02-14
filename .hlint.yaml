@@ -48,6 +48,9 @@
 # - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
 
 - ignore: {name: Use camelCase}
+- ignore: {name: Redundant $}
+- ignore: {name: Redundant bracket}
+- ignore: {name: Redundant do}
 
 
 # Define some custom infix operators
