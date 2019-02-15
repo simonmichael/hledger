@@ -176,8 +176,8 @@ uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j}
   | ignore_assertions_ $ inputopts_ copts = ui
   | otherwise =
     case journalCheckBalanceAssertions j of
-      Right _  -> ui
-      Left err ->
+      Nothing  -> ui
+      Just err ->
         case ui of
           UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
           _                                -> screenEnter d errorScreen{esError=err} ui

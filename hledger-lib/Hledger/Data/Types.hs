@@ -238,32 +238,47 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
   show Pending   = "!"
   show Cleared   = "*"
 
--- | The amount to compare an account's balance to, to verify that the history
--- leading to a given point is correct or to set the account to a known value.
+-- | A balance assertion is a declaration about an account's expected balance
+-- at a certain point (posting date and parse order). They provide additional
+-- error checking and readability to a journal file.
 --
--- Different kinds of balance assertion (from #290):
+-- The 'BalanceAssertion' type is also used to represent balance assignments,
+-- which instruct hledger what an account's balance should become at a certain
+-- point.
 --
--- * simple assertions: single-commodity, non-total, subaccount-exclusive
---   assertions, as in Ledger (syntax: `=`). See definitions below.
+-- Different kinds of balance assertions are discussed eg on #290.
+-- Variables include:
 --
--- * subaccount-inclusive assertions: asserting the balance of an account
---   including all its subaccounts' balances. Not implemented, proposed by #290.
+-- - which postings are to be summed (real/virtual; unmarked/pending/cleared; this account/this account including subs)
 --
--- * multicommodity assertions: writing multiple amounts separated by + to
---   assert a multicommodity balance, in a single assertion. Not implemented,
---   proposed by #934.  In current hledger you can assert a multicommodity
---   balance by using multiple postings/assertions.  But in either case, the
---   balance might contain additional unasserted commodities. To disallow that
---   you need...
+-- - which commodities within the balance are to be checked
 --
--- * total assertions: asserting that the balance is as written, with no extra
---   commodities in the account. Added by #902, with syntax `==`. I sometimes
---   wish this was the default behaviour, of `=`.
+-- - whether to do a partial or a total check (disallowing other commodities)
+--
+-- I suspect we want:
+--
+-- 1. partial, subaccount-exclusive, Ledger-compatible assertions. Because
+--    they're what we've always had, and removing them would break some
+--    journals unnecessarily.  Implemented with = syntax.
+--
+-- 2. total assertions. Because otherwise assertions are a bit leaky.
+--    Implemented with == syntax.
+--
+-- 3. subaccount-inclusive assertions. Because that's something folks need.
+--    Not implemented.
+--
+-- 4. flexible assertions allowing custom criteria (perhaps arbitrary
+--    queries). Because power users have diverse needs and want to try out
+--    different schemes (assert cleared balances, assert balance from real or
+--    virtual postings, etc.). Not implemented.
+--
+-- 5. multicommodity assertions, asserting the balance of multiple commodities
+--    at once. Not implemented, requires #934.
 --
 data BalanceAssertion = BalanceAssertion {
-      baamount   :: Amount,             -- ^ the expected balance of a single commodity
-      baexact    :: Bool,               -- ^ whether the assertion is total, ie disallowing amounts in other commodities
-      baposition :: GenericSourcePos
+      baamount    :: Amount,             -- ^ the expected balance in a particular commodity
+      batotal     :: Bool,               -- ^ disallow additional non-asserted commodities ?
+      baposition  :: GenericSourcePos    -- ^ the assertion's file position, for error reporting
     } deriving (Eq,Typeable,Data,Generic,Show)
 
 instance NFData BalanceAssertion
