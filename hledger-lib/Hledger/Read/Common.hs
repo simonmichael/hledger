@@ -728,14 +728,14 @@ balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
   sourcepos <- genericSourcePos <$> lift getSourcePos
   char '='
-  exact <- optional $ try $ char '='
+  istotal <- fmap isJust $ optional $ try $ char '='
   lift (skipMany spacenonewline)
   -- this amount can have a price; balance assertions ignore it,
   -- but balance assignments will use it
   a <- amountp <?> "amount (for a balance assertion or assignment)"
   return BalanceAssertion
-    { baamount = a
-    , baexact = isJust exact
+    { baamount   = a
+    , batotal    = istotal
     , baposition = sourcepos
     }
 

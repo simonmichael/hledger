@@ -76,14 +76,13 @@ module Hledger.Data.Journal (
 )
 where
 import Control.Applicative (Const(..))
-import Control.Arrow
 import Control.Monad
 import Control.Monad.Except
-import qualified Control.Monad.Reader as R
+import Control.Monad.Reader as R
 import Control.Monad.ST
 import Data.Array.ST
 import Data.Functor.Identity (Identity(..))
-import qualified Data.HashTable.ST.Cuckoo as HT
+import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List
 import Data.List.Extra (groupSort)
 import Data.Maybe
@@ -563,51 +562,223 @@ journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{
 journalModifyTransactions :: Journal -> Journal
 journalModifyTransactions j = j{ jtxns = modifyTransactions (jtxnmodifiers j) (jtxns j) }
 
--- | Check any balance assertions in the journal and return an error
--- message if any of them fail.
-journalCheckBalanceAssertions :: Journal -> Either String Journal
-journalCheckBalanceAssertions j =
-  runST $ journalBalanceTransactionsST 
-    True 
-    j 
-    (return ())
-    (\_ _ -> return ()) 
-    (const $ return j)
+-- | Check any balance assertions in the journal and return an error message
+-- if any of them fail (or if the transaction balancing they require fails).
+journalCheckBalanceAssertions :: Journal -> Maybe String
+journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions True
 
--- | Check a posting's balance assertion and return an error if it
--- fails.
+-- | Infer any missing amounts (to satisfy balance assignments and
+-- to balance transactions) and check that all transactions balance 
+-- and (optional) all balance assertions pass. Or return an error message
+-- (just the first error encountered).
+--
+-- Assumes journalInferCommodityStyles has been called, since those affect transaction balancing.
+--
+-- This does multiple things because amount inferring, balance assignments, 
+-- balance assertions and posting dates are interdependent.
+-- 
+-- Overview, 20190216:
+-- @
+-- ****** parseAndFinaliseJournal['] [[Cli/Utils.hs]], journalAddForecast [[Common.hs]], budgetJournal [[BudgetReport.hs]], tests [[BalanceReport.hs]]
+-- ******* journalBalanceTransactions
+-- ******** runST
+-- ********* runExceptT
+-- ********** runReaderT
+-- *********** balanceNoAssignmentTransactionB
+-- ************ balanceTransactionB [[Transaction.hs]]
+-- ************* balanceTransactionHelper
+-- ************** inferBalancingAmount
+-- *********** balanceAssignmentTransactionAndOrCheckAssertionsB
+-- ************ addAmountAndCheckBalanceAssertionB
+-- ************* addToBalanceB
+-- ************ inferFromAssignmentB
+-- ************ balanceTransactionB [[Transaction.hs]]
+-- ************* balanceTransactionHelper
+-- ************ addToBalanceB
+-- ****** uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j} [[ErrorScreen.hs]]
+-- ******* journalCheckBalanceAssertions
+-- ******** journalBalanceTransactions
+-- ****** transactionWizard, postingsBalanced [[Add.hs]], tests [[Transaction.hs]]
+-- ******* balanceTransaction
+-- @
+journalBalanceTransactions :: Bool -> Journal -> Either String Journal
+journalBalanceTransactions assrt j' =
+  let
+    -- ensure transactions are numbered, so we can store them by number 
+    j@Journal{jtxns=ts} = journalNumberTransactions j'
+    styles = journalCommodityStyles j
+    -- balance assignments will not be allowed on these
+    txnmodifieraccts = S.fromList $ map paccount $ concatMap tmpostingrules $ jtxnmodifiers j 
+  in 
+    runST $ do 
+      bals <- H.newSized (length $ journalAccountNamesUsed j)
+      txns <- newListArray (1, genericLength ts) ts
+      runExceptT $ do
+        flip runReaderT (BalancingState styles txnmodifieraccts assrt bals txns) $ do
+          -- Fill in missing posting amounts, check transactions are balanced, 
+          -- and check balance assertions. This is done in two passes:
+          -- 1. Balance the transactions which don't have balance assignments,
+          -- and collect their postings, plus the still-unbalanced transactions, in date order.
+          sortedpsandts <- sortOn (either postingDate tdate) . concat <$>
+                           mapM' balanceNoAssignmentTransactionB (jtxns j)
+          -- 2. Step through these, keeping running account balances, 
+          -- performing balance assignments in and balancing the remaining transactions,
+          -- and checking balance assertions. This last could be a separate pass
+          -- but perhaps it's more efficient to do all at once.
+          void $ mapM' balanceAssignmentTransactionAndOrCheckAssertionsB sortedpsandts
+        ts' <- lift $ getElems txns
+        return j{jtxns=ts'} 
+
+-- | If this transaction has no balance assignments, balance and store it
+-- and return its postings. If it can't be balanced, an error will be thrown.
+--
+-- It it has balance assignments, return it unchanged. If any posting has both 
+-- a balance assignment and a custom date, an error will be thrown.
+--
+balanceNoAssignmentTransactionB :: Transaction -> Balancing s [Either Posting Transaction]
+balanceNoAssignmentTransactionB t
+  | null (assignmentPostings t) = do
+    styles <- R.reader bsStyles
+    t' <- lift $ ExceptT $ return $ balanceTransaction (Just styles) t
+    storeTransactionB t'
+    return [Left $ removePrices p | p <- tpostings t']
+
+  | otherwise = do
+    when (any (isJust . pdate) $ tpostings t) $  -- XXX check more carefully that date and assignment are on same posting ?
+      throwError $
+      unlines $
+      [ "postings may not have both a custom date and a balance assignment."
+      , "Write the posting amount explicitly, or remove the posting date:\n"
+      , showTransaction t
+      ]
+    return [Right $ t {tpostings = removePrices <$> tpostings t}]
+
+-- | This function is called in turn on each item in a date-ordered sequence 
+-- of postings (from already-balanced transactions) or transactions  
+-- (not yet balanced, because containing balance assignments).
+-- It applies balance assignments and balances the unbalanced transactions, 
+-- and checks any balance assertion(s).
+--
+-- For a posting: update the account's running balance, and 
+-- check the balance assertion if any.
+--
+-- For a transaction: for each posting, 
+-- 
+-- - if it has a missing amount and a balance assignment, infer the amount 
+--
+-- - update the account's running balance
+--
+-- - check the balance assertion if any
+--
+-- Then balance the transaction, so that any remaining missing amount is inferred. 
+-- And if that happened, also update *that* account's running balance.  XXX and check the assertion ? 
+-- And store the transaction.
+--
+-- Will throw an error if a transaction can't be balanced,
+-- or if an illegal balance assignment is found (cf checkIllegalBalanceAssignment). 
+--
+balanceAssignmentTransactionAndOrCheckAssertionsB :: Either Posting Transaction -> Balancing s ()
+balanceAssignmentTransactionAndOrCheckAssertionsB (Left p) = do
+  checkIllegalBalanceAssignmentB p
+  void $ addAmountAndCheckBalanceAssertionB return p
+balanceAssignmentTransactionAndOrCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
+  mapM_ checkIllegalBalanceAssignmentB ps
+  ps' <- forM ps $ addAmountAndCheckBalanceAssertionB inferFromAssignmentB
+  styles <- R.reader bsStyles
+  storeTransactionB =<< 
+    balanceTransactionB (fmap void . addToBalanceB) (Just styles) t{tpostings=ps'}
+
+-- | Throw an error if this posting is trying to do a balance assignment and
+-- the account does not allow balance assignments (because it is referenced
+-- by a transaction modifier).
+checkIllegalBalanceAssignmentB :: Posting -> Balancing s ()
+checkIllegalBalanceAssignmentB p = do
+  unassignable <- R.asks bsUnassignable
+  when (isAssignment p && paccount p `S.member` unassignable) $
+    throwError $
+    unlines $
+    [ "cannot assign amount to account "
+    , ""
+    , "    " ++ T.unpack (paccount p)
+    , ""
+    , "because it is also included in transaction modifiers."
+    ]
+
+-- | If this posting has a missing amount and a balance assignment, use
+-- the running account balance to infer the amount required to satisfy
+-- the assignment.
+inferFromAssignmentB :: Posting -> Balancing s Posting
+inferFromAssignmentB p@Posting{paccount=acc} =
+  case pbalanceassertion p of
+    Nothing -> return p
+    Just ba | batotal ba -> do
+      diff <- setAccountRunningBalance acc $ Mixed [baamount ba]
+      return $ setPostingAmount diff p
+    Just ba -> do
+      oldbal <- fromMaybe 0 <$> liftB (\bs -> H.lookup (bsBalances bs) acc)
+      let amt    = baamount ba
+          newbal = filterMixedAmount ((/=acommodity amt).acommodity) oldbal + Mixed [amt]
+      diff <- setAccountRunningBalance acc newbal
+      return $ setPostingAmount diff p
+  where
+    setPostingAmount a p = p{pamount=a, porigin=Just $ originalPosting p}
+    -- | Set the account's running balance, and return the difference from the old. 
+    setAccountRunningBalance :: AccountName -> MixedAmount -> Balancing s MixedAmount
+    setAccountRunningBalance acc amt = liftB $ \BalancingState{bsBalances=bals} -> do
+      old <- fromMaybe 0 <$> H.lookup bals acc
+      H.insert bals acc amt
+      return $ amt - old
+
+-- | Adds a posting's amount to the posting's account's running balance, and
+-- checks the posting's balance assertion if any. Or if the posting has no
+-- amount, runs the supplied fallback action.
+addAmountAndCheckBalanceAssertionB :: 
+     (Posting -> Balancing s Posting) -- ^ fallback action
+  -> Posting
+  -> Balancing s Posting
+addAmountAndCheckBalanceAssertionB _ p | hasAmount p = do
+  newAmt <- addToBalanceB (paccount p) (pamount p)
+  assrt <- R.reader bsAssrt
+  lift $ when assrt $ ExceptT $ return $ checkBalanceAssertion p newAmt
+  return p
+addAmountAndCheckBalanceAssertionB fallback p = fallback p
+
+-- | Check a posting's balance assertion against the given actual balance, and
+-- return an error if the assertion is not satisfied.
+-- If the assertion is partial, unasserted commodities in the actual balance
+-- are ignored; if it is total, they will cause the assertion to fail.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{pbalanceassertion=Just (BalanceAssertion{baamount,baexact})} actualbal =
+checkBalanceAssertion p@Posting{pbalanceassertion=Just (BalanceAssertion{baamount,batotal})} actualbal =
   foldl' f (Right ()) assertedamts
     where
-      f (Right _) assertedamt = checkBalanceAssertionCommodity p assertedamt actualbal
+      f (Right _) assertedamt = checkBalanceAssertionOneCommodity p assertedamt actualbal
       f err _                 = err
       assertedamts = baamount : otheramts
         where
           assertedcomm = acommodity baamount
-          otheramts | baexact   = map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> acommodity a /= assertedcomm) actualbal
+          otheramts | batotal   = map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> acommodity a /= assertedcomm) actualbal
                     | otherwise = []
 checkBalanceAssertion _ _ = Right ()
 
--- | Are the asserted balance and the actual balance
--- exactly equal (disregarding display precision) ?
--- The posting is used for creating an error message.
-checkBalanceAssertionCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
-checkBalanceAssertionCommodity p assertedamt actualbal
+-- | Does this (single commodity) expected balance match the amount of that
+-- commodity in the given (multicommodity) actual balance ? If not, returns a
+-- balance assertion failure message based on the provided posting.  To match,
+-- the amounts must be exactly equal (display precision is ignored here).
+checkBalanceAssertionOneCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
+checkBalanceAssertionOneCommodity p assertedamt actualbal
   | pass      = Right ()
-  | otherwise = Left err
+  | otherwise = Left errmsg
     where
       assertedcomm = acommodity assertedamt
       actualbalincommodity = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts actualbal)
       pass =
         aquantity
-        -- traceWith (("asserted:"++).showAmountDebug)
-        assertedamt ==
+          -- traceWith (("asserted:"++).showAmountDebug)
+          assertedamt ==
         aquantity
-        -- traceWith (("actual:"++).showAmountDebug)
-        actualbalincommodity
-      diff = aquantity assertedamt - aquantity actualbalincommodity
-      err = printf (unlines
+          -- traceWith (("actual:"++).showAmountDebug)
+          actualbalincommodity
+      errmsg = printf (unlines
                     [ "balance assertion: %s",
                       "\nassertion details:",
                       "date:       %s",
@@ -635,208 +806,7 @@ checkBalanceAssertionCommodity p assertedamt actualbal
         -- (showAmount actualbalincommodity)
         (show $ aquantity assertedamt)
         -- (showAmount assertedamt)
-        (show diff)
-
--- | Fill in any missing amounts and check that all journal transactions
--- balance and all balance assertions pass, or return an error message.
--- This is done after parsing all amounts and applying canonical
--- commodity styles, since balancing depends on display precision.
--- Reports only the first error encountered.
-journalBalanceTransactions :: Bool -> Journal -> Either String Journal
-journalBalanceTransactions assrt j =
-  runST $ journalBalanceTransactionsST 
-    assrt -- check balance assertions also ?
-    (journalNumberTransactions j) -- journal to process
-    (newArray_ (1, genericLength $ jtxns j) :: forall s. ST s (STArray s Integer Transaction)) -- initialise state
-    (\arr tx -> writeArray arr (tindex tx) tx)    -- update state
-    (fmap (\txns -> j{ jtxns = txns}) . getElems) -- summarise state
-
--- | Helper used by 'journalBalanceTransactions' and 'journalCheckBalanceAssertions'.
--- Balances transactions, applies balance assignments, and checks balance assertions
--- at the same time.
-journalBalanceTransactionsST ::
-  Bool
-  -> Journal
-  -> ST s txns                        -- ^ initialise state
-  -> (txns -> Transaction -> ST s ()) -- ^ update state
-  -> (txns -> ST s a)                 -- ^ summarise state
-  -> ST s (Either String a)
-journalBalanceTransactionsST assrt j createStore storeIn extract =
-  runExceptT $ do
-    bals <- lift $ HT.newSized size
-    txStore <- lift $ createStore
-    let env = Env bals 
-                  (storeIn txStore) 
-                  assrt
-                  (Just $ journalCommodityStyles j)
-                  (getModifierAccountNames j)
-    flip R.runReaderT env $ do
-      dated <- fmap snd . sortOn fst . concat
-                <$> mapM' discriminateByDate (jtxns j)
-      mapM' checkInferAndRegisterAmounts dated
-    lift $ extract txStore
-    where 
-      size = genericLength $ journalPostings j
-
-
--- | Collect account names in account modifiers into a set
-getModifierAccountNames :: Journal -> S.Set AccountName
-getModifierAccountNames j = S.fromList $
-                            map paccount $
-                            concatMap tmpostingrules $
-                            jtxnmodifiers j
-
--- | Monad transformer stack with a reference to a mutable hashtable
--- of current account balances and a mutable array of finished
--- transactions in original parsing order.
-type CurrentBalancesModifier s = R.ReaderT (Env s) (ExceptT String (ST s))
-
--- | Environment for 'CurrentBalancesModifier'
-data Env s = Env { eBalances     :: HT.HashTable s AccountName MixedAmount
-                 , eStoreTx      :: Transaction -> ST s ()
-                 , eAssrt        :: Bool
-                 , eStyles       :: Maybe (M.Map CommoditySymbol AmountStyle)
-                 , eUnassignable :: S.Set AccountName
-                 }
-
--- | This converts a transaction into a list of transactions or
--- postings whose dates have to be considered when checking 
--- balance assertions and handled by 'checkInferAndRegisterAmounts'.
---
--- Transaction without balance assignments can be balanced and stored
--- immediately and their (possibly) dated postings are returned.
---
--- Transaction with balance assignments are only supported if no
--- posting has a 'pdate' value. Supported transactions will be
--- returned unchanged and balanced and stored later in 'checkInferAndRegisterAmounts'.
-discriminateByDate :: Transaction
-  -> CurrentBalancesModifier s [(Day, Either Posting Transaction)]
-discriminateByDate tx
-  | null (assignmentPostings tx) = do
-    styles <- R.reader $ eStyles
-    balanced <- lift $ ExceptT $ return $ balanceTransaction styles tx
-    storeTransaction balanced
-    return $ fmap (postingDate &&& (Left . removePrices)) $ tpostings $ balanced
-  | otherwise = do
-    when (any (isJust . pdate) $ tpostings tx) $
-      throwError $
-      unlines $
-      [ "postings may not have both a custom date and a balance assignment."
-      , "Write the posting amount explicitly, or remove the posting date:\n"
-      , showTransaction tx
-      ]
-    return [(tdate tx, Right $ tx {tpostings = removePrices <$> tpostings tx})]
-
--- | Throw an error if a posting is in the unassignable set.
-checkUnassignablePosting :: Posting -> CurrentBalancesModifier s ()
-checkUnassignablePosting p = do
-  unassignable <- R.asks eUnassignable
-  when (isAssignment p && paccount p `S.member` unassignable) $
-    throwError $
-    unlines $
-    [ "cannot assign amount to account "
-    , ""
-    , "    " ++ T.unpack (paccount p)
-    , ""
-    , "because it is also included in transaction modifiers."
-    ]
-
-
--- | This function takes an object describing changes to
--- account balances on a single day - either a single posting 
--- (from an already balanced transaction without assignments)
--- or a whole transaction with assignments (which is required to 
--- have no posting with pdate set).
---
--- For a single posting, there is not much to do. Only add its amount
--- to its account and check the assertion, if there is one. This
--- functionality is provided by 'addAmountAndCheckBalance'.
---
--- For a whole transaction, it loops over all postings, and performs
--- 'addAmountAndCheckBalance', if there is an amount. If there is no
--- amount, the amount is inferred by the assertion or left empty if
--- there is no assertion. Then, the transaction is balanced, the
--- inferred amount added to the balance (all in 'balanceTransactionUpdate') 
--- and the resulting transaction with no missing amounts is stored 
--- in the array, for later retrieval.
---
--- Again in short:
---
--- 'Left Posting': Check the balance assertion and update the
---  account balance. If the amount is empty do nothing.  this can be
---  the case e.g. for virtual postings
---
--- 'Right Transaction': Loop over all postings, infer their amounts
--- and then balance and store the transaction.
-checkInferAndRegisterAmounts :: Either Posting Transaction
-                             -> CurrentBalancesModifier s ()
-checkInferAndRegisterAmounts (Left p) = do
-  checkUnassignablePosting p
-  void $ addAmountAndCheckBalance return p
-checkInferAndRegisterAmounts (Right oldTx) = do
-  let ps = tpostings oldTx
-  mapM_ checkUnassignablePosting ps
-  styles <- R.reader $ eStyles
-  newPostings <- forM ps $ addAmountAndCheckBalance inferFromAssignment
-  storeTransaction =<< balanceTransactionUpdate
-    (fmap void . addToBalance) styles oldTx { tpostings = newPostings }
-  where
-    inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
-    inferFromAssignment p = do
-      let acc = paccount p
-      case pbalanceassertion p of
-        Just ba | baexact ba -> do
-          diff <- setMixedBalance acc $ Mixed [baamount ba]
-          fullPosting diff p
-        Just ba -> do
-          old <- liftModifier $ \Env{ eBalances = bals } -> HT.lookup bals acc
-          let amt = baamount ba
-              assertedcomm = acommodity amt
-          diff <- setMixedBalance acc $
-            Mixed [amt] + filterMixedAmount (\a -> acommodity a /= assertedcomm) (fromMaybe nullmixedamt old)
-          fullPosting diff p
-        Nothing -> return p
-    fullPosting amt p = return p
-      { pamount = amt
-      , porigin = Just $ originalPosting p
-      }
-
--- | Adds a posting's amount to the posting's account balance and
--- checks a possible balance assertion. Or if there is no amount,
--- runs the supplied fallback action.
-addAmountAndCheckBalance :: 
-     (Posting -> CurrentBalancesModifier s Posting) -- ^ action if posting has no amount
-  -> Posting
-  -> CurrentBalancesModifier s Posting
-addAmountAndCheckBalance _ p | hasAmount p = do
-  newAmt <- addToBalance (paccount p) $ pamount p
-  assrt <- R.reader eAssrt
-  lift $ when assrt $ ExceptT $ return $ checkBalanceAssertion p newAmt
-  return p
-addAmountAndCheckBalance fallback p = fallback p
-
--- | Sets all commodities comprising an account's balance to the given
--- amounts and returns the difference from the previous balance.
-setMixedBalance :: AccountName -> MixedAmount -> CurrentBalancesModifier s MixedAmount
-setMixedBalance acc amt = liftModifier $ \Env{ eBalances = bals } -> do
-  old <- HT.lookup bals acc
-  HT.insert bals acc amt
-  return $ maybe amt (amt -) old
-
--- | Adds an amount to an account's balance and returns the resulting balance.
-addToBalance :: AccountName -> MixedAmount -> CurrentBalancesModifier s MixedAmount
-addToBalance acc amt = liftModifier $ \Env{ eBalances = bals } -> do
-  new <- maybe amt (+ amt) <$> HT.lookup bals acc
-  HT.insert bals acc new
-  return new
-
--- | Stores a transaction in the transaction array in original parsing order.
-storeTransaction :: Transaction -> CurrentBalancesModifier s ()
-storeTransaction tx = liftModifier $ ($tx) . eStoreTx
-
--- | Helper function.
-liftModifier :: (Env s -> ST s a) -> CurrentBalancesModifier s a
-liftModifier f = R.ask >>= lift . lift . f
+        (show $ aquantity assertedamt - aquantity actualbalincommodity)
 
 -- | Choose and apply a consistent display format to the posting
 -- amounts in each commodity. Each commodity's format is specified by

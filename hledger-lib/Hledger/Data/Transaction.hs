@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-|
 
 A 'Transaction' represents a movement of some commodity(ies) between two
@@ -8,7 +7,11 @@ tags.
 
 -}
 
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Data.Transaction (
   -- * Transaction
@@ -24,13 +27,18 @@ module Hledger.Data.Transaction (
   balancedVirtualPostings,
   transactionsPostings,
   isTransactionBalanced,
+  balanceTransaction,
+  Balancing,
+  BalancingState(..),
+  addToBalanceB,
+  storeTransactionB,
+  liftB,
+  balanceTransactionB,
   -- nonzerobalanceerror,
   -- * date operations
   transactionDate2,
   -- * arithmetic
   transactionPostingBalances,
-  balanceTransaction,
-  balanceTransactionUpdate,
   -- * rendering
   showTransaction,
   showTransactionUnelided,
@@ -47,7 +55,12 @@ module Hledger.Data.Transaction (
 where
 import Data.List
 import Control.Monad.Except
-import Control.Monad.Identity
+import Control.Monad.Reader (ReaderT, ask)
+import Control.Monad.ST
+import Data.Array.ST
+import qualified Data.HashTable.ST.Cuckoo as HT
+import qualified Data.Map as M
+import qualified Data.Set as S
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -324,34 +337,78 @@ isTransactionBalanced styles t =
       bvsum' = canonicalise $ costOfMixedAmount bvsum
       canonicalise = maybe id canonicaliseMixedAmount styles
 
--- | Ensure this transaction is balanced, possibly inferring a missing
--- amount or conversion price(s), or return an error message.
--- Balancing is affected by commodity display precisions, so those can
--- (optionally) be provided.
--- 
--- this fails for example, if there are several missing amounts
--- (possibly with balance assignments)
-balanceTransaction :: Maybe (Map.Map CommoditySymbol AmountStyle)
-                   -> Transaction -> Either String Transaction
-balanceTransaction stylemap = runIdentity . runExceptT
-  . balanceTransactionUpdate (\_ _ -> return ()) stylemap
+-- | Monad used for statefully "balancing" a sequence of transactions.
+type Balancing s = ReaderT (BalancingState s) (ExceptT String (ST s))
+
+-- | The state used while balancing a sequence of transactions.
+data BalancingState s = BalancingState {
+   -- read only
+   bsStyles       :: M.Map CommoditySymbol AmountStyle       -- ^ commodity display styles
+  ,bsUnassignable :: S.Set AccountName                       -- ^ accounts in which balance assignments may not be used
+  ,bsAssrt        :: Bool                                    -- ^ whether to check balance assertions
+   -- mutable
+  ,bsBalances     :: HT.HashTable s AccountName MixedAmount  -- ^ running account balances, initially empty
+  ,bsTransactions :: STArray s Integer Transaction           -- ^ the transactions being balanced
+  }
+
+-- | Lift a BalancingState mutator through the Except and Reader 
+-- layers into the Balancing monad.
+liftB :: (BalancingState s -> ST s a) -> Balancing s a
+liftB f = ask >>= lift . lift . f
+
+-- | Add this amount to this account's running balance, 
+-- and return the new running balance.
+addToBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
+addToBalanceB acc amt = liftB $ \BalancingState{bsBalances=bals} -> do
+  b <- maybe amt (+amt) <$> HT.lookup bals acc
+  HT.insert bals acc b
+  return b
+
+-- | Update (overwrite) this transaction with a new one.
+storeTransactionB :: Transaction -> Balancing s ()
+storeTransactionB t = liftB $ \bs ->
+  void $ writeArray (bsTransactions bs) (tindex t) t
 
 
--- | More general version of 'balanceTransaction' that takes an update
--- function
-balanceTransactionUpdate :: MonadError String m
-  => (AccountName -> MixedAmount -> m ())
-     -- ^ update function
-  -> Maybe (Map.Map CommoditySymbol AmountStyle)
-  -> Transaction -> m Transaction
-balanceTransactionUpdate update mstyles t =
-  (finalize =<< inferBalancingAmount update (fromMaybe Map.empty mstyles) t)
-    `catchError` (throwError . annotateErrorWithTxn t)
+-- | Balance this transaction, ensuring that its postings sum to 0,
+-- by inferring a missing amount or conversion price(s) if needed. 
+-- Or if balancing is not possible, because of unbalanced amounts or 
+-- more than one missing amount, returns an error message.
+-- Whether postings "sum to 0" depends on commodity display precisions,
+-- so those can optionally be provided.
+balanceTransaction ::
+     Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+  -> Transaction
+  -> Either String Transaction
+balanceTransaction mstyles = fmap fst . balanceTransactionHelper mstyles 
+
+-- | Like balanceTransaction, but when inferring amounts it will also
+-- use the given state update function to update running account balances. 
+-- Used when balancing a sequence of transactions (see journalBalanceTransactions).
+balanceTransactionB ::
+     (AccountName -> MixedAmount -> Balancing s ())  -- ^ function to update running balances
+  -> Maybe (Map.Map CommoditySymbol AmountStyle)     -- ^ commodity display styles
+  -> Transaction
+  -> Balancing s Transaction
+balanceTransactionB updatebalsfn mstyles t = do
+  case balanceTransactionHelper mstyles t of
+    Left err -> throwError err 
+    Right (t', inferredacctsandamts) -> do
+      mapM_ (uncurry updatebalsfn) inferredacctsandamts
+      return t'
+
+balanceTransactionHelper ::
+     Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+  -> Transaction
+  -> Either String (Transaction, [(AccountName, MixedAmount)])
+balanceTransactionHelper mstyles t = do
+  (t', inferredamtsandaccts) <- 
+    inferBalancingAmount (fromMaybe Map.empty mstyles) $ inferBalancingPrices t 
+  if isTransactionBalanced mstyles t'
+  then Right (txnTieKnot t', inferredamtsandaccts)
+  else Left $ annotateErrorWithTxn t' $ nonzerobalanceerror t'
+
   where
-    finalize t' = let t'' = inferBalancingPrices t'
-                  in if isTransactionBalanced mstyles t''
-                     then return $ txnTieKnot t''
-                     else throwError $ nonzerobalanceerror t''
     nonzerobalanceerror :: Transaction -> String
     nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
         where
@@ -364,45 +421,52 @@ balanceTransactionUpdate update mstyles t =
                   ++ showMixedAmount (costOfMixedAmount bvsum)
           sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
-    annotateErrorWithTxn t e = intercalate "\n" [showGenericSourcePos $ tsourcepos t, e, showTransactionUnelided t]
+annotateErrorWithTxn :: Transaction -> String -> String
+annotateErrorWithTxn t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransactionUnelided t]    
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
--- message if we can't.
+-- message if we can't. Returns the updated transaction and any inferred posting amounts,
+-- with the corresponding accounts, in order).
 --
 -- We can infer a missing amount when there are multiple postings and exactly
 -- one of them is amountless. If the amounts had price(s) the inferred amount
 -- have the same price(s), and will be converted to the price commodity.
-inferBalancingAmount :: MonadError String m =>
-                        (AccountName -> MixedAmount -> m ()) -- ^ update function
-                     -> Map.Map CommoditySymbol AmountStyle  -- ^ standard amount styles
-                     -> Transaction
-                     -> m Transaction
-inferBalancingAmount update styles t@Transaction{tpostings=ps}
+inferBalancingAmount :: 
+     Map.Map CommoditySymbol AmountStyle -- ^ commodity display styles
+  -> Transaction
+  -> Either String (Transaction, [(AccountName, MixedAmount)])
+inferBalancingAmount styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
-      = throwError "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
+      = Left $ annotateErrorWithTxn t "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
   | length amountlessbvps > 1
-      = throwError "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
+      = Left $ annotateErrorWithTxn t "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
   | otherwise
-      = do postings <- mapM inferamount ps
-           return t{tpostings=postings}
+      = let psandinferredamts = map inferamount ps
+            inferredacctsandamts = [(paccount p, amt) | (p, Just amt) <- psandinferredamts]
+        in Right (t{tpostings=map fst psandinferredamts}, inferredacctsandamts)
   where
     (amountfulrealps, amountlessrealps) = partition hasAmount (realPostings t)
     realsum = sumStrict $ map pamount amountfulrealps
     (amountfulbvps, amountlessbvps) = partition hasAmount (balancedVirtualPostings t)
     bvsum = sumStrict $ map pamount amountfulbvps
-    inferamount p@Posting{ptype=RegularPosting}
-     | not (hasAmount p) = updateAmount p realsum
-    inferamount p@Posting{ptype=BalancedVirtualPosting}
-     | not (hasAmount p) = updateAmount p bvsum
-    inferamount p = return p
-    updateAmount p amt = 
-      update (paccount p) amt' >> return p { pamount=amt', porigin=Just $ originalPosting p }
-      where
-        -- Inferred amounts are converted to cost.
-        -- Also, ensure the new amount has the standard style for its commodity  
-        -- (the main amount styling pass happened before this balancing pass).   
-        amt' = styleMixedAmount styles $ normaliseMixedAmount $ costOfMixedAmount (-amt)
+
+    inferamount :: Posting -> (Posting, Maybe MixedAmount)
+    inferamount p =
+      let
+        minferredamt = case ptype p of
+          RegularPosting         | not (hasAmount p) -> Just realsum 
+          BalancedVirtualPosting | not (hasAmount p) -> Just bvsum 
+          _                                          -> Nothing 
+      in
+        case minferredamt of
+          Nothing -> (p, Nothing)
+          Just a  -> (p{pamount=a', porigin=Just $ originalPosting p}, Just a') 
+            where
+              -- Inferred amounts are converted to cost.
+              -- Also ensure the new amount has the standard style for its commodity  
+              -- (since the main amount styling pass happened before this balancing pass);
+              a' = styleMixedAmount styles $ normaliseMixedAmount $ costOfMixedAmount (-a)
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real
@@ -627,17 +691,14 @@ tests_Transaction =
                in postingsAsLines False False t (tpostings t) `is`
                   ["    a          $-0.01", "    b           $0.005", "    c           $0.005"]
             ]
-    , do let inferTransaction :: Transaction -> Either String Transaction
-             inferTransaction = runIdentity . runExceptT . inferBalancingAmount (\_ _ -> return ()) Map.empty
-         tests
-           "inferBalancingAmount"
-           [ inferTransaction nulltransaction `is` Right nulltransaction
-           , inferTransaction nulltransaction {tpostings = ["a" `post` usd (-5), "b" `post` missingamt]} `is`
-             Right nulltransaction {tpostings = ["a" `post` usd (-5), "b" `post` usd 5]}
-           , inferTransaction
-               nulltransaction {tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]} `is`
-             Right nulltransaction {tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
-           ]
+    , tests
+         "inferBalancingAmount"
+         [ (fst <$> inferBalancingAmount Map.empty nulltransaction) `is` Right nulltransaction
+         , (fst <$> inferBalancingAmount Map.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` missingamt]}) `is`
+           Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` usd 5]}
+         , (fst <$> inferBalancingAmount Map.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) `is`
+           Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
+         ]
     , tests
         "showTransaction"
         [ test "show a balanced transaction, eliding last amount" $
