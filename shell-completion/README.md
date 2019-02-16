@@ -9,7 +9,7 @@ after typing the command `hledger `.
 
 Currently, only Bash is supported but Zsh or Fish can be added.
 
-[Demonstration video](https://asciinema.org/a/PdV2PzIU9oDQg1K5FjAX9n3vL)
+[![asciicast](https://asciinema.org/a/227935.svg)](https://asciinema.org/a/227935)
 
 The completions can handle hledger's CLI:
 
