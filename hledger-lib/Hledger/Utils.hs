@@ -220,6 +220,7 @@ sequence' ms = do
       x <- m
       go (h . (x :)) ms
 
+-- | Like mapM but uses sequence'.
 {-# INLINABLE mapM' #-}
 mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
