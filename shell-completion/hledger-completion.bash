@@ -103,7 +103,7 @@ _hledger_extension_completion_function() {
 # Register completion function for hledger:
 complete -F _hledger_completion_function hledger
 
-# Register complete functions for hledger extensions:
+# Register completion functions for hledger extensions:
 complete -F _hledger_extension_completion_function hledger-ui
 complete -F _hledger_extension_completion_function hledger-web
 complete -F _hledger_extension_completion_function hledger-api
@@ -959,8 +959,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-activity.txt"
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
--------------------
-----------------------
 --alias
 --anon
 --auto
