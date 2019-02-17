@@ -19,7 +19,7 @@ registermatchmode = hledgerCommandMode
   []
   [generalflagsgroup1]
   []
-  ([], Just $ argsFlag "[QUERY]")
+  ([], Just $ argsFlag "DESC")
 
 registermatch :: CliOpts -> Journal -> IO ()
 registermatch opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
