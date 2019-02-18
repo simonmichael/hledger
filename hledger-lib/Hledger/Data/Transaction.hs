@@ -28,12 +28,7 @@ module Hledger.Data.Transaction (
   transactionsPostings,
   isTransactionBalanced,
   balanceTransaction,
-  Balancing,
-  BalancingState(..),
-  addToBalanceB,
-  storeTransactionB,
-  liftB,
-  balanceTransactionB,
+  balanceTransactionHelper,
   -- nonzerobalanceerror,
   -- * date operations
   transactionDate2,
@@ -49,18 +44,12 @@ module Hledger.Data.Transaction (
   sourceFilePath,
   sourceFirstLine,
   showGenericSourcePos,
+  annotateErrorWithTransaction,
   -- * tests
   tests_Transaction
 )
 where
 import Data.List
-import Control.Monad.Except
-import Control.Monad.Reader (ReaderT, ask)
-import Control.Monad.ST
-import Data.Array.ST
-import qualified Data.HashTable.ST.Cuckoo as HT
-import qualified Data.Map as M
-import qualified Data.Set as S
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -308,7 +297,7 @@ realPostings :: Transaction -> [Posting]
 realPostings = filter isReal . tpostings
 
 assignmentPostings :: Transaction -> [Posting]
-assignmentPostings = filter isAssignment . tpostings
+assignmentPostings = filter hasBalanceAssignment . tpostings
 
 virtualPostings :: Transaction -> [Posting]
 virtualPostings = filter isVirtual . tpostings
@@ -341,69 +330,28 @@ isTransactionBalanced styles t =
       bvsum' = canonicalise $ costOfMixedAmount bvsum
       canonicalise = maybe id canonicaliseMixedAmount styles
 
--- | Monad used for statefully "balancing" a sequence of transactions.
-type Balancing s = ReaderT (BalancingState s) (ExceptT String (ST s))
-
--- | The state used while balancing a sequence of transactions.
-data BalancingState s = BalancingState {
-   -- read only
-   bsStyles       :: M.Map CommoditySymbol AmountStyle       -- ^ commodity display styles
-  ,bsUnassignable :: S.Set AccountName                       -- ^ accounts in which balance assignments may not be used
-  ,bsAssrt        :: Bool                                    -- ^ whether to check balance assertions
-   -- mutable
-  ,bsBalances     :: HT.HashTable s AccountName MixedAmount  -- ^ running account balances, initially empty
-  ,bsTransactions :: STArray s Integer Transaction           -- ^ the transactions being balanced
-  }
-
--- | Lift a BalancingState mutator through the Except and Reader 
--- layers into the Balancing monad.
-liftB :: (BalancingState s -> ST s a) -> Balancing s a
-liftB f = ask >>= lift . lift . f
-
--- | Add this amount to this account's running balance, 
--- and return the new running balance.
-addToBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
-addToBalanceB acc amt = liftB $ \BalancingState{bsBalances=bals} -> do
-  b <- maybe amt (+amt) <$> HT.lookup bals acc
-  HT.insert bals acc b
-  return b
-
--- | Update (overwrite) this transaction with a new one.
-storeTransactionB :: Transaction -> Balancing s ()
-storeTransactionB t = liftB $ \bs ->
-  void $ writeArray (bsTransactions bs) (tindex t) t
-
-
--- | Balance this transaction, ensuring that its postings sum to 0,
+-- | Balance this transaction, ensuring that its postings 
+-- (and its balanced virtual postings) sum to 0,
 -- by inferring a missing amount or conversion price(s) if needed. 
--- Or if balancing is not possible, because of unbalanced amounts or 
--- more than one missing amount, returns an error message.
--- Note this function may be unable to balance some transactions
--- that journalBalanceTransactions/balanceTransactionB can balance
--- (eg ones with balance assignments). 
--- Whether postings "sum to 0" depends on commodity display precisions,
--- so those can optionally be provided.
+-- Or if balancing is not possible, because the amounts don't sum to 0 or
+-- because there's more than one missing amount, return an error message.
+--
+-- Transactions with balance assignments can have more than one
+-- missing amount; to balance those you should use the more powerful  
+-- journalBalanceTransactions.
+--
+-- The "sum to 0" test is done using commodity display precisions,
+-- if provided, so that the result agrees with the numbers users can see.
+--
 balanceTransaction ::
      Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   -> Transaction
   -> Either String Transaction
 balanceTransaction mstyles = fmap fst . balanceTransactionHelper mstyles 
 
--- | Like balanceTransaction, but when inferring amounts it will also
--- use the given state update function to update running account balances. 
--- Used when balancing a sequence of transactions (see journalBalanceTransactions).
-balanceTransactionB ::
-     (AccountName -> MixedAmount -> Balancing s ())  -- ^ function to update running balances
-  -> Maybe (Map.Map CommoditySymbol AmountStyle)     -- ^ commodity display styles
-  -> Transaction
-  -> Balancing s Transaction
-balanceTransactionB updatebalsfn mstyles t = do
-  case balanceTransactionHelper mstyles t of
-    Left err -> throwError err 
-    Right (t', inferredacctsandamts) -> do
-      mapM_ (uncurry updatebalsfn) inferredacctsandamts
-      return t'
-
+-- | Helper used by balanceTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
+-- use one of those instead. It also returns a list of accounts 
+-- and amounts that were inferred.
 balanceTransactionHelper ::
      Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   -> Transaction
@@ -413,7 +361,7 @@ balanceTransactionHelper mstyles t = do
     inferBalancingAmount (fromMaybe Map.empty mstyles) $ inferBalancingPrices t 
   if isTransactionBalanced mstyles t'
   then Right (txnTieKnot t', inferredamtsandaccts)
-  else Left $ annotateErrorWithTxn t' $ nonzerobalanceerror t'
+  else Left $ annotateErrorWithTransaction t' $ nonzerobalanceerror t'
 
   where
     nonzerobalanceerror :: Transaction -> String
@@ -428,8 +376,8 @@ balanceTransactionHelper mstyles t = do
                   ++ showMixedAmount (costOfMixedAmount bvsum)
           sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
-annotateErrorWithTxn :: Transaction -> String -> String
-annotateErrorWithTxn t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransactionUnelided t]    
+annotateErrorWithTransaction :: Transaction -> String -> String
+annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransactionUnelided t]    
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -445,9 +393,9 @@ inferBalancingAmount ::
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 inferBalancingAmount styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
-      = Left $ annotateErrorWithTxn t "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
+      = Left $ annotateErrorWithTransaction t "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
   | length amountlessbvps > 1
-      = Left $ annotateErrorWithTxn t "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
+      = Left $ annotateErrorWithTransaction t "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
   | otherwise
       = let psandinferredamts = map inferamount ps
             inferredacctsandamts = [(paccount p, amt) | (p, Just amt) <- psandinferredamts]
