@@ -196,7 +196,16 @@ WARNINGS:=\
 # or from stack's dist dir:
 #CABALMACROSFLAGS=-optP-include -optP hledger/.stack-work/dist/*/*/build/autogen/cabal_macros.h
 
-BUILDFLAGS=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(GHCLOWMEMFLAGS) $(CABALMACROSFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) -DDEVELOPMENT -DVERSION="\"$(VERSION)\""
+BUILDFLAGS=\
+	-rtsopts \
+	$(WARNINGS) \
+	$(INCLUDEPATHS) \
+	$(GHCLOWMEMFLAGS) $(CABALMACROSFLAGS) \
+	-DPATCHLEVEL=$(PATCHLEVEL) \
+	-DDEVELOPMENT \
+	-DVERSION="\"$(VERSION)\"" \
+#	-fhide-source-paths \
+
 # PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
 
 TIME=$(shell date +"%Y%m%d%H%M")
