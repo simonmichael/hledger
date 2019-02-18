@@ -54,13 +54,13 @@ webflags =
   , flagReq
       ["capabilities"]
       (\s opts -> Right $ setopt "capabilities" s opts)
-      "CAP,CAP2"
-      "enable these capabilities - comma-separated, possible values are: view, add, manage (default: view,add)"
+      "CAP[,CAP..]"
+      "enable the view, add, and/or manage capabilities (default: view,add)"
   , flagReq
       ["capabilities-header"]
       (\s opts -> Right $ setopt "capabilities-header" s opts)
-      "HEADER"
-      "read enabled capabilities from a HTTP header (e.g. X-Sandstorm-Permissions, disabled by default)"
+      "HTTPHEADER"
+      "read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)"
   ]
 
 webmode :: Mode [(String, String)]

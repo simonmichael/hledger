@@ -74,36 +74,63 @@ The default is `http://HOST:PORT/` using the server's configured host address an
 With `--file-url` you can set a different base url for static files,
 eg for better caching or cookie-less serving on high performance websites.
 
-Note there is no built-in access control (aside from listening on 127.0.0.1 by default).
-So you will need to hide hledger-web behind an authenticating proxy (such as apache or nginx)
-if you want to restrict who can see and add entries to your journal.
+# PERMISSIONS
 
-Command-line options and arguments may be used to set an initial
-filter on the data. This is not shown in the web UI, but it will be
-applied in addition to any search query entered there.
+By default, hledger-web allows anyone who can reach it to view the journal 
+and to add new transactions, but not to change existing data.
 
-With journal and timeclock files (but not CSV files, currently) the
-web app detects changes made by other means and will show the new data
-on the next request. If a change makes the file unparseable,
-hledger-web will show an error until the file has been fixed.
+You can restrict who can reach it by
 
-<!--
-edit form
-Note: unlike any other hledger command, `web` can alter existing journal
-data, via the edit form.  A numbered backup of the file is saved on
-each edit, normally (ie if file permissions allow, disk is not full, etc.)
-Also, there is no built-in access control. So unless you run it behind an
-authenticating proxy, any visitor to your server will be able to see and
-overwrite the journal file (and included files.)
-hledger-web disallows edits which would leave the journal file not in
-valid [journal format](#journal). If the file becomes unparseable
-by other means, hledger-web will show an error until the file has been
-fixed.
--->
+- setting the IP address it listens on (see `--host` above). 
+  By default it listens on 127.0.0.1, accessible to all users on the local machine. 
+- putting it behind an authenticating proxy, using eg apache or nginx
+- custom firewall rules
+
+You can restrict what the users who reach it can do, by
+
+- using the `--capabilities=CAP[,CAP..]` flag when you start it, 
+  enabling one or more of the following capabilities. The default value is `view,add`:
+  - `view`   - allows viewing the journal file and all included files
+  - `add`    - allows adding new transactions to the main journal file 
+  - `manage` - allows editing, uploading or downloading the main or included files 
+
+- using the `--capabilities-header=HTTPHEADER` flag to specify a HTTP header
+  from which it will read capabilities to enable. hledger-web on Sandstorm
+  uses the X-Sandstorm-Permissions header to integrate with Sandstorm's permissions. 
+  This is disabled by default.
+
+# EDITING
+
+Note that if you enable the `manage` capability mentioned above, 
+hledger-web lets you alter or erase (by editing or uploading) the journal
+file and any files it includes. This is unlike any other hledger command. 
+
+Normally whenever a file is changed in this way, hledger-web saves a numbered backup
+(assuming file permissions allow it, the disk is not full, etc.)
+It is not currently aware of version control systems; if you use one,
+you'll have to arrange to commit the changes yourself (eg with a cron job
+or a file watcher like entr).
+
+Also normally, edits which would leave the journal file(s) unparseable
+or non-valid (eg with failing balance assertions) are prevented
+(this needs re-testing).
+
+# RELOADING
+
+hledger-web detects changes made to the files by other means (eg if you edit
+it directly, outside of hledger-web), and it will show the new data
+when you reload the page or navigate to a new page. 
+If a change makes a file unparseable,
+hledger-web will display an error message until the file has been fixed.
 
 # OPTIONS
 
-Note: if invoking hledger-web as a hledger subcommand, write `--` before options as shown above.
+Command-line options and arguments may be used to set an initial
+filter on the data. These filter options are not shown in the web UI, 
+but it will be applied in addition to any search query entered there.
+
+Note: if invoking hledger-web as a hledger subcommand, write `--` before options, 
+as shown in the synopsis above.
 
 `--serve`
 : serve and log requests, don't browse or auto-exit
@@ -122,6 +149,12 @@ You would change this when sharing over the network, or integrating within a lar
 : set the static files url (default: BASEURL/static).
 hledger-web normally serves static files itself, but if you wanted to
 serve them from another server for efficiency, you would set the url with this.
+
+`--capabilities=CAP[,CAP..]`
+: enable the view, add, and/or manage capabilities (default: view,add)
+
+`--capabilities-header=HTTPHEADER`
+: read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)
 
 hledger input options:
 
