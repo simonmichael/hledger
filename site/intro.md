@@ -106,11 +106,15 @@ that lets you review account balances and transactions quickly and without fuss.
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 
 And, a zero-setup
-[web&nbsp;interface](manual.html#web) (
-[demo](http://demo.hledger.org)) for a more point-and-click experience.
-You can also set up your own public/private web instance in a few clicks
-at
+[web&nbsp;app](manual.html#web) for a more point-and-click experience
+([demo](http://demo.hledger.org)).
+Run it on your local machine, or on a server, 
+or set it up with a few clicks on
 [Sandstorm](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90).
+
+There's also a [UI running in the browser](https://hledger.alhur.es) (hledger compiled with GHCJS).
+This is a prototype, but it's nice sandbox for trying out hledger's journal syntax.
+
 </div>
 
 <div class="indent2">
