@@ -311,7 +311,7 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 17. Exact assertions parse correctly
+# 17. Total assertions (==) parse correctly
 hledger -f - stats
 <<<
 2016/1/1
@@ -324,7 +324,7 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 18. Exact assertions consider entire account
+# 18. Total assertions consider entire multicommodity amount
 hledger -f - stats
 <<<
 2016/1/1
@@ -340,7 +340,7 @@ hledger -f - stats
 >>>2 /balance assertion.*line 10, column 15/
 >>>=1
 
-# 19. Mix different commodities and exact assignments
+# 19. Mix different commodities and total assignments
 hledger -f - stats
 <<<
 2016/1/1
@@ -440,3 +440,27 @@ commodity $1000.00
 
 >>>2 /difference: 0\.0001/
 >>>=1
+
+# 26. Inclusive assertions include balances from subaccounts.
+hledger -f- print
+<<<
+2019/1/1
+  (a)    X1
+  (a)    Y3
+  (a:b)  Y7
+  (a)    0 =*  X1
+  (a)    0 =*  Y10
+  (a:b)  0 =*  Y7
+  (a:b)  0 ==*  Y7
+>>>
+2019/01/01
+    (a)                X1
+    (a)                Y3
+    (a:b)              Y7
+    (a)                 0 =* X1
+    (a)                 0 =* Y10
+    (a:b)               0 =* Y7
+    (a:b)               0 ==* Y7
+
+>>>2
+>>>=0

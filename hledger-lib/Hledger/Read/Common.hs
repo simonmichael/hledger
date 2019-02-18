@@ -729,14 +729,16 @@ balanceassertionp = do
   sourcepos <- genericSourcePos <$> lift getSourcePos
   char '='
   istotal <- fmap isJust $ optional $ try $ char '='
+  isinclusive <- fmap isJust $ optional $ try $ char '*'
   lift (skipMany spacenonewline)
   -- this amount can have a price; balance assertions ignore it,
   -- but balance assignments will use it
   a <- amountp <?> "amount (for a balance assertion or assignment)"
   return BalanceAssertion
-    { baamount   = a
-    , batotal    = istotal
-    , baposition = sourcepos
+    { baamount    = a
+    , batotal     = istotal
+    , bainclusive = isinclusive
+    , baposition  = sourcepos
     }
 
 -- Parse a Ledger-style fixed lot price: {=PRICE}

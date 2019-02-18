@@ -733,13 +733,13 @@ inferFromAssignmentB p@Posting{paccount=acc} =
 -- checks the posting's balance assertion if any. Or if the posting has no
 -- amount, runs the supplied fallback action.
 addAmountAndCheckBalanceAssertionB :: 
-     (Posting -> Balancing s Posting) -- ^ fallback action
+     (Posting -> Balancing s Posting) -- ^ fallback action  XXX why ?
   -> Posting
   -> Balancing s Posting
 addAmountAndCheckBalanceAssertionB _ p | hasAmount p = do
   newAmt <- addToBalanceB (paccount p) (pamount p)
   assrt <- R.reader bsAssrt
-  lift $ when assrt $ ExceptT $ return $ checkBalanceAssertion p newAmt
+  when assrt $ checkBalanceAssertionB p newAmt
   return p
 addAmountAndCheckBalanceAssertionB fallback p = fallback p
 
@@ -747,66 +747,81 @@ addAmountAndCheckBalanceAssertionB fallback p = fallback p
 -- return an error if the assertion is not satisfied.
 -- If the assertion is partial, unasserted commodities in the actual balance
 -- are ignored; if it is total, they will cause the assertion to fail.
-checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{pbalanceassertion=Just (BalanceAssertion{baamount,batotal})} actualbal =
-  foldl' f (Right ()) assertedamts
-    where
-      f (Right _) assertedamt = checkBalanceAssertionOneCommodity p assertedamt actualbal
-      f err _                 = err
-      assertedamts = baamount : otheramts
-        where
-          assertedcomm = acommodity baamount
-          otheramts | batotal   = map (\a -> a{ aquantity = 0 }) $ amounts $ filterMixedAmount (\a -> acommodity a /= assertedcomm) actualbal
-                    | otherwise = []
-checkBalanceAssertion _ _ = Right ()
+checkBalanceAssertionB :: Posting -> MixedAmount -> Balancing s ()
+checkBalanceAssertionB p@Posting{pbalanceassertion=Just (BalanceAssertion{baamount,batotal})} actualbal =
+  forM_ assertedamts $ \amt -> checkBalanceAssertionOneCommodityB p amt actualbal
+  where
+    assertedamts = baamount : otheramts
+      where
+        assertedcomm = acommodity baamount
+        otheramts | batotal   = map (\a -> a{aquantity=0}) $ amounts $ filterMixedAmount ((/=assertedcomm).acommodity) actualbal
+                  | otherwise = []
+checkBalanceAssertionB _ _ = return ()
 
 -- | Does this (single commodity) expected balance match the amount of that
 -- commodity in the given (multicommodity) actual balance ? If not, returns a
 -- balance assertion failure message based on the provided posting.  To match,
 -- the amounts must be exactly equal (display precision is ignored here).
-checkBalanceAssertionOneCommodity :: Posting -> Amount -> MixedAmount -> Either String ()
-checkBalanceAssertionOneCommodity p assertedamt actualbal
-  | pass      = Right ()
-  | otherwise = Left errmsg
-    where
-      assertedcomm = acommodity assertedamt
-      actualbalincommodity = fromMaybe nullamt $ find ((== assertedcomm) . acommodity) (amounts actualbal)
-      pass =
-        aquantity
-          -- traceWith (("asserted:"++).showAmountDebug)
-          assertedamt ==
-        aquantity
-          -- traceWith (("actual:"++).showAmountDebug)
-          actualbalincommodity
-      errmsg = printf (unlines
-                    [ "balance assertion: %s",
-                      "\nassertion details:",
-                      "date:       %s",
-                      "account:    %s",
-                      "commodity:  %s",
-                      -- "display precision:  %d",
-                      "calculated: %s", -- (at display precision: %s)",
-                      "asserted:   %s", -- (at display precision: %s)",
-                      "difference: %s"
-                    ])
-        (case ptransaction p of
-           Nothing -> "?" -- shouldn't happen
-           Just t ->  printf "%s\ntransaction:\n%s"
-                        (showGenericSourcePos pos)
-                        (chomp $ showTransaction t)
-                        :: String
-                        where
-                          pos = baposition $ fromJust $ pbalanceassertion p
-        )
-        (showDate $ postingDate p)
-        (T.unpack $ paccount p) -- XXX pack
-        assertedcomm
-        -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
-        (show $ aquantity actualbalincommodity)
-        -- (showAmount actualbalincommodity)
-        (show $ aquantity assertedamt)
-        -- (showAmount assertedamt)
-        (show $ aquantity assertedamt - aquantity actualbalincommodity)
+-- If the assertion is inclusive, the expected amount is compared with the account's
+-- subaccount-inclusive balance; otherwise, with the subaccount-exclusive balance.
+checkBalanceAssertionOneCommodityB :: Posting -> Amount -> MixedAmount -> Balancing s ()
+checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt actualbal = do
+  -- sum the running balances of this account and any subaccounts seen so far 
+  bals <- R.asks bsBalances
+  actualibal <- liftB $ const $ H.foldM 
+    (\bal (acc, amt) -> return $ 
+      if assertedacct==acc || assertedacct `isAccountNamePrefixOf` acc
+      then bal + amt 
+      else bal)
+    0 
+    bals
+  let
+    isinclusive     = maybe False bainclusive $ pbalanceassertion p
+    actualbal' 
+      | isinclusive = actualibal 
+      | otherwise   = actualbal  
+    assertedcomm    = acommodity assertedamt
+    actualbalincomm = headDef 0 $ amounts $ filterMixedAmountByCommodity assertedcomm actualbal'
+    pass =
+      aquantity
+        -- traceWith (("asserted:"++).showAmountDebug)
+        assertedamt ==
+      aquantity
+        -- traceWith (("actual:"++).showAmountDebug)
+        actualbalincomm
+
+    errmsg = printf (unlines
+                  [ "balance assertion: %s",
+                    "\nassertion details:",
+                    "date:       %s",
+                    "account:    %s%s",
+                    "commodity:  %s",
+                    -- "display precision:  %d",
+                    "calculated: %s", -- (at display precision: %s)",
+                    "asserted:   %s", -- (at display precision: %s)",
+                    "difference: %s"
+                  ])
+      (case ptransaction p of
+         Nothing -> "?" -- shouldn't happen
+         Just t ->  printf "%s\ntransaction:\n%s"
+                      (showGenericSourcePos pos)
+                      (chomp $ showTransaction t)
+                      :: String
+                      where
+                        pos = baposition $ fromJust $ pbalanceassertion p
+      )
+      (showDate $ postingDate p)
+      (T.unpack $ paccount p) -- XXX pack
+      (if isinclusive then " (and subs)" else "" :: String)
+      assertedcomm
+      -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
+      (show $ aquantity actualbalincomm)
+      -- (showAmount actualbalincommodity)
+      (show $ aquantity assertedamt)
+      -- (showAmount assertedamt)
+      (show $ aquantity assertedamt - aquantity actualbalincomm)
+
+  when (not pass) $ throwError errmsg
 
 -- | Choose and apply a consistent display format to the posting
 -- amounts in each commodity. Each commodity's format is specified by
