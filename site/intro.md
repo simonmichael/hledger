@@ -106,7 +106,7 @@ that lets you review account balances and transactions quickly and without fuss.
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 
 And, a zero-setup
-[web&nbsp;app](manual.html#web) for a more point-and-click experience
+[web&nbsp;app](hledger-web.html) for a more point-and-click experience
 ([demo](http://demo.hledger.org)).
 Run it on your local machine, or on a server, 
 or set it up with a few clicks on
