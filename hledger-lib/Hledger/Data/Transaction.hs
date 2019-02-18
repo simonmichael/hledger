@@ -235,7 +235,7 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     | postingblock <- postingblocks]
   where
     postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
-    assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity . baamount) $ pbalanceassertion p
+    assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p 
     statusandaccount = indent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
           -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  
@@ -258,6 +258,10 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
+
+-- | Render a balance assertion, as the =[=][*] symbol and expected amount. 
+showBalanceAssertion BalanceAssertion{..} = 
+  "=" ++ ['=' | batotal] ++ ['*' | bainclusive] ++ " " ++ showAmountWithZeroCommodity baamount
 
 -- | Render a posting, simply. Used in balance assertion errors.
 -- showPostingLine p =
@@ -374,6 +378,9 @@ storeTransactionB t = liftB $ \bs ->
 -- by inferring a missing amount or conversion price(s) if needed. 
 -- Or if balancing is not possible, because of unbalanced amounts or 
 -- more than one missing amount, returns an error message.
+-- Note this function may be unable to balance some transactions
+-- that journalBalanceTransactions/balanceTransactionB can balance
+-- (eg ones with balance assignments). 
 -- Whether postings "sum to 0" depends on commodity display precisions,
 -- so those can optionally be provided.
 balanceTransaction ::

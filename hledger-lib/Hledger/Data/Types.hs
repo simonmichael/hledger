@@ -278,6 +278,7 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
 data BalanceAssertion = BalanceAssertion {
       baamount    :: Amount,             -- ^ the expected balance in a particular commodity
       batotal     :: Bool,               -- ^ disallow additional non-asserted commodities ?
+      bainclusive :: Bool,               -- ^ include subaccounts when calculating the actual balance ?
       baposition  :: GenericSourcePos    -- ^ the assertion's file position, for error reporting
     } deriving (Eq,Typeable,Data,Generic,Show)
 

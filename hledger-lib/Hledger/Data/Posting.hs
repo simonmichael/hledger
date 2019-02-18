@@ -105,6 +105,7 @@ nullassertion, assertion :: BalanceAssertion
 nullassertion = BalanceAssertion
                   {baamount=nullamt
                   ,batotal=False
+                  ,bainclusive=False
                   ,baposition=nullsourcepos
                   }
 assertion = nullassertion

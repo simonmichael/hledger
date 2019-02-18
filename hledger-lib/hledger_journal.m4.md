@@ -337,8 +337,8 @@ Virtual postings have some legitimate uses, but those are few. You can usually f
 hledger supports 
 [Ledger-style balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
 in journal files.
-These look like `=EXPECTEDBALANCE` following a posting's amount. Eg in
-this example we assert the expected dollar balance in accounts a and b after
+These look like, for example, `= EXPECTEDBALANCE` following a posting's amount. 
+Eg here we assert the expected dollar balance in accounts a and b after
 each posting:
 
 ```journal
@@ -355,7 +355,7 @@ After reading a journal file, hledger will check all balance
 assertions and report an error if any of them fail. Balance assertions
 can protect you from, eg, inadvertently disrupting reconciled balances
 while cleaning up old entries. You can disable them temporarily with
-the `--ignore-assertions` flag, which can be useful for
+the `-I/--ignore-assertions` flag, which can be useful for
 troubleshooting or for reading Ledger files.
 
 ### Assertions and ordering
@@ -399,10 +399,10 @@ We could call this a "partial" balance assertion.
 To assert the balance of more than one commodity in an account, 
 you can write multiple postings, each asserting one commodity's balance.
 
-You can make a stronger kind of balance assertion, by writing a 
-double equals sign (`==EXPECTEDBALANCE`). 
-This "complete" balance assertion asserts the absence of other commodities 
-(or, that their balance is 0, which to hledger is equivalent.) 
+You can make a stronger "total" balance assertion by writing a 
+double equals sign (`== EXPECTEDBALANCE`). 
+This asserts that there are no other unasserted commodities in the account 
+(or, that their balance is 0). 
 
 ``` {.journal}
 2013/1/1
@@ -453,21 +453,16 @@ and because [balance *assignments*](#balance-assignments) do use them (see below
 
 ### Assertions and subaccounts
 
-Balance assertions do not count the balance from subaccounts; they check
-the posted account's exclusive balance. For example:
+The balance assertions above (`=` and `==`) do not count the balance 
+from subaccounts; they check the account's exclusive balance only. 
+You can assert the balance including subaccounts by writing `=*` or `==*`, eg: 
+
 ```journal
-1/1
-  checking:fund   1 = 1  ; post to this subaccount, its balance is now 1
-  checking        1 = 1  ; post to the parent account, its exclusive balance is now 1
-  equity
-```
-The balance report's flat mode shows these exclusive balances more clearly:
-```shell
-$ hledger bal checking --flat
-                   1  checking
-                   1  checking:fund
---------------------
-                   2
+2019/1/1
+  equity:opening balances
+  checking:a       5
+  checking:b       5
+  checking         1  ==* 11
 ```
 
 ### Assertions and virtual postings
