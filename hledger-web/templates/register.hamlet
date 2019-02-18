@@ -19,11 +19,11 @@
 
     <tbody>
       $forall (torig, tacct, split, acct, amt, bal) <- items
-        <tr ##{tindex torig} title="#{show torig}" style="vertical-align:top;">
+        <tr ##{tindex torig} title="#{showTransaction torig}" style="vertical-align:top;">
           <td .date>
             <a href="@{JournalR}#transaction-#{tindex torig}">
               #{show (tdate tacct)}
-          <td title="#{show torig}">
+          <td>
             #{textElideRight 30 (tdescription tacct)}
           <td .account>
             #{elideRight 40 acct}

@@ -38,7 +38,7 @@
             #{simpleMixedAmountQuantity $ triCommodityBalance c i},
             '#{showMixedAmountWithZeroCommodity $ triCommodityAmount c i}',
             '#{showMixedAmountWithZeroCommodity $ triCommodityBalance c i}',
-            '#{concat $ intersperse "\\n" $ lines  $ show $ triOrigTransaction i}',
+            '#{concat $ intersperse "\\n" $ lines  $ showTransaction $ triOrigTransaction i}',
             #{tindex $ triOrigTransaction i}
            ],
           /* [] */

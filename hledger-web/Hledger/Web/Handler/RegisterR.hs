@@ -58,3 +58,4 @@ dayToJsTimestamp d =
   read (formatTime defaultTimeLocale "%s" t) * 1000 -- XXX read
   where
     t = UTCTime d (secondsToDiffTime 0)
+
