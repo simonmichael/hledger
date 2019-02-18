@@ -25,7 +25,7 @@ module Hledger.Data.Posting (
   isVirtual,
   isBalancedVirtual,
   isEmptyPosting,
-  isAssignment,
+  hasBalanceAssignment,
   hasAmount,
   postingAllTags,
   transactionAllTags,
@@ -144,8 +144,8 @@ isBalancedVirtual p = ptype p == BalancedVirtualPosting
 hasAmount :: Posting -> Bool
 hasAmount = (/= missingmixedamt) . pamount
 
-isAssignment :: Posting -> Bool
-isAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
+hasBalanceAssignment :: Posting -> Bool
+hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
 
 -- | Sorted unique account names referenced by these postings.
 accountNamesFromPostings :: [Posting] -> [AccountName]

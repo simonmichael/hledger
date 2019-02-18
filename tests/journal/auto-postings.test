@@ -162,7 +162,7 @@ $ hledger -f- print --auto -x
 
 # 9.
 $ hledger print -f- --auto
->2 /cannot assign amount to account/
+>2 /cannot be used with accounts which are/
 >=1
 
 

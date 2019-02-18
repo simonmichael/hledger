@@ -231,27 +231,10 @@ hledger -f - stats
   a    $1  =$1
   b         =$-1  ; date:2012/1/1
 
->>>2  /postings may not have both a custom date and a balance assignment/
+>>>2  /balance assignments may not have a custom date/
 >>>=1
 
-# 13. Having both assignments and posting dates is not supported.
-hledger -f - stats
-<<<
-
-2013/1/1
-  a    1 = -2
-  b
-  c   = 5
-
-2014/1/1
-  a    -3 = -3  ; date:2012/1/1
-  d      = 3
-
-
->>>2  /postings may not have both a custom date and a balance assignment/
->>>=1
-
-# 14. Posting Date
+# 13. Posting Date
 hledger -f - stats
 <<<
 
@@ -276,7 +259,7 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 15. Mix different commodities
+# 14. Mix different commodities
 hledger -f - stats
 <<<
 2016/1/1
@@ -290,7 +273,7 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 16. Mix different commodities and assignments
+# 15. Mix different commodities and assignments
 hledger -f - stats
 <<<
 2016/1/1
@@ -311,7 +294,7 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 17. Total assertions (==) parse correctly
+# 16. Total assertions (==) parse correctly
 hledger -f - stats
 <<<
 2016/1/1
@@ -324,7 +307,7 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 18. Total assertions consider entire multicommodity amount
+# 17. Total assertions consider entire multicommodity amount
 hledger -f - stats
 <<<
 2016/1/1
@@ -340,7 +323,7 @@ hledger -f - stats
 >>>2 /balance assertion.*line 10, column 15/
 >>>=1
 
-# 19. Mix different commodities and total assignments
+# 18. Mix different commodities and total assignments
 hledger -f - stats
 <<<
 2016/1/1
@@ -359,7 +342,7 @@ hledger -f - stats
 >>>2
 >>>=0
 
-# 20. Balance assertions may have a price, but it's ignored
+# 19. Balance assertions may have a price, but it's ignored
 hledger -f- print
 <<<
 2019/01/01
@@ -370,7 +353,7 @@ hledger -f- print
 
 >>>=0
 
-# 21. Balance assignments may have a price, and it's used for the posting amount.
+# 20. Balance assignments may have a price, and it's used for the posting amount.
 # But not shown as part of the balance assertion in the resulting posting.
 hledger -f- print --explicit
 <<<
@@ -382,7 +365,7 @@ hledger -f- print --explicit
 
 >>>=0
 
-# 22. close generates balance assertions without prices
+# 21. close generates balance assertions without prices
 hledger -f- close -e 2019/1/2
 <<<
 2019/01/01
@@ -398,7 +381,7 @@ hledger -f- close -e 2019/1/2
 
 >>>=0
 
-# 23. The exact amounts are compared; display precision does not affect assertions.
+# 22. The exact amounts are compared; display precision does not affect assertions.
 hledger -f- print
 <<<
 commodity $1000.00
@@ -413,7 +396,7 @@ commodity $1000.00
 >>>2
 >>>=0
 
-# 24. This fails
+# 23. This fails
 hledger -f- print
 <<<
 commodity $1000.00
@@ -427,7 +410,7 @@ commodity $1000.00
 >>>2 /difference: 0\.004/
 >>>=1
 
-# 25. This fails
+# 24. This fails
 hledger -f- print
 <<<
 commodity $1000.00
@@ -441,7 +424,7 @@ commodity $1000.00
 >>>2 /difference: 0\.0001/
 >>>=1
 
-# 26. Inclusive assertions include balances from subaccounts.
+# 25. Inclusive assertions include balances from subaccounts.
 hledger -f- print
 <<<
 2019/1/1
