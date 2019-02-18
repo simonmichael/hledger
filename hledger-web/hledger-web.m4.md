@@ -99,21 +99,25 @@ You can restrict what the users who reach it can do, by
   uses the X-Sandstorm-Permissions header to integrate with Sandstorm's permissions. 
   This is disabled by default.
 
-# EDITING
+# EDITING, UPLOADING, DOWNLOADING
 
-Note that if you enable the `manage` capability mentioned above, 
-hledger-web lets you alter or erase (by editing or uploading) the journal
-file and any files it includes. This is unlike any other hledger command. 
+If you enable the `manage` capability mentioned above,
+you'll see a new "spanner" button to the right of the search form.
+Clicking this will let you edit, upload, or download the journal
+file or any files it includes. 
+
+Note, unlike any other hledger command, in this mode you (or any visitor)
+can alter or wipe the data files. 
 
 Normally whenever a file is changed in this way, hledger-web saves a numbered backup
 (assuming file permissions allow it, the disk is not full, etc.)
-It is not currently aware of version control systems; if you use one,
+hledger-web is not aware of version control systems, currently; if you use one,
 you'll have to arrange to commit the changes yourself (eg with a cron job
 or a file watcher like entr).
 
-Also normally, edits which would leave the journal file(s) unparseable
-or non-valid (eg with failing balance assertions) are prevented
-(this needs re-testing).
+Changes which would leave the journal file(s) unparseable or non-valid 
+(eg with failing balance assertions) are prevented.
+(Probably. This needs re-testing.)
 
 # RELOADING
 
