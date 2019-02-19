@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -96,30 +98,35 @@ getAccountnamesR = do
   selectRep $ do
     provideJson $ journalAccountNames j
 
+getTransactionsR :: Handler TypedContent
 getTransactionsR = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   selectRep $ do
     provideJson $ jtxns j
 
+getPricesR :: Handler TypedContent
 getPricesR = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   selectRep $ do
     provideJson $ jmarketprices j
 
+getCommoditiesR :: Handler TypedContent
 getCommoditiesR = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   selectRep $ do
     provideJson $ (M.keys . jinferredcommodities) j
 
+getAccountsR :: Handler TypedContent
 getAccountsR = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   selectRep $ do
     provideJson $ ledgerTopAccounts $ ledgerFromJournal Any j
 
+getAccounttransactionsR :: Text -> Handler TypedContent
 getAccounttransactionsR a = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
