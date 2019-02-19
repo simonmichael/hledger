@@ -52,6 +52,55 @@ the main journal file (only ?) on every edit.
 Like hledger, it reads _files_
 For more about this see hledger(1), hledger_journal(5) etc.
 
+# OPTIONS
+
+Command-line options and arguments may be used to set an initial
+filter on the data. These filter options are not shown in the web UI, 
+but it will be applied in addition to any search query entered there.
+
+Note: if invoking hledger-web as a hledger subcommand, write `--` before options, 
+as shown in the synopsis above.
+
+`--serve`
+: serve and log requests, don't browse or auto-exit
+
+`--host=IPADDR`
+: listen on this IP address (default: 127.0.0.1)
+
+`--port=PORT`
+: listen on this TCP port (default: 5000)
+
+`--base-url=URL`
+: set the base url (default: http://IPADDR:PORT).
+You would change this when sharing over the network, or integrating within a larger website.
+
+`--file-url=URL`
+: set the static files url (default: BASEURL/static).
+hledger-web normally serves static files itself, but if you wanted to
+serve them from another server for efficiency, you would set the url with this.
+
+`--capabilities=CAP[,CAP..]`
+: enable the view, add, and/or manage capabilities (default: view,add)
+
+`--capabilities-header=HTTPHEADER`
+: read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)
+
+hledger input options:
+
+_inputoptions_
+
+hledger reporting options:
+
+_reportingoptions_
+
+hledger help options:
+
+_helpoptions_
+
+A @FILE argument will be expanded to the contents of FILE,
+which should contain one command line option/argument per line.
+(To prevent this, insert a `--` argument before.)
+
 By default, hledger-web starts the web app in "transient mode" and
 also opens it in your default web browser if possible. In this mode
 the web app will keep running for as long as you have it open in a
@@ -140,55 +189,6 @@ it may be convenient to have them in hledger-web also.
 /accounts
 /accounttransactions/#AccountName
 ```
-
-# OPTIONS
-
-Command-line options and arguments may be used to set an initial
-filter on the data. These filter options are not shown in the web UI, 
-but it will be applied in addition to any search query entered there.
-
-Note: if invoking hledger-web as a hledger subcommand, write `--` before options, 
-as shown in the synopsis above.
-
-`--serve`
-: serve and log requests, don't browse or auto-exit
-
-`--host=IPADDR`
-: listen on this IP address (default: 127.0.0.1)
-
-`--port=PORT`
-: listen on this TCP port (default: 5000)
-
-`--base-url=URL`
-: set the base url (default: http://IPADDR:PORT).
-You would change this when sharing over the network, or integrating within a larger website.
-
-`--file-url=URL`
-: set the static files url (default: BASEURL/static).
-hledger-web normally serves static files itself, but if you wanted to
-serve them from another server for efficiency, you would set the url with this.
-
-`--capabilities=CAP[,CAP..]`
-: enable the view, add, and/or manage capabilities (default: view,add)
-
-`--capabilities-header=HTTPHEADER`
-: read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)
-
-hledger input options:
-
-_inputoptions_
-
-hledger reporting options:
-
-_reportingoptions_
-
-hledger help options:
-
-_helpoptions_
-
-A @FILE argument will be expanded to the contents of FILE,
-which should contain one command line option/argument per line.
-(To prevent this, insert a `--` argument before.)
 
 _man_({{
 
