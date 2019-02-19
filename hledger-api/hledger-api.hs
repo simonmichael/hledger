@@ -166,19 +166,59 @@ hledgerApiApp staticdir j = Servant.serve api server
             thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
           return $ accountTransactionsReport ropts j q thisacctq
 
-instance ToJSON Status where toJSON = genericToJSON defaultOptions -- avoiding https://github.com/bos/aeson/issues/290
-instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
-instance ToJSON Decimal where
-  toJSON = toJSON . show
-instance ToJSON Amount where toJSON = genericToJSON defaultOptions
-instance ToJSON AmountStyle where toJSON = genericToJSON defaultOptions
-instance ToJSON Side where toJSON = genericToJSON defaultOptions
-instance ToJSON DigitGroupStyle where toJSON = genericToJSON defaultOptions
-instance ToJSON MixedAmount where toJSON = genericToJSON defaultOptions
-instance ToJSON BalanceAssertion where toJSON = genericToJSON defaultOptions
-instance ToJSON Price where toJSON = genericToJSON defaultOptions
-instance ToJSON MarketPrice where toJSON = genericToJSON defaultOptions
-instance ToJSON PostingType where toJSON = genericToJSON defaultOptions
+-- avoiding https://github.com/bos/aeson/issues/290 - no longer needed ?
+--instance ToJSON Status where toJSON = genericToJSON defaultOptions -- avoiding https://github.com/bos/aeson/issues/290
+--instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
+--instance ToJSON Decimal where toJSON = toJSON . show
+--instance ToJSON Amount where toJSON = genericToJSON defaultOptions
+--instance ToJSON AmountStyle where toJSON = genericToJSON defaultOptions
+--instance ToJSON Side where toJSON = genericToJSON defaultOptions
+--instance ToJSON DigitGroupStyle where toJSON = genericToJSON defaultOptions
+--instance ToJSON MixedAmount where toJSON = genericToJSON defaultOptions
+--instance ToJSON BalanceAssertion where toJSON = genericToJSON defaultOptions
+--instance ToJSON Price where toJSON = genericToJSON defaultOptions
+--instance ToJSON MarketPrice where toJSON = genericToJSON defaultOptions
+--instance ToJSON PostingType where toJSON = genericToJSON defaultOptions
+--instance ToJSON Posting where
+--  toJSON Posting{..} =
+--    object
+--    ["pdate"             .= toJSON pdate
+--    ,"pdate2"            .= toJSON pdate2
+--    ,"pstatus"           .= toJSON pstatus
+--    ,"paccount"          .= toJSON paccount
+--    ,"pamount"           .= toJSON pamount
+--    ,"pcomment"          .= toJSON pcomment
+--    ,"ptype"             .= toJSON ptype
+--    ,"ptags"             .= toJSON ptags
+--    ,"pbalanceassertion" .= toJSON pbalanceassertion
+--    ,"ptransactionidx"   .= toJSON (maybe "" (show.tindex) ptransaction)
+--    ]
+--instance ToJSON Transaction where toJSON = genericToJSON defaultOptions
+--instance ToJSON Account where
+--  toJSON a =
+--    object
+--    ["aname"        .= toJSON (aname a)
+--    ,"aebalance"    .= toJSON (aebalance a)
+--    ,"aibalance"    .= toJSON (aibalance a)
+--    ,"anumpostings" .= toJSON (anumpostings a)
+--    ,"aboring"      .= toJSON (aboring a)
+--    ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
+--    ,"asubs"        .= toJSON (map toJSON $ asubs a)
+--    ]
+
+-- Convert things to JSON for serving to clients
+instance ToJSON Status
+instance ToJSON GenericSourcePos
+instance ToJSON Decimal where toJSON = toJSON . show
+instance ToJSON Amount
+instance ToJSON AmountStyle
+instance ToJSON Side
+instance ToJSON DigitGroupStyle
+instance ToJSON MixedAmount
+instance ToJSON BalanceAssertion
+instance ToJSON Price
+instance ToJSON MarketPrice
+instance ToJSON PostingType
 instance ToJSON Posting where
   toJSON Posting{..} =
     object
@@ -193,7 +233,7 @@ instance ToJSON Posting where
     ,"pbalanceassertion" .= toJSON pbalanceassertion
     ,"ptransactionidx"   .= toJSON (maybe "" (show.tindex) ptransaction)
     ]
-instance ToJSON Transaction where toJSON = genericToJSON defaultOptions
+instance ToJSON Transaction
 instance ToJSON Account where
   toJSON a =
     object
@@ -205,6 +245,8 @@ instance ToJSON Account where
     ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
     ,"asubs"        .= toJSON (map toJSON $ asubs a)
     ]
+
+-- convert things to Schema for swagger API description
 instance ToSchema Status
 instance ToSchema GenericSourcePos
 instance ToSchema Decimal
