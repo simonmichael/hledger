@@ -85,9 +85,9 @@ library:
   - Hledger.Web.Application
   - Hledger.Web.Foundation
   - Hledger.Web.Handler.AddR
-  - Hledger.Web.Handler.Common
   - Hledger.Web.Handler.EditR
   - Hledger.Web.Handler.JournalR
+  - Hledger.Web.Handler.MiscR
   - Hledger.Web.Handler.RegisterR
   - Hledger.Web.Handler.UploadR
   - Hledger.Web.Import
@@ -100,6 +100,7 @@ library:
   dependencies:
   - hledger-lib >=1.13.99 && <1.14
   - hledger >=1.13.99 && <1.14
+  - aeson
   - base >=4.8 && <4.13
   - blaze-html
   - blaze-markup
@@ -109,7 +110,9 @@ library:
   - cmdargs >=0.10
   - conduit
   - conduit-extra >=1.1
+  - containers
   - data-default
+  - Decimal
   - directory
   - filepath
   - hjsmin

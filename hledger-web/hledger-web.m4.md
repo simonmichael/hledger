@@ -127,6 +127,20 @@ when you reload the page or navigate to a new page.
 If a change makes a file unparseable,
 hledger-web will display an error message until the file has been fixed.
 
+# JSON API
+
+In addition to the web UI, hledger-web provides some JSON API routes.
+These are similar to the API provided by the hledger-api tool, but 
+it may be convenient to have them in hledger-web also. 
+```
+/accountnames
+/transactions
+/prices
+/commodities
+/accounts
+/accounttransactions/#AccountName
+```
+
 # OPTIONS
 
 Command-line options and arguments may be used to set an initial

@@ -15,13 +15,13 @@ import Network.HTTP.Conduit (newManager)
 import Yesod.Default.Config
 
 import Hledger.Data (Journal, nulljournal)
-import Hledger.Web.Handler.AddR (getAddR, postAddR)
-import Hledger.Web.Handler.Common
-       (getDownloadR, getFaviconR, getManageR, getRobotsR, getRootR)
-import Hledger.Web.Handler.EditR (getEditR, postEditR)
-import Hledger.Web.Handler.UploadR (getUploadR, postUploadR)
-import Hledger.Web.Handler.JournalR (getJournalR)
-import Hledger.Web.Handler.RegisterR (getRegisterR)
+
+import Hledger.Web.Handler.AddR
+import Hledger.Web.Handler.MiscR 
+import Hledger.Web.Handler.EditR
+import Hledger.Web.Handler.UploadR
+import Hledger.Web.Handler.JournalR
+import Hledger.Web.Handler.RegisterR
 import Hledger.Web.Import
 import Hledger.Web.WebOptions (WebOpts(serve_))
 

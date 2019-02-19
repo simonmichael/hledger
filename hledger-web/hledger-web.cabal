@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 111bbf39fca3b1185b40e54b3537eee7c1798cd31d4b60ac071410e7ec0631f9
+-- hash: 561c0c98e7883244294c66058dba4862cbb498a2f5211e2abdd034ff7156be9a
 
 name:           hledger-web
 version:        1.13.99
@@ -133,9 +133,9 @@ library
       Hledger.Web.Application
       Hledger.Web.Foundation
       Hledger.Web.Handler.AddR
-      Hledger.Web.Handler.Common
       Hledger.Web.Handler.EditR
       Hledger.Web.Handler.JournalR
+      Hledger.Web.Handler.MiscR
       Hledger.Web.Handler.RegisterR
       Hledger.Web.Handler.UploadR
       Hledger.Web.Import
@@ -152,7 +152,9 @@ library
   ghc-options: -Wall -fwarn-tabs
   cpp-options: -DVERSION="1.13.99"
   build-depends:
-      base >=4.8 && <4.13
+      Decimal
+    , aeson
+    , base >=4.8 && <4.13
     , blaze-html
     , blaze-markup
     , bytestring
@@ -161,6 +163,7 @@ library
     , cmdargs >=0.10
     , conduit
     , conduit-extra >=1.1
+    , containers
     , data-default
     , directory
     , filepath

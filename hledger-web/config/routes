@@ -11,3 +11,10 @@
 /edit/#FilePath     EditR           GET POST
 /upload/#FilePath   UploadR         GET POST
 /download/#FilePath DownloadR       GET
+
+/accountnames                      AccountnamesR         GET
+/transactions                      TransactionsR         GET
+/prices                            PricesR               GET
+/commodities                       CommoditiesR          GET
+/accounts                          AccountsR             GET
+/accounttransactions/#AccountName  AccounttransactionsR  GET
