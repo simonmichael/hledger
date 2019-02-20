@@ -9,11 +9,13 @@ module Hledger.Web.Handler.AddR
   , postAddR
   ) where
 
+import qualified Data.Text as T
+import Text.Blaze.Html (preEscapedToHtml)
+
 import Hledger
 import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout)
 import Hledger.Web.Import
 import Hledger.Web.Widget.AddForm (addForm)
-import Hledger.Web.Widget.Common (fromFormSuccess)
 
 getAddR :: Handler ()
 getAddR = postAddR
@@ -24,12 +26,18 @@ postAddR = do
   when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
 
   ((res, view), enctype) <- runFormPost $ addForm j today
-  t <- txnTieKnot <$> fromFormSuccess (showForm view enctype) res
-  -- XXX(?) move into balanceTransaction
-  liftIO $ ensureJournalFileExists (journalFilePath j)
-  liftIO $ appendToJournalFileOrStdout (journalFilePath j) (showTransaction t)
-  setMessage "Transaction added."
-  redirect JournalR
+  case res of
+    FormSuccess res' -> do
+      let t = txnTieKnot res'
+      -- XXX(?) move into balanceTransaction
+      liftIO $ ensureJournalFileExists (journalFilePath j)
+      liftIO $ appendToJournalFileOrStdout (journalFilePath j) (showTransaction t)
+      setMessage "Transaction added."
+      redirect JournalR
+    FormMissing -> showForm view enctype
+    FormFailure errs -> do
+      mapM_ (setMessage . preEscapedToHtml . T.replace "\n" "<br>") errs
+      showForm view enctype
   where
     showForm view enctype =
       sendResponse =<< defaultLayout [whamlet|
