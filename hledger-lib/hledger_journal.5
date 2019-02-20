@@ -491,10 +491,10 @@ which is more correct and provides better error checking.
 .SS Balance Assertions
 .PP
 hledger supports Ledger\-style balance assertions in journal files.
-These look like \f[C]=EXPECTEDBALANCE\f[] following a posting\[aq]s
-amount.
-Eg in this example we assert the expected dollar balance in accounts a
-and b after each posting:
+These look like, for example, \f[C]=\ EXPECTEDBALANCE\f[] following a
+posting\[aq]s amount.
+Eg here we assert the expected dollar balance in accounts a and b after
+each posting:
 .IP
 .nf
 \f[C]
@@ -513,7 +513,7 @@ and report an error if any of them fail.
 Balance assertions can protect you from, eg, inadvertently disrupting
 reconciled balances while cleaning up old entries.
 You can disable them temporarily with the
-\f[C]\-\-ignore\-assertions\f[] flag, which can be useful for
+\f[C]\-I/\-\-ignore\-assertions\f[] flag, which can be useful for
 troubleshooting or for reading Ledger files.
 .SS Assertions and ordering
 .PP
@@ -558,11 +558,10 @@ We could call this a "partial" balance assertion.
 To assert the balance of more than one commodity in an account, you can
 write multiple postings, each asserting one commodity\[aq]s balance.
 .PP
-You can make a stronger kind of balance assertion, by writing a double
-equals sign (\f[C]==EXPECTEDBALANCE\f[]).
-This "complete" balance assertion asserts the absence of other
-commodities (or, that their balance is 0, which to hledger is
-equivalent.)
+You can make a stronger "total" balance assertion by writing a double
+equals sign (\f[C]==\ EXPECTEDBALANCE\f[]).
+This asserts that there are no other unasserted commodities in the
+account (or, that their balance is 0).
 .IP
 .nf
 \f[C]
@@ -619,29 +618,19 @@ generate balance assertions with prices), and because balance
 \f[I]assignments\f[] do use them (see below).
 .SS Assertions and subaccounts
 .PP
-Balance assertions do not count the balance from subaccounts; they check
-the posted account\[aq]s exclusive balance.
-For example:
+The balance assertions above (\f[C]=\f[] and \f[C]==\f[]) do not count
+the balance from subaccounts; they check the account\[aq]s exclusive
+balance only.
+You can assert the balance including subaccounts by writing \f[C]=*\f[]
+or \f[C]==*\f[], eg:
 .IP
 .nf
 \f[C]
-1/1
-\ \ checking:fund\ \ \ 1\ =\ 1\ \ ;\ post\ to\ this\ subaccount,\ its\ balance\ is\ now\ 1
-\ \ checking\ \ \ \ \ \ \ \ 1\ =\ 1\ \ ;\ post\ to\ the\ parent\ account,\ its\ exclusive\ balance\ is\ now\ 1
-\ \ equity
-\f[]
-.fi
-.PP
-The balance report\[aq]s flat mode shows these exclusive balances more
-clearly:
-.IP
-.nf
-\f[C]
-$\ hledger\ bal\ checking\ \-\-flat
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1\ \ checking
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1\ \ checking:fund
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2
+2019/1/1
+\ \ equity:opening\ balances
+\ \ checking:a\ \ \ \ \ \ \ 5
+\ \ checking:b\ \ \ \ \ \ \ 5
+\ \ checking\ \ \ \ \ \ \ \ \ 1\ \ ==*\ 11
 \f[]
 .fi
 .SS Assertions and virtual postings

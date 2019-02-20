@@ -449,9 +449,9 @@ File: hledger_journal.info,  Node: Balance Assertions,  Next: Balance Assignment
 ======================
 
 hledger supports Ledger-style balance assertions in journal files.
-These look like '=EXPECTEDBALANCE' following a posting's amount.  Eg in
-this example we assert the expected dollar balance in accounts a and b
-after each posting:
+These look like, for example, '= EXPECTEDBALANCE' following a posting's
+amount.  Eg here we assert the expected dollar balance in accounts a and
+b after each posting:
 
 2013/1/1
   a   $1  =$1
@@ -465,8 +465,8 @@ after each posting:
 assertions and report an error if any of them fail.  Balance assertions
 can protect you from, eg, inadvertently disrupting reconciled balances
 while cleaning up old entries.  You can disable them temporarily with
-the '--ignore-assertions' flag, which can be useful for troubleshooting
-or for reading Ledger files.
+the '-I/--ignore-assertions' flag, which can be useful for
+troubleshooting or for reading Ledger files.
 * Menu:
 
 * Assertions and ordering::
@@ -533,10 +533,10 @@ This is how assertions work in Ledger also.  We could call this a
    To assert the balance of more than one commodity in an account, you
 can write multiple postings, each asserting one commodity's balance.
 
-   You can make a stronger kind of balance assertion, by writing a
-double equals sign ('==EXPECTEDBALANCE').  This "complete" balance
-assertion asserts the absence of other commodities (or, that their
-balance is 0, which to hledger is equivalent.)
+   You can make a stronger "total" balance assertion by writing a double
+equals sign ('== EXPECTEDBALANCE').  This asserts that there are no
+other unasserted commodities in the account (or, that their balance is
+0).
 
 2013/1/1
   a   $1
@@ -591,22 +591,16 @@ File: hledger_journal.info,  Node: Assertions and subaccounts,  Next: Assertions
 1.9.6 Assertions and subaccounts
 --------------------------------
 
-Balance assertions do not count the balance from subaccounts; they check
-the posted account's exclusive balance.  For example:
+The balance assertions above ('=' and '==') do not count the balance
+from subaccounts; they check the account's exclusive balance only.  You
+can assert the balance including subaccounts by writing '=*' or '==*',
+eg:
 
-1/1
-  checking:fund   1 = 1  ; post to this subaccount, its balance is now 1
-  checking        1 = 1  ; post to the parent account, its exclusive balance is now 1
-  equity
-
-   The balance report's flat mode shows these exclusive balances more
-clearly:
-
-$ hledger bal checking --flat
-                   1  checking
-                   1  checking:fund
---------------------
-                   2
+2019/1/1
+  equity:opening balances
+  checking:a       5
+  checking:b       5
+  checking         1  ==* 11
 
 
 File: hledger_journal.info,  Node: Assertions and virtual postings,  Next: Assertions and precision,  Prev: Assertions and subaccounts,  Up: Balance Assertions
@@ -1619,81 +1613,81 @@ Node: Virtual Postings15032
 Ref: #virtual-postings15191
 Node: Balance Assertions16411
 Ref: #balance-assertions16586
-Node: Assertions and ordering17537
-Ref: #assertions-and-ordering17723
-Node: Assertions and included files18423
-Ref: #assertions-and-included-files18664
-Node: Assertions and multiple -f options18997
-Ref: #assertions-and-multiple--f-options19251
-Node: Assertions and commodities19383
-Ref: #assertions-and-commodities19613
-Node: Assertions and prices20801
-Ref: #assertions-and-prices21013
-Node: Assertions and subaccounts21453
-Ref: #assertions-and-subaccounts21680
-Node: Assertions and virtual postings22201
-Ref: #assertions-and-virtual-postings22441
-Node: Assertions and precision22583
-Ref: #assertions-and-precision22774
-Node: Balance Assignments23041
-Ref: #balance-assignments23222
-Node: Balance assignments and prices24386
-Ref: #balance-assignments-and-prices24558
-Node: Transaction prices24782
-Ref: #transaction-prices24951
-Node: Comments27219
-Ref: #comments27353
-Node: Tags28523
-Ref: #tags28641
-Node: Directives30043
-Ref: #directives30186
-Node: Comment blocks35793
-Ref: #comment-blocks35938
-Node: Including other files36114
-Ref: #including-other-files36294
-Node: Default year36702
-Ref: #default-year36871
-Node: Declaring commodities37294
-Ref: #declaring-commodities37477
-Node: Default commodity38704
-Ref: #default-commodity38880
-Node: Market prices39516
-Ref: #market-prices39681
-Node: Declaring accounts40522
-Ref: #declaring-accounts40698
-Node: Account comments41623
-Ref: #account-comments41786
-Node: Account subdirectives42181
-Ref: #account-subdirectives42376
-Node: Account types42689
-Ref: #account-types42873
-Node: Account display order44517
-Ref: #account-display-order44687
-Node: Rewriting accounts45816
-Ref: #rewriting-accounts46001
-Node: Basic aliases46735
-Ref: #basic-aliases46881
-Node: Regex aliases47585
-Ref: #regex-aliases47756
-Node: Multiple aliases48474
-Ref: #multiple-aliases48649
-Node: end aliases49147
-Ref: #end-aliases49294
-Node: Default parent account49395
-Ref: #default-parent-account49561
-Node: Periodic transactions50445
-Ref: #periodic-transactions50627
-Node: Two spaces after the period expression51752
-Ref: #two-spaces-after-the-period-expression51997
-Node: Forecasting with periodic transactions52482
-Ref: #forecasting-with-periodic-transactions52772
-Node: Budgeting with periodic transactions54459
-Ref: #budgeting-with-periodic-transactions54698
-Node: Transaction modifiers55157
-Ref: #transaction-modifiers55320
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions57304
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions57605
-Node: EDITOR SUPPORT57983
-Ref: #editor-support58101
+Node: Assertions and ordering17544
+Ref: #assertions-and-ordering17730
+Node: Assertions and included files18430
+Ref: #assertions-and-included-files18671
+Node: Assertions and multiple -f options19004
+Ref: #assertions-and-multiple--f-options19258
+Node: Assertions and commodities19390
+Ref: #assertions-and-commodities19620
+Node: Assertions and prices20776
+Ref: #assertions-and-prices20988
+Node: Assertions and subaccounts21428
+Ref: #assertions-and-subaccounts21655
+Node: Assertions and virtual postings21979
+Ref: #assertions-and-virtual-postings22219
+Node: Assertions and precision22361
+Ref: #assertions-and-precision22552
+Node: Balance Assignments22819
+Ref: #balance-assignments23000
+Node: Balance assignments and prices24164
+Ref: #balance-assignments-and-prices24336
+Node: Transaction prices24560
+Ref: #transaction-prices24729
+Node: Comments26997
+Ref: #comments27131
+Node: Tags28301
+Ref: #tags28419
+Node: Directives29821
+Ref: #directives29964
+Node: Comment blocks35571
+Ref: #comment-blocks35716
+Node: Including other files35892
+Ref: #including-other-files36072
+Node: Default year36480
+Ref: #default-year36649
+Node: Declaring commodities37072
+Ref: #declaring-commodities37255
+Node: Default commodity38482
+Ref: #default-commodity38658
+Node: Market prices39294
+Ref: #market-prices39459
+Node: Declaring accounts40300
+Ref: #declaring-accounts40476
+Node: Account comments41401
+Ref: #account-comments41564
+Node: Account subdirectives41959
+Ref: #account-subdirectives42154
+Node: Account types42467
+Ref: #account-types42651
+Node: Account display order44295
+Ref: #account-display-order44465
+Node: Rewriting accounts45594
+Ref: #rewriting-accounts45779
+Node: Basic aliases46513
+Ref: #basic-aliases46659
+Node: Regex aliases47363
+Ref: #regex-aliases47534
+Node: Multiple aliases48252
+Ref: #multiple-aliases48427
+Node: end aliases48925
+Ref: #end-aliases49072
+Node: Default parent account49173
+Ref: #default-parent-account49339
+Node: Periodic transactions50223
+Ref: #periodic-transactions50405
+Node: Two spaces after the period expression51530
+Ref: #two-spaces-after-the-period-expression51775
+Node: Forecasting with periodic transactions52260
+Ref: #forecasting-with-periodic-transactions52550
+Node: Budgeting with periodic transactions54237
+Ref: #budgeting-with-periodic-transactions54476
+Node: Transaction modifiers54935
+Ref: #transaction-modifiers55098
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions57082
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions57383
+Node: EDITOR SUPPORT57761
+Ref: #editor-support57879
 
 End Tag Table
