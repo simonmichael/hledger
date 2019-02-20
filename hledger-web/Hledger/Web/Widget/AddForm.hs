@@ -21,7 +21,7 @@ import qualified Data.Text as T
 import Data.Time (Day)
 import Text.Blaze.Internal (Markup, preEscapedString)
 import Text.JSON
-import Text.Megaparsec (eof, errorBundlePretty, runParser)
+import Text.Megaparsec (bundleErrors, eof, parseErrorTextPretty, runParser)
 import Yesod
 
 import Hledger
@@ -67,13 +67,7 @@ addForm j today = identifyForm "add" $ \extra -> do
   (descRes, descView) <- mreq textField descFS Nothing
   (acctRes, _) <- mreq listField acctFS Nothing
   (amtRes, _) <- mreq listField amtFS Nothing
-
-  let (msgs', postRes) = case validatePostings <$> acctRes <*> amtRes of
-        FormSuccess (Left es) -> (es, FormFailure ["Postings validation failed"])
-        FormSuccess (Right xs) -> ([], FormSuccess xs)
-        FormMissing -> ([], FormMissing)
-        FormFailure es -> ([], FormFailure es)
-      msgs = zip [(1 :: Int)..] $ msgs' ++ replicate (4 - length msgs') ("", "", Nothing, Nothing)
+  let (postRes, displayRows) = validatePostings acctRes amtRes
 
   let descriptions = sort $ nub $ tdescription <$> jtxns j
       escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236
@@ -81,11 +75,8 @@ addForm j today = identifyForm "add" $ \extra -> do
         encode . JSArray . fmap (\a -> JSObject $ toJSObject [("value", showJSON a)])
       journals = fst <$> jfiles j
 
-  pure (makeTransaction <$> dateRes <*> descRes <*> postRes, $(widgetFile "add-form"))
+  pure (validateTransaction dateRes descRes postRes, $(widgetFile "add-form"))
   where
-    makeTransaction date desc postings =
-      nulltransaction {tdate = date, tdescription = desc, tpostings = postings}
-
     dateFS = FieldSettings "date" Nothing Nothing (Just "date")
       [("class", "form-control input-lg"), ("placeholder", "Date")]
     descFS = FieldSettings "desc" Nothing Nothing (Just "description")
@@ -103,42 +94,90 @@ addForm j today = identifyForm "add" $ \extra -> do
       , fieldEnctype = UrlEncoded
       }
 
-validatePostings :: [Text] -> [Text] -> Either [(Text, Text, Maybe Text, Maybe Text)] [Posting]
-validatePostings a b =
-  case traverse id $ (\(_, _, x) -> x) <$> postings of
-    Left _ -> Left $ foldr catPostings [] postings
-    Right [] -> Left
-      [ ("", "", Just "Missing account", Just "Missing amount")
-      , ("", "", Just "Missing account", Nothing)
-      ]
-    Right [p] -> Left
-      [ (paccount p, T.pack . showMixedAmountWithoutPrice $ pamount p, Nothing, Nothing)
-      , ("", "", Just "Missing account", Nothing)
-      ]
-    Right xs -> Right xs
+validateTransaction ::
+     FormResult Day
+  -> FormResult Text
+  -> FormResult [Posting]
+  -> FormResult Transaction
+validateTransaction dateRes descRes postingsRes =
+  case makeTransaction <$> dateRes <*> descRes <*> postingsRes of
+    FormSuccess txn -> case balanceTransaction Nothing txn of
+      Left e -> FormFailure [T.pack e]
+      Right txn' -> FormSuccess txn'
+    x -> x
   where
-    postings = unfoldr go (True, a, b)
+    makeTransaction date desc postings =
+      nulltransaction {tdate = date, tdescription = desc, tpostings = postings}
 
-    go (_, x:xs, y:ys) = Just ((x, y, zipPosting (validateAccount x) (validateAmount y)), (True, xs, ys))
-    go (True, x:y:xs, []) = Just ((x, "", zipPosting (validateAccount x) (Left "Missing amount")), (True, y:xs, []))
-    go (True, x:xs, []) = Just ((x, "", zipPosting (validateAccount x) (Right missingamt)), (False, xs, []))
-    go (False, x:xs, []) = Just ((x, "", zipPosting (validateAccount x) (Left "Missing amount")), (False, xs, []))
-    go (_, [], y:ys) = Just (("", y, zipPosting (Left "Missing account") (validateAmount y)), (False, [], ys))
-    go (_, [], []) = Nothing
 
-    zipPosting = zipEither (\acc amt -> nullposting {paccount = acc, pamount = Mixed [amt]})
+-- | Parse a list of postings out of a list of accounts and a corresponding list
+-- of amounts
+validatePostings ::
+     FormResult [Text]
+  -> FormResult [Text]
+  -> (FormResult [Posting], [(Int, (Text, Text, Maybe Text, Maybe Text))])
+validatePostings acctRes amtRes = let
 
-    catPostings (t, t', Left (e, e')) xs = (t, t', e, e') : xs
-    catPostings (t, t', Right _) xs = (t, t', Nothing, Nothing) : xs
+  -- Zip accounts and amounts, fill in missing values and drop empty rows.
+  rows :: [(Text, Text)]
+  rows = filter (/= ("", "")) $ zipDefault "" (formSuccess [] acctRes) (formSuccess [] amtRes)
 
-    errorToFormMsg = first (("Invalid value: " <>) . T.pack . errorBundlePretty)
-    validateAccount = errorToFormMsg . runParser (accountnamep <* eof) "" . T.strip
-    validateAmount = errorToFormMsg . runParser (evalStateT (amountp <* eof) mempty) "" . T.strip
+  -- Parse values and check for incomplete rows with only an account or an amount.
+  -- The boolean in unfoldr state is for special handling of 'missingamt', where
+  -- one row may have only an account and not an amount.
+  postings :: [(Text, Text, Either (Maybe Text, Maybe Text) Posting)]
+  postings = unfoldr go (True, rows)
+  go (True, (x, ""):y:xs) = Just ((x, "", zipRow (checkAccount x) (Left "Missing amount")), (True, y:xs))
+  go (True, (x, ""):xs) = Just ((x, "", zipRow (checkAccount x) (Right missingamt)), (False, xs))
+  go (False, (x, ""):xs) = Just ((x, "", zipRow (checkAccount x) (Left "Missing amount")), (False, xs))
+  go (_, ("", y):xs) = Just (("", y, zipRow (Left "Missing account") (checkAmount y)), (False, xs))
+  go (_, (x, y):xs) = Just ((x, y, zipRow (checkAccount x) (checkAmount y)), (True, xs))
+  go (_, []) = Nothing
 
--- Modification of Align, from the `these` package
-zipEither :: (a -> a' -> r) -> Either e a -> Either e' a' -> Either (Maybe e, Maybe e') r
-zipEither f a b = case (a, b) of
-  (Right a', Right b') -> Right (f a' b')
-  (Left a', Right _) -> Left (Just a', Nothing)
-  (Right _, Left b') -> Left (Nothing, Just b')
-  (Left a', Left b') -> Left (Just a', Just b')
+  zipRow (Left e) (Left e') = Left (Just e, Just e')
+  zipRow (Left e) (Right _) = Left (Just e, Nothing)
+  zipRow (Right _) (Left e) = Left (Nothing, Just e)
+  zipRow (Right acct) (Right amt) = Right (nullposting {paccount = acct, pamount = Mixed [amt]})
+
+  errorToFormMsg = first (("Invalid value: " <>) . T.pack .
+                          foldl (\s a -> s <> parseErrorTextPretty a) "" .
+                          bundleErrors)
+  checkAccount = errorToFormMsg . runParser (accountnamep <* eof) "" . T.strip
+  checkAmount = errorToFormMsg . runParser (evalStateT (amountp <* eof) mempty) "" . T.strip
+
+  -- Add errors to forms with zero or one rows if the form is not a FormMissing
+  result :: [(Text, Text, Either (Maybe Text, Maybe Text) Posting)]
+  result = case (acctRes, amtRes) of
+    (FormMissing, FormMissing) -> postings
+    _ -> case postings of
+      [] -> [ ("", "", Left (Just "Missing account", Just "Missing amount"))
+           , ("", "", Left (Just "Missing account", Nothing))
+           ]
+      [x] -> [x, ("", "", Left (Just "Missing account", Nothing))]
+      xs -> xs
+
+  -- Prepare rows for rendering - resolve Eithers into error messages and pad to
+  -- at least four rows
+  display' = flip fmap result $ \(acc, amt, res) -> case res of
+    Left (mAccountErr, mAmountErr) -> (acc, amt, mAccountErr, mAmountErr)
+    Right _ -> (acc, amt, Nothing, Nothing)
+  display = display' ++ replicate (4 - length display') ("", "", Nothing, Nothing)
+
+  -- And finally prepare the final FormResult [Posting]
+  formResult = case traverse (\(_, _, x) -> x) result of
+    Left _ -> FormFailure ["Postings validation failed"]
+    Right xs -> FormSuccess xs
+
+  in (formResult, zip [(1 :: Int)..] display)
+
+
+zipDefault :: a -> [a] -> [a] -> [(a, a)]
+zipDefault def (b:bs) (c:cs) = (b, c):(zipDefault def bs cs)
+zipDefault def (b:bs) [] = (b, def):(zipDefault def bs [])
+zipDefault def [] (c:cs) = (def, c):(zipDefault def [] cs)
+zipDefault _ _ _ = []
+
+formSuccess :: a -> FormResult a -> a
+formSuccess def res = case res of
+  FormSuccess x -> x
+  _ -> def

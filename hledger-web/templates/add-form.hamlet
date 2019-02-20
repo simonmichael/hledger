@@ -40,7 +40,7 @@
     <div .col-md-9 .col-xs-6 .col-sm-6>
 
 <div .account-postings>
-  $forall (n, (acc, amt, accE, amtE)) <- msgs
+  $forall (n, (acc, amt, accE, amtE)) <- displayRows
     <div .form-group .row .account-group>
       <div .col-md-8 .col-xs-8 .col-sm-8 :isJust accE:.has-error>
         <input .account-input.form-control.input-lg.typeahead type=text
