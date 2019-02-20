@@ -195,8 +195,9 @@ instance NFData DigitGroupStyle
 type CommoditySymbol = Text
 
 data Commodity = Commodity {
-  csymbol :: CommoditySymbol,
-  cformat :: Maybe AmountStyle
+  csymbol        :: CommoditySymbol,
+  cformat        :: Maybe AmountStyle,
+  calwaysconvert :: Bool
   } deriving (Show,Eq,Data,Generic) --,Ord,Typeable,Data,Generic)
 
 instance NFData Commodity

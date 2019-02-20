@@ -353,7 +353,7 @@ commoditydirectiveonelinep = do
     pure $ (off, amount)
   lift (skipMany spacenonewline)
   _ <- lift followingcommentp
-  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle, calwaysconvert=False}
   if asdecimalpoint astyle == Nothing
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
@@ -370,8 +370,11 @@ commoditydirectivemultilinep = do
   lift (skipSome spacenonewline)
   sym <- lift commoditysymbolp
   _ <- lift followingcommentp
-  mformat <- lastMay <$> many (indented $ formatdirectivep sym)
-  let comm = Commodity{csymbol=sym, cformat=mformat}
+  modifiers <- many $ indented $ choice
+      [ formatdirectivep sym >>= \m -> return (\c -> c { cformat=Just m })
+      , string "always-convert" >> return (\c -> c { calwaysconvert=True })
+      ]
+  let comm = foldl (flip ($)) Commodity{csymbol=sym, cformat=Nothing, calwaysconvert=False} modifiers
   modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
   where
     indented = (lift (skipSome spacenonewline) >>)
