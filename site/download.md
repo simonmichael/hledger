@@ -37,66 +37,57 @@ a { white-space:nowrap; }
 }
 </style>
 
+<div style="float:right; font-size:small;">
+*(please [update this page](https://github.com/simonmichael/hledger/edit/master/site/download.md),<br>report packaging issues)*
+</div>
 Binaries or system packages are quickest to install, but they can be outdated or incomplete.
 
-**Available binaries / system packages:**
-<div style="float:right; font-size:small;">
-(please [update this page](https://github.com/simonmichael/hledger/edit/master/site/download.md) /
-<br>report issues to packagers)
-</div>
+|                                |                              | Latest release: 1.13.2<br>[Release notes](http://hledger.org/release-notes) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
+|--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| <br><big>**Mac**</big>         |
+| [Homebrew][]                   | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| <br><big>**Windows**</big>     |
+| [Windows&nbsp;binaries][]      | **[hledger.zip](https://ci.appveyor.com/api/buildjobs/vcocma20843lpfdo/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.12
+| [Linuxbrew][]                  | **`brew install hledger`**    | [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| <br><big>**GNU/Linux**</big>   |
+| [Linuxbrew][]                  | **`brew install hledger`**    | [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| [Arch][]                       | **`pacman -S hledger [hledger-ui] [hledger-web] [hledger-api]`** | [![Arch](https://repology.org/badge/version-for-repo/arch/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| [Debian][]                     | **`sudo apt install hledger hledger-ui hledger-web`** | [![Debian Oldstable](https://repology.org/badge/version-for-repo/debian_oldstable/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Debian Stable](https://repology.org/badge/version-for-repo/debian_stable/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Debian Testing](https://repology.org/badge/version-for-repo/debian_testing/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Debian Unstable](https://repology.org/badge/version-for-repo/debian_unstable/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| [Fedora][]                     | **`sudo dnf install hledger`** <br>or (more complete & current):<br>**`sudo dnf copr enable kefah/HLedger && sudo dnf install hledger`** | [![Fedora 26](https://repology.org/badge/version-for-repo/fedora_26/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Fedora 27](https://repology.org/badge/version-for-repo/fedora_27/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Fedora 28](https://repology.org/badge/version-for-repo/fedora_28/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Fedora 29](https://repology.org/badge/version-for-repo/fedora_29/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Fedora Rawhide](https://repology.org/badge/version-for-repo/fedora_rawhide/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| [Gentoo][]                     | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | 1.13.2
+| [Ubuntu][]                     | **`sudo apt install hledger hledger-ui hledger-web`** | [![Ubuntu 12.04](https://repology.org/badge/version-for-repo/ubuntu_12_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 14.04](https://repology.org/badge/version-for-repo/ubuntu_14_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 16.04](https://repology.org/badge/version-for-repo/ubuntu_16_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 17.10](https://repology.org/badge/version-for-repo/ubuntu_17_10/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 18.04](https://repology.org/badge/version-for-repo/ubuntu_18_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 18.10](https://repology.org/badge/version-for-repo/ubuntu_18_10/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 19.04](https://repology.org/badge/version-for-repo/ubuntu_19_04/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| [Void][]                       | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`** | [![Void Linux x86_64](https://repology.org/badge/version-for-repo/void_x86_64/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| <br><big>**BSD**</big>         |
+| OpenBSD                        | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
+| <br><big>**Other**</big>       |
+| [Docker][]                     | **`docker pull dastapov/hledger`** ([more info](https://hub.docker.com/r/dastapov/hledger)) | 1.13.2+
+| [Nix][]                        | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | [![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](https://repology.org/metapackage/hledger/versions)
+| [Sandstorm][]                  | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
 
-| Platform             | Command/Link           | Installs&nbsp;[version](https://repology.org/metapackage/hledger/badges)<br>(latest is [1.13.2](http://hledger.org/release-notes)) <!-- <- hledger package's latest version -->
-|----------------------|------------------------|----------------------------------------------------------------------------------------
-| [Mac][]              | **`brew install hledger`** | 1.13.2
-| [Windows][]          | Developer binaries: **[1.12](https://ci.appveyor.com/api/buildjobs/vcocma20843lpfdo/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --> <br><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.12
-| *GNU/Linux:*         |
-| [Arch&nbsp;Linux][]  | **`pacman -S hledger [hledger-ui] [hledger-web] [hledger-api]`** | 1.12
-| CentOS               | <span class=warnings>?</span> | 
-| [Debian][]           | **`sudo apt install hledger hledger-ui hledger-web`** | 1.0.1&nbsp;(Stable), 1.10&nbsp;(Testing), 1.10&nbsp;(Unstable)
-| [Fedora][],&nbsp;RHEL | **`sudo dnf install hledger`** <br>or (more complete & current):<br>**`sudo dnf copr enable kefah/HLedger && sudo dnf install hledger`** | 1.2&nbsp;(27), 1.4&nbsp;(28), 1.5&nbsp;(Rawhide)<br>1.9.1 (kefah)
-| [Gentoo][]           | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | 1.11.1
-| [Ubuntu][]           | **`sudo apt install hledger hledger-ui hledger-web`** | 0.26&nbsp;(16.04), 1.2&nbsp;(18.04), 1.5&nbsp;(18.10), 1.5&nbsp;(19.04)
-| [Void&nbsp;Linux][]  | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`** | 1.10
-| *BSD:*               |
-| FreeBSD              | <span class=warnings>?</span> | 
-| NetBSD               | <span class=warnings>?</span> | 
-| OpenBSD              | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
-| *Other:*             |
-| [Docker][]           | **`docker pull dastapov/hledger`** ([more info](https://hub.docker.com/r/dastapov/hledger))
-| [Nix][]              | **<span style="font-size:small;">`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`</span>** <br><span class=warnings>[problems with hledger-ui on Mac ?](https://github.com/simonmichael/hledger/issues/613)</span> | 1.10&nbsp;(stable), 1.11.1&nbsp;(unstable)
-| [Sandstorm][]        | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
-
-[Mac]: https://formulae.brew.sh/formula/hledger
-[Mac contact]: mailto:
-
-[Windows]: https://ci.appveyor.com/project/simonmichael/hledger
-[Windows contact]: mailto:simon@joyful.com
-
-[Arch&nbsp;Linux]: https://www.archlinux.org/packages/?sort=&q=hledger
-[Arch&nbsp;Linux contact]: mailto:
-
+[Homebrew]: https://formulae.brew.sh/formula/hledger
+[Homebrew contact]: @albins, simon@joyful.com
+[Linuxbrew]: https://linuxbrew.sh
+[Linuxbrew contact]: @albins, simon@joyful.com
+[Windows&nbsp;binaries]: https://ci.appveyor.com/project/simonmichael/hledger
+[Windows binaries contact]: simon@joyful.com
+[Arch]: https://www.archlinux.org/packages/?sort=&q=hledger
+[Arch contact]: ?
 [Debian]: https://packages.debian.org/search?searchon=names&keywords=hledger
-[Debian contact]: mailto:debian-haskell@lists.debian.org
-
+[Debian contact]: mailto:debian-haskell@lists.debian.org, Clint
 [Fedora]: https://apps.fedoraproject.org/packages/s/hledger
-[Fedora contact]: mailto:
-
+[Fedora contact]: ?
 [Gentoo]: https://gentoo.zugaina.org/Search?search=hledger
-[Gentoo contact]: mailto:
-
+[Gentoo contact]: ?
 [Ubuntu]: https://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger
-[Ubuntu contact]: mailto:
-
-[Void&nbsp;Linux]: https://voidlinux.org/packages/?q=hledger
-[Void&nbsp;Linux contact]: mailto:
-
+[Ubuntu contact]: ?
+[Void]: https://voidlinux.org/packages/?q=hledger
+[Void contact]: ?
 [Docker]: https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc
-[Docker contact]: mailto:
-
+[Docker contact]: @adept
 [Nix]: http://hydra.nixos.org/search?query=hledger
-[Nix contact]: mailto:
-
+[Nix contact]: @peti
 [Sandstorm]: https://sandstorm.io
+[Sandstorm contact]: 
 
 
 <a name="b"></a>
