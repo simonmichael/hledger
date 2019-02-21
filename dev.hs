@@ -1,8 +1,24 @@
 #!/usr/bin/env runghc
 -- dev.hs, for miscellaneous profiling/benchmarking/testing.
 
--- {-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, DeriveGeneric #-}
--- {-# LANGUAGE NoWarnUnusedImports #-}
+--{-# LANGUAGE CPP                 #-}
+--{-# LANGUAGE DataKinds           #-}
+--{-# LANGUAGE DeriveDataTypeable  #-}
+--{-# LANGUAGE DeriveGeneric       #-}
+--{-# LANGUAGE FlexibleContexts #-}
+--{-# LANGUAGE FlexibleInstances   #-}
+--{-# LANGUAGE NamedFieldPuns #-}
+--{-# LANGUAGE NoWarnUnusedImports #-}
+--{-# LANGUAGE OverloadedStrings   #-}
+--{-# LANGUAGE OverloadedStrings #-}
+--{-# LANGUAGE PolyKinds           #-}
+--{-# LANGUAGE QuasiQuotes         #-}
+--{-# LANGUAGE QuasiQuotes #-}
+--{-# LANGUAGE RecordWildCards #-}
+--{-# LANGUAGE ScopedTypeVariables #-}
+--{-# LANGUAGE StandaloneDeriving  #-}
+--{-# LANGUAGE TypeFamilies        #-}
+--{-# LANGUAGE TypeOperators       #-}
 
 -- import System.Environment (getArgs)
 -- import Control.Monad.Except
