@@ -65,5 +65,5 @@ putAddR = do
   case r of
     Error err -> sendStatusJSON status400 ("could not parse json: " ++ err ::String)
     Success t -> do
-      liftIO $ journalAddTransaction j (cliopts_ opts) t
+      void $ liftIO $ journalAddTransaction j (cliopts_ opts) t
       sendResponseCreated TransactionsR 
