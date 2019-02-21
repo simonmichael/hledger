@@ -69,7 +69,7 @@ instance ToJSON Posting where
     -- in a dummy field. When re-parsed, there will be no parent.
     ,"ptransaction_"     .= toJSON (maybe "" (show.tindex) ptransaction)
     -- This is probably not wanted in json, we discard it.
-    ,"porigin"           .= toJSON (Nothing :: Maybe Posting) 
+    ,"poriginal"         .= toJSON (Nothing :: Maybe Posting) 
     ]
 instance ToJSON Transaction
 instance ToJSON Account where

@@ -416,7 +416,7 @@ inferBalancingAmount styles t@Transaction{tpostings=ps}
       in
         case minferredamt of
           Nothing -> (p, Nothing)
-          Just a  -> (p{pamount=a', porigin=Just $ originalPosting p}, Just a') 
+          Just a  -> (p{pamount=a', poriginal=Just $ originalPosting p}, Just a') 
             where
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity  
@@ -483,7 +483,7 @@ priceInferrerFor t pt = inferprice
 
     inferprice p@Posting{pamount=Mixed [a]}
       | caninferprices && ptype p == pt && acommodity a == fromcommodity
-        = p{pamount=Mixed [a{aprice=conversionprice}], porigin=Just $ originalPosting p}
+        = p{pamount=Mixed [a{aprice=conversionprice}], poriginal=Just $ originalPosting p}
       where
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
         conversionprice

@@ -171,7 +171,7 @@ budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
     remapTxn = mapPostings (map remapPosting)
       where
         mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
-        remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
+        remapPosting p = p { paccount = remapAccount $ paccount p, poriginal = Just . fromMaybe p $ poriginal p }
           where
             remapAccount a
               | hasbudget         = a

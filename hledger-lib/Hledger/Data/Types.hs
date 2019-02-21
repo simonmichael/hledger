@@ -297,7 +297,7 @@ data Posting = Posting {
                                                     --   in a single commodity, excluding subaccounts.
       ptransaction      :: Maybe Transaction,       -- ^ this posting's parent transaction (co-recursive types).
                                                     --   Tying this knot gets tedious, Maybe makes it easier/optional.
-      porigin           :: Maybe Posting            -- ^ When this posting has been transformed in some way
+      poriginal         :: Maybe Posting            -- ^ When this posting has been transformed in some way
                                                     --   (eg its amount or price was inferred, or the account name was
                                                     --   changed by a pivot or budget report), this references the original 
                                                     --   untransformed posting (which will have Nothing in this field).
@@ -324,7 +324,7 @@ instance Show Posting where
     ,"ptags="             ++ show ptags
     ,"pbalanceassertion=" ++ show pbalanceassertion
     ,"ptransaction="      ++ show (ptransaction $> "txn")
-    ,"porigin="           ++ show porigin
+    ,"poriginal="         ++ show poriginal
     ] ++ "}"
 
 -- TODO: needs renaming, or removal if no longer needed. See also TextPosition in Hledger.UI.Editor

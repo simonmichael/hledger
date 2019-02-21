@@ -745,7 +745,7 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
               newbal = oldbalothercommodities + assignedbalthiscommodity   
           diff <- setAmountB acc newbal
           return (diff,newbal)
-      let p' = p{pamount=diff, porigin=Just $ originalPosting p}
+      let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' newbal
       return p'
 
@@ -1050,7 +1050,7 @@ transactionPivot fieldortagname t = t{tpostings = map (postingPivot fieldortagna
 -- | Replace this posting's account name with the value
 -- of the given field or tag, if any, otherwise the empty string.
 postingPivot :: Text -> Posting -> Posting         
-postingPivot fieldortagname p = p{paccount = pivotedacct, porigin = Just $ originalPosting p}
+postingPivot fieldortagname p = p{paccount = pivotedacct, poriginal = Just $ originalPosting p}
   where
     pivotedacct
       | Just t <- ptransaction p, fieldortagname == "code"        = tcode t  

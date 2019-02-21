@@ -91,7 +91,7 @@ nullposting = Posting
                 ,ptags=[]
                 ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
-                ,porigin=Nothing
+                ,poriginal=Nothing
                 }
 posting = nullposting
 
@@ -112,7 +112,7 @@ assertion = nullassertion
 
 -- Get the original posting, if any.
 originalPosting :: Posting -> Posting
-originalPosting p = fromMaybe p $ porigin p
+originalPosting p = fromMaybe p $ poriginal p
 
 -- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
