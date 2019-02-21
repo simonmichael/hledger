@@ -348,9 +348,7 @@ flat_ = (==ALFlat) . accountlistmode_
 -- | Convert this journal's postings' amounts to the cost basis amounts if
 -- specified by options.
 journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
-journalSelectingAmountFromOpts opts
-    | cost_ opts = journalConvertAmountsToCost
-    | otherwise = id
+journalSelectingAmountFromOpts opts = journalConvertAmountsToCost $ cost_ opts
 
 -- | Convert report options and arguments to a query.
 queryFromOpts :: Day -> ReportOpts -> Query

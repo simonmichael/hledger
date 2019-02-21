@@ -958,15 +958,17 @@ canonicalStyleFrom ss@(first:_) = first {asprecision = prec, asdecimalpoint = md
 --   case ps of (MarketPrice{mpamount=a}:_) -> Just a
 --              _ -> Nothing
 
--- | Convert all this journal's amounts to cost by applying their prices, if any.
-journalConvertAmountsToCost :: Journal -> Journal
-journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+-- | Convert all this journal's amounts, or just the ones marked as 'always-convert', to cost by applying their prices, if any.
+journalConvertAmountsToCost :: Bool -> Journal -> Journal
+journalConvertAmountsToCost all j@Journal{jtxns=ts, jcommodities=jcs} = j{jtxns=map fixtransaction ts}
     where
       -- similar to journalApplyCommodityStyles
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = styleAmount styles . costOfAmount
+      fixamount a@Amount{acommodity=acs} | all || maybe False calwaysconvert (M.lookup acs jcs)
+                                           = styleAmount styles $ costOfAmount a
+                                         | otherwise = a
       styles = journalCommodityStyles j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
