@@ -119,6 +119,7 @@ library:
   - hjsmin
   - http-conduit
   - http-client
+  - http-types
   - json
   - megaparsec >=7.0.0 && <8
   - mtl

@@ -5,7 +5,7 @@
 /                RootR           GET
 /journal         JournalR        GET
 /register        RegisterR       GET
-/add             AddR            GET POST
+/add             AddR            GET POST PUT
 
 /manage             ManageR         GET
 /edit/#FilePath     EditR           GET POST
