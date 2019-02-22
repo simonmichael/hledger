@@ -15,9 +15,16 @@ module Hledger.Data.Posting (
   nullposting,
   posting,
   post,
+  vpost,
+  post',
+  vpost',
   nullsourcepos,
   nullassertion,
   assertion,
+  balassert,
+  balassertTot,
+  balassertParInc,
+  balassertTotInc,
   -- * operations
   originalPosting,
   postingStatus,
@@ -95,8 +102,23 @@ nullposting = Posting
                 }
 posting = nullposting
 
+-- constructors
+
+-- | Make a posting to an account.
 post :: AccountName -> Amount -> Posting
-post acct amt = posting {paccount=acct, pamount=Mixed [amt]}
+post acc amt = posting {paccount=acc, pamount=Mixed [amt]}
+
+-- | Make a virtual (unbalanced) posting to an account.
+vpost :: AccountName -> Amount -> Posting
+vpost acc amt = (post acc amt){ptype=VirtualPosting}
+
+-- | Make a posting to an account, maybe with a balance assertion.
+post' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
+post' acc amt ass = posting {paccount=acc, pamount=Mixed [amt], pbalanceassertion=ass}
+
+-- | Make a virtual (unbalanced) posting to an account, maybe with a balance assertion.
+vpost' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
+vpost' acc amt ass = (post' acc amt ass){ptype=VirtualPosting, pbalanceassertion=ass}
 
 nullsourcepos :: GenericSourcePos
 nullsourcepos = JournalSourcePos "" (1,1)
@@ -109,6 +131,22 @@ nullassertion = BalanceAssertion
                   ,baposition=nullsourcepos
                   }
 assertion = nullassertion
+
+-- | Make a partial, exclusive balance assertion.
+balassert :: Amount -> Maybe BalanceAssertion
+balassert amt = Just $ nullassertion{baamount=amt}
+
+-- | Make a total, exclusive balance assertion.
+balassertTot :: Amount -> Maybe BalanceAssertion
+balassertTot amt = Just $ nullassertion{baamount=amt, batotal=True}
+
+-- | Make a partial, inclusive balance assertion.
+balassertParInc :: Amount -> Maybe BalanceAssertion
+balassertParInc amt = Just $ nullassertion{baamount=amt, bainclusive=True}
+
+-- | Make a total, inclusive balance assertion.
+balassertTotInc :: Amount -> Maybe BalanceAssertion
+balassertTotInc amt = Just $ nullassertion{baamount=amt, batotal=True, bainclusive=True}
 
 -- Get the original posting, if any.
 originalPosting :: Posting -> Posting

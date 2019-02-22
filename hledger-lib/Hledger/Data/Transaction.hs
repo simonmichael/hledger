@@ -16,6 +16,7 @@ tags.
 module Hledger.Data.Transaction (
   -- * Transaction
   nulltransaction,
+  transaction,
   txnTieKnot,
   txnUntieKnot,
   -- * operations
@@ -94,6 +95,10 @@ nulltransaction = Transaction {
                     tpostings=[],
                     tprecedingcomment=""
                   }
+
+-- | Make a simple transaction with the given date and postings.
+transaction :: String -> [Posting] -> Transaction 
+transaction datestr ps = txnTieKnot $ nulltransaction{tdate=parsedate datestr, tpostings=ps}
 
 {-|
 Render a journal transaction as text in the style of Ledger's print command. 
