@@ -92,24 +92,6 @@ instance ToJSON Account where
 
 instance FromJSON Status
 instance FromJSON GenericSourcePos
---
--- Decimal
---
--- https://stackoverflow.com/questions/40331851/haskell-data-decimal-as-aeson-type
-----instance FromJSON Decimal where parseJSON = 
-----  A.withScientific "Decimal" (return . right . eitherFromRational . toRational)
---
--- https://github.com/PaulJohnson/Haskell-Decimal/issues/6
---deriving instance Generic Decimal
---instance FromJSON Decimal
-deriving instance Generic (DecimalRaw Integer)
-instance FromJSON (DecimalRaw Integer)
---
--- https://github.com/bos/aeson/issues/474
--- http://hackage.haskell.org/package/aeson-1.4.2.0/docs/Data-Aeson-TH.html
--- $(deriveFromJSON defaultOptions ''Decimal) -- doesn't work
--- $(deriveFromJSON defaultOptions ''DecimalRaw)  -- works; requires TH, but gives better parse error messages
---
 instance FromJSON Amount
 instance FromJSON AmountStyle
 instance FromJSON Side
@@ -123,6 +105,39 @@ instance FromJSON Posting
 instance FromJSON Transaction
 instance FromJSON AccountDeclarationInfo
 instance FromJSON Account
+
+-- Decimal, various attempts
+--
+-- https://stackoverflow.com/questions/40331851/haskell-data-decimal-as-aeson-type
+----instance FromJSON Decimal where parseJSON = 
+----  A.withScientific "Decimal" (return . right . eitherFromRational . toRational)
+--
+-- https://github.com/bos/aeson/issues/474
+-- http://hackage.haskell.org/package/aeson-1.4.2.0/docs/Data-Aeson-TH.html
+-- $(deriveFromJSON defaultOptions ''Decimal) -- doesn't work
+-- $(deriveFromJSON defaultOptions ''DecimalRaw)  -- works; requires TH, but gives better parse error messages
+--
+-- https://github.com/PaulJohnson/Haskell-Decimal/issues/6
+--deriving instance Generic Decimal
+--instance FromJSON Decimal
+deriving instance Generic (DecimalRaw Integer)
+instance FromJSON (DecimalRaw Integer)
+--
+-- @simonmichael, I think the code in your first comment should work if it compiles—though “work” doesn’t mean you can parse a JSON number directly into a `Decimal` using the generic instance, as you’ve discovered.
+--
+--Error messages with these extensions are always rather cryptic, but I’d prefer them to Template Haskell. Typically you’ll want to start by getting a generic `ToJSON` instance working, then use that to figure out what the `FromJSON` instance expects to parse: for a correct instance, `encode` and `decode` should give you an isomorphism between your type and a subset of `Bytestring` (up to the `Maybe` wrapper that `decode` returns).
+--
+--I don’t have time to test it right now, but I think it will also work without `DeriveAnyClass`, just using `DeriveGeneric` and `StandAloneDeriving`. It should also work to use the [`genericParseJSON`](http://hackage.haskell.org/package/aeson/docs/Data-Aeson.html#v:genericParseJSON) function to implement the class explicitly, something like this:
+--
+--{-# LANGUAGE DeriveGeneric #-}
+--{-# LANGUAGE StandAloneDeriving #-}
+--import GHC.Generics
+--import Data.Aeson
+--deriving instance Generic Decimal
+--instance FromJSON Decimal where
+--  parseJSON = genericParseJSON defaultOptions
+--
+--And of course you can avoid `StandAloneDeriving` entirely if you’re willing to wrap `Decimal` in your own `newtype`.
 
 
 -- Utilities
