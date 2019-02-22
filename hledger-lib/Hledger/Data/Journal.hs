@@ -1,9 +1,10 @@
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 
 {-|
 
@@ -667,23 +668,24 @@ journalBalanceTransactions assrt j' =
       -- and check balance assertions. This is done in two passes:
       runExceptT $ do
 
-        -- 1. Balance the transactions which don't have balance assignments.
-        let (noassignmenttxns, withassignmenttxns) = partition (null . assignmentPostings) ts
-        noassignmenttxns' <- forM noassignmenttxns $ \t ->
-          either throwError (\t -> lift (writeArray balancedtxns (tindex t) t) >> return t) $ 
-            balanceTransaction styles t 
+        -- 1. Step through the transactions, balancing the ones which don't have balance assignments
+        -- and leaving the others for later. The balanced ones are split into their postings.
+        -- The postings and not-yet-balanced transactions remain in the same relative order.
+        psandts :: [Either Posting Transaction] <- fmap concat $ forM ts $ \case
+          t | null $ assignmentPostings t -> case balanceTransaction styles t of
+              Left  e  -> throwError e 
+              Right t' -> do
+                lift $ writeArray balancedtxns (tindex t') t'
+                return $ map Left $ tpostings t'
+          t -> return [Right t]
 
-        -- 2. Step through the postings of those transactions, and the remaining transactions, in date order,
-        let sortedpsandts :: [Either Posting Transaction] = 
-              sortOn (either postingDate tdate) $ 
-                map Left (concatMap tpostings noassignmenttxns') ++ 
-                map Right withassignmenttxns
-        -- keeping running account balances, 
+        -- 2. Sort these items by date, preserving the order of same-day items,
+        -- and step through them while keeping running account balances, 
         runningbals <- lift $ H.newSized (length $ journalAccountNamesUsed j)
         flip runReaderT (BalancingState styles txnmodifieraccts assrt runningbals balancedtxns) $ do
           -- performing balance assignments in, and balancing, the remaining transactions,
           -- and checking balance assertions as each posting is processed.
-          void $ mapM' balanceTransactionAndCheckAssertionsB sortedpsandts
+          void $ mapM' balanceTransactionAndCheckAssertionsB $ sortOn (either postingDate tdate) psandts
 
         ts' <- lift $ getElems balancedtxns
         return j{jtxns=ts'} 
@@ -1248,24 +1250,59 @@ tests_Journal = tests "Journal" [
       ,test "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
     ]
 
-  ,test "journalBalanceTransactions" $ do
-    let ej = journalBalanceTransactions True $
-              nulljournal{ jtxns = [
-                txnTieKnot $ nulltransaction{
-                  tdate=parsedate "2019/01/01",
-                  tpostings=[
-                     nullposting{
-                       ptype=VirtualPosting
-                      ,paccount="a"
-                      ,pamount=missingmixedamt
-                      ,pbalanceassertion=Just nullassertion{baamount=num 1}
-                      }
-                    ],
-                  tprecedingcomment=""
-                  }
-                ]
-              }
-    expectRight ej
-    let Right j = ej
-    (jtxns j & head & tpostings & head & pamount) `is` Mixed [num 1]
+  ,tests "journalBalanceTransactions" [
+
+     test "balance-assignment" $ do
+      let ej = journalBalanceTransactions True $
+            --2019/01/01
+            --  (a)            = 1
+            nulljournal{ jtxns = [
+              transaction "2019/01/01" [ vpost' "a" missingamt (balassert (num 1)) ]
+            ]}
+      expectRight ej
+      let Right j = ej
+      (jtxns j & head & tpostings & head & pamount) `is` Mixed [num 1]
+
+    ,test "same-day-1" $ do
+      expectRight $ journalBalanceTransactions True $
+            --2019/01/01
+            --  (a)            = 1
+            --2019/01/01
+            --  (a)          1 = 2
+            nulljournal{ jtxns = [
+               transaction "2019/01/01" [ vpost' "a" missingamt (balassert (num 1)) ]
+              ,transaction "2019/01/01" [ vpost' "a" (num 1)    (balassert (num 2)) ]
+            ]}
+
+    ,test "same-day-2" $ do
+      expectRight $ journalBalanceTransactions True $
+            --2019/01/01
+            --    (a)                  2 = 2
+            --2019/01/01
+            --    b                    1
+            --    a
+            --2019/01/01
+            --    a                    0 = 1
+            nulljournal{ jtxns = [
+               transaction "2019/01/01" [ vpost' "a" (num 2)    (balassert (num 2)) ]
+              ,transaction "2019/01/01" [
+                 post' "b" (num 1)     Nothing  
+                ,post' "a"  missingamt Nothing  
+              ]
+              ,transaction "2019/01/01" [ post' "a" (num 0)     (balassert (num 1)) ]
+            ]}
+
+    ,test "out-of-order" $ do
+      expectRight $ journalBalanceTransactions True $
+            --2019/1/2
+            --  (a)    1 = 2
+            --2019/1/1
+            --  (a)    1 = 1
+            nulljournal{ jtxns = [
+               transaction "2019/01/02" [ vpost' "a" (num 1)    (balassert (num 2)) ]
+              ,transaction "2019/01/01" [ vpost' "a" (num 1)    (balassert (num 1)) ]
+            ]}
+
+    ]
+
   ]
