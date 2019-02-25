@@ -73,7 +73,7 @@ VIEWPS=$(BROWSE)
 # VIEWPDF=$(BROWSE)
 # PRINT=lpr
 
-GHC=ghc
+#GHC=ghc
 GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # GHCPKG=ghc-pkg
 # HADDOCK=haddock
@@ -275,7 +275,7 @@ hledgerprof: \
 
 hledgercov: \
 	$(call def-help,hledgercov, build "bin/hledgercov" for coverage reports (with ghc) )
-	$(GHC) $(MAIN) -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $(BUILDFLAGS)
+	$(STACK) ghc $(MAIN) -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $(BUILDFLAGS)
 
 #	hledger-lib/Hledger/Read/TimeclockReaderPP.hs
 dev: dev.hs $(SOURCEFILES) \
@@ -306,7 +306,7 @@ dev-heap-upload:
 
 tools/generatejournal: tools/generatejournal.hs \
 		$(call def-help,tools/generatejournal, build the generatejournal tool )
-	$(GHC) tools/generatejournal.hs
+	$(STACK) ghc tools/generatejournal.hs
 
 ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
 	ghcid -c 'make ghci'
