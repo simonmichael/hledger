@@ -224,6 +224,7 @@ Making good software and documentation costs a lot.
 [[Addons]]  
 [[Command-line completion]]  
 [[Editor configuration]]  
+[[hledger-web tips]]  
 [[Mobile apps]]  
 [[Save frequently used options]]  
 [[Scripting]]  
