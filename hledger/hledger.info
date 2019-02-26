@@ -1404,8 +1404,7 @@ period (without -E, leading and trailing columns with all zeroes are not
 shown).  Second, all accounts which existed at the report start date
 will be considered, not just the ones with activity during the report
 period (use -E to include low-activity accounts which would otherwise
-would be omitted).  With '--budget', '--empty' also shows unbudgeted
-accounts.
+would be omitted).
 
    The '-T/--row-total' flag adds an additional column showing the total
 for each row.
@@ -1497,13 +1496,29 @@ Budget performance in 2017/11/01-2017/12/31:
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
 
-   By default, only accounts with budget goals during the report period
-are shown.  In the example above, transactions in 'expenses:gifts' and
-'expenses:supplies' are counted towards 'expenses' budget, but accounts
-'expenses:gifts' and 'expenses:supplies' are not shown, as they don't
-have any budgets.
+   Note this is different from a normal balance report in several ways:
 
-   You can use '--empty' shows unbudgeted accounts as well:
+   * Only accounts with budget goals during the report period are shown,
+     by default.
+
+   * In each column, in square brackets after the actual amount,
+     budgeted amounts are shown, along with the percentage of budget
+     used.
+
+   * All parent accounts are always shown, even in flat mode.  Eg
+     assets, assets:bank, and expenses above.
+
+   * Amounts always include all subaccounts, budgeted or unbudgeted,
+     even in flat mode.
+
+   This means that the numbers displayed will not always add up!  Eg
+above, the 'expenses' actual amount includes the gifts and supplies
+transactions, but the 'expenses:gifts' and 'expenses:supplies' accounts
+are not shown, as they have no budget amounts declared.
+
+   This can be confusing.  When you need to make things clearer, use the
+'-E/--empty' flag, which will reveal all accounts including unbudgeted
+ones, giving the full picture.  Eg:
 
 $ hledger balance -M --budget --empty
 Budget performance in 2017/11/01-2017/12/31:
@@ -1540,9 +1555,6 @@ Budget performance in 2017/11/01-2017/12/31:
  income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
-
-   Note, the '-S/--sort-amount' flag is not yet fully supported with
-'--budget'.
 
    For more examples, see Budgeting and Forecasting.
 * Menu:
@@ -2759,86 +2771,86 @@ Node: Depth limited balance reports43924
 Ref: #depth-limited-balance-reports44124
 Node: Multicolumn balance report44580
 Ref: #multicolumn-balance-report44778
-Node: Budget report50018
-Ref: #budget-report50161
-Node: Nested budgets54845
-Ref: #nested-budgets54957
-Ref: #output-format-158437
-Node: balancesheet58515
-Ref: #balancesheet58651
-Node: balancesheetequity59885
-Ref: #balancesheetequity60034
-Node: cashflow60595
-Ref: #cashflow60723
-Node: check-dates61751
-Ref: #check-dates61878
-Node: check-dupes62157
-Ref: #check-dupes62281
-Node: close62574
-Ref: #close62682
-Node: files66095
-Ref: #files66196
-Node: help66343
-Ref: #help66443
-Node: import67536
-Ref: #import67650
-Node: incomestatement68394
-Ref: #incomestatement68528
-Node: prices69864
-Ref: #prices69979
-Node: print70258
-Ref: #print70368
-Node: print-unique74861
-Ref: #print-unique74987
-Node: register75272
-Ref: #register75399
-Node: Custom register output79570
-Ref: #custom-register-output79699
-Node: register-match80961
-Ref: #register-match81095
-Node: rewrite81446
-Ref: #rewrite81561
-Node: Re-write rules in a file83410
-Ref: #re-write-rules-in-a-file83544
-Node: Diff output format84754
-Ref: #diff-output-format84923
-Node: rewrite vs print --auto86015
-Ref: #rewrite-vs.-print---auto86194
-Node: roi86750
-Ref: #roi86848
-Node: stats87860
-Ref: #stats87959
-Node: tags88713
-Ref: #tags88811
-Node: test89041
-Ref: #test89125
-Node: ADD-ON COMMANDS89886
-Ref: #add-on-commands89996
-Node: Official add-ons91283
-Ref: #official-add-ons91423
-Node: api91510
-Ref: #api91599
-Node: ui91651
-Ref: #ui91750
-Node: web91808
-Ref: #web91897
-Node: Third party add-ons91943
-Ref: #third-party-add-ons92118
-Node: diff92253
-Ref: #diff92350
-Node: iadd92449
-Ref: #iadd92563
-Node: interest92646
-Ref: #interest92767
-Node: irr92862
-Ref: #irr92960
-Node: Experimental add-ons93091
-Ref: #experimental-add-ons93243
-Node: autosync93523
-Ref: #autosync93634
-Node: chart93873
-Ref: #chart93992
-Node: check94063
-Ref: #check94165
+Node: Budget report49958
+Ref: #budget-report50101
+Node: Nested budgets55302
+Ref: #nested-budgets55414
+Ref: #output-format-158894
+Node: balancesheet58972
+Ref: #balancesheet59108
+Node: balancesheetequity60342
+Ref: #balancesheetequity60491
+Node: cashflow61052
+Ref: #cashflow61180
+Node: check-dates62208
+Ref: #check-dates62335
+Node: check-dupes62614
+Ref: #check-dupes62738
+Node: close63031
+Ref: #close63139
+Node: files66552
+Ref: #files66653
+Node: help66800
+Ref: #help66900
+Node: import67993
+Ref: #import68107
+Node: incomestatement68851
+Ref: #incomestatement68985
+Node: prices70321
+Ref: #prices70436
+Node: print70715
+Ref: #print70825
+Node: print-unique75318
+Ref: #print-unique75444
+Node: register75729
+Ref: #register75856
+Node: Custom register output80027
+Ref: #custom-register-output80156
+Node: register-match81418
+Ref: #register-match81552
+Node: rewrite81903
+Ref: #rewrite82018
+Node: Re-write rules in a file83867
+Ref: #re-write-rules-in-a-file84001
+Node: Diff output format85211
+Ref: #diff-output-format85380
+Node: rewrite vs print --auto86472
+Ref: #rewrite-vs.-print---auto86651
+Node: roi87207
+Ref: #roi87305
+Node: stats88317
+Ref: #stats88416
+Node: tags89170
+Ref: #tags89268
+Node: test89498
+Ref: #test89582
+Node: ADD-ON COMMANDS90343
+Ref: #add-on-commands90453
+Node: Official add-ons91740
+Ref: #official-add-ons91880
+Node: api91967
+Ref: #api92056
+Node: ui92108
+Ref: #ui92207
+Node: web92265
+Ref: #web92354
+Node: Third party add-ons92400
+Ref: #third-party-add-ons92575
+Node: diff92710
+Ref: #diff92807
+Node: iadd92906
+Ref: #iadd93020
+Node: interest93103
+Ref: #interest93224
+Node: irr93319
+Ref: #irr93417
+Node: Experimental add-ons93548
+Ref: #experimental-add-ons93700
+Node: autosync93980
+Ref: #autosync94091
+Node: chart94330
+Ref: #chart94449
+Node: check94520
+Ref: #check94622
 
 End Tag Table

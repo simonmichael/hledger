@@ -232,7 +232,7 @@ period (without -E, leading and trailing columns with all zeroes are not
 shown). Second, all accounts which existed at the report start date will
 be considered, not just the ones with activity during the report period
 (use -E to include low-activity accounts which would otherwise would be
-omitted). With --budget, --empty also shows unbudgeted accounts.
+omitted).
 
 The -T/--row-total flag adds an additional column showing the total for
 each row.
@@ -320,13 +320,28 @@ Budget performance in 2017/11/01-2017/12/31:
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
 
-By default, only accounts with budget goals during the report period are
-shown. In the example above, transactions in expenses:gifts and
-expenses:supplies are counted towards expenses budget, but accounts
-expenses:gifts and expenses:supplies are not shown, as they don't have
-any budgets.
+Note this is different from a normal balance report in several ways:
 
-You can use --empty shows unbudgeted accounts as well:
+-   Only accounts with budget goals during the report period are shown,
+    by default.
+
+-   In each column, in square brackets after the actual amount, budgeted
+    amounts are shown, along with the percentage of budget used.
+
+-   All parent accounts are always shown, even in flat mode. Eg assets,
+    assets:bank, and expenses above.
+
+-   Amounts always include all subaccounts, budgeted or unbudgeted, even
+    in flat mode.
+
+This means that the numbers displayed will not always add up! Eg above,
+the expenses actual amount includes the gifts and supplies transactions,
+but the expenses:gifts and expenses:supplies accounts are not shown, as
+they have no budget amounts declared.
+
+This can be confusing. When you need to make things clearer, use the
+-E/--empty flag, which will reveal all accounts including unbudgeted
+ones, giving the full picture. Eg:
 
 $ hledger balance -M --budget --empty
 Budget performance in 2017/11/01-2017/12/31:
@@ -363,9 +378,6 @@ Budget performance in 2017/11/01-2017/12/31:
  income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
-
-Note, the -S/--sort-amount flag is not yet fully supported with
---budget.
 
 For more examples, see Budgeting and Forecasting.
 

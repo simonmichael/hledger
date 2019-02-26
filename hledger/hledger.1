@@ -1783,8 +1783,6 @@ Second, all accounts which existed at the report start date will be
 considered, not just the ones with activity during the report period
 (use \-E to include low\-activity accounts which would otherwise would
 be omitted).
-With \f[C]\-\-budget\f[], \f[C]\-\-empty\f[] also shows unbudgeted
-accounts.
 .PP
 The \f[C]\-T/\-\-row\-total\f[] flag adds an additional column showing
 the total for each row.
@@ -1884,14 +1882,31 @@ Budget\ performance\ in\ 2017/11/01\-2017/12/31:
 \f[]
 .fi
 .PP
-By default, only accounts with budget goals during the report period are
-shown.
-In the example above, transactions in \f[C]expenses:gifts\f[] and
-\f[C]expenses:supplies\f[] are counted towards \f[C]expenses\f[] budget,
-but accounts \f[C]expenses:gifts\f[] and \f[C]expenses:supplies\f[] are
-not shown, as they don\[aq]t have any budgets.
+Note this is different from a normal balance report in several ways:
+.IP \[bu] 2
+Only accounts with budget goals during the report period are shown, by
+default.
+.IP \[bu] 2
+In each column, in square brackets after the actual amount, budgeted
+amounts are shown, along with the percentage of budget used.
+.IP \[bu] 2
+All parent accounts are always shown, even in flat mode.
+Eg assets, assets:bank, and expenses above.
+.IP \[bu] 2
+Amounts always include all subaccounts, budgeted or unbudgeted, even in
+flat mode.
 .PP
-You can use \f[C]\-\-empty\f[] shows unbudgeted accounts as well:
+This means that the numbers displayed will not always add up! Eg above,
+the \f[C]expenses\f[] actual amount includes the gifts and supplies
+transactions, but the \f[C]expenses:gifts\f[] and
+\f[C]expenses:supplies\f[] accounts are not shown, as they have no
+budget amounts declared.
+.PP
+This can be confusing.
+When you need to make things clearer, use the \f[C]\-E/\-\-empty\f[]
+flag, which will reveal all accounts including unbudgeted ones, giving
+the full picture.
+Eg:
 .IP
 .nf
 \f[C]
@@ -1937,9 +1952,6 @@ Budget\ performance\ in\ 2017/11/01\-2017/12/31:
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ \ \ \ \ \ \ 0\ [\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0]\ 
 \f[]
 .fi
-.PP
-Note, the \f[C]\-S/\-\-sort\-amount\f[] flag is not yet fully supported
-with \f[C]\-\-budget\f[].
 .PP
 For more examples, see Budgeting and Forecasting.
 .SS Nested budgets
