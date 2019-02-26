@@ -658,8 +658,9 @@ main = do
     -- Cleanup.
 
     phony "clean" $ do
-      putNormal "Cleaning generated help texts, manuals, staged site content"
-      removeFilesAfter "." commandtxts
+      -- putNormal "Cleaning generated help texts, manuals, staged site content"
+      -- removeFilesAfter "." commandtxts
+      putNormal "Cleaning generated manuals, staged site content"
       removeFilesAfter "." mdmanuals
       removeFilesAfter "." [mdcombinedmanual]
       removeFilesAfter "." ["site/README.md", "site/CONTRIBUTING.md"]
