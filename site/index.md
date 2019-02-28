@@ -202,7 +202,7 @@ Making good software and documentation costs a lot.
 [[Track changes with version control]]  
 [[Use another account separator character]]  
 ["Full-fledged Hledger" tutorial](https://github.com/adept/full-fledged-hledger)&nbsp;&rarr;  
-["hledger: Make It So" tutorial (slideshow)](https://github.com/apauley/hledger-makeitso)&nbsp;&rarr;
+["hledger: Make It So" tutorial/slideshow](https://github.com/apauley/hledger-makeitso)&nbsp;&rarr;  
 
 ### Reporting
 
