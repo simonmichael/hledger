@@ -175,9 +175,9 @@ main = do
             cmdaction opts (error "journal-less command tried to use the journal")
           "add" ->  -- should create the journal if missing
             (ensureJournalFileExists =<< (head <$> journalFilePathFromOpts opts)) >>
-            withJournalDo opts cmdaction
+            withJournalDo opts (cmdaction opts)
           _ ->      -- all other commands: read the journal or fail if missing
-            withJournalDo opts cmdaction
+            withJournalDo opts (cmdaction opts)
         )
         `orShowHelp` cmdmode
 

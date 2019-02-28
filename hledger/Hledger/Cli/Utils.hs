@@ -61,19 +61,19 @@ import Hledger.Utils
 -- | Parse the user's specified journal file(s) as a Journal, maybe apply some
 -- transformations according to options, and run a hledger command with it. 
 -- Or, throw an error.
-withJournalDo :: CliOpts -> (CliOpts -> Journal -> IO ()) -> IO ()
+withJournalDo :: CliOpts -> (Journal -> IO a) -> IO a
 withJournalDo opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
-  readJournalFiles (inputopts_ opts) journalpaths 
+  readJournalFiles (inputopts_ opts) journalpaths
   >>= mapM (journalTransform opts)
-  >>= either error' (cmd opts)
+  >>= either error' cmd
 
 -- | Apply some transformations to the journal if specified by options.
 -- These include:
--- 
+--
 -- - adding forecast transactions (--forecast)
 -- - converting amounts to market value (--value)
 -- - pivoting account names (--pivot)
