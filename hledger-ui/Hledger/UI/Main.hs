@@ -61,28 +61,20 @@ writeChan = BC.writeBChan
 main :: IO ()
 main = do
   opts <- getHledgerUIOpts
+  let copts = cliopts_ opts
+      copts' = copts
+        { inputopts_ = (inputopts_ copts) { auto_ = True }
+        , reportopts_ = (reportopts_ copts) { forecast_ = True }
+        }
+
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-  run opts
+  run $ opts { cliopts_ = copts' }
     where
       run opts
         | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage uimode) >> exitSuccess
         | "version"         `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
         | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-        | otherwise                                                = withJournalDoUICommand opts runBrickUi
-
--- TODO fix nasty duplication of withJournalDo
--- | hledger-ui's version of withJournalDo, which turns on --auto and --forecast.
-withJournalDoUICommand :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
-withJournalDoUICommand uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=iopts,reportopts_=ropts}} cmd = do
-  let copts' = copts{inputopts_=iopts{auto_=True}, reportopts_=ropts{forecast_=True}}
-  journalpath <- journalFilePathFromOpts copts'
-  ej <- readJournalFiles (inputopts_ copts') journalpath
-  let fn = cmd uopts
-         . pivotByOpts copts'
-         . anonymiseByOpts copts'
-       <=< journalApplyValue (reportopts_ copts')
-       <=< journalAddForecast copts'
-  either error' fn ej
+        | otherwise                                                = withJournalDo (cliopts_ opts) (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=ropts}} j = do
