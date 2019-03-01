@@ -120,7 +120,7 @@ instance FromJSON Account
 -- https://github.com/PaulJohnson/Haskell-Decimal/issues/6
 --deriving instance Generic Decimal
 --instance FromJSON Decimal
-deriving instance Generic (DecimalRaw Integer)
+deriving instance Generic (DecimalRaw a)
 instance FromJSON (DecimalRaw Integer)
 --
 -- @simonmichael, I think the code in your first comment should work if it compiles—though “work” doesn’t mean you can parse a JSON number directly into a `Decimal` using the generic instance, as you’ve discovered.

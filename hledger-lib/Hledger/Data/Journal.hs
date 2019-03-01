@@ -732,7 +732,6 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
       newbal <- addAmountB acc amt 
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p newbal
       return p
-  | Nothing <- mba = return p
   | Just BalanceAssertion{baamount,batotal} <- mba = do
       (diff,newbal) <- case batotal of
         True  -> do
@@ -750,6 +749,8 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
       let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' newbal
       return p'
+  -- no amount, no balance assertion (GHC 7 doesn't like Nothing <- mba here)
+  | otherwise = return p
 
 -- | Add the posting's amount to its account's running balance, and
 -- optionally check the posting's balance assertion if any.
