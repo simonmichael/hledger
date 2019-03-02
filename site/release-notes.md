@@ -8,6 +8,7 @@ h4 { margin-top:2em; }
 <ol>
 <li><a href="#hledger-install">hledger-install</a>
 <!-- <li><a href="#latest-minor-release">Latest (2018/4/30)</a> -->
+<li><a href="#hledger-1.14">hledger 1.14 (2019/03/01)</a>
 <li><a href="#hledger-1.13">hledger 1.13 (2019/02/01)</a>
 <li><a href="#hledger-1.12">hledger 1.12 (2018/12/02)</a>
 <li><a href="#hledger-1.11">hledger 1.11 (2018/9/30)</a>
@@ -63,12 +64,107 @@ is updated as needed; here are the
 
 ## Latest minor release
 
-<http://hackage.haskell.org/package/hledger-lib-1.13.1/changelog>  
-<http://hackage.haskell.org/package/hledger-1.13.2/changelog>  
-<http://hackage.haskell.org/package/hledger-ui-1.13.1/changelog>  
+<!-- <http://hackage.haskell.org/package/hledger-lib-1.13.1/changelog>   -->
+<!-- <http://hackage.haskell.org/package/hledger-1.13.2/changelog>   -->
+<!-- <http://hackage.haskell.org/package/hledger-ui-1.13.1/changelog>   -->
 <!-- <http://hackage.haskell.org/package/hledger-web-1.13.1/changelog>   -->
 <!-- <http://hackage.haskell.org/package/hledger-api-1.13.1/changelog>   -->
 
+
+## 2019/03/01 hledger 1.14
+
+***inclusive balance assertions, commodities command, --invert option,
+JSON get/add support in hledger-web
+***
+<!-- ([announcement](https://groups.google.com/d/topic/hledger/ffkwwkcHmmU/discussion)) -->
+
+  [project](#project-wide-changes-for-1.14)
+| [hledger](#hledger-1.14-1)
+| [hledger-ui](#hledger-ui-1.14)
+| [hledger-web](#hledger-web-1.14)
+| [hledger-api](#hledger-api-1.14)
+| [hledger-lib](#hledger-lib-1.14)
+| [credits](#credits-1.14)
+
+### project-wide changes for 1.14
+
+- hledger.org website: now uses https, home page updates,
+  download page improved package list with status badges.
+  Also the github wiki pages are now rendered as part of hledger.org,
+  like the main site pages (with pandoc markdown and tables of contents).
+  Building the site now requires that a copy of the wiki is checked out
+  under wiki/.
+
+- bash completion support: removed duplicate options, added new
+  options, stopped listing -h as a command, added some completion for
+  external addon commands.
+
+- release automation improvements
+
+- makefile cleanups; make site-liverender helps with local site preview
+
+### hledger 1.14
+
+- journal: subaccount-including balance assertions have been
+  added, with syntax =* and ==* (experimental) (#290)
+
+- new commodities command lists commodity symbols
+
+- new --invert option flips sign of amounts in reports
+
+### hledger-ui 1.14
+
+- use hledger 1.14
+
+### hledger-web 1.14
+
+- serve the same JSON-providing routes as in hledger-api:
+  ```
+  /accountnames
+  /transactions
+  /prices
+  /commodities
+  /accounts
+  /accounttransactions/ACCT
+  ```
+  And allow adding a new transaction by PUT'ing JSON (similar to the
+  output of /transactions) to /add. This requires the `add` capability
+  (which is enabled by default). Here's how to test with curl:
+  ```
+  $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @in.json; echo
+  ```
+  (#316)
+
+- fix unbalanced transaction prevention in the add form
+
+- fix transaction-showing tooltips (#927)
+
+- manual updates: document --capabilities/--capabilities-header and
+  editing/uploading/downloading.
+
+- use hledger 1.14
+
+### hledger-api 1.14
+
+- use hledger 1.14
+
+### hledger-lib 1.14
+
+- added:  
+  transaction, [v]post*, balassert* constructors, for tests etc.  
+
+- renamed:  
+  porigin -> poriginal  
+
+- refactored:  
+  transaction balancing & balance assertion checking (#438)
+
+### credits 1.14
+
+Release contributors:
+Simon Michael,
+Jakob Schöttl,
+Jakub Zárybnický.
 
 ## 2019/02/01 hledger 1.13
 
