@@ -1,6 +1,10 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.14.1 2019-03-01
+
+- fix missing Commodities.txt build error
+
 # 1.14 2019-03-01
 
 - journal: subaccount-including balance assertions have been
