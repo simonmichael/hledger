@@ -1,6 +1,34 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.14 2019-03-01
+
+- serve the same JSON-providing routes as in hledger-api:
+  ```
+  /accountnames
+  /transactions
+  /prices
+  /commodities
+  /accounts
+  /accounttransactions/ACCT
+  ```
+  And allow adding a new transaction by PUT'ing JSON (similar to the
+  output of /transactions) to /add. This requires the `add` capability
+  (which is enabled by default). Here's how to test with curl:
+  ```
+  $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @in.json; echo
+  ```
+  (#316)
+
+- fix unbalanced transaction prevention in the add form
+
+- fix transaction-showing tooltips (#927)
+
+- manual updates: document --capabilities/--capabilities-header and
+  editing/uploading/downloading.
+
+- use hledger 1.14
+
 # 1.13 (2019/02/01)
 
 - use hledger 1.13

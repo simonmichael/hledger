@@ -1,6 +1,10 @@
 User-visible changes in hledger-api.
 See also the hledger changelog.
 
+# 1.14 2019-03-01
+
+- use hledger 1.14
+
 # 1.13 (2019/02/01)
 
 - use hledger 1.13

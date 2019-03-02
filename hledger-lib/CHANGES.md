@@ -1,6 +1,17 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.14 2019-03-01
+
+- added:  
+  transaction, [v]post*, balassert* constructors, for tests etc.  
+
+- renamed:  
+  porigin -> poriginal  
+
+- refactored:  
+  transaction balancing & balance assertion checking (#438)
+
 # 1.13.1 (2019/02/02)
 
 - stop depending on here to avoid haskell-src-meta/stackage blockage.

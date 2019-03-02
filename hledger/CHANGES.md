@@ -1,6 +1,15 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.14 2019-03-01
+
+- journal: subaccount-including balance assertions have been
+  added, with syntax =* and ==* (experimental) (#290)
+
+- new commodities command lists commodity symbols
+
+- new --invert option flips sign of amounts in reports
+
 # 1.13.2 (2019/02/04)
 
 - print, register: restore the accidentally dropped -o, -O flags (#967)

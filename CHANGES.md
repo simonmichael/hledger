@@ -1,6 +1,23 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# 1.14 2019-03-01
+
+- hledger.org website: now uses https, home page updates,
+  download page improved package list with status badges.
+  Also the github wiki pages are now rendered as part of hledger.org,
+  like the main site pages (with pandoc markdown and tables of contents).
+  Building the site now requires that a copy of the wiki is checked out
+  under wiki/.
+
+- bash completion support: removed duplicate options, added new
+  options, stopped listing -h as a command, added some completion for
+  external addon commands.
+
+- release automation improvements
+
+- makefile cleanups; make site-liverender helps with local site preview
+
 # 1.13 (2019/01/02)
 
 - packaging: A docker image providing the main hledger tools is now
