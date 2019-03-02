@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b53c0c35837ff57b7b8d3df9c1a6644a21ec4325d6ade3c992e4fd8a7bb551e4
+-- hash: 32ad755bb064842ea131b724ee18e8a276c62b2fec58ccff27540efac91cb374
 
 name:           hledger-ui
-version:        1.13.99
+version:        1.14
 synopsis:       Curses-style user interface for the hledger accounting tool
 description:    This is hledger's curses-style interface.
                 It is simpler and more convenient for browsing data than the command-line interface,
@@ -64,7 +64,7 @@ executable hledger-ui
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.13.99"
+  cpp-options: -DVERSION="1.14"
   build-depends:
       ansi-terminal >=0.6.2.3
     , async
@@ -76,8 +76,8 @@ executable hledger-ui
     , directory
     , filepath
     , fsnotify >=0.2.1.2 && <0.4
-    , hledger >=1.13.99 && <1.14
-    , hledger-lib >=1.13.99 && <1.14
+    , hledger >=1.14 && <1.15
+    , hledger-lib >=1.14 && <1.15
     , megaparsec >=7.0.0 && <8
     , microlens >=0.4
     , microlens-platform >=0.2.3.1

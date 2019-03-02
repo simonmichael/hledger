@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 247ee06018e3a4d319f5e13515b0a2e878b506565887ada7cb06bd6dd7646760
+-- hash: f7ffe28b8f28021a283c05a1647b2f533f4476d763c411d681914ca141f07fb0
 
 name:           hledger
-version:        1.13.99
+version:        1.14
 synopsis:       Command-line interface for the hledger accounting tool
 description:    This is hledger's command-line interface.
                 Its basic function is to read a plain text file describing
@@ -137,7 +137,7 @@ library
   other-modules:
       Paths_hledger
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.13.99"
+  cpp-options: -DVERSION="1.14"
   build-depends:
       Decimal
     , Diff
@@ -153,7 +153,7 @@ library
     , filepath
     , hashable >=1.2.4
     , haskeline >=0.6
-    , hledger-lib >=1.13.99 && <1.14
+    , hledger-lib >=1.14 && <1.15
     , lucid
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
@@ -188,7 +188,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.13.99"
+  cpp-options: -DVERSION="1.14"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -203,7 +203,7 @@ executable hledger
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.13.99 && <1.14
+    , hledger-lib >=1.14 && <1.15
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -240,7 +240,7 @@ test-suite test
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.13.99"
+  cpp-options: -DVERSION="1.14"
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
@@ -255,7 +255,7 @@ test-suite test
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.13.99 && <1.14
+    , hledger-lib >=1.14 && <1.15
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
     , mtl
@@ -307,7 +307,7 @@ benchmark bench
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.13.99 && <1.14
+    , hledger-lib >=1.14 && <1.15
     , html
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
