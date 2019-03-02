@@ -60,7 +60,7 @@ Binaries or system packages are quickest to install, but can be outdated or inco
 | <br><big>**BSD**</big>         |
 | OpenBSD                        | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
 | <br><big>**Other**</big>       |
-| [Docker][]<br><small>*on&nbsp;Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([image info](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.13.2+
+| [Docker][]<br><small>*on&nbsp;Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([image info](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.14.1
 | [Nix][]<br><small>on*&nbsp;Linux,&nbsp;Mac*</small>  | **`nix-env -i hledger hledger-ui hledger-web`**  | [![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](http://hydra.nixos.org/search?query=hledger)
 | [Sandstorm][]<br><small>*Community/private cloud platform*</small>                  | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
 
