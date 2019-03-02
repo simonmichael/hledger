@@ -42,7 +42,7 @@ a { white-space:nowrap; }
 </div>
 Binaries or system packages are quickest to install, but can be outdated or incomplete.
 
-|                                |                              | Latest release: 1.14.1<br>[Release notes](http://hledger.org/release-notes) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
+|                                |                              | Latest&nbsp;release:&nbsp;1.14.1<br>[Release notes](http://hledger.org/release-notes) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
 |--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | <br><big>**Mac**</big>         |
 | [Homebrew][]                   | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
