@@ -64,6 +64,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Checkdates.txt
 - Hledger/Cli/Commands/Checkdupes.txt
 - Hledger/Cli/Commands/Close.txt
+- Hledger/Cli/Commands/Commodities.txt
 - Hledger/Cli/Commands/Files.txt
 - Hledger/Cli/Commands/Help.txt
 - Hledger/Cli/Commands/Import.txt

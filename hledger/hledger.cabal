@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f7ffe28b8f28021a283c05a1647b2f533f4476d763c411d681914ca141f07fb0
+-- hash: 08b3d1829fb8e9cea4ceae542a6cc30b671fc6cd815bb3811ff9b1dfef0b310f
 
 name:           hledger
 version:        1.14
@@ -71,6 +71,7 @@ extra-source-files:
     Hledger/Cli/Commands/Checkdates.txt
     Hledger/Cli/Commands/Checkdupes.txt
     Hledger/Cli/Commands/Close.txt
+    Hledger/Cli/Commands/Commodities.txt
     Hledger/Cli/Commands/Files.txt
     Hledger/Cli/Commands/Help.txt
     Hledger/Cli/Commands/Import.txt
