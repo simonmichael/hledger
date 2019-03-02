@@ -33,7 +33,7 @@ extra-source-files:
 
 dependencies:
 - hledger-lib >=1.14 && <1.15
-- hledger >=1.14 && <1.15
+- hledger     >=1.14.1 && <1.15
 - base >=4.8 && <4.13
 - aeson
 - bytestring

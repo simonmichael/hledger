@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: da546060d989bf42b59988f7db214e93c1ac3e3d166272cbcdbf1c8cbd283187
+-- hash: a69b726536242bd32402b7c1e1639a19509e1eb263f04ec8dd61bbed7ceb2e72
 
 name:           hledger-web
 version:        1.14
@@ -169,7 +169,7 @@ library
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.14 && <1.15
+    , hledger >=1.14.1 && <1.15
     , hledger-lib >=1.14 && <1.15
     , http-client
     , http-conduit

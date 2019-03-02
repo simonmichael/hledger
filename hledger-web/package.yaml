@@ -100,7 +100,7 @@ library:
   - Hledger.Web.Widget.Common
   dependencies:
   - hledger-lib >=1.14 && <1.15
-  - hledger >=1.14 && <1.15
+  - hledger     >=1.14.1 && <1.15
   - aeson
   - base >=4.8 && <4.13
   - blaze-html

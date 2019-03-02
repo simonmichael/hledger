@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e7c0a6dd7378e0cca56c467d680045884bad0673d1c9e749b2d06484b2a8dd08
+-- hash: 2252448c445cee50d317dbf5a0994b97988f6fa1c0c4cf68bd08e0f5068198b0
 
 name:           hledger-api
 version:        1.14
@@ -56,7 +56,7 @@ executable hledger-api
     , data-default >=0.5
     , docopt
     , either
-    , hledger >=1.14 && <1.15
+    , hledger >=1.14.1 && <1.15
     , hledger-lib >=1.14 && <1.15
     , microlens >=0.4
     , microlens-platform >=0.2.3.1
