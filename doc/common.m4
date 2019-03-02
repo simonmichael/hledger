@@ -24,7 +24,10 @@ m4_dnl Links to dev and recent release versions of a manual.
 m4_dnl The actual links are inserted dynamically by site.js, static generation was much too painful.
 m4_dnl There should be a " (dev)" suffix here except when generating release docs.
 m4_define({{_docversionlinks_}},m4_dnl
-This doc is for version **_version_** (dev).
+This doc is for version **_version_**
+m4_dnl comment (dev) for releases, uncomment between releases:
+m4_dnl (dev)
+.
 <span class="docversions">m4_dnl
 </span>)m4_dnl
 m4_dnl
