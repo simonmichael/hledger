@@ -64,11 +64,11 @@ is updated as needed; here are the
 
 ## Latest minor release
 
-<!-- <http://hackage.haskell.org/package/hledger-lib-1.13.1/changelog>   -->
-<!-- <http://hackage.haskell.org/package/hledger-1.13.2/changelog>   -->
-<!-- <http://hackage.haskell.org/package/hledger-ui-1.13.1/changelog>   -->
-<!-- <http://hackage.haskell.org/package/hledger-web-1.13.1/changelog>   -->
-<!-- <http://hackage.haskell.org/package/hledger-api-1.13.1/changelog>   -->
+<!-- <http://hackage.haskell.org/package/hledger-lib-1.14.1/changelog>   -->
+<http://hackage.haskell.org/package/hledger-1.14.1/changelog>
+<!-- <http://hackage.haskell.org/package/hledger-ui-1.14.1/changelog>   -->
+<!-- <http://hackage.haskell.org/package/hledger-web-1.14.1/changelog>   -->
+<!-- <http://hackage.haskell.org/package/hledger-api-1.14.1/changelog>   -->
 
 
 ## 2019/03/01 hledger 1.14
@@ -76,7 +76,7 @@ is updated as needed; here are the
 ***inclusive balance assertions, commodities command, --invert option,
 JSON get/add support in hledger-web
 ***
-<!-- ([announcement](https://groups.google.com/d/topic/hledger/ffkwwkcHmmU/discussion)) -->
+([announcement](https://groups.google.com/d/topic/hledger/f4Mir3PLooI/discussion))
 
   [project](#project-wide-changes-for-1.14)
 | [hledger](#hledger-1.14-1)
