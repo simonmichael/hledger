@@ -1,10 +1,11 @@
 # Download
 
-There are lots of ways to install hledger.
-Here they are, organised by platform, with the usually most up-to-date methods at the top.
+Here are the ways to install hledger, organised by platform, with the usually most up-to-date methods at the top.
 Note the first three involve building from source, which is slower.
-Please [send updates](https://github.com/simonmichael/hledger/edit/master/site/download.md) for this page,
+Please [send updates](index.html#helpfeedback) for 
+[this page](https://github.com/simonmichael/hledger/blob/master/site/download.md),
 and help packagers keep their platform packages up to date.
+hledger's usual release window is the first day or two of the month.
 
 <!--
 a. [Download a platform package](#a) (quick, may be out of date)
@@ -20,7 +21,7 @@ c. [Build the development version with stack or cabal](#c) (slow, cutting edge)
 
 <style>
 table { margin-left:1em; }
-tr { border-top:thin solid #ddd; border-bottom:thin solid #ddd; }
+tr { /*border-top:thin solid #ddd;*/ border-bottom:thin solid #ddd; }
 div > p > strong > code { margin-left:1em; } /* top-level code lines */
 code { white-space:nowrap; }
 tr { vertical-align:top; }
@@ -42,19 +43,19 @@ a { white-space:nowrap; }
 }
 </style>
 
-|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.1<br>[Release notes](http://hledger.org/release-notes) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
+|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.1<br>([release notes](http://hledger.org/release-notes)) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
 |--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| <br><big>**Multiplatform**</big>         | | <br><small>*This method builds:*</small>
-| [hledger-install.sh](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small>  | <small>Builds the latest release from source, avoids common pitfalls, requires only bash, takes a while. In case of trouble, see [Building from source](#b).</small><br><span style="font-size:x-small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**  *# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
-| [stack install](#b2)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | <small>Builds any version from source, requires stack. See [Building from source](#b).</small><br> | <small>Latest release, or any version</small>
-| [cabal install](#b3)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | <small>Builds any version from source, requires cabal and GHC. See [Building from source](#b).</small><br> | <small>Latest release, or any version</small>
-| [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([image info](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.14.1
+| <br><big>**Multiplatform**</big>         | | <br><small>*This method installs:*</small>
+| [hledger-install.sh](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small>  | <small>Requires bash. Builds the latest release from source, avoiding common pitfalls. In case of trouble, see [Building from source](#b).</small><br><span style="font-size:x-small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**  *# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
+| [stack install](#b2)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | <small>Requires stack. See [Building from source](#b).</small><br> | <small>Latest release, or any version</small>
+| [cabal install](#b3)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | <small>Requires cabal and GHC. See [Building from source](#b).</small><br> | <small>Latest release, or any version</small>
+| [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([readme](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.14.1
 | [Nix][]<br><small>*Linux,&nbsp;Mac*</small>  | **`nix-env -i hledger hledger-ui hledger-web`**  | [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) [![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) 
 | <br><big>**Mac**</big>         |
 | [Homebrew][]                   | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 | <br><big>**Windows**</big>     |
 | [Linuxbrew][]                  | **`brew install hledger`**    | [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
-| [Windows&nbsp;binaries][]      | **[hledger.zip](https://ci.appveyor.com/api/buildjobs/vcocma20843lpfdo/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791)<!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) --> </span> | 1.12
+| [Windows&nbsp;binaries][]      | **[hledger.zip](https://ci.appveyor.com/api/buildjobs/vcocma20843lpfdo/artifacts/hledger.zip)** <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><!-- <span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791) --><!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) </span>--> | 1.12
 | <br><big>**GNU/Linux**</big>   |
 | [Linuxbrew][]                  | **`brew install hledger`**    | [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 | [Arch][]                       | **`pacman -S hledger hledger-ui hledger-web`** | [![Arch](https://repology.org/badge/version-for-repo/arch/hledger.svg)](https://repology.org/metapackage/hledger/versions)
@@ -66,7 +67,7 @@ a { white-space:nowrap; }
 | <br><big>**BSD**</big>         |
 | OpenBSD                        | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
 | <br><big>**Other**</big>       |
-| [Sandstorm][]<br><small>*Community/private cloud platform*</small>                  | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> | 1.9.2
+| [Sandstorm][]<br><small>*Community/private cloud platform*</small>                  | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <!-- <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> --> | 1.9.2
 <!--
 | [Homebrew][]/[Linuxbrew][]<br><small>*Mac,&nbsp;Linux,&nbsp;Windows*</small> | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 -->
@@ -229,11 +230,11 @@ And you can check that the unit tests pass (just for fun):
 
   `$`**`hledger test`**\
   `...`\
-  `✅  188 tests passed, no failures! 👍 🎉`\
+  `✅  198 tests passed, no failures! 👍 🎉`\
 
 <a name="c"></a>
 
-### Build the development version
+### Building the development version
 
 The master branch in hledger's git repo is stable enough for daily use,
 and includes the [latest improvements](https://github.com/simonmichael/hledger/commits/master).
@@ -248,5 +249,5 @@ This will build and install all of the main hledger tools using stack:
 cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
 
 The --version output of development builds has a .99 suffix meaning "dev".
-So 1.14.99 means "1.15-dev", ie the in-development version of 1.15.
+So 1.14.99 means "1.15-dev", the in-development version of 1.15.
 
