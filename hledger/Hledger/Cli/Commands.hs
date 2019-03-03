@@ -69,6 +69,7 @@ import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Close
 import Hledger.Cli.Commands.Commodities
+import Hledger.Cli.Commands.Diff
 import Hledger.Cli.Commands.Files
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Import
@@ -102,6 +103,7 @@ builtinCommands = [
   ,(helpmode               , help')
   ,(importmode             , importcmd)
   ,(filesmode              , files)
+  ,(diffmode               , diff)
   ,(incomestatementmode    , incomestatement)
   ,(pricesmode             , prices)
   ,(printmode              , print')
