@@ -65,6 +65,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Checkdupes.txt
 - Hledger/Cli/Commands/Close.txt
 - Hledger/Cli/Commands/Commodities.txt
+- Hledger/Cli/Commands/Diff.txt
 - Hledger/Cli/Commands/Files.txt
 - Hledger/Cli/Commands/Help.txt
 - Hledger/Cli/Commands/Import.txt
@@ -165,6 +166,7 @@ library:
   - Hledger.Cli.Commands.Checkdupes
   - Hledger.Cli.Commands.Close
   - Hledger.Cli.Commands.Commodities
+  - Hledger.Cli.Commands.Diff
   - Hledger.Cli.Commands.Help
   - Hledger.Cli.Commands.Files
   - Hledger.Cli.Commands.Import
