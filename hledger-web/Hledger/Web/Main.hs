@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
 
@@ -33,8 +34,15 @@ import Hledger.Web.WebOptions
 hledgerWebMain :: IO ()
 hledgerWebMain = do
   opts <- getHledgerWebOpts
-  when (debug_ (cliopts_ opts) > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-  runWith opts
+  let copts = cliopts_ opts
+  when (debug_ copts > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
+  if
+    | "help"            `inRawOpts` rawopts_ copts -> putStr (showModeUsage webmode) >> exitSuccess
+    | "version"         `inRawOpts` rawopts_ copts -> putStrLn prognameandversion >> exitSuccess
+    | "binary-filename" `inRawOpts` rawopts_ copts -> putStrLn (binaryfilename progname)
+    | otherwise -> do
+        mapM_ ensureJournalFileExists =<< journalFilePathFromOpts copts
+        withJournalDo copts (web opts)
 
 hledgerWebDev :: IO (Int, Application)
 hledgerWebDev =
@@ -43,13 +51,6 @@ hledgerWebDev =
     loader =
       Yesod.Default.Config.loadConfig
         (configSettings Development) {csParseExtra = parseExtra}
-
-runWith :: WebOpts -> IO ()
-runWith opts
-  | "help"            `inRawOpts` rawopts_ (cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
-  | "version"         `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
-  | "binary-filename" `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn (binaryfilename progname)
-  | otherwise = withJournalDo (cliopts_ opts) (web opts)
 
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()

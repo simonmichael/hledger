@@ -4,8 +4,9 @@ Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.UI.Main where
 
@@ -30,6 +31,7 @@ import System.Exit
 import System.Directory
 import System.FilePath
 import System.FSNotify
+import Text.Printf (printf)
 import Brick
 
 #if MIN_VERSION_brick(0,16,0)
@@ -66,15 +68,14 @@ main = do
         { inputopts_ = (inputopts_ copts) { auto_ = True }
         , reportopts_ = (reportopts_ copts) { forecast_ = True }
         }
-
-  -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-  run $ opts { cliopts_ = copts' }
-    where
-      run opts
-        | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage uimode) >> exitSuccess
-        | "version"         `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
-        | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-        | otherwise                                                = withJournalDo (cliopts_ opts) (runBrickUi opts)
+  when (debug_ copts' > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
+  if
+    | "help"            `inRawOpts` rawopts_ copts' -> putStr (showModeUsage uimode) >> exitSuccess
+    | "version"         `inRawOpts` rawopts_ copts' -> putStrLn prognameandversion >> exitSuccess
+    | "binary-filename" `inRawOpts` rawopts_ copts' -> putStrLn (binaryfilename progname)
+    | otherwise -> do
+        mapM_ ensureJournalFileExists =<< journalFilePathFromOpts copts'
+        withJournalDo copts' (runBrickUi $ opts { cliopts_ = copts' })
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=ropts}} j = do
