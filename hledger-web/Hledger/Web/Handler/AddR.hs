@@ -11,13 +11,14 @@ module Hledger.Web.Handler.AddR
   ) where
 
 import Data.Aeson.Types (Result(..))
+import Data.IORef (writeIORef)
 import qualified Data.Text as T
 import Network.HTTP.Types.Status (status400)
 import Text.Blaze.Html (preEscapedToHtml)
 import Yesod
 
 import Hledger
-import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout, journalAddTransaction)
+import Hledger.Cli.Commands.Add (journalAddTransaction)
 import Hledger.Web.Import
 import Hledger.Web.Json ()
 import Hledger.Web.WebOptions (WebOpts(..))
@@ -28,17 +29,20 @@ getAddR = postAddR
 
 postAddR :: Handler ()
 postAddR = do
-  VD{caps, j, today} <- getViewData
+  VD { opts, caps, j, today } <- getViewData
+  App { appJournal } <- getYesod
   when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
 
   ((res, view), enctype) <- runFormPost $ addForm j today
   case res of
     FormSuccess res' -> do
-      let t = txnTieKnot res'
       -- XXX(?) move into balanceTransaction
-      liftIO $ ensureJournalFileExists (journalFilePath j)
-      -- XXX why not journalAddTransaction ?
-      liftIO $ appendToJournalFileOrStdout (journalFilePath j) (showTransaction t)
+      let t = txnTieKnot res'
+      liftIO $ do
+        ensureJournalFileExists (journalFilePath j)
+        j' <- journalAddTransaction j (cliopts_ opts) t
+        -- explicitly write to IORef for journals read from stdin
+        writeIORef appJournal j'
       setMessage "Transaction added."
       redirect JournalR
     FormMissing -> showForm view enctype
@@ -59,11 +63,14 @@ postAddR = do
 putAddR :: Handler RepJson
 putAddR = do
   VD{caps, j, opts} <- getViewData
+  App { appJournal } <- getYesod
   when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
 
   (r :: Result Transaction) <- parseCheckJsonBody
   case r of
     Error err -> sendStatusJSON status400 ("could not parse json: " ++ err ::String)
     Success t -> do
-      void $ liftIO $ journalAddTransaction j (cliopts_ opts) t
-      sendResponseCreated TransactionsR 
+      j' <- liftIO $ journalAddTransaction j (cliopts_ opts) t
+      -- explicitly write to IORef for journals read from stdin
+      liftIO $ writeIORef appJournal j'
+      sendResponseCreated TransactionsR

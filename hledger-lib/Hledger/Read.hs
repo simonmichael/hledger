@@ -129,6 +129,7 @@ requireJournalFileExists f = do
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
 ensureJournalFileExists :: FilePath -> IO ()
+ensureJournalFileExists "-" = return ()
 ensureJournalFileExists f = do
   exists <- doesFileExist f
   when (not exists) $ do

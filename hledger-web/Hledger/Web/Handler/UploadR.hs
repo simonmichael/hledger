@@ -12,6 +12,7 @@ module Hledger.Web.Handler.UploadR
 import qualified Data.ByteString.Lazy as BL
 import Data.Conduit (connect)
 import Data.Conduit.Binary (sinkLbs)
+import Data.IORef (writeIORef)
 import qualified Data.Text.Encoding as TE
 
 import Hledger.Web.Import
@@ -32,6 +33,7 @@ getUploadR = postUploadR
 postUploadR :: FilePath -> Handler ()
 postUploadR f = do
   VD {caps, j} <- getViewData
+  App { appJournal } <- getYesod
   when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
 
   (f', _) <- journalFile404 f j
@@ -53,7 +55,9 @@ postUploadR f = do
     Left e -> do
       setMessage $ "Failed to load journal: " <> toHtml e
       showForm view enctype
-    Right () -> do
+    Right j' -> do
+      -- explicitly write to IORef for journals read from stdin
+      liftIO $ writeIORef appJournal j'
       setMessage $ "File " <> toHtml f <> " uploaded successfully"
       redirect JournalR
   where

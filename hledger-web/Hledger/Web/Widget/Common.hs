@@ -48,13 +48,14 @@ fromFormSuccess h FormMissing = h
 fromFormSuccess h (FormFailure _) = h
 fromFormSuccess _ (FormSuccess a) = pure a
 
-writeValidJournal :: MonadHandler m => FilePath -> Text -> m (Either String ())
+writeValidJournal :: MonadHandler m => FilePath -> Text -> m (Either String Journal)
+writeValidJournal "-" txt = liftIO (readJournal def Nothing txt)
 writeValidJournal f txt =
   liftIO (readJournal def (Just f) txt) >>= \case
     Left e -> return (Left e)
-    Right _ -> do
+    Right j -> do
       _ <- liftIO (writeFileWithBackupIfChanged f txt)
-      return (Right ())
+      return (Right j)
 
 
 -- | Link to a topic in the manual.

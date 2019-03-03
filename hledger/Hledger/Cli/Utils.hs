@@ -219,6 +219,7 @@ journalFileIsNewer j@Journal{jlastreadtime=tread} = do
 -- | Has the specified file (presumably one of journal's data files)
 -- changed since journal was last read ?
 journalSpecifiedFileIsNewer :: Journal -> FilePath -> IO Bool
+journalSpecifiedFileIsNewer _ "-" = return False
 journalSpecifiedFileIsNewer Journal{jlastreadtime=tread} f = do
   tmod <- fileModificationTime f
   return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
