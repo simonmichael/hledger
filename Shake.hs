@@ -114,7 +114,9 @@ main = do
 
   -- hledger manual also includes the markdown files from here:
   let commandsdir = "hledger/Hledger/Cli/Commands"
-  commandmds <- filter (".md" `isSuffixOf`) . map (commandsdir </>) <$> S.getDirectoryContents commandsdir
+  commandmds <-
+    filter (not . ("README." `isPrefixOf`) . takeFileName) . filter (".md" `isSuffixOf`) . map (commandsdir </>)
+    <$> S.getDirectoryContents commandsdir
   let commandtxts = map (-<.> "txt") commandmds
   let wikidir = "wiki"
   wikipagefilenames <- map dropExtension . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents wikidir
