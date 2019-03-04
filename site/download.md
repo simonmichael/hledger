@@ -39,7 +39,7 @@ a { white-space:nowrap; }
 | [cabal install](#b3)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | <span style="font-size:small;">**`cabal v2-update && cabal v2-install hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14`**</span> | <small>Latest release, or any version</small>
 |
 | [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([readme](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.14.1
-| [Nix][]<br><small>*Linux,&nbsp;Mac*</small>  | **`nix-env -i hledger hledger-ui hledger-web`**  | [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) [![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) 
+| [Nix][]<br><small>*Linux,&nbsp;Mac*</small>  | **`nix-channel --update && nix-env -i hledger hledger-ui hledger-web`**  | [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) [![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) 
 |
 | <br><big>**Mac**</big>         |
 | [Homebrew][]                   | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
