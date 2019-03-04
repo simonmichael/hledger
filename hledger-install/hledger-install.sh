@@ -71,7 +71,6 @@ hledger-api \
 "
 
 HLEDGER_OTHER_TOOLS="\
-hledger-diff \
 hledger-iadd \
 hledger-interest \
 "
@@ -83,7 +82,6 @@ HLEDGER_UI_VERSION=1.14
 HLEDGER_WEB_VERSION=1.14
 HLEDGER_API_VERSION=1.14
 
-HLEDGER_DIFF_VERSION=0.2.0.14
 HLEDGER_IADD_VERSION=1.3.9
 HLEDGER_INTEREST_VERSION=1.5.3
 
@@ -1038,12 +1036,6 @@ fi
 
 # Third-party addons. We sometimes build these with an older version
 # of hledger[-lib], if their bounds have not been updated yet.
-if [[ $(cmpver "$(cmd_version hledger-diff 2>/dev/null)" $HLEDGER_DIFF_VERSION) = 2 ]]; then
-  echo Installing hledger-diff
-  try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
-  echo
-fi
-
 if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
   echo Installing hledger-iadd
   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
