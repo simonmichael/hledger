@@ -28,6 +28,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Checkdupes
   ,module Hledger.Cli.Commands.Close
   ,module Hledger.Cli.Commands.Commodities
+  ,module Hledger.Cli.Commands.Diff
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
@@ -153,7 +154,7 @@ commandsList = unlines [
   ," check-dates              check transactions are ordered by date"
   ," check-dupes              check for accounts with the same leaf name"
   ," close (equity)           generate balance-resetting transactions"
-  ,"+diff                     compare account transactions in two journal files"
+  ," diff                     compare account transactions in two journal files"
   ,"+interest                 generate interest transactions"
   ," rewrite                  generate automated postings/diffs (old, use --auto)"
   ,""
