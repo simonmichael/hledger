@@ -180,12 +180,11 @@ To estimate the build time remaining, add `--dry-run`.
 
 Some other [add-on tools](/hledger.html#third-party-add-ons) like
 [hledger-api](http://hackage.haskell.org/package/hledger-api),
-[hledger-diff](http://hackage.haskell.org/package/hledger-diff),
 [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
 and [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 can be installed like so:
 
-  **`stack install --resolver=lts-13 hledger-lib-1.14 hledger-1.14.1 hledger-api-1.14 hledger-diff-0.2.0.14 \`**\
+  **`stack install --resolver=lts-13 hledger-lib-1.14 hledger-1.14.1 hledger-api-1.14 \`**\
   &nbsp;&nbsp;**`hledger-interest-1.5.3 hledger-iadd-1.3.9 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
 
 <a name="b3"></a>
@@ -196,7 +195,7 @@ can be installed like so:
 
   **`cabal v2-update`**\
   **`cabal v2-install hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14 \`**\
-  &nbsp;&nbsp;**`hledger-api-1.14 hledger-diff-0.2.0.14 hledger-iadd-1.3.9 hledger-interest-1.5.3`**\
+  &nbsp;&nbsp;**`hledger-api-1.14 hledger-iadd-1.3.9 hledger-interest-1.5.3`**\
 
 ### Set up PATH
 
