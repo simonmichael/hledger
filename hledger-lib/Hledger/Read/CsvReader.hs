@@ -690,7 +690,7 @@ transactionFromCsvRecord sourcepos rules record = t
           where
             statuserror err = error' $ unlines
               ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
-              ,"the parse error is:      "++show err
+              ,"the parse error is:      "++customErrorBundlePretty err
               ]
     code        = maybe "" render $ mfieldtemplate "code"
     description = maybe "" render $ mfieldtemplate "description"
@@ -705,7 +705,7 @@ transactionFromCsvRecord sourcepos rules record = t
       ,"the amount rule is:      "++(fromMaybe "" $ mfieldtemplate "amount")
       ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
       ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
-      ,"the parse error is:      "++show err
+      ,"the parse error is:      "++customErrorBundlePretty err
       ,"you may need to "
        ++"change your amount or currency rules, "
        ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
@@ -734,7 +734,7 @@ transactionFromCsvRecord sourcepos rules record = t
       ,"the balance rule is:      "++(fromMaybe "" $ mfieldtemplate "balance")
       ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
       ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
-      ,"the parse error is:      "++show err
+      ,"the parse error is:      "++customErrorBundlePretty err
       ]
 
     -- build the transaction
