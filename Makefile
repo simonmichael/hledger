@@ -737,22 +737,14 @@ iscleanwd:
 isclean-%:
 	@$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
 
-setdate: $(call def-help,setdate, set date in manuals to current month and year )
-	perl -pe "s/^(m4_define\({{_monthyear_}}, *{{)[^}]*(}}\)m4_dnl *)$$/\$${1}$(MONTHYEAR)\$${2}/" -i doc/common.m4
-
-updatedate: setdate $(call def-help,updatedate, set date in manuals to current month and year and commit )
-	git commit -m "bump manual date to $(MONTHYEAR)" doc/common.m4
-
-# (re)generate a cabal file from its package.yaml definition 
-# XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
-#%.cabal: $$(dir $$@)package.yaml
-#	hpack --silent $(dir $*) 
+# (re)generate a cabal files with stack's built-in hpack
 gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
 	$(STACK) build --dry-run --silent
-# --stack-yaml stack-ghc8.2.yaml
 
+# (re)generate cabal files with hpack
+# To avoid warnings, this hpack should be the same version as stack's built-in hpack
 gencabal-with-hpack-%:
-	$(STACK) build --with-hpack hpack-$* --dry-run --silent --stack-yaml stack-ghc8.2.yaml
+	$(STACK) build --with-hpack hpack-$* --dry-run --silent
 
 # updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
 # 	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
