@@ -471,6 +471,15 @@ main = do
       -- update wiki links on website front page
       need [ "site/index.md" ]
 
+      -- if it changed, commit (and push) it.
+      -- XXX the push will cause another webhook invocation of this script, try to avoid
+      cmd_ Shell
+        "git diff --quiet -- site/index.md"
+        "|| ("
+          "git commit -m ';site: home: wiki links' -m '[ci skip]' site/index.md"
+          "&& git push"
+        ")"
+
       -- update the live site based on all latest content
       need [ "website-all" ]
 
