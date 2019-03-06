@@ -705,10 +705,14 @@ site-livereload: \
 #     /etc/github-post-receive.conf
 # 2. cron, nightly. Config: /etc/crontab
 # 3. manually (make site).
+# This must use the existing Shake executable without rebuilding it, 
+# as we don't want to immediately execute new code from any collaborator.
 .PHONY: site
 site: \
 		$(call def-help,site, update the hledger.org website (run on prod) )
-	@tools/site.sh
+	@[[ ! -x Shake ]] \
+		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
+		|| ./Shake hledgerorg
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)

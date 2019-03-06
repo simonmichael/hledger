@@ -24,6 +24,7 @@ tools, including:
 - makeinfo
 - pandoc
 - sed
+- GNU date (on mac: brew install coreutils)
 
 Compiling this script is recommended, to ensure required packages are
 installed, minimise startup delay, and reduce sensitivity to the
@@ -77,6 +78,7 @@ usage = unlines
   ,"./Shake website          build the website and web manuals"
   ,"./Shake website-all      build the website and all web manual versions"
   ,"./Shake all              build all the above"
+  ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
   ,""
   ,"./Shake mainpages                   build the web pages from the main repo"
   ,"./Shake wikipages                   build the web pages from the wiki repo"
@@ -436,6 +438,41 @@ main = do
                            ("--metadata=\"title:" ++ pagename ++ "\"")
                            "--lua-filter=tools/pandoc-toc.lua"
                            "-o" out )
+
+    -- This rule, for updating the live hledger.org site, gets called by:
+    -- 1. github-post-receive (github webhook handler), when something is pushed
+    --    to the main or wiki repos on Github. Config:
+    --     /etc/supervisord.conf -> [program:github-post-receive]
+    --     /etc/github-post-receive.conf
+    -- 2. cron, nightly. Config: /etc/crontab
+    -- 3. manually (make site).
+    phony "hledgerorg" $ do
+      -- out1 <- fromStdout <$>
+      cmd_ Shell
+        -- XXX ideally we would ensure here that output is logged,
+        -- but I don't know how to do that for the Shake rules.
+        -- Instead we'll do the logging in "make site".
+        -- -- run this sequence of commands, stopping if one fails:
+        -- "("
+        -- -- and log all output as well as echoing it
+        -- ") 2>&1 | tee -a site.log"
+
+        -- print timestamp. On mac, use brew-installed GNU date.
+        "echo"
+        "&& PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
+        -- pull latest wiki repo
+        "&& printf 'wiki repo: ' && git -C wiki pull"
+        -- pull latest main repo - sometimes already done by webhook, not always
+        "&& printf 'main repo: ' && git pull"
+
+      -- Shake.hs might have been updated, but we won't execute the
+      -- new one, too insecure. Continue with this one.
+
+      -- update wiki links on website front page
+      need [ "site/index.md" ]
+
+      -- update the live site based on all latest content
+      need [ "website-all" ]
 
     -- HLEDGER PACKAGES/EXECUTABLES
 
