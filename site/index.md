@@ -201,14 +201,17 @@ Making good software and documentation costs a lot.
 [[Customize default CSV accounts]]  
 [[Track changes with version control]]  
 [[Use another account separator character]]  
-["Full-fledged Hledger" tutorial](https://github.com/adept/full-fledged-hledger)&nbsp;&rarr;  
-["hledger: Make It So" tutorial/slideshow](https://github.com/apauley/hledger-makeitso)&nbsp;&rarr;  
 
 ### Reporting
 
 [[Queries]]  
 [[hledger tags tutorial]]  
 [[Rewrite account names]]  
+
+### Example setups
+
+["Full-fledged Hledger" tutorial](https://github.com/adept/full-fledged-hledger)&nbsp;&rarr;  
+["hledger: Make It So" tutorial/slideshow](https://github.com/apauley/hledger-makeitso)&nbsp;&rarr;  
 
 ### Accounting tasks
 
