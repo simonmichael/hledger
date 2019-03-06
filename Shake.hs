@@ -11,15 +11,13 @@
    ghc
 -}
 {-
-One of two project scripts files (Makefile, Shake.hs).
-This one provides a stronger programming language and more
-platform independence than Make. It will build needed packages (above)
-on first run and whenever the resolver in stack.yaml changes.
-To minimise such startup delays, and reduce sensitivity to git checkout,
-compiling is recommended; run the script in interpreted mode to do that.
 
-It requires stack (https://haskell-lang.org/get-started) and
-auto-installs the packages above. Also, some rules require:
+One of two project scripts files (Makefile, Shake.hs). This one
+provides a stronger programming language and more platform
+independence than Make. It requires stack and will auto-install the
+haskell packages above when needed (on first run or when a new
+resolver is configured in stack.yaml). Some rules below use additional
+tools, including:
 
 - groff
 - m4
@@ -27,17 +25,23 @@ auto-installs the packages above. Also, some rules require:
 - pandoc
 - sed
 
-Usage: see below. Also:
+Compiling this script is recommended, to ensure required packages are
+installed, minimise startup delay, and reduce sensitivity to the
+current git state (eg when bisecting). To compile, run "./Shake.hs".
+(Or "make Shake", or any other make rule depending on Shake).
 
-$ find hledger-lib hledger | entr ./Shake website    # rebuild web files on changes in these dirs
+Once compiled, run ./Shake without any arguments to list commands and
+targets (see below).
 
-Shake rule dependency graph:
-file:///Users/simon/src/PLAINTEXTACCOUNTING/hledger/report.html?mode=rule-graph&query=!name(/(doc%7Cimages%7Cjs%7Ccss%7Cfonts%7Ctime%7Capi%7Cui%7Ccsv)/)
+When developing/troubleshooting this script, these are useful:
 
-Shake wishes:
-just one shake import
-wildcards in phony rules
-multiple individually accessible wildcards
+watch Shake.hs for compile errors: make ghcid-shake
+load Shake.hs in GHCI: make ghci-shake
+rebuild things when files change with entr (file watcher), eg:
+ find hledger-lib hledger | entr ./Shake website
+view rule dependency graph:
+ ./Shake --report, open report.html?mode=rule-graph&query=!name(/(doc%7Cimages%7Cjs%7Ccss%7Cfonts%7Ctime%7Capi%7Cui%7Ccsv)/)
+
 -}
 
 {-# LANGUAGE MultiWayIf #-}
