@@ -126,10 +126,12 @@ main = do
   wikipagefilenames <- map dropExtension . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents wikidir
 
   shakeArgs
-    shakeOptions{
-      shakeVerbosity=Loud
+    shakeOptions
+      {
+       shakeVerbosity=Quiet
       -- ,shakeReport=[".shake.html"]
-      } $ do
+      }
+      $ do
 
     want ["help"]
 
