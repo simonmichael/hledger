@@ -10,8 +10,10 @@
 
 (\
 
-# timestamp
-echo && date --rfc-3339=seconds && \
+echo && \
+
+# print timestamp. On mac, use brew-installed GNU date.
+PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH" date --rfc-3339=seconds && \
 
 # fetch latest code & website - sometimes already done by webhook, not always
 git pull && \
