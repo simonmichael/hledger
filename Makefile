@@ -710,7 +710,7 @@ site-livereload: \
 .PHONY: site
 site: \
 		$(call def-help,site, update the hledger.org website (run on prod) )
-	@[[ ! -x Shake ]] \
+	@[ ! -x Shake ] \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
