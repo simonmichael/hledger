@@ -6,7 +6,7 @@
 #  /etc/github-post-receive.conf
 # and via cron (nightly)
 #  /etc/crontab
-# or manually (make deploy)
+# or manually (make site)
 
 (\
 
@@ -31,4 +31,4 @@ export LANG=en_US.UTF-8 && \
 ./Shake website \
 
 # print and log to:
-) 2>&1 | tee -a deploy.log
+) 2>&1 | tee -a site.log

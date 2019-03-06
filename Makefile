@@ -36,7 +36,7 @@
 # (see the file for more details), and a "help" target (our default).
 # Every useful rule in this makefile should use def-help to describe itself.
 # "make" or "make help" will show these descriptions.
--include help-system.mk
+-include Makefile.helpsys
 
 # Some calls and dummy targets to augment the default help output.
 # Also, help-SUBSTR and SUBSTR-help targets to show only matching help.
@@ -636,15 +636,6 @@ quickheap-%: hledgerprof samplejournals \
 ###############################################################################
 $(call def-help-subheading,DOCUMENTATION: (see also Shake.hs))
 
-site-liverender: Shake \
-		$(call def-help,site-liverender, update the website html when source files are saved  )
-	ls $(DOCSOURCEFILES) | entr ./Shake website
-
-site-livereload: \
-		$(call def-help,site-livereload, open a browser on the website html and reload the page when it updates  )
-	(sleep 1; open http://localhost:8001) &
-	livereloadx -p 8001 --static site/_site
-
 # cf http://www.haskell.org/haddock/doc/html/invoking.html
 # --ghc-options=-optP-P is a workaround for http://trac.haskell.org/haddock/ticket/284
 HADDOCKFLAGS= \
@@ -653,7 +644,7 @@ HADDOCKFLAGS= \
 
 haddock: \
 	$(call def-help,haddock, generate haddock docs for the hledger packages )
-	$(STACK) haddock --no-haddock-deps --no-keep-going # && echo OK
+	$(STACK) haddock --no-haddock-deps --no-keep-going
 #	$(STACK) -v haddock --no-haddock-deps --no-keep-going # && echo OK
 
 # view-haddock: \
@@ -698,6 +689,26 @@ haddock: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
+site-liverender: Shake \
+		$(call def-help,site-liverender, update the local website html when source files are saved  )
+	ls $(DOCSOURCEFILES) | entr ./Shake website
+
+site-livereload: \
+		$(call def-help,site-livereload, open a browser on the local website html and reload the page when it updates  )
+	(sleep 1; open http://localhost:8001) &
+	livereloadx -p 8001 --static site/_site
+
+# This rule, for updating the live hledger.org site, gets called by:
+# 1. github-post-receive (github webhook handler), when something is pushed
+#    to the main or wiki repos on Github. Config:
+#     /etc/supervisord.conf -> [program:github-post-receive]
+#     /etc/github-post-receive.conf
+# 2. cron, nightly. Config: /etc/crontab
+# 3. manually (make site).
+.PHONY: site
+site: \
+		$(call def-help,site, update the hledger.org website (run on prod) )
+	@tools/site.sh
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
@@ -960,9 +971,11 @@ Clean: stackclean cabalclean cleanghc cleantags clean-manpages \
 # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
 ###############################################################################
-# LOCAL UNTRACKED CUSTOMISATIONS
+# END
 
--include local.mk
+# optional local customisations, not in version control
+-include Makefile.local
 
+# show a final message in make help
 $(call def-help-heading,)
 $(call def-help-heading,See also ./Shake help   (after make Shake))
