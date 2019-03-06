@@ -447,19 +447,13 @@ main = do
     -- 2. cron, nightly. Config: /etc/crontab
     -- 3. manually (make site).
     phony "hledgerorg" $ do
-      -- out1 <- fromStdout <$>
+      -- XXX ideally we would ensure here that output is logged in site.log,
+      -- but I don't know how to do that for the Shake rules.
+      -- Instead we'll do the logging in "make site".
       cmd_ Shell
-        -- XXX ideally we would ensure here that output is logged,
-        -- but I don't know how to do that for the Shake rules.
-        -- Instead we'll do the logging in "make site".
-        -- -- run this sequence of commands, stopping if one fails:
-        -- "("
-        -- -- and log all output as well as echoing it
-        -- ") 2>&1 | tee -a site.log"
 
         -- print timestamp. On mac, use brew-installed GNU date.
-        "echo"
-        "&& PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
+        "PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
         -- pull latest wiki repo
         "&& printf 'wiki repo: ' && git -C wiki pull"
         -- pull latest main repo - sometimes already done by webhook, not always

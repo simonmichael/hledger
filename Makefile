@@ -712,7 +712,10 @@ site: \
 		$(call def-help,site, update the hledger.org website (run on prod) )
 	@[[ ! -x Shake ]] \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
-		|| ./Shake hledgerorg
+		|| ( \
+			echo; \
+			./Shake hledgerorg \
+		) 2>&1 | tee -a site.log
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
