@@ -134,6 +134,7 @@ Below are three ways to build hledger. But first, some general tips:
     [openbsd 6: exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html)\
     [openbsd: how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)\
     [windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444)\
+    [windows: build hangs using GHC 8.6.3](https://github.com/well-typed/generics-sop/issues/93)\
     </span>
 
 - If you have trouble, please send me a copy/paste of the output,
