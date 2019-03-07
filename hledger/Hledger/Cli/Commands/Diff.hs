@@ -32,7 +32,7 @@ diffmode = hledgerCommandMode
   []
   [generalflagsgroup2]
   []
-  ([], Just $ argsFlag "[ACCOUNT] -f [JOURNAL1] -f [JOURNAL2]")
+  ([], Just $ argsFlag "-f FILE1 -f FILE2 FULLACCOUNTTNAME")
 
 data PostingWithPath = PostingWithPath {
                      ppposting :: Posting,
@@ -115,12 +115,12 @@ diff CliOpts{file_=[f1, f2], reportopts_=ReportOpts{query_=acctName}} _ = do
   let unmatchedtxn1 = unmatchedtxns L pp1 m
   let unmatchedtxn2 = unmatchedtxns R pp2 m
 
-  putStrLn "Unmatched transactions in the first journal:\n"
+  putStrLn "These transactions are in the first file only:\n"
   mapM_ (putStr . showTransaction) unmatchedtxn1
 
-  putStrLn "Unmatched transactions in the second journal:\n"
+  putStrLn "These transactions are in the second file only:\n"
   mapM_ (putStr . showTransaction) unmatchedtxn2
 
 diff _ _ = do
-  putStrLn "Specifiy exactly two journal files"
+  putStrLn "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"
   exitFailure
