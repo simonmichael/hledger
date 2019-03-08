@@ -208,9 +208,9 @@ Making good software and documentation costs a lot.
 [[hledger tags tutorial]]  
 [[Rewrite account names]]  
 
-### Personal setups/workflows
+### Real world setups/workflows
 
-[[About personal setups]]  
+[[About real world setup docs]]  
 ["Full-fledged Hledger" tutorial](https://github.com/adept/full-fledged-hledger)&nbsp;&rarr;  
 ["hledger: Make It So" tutorial/slideshow](https://github.com/apauley/hledger-makeitso)&nbsp;&rarr;  
 
