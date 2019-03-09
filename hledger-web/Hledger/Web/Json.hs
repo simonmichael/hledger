@@ -54,6 +54,7 @@ instance ToJSON BalanceAssertion
 instance ToJSON Price
 instance ToJSON MarketPrice
 instance ToJSON PostingType
+
 instance ToJSON Posting where
   toJSON Posting{..} = object
     ["pdate"             .= toJSON pdate
@@ -71,7 +72,9 @@ instance ToJSON Posting where
     -- This is probably not wanted in json, we discard it.
     ,"poriginal"         .= toJSON (Nothing :: Maybe Posting) 
     ]
+
 instance ToJSON Transaction
+
 instance ToJSON Account where
   toJSON a = object
     ["aname"        .= toJSON (aname a)
@@ -82,10 +85,12 @@ instance ToJSON Account where
     -- To avoid a cycle, show just the parent account's name 
     -- in a dummy field. When re-parsed, there will be no parent.
     ,"aparent_"     .= toJSON (maybe "" aname $ aparent a)
-    -- To avoid a cycle, drop the subaccounts, showing just their names
-    -- in a dummy field. When re-parsed, there will be no subaccounts.
-    ,"asubs"        .= toJSON ([]::[Account])
+    -- Just the names of subaccounts, as a dummy field, ignored when parsed.
     ,"asubs_"       .= toJSON (map aname $ asubs a)
+    -- The actual subaccounts (and their subs..), making a (probably highly redundant) tree
+    -- ,"asubs"        .= toJSON (asubs a)
+    -- Omit the actual subaccounts
+    ,"asubs"        .= toJSON ([]::[Account])
     ]
 
 -- From JSON
@@ -104,6 +109,9 @@ instance FromJSON PostingType
 instance FromJSON Posting
 instance FromJSON Transaction
 instance FromJSON AccountDeclarationInfo
+-- XXX The ToJSON instance replaces subaccounts with just names.
+-- Here we should try to make use of those to reconstruct the 
+-- parent-child relationships.
 instance FromJSON Account
 
 -- Decimal, various attempts
