@@ -470,7 +470,7 @@ main = do
       cmd_ Shell
         "git diff --quiet -- site/index.md"
         "|| ("
-          "git commit -m ';site: home: wiki links' -m '[ci skip]' site/index.md"
+          "git commit -m ';site: update cookbook links' -m '[ci skip]' site/index.md"
           "&& git push"
         ")"
 
