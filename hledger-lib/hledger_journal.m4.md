@@ -1226,14 +1226,13 @@ and
 <a name="automated-postings"></a>
 <a name="auto-postings"></a>
 
-## Transaction modifiers
+## Auto postings / transaction modifiers
 
-Transaction modifier rules describe changes that should be applied automatically to certain transactions.
-They can be enabled by using the `--auto` flag.
-Currently, just one kind of change is possible: adding extra postings.
-These rule-generated postings are known as "automated postings" or "auto postings".
+Transaction modifier rules describe changes to be applied automatically to certain matched transactions.
+Currently just one kind of change is possible - adding extra postings, which we call "automated postings" or just "auto postings".
+These rules become active when you use the `--auto` flag.
 
-A transaction modifier rule looks quite like a normal transaction,
+A transaction modifier, AKA auto posting rule, looks much like a normal transaction
 except the first line is an equals sign followed by a [query](manual.html#queries) that matches certain postings
 (mnemonic: `=` suggests matching).
 And each "posting" is actually a posting-generating rule:
@@ -1245,12 +1244,14 @@ And each "posting" is actually a posting-generating rule:
     ...
 ```
 
-These posting rules look like normal postings, except the amount can be:
+These posting-generating rules look like normal postings, except the amount can be:
 
 - a normal amount with a commodity symbol, eg `$2`. This will be used as-is.
 - a number, eg `2`. The commodity symbol (if any) from the matched posting will be added to this. 
 - a numeric multiplier, eg `*2` (a star followed by a number N).  The matched posting's amount (and total price, if any) will be multiplied by N.
 - a multiplier with a commodity symbol, eg `*$2` (a star, number N, and symbol S). The matched posting's amount will be multiplied by N, and its commodity symbol will be replaced with S.
+
+These rules have global effect - a rule appearing anywhere in your data can potentially affect any transaction, including transactions recorded above it or in another file.
 
 Some examples:
 ```journal
