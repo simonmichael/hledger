@@ -1,6 +1,6 @@
-# stack build plan using GHC 8.6.3
+# stack build plan using GHC 8.6.4
 
-resolver: nightly-2019-01-04
+resolver: nightly-2019-03-09
 
 packages:
 - hledger-lib
@@ -22,4 +22,4 @@ extra-deps:
 # hledger-web:
 # hledger-api:
 # Workaround for https://github.com/commercialhaskell/stack/issues/3922:
-- haskell-src-exts-1.20.3
+- haskell-src-exts-1.21.0
