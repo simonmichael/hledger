@@ -35,8 +35,8 @@ a { white-space:nowrap; }
 |
 | <br><big>**Multiplatform**</big>         | <br><small>*The first three build from source, which is slower. See [Building from source](#b).*</small> | <br><small>*This method installs:*</small>
 | [hledger-install](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small><br><small>*Requires only bash.*</small> | <span style="font-size:small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**  *# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
-| [stack install](#b2)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | <span style="font-size:small;">**`stack install --resolver=lts-13 hledger-lib-1.14 hledger-1.14.1 hledger-web-1.14 \`**<br>&nbsp;&nbsp;**`hledger-ui-1.14 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**</span> | <small>Latest release, or any version</small>
-| [cabal install](#b3)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | <span style="font-size:small;">**`cabal v2-update && cabal v2-install hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14`**</span> | <small>Latest release, or any version</small>
+| [stack install](#b2)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:small;">**`stack install --resolver=lts-13 hledger-lib-1.14 hledger-1.14.1 hledger-web-1.14 \`**<br>&nbsp;&nbsp;**`hledger-ui-1.14 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**</span> | <small>Latest release / any version</small>
+| [cabal install](#b3)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:small;">**`cabal v2-update && cabal v2-install hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14`**</span> | <small>Latest release / any version</small>
 |
 | [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([readme](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.14.1
 | [Nix][]<br><small>*Linux,&nbsp;Mac*</small>  | **`nix-channel --update && nix-env -i hledger hledger-ui hledger-web`**  | [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) [![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) 
@@ -75,6 +75,7 @@ a { white-space:nowrap; }
 [Linuxbrew contact]: @albins, simon@joyful.com
 [Windows&nbsp;binaries]: https://ci.appveyor.com/project/simonmichael/hledger
 [Windows binaries contact]: simon@joyful.com
+[*]: #build-issues
 [Arch]: https://www.archlinux.org/packages/?sort=&q=hledger
 [Arch contact]: ?
 [Debian]: https://packages.debian.org/search?searchon=names&keywords=hledger
@@ -126,17 +127,17 @@ Below are three ways to build hledger. But first, some general tips:
     | Debian, Ubuntu: | **`sudo apt install -y libtinfo-dev`**
     | Fedora, RHEL:   | **`sudo dnf install -y gmp-devel ncurses-devel`**
 
-- Here are some known build issues and workarounds on certain platforms:
+- <a name="build-issues"></a>Here are some known build issues and workarounds on certain platforms:
 
     <span class=warnings>
-    [arch: advice from Arch wiki](https://wiki.archlinux.org/index.php/Haskell)\
+    [windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444)\
+    [windows: build hangs using GHC 8.6.3](https://github.com/well-typed/generics-sop/issues/93)\
+    [arch: haskell build advice from Arch wiki](https://wiki.archlinux.org/index.php/Haskell)\
     [arch: No information found for ghc-8.4.2](https://github.com/commercialhaskell/stack/issues/3984)\
     <!-- [arch: some past problems](https://github.com/simonmichael/hledger/issues/668) -->
     [freebsd 12: no cabal file found](https://github.com/simonmichael/hledger/issues/709)\
     [openbsd 6: exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html)\
     [openbsd: how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)\
-    [windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444)\
-    [windows: build hangs using GHC 8.6.3](https://github.com/well-typed/generics-sop/issues/93)\
     </span>
 
 - If you have trouble, please send me a copy/paste of the output,
