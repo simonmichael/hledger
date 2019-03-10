@@ -35,7 +35,7 @@ a { white-space:nowrap; }
 |
 | <br><big>**Multiplatform**</big>         | <br><small>*The first three build from source, which is slower. See [Building from source](#b).*</small> | <br><small>*This method installs:*</small>
 | [hledger-install](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small><br><small>*Requires only bash.*</small> | <span style="font-size:small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**  *# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
-| [stack install](#b2)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:small;">**`stack install --resolver=nightly-2019-03-09 hledger-1.14.1 hledger-web-1.14 hledger-ui-1.14`**</span> | <small>Latest release / any version</small>
+| [stack install](#b2)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:small;">**`stack install --resolver=nightly-2019-03-09 hledger hledger-web hledger-ui`**</span> | <small>Latest release / any version</small>
 | [cabal install](#b3)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:small;">**`cabal v2-update && cabal v2-install hledger-1.14.1 hledger-web-1.14 hledger-ui-1.14`**</span> | <small>Latest release / any version</small>
 |
 | [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([readme](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.14.1
