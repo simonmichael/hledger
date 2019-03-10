@@ -75,6 +75,7 @@ install:
 build_script:
 - stack build --test --copy-bins --local-bin-path=. hledger hledger-web
 
+# https://sevenzip.osdn.jp/chm/cmdline
 - 7z a hledger.zip hledger.exe hledger-web.exe
 
 # or use hledger-install ?
