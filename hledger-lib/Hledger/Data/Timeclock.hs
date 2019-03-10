@@ -6,7 +6,7 @@ converted to 'Transactions' and queried like a ledger.
 
 -}
 
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE CPP, OverloadedStrings, NamedFieldPuns, RecordWildCards #-}
 
 module Hledger.Data.Timeclock (
    timeclockEntriesToTransactions
@@ -14,6 +14,7 @@ module Hledger.Data.Timeclock (
 )
 where
 
+import Control.Monad.IO.Class (liftIO)
 import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
@@ -25,6 +26,7 @@ import Data.Time.LocalTime
 import System.Locale (defaultTimeLocale)
 #endif
 import Text.Printf
+import EasyTest (bracket)
 
 import Hledger.Utils 
 import Hledger.Data.Types
@@ -114,33 +116,48 @@ entryFromTimeclockInOut i o
 
 -- tests
 
-tests_Timeclock = tests "Timeclock" [
-  do
-   today <- io getCurrentDay
-   now' <- io getCurrentTime
-   tz <- io getCurrentTimeZone
-   let now = utcToLocalTime tz now'
-       nowstr = showtime now
-       yesterday = prevday today
-       clockin = TimeclockEntry nullsourcepos In
-       mktime d = LocalTime d . fromMaybe midnight .
+data TestEnv = TestEnv
+  { today     :: Day
+  , nowstr    :: String
+  , yesterday :: Day
+  , clockin   :: LocalTime -> AccountName -> T.Text -> TimeclockEntry
+  , mktime    :: Day -> String -> LocalTime
+  , txndescs  :: [TimeclockEntry] -> [String]
+  , future    :: LocalTime
+  , futurestr :: String
+  }
+
+-- | Make a test with a TestEnv
+mkTest :: (TestEnv -> PropertyT IO ()) -> Test
+mkTest = unitTest . bracket timeclockSetup (\_ -> pure ()) where
+  timeclockSetup :: IO TestEnv
+  timeclockSetup = do
+     today <- liftIO getCurrentDay
+     now' <- liftIO getCurrentTime
+     tz <- liftIO getCurrentTimeZone
+     let now = utcToLocalTime tz now'
+         nowstr = showtime now
+         yesterday = prevday today
+         clockin = TimeclockEntry nullsourcepos In
+         mktime d = LocalTime d . fromMaybe midnight .
 #if MIN_VERSION_time(1,5,0)
-                  parseTimeM True defaultTimeLocale "%H:%M:%S"
+                    parseTimeM True defaultTimeLocale "%H:%M:%S"
 #else
-                  parseTime defaultTimeLocale "%H:%M:%S"
+                    parseTime defaultTimeLocale "%H:%M:%S"
 #endif
-       showtime = formatTime defaultTimeLocale "%H:%M"
-       txndescs = map (T.unpack . tdescription) . timeclockEntriesToTransactions now 
-       future = utcToLocalTime tz $ addUTCTime 100 now'
-       futurestr = showtime future
-   tests "timeclockEntriesToTransactions" [ 
-     test "started yesterday, split session at midnight" $
-      txndescs [clockin (mktime yesterday "23:00:00") "" ""] `is` ["23:00-23:59","00:00-"++nowstr]
-     ,test "split multi-day sessions at each midnight" $
-      txndescs [clockin (mktime (addDays (-2) today) "23:00:00") "" ""] `is `["23:00-23:59","00:00-23:59","00:00-"++nowstr]
-     ,test "auto-clock-out if needed" $
-      txndescs [clockin (mktime today "00:00:00") "" ""] `is` ["00:00-"++nowstr]
-     ,test "use the clockin time for auto-clockout if it's in the future" $
-      txndescs [clockin future "" ""] `is` [printf "%s-%s" futurestr futurestr]
-     ]
- ]
+         showtime = formatTime defaultTimeLocale "%H:%M"
+         txndescs = map (T.unpack . tdescription) . timeclockEntriesToTransactions now
+         future = utcToLocalTime tz $ addUTCTime 100 now'
+         futurestr = showtime future
+     pure TestEnv{..}
+
+tests_Timeclock = tests "Timeclock.timeclockEntriesToTransactions" [
+   test "started yesterday, split session at midnight" $ mkTest $ \TestEnv{..} ->
+    txndescs [clockin (mktime yesterday "23:00:00") "" ""] === ["23:00-23:59","00:00-"++nowstr]
+   ,test "split multi-day sessions at each midnight" $ mkTest $ \TestEnv{..} ->
+    txndescs [clockin (mktime (addDays (-2) today) "23:00:00") "" ""] === ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
+   ,test "auto-clock-out if needed" $ mkTest $ \TestEnv{..} ->
+    txndescs [clockin (mktime today "00:00:00") "" ""] === ["00:00-"++nowstr]
+   ,test "use the clockin time for auto-clockout if it's in the future" $ mkTest $ \TestEnv{..} ->
+    txndescs [clockin future "" ""] === [printf "%s-%s" futurestr futurestr]
+   ]

@@ -176,6 +176,6 @@ tests_StringFormat = tests "StringFormat" [
                                                                      ,FormatLiteral " "
                                                                      ,FormatField False Nothing (Just 10) TotalField
                                                                      ])
-    , test "newline not parsed" $ expectLeft $ parseStringFormat "\n"
+    , test "newline not parsed" $ unitTest $ matches _Left $ parseStringFormat "\n"
     ]
  ]

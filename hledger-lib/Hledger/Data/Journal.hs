@@ -1244,28 +1244,28 @@ tests_Journal = tests "Journal" [
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
     in [
-       test "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-      ,test "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-      ,test "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
-      ,test "income"      $ expectEq (namesfrom journalRevenueAccountQuery)    ["income","income:gifts","income:salary"]
-      ,test "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
+       test "assets"      $ unitTest $ namesfrom journalAssetAccountQuery     === ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+      ,test "liabilities" $ unitTest $ namesfrom journalLiabilityAccountQuery === ["liabilities","liabilities:debts"]
+      ,test "equity"      $ unitTest $ namesfrom journalEquityAccountQuery    === []
+      ,test "income"      $ unitTest $ namesfrom journalRevenueAccountQuery   === ["income","income:gifts","income:salary"]
+      ,test "expenses"    $ unitTest $ namesfrom journalExpenseAccountQuery   === ["expenses","expenses:food","expenses:supplies"]
     ]
 
   ,tests "journalBalanceTransactions" [
 
-     test "balance-assignment" $ do
+     test "balance-assignment" $ unitTest $ do
       let ej = journalBalanceTransactions True $
             --2019/01/01
             --  (a)            = 1
             nulljournal{ jtxns = [
               transaction "2019/01/01" [ vpost' "a" missingamt (balassert (num 1)) ]
             ]}
-      expectRight ej
+      matches _Right ej
       let Right j = ej
-      (jtxns j & head & tpostings & head & pamount) `is` Mixed [num 1]
+      (jtxns j & head & tpostings & head & pamount) === Mixed [num 1]
 
     ,test "same-day-1" $ do
-      expectRight $ journalBalanceTransactions True $
+      unitTest $ matches _Right $ journalBalanceTransactions True $
             --2019/01/01
             --  (a)            = 1
             --2019/01/01
@@ -1276,7 +1276,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "same-day-2" $ do
-      expectRight $ journalBalanceTransactions True $
+      unitTest $ matches _Right $ journalBalanceTransactions True $
             --2019/01/01
             --    (a)                  2 = 2
             --2019/01/01
@@ -1294,7 +1294,7 @@ tests_Journal = tests "Journal" [
             ]}
 
     ,test "out-of-order" $ do
-      expectRight $ journalBalanceTransactions True $
+      unitTest $ matches _Right $ journalBalanceTransactions True $
             --2019/1/2
             --  (a)    1 = 2
             --2019/1/1

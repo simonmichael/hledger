@@ -208,12 +208,16 @@ Right samplejournal2 =
 tests_BalanceReport = tests "BalanceReport" [
   tests "balanceReport" $
     let
-      (opts,journal) `gives` r = do
+      gives
+        :: (ReportOpts, Journal)
+        -> ([(AccountName, AccountName, Int, MixedAmount)], MixedAmount)
+        -> Test
+      (opts,journal) `gives` r = unitTest $ do
         let (eitems, etotal) = r
             (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
             showw (acct,acct',indent,amt) = (acct, acct', indent, showMixedAmountDebug amt)
-        (map showw eitems) `is` (map showw aitems)
-        (showMixedAmountDebug etotal) `is` (showMixedAmountDebug atotal)
+        map showw eitems === map showw aitems
+        showMixedAmountDebug etotal === showMixedAmountDebug atotal
       usd0 = usd 0
     in [
   

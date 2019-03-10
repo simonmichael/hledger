@@ -307,12 +307,12 @@ tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
 
 tests_MultiBalanceReports = tests "MultiBalanceReports" [
   let
-    (opts,journal) `gives` r = do
+    (opts,journal) `gives` r = unitTest $ do
       let (eitems, etotal) = r
           (MultiBalanceReport (_, aitems, atotal)) = multiBalanceReport opts (queryFromOpts nulldate opts) journal
           showw (acct,acct',indent,lAmt,amt,amt') = (acct, acct', indent, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
-      (map showw aitems) `is` (map showw eitems)
-      ((\(_, b, _) -> showMixedAmountDebug b) atotal) `is` (showMixedAmountDebug etotal) -- we only check the sum of the totals
+      map showw aitems === map showw eitems
+      (\(_, b, _) -> showMixedAmountDebug b) atotal === showMixedAmountDebug etotal -- we only check the sum of the totals
     usd0 = usd 0
     amount0 = Amount {acommodity="$", aquantity=0, aprice=NoPrice, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, aismultiplier=False}
   in 

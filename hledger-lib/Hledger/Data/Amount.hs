@@ -751,8 +751,8 @@ tests_Amount = tests "Amount" [
     ]
   
     ,tests "isZeroAmount" [
-       expect $ isZeroAmount amount
-      ,expect $ isZeroAmount $ usd 0
+       boolTest $ isZeroAmount amount
+      ,boolTest $ isZeroAmount $ usd 0
     ]
   
     ,tests "negating amounts" [
@@ -769,7 +769,7 @@ tests_Amount = tests "Amount" [
       ,asprecision (astyle $ sum [usd 1 `withPrecision` 1, usd 1 `withPrecision` 3]) `is` 3
       ,asprecision (astyle $ sum [usd 1 `withPrecision` 3, usd 1 `withPrecision` 1]) `is` 3
       -- adding different commodities assumes conversion rate 1
-      ,expect $ isZeroAmount (usd 1.23 - eur 1.23)
+      ,boolTest $ isZeroAmount (usd 1.23 - eur 1.23)
     ]
   
     ,tests "showAmount" [
@@ -829,7 +829,7 @@ tests_Amount = tests "Amount" [
   
     ,tests "normaliseMixedAmountSquashPricesForDisplay" [
        normaliseMixedAmountSquashPricesForDisplay (Mixed []) `is` Mixed [nullamt]
-      ,expect $ isZeroMixedAmount $ normaliseMixedAmountSquashPricesForDisplay
+      ,boolTest $ isZeroMixedAmount $ normaliseMixedAmountSquashPricesForDisplay
         (Mixed [usd 10
                ,usd 10 @@ eur 7
                ,usd (-10)

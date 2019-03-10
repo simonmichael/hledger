@@ -727,56 +727,56 @@ tests_Query = tests "Query" [
     ]
   
   ,tests "matchesAccount" [
-     expect $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
-    ,expect $ not $ (Acct "^a:b") `matchesAccount` "c:a:b"
-    ,expect $ Depth 2 `matchesAccount` "a"
-    ,expect $ Depth 2 `matchesAccount` "a:b"
-    ,expect $ not $ Depth 2 `matchesAccount` "a:b:c"
-    ,expect $ Date nulldatespan `matchesAccount` "a"
-    ,expect $ Date2 nulldatespan `matchesAccount` "a"
-    ,expect $ not $ (Tag "a" Nothing) `matchesAccount` "a"
+     boolTest $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
+    ,boolTest $ not $ (Acct "^a:b") `matchesAccount` "c:a:b"
+    ,boolTest $ Depth 2 `matchesAccount` "a"
+    ,boolTest $ Depth 2 `matchesAccount` "a:b"
+    ,boolTest $ not $ Depth 2 `matchesAccount` "a:b:c"
+    ,boolTest $ Date nulldatespan `matchesAccount` "a"
+    ,boolTest $ Date2 nulldatespan `matchesAccount` "a"
+    ,boolTest $ not $ (Tag "a" Nothing) `matchesAccount` "a"
   ]
   
   ,tests "matchesPosting" [
      test "positive match on cleared posting status"  $
-      expect $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+      boolTest $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
     ,test "negative match on cleared posting status"  $
-      expect $ not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+      boolTest $ not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
     ,test "positive match on unmarked posting status" $
-      expect $ (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+      boolTest $ (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
     ,test "negative match on unmarked posting status" $
-      expect $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+      boolTest $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
     ,test "positive match on true posting status acquired from transaction" $
-      expect $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
-    ,test "real:1 on real posting" $ expect $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
-    ,test "real:1 on virtual posting fails" $ expect $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    ,test "real:1 on balanced virtual posting fails" $ expect $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
-    ,test "a" $ expect $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
-    ,test "b" $ expect $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
-    ,test "c" $ expect $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
-    ,test "d" $ expect $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
-    ,test "e" $ expect $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    ,test "f" $ expect $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    ,test "g" $ expect $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    ,test "h" $ expect $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
+      boolTest $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
+    ,test "real:1 on real posting" $ boolTest $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
+    ,test "real:1 on virtual posting fails" $ boolTest $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    ,test "real:1 on balanced virtual posting fails" $ boolTest $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+    ,test "a" $ boolTest $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
+    ,test "b" $ boolTest $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
+    ,test "c" $ boolTest $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
+    ,test "d" $ boolTest $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
+    ,test "e" $ boolTest $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    ,test "f" $ boolTest $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    ,test "g" $ boolTest $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+    ,test "h" $ boolTest $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
      -- a tag match on a posting also sees inherited tags
-    ,test "i" $ expect $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
-    ,test "j" $ expect $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
-    ,test "k" $ expect $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
-    ,test "l" $ expect $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
-    ,test "m" $ expect $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
+    ,test "i" $ boolTest $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    ,test "j" $ boolTest $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
+    ,test "k" $ boolTest $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
+    ,test "l" $ boolTest $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
+    ,test "m" $ boolTest $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
   ]
   
   ,tests "matchesTransaction" [
-     expect $ Any `matchesTransaction` nulltransaction
-    ,expect $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
-    ,expect $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
+     boolTest $ Any `matchesTransaction` nulltransaction
+    ,boolTest $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
+    ,boolTest $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
      -- see posting for more tag tests
-    ,expect $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
-    ,expect $ (Tag "payee" (Just "payee")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
-    ,expect $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
+    ,boolTest $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
+    ,boolTest $ (Tag "payee" (Just "payee")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
+    ,boolTest $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
      -- a tag match on a transaction also matches posting tags
-    ,expect $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
+    ,boolTest $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
   ]
 
  ]

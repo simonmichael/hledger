@@ -10,7 +10,7 @@ packages:
 - hledger-api
 
 extra-deps:
-- easytest-0.2.1
+- easytest-0.3
 - cassava-megaparsec-2.0.0
 - config-ini-0.2.3.0
 - megaparsec-7.0.2

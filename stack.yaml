@@ -23,3 +23,4 @@ extra-deps:
 # hledger-api:
 # Workaround for https://github.com/commercialhaskell/stack/issues/3922:
 - haskell-src-exts-1.21.0
+- easytest-0.3

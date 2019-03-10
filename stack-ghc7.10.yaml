@@ -13,7 +13,7 @@ packages:
 #- hledger-api
 
 extra-deps:
-- easytest-0.2.1
+- easytest-0.3
 # avoid no hashable instance for AccountName from doctests
 - hashtables-1.2.3.1
 # Many newer versions to allow using the latest base-compat with all ghc versions.

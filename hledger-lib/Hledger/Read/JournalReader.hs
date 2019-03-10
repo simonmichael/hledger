@@ -67,6 +67,7 @@ import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..), runExceptT)
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
@@ -673,32 +674,39 @@ tests_JournalReader = tests "JournalReader" [
   -- Hyphen (-) and period (.) are also allowed as separators.
   -- The year may be omitted if a default year has been set.
   -- Leading zeroes may be omitted."
-  ,test "datep" $ do
-    test "YYYY/MM/DD" $ expectParseEq datep "2018/01/01" (fromGregorian 2018 1 1)
-    test "YYYY-MM-DD" $ expectParse datep "2018-01-01"
-    test "YYYY.MM.DD" $ expectParse datep "2018.01.01"
-    test "yearless date with no default year" $ expectParseError datep "1/1" "current year is unknown"
-    test "yearless date with default year" $ do 
+  ,tests "datep" 
+    [ test "YYYY/MM/DD" $ expectParseEq datep "2018/01/01" (fromGregorian 2018 1 1)
+    , test "YYYY-MM-DD" $ expectParse datep "2018-01-01"
+    , test "YYYY.MM.DD" $ expectParse datep "2018.01.01"
+    , test "yearless date with no default year" $ expectParseError datep "1/1" "current year is unknown"
+    , test "yearless date with default year" $ unitTest $ do 
       let s = "1/1"
       ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep s
-      either (fail.("parse error at "++).customErrorBundlePretty) (const ok) ep
-    test "no leading zero" $ expectParse datep "2018/1/1"
+      case ep of
+        Left err -> do
+          footnote $ "parse error at " ++ customErrorBundlePretty err
+          Hledger.Utils.failure
+        Right _ -> success
+    , test "no leading zero" $ expectParse datep "2018/1/1"
+    ]
 
-  ,test "datetimep" $ do
+  ,tests "datetimep" $ 
       let
         good = expectParse datetimep
         bad = (\t -> expectParseError datetimep t "")
-      good "2011/1/1 00:00"
-      good "2011/1/1 23:59:59"
-      bad "2011/1/1"
-      bad "2011/1/1 24:00:00"
-      bad "2011/1/1 00:60:00"
-      bad "2011/1/1 00:00:60"
-      bad "2011/1/1 3:5:7"
-      test "timezone is parsed but ignored" $ do
-        let t = LocalTime (fromGregorian 2018 1 1) (TimeOfDay 0 0 (fromIntegral 0))
-        expectParseEq datetimep "2018/1/1 00:00-0800" t
-        expectParseEq datetimep "2018/1/1 00:00+1234" t
+      in [ good "2011/1/1 00:00"
+         , good "2011/1/1 23:59:59"
+         , bad "2011/1/1"
+         , bad "2011/1/1 24:00:00"
+         , bad "2011/1/1 00:60:00"
+         , bad "2011/1/1 00:00:60"
+         , bad "2011/1/1 3:5:7"
+         , tests "timezone is parsed but ignored" $ 
+           let t = LocalTime (fromGregorian 2018 1 1) (TimeOfDay 0 0 (fromIntegral 0))
+           in [ expectParseEq datetimep "2018/1/1 00:00-0800" t
+              , expectParseEq datetimep "2018/1/1 00:00+1234" t
+              ]
+         ]
 
   ,tests "periodictransactionp" [
 
@@ -835,7 +843,7 @@ tests_JournalReader = tests "JournalReader" [
       }
   
     ,test "parses a well-formed transaction" $
-      expect $ isRight $ rjp transactionp $ T.unlines
+      unitTest $ matches _Right $ rjp transactionp $ T.unlines
         ["2007/01/28 coopportunity"
         ,"    expenses:food:groceries                   $47.18"
         ,"    assets:checking                          $-47.18"
@@ -846,7 +854,7 @@ tests_JournalReader = tests "JournalReader" [
       expectParseEqOn transactionp "2009/1/1 a ;comment\n b 1\n" tdescription "a"
   
     ,test "transactionp parses a following whitespace line" $
-      expect $ isRight $ rjp transactionp $ T.unlines
+      unitTest $ matches _Right $ rjp transactionp $ T.unlines
         ["2012/1/1"
         ,"  a  1"
         ,"  b"
@@ -854,7 +862,7 @@ tests_JournalReader = tests "JournalReader" [
         ]
 
     ,test "transactionp parses an empty transaction comment following whitespace line" $
-      expect $ isRight $ rjp transactionp $ T.unlines
+      unitTest $ matches _Right $ rjp transactionp $ T.unlines
         ["2012/1/1"
         ,"  ;"
         ,"  a  1"
@@ -879,41 +887,46 @@ tests_JournalReader = tests "JournalReader" [
   -- directives
 
   ,tests "directivep" [
-    test "supports !" $ do 
-      expectParseE directivep "!account a\n"
-      expectParseE directivep "!D 1.0\n"
+    tests "supports !" 
+      [ expectParseE directivep "!account a\n"
+      , expectParseE directivep "!D 1.0\n"
+      ]
     ]
 
-  ,test "accountdirectivep" $ do
-    test "with-comment"       $ expectParse accountdirectivep "account a:b  ; a comment\n"
-    test "does-not-support-!" $ expectParseError accountdirectivep "!account a:b\n" ""
-    test "account-type-code"  $ expectParse accountdirectivep "account a:b  A\n"
-    test "account-type-tag"   $ expectParseStateOn accountdirectivep "account a:b  ; type:asset\n"
+  ,tests "accountdirectivep" 
+    [ test "with-comment"       $ expectParse accountdirectivep "account a:b  ; a comment\n"
+    , test "does-not-support-!" $ expectParseError accountdirectivep "!account a:b\n" ""
+    , test "account-type-code"  $ expectParse accountdirectivep "account a:b  A\n"
+    , test "account-type-tag"   $ expectParseStateOn accountdirectivep "account a:b  ; type:asset\n"
       jdeclaredaccounts
       [("a:b", AccountDeclarationInfo{adicomment          = "type:asset\n"
                                      ,aditags             = [("type","asset")]
                                      ,adideclarationorder = 1
                                      })
       ]
+    ]
 
-  ,test "commodityconversiondirectivep" $ do
+  ,test "commodityconversiondirectivep" $ 
      expectParse commodityconversiondirectivep "C 1h = $50.00\n"
 
-  ,test "defaultcommoditydirectivep" $ do
-     expectParse defaultcommoditydirectivep "D $1,000.0\n"
-     expectParseError defaultcommoditydirectivep "D $1000\n" "please include a decimal separator"
+  ,tests "defaultcommoditydirectivep" 
+     [ expectParse defaultcommoditydirectivep "D $1,000.0\n"
+     , expectParseError defaultcommoditydirectivep "D $1000\n" "please include a decimal separator"
+     ]
 
-  ,test "defaultyeardirectivep" $ do
-    test "1000" $ expectParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others
-    test "999" $ expectParseError defaultyeardirectivep "Y 999" "bad year number"
-    test "12345" $ expectParse defaultyeardirectivep "Y 12345"
+  ,tests "defaultyeardirectivep" 
+    [ test "1000" $ expectParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others
+    , test "999" $ expectParseError defaultyeardirectivep "Y 999" "bad year number"
+    , test "12345" $ expectParse defaultyeardirectivep "Y 12345"
+    ]
 
-  ,test "ignoredpricecommoditydirectivep" $ do
+  ,test "ignoredpricecommoditydirectivep" $ 
      expectParse ignoredpricecommoditydirectivep "N $\n"
 
-  ,test "includedirectivep" $ do
-    test "include" $ expectParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
-    test "glob" $ expectParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+  ,tests "includedirectivep" 
+    [ test "include" $ expectParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
+    , test "glob" $ expectParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+    ]
 
   ,test "marketpricedirectivep" $ expectParseEq marketpricedirectivep
     "P 2017/01/30 BTC $922.83\n"
@@ -923,24 +936,25 @@ tests_JournalReader = tests "JournalReader" [
       mpamount    = usd 922.83
       }
 
-  ,test "tagdirectivep" $ do
+  ,test "tagdirectivep" $ 
      expectParse tagdirectivep "tag foo \n"
 
-  ,test "endtagdirectivep" $ do
-     expectParse endtagdirectivep "end tag \n"
-     expectParse endtagdirectivep "pop \n"
+  ,tests "endtagdirectivep" 
+     [ expectParse endtagdirectivep "end tag \n"
+     , expectParse endtagdirectivep "pop \n"
+     ]
 
 
-  ,tests "journalp" [
-    test "empty file" $ expectParseEqE journalp "" nulljournal
-    ]
+  ,test "journalp.empty file" $ expectParseEqE journalp "" nulljournal
 
    -- these are defined here rather than in Common so they can use journalp
   ,tests "parseAndFinaliseJournal" [
-    test "basic" $ do
-        ej <- io $ runExceptT $ parseAndFinaliseJournal journalp definputopts "" "2019-1-1\n"
-        let Right j = ej
-        expectEqPP [""] $ journalFilePaths j
+    let run :: PropertyT IO ()
+        run = do
+          ej <- liftIO $ runExceptT $ parseAndFinaliseJournal journalp definputopts "" "2019-1-1\n"
+          let Right j = ej
+          journalFilePaths j === [""]
+    in test "basic" $ unitTest run
    ]
 
   ]
