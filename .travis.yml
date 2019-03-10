@@ -134,8 +134,8 @@ script:  # command output is not hidden
   - COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
   - stack build --ghc-options=-Werror hledger-ui
-  # - stack build --ghc-options=-Werror hledger-web
-  # - stack build --ghc-options=-Werror hledger-api
+  - stack build --ghc-options=-Werror hledger-web
+  - stack build --ghc-options=-Werror hledger-api
 
   # run the built-in hunit tests. This doesn't run the doctests, 
   # but doesn't require rebuilding and is fast
