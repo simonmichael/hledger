@@ -133,6 +133,7 @@ Below are three ways to build hledger. But first, some general tips:
     <span class=warnings>
     [windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444)\
     [windows: build hangs using GHC 8.6.3](https://github.com/well-typed/generics-sop/issues/93)\
+    [windows: cross-environment non-ascii display issues](https://github.com/simonmichael/hledger/issues/961#issuecomment-471229644)\
     [arch: haskell build advice from Arch wiki](https://wiki.archlinux.org/index.php/Haskell)\
     [arch: No information found for ghc-8.4.2](https://github.com/commercialhaskell/stack/issues/3984)\
     <!-- [arch: some past problems](https://github.com/simonmichael/hledger/issues/668) -->
