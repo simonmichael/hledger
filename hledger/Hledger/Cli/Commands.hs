@@ -270,12 +270,12 @@ tests_Commands = tests "Commands" [
   ,tests_Register
 
   -- some more tests easiest to define here:
-  
-  ,test "apply account directive" $ do 
+
+  ,test "apply account directive" $ unitTest $ do
     let ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
     let sameParse str1 str2 = do j1 <- io $ readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)
                                  j2 <- io $ readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
-                                 j1 `is` j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
+                                 j1 === j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
     sameParse
      ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
       "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" <>
@@ -290,19 +290,19 @@ tests_Commands = tests "Commands" [
       "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
      )
 
-  ,test "apply account directive should preserve \"virtual\" posting type" $ do
+  ,test "apply account directive should preserve \"virtual\" posting type" $ unitTest $ do
     j <- io $ readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
-    paccount p `is` "test:from"
-    ptype p `is` VirtualPosting
-  
-  ,test "account aliases" $ do
+    paccount p === "test:from"
+    ptype p === VirtualPosting
+
+  ,test "account aliases" $ unitTest $ do
     j <- io $ readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
-    paccount p `is` "equity:draw:personal:food"
+    paccount p === "equity:draw:personal:food"
 
-  ,test "ledgerAccountNames" $
-    ledgerAccountNames ledger7 `is`
+  ,test "ledgerAccountNames" $ unitTest $
+    ledgerAccountNames ledger7 ===
      ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
       "expenses","expenses:food","expenses:food:dining","expenses:phone","expenses:vacation",
       "liabilities","liabilities:credit cards","liabilities:credit cards:discover"]
@@ -318,13 +318,13 @@ tests_Commands = tests "Commands" [
   --    (elideAccountName 20 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     `is` "aa:aa:aaaaaaaaaaaaaa")
 
-  ,test "default year" $ do
+  ,test "default year" $ unitTest $ do
     j <- io $ readJournal def Nothing defaultyear_journal_txt >>= either error' return
-    tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
+    tdate (head $ jtxns j) === fromGregorian 2009 1 1
 
-  ,test "show dollars" $ showAmount (usd 1) `is` "$1.00"
+  ,test "show dollars" $ unitTest $ showAmount (usd 1) === "$1.00"
 
-  ,test "show hours" $ showAmount (hrs 1) `is` "1.00h"
+  ,test "show hours" $ unitTest $ showAmount (hrs 1) === "1.00h"
 
  ]
 

@@ -16,6 +16,7 @@ module Hledger.Cli.Commands.Register (
  ,tests_Register
 ) where
 
+import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
 -- import Data.Text (Text)
@@ -190,10 +191,10 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
 tests_Register = tests "Register" [
 
    tests "postingsReportAsText" [
-    test "unicode in register layout" $ do
-      j <- io $ readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+    test "unicode in register layout" $ unitTest $ do
+      j <- liftIO $ readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let opts = defreportopts
-      (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is` unlines
+      (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) === unlines
         ["2009/01/01 медвежья шкура       расходы:покупки                100           100"
         ,"                                актив:наличные                -100             0"]
    ]
