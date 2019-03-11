@@ -45,7 +45,7 @@ import System.Exit
 import Text.Megaparsec
 import Text.Megaparsec.Custom
 
-import EasyTest hiding (bracket, tests)  -- reexported
+import EasyTest hiding (bracket, tests, example)  -- reexported
 import qualified EasyTest as E  -- used here
 import EasyTest.Prism (_Left, _Right)
 
