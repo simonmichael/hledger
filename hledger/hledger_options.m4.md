@@ -112,23 +112,36 @@ To find out exactly how a command line is being parsed, add `--debug=2` to troub
 
 ## Unicode characters
 
-hledger is expected to handle unicode (non-ascii) characters, 
-but this requires a well-configured environment.
+hledger is expected to handle non-ascii characters correctly:
 
-To handle unicode characters in the command line or input data,
-a system locale that can decode them must be configured (POSIX's default `C` locale will not work).
-Eg in bash, you could do:
-```
-export LANG=en_US.UTF-8
-```
-See [Troubleshooting](#troubleshooting) for more about this.
+- they should be parsed correctly in input files and on the command
+line, by all hledger tools (add, iadd, hledger-web's search/add/edit
+forms, etc.)
 
-Unicode characters should appear correctly in hledger's output.
-For the hledger and hledger-ui tools, this requires that 
+- they should be displayed correctly by all hledger tools,
+  and on-screen alignment should be preserved.
 
-- your terminal supports unicode
-- the terminal's font includes the required unicode glyphs
-- the terminal is configured to display "wide" characters as double width (otherwise report alignment will be off)
+This requires a well-configured environment. Here are some tips:
+
+- A system locale must be configured, and it must be one that can
+  decode the characters being used. 
+  In bash, you can set a locale like this: `export LANG=en_US.UTF-8`. 
+  There are some more details in [Troubleshooting](#troubleshooting).
+  This step is essential - without it, hledger will quit on encountering
+  a non-ascii character (as with all GHC-compiled programs).
+
+- your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)  must support unicode
+
+- the terminal must be using a font which includes the required unicode glyphs
+
+- the terminal should be configured to display wide characters as double width (for report alignment)
+
+- on Windows, for best results you should run hledger in the same kind of environment in which it was built.
+  Eg hledger built in the standard CMD.EXE environment (like the binaries on our download page)
+  might show display problems when run in a cygwin or msys terminal, and vice versa.
+  (See eg [#961](https://github.com/simonmichael/hledger/issues/961#issuecomment-471229644)).
+
+
 
 ## Input files
 
