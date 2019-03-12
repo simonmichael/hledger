@@ -98,11 +98,12 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 **[What is hledger ?](intro.html)**\
 More about hledger's features.
 
-**[plain text accounting?](http://plaintextaccounting.org)**\
-Using plain text data formats and version control for reliable, transparent accounting.\
-
 **[accounting?](Accounting-links.html)**\
 Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
+
+**[plain text accounting?](http://plaintextaccounting.org)**&nbsp;&rarr;\
+Using plain text data formats and version control for reliable, transparent accounting.\
+
 </div>
 
 <div id=help class=contentbox>
