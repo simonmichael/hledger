@@ -89,7 +89,7 @@ _LEDGER_FILE_
 
 Reads _files_
 
-# BUGS
+# LIMITATIONS
 
 The need to precede addon command options with `--` when invoked from hledger is awkward.
 
@@ -97,6 +97,9 @@ When input data contains non-ascii characters, a suitable system locale must be 
 Eg on POSIX, set LANG to something other than C.
 
 In a Microsoft Windows CMD window, non-ascii characters and colours are not supported.
+
+On Windows, non-ascii characters may not display correctly when running a hledger built
+in CMD in MSYS/CYGWIN, or vice-versa.
 
 In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
 
