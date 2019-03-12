@@ -92,20 +92,14 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 <div id=introduction class=contentbox>
 ## Introduction
 
-### What is hledger?
+**[What is hledger ?](intro.html)**\
+A robust, well documented implementation of plain text accounting.
 
-An enhanced, well-documented reimplementation of plain text accounting.\
-**[What is hledger ?](intro.html)**
+**[plain text accounting?](http://plaintextaccounting.org)**\
+Using plain text data formats and version control for reliable, transparent accounting.\
 
-### What is plain text accounting?
-
-Using plain text data formats and version control for robust, transparent accounting.\
-**[plaintextaccounting.org](http://plaintextaccounting.org)**
-
-### What is accounting?
-
+**[accounting?](Accounting-links.html)**\
 Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
-**[Selected accounting links](more-docs.html#accounting)**
 </div>
 
 <div id=help class=contentbox>
@@ -113,13 +107,13 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 
 |
 |-------------------|----------------------------------------------------------------------------|
-| IRC:              | [#hledger](http://irc.hledger.org) on Freenode <!-- [chat log](http://ircbrowse.net/browse/hledger); --> <!-- see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1) --> <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
-| Twitter:          | [#hledger,<br>#plaintextaccounting](#twitter)
-| Reddit:           | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/)
-| Hacker News:      | [stories](https://hn.algolia.com/?query=hledger&sort=byDate&prefix&page=0&dateRange=all&type=story), [comments](https://hn.algolia.com/?query=hledger&sort=byDate&prefix=false&page=0&dateRange=all&type=comment)
-| Mail list:        | [list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com)
-| Issues:           | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all), [open issues](CONTRIBUTING.html#open-issues)&nbsp;(overview)
-| Other:            | [simon@joyful.com](mailto:simon@joyful.com)
+| IRC:              | <small>[#hledger](http://irc.hledger.org) on Freenode <!-- [chat log](http://ircbrowse.net/browse/hledger); --> <!-- see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1) --> <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* --></small>
+| Twitter:          | <small>[#hledger,<br>#plaintextaccounting](#twitter)</small>
+| Reddit:           | <small>[/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/)</small>
+| Hacker News:      | <small>[stories](https://hn.algolia.com/?query=hledger&sort=byDate&prefix&page=0&dateRange=all&type=story), [comments](https://hn.algolia.com/?query=hledger&sort=byDate&prefix=false&page=0&dateRange=all&type=comment)</small>
+| Mail list:        | <small>[list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com)</small>
+| Issues:           | <small>[bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all), [open issues](CONTRIBUTING.html#open-issues)&nbsp;(overview)</small>
+| Other:            | <small>[simon@joyful.com](mailto:simon@joyful.com)</small>
 </div> <!-- column -->
 
 </div>
