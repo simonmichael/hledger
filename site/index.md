@@ -23,9 +23,6 @@ Robust plain text accounting.
 
 <span style="font-size:x-large;">hledger</span> is an accounting program, for tracking money, time, or
 other commodities. It is cross platform and released under GNU GPLv3.
-<!-- [![...](https://api.travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger/builds) -->
-<!-- [![...](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history) -->
-[![...](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github){style="min-width:102;" title="Star us!"}](https://github.com/simonmichael/hledger/)
 
 With powerful, intuitive functionality accessible from command line, terminal or web browser, 
 hledger is a fast, secure, dependable alternative to spreadsheets, Quickbooks, GnuCash, Xero etc.
@@ -78,6 +75,16 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 }
 </style>
 
+<div class="row" style="text-align:center; ">
+**[<button type="button" class="btn btn-default btn-success" title="All the ways to install hledger. Get it now!">Install hledger</button>](download.html)**
+&nbsp;
+[<button type="button" class="btn btn-default" style="border:none; min-width:102;" title="hledger on Github. Star us!"><img src="https://img.shields.io/github/stars/simonmichael/hledger.svg?style=for-the-badge&logo=GitHub&label=Github&color=lightgrey"></button>](https://github.com/simonmichael/hledger/)
+<!-- &nbsp; -->
+<!-- [![...](https://api.travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger/builds){title="Travis"} -->
+<!-- &nbsp; -->
+<!-- [![...](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history){title="Appveyor"} -->
+</div>
+
 <div class="container">
 <div class="row">
 <div class="col-sm-3">
@@ -120,9 +127,6 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 
 <div id=reference class=contentbox>
 ## Reference
-
-**[Download](download.html)**\
-All the ways to install hledger.
 
 **[Release notes](release-notes.html)**\
 What's new in each hledger version.
