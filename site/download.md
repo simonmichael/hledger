@@ -62,10 +62,10 @@ a { white-space:nowrap; }
 | Void                           | **`xbps-install -S hledger hledger-ui hledger-web`** | [![Void Linux x86_64](https://repology.org/badge/version-for-repo/void_x86_64/hledger.svg)](https://voidlinux.org/packages/?q=hledger)
 |
 | <br><big>**BSD**</big>         |
-| OpenBSD                        | **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** | ![](https://img.shields.io/badge/OpenBSD_port-1.10-red.svg)
+| [OpenBSD&nbsp;WIP](https://github.com/jasperla/openbsd-wip#how-to-use-this-tree) | **`make -C /usr/ports/openbsd-wip/productivity/hledger install`** | [![openbsd-wip port](https://img.shields.io/badge/openbsd--wip_port-1.10-red.svg)](https://github.com/jasperla/openbsd-wip/tree/master/productivity/hledger)<br><small>[more..](https://github.com/jasperla/openbsd-wip/tree/master/productivity)</small>
 |
 | <br><big>**Other**</big>       |
-| [Sandstorm][]<br><small>*Community/private cloud platform*</small>                  | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <!-- <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> --> | ![](https://img.shields.io/badge/Sandstorm_app-1.9.1-red.svg)
+| [Sandstorm][]<br><small>*Community/private cloud platform*</small>                  | **[HLedger Web app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <!-- <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> --> | ![](https://img.shields.io/badge/Sandstorm_app-1.9.1-red.svg)
 |
 <!--
 | [Homebrew][]/[Linuxbrew][]<br><small>*Mac,&nbsp;Linux,&nbsp;Windows*</small> | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
