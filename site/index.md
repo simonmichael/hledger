@@ -21,16 +21,19 @@ Robust plain text accounting.
 <!-- Making accounting fun for techies. -->
 </span>
 
-<span style="font-size:x-large;">hledger</span> is an accounting program, for tracking money, time, or
-other commodities. It is cross platform and released under GNU GPLv3.
+<span style="font-size:x-large;">hledger</span> 
+is a simple, flexible, powerful accounting program, for tracking money, time, or other commodities. 
+It is a fast, dependable, secure alternative to Quicken, Xero, GnuCash etc.,
+<!-- with simple yet powerful functionality, -->
+accessible from command line, terminal or web browser.
+Compared to other plain text accounting tools, it is more robust and intuitive.
+Good docs and real world usefulness are a top priority.
 
-With powerful, intuitive functionality accessible from command line, terminal or web browser, 
-hledger is a fast, secure, dependable alternative to spreadsheets, Quickbooks, GnuCash, Xero etc.
-
-The hledger project is led by Simon Michael.
+hledger is cross platform free software, written in Haskell, released under GNU GPLv3.
+The project is led by Simon Michael.
 I've been building and relying on hledger since 2007.
-I hope you find it helpful in mastering your time and money.
-Welcome to the project!
+I hope you too will find it helps you master your time and money.
+Welcome!
 
 <!-- DOCS -->
 
@@ -93,7 +96,7 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 ## Introduction
 
 **[What is hledger ?](intro.html)**\
-A robust, well documented implementation of plain text accounting.
+More about hledger's features.
 
 **[plain text accounting?](http://plaintextaccounting.org)**\
 Using plain text data formats and version control for reliable, transparent accounting.\
