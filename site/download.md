@@ -1,10 +1,10 @@
 # Download
 
 Here are the ways to install hledger, organised by platform, with the usually most up-to-date methods at the top.
-Please [send updates](index.html#helpfeedback) for 
+(Please [send updates](index.html#helpfeedback) for 
 [this page](https://github.com/simonmichael/hledger/blob/master/site/download.md),
 and help packagers keep their platform packages up to date.
-hledger's usual release window is the first day or two of the month.
+hledger's usual release window is the first day or two of the month.)
 
 <style>
 table { margin-left:1em; }
@@ -30,7 +30,7 @@ a { white-space:nowrap; }
 }
 </style>
 
-|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.1<br>([release notes](http://hledger.org/release-notes)) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
+|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.1<br>([Release notes](http://hledger.org/release-notes)) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
 |--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 |
 | <br><big>**Multiplatform**</big>         | <br><small>*The first three build from source, which is slower. See [Building from source](#b).*</small> | <br><small>*This method installs:*</small>
@@ -38,30 +38,30 @@ a { white-space:nowrap; }
 | [stack install](#b2)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:medium;">**`stack install --resolver=nightly-2019-03-09 hledger hledger-web hledger-ui`**</span> | <small>Latest release / any version</small>
 | [cabal install](#b3)<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:medium;">**`cabal v2-update && cabal v2-install hledger-1.14.1 hledger-web-1.14 hledger-ui-1.14`**</span> | <small>Latest release / any version</small>
 |
-| [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([readme](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | 1.14.1
+| [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** ([readme](https://hub.docker.com/r/dastapov/hledger), [more images](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)) | ![](https://img.shields.io/badge/Docker_image-1.14.1-brightgreen.svg)
 | [Nix][]<br><small>*Linux,&nbsp;Mac*</small>  | **`nix-channel --update && nix-env -i hledger hledger-ui hledger-web`**  | [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) [![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](http://hydra.nixos.org/search?query=hledger) 
 |
 | <br><big>**Mac**</big>         |
 | [Homebrew][]                   | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 |
 | <br><big>**Windows**</big>     |
-| [Windows&nbsp;binaries][]      | <code>**[hledger.zip][]**</code> <small>*(from Appveyor CI)*</small> <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><!-- <span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791) --><!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) </span>--> | 1.14.1+ 20190309
+| [Windows&nbsp;binaries][]      | <code>**[hledger.zip][]**</code> <small>*(from Appveyor CI)*</small> <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><!-- <span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791) --><!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) </span>--> | ![](https://img.shields.io/badge/Windows_binary-1.14.1+_20190309-brightgreen.svg)
 | [Linuxbrew][]                  | **`brew install hledger`**    | [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 |
 | <br><big>**GNU/Linux**</big>   |
 | [Linuxbrew][]                  | **`brew install hledger`**    | [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 | [Arch][]                       | **`pacman -S hledger hledger-ui hledger-web`** | [![Arch](https://repology.org/badge/version-for-repo/arch/hledger.svg)](https://repology.org/metapackage/hledger/versions)
-| [Gentoo][]                     | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | 1.14.1
+| [Gentoo][]                     | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | ![](https://img.shields.io/badge/Gentoo_package-1.14.1-brightgreen.svg)
 | [Debian][]                     | **`sudo apt install hledger hledger-ui hledger-web`** | [![Debian Unstable](https://repology.org/badge/version-for-repo/debian_unstable/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Debian Testing](https://repology.org/badge/version-for-repo/debian_testing/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Debian Stable](https://repology.org/badge/version-for-repo/debian_stable/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Debian Oldstable](https://repology.org/badge/version-for-repo/debian_oldstable/hledger.svg)](https://repology.org/metapackage/hledger/versions) 
 | [Ubuntu][]                     | **`sudo apt install hledger hledger-ui hledger-web`** | [![Ubuntu 19.04](https://repology.org/badge/version-for-repo/ubuntu_19_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 18.10](https://repology.org/badge/version-for-repo/ubuntu_18_10/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 18.04](https://repology.org/badge/version-for-repo/ubuntu_18_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 17.10](https://repology.org/badge/version-for-repo/ubuntu_17_10/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 16.04](https://repology.org/badge/version-for-repo/ubuntu_16_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 14.04](https://repology.org/badge/version-for-repo/ubuntu_14_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Ubuntu 12.04](https://repology.org/badge/version-for-repo/ubuntu_12_04/hledger.svg)](https://repology.org/metapackage/hledger/versions) 
 | [Void][]                       | **`xbps-install -S hledger hledger-ui hledger-web`** | [![Void Linux x86_64](https://repology.org/badge/version-for-repo/void_x86_64/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 | [Fedora][]                     | **`sudo dnf install hledger`** <br><small>*or (more complete & current):*</small><br>**`sudo dnf copr enable kefah/HLedger && sudo dnf install hledger`** | [![Fedora Rawhide](https://repology.org/badge/version-for-repo/fedora_rawhide/hledger.svg)](https://repology.org/metapackage/hledger/versions)  [![Fedora 29](https://repology.org/badge/version-for-repo/fedora_29/hledger.svg)](https://repology.org/metapackage/hledger/versions)  [![Fedora 28](https://repology.org/badge/version-for-repo/fedora_28/hledger.svg)](https://repology.org/metapackage/hledger/versions)  [![Fedora 27](https://repology.org/badge/version-for-repo/fedora_27/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Fedora 26](https://repology.org/badge/version-for-repo/fedora_26/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 |
 | <br><big>**BSD**</big>         |
-| OpenBSD                        | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | 1.10
+| OpenBSD                        | Ports: **[https://github.com/jasperla/openbsd-wip/pull/104](https://github.com/jasperla/openbsd-wip/pull/104)** <br>Third-party binaries: **[OpenBSD6.3/amd64](https://s3.amazonaws.com/openbsd-hledger/index.html)** | ![](https://img.shields.io/badge/OpenBSD_port-1.10-red.svg)
 |
 | <br><big>**Other**</big>       |
-| [Sandstorm][]<br><small>*Community/private cloud platform*</small>                  | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <!-- <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> --> | 1.9.2
+| [Sandstorm][]<br><small>*Community/private cloud platform*</small>                  | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <!-- <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> --> | ![](https://img.shields.io/badge/Sandstorm_app-1.9.1-red.svg)
 |
 <!--
 | [Homebrew][]/[Linuxbrew][]<br><small>*Mac,&nbsp;Linux,&nbsp;Windows*</small> | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
