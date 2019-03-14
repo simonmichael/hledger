@@ -1,8 +1,5 @@
-FROM debian:stable-slim as dev
+FROM haskell as dev
 
-RUN apt-get update
-RUN apt-get install -y curl libtinfo-dev
-RUN (curl -sSL https://get.haskellstack.org/ | sh)
 RUN mkdir /root/hledger
 WORKDIR /root/hledger
 
