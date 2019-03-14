@@ -254,3 +254,16 @@ cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
 The --version output of development builds has a .99 suffix meaning "dev".
 So 1.14.99 means "1.15-dev", the in-development version of 1.15.
 
+### Building the development version with docker
+
+You can also build development version in the docker container, which will take care of pulling
+all the necessary tools and dependencies:
+
+  **`git clone https://github.com/simonmichael/hledger`**\
+  **`cd hledger/docker`**\
+  **`./build.sh`**\
+
+This will build image tagged `hledger` with just the latest binaries inside.
+
+If you want to keep all the build artifacts and use the resulting image for hledger development, use
+`build-dev.sh` instead.
