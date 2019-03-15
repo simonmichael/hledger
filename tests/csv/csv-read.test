@@ -111,6 +111,27 @@
 >>>2
 >>>=0
 
+# 9. read CSV with balance2 field
+ printf 'fields date, description, amount, balance2\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+>>>
+2009/09/10 Flubber Co
+    assets:myacct              $50
+    income:unknown            $-50 = $123
+
+>>>2
+>>>=0
+
+# 10. read CSV with balance1 and balance2 fields
+ printf 'fields date, description, amount, balance1, balance2\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,321,123\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+>>>
+2009/09/10 Flubber Co
+    assets:myacct              $50 = $321
+    income:unknown            $-50 = $123
+
+>>>2
+>>>=0
+
+
 # 9. TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
