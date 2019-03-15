@@ -563,6 +563,8 @@ journalfieldnames = [
   ,"amount-in"
   ,"amount-out"
   ,"amount"
+  ,"balance1"
+  ,"balance2"
   ,"balance"
   ,"code"
   ,"comment"
@@ -712,7 +714,7 @@ transactionFromCsvRecord sourcepos rules record = t
       ]
     amount1 = case maybeamount of
                 Just a -> a
-                Nothing | balance /= Nothing -> nullmixedamt
+                Nothing | balance1 /= Nothing || balance2 /= Nothing -> nullmixedamt
                 Nothing -> error' $ "amount and balance have no value\n"++showRecord record
     -- convert balancing amount to cost like hledger print, so eg if
     -- amount1 is "10 GBP @@ 15 USD", amount2 will be "-15 USD".
@@ -724,14 +726,21 @@ transactionFromCsvRecord sourcepos rules record = t
                    _         -> "expenses:unknown"
     account1    = T.pack $ maybe "" render (mfieldtemplate "account1") `or` defaccount1
     account2    = T.pack $ maybe "" render (mfieldtemplate "account2") `or` defaccount2
-    balance     = maybe Nothing (parsebalance.render) $ mfieldtemplate "balance"
-    parsebalance str
+    balance1template =
+      case (mfieldtemplate "balance", mfieldtemplate "balance1") of
+        (Nothing, Nothing)  -> Nothing
+        (balance, Nothing)  -> balance
+        (Nothing, balance1) -> balance1
+        (Just _, Just _)    -> error' "Please use either balance or balance1, but not both"
+    balance1     = maybe Nothing (parsebalance "1".render) $ balance1template
+    balance2     = maybe Nothing (parsebalance "2".render) $ mfieldtemplate "balance2"
+    parsebalance n str
       | all isSpace str  = Nothing
-      | otherwise = Just $ (either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str, nullsourcepos)
-    balanceerror str err = error' $ unlines
-      ["error: could not parse \""++str++"\" as balance amount"
+      | otherwise = Just $ (either (balanceerror n str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str, nullsourcepos)
+    balanceerror n str err = error' $ unlines
+      ["error: could not parse \""++str++"\" as balance"++n++" amount"
       ,showRecord record
-      ,"the balance rule is:      "++(fromMaybe "" $ mfieldtemplate "balance")
+      ,"the balance"++n++" rule is:      "++(fromMaybe "" $ mfieldtemplate ("balance"++n))
       ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
       ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
       ,"the parse error is:      "++customErrorBundlePretty err
@@ -748,8 +757,8 @@ transactionFromCsvRecord sourcepos rules record = t
       tcomment                 = T.pack comment,
       tprecedingcomment = T.pack precomment,
       tpostings                =
-        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance}
-        ,posting {paccount=account2, pamount=amount2, ptransaction=Just t}
+        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance1}
+        ,posting {paccount=account2, pamount=amount2, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance2}
         ]
       }
     toAssertion (a, b) = assertion{
