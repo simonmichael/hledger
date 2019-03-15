@@ -38,18 +38,18 @@ a { white-space:nowrap; }
 |--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 |
 | <br><big>**Multiplatform**</big>         | <br><small>*The first three build from source, which is slower. See [Building from source](#b).*</small> | <br><small>*This method installs:*</small>
-| [hledger-install](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small><br><small>*Requires only bash.*</small> | <span style="font-size:small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**  *# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
+| [hledger-install](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small><br><small>*Requires only bash.*</small> | <span style="font-size:small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**&nbsp;&nbsp;&nbsp;&nbsp;*# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
 | [stack][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:medium;">**`stack install --resolver=nightly-2019-03-09 hledger hledger-web hledger-ui`**</span> | <small>Latest release / any version</small>
 | [cabal][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*][]*</small>  | <span style="font-size:medium;">**`cabal v2-update && cabal v2-install hledger-1.14.1 hledger-web-1.14 hledger-ui-1.14`**</span> | <small>Latest release / any version</small>
 |
 | [Docker][]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** | [![](https://img.shields.io/badge/Docker_image-1.14.1-brightgreen.svg)](https://hub.docker.com/r/dastapov/hledger)<br><small>[more..](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)</small>
-| [Nix][]<br><small>*Linux,&nbsp;Mac*</small>  | **`nix-channel --update && nix-env -i hledger hledger-ui hledger-web`**  | [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](https://github.com/NixOS/nixpkgs/search?o=desc&q=hledger&s=committer-date&type=Commits)<br>[![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)](https://github.com/NixOS/nixpkgs/search?o=desc&q=hledger&s=committer-date&type=Commits) <!-- http://hydra.nixos.org/search?query=hledger -->
+| [Nix][]<br><small>*Linux,&nbsp;Mac*</small>  | **`nix-env -i hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14`** <br><small>*nix-channel --update may be needed. CI [build][nix latest linux builds] [issues][nix latest mac builds] can cause slow/huge installs, check with --dry-run first.*</small>  | [![nixpkgs unstable](https://repology.org/badge/version-for-repo/nix_unstable/hledger.svg)](https://github.com/NixOS/nixpkgs/search?o=desc&q=hledger&s=committer-date&type=Commits)<br>[![nixpkgs stable](https://repology.org/badge/version-for-repo/nix_stable/hledger.svg)][nix changes]
 |
 | <br><big>**Mac**</big>         |
 | [Homebrew][]                   | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://formulae.brew.sh/formula/hledger)
 |
 | <br><big>**Windows**</big>     |
-| Windows&nbsp;binaries          | <code>**[hledger.zip][]**</code> <small>*(from Appveyor CI)*</small> <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><!-- <span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791) --><!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) </span>--> | [![](https://img.shields.io/badge/Windows_binaries-1.14.1+_20190309-brightgreen.svg)](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts)
+| Windows&nbsp;binaries          | <code>**[hledger.zip][]**</code> <small>*from Appveyor CI*</small> <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><!-- <span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791) --><!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) </span>--> | [![](https://img.shields.io/badge/Windows_binaries-1.14.1+_20190309-brightgreen.svg)](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts)
 | [Linuxbrew][]                  | **`brew install hledger`**    | [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://formulae.brew.sh/formula/hledger)
 |
 | <br><big>**GNU/Linux**</big>   |
@@ -70,27 +70,45 @@ a { white-space:nowrap; }
 <!--
 | [Homebrew][]/[Linuxbrew][]<br><small>*Mac,&nbsp;Linux,&nbsp;Windows*</small> | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://repology.org/metapackage/hledger/versions) [![Linuxbrew](https://repology.org/badge/version-for-repo/linuxbrew/hledger.svg)](https://repology.org/metapackage/hledger/versions)
 -->
-<!--
-All repology badges.. sometimes out of date: https://repology.org/project/hledger/badges
--->
 
-[stack]: https://haskell.fpcomplete.com/get-started
-[cabal]: https://www.haskell.org/cabal
-[Homebrew]: https://brew.sh
-[Homebrew contact]: @albins, simon@joyful.com
-[Linuxbrew]: https://linuxbrew.sh
-[Linuxbrew contact]: @albins, simon@joyful.com
-[*]: #build-issues
-[hledger.zip]:   https://ci.appveyor.com/api/buildjobs/gudfa3gv7pj94ab0/artifacts/hledger.zip
-[hledger.zip.1]: https://ci.appveyor.com/api/buildjobs/xmgh6j3ywi125xhp/artifacts/hledger.zip
-[Windows binaries contact]: simon@joyful.com
-[Docker]: https://www.docker.com/products/docker-desktop
-[Docker contact]: @adept
-[Nix]: https://nixos.org/nix
-[Nix contact]: @peti
-[Debian contact]: mailto:debian-haskell@lists.debian.org, Clint
-[Sandstorm]: https://sandstorm.io
-[Sandstorm contact]: 
+[*]:            #windows-build-issues
+[Docker]:       https://www.docker.com/products/docker-desktop
+[Homebrew]:     https://brew.sh
+[Linuxbrew]:    https://linuxbrew.sh
+[Nix]:          https://nixos.org/nix
+[Sandstorm]:    https://sandstorm.io
+[cabal]:        https://www.haskell.org/cabal
+[hledger.zip]:  https://ci.appveyor.com/api/buildjobs/gudfa3gv7pj94ab0/artifacts/hledger.zip
+[stack]:        https://haskell.fpcomplete.com/get-started
+
+[notes]::
+
+[debian contact]:             debian-haskell@lists.debian.org (& Clint)
+[docker contact]:             @adept
+[homebrew/linuxbrew contact]: @albins, @simonmichael
+[nix contact]:                @peti
+[sandstorm contact]:          @ocdtrekkie, @AaronM04, @ndarilek
+[stack/cabal contact]:        @simonmichael
+[windows binaries contact]:   @simonmichael
+
+[nix install variations]::
+[nix-env -i hledger hledger-ui hledger-web]:
+[nix-env -i hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14]:
+[nix-env -i -f '<nixpkgs>' -A hledger hledger-ui hledger-web]:
+[fetches latest unstable]:
+[nix-env -i -f channel:nixos-unstable -A hledger hledger-ui hledger-web]:
+
+[nixpkgs]:                   https://hydra.nixos.org/project/nixpkgs
+[nix changes]:               https://github.com/NixOS/nixpkgs/search?o=desc&q=hledger&s=committer-date&type=Commits
+[nix mentions]:              https://search.nix.gsc.io/?q=hledger
+[nix hydra jobs]:            http://hydra.nixos.org/search?query=hledger
+[nix stable mac jobs]:       https://hydra.nixos.org/jobset/nixpkgs/nixpkgs-19.03-darwin#tabs-jobs -> hledger.
+[nix unstable jobs]:         https://hydra.nixos.org/jobset/nixpkgs/trunk#tabs-jobs -> hledger.
+[nix unstable linux builds]: https://hydra.nixos.org/job/nixpkgs/trunk/hledger.x86_64-linux
+[nix unstable mac builds]:   https://hydra.nixos.org/job/nixpkgs/trunk/hledger.x86_64-darwin
+
+[repology badges, sometimes out of date]: https://repology.org/project/hledger/badges
+[custom badges]: https://shields.io
 
 
 <a name="b"></a>
@@ -124,7 +142,7 @@ Below are three ways to build hledger. But first, some general tips:
     | Debian, Ubuntu: | **`sudo apt install -y libtinfo-dev`**
     | Fedora, RHEL:   | **`sudo dnf install -y gmp-devel ncurses-devel`**
 
-- <a name="build-issues"></a>Here are some known build issues and workarounds on certain platforms:
+- <a name="build-issues"></a><a name="windows-build-issues"></a>Here are some known build issues and workarounds on certain platforms:
 
     <span class=warnings>
     [windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444)\
