@@ -54,7 +54,7 @@ dependencies:
 - Decimal
 - deepseq
 - directory
-- easytest
+- easytest >= 0.2.1 && <0.3
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1
