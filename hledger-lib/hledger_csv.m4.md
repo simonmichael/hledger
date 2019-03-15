@@ -132,7 +132,7 @@ date-format %-m/%-d/%Y %l:%M %p
 
 This (a) names the CSV fields, in order (names may not contain whitespace; uninteresting names may be left blank),
 and (b) assigns them to journal entry fields if you use any of these standard field names:
-`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`, `balance`.
+`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`, `balance`, `balance1`, `balance2`.
 Eg:
 ```rules
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
@@ -248,9 +248,9 @@ Or, you can use a [field assignment](#field-assignment) to `amount` that interpo
 
 ## CSV balance assertions
 
-If the CSV includes a running balance, you can assign that to the `balance` pseudo field;
+If the CSV includes a running balance, you can assign that to the pseudo fields `balance`, `balance1` and/or `balance2`, with `balance` being synonym for `balance1`;
 whenever the running balance value is non-empty, 
-it will be [asserted](/journal.html#balance-assertions) as the balance after the `account1` posting. 
+it will be [asserted](/journal.html#balance-assertions) as the balance after the `account1` or `account2` posting accordingly.
 
 ## Reading multiple CSV files
 
