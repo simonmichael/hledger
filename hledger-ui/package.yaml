@@ -41,7 +41,7 @@ cpp-options: -DVERSION="1.14.1"
 
 dependencies:
 - hledger-lib >=1.14.1 && <1.15
-- hledger >=1.14.1 && <1.15
+- hledger     >=1.14.2 && <1.15
 - ansi-terminal >=0.6.2.3
 - async
 - base >=4.8 && <4.13

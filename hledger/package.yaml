@@ -104,7 +104,7 @@ ghc-options:
 - -optP-Wno-nonportable-include-path
 
 dependencies:
-- hledger-lib >=1.14.2 && <1.15
+- hledger-lib >=1.14.1 && <1.15
 - ansi-terminal >=0.6.2.3
 - base >=4.8 && <4.13
 - base-compat-batteries >=0.10.1 && <0.11
