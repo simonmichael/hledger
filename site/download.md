@@ -34,11 +34,11 @@ a { white-space:nowrap; }
 }
 </style>
 
-|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.1<br>[Release notes](http://hledger.org/release-notes) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
+|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.2<br>[Release notes](http://hledger.org/release-notes) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
 |--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | <br><big>**Multiplatform**</big>         | <br><small>*The first three (and occasionally the fourth) build from source, which is slower. See [Building from source](#b).*</small> | <br><small>*This method installs:*</small>
 | [hledger-install.sh](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small><br><small>*Requires only bash.*</small> | <span style="font-size:small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**&nbsp;&nbsp;&nbsp;&nbsp;*# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
-| [cabal]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*]*</small>  | <span style="font-size:medium;">**`cabal v2-update && cabal v2-install hledger-1.14.1 hledger-web-1.14 hledger-ui-1.14`**</span> | <small>Latest release</small>
+| [cabal]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*]*</small>  | <span style="font-size:medium;">**`cabal v2-update && cabal v2-install hledger-1.14.2 hledger-web-1.14.1 hledger-ui-1.14.1`**</span> | <small>Latest release</small>
 | [stack]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*]*</small>  | <span style="font-size:medium;">**`stack install --resolver=nightly-2019-03-09 hledger hledger-web hledger-ui`**</span> | <small>Latest release</small>
 | [Nix]<br><small>*Linux,&nbsp;Mac*</small>  | <span style="font-size:small;">**`nix-env -i -f https://github.com/NixOS/nixpkgs/archive/9c74e2.tar.gz -A hledger hledger-ui hledger-web`**</span> | <small>Latest release</small>
 | [Docker]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** | [![](https://img.shields.io/badge/Docker_image-1.14.1-brightgreen.svg)](https://hub.docker.com/r/dastapov/hledger)<br><small>[more..](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)</small>
@@ -57,7 +57,7 @@ a { white-space:nowrap; }
 | <br><big>**Other**</big>       |
 | [Sandstorm]<br><small>*Community/private cloud platform*</small>                  | **[HLedger Web app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <!-- <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> --> | ![](https://img.shields.io/badge/Sandstorm_app-1.9.1-red.svg)
 
- <!-- <br><br><small>*Or: (nix-channel --update may be needed. CI [build][nix unstable linux builds] [issues][nix unstable mac builds] may cause failure/large downloads; check those links/try with --dry-run first)*</small> <br><span style="font-size:small;">**`nix-env -i hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14`**</span> -->
+ <!-- <br><br><small>*Or: (nix-channel --update may be needed. CI [build][nix unstable linux builds] [issues][nix unstable mac builds] may cause failure/large downloads; check those links/try with --dry-run first)*</small> <br><span style="font-size:small;">**`nix-env -i hledger-1.14.2 hledger-ui-1.14.1 hledger-web-1.14.1`**</span> -->
 
 [*]:            #windows-build-issues
 [Docker]:       https://www.docker.com/products/docker-desktop
@@ -178,8 +178,8 @@ You can often run `stack upgrade` to upgrade it.
 64-bit Windows users should choose the 64-bit version of stack.
 The following command installs the main hledger packages;
 
-  **`stack install --resolver=lts-13 hledger-lib-1.14 hledger-1.14.1 hledger-web-1.14 \`**\
-  &nbsp;&nbsp;**`hledger-ui-1.14 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
+  **`stack install --resolver=nightly-2019-03-09 hledger-lib-1.14.1 hledger-1.14.2 hledger-web-1.14.1 \`**\
+  &nbsp;&nbsp;**`hledger-ui-1.14.1 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
 
 If needed, you can save some time by omitting the
 [hledger-web](http://hackage.haskell.org/package/hledger-web) and
@@ -194,7 +194,7 @@ Some other [add-on tools](/hledger.html#third-party-add-ons) like
 and [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 can be installed like so:
 
-  **`stack install --resolver=lts-13 hledger-lib-1.14 hledger-1.14.1 hledger-api-1.14 \`**\
+  **`stack install --resolver=nightly-2019-03-09 hledger-lib-1.14.1 hledger-1.14.2 hledger-api-1.14 \`**\
   &nbsp;&nbsp;**`hledger-interest-1.5.3 hledger-iadd-1.3.9 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
 
 <a name="b3"></a>
@@ -204,7 +204,7 @@ can be installed like so:
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
   **`cabal v2-update`**\
-  **`cabal v2-install hledger-1.14.1 hledger-ui-1.14 hledger-web-1.14 \`**\
+  **`cabal v2-install hledger-1.14.2 hledger-ui-1.14.1 hledger-web-1.14.1 \`**\
   &nbsp;&nbsp;**`hledger-api-1.14 hledger-iadd-1.3.9 hledger-interest-1.5.3`**\
 
 ### Set up PATH
@@ -229,11 +229,11 @@ If you are using bash, this should take care of it:
 You should now be able to run the hledger tools (whichever ones you installed) and see the expected versions:
 
   `$`**`hledger --version`**\
-  `hledger 1.14.1`\
+  `hledger 1.14.2`\
   `$`**`hledger-ui --version`**\
-  `hledger-ui 1.14`\
+  `hledger-ui 1.14.1`\
   `$`**`hledger web --version`**\
-  `hledger-web 1.14`\
+  `hledger-web 1.14.1`\
   `$`**`hledger iadd --version`**\
   `This is hledger-iadd version 1.3.9`\
 
