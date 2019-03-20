@@ -1,6 +1,8 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 5067d0f9
+
 # 1.14.1 2019-03-20
 
 - require easytest <0.3 to fix build issue

@@ -1,6 +1,11 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 489b7fd8
+
+- the external hledger-diff addon has been merged as the builtin diff command.
+  The addon (https://github.com/gebner/hledger-diff/) is now deprecated.
+
 # 1.14.2 2019-03-20
 
 - require easytest <0.3 to fix build issue
