@@ -50,16 +50,13 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20190302
+HLEDGER_INSTALL_VERSION=20190309
 
-# stackage version to install from when using stack
-# You can specify a different stackage version here, or comment out
-# this line to use your current global resolver, which might avoid
-# some unnecessary building.
-# Mac Sierra+ requires at least lts-8.0.
-# Old lts-6 or lts-7 would probably require tweaking the hledger install commands below.
-RESOLVER="--resolver=lts-13"
-#RESOLVER="--resolver=nightly-2018-07-09"
+# stackage snapshot to use when installing with stack.
+# You can try specifying a different stackage version here, or 
+# commenting out this line to use your current global resolver,
+# to avoid unnecessary building.
+RESOLVER="--resolver=nightly-2019-03-09"
 
 # things to be installed
 
@@ -76,10 +73,10 @@ hledger-interest \
 "
 
 # latest hledger package versions; update often:
-HLEDGER_LIB_VERSION=1.14
-HLEDGER_VERSION=1.14.1
-HLEDGER_UI_VERSION=1.14
-HLEDGER_WEB_VERSION=1.14
+HLEDGER_LIB_VERSION=1.14.1
+HLEDGER_VERSION=1.14.2
+HLEDGER_UI_VERSION=1.14.1
+HLEDGER_WEB_VERSION=1.14.1
 HLEDGER_API_VERSION=1.14
 
 HLEDGER_IADD_VERSION=1.3.9
