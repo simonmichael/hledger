@@ -1,14 +1,11 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# af5db1eb
+# 1.14.2 2019-03-20
 
-- Constrain easytest dependency to fix cabal build (Hans-Peter Deifel)
-  This constraints the easytest dependency to <0.3, because hledger and
-  hledger-lib currently don't build with 0.3.
+- require easytest <0.3 to fix build issue
 
-  Of course the better solution would be to fix the build errors, but easytest-0.3
-  is not even in stackage nightly yet and I just need it to build right now :-)
+- fix some CSV parse errors which weren't in human readable format
 
 # 1.14.1 2019-03-01
 

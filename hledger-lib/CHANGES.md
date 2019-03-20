@@ -1,18 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# af5db1eb
+# 1.14.1 2019-03-20
 
-- Constrain easytest dependency to fix cabal build (Hans-Peter Deifel)
-  This constraints the easytest dependency to <0.3, because hledger and
-  hledger-lib currently don't build with 0.3.
-
-  Of course the better solution would be to fix the build errors, but easytest-0.3
-  is not even in stackage nightly yet and I just need it to build right now :-)
-
-- csv: update some parse errors which weren't in human format
-  cf
-  https://www.reddit.com/r/plaintextaccounting/comments/axekse/hledger_how_to_create_curved_brackets_with_rule/
+- require easytest <0.3 to fix build issue
 
 # 1.14 2019-03-01
 

@@ -1,11 +1,11 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# eddf1b3c
+# 1.14.1 2019-03-20
 
-- ui: upper bound on brick to fix build (#995)
+- require brick <0.47 to fix build (#995)
 
-- bump hledger version to 1.14.1, and other pkgs' lower bounds
+- use hledger 1.14.2
 
 # 1.14 2019-03-01
 
