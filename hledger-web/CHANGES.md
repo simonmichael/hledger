@@ -1,6 +1,13 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.14.1 2019-03-20
+
+- /accounts JSON: return all accounts, not just top-level ones (#985)
+  Accounts are returned as a flat list, in tree order, with asubs fields empty.
+
+- use hledger 1.14.2
+
 # 1.14 2019-03-01
 
 - serve the same JSON-providing routes as in hledger-api:

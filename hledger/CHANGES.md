@@ -1,6 +1,12 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.14.2 2019-03-20
+
+- require easytest <0.3 to fix build issue
+
+- fix some CSV parse errors which weren't in human readable format
+
 # 1.14.1 2019-03-01
 
 - fix missing Commodities.txt build error

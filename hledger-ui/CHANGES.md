@@ -1,6 +1,12 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1.14.1 2019-03-20
+
+- require brick <0.47 to fix build (#995)
+
+- use hledger 1.14.2
+
 # 1.14 2019-03-01
 
 - use hledger 1.14
