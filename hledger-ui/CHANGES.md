@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1.14.2 2019-03-20
+
+- support brick 0.47+ as well, to get into stackage nightly.
+
 # 1.14.1 2019-03-20
 
 - require brick <0.47 to fix build (#995)
