@@ -64,6 +64,8 @@ is updated as needed; here are the
 
 ## Latest minor release
 
+These packages have had minor updates since the last major release:
+
 <http://hackage.haskell.org/package/hledger-lib-1.14.1/changelog>\
 <http://hackage.haskell.org/package/hledger-1.14.2/changelog>\
 <http://hackage.haskell.org/package/hledger-ui-1.14.2/changelog>\
