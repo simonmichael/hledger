@@ -230,8 +230,13 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
 
         -- and start the app. Must be inside the withManager block
 #if MIN_VERSION_vty(5,15,0)
-        let myVty = mkVty mempty
+        let mkvty = mkVty mempty
 #else
-        let myVty = mkVty def
+        let mkvty = mkVty def
 #endif
-        void $ customMain myVty (Just eventChan) brickapp ui
+#if MIN_VERSION_brick(0,47,0)
+        vty0 <- mkvty
+        void $ customMain vty0 mkvty (Just eventChan) brickapp ui
+#else
+        void $ customMain mkvty (Just eventChan) brickapp ui
+#endif
