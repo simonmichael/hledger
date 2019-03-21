@@ -9,7 +9,7 @@
    --package shake
    --package time
    ghc
--}
+-} -- uses the project's current stack resolver
 {-
 
 One of two project scripts files (Makefile, Shake.hs). This one
