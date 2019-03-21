@@ -34,20 +34,20 @@ a { white-space:nowrap; }
 }
 </style>
 
-|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.2<br>[Release notes](http://hledger.org/release-notes) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
+|                                |                              | Latest&nbsp;release&nbsp;is&nbsp;1.14.2<br>[Release notes](release-notes.html) <!-- should be the latest release of the hledger package -->  <!-- [![latest version](https://repology.org/badge/latest-versions/hledger.svg)](http://hledger.org/release-notes)  -->
 |--------------------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | <br><big>**Multiplatform**</big>         | <br><small>*The first three (and occasionally the fourth) build from source, which is slower. See [Building from source](#b).*</small> | <br><small>*This method installs:*</small>
 | [hledger-install.sh](#b1)<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small><br><small>*Requires only bash.*</small> | <span style="font-size:small;">**`curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**<br>**`less hledger-install.sh`**&nbsp;&nbsp;&nbsp;&nbsp;*# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**</span> | <small>Latest release</small>
-| [cabal]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*]*</small>  | <span style="font-size:medium;">**`cabal v2-update && cabal v2-install hledger-1.14.2 hledger-web-1.14.1 hledger-ui-1.14.1`**</span> | <small>Latest release</small>
-| [stack]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*]*</small>  | <span style="font-size:medium;">**`stack install --resolver=nightly-2019-03-09 hledger hledger-web hledger-ui`**</span> | <small>Latest release</small>
-| [Nix]<br><small>*Linux,&nbsp;Mac*</small>  | <span style="font-size:small;">**`nix-env -i -f https://github.com/NixOS/nixpkgs/archive/9c74e2.tar.gz -A hledger hledger-ui hledger-web`**</span> | <small>Latest release</small>
+| [cabal]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*]*</small>  | <span style="font-size:medium;">**`cabal v2-update && cabal v2-install hledger-1.14.2 hledger-web-1.14.1 hledger-ui-1.14.2`**</span> | <small>Latest release</small>
+| [stack]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows[*]*</small>  | <span style="font-size:medium;">**`stack install --resolver=nightly-2019-03-21 hledger hledger-web hledger-ui`**</span> | <small>Latest release</small>
+| [Nix]<br><small>*Linux,&nbsp;Mac*</small>  | <span style="font-size:small;">**`nix-env -i -f https://github.com/NixOS/nixpkgs/archive/9c74e2.tar.gz -A hledger hledger-web hledger-ui`**</span> | <small>Latest release</small>
 | [Docker]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** | [![](https://img.shields.io/badge/Docker_image-1.14.1-brightgreen.svg)](https://hub.docker.com/r/dastapov/hledger)<br><small>[more..](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)</small>
 | [Homebrew]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small> | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://formulae.brew.sh/formula/hledger)
 | <br><big>**Windows**</big>     |
 | Windows&nbsp;binaries          | <code>**[hledger.zip]**</code> <small>*from Appveyor CI*</small> <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><!-- <span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791) --><!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) </span>--> | [![](https://img.shields.io/badge/Windows_binaries-1.14.1+_20190309-brightgreen.svg)](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts)
 | <br><big>**GNU/Linux**</big>   |
 | Arch                           | **`pacman -S hledger hledger-ui hledger-web`** | [![Arch](https://repology.org/badge/version-for-repo/arch/hledger.svg)](https://www.archlinux.org/packages/?sort=&q=hledger)
-| Gentoo                         | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | [![](https://img.shields.io/badge/Gentoo_package-1.14.1-brightgreen.svg)](https://gentoo.zugaina.org/Search?search=hledger)
+| Gentoo                         | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`** | [![](https://img.shields.io/badge/Gentoo_package-1.14.1-red.svg)](https://gentoo.zugaina.org/Search?search=hledger)
 | Debian                         | **`sudo apt install hledger hledger-ui hledger-web`** | [![Debian Unstable](https://repology.org/badge/version-for-repo/debian_unstable/hledger.svg)](https://packages.debian.org/unstable/hledger)<br>[![Debian Testing](https://repology.org/badge/version-for-repo/debian_testing/hledger.svg)](https://packages.debian.org/testing/hledger)<br>[![Debian Stable](https://repology.org/badge/version-for-repo/debian_stable/hledger.svg)](https://packages.debian.org/stable/hledger)<br>[![Debian Oldstable](https://repology.org/badge/version-for-repo/debian_oldstable/hledger.svg)](https://packages.debian.org/oldstable/hledger)<br><small>[more..](https://packages.debian.org/search?searchon=names&keywords=hledger)</small>
 | Ubuntu                         | **`sudo apt install hledger hledger-ui hledger-web`** | [![Ubuntu 19.04](https://repology.org/badge/version-for-repo/ubuntu_19_04/hledger.svg)](https://packages.ubuntu.com/disco/hledger)<br>[![Ubuntu 18.10](https://repology.org/badge/version-for-repo/ubuntu_18_10/hledger.svg)](https://packages.ubuntu.com/cosmic/hledger)<br>[![Ubuntu 18.04](https://repology.org/badge/version-for-repo/ubuntu_18_04/hledger.svg)](https://packages.ubuntu.com/bionic/hledger)<br>[![Ubuntu 16.04](https://repology.org/badge/version-for-repo/ubuntu_16_04/hledger.svg)](https://packages.ubuntu.com/xenial/hledger)<br>[![Ubuntu 14.04](https://repology.org/badge/version-for-repo/ubuntu_14_04/hledger.svg)](https://packages.ubuntu.com/trusty/hledger)<br><small>[more..](https://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger)</small>
 | Fedora                         | **`sudo dnf install hledger`** | [![Fedora Rawhide](https://img.shields.io/badge/Fedora_Rawhide_package-1.10-red.svg)](https://apps.fedoraproject.org/packages/hledger/)<br>[![Fedora 30](https://img.shields.io/badge/Fedora_30_package-1.5-red.svg)](https://apps.fedoraproject.org/packages/hledger/)<br>[![Fedora 29](https://repology.org/badge/version-for-repo/fedora_29/hledger.svg)](https://apps.fedoraproject.org/packages/hledger/)<br>[![Fedora 28](https://repology.org/badge/version-for-repo/fedora_28/hledger.svg)](https://apps.fedoraproject.org/packages/hledger/)<br>[![Fedora 27](https://repology.org/badge/version-for-repo/fedora_27/hledger.svg)](https://apps.fedoraproject.org/packages/hledger/)<br><small>[more..](https://apps.fedoraproject.org/packages/s/hledger)</small>
@@ -57,7 +57,7 @@ a { white-space:nowrap; }
 | <br><big>**Other**</big>       |
 | [Sandstorm]<br><small>*Community/private cloud platform*</small>                  | **[HLedger Web app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)** <!-- <br><span class=warnings>[features needed](https://github.com/simonmichael/hledger/issues/425)</span> --> | ![](https://img.shields.io/badge/Sandstorm_app-1.9.1-red.svg)
 
- <!-- <br><br><small>*Or: (nix-channel --update may be needed. CI [build][nix unstable linux builds] [issues][nix unstable mac builds] may cause failure/large downloads; check those links/try with --dry-run first)*</small> <br><span style="font-size:small;">**`nix-env -i hledger-1.14.2 hledger-ui-1.14.1 hledger-web-1.14.1`**</span> -->
+ <!-- <br><br><small>*Or: (nix-channel --update may be needed. CI [build][nix unstable linux builds] [issues][nix unstable mac builds] may cause failure/large downloads; check those links/try with --dry-run first)*</small> <br><span style="font-size:small;">**`nix-env -i hledger-1.14.2 hledger-ui-1.14.2 hledger-web-1.14.1`**</span> -->
 
 [*]:            #windows-build-issues
 [Docker]:       https://www.docker.com/products/docker-desktop
@@ -178,8 +178,10 @@ You can often run `stack upgrade` to upgrade it.
 64-bit Windows users should choose the 64-bit version of stack.
 The following command installs the main hledger packages;
 
-  **`stack install --resolver=nightly-2019-03-09 hledger-lib-1.14.1 hledger-1.14.2 hledger-web-1.14.1 \`**\
-  &nbsp;&nbsp;**`hledger-ui-1.14.1 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
+  **`stack install --resolver=nightly-2019-03-21 hledger hledger-web hledger-ui`**\
+<!--
+  &nbsp;&nbsp;**`hledger-ui-1.14.2 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
+-->
 
 If needed, you can save some time by omitting the
 [hledger-web](http://hackage.haskell.org/package/hledger-web) and
@@ -194,8 +196,10 @@ Some other [add-on tools](/hledger.html#third-party-add-ons) like
 and [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 can be installed like so:
 
-  **`stack install --resolver=nightly-2019-03-09 hledger-lib-1.14.1 hledger-1.14.2 hledger-api-1.14 \`**\
+  **`stack install --resolver=nightly-2019-03-21 hledger-api hledger-interest hledger-iadd`**\
+<!--
   &nbsp;&nbsp;**`hledger-interest-1.5.3 hledger-iadd-1.3.9 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
+-->
 
 <a name="b3"></a>
 
@@ -204,8 +208,8 @@ can be installed like so:
 [cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, use it in the usual way, eg:
 
   **`cabal v2-update`**\
-  **`cabal v2-install hledger-1.14.2 hledger-ui-1.14.1 hledger-web-1.14.1 \`**\
-  &nbsp;&nbsp;**`hledger-api-1.14 hledger-iadd-1.3.9 hledger-interest-1.5.3`**\
+  **`cabal v2-install hledger-1.14.2 hledger-ui-1.14.2 hledger-web-1.14.1 hledger-api-1.14 \`**\
+  &nbsp;&nbsp;**`hledger-iadd-1.3.9 hledger-interest-1.5.3`**\
 
 ### Set up PATH
 
@@ -231,7 +235,7 @@ You should now be able to run the hledger tools (whichever ones you installed) a
   `$`**`hledger --version`**\
   `hledger 1.14.2`\
   `$`**`hledger-ui --version`**\
-  `hledger-ui 1.14.1`\
+  `hledger-ui 1.14.2`\
   `$`**`hledger web --version`**\
   `hledger-web 1.14.1`\
   `$`**`hledger iadd --version`**\
