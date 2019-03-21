@@ -64,11 +64,11 @@ is updated as needed; here are the
 
 ## Latest minor release
 
-<http://hackage.haskell.org/package/hledger-lib-1.14.1/changelog>
-<http://hackage.haskell.org/package/hledger-1.14.2/changelog>
-<http://hackage.haskell.org/package/hledger-ui-1.14.1/changelog>
-<http://hackage.haskell.org/package/hledger-web-1.14.1/changelog>
-<!-- <http://hackage.haskell.org/package/hledger-api-1.14.1/changelog>   -->
+<http://hackage.haskell.org/package/hledger-lib-1.14.1/changelog>\
+<http://hackage.haskell.org/package/hledger-1.14.2/changelog>\
+<http://hackage.haskell.org/package/hledger-ui-1.14.2/changelog>\
+<http://hackage.haskell.org/package/hledger-web-1.14.1/changelog>\
+<!-- <http://hackage.haskell.org/package/hledger-api-1.14.1/changelog>\   -->
 
 
 ## 2019/03/01 hledger 1.14
