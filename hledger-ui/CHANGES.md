@@ -3,6 +3,10 @@ See also the hledger changelog.
 
 # 5f3cad4b
 
+# 1.14.2 2019-03-20
+
+- support brick 0.47+ as well, to get into stackage nightly.
+
 # 1.14.1 2019-03-20
 
 - require brick <0.47 to fix build (#995)
