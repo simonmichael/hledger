@@ -170,7 +170,7 @@ m4_define({{_reportingoptions_}}, {{
 (using the most recent applicable [market price](journal.html#market-prices), if any)
 
 `--auto`
-: apply [automated posting rules](journal.html#automated-posting-rules) to modify transactions.
+: apply [automated posting rules](journal.html#auto-postings-transaction-modifiers) to modify transactions.
 
 `--forecast`
 : apply [periodic transaction](journal.html#periodic-transactions) rules to generate future transactions, to 6 months from now or report end date.
