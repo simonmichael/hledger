@@ -35,10 +35,9 @@ You can override this with the `--rules-file` option.
 If the rules file does not exist, hledger will auto-create one with
 some example rules, which you'll need to adjust.
 
-At minimum, the rules file must identify the date (`date`) and 
-amount (`amount`, or `amount-in` and `amount-out`, or one of `balance`/`balance1`/`balance2`)
-fields. 
-It may also be necessary to specify the date format, and the number of header lines to skip. Eg:
+At minimum, the rules file must identify the date and amount fields. 
+It's often necessary to specify the date format, and the number of header lines to skip, also.
+Eg:
 ```
 fields date, _, _, amount
 date-format  %d/%m/%Y
@@ -234,25 +233,39 @@ It's conventional and recommended to use `account1` for the account whose CSV we
 
 ## CSV amounts
 
-The `amount` field sets the [amount](/journal.html#amounts) of the `account1` posting.
+An amount must be set, in one of these ways:
 
-If the CSV has debit/credit amounts in separate fields, assign to the `amount-in` and `amount-out` pseudo fields instead.
-(Whichever one has a value will be used, with appropriate sign. If both contain a value, it may not work so well.)
+- with an `amount` field assignment, which sets the first posting's [amount](/journal.html#amounts)
 
-If an amount value is parenthesised, it will be de-parenthesised and sign-flipped.
+- (If the CSV has debit and credit amounts in separate fields:) with
+  field assignments for the `amount-in` and `amount-out` pseudo fields
+  instead (both of them). Whichever one has a value will be used, with
+  appropriate sign. (If both contain a value, it might not work so well.)
 
-If an amount value begins with a double minus sign, those will cancel out and be removed.
+- or implicitly by means of a [balance assignment](/journal.html#balance-assignments) (see below).
 
-If the CSV has the currency symbol in a separate field, 
-assign that to the `currency` pseudo field to have it prepended to the amount.
-Or, you can use a [field assignment](#field-assignment) to `amount` that interpolates both CSV fields
-(giving more control, eg to put the currency symbol on the right).
+There is some special handling for sign in amounts:
 
-## CSV balance assertions
+- If an amount value is parenthesised, it will be de-parenthesised and sign-flipped.
+- If an amount value begins with a double minus sign, those will cancel out and be removed.
 
-If the CSV includes a running balance, you can assign that to the pseudo fields `balance`, `balance1` and/or `balance2`, with `balance` being synonym for `balance1`;
-whenever the running balance value is non-empty, 
-it will be [asserted](/journal.html#balance-assertions) as the balance after the `account1` or `account2` posting accordingly.
+If the currency/commodity symbol is provided as a separate CSV field,
+assign it to the `currency` pseudo field; the symbol will be prepended
+to the amount (<s>when there is an amount</s> TODO).
+Or, you can use an `amount` [field assignment](#field-assignment) more control, eg:
+```
+fields date,description,currency,amount
+amount %amount %currency
+```
+
+## CSV balance assertions/assignments
+
+If the CSV includes a running balance, you can assign that to one of the pseudo fields
+`balance` (or `balance1`) or `balance2`.
+This will generate a [balance assertion](/journal.html#balance-assertions) 
+(or if the amount is left empty, a [balance assignment](/journal.html#balance-assignments))
+on the first or second posting,
+whenever the running balance field is non-empty.
 
 ## Reading multiple CSV files
 
