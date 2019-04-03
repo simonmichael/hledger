@@ -233,12 +233,12 @@ It's conventional and recommended to use `account1` for the account whose CSV we
 
 ## CSV amounts
 
-An amount must be set, in one of these ways:
+A transaction [amount](/journal.html#amounts) must be set, in one of these ways:
 
-- with an `amount` field assignment, which sets the first posting's [amount](/journal.html#amounts)
+- with an `amount` field assignment, which sets the first posting's amount
 
-- (If the CSV has debit and credit amounts in separate fields:) with
-  field assignments for the `amount-in` and `amount-out` pseudo fields
+- (When the CSV has debit and credit amounts in separate fields:)\
+  with field assignments for the `amount-in` and `amount-out` pseudo fields
   instead (both of them). Whichever one has a value will be used, with
   appropriate sign. (If both contain a value, it might not work so well.)
 
@@ -251,7 +251,8 @@ There is some special handling for sign in amounts:
 
 If the currency/commodity symbol is provided as a separate CSV field,
 assign it to the `currency` pseudo field; the symbol will be prepended
-to the amount (<s>when there is an amount</s> TODO).
+to the amount 
+(TODO: <s>when there is an amount</s>).
 Or, you can use an `amount` [field assignment](#field-assignment) more control, eg:
 ```
 fields date,description,currency,amount
@@ -263,9 +264,10 @@ amount %amount %currency
 If the CSV includes a running balance, you can assign that to one of the pseudo fields
 `balance` (or `balance1`) or `balance2`.
 This will generate a [balance assertion](/journal.html#balance-assertions) 
-(or if the amount is left empty, a [balance assignment](/journal.html#balance-assignments))
+(or if the amount is left empty, a [balance assignment](/journal.html#balance-assignments)),
 on the first or second posting,
 whenever the running balance field is non-empty.
+(TODO: [#1000](https://github.com/simonmichael/hledger/issues/1000))
 
 ## Reading multiple CSV files
 
