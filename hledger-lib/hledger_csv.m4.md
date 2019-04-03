@@ -35,7 +35,9 @@ You can override this with the `--rules-file` option.
 If the rules file does not exist, hledger will auto-create one with
 some example rules, which you'll need to adjust.
 
-At minimum, the rules file must identify the `date` and `amount` fields. 
+At minimum, the rules file must identify the date (`date`) and 
+amount (`amount`, or `amount-in` and `amount-out`, or one of `balance`/`balance1`/`balance2`)
+fields. 
 It may also be necessary to specify the date format, and the number of header lines to skip. Eg:
 ```
 fields date, _, _, amount
