@@ -81,8 +81,10 @@ postingsReport opts q j = (totallabel, items)
           startbal | average_ opts = if historical then precedingavg else 0
                    | otherwise     = if historical then precedingsum else 0
           startnum = if historical then length precedingps + 1 else 1
-          runningcalc | average_ opts = \i avg amt -> divideMixedAmount (fromIntegral i) avg + amt - avg  -- running average
+          runningcalc | average_ opts = \i avg amt -> divideMixedAmount (fromIntegral i) (total i avg amt)-- running average
                       | otherwise     = \_ bal amt -> bal + amt                                           -- running total
+            where
+              total i avg amt = amt + (multiplyMixedAmount ((fromIntegral i) - 1) avg)
 
 totallabel = "Total"
 
