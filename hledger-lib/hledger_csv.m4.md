@@ -238,9 +238,9 @@ A transaction [amount](/journal.html#amounts) must be set, in one of these ways:
 - with an `amount` field assignment, which sets the first posting's amount
 
 - (When the CSV has debit and credit amounts in separate fields:)\
-  with field assignments for the `amount-in` and `amount-out` pseudo fields
-  instead (both of them). Whichever one has a value will be used, with
-  appropriate sign. (If both contain a value, it might not work so well.)
+  with field assignments for the `amount-in` and `amount-out` pseudo
+  fields (both of them). Whichever one has a value will be used, with
+  appropriate sign. If both contain a value, it might not work so well.
 
 - or implicitly by means of a [balance assignment](/journal.html#balance-assignments) (see below).
 
@@ -253,7 +253,7 @@ If the currency/commodity symbol is provided as a separate CSV field,
 assign it to the `currency` pseudo field; the symbol will be prepended
 to the amount 
 (TODO: <s>when there is an amount</s>).
-Or, you can use an `amount` [field assignment](#field-assignment) more control, eg:
+Or, you can use an `amount` [field assignment](#field-assignment) for more control, eg:
 ```
 fields date,description,currency,amount
 amount %amount %currency
