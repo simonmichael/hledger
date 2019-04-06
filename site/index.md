@@ -22,7 +22,7 @@ Robust plain text accounting.
 </span>
 
 <span style="font-size:x-large;">hledger</span> 
-is an elegant, powerful accounting program, for tracking money, time, or other commodities
+is an elegant, versatile accounting program, for tracking money, time, or other commodities
 using plain text records.
 It is a fast, dependable, secure alternative to Quicken, Xero, GnuCash etc.,
 <!-- with simple yet powerful functionality, -->

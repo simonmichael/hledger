@@ -452,13 +452,19 @@ validateRules :: CsvRules -> ExceptT String IO CsvRules
 validateRules rules = do
   unless (isAssigned "date")   $ ExceptT $ return $ Left "Please specify (at top level) the date field. Eg: date %1\n"
   unless ((amount && not (amountin || amountout)) ||
-          (not amount && (amountin && amountout)))
-    $ ExceptT $ return $ Left "Please specify (at top level) either the amount field, or both the amount-in and amount-out fields. Eg: amount %2\n"
+          (not amount && (amountin && amountout)) ||
+          balance)
+    $ ExceptT $ return $ Left $ unlines [
+       "Please specify (as a top level CSV rule) either the amount field,"
+      ,"both the amount-in and amount-out fields, or the balance field. Eg:"
+      ,"amount %2\n"
+      ]
   ExceptT $ return $ Right rules
   where
-    amount = isAssigned "amount"
-    amountin = isAssigned "amount-in"
+    amount    = isAssigned "amount"
+    amountin  = isAssigned "amount-in"
     amountout = isAssigned "amount-out"
+    balance   = isAssigned "balance" || isAssigned "balance1" || isAssigned "balance2"
     isAssigned f = isJust $ getEffectiveAssignment rules [] f
 
 -- parsers

@@ -9,7 +9,7 @@ _FLAGS_
 
 The closing transaction transfers balances to "equity:closing balances".
 The opening transaction transfers balances from "equity:opening balances".
-You can chose to print just one of the transactions by using the
+You can choose to print just one of the transactions by using the
 `--opening` or `--closing` flag.
 
 If you split your journal files by time (eg yearly), you will
