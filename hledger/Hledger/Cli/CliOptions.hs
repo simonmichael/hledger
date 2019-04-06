@@ -144,6 +144,7 @@ reportflags = [
  ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/txns (can combine with -P or -C)"
  ,flagNone ["pending","P"]   (setboolopt "pending") "include only pending postings/txns"
  ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
+ ,flagNone ["uncleared"]     (setboolopt "uncleared") "includes unmarked and pending transaction (equivalent to -UP, for compatibility with ledger)"
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "(or -NUM): hide accounts/postings deeper than this"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden (and vice-versa in hledger-ui/hledger-web)"

@@ -292,13 +292,14 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
 -- -P/--pending, -C/--cleared flags. -UPC is equivalent to no flags,
 -- so this returns a list of 0-2 unique statuses.
 statusesFromRawOpts :: RawOpts -> [Status]
-statusesFromRawOpts = simplifyStatuses . catMaybes . map statusfromrawopt
+statusesFromRawOpts = simplifyStatuses . catMaybes . concatMap statusfromrawopt
   where
     statusfromrawopt (n,_)
-      | n == "unmarked"  = Just Unmarked
-      | n == "pending"   = Just Pending
-      | n == "cleared"   = Just Cleared
-      | otherwise        = Nothing
+      | n == "unmarked"  = [Just Unmarked]
+      | n == "pending"   = [Just Pending]
+      | n == "cleared"   = [Just Cleared]
+      | n == "uncleared" = [Just Unmarked, Just Pending]
+      | otherwise        = [Nothing]
 
 -- | Reduce a list of statuses to just one of each status,
 -- and if all statuses are present return the empty list.

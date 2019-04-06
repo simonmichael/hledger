@@ -188,6 +188,9 @@ OPTIONS
        -C --cleared
               include only cleared postings/txns
 
+       --uncleared
+              includes unmarked and pending transaction (equivalent to -UP, for compatibility with ledger)
+
        -R --real
               include only non-virtual postings
 
