@@ -283,7 +283,7 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
           either
             (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e)
             extractIntervalOrNothing $
-            parsePeriodExpr nulldate (stripquotes $ T.pack v) -- reference date does not affect the interval
+            parsePeriodExpr undefined (stripquotes $ T.pack v) -- reference date does not affect the interval
       | n == "daily"     = Just $ Days 1
       | n == "weekly"    = Just $ Weeks 1
       | n == "monthly"   = Just $ Months 1
