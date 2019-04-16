@@ -274,19 +274,28 @@ endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
 
 -- | Get the report interval, if any, specified by the last of -p/--period,
 -- -D/--daily, -W/--weekly, -M/--monthly etc. options.
+-- An interval from --period counts only if it is explicitly defined.
 intervalFromRawOpts :: RawOpts -> Interval
 intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
   where
     intervalfromrawopt (n,v)
       | n == "period" =
-          either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) (Just . fst) $
-          parsePeriodExpr nulldate (stripquotes $ T.pack v) -- reference date does not affect the interval
+          either
+            (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e)
+            extractIntervalOrNothing $
+            parsePeriodExpr nulldate (stripquotes $ T.pack v) -- reference date does not affect the interval
       | n == "daily"     = Just $ Days 1
       | n == "weekly"    = Just $ Weeks 1
       | n == "monthly"   = Just $ Months 1
       | n == "quarterly" = Just $ Quarters 1
       | n == "yearly"    = Just $ Years 1
       | otherwise = Nothing
+
+-- | Extract the interval from the parsed -p/--period expression.
+-- Return Nothing if an interval is not explicitly defined.
+extractIntervalOrNothing :: (Interval, DateSpan) -> Maybe Interval
+extractIntervalOrNothing (NoInterval, _) = Nothing
+extractIntervalOrNothing (interval, _) = Just interval
 
 -- | Get any statuses to be matched, as specified by -U/--unmarked,
 -- -P/--pending, -C/--cleared flags. -UPC is equivalent to no flags,
