@@ -94,7 +94,9 @@ data fields interpolated like so:
 %[MIN][.MAX](FIELDNAME)
 
 -   MIN pads with spaces to at least this width (optional)
+
 -   MAX truncates at this width (optional)
+
 -   FIELDNAME must be enclosed in parentheses, and can be one of:
 
     -   depth_spacer - a number of spaces equal to the account's depth,
