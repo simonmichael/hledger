@@ -774,6 +774,7 @@ About testing in the hledger project, as of 201809.
     Tests are defined in files under
     [tests/](https://github.com/simonmichael/hledger/tree/master/tests),
     grouped by *component* (command or topic name).
+    For more about these, see the README there.
 
 4.  Code tests
 
