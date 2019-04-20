@@ -233,7 +233,7 @@ addPeriodicTransaction :: PeriodicTransaction -> Journal -> Journal
 addPeriodicTransaction pt j = j { jperiodictxns = pt : jperiodictxns j }
 
 addMarketPrice :: MarketPrice -> Journal -> Journal
-addMarketPrice h j = j { jmarketprices = h : jmarketprices j }
+addMarketPrice h j = j { jmarketprices = h : jmarketprices j }  -- XXX #999 keep sorted
 
 -- | Get the transaction with this index (its 1-based position in the input stream), if any.
 journalTransactionAt :: Journal -> Integer -> Maybe Transaction
@@ -527,9 +527,9 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
 
 -}
 
--- | Reverse parsed data to normal order. This is used for post-parse
--- processing, since data is added to the head of the list during
--- parsing.
+-- | Reverse all lists of parsed items, which during parsing were
+-- prepended to, so that the items are in parse order. Part of
+-- post-parse finalisation.
 journalReverse :: Journal -> Journal
 journalReverse j =
   j {jfiles            = reverse $ jfiles j

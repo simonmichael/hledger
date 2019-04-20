@@ -428,6 +428,15 @@ data MarketPrice = MarketPrice {
 
 instance NFData MarketPrice
 
+-- | Market prices in the order they were declared in the parse stream.
+type MarketPricesParseOrdered           = [MarketPrice]
+
+-- | Market prices in date then parse order.
+type MarketPricesDateAndParseOrdered    = [MarketPrice]
+
+-- | Market prices for a single commodity, in date then parse order.
+type CommodityPricesDateAndParseOrdered = [MarketPrice]
+
 -- | A Journal, containing transactions and various other things.
 -- The basic data model for hledger.
 --
@@ -452,7 +461,8 @@ data Journal = Journal {
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts) 
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
-  ,jmarketprices          :: [MarketPrice]
+  ,jmarketprices          :: MarketPricesParseOrdered               -- ^ All market prices declared by P directives, in parse order (after journal finalisation).
+                                                                    --   Note, not yet in date order because concatenating journals could mess that up.
   ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]

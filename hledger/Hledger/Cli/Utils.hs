@@ -128,7 +128,8 @@ journalApplyValue ropts j = do
     today <- getCurrentDay
     mspecifiedenddate <- specifiedEndDate ropts
     let d = fromMaybe today mspecifiedenddate
-        convert | value_ ropts = overJournalAmounts (amountValue j d)
+        ps = sortOn mpdate $ jmarketprices j
+        convert | value_ ropts = overJournalAmounts (amountValue ps d)
                 | otherwise    = id
     return $ convert j
 

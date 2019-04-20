@@ -445,33 +445,37 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
       s' = findWithDefault s c styles
 
 -- | Find the market value of this amount on the given date, in it's
--- default valuation commodity, based on recorded market prices.
+-- default valuation commodity, using the given market prices which
+-- should be in date then parse order.
 -- If no default valuation commodity can be found, the amount is left
 -- unchanged.
-amountValue :: Journal -> Day -> Amount -> Amount
-amountValue j d a =
-  case commodityValue j d (acommodity a) of
-    Just v  -> v{aquantity=aquantity v * aquantity a}
-    Nothing -> a
+amountValue :: MarketPricesDateAndParseOrdered -> Day -> Amount -> Amount
+amountValue ps d a@Amount{acommodity=c} =
+  let ps' = filter ((c==).mpcommodity) ps
+  in
+    case commodityValue ps' d c of
+      Just v  -> v{aquantity=aquantity v * aquantity a}
+      Nothing -> a
 
--- This is here not in Commodity.hs to use the Amount Show instance above for debugging. 
--- | Find the market value, if known, of one unit of this commodity (A) on
--- the given valuation date, in the commodity (B) mentioned in the latest
--- applicable market price. The latest applicable market price is the market
--- price directive for commodity A with the latest date that is on or before
--- the valuation date; or if there are multiple such prices with the same date,
--- the last parsed.
-commodityValue :: Journal -> Day -> CommoditySymbol -> Maybe Amount
-commodityValue j valuationdate c
-    | null applicableprices = dbg Nothing
-    | otherwise             = dbg $ Just $ mpamount $ last applicableprices
+-- (This is here not in Commodity.hs to use the Amount Show instance above for debugging.)
+--
+-- | Find the market value, if known, of one unit of the given
+-- commodity (A), on the given valuation date, in the commodity (B)
+-- mentioned in the latest applicable market price.
+--
+-- The applicable price is obtained from the given market prices,
+-- which should be for commodity A only, and in date then parse order.
+-- It is the price with the latest date on or before the valuation
+-- date; or if there are multiple prices on that date, the last one
+-- parsed.
+--
+commodityValue :: CommodityPricesDateAndParseOrdered -> Day -> CommoditySymbol -> Maybe Amount
+commodityValue ps valuationdate c =
+  case filter ((<=valuationdate).mpdate) ps of
+    []  -> dbg Nothing
+    ps' -> dbg $ Just $ mpamount $ last ps'
   where
     dbg = dbg8 ("using market price for "++T.unpack c)
-    applicableprices =
-      [p | p <- sortOn mpdate $ jmarketprices j
-      , mpcommodity p == c
-      , mpdate p <= valuationdate
-      ]
 
 
 -------------------------------------------------------------------------------
@@ -727,8 +731,8 @@ cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithou
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
 
-mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
-mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
+mixedAmountValue :: MarketPricesDateAndParseOrdered -> Day -> MixedAmount -> MixedAmount
+mixedAmountValue ps d (Mixed as) = Mixed $ map (amountValue ps d) as
 
 -- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one. 
