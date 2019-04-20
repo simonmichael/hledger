@@ -2,12 +2,12 @@
 {-
 generatejournal.hs NUMTXNS NUMACCTS ACCTDEPTH [--chinese|--mixed]
 
-This generates synthetic journal data for benchmarking & profiling.
-It prints a dummy journal on stdout, with NUMTXNS transactions, one
-per day, using NUMACCTS account names with depths up to ACCTDEPTH.
-It will also contain NUMACCTS P records, one per day.
-By default it uses only ascii characters, with --chinese it uses wide
-chinese characters, or with --mixed it uses both.
+This generates synthetic journal data for benchmarking & profiling. It
+prints a dummy journal on stdout, with NUMTXNS transactions, one per
+day, using NUMACCTS account names with depths up to ACCTDEPTH. It will
+also contain NUMACCTS P records, one per day. By default it uses only
+ascii characters, with --chinese it uses wide chinese characters, or
+with --mixed it uses both.
 -}
 
 module Main
@@ -25,9 +25,9 @@ main = do
   rawargs <- getArgs
   let (opts,args) = partition (isPrefixOf "-") rawargs
   let [numtxns, numaccts, acctdepth] = map read args :: [Int]
-  today <- getCurrentDay
-  let (year,_,_) = toGregorian today
-  let d = fromGregorian (year-1) 1 1
+  -- today <- getCurrentDay
+  -- let (year,_,_) = toGregorian today
+  let d = fromGregorian 2000 1 1
   let dates = iterate (addDays 1) d
   let accts = pair $ cycle $ take numaccts $ uniqueAccountNames opts acctdepth
   mapM_ (\(n,d,(a,b)) -> putStr $ showtxn n d a b) $ take numtxns $ zip3 [1..] dates accts
@@ -86,8 +86,8 @@ pair [] = []
 pair [a] = [(a,a)]
 pair (a:b:rest) = (a,b):pair rest
 
-getCurrentDay :: IO Day
-getCurrentDay = do
-    t <- getZonedTime
-    return $ localDay (zonedTimeToLocalTime t)
+-- getCurrentDay :: IO Day
+-- getCurrentDay = do
+--     t <- getZonedTime
+--     return $ localDay (zonedTimeToLocalTime t)
 
