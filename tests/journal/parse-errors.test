@@ -4,6 +4,7 @@
 <
 2018
 
+# XXX depends on the executable being named "hledger" (prepended by GHC.Err.error)
 # 1.
 $ hledger -f - print
 >2
