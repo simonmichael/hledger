@@ -2,11 +2,12 @@
 # This one was a reboot of Makefile.old.
 # It is probably used by hledger developers/contributors but not end-users.
 # It requires GNU Make (https://www.gnu.org/software/make/).
-# Also, some rules require:
+# Also, some rules may require:
 # - stack (http://haskell-lang.org/get-started, installs libs and runs ghc)
 # - shelltestrunner (hackage, runs functional tests)
 # - quickbench (hackage/stackage, runs benchmarks)
 # - hasktags (hackage, generates tag files for code navigation)
+# - profiterole (hackage/stackage, simplifies profiles)
 # - profiteur (hackage/stackage, renders profiles as html)
 # - hpack (hackage/stackage, generates cabal files from package.yaml files)
 # - site/hakyll-std/hakyll-std (generic site-building hakyll script)
@@ -292,7 +293,7 @@ dev-profile: devprof \
 	$(call def-help,dev-profile, get a time & space profile of the dev.hs script )
 	time ./devprof +RTS -P \
 	&& cp devprof.prof devprof.prof.$(TIME) \
-	&& profiteur devprof.prof
+	&& profiterole devprof.prof
 
 dev-heap: devprof \
 	$(call def-help,dev-heap, get heap profiles of the dev.hs script )
@@ -582,7 +583,7 @@ bench: samplejournals bench.sh $(call def-help,bench, benchmark commands in benc
 quickprof-%: hledgerprof samplejournals \
 		$(call def-help,quickprof-"CMD", run some command against a sample journal and display the execution profile )
 	$(STACK) exec -- hledgerprof +RTS $(PROFRTSFLAGS) -RTS $* -f examples/10000x1000x10.journal >/dev/null
-	profiteur hledgerprof.prof
+	profiterole hledgerprof.prof
 	@echo
 	@head -20 hledgerprof.prof
 	@echo ...
