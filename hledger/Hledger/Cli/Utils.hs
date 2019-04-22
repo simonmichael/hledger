@@ -1,5 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE NoOverloadedStrings #-} -- prevent trouble if turned on in ghci
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and
@@ -25,6 +25,7 @@ module Hledger.Cli.Utils
      readFileStrictly,
      pivotByOpts,
      anonymiseByOpts,
+     tests_Cli_Utils,
     )
 where
 import Control.Exception as C
@@ -128,7 +129,9 @@ journalApplyValue ropts j = do
     today <- getCurrentDay
     mspecifiedenddate <- specifiedEndDate ropts
     let d = fromMaybe today mspecifiedenddate
-        ps = sortOn mpdate $ jmarketprices j
+        -- prices are in parse order - sort into date then parse order,
+        -- reversed for quick lookup of the latest price.
+        ps = reverse $ sortOn mpdate $ jmarketprices j
         convert | value_ ropts = overJournalAmounts (amountValue ps d)
                 | otherwise    = id
     return $ convert j
@@ -232,7 +235,7 @@ fileModificationTime f
     | otherwise = (do
         utc <- getModificationTime f
         let nom = utcTimeToPOSIXSeconds utc
-        let clo = TOD (read $ takeWhile (`elem` "0123456789") $ show nom) 0 -- XXX read
+        let clo = TOD (read $ takeWhile (`elem` ("0123456789"::String)) $ show nom) 0 -- XXX read
         return clo
         )
         `C.catch` \(_::C.IOException) -> getClockTime
@@ -296,3 +299,7 @@ backupNumber :: FilePath -> FilePath -> Maybe Int
 backupNumber f g = case g =~ ("^" ++ f ++ "\\.([0-9]+)$") of
                         (_::FilePath, _::FilePath, _::FilePath, [ext::FilePath]) -> readMay ext
                         _ -> Nothing
+
+tests_Cli_Utils = tests "Utils" [
+
+ ]

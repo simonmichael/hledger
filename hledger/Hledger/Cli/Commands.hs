@@ -84,6 +84,7 @@ import Hledger.Cli.Commands.Rewrite
 import Hledger.Cli.Commands.Roi
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
+import Hledger.Cli.Utils (tests_Cli_Utils)
 
 -- | The cmdargs subcommand mode (for command-line parsing)
 -- and IO action (for doing the command's work) for each builtin command.
@@ -259,11 +260,15 @@ testcmd opts _undefined = do
 --  import System.IO (hSetEncoding, stdout, stderr, utf8)
 --  hSetEncoding stdout utf8
 --  hSetEncoding stderr utf8
-  e <- runEasytests args $ EasyTest.tests [tests_Hledger, tests_Commands]
+  e <- runEasytests args $ EasyTest.tests [
+     tests_Hledger
+    ,tests "Hledger.Cli" [
+       tests_Cli_Utils
+      ,tests_Commands
+      ]
+    ]
   if e then exitFailure else exitSuccess
 
-
--- unit tests of hledger command-line executable
 
 tests_Commands = tests "Commands" [
    tests_Balance

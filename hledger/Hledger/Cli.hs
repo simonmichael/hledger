@@ -29,7 +29,8 @@ import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 
-tests_Cli = tests "Cli" [
-   tests_Hledger
+-- unit tests for code under Hledger.Cli (hledger-lib tests not included)
+tests_Cli = tests "Hledger.Cli" [
+   tests_Cli_Utils
   ,tests_Commands
- ]
+  ]
