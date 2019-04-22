@@ -105,7 +105,7 @@ module Hledger.Data.Amount (
   isZeroMixedAmount,
   isReallyZeroMixedAmount,
   isReallyZeroMixedAmountCost,
-  mixedAmountValue,
+  -- mixedAmountValue,
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
@@ -446,35 +446,32 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
 
 -- | Find the market value of this amount on the given date, in it's
 -- default valuation commodity, using the given market prices which
--- should be in date then parse order.
+-- are expected to be in parse order.
 -- If no default valuation commodity can be found, the amount is left
 -- unchanged.
-amountValue :: MarketPricesDateAndParseOrdered -> Day -> Amount -> Amount
+amountValue :: [MarketPrice] -> Day -> Amount -> Amount
 amountValue ps d a@Amount{acommodity=c} =
-  let ps' = filter ((c==).mpcommodity) ps
-  in
-    case commodityValue ps' d c of
-      Just v  -> v{aquantity=aquantity v * aquantity a}
-      Nothing -> a
+  case commodityValue ps d c of
+    Just v  -> v{aquantity=aquantity v * aquantity a}
+    Nothing -> a
 
 -- (This is here not in Commodity.hs to use the Amount Show instance above for debugging.)
 --
 -- | Find the market value, if known, of one unit of the given
 -- commodity (A), on the given valuation date, in the commodity (B)
 -- mentioned in the latest applicable market price.
---
 -- The applicable price is obtained from the given market prices,
--- which should be for commodity A only, and in date then parse order.
+-- which are expected to be in parse order.
 -- It is the price with the latest date on or before the valuation
--- date; or if there are multiple prices on that date, the last one
+-- date, or if there are multiple prices on that date, the last one
 -- parsed.
---
-commodityValue :: CommodityPricesDateAndParseOrdered -> Day -> CommoditySymbol -> Maybe Amount
+commodityValue :: [MarketPrice] -> Day -> CommoditySymbol -> Maybe Amount
 commodityValue ps valuationdate c =
-  case filter ((<=valuationdate).mpdate) ps of
-    []  -> dbg Nothing
-    ps' -> dbg $ Just $ mpamount $ last ps'
+  case ps' of
+    []   -> dbg Nothing
+    ps'' -> dbg $ Just $ mpamount $ head ps''
   where
+    ps' = filter (\MarketPrice{..} -> mpcommodity==c && mpdate<=valuationdate) ps
     dbg = dbg8 ("using market price for "++T.unpack c)
 
 
@@ -731,8 +728,8 @@ cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithou
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
 
-mixedAmountValue :: MarketPricesDateAndParseOrdered -> Day -> MixedAmount -> MixedAmount
-mixedAmountValue ps d (Mixed as) = Mixed $ map (amountValue ps d) as
+-- mixedAmountValue :: MarketPricesDateAndParseOrdered -> Day -> MixedAmount -> MixedAmount
+-- mixedAmountValue ps d (Mixed as) = Mixed $ map (amountValue ps d) as
 
 -- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one. 
