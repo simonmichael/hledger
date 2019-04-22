@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c25c2177f7c03b76b14aa9fa36b0cb9aba95bb836c183de3361616e41aed526a
+-- hash: 3beb53c0c1f2c478c50a7c50e122085de41f983fcec16b3c14c058e2e79b19e1
 
 name:           hledger
 version:        1.14.99
@@ -174,6 +174,7 @@ library
     , temporary
     , text >=0.11
     , time >=1.5
+    , timeit
     , transformers
     , unordered-containers
     , utf8-string >=0.3.5
@@ -223,6 +224,7 @@ executable hledger
     , temporary
     , text >=0.11
     , time >=1.5
+    , timeit
     , transformers
     , unordered-containers
     , utf8-string >=0.3.5
@@ -277,6 +279,7 @@ test-suite test
     , test-framework-hunit
     , text >=0.11
     , time >=1.5
+    , timeit
     , transformers
     , unordered-containers
     , utf8-string >=0.3.5

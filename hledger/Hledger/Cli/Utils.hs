@@ -51,6 +51,7 @@ import Text.Printf
 import Text.Regex.TDFA ((=~))
 
 import System.Time (ClockTime(TOD))
+import System.TimeIt
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
 import Hledger.Cli.CliOptions
@@ -301,5 +302,28 @@ backupNumber f g = case g =~ ("^" ++ f ++ "\\.([0-9]+)$") of
                         _ -> Nothing
 
 tests_Cli_Utils = tests "Utils" [
+
+   tests "journalApplyValue" [
+
+     -- Print the time required to convert one of the sample journals' amounts to value.
+     -- Pretty clunky, but working.
+     test "time" $ do
+       ej <- io $ readJournalFile definputopts "examples/3000x1000x10.journal"
+       case ej of
+         Left e  -> crash $ T.pack e
+         Right j -> do
+           (t,_) <- io $ timeItT $ do
+             -- Enable -V, and ensure the valuation date is later than
+             -- all prices for consistent timing.
+             let ropts = defreportopts{
+               value_=True,
+               period_=PeriodTo $ parsedate "3000-01-01"
+               }
+             j' <- journalApplyValue ropts j
+             sum (journalAmounts j') `seq` return ()
+           io $ printf "[%.3fs] " t
+           ok
+
+  ]
 
  ]

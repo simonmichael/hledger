@@ -134,6 +134,7 @@ dependencies:
 - temporary
 - text >=0.11
 - time >=1.5
+- timeit
 - transformers
 - unordered-containers
 - utf8-string >=0.3.5
@@ -215,4 +216,3 @@ benchmarks:
     - hledger
     - criterion
     - html
-    - timeit
