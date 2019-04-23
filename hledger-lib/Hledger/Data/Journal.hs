@@ -48,6 +48,8 @@ module Hledger.Data.Journal (
   traverseJournalAmounts,
   -- journalCanonicalCommodities,
   journalDateSpan,
+  journalStartDate,
+  journalEndDate,
   journalDescriptions,
   journalFilePath,
   journalFilePaths,
@@ -1039,6 +1041,16 @@ journalDateSpan secondary j
       tdates   = map (if secondary then transactionDate2 else tdate) ts
       pdates   = concatMap (mapMaybe (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
       ts       = jtxns j
+
+-- | The earliest of this journal's transaction and posting dates, or
+-- Nothing if there are none.
+journalStartDate :: Bool -> Journal -> Maybe Day
+journalStartDate secondary j = b where DateSpan b _ = journalDateSpan secondary j
+
+-- | The latest of this journal's transaction and posting dates, or
+-- Nothing if there are none.
+journalEndDate :: Bool -> Journal -> Maybe Day
+journalEndDate secondary j = e where DateSpan _ e = journalDateSpan secondary j
 
 -- | Apply the pivot transformation to all postings in a journal,
 -- replacing their account name by their value for the given field or tag.
