@@ -43,6 +43,7 @@ a { white-space:nowrap; }
 | [Nix]<br><small>*Linux,&nbsp;Mac*</small>  | <span style="font-size:small;">**`nix-env -i -f https://github.com/NixOS/nixpkgs/archive/9c74e2.tar.gz -A hledger hledger-web hledger-ui`**</span> | <small>Latest release</small>
 | [Docker]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>  | **`docker pull dastapov/hledger`** | [![](https://img.shields.io/badge/Docker_image-1.14.1-brightgreen.svg)](https://hub.docker.com/r/dastapov/hledger)<br><small>[more..](https://hub.docker.com/search?q=hledger&type=image&sort=updated_at&order=desc)</small>
 | [Homebrew]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small> | **`brew install hledger`**   | [![Homebrew](https://repology.org/badge/version-for-repo/homebrew/hledger.svg)](https://formulae.brew.sh/formula/hledger)
+| [Wine]<br><small>*Linux,&nbsp;Mac,&nbsp;FreeBSD*</small> | **run the Windows binary. Last resort :)**   | 
 | <br><big>**Windows**</big>     |
 | Windows&nbsp;binaries          | <code>**[hledger.zip]**</code> <small>*from Appveyor CI*</small> <!-- or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) --><!-- <span class=warnings> [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444),[doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774),[many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791) --><!-- ,[appveyor builds failing](https://github.com/simonmichael/hledger/issues/832) </span>--> | [![](https://img.shields.io/badge/Windows_binaries-1.14.1+_20190309-brightgreen.svg)](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts)
 | <br><big>**GNU/Linux**</big>   |
@@ -68,6 +69,7 @@ a { white-space:nowrap; }
 [cabal]:        https://www.haskell.org/cabal
 [hledger.zip]:  https://ci.appveyor.com/api/buildjobs/gudfa3gv7pj94ab0/artifacts/hledger.zip
 [stack]:        https://haskell.fpcomplete.com/get-started
+[Wine]:         https://www.winehq.org
 
 [notes]::
 
