@@ -308,6 +308,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
       let format   = outputFormatFromOpts opts
           budget   = boolopt "budget" rawopts
           interval = interval_ ropts
+
       case (budget, interval) of
         (True, _) -> do
           -- single or multicolumn budget report
@@ -346,14 +347,6 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           writeOutput opts $ render report
 
 -- rendering single-column balance reports
-
--- | Find the best commodity to convert to when asked to show the
--- market value of this commodity on the given date. That is, the one
--- in which it has most recently been market-priced, ie the commodity
--- mentioned in the most recent applicable historical price directive
--- before this date.
--- defaultValuationCommodity :: Journal -> Day -> CommoditySymbol -> Maybe CommoditySymbol
--- defaultValuationCommodity j d c = mpamount <$> commodityValue j d c
 
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV

@@ -20,6 +20,7 @@ module Hledger.Reports.MultiBalanceReports (
 )
 where
 
+import Control.Applicative ((<|>))
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -85,6 +86,7 @@ type ClippedAccountName = AccountName
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 multiBalanceReport opts q j =
   (if invert_ opts then mbrNegate else id) $ 
+  (if value_ opts then mbrValue opts j else id) $
   MultiBalanceReport (displayspans, sorteditems, totalsrow)
     where
       symq       = dbg1 "symq"   $ filterQuery queryIsSym $ dbg1 "requested q" q
@@ -270,6 +272,43 @@ mbrNegate (MultiBalanceReport (colspans, rows, totalsrow)) =
 multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
 multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
 multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
+
+-- | Convert all the posting amounts in a MultiBalanceReport to their
+-- default valuation commodities. This means using the Journal's most
+-- recent applicable market prices before the valuation date.
+-- The valuation date is the specified report end date if any,
+-- otherwise the journal's end date.
+mbrValue :: ReportOpts -> Journal -> MultiBalanceReport -> MultiBalanceReport
+mbrValue ropts j r =
+  let mvaluationdate = periodEnd (period_ ropts) <|> journalEndDate False j
+  in case mvaluationdate of
+    Nothing -> r
+    Just d  -> r'
+      where
+        -- prices are in parse order - sort into date then parse order,
+        -- & reversed for quick lookup of the latest price.
+        prices = reverse $ sortOn mpdate $ jmarketprices j
+
+        MultiBalanceReport (spans, rows, (coltotals, rowtotaltotal, rowavgtotal)) = r
+        r' = MultiBalanceReport
+             (spans,
+              [(acct, acct', depth, map convert rowamts, convert rowtotal, convert rowavg) | (acct, acct', depth, rowamts, rowtotal, rowavg) <- rows],
+              (map convert coltotals, convert rowtotaltotal, convert rowavgtotal))
+        convert = mixedAmountValue prices d
+
+    -- -- convert to value ?
+    -- -- first get period end date(s) XXX duplicated from multiBalanceReport
+    -- -- The date span specified by -b/-e/-p options and query args if any.
+    -- requestedspan  = dbg1 "requestedspan"  $ queryDateSpan (date2_ ropts) userq  --  XXX userq ok ?
+    -- -- If the requested span is open-ended, close it using the journal's end dates.
+    -- -- This can still be the null (open) span if the journal is empty.
+    -- requestedspan' = dbg1 "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ ropts) j
+    -- -- The list of interval spans enclosing the requested span.
+    -- -- This list can be empty if the journal was empty,
+    -- -- or if hledger-ui has added its special date:-tomorrow to the query
+    -- -- and all txns are in the future.
+    -- -- intervalspans  = dbg1 "intervalspans"  $ splitSpan (interval_ ropts) requestedspan'
+
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport, 
 -- in order to support --historical. Does not support tree-mode boring parent eliding. 

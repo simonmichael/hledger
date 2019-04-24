@@ -4,13 +4,6 @@ Balance report, used by the balance command.
 
 -}
 
-
-
-
-
-
-
-
 {-# LANGUAGE FlexibleInstances, ScopedTypeVariables, OverloadedStrings #-}
 
 module Hledger.Reports.BalanceReport (
@@ -25,6 +18,7 @@ module Hledger.Reports.BalanceReport (
 )
 where
 
+import Control.Applicative ((<|>))
 import Data.List
 import Data.Ord
 import Data.Maybe
@@ -35,12 +29,6 @@ import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils 
 import Hledger.Reports.ReportOptions
-
-
-
-
-
-
 
 
 -- | A simple balance report. It has:
@@ -78,7 +66,8 @@ flatShowsExclusiveBalance    = True
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport opts q j = 
-  (if invert_ opts then brNegate else id) $ 
+  (if invert_ opts then brNegate  else id) $ 
+  (if value_ opts then brValue opts j else id) $
   (sorteditems, total)
     where
       -- dbg1 = const id -- exclude from debug output
@@ -180,6 +169,39 @@ brNegate (is, tot) = (map brItemNegate is, -tot)
   where
     brItemNegate (a, a', d, amt) = (a, a', d, -amt)
 
+-- | Convert all the posting amounts in a BalanceReport to their
+-- default valuation commodities. This means using the Journal's most
+-- recent applicable market prices before the valuation date.
+-- The valuation date is the specified report end date if any,
+-- otherwise the journal's end date.
+brValue :: ReportOpts -> Journal -> BalanceReport -> BalanceReport
+brValue ropts j r =
+  let mvaluationdate = periodEnd (period_ ropts) <|> journalEndDate False j
+  in case mvaluationdate of
+    Nothing -> r
+    Just d  -> r'
+      where
+        -- prices are in parse order - sort into date then parse order,
+        -- & reversed for quick lookup of the latest price.
+        prices = reverse $ sortOn mpdate $ jmarketprices j
+        (items,total) = r
+        r' =
+          dbg8 "market prices" prices `seq`
+          dbg8 "valuation date" d `seq`
+          dbg8 "brValue"
+            ([(n, n', i, mixedAmountValue prices d a) |(n,n',i,a) <- items], mixedAmountValue prices d total)
+
+-- -- | Find the best commodity to convert to when asked to show the
+-- -- market value of this commodity on the given date. That is, the one
+-- -- in which it has most recently been market-priced, ie the commodity
+-- -- mentioned in the most recent applicable historical price directive
+-- -- before this date.
+-- -- defaultValuationCommodity :: Journal -> Day -> CommoditySymbol -> Maybe CommoditySymbol
+-- -- defaultValuationCommodity j d c = mpamount <$> commodityValue j d c
+
+
+-- tests
+
 Right samplejournal2 =
   journalBalanceTransactions False
     nulljournal{
@@ -202,8 +224,6 @@ Right samplejournal2 =
         }
       ]
     }
-
--- tests
 
 tests_BalanceReport = tests "BalanceReport" [
   tests "balanceReport" $

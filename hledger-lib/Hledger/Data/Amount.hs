@@ -105,7 +105,7 @@ module Hledger.Data.Amount (
   isZeroMixedAmount,
   isReallyZeroMixedAmount,
   isReallyZeroMixedAmountCost,
-  -- mixedAmountValue,
+  mixedAmountValue,
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
@@ -444,7 +444,7 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
     where
       s' = findWithDefault s c styles
 
--- | Find the market value of this amount on the given date, in it's
+-- | Find the market value of this amount on the given date in its
 -- default valuation commodity, using the given market prices which
 -- are expected to be in parse order.
 -- If no default valuation commodity can be found, the amount is left
@@ -728,8 +728,12 @@ cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithou
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
 
--- mixedAmountValue :: MarketPricesDateAndParseOrdered -> Day -> MixedAmount -> MixedAmount
--- mixedAmountValue ps d (Mixed as) = Mixed $ map (amountValue ps d) as
+-- | Find the market value of each component amount on the given date
+-- in its default valuation commodity, using the given market prices
+-- which are expected to be in parse order. When no default valuation
+-- commodity can be found, amounts are left unchanged.
+mixedAmountValue :: [MarketPrice] -> Day -> MixedAmount -> MixedAmount
+mixedAmountValue ps d (Mixed as) = Mixed $ map (amountValue ps d) as
 
 -- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one. 
