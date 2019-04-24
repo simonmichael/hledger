@@ -77,12 +77,15 @@ instance Default AccountListMode where def = ALDefault
 -- or query arguments, but not all. Some are used only by certain
 -- commands, as noted below. 
 data ReportOpts = ReportOpts {
-     period_         :: Period
+     today_          :: Maybe Day  -- ^ The current date. A late addition to ReportOpts.
+                                   -- Optional, but when set it may affect some reports:
+                                   -- Reports use it when picking a -V valuation date.
+    ,period_         :: Period
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
-    ,display_        :: Maybe DisplayExp
+    ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
     ,empty_          :: Bool
     ,no_elide_       :: Bool
@@ -146,6 +149,7 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
@@ -153,7 +157,8 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
   d <- getCurrentDay
   color <- hSupportsANSI stdout
   return defreportopts{
-     period_      = periodFromRawOpts d rawopts'
+     today_       = Just d
+    ,period_      = periodFromRawOpts d rawopts'
     ,interval_    = intervalFromRawOpts rawopts'
     ,statuses_    = statusesFromRawOpts rawopts'
     ,cost_        = boolopt "cost" rawopts'
