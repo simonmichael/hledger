@@ -497,13 +497,21 @@ samplejournals: $(call def-help,samplejournals, regenerate standard sample journ
 	examples/100x100x10.journal \
 	examples/1000x1000x10.journal \
 	examples/1000x10000x10.journal \
+	examples/2000x1000x10.journal \
+	examples/3000x1000x10.journal \
+	examples/4000x1000x10.journal \
+	examples/5000x1000x10.journal \
+	examples/6000x1000x10.journal \
+	examples/7000x1000x10.journal \
+	examples/8000x1000x10.journal \
+	examples/9000x1000x10.journal \
 	examples/10000x1000x10.journal \
 	examples/10000x10000x10.journal \
 	examples/100000x1000x10.journal \
 	examples/1000000x1000x10.journal \
-	examples/ascii.journal \
-	examples/chinese.journal \
-	examples/mixed.journal \
+#	examples/ascii.journal \
+#	examples/chinese.journal \
+#	examples/mixed.journal \
 
 examples/sample.journal:
 	true # XXX should probably regenerate this
@@ -516,6 +524,30 @@ examples/1000x1000x10.journal: tools/generatejournal
 
 examples/1000x10000x10.journal: tools/generatejournal
 	tools/generatejournal 1000 10000 10 >$@
+
+examples/2000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 2000 1000 10 >$@
+
+examples/3000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 3000 1000 10 >$@
+
+examples/4000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 4000 1000 10 >$@
+
+examples/5000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 5000 1000 10 >$@
+
+examples/6000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 6000 1000 10 >$@
+
+examples/7000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 7000 1000 10 >$@
+
+examples/8000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 8000 1000 10 >$@
+
+examples/9000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 9000 1000 10 >$@
 
 examples/10000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 10000 1000 10 >$@
