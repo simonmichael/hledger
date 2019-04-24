@@ -173,10 +173,10 @@ brNegate (is, tot) = (map brItemNegate is, -tot)
 -- default valuation commodities. This means using the Journal's most
 -- recent applicable market prices before the valuation date.
 -- The valuation date is the specified report end date if any,
--- otherwise the journal's end date.
+-- otherwise the current date, otherwise the journal's end date.
 brValue :: ReportOpts -> Journal -> BalanceReport -> BalanceReport
 brValue ropts j r =
-  let mvaluationdate = periodEnd (period_ ropts) <|> journalEndDate False j
+  let mvaluationdate = periodEnd (period_ ropts) <|> today_ ropts <|> journalEndDate False j
   in case mvaluationdate of
     Nothing -> r
     Just d  -> r'
