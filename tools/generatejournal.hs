@@ -40,7 +40,7 @@ showtxn txnno date acct1 acct2 =
     printf "%s transaction %d\n  %-40s  %2d A\n  %-40s  %2d A\n\n" d txnno acct1 amt acct2 (-amt)
     where
       d = show date
-      amt = 1::Int
+      amt = txnno
 
 showmarketprice :: Day -> Double -> String
 showmarketprice date rate = printf "P %s A  %.2f B\n" (show date) rate
