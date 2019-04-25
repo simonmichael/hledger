@@ -364,7 +364,7 @@ main = do
     -- TODO adding table of contents placeholders
     [
       -- "site/README.md",
-      "site/CONTRIBUTING.md"
+      -- "site/CONTRIBUTING.md"
       ]  |%> \out ->
       copyFile' (dropDirectory1 out) out -- XXX (map toLower out)
 
@@ -716,7 +716,7 @@ main = do
       removeFilesAfter "." [mdcombinedmanual]
       removeFilesAfter "." [
         -- "site/README.md",
-        "site/CONTRIBUTING.md"
+        -- "site/CONTRIBUTING.md"
         ]
 
     phony "Clean" $ do
