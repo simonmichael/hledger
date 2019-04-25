@@ -726,10 +726,19 @@ site-liverender: Shake \
 		$(call def-help,site-liverender, update the local website html when source files are saved  )
 	ls $(DOCSOURCEFILES) | entr ./Shake website
 
+LIVERELOAD=livereloadx -p $(LIVERELOADPORT)
+LIVERELOADPORT=8001
+
 site-livereload: \
 		$(call def-help,site-livereload, open a browser on the local website html and reload the page when it updates  )
-	(sleep 1; open http://localhost:8001) &
-	livereloadx -p 8001 --static site/_site
+	(sleep 1; open http://localhost:$(LIVERELOADPORT)) &
+	$(LIVERELOAD) -s site/_site
+
+site-watch:
+		$(call def-help,site-livereload, open a browser on the local website html and rerender & reload the page on file change  )
+	make site-liverender &
+	(sleep 1; $(BROWSE) http://localhost:$(LIVERELOADPORT)/) &
+	$(LIVERELOAD) -s site/_site/
 
 # This rule, for updating the live hledger.org site, gets called by:
 # 1. github-post-receive (github webhook handler), when something is pushed
