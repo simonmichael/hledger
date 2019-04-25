@@ -224,7 +224,7 @@ main = do
         ,"intro"
         ,"release-notes"
         -- some copied from elsewhere
-        ,"README"
+        -- ,"README"
         ,"CONTRIBUTING"
         ]
 
@@ -362,7 +362,10 @@ main = do
 
     -- Copy some extra markdown files from the main repo into the site
     -- TODO adding table of contents placeholders
-    ["site/README.md", "site/CONTRIBUTING.md"]  |%> \out ->
+    [
+      -- "site/README.md",
+      "site/CONTRIBUTING.md"
+      ]  |%> \out ->
       copyFile' (dropDirectory1 out) out -- XXX (map toLower out)
 
     -- WEBSITE HTML & ASSETS
@@ -711,7 +714,10 @@ main = do
       putNormal "Cleaning generated manuals, staged site content"
       removeFilesAfter "." mdmanuals
       removeFilesAfter "." [mdcombinedmanual]
-      removeFilesAfter "." ["site/README.md", "site/CONTRIBUTING.md"]
+      removeFilesAfter "." [
+        -- "site/README.md",
+        "site/CONTRIBUTING.md"
+        ]
 
     phony "Clean" $ do
       need ["clean"]
