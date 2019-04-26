@@ -444,9 +444,10 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
     where
       s' = findWithDefault s c styles
 
--- | Find the market value of this amount on the given date in its
--- default valuation commodity, using the given market prices which
--- are expected to be in parse order.
+-- | Find the market value of this amount on the given valuation date
+-- in its default valuation commodity (that of the latest applicable 
+-- market price before the valuation date).
+-- The given market prices are expected to be in parse order.
 -- If no default valuation commodity can be found, the amount is left
 -- unchanged.
 amountValue :: [MarketPrice] -> Day -> Amount -> Amount
@@ -457,14 +458,10 @@ amountValue ps d a@Amount{acommodity=c} =
 
 -- (This is here not in Commodity.hs to use the Amount Show instance above for debugging.)
 --
--- | Find the market value, if known, of one unit of the given
--- commodity (A), on the given valuation date, in the commodity (B)
--- mentioned in the latest applicable market price.
--- The applicable price is obtained from the given market prices,
--- which are expected to be in parse order.
--- It is the price with the latest date on or before the valuation
--- date, or if there are multiple prices on that date, the last one
--- parsed.
+-- | Find the market value of one unit of the given commodity
+-- on the given valuation date in its default valuation commodity
+-- (that of the latest applicable market price before the valuation date).
+-- The given market prices are expected to be in parse order.
 commodityValue :: [MarketPrice] -> Day -> CommoditySymbol -> Maybe Amount
 commodityValue ps valuationdate c =
   case ps' of
