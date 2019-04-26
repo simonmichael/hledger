@@ -198,3 +198,48 @@ $ hledger -f- print --value-at=2000-01-15
 
 >=0
 
+# 14. multicolumn balance report with default value
+$ hledger -f- bal -M -V
+Balance changes in 2000q1:
+
+   || Jan  Feb  Mar 
+===++===============
+ a || 4 B  4 B  4 B 
+---++---------------
+   || 4 B  4 B  4 B 
+
+# 15. multicolumn balance report valued at transaction is not supported
+$ hledger -f- bal -M --value-at=transaction
+>2 /--value-at=transaction is not yet supported with multicolumn balance reports/
+>=1
+ 
+# 16. multicolumn balance report valued at period end
+$ hledger -f- bal -M --value-at=period
+Balance changes in 2000q1:
+
+   || Jan  Feb  Mar 
+===++===============
+ a || 2 B  3 B  4 B 
+---++---------------
+   || 2 B  3 B  4 B 
+
+# 17. multicolumn balance report valued at today
+$ hledger -f- bal -M --value-at=now
+Balance changes in 2000q1:
+
+   || Jan  Feb  Mar 
+===++===============
+ a || 4 B  4 B  4 B 
+---++---------------
+   || 4 B  4 B  4 B 
+
+# 18. multicolumn balance report valued at other date
+$ hledger -f- bal -M --value-at=2000-01-15
+Balance changes in 2000q1:
+
+   || Jan  Feb  Mar 
+===++===============
+ a || 1 B  1 B  1 B 
+---++---------------
+   || 1 B  1 B  1 B 
+

@@ -511,10 +511,14 @@ The precise effect of the keywords is command-specific, but here is their genera
 : Use the prices as of today's date when the report is generated. This is the default.
 
 - `--value-at=YYYY-MM-DD`
-: Use the prices as of the given date (must be 8 digits with `-` or `/` or `.` separators).
+: Use the prices as of the given date (8 digits with `-` or `/` or `.` separators).
 : Eg `--value-at=2019-04-25`.
 
-Currently `--value-at` affects only the [print](/hledger.html#print) command.
+Currently `--value-at` affects only some commands
+([print](/hledger.html#print),
+[multicolumn balance reports](/hledger.html#balance)),
+and some of the keywords may not be supported by certain commands.
+
 Here are some examples to show its effect:
 
 ```journal
