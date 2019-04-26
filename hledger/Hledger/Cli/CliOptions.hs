@@ -149,7 +149,7 @@ reportflags = [
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden (and vice-versa in hledger-ui/hledger-web)"
  ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
  ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value"
- ,flagReq  ["value-date"]    (\s opts -> Right $ setopt "value-date" s opts) "VALUEDATE" "as of which date(s) should market values be calculated ? transaction|period|current|YYYY-MM-DD (default: current)"
+ ,flagReq  ["value-at"]      (\s opts -> Right $ setopt "value-at" s opts) "VALUEDATE" "as of which date should market values be calculated ? transaction|period|now|YYYY-MM-DD (default: now)"
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"
  ,flagNone ["forecast"]      (setboolopt "forecast") "apply periodic transaction rules to generate future transactions, to 6 months from now or report end date"
  ]

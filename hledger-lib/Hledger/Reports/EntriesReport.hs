@@ -73,13 +73,13 @@ erValue ropts@ReportOpts{..} j ts =
 
         mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
 
-        d = case value_date_ of
-          ValueOn d        -> d
-          TransactionValue -> postingDate p
-          PeriodEndValue   -> fromMaybe (postingDate p) mperiodorjournallastday
-          CurrentValue     -> case today_ of
-            Just d  -> d
-            Nothing -> error' "ReportOpts today_ is unset so could not satisfy --value-date=current"
+        d = case value_at_ of
+          AtTransaction -> postingDate p
+          AtPeriod      -> fromMaybe (postingDate p) mperiodorjournallastday
+          AtNow         -> case today_ of
+                             Just d  -> d
+                             Nothing -> error' "ReportOpts today_ is unset so could not satisfy --value-at=now"
+          AtDate d      -> d
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

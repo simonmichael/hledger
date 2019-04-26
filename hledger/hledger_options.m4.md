@@ -450,8 +450,8 @@ if they have a [transaction price](/journal.html#transaction-prices) specified.
 
 ## Market value
 
-The `-V/--value` flag converts reported amounts to their market value in some other commodity.
-It uses the latest [market price](journal.html#market-prices) (declared with a P directive)
+The `-V/--value` flag converts reported amounts to their market value in another commodity.
+It uses the commodity referenced in the latest [market price](journal.html#market-prices) (P directive)
 dated on or before the valuation date. The default valuation date is today.
 For example:
 
@@ -487,34 +487,34 @@ A note for Ledger users: Ledger's -V also infers market prices from journal entr
 but we don't do that. hledger's -V uses only market prices declared explicitly, with P directives.
 (Mnemonic: -B/--cost uses transaction prices, -V/--value uses market prices.)
 
-### Value date
+### Value at another date
 
 *(experimental, added 201904)*
 
-You can select other valuation dates with the `--value-date` option:
+You can select other valuation dates with the `--value-at` option. (This implies `-V`):
 
      --value-date=VALUEDATE  as of which date(s) should market values be
-                             calculated ? transaction|period|current|YYYY-MM-DD
-                             (default: current)
+                             calculated ? transaction|period|now|YYYY-MM-DD
+                             (default: now)
 
 The argument must be one of those keywords, or their first letter, or a custom date.
 The precise effect of the keywords is command-specific, but here is their general meaning:
 
-- `--value-date=transaction` (or `t`)
+- `--value-at=transaction` (or `t`)
 : Use the prices as of each transaction date (more precisely, each [posting date](/journal.html#posting-dates)).
 
-- `--value-date=period` (or `p`)
+- `--value-at=period` (or `p`)
 : Use the prices as of the last day of the report period (or each subperiod).
-: Or if the report period is unspecified, as of the journal's last transaction date.
+: When no report period is specified, this will be the journal's last transaction date.
 
-- `--value-date=current` (or `c`)
-: Use the prices as of today's date (when the report is generated). This is the default.
+- `--value-at=now` (or `n`)
+: Use the prices as of today's date when the report is generated. This is the default.
 
-- `--value-date=YYYY-MM-DD`
+- `--value-at=YYYY-MM-DD`
 : Use the prices as of the given date (must be 8 digits with `-` or `/` or `.` separators).
-: Eg `--value-date=2019-04-25`.
+: Eg `--value-at=2019-04-25`.
 
-Currently `--value-date` affects only the [print](/hledger.html#print) command.
+Currently `--value-at` affects only the [print](/hledger.html#print) command.
 Here are some examples to show its effect:
 
 ```journal
@@ -535,7 +535,7 @@ P 2000-04-01 A  4 B
 
 Show the value as of each transaction (posting) date:
 ```shell
-$ hledger -f- print -V --value-date=transaction
+$ hledger -f- print --value-at=transaction
 2000/01/01
     (a)             1 B
 
@@ -549,7 +549,7 @@ $ hledger -f- print -V --value-date=transaction
 
 Show the value as of the last day of the report period (2000-02-29):
 ```shell
-$ hledger -f- print -V --value-date=period date:2000/01-2000/03
+$ hledger -f- print --value-at=period date:2000/01-2000/03
 2000-01-01
     (a)             2 B
 
@@ -560,7 +560,7 @@ $ hledger -f- print -V --value-date=period date:2000/01-2000/03
 
 Or with no report period specified, show the value as of the last day of the journal (2000-03-01):
 ```shell
-$ hledger -f- print -V --value-date=period
+$ hledger -f- print --value-at=period
 2000/01/01
     (a)             3 B
 
@@ -574,7 +574,7 @@ $ hledger -f- print -V --value-date=period
 
 Show the current value (the last declared price is still in effect today):
 ```shell
-$ hledger -f- print -V --value-date=current
+$ hledger -f- print --value-at=now
 2000-01-01
     (a)             4 B
 
@@ -588,7 +588,7 @@ $ hledger -f- print -V --value-date=current
 
 Show the value on 2000/01/15:
 ```shell
-$ hledger -f- print -V --value-date=2000-01-15
+$ hledger -f- print --value-at=2000-01-15
 2000/01/01
     (a)             1 B
 
@@ -599,10 +599,6 @@ $ hledger -f- print -V --value-date=2000-01-15
     (a)             1 B
 
 ```
-
-<!-- [multicolumn balance reports](#multicolumn-balance-reports): -->
-
-
 
 
 ## Combining -B and -V

@@ -74,15 +74,17 @@ data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typ
 instance Default AccountListMode where def = ALDefault
 
 -- | On which date(s) should amount values be calculated ?
--- UI: --value-date=transaction|period|current|DATE
+-- UI: --value-at=transaction|period|now|DATE.
+-- ("today" would have been preferable, but clashes with
+-- "transaction" for abbreviating.)
 data ValueDate =
-    TransactionValue  -- ^ Calculate values as of each transaction's (actually, each posting's) date
-  | PeriodEndValue    -- ^ Calculate values as of each report period's end
-  | CurrentValue      -- ^ Calculate values as of today
-  | ValueOn Day       -- ^ Calculate values as of a specified date
+    AtTransaction  -- ^ Calculate values as of each posting's date
+  | AtPeriod       -- ^ Calculate values as of each report period's last day
+  | AtNow          -- ^ Calculate values as of today (report generation date)
+  | AtDate Day     -- ^ Calculate values as of some other date
   deriving (Show,Data) -- Eq,Typeable
 
-instance Default ValueDate where def = CurrentValue
+instance Default ValueDate where def = AtNow
 
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
@@ -97,7 +99,7 @@ data ReportOpts = ReportOpts {
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Bool
     ,value_          :: Bool
-    ,value_date_     :: ValueDate
+    ,value_at_       :: ValueDate
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
@@ -176,8 +178,8 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,interval_    = intervalFromRawOpts rawopts'
     ,statuses_    = statusesFromRawOpts rawopts'
     ,cost_        = boolopt "cost" rawopts'
-    ,value_       = boolopt "value" rawopts'
-    ,value_date_  = valueDateFromRawOpts rawopts'
+    ,value_       = or $ map (flip boolopt rawopts') ["value", "value-at"]
+    ,value_at_    = valueDateFromRawOpts rawopts'
     ,depth_       = maybeintopt "depth" rawopts'
     ,display_     = maybedisplayopt d rawopts'
     ,date2_       = boolopt "date2" rawopts'
@@ -344,17 +346,17 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
 valueDateFromRawOpts :: RawOpts -> ValueDate
-valueDateFromRawOpts = lastDef CurrentValue . catMaybes . map valuedatefromrawopt
+valueDateFromRawOpts = lastDef AtNow . catMaybes . map valuedatefromrawopt
   where
     valuedatefromrawopt (n,v)
-      | n == "value-date" = valuedatevalue v
-      | otherwise         = Nothing
-    valuedatevalue v
-      | v `elem` ["transaction","t"] = Just TransactionValue
-      | v `elem` ["period","p"]      = Just PeriodEndValue
-      | v `elem` ["current","c"]     = Just CurrentValue
-      | otherwise = flip maybe (Just . ValueOn)
-        (usageError $ "could not parse \""++v++"\" as value date, should be: transaction|period|current|t|p|c|YYYY-MM-DD")
+      | n == "value-at" = valuedate v
+      | otherwise       = Nothing
+    valuedate v
+      | v `elem` ["transaction","t"] = Just AtTransaction
+      | v `elem` ["period","p"]      = Just AtPeriod
+      | v `elem` ["now","n"]         = Just AtNow
+      | otherwise = flip maybe (Just . AtDate)
+        (usageError $ "could not parse \""++v++"\" as value date, should be: transaction|period|now|t|p|n|YYYY-MM-DD")
         (parsedateM v)
 
 type DisplayExp = String

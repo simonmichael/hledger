@@ -118,7 +118,7 @@ $ hledger -f- print -V
 
 >=0
 
-# print -V --value-date
+# print --value-at
 <
 P 2000/01/01 A  1 B
 P 2000/02/01 A  2 B
@@ -135,7 +135,7 @@ P 2000/04/01 A  4 B
   (a)      1 A
 
 # 9. value with prices on transaction (posting) dates
-$ hledger -f- print -V --value-date=transaction
+$ hledger -f- print --value-at=transaction
 2000/01/01
     (a)             1 B
 
@@ -148,7 +148,7 @@ $ hledger -f- print -V --value-date=transaction
 >=0
 
 # 10. value with prices on last day of report period (2000-02-29)
-$ hledger -f- print -V --value-date=period date:2000/01-2000/03
+$ hledger -f- print --value-at=period date:2000/01-2000/03
 2000/01/01
     (a)             2 B
 
@@ -159,7 +159,7 @@ $ hledger -f- print -V --value-date=period date:2000/01-2000/03
 
 # 11. value with prices on last day of report period with no period
 # specified - uses last day of journal (2000-03-01)
-$ hledger -f- print -V --value-date=period
+$ hledger -f- print --value-at=period
 2000/01/01
     (a)             3 B
 
@@ -173,7 +173,7 @@ $ hledger -f- print -V --value-date=period
 
 # 12. value with prices on current date
 # (this test assumes today's date is >= 2000-04-01)
-$ hledger -f- print -V --value-date=current
+$ hledger -f- print --value-at=now
 2000/01/01
     (a)             4 B
 
@@ -186,7 +186,7 @@ $ hledger -f- print -V --value-date=current
 >=0
 
 # 13. value with prices on a custom date
-$ hledger -f- print -V --value-date=2000-01-15
+$ hledger -f- print --value-at=2000-01-15
 2000/01/01
     (a)             1 B
 
