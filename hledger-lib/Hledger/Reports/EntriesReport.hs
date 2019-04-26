@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable, FlexibleInstances, ScopedTypeVariables #-}
 {-|
 
 Journal entries report, used by the print command.
@@ -16,7 +16,9 @@ where
 
 import Control.Applicative ((<|>))
 import Data.List
+import Data.Maybe
 import Data.Ord
+import Data.Time.Calendar (Day, addDays)
 
 import Hledger.Data
 import Hledger.Query
@@ -42,22 +44,42 @@ entriesReport opts q j =
 -- | Convert all the posting amounts in an EntriesReport to their
 -- default valuation commodities. This means using the Journal's most
 -- recent applicable market prices before the valuation date.
--- The valuation date is the specified report end date if any,
--- otherwise the current date, otherwise the journal's end date.
+-- The valuation date is set with --value-date and can be:
+-- a custom date;
+-- the posting date;
+-- the last day in the report period, or in the journal if no period
+-- (or the posting date, if journal is empty - shouldn't happen);
+-- or today's date (gives an error if today_ is not set in ReportOpts).
 erValue :: ReportOpts -> Journal -> EntriesReport -> EntriesReport
-erValue ropts j ts =
-  let mvaluationdate = periodEnd (period_ ropts) <|> today_ ropts <|> journalEndDate False j
-  in case mvaluationdate of
-    Nothing -> ts
-    Just d  -> map valuetxn ts
+erValue ropts@ReportOpts{..} j ts =
+  map txnvalue ts
+  where
+    txnvalue t@Transaction{..} = t{tpostings=map postingvalue tpostings}
+    postingvalue p@Posting{..} = p{pamount=mixedAmountValue prices d pamount}
       where
         -- prices are in parse order - sort into date then parse order,
         -- & reversed for quick lookup of the latest price.
         prices = reverse $ sortOn mpdate $ jmarketprices j
 
-        valuetxn t@Transaction{..} = t{tpostings=map valueposting tpostings}
-        valueposting p@Posting{..} = p{pamount=mixedAmountValue prices d pamount}
+        -- Get the last day of the report period.
+        -- Will be Nothing if no report period is specified, or also
+        -- if ReportOpts does not have today_ set, since we need that
+        -- to get the report period robustly.
+        mperiodlastday :: Maybe Day = do
+          t <- today_
+          let q = queryFromOpts t ropts
+          qend <- queryEndDate False q
+          return $ addDays (-1) qend
 
+        mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
+
+        d = case value_date_ of
+          ValueOn d        -> d
+          TransactionValue -> postingDate p
+          PeriodEndValue   -> fromMaybe (postingDate p) mperiodorjournallastday
+          CurrentValue     -> case today_ of
+            Just d  -> d
+            Nothing -> error' "ReportOpts today_ is unset so could not satisfy --value-date=current"
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

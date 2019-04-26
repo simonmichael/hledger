@@ -10,6 +10,7 @@ module Hledger.Reports.ReportOptions (
   ReportOpts(..),
   BalanceType(..),
   AccountListMode(..),
+  ValueDate(..),
   FormatStr,
   defreportopts,
   rawOptsToReportOpts,
@@ -72,6 +73,17 @@ data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typ
 
 instance Default AccountListMode where def = ALDefault
 
+-- | On which date(s) should amount values be calculated ?
+-- UI: --value-date=transaction|period|current|DATE
+data ValueDate =
+    TransactionValue  -- ^ Calculate values as of each transaction's (actually, each posting's) date
+  | PeriodEndValue    -- ^ Calculate values as of each report period's end
+  | CurrentValue      -- ^ Calculate values as of today
+  | ValueOn Day       -- ^ Calculate values as of a specified date
+  deriving (Show,Data) -- Eq,Typeable
+
+instance Default ValueDate where def = CurrentValue
+
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
 -- or query arguments, but not all. Some are used only by certain
@@ -84,6 +96,8 @@ data ReportOpts = ReportOpts {
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Bool
+    ,value_          :: Bool
+    ,value_date_     :: ValueDate
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
@@ -101,7 +115,6 @@ data ReportOpts = ReportOpts {
     ,drop_           :: Int
     ,row_total_      :: Bool
     ,no_total_       :: Bool
-    ,value_          :: Bool
     ,pretty_tables_  :: Bool
     ,sort_amount_    :: Bool
     ,invert_         :: Bool  -- ^ if true, flip all amount signs in reports
@@ -150,6 +163,7 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
@@ -162,6 +176,8 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,interval_    = intervalFromRawOpts rawopts'
     ,statuses_    = statusesFromRawOpts rawopts'
     ,cost_        = boolopt "cost" rawopts'
+    ,value_       = boolopt "value" rawopts'
+    ,value_date_  = valueDateFromRawOpts rawopts'
     ,depth_       = maybeintopt "depth" rawopts'
     ,display_     = maybedisplayopt d rawopts'
     ,date2_       = boolopt "date2" rawopts'
@@ -177,7 +193,6 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,drop_        = intopt "drop" rawopts'
     ,row_total_   = boolopt "row-total" rawopts'
     ,no_total_    = boolopt "no-total" rawopts'
-    ,value_       = boolopt "value" rawopts'
     ,sort_amount_ = boolopt "sort-amount" rawopts'
     ,invert_      = boolopt "invert" rawopts'
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
@@ -327,6 +342,20 @@ simplifyStatuses l
 reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+
+valueDateFromRawOpts :: RawOpts -> ValueDate
+valueDateFromRawOpts = lastDef CurrentValue . catMaybes . map valuedatefromrawopt
+  where
+    valuedatefromrawopt (n,v)
+      | n == "value-date" = valuedatevalue v
+      | otherwise         = Nothing
+    valuedatevalue v
+      | v `elem` ["transaction","t"] = Just TransactionValue
+      | v `elem` ["period","p"]      = Just PeriodEndValue
+      | v `elem` ["current","c"]     = Just CurrentValue
+      | otherwise = flip maybe (Just . ValueOn)
+        (usageError $ "could not parse \""++v++"\" as value date, should be: transaction|period|current|t|p|c|YYYY-MM-DD")
+        (parsedateM v)
 
 type DisplayExp = String
 

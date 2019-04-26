@@ -12,6 +12,7 @@ module Hledger.Cli.Utils
      withJournalDo,
      writeOutput,
      journalTransform,
+     -- journalApplyValue,
      journalAddForecast,
      journalReload,
      journalReloadIfChanged,
@@ -72,14 +73,18 @@ withJournalDo opts cmd = do
   >>= either error' cmd
 
 -- | Apply some extra post-parse transformations to the journal, if
--- specified by options. These include:
+-- specified by options. These happen after journal validation, but
+-- before report calculation. They include:
 --
 -- - adding forecast transactions (--forecast)
 -- - pivoting account names (--pivot)
 -- - anonymising (--anonymise).
+--
 journalTransform :: CliOpts -> Journal -> IO Journal
 journalTransform opts@CliOpts{reportopts_=_ropts} =
       journalAddForecast opts
+-- - converting amounts to market value (--value)
+  -- >=> journalApplyValue ropts
   >=> return . pivotByOpts opts
   >=> return . anonymiseByOpts opts
 
@@ -114,6 +119,25 @@ anonymise j
       j { jtxns = map tAnons . jtxns $ j }
   where
     anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
+
+-- TODO move journalApplyValue and friends to Hledger.Data.Journal ?
+-- They are here because they use ReportOpts
+
+-- XXX we might still use this for --value-date=transaction
+-- -- | Convert all the journal's posting amounts to their market value as of 
+-- -- each posting's date.
+-- -- Cf http://hledger.org/manual.html#market-value
+-- journalApplyValue :: ReportOpts -> Journal -> IO Journal
+-- journalApplyValue ropts j = do
+--     today <- getCurrentDay
+--     mspecifiedenddate <- specifiedEndDate ropts
+--     let d = fromMaybe today mspecifiedenddate
+--         -- prices are in parse order - sort into date then parse order,
+--         -- reversed for quick lookup of the latest price.
+--         ps = reverse $ sortOn mpdate $ jmarketprices j
+--         convert | value_ ropts = overJournalAmounts (amountValue ps d)
+--                 | otherwise    = id
+--     return $ convert j
 
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).

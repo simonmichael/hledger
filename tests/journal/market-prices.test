@@ -96,7 +96,7 @@ $ hledger -f- balance -V
               0.48 H
 
 
-# 7. register: -V affects posting amounts and total.
+# 7. register -V affects posting amounts and total.
 <
 P 2000/1/1 $ €1.20
 2000/1/1
@@ -106,7 +106,7 @@ $ hledger -f- reg -V
 2000/01/01                      (a)                        €120.00       €120.00
 
 
-# 8. print: -V affects posting amounts but not balance assertions.
+# 8. print -V affects posting amounts but not balance assertions.
 <
 P 2000/1/1 $ €1.20
 2000/1/1
@@ -117,3 +117,84 @@ $ hledger -f- print -V
     (a)         €120.00 = $100
 
 >=0
+
+# print -V --value-date
+<
+P 2000/01/01 A  1 B
+P 2000/02/01 A  2 B
+P 2000/03/01 A  3 B
+P 2000/04/01 A  4 B
+
+2000/01/01
+  (a)      1 A
+
+2000/02/01
+  (a)      1 A
+
+2000/03/01
+  (a)      1 A
+
+# 9. value with prices on transaction (posting) dates
+$ hledger -f- print -V --value-date=transaction
+2000/01/01
+    (a)             1 B
+
+2000/02/01
+    (a)             2 B
+
+2000/03/01
+    (a)             3 B
+
+>=0
+
+# 10. value with prices on last day of report period (2000-02-29)
+$ hledger -f- print -V --value-date=period date:2000/01-2000/03
+2000/01/01
+    (a)             2 B
+
+2000/02/01
+    (a)             2 B
+
+>=0
+
+# 11. value with prices on last day of report period with no period
+# specified - uses last day of journal (2000-03-01)
+$ hledger -f- print -V --value-date=period
+2000/01/01
+    (a)             3 B
+
+2000/02/01
+    (a)             3 B
+
+2000/03/01
+    (a)             3 B
+
+>=0
+
+# 12. value with prices on current date
+# (this test assumes today's date is >= 2000-04-01)
+$ hledger -f- print -V --value-date=current
+2000/01/01
+    (a)             4 B
+
+2000/02/01
+    (a)             4 B
+
+2000/03/01
+    (a)             4 B
+
+>=0
+
+# 13. value with prices on a custom date
+$ hledger -f- print -V --value-date=2000-01-15
+2000/01/01
+    (a)             1 B
+
+2000/02/01
+    (a)             1 B
+
+2000/03/01
+    (a)             1 B
+
+>=0
+
