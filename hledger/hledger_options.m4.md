@@ -493,11 +493,10 @@ but we don't do that. hledger's -V uses only market prices declared explicitly, 
 
 You can select other valuation dates with the `--value-at` option. (This implies `-V`):
 
-     --value-date=VALUEDATE  as of which date(s) should market values be
-                             calculated ? transaction|period|now|YYYY-MM-DD
-                             (default: now)
+     --value-at=VALUEDATE   as of which date should market values be calculated ?
+                            transaction|period|now|YYYY-MM-DD (default: now)
 
-The argument must be one of those keywords, or their first letter, or a custom date.
+The argument must be one of the keywords shown, or their first letter, or a custom date.
 The precise effect of the keywords is command-specific, but here is their general meaning:
 
 - `--value-at=transaction` (or `t`)
