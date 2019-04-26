@@ -275,11 +275,11 @@ multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanSta
 -- | Convert all the posting amounts in a MultiBalanceReport to their
 -- default valuation commodities. This means using the Journal's most
 -- recent applicable market prices before the valuation date.
--- The valuation date is set with --value-date and can be:
--- the posting date,
--- the last day in the report subperiod,
--- today's date (gives an error if today_ is not set in ReportOpts),
--- or a custom date.
+-- The valuation date is set with --value-at and can be:
+-- each posting's date,
+-- or the last day in the report subperiod,
+-- or today's date (gives an error if today_ is not set in ReportOpts),
+-- or a specified date.
 mbrValue :: ReportOpts -> Journal -> MultiBalanceReport -> MultiBalanceReport
 mbrValue ReportOpts{..} Journal{..} (MultiBalanceReport (spans, rows, (coltotals, rowtotaltotal, rowavgtotal))) =
   MultiBalanceReport (
@@ -299,11 +299,11 @@ mbrValue ReportOpts{..} Journal{..} (MultiBalanceReport (spans, rows, (coltotals
         -- & reversed for quick lookup of the latest price.
         prices = reverse $ sortOn mpdate jmarketprices
         d = case value_at_ of
-          AtTransaction -> error' "sorry, --value-at=transaction is not yet supported with multicolumn balance reports"  -- XXX
+          AtTransaction -> error' "sorry, --value-at=transaction is not yet supported with balance reports"  -- XXX
           AtPeriod      -> periodend
           AtNow         -> case today_ of
                              Just d  -> d
-                             Nothing -> error' "ReportOpts today_ is unset so could not satisfy --value-at=now"
+                             Nothing -> error' "mbrValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
           AtDate d      -> d
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport, 

@@ -94,6 +94,7 @@ data ReportOpts = ReportOpts {
      today_          :: Maybe Day  -- ^ The current date. A late addition to ReportOpts.
                                    -- Optional, but when set it may affect some reports:
                                    -- Reports use it when picking a -V valuation date.
+                                   -- This is not great, adds indeterminacy.
     ,period_         :: Period
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched

@@ -28,8 +28,24 @@ $ hledger -f- bal -N -V
              $135.00  expenses:foreign
 
 
-# 3. Market prices in the future (later than today's date) are always ignored. #453, #683
-# XXX not working right now
+# 3. The location of price directives does not matter.
+# If multiple directives have the same date, the last parsed is used.
+<
+3000/01/01
+  (a)    $100
+
+P 2000/1/1 $ €1.35
+
+3000/03/03
+  (b)    $100
+
+P 2000/1/1 $ €1.30
+
+$ hledger -f- bal -N -V a
+             €130.00  a
+
+
+# 4. Market prices in the future (later than today's date) are ignored by default. #453, #683
 <
 P 2000/1/1 $ €1.20
 P 3000/1/1 $ €1.30
@@ -41,37 +57,16 @@ $ hledger -f- bal -N -V
              €120.00  a
 
 
-# 4. The market prices in effect at the report end date are used.
-# The location of price directives does not matter.
-# If multiple directives have the same date, the last parsed is used.
-<
-P 3000/3/1 $ €1.40
-
-3000/01/01
-  (a)    $100
-
-3000/03/03
-  (b)    $100
-
-P 2000/1/1 $ €1.20
-P 3000/1/1 $ €1.35
-P 3000/1/1 $ €1.30
-
-$ hledger -f- bal -N -V a -e 3000/2
-             €130.00  a
-
-
-# 5. Again, this time there are prices later than the journal data and
-# an explicit report end date brings them into play.
+# 5. Market prices in the future are still ignored by default even
+# with an explicit future report end date, unlike hledger 1.14-.
 <
 P 3000/1/1 $ €1.10
-P 3000/2/1 $ €1.30
 
 3000/01/01
   (a)    $100
 
-$ hledger -f- bal -N -V a -e 3000/2
-             €130.00  a
+$ hledger -f- bal -N -V -e 3000/2
+                $100  a
 
 
 # 6. Market prices interact with D directives and with amount style canonicalisation. #131
@@ -210,7 +205,7 @@ Balance changes in 2000q1:
 
 # 15. multicolumn balance report valued at transaction is not supported
 $ hledger -f- bal -M --value-at=transaction
->2 /--value-at=transaction is not yet supported with multicolumn balance reports/
+>2 /not yet supported with balance reports/
 >=1
  
 # 16. multicolumn balance report valued at period end
@@ -242,4 +237,85 @@ Balance changes in 2000q1:
  a || 1 B  1 B  1 B 
 ---++---------------
    || 1 B  1 B  1 B 
+
+# 19. single column balance report with default value
+$ hledger -f- bal -V
+                12 B  a
+--------------------
+                12 B
+
+# 20. single column balance report valued at transaction is not supported
+$ hledger -f- bal --value-at=transaction
+>2 /not yet supported with balance reports/
+>=1
+ 
+# 21. single column balance report valued at period end
+$ hledger -f- bal --value-at=period
+                 9 B  a
+--------------------
+                 9 B
+
+# 22. single column balance report valued at today
+$ hledger -f- bal --value-at=now
+                12 B  a
+--------------------
+                12 B
+
+# 23. single column balance report valued at other date
+$ hledger -f- bal --value-at=2000-01-15
+                 3 B  a
+--------------------
+                 3 B
+
+# 24. register report with default value
+$ hledger -f- reg -V
+2000/01/01                      (a)                            4 B           4 B
+2000/02/01                      (a)                            4 B           8 B
+2000/03/01                      (a)                            4 B          12 B
+
+# 25. register report valued at transaction
+$ hledger -f- reg --value-at=transaction
+2000/01/01                      (a)                            1 B           1 B
+2000/02/01                      (a)                            2 B           4 B
+2000/03/01                      (a)                            3 B           9 B
+ 
+# 26. register report valued at period end
+$ hledger -f- reg --value-at=period
+2000/01/01                      (a)                            3 B           3 B
+2000/02/01                      (a)                            3 B           6 B
+2000/03/01                      (a)                            3 B           9 B
+
+# 27. register report valued at today
+$ hledger -f- reg --value-at=now
+2000/01/01                      (a)                            4 B           4 B
+2000/02/01                      (a)                            4 B           8 B
+2000/03/01                      (a)                            4 B          12 B
+
+# 28. register report valued at other date
+$ hledger -f- reg --value-at=2000-01-15
+2000/01/01                      (a)                            1 B           1 B
+2000/02/01                      (a)                            1 B           2 B
+2000/03/01                      (a)                            1 B           3 B
+
+# 29. periodic register report with default value
+$ hledger -f- reg -V -Q
+2000q1                  a                                     12 B          12 B
+
+# 30. periodic register report valued at transaction
+$ hledger -f- reg --value-at=transaction -Q
+>2 /not yet supported with periodic register reports/
+>=1
+ 
+# 31. periodic register report valued at period end
+$ hledger -f- reg --value-at=period -Q
+>2 /not yet supported with periodic register reports/
+>=1
+
+# 32. periodic register report valued at today
+$ hledger -f- reg --value-at=now -Q
+2000q1                  a                                     12 B          12 B
+
+# 33. periodic register report valued at other date
+$ hledger -f- reg --value-at=2000-01-15 -Q
+2000q1                  a                                      3 B           3 B
 

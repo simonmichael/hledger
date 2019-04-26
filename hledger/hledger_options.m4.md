@@ -502,10 +502,12 @@ The precise effect of the keywords is command-specific, but here is their genera
 
 - `--value-at=transaction` (or `t`)
 : Use the prices as of each transaction date (more precisely, each [posting date](/journal.html#posting-dates)).
+: (Currently not supported with: balance commands, periodic register reports.)
 
 - `--value-at=period` (or `p`)
 : Use the prices as of the last day of the report period (or each subperiod).
 : When no report period is specified, this will be the journal's last transaction date.
+: (Currently not supported with: periodic register reports.)
 
 - `--value-at=now` (or `n`)
 : Use the prices as of today's date when the report is generated. This is the default.
@@ -513,11 +515,6 @@ The precise effect of the keywords is command-specific, but here is their genera
 - `--value-at=YYYY-MM-DD`
 : Use the prices as of the given date (8 digits with `-` or `/` or `.` separators).
 : Eg `--value-at=2019-04-25`.
-
-Currently `--value-at` affects only some commands
-([print](/hledger.html#print),
-[multicolumn balance reports](/hledger.html#balance)),
-and some of the keywords may not be supported by certain commands.
 
 Here are some examples to show its effect:
 

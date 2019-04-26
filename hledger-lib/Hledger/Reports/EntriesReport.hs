@@ -44,15 +44,14 @@ entriesReport opts q j =
 -- | Convert all the posting amounts in an EntriesReport to their
 -- default valuation commodities. This means using the Journal's most
 -- recent applicable market prices before the valuation date.
--- The valuation date is set with --value-date and can be:
--- a custom date;
--- the posting date;
--- the last day in the report period, or in the journal if no period
--- (or the posting date, if journal is empty - shouldn't happen);
--- or today's date (gives an error if today_ is not set in ReportOpts).
+-- The valuation date is set with --value-at and can be:
+-- each posting's date,
+-- the last day in the report period (or in the journal if no period,
+-- or the posting dates if journal is empty - shouldn't happen),
+-- or today's date (gives an error if today_ is not set in ReportOpts),
+-- or a specified date.
 erValue :: ReportOpts -> Journal -> EntriesReport -> EntriesReport
-erValue ropts@ReportOpts{..} j ts =
-  map txnvalue ts
+erValue ropts@ReportOpts{..} j ts = map txnvalue ts
   where
     txnvalue t@Transaction{..} = t{tpostings=map postingvalue tpostings}
     postingvalue p@Posting{..} = p{pamount=mixedAmountValue prices d pamount}
@@ -78,7 +77,7 @@ erValue ropts@ReportOpts{..} j ts =
           AtPeriod      -> fromMaybe (postingDate p) mperiodorjournallastday
           AtNow         -> case today_ of
                              Just d  -> d
-                             Nothing -> error' "ReportOpts today_ is unset so could not satisfy --value-at=now"
+                             Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
           AtDate d      -> d
 
 tests_EntriesReport = tests "EntriesReport" [
