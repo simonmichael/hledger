@@ -82,7 +82,7 @@ data ValueDate =
   | AtPeriod       -- ^ Calculate values as of each report period's last day
   | AtNow          -- ^ Calculate values as of today (report generation date)
   | AtDate Day     -- ^ Calculate values as of some other date
-  deriving (Show,Data) -- Eq,Typeable
+  deriving (Show,Data,Eq) -- Typeable
 
 instance Default ValueDate where def = AtNow
 
@@ -99,8 +99,8 @@ data ReportOpts = ReportOpts {
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Bool
-    ,value_          :: Bool
-    ,value_at_       :: ValueDate
+    ,value_          :: Bool      -- ^ Should amounts be converted to market value
+    ,value_at_       :: ValueDate -- ^ Which valuation date should be used for market value
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
@@ -109,8 +109,9 @@ data ReportOpts = ReportOpts {
     ,real_           :: Bool
     ,format_         :: Maybe FormatStr
     ,query_          :: String -- all arguments, as a string
-    -- register command only
+    --
     ,average_        :: Bool
+    -- register command only
     ,related_        :: Bool
     -- balance-type commands only
     ,balancetype_    :: BalanceType

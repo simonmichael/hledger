@@ -234,6 +234,7 @@ Currently, empty cells show 0.
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -300,14 +301,14 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
+balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
   d <- getCurrentDay
   case lineFormatFromOpts ropts of
     Left err -> error' $ unlines [err]
     Right _ -> do
       let format   = outputFormatFromOpts opts
           budget   = boolopt "budget" rawopts
-          interval = interval_ ropts
+          interval = interval_
 
       case (budget, interval) of
         (True, _) -> do
@@ -324,13 +325,16 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           
         (False, NoInterval) -> do
           -- single column balance report
+          -- With --value-at=transaction, convert all amounts to value before summing them.
+          let j' | value_at_ == AtTransaction = journalValueAtTransactionDate ropts j
+                 | otherwise = j
           let report
-                | balancetype_ ropts `elem` [HistoricalBalance, CumulativeChange]
+                | balancetype_ `elem` [HistoricalBalance, CumulativeChange]
                   = let ropts' | flat_ ropts = ropts
                                | otherwise   = ropts{accountlistmode_=ALTree}
-                    in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j
+                    in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j'
                           -- for historical balances we must use balanceReportFromMultiBalanceReport (also forces --no-elide)
-                | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report 
+                | otherwise = balanceReport ropts (queryFromOpts d ropts) j' -- simple Ledger-style balance report 
               render = case format of
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
@@ -339,7 +343,13 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           
         _  -> do
           -- multi column balance report
-          let report = multiBalanceReport ropts (queryFromOpts d ropts) j
+
+          -- With --value-at=transaction, convert all amounts to value before summing them.
+          let j' | value_at_ == AtTransaction =
+                     error' "sorry, --value-at=transaction with balance reports is not yet supported"  -- journalValueAtTransactionDate ropts j
+                 | otherwise = j
+
+          let report = multiBalanceReport ropts (queryFromOpts d ropts) j'
               render = case format of
                 "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
                 "html" ->  (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts

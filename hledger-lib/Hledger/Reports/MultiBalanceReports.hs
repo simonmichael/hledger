@@ -291,15 +291,18 @@ mbrValue ReportOpts{..} Journal{..} (MultiBalanceReport (spans, rows, (coltotals
      ,val end rowavgtotal)
     )
   where
-    ends = map (fromMaybe (error' "mbrValue: expected all report periods to have an end date") . spanEnd) spans  -- XXX shouldn't happen
+    ends = map (addDays (-1) . fromMaybe (error' "mbrValue: expected all report periods to have an end date") . spanEnd) spans  -- XXX shouldn't happen
     end  = lastDef (error' "mbrValue: expected at least one report subperiod") ends  -- XXX shouldn't happen
-    val periodend amt = mixedAmountValue prices d amt
+    val periodend amt = mixedAmountValue prices valuationdate amt
       where
         -- prices are in parse order - sort into date then parse order,
         -- & reversed for quick lookup of the latest price.
         prices = reverse $ sortOn mpdate jmarketprices
-        d = case value_at_ of
-          AtTransaction -> error' "sorry, --value-at=transaction is not yet supported with balance reports"  -- XXX
+        valuationdate = case value_at_ of
+          AtTransaction ->
+            error' "sorry, --value-at=transaction with balance reports is not yet supported"
+          AtPeriod | average_ || row_total_ ->
+            error' "sorry, --value-at=period with -T or -A in periodic balance reports is not yet supported"
           AtPeriod      -> periodend
           AtNow         -> case today_ of
                              Just d  -> d

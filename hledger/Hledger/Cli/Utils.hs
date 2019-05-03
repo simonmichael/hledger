@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
@@ -12,8 +13,8 @@ module Hledger.Cli.Utils
      withJournalDo,
      writeOutput,
      journalTransform,
-     -- journalApplyValue,
      journalAddForecast,
+     journalValueAtTransactionDate,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -120,24 +121,23 @@ anonymise j
   where
     anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
 
--- TODO move journalApplyValue and friends to Hledger.Data.Journal ?
--- They are here because they use ReportOpts
+-- journalApplyValue and friends are here not in Hledger.Data.Journal
+-- because they use ReportOpts.
 
--- XXX we might still use this for --value-date=transaction
--- -- | Convert all the journal's posting amounts to their market value as of 
--- -- each posting's date.
--- -- Cf http://hledger.org/manual.html#market-value
--- journalApplyValue :: ReportOpts -> Journal -> IO Journal
--- journalApplyValue ropts j = do
---     today <- getCurrentDay
---     mspecifiedenddate <- specifiedEndDate ropts
---     let d = fromMaybe today mspecifiedenddate
---         -- prices are in parse order - sort into date then parse order,
---         -- reversed for quick lookup of the latest price.
---         ps = reverse $ sortOn mpdate $ jmarketprices j
---         convert | value_ ropts = overJournalAmounts (amountValue ps d)
---                 | otherwise    = id
---     return $ convert j
+-- | Convert all the journal's posting amounts to their market value
+-- as of each posting's date. Needed when converting some periodic
+-- reports to value, when --value-at=transaction (only).
+-- See eg Register.hs. 
+journalValueAtTransactionDate :: ReportOpts -> Journal -> Journal
+journalValueAtTransactionDate ReportOpts{..} j@Journal{..}
+  | value_at_ /= AtTransaction = j
+  | otherwise                  = j{jtxns = map txnvalue jtxns}
+  where
+    txnvalue t@Transaction{..} = t{tpostings=map postingvalue tpostings}
+    postingvalue p@Posting{..} = p{pamount=mixedAmountValue prices (postingDate p) pamount}
+    -- prices are in parse order - sort into date then parse order,
+    -- reversed for quick lookup of the latest price.
+    prices = reverse $ sortOn mpdate jmarketprices
 
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).

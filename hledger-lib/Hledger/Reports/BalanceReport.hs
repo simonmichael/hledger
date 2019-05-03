@@ -180,33 +180,38 @@ brNegate (is, tot) = (map brItemNegate is, -tot)
 -- or a specified date.
 brValue :: ReportOpts -> Journal -> BalanceReport -> BalanceReport
 brValue ropts@ReportOpts{..} j (items, total) =
-  ([ (n, n', i, mixedAmountValue prices d a) | (n,n',i,a) <- items ]
-  ,mixedAmountValue prices d total
+  ([ (n, n', i, val a) | (n,n',i,a) <- items ]
+  ,val total
   )
   where
+    val amt =
+      let val' d = mixedAmountValue prices d amt in
+      case value_at_ of
+        AtTransaction -> amt  -- this case is converted earlier, see Balance.hs
+        AtPeriod      ->
+          let mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
+              -- Get the last day of the report period.
+              -- Will be Nothing if no report period is specified, or also
+              -- if ReportOpts does not have today_ set, since we need that
+              -- to get the report period robustly.
+              mperiodlastday :: Maybe Day = do
+                t <- today_
+                let q = queryFromOpts t ropts
+                qend <- queryEndDate False q
+                return $ addDays (-1) qend
+              d = fromMaybe (error' "brValue: expected a non-empty journal") -- XXX shouldn't happen
+                mperiodorjournallastday
+          in val' d
+        AtNow         -> case today_ of
+                           Just d  -> val' d
+                           Nothing -> error' "brValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
+        AtDate d      -> val' d
+    
     -- prices are in parse order - sort into date then parse order,
     -- & reversed for quick lookup of the latest price.
     prices = reverse $ sortOn mpdate $ jmarketprices j
-    d = case value_at_ of
-      AtTransaction -> error' "sorry, --value-at=transaction is not yet supported with balance reports"  -- XXX
-      AtPeriod      -> fromMaybe (error' "brValue: expected a non-empty journal") mperiodorjournallastday  -- XXX shouldn't happen
-      AtNow         -> case today_ of
-                         Just d  -> d
-                         Nothing -> error' "brValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
-      AtDate d      -> d
 
-    -- Get the last day of the report period.
-    -- Will be Nothing if no report period is specified, or also
-    -- if ReportOpts does not have today_ set, since we need that
-    -- to get the report period robustly.
-    mperiodlastday :: Maybe Day = do
-      t <- today_
-      let q = queryFromOpts t ropts
-      qend <- queryEndDate False q
-      return $ addDays (-1) qend
 
-    mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
-    
 -- -- | Find the best commodity to convert to when asked to show the
 -- -- market value of this commodity on the given date. That is, the one
 -- -- in which it has most recently been market-priced, ie the commodity

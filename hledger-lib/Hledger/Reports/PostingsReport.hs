@@ -90,8 +90,16 @@ postingsReport opts q j =
           startbal | average_ opts = if historical then precedingavg else 0
                    | otherwise     = if historical then precedingsum else 0
           startnum = if historical then length precedingps + 1 else 1
-          runningcalc | average_ opts = \i avg amt -> avg + divideMixedAmount (fromIntegral i) (amt - avg) -- running average
-                      | otherwise     = \_ bal amt -> bal + amt                                            -- running total
+          runningcalc = registerRunningCalculationFn opts
+
+-- | Based on the given report options, return a function that does the appropriate
+-- running calculation for the register report, ie a running average or running total.
+-- This function will take the item number, previous average/total, and new posting amount,
+-- and return the new average/total.
+registerRunningCalculationFn :: ReportOpts -> (Int -> MixedAmount -> MixedAmount -> MixedAmount)
+registerRunningCalculationFn ropts
+  | average_ ropts = \i avg amt -> avg + divideMixedAmount (fromIntegral i) (amt - avg)
+  | otherwise      = \_ bal amt -> bal + amt
 
 totallabel = "Total"
 
@@ -240,23 +248,45 @@ negatePostingAmount p = p { pamount = negate $ pamount p }
 -- or the posting dates if journal is empty - shouldn't happen),
 -- or today's date (gives an error if today_ is not set in ReportOpts),
 -- or a specified date.
+--
+-- Special case: when --value-at=transaction is combined with a report interval,
+-- assume amounts were converted to value earlier and do nothing here.
+--
 prValue :: ReportOpts -> Journal -> PostingsReport -> PostingsReport
 prValue ropts@ReportOpts{..} j@Journal{..} (totallabel, items) = (totallabel, items')
   where
-    items' = [ (md, md2, desc, p{pamount=val $ pamount p}, val tot)
-             | (md, md2, desc, p, tot) <- items
-             , let val = mixedAmountValue prices (valuationdate $ postingDate p)
+    -- convert postings amounts to value
+    items' = [ (md, md2, desc, p', t') | (md, md2, desc, p, t) <- items
+             , let pdate = postingDate p
+             , let pamt' = val pdate (pamount p)
+             , let p'    = p{pamount = pamt'}
+             , let t'    = val pdate t  -- In some cases, revaluing the totals/averages is fine.
+                                        -- With --value-at=t, we revalue postings early instead.
+                                        -- XXX --value=at=m -M is still a problem
              ]
-    valuationdate pdate =
-      case value_at_ of
-        AtTransaction | interval_ /= NoInterval -> error' "sorry, --value-at=transaction is not yet supported with periodic register reports"  -- XXX
-        AtPeriod      | interval_ /= NoInterval -> error' "sorry, --value-at=transaction is not yet supported with periodic register reports"  -- XXX
-        AtTransaction -> pdate
-        AtPeriod      -> fromMaybe pdate mperiodorjournallastday
-        AtNow         -> case today_ of
-                           Just d  -> d
-                           Nothing -> error' "prValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
-        AtDate d      -> d
+
+    val pdate amt =
+      let val' d = mixedAmountValue prices d amt in
+      case (value_at_, interval_) of
+        (AtTransaction, _)          -> amt  -- in this case we revalued postings early (Register.hs)
+        (AtPeriod, NoInterval)      -> val' $ fromMaybe pdate mperiodorjournallastday
+        (AtPeriod, _)               ->
+          error' "sorry, --value-at=period with periodic register reports is not yet supported"
+          -- XXX need to calculate total from period-valued postings
+          -- -- Get the last day of this subperiod. We can't always get it from the report item
+          -- -- (only the first items in each period have the period start/end dates).
+          -- -- The following kludge seems to work.. XXX
+          -- let subperiodlastday =
+          --       addDays (-1) $
+          --       fromMaybe (error' "prValue: expected a date here") $ -- should not happen
+          --       spanEnd $
+          --       headDef (error' "prValue: expected at least one span here") $ -- should not happen, splitting a well-formed span
+          --       splitSpan i (DateSpan (Just pdate) Nothing)
+          -- in val' subperiodlastday
+        (AtNow, _)                  -> case today_ of
+                                         Just d  -> val' d
+                                         Nothing -> error' "prValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
+        (AtDate d, _)               -> val' d
       where
         mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
         -- Get the last day of the report period.

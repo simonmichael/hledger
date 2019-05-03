@@ -4,7 +4,9 @@ A ledger-compatible @register@ command.
 
 -}
 
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Register (
@@ -53,13 +55,19 @@ registermode = hledgerCommandMode
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()
-register opts@CliOpts{reportopts_=ropts} j = do
+register opts@CliOpts{reportopts_=ropts@ReportOpts{..}} j = do
   d <- getCurrentDay
   let fmt = outputFormatFromOpts opts
       render | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
              | fmt=="html" = const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
              | otherwise   = postingsReportAsText
-  writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
+
+      -- For register reports with --value-at=transaction,
+      -- convert all amounts to value before summing them.
+      j' | value_at_ == AtTransaction = journalValueAtTransactionDate ropts j
+         | otherwise = j
+
+  writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j'
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =

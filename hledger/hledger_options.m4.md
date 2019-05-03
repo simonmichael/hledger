@@ -501,12 +501,10 @@ The precise effect of the keywords is command-specific, but here is their genera
 
 - `--value-at=transaction` (or `t`)
 : Use the prices as of each transaction date (more precisely, each [posting date](/journal.html#posting-dates)).
-: (Currently not supported with: balance commands, periodic register reports.)
 
 - `--value-at=period` (or `p`)
 : Use the prices as of the last day of the report period (or each subperiod).
 : When no report period is specified, this will be the journal's last transaction date.
-: (Currently not supported with: periodic register reports.)
 
 - `--value-at=now` (or `n`)
 : Use the prices as of today's date when the report is generated. This is the default.
@@ -600,6 +598,23 @@ $ hledger -f- print --value-at=2000-01-15
 
 ```
 
+### Reports supporting --value-at
+
+Not all combinations of valuation date and hledger report modes are
+supported or well understood at present
+([#329](https://github.com/simonmichael/hledger/issues/329)).
+Here are the ones currently supported
+("print", "register", and "balance" here mean all commands of that general type):
+
+| Report type                                             | `--value-at=` `transaction`&nbsp; | `--value-at=` `period`&nbsp; | `--value-at=` `DATE`/`now`&nbsp; |
+|---------------------------------------------------------|:---------------------------------:|:----------------------------:|:--------------------------------:|
+| print                                                   | Y                                 | Y                            | Y                                |
+| register                                                | Y                                 | Y                            | Y                                |
+| register,&nbsp;multiperiod                              | Y                                 | -                            | Y                                |
+| balance                                                 | Y                                 | Y                            | Y                                |
+| balance,&nbsp;multiperiod                               | -                                 | Y                            | Y                                |
+| balance,&nbsp;multiperiod,&nbsp;-T/-A                   | -                                 | -                            | Y                                |
+| register/balance,&nbsp;multiperiod,&nbsp;-T/-A,&nbsp;-H | ?                                 | ?                            | ?                                |
 
 ## Combining -B and -V
 

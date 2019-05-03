@@ -1010,7 +1010,7 @@ journalAmounts = getConst . traverseJournalAmounts (Const . (:[]))
 overJournalAmounts :: (Amount -> Amount) -> Journal -> Journal
 overJournalAmounts f = runIdentity . traverseJournalAmounts (Identity . f)
 
--- | Traverses over all ofthe amounts in the journal, in the order
+-- | Traverses over all of the amounts in the journal, in the order
 -- indicated by 'journalAmounts'.
 traverseJournalAmounts
     :: Applicative f
