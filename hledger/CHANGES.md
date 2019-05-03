@@ -1,10 +1,74 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 489b7fd8
+# ebf5ed93
 
-- the external hledger-diff addon has been merged as the builtin diff command.
-  The addon (https://github.com/gebner/hledger-diff/) is now deprecated.
+- date-aware valuation: more thorough --value-at; document status (#329, #999)
+  This feature turns out to be quite involved, as valuation interacts
+  with the many report variations. Various bugs/specs have been
+  fixed/clarified relating to register's running total, balance totals
+  etc. Eg register's total should now be the sum of the posting amount
+  values, not the values of the original sums. Current level of support
+  has been documented.
+
+  When valuing at transaction date, we once again do early valuation of
+  all posting amounts, to get more correct results. variants. This means
+  --value-at=t can be slower than other valuation modes when there are
+  many transactions and many prices. This could be revisited for
+  optimisation when things are more settled.
+
+- faster valuation: speed up -V/--value by converting reports, not the journal (#999)
+  Instead of converting all journal amounts to value early on, we now
+  convert just the report amounts to value, before rendering.
+
+  This was basically how it originally worked (for the balance command),
+  but now it's built in to the four basic reports used by print,
+  register, balance and their variants - Entries, Postings, Balance,
+  MultiBalance - each of which now has its own xxValue helper.
+
+  This should mostly fix -V's performance when there are many
+  transactions and prices (the price lookups could still be optimised),
+  and allow more flexibility for report-specific value calculations.
+
+  +------------------------------------------++-----------------+-------------------+--------------------------+
+  |                                          || hledger.999.pre | hledger.999.1sort | hledger.999.after-report |
+  +==========================================++=================+===================+==========================+
+  | -f examples/1000x1000x10.journal bal -V  ||            1.08 |              0.96 |                     0.76 |
+  | -f examples/2000x1000x10.journal bal -V  ||            1.65 |              1.05 |                     0.73 |
+  | -f examples/3000x1000x10.journal bal -V  ||            2.43 |              1.58 |                     0.84 |
+  | -f examples/4000x1000x10.journal bal -V  ||            4.39 |              1.96 |                     0.93 |
+  | -f examples/5000x1000x10.journal bal -V  ||            7.75 |              2.99 |                     1.07 |
+  | -f examples/6000x1000x10.journal bal -V  ||           11.21 |              3.72 |                     1.16 |
+  | -f examples/7000x1000x10.journal bal -V  ||           16.91 |              4.72 |                     1.19 |
+  | -f examples/8000x1000x10.journal bal -V  ||           27.10 |              9.83 |                     1.40 |
+  | -f examples/9000x1000x10.journal bal -V  ||           39.73 |             15.00 |                     1.51 |
+  | -f examples/10000x1000x10.journal bal -V ||           50.72 |             25.61 |                     2.15 |
+  +------------------------------------------++-----------------+-------------------+--------------------------+
+
+  There's one new limitation, not yet resolved: -V once again can pick a
+  valuation date in the future, if no report end date is specified and
+  the journal has future-dated transactions. We prefer to avoid that,
+  but reports currently are pure and don't have access to today's date.
+
+- lib: speed up -V by sorting market prices just once (#999)
+  -V is still quite a bit slower than no -V, but not as much as before:
+
+  +===========================================================++=======+
+  | hledger.999.pre -f examples/10000x10000x10.journal bal    ||  5.20 |
+  | hledger.999.pre -f examples/10000x10000x10.journal bal -V || 57.20 |
+  | hledger.999 -f examples/10000x10000x10.journal bal        ||  5.34 |
+  | hledger.999 -f examples/10000x10000x10.journal bal -V     || 17.50 |
+  +-----------------------------------------------------------++-------+
+
+- Gabriel Ebner's hledger-diff is now built in as the diff command.
+  (And the addon command, https://github.com/gebner/hledger-diff, is now deprecated.)
+
+- Fix behavior of options like -Mp2019 (Jakob Schöttl)
+  This fixes the issue #1008
+
+- reg: test and fix for --average, broken since 1.12 (#1003)
+
+- csv: accept a balance field assignment instead of an amount (#1000)
 
 # 1.14.2 2019-03-20
 

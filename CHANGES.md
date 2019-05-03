@@ -1,148 +1,47 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 8c9d8052
+# 7dd54751
 
-- ; site: download: drop unpinned/failing nix command (#980); cleanups
+- make site-watch: site-liverender & site-livereload in one command
 
-- ; site: download: consistent hledger-install.sh naming
+- site: download: wine
 
-- ; site: download: drop nix badges
+- tools: generatejournal: vary amount, make reports with fewer zeroes
 
-- ; site: download: add nix pinned command (#980); drop double borders
+- make samplejournals: more; don't remake ones used for tests
 
-- ; site: download: drop linuxbrew links, that was an old name (#321)
+- tools: generatejournal: start from a fixed year, not last year
+  So regenerating sample journals doesn't require updating tests.
 
-- ; site: download: latest nix wording (#980)
+- tools: generatejournal: also generate P records (#999)
 
-- ; site: download: fix hydra links (#980)
+- doc: add a README for the functional tests, linked from contrib guide
 
-- ; site: home: wording tweaks
-
-- ; site: download: drop unnecessary link brackets
-  http://pandoc.org/MANUAL.html#reference-links -> shortcut_reference_links
-
-- ; site: download: update nix command (#980); links cleanup
-
-- doc: mention dockerized source build (Dmitry Astapov)
+- Rename hledger-makeitso to hledger-flow (Andreas Pauley)
 
 - docker: use "haskell" image as base (Dmitry Astapov)
-
-- ;site: download: refine openbsd, sandstorm links
-
-- ;site: download: drop third-party packages that seem out of date
-
-- ;site: download: consistent install tool/package links on left/right
-
-- ; site: download: add manual badges where needed
-
-- ; site: home: reorder intro links, add offsite arrow
-
-- ; site: home: rewrite top content
-
-- ;site: update cookbook links
-
-- ; site: home: streamline left column content
-
-- ; site: home: more prominent install, github buttons
-
-- ; site: download: mention windows unicode display issue (#961)
-
-- ; site: download: enlarge font
-
-- ; site: download: stack: can simplify that further, why not
-
-- ; site: download: simplify stack command, ensure GHC 8.6.4
-
-- ; site: download: latest windows binary; windows tweaks
-
-- ; site: download: links to windows build issues; wording
-
-- ; site: download: order linux distros by freshness
-
-- ; site: download: update windows binary
-
-- appveyor: note 7z docs
-  [skip ci]
 
 - appveyor: enable web
   [skip ci]
 
 - travis: enable web, api
 
-- travis: build fewer packages, refilling cache after resolver bump
-
 - bump default stack.yaml to nightly-2019-03-09 / ghc 8.6.4
-
-- ;site: download: bump gentoo version
-
-- ;shake hledgerorg: tweak home page commit message
-
-- ;site: home: wiki links
-
-- ;site: home: wiki links
-
-- ;fix pull request template link; comment the help text
-
-- ;site: home: wiki links
-
-- make: cleanups
-
-- make site: remove a bashism
-
-- ;site: home: wiki links
-
-- make site: log to site.log again
 
 - shake site: also commit & push home page when wiki links change
 
 - tools: move site.sh into shake; stop running just-pushed shakefile
   Running the just pushed Shake.hs was too insecure.
 
-- tools: make site.sh mac compatible
-
-- shake: don't echo commands by default
-
-- shake: clean up docs
-
 - make: rename sub-makefiles; start moving site script to make/shake
-  [ci skip
-
-- site: download: note ghc 8.6.3 hang on windows
-
-- site: download: drop hledger-diff addon
-
-- install: stop installing hledger-diff addon (#981)
-
-- shake commandhelp: don't generate a txt for the README (#981)
-
-- site: download: ensure nix install gets latest available (#980)
 
 - tools: commit missing pandoc filters (#981)
 
 - site: download: more cleanup
 
-- site: download: tweaks
-
-- site: simplify download page
-
-- site: download: bump docker version
-
 - site: download: improve nix/docker/sandstorm links/descriptions
 
-- site: download: simplify nix instructions (#980)
-
-- install: don't forget to bump own version
-
-- download page, hledger-install: bump hledger-iadd version
-
-- site: download: reduce popping of "latest release is"
-
-- site: relnotes: show minor release, link announcent
-
-- download page, hledger-install: bump hledger version
-
-- shake: add 1.14 to web manual versions
 
 
 # 1.14 2019-03-01

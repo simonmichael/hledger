@@ -1,7 +1,11 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 5f3cad4b
+# 1ac6c040
+
+- support brick >=0.47 also
+
+- use hledger 1.15
 
 # 1.14.2 2019-03-20
 

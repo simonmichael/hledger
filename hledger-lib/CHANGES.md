@@ -1,7 +1,22 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 5067d0f9
+# ebf5ed93
+
+- lib: save the current date in ReportOpts
+  We need this for choosing a valuation date, otherwise, report
+  functions would have to be in IO or we'd have to pass in yet another
+  argument.
+
+  It's optional because it's useful to be able to create report opts
+  purely (I think ?) This is not ideal but maybe not a problem.
+
+- lib: journalStartDate, journalEndDate
+
+- Change unused argument to undefined to make possible bugs more obvious (Jakob Schöttl)
+
+- rejigger Hledger.Cli tests to have correct prefix, add Cli.Utils
+
 
 # 1.14.1 2019-03-20
 

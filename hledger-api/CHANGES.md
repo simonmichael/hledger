@@ -1,9 +1,9 @@
 User-visible changes in hledger-api.
 See also the hledger changelog.
 
-# 928ddfeb
+# c9e16b83
 
-- bump hledger version to 1.14.1, and other pkgs' lower bounds
+- use hledger 1.15
 
 # 1.14 2019-03-01
 
