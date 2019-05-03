@@ -59,6 +59,7 @@ dist-newstyle/
 old
 /log
 /profs/*
+/*.prof.*
 /bin/**
 /.latest.*
 test.hs
