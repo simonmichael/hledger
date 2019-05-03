@@ -10,13 +10,13 @@ but adds one or more specified postings to any transactions matching QUERY.
 The posting amounts can be fixed, or a multiplier of the existing transaction's first posting amount. 
 
 Examples:
-```
-hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
-hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
-hledger-rewrite.hs -f rewrites.hledger
+```shell
+$ hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
+$ hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
+$ hledger-rewrite.hs -f rewrites.hledger
 ```
 rewrites.hledger may consist of entries like:
-```
+```journal
 = ^income amt:<0 date:2017
   (liabilities:tax)  *0.33  ; tax on income
   (reserve:grocery)  *0.25  ; reserve 25% for grocery

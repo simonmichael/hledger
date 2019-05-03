@@ -30,7 +30,9 @@ As a result, importing entries with balance assignments
 will probably generate incorrect posting amounts.
 To avoid this problem, use print instead of import:
 
-    $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
+```shell
+$ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
+```
 
 (If you think import should leave amounts implicit like print does,
 please test it and send a pull request.)

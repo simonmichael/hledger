@@ -48,30 +48,37 @@ Carrying asset/liability balances into a new file for 2019, all from command lin
 
 *Warning: we use `>>` here to append; be careful not to type a single `>` which would wipe your journal!*
 
-    $ hledger close -f 2018.journal -e 2019 assets liabilities --opening >>2019.journal
-    $ hledger close -f 2018.journal -e 2019 assets liabilities --closing >>2018.journal
+```shell
+$ hledger close -f 2018.journal -e 2019 assets liabilities --opening >>2019.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --closing >>2018.journal
+```
 
 Now:
 
-    $ hledger bs -f 2019.journal                   # one file - balances are correct
-    $ hledger bs -f 2018.journal -f 2019.journal   # two files - balances still correct
-    $ hledger bs -f 2018.journal not:desc:closing  # to see year-end balances, must exclude closing txn
+```shell
+$ hledger bs -f 2019.journal                   # one file - balances are correct
+$ hledger bs -f 2018.journal -f 2019.journal   # two files - balances still correct
+$ hledger bs -f 2018.journal not:desc:closing  # to see year-end balances, must exclude closing txn
+```
 
 Transactions spanning the closing date can complicate matters, breaking balance assertions:
 
-    2018/12/30 a purchase made in 2018, clearing the following year
-        expenses:food          5
-        assets:bank:checking  -5  ; [2019/1/2]
+```journal
+2018/12/30 a purchase made in 2018, clearing the following year
+    expenses:food          5
+    assets:bank:checking  -5  ; [2019/1/2]
+```
 
 Here's one way to resolve that:
 
-    ; in 2018.journal:
-    2018/12/30 a purchase made in 2018, clearing the following year
-        expenses:food          5
-        liabilities:pending
+```journal
+; in 2018.journal:
+2018/12/30 a purchase made in 2018, clearing the following year
+    expenses:food          5
+    liabilities:pending
 
-    ; in 2019.journal:
-    2019/1/2 clearance of last year's pending transactions
-        liabilities:pending    5 = 0
-        assets:checking
-
+; in 2019.journal:
+2019/1/2 clearance of last year's pending transactions
+    liabilities:pending    5 = 0
+    assets:checking
+```

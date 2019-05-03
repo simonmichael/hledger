@@ -149,17 +149,17 @@ hledger reads transactions from a data file (and the add command writes to it).
 By default this file is `$HOME/.hledger.journal` 
 (or on Windows, something like `C:/Users/USER/.hledger.journal`).
 You can override this with the `$LEDGER_FILE` environment variable:
-```bash
+```shell
 $ setenv LEDGER_FILE ~/finance/2016.journal
 $ hledger stats
 ```
 or with the `-f/--file` option:
-```bash
+```shell
 $ hledger -f /some/file stats
 ```
 
 The file name `-` (hyphen) means standard input:
-```bash
+```shell
 $ cat some.journal | hledger -f-
 ```
 
@@ -178,7 +178,7 @@ or if that is not recognised, by trying each built-in "reader" in turn:
 If needed (eg to ensure correct error messages when a file has the "wrong" extension), 
 you can force a specific reader/format by prepending it to the file path with a colon. 
 Examples:
-```bash
+```shell
 $ hledger -f csv:/some/csv-file.dat stats
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 ```
@@ -436,7 +436,7 @@ $ hledger balance --pivot member tag:member=.
               -2 EUR
 ```
 Another way (the acct: query matches against the pivoted "account name"):
-```
+```shell
 $ hledger balance --pivot member acct:.
               -2 EUR  John Doe
 --------------------
@@ -468,17 +468,17 @@ P 2016/11/01 € $1.10
 P 2016/12/21 € $1.03
 ```
 How many euros do I have ?
-```
+```shell
 $ hledger -f t.j bal -N euros
                 €100  assets:euros
 ```
 What are they worth at end of nov 3 ?
-```
+```shell
 $ hledger -f t.j bal -N euros -V -e 2016/11/4
              $110.00  assets:euros
 ```
 What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
-```
+```shell
 $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 ```

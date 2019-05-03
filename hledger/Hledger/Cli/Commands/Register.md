@@ -46,7 +46,7 @@ displayed as negative numbers.
 It's also useful to show postings on the checking account together with the
 related account:
 
-```
+```shell
 $ hledger register --related --invert assets:checking
 ```
 

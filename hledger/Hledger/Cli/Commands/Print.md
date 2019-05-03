@@ -58,7 +58,7 @@ with newer dates (and new transactions on the latest date) are printed.
 This is useful for ignoring already-seen entries in import data, such as downloaded CSV files.
 Eg:
 
-```console
+```shell
 $ hledger -f bank1.csv print --new
 # shows transactions added since last print --new on this file
 ```
