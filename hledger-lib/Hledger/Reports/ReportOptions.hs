@@ -78,9 +78,9 @@ instance Default AccountListMode where def = ALDefault
 -- ("today" would have been preferable, but clashes with
 -- "transaction" for abbreviating.)
 data ValueDate =
-    AtTransaction  -- ^ Calculate values as of each posting's date
+    AtTransaction  -- ^ Calculate values as of each posting's date (called "transaction" for UI reasons)
   | AtPeriod       -- ^ Calculate values as of each report period's last day
-  | AtNow          -- ^ Calculate values as of today (report generation date)
+  | AtNow          -- ^ Calculate values as of today (report generation date) (called "now" not today for UI reasons)
   | AtDate Day     -- ^ Calculate values as of some other date
   deriving (Show,Data,Eq) -- Typeable
 
