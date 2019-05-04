@@ -18,7 +18,6 @@ module Hledger.Reports.BalanceReport (
 )
 where
 
-import Control.Applicative ((<|>))
 import Data.List
 import Data.Ord
 import Data.Maybe
@@ -185,32 +184,21 @@ brValue ropts@ReportOpts{..} j (items, total) =
   )
   where
     val amt =
-      let val' d = mixedAmountValue prices d amt in
       case value_at_ of
         AtTransaction -> amt  -- this case is converted earlier, see Balance.hs
-        AtPeriod      ->
-          let mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
-              -- Get the last day of the report period.
-              -- Will be Nothing if no report period is specified, or also
-              -- if ReportOpts does not have today_ set, since we need that
-              -- to get the report period robustly.
-              mperiodlastday :: Maybe Day = do
-                t <- today_
-                let q = queryFromOpts t ropts
-                qend <- queryEndDate False q
-                return $ addDays (-1) qend
-              d = fromMaybe (error' "brValue: expected a non-empty journal") -- XXX shouldn't happen
-                mperiodorjournallastday
-          in val' d
-        AtNow         -> case today_ of
-                           Just d  -> val' d
-                           Nothing -> error' "brValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
+        AtPeriod      -> val' reportperiodlastday
+        AtNow         -> val' today
         AtDate d      -> val' d
-    
-    -- prices are in parse order - sort into date then parse order,
-    -- & reversed for quick lookup of the latest price.
-    prices = reverse $ sortOn mpdate $ jmarketprices j
-
+      where
+        val' d = mixedAmountValue prices d amt
+        -- prices are in parse order - sort into date then parse order,
+        -- & reversed for quick lookup of the latest price.
+        prices = reverse $ sortOn mpdate $ jmarketprices j
+        reportperiodlastday =
+          fromMaybe (error' "brValue: expected a non-empty journal") -- XXX shouldn't happen
+          $ reportPeriodOrJournalLastDay ropts j
+        today =
+          fromMaybe (error' "brValue: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 
 -- -- | Find the best commodity to convert to when asked to show the
 -- -- market value of this commodity on the given date. That is, the one
