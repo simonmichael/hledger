@@ -610,7 +610,7 @@ Here are the ones currently supported
 |---------------------------------------------------------|:---------------------------------:|:----------------------------:|:--------------------------------:|
 | print                                                   | Y                                 | Y                            | Y                                |
 | register                                                | Y                                 | Y                            | Y                                |
-| register,&nbsp;multiperiod                              | Y                                 | -                            | Y                                |
+| register,&nbsp;multiperiod                              | Y                                 | Y                            | Y                                |
 | balance                                                 | Y                                 | Y                            | Y                                |
 | balance,&nbsp;multiperiod                               | -                                 | Y                            | Y                                |
 | balance,&nbsp;multiperiod,&nbsp;-T/-A                   | -                                 | -                            | Y                                |

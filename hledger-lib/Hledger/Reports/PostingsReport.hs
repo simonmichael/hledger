@@ -22,7 +22,6 @@ module Hledger.Reports.PostingsReport (
 )
 where
 
-import Control.Applicative ((<|>))
 import Data.List
 import Data.Maybe
 import Data.Ord (comparing)
@@ -62,35 +61,70 @@ type PostingsReportItem = (Maybe Day    -- The posting date, if this is the firs
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
-postingsReport opts q j =
-  (if value_ opts then prValue opts j else id) $
+postingsReport ropts@ReportOpts{..} q j =
   (totallabel, items)
     where
-      reportspan = adjustReportDates opts q j
-      whichdate = whichDateFromOpts opts
+      reportspan = adjustReportDates ropts q j
+      whichdate = whichDateFromOpts ropts
       depth = queryDepth q
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
-      (precedingps, reportps) = matchedPostingsBeforeAndDuring opts q j reportspan
+      (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
 
-      -- postings or pseudo postings to be displayed
-      displayps | interval == NoInterval = map (,Nothing) reportps
-                | otherwise              = summarisePostingsByInterval interval whichdate depth showempty reportspan reportps
+      -- Postings or summary pseudo postings to be displayed.
+      -- If --value-at is present, we'll need to convert them to value in various ways.
+      displayps
+        | multiperiod = case mvalueat of
+            Just AtTransaction
+              -> [(postingValueAtDate (postingDate p) p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
+            Just AtPeriod
+              -> [(postingValueAtDate (
+                      maybe (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
+                            (addDays (-1)) end) p
+                  , end)
+                 | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
+            Just (AtDate d)
+              -> [(postingValueAtDate d p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
+            Just AtNow
+              -> [(postingValueAtDate today p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
+            Nothing
+              -> [(p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
+        | otherwise = case mvalueat of
+            Just AtTransaction
+              -> [(postingValueAtDate (postingDate p) p, Nothing) | p <- reportps]
+            Just AtPeriod
+              -> [(postingValueAtDate reportperiodlastday p, Nothing) | p <- reportps]
+            Just (AtDate d)
+              -> [(postingValueAtDate d p, Nothing) | p <- reportps]
+            Just AtNow
+              -> [(postingValueAtDate today p, Nothing) | p <- reportps]
+            Nothing
+              -> [(p, Nothing) | p <- reportps]
         where
-          interval = interval_ opts -- XXX
-          showempty = empty_ opts || average_ opts
+          mvalueat    = if value_ then Just value_at_ else Nothing
+          multiperiod = interval_ /= NoInterval
+          showempty   = empty_ || average_
+          reportperiodlastday =
+            fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
+            $ reportPeriodOrJournalLastDay ropts j
+          today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
+          postingValueAtDate d p@Posting{..} = p{pamount=mixedAmountValue prices d pamount}
+            where
+              -- prices are in parse order - sort into date then parse order,
+              -- & reversed for quick lookup of the latest price.
+              prices = reverse $ sortOn mpdate $ jmarketprices j
 
       -- posting report items ready for display
       items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
         where
-          historical = balancetype_ opts == HistoricalBalance
+          historical = balancetype_ == HistoricalBalance
           precedingsum = sumPostings precedingps
           precedingavg | null precedingps = 0
                        | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
-          startbal | average_ opts = if historical then precedingavg else 0
-                   | otherwise     = if historical then precedingsum else 0
+          startbal | average_  = if historical then precedingavg else 0
+                   | otherwise = if historical then precedingsum else 0
           startnum = if historical then length precedingps + 1 else 1
-          runningcalc = registerRunningCalculationFn opts
+          runningcalc = registerRunningCalculationFn ropts
 
 -- | Based on the given report options, return a function that does the appropriate
 -- running calculation for the register report, ie a running average or running total.
@@ -186,6 +220,7 @@ mkpostingsReportItem showdate showdesc wd menddate p b =
 
 -- | Convert a list of postings into summary postings, one per interval,
 -- aggregated to the specified depth if any.
+-- Each summary posting will have a non-Nothing interval end date.
 summarisePostingsByInterval :: Interval -> WhichDate -> Int -> Bool -> DateSpan -> [Posting] -> [SummaryPosting]
 summarisePostingsByInterval interval wd depth showempty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
     where
@@ -200,7 +235,7 @@ type SummaryPosting = (Posting, Maybe Day)
 
 -- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per
--- account.
+-- account. Each summary posting will have a non-Nothing interval end date.
 --
 -- When a depth argument is present, postings to accounts of greater
 -- depth are also aggregated where possible. If the depth is 0, all
@@ -236,72 +271,6 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
 negatePostingAmount :: Posting -> Posting
 negatePostingAmount p = p { pamount = negate $ pamount p }
 
--- -- | Flip the sign of all amounts in a PostingsReport.
--- prNegate :: PostingsReport -> PostingsReport
-
--- | Convert all the posting amounts in a PostingsReport to their
--- default valuation commodities. This means using the Journal's most
--- recent applicable market prices before the valuation date.
--- The valuation date is set with --value-at and can be:
--- each posting's date,
--- the last day in the report period (or in the journal if no period,
--- or the posting dates if journal is empty - shouldn't happen),
--- or today's date (gives an error if today_ is not set in ReportOpts),
--- or a specified date.
---
--- Special case: when --value-at=transaction is combined with a report interval,
--- assume amounts were converted to value earlier and do nothing here.
---
-prValue :: ReportOpts -> Journal -> PostingsReport -> PostingsReport
-prValue ropts@ReportOpts{..} j@Journal{..} (totallabel, items) = (totallabel, items')
-  where
-    -- convert postings amounts to value
-    items' = [ (md, md2, desc, p', t') | (md, md2, desc, p, t) <- items
-             , let pdate = postingDate p
-             , let pamt' = val pdate (pamount p)
-             , let p'    = p{pamount = pamt'}
-             , let t'    = val pdate t  -- In some cases, revaluing the totals/averages is fine.
-                                        -- With --value-at=t, we revalue postings early instead.
-                                        -- XXX --value=at=m -M is still a problem
-             ]
-
-    val pdate amt =
-      let val' d = mixedAmountValue prices d amt in
-      case (value_at_, interval_) of
-        (AtTransaction, _)          -> amt  -- in this case we revalued postings early (Register.hs)
-        (AtPeriod, NoInterval)      -> val' $ fromMaybe pdate mperiodorjournallastday
-        (AtPeriod, _)               ->
-          error' "sorry, --value-at=period with periodic register reports is not yet supported"
-          -- XXX need to calculate total from period-valued postings
-          -- -- Get the last day of this subperiod. We can't always get it from the report item
-          -- -- (only the first items in each period have the period start/end dates).
-          -- -- The following kludge seems to work.. XXX
-          -- let subperiodlastday =
-          --       addDays (-1) $
-          --       fromMaybe (error' "prValue: expected a date here") $ -- should not happen
-          --       spanEnd $
-          --       headDef (error' "prValue: expected at least one span here") $ -- should not happen, splitting a well-formed span
-          --       splitSpan i (DateSpan (Just pdate) Nothing)
-          -- in val' subperiodlastday
-        (AtNow, _)                  -> case today_ of
-                                         Just d  -> val' d
-                                         Nothing -> error' "prValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
-        (AtDate d, _)               -> val' d
-      where
-        mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
-        -- Get the last day of the report period.
-        -- Will be Nothing if no report period is specified, or also
-        -- if ReportOpts does not have today_ set, since we need that
-        -- to get the report period robustly.
-        mperiodlastday :: Maybe Day = do
-          t <- today_
-          let q = queryFromOpts t ropts
-          qend <- queryEndDate False q
-          return $ addDays (-1) qend
-
-    -- prices are in parse order - sort into date then parse order,
-    -- & reversed for quick lookup of the latest price.
-    prices = reverse $ sortOn mpdate jmarketprices
 
 -- tests
 

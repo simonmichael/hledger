@@ -117,7 +117,7 @@ $ hledger -f- print -V
 
 <
 P 2000/01/01 A  1 B
-P 2000-01-15 A  5 B
+P 2000/01/15 A  5 B
 P 2000/02/01 A  2 B
 P 2000/03/01 A  3 B
 P 2000/04/01 A  4 B
@@ -241,12 +241,9 @@ $ hledger -f- reg --value-at=transaction -M
  
 # 20. periodic register report valued at period end
 $ hledger -f- reg --value-at=period -M
->2 /not yet supported/
->=1
-# XXX
-# 2000/01                 a                                      5 B           5 B
-# 2000/02                 a                                      2 B           7 B
-# 2000/03                 a                                      3 B          10 B
+2000/01                 a                                      5 B           5 B
+2000/02                 a                                      2 B           7 B
+2000/03                 a                                      3 B          10 B
 
 # 21. periodic register report valued at specified date
 $ hledger -f- reg --value-at=2000-01-15 -M

@@ -33,6 +33,8 @@ module Hledger.Reports.ReportOptions (
   specifiedStartEndDates,
   specifiedStartDate,
   specifiedEndDate,
+  reportPeriodLastDay,
+  reportPeriodOrJournalLastDay,
 
   tests_ReportOptions
 )
@@ -467,6 +469,25 @@ specifiedStartDate ropts = fst <$> specifiedStartEndDates ropts
 
 specifiedEndDate :: ReportOpts -> IO (Maybe Day)
 specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
+
+-- Get the last day of the overall report period.
+-- If no report period is specified, will be Nothing.
+-- Will also be Nothing if ReportOpts does not have today_ set,
+-- since we need that to get the report period robustly.
+reportPeriodLastDay :: ReportOpts -> Maybe Day
+reportPeriodLastDay ropts@ReportOpts{..} = do
+  t <- today_
+  let q = queryFromOpts t ropts
+  qend <- queryEndDate False q
+  return $ addDays (-1) qend
+
+-- Get the last day of the overall report period,
+-- or if no report period is specified, the last day of the journal
+-- (ie the latest posting date).
+-- If there's no report period and nothing in the journal, will be Nothing.
+reportPeriodOrJournalLastDay :: ReportOpts -> Journal -> Maybe Day
+reportPeriodOrJournalLastDay ropts@ReportOpts{..} j =
+  reportPeriodLastDay ropts <|> journalEndDate False j
 
 -- tests
 

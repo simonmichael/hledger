@@ -61,13 +61,7 @@ register opts@CliOpts{reportopts_=ropts@ReportOpts{..}} j = do
       render | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
              | fmt=="html" = const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
              | otherwise   = postingsReportAsText
-
-      -- For register reports with --value-at=transaction,
-      -- convert all amounts to value before summing them.
-      j' | value_at_ == AtTransaction = journalValueAtTransactionDate ropts j
-         | otherwise = j
-
-  writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j'
+  writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =
