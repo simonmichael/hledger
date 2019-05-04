@@ -306,29 +306,39 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
   case lineFormatFromOpts ropts of
     Left err -> error' $ unlines [err]
     Right _ -> do
-      let format   = outputFormatFromOpts opts
-          budget   = boolopt "budget" rawopts
-          interval = interval_
+      let budget      = boolopt "budget" rawopts
+          multiperiod = interval_ /= NoInterval
+          format      = outputFormatFromOpts opts
 
-      case (budget, interval) of
-        (True, _) -> do
-          -- single or multicolumn budget report
-          reportspan <- reportSpan j ropts
-          let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt reportspan d j
-                where
-                  assrt          = not $ ignore_assertions_ $ inputopts_ opts
-              render = case format of
-                "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
-                "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
-                _      -> budgetReportAsText ropts
-          writeOutput opts $ render budgetreport
+      if budget then do  -- single or multi period budget report
+        reportspan <- reportSpan j ropts
+        let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt reportspan d j
+              where
+                assrt          = not $ ignore_assertions_ $ inputopts_ opts
+            render = case format of
+              "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
+              "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
+              _      -> budgetReportAsText ropts
+        writeOutput opts $ render budgetreport
           
-        (False, NoInterval) -> do
-          -- single column balance report
+      else
+        if multiperiod then do  -- multi period balance report
+          -- With --value-at=transaction, convert all amounts to value before summing them.
+          let j' | value_at_ == AtTransaction =
+                     error' "sorry, --value-at=transaction with balance reports is not yet supported"  -- journalValueAtTransactionDate ropts j
+                 | otherwise = j
+              report = multiBalanceReport ropts (queryFromOpts d ropts) j'
+              render = case format of
+                "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
+                "html" ->  (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
+                _      -> multiBalanceReportAsText ropts
+          writeOutput opts $ render report
+
+        else do  -- single period simple balance report
           -- With --value-at=transaction, convert all amounts to value before summing them.
           let j' | value_at_ == AtTransaction = journalValueAtTransactionDate ropts j
                  | otherwise = j
-          let report
+              report
                 | balancetype_ `elem` [HistoricalBalance, CumulativeChange]
                   = let ropts' | flat_ ropts = ropts
                                | otherwise   = ropts{accountlistmode_=ALTree}
@@ -340,21 +350,6 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
                 "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
                 _      -> balanceReportAsText
           writeOutput opts $ render ropts report
-          
-        _  -> do
-          -- multi column balance report
-
-          -- With --value-at=transaction, convert all amounts to value before summing them.
-          let j' | value_at_ == AtTransaction =
-                     error' "sorry, --value-at=transaction with balance reports is not yet supported"  -- journalValueAtTransactionDate ropts j
-                 | otherwise = j
-
-          let report = multiBalanceReport ropts (queryFromOpts d ropts) j'
-              render = case format of
-                "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
-                "html" ->  (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
-                _      -> multiBalanceReportAsText ropts
-          writeOutput opts $ render report
 
 -- rendering single-column balance reports
 
