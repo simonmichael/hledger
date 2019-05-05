@@ -53,10 +53,11 @@ nullledger = Ledger {
   laccounts = []
   }
 
--- | Filter a journal's transactions with the given query, then derive
--- a ledger containing the chart of accounts and balances. If the
--- query includes a depth limit, that will affect the ledger's
--- journal but not the ledger's account tree.
+-- | Filter a journal's transactions with the given query, then build
+-- a "Ledger", containing the journal plus the tree of all its
+-- accounts with their subaccount-inclusive and subaccount-exclusive
+-- balances. If the query includes a depth limit, the ledger's journal
+-- will be depth limited, but the ledger's account tree will not.
 ledgerFromJournal :: Query -> Journal -> Ledger
 ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
   where
