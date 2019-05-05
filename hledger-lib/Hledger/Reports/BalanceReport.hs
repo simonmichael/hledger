@@ -64,23 +64,23 @@ flatShowsExclusiveBalance    = True
 -- This is like PeriodChangeReport with a single column (but more mature,
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
-balanceReport opts q j = 
-  (if invert_ opts then brNegate  else id) $ 
-  (if value_ opts then brValue opts j else id) $
+balanceReport ropts@ReportOpts{..} q j = 
+  (if invert_ then brNegate  else id) $ 
+  (if value_  then brValue ropts j else id) $
   (sorteditems, total)
     where
       -- dbg1 = const id -- exclude from debug output
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
       -- Get all the summed accounts & balances, according to the query, as an account tree.
-      accts = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
+      accts = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j
 
       -- Modify this tree for display - depth limit, boring parents, zeroes - and convert to a list.
       displayaccts :: [Account]
           | queryDepth q == 0 =
                          dbg1 "accts" $
                          take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
-          | flat_ opts = dbg1 "accts" $
+          | flat_ ropts = dbg1 "accts" $
                          filterzeros $
                          filterempty $
                          drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
@@ -89,44 +89,44 @@ balanceReport opts q j =
                          drop 1 $ flattenAccounts $
                          markboring $
                          prunezeros $
-                         sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts) $
+                         sortAccountTreeByAmount (fromMaybe NormallyPositive normalbalance_) $
                          clipAccounts (queryDepth q) accts
           where
-            balance   = if flat_ opts then aebalance else aibalance
-            filterzeros = if empty_ opts then id else filter (not . isZeroMixedAmount . balance)
+            balance   = if flat_ ropts then aebalance else aibalance
+            filterzeros = if empty_ then id else filter (not . isZeroMixedAmount . balance)
             filterempty = filter (\a -> anumpostings a > 0 || not (isZeroMixedAmount (balance a)))
-            prunezeros  = if empty_ opts then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
-            markboring  = if no_elide_ opts then id else markBoringParentAccounts
+            prunezeros  = if empty_ then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
+            markboring  = if no_elide_ then id else markBoringParentAccounts
 
       -- Make a report row for each account.
-      items = dbg1 "items" $ map (balanceReportItem opts q) displayaccts
+      items = dbg1 "items" $ map (balanceReportItem ropts q) displayaccts
 
       -- Sort report rows (except sorting by amount in tree mode, which was done above).
       sorteditems 
-        | sort_amount_ opts && tree_ opts = items
-        | sort_amount_ opts               = sortFlatBRByAmount items
-        | otherwise                       = sortBRByAccountDeclaration items
+        | sort_amount_ && tree_ ropts = items
+        | sort_amount_                = sortFlatBRByAmount items
+        | otherwise                   = sortBRByAccountDeclaration items
         where    
           -- Sort the report rows, representing a flat account list, by row total. 
           sortFlatBRByAmount :: [BalanceReportItem] -> [BalanceReportItem]
           sortFlatBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . fourth4))
             where
-              maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
+              maybeflip = if normalbalance_ == Just NormallyNegative then id else flip
           -- Sort the report rows by account declaration order then account name. 
           sortBRByAccountDeclaration :: [BalanceReportItem] -> [BalanceReportItem]
           sortBRByAccountDeclaration rows = sortedrows
             where 
               anamesandrows = [(first4 r, r) | r <- rows]
               anames = map fst anamesandrows
-              sortedanames = sortAccountNamesByDeclaration j (tree_ opts) anames
+              sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
               sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
       -- Calculate the grand total.
-      total | not (flat_ opts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
-            | otherwise        = dbg1 "total" $
-                                 if flatShowsExclusiveBalance
-                                 then sum $ map fourth4 items
-                                 else sum $ map aebalance $ clipAccountsAndAggregate 1 displayaccts
+      total | not (flat_ ropts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
+            | otherwise         = dbg1 "total" $
+                                  if flatShowsExclusiveBalance
+                                  then sum $ map fourth4 items
+                                  else sum $ map aebalance $ clipAccountsAndAggregate 1 displayaccts
 
 -- | A sorting helper: sort a list of things (eg report rows) keyed by account name
 -- to match the provided ordering of those same account names.
