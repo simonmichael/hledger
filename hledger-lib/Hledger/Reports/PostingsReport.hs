@@ -72,47 +72,38 @@ postingsReport ropts@ReportOpts{..} q j =
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
 
       -- Postings or summary pseudo postings to be displayed.
-      -- If --value-at is present, we'll need to convert them to value in various ways.
-      displayps
-        | multiperiod = case mvalueat of
-            Just AtTransaction
-              -> [(postingValueAtDate (postingDate p) p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
-            Just AtPeriod
-              -> [(postingValueAtDate (
-                      maybe (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
-                            (addDays (-1)) end) p
-                  , end)
-                 | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
-            Just (AtDate d)
-              -> [(postingValueAtDate d p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
-            Just AtNow
-              -> [(postingValueAtDate today p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
-            Nothing
-              -> [(p, end) | (p,end) <- summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps]
-        | otherwise = case mvalueat of
-            Just AtTransaction
-              -> [(postingValueAtDate (postingDate p) p, Nothing) | p <- reportps]
-            Just AtPeriod
-              -> [(postingValueAtDate reportperiodlastday p, Nothing) | p <- reportps]
-            Just (AtDate d)
-              -> [(postingValueAtDate d p, Nothing) | p <- reportps]
-            Just AtNow
-              -> [(postingValueAtDate today p, Nothing) | p <- reportps]
-            Nothing
-              -> [(p, Nothing) | p <- reportps]
-        where
-          mvalueat    = if value_ then Just value_at_ else Nothing
+      -- If --value-at is present, we'll need to convert them to value as of various dates.
+      displayps =
+        let
           multiperiod = interval_ /= NoInterval
-          showempty   = empty_ || average_
-          reportperiodlastday =
-            fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
-            $ reportPeriodOrJournalLastDay ropts j
-          today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
-          postingValueAtDate d p@Posting{..} = p{pamount=mixedAmountValue prices d pamount}
-            where
-              -- prices are in parse order - sort into date then parse order,
-              -- & reversed for quick lookup of the latest price.
-              prices = reverse $ sortOn mpdate $ jmarketprices j
+          mvalueat    = if value_ then Just value_at_ else Nothing
+          today       = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
+        in
+          if multiperiod then
+            let
+              showempty = empty_ || average_
+              summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
+            in case mvalueat of
+              Nothing            -> [(p                                       , periodend) | (p,periodend) <- summaryps]
+              Just AtTransaction -> [(postingValueAtDate j (postingDate p) p  , periodend) | (p,periodend) <- summaryps]
+              Just AtPeriod      -> [(postingValueAtDate j periodlastday p    , periodend) | (p,periodend) <- summaryps
+                                    ,let periodlastday = maybe
+                                           (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
+                                           (addDays (-1))
+                                           periodend
+                                    ]
+              Just AtNow         -> [(postingValueAtDate j today p            , periodend) | (p,periodend) <- summaryps]
+              Just (AtDate d)    -> [(postingValueAtDate j d p                , periodend) | (p,periodend) <- summaryps]
+          else
+            let reportperiodlastday =
+                  fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
+                  $ reportPeriodOrJournalLastDay ropts j
+            in case mvalueat of
+              Nothing            -> [(p                                         , Nothing) | p <- reportps]
+              Just AtTransaction -> [(postingValueAtDate j (postingDate p) p    , Nothing) | p <- reportps]
+              Just AtPeriod      -> [(postingValueAtDate j reportperiodlastday p, Nothing) | p <- reportps]
+              Just AtNow         -> [(postingValueAtDate j today p              , Nothing) | p <- reportps]
+              Just (AtDate d)    -> [(postingValueAtDate j d p                  , Nothing) | p <- reportps]
 
       -- posting report items ready for display
       items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
