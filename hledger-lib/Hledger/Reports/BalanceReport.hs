@@ -66,33 +66,63 @@ flatShowsExclusiveBalance    = True
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport ropts@ReportOpts{..} q j = 
   (if invert_ then brNegate  else id) $ 
-  (if value_  then brValue ropts j else id) $
   (sorteditems, total)
     where
       -- dbg1 = const id -- exclude from debug output
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
+      -- We may be converting amounts to value, according to --value-at:
+      --  transaction: convert each posting to value before summing
+      --  period:      convert totals to value at period end
+      --  date:        convert totals to value at date
+      mvalueat = if value_ then Just value_at_ else Nothing
+      today    = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
+
+      -- For --value-at=transaction, convert all postings to value before summing them.
+      -- The report might not use them all but laziness probably helps here.
+      j' | mvalueat==Just AtTransaction =
+             mapJournalPostings (\p -> postingValueAtDate j (postingDate p) p) j
+         | otherwise = j
+      
       -- Get all the summed accounts & balances, according to the query, as an account tree.
-      accts = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j
+      accttree = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j'
+
+      -- For --value-at=(all except transaction, done above), convert the summed amounts to value.
+      valuedaccttree = mapAccounts valueaccount accttree
+        where
+          valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
+            where
+              val = case mvalueat of
+                              Just AtPeriod      -> mixedAmountValue prices periodlastday
+                              Just AtNow         -> mixedAmountValue prices today
+                              Just (AtDate d)    -> mixedAmountValue prices d
+                              _                  -> id
+                where
+                  -- prices are in parse order - sort into date then parse order,
+                  -- & reversed for quick lookup of the latest price.
+                  prices = reverse $ sortOn mpdate $ jmarketprices j'
+                  periodlastday =
+                    fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen
+                    reportPeriodOrJournalLastDay ropts j'
 
       -- Modify this tree for display - depth limit, boring parents, zeroes - and convert to a list.
       displayaccts :: [Account]
           | queryDepth q == 0 =
-                         dbg1 "accts" $
-                         take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
-          | flat_ ropts = dbg1 "accts" $
+                         dbg1 "displayaccts" $
+                         take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts valuedaccttree
+          | flat_ ropts = dbg1 "displayaccts" $
                          filterzeros $
                          filterempty $
-                         drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
-          | otherwise  = dbg1 "accts" $
+                         drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts valuedaccttree
+          | otherwise  = dbg1 "displayaccts" $
                          filter (not.aboring) $
                          drop 1 $ flattenAccounts $
                          markboring $
                          prunezeros $
                          sortAccountTreeByAmount (fromMaybe NormallyPositive normalbalance_) $
-                         clipAccounts (queryDepth q) accts
+                         clipAccounts (queryDepth q) valuedaccttree
           where
-            balance   = if flat_ ropts then aebalance else aibalance
+            balance     = if flat_ ropts then aebalance else aibalance
             filterzeros = if empty_ then id else filter (not . isZeroMixedAmount . balance)
             filterempty = filter (\a -> anumpostings a > 0 || not (isZeroMixedAmount (balance a)))
             prunezeros  = if empty_ then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
@@ -118,7 +148,7 @@ balanceReport ropts@ReportOpts{..} q j =
             where 
               anamesandrows = [(first4 r, r) | r <- rows]
               anames = map fst anamesandrows
-              sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
+              sortedanames = sortAccountNamesByDeclaration j' (tree_ ropts) anames
               sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
       -- Calculate the grand total.
@@ -169,38 +199,6 @@ brNegate :: BalanceReport -> BalanceReport
 brNegate (is, tot) = (map brItemNegate is, -tot) 
   where
     brItemNegate (a, a', d, amt) = (a, a', d, -amt)
-
--- | Convert all the posting amounts in a BalanceReport to their
--- default valuation commodities. This means using the Journal's most
--- recent applicable market prices before the valuation date.
--- The valuation date is set with --value-at and can be:
--- each posting's date,
--- the last day in the report period (or in the journal if no period,
--- or gives an error if journal is empty - shouldn't happen),
--- or today's date (gives an error if today_ is not set in ReportOpts),
--- or a specified date.
-brValue :: ReportOpts -> Journal -> BalanceReport -> BalanceReport
-brValue ropts@ReportOpts{..} j (items, total) =
-  ([ (n, n', i, val a) | (n,n',i,a) <- items ]
-  ,val total
-  )
-  where
-    val amt =
-      case value_at_ of
-        AtTransaction -> amt  -- this case is converted earlier, see Balance.hs
-        AtPeriod      -> val' reportperiodlastday
-        AtNow         -> val' today
-        AtDate d      -> val' d
-      where
-        val' d = mixedAmountValue prices d amt
-        -- prices are in parse order - sort into date then parse order,
-        -- & reversed for quick lookup of the latest price.
-        prices = reverse $ sortOn mpdate $ jmarketprices j
-        reportperiodlastday =
-          fromMaybe (error' "brValue: expected a non-empty journal") -- XXX shouldn't happen
-          $ reportPeriodOrJournalLastDay ropts j
-        today =
-          fromMaybe (error' "brValue: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 
 
 -- tests
