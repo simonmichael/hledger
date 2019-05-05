@@ -14,7 +14,6 @@ module Hledger.Cli.Utils
      writeOutput,
      journalTransform,
      journalAddForecast,
-     journalValueAtTransactionDate,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -120,24 +119,6 @@ anonymise j
       j { jtxns = map tAnons . jtxns $ j }
   where
     anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
-
--- journalApplyValue and friends are here not in Hledger.Data.Journal
--- because they use ReportOpts.
-
--- | Convert all the journal's posting amounts to their market value
--- as of each posting's date. Needed when converting some periodic
--- reports to value, when --value-at=transaction (only).
--- See eg Register.hs. 
-journalValueAtTransactionDate :: ReportOpts -> Journal -> Journal
-journalValueAtTransactionDate ReportOpts{..} j@Journal{..}
-  | value_at_ /= AtTransaction = j
-  | otherwise                  = j{jtxns = map txnvalue jtxns}
-  where
-    txnvalue t@Transaction{..} = t{tpostings=map postingvalue tpostings}
-    postingvalue p@Posting{..} = p{pamount=mixedAmountValue prices (postingDate p) pamount}
-    -- prices are in parse order - sort into date then parse order,
-    -- reversed for quick lookup of the latest price.
-    prices = reverse $ sortOn mpdate jmarketprices
 
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).

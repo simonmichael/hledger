@@ -612,9 +612,10 @@ Here are the ones currently supported
 | register                                                | Y                                 | Y                            | Y                                |
 | register,&nbsp;multiperiod                              | Y                                 | Y                            | Y                                |
 | balance                                                 | Y                                 | Y                            | Y                                |
-| balance,&nbsp;multiperiod                               | -                                 | Y                            | Y                                |
-| balance,&nbsp;multiperiod,&nbsp;-T/-A                   | -                                 | -                            | Y                                |
+| balance,&nbsp;multiperiod                               | Y                                 | Y                            | Y                                |
+| balance,&nbsp;multiperiod,&nbsp;-T/-A                   | Y                                 | Y                            | Y                                |
 | register/balance,&nbsp;multiperiod,&nbsp;-T/-A,&nbsp;-H | ?                                 | ?                            | ?                                |
+| balance,&nbsp;--budget                                  | ?                                 | ?                            | ?                                |
 
 ## Combining -B and -V
 

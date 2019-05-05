@@ -25,7 +25,7 @@ import Text.Tabular as T
 import Hledger
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (journalValueAtTransactionDate, writeOutput)
+import Hledger.Cli.Utils (writeOutput)
 
 -- | Description of a compound balance report command, 
 -- from which we generate the command's cmdargs mode and IO action.
@@ -209,15 +209,11 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
 compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> NormalSign -> MultiBalanceReport
 compoundBalanceSubreport ropts@ReportOpts{..} userq j subreportqfn subreportnormalsign = r'
   where
-    -- With --value-at=transaction and a periodic report, convert all amounts to value before summing them.
-    j' | value_at_ == AtTransaction && interval_ /= NoInterval = journalValueAtTransactionDate ropts j
-       | otherwise = j
-
     -- force --empty to ensure same columns in all sections
     ropts' = ropts { empty_=True, normalbalance_=Just subreportnormalsign }
     -- run the report
-    q = And [subreportqfn j', userq]
-    r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j'
+    q = And [subreportqfn j, userq]
+    r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j
     -- if user didn't specify --empty, now remove the all-zero rows, unless they have non-zero subaccounts
     -- in this report
     r' | empty_    = r

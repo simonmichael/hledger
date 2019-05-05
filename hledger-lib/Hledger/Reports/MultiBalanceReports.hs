@@ -85,7 +85,6 @@ type ClippedAccountName = AccountName
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 multiBalanceReport ropts@ReportOpts{..} q j =
   (if invert_ then mbrNegate else id) $ 
-  (if value_  then mbrValue ropts j else id) $
   MultiBalanceReport (displayspans, sorteditems, totalsrow)
     where
       symq       = dbg1 "symq"   $ filterQuery queryIsSym $ dbg1 "requested q" q
@@ -139,14 +138,39 @@ multiBalanceReport ropts@ReportOpts{..} q j =
             | empty_    = dbg1 "displayspan (-E)" reportspan                              -- all the requested intervals
             | otherwise = dbg1 "displayspan" $ requestedspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
           matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts ropts) ps
-      -- Group postings into their columns.
-      psPerSpan :: [[Posting]] =
+      -- Group postings into their columns, with the column end dates.
+      psPerSpan :: [([Posting], Maybe Day)] =
           dbg1 "psPerSpan"
-          [filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps | s <- displayspans]
+          [(filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps, spanEnd s) | s <- displayspans]
+      -- Check if we'll be doing valuation. Here's how it's done in the various cases:
+      --  balance -M --value-at
+      --   transaction: convert each posting to value before calculating table cell amounts (balance change or ending balance) ?
+      --   period:      convert each table cell amount (balance change or ending balance) to its value at period end
+      --   date:        convert each table cell amount to its value at date
+      mvalueat = if value_ then Just value_at_ else Nothing
+      today    = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
+      -- If --value-at=transaction is in effect, convert the postings to value before summing.
+      maybeValuedPsPerSpan :: [([Posting], Maybe Day)] =
+        case mvalueat of
+          Just AtTransaction -> [([postingValueAtDate j (postingDate p) p | p <- ps], periodend) | (ps,periodend) <- psPerSpan]
+          _                  -> psPerSpan
       -- In each column, calculate the change in each account that has postings.
+      -- And if --value-at is in effect (except --value-at=transaction), convert these change amounts to value.
       postedAcctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg1 "postedAcctBalChangesPerSpan" $
-          map postingAcctBals psPerSpan
+          [postingAcctBals valuedps
+          | (ps,periodend) <- maybeValuedPsPerSpan
+          , let periodlastday = maybe
+                                (error' "multiBalanceReport: expected a subperiod end date") -- XXX shouldn't happen
+                                (addDays (-1))
+                                periodend
+          , let valuedps =
+                  case mvalueat of
+                    Just AtPeriod      -> [postingValueAtDate j periodlastday p | p <- ps]
+                    Just AtNow         -> [postingValueAtDate j today p         | p <- ps]
+                    Just (AtDate d)    -> [postingValueAtDate j d p             | p <- ps]
+                    _                  -> ps
+          ]
           where
             postingAcctBals :: [Posting] -> [(ClippedAccountName, MixedAmount)]
             postingAcctBals ps = [(aname a, (if tree_ ropts then aibalance else aebalance) a) | a <- as]
@@ -192,8 +216,8 @@ multiBalanceReport ropts@ReportOpts{..} q j =
           [(a, accountLeafName a, accountNameLevel a, displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ of
-                                  HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
-                                  CumulativeChange -> drop 1 $ scanl (+) nullmixedamt changes
+                                  HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes  -- XXX need to value per period
+                                  CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
                                   _                 -> changes
            , let rowtot = sum displayedBals
            , let rowavg = averageMixedAmounts displayedBals
@@ -273,43 +297,6 @@ mbrNegate (MultiBalanceReport (colspans, rows, totalsrow)) =
 multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
 multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
 multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
-
--- | Convert all the posting amounts in a MultiBalanceReport to their
--- default valuation commodities. This means using the Journal's most
--- recent applicable market prices before the valuation date.
--- The valuation date is set with --value-at and can be:
--- each posting's date,
--- or the last day in the report subperiod,
--- or today's date (gives an error if today_ is not set in ReportOpts),
--- or a specified date.
-mbrValue :: ReportOpts -> Journal -> MultiBalanceReport -> MultiBalanceReport
-mbrValue ReportOpts{..} Journal{..} (MultiBalanceReport (spans, rows, (coltotals, rowtotaltotal, rowavgtotal))) =
-  MultiBalanceReport (
-     spans
-    ,[(acct, acct', depth, map (uncurry val) $ zip ends rowamts, val end rowtotal, val end rowavg)
-     | (acct, acct', depth, rowamts, rowtotal, rowavg) <- rows]
-    ,(map (uncurry val) $ zip ends coltotals
-     ,val end rowtotaltotal
-     ,val end rowavgtotal)
-    )
-  where
-    ends = map (addDays (-1) . fromMaybe (error' "mbrValue: expected all report periods to have an end date") . spanEnd) spans  -- XXX shouldn't happen
-    end  = lastDef (error' "mbrValue: expected at least one report subperiod") ends  -- XXX shouldn't happen
-    val periodend amt = mixedAmountValue prices valuationdate amt
-      where
-        -- prices are in parse order - sort into date then parse order,
-        -- & reversed for quick lookup of the latest price.
-        prices = reverse $ sortOn mpdate jmarketprices
-        valuationdate = case value_at_ of
-          AtTransaction ->
-            error' "sorry, --value-at=transaction with balance reports is not yet supported"
-          AtPeriod | average_ || row_total_ ->
-            error' "sorry, --value-at=period with -T or -A in periodic balance reports is not yet supported"
-          AtPeriod      -> periodend
-          AtNow         -> case today_ of
-                             Just d  -> d
-                             Nothing -> error' "mbrValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
-          AtDate d      -> d
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport, 
 -- in order to support --historical. Does not support tree-mode boring parent eliding. 

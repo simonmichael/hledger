@@ -323,11 +323,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
           
       else
         if multiperiod then do  -- multi period balance report
-          -- With --value-at=transaction, convert all amounts to value before summing them.
-          let j' | value_at_ == AtTransaction =
-                     error' "sorry, --value-at=transaction with balance reports is not yet supported"  -- journalValueAtTransactionDate ropts j
-                 | otherwise = j
-              report = multiBalanceReport ropts (queryFromOpts d ropts) j'
+          let report = multiBalanceReport ropts (queryFromOpts d ropts) j
               render = case format of
                 "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
                 "html" ->  (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
@@ -335,16 +331,13 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
           writeOutput opts $ render report
 
         else do  -- single period simple balance report
-          -- With --value-at=transaction, convert all amounts to value before summing them.
-          let j' | value_at_ == AtTransaction = journalValueAtTransactionDate ropts j
-                 | otherwise = j
-              report
+          let report
                 | balancetype_ `elem` [HistoricalBalance, CumulativeChange]
                   = let ropts' | flat_ ropts = ropts
                                | otherwise   = ropts{accountlistmode_=ALTree}
-                    in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j'
+                    in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j
                           -- for historical balances we must use balanceReportFromMultiBalanceReport (also forces --no-elide)
-                | otherwise = balanceReport ropts (queryFromOpts d ropts) j' -- simple Ledger-style balance report 
+                | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report 
               render = case format of
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO

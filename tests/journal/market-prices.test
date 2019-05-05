@@ -299,15 +299,13 @@ $ hledger -f- bal -V
 
 # 29. multicolumn balance report valued at transaction
 $ hledger -f- bal -MTA --value-at=transaction
->2 /not yet supported/
->=1
-# Balance changes in 2000q1:
-#
-#    || Jan  Feb  Mar    Total  Average 
-# ===++=================================
-#  a || 1 B  2 B  3 B      6 B      2 B 
-# ---++---------------------------------
-#    || 1 B  2 B  3 B      6 B      2 B 
+Balance changes in 2000q1:
+
+   || Jan  Feb  Mar    Total  Average 
+===++=================================
+ a || 1 B  2 B  3 B      6 B      2 B 
+---++---------------------------------
+   || 1 B  2 B  3 B      6 B      2 B 
  
 # 30. multicolumn balance report valued at period end
 $ hledger -f- bal -M --value-at=period
@@ -321,18 +319,25 @@ Balance changes in 2000q1:
 
 # 31. multicolumn balance report valued at period end with -T or -A
 $ hledger -f- bal -M --value-at=period -TA
->2 /not yet supported/
->=1
-
-# 32. multicolumn balance report valued at other date
-$ hledger -f- bal -M --value-at=2000-01-15
 Balance changes in 2000q1:
 
-   || Jan  Feb  Mar 
-===++===============
- a || 5 B  5 B  5 B 
----++---------------
-   || 5 B  5 B  5 B 
+   || Jan  Feb  Mar    Total  Average 
+===++=================================
+ a || 5 B  2 B  3 B     10 B      3 B 
+---++---------------------------------
+   || 5 B  2 B  3 B     10 B      3 B 
+# >2 /not yet supported/
+# >=1
+
+# 32. multicolumn balance report valued at other date
+$ hledger -f- bal -MTA --value-at=2000-01-15
+Balance changes in 2000q1:
+
+   || Jan  Feb  Mar    Total  Average 
+===++=================================
+ a || 5 B  5 B  5 B     15 B      5 B 
+---++---------------------------------
+   || 5 B  5 B  5 B     15 B      5 B 
 
 # 33. multicolumn balance report valued today (with today >= 2000-04-01)
 $ hledger -f- bal -M --value-at=now
