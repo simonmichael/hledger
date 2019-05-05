@@ -600,22 +600,24 @@ $ hledger -f- print --value-at=2000-01-15
 
 ### Reports supporting --value-at
 
-Not all combinations of valuation date and hledger report modes are
-supported or well understood at present
-([#329](https://github.com/simonmichael/hledger/issues/329)).
-Here are the ones currently supported
-("print", "register", and "balance" here mean all commands of that general type):
+All report/--value-at combinations are expected to do the right
+thing, or at least a reasonable thing. If you find problems, please
+report them (with reproducible examples) eg at
+[#329](https://github.com/simonmichael/hledger/issues/329). 
+The table below shows the current status as far as we know it.
+(Here "print", "register", "balance" mean all commands of those
+general types, and "-M" means any report interval):
 
-| Report type                                             | `--value-at=` `transaction`&nbsp; | `--value-at=` `period`&nbsp; | `--value-at=` `DATE`/`now`&nbsp; |
-|---------------------------------------------------------|:---------------------------------:|:----------------------------:|:--------------------------------:|
-| print                                                   | Y                                 | Y                            | Y                                |
-| register                                                | Y                                 | Y                            | Y                                |
-| register,&nbsp;multiperiod                              | Y                                 | Y                            | Y                                |
-| balance                                                 | Y                                 | Y                            | Y                                |
-| balance,&nbsp;multiperiod                               | Y                                 | Y                            | Y                                |
-| balance,&nbsp;multiperiod,&nbsp;-T/-A                   | Y                                 | Y                            | Y                                |
-| register/balance,&nbsp;multiperiod,&nbsp;-T/-A,&nbsp;-H | ?                                 | ?                            | ?                                |
-| balance,&nbsp;--budget                                  | ?                                 | ?                            | ?                                |
+| Report type                | `--value-at=` `transaction`&nbsp; | `--value-at=` `period`&nbsp; | `--value-at=` `DATE`/`now`&nbsp; |
+|----------------------------|:---------------------------------:|:----------------------------:|:--------------------------------:|
+| print                      | Y                                 | Y                            | Y                                |
+| register                   | Y                                 | Y                            | Y                                |
+| register&nbsp;-M           | Y                                 | Y                            | Y                                |
+| register&nbsp;-H           | ?                                 | ?                            | ?                                |
+| balance                    | Y                                 | Y                            | Y                                |
+| balance&nbsp;-M&nbsp;-T/-A | Y                                 | Y                            | Y                                |
+| balance&nbsp;-M&nbsp;-H    | -                                 | -                            | -                                |
+| balance&nbsp;--budget      | ?                                 | ?                            | ?                                |
 
 ## Combining -B and -V
 
