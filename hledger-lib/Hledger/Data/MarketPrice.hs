@@ -42,3 +42,12 @@ postingValueAtDate j d p@Posting{..} = p{pamount=mixedAmountValue prices d pamou
     -- prices are in parse order - sort into date then parse order,
     -- & reversed for quick lookup of the latest price.
     prices = reverse $ sortOn mpdate $ jmarketprices j
+
+-- -- | Find the best commodity to convert to when asked to show the
+-- -- market value of this commodity on the given date. That is, the one
+-- -- in which it has most recently been market-priced, ie the commodity
+-- -- mentioned in the most recent applicable historical price directive
+-- -- before this date.
+-- -- defaultValuationCommodity :: Journal -> Day -> CommoditySymbol -> Maybe CommoditySymbol
+-- -- defaultValuationCommodity j d c = mpamount <$> commodityValue j d c
+

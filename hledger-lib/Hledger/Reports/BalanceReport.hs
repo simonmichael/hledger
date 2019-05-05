@@ -202,14 +202,6 @@ brValue ropts@ReportOpts{..} j (items, total) =
         today =
           fromMaybe (error' "brValue: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 
--- -- | Find the best commodity to convert to when asked to show the
--- -- market value of this commodity on the given date. That is, the one
--- -- in which it has most recently been market-priced, ie the commodity
--- -- mentioned in the most recent applicable historical price directive
--- -- before this date.
--- -- defaultValuationCommodity :: Journal -> Day -> CommoditySymbol -> Maybe CommoditySymbol
--- -- defaultValuationCommodity j d c = mpamount <$> commodityValue j d c
-
 
 -- tests
 
