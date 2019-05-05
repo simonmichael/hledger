@@ -125,24 +125,25 @@ multiBalanceReport ropts@ReportOpts{..} q j =
           precedingspan = case spanStart reportspan of
                             Just d  -> DateSpan Nothing (Just d)
                             Nothing -> emptydatespan 
+      -- Postings to be considered for this balance report.
       ps :: [Posting] =
           dbg1 "ps" $
           journalPostings $
           filterJournalAmounts symq $     -- remove amount parts excluded by cur:
           filterJournalPostings reportq $        -- remove postings not matched by (adjusted) query
           journalSelectingAmountFromOpts ropts j
-
+      -- One or more date spans corresponding to the report columns.
       displayspans = dbg1 "displayspans" $ splitSpan interval_ displayspan
         where
           displayspan
             | empty_    = dbg1 "displayspan (-E)" reportspan                              -- all the requested intervals
             | otherwise = dbg1 "displayspan" $ requestedspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
           matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts ropts) ps
-
+      -- Group postings into their columns.
       psPerSpan :: [[Posting]] =
           dbg1 "psPerSpan"
           [filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps | s <- displayspans]
-
+      -- In each column, calculate the change in each account that has postings.
       postedAcctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg1 "postedAcctBalChangesPerSpan" $
           map postingAcctBals psPerSpan
@@ -156,10 +157,9 @@ multiBalanceReport ropts@ReportOpts{..} q j =
                   depthLimit
                       | tree_ ropts = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
                       | otherwise   = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
-
+      -- All accounts referenced across all columns.
       postedAccts :: [AccountName] = dbg1 "postedAccts" $ sort $ accountNamesFromPostings ps
-
-      -- starting balances and accounts from transactions before the report start date
+      -- Starting account balances, from transactions before the report start date.
       startacctbals = dbg1 "startacctbals" $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
           where
             (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport ropts' startbalq j
@@ -168,23 +168,25 @@ multiBalanceReport ropts@ReportOpts{..} q j =
                                              | otherwise   = ropts{accountlistmode_=ALFlat}
       startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startacctbals
       startAccts = dbg1 "startAccts" $ map fst startacctbals
-
+      -- All account names that will be displayed, possibly depth-clipped.
       displayedAccts :: [ClippedAccountName] =
           dbg1 "displayedAccts" $
           (if tree_ ropts then expandAccountNames else id) $
           nub $ map (clipOrEllipsifyAccountName depth) $
           if empty_ || balancetype_ == HistoricalBalance then nub $ sort $ startAccts ++ postedAccts else postedAccts
-
+      -- Pad out the per-column account balance changes with zeroes
+      -- so that each column contains a value for all the accounts.
       acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg1 "acctBalChangesPerSpan"
           [sortBy (comparing fst) $ unionBy (\(a,_) (a',_) -> a == a') postedacctbals zeroes
            | postedacctbals <- postedAcctBalChangesPerSpan]
           where zeroes = [(a, nullmixedamt) | a <- displayedAccts]
-
+      -- For each account, the balance changes in each column.
       acctBalChanges :: [(ClippedAccountName, [MixedAmount])] =
           dbg1 "acctBalChanges"
           [(a, map snd abs) | abs@((a,_):_) <- transpose acctBalChangesPerSpan] -- never null, or used when null...
-
+      -- The report rows, one per account, with account name info,
+      -- column amounts, row total and row average.
       items :: [MultiBalanceReportRow] =
           dbg1 "items" $
           [(a, accountLeafName a, accountNameLevel a, displayedBals, rowtot, rowavg)
@@ -197,7 +199,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
            , let rowavg = averageMixedAmounts displayedBals
            , empty_ || depth == 0 || any (not . isZeroMixedAmount) displayedBals
            ]
-
+      -- Sort the report rows by amount or by account declaration order. A bit tricky.
       -- TODO TBD: is it always ok to sort report rows after report has been generated ?
       -- Or does sorting sometimes need to be done as part of the report generation ?  
       sorteditems :: [MultiBalanceReportRow] =
@@ -237,7 +239,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
                   anames = map fst anamesandrows
                   sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
                   sortedrows = sortAccountItemsLike sortedanames anamesandrows 
-
+      -- Calculate the subperiod column totals.
       totals :: [MixedAmount] =
           -- dbg1 "totals" $
           map sum balsbycol
@@ -246,7 +248,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
             highestlevelaccts     =
                 dbg1 "highestlevelaccts"
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]
-
+      -- Add a grand total and average to complete the totals row.
       totalsrow :: MultiBalanceReportTotals =
           dbg1 "totalsrow"
           (totals, sum totals, averageMixedAmounts totals)
