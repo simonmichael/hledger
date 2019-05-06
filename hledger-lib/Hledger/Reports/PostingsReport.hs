@@ -95,11 +95,12 @@ postingsReport ropts@ReportOpts{..} q j =
           if multiperiod then
             let
               showempty = empty_ || average_
-              summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
+              -- for --value-at=transaction, need to value the postings before summarising them
+              maybevaluedreportps
+                | mvalueat==Just AtTransaction = [postingValueAtDate j (postingDate p) p | p <- reportps]
+                | otherwise                    = reportps
+              summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan maybevaluedreportps
             in case mvalueat of
-              Nothing            -> [(p                                       , periodend) | (p,periodend) <- summaryps]
-              Just AtTransaction -> [(postingValueAtDate j (postingDate p) p  , periodend) | (p,periodend) <- summaryps]
-                --   ^ XXX shouldn't this value the individual ps at postingdate before summarising
               Just AtPeriod      -> [(postingValueAtDate j periodlastday p    , periodend) | (p,periodend) <- summaryps
                                     ,let periodlastday = maybe
                                            (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
@@ -108,6 +109,7 @@ postingsReport ropts@ReportOpts{..} q j =
                                     ]
               Just AtNow         -> [(postingValueAtDate j today p            , periodend) | (p,periodend) <- summaryps]
               Just (AtDate d)    -> [(postingValueAtDate j d p                , periodend) | (p,periodend) <- summaryps]
+              _                  -> summaryps
           else
             let reportperiodlastday =
                   fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
@@ -118,8 +120,6 @@ postingsReport ropts@ReportOpts{..} q j =
               Just AtPeriod      -> [(postingValueAtDate j reportperiodlastday p, Nothing) | p <- reportps]
               Just AtNow         -> [(postingValueAtDate j today p              , Nothing) | p <- reportps]
               Just (AtDate d)    -> [(postingValueAtDate j d p                  , Nothing) | p <- reportps]
-
-      -- For -H: postings preceding the report period, to calculate the initial running total/average.
 
       -- posting report items ready for display
       items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth valuedstartbal runningcalc startnum

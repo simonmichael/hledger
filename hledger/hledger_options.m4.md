@@ -611,7 +611,7 @@ types, "-M" means any report interval, "Y" means supported):
 |-----------------------|:--------------------------------:|:---------------------------:|:-------------------------------:|
 | print                 | Y                                | Y                           | Y                               |
 | register              | Y                                | Y                           | Y                               |
-| register&nbsp;-M      | *retest*                         | Y                           | Y                               |
+| register&nbsp;-M      | Y                                | Y                           | Y                               |
 | register&nbsp;-H      | Y                                | Y                           | Y                               |
 | balance               | Y                                | Y                           | Y                               |
 | balance&nbsp;-MTA     | Y                                | Y                           | Y                               |
