@@ -5,7 +5,29 @@ a richer abstraction than DateSpan. See also Types and Dates.
 
 -}
 
-module Hledger.Data.Period
+module Hledger.Data.Period (
+   periodAsDateSpan
+  ,dateSpanAsPeriod
+  ,simplifyPeriod
+  ,isLastDayOfMonth
+  ,isStandardPeriod
+  ,showPeriod
+  ,showPeriodMonthAbbrev
+  ,periodStart
+  ,periodEnd
+  ,periodNext
+  ,periodPrevious
+  ,periodNextIn
+  ,periodPreviousIn
+  ,periodMoveTo
+  ,periodGrow
+  ,periodShrink
+  ,mondayBefore
+  ,yearMonthContainingWeekStarting
+  ,quarterContainingMonth
+  ,firstMonthOfQuarter
+  ,startOfFirstWeekInMonth
+)
 where
 
 import Data.Time.Calendar
