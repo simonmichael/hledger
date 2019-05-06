@@ -600,24 +600,62 @@ $ hledger -f- print --value-at=2000-01-15
 
 ### Reports supporting --value-at
 
-All report/--value-at combinations are expected to do the right
-thing, or at least a reasonable thing. If you find problems, please
-report them (with reproducible examples) eg at
-[#329](https://github.com/simonmichael/hledger/issues/329). 
+Currently all report/--value-at combinations are expected to do the
+right thing, or at least a reasonable thing. 
+Though, some of these combinations might not make sense. 
 The table below shows the current status as far as we know it.
-(Here "print", "register", "balance" mean all commands of those
-general types, and "-M" means any report interval):
+("print", "register", "balance" mean all commands of those general
+types, "-M" means any report interval, "Y" means supported):
 
-| Report type                | `--value-at=` `transaction`&nbsp; | `--value-at=` `period`&nbsp; | `--value-at=` `DATE`/`now`&nbsp; |
-|----------------------------|:---------------------------------:|:----------------------------:|:--------------------------------:|
-| print                      | Y                                 | Y                            | Y                                |
-| register                   | Y                                 | Y                            | Y                                |
-| register&nbsp;-M           | Y                                 | Y                            | Y                                |
-| register&nbsp;-H           | ?                                 | ?                            | ?                                |
-| balance                    | Y                                 | Y                            | Y                                |
-| balance&nbsp;-M&nbsp;-T/-A | Y                                 | Y                            | Y                                |
-| balance&nbsp;-M&nbsp;-H    | -                                 | -                            | -                                |
-| balance&nbsp;--budget      | ?                                 | ?                            | ?                                |
+| Report type           | `--value-at` `transaction`&nbsp; | `--value-at` `period`&nbsp; | `--value-at` `DATE`/`now`&nbsp; |
+|-----------------------|:--------------------------------:|:---------------------------:|:-------------------------------:|
+| print                 | Y                                | Y                           | Y                               |
+| register              | Y                                | Y                           | Y                               |
+| register&nbsp;-M      | *retest*                         | Y                           | Y                               |
+| register&nbsp;-H      | Y                                | Y                           | Y                               |
+| balance               | Y                                | Y                           | Y                               |
+| balance&nbsp;-MTA     | Y                                | Y                           | Y                               |
+| balance&nbsp;-MH      | *not yet*                        | *not yet*                   | *not yet*                       |
+| balance&nbsp;--budget | ?                                | ?                           | ?                               |
+
+If you find problems (useless reports, misbehaving reports, or errors
+being reported), please report them (with reproducible examples) eg at
+[#329](https://github.com/simonmichael/hledger/issues/329).
+
+Some more notes specific to the report types:
+
+#### print --value-at
+
+Posting amounts are converted to value, but balance assertion/balance assignment amounts are not.
+
+#### register --value-at
+
+    register --value-at
+     transaction: convert each posting to value at posting date         ; with -H, convert starting balance to value at day before report start
+     period:      convert each posting to value at report end           ; with -H, convert starting balance to value at day before report start
+     date:        convert each posting to value at date                 ; with -H, convert starting balance to value at date
+
+    register -M --value-at
+     transaction: convert each summary posting to value at posting date ; with -H, convert starting balance to value at day before report start
+     period:      convert each summary posting to value at period end   ; with -H, convert starting balance to value at day before report start
+     date:        convert each summary posting to value at date         ; with -H, convert starting balance to value at date
+    
+"Day before report start" is a bit arbitrary.
+
+In all cases, the running total/average is calculated from the above numbers.
+
+#### balance --value-at
+
+    balance --value-at
+     transaction: convert each posting to value before summing
+     period:      convert totals to value at period end
+     date:        convert totals to value at date
+
+    balance -M --value-at
+     transaction: convert each posting to value before calculating table cell amounts
+     period:      convert each table cell amount (balance change or ending balance) to its value at period end
+     date:        convert each table cell amount to its value at date
+
 
 ## Combining -B and -V
 
