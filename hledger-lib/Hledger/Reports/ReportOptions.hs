@@ -33,6 +33,8 @@ module Hledger.Reports.ReportOptions (
   specifiedStartEndDates,
   specifiedStartDate,
   specifiedEndDate,
+  reportPeriodStart,
+  reportPeriodOrJournalStart,
   reportPeriodLastDay,
   reportPeriodOrJournalLastDay,
 
@@ -431,6 +433,8 @@ queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
     flagsqopts = []
     argsqopts = snd $ parseQuery d (T.pack query_)
 
+-- Report dates.
+
 -- | The effective report span is the start and end dates specified by
 -- options or queries, or otherwise the earliest and latest transaction or 
 -- posting dates in the journal. If no dates are specified by options/queries
@@ -470,10 +474,32 @@ specifiedStartDate ropts = fst <$> specifiedStartEndDates ropts
 specifiedEndDate :: ReportOpts -> IO (Maybe Day)
 specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 
--- Get the last day of the overall report period.
+-- Some pure alternatives to the above. XXX review/clean up
+
+-- Get the report's start date.
 -- If no report period is specified, will be Nothing.
 -- Will also be Nothing if ReportOpts does not have today_ set,
--- since we need that to get the report period robustly.
+-- since we need that to get the report period robustly
+-- (unlike reportStartDate, which looks up the date with IO.)
+reportPeriodStart :: ReportOpts -> Maybe Day
+reportPeriodStart ropts@ReportOpts{..} = do
+  t <- today_
+  queryStartDate False $ queryFromOpts t ropts
+
+-- Get the report's start date, or if no report period is specified,
+-- the journal's start date (the earliest posting date). If there's no
+-- report period and nothing in the journal, will be Nothing.
+reportPeriodOrJournalStart :: ReportOpts -> Journal -> Maybe Day
+reportPeriodOrJournalStart ropts@ReportOpts{..} j =
+  reportPeriodStart ropts <|> journalStartDate False j
+
+-- Get the last day of the overall report period.
+-- This the inclusive end date (one day before the 
+-- more commonly used, exclusive, report end date).
+-- If no report period is specified, will be Nothing.
+-- Will also be Nothing if ReportOpts does not have today_ set,
+-- since we need that to get the report period robustly
+-- (unlike reportEndDate, which looks up the date with IO.)
 reportPeriodLastDay :: ReportOpts -> Maybe Day
 reportPeriodLastDay ropts@ReportOpts{..} = do
   t <- today_
@@ -481,10 +507,10 @@ reportPeriodLastDay ropts@ReportOpts{..} = do
   qend <- queryEndDate False q
   return $ addDays (-1) qend
 
--- Get the last day of the overall report period,
--- or if no report period is specified, the last day of the journal
--- (ie the latest posting date).
--- If there's no report period and nothing in the journal, will be Nothing.
+-- Get the last day of the overall report period, or if no report
+-- period is specified, the last day of the journal (ie the latest
+-- posting date). If there's no report period and nothing in the
+-- journal, will be Nothing.
 reportPeriodOrJournalLastDay :: ReportOpts -> Journal -> Maybe Day
 reportPeriodOrJournalLastDay ropts@ReportOpts{..} j =
   reportPeriodLastDay ropts <|> journalEndDate False j
