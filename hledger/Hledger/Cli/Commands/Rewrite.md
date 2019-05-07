@@ -94,7 +94,7 @@ $ hledger rewrite -- --diff -f examples/sample.journal '^income' --add-posting '
 
 Output might look like:
 
-```diff
+```
 --- /tmp/examples/sample.journal
 +++ /tmp/examples/sample.journal
 @@ -18,3 +18,4 @@
