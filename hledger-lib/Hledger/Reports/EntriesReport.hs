@@ -74,7 +74,8 @@ erValue ropts@ReportOpts{..} j ts = map txnvalue ts
 
         d = case value_at_ of
           AtTransaction -> postingDate p
-          AtPeriod      -> fromMaybe (postingDate p) mperiodorjournallastday
+          AtPeriod      -> fromMaybe (postingDate p)  -- XXX shouldn't happen
+                           mperiodorjournallastday
           AtNow         -> case today_ of
                              Just d  -> d
                              Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value-at=now"

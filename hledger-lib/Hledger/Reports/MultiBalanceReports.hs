@@ -132,7 +132,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
           filterJournalPostings reportq $        -- remove postings not matched by (adjusted) query
           journalSelectingAmountFromOpts ropts j
       -- One or more date spans corresponding to the report columns.
-      displayspans = dbg1 "displayspans" $ splitSpan interval_ displayspan
+      displayspans :: [DateSpan] = dbg1 "displayspans" $ splitSpan interval_ displayspan
         where
           displayspan
             | empty_    = dbg1 "displayspan (-E)" reportspan                              -- all the requested intervals
@@ -142,11 +142,24 @@ multiBalanceReport ropts@ReportOpts{..} q j =
       psPerSpan :: [([Posting], Maybe Day)] =
           dbg1 "psPerSpan"
           [(filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps, spanEnd s) | s <- displayspans]
-      -- Check if we'll be doing valuation. Here's how it's done in the various cases:
-      --  balance -M --value-at
-      --   transaction: convert each posting to value before calculating table cell amounts (balance change or ending balance) ?
-      --   period:      convert each table cell amount (balance change or ending balance) to its value at period end
-      --   date:        convert each table cell amount to its value at date
+      -- Check if we'll be doing valuation. 
+      -- Here's the current plan for each part of the report and each --value-at:
+      --  -H starting balances:
+      --   transaction: sum of values of previous postings on their posting dates
+      --   period:      value -H starting balances at day before report start
+      --   date:        value -H starting balances at date
+      --  table cells:
+      --   transaction: value each posting before calculating table cell amounts
+      --   period:      value each table cell amount at subperiod end
+      --   date:        value each table cell amount at date
+      --  column totals:
+      --   transaction: sum/average the valued cell amounts
+      --   period:      sum/average the unvalued amounts and value at subperiod end
+      --   date:        sum/average the unvalued amounts and value at date
+      --  row totals & averages, grand total & average:
+      --   transaction: sum/average the valued amounts
+      --   period:      sum/average the unvalued amounts and value at report period end
+      --   date:        sum/average the unvalued amounts and value at date
       mvalueat = if value_ then Just value_at_ else Nothing
       today    = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
       -- If --value-at=transaction is in effect, convert the postings to value before summing.

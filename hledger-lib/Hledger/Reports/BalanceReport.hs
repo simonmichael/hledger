@@ -72,9 +72,9 @@ balanceReport ropts@ReportOpts{..} q j =
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
       -- We may be converting amounts to value, according to --value-at:
-      --  transaction: convert each posting to value before summing
-      --  period:      convert totals to value at period end
-      --  date:        convert totals to value at date
+      --  transaction: value each posting at posting date before summing
+      --  period:      value totals at period end
+      --  date:        value totals at date
       mvalueat = if value_ then Just value_at_ else Nothing
       today    = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 

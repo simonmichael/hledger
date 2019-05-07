@@ -71,18 +71,21 @@ postingsReport ropts@ReportOpts{..} q j =
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
 
-      -- We may be converting amounts to value, according to --value-at, as follows:
-      -- (keep synced with hledger_options.m4.md)
+      -- We may be converting amounts to value, according to --value-at.
+      -- Currently this is done as follows (keep synced with hledger_options.m4.md):
       --  register -M --value-at
-      --   transaction: convert each summary posting to value at posting date ; convert -H starting balance to value at day before report start
-      --   period:      convert each summary posting to value at period end   ; convert -H starting balance to value at day before report start
-      --   date:        convert each summary posting to value at date         ; convert -H starting balance to value at date
+      --   transaction: value each posting at posting date, then summarise ; value -H starting balance at day before report start
+      --   period:      value each summary posting at period end           ; value -H starting balance at day before report start
+      --   date:        value each summary posting at date                 ; value -H starting balance at date
       --  register --value-at
-      --   transaction: convert each posting to value at posting date         ; convert -H starting balance to value at day before report start
-      --   period:      convert each posting to value at report end           ; convert -H starting balance to value at day before report start
-      --   date:        convert each posting to value at date                 ; convert -H starting balance to value at date
-      --  in all cases, the running total/average is calculated from the above numbers.
-      -- "Day before report start" is a bit arbitrary.
+      --   transaction: value each posting at posting date                 ; value -H starting balance at day before report start
+      --   period:      value each posting at report end                   ; value -H starting balance at day before report start
+      --   date:        value each posting at date                         ; value -H starting balance at date
+      --
+      --  In all cases, the running total/average is calculated from the above numbers.
+      --  This might not always be what you want; to see the running total valued, try a balance report.
+      --
+      --  "Day before report start" is a bit arbitrary.
 
       mvalueat = if value_ then Just value_at_ else Nothing
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
