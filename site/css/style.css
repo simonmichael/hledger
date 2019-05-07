@@ -1,6 +1,9 @@
 table {
     margin-bottom:1em;
 }
+td {
+    border-bottom:thin solid #ddd;
+}
 code {
 		background-color:inherit;
 		color: inherit;
