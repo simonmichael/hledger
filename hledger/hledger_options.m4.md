@@ -499,17 +499,17 @@ You can select other valuation dates with the `--value-at` option. (This implies
 The argument must be one of the keywords shown, or their first letter, or a custom date.
 The precise effect of the keywords is command-specific, but here is their general meaning:
 
-- `--value-at=transaction` (or `t`)
+`--value-at=transaction` (or `t`)
 : Use the prices as of each transaction date (more precisely, each [posting date](/journal.html#posting-dates)).
 
-- `--value-at=period` (or `p`)
+`--value-at=period` (or `p`)
 : Use the prices as of the last day of the report period (or each subperiod).
 : When no report period is specified, this will be the journal's last transaction date.
 
-- `--value-at=now` (or `n`)
+`--value-at=now` (or `n`)
 : Use the prices as of today's date when the report is generated. This is the default.
 
-- `--value-at=YYYY-MM-DD`
+`--value-at=YYYY-MM-DD`
 : Use the prices as of the given date (8 digits with `-` or `/` or `.` separators).
 : Eg `--value-at=2019-04-25`.
 
