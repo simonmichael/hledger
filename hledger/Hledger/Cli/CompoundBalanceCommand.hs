@@ -128,7 +128,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
           "change":_     -> Just PeriodChange
           _              -> Nothing
       balancetype = fromMaybe cbctype mBalanceTypeOverride
-      title = cbctitle ++ " " ++ showDateSpan requestedspan ++ maybe "" (' ':) mtitleclarification
+      title =
+        cbctitle ++ " " ++ showDateSpan requestedspan
+        ++ maybe "" (' ':) mtitleclarification
+        ++ valuation
         where
           requestedspan = queryDateSpan (date2_ ropts) userq `spanDefaultsFrom` journalDateSpan (date2_ ropts) j
           -- when user overrides, add an indication to the report title
@@ -137,6 +140,13 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
               PeriodChange      -> "(Balance Changes)"
               CumulativeChange  -> "(Cumulative Ending Balances)"
               HistoricalBalance -> "(Historical Ending Balances)"
+          valuation = case valueTypeFromOpts ropts of
+            Just AtTransaction -> ", valued at transaction dates"
+            Just AtPeriod      -> ", valued at period ends"
+            Just AtNow         -> ", current value"
+            Just (AtDate d)    -> ", valued at "++showDate d
+            Nothing            -> ""
+
       -- Set balance type in the report options.
       -- Also, use tree mode (by default, at least?) if --cumulative/--historical 
       -- are used in single column mode, since in that situation we will be using 

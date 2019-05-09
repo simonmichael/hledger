@@ -573,15 +573,21 @@ multiBalanceReportHtmlFootRow ropts (acct:rest) =
 
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
-multiBalanceReportAsText opts r =
-    printf "%s in %s:\n\n" desc (showDateSpan $ multiBalanceReportSpan r)
-      ++ balanceReportTableAsText opts tabl
+multiBalanceReportAsText ropts@ReportOpts{..} r =
+    title ++ "\n\n" ++ (balanceReportTableAsText ropts $ balanceReportAsTable ropts r)
   where
-    tabl = balanceReportAsTable opts r
-    desc = case balancetype_ opts of
-        PeriodChange -> "Balance changes"
-        CumulativeChange -> "Ending balances (cumulative)"
-        HistoricalBalance -> "Ending balances (historical)"
+    title = printf "%s in %s%s:"
+      (case balancetype_ of
+        PeriodChange       -> "Balance changes"
+        CumulativeChange   -> "Ending balances (cumulative)"
+        HistoricalBalance  -> "Ending balances (historical)")
+      (showDateSpan $ multiBalanceReportSpan r)
+      (case valueTypeFromOpts ropts of
+        Just AtTransaction -> ", valued at transaction dates"
+        Just AtPeriod      -> ", valued at period ends"
+        Just AtNow         -> ", current value"
+        Just (AtDate d)    -> ", valued at "++showDate d
+        Nothing            -> "")
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount

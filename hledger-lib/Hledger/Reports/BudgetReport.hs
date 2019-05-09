@@ -3,6 +3,7 @@
 
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Hledger.Reports.BudgetReport
@@ -268,11 +269,18 @@ budgetReportSpan (PeriodicReport (spans, _, _)) = DateSpan (spanStart $ head spa
 
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
-budgetReportAsText ropts budgetr@(PeriodicReport ( _, rows, _)) =
-  printf "Budget performance in %s:\n\n" (showDateSpan $ budgetReportSpan budgetr)
-  ++ 
+budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
+  title ++ "\n\n" ++ 
   tableAsText ropts showcell (maybetranspose $ budgetReportAsTable ropts budgetr)
   where
+    title = printf "Budget performance in %s%s:"
+      (showDateSpan $ budgetReportSpan budgetr)
+      (case valueTypeFromOpts ropts of
+        Just AtTransaction -> ", valued at transaction dates"
+        Just AtPeriod      -> ", valued at period ends"
+        Just AtNow         -> ", current value"
+        Just (AtDate d)    -> ", valued at "++showDate d
+        Nothing            -> "")
     actualwidth =
       maximum [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) amt
       | (_, _, _, amtandgoals, _, _) <- rows
@@ -314,14 +322,14 @@ budgetReportAsText ropts budgetr@(PeriodicReport ( _, rows, _)) =
         toCost = normaliseMixedAmount . costOfMixedAmount 
 
     showamt :: MixedAmount -> String
-    showamt | color_ ropts  = cshowMixedAmountOneLineWithoutPrice
-            | otherwise     = showMixedAmountOneLineWithoutPrice
+    showamt | color_    = cshowMixedAmountOneLineWithoutPrice
+            | otherwise = showMixedAmountOneLineWithoutPrice
 
     -- don't show the budget amount in color, it messes up alignment
     showbudgetamt = showMixedAmountOneLineWithoutPrice
 
-    maybetranspose | transpose_ ropts = \(Table rh ch vals) -> Table ch rh (transpose vals)
-                   | otherwise       = id
+    maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
+                   | otherwise  = id
 
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table String String (Maybe MixedAmount, Maybe MixedAmount)
