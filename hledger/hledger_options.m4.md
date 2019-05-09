@@ -487,11 +487,11 @@ A note for Ledger users: Ledger's -V also infers market prices from journal entr
 but we don't do that. hledger's -V uses only market prices declared explicitly, with P directives.
 (Mnemonic: -B/--cost uses transaction prices, -V/--value uses market prices.)
 
-### Value at another date
+### Valuation date
 
 *(experimental, added 201904)*
 
-You can select other valuation dates with the `--value-at` option. (This implies `-V`):
+You can select valuation dates other than today, with the `--value-at` option. (This implies `-V`):
 
      --value-at=VALUEDATE   as of which date should market values be calculated ?
                             transaction|period|now|YYYY-MM-DD (default: now)
@@ -500,20 +500,24 @@ The argument must be one of the keywords shown, or their first letter, or a cust
 The precise effect of the keywords is command-specific, but here is their general meaning:
 
 `--value-at=transaction` (or `t`)
-: Use the prices as of each transaction date (more precisely, each [posting date](/journal.html#posting-dates)).
+: Use the prices as of each transaction date (more precisely, each [posting's date](/journal.html#posting-dates)).
+  Balance reports will show the sum of amount values.
 
 `--value-at=period` (or `p`)
-: Use the prices as of the last day of the report period (or each subperiod).
-: When no report period is specified, this will be the journal's last transaction date.
+: Use the prices as of the last day of the report period (or each subperiod in a multiperiod report).
+  When no report period is specified, uses the journal's last transaction date.
+  Balance reports will show the period-end value of summed amounts.
 
 `--value-at=now` (or `n`)
 : Use the prices as of today's date when the report is generated. This is the default.
+  Balance reports will show the current value of summed amounts.
 
 `--value-at=YYYY-MM-DD`
 : Use the prices as of the given date (8 digits with `-` or `/` or `.` separators).
-: Eg `--value-at=2019-04-25`.
+  Eg `--value-at=2019-04-25`.
+  Balance reports will show the value on the given date of summed amounts.
 
-Here are some examples to show its effect:
+Here are the effects of `--value-at` as seen with `print`:
 
 ```journal
 P 2000-01-01 A  1 B
@@ -556,7 +560,7 @@ $ hledger -f- print --value-at=period date:2000/01-2000/03
 
 ```
 
-Or with no report period specified, show the value as of the last day of the journal (2000-03-01):
+With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
 ```shell
 $ hledger -f- print --value-at=period
 2000/01/01
@@ -570,7 +574,7 @@ $ hledger -f- print --value-at=period
 
 ```
 
-Show the current value (the last declared price is still in effect today):
+Show the current value (the 2000-04-01 price is still in effect today):
 ```shell
 $ hledger -f- print --value-at=now
 2000-01-01
@@ -600,36 +604,43 @@ $ hledger -f- print --value-at=2000-01-15
 
 ### Effect of --value-at on reports
 
-There are many possible combinations of --value-at and hledger's various reports.
-Below is what we currently (aim to) do in each case.
-You're not expected to remember all this - probably only a few of these will be useful in practice -
-but when troubleshooting a report, look here.
+Below is how `--value-at` affects each of hledger's reports, currently.
+You're not expected to remember all this, but when troubleshooting a report, look here.
 If you find problems - useless reports, misbehaving reports, or error
 messages being printed - please report them (with reproducible examples) eg at
 [#329](https://github.com/simonmichael/hledger/issues/329).
 
-| Report type                              | `--value-at` `transaction`&nbsp;                          | `--value-at` `period`&nbsp;                                  | `--value-at` `DATE`/`now`&nbsp;           |
-|------------------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|-------------------------------------------|
-| <br>**print**                            |                                                           |                                                              |                                           |
-| posting amounts                          | value at posting date                                     | value at report end                                          | value at DATE                             |
-| balance assertions/assignments           | show unvalued                                             | show unvalued                                                | show unvalued                             |
-| <br>**register**                         |                                                           |                                                              |                                           |
-| starting balance with -H                 | value at day before report start                          | value at day before report start                             | value at DATE                             |
-| posting amounts                          | value at posting date                                     | value at report end                                          | value at DATE                             |
-| posting amounts, multiperiod             | value each posting at posting date then summarise         | value each summary posting at period end                     | value each summary posting at DATE        |
-| <br>**balance (bs, cf, is..)**           |                                                           |                                                              |                                           |
-| starting balances with -H                | sum of values of previous postings at their posting dates | value at day before report start of sum of previous postings | value at DATE of sum of previous postings |
-| balances, simple balance report          | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings          |
-| balances, multiperiod report             | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings          |
-| column totals                            | sum/average of the displayed balances                     | value at period end of sum of postings                       | value at DATE of sum of postings          |
-| row totals/averages, grand total/average | sum/average of the displayed balances                     | value at period end of sum/average of postings               | value at DATE of sum/average of postings  |
-| budget amounts in --budget reports       | ?                                                         | ?                                                            | ?                                         |
+| Report type                        | `--value-at` `transaction`&nbsp;                          | `--value-at` `period`&nbsp;                                  | `--value-at` `DATE`/`now`&nbsp;           |
+|------------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|-------------------------------------------|
+| <br>**print**                      |                                                           |                                                              |                                           |
+| posting amounts                    | value at posting date                                     | value at report end                                          | value at DATE                             |
+| balance assertions/assignments     | show unvalued                                             | show unvalued                                                | show unvalued                             |
+| <br>**register**                   |                                                           |                                                              |                                           |
+| starting balance with -H           | value at day before report start                          | value at day before report start                             | value at DATE                             |
+| posting amounts                    | value at posting date                                     | value at report end                                          | value at DATE                             |
+| posting amounts, multiperiod       | value each posting at posting date then summarise         | value each summary posting at period end                     | value each summary posting at DATE        |
+| running total/average              | sum/average of the displayed values                       | sum/average of the displayed values                          | sum/average of the displayed values       |
+| <br>**balance (bs, cf, is..)**     |                                                           |                                                              |                                           |
+| starting balances with -H          | sum of values of previous postings at their posting dates | value at day before report start of sum of previous postings | value at DATE of sum of previous postings |
+| balances, simple balance report    | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings          |
+| balances, multiperiod report       | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings          |
+| column/row/grand totals/averages   | sum/average of the displayed values                       | value at period end of sum/average of postings               | value at DATE of sum/average of postings  |
+| budget amounts in --budget reports | ?                                                         | ?                                                            | ?                                         |
 
+### Some useful value reports
+
+Here are some probably useful reports - please send suggestions if you find out more:
+
+| Command:                     | Description of report:                             | Could answer:                                    |
+|------------------------------|----------------------------------------------------|--------------------------------------------------|
+| `hledger bs -M --value-at=p` | Monthly historical value of assets/liabilities     | How are my investments performing ?              |
+| `hledger is -M --value-at=t` | Monthly contemporaneous value of revenues/expenses | How much foreign currency have I been spending ? |
+ 
 
 ## Combining -B and -V
 
-Using -B/--cost and -V/--value together is currently allowed, but the
-results are probably not meaningful. Let us know if you find a use for this. 
+Using -B/--cost together with -V/--value or --value-at is allowed.
+Let us know if you find a use for this. 
 
 ## Output destination
 
