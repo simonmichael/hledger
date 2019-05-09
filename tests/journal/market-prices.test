@@ -384,11 +384,9 @@ Balance changes in 2000q1:
 
    || Jan  Feb  Mar    Total  Average 
 ===++=================================
- a || 5 B  2 B  3 B     10 B      3 B 
+ a || 5 B  2 B  3 B      9 B      3 B 
 ---++---------------------------------
-   || 5 B  2 B  3 B     10 B      3 B 
-# >2 /not yet supported/
-# >=1
+   || 5 B  2 B  3 B      9 B      3 B 
 
 # 35. multicolumn balance report valued at other date
 $ hledger -f- bal -MTA --value-at=2000-01-15
