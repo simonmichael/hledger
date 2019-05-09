@@ -154,7 +154,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
       --   transaction: sum/average the valued amounts
       --   period:      sum/average the unvalued amounts and value at report period end
       --   date:        sum/average the unvalued amounts and value at date
-      mvalueat = if value_ then Just value_at_ else Nothing
+      mvalueat = valueTypeFromOpts ropts
       today    = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
       -- Market prices. Sort into date then parse order,
       -- & reverse for quick lookup of the latest price.

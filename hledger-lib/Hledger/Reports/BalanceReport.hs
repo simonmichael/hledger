@@ -75,7 +75,7 @@ balanceReport ropts@ReportOpts{..} q j =
       --  transaction: value each posting at posting date before summing
       --  period:      value totals at period end
       --  date:        value totals at date
-      mvalueat = if value_ then Just value_at_ else Nothing
+      mvalueat = valueTypeFromOpts ropts
       today    = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 
       -- For --value-at=transaction, convert all postings to value before summing them.

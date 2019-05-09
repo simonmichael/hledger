@@ -15,6 +15,7 @@ module Hledger.Reports.ReportOptions (
   defreportopts,
   rawOptsToReportOpts,
   checkReportOpts,
+  valueTypeFromOpts,
   flat_,
   tree_,
   reportOptsToggleStatus,
@@ -84,8 +85,8 @@ instance Default AccountListMode where def = ALDefault
 data ValueDate =
     AtTransaction  -- ^ Calculate values as of each posting's date (called "transaction" for UI reasons)
   | AtPeriod       -- ^ Calculate values as of each report period's last day
-  | AtNow          -- ^ Calculate values as of today (report generation date) (called "now" not today for UI reasons)
-  | AtDate Day     -- ^ Calculate values as of some other date
+  | AtNow          -- ^ Calculate values as of today (report generation date) (called "now" for UI reasons)
+  | AtDate Day     -- ^ Calculate values as of some fixed date
   deriving (Show,Data,Eq) -- Typeable
 
 instance Default ValueDate where def = AtNow
@@ -395,6 +396,18 @@ flat_ = (==ALFlat) . accountlistmode_
 
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
+
+-- | A simpler way to find the type of valuation to be done, if any.
+-- Considers the --value and --value-at flagsvalueTypeFromOpts :: ReportOpts -> Maybe ValueDate
+valueTypeFromOpts ReportOpts{..} =
+  case (value_, value_at_) of
+    (False,_)     -> Nothing
+    -- (True, AtNow) -> Just $ AtDate (fromMaybe (error' "could not satisfy --value-at=now, expected ReportOpts today_ to be set") today_)
+-- , and converts --value-at=now
+-- to --value-at=DATE so you don't have to mess with today's date.
+-- Ie this will never return AtNow.
+-- (But this is not reflected in the type, or relied on by other code; XXX WIP).
+    (True, vd)    -> Just vd
 
 -- | Convert this journal's postings' amounts to the cost basis amounts if
 -- specified by options.

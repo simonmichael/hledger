@@ -87,7 +87,7 @@ postingsReport ropts@ReportOpts{..} q j =
       --
       --  "Day before report start" is a bit arbitrary.
 
-      mvalueat = if value_ then Just value_at_ else Nothing
+      mvalueat = valueTypeFromOpts ropts
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 
       -- Postings or summary pseudo postings to be displayed.
