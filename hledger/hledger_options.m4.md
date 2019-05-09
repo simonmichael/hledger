@@ -610,22 +610,22 @@ If you find problems - useless reports, misbehaving reports, or error
 messages being printed - please report them (with reproducible examples) eg at
 [#329](https://github.com/simonmichael/hledger/issues/329).
 
-| Report type                        | `--value-at` `transaction`&nbsp;                          | `--value-at` `period`&nbsp;                                  | `--value-at` `DATE`/`now`&nbsp;                 |
-|------------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|-------------------------------------------------|
-| <br>**print**                      |                                                           |                                                              |                                                 |
-| posting amounts                    | value at posting date                                     | value at report end                                          | value at DATE                                   |
-| balance assertions/assignments     | show unvalued                                             | show unvalued                                                | show unvalued                                   |
-| <br>**register**                   |                                                           |                                                              |                                                 |
-| starting balance with -H           | value at day before report start                          | value at day before report start                             | value at DATE                                   |
-| posting amounts                    | value at posting date                                     | value at report end                                          | value at DATE                                   |
-| posting amounts, multiperiod       | value each posting at posting date then summarise         | value each summary posting at period end                     | value each summary posting at DATE              |
-| running total/average              | sum/average of the displayed values                       | sum/average of the displayed values                          | sum/average of the displayed values             |
-| <br>**balance (bs, cf, is..)**     |                                                           |                                                              |                                                 |
-| starting balances with -H          | sum of values of previous postings at their posting dates | value at day before report start of sum of previous postings | value at DATE of sum of previous postings       |
-| balances, simple balance report    | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings                |
-| balances, multiperiod report       | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings                |
-| column/row/grand totals/averages   | sum/average of the displayed values                       | value at period end of sum/average of postings               | value at DATE of sum/average of postings        |
-| budget amounts in --budget reports | budget-setting periodic txns are valued at posting date   | budget-setting periodic txns are valued at period end        | budget-setting periodic txns are valued at DATE |
+| Report type                      | `--value-at` `transaction`&nbsp;                          | `--value-at` `period`&nbsp;                                  | `--value-at` `DATE`/`now`&nbsp;                 |
+|----------------------------------|-----------------------------------------------------------|--------------------------------------------------------------|-------------------------------------------------|
+| <br>**print**                    |                                                           |                                                              |                                                 |
+| posting amounts                  | value at posting date                                     | value at report end                                          | value at DATE                                   |
+| balance assertions/assignments   | show unvalued                                             | show unvalued                                                | show unvalued                                   |
+| <br>**register**                 |                                                           |                                                              |                                                 |
+| starting balance with -H         | value at day before report start                          | value at day before report start                             | value at DATE                                   |
+| posting amounts                  | value at posting date                                     | value at report end                                          | value at DATE                                   |
+| posting amounts, multiperiod     | value each posting at posting date then summarise         | value each summary posting at period end                     | value each summary posting at DATE              |
+| running total/average            | sum/average of the displayed values                       | sum/average of the displayed values                          | sum/average of the displayed values             |
+| <br>**balance (bs, cf, is..)**   |                                                           |                                                              |                                                 |
+| starting balances with -H        | sum of values of previous postings at their posting dates | value at day before report start of sum of previous postings | value at DATE of sum of previous postings       |
+| balances, simple balance report  | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings                |
+| balances, multiperiod report     | sum of values of each posting at posting date             | value at period end of sum of postings                       | value at DATE of sum of postings                |
+| budget amounts with --budget     | budget-setting periodic txns are valued at posting date   | budget-setting periodic txns are valued at period end        | budget-setting periodic txns are valued at DATE |
+| column/row/grand totals/averages | sum/average of the displayed values                       | value at period end of sum/average of postings               | value at DATE of sum/average of postings        |
 
 ### Some useful value reports
 
