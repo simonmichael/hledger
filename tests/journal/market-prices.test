@@ -418,3 +418,77 @@ Balance changes in 2000q1:
 ---++---------------
    || 4 B  4 B  4 B 
 
+# balance, periodic, with -H (starting balance and accumulating across periods)
+
+# 38. multicolumn balance report with -H valued at transaction.
+# The starting balance is 1 B (1 A valued at 2000/1/1, transaction date).
+$ hledger -f- bal -M -H -b 200002 --value-at=transaction
+Ending balances (historical) in 2000/02/01-2000/03/31:
+
+   || 2000/02/29  2000/03/31 
+===++========================
+ a ||        3 B         6 B 
+---++------------------------
+   ||        3 B         6 B 
+ 
+# 39. multicolumn balance report with -H valued at period end.
+# The starting balance is 5 B (1 A valued at 2000/1/31, day before report start).. and has no effect here.
+$ hledger -f- bal -M -H -b 200002 --value-at=period
+Ending balances (historical) in 2000/02/01-2000/03/31:
+
+   || 2000/02/29  2000/03/31 
+===++========================
+ a ||        4 B         9 B 
+---++------------------------
+   ||        4 B         9 B 
+
+# 40. multicolumn balance report with -H valued at other date.
+# The starting balance is 5 B (1 A valued at 2000/1/15).
+$ hledger -f- bal -M -H -b 200002 --value-at=2000-01-15
+Ending balances (historical) in 2000/02/01-2000/03/31:
+
+   || 2000/02/29  2000/03/31 
+===++========================
+ a ||       10 B        15 B 
+---++------------------------
+   ||       10 B        15 B 
+
+# 41. multicolumn balance report with -H, valuing each period's carried-over balances at transaction date.
+<
+P 2000/01/01 A  1 B
+P 2000/01/15 A  5 B
+P 2000/02/01 A  2 B
+P 2000/03/01 A  3 B
+P 2000/04/01 A  4 B
+
+2000/01/01
+  (a)      1 A
+
+$ hledger -f- bal -ME -H -p200001-200004 --value-at=t
+Ending balances (historical) in 2000q1:
+
+   || 2000/01/31  2000/02/29  2000/03/31 
+===++====================================
+ a ||        1 B         1 B         1 B 
+---++------------------------------------
+   ||        1 B         1 B         1 B 
+
+# 42. multicolumn balance report with -H, valuing each period's carried-over balances at period end.
+# $ hledger -f- bal -ME -H -p200001-200004 --value-at=p
+# Ending balances (historical) in 2000q1:
+
+#    || 2000/01/31  2000/02/29  2000/03/31 
+# ===++====================================
+#  a ||        5 B         2 B         3 B 
+# ---++------------------------------------
+#    ||        5 B         2 B         3 B 
+
+# 43. multicolumn balance report with -H, valuing each period's carried-over balances at other date.
+$ hledger -f- bal -ME -H -p200001-200004 --value-at=2000-01-15
+Ending balances (historical) in 2000q1:
+
+   || 2000/01/31  2000/02/29  2000/03/31 
+===++====================================
+ a ||        5 B         5 B         5 B 
+---++------------------------------------
+   ||        5 B         5 B         5 B 
