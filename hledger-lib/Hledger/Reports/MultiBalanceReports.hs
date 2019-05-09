@@ -345,7 +345,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
            ]
 
       ----------------------------------------------------------------------
-      -- 8. Build the report rows.
+      -- 8. Sort the report rows.
 
       -- Sort the rows by amount or by account declaration order. This is a bit tricky.
       -- TODO: is it always ok to sort report rows after report has been generated, as a separate step ?
