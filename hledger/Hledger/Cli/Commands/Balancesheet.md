@@ -39,7 +39,7 @@ As with [multicolumn balance reports](#multicolumn-balance-reports),
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
-dates.
+dates (and `-T/--row-total`, since summing end balances generally does not make sense).
 
 This command also supports
 [output destination](/manual.html#output-destination) and

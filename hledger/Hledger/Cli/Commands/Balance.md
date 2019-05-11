@@ -233,6 +233,9 @@ you are showing only the data after a certain start date:
 
     ```
 
+Note that `--cumulative` or `--historical/-H` disable `--row-total/-T`, 
+since summing end balances generally does not make sense.
+
 Multicolumn balance reports display accounts in flat mode by default;
 to see the hierarchy, use `--tree`.
 

@@ -48,17 +48,20 @@ import Hledger.Reports.BalanceReport
 --
 --   * the account's depth
 --
---   * a list of amounts, one for each column
+--   * A list of amounts, one for each column. The meaning of the
+--     amounts depends on the type of multi balance report, of which
+--     there are three: periodic, cumulative and historical (see
+--     'BalanceType' and "Hledger.Cli.Commands.Balance").
 --
---   * the total of the row's amounts
+--   * the total of the row's amounts for a periodic report,
+--     or zero for cumulative/historical reports (since summing
+--     end balances generally doesn't make sense).
 --
 --   * the average of the row's amounts
 --
--- 3. the column totals and the overall total and average
+-- 3. the column totals, and the overall grand total (or zero for
+-- cumulative/historical reports) and grand average.
 --
--- The meaning of the amounts depends on the type of multi balance
--- report, of which there are three: periodic, cumulative and historical
--- (see 'BalanceType' and "Hledger.Cli.Commands.Balance").
 newtype MultiBalanceReport =
   MultiBalanceReport ([DateSpan]
                      ,[MultiBalanceReportRow]
@@ -304,7 +307,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
                    CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
                    _                 -> changes
              -- The total and average for the row.
-           , let rowtot = sum unvaluedbals
+           , let rowtot = if balancetype_==PeriodChange then sum unvaluedbals else 0
            , let rowavg = averageMixedAmounts unvaluedbals
            , empty_ || depth == 0 || any (not . isZeroMixedAmount) unvaluedbals
            ]
@@ -329,7 +332,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
                    Just (AtDate d)    -> [mixedAmountValue prices d amt             | amt <- valuedbals1]
                    _                  -> unvaluedbals   --value-at=transaction was handled earlier
              -- The total and average for the row, and their values.
-           , let rowtot = sum unvaluedbals
+           , let rowtot = if balancetype_==PeriodChange then sum unvaluedbals else 0
            , let rowavg = averageMixedAmounts unvaluedbals
            , let valuedrowtot = case mvalueat of
                    Just AtPeriod      -> mixedAmountValue prices reportlastday rowtot
@@ -404,7 +407,10 @@ multiBalanceReport ropts@ReportOpts{..} q j =
           Just (AtDate d)    -> map (maybevalue d . sum) colamts
       -- Calculate and maybe value the grand total and average.
       [grandtotal,grandaverage] =
-        let amts = map ($ map sum colamts) [sum, averageMixedAmounts]
+        let amts = map ($ map sum colamts)
+              [if balancetype_==PeriodChange then sum else const 0
+              ,averageMixedAmounts
+              ]
         in case mvalueat of
           Nothing            -> amts
           Just AtTransaction -> amts
@@ -486,10 +492,10 @@ tests_MultiBalanceReports = tests "MultiBalanceReports" [
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (
         [
-         ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
-        ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
+         ("assets:bank:checking", "checking", 3, [mamountp' "$1.00"] , Mixed [nullamt], Mixed [amount0 {aquantity=1}])
+        ,("income:salary"       ,"salary"   , 2, [mamountp' "$-1.00"], Mixed [nullamt], Mixed [amount0 {aquantity=(-1)}])
         ],
-        Mixed [usd0])
+        Mixed [nullamt])
   
      ,_test "a valid history on an empty period"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`

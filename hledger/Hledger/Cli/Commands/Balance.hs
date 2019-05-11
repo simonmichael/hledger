@@ -591,7 +591,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
-balanceReportAsTable opts@ReportOpts{average_, row_total_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
    maybetranspose $
    addtotalrow $ 
    Table
@@ -599,23 +599,24 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_} (MultiBalanceReport (
      (T.Group NoLine $ map Header colheadings)
      (map rowvals items)
   where
-    mkDate = case balancetype_ opts of
+    totalscolumn = row_total_ && not (balancetype_ `elem` [CumulativeChange, HistoricalBalance])
+    mkDate = case balancetype_ of
        PeriodChange -> showDateSpanMonthAbbrev
        _            -> maybe "" (showDate . prevday) . spanEnd
     colheadings = map mkDate colspans
-                  ++ ["  Total" | row_total_]
+                  ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items
     renderacct (a,a',i,_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
       | otherwise  = T.unpack $ maybeAccountNameDrop opts a
     rowvals (_,_,_,as,rowtot,rowavg) = as
-                             ++ [rowtot | row_total_]
+                             ++ [rowtot | totalscolumn]
                              ++ [rowavg | average_]
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ (row "" $
                                     coltotals
-                                    ++ [tot | row_total_ && not (null coltotals)]
+                                    ++ [tot | totalscolumn && not (null coltotals)]
                                     ++ [avg | average_   && not (null coltotals)]
                                     ))
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
