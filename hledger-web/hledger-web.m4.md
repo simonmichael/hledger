@@ -194,10 +194,11 @@ more attention than hledger-api in future:
 Also, you can append a new transaction to the journal by sending a PUT request to `/add` (hledger-web only).
 As with the web UI's add form, hledger-web must be started with the `add` capability for this (enabled by default).
 
-The payload should be a valid hledger transaction as JSON, similar to what you get from `/transactions`/`accounttransactions`.
+The payload should be a valid hledger transaction as JSON, similar to what you get from `/transactions` or `/accounttransactions`.
 
-Or, a useful way to generate test data is with the `readJsonFile`/`writeJsonFile` helpers in Hledger.Web.Json,
-which will read or write any of hledger's JSON-capable types from or to a file.
+Another way to generate test data is with the `readJsonFile`/`writeJsonFile` helpers in Hledger.Web.Json,
+which read or write any of hledger's [JSON-capable types](https://github.com/simonmichael/hledger/blob/master/hledger-web/Hledger/Web/Json.hs#L45)
+from or to a file.
 Eg here we write the first transaction of a sample journal:
 ```shell
 $ make ghci-web
@@ -206,9 +207,9 @@ $ make ghci-web
 >>> :q
 $ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readable
 ```
-([example, discussion](https://github.com/simonmichael/hledger/issues/316#issuecomment-465858507))
+([sample output & discussion](https://github.com/simonmichael/hledger/issues/316#issuecomment-465858507))
 
-And here's how to test `/add` with curl:
+And here's how to test adding that with curl:
 ```shell
 $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
 ```
