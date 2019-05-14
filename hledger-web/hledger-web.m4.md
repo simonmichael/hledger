@@ -178,9 +178,10 @@ hledger-web will display an error message until the file has been fixed.
 
 # JSON API
 
-In addition to the web UI, hledger-web provides some JSON API routes.
-These are similar to the API provided by the hledger-api tool, but 
-it may be convenient to have them in hledger-web also. 
+In addition to the web UI, hledger-web provides some API routes that
+serve JSON in response to GET requests. Currently these are same ones
+provided by the hledger-api tool, but hledger-web will likely receive
+more attention than hledger-api in future:
 ```
 /accountnames
 /transactions
@@ -188,6 +189,28 @@ it may be convenient to have them in hledger-web also.
 /commodities
 /accounts
 /accounttransactions/#AccountName
+```
+
+Also, you can append a new transaction to the journal by sending a PUT request to `/add` (hledger-web only).
+As with the web UI's add form, hledger-web must be started with the `add` capability for this (enabled by default).
+
+The payload should be a valid hledger transaction as JSON, similar to what you get from `/transactions`/`accounttransactions`.
+
+Or, a useful way to generate test data is with the `readJsonFile`/`writeJsonFile` helpers in Hledger.Web.Json,
+which will read or write any of hledger's JSON-capable types from or to a file.
+Eg here we write the first transaction of a sample journal:
+```shell
+$ make ghci-web
+>>> :m +*Hledger.Web.Json
+>>> writeJsonFile "txn.json" (head $ jtxns samplejournal)
+>>> :q
+$ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readable
+```
+([example, discussion](https://github.com/simonmichael/hledger/issues/316#issuecomment-465858507))
+
+And here's how to test `/add` with curl:
+```shell
+$ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
 ```
 
 _man_({{
