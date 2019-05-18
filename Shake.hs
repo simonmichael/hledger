@@ -421,11 +421,13 @@ main = do
 
     -- Render one website page (main or wiki) as html, saved in sites/_site/.
     -- Wiki pages will have a heading and TOC placeholder prepended.
+    -- The download page will have a TOC placeholder prepended.
     -- All pages will have github-style wiki links hyperlinked.
     "site/_site//*.html" %> \out -> do
         let filename = takeBaseName out
             pagename = fileNameToPageName filename
             iswikipage = filename `elem` wikipagefilenames
+            isdownloadpage = filename == "download"
             isoldmanual = "site/_site/doc/" `isPrefixOf` out
             source
               | iswikipage  = "wiki" </> filename <.> "md"
@@ -433,9 +435,12 @@ main = do
               | otherwise   = "site" </> filename <.> "md"
             template = "site/site.tmpl"
             siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
+            maybeAddToc | iswikipage     = addHeading pagename . addToc
+                        | isdownloadpage = addToc
+                        | otherwise      = id
         need [source, template]
         -- read markdown source, link any wikilinks, maybe add a heading and TOC, pipe it to pandoc, write html out
-        Stdin . wikiLink . (if iswikipage then addHeading pagename . addToc else id) <$> (readFile' source) >>=
+        Stdin . wikiLink . maybeAddToc <$> (readFile' source) >>=
           (cmd Shell pandoc "-" fromsrcmd "-t html"
                            "--template" template
                            ("--metadata=siteRoot:" ++ siteRoot)
