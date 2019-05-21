@@ -6,6 +6,7 @@
 # - stack (http://haskell-lang.org/get-started, installs libs and runs ghc)
 # - shelltestrunner (hackage, runs functional tests)
 # - quickbench (hackage/stackage, runs benchmarks)
+# - ghcid (hackage/stackage, recompiles and optionally runs tests on file change)
 # - hasktags (hackage, generates tag files for code navigation)
 # - profiterole (hackage/stackage, simplifies profiles)
 # - profiteur (hackage/stackage, renders profiles as html)
