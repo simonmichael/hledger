@@ -1442,7 +1442,14 @@ Locally runs tests similar to what we run on Travis CI.
 
 ### Use GHCI
 
-GHCI is GHC's REPL, useful for exploring and calling code interactively.
+GHCI is GHC's [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop), 
+useful for exploring and calling code interactively.
+
+If you try to run GHCI (or things based on it, like ghcid)
+right after cloning the hledger repo, you might see an error about CPP macros, eg like
+[on #961](https://github.com/simonmichael/hledger/issues/961#issuecomment-459283412).
+To fix this, build the hledger packages once, eg `stack build`.
+ (Or `stack build hledger` might be enough, depending what you are doing.)
 
 #### Get a GHCI prompt for hledger-lib:
 
