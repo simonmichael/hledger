@@ -61,7 +61,7 @@ type PostingsReportItem = (Maybe Day    -- The posting date, if this is the firs
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
-postingsReport ropts@ReportOpts{..} q j =
+postingsReport ropts@ReportOpts{..} q j@Journal{..} =
   (totallabel, items)
     where
       reportspan = adjustReportDates ropts q j
@@ -99,29 +99,30 @@ postingsReport ropts@ReportOpts{..} q j =
               showempty = empty_ || average_
               -- for --value-at=transaction, need to value the postings before summarising them
               maybevaluedreportps
-                -- | value_==Just AtTransaction = [postingValueAtDate j (postingDate p) p | p <- reportps]
+                -- | value_==Just AtTransaction = [postingValue jmarketprices (postingDate p) p | p <- reportps]
                 | otherwise                    = reportps
               summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan maybevaluedreportps
             in case value_ of
-              Just (AtEnd _mc)    -> [(postingValueAtDate j periodlastday p    , periodend) | (p,periodend) <- summaryps
+              Just (AtEnd _mc)    -> [(postingValue jmarketprices periodlastday p    , periodend) | (p,periodend) <- summaryps
                                     ,let periodlastday = maybe
                                            (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
                                            (addDays (-1))
                                            periodend
                                     ]
-              Just (AtNow _mc)    -> [(postingValueAtDate j today p            , periodend) | (p,periodend) <- summaryps]
-              Just (AtDate d _mc) -> [(postingValueAtDate j d p                , periodend) | (p,periodend) <- summaryps]
-              _                  -> summaryps
+              Just (AtNow _mc)    -> [(postingValue jmarketprices today p            , periodend) | (p,periodend) <- summaryps]
+              Just (AtDate d _mc) -> [(postingValue jmarketprices d p                , periodend) | (p,periodend) <- summaryps]
+              Just (AtCost _mc)   -> summaryps -- XXX already handled
+              _                   -> summaryps
           else
             let reportperiodlastday =
                   fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
                   $ reportPeriodOrJournalLastDay ropts j
             in case value_ of
               Nothing            -> [(p                                         , Nothing) | p <- reportps]
-              Just (AtCost _mc)   -> [(postingValueAtDate j (postingDate p) p    , Nothing) | p <- reportps]
-              Just (AtEnd _mc)    -> [(postingValueAtDate j reportperiodlastday p, Nothing) | p <- reportps]
-              Just (AtNow _mc)    -> [(postingValueAtDate j today p              , Nothing) | p <- reportps]
-              Just (AtDate d _mc) -> [(postingValueAtDate j d p                  , Nothing) | p <- reportps]
+              Just (AtCost _mc)   -> [(postingValue jmarketprices (postingDate p) p    , Nothing) | p <- reportps]
+              Just (AtEnd _mc)    -> [(postingValue jmarketprices reportperiodlastday p, Nothing) | p <- reportps]
+              Just (AtNow _mc)    -> [(postingValue jmarketprices today p              , Nothing) | p <- reportps]
+              Just (AtDate d _mc) -> [(postingValue jmarketprices d p                  , Nothing) | p <- reportps]
 
       -- posting report items ready for display
       items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth valuedstartbal runningcalc startnum
@@ -149,7 +150,7 @@ postingsReport ropts@ReportOpts{..} q j =
                                      $ reportPeriodOrJournalStart ropts j
               -- prices are in parse order - sort into date then parse order,
               -- & reversed for quick lookup of the latest price.
-              prices = reverse $ sortOn mpdate $ jmarketprices j
+              prices = reverse $ sortOn mpdate jmarketprices
 
           startnum = if historical then length precedingps + 1 else 1
           runningcalc = registerRunningCalculationFn ropts
@@ -200,7 +201,7 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
       dbg1 "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
       dbg1 "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
       dbg1 "ps1" $ filter (beforeandduringq `matchesPosting`) $                -- filter postings by the query, with no start date or depth limit
-                  journalPostings $ journalSelectingAmountFromOpts opts j
+                  journalPostings $ journalSelectingAmountFromOpts opts j  -- XXX stop ?
       where
         beforeandduringq = dbg1 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
           where

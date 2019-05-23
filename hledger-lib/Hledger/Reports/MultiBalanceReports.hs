@@ -88,7 +88,7 @@ type ClippedAccountName = AccountName
 -- hledger's most powerful and useful report, used by the balance
 -- command (in multiperiod mode) and by the bs/cf/is commands.
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-multiBalanceReport ropts@ReportOpts{..} q j =
+multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
   (if invert_ then mbrNegate else id) $ 
   MultiBalanceReport (colspans, sortedrowsvalued, totalsrow)
     where
@@ -161,7 +161,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
       today    = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
       -- Market prices. Sort into date then parse order,
       -- & reverse for quick lookup of the latest price.
-      prices = reverse $ sortOn mpdate $ jmarketprices j
+      prices = reverse $ sortOn mpdate jmarketprices
       -- A helper for valuing amounts according to --value-at.
       maybevalue :: Day -> MixedAmount -> MixedAmount
       maybevalue periodlastday amt = case value_ of
@@ -244,7 +244,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
       -- If --value-at=transaction is in effect, convert the postings to value before summing.
       colpsmaybevalued :: [([Posting], Maybe Day)] =
         case value_ of
-          Just (AtCost _mc) -> [([postingValueAtDate j (postingDate p) p | p <- ps], periodend) | (ps,periodend) <- colps]
+          Just (AtCost _mc) -> [([postingValue jmarketprices (postingDate p) p | p <- ps], periodend) | (ps,periodend) <- colps]
           _                 -> colps
 
       ----------------------------------------------------------------------
