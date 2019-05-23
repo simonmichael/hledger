@@ -308,19 +308,19 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
                        (showbudgetamt budget)
 
     -- | Calculate the percentage of actual change to budget goal to show, if any.
-    -- Both amounts are converted to cost, if possible, before comparing.
+    -- If valuing at cost, both amounts are converted to cost before comparing.
     -- A percentage will not be shown if:
     -- - actual or goal are not the same, single, commodity
     -- - the goal is zero
     percentage :: Change -> BudgetGoal -> Maybe Percentage
     percentage actual budget =
-      case (toCost actual, toCost budget) of
+      case (maybecost $ normaliseMixedAmount actual, maybecost $ normaliseMixedAmount budget) of
         (Mixed [a], Mixed [b]) | (acommodity a == acommodity b || isZeroAmount a) && not (isZeroAmount b) 
             -> Just $ 100 * aquantity a / aquantity b
-        _   -> Nothing
+        _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
+               Nothing
       where
-        toCost = normaliseMixedAmount . costOfMixedAmount 
-
+        maybecost = if valuationTypeIsCost ropts then costOfMixedAmount else id
     showamt :: MixedAmount -> String
     showamt | color_    = cshowMixedAmountOneLineWithoutPrice
             | otherwise = showMixedAmountOneLineWithoutPrice
