@@ -57,6 +57,7 @@ module Hledger.Data.Amount (
   amountWithCommodity,
   -- ** arithmetic
   costOfAmount,
+  amountToCost,
   divideAmount,
   multiplyAmount,
   divideAmountAndPrice,
@@ -93,6 +94,7 @@ module Hledger.Data.Amount (
   normaliseMixedAmount,
   -- ** arithmetic
   costOfMixedAmount,
+  mixedAmountToCost,
   divideMixedAmount,
   multiplyMixedAmount,
   divideMixedAmountAndPrice,
@@ -215,6 +217,10 @@ costOfAmount a@Amount{aquantity=q, aprice=price} =
       NoPrice -> a
       UnitPrice  p@Amount{aquantity=pq} -> p{aquantity=pq * q}
       TotalPrice p@Amount{aquantity=pq} -> p{aquantity=pq * signum q}
+
+-- | Convert this amount to cost, and apply the appropriate amount style.
+amountToCost :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+amountToCost styles = styleAmount styles . costOfAmount
 
 -- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
@@ -580,6 +586,10 @@ mapMixedAmount f (Mixed as) = Mixed $ map f as
 -- assigned price, if any.
 costOfMixedAmount :: MixedAmount -> MixedAmount
 costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
+
+-- | Convert all component amounts to cost, and apply the appropriate amount styles.
+mixedAmountToCost :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
+mixedAmountToCost styles (Mixed as) = Mixed $ map (amountToCost styles) as
 
 -- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
