@@ -34,53 +34,32 @@ type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
 entriesReport :: ReportOpts -> Query -> Journal -> EntriesReport
-entriesReport opts q j =
-  (if isJust (value_ opts) then erValue opts j else id) $
-  sortBy (comparing date) $ filter (q `matchesTransaction`) ts
-    where
-      date = transactionDateFn opts
-      ts = jtxns $ journalSelectingAmountFromOpts opts j
-
--- | Convert all the posting amounts in an EntriesReport to their
--- default valuation commodities. This means using the Journal's most
--- recent applicable market prices before the valuation date.
--- The valuation date is set with --value-at and can be:
--- each posting's date,
--- the last day in the report period (or in the journal if no period,
--- or the posting dates if journal is empty - shouldn't happen),
--- or today's date (gives an error if today_ is not set in ReportOpts),
--- or a specified date.
-erValue :: ReportOpts -> Journal -> EntriesReport -> EntriesReport
-erValue ropts@ReportOpts{..} j ts = map txnvalue ts
+entriesReport ropts@ReportOpts{..} q j@Journal{..} =
+  sortBy (comparing datefn) $ filter (q `matchesTransaction`) $ map tvalue jtxns
   where
-    txnvalue t@Transaction{..} = t{tpostings=map postingvalue tpostings}
-    postingvalue p@Posting{..} = p{pamount=mixedAmountValue prices d pamount}
+    datefn = transactionDateFn ropts
+    tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
+    pvalue p@Posting{..} = case value_ of
+      Nothing             -> p
+      Just (AtCost _mc)   -> postingToCost (journalCommodityStyles j) p
+      Just (AtEnd _mc)    -> postingValue jmarketprices (fromMaybe (postingDate p)  -- XXX shouldn't happen
+                                                         mperiodorjournallastday) p
+      Just (AtNow _mc)    -> postingValue jmarketprices (case today_ of
+                                                           Just d  -> d
+                                                           Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value-at=now") p
+      Just (AtDate d _mc) -> postingValue jmarketprices d p
       where
-        -- prices are in parse order - sort into date then parse order,
-        -- & reversed for quick lookup of the latest price.
-        prices = reverse $ sortOn mpdate $ jmarketprices j
-
-        -- Get the last day of the report period.
-        -- Will be Nothing if no report period is specified, or also
-        -- if ReportOpts does not have today_ set, since we need that
-        -- to get the report period robustly.
-        mperiodlastday :: Maybe Day = do
-          t <- today_
-          let q = queryFromOpts t ropts
-          qend <- queryEndDate False q
-          return $ addDays (-1) qend
-
         mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
-
-        d = case value_ of
-          Just (AtCost _mc)   -> postingDate p
-          Just (AtEnd _mc)    -> fromMaybe (postingDate p)  -- XXX shouldn't happen
-                                  mperiodorjournallastday
-          Just (AtNow _mc)    -> case today_ of
-                                   Just d  -> d
-                                   Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
-          Just (AtDate d _mc) -> d
-          Nothing             -> error' "erValue: shouldn't happen" -- XXX
+          where
+            -- The last day of the report period.
+            -- Will be Nothing if no report period is specified, or also
+            -- if ReportOpts does not have today_ set, since we need that
+            -- to get the report period robustly.
+            mperiodlastday :: Maybe Day = do
+              t <- today_
+              let q = queryFromOpts t ropts
+              qend <- queryEndDate False q
+              return $ addDays (-1) qend
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
