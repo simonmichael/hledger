@@ -73,18 +73,16 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
 
       -- We may be converting amounts to value, according to --value-at.
       -- Currently this is done as follows (keep synced with hledger_options.m4.md):
-      --  register -M --value-at
-      --   transaction: value each posting at posting date, then summarise ; value -H starting balance at day before report start
-      --   period:      value each summary posting at period end           ; value -H starting balance at day before report start
-      --   date:        value each summary posting at date                 ; value -H starting balance at date
-      --  register --value-at
-      --   transaction: value each posting at posting date                 ; value -H starting balance at day before report start
-      --   period:      value each posting at report end                   ; value -H starting balance at day before report start
-      --   date:        value each posting at date                         ; value -H starting balance at date
+      --  register -M --value
+      --   cost: value each posting at cost, then summarise ; value -H starting balance at cost
+      --   end:  value each summary posting at period end   ; value -H starting balance at day before report start
+      --   date: value each summary posting at date         ; value -H starting balance at date
+      --  register --value
+      --   cost: value each posting at cost                 ; value -H starting balance at cost
+      --   end:  value each posting at report end           ; value -H starting balance at day before report start
+      --   date: value each posting at date                 ; value -H starting balance at date
       --
       --  In all cases, the running total/average is calculated from the above numbers.
-      --  This might not always be what you want; to see the running total valued, try a balance report.
-      --
       --  "Day before report start" is a bit arbitrary.
 
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
@@ -111,15 +109,15 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
                                     ]
               Just (AtNow _mc)    -> [(postingValue jmarketprices today p            , periodend) | (p,periodend) <- summaryps]
               Just (AtDate d _mc) -> [(postingValue jmarketprices d p                , periodend) | (p,periodend) <- summaryps]
-              Just (AtCost _mc)   -> summaryps -- XXX already handled
+              Just (AtCost _mc)   -> summaryps  -- conversion to cost was done earlier
               _                   -> summaryps
           else
             let reportperiodlastday =
                   fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
                   $ reportPeriodOrJournalLastDay ropts j
             in case value_ of
-              Nothing            -> [(p                                         , Nothing) | p <- reportps]
-              Just (AtCost _mc)   -> [(postingValue jmarketprices (postingDate p) p    , Nothing) | p <- reportps]
+              Nothing             -> [(p                                         , Nothing) | p <- reportps]
+              Just (AtCost _mc)   -> [(p                                         , Nothing) | p <- reportps]  -- conversion to cost was done earlier
               Just (AtEnd _mc)    -> [(postingValue jmarketprices reportperiodlastday p, Nothing) | p <- reportps]
               Just (AtNow _mc)    -> [(postingValue jmarketprices today p              , Nothing) | p <- reportps]
               Just (AtDate d _mc) -> [(postingValue jmarketprices d p                  , Nothing) | p <- reportps]
@@ -139,7 +137,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
           -- be ? Just value the initial sum/average at report start date.
           valuedstartbal = case value_ of
             Nothing             -> startbal
-            Just (AtCost _mc)   -> mixedAmountValue prices daybeforereportstart startbal
+            Just (AtCost _mc)   -> startbal  -- conversion to cost was done earlier
             Just (AtEnd  _mc)   -> mixedAmountValue prices daybeforereportstart startbal
             Just (AtNow  _mc)   -> mixedAmountValue prices today       startbal
             Just (AtDate d _mc) -> mixedAmountValue prices d           startbal
@@ -201,7 +199,8 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
       dbg1 "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
       dbg1 "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
       dbg1 "ps1" $ filter (beforeandduringq `matchesPosting`) $                -- filter postings by the query, with no start date or depth limit
-                  journalPostings $ journalSelectingAmountFromOpts opts j  -- XXX stop ?
+                  journalPostings $
+                  journalSelectingAmountFromOpts opts j    -- maybe convert to cost early, will be seen by amt:. XXX what about converting to value ?
       where
         beforeandduringq = dbg1 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
           where
