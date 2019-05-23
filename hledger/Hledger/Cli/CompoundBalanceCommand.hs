@@ -19,7 +19,7 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvReader (CSV, printCSV)
-import Lucid as L
+import Lucid as L hiding (value_)
 import Text.Tabular as T
 
 import Hledger
@@ -117,7 +117,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
-compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=ropts, rawopts_=rawopts} j = do
+compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=ropts@ReportOpts{..}, rawopts_=rawopts} j = do
     d <- getCurrentDay
     let
       -- use the default balance type for this report, unless the user overrides  
@@ -133,19 +133,19 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
         ++ maybe "" (' ':) mtitleclarification
         ++ valuation
         where
-          requestedspan = queryDateSpan (date2_ ropts) userq `spanDefaultsFrom` journalDateSpan (date2_ ropts) j
+          requestedspan = queryDateSpan date2_ userq `spanDefaultsFrom` journalDateSpan date2_ j
           -- when user overrides, add an indication to the report title
           mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
             case t of
               PeriodChange      -> "(Balance Changes)"
               CumulativeChange  -> "(Cumulative Ending Balances)"
               HistoricalBalance -> "(Historical Ending Balances)"
-          valuation = case valueTypeFromOpts ropts of
-            Just AtTransaction -> ", valued at transaction dates"
-            Just AtPeriod      -> ", valued at period ends"
-            Just AtNow         -> ", current value"
-            Just (AtDate d)    -> ", valued at "++showDate d
-            Nothing            -> ""
+          valuation = case value_ of
+            Just (AtCost _mc)   -> ", valued at transaction dates"
+            Just (AtEnd _mc)    -> ", valued at period ends"
+            Just (AtNow _mc)    -> ", current value"
+            Just (AtDate d _mc) -> ", valued at "++showDate d
+            Nothing             -> ""
 
       -- Set balance type in the report options.
       -- Also, use tree mode (by default, at least?) if --cumulative/--historical 
@@ -154,7 +154,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
       -- and tree mode hides this.. or something.. XXX 
       ropts'
         | not (flat_ ropts) && 
-          interval_ ropts==NoInterval && 
+          interval_==NoInterval && 
           balancetype `elem` [CumulativeChange, HistoricalBalance]
             = ropts{balancetype_=balancetype, accountlistmode_=ALTree}
         | otherwise

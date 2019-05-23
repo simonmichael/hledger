@@ -10,12 +10,11 @@ module Hledger.Reports.ReportOptions (
   ReportOpts(..),
   BalanceType(..),
   AccountListMode(..),
-  ValueDate(..),
+  ValuationType(..),
   FormatStr,
   defreportopts,
   rawOptsToReportOpts,
   checkReportOpts,
-  valueTypeFromOpts,
   flat_,
   tree_,
   reportOptsToggleStatus,
@@ -38,6 +37,7 @@ module Hledger.Reports.ReportOptions (
   reportPeriodOrJournalStart,
   reportPeriodLastDay,
   reportPeriodOrJournalLastDay,
+  valuationTypeIsCost,
 
   tests_ReportOptions
 )
@@ -78,18 +78,16 @@ data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typ
 
 instance Default AccountListMode where def = ALDefault
 
--- | On which date(s) should amount values be calculated ?
--- UI: --value-at=transaction|period|now|DATE.
--- ("today" would have been preferable, but clashes with
--- "transaction" for abbreviating.)
-data ValueDate =
-    AtTransaction  -- ^ Calculate values as of each posting's date (called "transaction" for UI reasons)
-  | AtPeriod       -- ^ Calculate values as of each report period's last day
-  | AtNow          -- ^ Calculate values as of today (report generation date) (called "now" for UI reasons)
-  | AtDate Day     -- ^ Calculate values as of some fixed date
+-- | What kind of value conversion should be done on amounts ?
+-- UI: --value=cost|end|now|DATE[,COMM]
+data ValuationType =
+    AtCost     (Maybe CommoditySymbol)  -- ^ convert to cost commodity using transaction prices, then optionally to given commodity using market prices at posting date
+  | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices at period end(s)
+  | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using current market prices
+  | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices on some date
   deriving (Show,Data,Eq) -- Typeable
 
-instance Default ValueDate where def = AtNow
+-- instance Default ValuationType where def = AtNow Nothing
 
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
@@ -103,9 +101,7 @@ data ReportOpts = ReportOpts {
     ,period_         :: Period
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
-    ,cost_           :: Bool
-    ,value_          :: Bool      -- ^ Should amounts be converted to market value
-    ,value_at_       :: ValueDate -- ^ Which valuation date should be used for market value
+    ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
@@ -171,8 +167,6 @@ defreportopts = ReportOpts
     def
     def
     def
-    def
-    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
@@ -184,9 +178,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,period_      = periodFromRawOpts d rawopts'
     ,interval_    = intervalFromRawOpts rawopts'
     ,statuses_    = statusesFromRawOpts rawopts'
-    ,cost_        = boolopt "cost" rawopts'
-    ,value_       = or $ map (flip boolopt rawopts') ["value", "value-at"]
-    ,value_at_    = valueDateFromRawOpts rawopts'
+    ,value_       = valuationTypeFromRawOpts rawopts'
     ,depth_       = maybeintopt "depth" rawopts'
     ,display_     = maybedisplayopt d rawopts'
     ,date2_       = boolopt "date2" rawopts'
@@ -352,19 +344,22 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
-valueDateFromRawOpts :: RawOpts -> ValueDate
-valueDateFromRawOpts = lastDef AtNow . catMaybes . map valuedatefromrawopt
+valuationTypeFromRawOpts :: RawOpts -> Maybe ValuationType
+valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromrawopt
   where
-    valuedatefromrawopt (n,v)
-      | n == "value-at" = valuedate v
-      | otherwise       = Nothing
-    valuedate v
-      | v `elem` ["transaction","t"] = Just AtTransaction
-      | v `elem` ["period","p"]      = Just AtPeriod
-      | v `elem` ["now","n"]         = Just AtNow
-      | otherwise = flip maybe (Just . AtDate)
-        (usageError $ "could not parse \""++v++"\" as value date, should be: transaction|period|now|t|p|n|YYYY-MM-DD")
-        (parsedateM v)
+    valuationfromrawopt (n,v)
+      | n == "B"     = Just $ AtCost Nothing
+      | n == "V"     = Just $ AtNow Nothing  -- TODO: if multiperiod then AtEnd Nothing
+      | n == "value" = Just $ valuation v
+      | otherwise    = Nothing
+    valuation v
+      | v `elem` ["cost","c"] = AtCost Nothing
+      | v `elem` ["end" ,"e"] = AtEnd  Nothing
+      | v `elem` ["now" ,"n"] = AtNow  Nothing
+      | otherwise =
+          case parsedateM v of
+            Just d  -> AtDate d Nothing
+            Nothing -> usageError $ "could not parse \""++v++"\" as value date, should be: transaction|period|now|t|p|n|YYYY-MM-DD"
 
 type DisplayExp = String
 
@@ -397,24 +392,20 @@ flat_ = (==ALFlat) . accountlistmode_
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
 
--- | A simpler way to find the type of valuation to be done, if any.
--- Considers the --value and --value-at flagsvalueTypeFromOpts :: ReportOpts -> Maybe ValueDate
-valueTypeFromOpts ReportOpts{..} =
-  case (value_, value_at_) of
-    (False,_)     -> Nothing
-    -- (True, AtNow) -> Just $ AtDate (fromMaybe (error' "could not satisfy --value-at=now, expected ReportOpts today_ to be set") today_)
--- , and converts --value-at=now
--- to --value-at=DATE so you don't have to mess with today's date.
--- Ie this will never return AtNow.
--- (But this is not reflected in the type, or relied on by other code; XXX WIP).
-    (True, vd)    -> Just vd
+valuationTypeIsCost :: ReportOpts -> Bool
+valuationTypeIsCost ropts =
+  case value_ ropts of
+    Just (AtCost _) -> True
+    _               -> False
 
--- | Convert this journal's postings' amounts to the cost basis amounts if
--- specified by options.
+-- | Convert this journal's postings' amounts to cost using their
+-- transaction prices, if specified by options (-B/--value=cost).
+-- Maybe soon superseded by newer valuation code.
 journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
-journalSelectingAmountFromOpts opts
-    | cost_ opts = journalConvertAmountsToCost
-    | otherwise = id
+journalSelectingAmountFromOpts opts =
+  case value_ opts of
+    Just (AtCost _) -> journalConvertAmountsToCost
+    _               -> id
 
 -- | Convert report options and arguments to a query.
 queryFromOpts :: Day -> ReportOpts -> Query

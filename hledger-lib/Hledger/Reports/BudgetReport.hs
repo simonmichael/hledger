@@ -275,12 +275,12 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
   where
     title = printf "Budget performance in %s%s:"
       (showDateSpan $ budgetReportSpan budgetr)
-      (case valueTypeFromOpts ropts of
-        Just AtTransaction -> ", valued at transaction dates"
-        Just AtPeriod      -> ", valued at period ends"
-        Just AtNow         -> ", current value"
-        Just (AtDate d)    -> ", valued at "++showDate d
-        Nothing            -> "")
+      (case value_ of
+        Just (AtCost _mc)   -> ", valued at transaction dates"
+        Just (AtEnd _mc)    -> ", valued at period ends"
+        Just (AtNow _mc)    -> ", current value"
+        Just (AtDate d _mc) -> ", valued at "++showDate d
+        Nothing             -> "")
     actualwidth =
       maximum [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) amt
       | (_, _, _, amtandgoals, _, _) <- rows

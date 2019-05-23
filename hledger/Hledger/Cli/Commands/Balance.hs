@@ -582,12 +582,12 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
         CumulativeChange   -> "Ending balances (cumulative)"
         HistoricalBalance  -> "Ending balances (historical)")
       (showDateSpan $ multiBalanceReportSpan r)
-      (case valueTypeFromOpts ropts of
-        Just AtTransaction -> ", valued at transaction dates"
-        Just AtPeriod      -> ", valued at period ends"
-        Just AtNow         -> ", current value"
-        Just (AtDate d)    -> ", valued at "++showDate d
-        Nothing            -> "")
+      (case value_ of
+        Just (AtCost _mc)   -> ", valued at transaction dates"
+        Just (AtEnd _mc)    -> ", valued at period ends"
+        Just (AtNow _mc)    -> ", current value"
+        Just (AtDate d _mc) -> ", valued at "++showDate d
+        Nothing             -> "")
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount

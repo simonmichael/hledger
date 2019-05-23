@@ -35,7 +35,7 @@ type EntriesReportItem = Transaction
 -- | Select transactions for an entries report.
 entriesReport :: ReportOpts -> Query -> Journal -> EntriesReport
 entriesReport opts q j =
-  (if value_ opts then erValue opts j else id) $
+  (if isJust (value_ opts) then erValue opts j else id) $
   sortBy (comparing date) $ filter (q `matchesTransaction`) ts
     where
       date = transactionDateFn opts
@@ -72,14 +72,15 @@ erValue ropts@ReportOpts{..} j ts = map txnvalue ts
 
         mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
 
-        d = case value_at_ of
-          AtTransaction -> postingDate p
-          AtPeriod      -> fromMaybe (postingDate p)  -- XXX shouldn't happen
-                           mperiodorjournallastday
-          AtNow         -> case today_ of
-                             Just d  -> d
-                             Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
-          AtDate d      -> d
+        d = case value_ of
+          Just (AtCost _mc)   -> postingDate p
+          Just (AtEnd _mc)    -> fromMaybe (postingDate p)  -- XXX shouldn't happen
+                                  mperiodorjournallastday
+          Just (AtNow _mc)    -> case today_ of
+                                   Just d  -> d
+                                   Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value-at=now"
+          Just (AtDate d _mc) -> d
+          Nothing             -> error' "erValue: shouldn't happen" -- XXX
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

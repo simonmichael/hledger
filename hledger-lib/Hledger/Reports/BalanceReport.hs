@@ -75,13 +75,11 @@ balanceReport ropts@ReportOpts{..} q j =
       --  transaction: value each posting at posting date before summing
       --  period:      value totals at period end
       --  date:        value totals at date
-      mvalueat = valueTypeFromOpts ropts
       today    = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 
       -- For --value-at=transaction, convert all postings to value before summing them.
       -- The report might not use them all but laziness probably helps here.
-      j' | mvalueat==Just AtTransaction =
-             mapJournalPostings (\p -> postingValueAtDate j (postingDate p) p) j
+      j' -- | mvalueat==Just AtTransaction = mapJournalPostings (\p -> postingValueAtDate j (postingDate p) p) j
          | otherwise = j
       
       -- Get all the summed accounts & balances, according to the query, as an account tree.
@@ -92,11 +90,11 @@ balanceReport ropts@ReportOpts{..} q j =
         where
           valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
             where
-              val = case mvalueat of
-                              Just AtPeriod      -> mixedAmountValue prices periodlastday
-                              Just AtNow         -> mixedAmountValue prices today
-                              Just (AtDate d)    -> mixedAmountValue prices d
-                              _                  -> id
+              val = case value_ of
+                      Just (AtEnd _mc)    -> mixedAmountValue prices periodlastday
+                      Just (AtNow _mc)    -> mixedAmountValue prices today
+                      Just (AtDate d _mc) -> mixedAmountValue prices d
+                      _                   -> id
                 where
                   -- prices are in parse order - sort into date then parse order,
                   -- & reversed for quick lookup of the latest price.

@@ -978,7 +978,8 @@ canonicalStyleFrom ss@(first:_) = first {asprecision = prec, asdecimalpoint = md
 --   case ps of (MarketPrice{mpamount=a}:_) -> Just a
 --              _ -> Nothing
 
--- | Convert all this journal's amounts to cost by applying their prices, if any.
+-- | Convert all this journal's amounts to cost using the transaction prices, if any.
+-- The journal's commodity styles are applied to the resulting amounts.
 journalConvertAmountsToCost :: Journal -> Journal
 journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
     where

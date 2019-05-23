@@ -131,6 +131,8 @@ inputflags = [
 -- | Common report-related flags: --period, --cost, etc.
 reportflags :: [Flag RawOpts]
 reportflags = [
+
+  -- report period & interval
   flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/txns on or after this date"
  ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/txns before this date"
  ,flagNone ["daily","D"]     (setboolopt "daily") "multiperiod/multicolumn report by day"
@@ -141,17 +143,45 @@ reportflags = [
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or report interval all at once (overrides the flags above)"
  ,flagNone ["date2"]         (setboolopt "date2") "match the secondary date instead (see command help for other effects)"
 
+  -- status/realness/depth/zero filters
  ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/txns (can combine with -P or -C)"
  ,flagNone ["pending","P"]   (setboolopt "pending") "include only pending postings/txns"
  ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "(or -NUM): hide accounts/postings deeper than this"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden (and vice-versa in hledger-ui/hledger-web)"
- ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
- ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value"
- ,flagReq  ["value-at"]      (\s opts -> Right $ setopt "value-at" s opts) "VALUEDATE" "as of which date should market values be calculated ? transaction|period|now|YYYY-MM-DD (implies -V, default: now)"
+
+  -- valuation
+ ,flagNone ["B","cost"]      (setboolopt "B")
+   "show amounts converted to cost commodity, same as --value=cost"
+ ,flagNone ["V","market"]    (setboolopt "V")
+   (unwords
+     ["show amounts converted to default valuation commodity,"
+     ,"same as --value=now (single period reports)"
+     ,"or --value=end (multiperiod reports)"  -- TODO
+     ])
+ -- TODO: -X
+ -- ,flagReq ["X"]              (\s opts -> Right $ setopt "X" s opts) "COMM"
+ --   (unwords
+ --     ["show amounts converted to this commodity"
+ --     ,"same as --value=now,COMM (single period reports)"
+ --     ,"or --value=end,COMM (multiperiod reports)"
+ --     ])
+ -- ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE[,COMM]"
+ ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE"
+   (unlines
+     ["TYPE is cost, end, now, or YYYY-MM-DD."
+     ,"Show amounts converted to:"
+     ,"- cost commodity using transaction prices"  -- "(then optionally to COMM using market prices at posting date)"
+     ,"- default valuation commodity using market prices at period end(s)"  -- "(or COMM)"
+     ,"- default valuation commodity using current market prices"
+     ,"- default valuation commodity using market prices on some date"
+     ])
+
+  -- generated postings/transactions
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"
  ,flagNone ["forecast"]      (setboolopt "forecast") "apply periodic transaction rules to generate future transactions, to 6 months from now or report end date"
+
  ]
 
 -- | Common output-related flags: --output-file, --output-format...

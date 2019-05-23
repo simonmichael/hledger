@@ -157,19 +157,19 @@ multiBalanceReport ropts@ReportOpts{..} q j =
       --   transaction: sum/average the valued amounts
       --   period:      sum/average the unvalued amounts and value at report period end
       --   date:        sum/average the unvalued amounts and value at date
-      mvalueat = valueTypeFromOpts ropts
+      -- mvalueat = valueTypeFromOpts ropts
       today    = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
       -- Market prices. Sort into date then parse order,
       -- & reverse for quick lookup of the latest price.
       prices = reverse $ sortOn mpdate $ jmarketprices j
       -- A helper for valuing amounts according to --value-at.
       maybevalue :: Day -> MixedAmount -> MixedAmount
-      maybevalue periodlastday amt = case mvalueat of
-        Nothing            -> amt
-        Just AtTransaction -> amt  -- assume --value-at=transaction was handled earlier
-        Just AtPeriod      -> mixedAmountValue prices periodlastday amt
-        Just AtNow         -> mixedAmountValue prices today amt
-        Just (AtDate d)    -> mixedAmountValue prices d amt
+      maybevalue periodlastday amt = case value_ of
+        Nothing             -> amt
+        Just (AtCost _mc)   -> amt  -- assume --value-at=transaction was handled earlier
+        Just (AtEnd _mc)    -> mixedAmountValue prices periodlastday amt
+        Just (AtNow _mc)    -> mixedAmountValue prices today amt
+        Just (AtDate d _mc) -> mixedAmountValue prices d amt
       -- The last day of each column subperiod.
       lastdays :: [Day] =
         map ((maybe
@@ -187,7 +187,7 @@ multiBalanceReport ropts@ReportOpts{..} q j =
       -- Balances at report start date, unvalued, from all earlier postings which otherwise match the query.
       startbals :: [(AccountName, MixedAmount)] = dbg1 "startbals" $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
         where
-          (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport ropts''{value_=False} startbalq j
+          (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport ropts''{value_=Nothing} startbalq j
             where
               ropts' | tree_ ropts = ropts{no_elide_=True}
                      | otherwise   = ropts{accountlistmode_=ALFlat}
@@ -243,9 +243,9 @@ multiBalanceReport ropts@ReportOpts{..} q j =
           [(filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps, spanEnd s) | s <- colspans]
       -- If --value-at=transaction is in effect, convert the postings to value before summing.
       colpsmaybevalued :: [([Posting], Maybe Day)] =
-        case mvalueat of
-          Just AtTransaction -> [([postingValueAtDate j (postingDate p) p | p <- ps], periodend) | (ps,periodend) <- colps]
-          _                  -> colps
+        case value_ of
+          Just (AtCost _mc) -> [([postingValueAtDate j (postingDate p) p | p <- ps], periodend) | (ps,periodend) <- colps]
+          _                 -> colps
 
       ----------------------------------------------------------------------
       -- 5. Calculate account balance changes in each column.
@@ -325,25 +325,25 @@ multiBalanceReport ropts@ReportOpts{..} q j =
                    HistoricalBalance -> drop 1 $ scanl (+) (valuedStartingBalanceFor a) changes
                    CumulativeChange  -> drop 1 $ scanl (+) 0                            changes
                    _                 -> changes
-           , let valuedbals = case mvalueat of
-                   Just AtTransaction -> valuedbals1
-                   Just AtPeriod      -> [mixedAmountValue prices periodlastday amt | (amt,periodlastday) <- zip unvaluedbals lastdays]
-                   Just AtNow         -> [mixedAmountValue prices today amt         | amt <- valuedbals1]
-                   Just (AtDate d)    -> [mixedAmountValue prices d amt             | amt <- valuedbals1]
-                   _                  -> unvaluedbals   --value-at=transaction was handled earlier
+           , let valuedbals = case value_ of
+                   Just (AtCost _mc)   -> valuedbals1
+                   Just (AtEnd _mc)    -> [mixedAmountValue prices periodlastday amt | (amt,periodlastday) <- zip unvaluedbals lastdays]
+                   Just (AtNow _mc)    -> [mixedAmountValue prices today amt         | amt <- valuedbals1]
+                   Just (AtDate d _mc) -> [mixedAmountValue prices d amt             | amt <- valuedbals1]
+                   _                   -> unvaluedbals   --value-at=transaction was handled earlier
              -- The total and average for the row, and their values.
            , let rowtot = if balancetype_==PeriodChange then sum unvaluedbals else 0
            , let rowavg = averageMixedAmounts unvaluedbals
-           , let valuedrowtot = case mvalueat of
-                   Just AtPeriod      -> mixedAmountValue prices reportlastday rowtot
-                   Just AtNow         -> mixedAmountValue prices today rowtot
-                   Just (AtDate d)    -> mixedAmountValue prices d rowtot
-                   _                  -> rowtot
-           , let valuedrowavg = case mvalueat of
-                   Just AtPeriod      -> mixedAmountValue prices reportlastday rowavg
-                   Just AtNow         -> mixedAmountValue prices today rowavg
-                   Just (AtDate d)    -> mixedAmountValue prices d rowavg
-                   _                  -> rowavg
+           , let valuedrowtot = case value_ of
+                   Just (AtEnd _mc)    -> mixedAmountValue prices reportlastday rowtot
+                   Just (AtNow _mc)    -> mixedAmountValue prices today rowtot
+                   Just (AtDate d _mc) -> mixedAmountValue prices d rowtot
+                   _                   -> rowtot
+           , let valuedrowavg = case value_ of
+                   Just (AtEnd _mc)    -> mixedAmountValue prices reportlastday rowavg
+                   Just (AtNow _mc)    -> mixedAmountValue prices today rowavg
+                   Just (AtDate d _mc) -> mixedAmountValue prices d rowavg
+                   _                   -> rowavg
            , empty_ || depth == 0 || any (not . isZeroMixedAmount) valuedbals
            ]
 
@@ -399,24 +399,24 @@ multiBalanceReport ropts@ReportOpts{..} q j =
       colamtsvalued     = transpose [bs | (a,_,_,bs,_,_) <- rowsvalued, not (tree_ ropts) || a `elem` highestlevelaccts]
       coltotals :: [MixedAmount] =
         dbg1 "coltotals" $
-        case mvalueat of
-          Nothing            -> map sum colamts
-          Just AtTransaction -> map sum colamtsvalued
-          Just AtPeriod      -> map (\(amts,periodlastday) -> maybevalue periodlastday $ sum amts) $ zip colamts lastdays
-          Just AtNow         -> map (maybevalue today . sum) colamts
-          Just (AtDate d)    -> map (maybevalue d . sum) colamts
+        case value_ of
+          Nothing             -> map sum colamts
+          Just (AtCost _mc)   -> map sum colamtsvalued
+          Just (AtEnd _mc)    -> map (\(amts,periodlastday) -> maybevalue periodlastday $ sum amts) $ zip colamts lastdays
+          Just (AtNow _mc)    -> map (maybevalue today . sum) colamts
+          Just (AtDate d _mc) -> map (maybevalue d . sum) colamts
       -- Calculate and maybe value the grand total and average.
       [grandtotal,grandaverage] =
         let amts = map ($ map sum colamts)
               [if balancetype_==PeriodChange then sum else const 0
               ,averageMixedAmounts
               ]
-        in case mvalueat of
-          Nothing            -> amts
-          Just AtTransaction -> amts
-          Just AtPeriod      -> map (maybevalue reportlastday) amts
-          Just AtNow         -> map (maybevalue today)         amts
-          Just (AtDate d)    -> map (maybevalue d)             amts
+        in case value_ of
+          Nothing             -> amts
+          Just (AtCost _mc)   -> amts
+          Just (AtEnd _mc)    -> map (maybevalue reportlastday) amts
+          Just (AtNow _mc)    -> map (maybevalue today)         amts
+          Just (AtDate d _mc) -> map (maybevalue d)             amts
       -- Totals row.
       totalsrow :: MultiBalanceReportTotals =
         dbg1 "totalsrow" (coltotals, grandtotal, grandaverage)

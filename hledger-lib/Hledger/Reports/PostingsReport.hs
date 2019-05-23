@@ -87,7 +87,6 @@ postingsReport ropts@ReportOpts{..} q j =
       --
       --  "Day before report start" is a bit arbitrary.
 
-      mvalueat = valueTypeFromOpts ropts
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
 
       -- Postings or summary pseudo postings to be displayed.
@@ -100,29 +99,29 @@ postingsReport ropts@ReportOpts{..} q j =
               showempty = empty_ || average_
               -- for --value-at=transaction, need to value the postings before summarising them
               maybevaluedreportps
-                | mvalueat==Just AtTransaction = [postingValueAtDate j (postingDate p) p | p <- reportps]
+                -- | value_==Just AtTransaction = [postingValueAtDate j (postingDate p) p | p <- reportps]
                 | otherwise                    = reportps
               summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan maybevaluedreportps
-            in case mvalueat of
-              Just AtPeriod      -> [(postingValueAtDate j periodlastday p    , periodend) | (p,periodend) <- summaryps
+            in case value_ of
+              Just (AtEnd _mc)    -> [(postingValueAtDate j periodlastday p    , periodend) | (p,periodend) <- summaryps
                                     ,let periodlastday = maybe
                                            (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
                                            (addDays (-1))
                                            periodend
                                     ]
-              Just AtNow         -> [(postingValueAtDate j today p            , periodend) | (p,periodend) <- summaryps]
-              Just (AtDate d)    -> [(postingValueAtDate j d p                , periodend) | (p,periodend) <- summaryps]
+              Just (AtNow _mc)    -> [(postingValueAtDate j today p            , periodend) | (p,periodend) <- summaryps]
+              Just (AtDate d _mc) -> [(postingValueAtDate j d p                , periodend) | (p,periodend) <- summaryps]
               _                  -> summaryps
           else
             let reportperiodlastday =
                   fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
                   $ reportPeriodOrJournalLastDay ropts j
-            in case mvalueat of
+            in case value_ of
               Nothing            -> [(p                                         , Nothing) | p <- reportps]
-              Just AtTransaction -> [(postingValueAtDate j (postingDate p) p    , Nothing) | p <- reportps]
-              Just AtPeriod      -> [(postingValueAtDate j reportperiodlastday p, Nothing) | p <- reportps]
-              Just AtNow         -> [(postingValueAtDate j today p              , Nothing) | p <- reportps]
-              Just (AtDate d)    -> [(postingValueAtDate j d p                  , Nothing) | p <- reportps]
+              Just (AtCost _mc)   -> [(postingValueAtDate j (postingDate p) p    , Nothing) | p <- reportps]
+              Just (AtEnd _mc)    -> [(postingValueAtDate j reportperiodlastday p, Nothing) | p <- reportps]
+              Just (AtNow _mc)    -> [(postingValueAtDate j today p              , Nothing) | p <- reportps]
+              Just (AtDate d _mc) -> [(postingValueAtDate j d p                  , Nothing) | p <- reportps]
 
       -- posting report items ready for display
       items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth valuedstartbal runningcalc startnum
@@ -137,12 +136,12 @@ postingsReport ropts@ReportOpts{..} q j =
           -- For --value-at=transaction, we don't bother valuing each
           -- preceding posting at posting date - how useful would that
           -- be ? Just value the initial sum/average at report start date.
-          valuedstartbal = case mvalueat of
-            Nothing            -> startbal
-            Just AtTransaction -> mixedAmountValue prices daybeforereportstart startbal
-            Just AtPeriod      -> mixedAmountValue prices daybeforereportstart startbal
-            Just AtNow         -> mixedAmountValue prices today       startbal
-            Just (AtDate d)    -> mixedAmountValue prices d           startbal
+          valuedstartbal = case value_ of
+            Nothing             -> startbal
+            Just (AtCost _mc)   -> mixedAmountValue prices daybeforereportstart startbal
+            Just (AtEnd  _mc)   -> mixedAmountValue prices daybeforereportstart startbal
+            Just (AtNow  _mc)   -> mixedAmountValue prices today       startbal
+            Just (AtDate d _mc) -> mixedAmountValue prices d           startbal
             where
               daybeforereportstart = maybe
                                      (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
