@@ -64,10 +64,14 @@ module Hledger.Data.Posting (
   showPosting,
   -- * misc.
   showComment,
+  postingTransformAmount,
+  postingValue,
+  postingToCost,
   tests_Posting
 )
 where
 import Data.List
+import qualified Data.Map as M
 import Data.Maybe
 import Data.MemoUgly (memo)
 #if !(MIN_VERSION_base(4,11,0))
@@ -341,6 +345,25 @@ aliasReplace (BasicAlias old new) a
   | old `isAccountNamePrefixOf` a || old == a = new <> T.drop (T.length old) a
   | otherwise = a
 aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.unpack a -- XXX
+
+-- | Apply a transform function to this posting's amount.
+postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting
+postingTransformAmount f p@Posting{pamount=a} = p{pamount=f a}
+
+-- | Convert this posting's amount to market value in its default
+-- valuation commodity on the given date using the given market prices.
+-- If no default valuation commodity can be found, amounts are left unchanged.
+-- The prices are expected to be in parse order. 
+postingValue :: [MarketPrice] -> Day -> Posting -> Posting
+postingValue prices d p = postingTransformAmount (mixedAmountValue prices' d) p
+  where
+    -- prices are in parse order - sort into date then parse order,
+    -- & reversed for quick lookup of the latest price.
+    prices' = reverse $ sortOn mpdate prices
+
+-- | Convert this posting's amount to cost, and apply the appropriate amount styles.
+postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
+postingToCost styles p@Posting{pamount=a} = p{pamount=mixedAmountToCost styles a}
 
 
 -- tests
