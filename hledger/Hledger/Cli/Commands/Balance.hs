@@ -583,7 +583,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
         HistoricalBalance  -> "Ending balances (historical)")
       (showDateSpan $ multiBalanceReportSpan r)
       (case value_ of
-        Just (AtCost _mc)   -> ", valued at transaction dates"
+        Just (AtCost _mc)   -> ", valued at cost"
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
         Just (AtDate d _mc) -> ", valued at "++showDate d

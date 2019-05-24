@@ -71,11 +71,7 @@ balanceReport ropts@ReportOpts{..} q j =
       -- dbg1 = const id -- exclude from debug output
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
-      -- We may be converting amounts to value, according to --value-at:
-      --  transaction: value each posting at posting date before summing
-      --  period:      value totals at period end
-      --  date:        value totals at date
-      today    = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
+      today    = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
 
       -- For --value-at=transaction, convert all postings to value before summing them.
       -- The report might not use them all but laziness probably helps here.
@@ -83,9 +79,10 @@ balanceReport ropts@ReportOpts{..} q j =
          | otherwise = j
       
       -- Get all the summed accounts & balances, according to the query, as an account tree.
+      -- If doing cost valuation, amounts will be converted to cost first.
       accttree = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j'
 
-      -- For --value-at=(all except transaction, done above), convert the summed amounts to value.
+      -- For other kinds of valuation, convert the summed amounts to value.
       valuedaccttree = mapAccounts valueaccount accttree
         where
           valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
