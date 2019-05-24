@@ -628,14 +628,13 @@ messages being printed - please report them (with reproducible examples) eg at
 
 ### Some useful value reports
 
-Here are some probably useful reports - please send suggestions if you find out more:
+Here are some probably useful reports, please send suggestions if you find more:
 
-| Command:                     | Description of report:                             | Could answer:                                    |
-|------------------------------|----------------------------------------------------|--------------------------------------------------|
-| `hledger bs -M --value=p` | Monthly historical value of assets/liabilities     | How are my investments performing ?              |
-| `hledger is -M --value=t` | Monthly contemporaneous value of revenues/expenses | How much foreign currency have I been spending ? |
+| Command:                  | Description of report:                             | Could answer:                                    |
+|---------------------------|----------------------------------------------------|--------------------------------------------------|
+| `hledger bs -M --value=e` | Monthly historical value of assets/liabilities     | How are my investments performing ?              |
 
-## Combining -B, -V, --value
+### Combining -B, -V, --value
 
 The rightmost of these flags wins.
 
