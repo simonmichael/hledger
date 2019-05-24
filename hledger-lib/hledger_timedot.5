@@ -1,32 +1,32 @@
 
-.TH "hledger_timedot" "5" "March 2019" "hledger 1.14" "hledger User Manuals"
+.TH "hledger_timedot" "5" "March 2019" "hledger 1.14.99" "hledger User Manuals"
 
 
 
 .SH NAME
 .PP
-Timedot \- hledger\[aq]s human\-friendly time logging format
+Timedot - hledger\[aq]s human-friendly time logging format
 .SH DESCRIPTION
 .PP
 Timedot is a plain text format for logging dated, categorised quantities
 (of time, usually), supported by hledger.
 It is convenient for approximate and retroactive time logging, eg when
-the real\-time clock\-in/out required with a timeclock file is too
-precise or too interruptive.
+the real-time clock-in/out required with a timeclock file is too precise
+or too interruptive.
 It can be formatted like a bar chart, making clear at a glance where
 time was spent.
 .PP
-Though called "timedot", this format is read by hledger as commodityless
-quantities, so it could be used to represent dated quantities other than
-time.
+Though called \[dq]timedot\[dq], this format is read by hledger as
+commodityless quantities, so it could be used to represent dated
+quantities other than time.
 In the docs below we\[aq]ll assume it\[aq]s time.
 .SH FILE FORMAT
 .PP
 A timedot file contains a series of day entries.
 A day entry begins with a date, and is followed by category/quantity
 pairs, one per line.
-Dates are hledger\-style simple dates (see hledger_journal(5)).
-Categories are hledger\-style account names, optionally indented.
+Dates are hledger-style simple dates (see hledger_journal(5)).
+Categories are hledger-style account names, optionally indented.
 As in a hledger journal, there must be at least two spaces between the
 category (account name) and the quantity.
 .PP
@@ -41,9 +41,9 @@ an integral or decimal number, representing hours.
 Eg: 1.5
 .IP \[bu] 2
 an integral or decimal number immediately followed by a unit symbol
-\f[C]s\f[], \f[C]m\f[], \f[C]h\f[], \f[C]d\f[], \f[C]w\f[], \f[C]mo\f[],
-or \f[C]y\f[], representing seconds, minutes, hours, days weeks, months
-or years respectively.
+\f[C]s\f[R], \f[C]m\f[R], \f[C]h\f[R], \f[C]d\f[R], \f[C]w\f[R],
+\f[C]mo\f[R], or \f[C]y\f[R], representing seconds, minutes, hours, days
+weeks, months or years respectively.
 Eg: 90m.
 The following equivalencies are assumed, currently: 1m = 60s, 1h = 60m,
 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
@@ -53,16 +53,16 @@ An example:
 .IP
 .nf
 \f[C]
-#\ on\ this\ day,\ 6h\ was\ spent\ on\ client\ work,\ 1.5h\ on\ haskell\ FOSS\ work,\ etc.
+# on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
 2016/2/1
-inc:client1\ \ \ ....\ ....\ ....\ ....\ ....\ ....
-fos:haskell\ \ \ ....\ ..\ 
-biz:research\ \ .
+inc:client1   .... .... .... .... .... ....
+fos:haskell   .... .. 
+biz:research  .
 
 2016/2/2
-inc:client1\ \ \ ....\ ....
-biz:research\ \ .
-\f[]
+inc:client1   .... ....
+biz:research  .
+\f[R]
 .fi
 .PP
 Or with numbers:
@@ -70,42 +70,42 @@ Or with numbers:
 .nf
 \f[C]
 2016/2/3
-inc:client1\ \ \ 4
-fos:hledger\ \ \ 3
-biz:research\ \ 1
-\f[]
+inc:client1   4
+fos:hledger   3
+biz:research  1
+\f[R]
 .fi
 .PP
 Reporting:
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ t.timedot\ print\ date:2016/2/2
-2016/02/02\ *
-\ \ \ \ (inc:client1)\ \ \ \ \ \ \ \ \ \ 2.00
+$ hledger -f t.timedot print date:2016/2/2
+2016/02/02 *
+    (inc:client1)          2.00
 
-2016/02/02\ *
-\ \ \ \ (biz:research)\ \ \ \ \ \ \ \ \ \ 0.25
-\f[]
+2016/02/02 *
+    (biz:research)          0.25
+\f[R]
 .fi
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ t.timedot\ bal\ \-\-daily\ \-\-tree
-Balance\ changes\ in\ 2016/02/01\-2016/02/03:
+$ hledger -f t.timedot bal --daily --tree
+Balance changes in 2016/02/01-2016/02/03:
 
-\ \ \ \ \ \ \ \ \ \ \ \ ||\ \ 2016/02/01d\ \ 2016/02/02d\ \ 2016/02/03d\ 
+            ||  2016/02/01d  2016/02/02d  2016/02/03d 
 ============++========================================
-\ biz\ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ 0.25\ \ \ \ \ \ \ \ \ 0.25\ \ \ \ \ \ \ \ \ 1.00\ 
-\ \ \ research\ ||\ \ \ \ \ \ \ \ \ 0.25\ \ \ \ \ \ \ \ \ 0.25\ \ \ \ \ \ \ \ \ 1.00\ 
-\ fos\ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ 1.50\ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ 3.00\ 
-\ \ \ haskell\ \ ||\ \ \ \ \ \ \ \ \ 1.50\ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ 0\ 
-\ \ \ hledger\ \ ||\ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ 3.00\ 
-\ inc\ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ 6.00\ \ \ \ \ \ \ \ \ 2.00\ \ \ \ \ \ \ \ \ 4.00\ 
-\ \ \ client1\ \ ||\ \ \ \ \ \ \ \ \ 6.00\ \ \ \ \ \ \ \ \ 2.00\ \ \ \ \ \ \ \ \ 4.00\ 
-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ 7.75\ \ \ \ \ \ \ \ \ 2.25\ \ \ \ \ \ \ \ \ 8.00\ 
-\f[]
+ biz        ||         0.25         0.25         1.00 
+   research ||         0.25         0.25         1.00 
+ fos        ||         1.50            0         3.00 
+   haskell  ||         1.50            0            0 
+   hledger  ||            0            0         3.00 
+ inc        ||         6.00         2.00         4.00 
+   client1  ||         6.00         2.00         4.00 
+------------++----------------------------------------
+            ||         7.75         2.25         8.00 
+\f[R]
 .fi
 .PP
 I prefer to use period for separating account components.
@@ -114,20 +114,20 @@ We can make this work with an account alias:
 .nf
 \f[C]
 2016/2/4
-fos.hledger.timedot\ \ 4
-fos.ledger\ \ \ \ \ \ \ \ \ \ \ ..
-\f[]
+fos.hledger.timedot  4
+fos.ledger           ..
+\f[R]
 .fi
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ t.timedot\ \-\-alias\ /\\\\./=:\ bal\ date:2016/2/4
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.50\ \ fos
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.00\ \ \ \ hledger:timedot
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0.50\ \ \ \ ledger
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4.50
-\f[]
+$ hledger -f t.timedot --alias /\[rs]\[rs]./=: bal date:2016/2/4
+                4.50  fos
+                4.00    hledger:timedot
+                0.50    ledger
+--------------------
+                4.50
+\f[R]
 .fi
 .PP
 Here is a sample.timedot.

@@ -1,46 +1,46 @@
 
-.TH "hledger\-api" "1" "March 2019" "hledger\-api 1.14" "hledger User Manuals"
+.TH "hledger-api" "1" "March 2019" "hledger-api 1.14.99" "hledger User Manuals"
 
 
 
 .SH NAME
 .PP
-hledger\-api \- web API server for the hledger accounting tool
+hledger-api - web API server for the hledger accounting tool
 .SH SYNOPSIS
 .PP
-\f[C]hledger\-api\ [OPTIONS]\f[]
+\f[C]hledger-api [OPTIONS]\f[R]
 .PD 0
 .P
 .PD
-\f[C]hledger\ api\ \-\-\ [OPTIONS]\f[]
+\f[C]hledger api -- [OPTIONS]\f[R]
 .SH DESCRIPTION
 .PP
-hledger is a cross\-platform program for tracking money, time, or any
-other commodity, using double\-entry accounting and a simple, editable
+hledger is a cross-platform program for tracking money, time, or any
+other commodity, using double-entry accounting and a simple, editable
 file format.
 hledger is inspired by and largely compatible with ledger(1).
 .PP
-hledger\-api is a simple web API server, intended to support
-client\-side web apps operating on hledger data.
-It comes with a series of simple client\-side app examples, which drive
+hledger-api is a simple web API server, intended to support client-side
+web apps operating on hledger data.
+It comes with a series of simple client-side app examples, which drive
 its evolution.
 .PP
 Like hledger, it reads data from one or more files in hledger journal,
-timeclock, timedot, or CSV format specified with \f[C]\-f\f[], or
-\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
-perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
+timeclock, timedot, or CSV format specified with \f[C]-f\f[R], or
+\f[C]$LEDGER_FILE\f[R], or \f[C]$HOME/.hledger.journal\f[R] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[R]).
 For more about this see hledger(1), hledger_journal(5) etc.
 .PP
 The server listens on IP address 127.0.0.1, accessible only to local
 requests, by default.
-You can change this with \f[C]\-\-host\f[], eg
-\f[C]\-\-host\ 0.0.0.0\f[] to listen on all addresses.
-Note there is no other access control, and hledger\-api allows file
+You can change this with \f[C]--host\f[R], eg \f[C]--host 0.0.0.0\f[R]
+to listen on all addresses.
+Note there is no other access control, and hledger-api allows file
 browsing, so on shared machines you will certainly need to put it behind
 an authenticating proxy to restrict access.
 .PP
 You can change the TCP port it listens on (default: 8001) with
-\f[C]\-p\ PORT\f[].
+\f[C]-p PORT\f[R].
 .PP
 API methods look like:
 .IP
@@ -52,73 +52,59 @@ API methods look like:
 /api/v1/commodities
 /api/v1/accounts
 /api/v1/accounts/ACCTNAME
-\f[]
+\f[R]
 .fi
 .PP
-See \f[C]/api/swagger.json\f[] for a full list in Swagger 2.0 format.
-(Or you can run \f[C]hledger\-api\ \-\-swagger\f[] to print this in the
+See \f[C]/api/swagger.json\f[R] for a full list in Swagger 2.0 format.
+(Or you can run \f[C]hledger-api --swagger\f[R] to print this in the
 console.)
 .PP
-hledger\-api also serves files, from the current directory by default,
-and the \f[C]/\f[] path will also show a directory listing.
-This is convenient for serving client\-side web code, in addition to the
-server\-side api.
+hledger-api also serves files, from the current directory by default,
+and the \f[C]/\f[R] path will also show a directory listing.
+This is convenient for serving client-side web code, in addition to the
+server-side api.
 .SH OPTIONS
 .PP
-Note: if invoking hledger\-api as a hledger subcommand, write
-\f[C]\-\-\f[] before options as shown above.
+Note: if invoking hledger-api as a hledger subcommand, write
+\f[C]--\f[R] before options as shown above.
 .TP
-.B \f[C]\-f\ \-\-file=FILE\f[]
+.B \f[C]-f --file=FILE\f[R]
 use a different input file.
-For stdin, use \- (default: \f[C]$LEDGER_FILE\f[] or
-\f[C]$HOME/.hledger.journal\f[])
-.RS
-.RE
+For stdin, use - (default: \f[C]$LEDGER_FILE\f[R] or
+\f[C]$HOME/.hledger.journal\f[R])
 .TP
-.B \f[C]\-d\ \-\-static\-dir=DIR\f[]
-serve files from a different directory (default: \f[C]\&.\f[])
-.RS
-.RE
+.B \f[C]-d --static-dir=DIR\f[R]
+serve files from a different directory (default: \f[C].\f[R])
 .TP
-.B \f[C]\-\-host=IPADDR\f[]
+.B \f[C]--host=IPADDR\f[R]
 listen on this IP address (default: 127.0.0.1)
-.RS
-.RE
 .TP
-.B \f[C]\-p\ \-\-port=PORT\f[]
+.B \f[C]-p --port=PORT\f[R]
 listen on this TCP port (default: 8001)
-.RS
-.RE
 .TP
-.B \f[C]\-\-swagger\f[]
+.B \f[C]--swagger\f[R]
 print API docs in Swagger 2.0 format, and exit
-.RS
-.RE
 .TP
-.B \f[C]\-\-version\f[]
+.B \f[C]--version\f[R]
 show version
-.RS
-.RE
 .TP
-.B \f[C]\-h\ \-\-help\f[]
+.B \f[C]-h --help\f[R]
 show usage
-.RS
-.RE
 .SH ENVIRONMENT
 .PP
-\f[B]LEDGER_FILE\f[] The journal file path when not specified with
-\f[C]\-f\f[].
-Default: \f[C]~/.hledger.journal\f[] (on windows, perhaps
-\f[C]C:/Users/USER/.hledger.journal\f[]).
+\f[B]LEDGER_FILE\f[R] The journal file path when not specified with
+\f[C]-f\f[R].
+Default: \f[C]\[ti]/.hledger.journal\f[R] (on windows, perhaps
+\f[C]C:/Users/USER/.hledger.journal\f[R]).
 .SH FILES
 .PP
 Reads data from one or more files in hledger journal, timeclock,
-timedot, or CSV format specified with \f[C]\-f\f[], or
-\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
-perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
+timedot, or CSV format specified with \f[C]-f\f[R], or
+\f[C]$LEDGER_FILE\f[R], or \f[C]$HOME/.hledger.journal\f[R] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[R]).
 .SH BUGS
 .PP
-The need to precede options with \f[C]\-\-\f[] when invoked from hledger
+The need to precede options with \f[C]--\f[R] when invoked from hledger
 is awkward.
 
 

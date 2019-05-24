@@ -18,9 +18,9 @@ DESCRIPTION
 
        hledger-ui is hledger's curses-style interface, providing an  efficient
        full-window  text  UI  for  viewing accounts and transactions, and some
-       limited data entry  capability.   It  is  easier  than  hledger's  com-
-       mand-line interface, and sometimes quicker and more convenient than the
-       web interface.
+       limited data entry capability.  It is easier  than  hledger's  command-
+       line  interface, and sometimes quicker and more convenient than the web
+       interface.
 
        Note hledger-ui has some different defaults (experimental):
 
@@ -179,22 +179,22 @@ KEYS
        or LEFT) to close it.  The following keys work on most screens:
 
        The cursor keys navigate: right (or enter) goes deeper, left returns to
-       the  previous  screen,  up/down/page up/page down/home/end  move up and
-       down   through   lists.     Vi-style    (h/j/k/l)    and    Emacs-style
-       (CTRL-p/CTRL-n/CTRL-f/CTRL-b) movement keys are also supported.  A tip:
-       movement speed is limited by your keyboard repeat rate, to move  faster
-       you  may  want to adjust it.  (If you're on a mac, the Karabiner app is
-       one way to do that.)
+       the  previous  screen,  up/down/page  up/page down/home/end move up and
+       down through lists.  Vi-style (h/j/k/l) and  Emacs-style  (CTRL-p/CTRL-
+       n/CTRL-f/CTRL-b)  movement  keys  are  also supported.  A tip: movement
+       speed is limited by your keyboard repeat rate, to move faster  you  may
+       want  to  adjust it.  (If you're on a mac, the Karabiner app is one way
+       to do that.)
 
        With shift pressed, the cursor keys adjust the report period,  limiting
-       the   transactions   to   be   shown   (by  default,  all  are  shown).
-       shift-down/up steps downward and upward through these  standard  report
-       period   durations:   year,   quarter,   month,   week,   day.    Then,
-       shift-left/right moves to the previous/next period.  t sets the  report
-       period  to  today.   With  the --watch option, when viewing a "current"
-       period (the current day, week, month, quarter,  or  year),  the  period
-       will  move automatically to track the current date.  To set a non-stan-
-       dard period, you can use / and a date: query.
+       the  transactions  to  be  shown  (by  default, all are shown).  shift-
+       down/up steps downward and upward through these standard report  period
+       durations:  year,  quarter,  month,  week, day.  Then, shift-left/right
+       moves to the previous/next period.  t sets the report period to  today.
+       With  the  --watch option, when viewing a "current" period (the current
+       day, week, month, quarter, or year), the period will move automatically
+       to track the current date.  To set a non-standard period, you can use /
+       and a date: query.
 
        / lets you set a general filter query limiting the  data  shown,  using
        the  same query terms as in hledger and hledger-web.  While editing the
@@ -226,15 +226,15 @@ KEYS
        a  runs  command-line  hledger's  add  command, and reloads the updated
        file.  This allows some basic data entry.
 
-       A is  like  a,  but  runs  the  hledger-iadd  tool,  which  provides  a
-       curses-style  interface.  This key will be available if hledger-iadd is
+       A is like a, but runs the hledger-iadd tool, which provides  a  curses-
+       style  interface.   This  key  will  be  available  if  hledger-iadd is
        installed in $PATH.
 
-       E  runs  $HLEDGER_UI_EDITOR,  or   $EDITOR,   or   a   default   (emac-
-       sclient -a "" -nw) on the journal file.  With some editors (emacs, vi),
-       the cursor will be positioned at the current transaction  when  invoked
-       from  the  register  and transaction screens, and at the error location
-       (if possible) when invoked from the error screen.
+       E runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (emacsclient -a  ""
+       -nw)  on  the  journal file.  With some editors (emacs, vi), the cursor
+       will be positioned at the current transaction  when  invoked  from  the
+       register  and transaction screens, and at the error location (if possi-
+       ble) when invoked from the error screen.
 
        q quits the application.
 
@@ -406,4 +406,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.14                   March 2019                     hledger-ui(1)
+hledger-ui 1.14.99                March 2019                     hledger-ui(1)

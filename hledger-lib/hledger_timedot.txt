@@ -9,10 +9,10 @@ NAME
 DESCRIPTION
        Timedot  is  a plain text format for logging dated, categorised quanti-
        ties (of time, usually), supported by hledger.  It  is  convenient  for
-       approximate  and  retroactive  time  logging,  eg  when  the  real-time
-       clock-in/out required with a timeclock  file  is  too  precise  or  too
-       interruptive.   It can be formatted like a bar chart, making clear at a
-       glance where time was spent.
+       approximate  and retroactive time logging, eg when the real-time clock-
+       in/out required with a timeclock file is too precise or  too  interrup-
+       tive.   It  can be formatted like a bar chart, making clear at a glance
+       where time was spent.
 
        Though called "timedot", this format is read by hledger  as  commodity-
        less  quantities,  so  it  could  be used to represent dated quantities
@@ -124,4 +124,4 @@ SEE ALSO
 
 
 
-hledger 1.14                      March 2019                hledger_timedot(5)
+hledger 1.14.99                   March 2019                hledger_timedot(5)

@@ -4,8 +4,8 @@ stdin.
 
 File: hledger_journal.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_journal(5) hledger 1.14
-*******************************
+hledger_journal(5) hledger 1.14.99
+**********************************
 
 hledger's usual data source is a plain text file containing journal
 entries in hledger journal format.  This file represents a standard
@@ -82,7 +82,7 @@ File: hledger_journal.info,  Node: FILE FORMAT,  Next: EDITOR SUPPORT,  Prev: To
 * Tags::
 * Directives::
 * Periodic transactions::
-* Transaction modifiers::
+* Auto postings / transaction modifiers::
 
 
 File: hledger_journal.info,  Node: Transactions,  Next: Postings,  Up: FILE FORMAT
@@ -296,6 +296,7 @@ and status mark (or until a comment begins).  Sometimes called the
 "narration" in traditional bookkeeping, it can be used for whatever you
 wish, or left blank.  Transaction descriptions can be queried, unlike
 comments.
+
 * Menu:
 
 * Payee and note::
@@ -467,6 +468,7 @@ can protect you from, eg, inadvertently disrupting reconciled balances
 while cleaning up old entries.  You can disable them temporarily with
 the '-I/--ignore-assertions' flag, which can be useful for
 troubleshooting or for reading Ledger files.
+
 * Menu:
 
 * Assertions and ordering::
@@ -655,6 +657,7 @@ of the commodity to that account since the last balance assertion or
 assignment).  Note that using balance assignments makes your journal a
 little less explicit; to know the exact amount posted, you have to run
 hledger or do the calculations yourself, instead of just reading it.
+
 * Menu:
 
 * Balance assignments and prices::
@@ -914,6 +917,7 @@ typically last only until the end of their defining file.  This provides
 more simplicity and predictability, eg reports are not changed by
 writing file options in a different order.  It can be surprising at
 times though.
+
 * Menu:
 
 * Comment blocks::
@@ -1248,6 +1252,7 @@ They do not affect account names being entered via hledger add or
 hledger-web.
 
    See also Cookbook: Rewrite account names.
+
 * Menu:
 
 * Basic aliases::
@@ -1372,7 +1377,7 @@ If account aliases are present, they are applied after the default
 parent account.
 
 
-File: hledger_journal.info,  Node: Periodic transactions,  Next: Transaction modifiers,  Prev: Directives,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Periodic transactions,  Next: Auto postings / transaction modifiers,  Prev: Directives,  Up: FILE FORMAT
 
 1.15 Periodic transactions
 ==========================
@@ -1398,6 +1403,7 @@ date must fall on a natural boundary of the interval.  Eg 'monthly from
 expression can work (useful or not).  They will be relative to today's
 date, unless a Y default year directive is in effect, in which case they
 will be relative to Y/1/1.
+
 * Menu:
 
 * Two spaces after the period expression::
@@ -1482,29 +1488,29 @@ compared in budget reports.
 and Forecasting.
 
 
-File: hledger_journal.info,  Node: Transaction modifiers,  Prev: Periodic transactions,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Auto postings / transaction modifiers,  Prev: Periodic transactions,  Up: FILE FORMAT
 
-1.16 Transaction modifiers
-==========================
+1.16 Auto postings / transaction modifiers
+==========================================
 
-Transaction modifier rules describe changes that should be applied
-automatically to certain transactions.  They can be enabled by using the
-'--auto' flag.  Currently, just one kind of change is possible: adding
-extra postings.  These rule-generated postings are known as "automated
-postings" or "auto postings".
+Transaction modifier rules describe changes to be applied automatically
+to certain matched transactions.  Currently just one kind of change is
+possible - adding extra postings, which we call "automated postings" or
+just "auto postings".  These rules become active when you use the
+'--auto' flag.
 
-   A transaction modifier rule looks quite like a normal transaction,
-except the first line is an equals sign followed by a query that matches
-certain postings (mnemonic: '=' suggests matching).  And each "posting"
-is actually a posting-generating rule:
+   A transaction modifier, AKA auto posting rule, looks much like a
+normal transaction except the first line is an equals sign followed by a
+query that matches certain postings (mnemonic: '=' suggests matching).
+And each "posting" is actually a posting-generating rule:
 
 = QUERY
     ACCT  AMT
     ACCT  [AMT]
     ...
 
-   These posting rules look like normal postings, except the amount can
-be:
+   These posting-generating rules look like normal postings, except the
+amount can be:
 
    * a normal amount with a commodity symbol, eg '$2'.  This will be
      used as-is.
@@ -1516,6 +1522,10 @@ be:
    * a multiplier with a commodity symbol, eg '*$2' (a star, number N,
      and symbol S). The matched posting's amount will be multiplied by
      N, and its commodity symbol will be replaced with S.
+
+   These rules have global effect - a rule appearing anywhere in your
+data can potentially affect any transaction, including transactions
+recorded above it or in another file.
 
    Some examples:
 
@@ -1553,7 +1563,7 @@ $ hledger print --auto
 * Auto postings and transaction balancing / inferred amounts / balance assertions::
 
 
-File: hledger_journal.info,  Node: Auto postings and transaction balancing / inferred amounts / balance assertions,  Up: Transaction modifiers
+File: hledger_journal.info,  Node: Auto postings and transaction balancing / inferred amounts / balance assertions,  Up: Auto postings / transaction modifiers
 
 1.16.1 Auto postings and transaction balancing / inferred amounts /
 -------------------------------------------------------------------
@@ -1585,109 +1595,109 @@ See the [[Cookbook]] at hledger.org for the latest information.
 
 Tag Table:
 Node: Top76
-Node: FILE FORMAT2372
-Ref: #file-format2496
-Node: Transactions2783
-Ref: #transactions2904
-Node: Postings3588
-Ref: #postings3715
-Node: Dates4710
-Ref: #dates4825
-Node: Simple dates4890
-Ref: #simple-dates5016
-Node: Secondary dates5382
-Ref: #secondary-dates5536
-Node: Posting dates7099
-Ref: #posting-dates7228
-Node: Status8602
-Ref: #status8722
-Node: Description10430
-Ref: #description10568
-Node: Payee and note10887
-Ref: #payee-and-note11001
-Node: Account names11243
-Ref: #account-names11386
-Node: Amounts11873
-Ref: #amounts12009
-Node: Virtual Postings15026
-Ref: #virtual-postings15185
-Node: Balance Assertions16405
-Ref: #balance-assertions16580
-Node: Assertions and ordering17538
-Ref: #assertions-and-ordering17724
-Node: Assertions and included files18424
-Ref: #assertions-and-included-files18665
-Node: Assertions and multiple -f options18998
-Ref: #assertions-and-multiple--f-options19252
-Node: Assertions and commodities19384
-Ref: #assertions-and-commodities19614
-Node: Assertions and prices20770
-Ref: #assertions-and-prices20982
-Node: Assertions and subaccounts21422
-Ref: #assertions-and-subaccounts21649
-Node: Assertions and virtual postings21973
-Ref: #assertions-and-virtual-postings22213
-Node: Assertions and precision22355
-Ref: #assertions-and-precision22546
-Node: Balance Assignments22813
-Ref: #balance-assignments22994
-Node: Balance assignments and prices24158
-Ref: #balance-assignments-and-prices24330
-Node: Transaction prices24554
-Ref: #transaction-prices24723
-Node: Comments26991
-Ref: #comments27125
-Node: Tags28295
-Ref: #tags28413
-Node: Directives29815
-Ref: #directives29958
-Node: Comment blocks35565
-Ref: #comment-blocks35710
-Node: Including other files35886
-Ref: #including-other-files36066
-Node: Default year36474
-Ref: #default-year36643
-Node: Declaring commodities37066
-Ref: #declaring-commodities37249
-Node: Default commodity38476
-Ref: #default-commodity38652
-Node: Market prices39288
-Ref: #market-prices39453
-Node: Declaring accounts40294
-Ref: #declaring-accounts40470
-Node: Account comments41395
-Ref: #account-comments41558
-Node: Account subdirectives41953
-Ref: #account-subdirectives42148
-Node: Account types42461
-Ref: #account-types42645
-Node: Account display order44289
-Ref: #account-display-order44459
-Node: Rewriting accounts45588
-Ref: #rewriting-accounts45773
-Node: Basic aliases46507
-Ref: #basic-aliases46653
-Node: Regex aliases47357
-Ref: #regex-aliases47528
-Node: Multiple aliases48246
-Ref: #multiple-aliases48421
-Node: end aliases48919
-Ref: #end-aliases49066
-Node: Default parent account49167
-Ref: #default-parent-account49333
-Node: Periodic transactions50217
-Ref: #periodic-transactions50399
-Node: Two spaces after the period expression51524
-Ref: #two-spaces-after-the-period-expression51769
-Node: Forecasting with periodic transactions52254
-Ref: #forecasting-with-periodic-transactions52544
-Node: Budgeting with periodic transactions54231
-Ref: #budgeting-with-periodic-transactions54470
-Node: Transaction modifiers54929
-Ref: #transaction-modifiers55092
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions57076
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions57377
-Node: EDITOR SUPPORT57755
-Ref: #editor-support57873
+Node: FILE FORMAT2378
+Ref: #file-format2502
+Node: Transactions2805
+Ref: #transactions2926
+Node: Postings3610
+Ref: #postings3737
+Node: Dates4732
+Ref: #dates4847
+Node: Simple dates4912
+Ref: #simple-dates5038
+Node: Secondary dates5404
+Ref: #secondary-dates5558
+Node: Posting dates7121
+Ref: #posting-dates7250
+Node: Status8624
+Ref: #status8744
+Node: Description10452
+Ref: #description10590
+Node: Payee and note10910
+Ref: #payee-and-note11024
+Node: Account names11266
+Ref: #account-names11409
+Node: Amounts11896
+Ref: #amounts12032
+Node: Virtual Postings15049
+Ref: #virtual-postings15208
+Node: Balance Assertions16428
+Ref: #balance-assertions16603
+Node: Assertions and ordering17562
+Ref: #assertions-and-ordering17748
+Node: Assertions and included files18448
+Ref: #assertions-and-included-files18689
+Node: Assertions and multiple -f options19022
+Ref: #assertions-and-multiple--f-options19276
+Node: Assertions and commodities19408
+Ref: #assertions-and-commodities19638
+Node: Assertions and prices20794
+Ref: #assertions-and-prices21006
+Node: Assertions and subaccounts21446
+Ref: #assertions-and-subaccounts21673
+Node: Assertions and virtual postings21997
+Ref: #assertions-and-virtual-postings22237
+Node: Assertions and precision22379
+Ref: #assertions-and-precision22570
+Node: Balance Assignments22837
+Ref: #balance-assignments23018
+Node: Balance assignments and prices24183
+Ref: #balance-assignments-and-prices24355
+Node: Transaction prices24579
+Ref: #transaction-prices24748
+Node: Comments27016
+Ref: #comments27150
+Node: Tags28320
+Ref: #tags28438
+Node: Directives29840
+Ref: #directives29983
+Node: Comment blocks35591
+Ref: #comment-blocks35736
+Node: Including other files35912
+Ref: #including-other-files36092
+Node: Default year36500
+Ref: #default-year36669
+Node: Declaring commodities37092
+Ref: #declaring-commodities37275
+Node: Default commodity38502
+Ref: #default-commodity38678
+Node: Market prices39314
+Ref: #market-prices39479
+Node: Declaring accounts40320
+Ref: #declaring-accounts40496
+Node: Account comments41421
+Ref: #account-comments41584
+Node: Account subdirectives41979
+Ref: #account-subdirectives42174
+Node: Account types42487
+Ref: #account-types42671
+Node: Account display order44315
+Ref: #account-display-order44485
+Node: Rewriting accounts45614
+Ref: #rewriting-accounts45799
+Node: Basic aliases46534
+Ref: #basic-aliases46680
+Node: Regex aliases47384
+Ref: #regex-aliases47555
+Node: Multiple aliases48273
+Ref: #multiple-aliases48448
+Node: end aliases48946
+Ref: #end-aliases49093
+Node: Default parent account49194
+Ref: #default-parent-account49360
+Node: Periodic transactions50244
+Ref: #periodic-transactions50442
+Node: Two spaces after the period expression51568
+Ref: #two-spaces-after-the-period-expression51813
+Node: Forecasting with periodic transactions52298
+Ref: #forecasting-with-periodic-transactions52588
+Node: Budgeting with periodic transactions54275
+Ref: #budgeting-with-periodic-transactions54514
+Node: Auto postings / transaction modifiers54973
+Ref: #auto-postings-transaction-modifiers55184
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions57356
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions57673
+Node: EDITOR SUPPORT58051
+Ref: #editor-support58169
 
 End Tag Table

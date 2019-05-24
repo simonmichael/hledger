@@ -3,8 +3,8 @@ This is hledger-web.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.14
-*******************************
+hledger-web(1) hledger-web 1.14.99
+**********************************
 
 hledger-web is hledger's web interface.  It starts a simple web
 application for browsing and adding transactions, and optionally opens
@@ -25,6 +25,7 @@ journal, timeclock, timedot, or CSV format specified with '-f', or
 '$LEDGER_FILE', or '$HOME/.hledger.journal' (on windows, perhaps
 'C:/Users/USER/.hledger.journal').  For more about this see hledger(1),
 hledger_journal(5) etc.
+
 * Menu:
 
 * OPTIONS::
@@ -287,9 +288,10 @@ File: hledger-web.info,  Node: JSON API,  Prev: RELOADING,  Up: Top
 5 JSON API
 **********
 
-In addition to the web UI, hledger-web provides some JSON API routes.
-These are similar to the API provided by the hledger-api tool, but it
-may be convenient to have them in hledger-web also.
+In addition to the web UI, hledger-web provides some API routes that
+serve JSON in response to GET requests.  Currently these are same ones
+provided by the hledger-api tool, but hledger-web will likely receive
+more attention than hledger-api in future:
 
 /accountnames
 /transactions
@@ -298,18 +300,43 @@ may be convenient to have them in hledger-web also.
 /accounts
 /accounttransactions/#AccountName
 
+   Also, you can append a new transaction to the journal by sending a
+PUT request to '/add' (hledger-web only).  As with the web UI's add
+form, hledger-web must be started with the 'add' capability for this
+(enabled by default).
+
+   The payload should be a valid hledger transaction as JSON, similar to
+what you get from '/transactions' or '/accounttransactions'.
+
+   Another way to generate test data is with the
+'readJsonFile'/'writeJsonFile' helpers in Hledger.Web.Json, which read
+or write any of hledger's JSON-capable types from or to a file.  Eg here
+we write the first transaction of a sample journal:
+
+$ make ghci-web
+>>> :m +*Hledger.Web.Json
+>>> writeJsonFile "txn.json" (head $ jtxns samplejournal)
+>>> :q
+$ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readable
+
+   (sample output & discussion)
+
+   And here's how to test adding that with curl:
+
+$ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
+
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1354
-Ref: #options1459
-Node: PERMISSIONS6549
-Ref: #permissions6688
-Node: EDITING UPLOADING DOWNLOADING7900
-Ref: #editing-uploading-downloading8081
-Node: RELOADING8915
-Ref: #reloading9049
-Node: JSON API9359
-Ref: #json-api9453
+Node: OPTIONS1361
+Ref: #options1466
+Node: PERMISSIONS6556
+Ref: #permissions6695
+Node: EDITING UPLOADING DOWNLOADING7907
+Ref: #editing-uploading-downloading8088
+Node: RELOADING8922
+Ref: #reloading9056
+Node: JSON API9366
+Ref: #json-api9460
 
 End Tag Table

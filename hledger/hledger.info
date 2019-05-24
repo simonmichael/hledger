@@ -3,8 +3,8 @@ This is hledger.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger(1) hledger 1.14.1
-*************************
+hledger(1) hledger 1.14.99
+**************************
 
 This is hledger's command-line interface (there are also curses and web
 interfaces).  Its basic function is to read a plain text file describing
@@ -40,6 +40,7 @@ hledger never changes existing transactions.
 '~/.hledger.journal', or run 'hledger add' and follow the prompts.  Then
 try some commands like 'hledger print' or 'hledger balance'.  Run
 'hledger' with no arguments for a list of commands.
+
 * Menu:
 
 * EXAMPLES::
@@ -131,7 +132,7 @@ File: hledger.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 * Pivoting::
 * Cost::
 * Market value::
-* Combining -B and -V::
+* Combining -B -V --value::
 * Output destination::
 * Output format::
 * Regular expressions::
@@ -303,6 +304,7 @@ characters.  Eg:
 
    'hledger register -p 'last year' "accounts receivable
 (receivable|payable)" amt:\>100'.
+
 * Menu:
 
 * More escaping::
@@ -393,24 +395,38 @@ File: hledger.info,  Node: Unicode characters,  Next: Input files,  Prev: Comman
 2.7 Unicode characters
 ======================
 
-hledger is expected to handle unicode (non-ascii) characters, but this
-requires a well-configured environment.
+hledger is expected to handle non-ascii characters correctly:
 
-   To handle unicode characters in the command line or input data, a
-system locale that can decode them must be configured (POSIX's default
-'C' locale will not work).  Eg in bash, you could do:
+   * they should be parsed correctly in input files and on the command
+     line, by all hledger tools (add, iadd, hledger-web's
+     search/add/edit forms, etc.)
 
-export LANG=en_US.UTF-8
+   * they should be displayed correctly by all hledger tools, and
+     on-screen alignment should be preserved.
 
-   See Troubleshooting for more about this.
+   This requires a well-configured environment.  Here are some tips:
 
-   Unicode characters should appear correctly in hledger's output.  For
-the hledger and hledger-ui tools, this requires that
+   * A system locale must be configured, and it must be one that can
+     decode the characters being used.  In bash, you can set a locale
+     like this: 'export LANG=en_US.UTF-8'.  There are some more details
+     in Troubleshooting.  This step is essential - without it, hledger
+     will quit on encountering a non-ascii character (as with all
+     GHC-compiled programs).
 
-   * your terminal supports unicode
-   * the terminal's font includes the required unicode glyphs
-   * the terminal is configured to display "wide" characters as double
-     width (otherwise report alignment will be off)
+   * your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)
+     must support unicode
+
+   * the terminal must be using a font which includes the required
+     unicode glyphs
+
+   * the terminal should be configured to display wide characters as
+     double width (for report alignment)
+
+   * on Windows, for best results you should run hledger in the same
+     kind of environment in which it was built.  Eg hledger built in the
+     standard CMD.EXE environment (like the binaries on our download
+     page) might show display problems when run in a cygwin or msys
+     terminal, and vice versa.  (See eg #961).
 
 
 File: hledger.info,  Node: Input files,  Next: Smart dates,  Prev: Unicode characters,  Up: OPTIONS
@@ -729,22 +745,15 @@ The '-B/--cost' flag converts amounts to their cost at transaction time,
 if they have a transaction price specified.
 
 
-File: hledger.info,  Node: Market value,  Next: Combining -B and -V,  Prev: Cost,  Up: OPTIONS
+File: hledger.info,  Node: Market value,  Next: Combining -B -V --value,  Prev: Cost,  Up: OPTIONS
 
 2.16 Market value
 =================
 
-The '-V/--value' flag converts reported amounts to their current market
-value.
-Specifically, when there is a market price (P directive) for the
-amount's commodity, dated on or before today's date (or the report end
-date if specified), the amount will be converted to the price's
-commodity.
-
-   When there are multiple applicable P directives, -V chooses the most
-recent one, or in case of equal dates, the last-parsed one.
-
-   For example:
+The '-V/--market' flag converts reported amounts to their market value
+in another commodity.  It uses the commodity referenced in the latest
+market price (P directive) dated on or before the valuation date.  The
+default valuation date is today.  For example:
 
 # one euro is worth this many dollars from nov 1
 P 2016/11/01 € $1.10
@@ -773,25 +782,211 @@ specified, defaults to today)
 $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 
-   Currently, hledger's -V only uses market prices recorded with P
-directives, not transaction prices (unlike Ledger).
+   Ledger users: Ledger's -V also infers market prices from journal
+entries, but we don't do that.  hledger's -V uses only market prices
+declared explicitly, with P directives.  (Mnemonic: -B/-cost uses
+transaction prices, -V/-market uses market prices.)
 
-   Currently, -V has a limitation in multicolumn balance reports: it
-uses the market prices on the report end date for all columns.  (Instead
-of the prices on each column's end date.)
+* Menu:
 
-
-File: hledger.info,  Node: Combining -B and -V,  Next: Output destination,  Prev: Market value,  Up: OPTIONS
-
-2.17 Combining -B and -V
-========================
-
-Using -B/-cost and -V/-value together is currently allowed, but the
-results are probably not meaningful.  Let us know if you find a use for
-this.
+* More control over valuation::
+* Effect of --value on reports::
+* Some useful value reports::
 
 
-File: hledger.info,  Node: Output destination,  Next: Output format,  Prev: Combining -B and -V,  Up: OPTIONS
+File: hledger.info,  Node: More control over valuation,  Next: Effect of --value on reports,  Up: Market value
+
+2.16.1 More control over valuation
+----------------------------------
+
+_(experimental, added 201905)_
+
+   You can control valuation more precisely with the '--value' option.
+
+ --value=TYPE   which type of valuation should be done ? cost|end|now|YYYY-MM-DD
+
+   The argument is one of the keywords shown, or their first letter, or
+a custom date.  The precise effect of the keywords is command-specific,
+but here is their general meaning:
+
+'--value=cost' (or 'c')
+
+     Convert amounts to cost, using the prices recorded in transactions.
+     '-B'/'--cost' does this.
+'--value=end' (or 'e')
+
+     Convert amounts to their value in default valuation commodity using
+     market prices on the last day of the report period (or of each
+     subperiod in a multiperiod report).  When no report period is
+     specified, uses the journal's last transaction date.
+'--value=now' (or 'n')
+
+     Convert amounts to their value in default valuation commodity using
+     current market prices (as of when report is generated).
+     '-V'/'--market' does this.
+'--value=YYYY-MM-DD'
+
+     Convert amounts to their value in default valuation commodity using
+     market prices on the given date (which must be 8 digits with '-' or
+     '/' or '.' separators).  Eg '--value=2019-04-25'.
+
+   Here are the effects of '--value' as seen with 'print':
+
+P 2000-01-01 A  1 B
+P 2000-02-01 A  2 B
+P 2000-03-01 A  3 B
+P 2000-04-01 A  4 B
+
+2000-01-01
+  (a)      1 A @ 5 B
+
+2000-02-01
+  (a)      1 A @ 6 B
+
+2000-03-01
+  (a)      1 A @ 7 B
+
+   Show the cost of each posting:
+
+$ hledger -f- print --value=cost
+2000/01/01
+    (a)             5 B
+
+2000/02/01
+    (a)             6 B
+
+2000/03/01
+    (a)             7 B
+
+   Show the value as of the last day of the report period (2000-02-29):
+
+$ hledger -f- print --value=end date:2000/01-2000/03
+2000-01-01
+    (a)             2 B
+
+2000-02-01
+    (a)             2 B
+
+   With no report period specified, that shows the value as of the last
+day of the journal (2000-03-01):
+
+$ hledger -f- print --value=end
+2000/01/01
+    (a)             3 B
+
+2000/02/01
+    (a)             3 B
+
+2000/03/01
+    (a)             3 B
+
+   Show the current value (the 2000-04-01 price is still in effect
+today):
+
+$ hledger -f- print --value=now
+2000-01-01
+    (a)             4 B
+
+2000-02-01
+    (a)             4 B
+
+2000-03-01
+    (a)             4 B
+
+   Show the value on 2000/01/15:
+
+$ hledger -f- print --value=2000-01-15
+2000/01/01
+    (a)             1 B
+
+2000/02/01
+    (a)             1 B
+
+2000/03/01
+    (a)             1 B
+
+
+File: hledger.info,  Node: Effect of --value on reports,  Next: Some useful value reports,  Prev: More control over valuation,  Up: Market value
+
+2.16.2 Effect of -value on reports
+----------------------------------
+
+Below is how '--value' affects each of hledger's reports, currently.
+You're not expected to remember all this, but when troubleshooting a
+report, look here.  If you find problems - useless reports, misbehaving
+reports, or error messages being printed - please report them (with
+reproducible examples) eg at #329.
+
+Report type   '--value'      '--value' 'end'            '--value'
+              'cost'                                    'DATE'/'now' 
+----------------------------------------------------------------------------
+*print*
+posting       cost, as       market value at report     market value at
+amounts       recorded in    end                        DATE
+              transaction
+balance       show           show unvalued              show unvalued
+assertions/assignmentsunvalued
+*register*
+starting      cost of        market value at day        market value at
+balance       starting       before report start        DATE
+with -H       balance
+posting       cost           market value at report     market value at
+amounts                      end                        DATE
+posting       summarised     market value each          market value each
+amounts,      cost           summary posting at         summary posting
+multiperiod                  period end                 at DATE
+running       sum/average    sum/average of the         sum/average of
+total/average of the         displayed values           the displayed
+              displayed                                 values
+              values
+*balance
+(bs, cf,
+is..)*
+starting      costs of       market value at day        market value at
+balances      starting       before report start of     DATE of sum of
+with -H       balances       sum of previous postings   previous postings
+balances,     summed costs   market value at period     market value at
+simple                       end of sum of postings     DATE of sum of
+balance                                                 postings
+report
+balances,     summed costs   market value at period     market value at
+multiperiod                  end of sum of postings     DATE of sum of
+report                                                  postings
+budget        costs of       budget-setting periodic    budget-setting
+amounts       budget         txns are valued at         periodic txns are
+with          amounts        period end                 valued at DATE
+-budget
+column/row/grandsum/average  market value at period     market value at
+totals/averagesof the        end of sum/average of      DATE of
+              displayed      postings                   sum/average of
+              values                                    postings
+
+
+File: hledger.info,  Node: Some useful value reports,  Prev: Effect of --value on reports,  Up: Market value
+
+2.16.3 Some useful value reports
+--------------------------------
+
+Here are some probably useful reports - please send suggestions if you
+find out more:
+
+Command:          Description of report:       Could answer:
+---------------------------------------------------------------------------
+'hledger bs -M    Monthly historical value     How are my investments
+--value=p'        of assets/liabilities        performing ?
+'hledger is -M    Monthly contemporaneous      How much foreign currency
+--value=t'        value of revenues/expenses   have I been spending ?
+
+
+File: hledger.info,  Node: Combining -B -V --value,  Next: Output destination,  Prev: Market value,  Up: OPTIONS
+
+2.17 Combining -B, -V, -value
+=============================
+
+The rightmost of these flags wins.
+
+
+File: hledger.info,  Node: Output destination,  Next: Output format,  Prev: Combining -B -V --value,  Up: OPTIONS
 
 2.18 Output destination
 =======================
@@ -987,6 +1182,7 @@ unambiguous prefix of a command name ('hledger inc').
    Here are all the builtin commands in alphabetical order.  See also
 'hledger' for a more organised command list, and 'hledger CMD -h' for
 detailed command help.
+
 * Menu:
 
 * accounts::
@@ -1162,6 +1358,7 @@ show real-world account balances.  In some cases the -H/-historical flag
 is used to ensure this (more below).
 
    The balance command can produce several styles of report:
+
 * Menu:
 
 * Classic balance report::
@@ -1250,7 +1447,9 @@ with data fields interpolated like so:
    '%[MIN][.MAX](FIELDNAME)'
 
    * MIN pads with spaces to at least this width (optional)
+
    * MAX truncates at this width (optional)
+
    * FIELDNAME must be enclosed in parentheses, and can be one of:
 
         * 'depth_spacer' - a number of spaces equal to the account's
@@ -1389,6 +1588,10 @@ different information:
       liabilities:debts    ||           0           0          $1 
      ----------------------++-------------------------------------
                            ||           0           0           0 
+
+   Note that '--cumulative' or '--historical/-H' disable
+'--row-total/-T', since summing end balances generally does not make
+sense.
 
    Multicolumn balance reports display accounts in flat mode by default;
 to see the hierarchy, use '--tree'.
@@ -1557,6 +1760,7 @@ Budget performance in 2017/11/01-2017/12/31:
                       ||      0 [              0]       0 [              0] 
 
    For more examples, see Budgeting and Forecasting.
+
 * Menu:
 
 * Nested budgets::
@@ -1696,7 +1900,9 @@ Total:
 each report period.  As with multicolumn balance reports, you can alter
 the report mode with '--change'/'--cumulative'/'--historical'.  Normally
 balancesheet shows historical ending balances, which is what you need
-for a balance sheet; note this means it ignores report begin dates.
+for a balance sheet; note this means it ignores report begin dates (and
+'-T/--row-total', since summing end balances generally does not make
+sense).
 
    This command also supports output destination and output format
 selection.
@@ -1815,7 +2021,7 @@ end of a period.
 
    The closing transaction transfers balances to "equity:closing
 balances".  The opening transaction transfers balances from
-"equity:opening balances".  You can chose to print just one of the
+"equity:opening balances".  You can choose to print just one of the
 transactions by using the '--opening' or '--closing' flag.
 
    If you split your journal files by time (eg yearly), you will
@@ -1958,6 +2164,29 @@ date order, and by saving '.latest.FILE' state files.
 see only uncategorised transactions:
 
 $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
+
+* Menu:
+
+* Importing balance assignments::
+
+
+File: hledger.info,  Node: Importing balance assignments,  Up: import
+
+4.13.1 Importing balance assignments
+------------------------------------
+
+Entries added by import will have their posting amounts made explicit
+(like 'hledger print -x').  This means that any balance assignments in
+imported files must be evaluated; but, imported files don't get to see
+the main file's account balances.  As a result, importing entries with
+balance assignments (eg from an institution that provides only balances
+and not posting amounts) will probably generate incorrect posting
+amounts.  To avoid this problem, use print instead of import:
+
+$ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
+
+   (If you think import should leave amounts implicit like print does,
+please test it and send a pull request.)
 
 
 File: hledger.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: COMMANDS
@@ -2225,6 +2454,7 @@ $ hledger register --monthly assets --depth 1h
 these will be adjusted outward if necessary to contain a whole number of
 intervals.  This ensures that the first and last intervals are full
 length and comparable to the others in the report.
+
 * Menu:
 
 * Custom register output::
@@ -2292,9 +2522,9 @@ transaction's first posting amount.
 
    Examples:
 
-hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
-hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
-hledger-rewrite.hs -f rewrites.hledger
+$ hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
+$ hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
+$ hledger-rewrite.hs -f rewrites.hledger
 
    rewrites.hledger may consist of entries like:
 
@@ -2557,6 +2787,7 @@ haskell) library functions that built-in commands do, for command-line
 options, journal parsing, reporting, etc.
 
    Here are some hledger add-ons available:
+
 * Menu:
 
 * Official add-ons::
@@ -2570,6 +2801,7 @@ File: hledger.info,  Node: Official add-ons,  Next: Third party add-ons,  Up: AD
 ====================
 
 These are maintained and released along with hledger.
+
 * Menu:
 
 * api::
@@ -2608,6 +2840,7 @@ File: hledger.info,  Node: Third party add-ons,  Next: Experimental add-ons,  Pr
 
 These are maintained separately, and usually updated shortly after a
 hledger release.
+
 * Menu:
 
 * diff::
@@ -2661,6 +2894,7 @@ These are available in source form in the hledger repo's bin/ directory;
 installing them is pretty easy.  They may be less mature and documented
 than built-in commands.  Reading and tweaking these is a good way to
 start making your own!
+
 * Menu:
 
 * autosync::
@@ -2697,160 +2931,168 @@ hledger-check.hs checks more powerful account balance assertions.
 
 Tag Table:
 Node: Top68
-Node: EXAMPLES1888
-Ref: #examples1988
-Node: OPTIONS3634
-Ref: #options3736
-Node: General options4171
-Ref: #general-options4296
-Node: Command options6978
-Ref: #command-options7129
-Node: Command arguments7527
-Ref: #command-arguments7681
-Node: Argument files7802
-Ref: #argument-files7978
-Node: Special characters in arguments and queries8244
-Ref: #special-characters-in-arguments-and-queries8478
-Node: More escaping8928
-Ref: #more-escaping9090
-Node: Even more escaping9386
-Ref: #even-more-escaping9580
-Node: Less escaping10251
-Ref: #less-escaping10413
-Node: Command line tips10658
-Ref: #command-line-tips10844
-Node: Unicode characters11221
-Ref: #unicode-characters11377
-Node: Input files12102
-Ref: #input-files12238
-Node: Smart dates14208
-Ref: #smart-dates14349
-Node: Report start & end date15755
-Ref: #report-start-end-date15927
-Node: Report intervals16993
-Ref: #report-intervals17158
-Node: Period expressions17559
-Ref: #period-expressions17719
-Node: Depth limiting21676
-Ref: #depth-limiting21820
-Node: Pivoting22162
-Ref: #pivoting22280
-Node: Cost23956
-Ref: #cost24064
-Node: Market value24182
-Ref: #market-value24317
-Node: Combining -B and -V25683
-Ref: #combining--b-and--v25846
-Node: Output destination25993
-Ref: #output-destination26155
-Node: Output format26438
-Ref: #output-format26590
-Node: Regular expressions26975
-Ref: #regular-expressions27112
-Node: QUERIES28473
-Ref: #queries28575
-Node: COMMANDS32537
-Ref: #commands32649
-Node: accounts33649
-Ref: #accounts33747
-Node: activity34446
-Ref: #activity34556
-Node: add34939
-Ref: #add35038
-Node: balance37625
-Ref: #balance37736
-Node: Classic balance report39177
-Ref: #classic-balance-report39350
-Node: Customising the classic balance report40719
-Ref: #customising-the-classic-balance-report40947
-Node: Colour support43021
-Ref: #colour-support43188
-Node: Flat mode43361
-Ref: #flat-mode43509
-Node: Depth limited balance reports43922
-Ref: #depth-limited-balance-reports44122
-Node: Multicolumn balance report44578
-Ref: #multicolumn-balance-report44776
-Node: Budget report49956
-Ref: #budget-report50099
-Node: Nested budgets55300
-Ref: #nested-budgets55412
-Ref: #output-format-158892
-Node: balancesheet58970
-Ref: #balancesheet59106
-Node: balancesheetequity60340
-Ref: #balancesheetequity60489
-Node: cashflow61050
-Ref: #cashflow61178
-Node: check-dates62206
-Ref: #check-dates62333
-Node: check-dupes62612
-Ref: #check-dupes62736
-Node: close63029
-Ref: #close63137
-Node: files66550
-Ref: #files66651
-Node: help66798
-Ref: #help66898
-Node: import67991
-Ref: #import68105
-Node: incomestatement68849
-Ref: #incomestatement68983
-Node: prices70319
-Ref: #prices70434
-Node: print70713
-Ref: #print70823
-Node: print-unique75316
-Ref: #print-unique75442
-Node: register75727
-Ref: #register75854
-Node: Custom register output80025
-Ref: #custom-register-output80154
-Node: register-match81416
-Ref: #register-match81550
-Node: rewrite81901
-Ref: #rewrite82016
-Node: Re-write rules in a file83865
-Ref: #re-write-rules-in-a-file83999
-Node: Diff output format85209
-Ref: #diff-output-format85378
-Node: rewrite vs print --auto86470
-Ref: #rewrite-vs.-print---auto86649
-Node: roi87205
-Ref: #roi87303
-Node: stats88315
-Ref: #stats88414
-Node: tags89168
-Ref: #tags89266
-Node: test89496
-Ref: #test89580
-Node: ADD-ON COMMANDS90341
-Ref: #add-on-commands90451
-Node: Official add-ons91738
-Ref: #official-add-ons91878
-Node: api91965
-Ref: #api92054
-Node: ui92106
-Ref: #ui92205
-Node: web92263
-Ref: #web92352
-Node: Third party add-ons92398
-Ref: #third-party-add-ons92573
-Node: diff92708
-Ref: #diff92805
-Node: iadd92904
-Ref: #iadd93018
-Node: interest93101
-Ref: #interest93222
-Node: irr93317
-Ref: #irr93415
-Node: Experimental add-ons93546
-Ref: #experimental-add-ons93698
-Node: autosync93978
-Ref: #autosync94089
-Node: chart94328
-Ref: #chart94447
-Node: check94518
-Ref: #check94620
+Node: EXAMPLES1891
+Ref: #examples1991
+Node: OPTIONS3637
+Ref: #options3739
+Node: General options4178
+Ref: #general-options4303
+Node: Command options6985
+Ref: #command-options7136
+Node: Command arguments7534
+Ref: #command-arguments7688
+Node: Argument files7809
+Ref: #argument-files7985
+Node: Special characters in arguments and queries8251
+Ref: #special-characters-in-arguments-and-queries8485
+Node: More escaping8936
+Ref: #more-escaping9098
+Node: Even more escaping9394
+Ref: #even-more-escaping9588
+Node: Less escaping10259
+Ref: #less-escaping10421
+Node: Command line tips10666
+Ref: #command-line-tips10852
+Node: Unicode characters11229
+Ref: #unicode-characters11385
+Node: Input files12797
+Ref: #input-files12933
+Node: Smart dates14903
+Ref: #smart-dates15044
+Node: Report start & end date16450
+Ref: #report-start-end-date16622
+Node: Report intervals17688
+Ref: #report-intervals17853
+Node: Period expressions18254
+Ref: #period-expressions18414
+Node: Depth limiting22371
+Ref: #depth-limiting22515
+Node: Pivoting22857
+Ref: #pivoting22975
+Node: Cost24651
+Ref: #cost24759
+Node: Market value24877
+Ref: #market-value25016
+Node: More control over valuation26257
+Ref: #more-control-over-valuation26442
+Node: Effect of --value on reports28897
+Ref: #effect-of---value-on-reports29116
+Node: Some useful value reports31807
+Ref: #some-useful-value-reports31986
+Node: Combining -B -V --value32484
+Ref: #combining--b--v---value32661
+Node: Output destination32697
+Ref: #output-destination32863
+Node: Output format33146
+Ref: #output-format33298
+Node: Regular expressions33683
+Ref: #regular-expressions33820
+Node: QUERIES35181
+Ref: #queries35283
+Node: COMMANDS39245
+Ref: #commands39357
+Node: accounts40358
+Ref: #accounts40456
+Node: activity41155
+Ref: #activity41265
+Node: add41648
+Ref: #add41747
+Node: balance44334
+Ref: #balance44445
+Node: Classic balance report45887
+Ref: #classic-balance-report46060
+Node: Customising the classic balance report47429
+Ref: #customising-the-classic-balance-report47657
+Node: Colour support49733
+Ref: #colour-support49900
+Node: Flat mode50073
+Ref: #flat-mode50221
+Node: Depth limited balance reports50634
+Ref: #depth-limited-balance-reports50834
+Node: Multicolumn balance report51290
+Ref: #multicolumn-balance-report51488
+Node: Budget report56802
+Ref: #budget-report56945
+Node: Nested budgets62147
+Ref: #nested-budgets62259
+Ref: #output-format-165739
+Node: balancesheet65817
+Ref: #balancesheet65953
+Node: balancesheetequity67268
+Ref: #balancesheetequity67417
+Node: cashflow67978
+Ref: #cashflow68106
+Node: check-dates69134
+Ref: #check-dates69261
+Node: check-dupes69540
+Ref: #check-dupes69664
+Node: close69957
+Ref: #close70065
+Node: files73479
+Ref: #files73580
+Node: help73727
+Ref: #help73827
+Node: import74920
+Ref: #import75034
+Node: Importing balance assignments75822
+Ref: #importing-balance-assignments75970
+Node: incomestatement76619
+Ref: #incomestatement76753
+Node: prices78089
+Ref: #prices78204
+Node: print78483
+Ref: #print78593
+Node: print-unique83086
+Ref: #print-unique83212
+Node: register83497
+Ref: #register83624
+Node: Custom register output87796
+Ref: #custom-register-output87925
+Node: register-match89187
+Ref: #register-match89321
+Node: rewrite89672
+Ref: #rewrite89787
+Node: Re-write rules in a file91642
+Ref: #re-write-rules-in-a-file91776
+Node: Diff output format92986
+Ref: #diff-output-format93155
+Node: rewrite vs print --auto94247
+Ref: #rewrite-vs.-print---auto94426
+Node: roi94982
+Ref: #roi95080
+Node: stats96092
+Ref: #stats96191
+Node: tags96945
+Ref: #tags97043
+Node: test97273
+Ref: #test97357
+Node: ADD-ON COMMANDS98118
+Ref: #add-on-commands98228
+Node: Official add-ons99516
+Ref: #official-add-ons99656
+Node: api99744
+Ref: #api99833
+Node: ui99885
+Ref: #ui99984
+Node: web100042
+Ref: #web100131
+Node: Third party add-ons100177
+Ref: #third-party-add-ons100352
+Node: diff100488
+Ref: #diff100585
+Node: iadd100684
+Ref: #iadd100798
+Node: interest100881
+Ref: #interest101002
+Node: irr101097
+Ref: #irr101195
+Node: Experimental add-ons101326
+Ref: #experimental-add-ons101478
+Node: autosync101759
+Ref: #autosync101870
+Node: chart102109
+Ref: #chart102228
+Node: check102299
+Ref: #check102401
 
 End Tag Table

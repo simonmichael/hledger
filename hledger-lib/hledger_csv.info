@@ -3,8 +3,8 @@ This is hledger_csv.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 
-hledger_csv(5) hledger 1.14
-***************************
+hledger_csv(5) hledger 1.14.99
+******************************
 
 hledger can read CSV (comma-separated value) files as if they were
 journal files, automatically converting each CSV record into a
@@ -25,9 +25,9 @@ can override this with the '--rules-file' option.  If the rules file
 does not exist, hledger will auto-create one with some example rules,
 which you'll need to adjust.
 
-   At minimum, the rules file must identify the 'date' and 'amount'
-fields.  It may also be necessary to specify the date format, and the
-number of header lines to skip.  Eg:
+   At minimum, the rules file must identify the date and amount fields.
+It's often necessary to specify the date format, and the number of
+header lines to skip, also.  Eg:
 
 fields date, _, _, amount
 date-format  %d/%m/%Y
@@ -63,6 +63,7 @@ account1    assets:amazon
 amount      -%amount
 
    For more examples, see Convert CSV files.
+
 * Menu:
 
 * CSV RULES::
@@ -76,6 +77,7 @@ File: hledger_csv.info,  Node: CSV RULES,  Next: CSV TIPS,  Prev: Top,  Up: Top
 
 The following seven kinds of rule can appear in the rules file, in any
 order.  Blank lines and lines beginning with '#' or ';' are ignored.
+
 * Menu:
 
 * skip::
@@ -137,8 +139,8 @@ File: hledger_csv.info,  Node: field list,  Next: field assignment,  Prev: date-
 whitespace; uninteresting names may be left blank), and (b) assigns them
 to journal entry fields if you use any of these standard field names:
 'date', 'date2', 'status', 'code', 'description', 'comment', 'account1',
-'account2', 'amount', 'amount-in', 'amount-out', 'currency', 'balance'.
-Eg:
+'account2', 'amount', 'amount-in', 'amount-out', 'currency', 'balance',
+'balance1', 'balance2'.  Eg:
 
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
 # and give the 7th and 8th fields meaningful names for later reference:
@@ -244,7 +246,7 @@ File: hledger_csv.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
 * CSV ordering::
 * CSV accounts::
 * CSV amounts::
-* CSV balance assertions::
+* CSV balance assertions/assignments::
 * Reading multiple CSV files::
 
 
@@ -269,42 +271,53 @@ two postings.  It's conventional and recommended to use 'account1' for
 the account whose CSV we are reading.
 
 
-File: hledger_csv.info,  Node: CSV amounts,  Next: CSV balance assertions,  Prev: CSV accounts,  Up: CSV TIPS
+File: hledger_csv.info,  Node: CSV amounts,  Next: CSV balance assertions/assignments,  Prev: CSV accounts,  Up: CSV TIPS
 
 2.3 CSV amounts
 ===============
 
-The 'amount' field sets the amount of the 'account1' posting.
+A transaction amount must be set, in one of these ways:
 
-   If the CSV has debit/credit amounts in separate fields, assign to the
-'amount-in' and 'amount-out' pseudo fields instead.  (Whichever one has
-a value will be used, with appropriate sign.  If both contain a value,
-it may not work so well.)
+   * with an 'amount' field assignment, which sets the first posting's
+     amount
 
-   If an amount value is parenthesised, it will be de-parenthesised and
-sign-flipped.
+   * (When the CSV has debit and credit amounts in separate fields:)
+     with field assignments for the 'amount-in' and 'amount-out' pseudo
+     fields (both of them).  Whichever one has a value will be used,
+     with appropriate sign.  If both contain a value, it might not work
+     so well.
 
-   If an amount value begins with a double minus sign, those will cancel
-out and be removed.
+   * or implicitly by means of a balance assignment (see below).
 
-   If the CSV has the currency symbol in a separate field, assign that
-to the 'currency' pseudo field to have it prepended to the amount.  Or,
-you can use a field assignment to 'amount' that interpolates both CSV
-fields (giving more control, eg to put the currency symbol on the
-right).
+   There is some special handling for sign in amounts:
+
+   * If an amount value is parenthesised, it will be de-parenthesised
+     and sign-flipped.
+   * If an amount value begins with a double minus sign, those will
+     cancel out and be removed.
+
+   If the currency/commodity symbol is provided as a separate CSV field,
+assign it to the 'currency' pseudo field; the symbol will be prepended
+to the amount (TODO: when there is an amount).  Or, you can use an
+'amount' field assignment for more control, eg:
+
+fields date,description,currency,amount
+amount %amount %currency
 
 
-File: hledger_csv.info,  Node: CSV balance assertions,  Next: Reading multiple CSV files,  Prev: CSV amounts,  Up: CSV TIPS
+File: hledger_csv.info,  Node: CSV balance assertions/assignments,  Next: Reading multiple CSV files,  Prev: CSV amounts,  Up: CSV TIPS
 
-2.4 CSV balance assertions
-==========================
+2.4 CSV balance assertions/assignments
+======================================
 
-If the CSV includes a running balance, you can assign that to the
-'balance' pseudo field; whenever the running balance value is non-empty,
-it will be asserted as the balance after the 'account1' posting.
+If the CSV includes a running balance, you can assign that to one of the
+pseudo fields 'balance' (or 'balance1') or 'balance2'.  This will
+generate a balance assertion (or if the amount is left empty, a balance
+assignment), on the first or second posting, whenever the running
+balance field is non-empty.  (TODO: #1000)
 
 
-File: hledger_csv.info,  Node: Reading multiple CSV files,  Prev: CSV balance assertions,  Up: CSV TIPS
+File: hledger_csv.info,  Node: Reading multiple CSV files,  Prev: CSV balance assertions/assignments,  Up: CSV TIPS
 
 2.5 Reading multiple CSV files
 ==============================
@@ -317,33 +330,33 @@ one rules file will be used for all the CSV files being read.
 
 Tag Table:
 Node: Top72
-Node: CSV RULES2163
-Ref: #csv-rules2271
-Node: skip2533
-Ref: #skip2627
-Node: date-format2799
-Ref: #date-format2926
-Node: field list3476
-Ref: #field-list3613
-Node: field assignment4318
-Ref: #field-assignment4473
-Node: conditional block4977
-Ref: #conditional-block5131
-Node: include6027
-Ref: #include6157
-Node: newest-first6388
-Ref: #newest-first6502
-Node: CSV TIPS6913
-Ref: #csv-tips7007
-Node: CSV ordering7125
-Ref: #csv-ordering7243
-Node: CSV accounts7424
-Ref: #csv-accounts7562
-Node: CSV amounts7816
-Ref: #csv-amounts7962
-Node: CSV balance assertions8737
-Ref: #csv-balance-assertions8919
-Node: Reading multiple CSV files9124
-Ref: #reading-multiple-csv-files9294
+Node: CSV RULES2167
+Ref: #csv-rules2275
+Node: skip2538
+Ref: #skip2632
+Node: date-format2804
+Ref: #date-format2931
+Node: field list3481
+Ref: #field-list3618
+Node: field assignment4348
+Ref: #field-assignment4503
+Node: conditional block5007
+Ref: #conditional-block5161
+Node: include6057
+Ref: #include6187
+Node: newest-first6418
+Ref: #newest-first6532
+Node: CSV TIPS6943
+Ref: #csv-tips7037
+Node: CSV ordering7167
+Ref: #csv-ordering7285
+Node: CSV accounts7466
+Ref: #csv-accounts7604
+Node: CSV amounts7858
+Ref: #csv-amounts8016
+Node: CSV balance assertions/assignments9096
+Ref: #csv-balance-assertionsassignments9314
+Node: Reading multiple CSV files9635
+Ref: #reading-multiple-csv-files9817
 
 End Tag Table

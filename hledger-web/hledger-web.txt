@@ -187,8 +187,8 @@ OPTIONS
        without exiting, and logs requests to the console.
 
        By  default the server listens on IP address 127.0.0.1, accessible only
-       to  local  requests.   You  can  use  --host   to   change   this,   eg
-       --host 0.0.0.0 to listen on all configured addresses.
+       to local requests.  You can  use  --host  to  change  this,  eg  --host
+       0.0.0.0 to listen on all configured addresses.
 
        Similarly,  use --port to set a TCP port other than 5000, eg if you are
        running multiple hledger-web instances.
@@ -260,9 +260,10 @@ RELOADING
        until the file has been fixed.
 
 JSON API
-       In addition to the web UI, hledger-web provides some JSON  API  routes.
-       These  are  similar to the API provided by the hledger-api tool, but it
-       may be convenient to have them in hledger-web also.
+       In addition to the web UI, hledger-web provides some  API  routes  that
+       serve  JSON in response to GET requests.  Currently these are same ones
+       provided by the hledger-api tool, but hledger-web will  likely  receive
+       more attention than hledger-api in future:
 
               /accountnames
               /transactions
@@ -270,6 +271,31 @@ JSON API
               /commodities
               /accounts
               /accounttransactions/#AccountName
+
+       Also,  you can append a new transaction to the journal by sending a PUT
+       request to /add (hledger-web only).  As with the  web  UI's  add  form,
+       hledger-web  must  be started with the add capability for this (enabled
+       by default).
+
+       The payload should be a valid hledger transaction as JSON,  similar  to
+       what you get from /transactions or /accounttransactions.
+
+       Another  way  to generate test data is with the readJsonFile/writeJson-
+       File helpers in Hledger.Web.Json, which read or write any of  hledger's
+       JSON-capable  types  from  or  to  a  file.  Eg here we write the first
+       transaction of a sample journal:
+
+              $ make ghci-web
+              >>> :m +*Hledger.Web.Json
+              >>> writeJsonFile "txn.json" (head $ jtxns samplejournal)
+              >>> :q
+              $ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readable
+
+       (sample output & discussion)
+
+       And here's how to test adding that with curl:
+
+              $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
@@ -319,4 +345,4 @@ SEE ALSO
 
 
 
-hledger-web 1.14                  March 2019                    hledger-web(1)
+hledger-web 1.14.99               March 2019                    hledger-web(1)
