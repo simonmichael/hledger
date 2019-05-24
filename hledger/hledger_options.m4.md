@@ -456,7 +456,7 @@ It uses the default valuation commodity referenced in the latest [market price](
 dated on or before the default valuation date, which is:
 
 - today for single period reports (equivalent to `--value=now`)
-- the end of each subperiod for multiperiod reports (ie, reports with a [report interval](#report-intervals)) (equivalent to `--value=end`).
+- the end of each subperiod for multiperiod reports, ie reports with a [report interval](#report-intervals) (equivalent to `--value=end`).
 
 A quick example of `-V`:
 
