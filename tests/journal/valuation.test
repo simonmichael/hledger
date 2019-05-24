@@ -113,7 +113,7 @@ $ hledger -f- print -V
 
 >=0
 
-# --value-at tests
+# --value tests
 
 <
 P 2000/01/01 A  1 B
@@ -123,31 +123,31 @@ P 2000/03/01 A  3 B
 P 2000/04/01 A  4 B
 
 2000/01/01
-  (a)      1 A
+  (a)      1 A @ 6 B
 
 2000/02/01
-  (a)      1 A
+  (a)      1 A @ 7 B
 
 2000/03/01
-  (a)      1 A
+  (a)      1 A @ 8 B
 
 # print
 
-# 9. print value using prices on transaction (posting) dates
-$ hledger -f- print --value-at=transaction
+# 9. print costs using transaction prices
+$ hledger -f- print --value=cost
 2000/01/01
-    (a)             1 B
+    (a)             6 B
 
 2000/02/01
-    (a)             2 B
+    (a)             7 B
 
 2000/03/01
-    (a)             3 B
+    (a)             8 B
 
 >=0
 
 # 10. print value using prices on last day of report period (2000-02-29)
-$ hledger -f- print --value-at=period date:2000/01-2000/03
+$ hledger -f- print --value=end date:2000/01-2000/03
 2000/01/01
     (a)             2 B
 
@@ -158,7 +158,7 @@ $ hledger -f- print --value-at=period date:2000/01-2000/03
 
 # 11. print value using prices on last day of report period (no period specified)
 # specified - uses last day of journal (2000-03-01)
-$ hledger -f- print --value-at=period
+$ hledger -f- print --value=end
 2000/01/01
     (a)             3 B
 
@@ -171,7 +171,7 @@ $ hledger -f- print --value-at=period
 >=0
 
 # 12. print value using prices on a specified date
-$ hledger -f- print --value-at=2000-01-15
+$ hledger -f- print --value=2000-01-15
 2000/01/01
     (a)             5 B
 
@@ -185,7 +185,7 @@ $ hledger -f- print --value-at=2000-01-15
 
 # 13. print value using prices today
 # (assuming today's date is >= 2000-04-01)
-$ hledger -f- print --value-at=now
+$ hledger -f- print --value=now
 2000/01/01
     (a)             4 B
 
@@ -199,28 +199,26 @@ $ hledger -f- print --value-at=now
 
 # register
 
-# 14. register report valued at transaction.
-# Shows the running total of the posting amount values (not the values
-# of the running total).
-$ hledger -f- reg --value-at=transaction
-2000/01/01                      (a)                            1 B           1 B
-2000/02/01                      (a)                            2 B           3 B
-2000/03/01                      (a)                            3 B           6 B
+# 14. register report valued at cost.
+$ hledger -f- reg --value=cost
+2000/01/01                      (a)                            6 B           6 B
+2000/02/01                      (a)                            7 B          13 B
+2000/03/01                      (a)                            8 B          21 B
  
 # 15. register report valued at period end
-$ hledger -f- reg --value-at=period
+$ hledger -f- reg --value=end
 2000/01/01                      (a)                            3 B           3 B
 2000/02/01                      (a)                            3 B           6 B
 2000/03/01                      (a)                            3 B           9 B
 
 # 16. register report valued at specified date
-$ hledger -f- reg --value-at=2000-01-15
+$ hledger -f- reg --value=2000-01-15
 2000/01/01                      (a)                            5 B           5 B
 2000/02/01                      (a)                            5 B          10 B
 2000/03/01                      (a)                            5 B          15 B
 
 # 17. register report valued today
-$ hledger -f- reg --value-at=now
+$ hledger -f- reg --value=now
 2000/01/01                      (a)                            4 B           4 B
 2000/02/01                      (a)                            4 B           8 B
 2000/03/01                      (a)                            4 B          12 B
@@ -233,29 +231,27 @@ $ hledger -f- reg -V
 
 # register with -H (starting balance)
 
-# 19. register with starting balance, valued at transaction.
-# Shows the running total of the posting amount values (not the values of the running total).
-# The starting balance is 1 A, valued at 2000/1/31 (day before report start), which is 5 B.
-$ hledger -f- reg --value-at=transaction -b 200002 -H
-2000/02/01                      (a)                            2 B           7 B
-2000/03/01                      (a)                            3 B          10 B
+# 19. register with starting balance, valued at cost.
+$ hledger -f- reg --value=cost -b 200002 -H
+2000/02/01                      (a)                            7 B          13 B
+2000/03/01                      (a)                            8 B          21 B
  
 # 20. register with starting balance, valued at period end.
 # That is unspecified so the last posting date is used, ie 2000/3/1, so the price is 3 B.
 # Starting balance is 5 B as above.
-$ hledger -f- reg --value-at=period -b 200002 -H
+$ hledger -f- reg --value=end -b 200002 -H
 2000/02/01                      (a)                            3 B           8 B
 2000/03/01                      (a)                            3 B          11 B
 
 # 21. register with starting balance, valued at specified date (when the price is 5 B).
 # Starting balance is 5 B as above.
-$ hledger -f- reg --value-at=2000-01-15 -b 200002 -H
+$ hledger -f- reg --value=2000-01-15 -b 200002 -H
 2000/02/01                      (a)                            5 B          10 B
 2000/03/01                      (a)                            5 B          15 B
 
 # register, periodic
 
-# 22. periodic register report valued at transaction.
+# 22. periodic register report valued at cost.
 # The total for january is 6 B (1 A valued at 1/1, price 1 B, and 1 A
 # valued at 1/20, price 5 B).
 # Need an extra transaction for this test:
@@ -267,21 +263,21 @@ P 2000/03/01 A  3 B
 P 2000/04/01 A  4 B
 
 2000/01/01
-  (a)      1 A
+  (a)      1 A @ 6 B
 
 2000/01/20
-  (a)      1 A
+  (a)      1 A @ 7 B
 
 2000/02/01
-  (a)      1 A
+  (a)      1 A @ 8 B
 
 2000/03/01
-  (a)      1 A
+  (a)      1 A @ 9 B
 
-$ hledger -f- reg --value-at=transaction -M
-2000/01                 a                                      6 B           6 B
-2000/02                 a                                      2 B           8 B
-2000/03                 a                                      3 B          11 B
+$ hledger -f- reg --value=cost -M
+2000/01                 a                                     13 B          13 B
+2000/02                 a                                      8 B          21 B
+2000/03                 a                                      9 B          30 B
  
 # back to the original test journal:
 <
@@ -292,28 +288,28 @@ P 2000/03/01 A  3 B
 P 2000/04/01 A  4 B
 
 2000/01/01
-  (a)      1 A
+  (a)      1 A @ 6 B
 
 2000/02/01
-  (a)      1 A
+  (a)      1 A @ 7 B
 
 2000/03/01
-  (a)      1 A
+  (a)      1 A @ 8 B
 
 # 23. periodic register report valued at period end
-$ hledger -f- reg --value-at=period -M
+$ hledger -f- reg --value=end -M
 2000/01                 a                                      5 B           5 B
 2000/02                 a                                      2 B           7 B
 2000/03                 a                                      3 B          10 B
 
 # 24. periodic register report valued at specified date
-$ hledger -f- reg --value-at=2000-01-15 -M
+$ hledger -f- reg --value=2000-01-15 -M
 2000/01                 a                                      5 B           5 B
 2000/02                 a                                      5 B          10 B
 2000/03                 a                                      5 B          15 B
 
 # 25. periodic register report valued today
-$ hledger -f- reg --value-at=now -M
+$ hledger -f- reg --value=now -M
 2000/01                 a                                      4 B           4 B
 2000/02                 a                                      4 B           8 B
 2000/03                 a                                      4 B          12 B
@@ -326,50 +322,40 @@ $ hledger -f- reg -V -M
 
 # balance
 
-# 27. single column balance report valued at transaction
-$ hledger -f- bal --value-at=transaction
-                 6 B  a
---------------------
-                 6 B
+# 27. single column balance report valued at cost
+$ hledger -f- bal -N --value=cost
+                21 B  a
  
 # 28. single column balance report valued at period end
-$ hledger -f- bal --value-at=period
+$ hledger -f- bal -N --value=end
                  9 B  a
---------------------
-                 9 B
 
 # 29. single column balance report valued at specified date
-$ hledger -f- bal --value-at=2000-01-15
+$ hledger -f- bal -N --value=2000-01-15
                 15 B  a
---------------------
-                15 B
 
 # 30. single column balance report valued today
-$ hledger -f- bal --value-at=now
+$ hledger -f- bal -N --value=now
                 12 B  a
---------------------
-                12 B
 
 # 31. single column balance report valued at default date (same as above)
-$ hledger -f- bal -V
+$ hledger -f- bal -N -V
                 12 B  a
---------------------
-                12 B
 
 # balance, periodic
 
-# 32. multicolumn balance report valued at transaction
-$ hledger -f- bal -MTA --value-at=transaction
-Balance changes in 2000q1, valued at transaction dates:
+# 32. multicolumn balance report valued at cost
+$ hledger -f- bal -MTA --value=cost
+Balance changes in 2000q1, valued at cost:
 
    || Jan  Feb  Mar    Total  Average 
 ===++=================================
- a || 1 B  2 B  3 B      6 B      2 B 
+ a || 6 B  7 B  8 B     21 B      7 B 
 ---++---------------------------------
-   || 1 B  2 B  3 B      6 B      2 B 
+   || 6 B  7 B  8 B     21 B      7 B 
  
 # 33. multicolumn balance report valued at period end
-$ hledger -f- bal -M --value-at=period
+$ hledger -f- bal -M --value=end
 Balance changes in 2000q1, valued at period ends:
 
    || Jan  Feb  Mar 
@@ -379,17 +365,17 @@ Balance changes in 2000q1, valued at period ends:
    || 5 B  2 B  3 B 
 
 # 34. multicolumn balance report valued at period end with -T or -A
-$ hledger -f- bal -M --value-at=period -TA
+$ hledger -f- bal -MTA --value=end
 Balance changes in 2000q1, valued at period ends:
 
    || Jan  Feb  Mar    Total  Average 
 ===++=================================
- a || 5 B  2 B  3 B      9 B      3 B 
+ a || 5 B  2 B  3 B     10 B      3 B 
 ---++---------------------------------
-   || 5 B  2 B  3 B      9 B      3 B 
+   || 5 B  2 B  3 B     10 B      3 B 
 
 # 35. multicolumn balance report valued at other date
-$ hledger -f- bal -MTA --value-at=2000-01-15
+$ hledger -f- bal -MTA --value=2000-01-15
 Balance changes in 2000q1, valued at 2000/01/15:
 
    || Jan  Feb  Mar    Total  Average 
@@ -399,7 +385,7 @@ Balance changes in 2000q1, valued at 2000/01/15:
    || 5 B  5 B  5 B     15 B      5 B 
 
 # 36. multicolumn balance report valued today (with today >= 2000-04-01)
-$ hledger -f- bal -M --value-at=now
+$ hledger -f- bal -M --value=now
 Balance changes in 2000q1, current value:
 
    || Jan  Feb  Mar 
@@ -420,31 +406,35 @@ Balance changes in 2000q1, current value:
 
 # balance, periodic, with -H (starting balance and accumulating across periods)
 
-# 38. multicolumn balance report with -H valued at transaction.
-# The starting balance is 1 B (1 A valued at 2000/1/1, transaction date).
-$ hledger -f- bal -M -H -b 200002 --value-at=transaction
-Ending balances (historical) in 2000/02/01-2000/03/31, valued at transaction dates:
+# 38. multicolumn balance report with -H, valued at cost.
+# The starting balance on 2000/01/01 is 6 B (cost of the first 2 A).
+# February adds 1 A costing 7 B, making 13 B.
+# March adds 1 A costing 8 B, making 21 B.
+$ hledger -f- bal -M -H -b 200002 --value=cost
+Ending balances (historical) in 2000/02/01-2000/03/31, valued at cost:
 
    || 2000/02/29  2000/03/31 
 ===++========================
- a ||        3 B         6 B 
+ a ||       13 B        21 B 
 ---++------------------------
-   ||        3 B         6 B 
+   ||       13 B        21 B 
  
 # 39. multicolumn balance report with -H valued at period end.
-# The starting balance is 5 B (1 A valued at 2000/1/31, day before report start).. and has no effect here.
-$ hledger -f- bal -M -H -b 200002 --value-at=period
+# The starting balance is 1 A.
+# February adds 1 A making 2 A, which is valued at 2000/02/29 as 4 B.
+# March adds 1 A making 3 A, which is valued at 2000/03/31 as 9 B.
+$ hledger -f- bal -MA -H -b 200002 --value=end
 Ending balances (historical) in 2000/02/01-2000/03/31, valued at period ends:
 
-   || 2000/02/29  2000/03/31 
-===++========================
- a ||        4 B         9 B 
----++------------------------
-   ||        4 B         9 B 
+   || 2000/02/29  2000/03/31  Average 
+===++=================================
+ a ||        4 B         9 B      6 B 
+---++---------------------------------
+   ||        4 B         9 B      6 B 
 
 # 40. multicolumn balance report with -H valued at other date.
 # The starting balance is 5 B (1 A valued at 2000/1/15).
-$ hledger -f- bal -M -H -b 200002 --value-at=2000-01-15
+$ hledger -f- bal -M -H -b 200002 --value=2000-01-15
 Ending balances (historical) in 2000/02/01-2000/03/31, valued at 2000/01/15:
 
    || 2000/02/29  2000/03/31 
@@ -453,7 +443,7 @@ Ending balances (historical) in 2000/02/01-2000/03/31, valued at 2000/01/15:
 ---++------------------------
    ||       10 B        15 B 
 
-# 41. multicolumn balance report with -H, valuing each period's carried-over balances at transaction date.
+# 41. multicolumn balance report with -H, valuing each period's carried-over balances at cost.
 <
 P 2000/01/01 A  1 B
 P 2000/01/15 A  5 B
@@ -462,20 +452,20 @@ P 2000/03/01 A  3 B
 P 2000/04/01 A  4 B
 
 2000/01/01
-  (a)      1 A
+  (a)      1 A @ 6 B
 
-$ hledger -f- bal -ME -H -p200001-200004 --value-at=t
-Ending balances (historical) in 2000q1, valued at transaction dates:
+$ hledger -f- bal -ME -H -p200001-200004 --value=c
+Ending balances (historical) in 2000q1, valued at cost:
 
    || 2000/01/31  2000/02/29  2000/03/31 
 ===++====================================
- a ||        1 B         1 B         1 B 
+ a ||        6 B         6 B         6 B 
 ---++------------------------------------
-   ||        1 B         1 B         1 B 
+   ||        6 B         6 B         6 B 
 
 # 42. multicolumn balance report with -H, valuing each period's carried-over balances at period end.
 # Unrelated, also -H always disables -T.
-$ hledger -f- bal -META -H -p200001-200004 --value-at=p
+$ hledger -f- bal -META -H -p200001-200004 --value=e
 Ending balances (historical) in 2000q1, valued at period ends:
 
    || 2000/01/31  2000/02/29  2000/03/31  Average 
@@ -485,7 +475,7 @@ Ending balances (historical) in 2000q1, valued at period ends:
    ||        5 B         2 B         3 B      3 B 
 
 # 43. multicolumn balance report with -H, valuing each period's carried-over balances at other date.
-$ hledger -f- bal -ME -H -p200001-200004 --value-at=2000-01-15
+$ hledger -f- bal -ME -H -p200001-200004 --value=2000-01-15
 Ending balances (historical) in 2000q1, valued at 2000/01/15:
 
    || 2000/01/31  2000/02/29  2000/03/31 
@@ -505,16 +495,16 @@ P 2000/03/01 A  3 B
 P 2000/04/01 A  4 B
 
 ~ monthly
-  (a)  2 A
+  (a)  2 A @ 1 B
 
 2000/01/01
-  (a)      1 A
+  (a)      1 A @ 6 B
 
 2000/02/01
-  (a)      1 A
+  (a)      1 A @ 7 B
 
 2000/03/01
-  (a)      1 A
+  (a)      1 A @ 8 B
 
 # 44. budget report, unvalued (for reference).
 $ hledger -f- bal -M --budget
@@ -526,28 +516,28 @@ Budget performance in 2000q1:
 ---++------------------------------------------------------------
    || 1 A [  50% of 2 A]  1 A [  50% of 2 A]  1 A [  50% of 2 A] 
 
-# 45. budget report, valued at transaction dates. 
-$ hledger -f- bal -MTA --budget --value-at=t
-Budget performance in 2000q1, valued at transaction dates:
+# 45. budget report, valued at cost. 
+$ hledger -f- bal -MTA --budget --value=c
+Budget performance in 2000q1, valued at cost:
 
    ||                Jan                 Feb                 Mar                Total             Average 
 ===++=====================================================================================================
- a || 1 B [  50% of 2 B]  2 B [  50% of 4 B]  3 B [  50% of 6 B]  6 B [  50% of 12 B]  2 B [  50% of 4 B] 
+ a || 6 B [ 300% of 2 B]  7 B [ 350% of 2 B]  8 B [ 400% of 2 B]  21 B [ 350% of 6 B]  7 B [ 350% of 2 B] 
 ---++-----------------------------------------------------------------------------------------------------
-   || 1 B [  50% of 2 B]  2 B [  50% of 4 B]  3 B [  50% of 6 B]  6 B [  50% of 12 B]  2 B [  50% of 4 B] 
+   || 6 B [ 300% of 2 B]  7 B [ 350% of 2 B]  8 B [ 400% of 2 B]  21 B [ 350% of 6 B]  7 B [ 350% of 2 B] 
 
 # 46. budget report, valued at period ends.
-$ hledger -f- bal -MTA --budget --value-at=p
+$ hledger -f- bal -MTA --budget --value=e
 Budget performance in 2000q1, valued at period ends:
 
-   ||                 Jan                  Feb                  Mar                Total              Average 
-===++=========================================================================================================
- a || 5 B [  50% of 10 B]  2 B [  50% of  4 B]  3 B [  50% of  6 B]  9 B [  50% of 18 B]  3 B [  50% of  6 B] 
----++---------------------------------------------------------------------------------------------------------
-   || 5 B [  50% of 10 B]  2 B [  50% of  4 B]  3 B [  50% of  6 B]  9 B [  50% of 18 B]  3 B [  50% of  6 B] 
+   ||                 Jan                  Feb                  Mar                 Total              Average 
+===++==========================================================================================================
+ a || 5 B [  50% of 10 B]  2 B [  50% of  4 B]  3 B [  50% of  6 B]  10 B [  50% of 20 B]  3 B [  50% of  7 B] 
+---++----------------------------------------------------------------------------------------------------------
+   || 5 B [  50% of 10 B]  2 B [  50% of  4 B]  3 B [  50% of  6 B]  10 B [  50% of 20 B]  3 B [  50% of  7 B] 
 
 # 47. budget report, valued at other date.
-$ hledger -f- bal -MTA --budget --value-at=2000-01-15
+$ hledger -f- bal -MTA --budget --value=2000-01-15
 Budget performance in 2000q1, valued at 2000/01/15:
 
    ||                 Jan                  Feb                  Mar                 Total              Average 
