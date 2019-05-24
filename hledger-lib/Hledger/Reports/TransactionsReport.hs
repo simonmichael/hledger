@@ -58,6 +58,8 @@ triBalance (_,_,_,_,_,a) = a
 triCommodityAmount c = filterMixedAmountByCommodity c  . triAmount
 triCommodityBalance c = filterMixedAmountByCommodity c  . triBalance
 
+totallabel   = "Period Total"
+
 -- | Select transactions from the whole journal. This is similar to a
 -- "postingsReport" except with transaction-based report items which
 -- are ordered most recent first. XXX Or an EntriesReport - use that instead ?

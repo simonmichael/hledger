@@ -11,8 +11,6 @@ module Hledger.Reports.AccountTransactionsReport (
   accountTransactionsReport,
   accountTransactionsReportItems,
   transactionRegisterDate,
-  totallabel,
-  balancelabel,
   tests_AccountTransactionsReport
 )
 where
