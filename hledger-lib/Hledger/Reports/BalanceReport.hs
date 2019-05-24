@@ -71,16 +71,11 @@ balanceReport ropts@ReportOpts{..} q j =
       -- dbg1 = const id -- exclude from debug output
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
-      today    = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
+      today = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
 
-      -- For --value-at=transaction, convert all postings to value before summing them.
-      -- The report might not use them all but laziness probably helps here.
-      j' -- | mvalueat==Just AtTransaction = mapJournalPostings (\p -> postingValueAtDate j (postingDate p) p) j
-         | otherwise = j
-      
       -- Get all the summed accounts & balances, according to the query, as an account tree.
       -- If doing cost valuation, amounts will be converted to cost first.
-      accttree = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j'
+      accttree = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j
 
       -- For other kinds of valuation, convert the summed amounts to value.
       valuedaccttree = mapAccounts valueaccount accttree
@@ -95,10 +90,10 @@ balanceReport ropts@ReportOpts{..} q j =
                 where
                   -- prices are in parse order - sort into date then parse order,
                   -- & reversed for quick lookup of the latest price.
-                  prices = reverse $ sortOn mpdate $ jmarketprices j'
+                  prices = reverse $ sortOn mpdate $ jmarketprices j
                   periodlastday =
                     fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen
-                    reportPeriodOrJournalLastDay ropts j'
+                    reportPeriodOrJournalLastDay ropts j
 
       -- Modify this tree for display - depth limit, boring parents, zeroes - and convert to a list.
       displayaccts :: [Account]
@@ -143,7 +138,7 @@ balanceReport ropts@ReportOpts{..} q j =
             where 
               anamesandrows = [(first4 r, r) | r <- rows]
               anames = map fst anamesandrows
-              sortedanames = sortAccountNamesByDeclaration j' (tree_ ropts) anames
+              sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
               sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
       -- Calculate the grand total.

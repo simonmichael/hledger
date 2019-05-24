@@ -44,9 +44,9 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
       Just (AtCost _mc)   -> postingToCost (journalCommodityStyles j) p
       Just (AtEnd _mc)    -> postingValue jmarketprices (fromMaybe (postingDate p)  -- XXX shouldn't happen
                                                          mperiodorjournallastday) p
-      Just (AtNow _mc)    -> postingValue jmarketprices (case today_ of
-                                                           Just d  -> d
-                                                           Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value-at=now") p
+      Just (AtNow _mc)    -> postingValue jmarketprices (
+        case today_ of Just d  -> d
+                       Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now") p
       Just (AtDate d _mc) -> postingValue jmarketprices d p
       where
         mperiodorjournallastday = mperiodlastday <|> journalEndDate False j

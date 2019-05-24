@@ -71,7 +71,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
 
-      -- We may be converting amounts to value, according to --value-at.
+      -- We may be converting amounts to value.
       -- Currently this is done as follows (keep synced with hledger_options.m4.md):
       --  register -M --value
       --   cost: value each posting at cost, then summarise ; value -H starting balance at cost
@@ -85,7 +85,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
       --  In all cases, the running total/average is calculated from the above numbers.
       --  "Day before report start" is a bit arbitrary.
 
-      today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value-at=now") today_
+      today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
 
       -- Postings or summary pseudo postings to be displayed.
       displayps =
@@ -95,11 +95,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
           if multiperiod then
             let
               showempty = empty_ || average_
-              -- for --value-at=transaction, need to value the postings before summarising them
-              maybevaluedreportps
-                -- | value_==Just AtTransaction = [postingValue jmarketprices (postingDate p) p | p <- reportps]
-                | otherwise                    = reportps
-              summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan maybevaluedreportps
+              summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
             in case value_ of
               Just (AtEnd _mc)    -> [(postingValue jmarketprices periodlastday p    , periodend) | (p,periodend) <- summaryps
                                     ,let periodlastday = maybe
@@ -131,10 +127,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
                        | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
           startbal | average_  = if historical then precedingavg else 0
                    | otherwise = if historical then precedingsum else 0
-          -- For --value-at: convert the initial running total/average to value.
-          -- For --value-at=transaction, we don't bother valuing each
-          -- preceding posting at posting date - how useful would that
-          -- be ? Just value the initial sum/average at report start date.
+          -- For --value=end/now/DATE, convert the initial running total/average to value.
           valuedstartbal = case value_ of
             Nothing             -> startbal
             Just (AtCost _mc)   -> startbal  -- conversion to cost was done earlier
