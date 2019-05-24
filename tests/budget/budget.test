@@ -108,6 +108,8 @@ Budget performance in 2016/12/01-2016/12/03:
 ------------------++--------------------------------------------------------------------------------------
                   ||  $-15, £10 [            0]  $-21, 20 CAD [            0]           0 [            0] 
 
+# 4. --budget with no interval shows total budget for the journal period
+# (in tabular format). 
 <
 ~ daily
   (a)  10
@@ -128,8 +130,6 @@ Budget performance in 2016/12/01-2016/12/03:
   (b)  1
   (c)  1
 
-# 4. --budget with no interval shows total budget for the journal period
-# (in tabular format). 
 $ hledger -f- bal --budget
 Budget performance in 2018/01/01-2018/01/03:
 
@@ -305,6 +305,7 @@ Budget performance in 2018/01/01:
 -------++------------------
        || 2 [   2% of 101] 
 
+# 14. tree mode
 $ hledger -f- bal --budget --tree
 Budget performance in 2018/01/01:
 
@@ -316,13 +317,11 @@ Budget performance in 2018/01/01:
 -------++------------------
        || 2 [   2% of 101] 
 
-# TODO
-# 14. respect hierarchy when sorting in tree mode
+# TODO: respect hierarchy when sorting in tree mode
 
-# TODO
-# 15. respect --sort-amount
+# TODO: respect --sort-amount
 
-# 16. respect --value
+# 15. respect --value
 <
 P 2018/01/26 SHARE €10
 
@@ -350,7 +349,7 @@ Budget performance in 2018/05/01-2018/06/30, current value:
 ----------------++------------------------------------------
                 ||    0                    0 [           0] 
 
-# 17. With subaccounts, child accounts are properly included in the parent balance when budget is checked
+# 16. With subaccounts, child accounts are properly included in the parent balance when budget is checked
 <
 ~ monthly from 2019/01
     expenses:personal             $1,000.00
@@ -379,6 +378,7 @@ Budget performance in 2019/01/01-2019/01/03:
 -------------------++------------------------------
                    ||       0 [                 0] 
 
+# 17.
 $ hledger -f- bal --budget -E
 Budget performance in 2019/01/01-2019/01/03:
 
@@ -392,6 +392,7 @@ Budget performance in 2019/01/01-2019/01/03:
 ----------------------------------------++------------------------------
                                         ||       0 [                 0] 
 
+# 18.
 $ hledger -f- bal --budget --tree
 Budget performance in 2019/01/01-2019/01/03:
 
@@ -403,6 +404,7 @@ Budget performance in 2019/01/01-2019/01/03:
 -------------++------------------------------
              ||       0 [                 0] 
 
+# 19.
 $ hledger -f- bal --budget --tree -E
 Budget performance in 2019/01/01-2019/01/03:
 
@@ -416,7 +418,7 @@ Budget performance in 2019/01/01-2019/01/03:
 -----------------++------------------------------
                  ||       0 [                 0] 
 
-# 18. Subaccounts + nested budgets
+# 20. Subaccounts + nested budgets
 <
 ~ monthly from 2019/01
     expenses:personal             $1,000.00
@@ -447,6 +449,7 @@ Budget performance in 2019/01/01-2019/01/03:
 -------------------------------++------------------------------
                                ||       0 [                 0] 
 
+# 21.
 $ hledger -f- bal --budget -E
 Budget performance in 2019/01/01-2019/01/03:
 
@@ -460,6 +463,7 @@ Budget performance in 2019/01/01-2019/01/03:
 ----------------------------------------++------------------------------
                                         ||       0 [                 0] 
 
+# 22.
 $ hledger -f- bal --budget --tree
 Budget performance in 2019/01/01-2019/01/03:
 
@@ -472,6 +476,7 @@ Budget performance in 2019/01/01-2019/01/03:
 -----------------++------------------------------
                  ||       0 [                 0] 
 
+# 23.
 $ hledger -f- bal --budget --tree -E
 Budget performance in 2019/01/01-2019/01/03:
 
@@ -485,7 +490,7 @@ Budget performance in 2019/01/01-2019/01/03:
 -----------------++------------------------------
                  ||       0 [                 0] 
 
-## Zero budget == no budget
+## 24. Zero budget == no budget
 <
 ~ monthly from 2019-01
   expenses:bills     $100  ; bills has a $100 budget of its own, separate from subaccounts
@@ -525,7 +530,7 @@ Budget performance in 2019/01/01-2019/01/02:
 ------------------++-----------------------
                   ||    0 [             0] 
 
-# -E shows d
+# 25. -E shows d
 $ hledger bal -f- --budget -E
 Budget performance in 2019/01/01-2019/01/02:
 
