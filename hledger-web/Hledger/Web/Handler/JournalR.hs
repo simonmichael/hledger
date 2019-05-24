@@ -24,7 +24,7 @@ getJournalR = do
         Just (a, inclsubs) -> "Transactions in " <> a <> if inclsubs then "" else " (excluding subaccounts)"
       title' = title <> if m /= Any then ", filtered" else ""
       acctlink a = (RegisterR, [("q", accountQuery a)])
-      (_, items) = journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
+      (_, items) = transactionsReport (reportopts_ $ cliopts_ opts) j m
 
   defaultLayout $ do
     setTitle "journal - hledger-web"
