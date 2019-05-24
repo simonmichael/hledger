@@ -1,35 +1,24 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
 {-|
 
-Here are several variants of a transactions report.
-Transactions reports are like a postings report, but more
-transaction-oriented, and (in the account-centric variant) relative to
-a some base account.  They are used by hledger-web.
+An account-centric transactions report.
 
 -}
 
-module Hledger.Reports.TransactionsReports (
-  TransactionsReport,
-  TransactionsReportItem,
+module Hledger.Reports.AccountTransactionsReport (
   AccountTransactionsReport,
   AccountTransactionsReportItem,
-  triOrigTransaction,
-  triDate,
-  triAmount,
-  triBalance,
-  triCommodityAmount,
-  triCommodityBalance,
-  journalTransactionsReport,
   accountTransactionsReport,
-  transactionsReportByCommodity,
+  accountTransactionsReportItems,
   transactionRegisterDate,
-  tests_TransactionsReports
+  totallabel,
+  balancelabel,
+  tests_AccountTransactionsReport
 )
 where
 
 import Data.List
 import Data.Ord
--- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 
@@ -38,49 +27,6 @@ import Hledger.Query
 import Hledger.Reports.ReportOptions
 import Hledger.Utils
 
-
--- | A transactions report includes a list of transactions
--- (posting-filtered and unfiltered variants), a running balance, and some
--- other information helpful for rendering a register view (a flag
--- indicating multiple other accounts and a display string describing
--- them) with or without a notion of current account(s).
--- Two kinds of report use this data structure, see journalTransactionsReport
--- and accountTransactionsReport below for details.
-type TransactionsReport = (String                   -- label for the balance column, eg "balance" or "total"
-                          ,[TransactionsReportItem] -- line items, one per transaction
-                          )
-type TransactionsReportItem = (Transaction -- the original journal transaction, unmodified
-                              ,Transaction -- the transaction as seen from a particular account, with postings maybe filtered
-                              ,Bool        -- is this a split, ie more than one other account posting
-                              ,String      -- a display string describing the other account(s), if any
-                              ,MixedAmount -- the amount posted to the current account(s) by the filtered postings (or total amount posted)
-                              ,MixedAmount -- the running total of item amounts, starting from zero;
-                                           -- or with --historical, the running total including items
-                                           -- (matched by the report query) preceding the report period
-                              )
-
-triOrigTransaction (torig,_,_,_,_,_) = torig
-triDate (_,tacct,_,_,_,_) = tdate tacct
-triAmount (_,_,_,_,a,_) = a
-triBalance (_,_,_,_,_,a) = a
-triCommodityAmount c = filterMixedAmountByCommodity c  . triAmount
-triCommodityBalance c = filterMixedAmountByCommodity c  . triBalance
-
--------------------------------------------------------------------------------
-
--- | Select transactions from the whole journal. This is similar to a
--- "postingsReport" except with transaction-based report items which
--- are ordered most recent first. XXX Or an EntriesReport - use that instead ?
--- This is used by hledger-web's journal view.
-journalTransactionsReport :: ReportOpts -> Journal -> Query -> TransactionsReport
-journalTransactionsReport opts j q = (totallabel, items)
-   where
-     -- XXX items' first element should be the full transaction with all postings
-     items = reverse $ accountTransactionsReportItems q None nullmixedamt id ts
-     ts    = sortBy (comparing date) $ filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts opts j
-     date  = transactionDateFn opts
-
--------------------------------------------------------------------------------
 
 -- | An account transactions report represents transactions affecting
 -- a particular account (or possibly several accounts, but we don't
@@ -133,6 +79,9 @@ type AccountTransactionsReportItem =
   ,MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
   )
 
+totallabel   = "Period Total"
+balancelabel = "Historical Total"
+
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
 accountTransactionsReport opts j reportq thisacctq = (label, items)
   where
@@ -171,20 +120,17 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
     items = reverse $ -- see also registerChartHtml
             accountTransactionsReportItems reportq' thisacctq startbal negate ts
 
-totallabel = "Period Total"
-balancelabel = "Historical Total"
-
 -- | Generate transactions report items from a list of transactions,
 -- using the provided user-specified report query, a query specifying
 -- which account to use as the focus, a starting balance, a sign-setting
 -- function and a balance-summing function. Or with a None current account
--- query, this can also be used for the journalTransactionsReport.
-accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [TransactionsReportItem]
+-- query, this can also be used for the transactionsReport.
+accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [AccountTransactionsReportItem]
 accountTransactionsReportItems _ _ _ _ [] = []
 accountTransactionsReportItems reportq thisacctq bal signfn (torig:ts) =
     case i of Just i' -> i':is
               Nothing -> is
-    -- 201403: This is used for both accountTransactionsReport and journalTransactionsReport, which makes it a bit overcomplicated
+    -- 201403: This is used for both accountTransactionsReport and transactionsReport, which makes it a bit overcomplicated
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     where
@@ -238,45 +184,7 @@ summarisePostingAccounts ps =
     displayps | null realps = ps
               | otherwise   = realps
 
--------------------------------------------------------------------------------
-
--- | Split a transactions report whose items may involve several commodities,
--- into one or more single-commodity transactions reports.
-transactionsReportByCommodity :: TransactionsReport -> [(CommoditySymbol, TransactionsReport)]
-transactionsReportByCommodity tr =
-  [(c, filterTransactionsReportByCommodity c tr) | c <- transactionsReportCommodities tr]
-  where
-    transactionsReportCommodities (_,items) =
-      nub $ sort $ map acommodity $ concatMap (amounts . triAmount) items
-
--- Remove transaction report items and item amount (and running
--- balance amount) components that don't involve the specified
--- commodity. Other item fields such as the transaction are left unchanged.
-filterTransactionsReportByCommodity :: CommoditySymbol -> TransactionsReport -> TransactionsReport
-filterTransactionsReportByCommodity c (label,items) =
-  (label, fixTransactionsReportItemBalances $ concat [filterTransactionsReportItemByCommodity c i | i <- items])
-  where
-    filterTransactionsReportItemByCommodity c (t,t2,s,o,a,bal)
-      | c `elem` cs = [item']
-      | otherwise   = []
-      where
-        cs = map acommodity $ amounts a
-        item' = (t,t2,s,o,a',bal)
-        a' = filterMixedAmountByCommodity c a
-
-    fixTransactionsReportItemBalances [] = []
-    fixTransactionsReportItemBalances [i] = [i]
-    fixTransactionsReportItemBalances items = reverse $ i:(go startbal is)
-      where
-        i:is = reverse items
-        startbal = filterMixedAmountByCommodity c $ triBalance i
-        go _ [] = []
-        go bal ((t,t2,s,o,amt,_):is) = (t,t2,s,o,amt,bal'):go bal' is
-          where bal' = bal + amt
-
--------------------------------------------------------------------------------
-
 -- tests
 
-tests_TransactionsReports = tests "TransactionsReports" [
+tests_AccountTransactionsReport = tests "AccountTransactionsReport" [
  ]

@@ -13,7 +13,8 @@ module Hledger.Reports (
   module Hledger.Reports.ReportTypes,
   module Hledger.Reports.EntriesReport,
   module Hledger.Reports.PostingsReport,
-  module Hledger.Reports.TransactionsReports,
+  module Hledger.Reports.TransactionsReport,
+  module Hledger.Reports.AccountTransactionsReport,
   module Hledger.Reports.BalanceReport,
   module Hledger.Reports.MultiBalanceReports,
   module Hledger.Reports.BudgetReport,
@@ -27,7 +28,8 @@ import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.EntriesReport
 import Hledger.Reports.PostingsReport
-import Hledger.Reports.TransactionsReports
+import Hledger.Reports.TransactionsReport
+import Hledger.Reports.AccountTransactionsReport
 import Hledger.Reports.BalanceReport
 import Hledger.Reports.MultiBalanceReports
 import Hledger.Reports.BudgetReport
@@ -41,5 +43,6 @@ tests_Reports = tests "Reports" [
   ,tests_MultiBalanceReports
   ,tests_PostingsReport
   ,tests_ReportOptions
-  ,tests_TransactionsReports
+  ,tests_TransactionsReport
+  ,tests_AccountTransactionsReport
   ]
