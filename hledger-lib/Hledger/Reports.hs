@@ -13,6 +13,7 @@ module Hledger.Reports (
   module Hledger.Reports.ReportTypes,
   module Hledger.Reports.EntriesReport,
   module Hledger.Reports.PostingsReport,
+  module Hledger.Reports.TransactionsReport,
   module Hledger.Reports.AccountTransactionsReport,
   module Hledger.Reports.BalanceReport,
   module Hledger.Reports.MultiBalanceReports,
@@ -27,6 +28,7 @@ import Hledger.Reports.ReportTypes
 import Hledger.Reports.AccountTransactionsReport
 import Hledger.Reports.EntriesReport
 import Hledger.Reports.PostingsReport
+import Hledger.Reports.TransactionsReport
 import Hledger.Reports.BalanceReport
 import Hledger.Reports.MultiBalanceReports
 import Hledger.Reports.BudgetReport

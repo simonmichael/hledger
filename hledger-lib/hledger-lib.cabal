@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 953c47a260da3c57cb7ec2aa2a10e868e3986c38241785fec87ffadc3583fadb
+-- hash: ffd57f3b3365e927bfb79cb1bfe2ff6081fcd89b12d8a6fda4b6e254817b7ba7
 
 name:           hledger-lib
 version:        1.14.99
@@ -84,6 +84,7 @@ library
       Hledger.Reports.EntriesReport
       Hledger.Reports.MultiBalanceReports
       Hledger.Reports.PostingsReport
+      Hledger.Reports.TransactionsReport
       Hledger.Utils
       Hledger.Utils.Color
       Hledger.Utils.Debug
@@ -184,6 +185,7 @@ test-suite doctests
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
+      Hledger.Reports.TransactionsReport
       Hledger.Utils
       Hledger.Utils.Color
       Hledger.Utils.Debug
@@ -285,6 +287,7 @@ test-suite easytests
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
+      Hledger.Reports.TransactionsReport
       Hledger.Utils
       Hledger.Utils.Color
       Hledger.Utils.Debug
