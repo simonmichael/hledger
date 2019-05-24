@@ -13,12 +13,10 @@ module Hledger.Reports (
   module Hledger.Reports.ReportTypes,
   module Hledger.Reports.EntriesReport,
   module Hledger.Reports.PostingsReport,
-  module Hledger.Reports.TransactionsReport,
   module Hledger.Reports.AccountTransactionsReport,
   module Hledger.Reports.BalanceReport,
   module Hledger.Reports.MultiBalanceReports,
   module Hledger.Reports.BudgetReport,
---   module Hledger.Reports.BalanceHistoryReport,
   -- * Tests
   tests_Reports
 )
@@ -26,23 +24,20 @@ where
 
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
+import Hledger.Reports.AccountTransactionsReport
 import Hledger.Reports.EntriesReport
 import Hledger.Reports.PostingsReport
-import Hledger.Reports.TransactionsReport
-import Hledger.Reports.AccountTransactionsReport
 import Hledger.Reports.BalanceReport
 import Hledger.Reports.MultiBalanceReports
 import Hledger.Reports.BudgetReport
--- import Hledger.Reports.BalanceHistoryReport
 import Hledger.Utils.Test
 
 tests_Reports = tests "Reports" [
    tests_BalanceReport
   ,tests_BudgetReport
+  ,tests_AccountTransactionsReport
   ,tests_EntriesReport
   ,tests_MultiBalanceReports
   ,tests_PostingsReport
   ,tests_ReportOptions
-  ,tests_TransactionsReport
-  ,tests_AccountTransactionsReport
   ]

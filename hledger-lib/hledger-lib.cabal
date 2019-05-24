@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f11088bf1233291fabff38353e1bb342fafd2586510fc84418e17a1eebda505d
+-- hash: 953c47a260da3c57cb7ec2aa2a10e868e3986c38241785fec87ffadc3583fadb
 
 name:           hledger-lib
 version:        1.14.99
@@ -78,14 +78,12 @@ library
       Hledger.Reports
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
-      Hledger.Reports.BalanceHistoryReport
+      Hledger.Reports.AccountTransactionsReport
       Hledger.Reports.BalanceReport
       Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
       Hledger.Reports.MultiBalanceReports
       Hledger.Reports.PostingsReport
-      Hledger.Reports.TransactionsReport
-      Hledger.Reports.AccountTransactionsReport
       Hledger.Utils
       Hledger.Utils.Color
       Hledger.Utils.Debug
@@ -179,7 +177,6 @@ test-suite doctests
       Hledger.Read.TimedotReader
       Hledger.Reports
       Hledger.Reports.AccountTransactionsReport
-      Hledger.Reports.BalanceHistoryReport
       Hledger.Reports.BalanceReport
       Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
@@ -187,7 +184,6 @@ test-suite doctests
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
-      Hledger.Reports.TransactionsReport
       Hledger.Utils
       Hledger.Utils.Color
       Hledger.Utils.Debug
@@ -282,7 +278,6 @@ test-suite easytests
       Hledger.Read.TimedotReader
       Hledger.Reports
       Hledger.Reports.AccountTransactionsReport
-      Hledger.Reports.BalanceHistoryReport
       Hledger.Reports.BalanceReport
       Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
@@ -290,7 +285,6 @@ test-suite easytests
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
-      Hledger.Reports.TransactionsReport
       Hledger.Utils
       Hledger.Utils.Color
       Hledger.Utils.Debug

@@ -131,14 +131,12 @@ library:
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
   - Hledger.Reports.ReportTypes
-  - Hledger.Reports.BalanceHistoryReport
+  - Hledger.Reports.AccountTransactionsReport
   - Hledger.Reports.BalanceReport
   - Hledger.Reports.BudgetReport
   - Hledger.Reports.EntriesReport
   - Hledger.Reports.MultiBalanceReports
   - Hledger.Reports.PostingsReport
-  - Hledger.Reports.TransactionsReport
-  - Hledger.Reports.AccountTransactionsReport
   - Hledger.Utils
   - Hledger.Utils.Color
   - Hledger.Utils.Debug

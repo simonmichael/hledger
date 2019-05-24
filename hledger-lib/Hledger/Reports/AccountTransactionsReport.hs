@@ -117,7 +117,7 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
         mstartdate = queryStartDate (date2_ opts) reportq'
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
 
-    items = reverse $ -- see also registerChartHtml
+    items = reverse $
             accountTransactionsReportItems reportq' thisacctq startbal negate ts
 
 -- | Generate transactions report items from a list of transactions,
