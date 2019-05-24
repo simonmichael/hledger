@@ -576,6 +576,7 @@ multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText ropts@ReportOpts{..} r =
     title ++ "\n\n" ++ (balanceReportTableAsText ropts $ balanceReportAsTable ropts r)
   where
+    multiperiod = interval_ /= NoInterval
     title = printf "%s in %s%s:"
       (case balancetype_ of
         PeriodChange       -> "Balance changes"
@@ -586,6 +587,9 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
         Just (AtCost _mc)   -> ", valued at cost"
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
+        -- XXX duplicates the above
+        Just (AtDefault _mc) | multiperiod -> ", valued at period ends"
+        Just (AtDefault _mc) -> ", current value"
         Just (AtDate d _mc) -> ", valued at "++showDate d
         Nothing             -> "")
 

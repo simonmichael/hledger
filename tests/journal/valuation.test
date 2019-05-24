@@ -223,7 +223,7 @@ $ hledger -f- reg --value=now
 2000/02/01                      (a)                            4 B           8 B
 2000/03/01                      (a)                            4 B          12 B
 
-# 18. register report valued at default date (same as above)
+# 18. single-period register report valued at default date (same as --value=now)
 $ hledger -f- reg -V
 2000/01/01                      (a)                            4 B           4 B
 2000/02/01                      (a)                            4 B           8 B
@@ -314,11 +314,11 @@ $ hledger -f- reg --value=now -M
 2000/02                 a                                      4 B           8 B
 2000/03                 a                                      4 B          12 B
 
-# 26. periodic register report valued at default date (same as above)
+# 26. periodic register report valued at default date (same as --value=end)
 $ hledger -f- reg -V -M
-2000/01                 a                                      4 B           4 B
-2000/02                 a                                      4 B           8 B
-2000/03                 a                                      4 B          12 B
+2000/01                 a                                      5 B           5 B
+2000/02                 a                                      2 B           7 B
+2000/03                 a                                      3 B          10 B
 
 # balance
 
@@ -338,7 +338,7 @@ $ hledger -f- bal -N --value=2000-01-15
 $ hledger -f- bal -N --value=now
                 12 B  a
 
-# 31. single column balance report valued at default date (same as above)
+# 31. single column balance report valued at default date (same as --value=now)
 $ hledger -f- bal -N -V
                 12 B  a
 
@@ -394,15 +394,15 @@ Balance changes in 2000q1, current value:
 ---++---------------
    || 4 B  4 B  4 B 
 
-# 37. multicolumn balance report valued at default date (same as above)
+# 37. multicolumn balance report valued at default date (same as --value=end)
 $ hledger -f- bal -M -V
-Balance changes in 2000q1, current value:
+Balance changes in 2000q1, valued at period ends:
 
    || Jan  Feb  Mar 
 ===++===============
- a || 4 B  4 B  4 B 
+ a || 5 B  2 B  3 B 
 ---++---------------
-   || 4 B  4 B  4 B 
+   || 5 B  2 B  3 B 
 
 # balance, periodic, with -H (starting balance and accumulating across periods)
 

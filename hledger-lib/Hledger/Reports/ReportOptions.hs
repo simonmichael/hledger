@@ -85,6 +85,7 @@ data ValuationType =
   | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices at period end(s)
   | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using current market prices
   | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices on some date
+  | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
   deriving (Show,Data,Eq) -- Typeable
 
 -- instance Default ValuationType where def = AtNow Nothing
@@ -349,7 +350,7 @@ valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromra
   where
     valuationfromrawopt (n,v)
       | n == "B"     = Just $ AtCost Nothing
-      | n == "V"     = Just $ AtNow Nothing  -- TODO: if multiperiod then AtEnd Nothing
+      | n == "V"     = Just $ AtDefault Nothing
       | n == "value" = Just $ valuation v
       | otherwise    = Nothing
     valuation v

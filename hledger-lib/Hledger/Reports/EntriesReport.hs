@@ -40,15 +40,21 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
     datefn = transactionDateFn ropts
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
     pvalue p@Posting{..} = case value_ of
-      Nothing             -> p
-      Just (AtCost _mc)   -> postingToCost (journalCommodityStyles j) p
-      Just (AtEnd _mc)    -> postingValue jmarketprices (fromMaybe (postingDate p)  -- XXX shouldn't happen
-                                                         mperiodorjournallastday) p
-      Just (AtNow _mc)    -> postingValue jmarketprices (
-        case today_ of Just d  -> d
-                       Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now") p
-      Just (AtDate d _mc) -> postingValue jmarketprices d p
+      Nothing              -> p
+      Just (AtCost _mc)    -> postingToCost (journalCommodityStyles j) p
+      Just (AtEnd _mc)     -> valueend p
+      Just (AtNow _mc)     -> valuenow p
+      Just (AtDefault _mc) -> valuenow p
+      Just (AtDate d _mc)  -> postingValue jmarketprices d p
       where
+        valueend p = postingValue jmarketprices (
+          fromMaybe (postingDate p)  -- XXX shouldn't happen
+            mperiodorjournallastday
+          ) p
+        valuenow p = postingValue jmarketprices (
+          case today_ of Just d  -> d
+                         Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now"
+          ) p
         mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
           where
             -- The last day of the report period.

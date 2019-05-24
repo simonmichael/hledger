@@ -140,10 +140,13 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
               PeriodChange      -> "(Balance Changes)"
               CumulativeChange  -> "(Cumulative Ending Balances)"
               HistoricalBalance -> "(Historical Ending Balances)"
+          multiperiod = interval_ /= NoInterval
           valuation = case value_ of
             Just (AtCost _mc)   -> ", valued at cost"
             Just (AtEnd _mc)    -> ", valued at period ends"
             Just (AtNow _mc)    -> ", current value"
+            Just (AtDefault _mc) | multiperiod   -> ", valued at period ends"
+            Just (AtDefault _mc)    -> ", current value"
             Just (AtDate d _mc) -> ", valued at "++showDate d
             Nothing             -> ""
 

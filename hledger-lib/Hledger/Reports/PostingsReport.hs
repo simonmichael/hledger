@@ -87,36 +87,44 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
 
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
 
+      multiperiod = interval_ /= NoInterval
+
       -- Postings or summary pseudo postings to be displayed.
       displayps =
-        let
-          multiperiod = interval_ /= NoInterval
-        in
-          if multiperiod then
-            let
-              showempty = empty_ || average_
-              summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
-            in case value_ of
-              Just (AtEnd _mc)    -> [(postingValue jmarketprices periodlastday p    , periodend) | (p,periodend) <- summaryps
-                                    ,let periodlastday = maybe
-                                           (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
-                                           (addDays (-1))
-                                           periodend
-                                    ]
-              Just (AtNow _mc)    -> [(postingValue jmarketprices today p            , periodend) | (p,periodend) <- summaryps]
-              Just (AtDate d _mc) -> [(postingValue jmarketprices d p                , periodend) | (p,periodend) <- summaryps]
-              Just (AtCost _mc)   -> summaryps  -- conversion to cost was done earlier
-              _                   -> summaryps
-          else
-            let reportperiodlastday =
-                  fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
-                  $ reportPeriodOrJournalLastDay ropts j
-            in case value_ of
-              Nothing             -> [(p                                         , Nothing) | p <- reportps]
-              Just (AtCost _mc)   -> [(p                                         , Nothing) | p <- reportps]  -- conversion to cost was done earlier
-              Just (AtEnd _mc)    -> [(postingValue jmarketprices reportperiodlastday p, Nothing) | p <- reportps]
-              Just (AtNow _mc)    -> [(postingValue jmarketprices today p              , Nothing) | p <- reportps]
-              Just (AtDate d _mc) -> [(postingValue jmarketprices d p                  , Nothing) | p <- reportps]
+        if multiperiod then
+          let
+            showempty = empty_ || average_
+            summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
+            summarypsendvalue    = [(postingValue jmarketprices periodlastday p, periodend) | (p,periodend) <- summaryps
+                                   ,let periodlastday = maybe
+                                          (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
+                                          (addDays (-1))
+                                          periodend
+                                   ]
+            summarypsdatevalue d = [(postingValue jmarketprices d p, periodend) | (p,periodend) <- summaryps]
+          in case value_ of
+            Nothing                            -> summaryps
+            Just (AtCost _mc)                  -> summaryps  -- conversion to cost was done earlier
+            Just (AtEnd _mc)                   -> summarypsendvalue
+            Just (AtNow _mc)                   -> summarypsdatevalue today
+            Just (AtDefault _mc) | multiperiod -> summarypsendvalue
+            Just (AtDefault _mc)               -> summarypsdatevalue today
+            Just (AtDate d _mc)                -> summarypsdatevalue d
+        else
+          let
+            reportperiodlastday =
+              fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
+              $ reportPeriodOrJournalLastDay ropts j
+            reportpsdatevalue d = [(postingValue jmarketprices d p, Nothing) | p <- reportps]
+            reportpsnovalue = [(p, Nothing) | p <- reportps]
+          in case value_ of
+            Nothing                            -> reportpsnovalue
+            Just (AtCost _mc)                  -> reportpsnovalue  -- conversion to cost was done earlier
+            Just (AtEnd _mc)                   -> reportpsdatevalue reportperiodlastday
+            Just (AtNow _mc)                   -> reportpsdatevalue today
+            Just (AtDefault _mc) | multiperiod -> reportpsdatevalue reportperiodlastday
+            Just (AtDefault _mc)               -> reportpsdatevalue today
+            Just (AtDate d _mc)                -> reportpsdatevalue d
 
       -- posting report items ready for display
       items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth valuedstartbal runningcalc startnum
@@ -128,20 +136,24 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
           startbal | average_  = if historical then precedingavg else 0
                    | otherwise = if historical then precedingsum else 0
           -- For --value=end/now/DATE, convert the initial running total/average to value.
+          startbaldatevalue d = mixedAmountValue prices d startbal
+            where
+              -- prices are in parse order - sort into date then parse order,
+              -- & reversed for quick lookup of the latest price.
+              prices = reverse $ sortOn mpdate jmarketprices
           valuedstartbal = case value_ of
-            Nothing             -> startbal
-            Just (AtCost _mc)   -> startbal  -- conversion to cost was done earlier
-            Just (AtEnd  _mc)   -> mixedAmountValue prices daybeforereportstart startbal
-            Just (AtNow  _mc)   -> mixedAmountValue prices today       startbal
-            Just (AtDate d _mc) -> mixedAmountValue prices d           startbal
+            Nothing                             -> startbal
+            Just (AtCost _mc)                   -> startbal  -- conversion to cost was done earlier
+            Just (AtEnd  _mc)                   -> startbaldatevalue daybeforereportstart
+            Just (AtNow  _mc)                   -> startbaldatevalue today
+            Just (AtDefault  _mc) | multiperiod -> startbaldatevalue daybeforereportstart
+            Just (AtDefault  _mc)               -> startbaldatevalue today
+            Just (AtDate d _mc)                 -> startbaldatevalue d
             where
               daybeforereportstart = maybe
                                      (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
                                      (addDays (-1))
                                      $ reportPeriodOrJournalStart ropts j
-              -- prices are in parse order - sort into date then parse order,
-              -- & reversed for quick lookup of the latest price.
-              prices = reverse $ sortOn mpdate jmarketprices
 
           startnum = if historical then length precedingps + 1 else 1
           runningcalc = registerRunningCalculationFn ropts

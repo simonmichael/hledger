@@ -273,12 +273,16 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
   title ++ "\n\n" ++ 
   tableAsText ropts showcell (maybetranspose $ budgetReportAsTable ropts budgetr)
   where
+    multiperiod = interval_ /= NoInterval
     title = printf "Budget performance in %s%s:"
       (showDateSpan $ budgetReportSpan budgetr)
       (case value_ of
         Just (AtCost _mc)   -> ", valued at cost"
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
+        -- XXX duplicates the above
+        Just (AtDefault _mc) | multiperiod -> ", valued at period ends"
+        Just (AtDefault _mc)  -> ", current value"
         Just (AtDate d _mc) -> ", valued at "++showDate d
         Nothing             -> "")
     actualwidth =

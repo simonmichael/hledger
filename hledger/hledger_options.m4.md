@@ -447,13 +447,18 @@ $ hledger balance --pivot member acct:.
 
 The `-B/--cost` flag converts amounts to their cost at transaction time, 
 if they have a [transaction price](/journal.html#transaction-prices) specified.
+This flag is equivalent to `--value=cost`, described below.
 
 ## Market value
 
 The `-V/--market` flag converts reported amounts to their market value in another commodity.
-It uses the commodity referenced in the latest [market price](journal.html#market-prices) (P directive)
-dated on or before the valuation date. The default valuation date is today.
-For example:
+It uses the default valuation commodity referenced in the latest [market price](journal.html#market-prices) (P directive)
+dated on or before the default valuation date, which is:
+
+- today for single period reports (equivalent to `--value=now`)
+- the end of each subperiod for multiperiod reports (ie, reports with a [report interval](#report-intervals)) (equivalent to `--value=end`).
+
+A quick example of `-V`:
 
 ```journal
 # one euro is worth this many dollars from nov 1
@@ -495,8 +500,8 @@ You can control valuation more precisely with the `--value` option.
 
      --value=TYPE   which type of valuation should be done ? cost|end|now|YYYY-MM-DD
 
-The argument is one of the keywords shown, or their first letter, or a custom date.
-The precise effect of the keywords is command-specific, but here is their general meaning:
+TYPE is one of the keywords shown, or their first letter, or a custom date.
+Their meanings:
 
 `--value=cost` (or `c`)
 : Convert amounts to cost, using the prices recorded in transactions.

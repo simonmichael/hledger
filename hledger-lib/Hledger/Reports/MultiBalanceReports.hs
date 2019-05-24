@@ -261,6 +261,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
       -- One row per account, with account name info, row amounts, row total and row average.
       -- Row amounts are converted to value if that has been requested.
       -- Row total/average are always simply the sum/average of the row amounts.
+      multiperiod = interval_ /= NoInterval
       rows :: [MultiBalanceReportRow] =
           dbg1 "rows" $
           [(a, accountLeafName a, accountNameLevel a, valuedrowbals, rowtot, rowavg)
@@ -273,12 +274,16 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                    CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
                    HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
              -- The row amounts valued according to --value if needed.
+           , let rowbalsendvalue    = [mixedAmountValue prices periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
+           , let rowbalsdatevalue d = [mixedAmountValue prices d amt             | amt <- rowbals]
            , let valuedrowbals = dbg1 "valuedrowbals" $ case value_ of
-                   Just (AtCost _mc)   -> rowbals   -- cost valuation was handled earlier
-                   Just (AtEnd _mc)    -> [mixedAmountValue prices periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
-                   Just (AtNow _mc)    -> [mixedAmountValue prices today amt         | amt <- rowbals]
-                   Just (AtDate d _mc) -> [mixedAmountValue prices d amt             | amt <- rowbals]
-                   Nothing             -> rowbals
+                   Nothing                            -> rowbals
+                   Just (AtCost _mc)                  -> rowbals   -- cost valuation was handled earlier
+                   Just (AtEnd _mc)                   -> rowbalsendvalue
+                   Just (AtNow _mc)                   -> rowbalsdatevalue today
+                   Just (AtDefault _mc) | multiperiod -> rowbalsendvalue
+                   Just (AtDefault _mc)               -> rowbalsdatevalue today
+                   Just (AtDate d _mc)                -> rowbalsdatevalue d
 
              -- The total and average for the row, and their values.
              -- Total for a cumulative/historical report is always zero.

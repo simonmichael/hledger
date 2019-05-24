@@ -338,7 +338,7 @@ P 2018/01/26 SHARE €10
     assets:bank
 
 $ hledger -f - bal -M --budget --cumulative --forecast -V
-Budget performance in 2018/05/01-2018/06/30, current value:
+Budget performance in 2018/05/01-2018/06/30, valued at period ends:
 
                 ||                 May                  Jun 
 ================++==========================================

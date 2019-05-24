@@ -72,6 +72,7 @@ balanceReport ropts@ReportOpts{..} q j =
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
       today = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
+      multiperiod = interval_ /= NoInterval
 
       -- Get all the summed accounts & balances, according to the query, as an account tree.
       -- If doing cost valuation, amounts will be converted to cost first.
@@ -83,10 +84,13 @@ balanceReport ropts@ReportOpts{..} q j =
           valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
             where
               val = case value_ of
-                      Just (AtEnd _mc)    -> mixedAmountValue prices periodlastday
-                      Just (AtNow _mc)    -> mixedAmountValue prices today
-                      Just (AtDate d _mc) -> mixedAmountValue prices d
-                      _                   -> id
+                      Nothing                            -> id
+                      Just (AtCost _mc)                  -> id
+                      Just (AtEnd _mc)                   -> mixedAmountValue prices periodlastday
+                      Just (AtNow _mc)                   -> mixedAmountValue prices today
+                      Just (AtDefault _mc) | multiperiod -> mixedAmountValue prices periodlastday
+                      Just (AtDefault _mc)               -> mixedAmountValue prices today
+                      Just (AtDate d _mc)                -> mixedAmountValue prices d
                 where
                   -- prices are in parse order - sort into date then parse order,
                   -- & reversed for quick lookup of the latest price.
