@@ -458,8 +458,8 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
 -- If no default valuation commodity can be found, the amount is left
 -- unchanged.
 amountValue :: Prices -> Day -> Amount -> Amount
-amountValue prices d a@Amount{acommodity=c} =
-  case priceLookup prices d c of
+amountValue prices d a =
+  case priceLookup prices d (acommodity a) of
     Just v  -> v{aquantity=aquantity v * aquantity a}
     Nothing -> a
 
