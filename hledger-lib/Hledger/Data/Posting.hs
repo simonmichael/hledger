@@ -87,6 +87,7 @@ import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
 import Hledger.Data.Dates (nulldate, spanContainsDate)
+import Hledger.Data.Prices
 
 
 
@@ -354,12 +355,8 @@ postingTransformAmount f p@Posting{pamount=a} = p{pamount=f a}
 -- valuation commodity on the given date using the given market prices.
 -- If no default valuation commodity can be found, amounts are left unchanged.
 -- The prices are expected to be in parse order. 
-postingValue :: [MarketPrice] -> Day -> Posting -> Posting
-postingValue prices d p = postingTransformAmount (mixedAmountValue prices' d) p
-  where
-    -- prices are in parse order - sort into date then parse order,
-    -- & reversed for quick lookup of the latest price.
-    prices' = reverse $ sortOn mpdate prices
+postingValue :: Prices -> Day -> Posting -> Posting
+postingValue prices d p = postingTransformAmount (mixedAmountValue prices d) p
 
 -- | Convert this posting's amount to cost, and apply the appropriate amount styles.
 postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting

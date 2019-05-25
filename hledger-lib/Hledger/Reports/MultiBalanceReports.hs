@@ -157,9 +157,8 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
       --   end:  summed/averaged row amounts
       --   date: summed/averaged row amounts
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
-      -- Market prices. Sort into date then parse order,
-      -- & reverse for quick lookup of the latest price.
-      prices = reverse $ sortOn mpdate jmarketprices
+      -- Market prices.
+      prices = journalPrices j
       -- The last day of each column subperiod.
       lastdays :: [Day] =
         map ((maybe

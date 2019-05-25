@@ -110,7 +110,7 @@ library:
   - Hledger.Data.Dates
   - Hledger.Data.Journal
   - Hledger.Data.Ledger
-  - Hledger.Data.MarketPrice
+  - Hledger.Data.Prices
   - Hledger.Data.Period
   - Hledger.Data.PeriodicTransaction
   - Hledger.Data.StringFormat

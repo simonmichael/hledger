@@ -67,6 +67,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
       reportspan = adjustReportDates ropts q j
       whichdate = whichDateFromOpts ropts
       depth = queryDepth q
+      prices = journalPrices j
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
@@ -95,13 +96,13 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
           let
             showempty = empty_ || average_
             summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
-            summarypsendvalue    = [(postingValue jmarketprices periodlastday p, periodend) | (p,periodend) <- summaryps
+            summarypsendvalue    = [(postingValue prices periodlastday p, periodend) | (p,periodend) <- summaryps
                                    ,let periodlastday = maybe
                                           (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
                                           (addDays (-1))
                                           periodend
                                    ]
-            summarypsdatevalue d = [(postingValue jmarketprices d p, periodend) | (p,periodend) <- summaryps]
+            summarypsdatevalue d = [(postingValue prices d p, periodend) | (p,periodend) <- summaryps]
           in case value_ of
             Nothing                            -> summaryps
             Just (AtCost _mc)                  -> summaryps  -- conversion to cost was done earlier
@@ -115,7 +116,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
             reportperiodlastday =
               fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
               $ reportPeriodOrJournalLastDay ropts j
-            reportpsdatevalue d = [(postingValue jmarketprices d p, Nothing) | p <- reportps]
+            reportpsdatevalue d = [(postingValue prices d p, Nothing) | p <- reportps]
             reportpsnovalue = [(p, Nothing) | p <- reportps]
           in case value_ of
             Nothing                            -> reportpsnovalue
@@ -137,10 +138,6 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
                    | otherwise = if historical then precedingsum else 0
           -- For --value=end/now/DATE, convert the initial running total/average to value.
           startbaldatevalue d = mixedAmountValue prices d startbal
-            where
-              -- prices are in parse order - sort into date then parse order,
-              -- & reversed for quick lookup of the latest price.
-              prices = reverse $ sortOn mpdate jmarketprices
           valuedstartbal = case value_ of
             Nothing                             -> startbal
             Just (AtCost _mc)                   -> startbal  -- conversion to cost was done earlier

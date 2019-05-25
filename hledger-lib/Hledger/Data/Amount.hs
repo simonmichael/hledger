@@ -142,6 +142,7 @@ import qualified Data.Map as M
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
+import Hledger.Data.Prices
 import Hledger.Utils 
 
 
@@ -456,27 +457,11 @@ canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
 -- The given market prices are expected to be in parse order.
 -- If no default valuation commodity can be found, the amount is left
 -- unchanged.
-amountValue :: [MarketPrice] -> Day -> Amount -> Amount
-amountValue ps d a@Amount{acommodity=c} =
-  case commodityValue ps d c of
+amountValue :: Prices -> Day -> Amount -> Amount
+amountValue prices d a@Amount{acommodity=c} =
+  case priceLookup prices d c of
     Just v  -> v{aquantity=aquantity v * aquantity a}
     Nothing -> a
-
--- (This is here not in Commodity.hs to use the Amount Show instance above for debugging.)
---
--- | Find the market value of one unit of the given commodity
--- on the given valuation date in its default valuation commodity
--- (that of the latest applicable market price before the valuation date).
--- The given market prices are expected to be in parse order.
-commodityValue :: [MarketPrice] -> Day -> CommoditySymbol -> Maybe Amount
-commodityValue ps valuationdate c =
-  case ps' of
-    []   -> dbg Nothing
-    ps'' -> dbg $ Just $ mpamount $ head ps''
-  where
-    ps' = filter (\MarketPrice{..} -> mpcommodity==c && mpdate<=valuationdate) ps
-    dbg = dbg8 ("using market price for "++T.unpack c)
-
 
 -------------------------------------------------------------------------------
 -- MixedAmount
@@ -739,8 +724,8 @@ canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styl
 -- in its default valuation commodity, using the given market prices
 -- which are expected to be in parse order. When no default valuation
 -- commodity can be found, amounts are left unchanged.
-mixedAmountValue :: [MarketPrice] -> Day -> MixedAmount -> MixedAmount
-mixedAmountValue ps d (Mixed as) = Mixed $ map (amountValue ps d) as
+mixedAmountValue :: Prices -> Day -> MixedAmount -> MixedAmount
+mixedAmountValue prices d (Mixed as) = Mixed $ map (amountValue prices d) as
 
 -- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one. 

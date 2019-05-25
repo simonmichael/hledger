@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ffd57f3b3365e927bfb79cb1bfe2ff6081fcd89b12d8a6fda4b6e254817b7ba7
+-- hash: ac2028674178919d87ff7e06ea16e97e245e92deeb60beb9689c083547cd1a44
 
 name:           hledger-lib
 version:        1.14.99
@@ -58,7 +58,7 @@ library
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
-      Hledger.Data.MarketPrice
+      Hledger.Data.Prices
       Hledger.Data.Period
       Hledger.Data.PeriodicTransaction
       Hledger.Data.StringFormat
@@ -159,10 +159,10 @@ test-suite doctests
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
-      Hledger.Data.MarketPrice
       Hledger.Data.Period
       Hledger.Data.PeriodicTransaction
       Hledger.Data.Posting
+      Hledger.Data.Prices
       Hledger.Data.RawOptions
       Hledger.Data.StringFormat
       Hledger.Data.Timeclock
@@ -261,10 +261,10 @@ test-suite easytests
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
-      Hledger.Data.MarketPrice
       Hledger.Data.Period
       Hledger.Data.PeriodicTransaction
       Hledger.Data.Posting
+      Hledger.Data.Prices
       Hledger.Data.RawOptions
       Hledger.Data.StringFormat
       Hledger.Data.Timeclock

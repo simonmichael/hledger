@@ -420,11 +420,14 @@ data TimeclockEntry = TimeclockEntry {
 
 instance NFData TimeclockEntry
 
+-- | A historical exchange rate between two commodities, eg published
+-- by a stock exchange or the foreign exchange market.
 data MarketPrice = MarketPrice {
       mpdate      :: Day,
       mpcommodity :: CommoditySymbol,
       mpamount    :: Amount
-    } deriving (Eq,Ord,Typeable,Data,Generic) -- , Show in Amount.hs
+    } deriving (Eq,Ord,Typeable,Data,Generic)
+        -- Show instance derived in Amount.hs
 
 instance NFData MarketPrice
 
@@ -452,8 +455,9 @@ data Journal = Journal {
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts) 
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
-  ,jmarketprices          :: [MarketPrice]                          -- ^ All market prices declared by P directives. After journal finalisation,
-                                                                    --   these will be in parse order (not yet date-sorted, to allow concatenating Journals).
+  ,jmarketprices          :: [MarketPrice]                          -- ^ All market price declarations (P directives), in parse order (after journal finalisation).
+                                                                    --   These will be converted to a Prices db for looking up prices by date.
+                                                                    --   (This field is not date-sorted, to allow monoidally combining finalised journals.)
   ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]

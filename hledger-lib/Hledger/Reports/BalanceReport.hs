@@ -73,6 +73,7 @@ balanceReport ropts@ReportOpts{..} q j =
 
       today = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
       multiperiod = interval_ /= NoInterval
+      prices = journalPrices j
 
       -- Get all the summed accounts & balances, according to the query, as an account tree.
       -- If doing cost valuation, amounts will be converted to cost first.
@@ -92,9 +93,6 @@ balanceReport ropts@ReportOpts{..} q j =
                       Just (AtDefault _mc)               -> mixedAmountValue prices today
                       Just (AtDate d _mc)                -> mixedAmountValue prices d
                 where
-                  -- prices are in parse order - sort into date then parse order,
-                  -- & reversed for quick lookup of the latest price.
-                  prices = reverse $ sortOn mpdate $ jmarketprices j
                   periodlastday =
                     fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen
                     reportPeriodOrJournalLastDay ropts j

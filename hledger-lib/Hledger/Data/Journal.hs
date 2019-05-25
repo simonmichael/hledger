@@ -61,6 +61,7 @@ module Hledger.Data.Journal (
   journalNextTransaction,
   journalPrevTransaction,
   journalPostings,
+  journalPrices,
   -- * Standard account types
   journalBalanceSheetAccountQuery,
   journalProfitAndLossAccountQuery,
@@ -115,6 +116,7 @@ import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Dates
+import Hledger.Data.Prices
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Posting
@@ -1093,6 +1095,19 @@ postingPivot fieldortagname p = p{paccount = pivotedacct, poriginal = Just $ ori
 
 postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)         
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
+
+-- | Convert a journal's market price declarations
+journalPrices :: Journal -> Prices
+journalPrices = toPrices . jmarketprices
+
+-- -- | Render a market price as a P directive.
+-- showMarketPriceDirective :: MarketPrice -> String
+-- showMarketPriceDirective mp = unwords
+--     [ "P"
+--     , showDate (mpdate mp)
+--     , T.unpack (mpcommodity mp)
+--     , (showAmount . setAmountPrecision maxprecision) (mpamount mp)
+--     ]
 
 -- Misc helpers
 
