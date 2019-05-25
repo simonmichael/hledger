@@ -793,7 +793,9 @@ Y2010      ; change default year to 2010
 
 ### Declaring commodities
 
-The `commodity` directive declares commodities which may be used in the journal (though currently we do not enforce this).
+The `commodity` directive declares commodities which may be used in the journal,
+and their display format.
+
 It may be written on a single line, like this:
 
 ```journal
@@ -819,11 +821,17 @@ commodity INR
   format INR 9,99,99,999.00
 ```
 
-Commodity directives have a second purpose: they define the standard display format for amounts in the commodity. 
+Declaring commodites may be useful as documentation,
+but currently we do not enforce that only declared commodities may be used.
+This directive is mainly useful for customising the preferred display format for a commodity.
+
 Normally the display format is inferred from journal entries, but this can be unpredictable; 
 declaring it with a commodity directive overrides this and removes ambiguity. 
 Towards this end, amounts in commodity directives must always be written with a decimal point 
 (a period or comma, followed by 0 or more decimal digits). 
+
+Commodity directives do not affect how amounts are parsed;
+the parser will read multiple formats.
 
 ### Default commodity
 
