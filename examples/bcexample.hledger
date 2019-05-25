@@ -2992,7 +2992,7 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2013-02-17 * "Sell shares of VHT"
-  Assets:US:ETrade:VHT                                   -73.00 VHT      @ 46.42 USD      @ 44.39 USD ;   -3388.66 USD
+  Assets:US:ETrade:VHT                                   -73.00 VHT      @ 46.42 USD      ;@ 44.39 USD ;   -3388.66 USD
   Assets:US:ETrade:Cash                                 3231.52 USD                                   ;    3231.52 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                 148.19 USD                                   ;     148.19 USD
@@ -3018,7 +3018,7 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2013-04-04 * "Sell shares of VHT"
-  Assets:US:ETrade:VHT                                   -33.00 VHT      @ 44.30 USD      @ 45.73 USD ;   -1461.90 USD
+  Assets:US:ETrade:VHT                                   -33.00 VHT      @ 44.30 USD      ;@ 45.73 USD ;   -1461.90 USD
   Assets:US:ETrade:Cash                                 1500.14 USD                                   ;    1500.14 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                 -47.19 USD                                   ;     -47.19 USD
@@ -3034,7 +3034,7 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2013-05-10 * "Sell shares of VHT"
-  Assets:US:ETrade:VHT                                   -18.00 VHT      @ 43.96 USD      @ 45.50 USD ;    -791.28 USD
+  Assets:US:ETrade:VHT                                   -18.00 VHT      @ 43.96 USD      ;@ 45.50 USD ;    -791.28 USD
   Assets:US:ETrade:Cash                                  810.05 USD                                   ;     810.05 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                 -27.72 USD                                   ;     -27.72 USD
@@ -3070,7 +3070,7 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2013-09-20 * "Sell shares of ITOT"
-  Assets:US:ETrade:ITOT                                  -10.00 ITOT     @ 136.49 USD     @ 146.01 USD ;   -1364.90 USD
+  Assets:US:ETrade:ITOT                                  -10.00 ITOT     @ 136.49 USD     ;@ 146.01 USD ;   -1364.90 USD
   Assets:US:ETrade:Cash                                 1451.15 USD                                   ;    1451.15 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                 -95.20 USD                                   ;     -95.20 USD
@@ -3096,7 +3096,7 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2013-10-04 * "Sell shares of ITOT"
-  Assets:US:ETrade:ITOT                                  -10.00 ITOT     @ 138.39 USD     @ 147.64 USD ;   -1383.90 USD
+  Assets:US:ETrade:ITOT                                  -10.00 ITOT     @ 138.39 USD     ;@ 147.64 USD ;   -1383.90 USD
   Assets:US:ETrade:Cash                                 1467.45 USD                                   ;    1467.45 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                 -92.50 USD                                   ;     -92.50 USD
@@ -3117,13 +3117,13 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2014-03-11 * "Sell shares of ITOT"
-  Assets:US:ETrade:ITOT                                  -15.00 ITOT     @ 143.64 USD     @ 156.42 USD ;   -2154.60 USD
+  Assets:US:ETrade:ITOT                                  -15.00 ITOT     @ 143.64 USD     ;@ 156.42 USD ;   -2154.60 USD
   Assets:US:ETrade:Cash                                 2337.35 USD                                   ;    2337.35 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                -191.70 USD                                   ;    -191.70 USD
 
 2014-03-12 * "Sell shares of VHT"
-  Assets:US:ETrade:VHT                                   -32.00 VHT      @ 46.00 USD      @ 45.21 USD ;   -1472.00 USD
+  Assets:US:ETrade:VHT                                   -32.00 VHT      @ 46.00 USD      ;@ 45.21 USD ;   -1472.00 USD
   Assets:US:ETrade:Cash                                 1437.77 USD                                   ;    1437.77 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                  25.28 USD                                   ;      25.28 USD
@@ -3134,7 +3134,7 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2014-03-27 * "Sell shares of ITOT"
-  Assets:US:ETrade:ITOT                                   -6.00 ITOT     @ 138.81 USD     @ 157.00 USD ;    -832.86 USD
+  Assets:US:ETrade:ITOT                                   -6.00 ITOT     @ 138.81 USD     ;@ 157.00 USD ;    -832.86 USD
   Assets:US:ETrade:Cash                                  933.05 USD                                   ;     933.05 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                -109.14 USD                                   ;    -109.14 USD
@@ -3155,7 +3155,7 @@
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
 
 2014-08-15 * "Sell shares of GLD"
-  Assets:US:ETrade:GLD                                   -16.00 GLD      @ 94.18 USD      @ 93.14 USD ;   -1506.88 USD
+  Assets:US:ETrade:GLD                                   -16.00 GLD      @ 94.18 USD      ;@ 93.14 USD ;   -1506.88 USD
   Assets:US:ETrade:Cash                                 1481.29 USD                                   ;    1481.29 USD
   Expenses:Financial:Commissions                           8.95 USD                                   ;       8.95 USD
   Income:US:ETrade:Gains                                  16.64 USD                                   ;      16.64 USD
