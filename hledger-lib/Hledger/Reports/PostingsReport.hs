@@ -58,6 +58,12 @@ type PostingsReportItem = (Maybe Day    -- The posting date, if this is the firs
                                         -- the running total/average.
                           )
 
+-- | A summary posting summarises the activity in one account within a report
+-- interval. It is kludgily represented by a regular Posting with no description,
+-- the interval's start date stored as the posting date, and the interval's end
+-- date attached with a tuple.
+type SummaryPosting = (Posting, Day)
+
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
@@ -90,22 +96,21 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
 
       multiperiod = interval_ /= NoInterval
 
-      -- Postings or summary pseudo postings to be displayed.
-      displayps =
+      -- Postings, or summary postings along with their subperiod's end date, to be displayed.
+      displayps :: [(Posting, Maybe Day)] =
         if multiperiod then
           let
             showempty = empty_ || average_
             summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
-            summarypsendvalue    = [(postingValue prices periodlastday p, periodend) | (p,periodend) <- summaryps
-                                   ,let periodlastday = maybe
-                                          (error' "postingsReport: expected a subperiod end date") -- XXX shouldn't happen
-                                          (addDays (-1))
-                                          periodend
+            summaryps' = [(p, Just e) | (p,e) <- summaryps]
+            summarypsendvalue    = [ (postingValue prices periodlastday p, Just periodend)
+                                   | (p,periodend) <- summaryps
+                                   , let periodlastday = addDays (-1) periodend
                                    ]
-            summarypsdatevalue d = [(postingValue prices d p, periodend) | (p,periodend) <- summaryps]
+            summarypsdatevalue d = [(postingValue prices d p, Just periodend) | (p,periodend) <- summaryps]
           in case value_ of
-            Nothing                            -> summaryps
-            Just (AtCost _mc)                  -> summaryps  -- conversion to cost was done earlier
+            Nothing                            -> summaryps'
+            Just (AtCost _mc)                  -> summaryps'  -- conversion to cost was done earlier
             Just (AtEnd _mc)                   -> summarypsendvalue
             Just (AtNow _mc)                   -> summarypsdatevalue today
             Just (AtDefault _mc) | multiperiod -> summarypsendvalue
@@ -257,12 +262,6 @@ summarisePostingsByInterval interval wd depth showempty reportspan ps = concatMa
       summarisespan s = summarisePostingsInDateSpan s wd depth showempty (postingsinspan s)
       postingsinspan s = filter (isPostingInDateSpan' wd s) ps
 
--- | A summary posting summarises the activity in one account within a report
--- interval. It is currently kludgily represented by a regular Posting with no
--- description, the interval's start date stored as the posting date, and the
--- interval's end date attached with a tuple.
-type SummaryPosting = (Posting, Maybe Day)
-
 -- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per
 -- account. Each summary posting will have a non-Nothing interval end date.
@@ -278,7 +277,7 @@ type SummaryPosting = (Posting, Maybe Day)
 summarisePostingsInDateSpan :: DateSpan -> WhichDate -> Int -> Bool -> [Posting] -> [SummaryPosting]
 summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
     | null ps && (isNothing b || isNothing e) = []
-    | null ps && showempty = [(summaryp, Just e')]
+    | null ps && showempty = [(summaryp, e')]
     | otherwise = summarypes
     where
       postingdate = if wd == PrimaryDate then postingDate else postingDate2
@@ -289,7 +288,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
                     | otherwise = ["..."]
       summaryps | depth > 0 = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
                 | otherwise = [summaryp{paccount="...",pamount=sum $ map pamount ps}]
-      summarypes = map (, Just e') $ (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
+      summarypes = map (, e') $ (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
       anames = sort $ nub $ map paccount ps
       -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
       accts = accountsFromPostings ps
