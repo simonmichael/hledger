@@ -157,8 +157,9 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
       --   end:  summed/averaged row amounts
       --   date: summed/averaged row amounts
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
-      -- Market prices.
+      -- Market prices, commodity display styles.
       prices = journalPrices j
+      styles = journalCommodityStyles j
       -- The last day of each column subperiod.
       lastdays :: [Day] =
         map ((maybe
@@ -273,17 +274,8 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                    CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
                    HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
              -- The row amounts valued according to --value if needed.
-           , let rowbalsendvalue    = [mixedAmountValue prices periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
-           , let rowbalsdatevalue d = [mixedAmountValue prices d amt             | amt <- rowbals]
-           , let valuedrowbals = dbg1 "valuedrowbals" $ case value_ of
-                   Nothing                            -> rowbals
-                   Just (AtCost _mc)                  -> rowbals   -- cost valuation was handled earlier
-                   Just (AtEnd _mc)                   -> rowbalsendvalue
-                   Just (AtNow _mc)                   -> rowbalsdatevalue today
-                   Just (AtDefault _mc) | multiperiod -> rowbalsendvalue
-                   Just (AtDefault _mc)               -> rowbalsdatevalue today
-                   Just (AtDate d _mc)                -> rowbalsdatevalue d
-
+           , let val end = maybe id (mixedAmountApplyValuation prices styles end today multiperiod) value_
+           , let valuedrowbals = dbg1 "valuedrowbals" $ [val periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
              -- The total and average for the row, and their values.
              -- Total for a cumulative/historical report is always zero.
            , let rowtot = if balancetype_==PeriodChange then sum valuedrowbals else 0

@@ -74,6 +74,7 @@ balanceReport ropts@ReportOpts{..} q j =
       today = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
       multiperiod = interval_ /= NoInterval
       prices = journalPrices j
+      styles = journalCommodityStyles j
 
       -- Get all the summed accounts & balances, according to the query, as an account tree.
       -- If doing cost valuation, amounts will be converted to cost first.
@@ -84,14 +85,7 @@ balanceReport ropts@ReportOpts{..} q j =
         where
           valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
             where
-              val = case value_ of
-                      Nothing                            -> id
-                      Just (AtCost _mc)                  -> id
-                      Just (AtEnd _mc)                   -> mixedAmountValue prices periodlastday
-                      Just (AtNow _mc)                   -> mixedAmountValue prices today
-                      Just (AtDefault _mc) | multiperiod -> mixedAmountValue prices periodlastday
-                      Just (AtDefault _mc)               -> mixedAmountValue prices today
-                      Just (AtDate d _mc)                -> mixedAmountValue prices d
+              val = maybe id (mixedAmountApplyValuation prices styles periodlastday today multiperiod) value_
                 where
                   periodlastday =
                     fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen

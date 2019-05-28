@@ -74,6 +74,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
       whichdate = whichDateFromOpts ropts
       depth = queryDepth q
       prices = journalPrices j
+      styles = journalCommodityStyles j
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
@@ -91,49 +92,26 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
       --
       --  In all cases, the running total/average is calculated from the above numbers.
       --  "Day before report start" is a bit arbitrary.
-
-      today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
-
+      today =
+        fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now")
+        today_
+      reportperiodlastday =
+        fromMaybe (error' "postingsReport: expected a non-empty journal") $ -- XXX shouldn't happen
+        reportPeriodOrJournalLastDay ropts j
       multiperiod = interval_ /= NoInterval
+      showempty = empty_ || average_
+      pvalue p end = maybe p (postingApplyValuation prices styles end today multiperiod p) value_
 
-      -- Postings, or summary postings along with their subperiod's end date, to be displayed.
-      displayps :: [(Posting, Maybe Day)] =
-        if multiperiod then
-          let
-            showempty = empty_ || average_
-            summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
-            summaryps' = [(p, Just e) | (p,e) <- summaryps]
-            summarypsendvalue    = [ (postingValue prices periodlastday p, Just periodend)
-                                   | (p,periodend) <- summaryps
-                                   , let periodlastday = addDays (-1) periodend
-                                   ]
-            summarypsdatevalue d = [(postingValue prices d p, Just periodend) | (p,periodend) <- summaryps]
-          in case value_ of
-            Nothing                            -> summaryps'
-            Just (AtCost _mc)                  -> summaryps'  -- conversion to cost was done earlier
-            Just (AtEnd _mc)                   -> summarypsendvalue
-            Just (AtNow _mc)                   -> summarypsdatevalue today
-            Just (AtDefault _mc) | multiperiod -> summarypsendvalue
-            Just (AtDefault _mc)               -> summarypsdatevalue today
-            Just (AtDate d _mc)                -> summarypsdatevalue d
-        else
-          let
-            reportperiodlastday =
-              fromMaybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
-              $ reportPeriodOrJournalLastDay ropts j
-            reportpsdatevalue d = [(postingValue prices d p, Nothing) | p <- reportps]
-            reportpsnovalue = [(p, Nothing) | p <- reportps]
-          in case value_ of
-            Nothing                            -> reportpsnovalue
-            Just (AtCost _mc)                  -> reportpsnovalue  -- conversion to cost was done earlier
-            Just (AtEnd _mc)                   -> reportpsdatevalue reportperiodlastday
-            Just (AtNow _mc)                   -> reportpsdatevalue today
-            Just (AtDefault _mc) | multiperiod -> reportpsdatevalue reportperiodlastday
-            Just (AtDefault _mc)               -> reportpsdatevalue today
-            Just (AtDate d _mc)                -> reportpsdatevalue d
+      -- Postings, or summary postings with their subperiod's end date, to be displayed.
+      displayps :: [(Posting, Maybe Day)]
+        | multiperiod = 
+            let summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
+            in [(pvalue p lastday, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
+        | otherwise =
+            [(pvalue p reportperiodlastday, Nothing) | p <- reportps]
 
       -- posting report items ready for display
-      items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth valuedstartbal runningcalc startnum
+      items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbalvalued runningcalc startnum
         where
           historical = balancetype_ == HistoricalBalance
           precedingsum = sumPostings precedingps
@@ -142,20 +120,14 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
           startbal | average_  = if historical then precedingavg else 0
                    | otherwise = if historical then precedingsum else 0
           -- For --value=end/now/DATE, convert the initial running total/average to value.
-          startbaldatevalue d = mixedAmountValue prices d startbal
-          valuedstartbal = case value_ of
-            Nothing                             -> startbal
-            Just (AtCost _mc)                   -> startbal  -- conversion to cost was done earlier
-            Just (AtEnd  _mc)                   -> startbaldatevalue daybeforereportstart
-            Just (AtNow  _mc)                   -> startbaldatevalue today
-            Just (AtDefault  _mc) | multiperiod -> startbaldatevalue daybeforereportstart
-            Just (AtDefault  _mc)               -> startbaldatevalue today
-            Just (AtDate d _mc)                 -> startbaldatevalue d
+          startbalvalued = val startbal
             where
-              daybeforereportstart = maybe
-                                     (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
-                                     (addDays (-1))
-                                     $ reportPeriodOrJournalStart ropts j
+              val = maybe id (mixedAmountApplyValuation prices styles daybeforereportstart today multiperiod) value_
+                where
+                  daybeforereportstart = maybe
+                                         (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
+                                         (addDays (-1))
+                                         $ reportPeriodOrJournalStart ropts j
 
           startnum = if historical then length precedingps + 1 else 1
           runningcalc = registerRunningCalculationFn ropts

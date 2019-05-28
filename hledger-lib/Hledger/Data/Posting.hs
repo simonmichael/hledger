@@ -65,7 +65,7 @@ module Hledger.Data.Posting (
   -- * misc.
   showComment,
   postingTransformAmount,
-  postingValue,
+  postingApplyValuation,
   postingToCost,
   tests_Posting
 )
@@ -347,20 +347,36 @@ aliasReplace (BasicAlias old new) a
   | otherwise = a
 aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.unpack a -- XXX
 
--- | Apply a transform function to this posting's amount.
-postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting
-postingTransformAmount f p@Posting{pamount=a} = p{pamount=f a}
+-- Apply a specified valuation to this posting's amount, using the provided
+-- prices db, commodity styles, period-end/current dates, and whether
+-- this is for a multiperiod report or not.
+-- Currently ignores the specified valuation commodity and always uses
+-- the default valuation commodity.
+postingApplyValuation :: Prices -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> Posting -> ValuationType -> Posting
+postingApplyValuation prices styles periodend today ismultiperiod p v =
+  -- will use _mc later
+  case v of
+    AtCost    _mc                 -> postingToCost styles p
+    AtEnd     _mc                 -> postingValueAtDate prices periodend p
+    AtNow     _mc                 -> postingValueAtDate prices today     p
+    AtDefault _mc | ismultiperiod -> postingValueAtDate prices periodend p
+    AtDefault _mc                 -> postingValueAtDate prices today     p
+    AtDate d  _mc                 -> postingValueAtDate prices d         p
+
+-- | Convert this posting's amount to cost, and apply the appropriate amount styles.
+postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
+postingToCost styles p@Posting{pamount=a} = p{pamount=mixedAmountToCost styles a}
 
 -- | Convert this posting's amount to market value in its default
 -- valuation commodity on the given date using the given market prices.
 -- If no default valuation commodity can be found, amounts are left unchanged.
 -- The prices are expected to be in parse order. 
-postingValue :: Prices -> Day -> Posting -> Posting
-postingValue prices d p = postingTransformAmount (mixedAmountValue prices d) p
+postingValueAtDate :: Prices -> Day -> Posting -> Posting
+postingValueAtDate prices d p = postingTransformAmount (mixedAmountValueAtDate prices d) p
 
--- | Convert this posting's amount to cost, and apply the appropriate amount styles.
-postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
-postingToCost styles p@Posting{pamount=a} = p{pamount=mixedAmountToCost styles a}
+-- | Apply a transform function to this posting's amount.
+postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting
+postingTransformAmount f p@Posting{pamount=a} = p{pamount=f a}
 
 
 -- tests

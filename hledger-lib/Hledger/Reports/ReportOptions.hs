@@ -78,18 +78,6 @@ data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typ
 
 instance Default AccountListMode where def = ALDefault
 
--- | What kind of value conversion should be done on amounts ?
--- UI: --value=cost|end|now|DATE[,COMM]
-data ValuationType =
-    AtCost     (Maybe CommoditySymbol)  -- ^ convert to cost commodity using transaction prices, then optionally to given commodity using market prices at posting date
-  | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices at period end(s)
-  | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using current market prices
-  | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices on some date
-  | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
-  deriving (Show,Data,Eq) -- Typeable
-
--- instance Default ValuationType where def = AtNow Nothing
-
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
 -- or query arguments, but not all. Some are used only by certain

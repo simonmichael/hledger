@@ -41,33 +41,22 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
     prices = journalPrices j
     styles = journalCommodityStyles j
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
-    pvalue p@Posting{..} = case value_ of
-      Nothing              -> p
-      Just (AtCost _mc)    -> postingToCost styles p
-      Just (AtEnd _mc)     -> valueend p
-      Just (AtNow _mc)     -> valuenow p
-      Just (AtDefault _mc) -> valuenow p
-      Just (AtDate d _mc)  -> postingValue prices d p
+    pvalue p = maybe p (postingApplyValuation prices styles end today False p) value_
       where
-        valueend p = postingValue prices (
-          fromMaybe (postingDate p)  -- XXX shouldn't happen
-            mperiodorjournallastday
-          ) p
-        valuenow p = postingValue prices (
-          case today_ of Just d  -> d
-                         Nothing -> error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now"
-          ) p
-        mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
+        today  = fromMaybe (error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now") today_
+        end    = fromMaybe (postingDate p) mperiodorjournallastday
           where
-            -- The last day of the report period.
-            -- Will be Nothing if no report period is specified, or also
-            -- if ReportOpts does not have today_ set, since we need that
-            -- to get the report period robustly.
-            mperiodlastday :: Maybe Day = do
-              t <- today_
-              let q = queryFromOpts t ropts
-              qend <- queryEndDate False q
-              return $ addDays (-1) qend
+            mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
+              where
+                -- The last day of the report period.
+                -- Will be Nothing if no report period is specified, or also
+                -- if ReportOpts does not have today_ set, since we need that
+                -- to get the report period robustly.
+                mperiodlastday :: Maybe Day = do
+                  t <- today_
+                  let q = queryFromOpts t ropts
+                  qend <- queryEndDate False q
+                  return $ addDays (-1) qend
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
