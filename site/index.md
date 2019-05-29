@@ -196,6 +196,7 @@ Making good software and documentation costs a lot.
 [[hledger accounting concepts]]   
 [[Common journal entries]]  
 [[FAQ]]  
+[[Videos]]  
 [[Accounting links]]  
 
 ### Managing data
