@@ -224,8 +224,7 @@ main = do
         ,"index"
         ,"intro"
         ,"release-notes"
-        -- some copied from elsewhere
-        -- ,"README"
+        ,"README"
         ,"CONTRIBUTING"
         ]
 

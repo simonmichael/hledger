@@ -1,4 +1,10 @@
+This is the README for the site/ directory.
+
+(Confusingly, README.md from the parent directory is also symlinked
+here, to get it rendered as part of the website, and it might take
+precedence when viewing this dir on github.)
+
 Source files for the hledger.org website. 
-To render this, run ./Shake website. 
+To generate the website, run ./Shake website. 
 This will add the web manuals' markdown to this directory, 
 render all markdown as html, and copy static files, to site/_site/.
