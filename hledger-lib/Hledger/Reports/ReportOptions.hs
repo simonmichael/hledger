@@ -333,22 +333,31 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
+-- | Parse the type of valuation to be performed, if any, specified by
+-- -B/--cost/-V/--value flags. If there's more than one of these, the
+-- rightmost flag wins.
 valuationTypeFromRawOpts :: RawOpts -> Maybe ValuationType
 valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromrawopt
   where
-    valuationfromrawopt (n,v)
+    valuationfromrawopt (n,v)  -- option name, value
       | n == "B"     = Just $ AtCost Nothing
       | n == "V"     = Just $ AtDefault Nothing
       | n == "value" = Just $ valuation v
       | otherwise    = Nothing
     valuation v
-      | v `elem` ["cost","c"] = AtCost Nothing
-      | v `elem` ["end" ,"e"] = AtEnd  Nothing
-      | v `elem` ["now" ,"n"] = AtNow  Nothing
+      | t `elem` ["cost","c"] = AtCost mc
+      | t `elem` ["end" ,"e"] = AtEnd  mc
+      | t `elem` ["now" ,"n"] = AtNow  mc
       | otherwise =
-          case parsedateM v of
-            Just d  -> AtDate d Nothing
-            Nothing -> usageError $ "could not parse \""++v++"\" as value date, should be: transaction|period|now|t|p|n|YYYY-MM-DD"
+          case parsedateM t of
+            Just d  -> AtDate d mc
+            Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: cost|end|now|c|e|n|YYYY-MM-DD"
+      where
+        -- parse TYPE[,COMM]
+        (t,c') = break (==',') v
+        mc     = case drop 1 c' of
+                   "" -> Nothing
+                   c  -> Just $ T.pack c
 
 type DisplayExp = String
 
