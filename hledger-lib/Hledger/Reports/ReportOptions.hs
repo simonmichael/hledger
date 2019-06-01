@@ -334,14 +334,15 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
 -- | Parse the type of valuation to be performed, if any, specified by
--- -B/--cost/-V/--value flags. If there's more than one of these, the
--- rightmost flag wins.
+-- -B/--cost, -V, -X/--exchange, or --value flags. If there's more
+-- than one of these, the rightmost flag wins.
 valuationTypeFromRawOpts :: RawOpts -> Maybe ValuationType
 valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromrawopt
   where
     valuationfromrawopt (n,v)  -- option name, value
       | n == "B"     = Just $ AtCost Nothing
       | n == "V"     = Just $ AtDefault Nothing
+      | n == "X"     = Just $ AtDefault (Just $ T.pack v)
       | n == "value" = Just $ valuation v
       | otherwise    = Nothing
     valuation v
@@ -353,11 +354,17 @@ valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromra
             Just d  -> AtDate d mc
             Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: cost|end|now|c|e|n|YYYY-MM-DD"
       where
-        -- parse TYPE[,COMM]
+        -- parse --value's value: TYPE[,COMM]
         (t,c') = break (==',') v
         mc     = case drop 1 c' of
                    "" -> Nothing
                    c  -> Just $ T.pack c
+
+valuationTypeIsCost :: ReportOpts -> Bool
+valuationTypeIsCost ropts =
+  case value_ ropts of
+    Just (AtCost _) -> True
+    _               -> False
 
 type DisplayExp = String
 
@@ -389,12 +396,6 @@ flat_ = (==ALFlat) . accountlistmode_
 
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
-
-valuationTypeIsCost :: ReportOpts -> Bool
-valuationTypeIsCost ropts =
-  case value_ ropts of
-    Just (AtCost _) -> True
-    _               -> False
 
 -- | Convert this journal's postings' amounts to cost using their
 -- transaction prices, if specified by options (-B/--value=cost).

@@ -154,29 +154,28 @@ reportflags = [
 
   -- valuation
  ,flagNone ["B","cost"]      (setboolopt "B")
-   "show amounts converted to cost commodity, same as --value=cost"
+   "show amounts converted to their cost, using the transaction price. Equivalent to --value=cost."
  ,flagNone ["V","market"]    (setboolopt "V")
    (unwords
-     ["show amounts converted to default valuation commodity,"
-     ,"same as --value=now (single period reports)"
-     ,"or --value=end (multiperiod reports)"  -- TODO
+     ["show amounts converted to current market value (single period reports)"
+     ,"or period-end market value (multiperiod reports) in their default valuation commodity."
+     ,"Equivalent to --value=now / --value=end."
      ])
- -- TODO: -X
- -- ,flagReq ["X"]              (\s opts -> Right $ setopt "X" s opts) "COMM"
- --   (unwords
- --     ["show amounts converted to this commodity"
- --     ,"same as --value=now,COMM (single period reports)"
- --     ,"or --value=end,COMM (multiperiod reports)"
- --     ])
+ ,flagReq ["X","exchange"]   (\s opts -> Right $ setopt "X" s opts) "COMM"
+   (unwords
+     ["show amounts converted to current (single period reports)"
+     ,"or period-end (multiperiod reports) market value in the specified commodity."
+     ,"Equivalent to --value=now,COMM / --value=end,COMM."
+     ])
  ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE[,COMM]"
    (unlines
      ["TYPE is cost, end, now or YYYY-MM-DD."
      ,"COMM is an optional commodity symbol."
      ,"Shows amounts converted to:"
-     ,"- cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))"
-     ,"- default valuation commodity (or COMM) using market prices at period end(s)"
-     ,"- default valuation commodity (or COMM) using current market prices"
-     ,"- default valuation commodity (or COMM) using market prices at some date"
+     ,"- cost using transaction prices, then optionally to COMM using period-end market prices"
+     ,"- period-end market value, in default valuation commodity or COMM"
+     ,"- current market value, in default valuation commodity or COMM"
+     ,"- market value on the given date, in default valuation commodity or COMM"
      ])
 
   -- generated postings/transactions
