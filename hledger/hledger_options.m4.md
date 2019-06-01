@@ -496,16 +496,23 @@ but we don't do that. hledger's -V uses only market prices declared explicitly, 
 
 *(experimental, added 201905)*
 
-You can control valuation more precisely with the `--value` option.
+You can control valuation more precisely with the `--value` option:
 
-     --value=TYPE   which type of valuation should be done ? cost|end|now|YYYY-MM-DD
+     --value=TYPE[,COMM]  TYPE is cost, end, now or YYYY-MM-DD.
+                          COMM is an optional commodity symbol.
+                          Shows amounts converted to:
+                          - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
+                          - default valuation commodity (or COMM) using market prices at period end(s)
+                          - default valuation commodity (or COMM) using current market prices
+                          - default valuation commodity (or COMM) using market prices at some date
 
-TYPE is one of the keywords shown, or their first letter, or a custom date.
-Their meanings:
+TYPE is one of the keywords shown, or their first letter, or a date
+(which must be 8 digits with `-` or `/` or `.` separators).
+Here they are in more detail:
 
 `--value=cost` (or `c`)
 : Convert amounts to cost, using the prices recorded in transactions.
-  `-B`/`--cost` does this.
+  `-B`/`--cost` is equivalent to this.
 
 `--value=end` (or `e`)
 : Convert amounts to their value in default valuation commodity using market prices 
@@ -514,12 +521,23 @@ Their meanings:
 
 `--value=now` (or `n`)
 : Convert amounts to their value in default valuation commodity using current market prices 
-  (as of when report is generated). `-V`/`--market` does this.
+  (as of when report is generated). `-V`/`--market` is equivalent to this.
 
 `--value=YYYY-MM-DD`
 : Convert amounts to their value in default valuation commodity using market prices 
-  on the given date (which must be 8 digits with `-` or `/` or `.` separators).
-  Eg `--value=2019-04-25`.
+  on this date.  Eg `--value=2019-04-25`.
+
+The default valuation commodity is the commodity mentioned in the most
+recent applicable market price declaration. When all your price
+declarations lead to a single home currency, that will be the default
+valuation currency, which is generally what you want.
+
+To select a different valuation currency, you can write a comma and
+the commodity symbol after the valuation type above.
+<!-- This is like the `-X`/`--exchange` flag. -->
+Note this does not yet follow chains of market prices;
+it can only use market prices leading directly from A to B,
+or prices from B to A (which will be inverted).
 
 Here are the effects of `--value` as seen with `print`:
 

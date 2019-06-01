@@ -168,15 +168,15 @@ reportflags = [
  --     ,"same as --value=now,COMM (single period reports)"
  --     ,"or --value=end,COMM (multiperiod reports)"
  --     ])
- -- ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE[,COMM]"
- ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE"
+ ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE[,COMM]"
    (unlines
-     ["TYPE is cost, end, now, or YYYY-MM-DD."
-     ,"Show amounts converted to:"
-     ,"- cost commodity using transaction prices"  -- "(then optionally to COMM using market prices at posting date)"
-     ,"- default valuation commodity using market prices at period end(s)"  -- "(or COMM)"
-     ,"- default valuation commodity using current market prices"
-     ,"- default valuation commodity using market prices on some date"
+     ["TYPE is cost, end, now or YYYY-MM-DD."
+     ,"COMM is an optional commodity symbol."
+     ,"Shows amounts converted to:"
+     ,"- cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))"
+     ,"- default valuation commodity (or COMM) using market prices at period end(s)"
+     ,"- default valuation commodity (or COMM) using current market prices"
+     ,"- default valuation commodity (or COMM) using market prices at some date"
      ])
 
   -- generated postings/transactions
