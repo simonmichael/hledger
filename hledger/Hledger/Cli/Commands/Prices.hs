@@ -50,6 +50,7 @@ divideAmount' n a = a' where
     extPrecision = (1+) . floor . logBase 10 $ (realToFrac n :: Double)
     precision' = extPrecision + asprecision (astyle a)
 
+-- | Invert an amount's price for --invert-cost, somehow (? unclear XXX)
 invertPrice :: Amount -> Amount
 invertPrice a =
     case aprice a of
