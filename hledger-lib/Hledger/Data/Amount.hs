@@ -62,8 +62,6 @@ module Hledger.Data.Amount (
   multiplyAmount,
   divideAmountAndPrice,
   multiplyAmountAndPrice,
-  amountValueAtDate,
-  amountApplyValuation,
   amountTotalPriceToUnitPrice,
   -- ** rendering
   amountstyle,
@@ -108,8 +106,6 @@ module Hledger.Data.Amount (
   isZeroMixedAmount,
   isReallyZeroMixedAmount,
   isReallyZeroMixedAmountCost,
-  mixedAmountValueAtDate,
-  mixedAmountApplyValuation,
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
@@ -133,18 +129,15 @@ import Data.Char (isDigit)
 import Data.Decimal (roundTo, decimalPlaces, normalizeDecimal)
 import Data.Function (on)
 import Data.List
+import qualified Data.Map as M
 import Data.Map (findWithDefault)
 import Data.Maybe
-import Data.Time.Calendar (Day)
--- import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (maximumDef)
 import Text.Printf
-import qualified Data.Map as M
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
-import Hledger.Data.Prices
 import Hledger.Utils 
 
 
@@ -224,35 +217,6 @@ costOfAmount a@Amount{aquantity=q, aprice=price} =
 -- | Convert this amount to cost, and apply the appropriate amount style.
 amountToCost :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 amountToCost styles = styleAmount styles . costOfAmount
-
--- | Find the market value of this amount on the given valuation date
--- in its default valuation commodity (that of the latest applicable 
--- market price before the valuation date).
--- The given market prices are expected to be in parse order.
--- If no default valuation commodity can be found, the amount is left
--- unchanged.
-amountValueAtDate :: Prices -> Day -> Amount -> Amount
-amountValueAtDate prices d a =
-  case priceLookup prices d (acommodity a) of
-    Just v  -> v{aquantity=aquantity v * aquantity a}
-    Nothing -> a
-
--- | Alternate implementation.
--- Apply a specified valuation to this amount, using the provided
--- prices db, commodity styles, period-end/current dates, 
--- and whether this is for a multiperiod report or not.
--- Currently ignores the specified valuation commodity and always uses
--- the default valuation commodity.
-amountApplyValuation :: Prices -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> Amount -> Amount
-amountApplyValuation prices styles periodend today ismultiperiod v a =
-  -- will use _mc later
-  case v of
-    AtCost    _mc                 -> amountToCost styles a
-    AtEnd     _mc                 -> amountValueAtDate prices periodend a
-    AtNow     _mc                 -> amountValueAtDate prices today     a
-    AtDefault _mc | ismultiperiod -> amountValueAtDate prices periodend a
-    AtDefault _mc                 -> amountValueAtDate prices today     a
-    AtDate d  _mc                 -> amountValueAtDate prices d         a
 
 -- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
@@ -738,22 +702,6 @@ cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithou
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
-
--- | Find the market value of each component amount on the given date
--- in its default valuation commodity, using the given market prices
--- which are expected to be in parse order. When no default valuation
--- commodity can be found, amounts are left unchanged.
-mixedAmountValueAtDate :: Prices -> Day -> MixedAmount -> MixedAmount
-mixedAmountValueAtDate prices d (Mixed as) = Mixed $ map (amountValueAtDate prices d) as
-
--- Apply a specified valuation to this mixed amount, using the provided
--- prices db, commodity styles, period-end/current dates, 
--- and whether this is for a multiperiod report or not.
--- Currently ignores the specified valuation commodity and always uses
--- the default valuation commodity.
-mixedAmountApplyValuation :: Prices -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
-mixedAmountApplyValuation prices styles periodend today ismultiperiod v (Mixed as) =
-  Mixed $ map (amountApplyValuation prices styles periodend today ismultiperiod v) as
 
 -- | Replace each component amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one. 
