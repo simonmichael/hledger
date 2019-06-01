@@ -14,8 +14,8 @@ module Hledger.Utils.Debug (
   ,traceWith
   ,debugLevel
   ,ptraceAt
+  ,ptraceAtWith
   ,dbg0
-  ,dbgExit
   ,dbg1
   ,dbg2
   ,dbg3
@@ -25,6 +25,17 @@ module Hledger.Utils.Debug (
   ,dbg7
   ,dbg8
   ,dbg9
+  ,dbg0With
+  ,dbg1With
+  ,dbg2With
+  ,dbg3With
+  ,dbg4With
+  ,dbg5With
+  ,dbg6With
+  ,dbg7With
+  ,dbg8With
+  ,dbg9With
+  ,dbgExit
   ,ptraceAtIO
   ,dbg0IO
   ,dbg1IO
@@ -111,16 +122,25 @@ ptraceAt level
                                   | otherwise     = ls
                           in trace (s++":"++nlorspace++intercalate "\n" ls') a
 
--- | Pretty-print a message and the showable value to the console, then return it.
+-- | Like ptraceAt, but takes a custom show function instead of a label.
+ptraceAtWith :: Show a => Int -> (a -> String) -> a -> a
+ptraceAtWith level f
+    | level > 0 && debugLevel < level = id
+    | otherwise = \a -> let p = f a
+                            -- ls = lines p
+                            -- nlorspace | length ls > 1 = "\n"
+                            --           | otherwise     = " " ++ take (10 - length s) (repeat ' ')
+                            -- ls' | length ls > 1 = map (" "++) ls
+                            --     | otherwise     = ls
+                        -- in trace (s++":"++nlorspace++intercalate "\n" ls') a
+                        in trace p a
+
+-- "dbg" would clash with megaparsec.
+-- | Pretty-print a label and the showable value to the console, then return it.
 dbg0 :: Show a => String -> a -> a
 dbg0 = ptraceAt 0
--- "dbg" would clash with megaparsec
 
--- | Like dbg0, but also exit the program. Uses unsafePerformIO.
-dbgExit :: Show a => String -> a -> a
-dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
-
--- | Pretty-print a message and the showable value to the console when the global debug level is >= 1, then return it.
+-- | Pretty-print a label and the showable value to the console when the global debug level is >= 1, then return it.
 -- Uses unsafePerformIO.
 dbg1 :: Show a => String -> a -> a
 dbg1 = ptraceAt 1
@@ -148,6 +168,41 @@ dbg8 = ptraceAt 8
 
 dbg9 :: Show a => String -> a -> a
 dbg9 = ptraceAt 9
+
+-- | Like dbg0, but takes a custom show function instead of a label.
+dbg0With :: Show a => (a -> String) -> a -> a
+dbg0With = ptraceAtWith 0
+
+dbg1With :: Show a => (a -> String) -> a -> a
+dbg1With = ptraceAtWith 1
+
+dbg2With :: Show a => (a -> String) -> a -> a
+dbg2With = ptraceAtWith 2
+
+dbg3With :: Show a => (a -> String) -> a -> a
+dbg3With = ptraceAtWith 3
+
+dbg4With :: Show a => (a -> String) -> a -> a
+dbg4With = ptraceAtWith 4
+
+dbg5With :: Show a => (a -> String) -> a -> a
+dbg5With = ptraceAtWith 5
+
+dbg6With :: Show a => (a -> String) -> a -> a
+dbg6With = ptraceAtWith 6
+
+dbg7With :: Show a => (a -> String) -> a -> a
+dbg7With = ptraceAtWith 7
+
+dbg8With :: Show a => (a -> String) -> a -> a
+dbg8With = ptraceAtWith 8
+
+dbg9With :: Show a => (a -> String) -> a -> a
+dbg9With = ptraceAtWith 9
+
+-- | Like dbg0, but also exit the program. Uses unsafePerformIO.
+dbgExit :: Show a => String -> a -> a
+dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
 
 -- | Like ptraceAt, but convenient to insert in an IO monad (plus
 -- convenience aliases).
@@ -191,12 +246,12 @@ dbg8IO = ptraceAtIO 8
 dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg9IO = ptraceAtIO 9
 
--- | Log a message and a pretty-printed showable value to ./debug.log, then return it.
+-- | Log a label and a pretty-printed showable value to ./debug.log, then return it.
 -- Can fail, see plogAt.
 plog :: Show a => String -> a -> a
 plog = plogAt 0
 
--- | Log a message and a pretty-printed showable value to ./debug.log, 
+-- | Log a label and a pretty-printed showable value to ./debug.log, 
 -- if the global debug level is at or above the specified level.
 -- At level 0, always logs. Otherwise, uses unsafePerformIO.
 -- Tends to fail if called more than once, at least when built with -threaded
