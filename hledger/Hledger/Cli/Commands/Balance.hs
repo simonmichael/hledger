@@ -296,7 +296,7 @@ balancemode = hledgerCommandMode
    ++ outputflags
   )
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- | The balance command, prints a balance report.

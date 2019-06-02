@@ -37,7 +37,7 @@ printmode = hledgerCommandMode
     "show only newer-dated transactions added in each file since last run"
   ] ++ outputflags)
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- | Print journal transactions in standard format.

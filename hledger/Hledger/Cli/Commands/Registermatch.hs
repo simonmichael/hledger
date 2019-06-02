@@ -18,7 +18,7 @@ registermatchmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Registermatch.txt")
   []
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "DESC")
 
 registermatch :: CliOpts -> Journal -> IO ()

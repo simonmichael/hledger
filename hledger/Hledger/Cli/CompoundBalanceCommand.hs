@@ -108,7 +108,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,outputFileFlag
     ]
     [generalflagsgroup1]
-    []
+    hiddenflags
     ([], Just $ argsFlag "[QUERY]")
  where
    defType :: BalanceType -> String

@@ -37,7 +37,7 @@ roimode = hledgerCommandMode
     "query to select profit-and-loss or appreciation/valuation transactions"
   ]
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- One reporting span, 

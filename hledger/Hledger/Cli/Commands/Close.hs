@@ -21,7 +21,7 @@ closemode = hledgerCommandMode
   ,flagNone ["closing"] (setboolopt "closing") "show just closing transaction"
   ]
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do

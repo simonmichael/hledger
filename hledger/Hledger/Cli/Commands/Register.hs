@@ -50,7 +50,7 @@ registermode = hledgerCommandMode
      )
   ] ++ outputflags)
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- | Print a (posting) register report.

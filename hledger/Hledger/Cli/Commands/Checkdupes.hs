@@ -19,7 +19,7 @@ checkdupesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Checkdupes.txt")
   []
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Nothing)
 
 checkdupes _opts j = mapM_ render $ checkdupes' $ accountsNames j

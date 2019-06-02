@@ -20,7 +20,7 @@ importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
   [flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"] 
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "FILE [...]")
 
 importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do

@@ -51,7 +51,7 @@ uimode =  (mode "hledger-ui" [("command","ui")]
             (argsFlag "[PATTERNS]") []){
               modeGroupFlags = Group {
                                 groupUnnamed = uiflags
-                               ,groupHidden = []
+                               ,groupHidden = hiddenflags
                                ,groupNamed = [(generalflagsgroup1)]
                                }
              ,modeHelpSuffix=[

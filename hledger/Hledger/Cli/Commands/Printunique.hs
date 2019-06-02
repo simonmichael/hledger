@@ -15,7 +15,7 @@ printuniquemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Printunique.txt")
   []
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Nothing)
 
 printunique opts j@Journal{jtxns=ts} = do

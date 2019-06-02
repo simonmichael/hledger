@@ -22,7 +22,7 @@ activitymode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Activity.txt")
   []
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 barchar :: Char

@@ -12,6 +12,7 @@ module Hledger.Cli.CliOptions (
   -- * cmdargs flags & modes
   helpflags,
   detailedversionflag,
+  hiddenflags,
   inputflags,
   reportflags,
   outputflags,
@@ -112,7 +113,7 @@ helpflags = [
  ,flagNone ["version"] (setboolopt "version") "show version information"
  ]
 
--- | A hidden flag, just for the hledger executable.
+-- | A hidden flag just for the hledger executable.
 detailedversionflag :: Flag RawOpts
 detailedversionflag = flagNone ["version+"] (setboolopt "version+") "show version information with extra detail"
 
@@ -141,7 +142,7 @@ reportflags = [
  ,flagNone ["quarterly","Q"] (setboolopt "quarterly") "multiperiod/multicolumn report by quarter"
  ,flagNone ["yearly","Y"]    (setboolopt "yearly") "multiperiod/multicolumn report by year"
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or report interval all at once (overrides the flags above)"
- ,flagNone ["date2"]         (setboolopt "date2") "match the secondary date instead (see command help for other effects)"
+ ,flagNone ["date2"]         (setboolopt "date2") "match the secondary date instead. See command help for other effects. (--effective, --aux-date also accepted)"  -- see also hiddenflags
 
   -- status/realness/depth/zero filters
  ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/txns (can combine with -P or -C)"
@@ -182,6 +183,13 @@ reportflags = [
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"
  ,flagNone ["forecast"]      (setboolopt "forecast") "apply periodic transaction rules to generate future transactions, to 6 months from now or report end date"
 
+ ]
+
+-- | Common flags that are accepted but not shown in --help,
+-- such as --effective, --aux-date.
+hiddenflags :: [Flag RawOpts]
+hiddenflags = [
+  flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
  ]
 
 -- | Common output-related flags: --output-file, --output-format...
@@ -262,8 +270,8 @@ addonCommandMode name = (defCommandMode [name]) {
      --  ]
   ,modeGroupFlags = Group {
       groupUnnamed = []
-     ,groupHidden = []
-     ,groupNamed = [generalflagsgroup1]
+     ,groupHidden  = hiddenflags
+     ,groupNamed   = [generalflagsgroup1]
      }
   }
 

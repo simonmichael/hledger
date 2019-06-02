@@ -17,7 +17,7 @@ tagsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Tags.txt")
   [] -- [flagNone ["strict"] (setboolopt "strict") "makes date comparing strict"] -- 
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[TAGREGEX [QUERY...]]")
 
 tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do

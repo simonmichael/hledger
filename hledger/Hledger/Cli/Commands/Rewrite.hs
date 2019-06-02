@@ -29,7 +29,7 @@ rewritemode = hledgerCommandMode
   ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
   ]
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
 
 -- TODO regex matching and interpolating matched name in replacement

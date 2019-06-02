@@ -35,7 +35,7 @@ statsmode = hledgerCommandMode
   [flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE."
   ]
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- like Register.summarisePostings

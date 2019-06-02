@@ -16,7 +16,7 @@ checkdatesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Checkdates.txt")
   [flagNone ["strict"] (setboolopt "strict") "makes date comparing strict"]
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 checkdates :: CliOpts -> Journal -> IO ()

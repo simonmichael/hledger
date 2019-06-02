@@ -19,7 +19,7 @@ pricesmode = hledgerCommandMode
   [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings"
   ,flagNone ["inverted-costs"] (setboolopt "inverted-costs") "print transaction inverted prices from postings also"]
   [generalflagsgroup1]
-  []
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- XXX the original hledger-prices script always ignored assertions 
