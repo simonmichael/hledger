@@ -143,7 +143,7 @@ addJournalItemP =
     , transactionp          >>= modify' . addTransaction
     , transactionmodifierp  >>= modify' . addTransactionModifier
     , periodictransactionp  >>= modify' . addPeriodicTransaction
-    , marketpricedirectivep >>= modify' . addMarketPrice
+    , marketpricedirectivep >>= modify' . addPriceDirective
     , void (lift emptyorcommentlinep)
     , void (lift multilinecommentp)
     ] <?> "transaction or directive"
@@ -486,7 +486,7 @@ defaultcommoditydirectivep = do
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 
-marketpricedirectivep :: JournalParser m MarketPrice
+marketpricedirectivep :: JournalParser m PriceDirective
 marketpricedirectivep = do
   char 'P' <?> "market price"
   lift (skipMany spacenonewline)
@@ -496,7 +496,7 @@ marketpricedirectivep = do
   lift (skipMany spacenonewline)
   price <- amountp
   lift restofline
-  return $ MarketPrice date symbol price
+  return $ PriceDirective date symbol price
 
 ignoredpricecommoditydirectivep :: JournalParser m ()
 ignoredpricecommoditydirectivep = do
@@ -917,10 +917,10 @@ tests_JournalReader = tests "JournalReader" [
 
   ,test "marketpricedirectivep" $ expectParseEq marketpricedirectivep
     "P 2017/01/30 BTC $922.83\n"
-    MarketPrice{
-      mpdate      = fromGregorian 2017 1 30,
-      mpcommodity = "BTC",
-      mpamount    = usd 922.83
+    PriceDirective{
+      pddate      = fromGregorian 2017 1 30,
+      pdcommodity = "BTC",
+      pdamount    = usd 922.83
       }
 
   ,test "tagdirectivep" $ do

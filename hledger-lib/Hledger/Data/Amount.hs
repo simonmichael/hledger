@@ -302,7 +302,7 @@ setMinimalPrecision a = setAmountPrecision normalprecision a
 -- appropriate to the current debug level. 9 shows maximum detail.
 showAmountDebug :: Amount -> String
 showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
-showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showPriceDebug aprice) (show astyle)
+showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showAmountPriceDebug aprice) (show astyle)
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
@@ -341,15 +341,15 @@ cshowAmountWithoutPrice a = cshowAmount a{aprice=NoPrice}
 showAmountWithoutPriceOrCommodity :: Amount -> String
 showAmountWithoutPriceOrCommodity a = showAmount a{acommodity="", aprice=NoPrice}
 
-showPrice :: Price -> String
-showPrice NoPrice         = ""
-showPrice (UnitPrice pa)  = " @ "  ++ showAmount pa
-showPrice (TotalPrice pa) = " @@ " ++ showAmount pa
+showAmountPrice :: AmountPrice -> String
+showAmountPrice NoPrice         = ""
+showAmountPrice (UnitPrice pa)  = " @ "  ++ showAmount pa
+showAmountPrice (TotalPrice pa) = " @@ " ++ showAmount pa
 
-showPriceDebug :: Price -> String
-showPriceDebug NoPrice         = ""
-showPriceDebug (UnitPrice pa)  = " @ "  ++ showAmountDebug pa
-showPriceDebug (TotalPrice pa) = " @@ " ++ showAmountDebug pa
+showAmountPriceDebug :: AmountPrice -> String
+showAmountPriceDebug NoPrice         = ""
+showAmountPriceDebug (UnitPrice pa)  = " @ "  ++ showAmountDebug pa
+showAmountPriceDebug (TotalPrice pa) = " @@ " ++ showAmountDebug pa
 
 -- | Given a map of standard amount display styles, apply the appropriate one to this amount.
 -- If there's no standard style for this amount's commodity, return the amount unchanged.
@@ -385,7 +385,7 @@ showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=p, astyle=Amoun
       (quantity',c') | displayingzero && not showzerocommodity = ("0","")
                      | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
       space = if not (T.null c') && ascommodityspaced then " " else "" :: String
-      price = showPrice p
+      price = showAmountPrice p
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 showAmountWithZeroCommodity :: Amount -> String

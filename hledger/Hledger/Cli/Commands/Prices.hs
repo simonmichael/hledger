@@ -28,20 +28,20 @@ prices opts j = do
   let
     q          = queryFromOpts d (reportopts_ opts)
     ps         = filter (matchesPosting q) $ allPostings j
-    mprices    = jmarketprices j
+    mprices    = jpricedirectives j
     cprices    = concatMap postingCosts ps
     icprices   = concatMap postingCosts . mapAmount invertPrice $ ps
     allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
-  mapM_ (putStrLn . showPrice) $
-    sortOn mpdate $
-    filter (matchesMarketPrice q) $
+  mapM_ (putStrLn . showPriceDirective) $
+    sortOn pddate $
+    filter (matchesPriceDirective q) $
     allprices
   where
     ifBoolOpt opt | boolopt opt $ rawopts_ opts = id
                   | otherwise = const []
 
-showPrice :: MarketPrice -> String
-showPrice mp = unwords ["P", show $ mpdate mp, T.unpack . quoteCommoditySymbolIfNeeded $ mpcommodity mp, showAmountWithZeroCommodity $ mpamount mp]
+showPriceDirective :: PriceDirective -> String
+showPriceDirective mp = unwords ["P", show $ pddate mp, T.unpack . quoteCommoditySymbolIfNeeded $ pdcommodity mp, showAmountWithZeroCommodity $ pdamount mp]
 
 divideAmount' :: Quantity -> Amount -> Amount
 divideAmount' n a = a' where
@@ -50,7 +50,9 @@ divideAmount' n a = a' where
     extPrecision = (1+) . floor . logBase 10 $ (realToFrac n :: Double)
     precision' = extPrecision + asprecision (astyle a)
 
--- | Invert an amount's price for --invert-cost, somehow (? unclear XXX)
+-- XXX
+
+-- | Invert an amount's price for --invert-cost, somehow ? Unclear.
 invertPrice :: Amount -> Amount
 invertPrice a =
     case aprice a of
@@ -63,16 +65,16 @@ invertPrice a =
             a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = TotalPrice pa' } where
                 pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = NoPrice, astyle = astyle a }
 
-amountCost :: Day -> Amount -> Maybe MarketPrice
+amountCost :: Day -> Amount -> Maybe PriceDirective
 amountCost d a =
     case aprice a of
         NoPrice -> Nothing
         UnitPrice pa -> Just
-            MarketPrice { mpdate = d, mpcommodity = acommodity a, mpamount = pa }
+            PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = pa }
         TotalPrice pa -> Just
-            MarketPrice { mpdate = d, mpcommodity = acommodity a, mpamount = abs (aquantity a) `divideAmount'` pa }
+            PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = abs (aquantity a) `divideAmount'` pa }
 
-postingCosts :: Posting -> [MarketPrice]
+postingCosts :: Posting -> [PriceDirective]
 postingCosts p = mapMaybe (amountCost date) . amounts $ pamount p  where
    date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
 

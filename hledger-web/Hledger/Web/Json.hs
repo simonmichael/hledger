@@ -51,7 +51,7 @@ instance ToJSON Side
 instance ToJSON DigitGroupStyle
 instance ToJSON MixedAmount
 instance ToJSON BalanceAssertion
-instance ToJSON Price
+instance ToJSON AmountPrice
 instance ToJSON MarketPrice
 instance ToJSON PostingType
 
@@ -103,7 +103,7 @@ instance FromJSON Side
 instance FromJSON DigitGroupStyle
 instance FromJSON MixedAmount
 instance FromJSON BalanceAssertion
-instance FromJSON Price
+instance FromJSON AmountPrice
 instance FromJSON MarketPrice
 instance FromJSON PostingType
 instance FromJSON Posting

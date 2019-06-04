@@ -350,7 +350,7 @@ aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.un
 -- Apply a specified valuation to this posting's amount, using the provided
 -- prices db, commodity styles, period-end/current dates, and whether
 -- this is for a multiperiod report or not.
-postingApplyValuation :: Prices -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> Posting -> ValuationType -> Posting
+postingApplyValuation :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> Posting -> ValuationType -> Posting
 postingApplyValuation prices styles periodend today ismultiperiod p v =
   case v of
     AtCost    Nothing            -> postingToCost styles p
@@ -370,7 +370,7 @@ postingToCost styles p@Posting{pamount=a} = p{pamount=mixedAmountToCost styles a
 -- using the given market prices.
 -- When market prices available on that date are not sufficient to
 -- calculate the value, amounts are left unchanged.
-postingValueAtDate :: Prices -> Maybe CommoditySymbol -> Day -> Posting -> Posting
+postingValueAtDate :: [PriceDirective] -> Maybe CommoditySymbol -> Day -> Posting -> Posting
 postingValueAtDate prices mc d p = postingTransformAmount (mixedAmountValueAtDate prices mc d) p
 
 -- | Apply a transform function to this posting's amount.

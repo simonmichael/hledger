@@ -414,7 +414,7 @@ Posting -- MixedAmount
 MixedAmount *-- "*" Amount
 Amount -- CommoditySymbol
 Amount -- Quantity
-Amount -- Price
+Amount -- AmountPrice
 Amount -- AmountStyle
 </uml>
 -->

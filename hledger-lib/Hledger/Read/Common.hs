@@ -714,7 +714,7 @@ quotedcommoditysymbolp =
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
-priceamountp :: JournalParser m Price
+priceamountp :: JournalParser m AmountPrice
 priceamountp = option NoPrice $ do
   char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice

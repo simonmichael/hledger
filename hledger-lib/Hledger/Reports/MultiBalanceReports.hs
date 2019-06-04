@@ -158,7 +158,6 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
       --   date: summed/averaged row amounts
       today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
       -- Market prices, commodity display styles.
-      prices = journalPrices j
       styles = journalCommodityStyles j
       -- The last day of each column subperiod.
       lastdays :: [Day] =
@@ -274,7 +273,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                    CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
                    HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
              -- The row amounts valued according to --value if needed.
-           , let val end = maybe id (mixedAmountApplyValuation prices styles end today multiperiod) value_
+           , let val end = maybe id (mixedAmountApplyValuation jpricedirectives styles end today multiperiod) value_
            , let valuedrowbals = dbg1 "valuedrowbals" $ [val periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
              -- The total and average for the row, and their values.
              -- Total for a cumulative/historical report is always zero.
