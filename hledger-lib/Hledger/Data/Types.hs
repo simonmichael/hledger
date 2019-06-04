@@ -154,12 +154,13 @@ instance ToMarkup Quantity
  where
    toMarkup = toMarkup . show
 
--- | An amount's price (none, per unit, or total) in another commodity.
--- The price amount should always be positive.
-data Price = NoPrice | UnitPrice Amount | TotalPrice Amount 
+-- | An amount's per-unit or total cost/selling price in another
+-- commodity, as recorded in the journal entry eg with @ or @@.
+-- Docs call this "transaction price". The amount is always positive.
+data AmountPrice = NoPrice | UnitPrice Amount | TotalPrice Amount 
   deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
-instance NFData Price
+instance NFData AmountPrice
 
 -- | Display style for an amount.
 data AmountStyle = AmountStyle {
@@ -207,7 +208,7 @@ data Amount = Amount {
       aismultiplier :: Bool,            -- ^ kludge: a flag marking this amount and posting as a multiplier
                                         --   in a TMPostingRule. In a regular Posting, should always be false.
       astyle      :: AmountStyle,
-      aprice      :: Price            -- ^ the (fixed, transaction-specific) price for this amount, if any
+      aprice      :: AmountPrice            -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Amount
@@ -420,16 +421,39 @@ data TimeclockEntry = TimeclockEntry {
 
 instance NFData TimeclockEntry
 
--- | A historical exchange rate between two commodities, eg published
--- by a stock exchange or the foreign exchange market.
+-- | A market price declaration made by the journal format's P directive.
+-- It declares two things: a historical exchange rate between two commodities,
+-- and an amount display style for the second commodity.
+data PriceDirective = PriceDirective {
+   pddate      :: Day
+  ,pdcommodity :: CommoditySymbol
+  ,pdamount    :: Amount
+  } deriving (Eq,Ord,Typeable,Data,Generic,Show)
+        -- Show instance derived in Amount.hs (XXX why ?)
+
+instance NFData PriceDirective
+
+-- | A historical market price (exchange rate) from one commodity to another.
+-- A more concise form of a PriceDirective, without the amount display info.
 data MarketPrice = MarketPrice {
-      mpdate      :: Day,
-      mpcommodity :: CommoditySymbol,
-      mpamount    :: Amount
-    } deriving (Eq,Ord,Typeable,Data,Generic)
-        -- Show instance derived in Amount.hs
+   mpdate :: Day                -- ^ Date on which this price becomes effective.
+  ,mpfrom :: CommoditySymbol    -- ^ The commodity being converted from.
+  ,mpto   :: CommoditySymbol    -- ^ The commodity being converted to.
+  ,mprate :: Quantity           -- ^ One unit of the "from" commodity is worth this quantity of the "to" commodity.
+  } deriving (Eq,Ord,Typeable,Data,Generic)
+        -- Show instance derived in Amount.hs (XXX why ?)
 
 instance NFData MarketPrice
+
+-- | A database of the exchange rates between commodity pairs at a given date,
+-- organised as maps for efficient lookup.
+data Prices = Prices {
+   prDeclaredPrices ::
+      M.Map CommoditySymbol         -- from commodity A
+            (M.Map CommoditySymbol  -- to commodity B
+                   Quantity)        -- exchange rate from A to B (one A is worth this many B)
+            -- ^ Explicitly declared market prices, as { FROMCOMM : { TOCOMM : RATE } }.
+  }
 
 -- | What kind of value conversion should be done on amounts ?
 -- UI: --value=cost|end|now|DATE[,COMM]
@@ -465,9 +489,8 @@ data Journal = Journal {
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts) 
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
-  ,jmarketprices          :: [MarketPrice]                          -- ^ All market price declarations (P directives), in parse order (after journal finalisation).
+  ,jpricedirectives       :: [PriceDirective]                       -- ^ All market price declarations (P directives), in parse order (after journal finalisation).
                                                                     --   These will be converted to a Prices db for looking up prices by date.
-                                                                    --   (This field is not date-sorted, to allow monoidally combining finalised journals.)
   ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]

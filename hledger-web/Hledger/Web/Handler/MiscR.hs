@@ -69,7 +69,7 @@ getPricesR = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   selectRep $ do
-    provideJson $ jmarketprices j
+    provideJson $ jpricedirectives j
 
 getCommoditiesR :: Handler TypedContent
 getCommoditiesR = do

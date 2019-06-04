@@ -38,10 +38,9 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
   sortBy (comparing datefn) $ filter (q `matchesTransaction`) $ map tvalue jtxns
   where
     datefn = transactionDateFn ropts
-    prices = journalPrices j
     styles = journalCommodityStyles j
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
-    pvalue p = maybe p (postingApplyValuation prices styles end today False p) value_
+    pvalue p = maybe p (postingApplyValuation jpricedirectives styles end today False p) value_
       where
         today  = fromMaybe (error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now") today_
         end    = fromMaybe (postingDate p) mperiodorjournallastday

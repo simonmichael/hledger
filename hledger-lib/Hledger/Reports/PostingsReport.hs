@@ -73,7 +73,6 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
       reportspan = adjustReportDates ropts q j
       whichdate = whichDateFromOpts ropts
       depth = queryDepth q
-      prices = journalPrices j
       styles = journalCommodityStyles j
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
@@ -100,7 +99,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
         reportPeriodOrJournalLastDay ropts j
       multiperiod = interval_ /= NoInterval
       showempty = empty_ || average_
-      pvalue p end = maybe p (postingApplyValuation prices styles end today multiperiod p) value_
+      pvalue p end = maybe p (postingApplyValuation jpricedirectives styles end today multiperiod p) value_
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
@@ -122,7 +121,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
           -- For --value=end/now/DATE, convert the initial running total/average to value.
           startbalvalued = val startbal
             where
-              val = maybe id (mixedAmountApplyValuation prices styles daybeforereportstart today multiperiod) value_
+              val = maybe id (mixedAmountApplyValuation jpricedirectives styles daybeforereportstart today multiperiod) value_
                 where
                   daybeforereportstart = maybe
                                          (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen

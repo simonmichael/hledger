@@ -43,7 +43,7 @@ module Hledger.Query (
   matchesMixedAmount,
   matchesAmount,
   matchesCommodity,
-  matchesMarketPrice,
+  matchesPriceDirective,
   words'',
   -- * tests
   tests_Query
@@ -639,15 +639,15 @@ matchesTags namepat valuepat = not . null . filter (match namepat valuepat)
     match npat (Just vpat) (n,v) = regexMatchesCI npat (T.unpack n) && regexMatchesCI vpat (T.unpack v)
 
 -- | Does the query match this market price ?
-matchesMarketPrice :: Query -> MarketPrice -> Bool
-matchesMarketPrice (None) _      = False
-matchesMarketPrice (Not q) p     = not $ matchesMarketPrice q p
-matchesMarketPrice (Or qs) p     = any (`matchesMarketPrice` p) qs
-matchesMarketPrice (And qs) p    = all (`matchesMarketPrice` p) qs
-matchesMarketPrice q@(Amt _ _) p = matchesAmount q (mpamount p)
-matchesMarketPrice q@(Sym _) p   = matchesCommodity q (mpcommodity p)
-matchesMarketPrice (Date span) p = spanContainsDate span (mpdate p)
-matchesMarketPrice _ _           = True
+matchesPriceDirective :: Query -> PriceDirective -> Bool
+matchesPriceDirective (None) _      = False
+matchesPriceDirective (Not q) p     = not $ matchesPriceDirective q p
+matchesPriceDirective (Or qs) p     = any (`matchesPriceDirective` p) qs
+matchesPriceDirective (And qs) p    = all (`matchesPriceDirective` p) qs
+matchesPriceDirective q@(Amt _ _) p = matchesAmount q (pdamount p)
+matchesPriceDirective q@(Sym _) p   = matchesCommodity q (pdcommodity p)
+matchesPriceDirective (Date span) p = spanContainsDate span (pddate p)
+matchesPriceDirective _ _           = True
 
 
 -- tests

@@ -64,7 +64,7 @@ flatShowsExclusiveBalance    = True
 -- This is like PeriodChangeReport with a single column (but more mature,
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
-balanceReport ropts@ReportOpts{..} q j = 
+balanceReport ropts@ReportOpts{..} q j@Journal{..} = 
   (if invert_ then brNegate  else id) $ 
   (sorteditems, total)
     where
@@ -73,7 +73,6 @@ balanceReport ropts@ReportOpts{..} q j =
 
       today = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
       multiperiod = interval_ /= NoInterval
-      prices = journalPrices j
       styles = journalCommodityStyles j
 
       -- Get all the summed accounts & balances, according to the query, as an account tree.
@@ -85,7 +84,7 @@ balanceReport ropts@ReportOpts{..} q j =
         where
           valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
             where
-              val = maybe id (mixedAmountApplyValuation prices styles periodlastday today multiperiod) value_
+              val = maybe id (mixedAmountApplyValuation jpricedirectives styles periodlastday today multiperiod) value_
                 where
                   periodlastday =
                     fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen

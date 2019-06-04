@@ -152,7 +152,7 @@ hledgerApiApp staticdir j = Servant.serve api server
       where
         accountnamesH = return $ journalAccountNames j
         transactionsH = return $ jtxns j
-        pricesH       = return $ jmarketprices j
+        pricesH       = return $ jpricedirectives j
         commoditiesH  = return $ (M.keys . jinferredcommodities) j
         accountsH     = return $ ledgerTopAccounts $ ledgerFromJournal Hledger.Query.Any j
         accounttransactionsH (a::AccountName) = do
@@ -176,7 +176,7 @@ hledgerApiApp staticdir j = Servant.serve api server
 --instance ToJSON DigitGroupStyle where toJSON = genericToJSON defaultOptions
 --instance ToJSON MixedAmount where toJSON = genericToJSON defaultOptions
 --instance ToJSON BalanceAssertion where toJSON = genericToJSON defaultOptions
---instance ToJSON Price where toJSON = genericToJSON defaultOptions
+--instance ToJSON AmountPrice where toJSON = genericToJSON defaultOptions
 --instance ToJSON MarketPrice where toJSON = genericToJSON defaultOptions
 --instance ToJSON PostingType where toJSON = genericToJSON defaultOptions
 --instance ToJSON Posting where
@@ -216,7 +216,7 @@ instance ToJSON Side
 instance ToJSON DigitGroupStyle
 instance ToJSON MixedAmount
 instance ToJSON BalanceAssertion
-instance ToJSON Price
+instance ToJSON AmountPrice
 instance ToJSON MarketPrice
 instance ToJSON PostingType
 instance ToJSON Posting where
@@ -262,7 +262,7 @@ instance ToSchema Side
 instance ToSchema DigitGroupStyle
 instance ToSchema MixedAmount
 instance ToSchema BalanceAssertion
-instance ToSchema Price
+instance ToSchema AmountPrice
 #if MIN_VERSION_swagger2(2,1,5)
   where declareNamedSchema = genericDeclareNamedSchemaUnrestricted defaultSchemaOptions
 #endif

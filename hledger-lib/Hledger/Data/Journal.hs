@@ -16,7 +16,7 @@ other data format (see "Hledger.Read").
 
 module Hledger.Data.Journal (
   -- * Parsing helpers
-  addMarketPrice,
+  addPriceDirective,
   addTransactionModifier,
   addPeriodicTransaction,
   addTransaction,
@@ -61,7 +61,7 @@ module Hledger.Data.Journal (
   journalNextTransaction,
   journalPrevTransaction,
   journalPostings,
-  journalPrices,
+  -- journalPrices,
   -- * Standard account types
   journalBalanceSheetAccountQuery,
   journalProfitAndLossAccountQuery,
@@ -116,7 +116,7 @@ import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Dates
-import Hledger.Data.Prices
+-- import Hledger.Data.Prices
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Posting
@@ -154,7 +154,7 @@ instance Show Journal where
 --                      ,show (jtxnmodifiers j)
 --                      ,show (jperiodictxns j)
 --                      ,show $ jparsetimeclockentries j
---                      ,show $ jmarketprices j
+--                      ,show $ jpricedirectives j
 --                      ,show $ jfinalcommentlines j
 --                      ,show $ jparsestate j
 --                      ,show $ map fst $ jfiles j
@@ -184,7 +184,7 @@ instance Sem.Semigroup Journal where
     ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
-    ,jmarketprices              = jmarketprices              j1 <> jmarketprices              j2
+    ,jpricedirectives              = jpricedirectives              j1 <> jpricedirectives              j2
     ,jtxnmodifiers              = jtxnmodifiers              j1 <> jtxnmodifiers              j2
     ,jperiodictxns              = jperiodictxns              j1 <> jperiodictxns              j2
     ,jtxns                      = jtxns                      j1 <> jtxns                      j2
@@ -213,7 +213,7 @@ nulljournal = Journal {
   ,jdeclaredaccounttypes      = M.empty
   ,jcommodities               = M.empty
   ,jinferredcommodities       = M.empty
-  ,jmarketprices              = []
+  ,jpricedirectives              = []
   ,jtxnmodifiers              = []
   ,jperiodictxns              = []
   ,jtxns                      = []
@@ -240,8 +240,8 @@ addTransactionModifier mt j = j { jtxnmodifiers = mt : jtxnmodifiers j }
 addPeriodicTransaction :: PeriodicTransaction -> Journal -> Journal
 addPeriodicTransaction pt j = j { jperiodictxns = pt : jperiodictxns j }
 
-addMarketPrice :: MarketPrice -> Journal -> Journal
-addMarketPrice h j = j { jmarketprices = h : jmarketprices j }  -- XXX #999 keep sorted
+addPriceDirective :: PriceDirective -> Journal -> Journal
+addPriceDirective h j = j { jpricedirectives = h : jpricedirectives j }  -- XXX #999 keep sorted
 
 -- | Get the transaction with this index (its 1-based position in the input stream), if any.
 journalTransactionAt :: Journal -> Integer -> Maybe Transaction
@@ -556,7 +556,7 @@ journalReverse j =
     ,jtxns             = reverse $ jtxns j
     ,jtxnmodifiers     = reverse $ jtxnmodifiers j
     ,jperiodictxns     = reverse $ jperiodictxns j
-    ,jmarketprices     = reverse $ jmarketprices j
+    ,jpricedirectives     = reverse $ jpricedirectives j
     }
 
 -- | Set this journal's last read time, ie when its files were last read.
@@ -908,16 +908,16 @@ checkBalanceAssignmentUnassignableAccountB p = do
 -- a commodity format directive, or otherwise inferred from posting
 -- amounts as in hledger < 0.28.
 journalApplyCommodityStyles :: Journal -> Journal
-journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
+journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} = j''
     where
       j' = journalInferCommodityStyles j
       styles = journalCommodityStyles j'
-      j'' = j'{jtxns=map fixtransaction ts, jmarketprices=map fixmarketprice mps}
+      j'' = j'{jtxns=map fixtransaction ts, jpricedirectives=map fixpricedirective pds}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p = p{pamount=styleMixedAmount styles $ pamount p
                       ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
       fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
-      fixmarketprice mp@MarketPrice{mpamount=a} = mp{mpamount=styleAmount styles a}
+      fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmount styles a}
 
 -- | Get all the amount styles defined in this journal, either declared by 
 -- a commodity directive or inferred from amounts, as a map from symbol to style. 
@@ -963,8 +963,8 @@ canonicalStyleFrom ss@(first:_) = first {asprecision = prec, asdecimalpoint = md
     --   []    -> (Just '.', 0)
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
--- journalApplyMarketPrices :: Journal -> Journal
--- journalApplyMarketPrices j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+-- journalApplyPriceDirectives :: Journal -> Journal
+-- journalApplyPriceDirectives j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 --     where
 --       fixtransaction t@Transaction{tdate=d, tpostings=ps} = t{tpostings=map fixposting ps}
 --        where
@@ -972,14 +972,14 @@ canonicalStyleFrom ss@(first:_) = first {asprecision = prec, asdecimalpoint = md
 --         fixmixedamount (Mixed as) = Mixed $ map fixamount as
 --         fixamount = fixprice
 --         fixprice a@Amount{price=Just _} = a
---         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalMarketPriceFor j d c}
+--         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalPriceDirectiveFor j d c}
 
 -- -- | Get the price for a commodity on the specified day from the price database, if known.
 -- -- Does only one lookup step, ie will not look up the price of a price.
--- journalMarketPriceFor :: Journal -> Day -> CommoditySymbol -> Maybe MixedAmount
--- journalMarketPriceFor j d CommoditySymbol{symbol=s} = do
---   let ps = reverse $ filter ((<= d).mpdate) $ filter ((s==).hsymbol) $ sortBy (comparing mpdate) $ jmarketprices j
---   case ps of (MarketPrice{mpamount=a}:_) -> Just a
+-- journalPriceDirectiveFor :: Journal -> Day -> CommoditySymbol -> Maybe MixedAmount
+-- journalPriceDirectiveFor j d CommoditySymbol{symbol=s} = do
+--   let ps = reverse $ filter ((<= d).pddate) $ filter ((s==).hsymbol) $ sortBy (comparing pddate) $ jpricedirectives j
+--   case ps of (PriceDirective{pdamount=a}:_) -> Just a
 --              _ -> Nothing
 
 -- | Convert all this journal's amounts to cost using the transaction prices, if any.
@@ -1037,12 +1037,12 @@ traverseJournalAmounts
     => (Amount -> f Amount)
     -> Journal -> f Journal
 traverseJournalAmounts f j =
-    recombine <$> (traverse . mpa) f (jmarketprices j)
+    recombine <$> (traverse . mpa) f (jpricedirectives j)
               <*> (traverse . tp . traverse . pamt . maa . traverse) f (jtxns j)
   where
-    recombine mps txns = j { jmarketprices = mps, jtxns = txns }
+    recombine mps txns = j { jpricedirectives = mps, jtxns = txns }
     -- a bunch of traversals
-    mpa  g mp = (\amt -> mp { mpamount  = amt }) <$> g (mpamount mp)
+    mpa  g pd = (\amt -> pd { pdamount  = amt }) <$> g (pdamount pd)
     tp   g t  = (\ps  -> t  { tpostings = ps  }) <$> g (tpostings t)
     pamt g p  = (\amt -> p  { pamount   = amt }) <$> g (pamount p)
     maa  g (Mixed as) = Mixed <$> g as
@@ -1098,17 +1098,19 @@ postingPivot fieldortagname p = p{paccount = pivotedacct, poriginal = Just $ ori
 postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)         
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
 
--- | Convert a journal's market price declarations
-journalPrices :: Journal -> Prices
-journalPrices = toPrices . jmarketprices
+-- -- | Build a database of market prices in effect on the given date,
+-- -- from the journal's price directives.
+-- journalPrices :: Day -> Journal -> Prices
+-- journalPrices d = toPrices d . jpricedirectives
 
 -- -- | Render a market price as a P directive.
--- showMarketPriceDirective :: MarketPrice -> String
--- showMarketPriceDirective mp = unwords
+-- showPriceDirectiveDirective :: PriceDirective -> String
+-- showPriceDirectiveDirective pd = unwords
 --     [ "P"
---     , showDate (mpdate mp)
---     , T.unpack (mpcommodity mp)
---     , (showAmount . setAmountPrecision maxprecision) (mpamount mp)
+--     , showDate (pddate pd)
+--     , T.unpack (pdcommodity pd)
+--     , (showAmount . setAmountPrecision maxprecision) (pdamount pd
+--     )
 --     ]
 
 -- Misc helpers
