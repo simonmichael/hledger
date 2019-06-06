@@ -117,21 +117,34 @@ INCLUDEPATHS=\
 
 MAIN=hledger/app/hledger-cli.hs
 
-# all source files in the project (plus a few strays like Setup.hs & hlint.hs)
+# All source files in the project (plus a few strays like Setup.hs & hlint.hs).
+# Used eg for building tags. Doesn't reliably catch all source files.
 SOURCEFILES:= \
-	dev.hs \
-	hledger/*hs \
-	hledger/bench/*hs \
-	hledger/Hledger/*hs \
-	hledger/Hledger/*/*hs \
-	hledger/Hledger/*/*/*hs \
-	hledger-*/*hs \
-	hledger-*/Hledger/*hs \
-	hledger-*/Hledger/*/*hs \
-	hledger-lib/other/ledger-parse/Ledger/Parser/*hs \
-	hledger-web/*/*.hs \
-	hledger-web/*/*/*.hs \
-	hledger-web/*/*/*/*.hs \
+	dev.hs                    \
+	hledger/*hs               \
+	hledger/app/*hs           \
+	hledger/bench/*hs         \
+	hledger/test/*hs          \
+	hledger/Hledger/*hs       \
+	hledger/Hledger/*/*hs     \
+	hledger/Hledger/*/*/*hs   \
+	hledger-*/*hs             \
+	hledger-*/app/*hs         \
+	hledger-*/src/*hs         \
+	hledger-*/test/*hs        \
+	hledger-*/tests/*hs       \
+	hledger-*/Hledger/*hs     \
+	hledger-*/Hledger/*/*hs   \
+	hledger-*/Hledger/*/*/*hs \
+	hledger-lib/Text/*/*hs    \
+
+# show the sorted, unique files matched by SOURCEFILES
+sourcefiles:
+	@for f in $(SOURCEFILES); do echo $$f; done | sort | uniq
+
+# show the sorted, unique subdirectories containing hs files
+sourcedirs:
+	@find . -name '*hs' | sed -e 's%[^/]*hs$$%%' | sort | uniq
 
 HPACKFILES:= \
 	hledger/*package.yaml \
