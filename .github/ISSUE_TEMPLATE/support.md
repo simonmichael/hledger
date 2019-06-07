@@ -5,8 +5,9 @@ labels:
 ---
 
 Requests for help and support with hledger are very welcome, and
-useful feedback for the project. But in most cases, please send them
-to the #hledger IRC chat room or the mail list instead:
+useful feedback for the project. But usually, you should not submit
+them here; instead, ask on the #hledger IRC chat room or mail list,
+and we'll be happy to help:
 
 http://irc.hledger.org   (quickest; no chat client needed)
 http://list.hledger.org
