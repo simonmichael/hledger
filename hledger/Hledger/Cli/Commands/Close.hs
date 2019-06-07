@@ -45,7 +45,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       -- balance assertion amounts will be unpriced, cf #824
       closingps = [posting{paccount=a
                           ,pamount=mixed [setprec $ negate b]
-                          ,pbalanceassertion=Just assertion{baamount=setprec b{aquantity=0, aprice=NoPrice}}
+                          ,pbalanceassertion=Just assertion{baamount=setprec b{aquantity=0, aprice=Nothing}}
                           }
                   | (a,_,_,mb) <- acctbals
                   , b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
@@ -54,7 +54,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
 
       openingps = [posting{paccount=a
                           ,pamount=mixed [setprec b]
-                          ,pbalanceassertion=Just assertion{baamount=setprec b{aprice=NoPrice}}
+                          ,pbalanceassertion=Just assertion{baamount=setprec b{aprice=Nothing}}
                           }
                   | (a,_,_,mb) <- acctbals
                   , b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb

@@ -157,7 +157,7 @@ instance ToMarkup Quantity
 -- | An amount's per-unit or total cost/selling price in another
 -- commodity, as recorded in the journal entry eg with @ or @@.
 -- Docs call this "transaction price". The amount is always positive.
-data AmountPrice = NoPrice | UnitPrice Amount | TotalPrice Amount 
+data AmountPrice = UnitPrice Amount | TotalPrice Amount 
   deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData AmountPrice
@@ -208,7 +208,7 @@ data Amount = Amount {
       aismultiplier :: Bool,            -- ^ kludge: a flag marking this amount and posting as a multiplier
                                         --   in a TMPostingRule. In a regular Posting, should always be false.
       astyle      :: AmountStyle,
-      aprice      :: AmountPrice            -- ^ the (fixed, transaction-specific) price for this amount, if any
+      aprice      :: Maybe AmountPrice  -- ^ the (fixed, transaction-specific) price for this amount, if any
     } deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData Amount

@@ -56,22 +56,22 @@ divideAmount' n a = a' where
 invertPrice :: Amount -> Amount
 invertPrice a =
     case aprice a of
-        NoPrice -> a
-        UnitPrice pa -> invertPrice
+        Nothing -> a
+        Just (UnitPrice pa) -> invertPrice
             -- normalize to TotalPrice
-            a { aprice = TotalPrice pa' } where
-                pa' = ((1 / aquantity a) `divideAmount` pa) { aprice = NoPrice }
-        TotalPrice pa ->
-            a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = TotalPrice pa' } where
-                pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = NoPrice, astyle = astyle a }
+            a { aprice = Just $ TotalPrice pa' } where
+                pa' = ((1 / aquantity a) `divideAmount` pa) { aprice = Nothing }
+        Just (TotalPrice pa) ->
+            a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = Just $ TotalPrice pa' } where
+                pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = Nothing, astyle = astyle a }
 
 amountCost :: Day -> Amount -> Maybe PriceDirective
 amountCost d a =
     case aprice a of
-        NoPrice -> Nothing
-        UnitPrice pa -> Just
+        Nothing -> Nothing
+        Just (UnitPrice pa) -> Just
             PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = pa }
-        TotalPrice pa -> Just
+        Just (TotalPrice pa) -> Just
             PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = abs (aquantity a) `divideAmount'` pa }
 
 postingCosts :: Posting -> [PriceDirective]
