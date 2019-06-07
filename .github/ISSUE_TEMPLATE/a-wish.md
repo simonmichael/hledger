@@ -1,6 +1,6 @@
 ---
 name:  A wish
-about: A request for some improvement to hledger's software, documentation, web presence, usability etc.
+about: A request for something new to improve hledger software, documentation, etc.
 labels: A WISH
 ---
 
