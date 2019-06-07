@@ -75,9 +75,6 @@ type Record = [Field]
 
 type Field = String
 
-data CSVError = CSVError (ParseErrorBundle BL.ByteString CassavaMP.ConversionError)
-    deriving Show
-
 reader :: Reader
 reader = Reader
   {rFormat     = "csv"
@@ -112,7 +109,7 @@ readJournalFromCsv :: Char -> Maybe FilePath -> FilePath -> Text -> IO (Either S
 readJournalFromCsv _ Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
 readJournalFromCsv separator mrulesfile csvfile csvdata =
  handle (\e -> return $ Left $ show (e :: IOException)) $ do
-  let throwerr = throw.userError
+  let throwerr = throw . userError
 
   -- parse rules
   let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
@@ -180,19 +177,17 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
 
   return $ Right nulljournal{jtxns=txns''}
 
-parseCsv :: Char -> FilePath -> Text -> IO (Either CSVError CSV)
+parseCsv :: Char -> FilePath -> Text -> IO (Either String CSV)
 parseCsv separator filePath csvdata =
   case filePath of
     "-" -> liftM (parseCassava separator "(stdin)") T.getContents
     _   -> return $ parseCassava separator filePath csvdata
 
-parseCassava :: Char -> FilePath -> Text -> Either CSVError CSV
+parseCassava :: Char -> FilePath -> Text -> Either String CSV
 parseCassava separator path content =
-    case parseResult of
-        Left  msg -> Left $ CSVError msg
-        Right a   -> Right a
-    where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path lazyContent
-          lazyContent = BL.fromStrict $ T.encodeUtf8 content
+  either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
+  CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path $
+  BL.fromStrict $ T.encodeUtf8 content
 
 decodeOptions :: Char -> Cassava.DecodeOptions
 decodeOptions separator = Cassava.defaultDecodeOptions {
@@ -214,8 +209,8 @@ printCSV records = unlined (printRecord `map` records)
           unlined = concat . intersperse "\n"
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: Int -> Either CSVError CSV -> Either String [CsvRecord]
-validateCsv _ (Left e) = Left $ show e
+validateCsv :: Int -> Either String CSV -> Either String [CsvRecord]
+validateCsv _           (Left err) = Left err
 validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
   where
     filternulls = filter (/=[""])
