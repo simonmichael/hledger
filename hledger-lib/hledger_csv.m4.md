@@ -274,3 +274,15 @@ whenever the running balance field is non-empty.
 You can read multiple CSV files at once using multiple `-f` arguments on the command line,
 and hledger will look for a correspondingly-named rules file for each.
 Note if you use the `--rules-file` option, this one rules file will be used for all the CSV files being read. 
+
+## Valid CSV
+
+hledger follows [RFC 4180](https://tools.ietf.org/html/rfc4180),
+with the addition of a customisable separator character.
+
+Some things to note:
+
+When quoting fields, 
+
+- you must use double quotes, not single quotes
+- spaces outside the quotes are [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field).
