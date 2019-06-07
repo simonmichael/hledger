@@ -1,6 +1,6 @@
 ---
 name:  A support request
-about: Need help with using hledger ? Ask on \#hledger IRC or hledger mail list.
+about: Need help with using hledger ? Ask on hledger's IRC chat room or mail list.
 labels:
 ---
 
