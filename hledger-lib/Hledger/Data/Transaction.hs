@@ -483,12 +483,12 @@ priceInferrerFor t pt = inferprice
     pcommodities   = map acommodity pamounts
     sumamounts     = amounts $ sumStrict pmixedamounts -- sum normalises to one amount per commodity & price
     sumcommodities = map acommodity sumamounts
-    sumprices      = filter (/=NoPrice) $ map aprice sumamounts
+    sumprices      = filter (/=Nothing) $ map aprice sumamounts
     caninferprices = length sumcommodities == 2 && null sumprices
 
     inferprice p@Posting{pamount=Mixed [a]}
       | caninferprices && ptype p == pt && acommodity a == fromcommodity
-        = p{pamount=Mixed [a{aprice=conversionprice}], poriginal=Just $ originalPosting p}
+        = p{pamount=Mixed [a{aprice=Just conversionprice}], poriginal=Just $ originalPosting p}
       where
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
         conversionprice

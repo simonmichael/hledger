@@ -109,7 +109,7 @@ asInit d reset ui@UIState{
                         }
       where
         Mixed amts = normaliseMixedAmountSquashPricesForDisplay $ stripPrices bal
-        stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
+        stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
     displayitems = map displayitem items
     -- blanks added for scrolling control, cf RegisterScreen 
     blankitems = replicate 100

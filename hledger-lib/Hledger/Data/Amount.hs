@@ -165,7 +165,7 @@ instance Num Amount where
 
 -- | The empty simple amount.
 amount, nullamt :: Amount
-amount = Amount{acommodity="", aquantity=0, aprice=NoPrice, astyle=amountstyle, aismultiplier=False}
+amount = Amount{acommodity="", aquantity=0, aprice=Nothing, astyle=amountstyle, aismultiplier=False}
 nullamt = amount
 
 -- | A temporary value for parsed transactions which had no amount specified.
@@ -179,8 +179,8 @@ hrs n = amount{acommodity="h", aquantity=n,           astyle=amountstyle{aspreci
 usd n = amount{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
 eur n = amount{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
 gbp n = amount{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
-amt `at` priceamt = amt{aprice=UnitPrice priceamt}
-amt @@ priceamt = amt{aprice=TotalPrice priceamt}
+amt `at` priceamt = amt{aprice=Just $ UnitPrice priceamt}
+amt @@ priceamt = amt{aprice=Just $ TotalPrice priceamt}
 
 -- | Apply a binary arithmetic operator to two amounts, which should
 -- be in the same commodity if non-zero (warning, this is not checked).
@@ -200,7 +200,7 @@ similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{aspre
 -- | Convert an amount to the specified commodity, ignoring and discarding
 -- any assigned prices and assuming an exchange rate of 1.
 amountWithCommodity :: CommoditySymbol -> Amount -> Amount
-amountWithCommodity c a = a{acommodity=c, aprice=NoPrice}
+amountWithCommodity c a = a{acommodity=c, aprice=Nothing}
 
 -- | Convert an amount to the commodity of its assigned price, if any.  Notes:
 --
@@ -208,11 +208,11 @@ amountWithCommodity c a = a{acommodity=c, aprice=NoPrice}
 --
 -- - price amounts should be positive, though this is not currently enforced
 costOfAmount :: Amount -> Amount
-costOfAmount a@Amount{aquantity=q, aprice=price} =
-    case price of
-      NoPrice -> a
-      UnitPrice  p@Amount{aquantity=pq} -> p{aquantity=pq * q}
-      TotalPrice p@Amount{aquantity=pq} -> p{aquantity=pq * signum q}
+costOfAmount a@Amount{aquantity=q, aprice=mp} =
+    case mp of
+      Nothing                                  -> a
+      Just (UnitPrice  p@Amount{aquantity=pq}) -> p{aquantity=pq * q}
+      Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq * signum q}
 
 -- | Convert this amount to cost, and apply the appropriate amount style.
 amountToCost :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
@@ -225,8 +225,8 @@ amountToCost styles = styleAmount styles . costOfAmount
 -- Does Decimal division, might be some rounding/irrational number issues.
 amountTotalPriceToUnitPrice :: Amount -> Amount
 amountTotalPriceToUnitPrice 
-  a@Amount{aquantity=q, aprice=TotalPrice pa@Amount{aquantity=pq, astyle=ps@AmountStyle{asprecision=pp}}}
-  = a{aprice = UnitPrice pa{aquantity=abs (pq/q), astyle=ps{asprecision=pp+1}}}
+  a@Amount{aquantity=q, aprice=Just (TotalPrice pa@Amount{aquantity=pq, astyle=ps@AmountStyle{asprecision=pp}})}
+  = a{aprice = Just $ UnitPrice pa{aquantity=abs (pq/q), astyle=ps{asprecision=pp+1}}}
 amountTotalPriceToUnitPrice a = a
 
 -- | Divide an amount's quantity by a constant.
@@ -240,7 +240,7 @@ multiplyAmount n a@Amount{aquantity=q} = a{aquantity=q*n}
 -- | Divide an amount's quantity (and its total price, if it has one) by a constant.
 -- The total price will be kept positive regardless of the multiplier's sign.
 divideAmountAndPrice :: Quantity -> Amount -> Amount
-divideAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q/n, aprice=f p}
+divideAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q/n, aprice=f <$> p}
   where
     f (TotalPrice a) = TotalPrice $ abs $ n `divideAmount` a
     f p = p
@@ -248,7 +248,7 @@ divideAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q/n, aprice=
 -- | Multiply an amount's quantity (and its total price, if it has one) by a constant.
 -- The total price will be kept positive regardless of the multiplier's sign.
 multiplyAmountAndPrice :: Quantity -> Amount -> Amount
-multiplyAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q*n, aprice=f p}
+multiplyAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q*n, aprice=f <$> p}
   where
     f (TotalPrice a) = TotalPrice $ abs $ n `multiplyAmount` a
     f p = p
@@ -306,7 +306,7 @@ showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice a = showAmount a{aprice=NoPrice}
+showAmountWithoutPrice a = showAmount a{aprice=Nothing}
 
 -- | Set an amount's internal precision, ie rounds the Decimal representing 
 -- the amount's quantity to some number of decimal places.
@@ -335,21 +335,21 @@ withDecimalPoint = flip setAmountDecimalPoint
 
 -- | Colour version.
 cshowAmountWithoutPrice :: Amount -> String
-cshowAmountWithoutPrice a = cshowAmount a{aprice=NoPrice}
+cshowAmountWithoutPrice a = cshowAmount a{aprice=Nothing}
 
 -- | Get the string representation of an amount, without any price or commodity symbol.
 showAmountWithoutPriceOrCommodity :: Amount -> String
-showAmountWithoutPriceOrCommodity a = showAmount a{acommodity="", aprice=NoPrice}
+showAmountWithoutPriceOrCommodity a = showAmount a{acommodity="", aprice=Nothing}
 
-showAmountPrice :: AmountPrice -> String
-showAmountPrice NoPrice         = ""
-showAmountPrice (UnitPrice pa)  = " @ "  ++ showAmount pa
-showAmountPrice (TotalPrice pa) = " @@ " ++ showAmount pa
+showAmountPrice :: Maybe AmountPrice -> String
+showAmountPrice Nothing                = ""
+showAmountPrice (Just (UnitPrice pa))  = " @ "  ++ showAmount pa
+showAmountPrice (Just (TotalPrice pa)) = " @@ " ++ showAmount pa
 
-showAmountPriceDebug :: AmountPrice -> String
-showAmountPriceDebug NoPrice         = ""
-showAmountPriceDebug (UnitPrice pa)  = " @ "  ++ showAmountDebug pa
-showAmountPriceDebug (TotalPrice pa) = " @@ " ++ showAmountDebug pa
+showAmountPriceDebug :: Maybe AmountPrice -> String
+showAmountPriceDebug Nothing                = ""
+showAmountPriceDebug (Just (UnitPrice pa))  = " @ "  ++ showAmountDebug pa
+showAmountPriceDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
 
 -- | Given a map of standard amount display styles, apply the appropriate one to this amount.
 -- If there's no standard style for this amount's commodity, return the amount unchanged.
@@ -375,7 +375,7 @@ cshowAmount a =
 
 showAmountHelper :: Bool -> Amount -> String
 showAmountHelper _ Amount{acommodity="AUTO"} = ""
-showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=p, astyle=AmountStyle{..}} =
+showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=mp, astyle=AmountStyle{..}} =
     case ascommodityside of
       L -> printf "%s%s%s%s" (T.unpack c') space quantity' price
       R -> printf "%s%s%s%s" quantity' space (T.unpack c') price
@@ -385,7 +385,7 @@ showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=p, astyle=Amoun
       (quantity',c') | displayingzero && not showzerocommodity = ("0","")
                      | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
       space = if not (T.null c') && ascommodityspaced then " " else "" :: String
-      price = showAmountPrice p
+      price = showAmountPrice mp
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 showAmountWithZeroCommodity :: Amount -> String
@@ -503,8 +503,8 @@ normaliseHelper squashprices (Mixed as)
     groupfn | squashprices = (==) `on` acommodity
             | otherwise    = \a1 a2 -> acommodity a1 == acommodity a2 && combinableprices a1 a2
 
-    combinableprices Amount{aprice=NoPrice} Amount{aprice=NoPrice} = True
-    combinableprices Amount{aprice=UnitPrice p1} Amount{aprice=UnitPrice p2} = p1 == p2
+    combinableprices Amount{aprice=Nothing} Amount{aprice=Nothing} = True
+    combinableprices Amount{aprice=Just (UnitPrice p1)} Amount{aprice=Just (UnitPrice p2)} = p1 == p2
     combinableprices _ _ = False
 
 -- | Like normaliseMixedAmount, but combine each commodity's amounts
@@ -682,7 +682,7 @@ cshowMixedAmountWithoutPrice m = intercalate "\n" $ map showamt as
         width = maximumDef 0 $ map (length . showAmount) as
 
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
-mixedAmountStripPrices (Mixed as) = Mixed $ map (\a -> a{aprice=NoPrice}) as
+mixedAmountStripPrices (Mixed as) = Mixed $ map (\a -> a{aprice=Nothing}) as
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.
@@ -690,14 +690,14 @@ showMixedAmountOneLineWithoutPrice :: MixedAmount -> String
 showMixedAmountOneLineWithoutPrice m = intercalate ", " $ map showAmountWithoutPrice as
     where
       (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
+      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
 
 -- | Colour version.
 cshowMixedAmountOneLineWithoutPrice :: MixedAmount -> String
 cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithoutPrice as
     where
       (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
+      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
@@ -718,9 +718,9 @@ tests_Amount = tests "Amount" [
 
      tests "costOfAmount" [
        costOfAmount (eur 1) `is` eur 1
-      ,costOfAmount (eur 2){aprice=UnitPrice $ usd 2} `is` usd 4
-      ,costOfAmount (eur 1){aprice=TotalPrice $ usd 2} `is` usd 2
-      ,costOfAmount (eur (-1)){aprice=TotalPrice $ usd 2} `is` usd (-2)
+      ,costOfAmount (eur 2){aprice=Just $ UnitPrice $ usd 2} `is` usd 4
+      ,costOfAmount (eur 1){aprice=Just $ TotalPrice $ usd 2} `is` usd 2
+      ,costOfAmount (eur (-1)){aprice=Just $ TotalPrice $ usd 2} `is` usd (-2)
     ]
   
     ,tests "isZeroAmount" [
@@ -730,7 +730,7 @@ tests_Amount = tests "Amount" [
   
     ,tests "negating amounts" [
        negate (usd 1) `is` (usd 1){aquantity= -1}
-      ,let b = (usd 1){aprice=UnitPrice $ eur 2} in negate b `is` b{aquantity= -1}
+      ,let b = (usd 1){aprice=Just $ UnitPrice $ eur 2} in negate b `is` b{aquantity= -1}
     ]
   
     ,tests "adding amounts without prices" [

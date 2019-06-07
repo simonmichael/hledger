@@ -606,8 +606,8 @@ amountp :: JournalParser m Amount
 amountp = label "amount" $ do
   amount <- amountwithoutpricep
   lift $ skipMany spacenonewline
-  price <- priceamountp
-  pure $ amount { aprice = price }
+  mprice <- priceamountp
+  pure $ amount { aprice = mprice }
 
 amountwithoutpricep :: JournalParser m Amount
 amountwithoutpricep = do
@@ -629,7 +629,7 @@ amountwithoutpricep = do
     let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-    return $ nullamt{acommodity=c, aquantity=sign (sign2 q), aismultiplier=mult, astyle=s, aprice=NoPrice}
+    return $ nullamt{acommodity=c, aquantity=sign (sign2 q), aismultiplier=mult, astyle=s, aprice=Nothing}
 
   rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
   rightornosymbolamountp mult sign = label "amount" $ do
@@ -645,7 +645,7 @@ amountwithoutpricep = do
         suggestedStyle <- getAmountStyle c
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=NoPrice}
+        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=Nothing}
       -- no symbol amount
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
@@ -656,7 +656,7 @@ amountwithoutpricep = do
         let (c,s) = case (mult, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=NoPrice}
+        return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=Nothing}
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
@@ -714,15 +714,15 @@ quotedcommoditysymbolp =
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
-priceamountp :: JournalParser m AmountPrice
-priceamountp = option NoPrice $ do
+priceamountp :: JournalParser m (Maybe AmountPrice)
+priceamountp = option Nothing $ do
   char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
   priceAmount <- amountwithoutpricep <?> "unpriced amount (specifying a price)"
 
-  pure $ priceConstructor priceAmount
+  pure $ Just $ priceConstructor priceAmount
 
 balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
@@ -1313,7 +1313,7 @@ tests_Common = tests "Common" [
          acommodity="$"
         ,aquantity=10 -- need to test internal precision with roundTo ? I think not 
         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
-        ,aprice=UnitPrice $
+        ,aprice=Just $ UnitPrice $
           amount{
              acommodity="€"
             ,aquantity=0.5
@@ -1325,7 +1325,7 @@ tests_Common = tests "Common" [
          acommodity="$"
         ,aquantity=10 
         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
-        ,aprice=TotalPrice $
+        ,aprice=Just $ TotalPrice $
           amount{
              acommodity="€"
             ,aquantity=5
