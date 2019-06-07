@@ -4,10 +4,17 @@ about: Any problem that is most likely an error or weakness in hledger's softwar
 labels: A BUG
 ---
 
-Thank you for your bug report!
+Thank you for helping to make hledger better!
 
-Requests for help and support with hledger are very welcome but best handled
-on the [hledger mail list](http://list.hledger.org) 
-or [#hledger IRC chat room](http://irc.hledger.org),
-not this issue tracker.
-If you're not sure what it is, it's fine to post here.
+If you're not sure it's a bug, or if some discussion would help,
+contact us first on the 
+[#hledger IRC chat room](http://irc.hledger.org) (best; no chat client needed)
+or the [hledger mail list](http://list.hledger.org).
+
+Some details that may be helpful to include: 
+
+- a minimal reproducible example,
+- what related documentation you found at http://hledger.org,
+- your hledger version, 
+- how you installed it, 
+- what platform you're on.
