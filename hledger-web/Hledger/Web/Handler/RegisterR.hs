@@ -34,8 +34,8 @@ getRegisterR = do
       acctQuery = fromMaybe Any (inAccountQuery qopts)
       acctlink acc = (RegisterR, [("q", accountQuery acc)])
       otherTransAccounts =
-          zip ("" : repeat (","::T.Text)) .
-          preferReal . otherTransactionAccounts m acctQuery
+          addCommas . preferReal . otherTransactionAccounts m acctQuery
+      addCommas xs = zip xs $ tail $ (","<$xs) ++ [T.empty]
       r@(balancelabel,items) = accountTransactionsReport ropts j m acctQuery
       balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
   defaultLayout $ do
