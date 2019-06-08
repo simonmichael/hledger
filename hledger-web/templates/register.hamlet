@@ -18,7 +18,7 @@
           #{balancelabel'}
 
     <tbody>
-      $forall (torig, tacct, split, acct, amt, bal) <- items
+      $forall (torig, tacct, split, _acct, amt, bal) <- items
         <tr ##{tindex torig} title="#{showTransaction torig}" style="vertical-align:top;">
           <td .date>
             <a href="@{JournalR}#transaction-#{tindex torig}">
@@ -26,7 +26,10 @@
           <td>
             #{textElideRight 30 (tdescription tacct)}
           <td .account>
-            #{elideRight 40 acct}
+            $forall (comma, Posting { paccount = acc }) <- otherTransAccounts torig
+              #{comma}
+              <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
+                #{accountSummarisedName acc}
           <td .amount style="text-align:right; white-space:nowrap;">
             $if not split || not (isZeroMixedAmount amt)
               ^{mixedAmountAsHtml amt}
