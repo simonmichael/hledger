@@ -8,7 +8,7 @@
 
 module Hledger.Web.Handler.RegisterR where
 
-import Data.List (intersperse)
+import Data.List (intersperse, nub, partition)
 import qualified Data.Text as T
 import Text.Hamlet (hamletFile)
 
@@ -17,7 +17,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.Widget.Common (mixedAmountAsHtml)
+import Hledger.Web.Widget.Common (accountQuery, mixedAmountAsHtml)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -32,11 +32,36 @@ getRegisterR = do
 
   let ropts = reportopts_ (cliopts_ opts)
       acctQuery = fromMaybe Any (inAccountQuery qopts)
+      acctlink acc = (RegisterR, [("q", accountQuery acc)])
+      otherTransAccounts =
+          zip ("" : repeat (","::T.Text)) .
+          preferReal . otherTransactionAccounts m acctQuery
       r@(balancelabel,items) = accountTransactionsReport ropts j m acctQuery
       balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
   defaultLayout $ do
     setTitle "register - hledger-web"
     $(widgetFile "register")
+
+-- cf. Hledger.Reports.AccountTransactionsReport.accountTransactionsReportItems
+otherTransactionAccounts :: Query -> Query -> Transaction -> [Posting]
+otherTransactionAccounts reportq thisacctq torig
+    -- no current account ? summarise all matched postings
+    | thisacctq == None  = reportps
+    -- only postings to current account ? summarise those
+    | null otheraccts    = thisacctps
+    -- summarise matched postings to other account(s)
+    | otherwise          = otheracctps
+    where
+      reportps = tpostings $ filterTransactionPostings reportq torig
+      (thisacctps, otheracctps) = partition (matchesPosting thisacctq) reportps
+      otheraccts = nub $ map paccount otheracctps
+
+-- cf. Hledger.Reports.AccountTransactionsReport.summarisePostingAccounts
+preferReal :: [Posting] -> [Posting]
+preferReal ps
+    | null realps = ps
+    | otherwise   = realps
+    where realps = filter isReal ps
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
