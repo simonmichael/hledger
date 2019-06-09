@@ -21,5 +21,10 @@ extra-deps:
 # hledger-ui:
 # hledger-web:
 # hledger-api:
+
 # Workaround for https://github.com/commercialhaskell/stack/issues/3922:
 - haskell-src-exts-1.21.0
+
+# Workaround for https://github.com/simonmichael/hledger/issues/1039 (hledger-web on Windows 7):
+- github: kazu-yamamoto/unix-time
+  commit: cdfda676dcc1ee84b3de5dca4a48945f2d6b6e10
