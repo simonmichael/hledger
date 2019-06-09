@@ -17,6 +17,7 @@ where
 
 import Data.List
 import Data.Ord
+import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 
@@ -124,19 +125,21 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
 -- function and a balance-summing function. Or with a None current account
 -- query, this can also be used for the transactionsReport.
 accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [AccountTransactionsReportItem]
-accountTransactionsReportItems _ _ _ _ [] = []
-accountTransactionsReportItems reportq thisacctq bal signfn (torig:ts) =
-    case i of Just i' -> i':is
-              Nothing -> is
+accountTransactionsReportItems reportq thisacctq bal signfn =
+    catMaybes . snd .
+    mapAccumL (accountTransactionsReportItem reportq thisacctq signfn) bal
+
+accountTransactionsReportItem :: Query -> Query -> (MixedAmount -> MixedAmount) -> MixedAmount -> Transaction -> (MixedAmount, Maybe AccountTransactionsReportItem)
+accountTransactionsReportItem reportq thisacctq signfn bal torig = balItem
     -- 201403: This is used for both accountTransactionsReport and transactionsReport, which makes it a bit overcomplicated
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     where
       tfiltered@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig
       tacct = tfiltered{tdate=transactionRegisterDate reportq thisacctq tfiltered}
-      (i,bal') = case reportps of
-           [] -> (Nothing,bal)  -- no matched postings in this transaction, skip it
-           _  -> (Just (torig, tacct, numotheraccts > 1, otheracctstr, a, b), b)
+      balItem = case reportps of
+           [] -> (bal, Nothing)  -- no matched postings in this transaction, skip it
+           _  -> (b, Just (torig, tacct, numotheraccts > 1, otheracctstr, a, b))
                  where
                   (thisacctps, otheracctps) = partition (matchesPosting thisacctq) reportps
                   numotheraccts = length $ nub $ map paccount otheracctps
@@ -145,7 +148,6 @@ accountTransactionsReportItems reportq thisacctq bal signfn (torig:ts) =
                                | otherwise          = summarisePostingAccounts otheracctps  -- summarise matched postings to other account(s)
                   a = signfn $ negate $ sum $ map pamount thisacctps
                   b = bal + a
-      is = accountTransactionsReportItems reportq thisacctq bal' signfn ts
 
 -- | What is the transaction's date in the context of a particular account
 -- (specified with a query) and report query, as in an account register ?
