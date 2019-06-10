@@ -26,9 +26,9 @@
           <td>
             #{textElideRight 30 (tdescription tacct)}
           <td .account>
-            $forall (Posting { paccount = acc }, comma) <- otherTransAccounts torig
+            $forall (Posting { paccount = acc }, (summName,comma)) <- otherTransAccounts torig
               <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
-                #{accountSummarisedName acc}</a>#{comma}
+                #{summName}</a>#{comma}
           <td .amount style="text-align:right; white-space:nowrap;">
             $if not split || not (isZeroMixedAmount amt)
               ^{mixedAmountAsHtml amt}
