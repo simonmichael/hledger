@@ -27,6 +27,7 @@ import Data.Data
 import Data.Decimal
 import Data.Default
 import Data.Functor (($>))
+import Data.Graph.Inductive (Gr, NodeMap)
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html 
@@ -445,15 +446,17 @@ data MarketPrice = MarketPrice {
 
 instance NFData MarketPrice
 
--- | A database of the exchange rates between commodity pairs at a given date,
--- organised as maps for efficient lookup.
+-- | A graph whose node labels are commodities and edge labels are exchange rates.
+type PriceGraph = Gr CommoditySymbol Quantity
+
+-- | A snapshot of the known exchange rates between commodity pairs at a given date.
 data Prices = Prices {
-   prDeclaredPrices ::
-      M.Map CommoditySymbol         -- from commodity A
-            (M.Map CommoditySymbol  -- to commodity B
-                   Quantity)        -- exchange rate from A to B (one A is worth this many B)
-            -- ^ Explicitly declared market prices, as { FROMCOMM : { TOCOMM : RATE } }.
+   prNodemap            :: NodeMap CommoditySymbol
+  ,prDeclaredPrices     :: PriceGraph  -- ^ Explicitly declared market prices for commodity pairs.
+  ,prWithReversePrices  :: PriceGraph  -- ^ The above, plus derived reverse prices for any pairs which don't have a declared price.
+  -- ,prWithIndirectPrices :: PriceGraph  -- ^ The above, plus indirect prices found for any pairs which don't have a declared or reverse price.
   }
+  deriving (Show)
 
 -- | What kind of value conversion should be done on amounts ?
 -- UI: --value=cost|end|now|DATE[,COMM]

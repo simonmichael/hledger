@@ -55,6 +55,7 @@ dependencies:
 - deepseq
 - directory
 - easytest >= 0.2.1 && <0.3
+- fgl >=5.5.3.0
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1
