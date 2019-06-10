@@ -354,12 +354,12 @@ postingApplyValuation :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -
 postingApplyValuation prices styles periodend today ismultiperiod p v =
   case v of
     AtCost    Nothing            -> postingToCost styles p
-    AtCost    mc                 -> postingValueAtDate prices mc periodend $ postingToCost styles p
-    AtEnd     mc                 -> postingValueAtDate prices mc periodend p
-    AtNow     mc                 -> postingValueAtDate prices mc today     p
-    AtDefault mc | ismultiperiod -> postingValueAtDate prices mc periodend p
-    AtDefault mc                 -> postingValueAtDate prices mc today     p
-    AtDate d  mc                 -> postingValueAtDate prices mc d         p
+    AtCost    mc                 -> postingValueAtDate prices styles mc periodend $ postingToCost styles p
+    AtEnd     mc                 -> postingValueAtDate prices styles mc periodend p
+    AtNow     mc                 -> postingValueAtDate prices styles mc today     p
+    AtDefault mc | ismultiperiod -> postingValueAtDate prices styles mc periodend p
+    AtDefault mc                 -> postingValueAtDate prices styles mc today     p
+    AtDate d  mc                 -> postingValueAtDate prices styles mc d         p
 
 -- | Convert this posting's amount to cost, and apply the appropriate amount styles.
 postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
@@ -370,8 +370,8 @@ postingToCost styles p@Posting{pamount=a} = p{pamount=mixedAmountToCost styles a
 -- using the given market prices.
 -- When market prices available on that date are not sufficient to
 -- calculate the value, amounts are left unchanged.
-postingValueAtDate :: [PriceDirective] -> Maybe CommoditySymbol -> Day -> Posting -> Posting
-postingValueAtDate prices mc d p = postingTransformAmount (mixedAmountValueAtDate prices mc d) p
+postingValueAtDate :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> Posting -> Posting
+postingValueAtDate prices styles mc d p = postingTransformAmount (mixedAmountValueAtDate prices styles mc d) p
 
 -- | Apply a transform function to this posting's amount.
 postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting

@@ -550,9 +550,11 @@ you want.
 
 To select a different valuation commodity: write the commodity symbol
 after the valuation type, separated by a comma (eg: **`--value=now,EUR`**). 
-Currently this will only use market prices leading directly from A to
-B, or (after inverting them) prices from B to A;
-it does not yet follow chains of market prices.
+This will use, in this preferred order:
+
+- declared prices (from source commodity to valuation commodity)
+- reverse prices (declared prices from valuation to source commodity, inverted)
+- indirect prices (prices calculated from the shortest chain of declared or reverse prices from source to valuation commodity).
 
 #### --value examples
 
