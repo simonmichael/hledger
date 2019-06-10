@@ -34,8 +34,13 @@ getRegisterR = do
       acctQuery = fromMaybe Any (inAccountQuery qopts)
       acctlink acc = (RegisterR, [("q", accountQuery acc)])
       otherTransAccounts =
+          map (\(acct,(name,comma)) -> (acct, (T.pack name, T.pack comma))) .
+          undecorateLinks . elideRightDecorated 40 . decorateLinks .
           addCommas . preferReal . otherTransactionAccounts m acctQuery
-      addCommas xs = zip xs $ tail $ (","<$xs) ++ [T.empty]
+      addCommas xs =
+          zip xs $
+          zip (map (T.unpack . accountSummarisedName . paccount) xs) $
+          tail $ (", "<$xs) ++ [""]
       r@(balancelabel,items) = accountTransactionsReport ropts j m acctQuery
       balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
   defaultLayout $ do
@@ -62,6 +67,28 @@ preferReal ps
     | null realps = ps
     | otherwise   = realps
     where realps = filter isReal ps
+
+elideRightDecorated :: Int -> [(Maybe d, Char)] -> [(Maybe d, Char)]
+elideRightDecorated width s =
+    if length s > width
+        then take (width - 2) s ++ map ((,) Nothing) ".."
+        else s
+
+undecorateLinks :: [(Maybe acct, char)] -> [(acct, ([char], [char]))]
+undecorateLinks [] = []
+undecorateLinks xs0@(x:_) =
+    case x of
+        (Just acct, _) ->
+            let (link, xs1) = span (isJust . fst) xs0
+                (comma, xs2) = span (isNothing . fst) xs1
+            in (acct, (map snd link, map snd comma)) : undecorateLinks xs2
+        _ -> error "link name not decorated with account"
+
+decorateLinks :: [(acct, ([char], [char]))] -> [(Maybe acct, char)]
+decorateLinks =
+    concatMap
+        (\(acct, (name, comma)) ->
+            map ((,) (Just acct)) name ++ map ((,) Nothing) comma)
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
