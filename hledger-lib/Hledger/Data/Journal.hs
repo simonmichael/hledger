@@ -914,7 +914,9 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
       styles = journalCommodityStyles j'
       j'' = j'{jtxns=map fixtransaction ts, jmarketprices=map fixmarketprice mps}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-      fixposting p@Posting{pamount=a} = p{pamount=styleMixedAmount styles a}
+      fixposting p = p{pamount=styleMixedAmount styles $ pamount p
+                      ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
+      fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
       fixmarketprice mp@MarketPrice{mpamount=a} = mp{mpamount=styleAmount styles a}
 
 -- | Get all the amount styles defined in this journal, either declared by 
