@@ -16,6 +16,7 @@ module Hledger.Data.Prices (
   ,mixedAmountValueAtDate
   ,mixedAmountApplyValuation
   ,priceLookup
+  ,priceDirectiveToMarketPrice
   ,tests_Prices
 )
 where
