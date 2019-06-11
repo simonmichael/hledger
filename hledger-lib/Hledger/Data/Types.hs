@@ -27,7 +27,7 @@ import Data.Data
 import Data.Decimal
 import Data.Default
 import Data.Functor (($>))
-import Data.Graph.Inductive (Gr, NodeMap)
+import Data.Graph.Inductive (Gr,Node,NodeMap)
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html 
@@ -446,15 +446,23 @@ data MarketPrice = MarketPrice {
 
 instance NFData MarketPrice
 
--- | A graph whose node labels are commodities and edge labels are exchange rates.
-type PriceGraph = Gr CommoditySymbol Quantity
-
--- | A snapshot of the known exchange rates between commodity pairs at a given date.
-data Prices = Prices {
-   prNodemap            :: NodeMap CommoditySymbol
-  ,prDeclaredPrices     :: PriceGraph  -- ^ Explicitly declared market prices for commodity pairs.
-  ,prWithReversePrices  :: PriceGraph  -- ^ The above, plus derived reverse prices for any pairs which don't have a declared price.
-  -- ,prWithIndirectPrices :: PriceGraph  -- ^ The above, plus indirect prices found for any pairs which don't have a declared or reverse price.
+-- | A snapshot of the known exchange rates between commodity pairs at a given date,
+-- as a graph allowing fast lookup and path finding, along with some helper data.
+data PriceGraph = PriceGraph {
+   prGraph   :: Gr CommoditySymbol Quantity
+    -- ^ A directed graph of exchange rates between commodity pairs.
+    -- Node labels are commodities and edge labels are exchange rates,
+    -- either explicitly declared (preferred) or inferred by reversing a declared rate.
+    -- There will be at most one edge between each directed pair of commodities,
+    -- eg there can be one USD->EUR and one EUR->USD.
+  ,prNodemap :: NodeMap CommoditySymbol
+    -- ^ Mapping of graph node ids to commodity symbols.
+  ,prDeclaredPairs :: [(Node,Node)]
+    -- ^ Which of the edges in this graph are declared rates,
+    --   rather than inferred reverse rates.
+    --   A bit ugly. We could encode this in the edges,
+    --   but those have to be Real for shortest path finding,
+    --   so we'd have to transform them all first.
   }
   deriving (Show)
 
