@@ -152,7 +152,7 @@ hledgerApiApp staticdir j = Servant.serve api server
       where
         accountnamesH = return $ journalAccountNames j
         transactionsH = return $ jtxns j
-        pricesH       = return $ jpricedirectives j
+        pricesH       = return $ map priceDirectiveToMarketPrice $ jpricedirectives j
         commoditiesH  = return $ (M.keys . jinferredcommodities) j
         accountsH     = return $ ledgerTopAccounts $ ledgerFromJournal Hledger.Query.Any j
         accounttransactionsH (a::AccountName) = do
