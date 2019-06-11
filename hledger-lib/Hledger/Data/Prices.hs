@@ -49,8 +49,6 @@ tests_Prices = tests "Prices" [
 -- Apply a specified valuation to this mixed amount, using the provided
 -- prices db, commodity styles, period-end/current dates, 
 -- and whether this is for a multiperiod report or not.
--- Currently ignores the specified valuation commodity and always uses
--- the default valuation commodity.
 mixedAmountApplyValuation :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
 mixedAmountApplyValuation prices styles periodend today ismultiperiod v (Mixed as) =
   Mixed $ map (amountApplyValuation prices styles periodend today ismultiperiod v) as
@@ -152,6 +150,7 @@ priceLookup :: [PriceDirective] -> Day -> CommoditySymbol -> Maybe CommoditySymb
 priceLookup pricedirectives d from mto =
   let
     -- build a graph of the commodity exchange rates in effect on this day
+    -- XXX should hide these fgl details better
     Prices{prNodemap=m, prDeclaredPrices=g, prWithReversePrices=gr} = pricesAtDate pricedirectives d
     fromnode = node m from
     -- if to is unspecified, try to find a default valuation commodity based on available prices
@@ -167,8 +166,7 @@ priceLookup pricedirectives d from mto =
       Nothing            -> Nothing
       Just to | to==from -> Nothing
       Just to            ->
-        -- We have a commodity to convert to. Find the most direct price available,
-        -- and return it as an amount.
+        -- We have a commodity to convert to. Find the most direct price available.
         case
           -- These seem unnecessary, and we can avoid building one of the graphs
           -- mdeclaredprice <|> mreverseprice <|>
@@ -194,7 +192,7 @@ priceLookup pricedirectives d from mto =
                 where comms = catMaybes $ map (lab g) nodes
 
           -- log a message and a Maybe Quantity, hiding Just/Nothing and limiting decimal places
-          dbg msg = dbg4With (((msg++": ")++) . maybe "" (show . roundTo 3))
+          dbg msg = dbg4With (((msg++": ")++) . maybe "" (show . roundTo 8))
 
 -- | Convert a list of market price directives in parse order to
 -- a database of market prices in effect on a given day,
@@ -208,7 +206,7 @@ pricesAtDate pricedirectives d = Prices{
   where
     -- get the latest (before d) declared price for each commodity pair
     latestdeclaredprices :: [MarketPrice] =
-      dbg4 "latestdeclaredprices" $
+      dbg5 "latestdeclaredprices" $
       nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto))) $  -- keep only the first (ie newest and latest parsed) price for each pair
       map snd $  -- discard the parse order label
       sortBy (flip compare `on` (\(parseorder,mp)->(mpdate mp,parseorder))) $  -- sort with newest dates and latest parse order first
@@ -241,13 +239,13 @@ marketPriceReverse mp@MarketPrice{..} = mp{mpfrom=mpto, mpto=mpfrom, mprate=1/mp
 ------------------------------------------------------------------------------
 -- fgl helpers
 
--- | Look up an existing node by its label in the given NodeMap.
+-- | Look up an existing graph node by its label.
 -- (If the node does not exist, a new one will be generated, but not
 -- persisted in the nodemap.)
 node :: Ord a => NodeMap a -> a -> Node
 node m = fst . fst . mkNode m
 
--- | Convert a valid path from the given graph to the corresponding
+-- | Convert a valid path within the given graph to the corresponding
 -- edge labels. When there are multiple edges between two nodes, the
 -- lowest-sorting label is used.
 pathEdgeLabels :: (Show b, Ord b) => Gr a b -> [Node] -> [b]

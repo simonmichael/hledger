@@ -463,9 +463,10 @@ The valuation commodity will be the one referenced in the latest
 applicable market price dated on or before the valuation date.
 If most of your P declarations lead to a single home currency, this will usually be what you want.
 
-`-V/--market` is similar to the same flag in Ledger, except
-unlike Ledger it does not infer market prices from [transaction prices](/manual.html#transaction-prices).
-(Mnemonic: in hledger, -B uses transaction prices, -V and -X use market prices.)
+Unlike the similar flag in Ledger, it does not infer market prices
+from [transaction prices](/manual.html#transaction-prices). In
+hledger, -B uses transaction prices, -V and -X use market prices.
+
 It is equivalent to `--value=now` or `--value=end`.
 
 Here's a quick example:
