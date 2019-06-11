@@ -296,12 +296,16 @@ When you press `g`, the current and all previous screens are
 regenerated, which may cause a noticeable pause with large files.
 Also there is no visual indication that this is in progress.
 
-`--watch` is not yet fully robust. It works well for normal usage,
-but many file changes in a short time (eg saving the file thousands of
+`--watch` is not yet fully robust. It works well for normal usage, but
+many file changes in a short time (eg saving the file thousands of
 times with an editor macro) can cause problems at least on OSX.
 Symptoms include: unresponsive UI, periodic resetting of the cursor
 position, momentary display of parse errors, high CPU usage eventually
 subsiding, and possibly a small but persistent build-up of CPU usage
-until the program is restarted.
+until the program is restarted. 
+
+Also, if you are viewing files mounted from another machine, `--watch`
+requires that both machine clocks are roughly in step.
+
 
 }})

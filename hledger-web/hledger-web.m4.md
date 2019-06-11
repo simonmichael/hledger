@@ -176,6 +176,9 @@ when you reload the page or navigate to a new page.
 If a change makes a file unparseable,
 hledger-web will display an error message until the file has been fixed.
 
+(Note: if you are viewing files mounted from another machine, make
+sure that both machine clocks are roughly in step.)
+
 # JSON API
 
 In addition to the web UI, hledger-web provides some API routes that
