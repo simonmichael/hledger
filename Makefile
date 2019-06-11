@@ -363,7 +363,7 @@ ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
-ghci-prof: $(call def-help,ghci-prof, start ghci REPL on hledger-lib + hledger with profiling information)
+ghci-prof: $(call def-help,ghci-prof, start ghci REPL on hledger-lib + hledger with profiling/call stack information)
 	stack build --profile hledger --only-dependencies
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
 
@@ -451,6 +451,12 @@ functest: tests/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
 	@stack build --fast hledger
 	@($(SHELLTESTSTK) -w `stack exec -- which hledger` tests \
+		&& echo $@ PASSED) || (echo $@ FAILED; false)
+
+functest-%: tests/addons/hledger-addon \
+	$(call def-help,functest-PAT, build hledger quickly and run just the functional tests matching PAT )
+	@stack build --fast hledger
+	@($(SHELLTESTSTK) -w `stack exec -- which hledger` tests -i "$*" \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
