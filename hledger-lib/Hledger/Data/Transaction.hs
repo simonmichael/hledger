@@ -169,11 +169,16 @@ showTransactionHelper elide onelineamounts t =
                                                 c:cs -> (c,cs)
 
 -- | Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
+-- The first line (unless empty) will have leading space, subsequent lines will have a larger indent.
 renderCommentLines :: Text -> [String]
-renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentprefix ls
-                                                   ls      -> map commentprefix ls
-    where
-      commentprefix = indent . ("; "++)
+renderCommentLines t =
+  case lines $ T.unpack t of
+    []      -> []
+    [l]     -> [(commentSpace . comment) l]        -- single-line comment
+    ("":ls) -> "" : map (lineIndent . comment) ls  -- multi-line comment with empty first line
+    (l:ls)  -> (commentSpace . comment) l : map (lineIndent . comment) ls
+  where
+    comment = ("; "++)
 
 -- | Given a transaction and its postings, render the postings, suitable
 -- for `print` output. Normally this output will be valid journal syntax which
@@ -230,7 +235,7 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
   where
     postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
     assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p 
-    statusandaccount = indent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
+    statusandaccount = lineIndent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
           -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  
           minwidth = maximum $ map ((2+) . textWidth . T.pack . pacctstr) pstoalignwith
@@ -259,7 +264,7 @@ showBalanceAssertion BalanceAssertion{..} =
 
 -- | Render a posting, simply. Used in balance assertion errors.
 -- showPostingLine p =
---   indent $
+--   lineIndent $
 --   if pstatus p == Cleared then "* " else "" ++  -- XXX show !
 --   showAccountName Nothing (ptype p) (paccount p) ++
 --   "    " ++
@@ -276,8 +281,13 @@ showPostingLines p = postingAsLines False False ps p where
     ps | Just t <- ptransaction p = tpostings t
        | otherwise = [p]
 
-indent :: String -> String
-indent = ("    "++)
+-- | Prepend a suitable indent for a posting (or transaction/posting comment) line.
+lineIndent :: String -> String
+lineIndent = ("    "++)
+
+-- | Prepend the space required before a same-line comment.
+commentSpace :: String -> String
+commentSpace = ("  "++)
 
 -- | Show an account name, clipped to the given width if any, and
 -- appropriately bracketed/parenthesised for the given posting type.
