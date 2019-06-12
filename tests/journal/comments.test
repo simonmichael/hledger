@@ -15,7 +15,7 @@ hledger -f - print
 ; pre-transaction comment, ignored
 2009/1/1 x ; transaction same line comment
       ; transaction new line comment
-    a  1    ; posting 1 same line comment
+    a  1  ; posting 1 same line comment
     ; posting 1 new line comment
     a
       ; posting 2 new line comment
@@ -23,9 +23,9 @@ hledger -f - print
 
 ; trailing file comment, ignored
 >>>
-2009/01/01 x    ; transaction same line comment
+2009/01/01 x  ; transaction same line comment
     ; transaction new line comment
-    a               1    ; posting 1 same line comment
+    a               1  ; posting 1 same line comment
     ; posting 1 new line comment
     a
     ; posting 2 new line comment
@@ -38,7 +38,7 @@ hledger -f - print
 <<<
 2017/1/1 this # and * are not ; the comment
 >>>
-2017/01/01 this # and * are not    ; the comment
+2017/01/01 this # and * are not  ; the comment
 
 >>>2
 >>>=0

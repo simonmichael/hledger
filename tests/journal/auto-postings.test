@@ -17,9 +17,9 @@
 $ hledger print -f- --auto
 2016/01/01 paycheck
     income:remuneration           $-100
-    (liabilities:tax)              $-33    ; income tax
+    (liabilities:tax)              $-33  ; income tax
     income:donations               $-15
-    (liabilities:tax)               $-5    ; income tax
+    (liabilities:tax)               $-5  ; income tax
     assets:bank
 
 2016/01/01 withdraw
@@ -266,9 +266,9 @@ $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
 2016/02/01 paycheck
     ; recur: monthly from 2016-01
     income:remuneration           $-100
-    (liabilities:tax)              $-33    ; income tax
+    (liabilities:tax)              $-33  ; income tax
     income:donations               $-15
-    (liabilities:tax)               $-5    ; income tax
+    (liabilities:tax)               $-5  ; income tax
     assets:bank
 
 >=
@@ -311,13 +311,13 @@ $ hledger -f- register --auto
   taxes  *0.2
 
 2018/12/18
-  a    EUR -10.00    ; :tax20:
+  a    EUR -10.00  ; :tax20:
   b    EUR 12.00
 
 # 16. Transaction balancing sees auto postings ?
 # $ hledger -f- print -x --auto
 # 2018/12/18
-#     a          EUR -10.00    ; :tax20:
+#     a          EUR -10.00  ; :tax20:
 #     taxes       EUR -2.00
 #     b           EUR 12.00
 #
