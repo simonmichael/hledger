@@ -30,28 +30,28 @@ DESCRIPTION
 
               ; A sample journal file. This is a comment.
 
-              2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
-                  assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
-                  income:salary        $-1    ;    followed by at least two spaces and an amount
+              2008/01/01 income             ; <- transaction's first line starts in column 0, contains date and description
+                  assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
+                  income:salary        $-1  ;    followed by at least two spaces and an amount
 
               2008/06/01 gift
-                  assets:bank:checking  $1    ; <- at least two postings in a transaction
-                  income:gifts         $-1    ; <- their amounts must balance to 0
+                  assets:bank:checking  $1  ; <- at least two postings in a transaction
+                  income:gifts         $-1  ; <- their amounts must balance to 0
 
               2008/06/02 save
                   assets:bank:saving    $1
-                  assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
+                  assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
 
-              2008/06/03 eat & shop           ; <- description can be anything
+              2008/06/03 eat & shop         ; <- description can be anything
                   expenses:food         $1
-                  expenses:supplies     $1    ; <- this transaction debits two expense accounts
-                  assets:cash                 ; <- $-2 inferred
+                  expenses:supplies     $1  ; <- this transaction debits two expense accounts
+                  assets:cash               ; <- $-2 inferred
 
               2008/10/01 take a loan
                   assets:bank:checking  $1
                   liabilities:debts    $-1
 
-              2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
+              2008/12/31 * pay off          ; <- an optional * or ! after the date means "cleared" (or anything you want)
                   liabilities:debts     $1
                   assets:bank:checking
 
@@ -154,8 +154,8 @@ FILE FORMAT
        easy bank reconciliation:
 
               2015/5/30
-                  expenses:food     $10   ; food purchased on saturday 5/30
-                  assets:checking         ; bank cleared it on monday, date:6/1
+                  expenses:food     $10  ; food purchased on saturday 5/30
+                  assets:checking        ; bank cleared it on monday, date:6/1
 
               $ hledger -f t.j register food
               2015/05/30                      expenses:food                  $10           $10
@@ -533,7 +533,7 @@ FILE FORMAT
 
                   2009/1/1
                     assets:euros     EUR100 @ $1.35  ; one hundred euros purchased at $1.35 each
-                    assets:dollars                 ; balancing amount is -$135.00
+                    assets:dollars                   ; balancing amount is -$135.00
 
        2. Write the total price, as @@ TOTALPRICE after the amount:
 
@@ -546,7 +546,7 @@ FILE FORMAT
 
                   2009/1/1
                     assets:euros     EUR100          ; one hundred euros purchased
-                    assets:dollars  $-135          ; for $135
+                    assets:dollars  $-135            ; for $135
 
        (Ledger users: Ledger uses a different syntax for fixed prices, {=UNIT-
        PRICE}, which hledger currently ignores).
@@ -568,8 +568,8 @@ FILE FORMAT
        is equivalent, -B shows something different:
 
               2009/1/1
-                assets:dollars  $-135               ; 135 dollars sold
-                assets:euros     EUR100               ; for 100 euros
+                assets:dollars  $-135                ; 135 dollars sold
+                assets:euros     EUR100              ; for 100 euros
 
               $ hledger bal -N --flat -B
                              EUR-100  assets:dollars  # <- the dollars' selling price
@@ -618,7 +618,7 @@ FILE FORMAT
        A  simple  tag is a word (which may contain hyphens) followed by a full
        colon, written inside a transaction or posting comment line:
 
-              2017/1/16 bought groceries    ; sometag:
+              2017/1/16 bought groceries  ; sometag:
 
        Tags can have a value, which is the text after the  colon,  up  to  the
        next comma or end of line, with leading/trailing whitespace removed:
@@ -827,7 +827,7 @@ FILE FORMAT
               D $1,000.00
 
               1/1
-                a     5    ; <- commodity-less amount, becomes $1
+                a     5 ; <- commodity-less amount, becomes $1
                 b
 
        As with the commodity directive, the amount must always be written with

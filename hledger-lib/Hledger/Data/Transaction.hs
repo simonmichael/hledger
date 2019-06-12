@@ -561,7 +561,7 @@ tests_Transaction =
                   ]
               } `is`
           unlines
-            [ "2012/05/14=2012/05/15 (code) desc    ; tcomment1"
+            [ "2012/05/14=2012/05/15 (code) desc  ; tcomment1"
             , "    ; tcomment2"
             , "    * a         $1.00"
             , "    ; pcomment2"
@@ -583,10 +583,10 @@ tests_Transaction =
                   , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
                   }
            in postingAsLines False False [p] p `is`
-              [ "    * a         $1.00    ; pcomment1"
+              [ "    * a         $1.00  ; pcomment1"
               , "    ; pcomment2"
               , "    ;   tag3: val3  "
-              , "    * a         2.00h    ; pcomment1"
+              , "    * a         2.00h  ; pcomment1"
               , "    ; pcomment2"
               , "    ;   tag3: val3  "
               ]

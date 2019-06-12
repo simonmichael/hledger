@@ -12,12 +12,12 @@ hledger -f - print
   ; posting-2-tag-2:
 ; non-metadata:
 >>>
-2010/01/01    ; txntag1: txn val 1
+2010/01/01  ; txntag1: txn val 1
     ; txntag2: txn val 2
     a               1
     ; posting1tag1: posting 1 val 1
     ; posting1tag2:
-    b              -1    ; posting-2-tag-1: posting 2 val 1
+    b              -1  ; posting-2-tag-1: posting 2 val 1
     ; posting-2-tag-2:
 
 >>>2
@@ -26,11 +26,11 @@ hledger -f - print
 # 2. reports can filter by tag existence
 hledger -f - print tag:foo
 <<<
-2010/01/01    ; foo:bar
+2010/01/01  ; foo:bar
   a             1
   b            -1
 
-2010/01/02    ; foo:baz
+2010/01/02  ; foo:baz
   c             1
   d            -1
 
@@ -38,11 +38,11 @@ hledger -f - print tag:foo
     e             1
     f            -1
 >>>
-2010/01/01    ; foo:bar
+2010/01/01  ; foo:bar
     a               1
     b              -1
 
-2010/01/02    ; foo:baz
+2010/01/02  ; foo:baz
     c               1
     d              -1
 
@@ -52,7 +52,7 @@ hledger -f - print tag:foo
 # 3. or tag value
 hledger -f - print tag:foo=bar
 <<<
-2010/01/01    ; foo:bar
+2010/01/01  ; foo:bar
   a             1
   b            -1
 
@@ -65,7 +65,7 @@ hledger -f - print tag:foo=bar
     e             1
     f            -1
 >>>
-2010/01/01    ; foo:bar
+2010/01/01  ; foo:bar
     a               1
     b              -1
 
@@ -76,14 +76,14 @@ hledger -f - print tag:foo=bar
 hledger -f - register tag:foo=bar
 <<<
 2010/01/01
-  a             1    ; foo:bar
+  a             1  ; foo:bar
   b            -1
 
-2010/01/02    ; foo:baz
+2010/01/02  ; foo:baz
   c             1
   d            -1
 
-2010/01/03    ; foo:bar
+2010/01/03  ; foo:bar
   e             1
   f            -1
 >>>

@@ -36,28 +36,28 @@ Here\[aq]s an example:
 \f[C]
 ; A sample journal file. This is a comment.
 
-2008/01/01 income               ; <- transaction\[aq]s first line starts in column 0, contains date and description
-    assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
-    income:salary        $-1    ;    followed by at least two spaces and an amount
+2008/01/01 income             ; <- transaction\[aq]s first line starts in column 0, contains date and description
+    assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
+    income:salary        $-1  ;    followed by at least two spaces and an amount
 
 2008/06/01 gift
-    assets:bank:checking  $1    ; <- at least two postings in a transaction
-    income:gifts         $-1    ; <- their amounts must balance to 0
+    assets:bank:checking  $1  ; <- at least two postings in a transaction
+    income:gifts         $-1  ; <- their amounts must balance to 0
 
 2008/06/02 save
     assets:bank:saving    $1
-    assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
+    assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
 
-2008/06/03 eat & shop           ; <- description can be anything
+2008/06/03 eat & shop         ; <- description can be anything
     expenses:food         $1
-    expenses:supplies     $1    ; <- this transaction debits two expense accounts
-    assets:cash                 ; <- $-2 inferred
+    expenses:supplies     $1  ; <- this transaction debits two expense accounts
+    assets:cash               ; <- $-2 inferred
 
 2008/10/01 take a loan
     assets:bank:checking  $1
     liabilities:debts    $-1
 
-2008/12/31 * pay off            ; <- an optional * or ! after the date means \[dq]cleared\[dq] (or anything you want)
+2008/12/31 * pay off          ; <- an optional * or ! after the date means \[dq]cleared\[dq] (or anything you want)
     liabilities:debts     $1
     assets:bank:checking
 \f[R]
@@ -185,8 +185,8 @@ reconciliation:
 .nf
 \f[C]
 2015/5/30
-    expenses:food     $10   ; food purchased on saturday 5/30
-    assets:checking         ; bank cleared it on monday, date:6/1
+    expenses:food     $10  ; food purchased on saturday 5/30
+    assets:checking        ; bank cleared it on monday, date:6/1
 \f[R]
 .fi
 .IP
@@ -727,7 +727,7 @@ Write the price per unit, as \f[C]\[at] UNITPRICE\f[R] after the amount:
 \f[C]
 2009/1/1
   assets:euros     \[Eu]100 \[at] $1.35  ; one hundred euros purchased at $1.35 each
-  assets:dollars                 ; balancing amount is -$135.00
+  assets:dollars               ; balancing amount is -$135.00
 \f[R]
 .fi
 .RE
@@ -752,8 +752,8 @@ hledger infer the price that balances the transaction:
 .nf
 \f[C]
 2009/1/1
-  assets:euros     \[Eu]100          ; one hundred euros purchased
-  assets:dollars  $-135          ; for $135
+  assets:euros     \[Eu]100        ; one hundred euros purchased
+  assets:dollars  $-135        ; for $135
 \f[R]
 .fi
 .RE
@@ -786,8 +786,8 @@ equivalent, -B shows something different:
 .nf
 \f[C]
 2009/1/1
-  assets:dollars  $-135               ; 135 dollars sold
-  assets:euros     \[Eu]100               ; for 100 euros
+  assets:dollars  $-135             ; 135 dollars sold
+  assets:euros     \[Eu]100             ; for 100 euros
 \f[R]
 .fi
 .IP
@@ -850,7 +850,7 @@ colon, written inside a transaction or posting comment line:
 .IP
 .nf
 \f[C]
-2017/1/16 bought groceries    ; sometag:
+2017/1/16 bought groceries  ; sometag:
 \f[R]
 .fi
 .PP
@@ -859,7 +859,7 @@ comma or end of line, with leading/trailing whitespace removed:
 .IP
 .nf
 \f[C]
-    expenses:food    $10   ; a-posting-tag: the tag value
+    expenses:food    $10 ; a-posting-tag: the tag value
 \f[R]
 .fi
 .PP
@@ -870,7 +870,7 @@ comma separated:
 .IP
 .nf
 \f[C]
-    assets:checking       ; a comment containing tag1:, tag2: some value ...
+    assets:checking      ; a comment containing tag1:, tag2: some value ...
 \f[R]
 .fi
 .PP
@@ -1098,19 +1098,19 @@ Eg:
 .IP
 .nf
 \f[C]
-Y2009      ; set default year to 2009
+Y2009  ; set default year to 2009
 
-12/15      ; equivalent to 2009/12/15
+12/15  ; equivalent to 2009/12/15
   expenses  1
   assets
 
-Y2010      ; change default year to 2010
+Y2010  ; change default year to 2010
 
 2009/1/30  ; specifies the year, not affected
   expenses  1
   assets
 
-1/31       ; equivalent to 2010/1/31
+1/31   ; equivalent to 2010/1/31
   expenses  1
   assets
 \f[R]
@@ -1172,7 +1172,7 @@ commodity-less amounts, or until the next \f[C]D\f[R] directive.
 D $1,000.00
 
 1/1
-  a     5    ; <- commodity-less amount, becomes $1
+  a     5  ; <- commodity-less amount, becomes $1
   b
 \f[R]
 .fi

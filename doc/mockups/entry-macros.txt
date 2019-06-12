@@ -10,7 +10,7 @@ $ ls *.entry
 laundry.entry  date.entry
 
 $ hledger entry laundry 20
-2015-05-06 laundry    ;  household:$20
+2015-05-06 laundry  ;  household:$20
     expenses:personal:home:laundry                            $10
     liabilities:personal:accounts payable:household           $10
     assets:personal:cash:wallet                              $-20

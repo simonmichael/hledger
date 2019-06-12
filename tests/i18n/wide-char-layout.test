@@ -21,7 +21,7 @@ hledger -f - print
 >>>
 2000/01/01 transaction 1
     㐀       㐃㐃1 @ 2 㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂
-    㐀:㐁        ; 㐃㐃-1
+    㐀:㐁      ; 㐃㐃-1
 
 2000/01/02 transaction 2
     㐀:㐁:㐂              USD 1

@@ -39,28 +39,28 @@ Here's an example:
 ```journal
 ; A sample journal file. This is a comment.
 
-2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
-    assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
-    income:salary        $-1    ;    followed by at least two spaces and an amount
+2008/01/01 income             ; <- transaction's first line starts in column 0, contains date and description
+    assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
+    income:salary        $-1  ;    followed by at least two spaces and an amount
 
 2008/06/01 gift
-    assets:bank:checking  $1    ; <- at least two postings in a transaction
-    income:gifts         $-1    ; <- their amounts must balance to 0
+    assets:bank:checking  $1  ; <- at least two postings in a transaction
+    income:gifts         $-1  ; <- their amounts must balance to 0
 
 2008/06/02 save
     assets:bank:saving    $1
-    assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
+    assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
 
-2008/06/03 eat & shop           ; <- description can be anything
+2008/06/03 eat & shop         ; <- description can be anything
     expenses:food         $1
-    expenses:supplies     $1    ; <- this transaction debits two expense accounts
-    assets:cash                 ; <- $-2 inferred
+    expenses:supplies     $1  ; <- this transaction debits two expense accounts
+    assets:cash               ; <- $-2 inferred
 
 2008/10/01 take a loan
     assets:bank:checking  $1
     liabilities:debts    $-1
 
-2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
+2008/12/31 * pay off          ; <- an optional * or ! after the date means "cleared" (or anything you want)
     liabilities:debts     $1
     assets:bank:checking
 ```
@@ -163,8 +163,8 @@ be reported on 6/1 for easy bank reconciliation:
 
 ```journal
 2015/5/30
-    expenses:food     $10   ; food purchased on saturday 5/30
-    assets:checking         ; bank cleared it on monday, date:6/1
+    expenses:food     $10  ; food purchased on saturday 5/30
+    assets:checking        ; bank cleared it on monday, date:6/1
 ```
 
 ```shell
@@ -582,8 +582,8 @@ is equivalent, -B shows something different:
 
 ```journal
 2009/1/1
-  assets:dollars  $-135               ; 135 dollars sold
-  assets:euros     €100               ; for 100 euros
+  assets:dollars  $-135              ; 135 dollars sold
+  assets:euros     €100              ; for 100 euros
 ```
 ```shell
 $ hledger bal -N --flat -B
@@ -639,18 +639,18 @@ which you can then [search](/hledger.html#queries) or [pivot](/hledger.html#pivo
 A simple tag is a word (which may contain hyphens) followed by a full colon,
 written inside a transaction or posting [comment](#comments) line:
 ```journal
-2017/1/16 bought groceries    ; sometag:
+2017/1/16 bought groceries  ; sometag:
 ```
 
 Tags can have a value, which is the text after the colon, up to the next comma or end of line, with leading/trailing whitespace removed:
 ```journal
-    expenses:food    $10   ; a-posting-tag: the tag value
+    expenses:food    $10 ; a-posting-tag: the tag value
 ```
 
 Note this means hledger's tag values can not contain commas or newlines.
 Ending at commas means you can write multiple short tags on one line, comma separated:
 ```journal
-    assets:checking       ; a comment containing tag1:, tag2: some value ...
+    assets:checking  ; a comment containing tag1:, tag2: some value ...
 ```
 Here,
 
@@ -774,19 +774,19 @@ You can set a default year to be used for subsequent dates which don't
 specify a year. This is a line beginning with `Y` followed by the year. Eg:
 
 ```journal
-Y2009      ; set default year to 2009
+Y2009  ; set default year to 2009
 
-12/15      ; equivalent to 2009/12/15
+12/15  ; equivalent to 2009/12/15
   expenses  1
   assets
 
-Y2010      ; change default year to 2010
+Y2010  ; change default year to 2010
 
 2009/1/30  ; specifies the year, not affected
   expenses  1
   assets
 
-1/31       ; equivalent to 2010/1/31
+1/31   ; equivalent to 2010/1/31
   expenses  1
   assets
 ```
@@ -845,7 +845,7 @@ The commodity and display format will be applied to all subsequent commodity-les
 D $1,000.00
 
 1/1
-  a     5    ; <- commodity-less amount, becomes $1
+  a     5  ; <- commodity-less amount, becomes $1
   b
 ```
 
@@ -976,11 +976,11 @@ If you ever override the types of those auto-detected english account names ment
 you might need to help the reports a bit. Eg:
 ```journal
 ; make "liabilities" not have the liability type - who knows why
-account liabilities   ; type:E
+account liabilities  ; type:E
 
 ; we need to ensure some other account has the liability type, 
 ; otherwise balancesheet would still show "liabilities" under Liabilities 
-account -             ; type:L
+account -            ; type:L
 ```
 
 #### Account display order
