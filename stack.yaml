@@ -28,8 +28,9 @@ extra-deps:
 # hledger-web:
 # hledger-api:
 
-# Workaround for https://github.com/commercialhaskell/stack/issues/3922:
-- haskell-src-exts-1.21.0
+# Workaround for https://github.com/commercialhaskell/stack/issues/3922
+# Try dropping this.. after stack 2 has been out a while ? Or now ? How about now ?
+#- haskell-src-exts-1.21.0
 
 # Workaround for https://github.com/simonmichael/hledger/issues/1039
 # (hledger-web build failure with GHC 8.6 on Windows 7)
