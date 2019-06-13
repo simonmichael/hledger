@@ -12,6 +12,7 @@ tags.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE RecordWildCards #-}
+-- {-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Data.Transaction (
   -- * Transaction
@@ -39,6 +40,9 @@ module Hledger.Data.Transaction (
   showTransaction,
   showTransactionUnelided,
   showTransactionUnelidedOneLineAmounts,
+  showTransaction2,
+  showTransactionUnelided2,
+  showTransactionUnelidedOneLineAmounts2,
   -- showPostingLine,
   showPostingLines,
   -- * GenericSourcePos
@@ -190,7 +194,7 @@ renderCommentLines t =
 -- there are other postings, all with explicit amounts, and the transaction
 -- appears balanced.
 --
--- Postings with multicommodity explicit amounts are handled as follows:
+-- Postings with multi-commodity explicit amounts are handled as follows:
 -- if onelineamounts is true, these amounts are shown on one line,
 -- comma-separated, and the output will not be valid journal syntax.
 -- Otherwise, they are shown as several similar postings, one per commodity.
@@ -257,6 +261,239 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
+
+{-|
+Render a journal transaction as text, suitable for the print command.
+The output will be parseable journal syntax.
+This is a new version for https://github.com/simonmichael/hledger/issues/1045 (WIP).
+
+Splitting multi-commodity postings:
+
+Postings with an explicit multi-commodity amount (unusual, but
+possible) are displayed as multiple single-commodity postings.
+
+Eliding last amount:
+
+If there are multiple postings, all with explicit amounts, and the
+transaction appears obviously balanced (postings sum to 0, without
+needing to infer conversion prices), the last posting's amount will
+not be shown.
+
+General transaction layout:
+@
+DATE[ *][ (CODE)] DESCRIPTION[  ; TXNCOMMENT]
+    [; TXNCOMMENT]
+    [* ]ACCOUNT1  AMOUNT1[  ; POSTING1COMMENT]
+    [; POSTING1COMMENT]
+    [* ]ACCOUNT2  AMOUNT2[  ; POSTING2COMMENT]
+    [; POSTING2COMMENT]
+@
+
+Posting layout: see postingAsLines.
+
+Layout goals:
+
+- Transactions should be rendered one at a time, not requiring awareness of all of them.
+- Across multiple transactions, amounts should be aligned where possible.
+- Within each transaction, amounts should be aligned and readable.
+- Default output should be similar to ledger print and ledger-mode ledger-post-align-exact where possible.
+
+-}
+showTransaction2 :: Transaction -> String
+showTransaction2 = showTransactionHelper2 True False
+
+-- | Like showTransaction, but does not change amounts' explicitness.
+-- Explicit amounts are shown and implicit amounts are not.
+-- The output will be parseable journal syntax.
+-- To facilitate this, postings with explicit multi-commodity amounts 
+-- are displayed as multiple similar postings, one per commodity.
+-- Most often, this is the one you want to use.
+showTransactionUnelided2 :: Transaction -> String
+showTransactionUnelided2 = showTransactionHelper2 False False
+
+-- | Like showTransactionUnelided, but explicit multi-commodity amounts 
+-- are shown on one line, comma-separated. In this case the output will 
+-- not be parseable journal syntax.
+showTransactionUnelidedOneLineAmounts2 :: Transaction -> String
+showTransactionUnelidedOneLineAmounts2 = showTransactionHelper2 False True
+
+-- | Helper for showTransaction*. 
+showTransactionHelper2 :: Bool -> Bool -> Transaction -> String
+showTransactionHelper2 elidelast onelineamounts t =
+    unlines $ [descriptionline]
+              ++ newlinecomments
+              ++ postingsAsLines2 elidelast onelineamounts t
+              ++ [""]
+    where
+      descriptionline = rstrip $ concat [date, status, code, desc, samelinecomment]
+      date = showDate (tdate t) ++ maybe "" (("="++) . showDate) (tdate2 t)
+      status | tstatus t == Cleared = " *"
+             | tstatus t == Pending = " !"
+             | otherwise            = ""
+      code = if T.length (tcode t) > 0 then printf " (%s)" $ T.unpack $ tcode t else ""
+      desc = if null d then "" else " " ++ d where d = T.unpack $ tdescription t
+      (samelinecomment, newlinecomments) =
+        case renderCommentLines (tcomment t) of []   -> ("",[])
+                                                c:cs -> (c,cs)
+
+-- | Given a transaction and its postings, render the postings, suitable
+-- for `print` output. Normally this output will be valid journal syntax which
+-- hledger can reparse (though it may include no-longer-valid balance assertions).
+--
+-- Explicit amounts are shown, implicit amounts are not. Setting
+-- elidelast to true forces the last posting's amount to be implicit,
+-- but only if there are other postings, all with explicit amounts,
+-- and the transaction appears balanced.
+--
+-- Postings with explicit multi-commodity amounts are handled as
+-- follows. If onelineamounts is true, they are shown on one line,
+-- comma-separated (and in this case the output will not be valid
+-- journal syntax). Otherwise, they are split into several similar
+-- single-commodity postings.
+-- 
+-- The output will appear to be a balanced transaction.
+-- Amounts' display precisions, which may have been limited by commodity
+-- directives, will be increased if necessary to ensure this.
+--
+-- For layout details see showTransaction2 & postingAsLines.
+-- 
+postingsAsLines2 :: Bool -> Bool -> Transaction -> [String]
+postingsAsLines2 elidelast onelineamounts t@Transaction{tpostings=ps}
+  | elide     = (postingAsLines2 False onelineamounts ps) `concatMap` init ps ++
+                (postingAsLines2 True  onelineamounts ps $ last ps)
+  | otherwise = (postingAsLines2 False onelineamounts ps) `concatMap` ps
+  where
+    elide = elidelast && length ps > 1 && all hasAmount ps && isTransactionBalanced Nothing t -- imprecise balanced check
+
+{- |
+Render one posting, on one or more lines, suitable for `print` output.
+There will be an indented account name, plus one or more of: status
+mark, posting amount, price amount, balance assertion, same-line
+comment, next-line comments.
+
+If the posting's amount is implicit or if elideamount is true, no
+posting/price amount is shown.
+
+If the posting's amount is explicit and multi-commodity, multiple
+similar postings are shown, one for each commodity, ensuring valid
+journal syntax. Or if onelineamounts is true, such amounts are shown
+on one line, comma-separated (and the output will not be valid journal
+syntax).
+
+If a list of sibling postings is provided (pstoalignwith), the layout
+will be adjusted so that all of the postings will align well.
+
+Layout
+
+Here is the layout spec. which the code below aims to implement. Keep
+in sync with the code and vice versa. See also 'showTransaction2'.
+
+@
+                                         decimal mark (column 49)
+                                                 |             
+postingindent                 amountspace        v              commentspace
+ |                                  |                                |      
+ |              account             | v----------amounts------------v|  comment
+ |                 |                | amountsleft   amountsright     |     |
+ v                 v                v       v              v         v     v
+....|------------------------------|..|---------||------------------|..|---------|
+    assets:checking                          1000.00 USD @ EUR 0.8000  ; a comment
+    * expenses:food                      EUR -800.0000                   
+
+    ^                                     integer  |            
+    |                                           decimals        
+status mark                                  ^-------^          
+                                          ^  quantity           
+                                          |           ^         
+                                    leftcommodity     |         
+                                               rightcommodity    
+                                                                
+                                                ^              ^
+                                         postingamount    priceamount
+@
+XXX ^ add balance assertions
+
+Definitions:
+
+- The amounts area usually contains a posting amount and optional price amount.
+- It is divided into amountsleft and amountsright, at postingamount's decimal mark.
+- postingamount has a numeric quantity, and optional commodity symbol on the left or right.
+- quantity has an integer part and optional decimals part separated by a decimal mark (. or ,).
+- amountsleft can contain a leftcommodity and postingamount's integer.
+- amountsright can contain postingamount's decimal mark, decimals, a rightcommodity, and a priceamount.
+- These widths are common to all postings in a txn.
+
+Size constraints:
+
+- postingindent is 4 wide, amountspace and commentspace are 2 wide
+- amountsleft >= 12 (a standard minimum width, improves intertxn alignment)
+- amountsleft >= widest leftcommodity + integer in txn (grow as needed)
+- otherwise amountsleft is as small as possible
+- amountsleft is right aligned
+- account is wide enough to position decimalmark at column 49 (similar to ledger/ledger-mode's default layout when showing two decimal places)
+- account >= widest account name in txn (grow as needed)
+- amountsright >= widest decimals + rightcommodity + priceamount in txn (grow as needed)
+
+-}
+postingAsLines2 :: Bool -> Bool -> [Posting] -> Posting -> [String]
+postingAsLines2 elideamount onelineamounts pstoalignwith p =
+  -- XXX how does this work.. seems to add newline comments again to each line of the posting
+  concat [ postingline ++ newlinecomments | postingline <- postinglines]
+  where
+    -- All this posting's rendered fields combined, as one line.
+    -- Or in the case of a multi-commodity amount, multiple lines,
+    -- top-aligned.
+    postinglines =
+      [ map rstrip $ lines $ concatTopPadded [
+          lineIndent account, "  ", amounts, assertion, samelinecomment]
+      | amounts <- amountslines
+      ]
+
+    -- "amounts" in the diagram above. The posting amount and price
+    -- amount if any, on one line; or in the case of a multi-commodity
+    -- amount, multiple such lines.
+    amountslines
+      | elideamount    = [""]
+      | onelineamounts = [fitString (Just amountswidth) Nothing False False $ showMixedAmountOneLine $ pamount p]
+      | null (amounts $ pamount p)
+                       = [""]
+      | otherwise      = map (fitStringMulti (Just amountswidth) Nothing False False . showAmount ) . amounts $ pamount p
+      where
+        amountswidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) pstoalignwith  -- min. 12 for backwards compatibility
+        -- TODO: align decimal point
+        -- amountswidth = maximum $ 12 : map leftWidth pstoalignwith
+        --
+        -- leftWidth Posting{..} =
+        --   case showMixedAmount pamount of
+        --     '"':s -> widthToDecimalMark $ tail $ dropWhile (/='"') s  -- double-quoted left commodity
+        --     s     -> widthToDecimalMark s
+        --   where
+        --     widthToDecimalMark s = strWidth $ takeWhile (/= decimalmark) s
+        --       where
+        --         decimalmark = fromMaybe '.' $  -- XXX not sure what unspecified means.. default to period ok ?
+        --                       asdecimalpoint $ astyle pamount -- XXX MixedAmount, multilines.. ah me
+    
+    -- "account" in the diagram above. The account name, possibly preceded by a status mark.
+    account = fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
+        where
+          -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  
+          minwidth = maximum $ map ((2+) . textWidth . T.pack . pacctstr) pstoalignwith
+          pstatusandacct p' = pstatusprefix p' ++ pacctstr p'
+          pstatusprefix p' | null s    = ""
+                           | otherwise = s ++ " "
+            where s = show $ pstatus p'
+          pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
+
+    -- A balance assertion, if there is one. Not in the diagram yet.
+    assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p 
+
+    -- The "same line" comment if any ("comment" in the diagram above),
+    -- and any additional comment lines.
+    (samelinecomment, newlinecomments) =
+      case renderCommentLines (pcomment p) of []   -> ("",[])
+                                              c:cs -> (c,cs)
+
+-- 
 
 -- | Render a balance assertion, as the =[=][*] symbol and expected amount. 
 showBalanceAssertion BalanceAssertion{..} = 

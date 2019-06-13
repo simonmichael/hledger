@@ -59,7 +59,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
   writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransactionUnelided . gettxn) 
+entriesReportAsText opts = concatMap (showTransactionUnelided2 . gettxn) 
   where
     gettxn | useexplicittxn = id                   -- use fully inferred amounts & txn prices 
            | otherwise      = originalTransaction  -- use original as-written amounts/txn prices
