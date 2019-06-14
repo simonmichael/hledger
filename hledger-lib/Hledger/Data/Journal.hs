@@ -116,7 +116,6 @@ import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Dates
--- import Hledger.Data.Prices
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Posting

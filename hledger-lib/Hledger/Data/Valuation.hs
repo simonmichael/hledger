@@ -10,7 +10,7 @@ looking up historical market prices (exchange rates) between commodities.
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Hledger.Data.Prices (
+module Hledger.Data.Valuation (
    amountValueAtDate
   ,amountApplyValuation
   ,mixedAmountValueAtDate
@@ -18,7 +18,7 @@ module Hledger.Data.Prices (
   ,marketPriceReverse
   ,priceDirectiveToMarketPrice
   ,priceLookup
-  ,tests_Prices
+  ,tests_Valuation
 )
 where
 
@@ -40,7 +40,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Dates (parsedate)
 
 
-tests_Prices = tests "Prices" [
+tests_Valuation = tests "Valuation" [
    tests_priceLookup
   ]
 

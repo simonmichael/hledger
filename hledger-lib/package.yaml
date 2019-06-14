@@ -111,7 +111,6 @@ library:
   - Hledger.Data.Dates
   - Hledger.Data.Journal
   - Hledger.Data.Ledger
-  - Hledger.Data.Prices
   - Hledger.Data.Period
   - Hledger.Data.PeriodicTransaction
   - Hledger.Data.StringFormat
@@ -121,6 +120,7 @@ library:
   - Hledger.Data.Transaction
   - Hledger.Data.TransactionModifier
   - Hledger.Data.Types
+  - Hledger.Data.Valuation
   - Hledger.Query
   - Hledger.Read
   - Hledger.Read.Common

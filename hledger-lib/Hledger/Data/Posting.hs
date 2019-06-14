@@ -87,7 +87,7 @@ import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
 import Hledger.Data.Dates (nulldate, spanContainsDate)
-import Hledger.Data.Prices
+import Hledger.Data.Valuation
 
 
 
