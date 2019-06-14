@@ -36,7 +36,9 @@ import Hledger.Reports.ReportOptions
 import Hledger.Reports.BalanceReport
 
 
--- | A multi balance report is a balance report with one or more columns. It has:
+-- | A multi balance report is a balance report with multiple columns,
+-- corresponding to consecutive subperiods within the overall report
+-- period. It has:
 --
 -- 1. a list of each column's period (date span)
 --
@@ -136,40 +138,11 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
             | otherwise = dbg1 "displayspan" $ requestedspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
           matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts ropts) ps
 
-      ----------------------------------------------------------------------
-      -- 2. Things we'll need if doing valuation.
-
-      -- Here's the current intended effect of --value on each part of the report:
-      --  -H/--historical starting balances:
-      --   cost: summed cost of previous postings
-      --   end:  historical starting balances valued at day before report start
-      --   date: historical starting balances valued at date
-      --  table cells:
-      --   cost: summed costs of postings
-      --   end:  summed postings, valued at subperiod end
-      --   date: summed postings, valued at date
-      --  column totals:
-      --   cost: summed column amounts
-      --   end:  summed column amounts
-      --   date: summed column amounts
-      --  row totals & averages, grand total & average:
-      --   cost: summed/averaged row amounts
-      --   end:  summed/averaged row amounts
-      --   date: summed/averaged row amounts
-      today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
-      -- Market prices, commodity display styles.
-      styles = journalCommodityStyles j
-      -- The last day of each column subperiod.
-      lastdays :: [Day] =
-        map ((maybe
-              (error' "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
-              (addDays (-1)))
-            . spanEnd) colspans
       -- If doing cost valuation, convert amounts to cost.
       j' = journalSelectingAmountFromOpts ropts j
 
       ----------------------------------------------------------------------
-      -- 3. Calculate starting balances, if needed for -H
+      -- 2. Calculate starting balances, if needed for -H
 
       -- Balances at report start date, from all earlier postings which otherwise match the query.
       -- These balances are unvalued except maybe converted to cost.
@@ -197,7 +170,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
       startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startbals
 
       ----------------------------------------------------------------------
-      -- 4. Gather postings for each column.
+      -- 3. Gather postings for each column.
 
       -- Postings matching the query within the report period.
       ps :: [Posting] =
@@ -213,7 +186,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
           [(filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps, spanEnd s) | s <- colspans]
 
       ----------------------------------------------------------------------
-      -- 5. Calculate account balance changes in each column.
+      -- 4. Calculate account balance changes in each column.
 
       -- In each column, gather the accounts that have postings and their change amount.
       acctChangesFromPostings :: [Posting] -> [(ClippedAccountName, MixedAmount)]
@@ -229,7 +202,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
           dbg1 "colacctchanges" $ map (acctChangesFromPostings . fst) colps
 
       ----------------------------------------------------------------------
-      -- 6. Gather the account balance changes into a regular matrix including the accounts
+      -- 5. Gather the account balance changes into a regular matrix including the accounts
       -- from all columns (and with -H, accounts with starting balances), adding zeroes where needed.
 
       -- All account names that will be displayed, possibly depth-clipped.
@@ -255,7 +228,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
           [(a, map snd abs) | abs@((a,_):_) <- transpose colallacctchanges] -- never null, or used when null...
 
       ----------------------------------------------------------------------
-      -- 7. Build the report rows.
+      -- 6. Build the report rows.
 
       -- One row per account, with account name info, row amounts, row total and row average.
       -- Row amounts are converted to value if that has been requested.
@@ -281,9 +254,37 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
            , let rowavg = averageMixedAmounts valuedrowbals
            , empty_ || depth == 0 || any (not . isZeroMixedAmount) valuedrowbals
            ]
-
+        where
+          -- Some things needed if doing valuation.
+          -- Here's the current intended effect of --value on each part of the report:
+          --  -H/--historical starting balances:
+          --   cost: summed cost of previous postings
+          --   end:  historical starting balances valued at day before report start
+          --   date: historical starting balances valued at date
+          --  table cells:
+          --   cost: summed costs of postings
+          --   end:  summed postings, valued at subperiod end
+          --   date: summed postings, valued at date
+          --  column totals:
+          --   cost: summed column amounts
+          --   end:  summed column amounts
+          --   date: summed column amounts
+          --  row totals & averages, grand total & average:
+          --   cost: summed/averaged row amounts
+          --   end:  summed/averaged row amounts
+          --   date: summed/averaged row amounts
+          today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
+          -- Market prices, commodity display styles.
+          styles = journalCommodityStyles j
+          -- The last day of each column subperiod.
+          lastdays =
+            map ((maybe
+                  (error' "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
+                  (addDays (-1)))
+                . spanEnd) colspans
+          
       ----------------------------------------------------------------------
-      -- 8. Sort the report rows.
+      -- 7. Sort the report rows.
 
       -- Sort the rows by amount or by account declaration order. This is a bit tricky.
       -- TODO: is it always ok to sort report rows after report has been generated, as a separate step ?
@@ -326,7 +327,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                   sortedrows = sortAccountItemsLike sortedanames anamesandrows 
 
       ----------------------------------------------------------------------
-      -- 9. Build the report totals row.
+      -- 8. Build the report totals row.
 
       -- Calculate the column totals. These are always the sum of column amounts.
       highestlevelaccts = [a | a <- displayaccts, not $ any (`elem` displayaccts) $ init $ expandAccountName a]
