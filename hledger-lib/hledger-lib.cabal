@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 89c2a4dadadc88418d53e5b39a17bcc9831b58cf46dbf77c4a5598f6db326cbc
+-- hash: 0fcd674c691f4a2c3be53c25f5f5f07c1b3d7e253aa45177acb50a1cfe70dcc3
 
 name:           hledger-lib
 version:        1.14.99
@@ -82,7 +82,7 @@ library
       Hledger.Reports.BalanceReport
       Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
-      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.MultiBalanceReport
       Hledger.Reports.PostingsReport
       Hledger.Reports.TransactionsReport
       Hledger.Utils
@@ -182,7 +182,7 @@ test-suite doctests
       Hledger.Reports.BalanceReport
       Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
-      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.MultiBalanceReport
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
@@ -285,7 +285,7 @@ test-suite easytests
       Hledger.Reports.BalanceReport
       Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
-      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.MultiBalanceReport
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes

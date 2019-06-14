@@ -136,7 +136,7 @@ library:
   - Hledger.Reports.BalanceReport
   - Hledger.Reports.BudgetReport
   - Hledger.Reports.EntriesReport
-  - Hledger.Reports.MultiBalanceReports
+  - Hledger.Reports.MultiBalanceReport
   - Hledger.Reports.PostingsReport
   - Hledger.Reports.TransactionsReport
   - Hledger.Utils

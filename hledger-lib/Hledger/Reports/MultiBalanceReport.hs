@@ -5,7 +5,7 @@ Multi-column balance reports, used by the balance command.
 
 -}
 
-module Hledger.Reports.MultiBalanceReports (
+module Hledger.Reports.MultiBalanceReport (
   MultiBalanceReport(..),
   MultiBalanceReportRow,
   multiBalanceReport,
@@ -16,7 +16,7 @@ module Hledger.Reports.MultiBalanceReports (
   tableAsText,
 
   -- -- * Tests
-  tests_MultiBalanceReports
+  tests_MultiBalanceReport
 )
 where
 
@@ -397,7 +397,7 @@ tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
 
 -- tests
 
-tests_MultiBalanceReports = tests "MultiBalanceReports" [
+tests_MultiBalanceReport = tests "MultiBalanceReport" [
   let
     (opts,journal) `gives` r = do
       let (eitems, etotal) = r

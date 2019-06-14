@@ -37,7 +37,7 @@ import Hledger.Utils
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.BalanceReport (sortAccountItemsLike)
-import Hledger.Reports.MultiBalanceReports
+import Hledger.Reports.MultiBalanceReport
 
 
 -- for reference:
