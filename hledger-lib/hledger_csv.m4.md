@@ -161,7 +161,11 @@ amount USD %4
 # combine three fields to make a comment (containing two tags)
 comment note: %somefield - %anotherfield, date: %1
 ```
+
 Field assignments can be used instead of or in addition to a field list.
+
+Note, interpolation strips any outer whitespace, so a CSV value like
+`" 1 "` becomes `1` when interpolated.
 
 ## conditional block
 

@@ -850,10 +850,12 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
                       where
                         csvline = intercalate "," record
 
+-- | Render a field assigment's template, possibly interpolating referenced
+-- CSV field values. Outer whitespace is removed from interpolated values.
 renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> String
 renderTemplate rules record t = regexReplaceBy "%[A-z0-9]+" replace t
   where
-    replace ('%':pat) = maybe pat (\i -> atDef "" record (i-1)) mindex
+    replace ('%':pat) = maybe pat (\i -> strip $ atDef "" record (i-1)) mindex
       where
         mindex | all isDigit pat = readMay pat
                | otherwise       = lookup (map toLower pat) $ rcsvfieldindexes rules
