@@ -135,7 +135,8 @@ script:  # command output is not hidden
 
   - stack build --ghc-options=-Werror hledger-ui
   - stack build --ghc-options=-Werror hledger-web
-  - stack build --ghc-options=-Werror hledger-api
+# XXX skip this to stay within time limit
+#  - stack build --ghc-options=-Werror hledger-api
 
   # run the built-in hunit tests. This doesn't run the doctests, 
   # but doesn't require rebuilding and is fast
