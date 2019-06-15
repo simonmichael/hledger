@@ -41,7 +41,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       -- since balance assertion amounts are required to be exact, the
       -- amounts in opening/closing transactions should be too (#941)
       -- setprec = setFullPrecision
-      setprec = setMinimalPrecision
+      setprec = setNaturalPrecision
       -- balance assertion amounts will be unpriced, cf #824
       closingps = [posting{paccount=a
                           ,pamount=mixed [setprec $ negate b]

@@ -76,7 +76,7 @@ module Hledger.Data.Amount (
   setAmountPrecision,
   withPrecision,
   setFullPrecision,
-  setMinimalPrecision,
+  setNaturalPrecision,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -293,8 +293,8 @@ setFullPrecision a = setAmountPrecision p a
 
 -- | Set an amount's display precision to just enough so that it will
 -- be shown exactly, with all significant decimal places.
-setMinimalPrecision :: Amount -> Amount
-setMinimalPrecision a = setAmountPrecision normalprecision a
+setNaturalPrecision :: Amount -> Amount
+setNaturalPrecision a = setAmountPrecision normalprecision a
   where
     normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
 
