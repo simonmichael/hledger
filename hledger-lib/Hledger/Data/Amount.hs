@@ -77,6 +77,7 @@ module Hledger.Data.Amount (
   withPrecision,
   setFullPrecision,
   setNaturalPrecision,
+  setNaturalPrecisionUpTo,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -295,6 +296,14 @@ setFullPrecision a = setAmountPrecision p a
 -- be shown exactly, with all significant decimal places.
 setNaturalPrecision :: Amount -> Amount
 setNaturalPrecision a = setAmountPrecision normalprecision a
+  where
+    normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
+
+-- | Set an amount's display precision to just enough so that all
+-- significant decimal digits will be shown, but not more than the
+-- given maximum number of decimal digits.
+setNaturalPrecisionUpTo :: Int -> Amount -> Amount
+setNaturalPrecisionUpTo n a = setAmountPrecision (min n normalprecision) a
   where
     normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
 
