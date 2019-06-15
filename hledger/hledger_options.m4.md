@@ -644,6 +644,42 @@ $ hledger -f- print --value=2000-01-15
 
 ```
 
+You may need to explicitly set a commodity's display style, when reverse prices are used.
+Eg this output might be surprising:
+```
+P 2000-01-01 A 2B
+
+2000-01-01
+  a  1B
+  b
+```
+```
+$ hledger print -x -X A
+2000/01/01
+    a               0
+    b               0
+
+```
+Explanation: because there's no amount or commodity directive specifying a display style
+for A, 0.5A gets the default style, which shows no decimal digits. Because the displayed
+amount looks like zero, the commodity symbol and minus sign are not displayed either.
+Adding a commodity directive sets a more useful display style for A:
+```
+P 2000-01-01 A 2B
+commodity 0.00A
+
+2000-01-01
+  a  1B
+  b
+```
+```
+$ hledger print -X A
+2000/01/01
+    a           0.50A
+    b          -0.50A
+
+```
+
 #### Effect of --value on reports
 
 Below is how `--value` affects each of hledger's reports, currently.

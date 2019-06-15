@@ -1,0 +1,102 @@
+; More valuation tests. See also tests/journal/valuation.test.
+
+; some market prices
+P 2019-01-01 B   10 A
+P 2019-01-01 C    2 B
+P 2019-01-01 A  100 D
+P 2019-01-01 E    3 D
+
+; a transaction with both amounts in B
+2019-06-01
+    a  1 B
+    b
+
+; tests follow. This comment directive makes this file readable
+; by hledger, as well as shelltest; useful when troubleshooting.
+comment
+
+# 1. normal unvalued output
+$ hledger -f- print -x
+2019/06/01
+    a             1 B
+    b            -1 B
+
+>=
+
+# 2. current market value in default valuation commodity
+$ hledger -f- print -x -V
+2019/06/01
+    a            10 A
+    b           -10 A
+
+>=
+
+# 3. same as above, but request commodity A explicitly
+$ hledger -f- print -x --value=now,A
+2019/06/01
+    a            10 A
+    b           -10 A
+
+>=
+
+# 4. request commodity B - no effect
+$ hledger -f- print -x --value=now,B
+2019/06/01
+    a             1 B
+    b            -1 B
+
+>=
+
+# 5. request commodity we don't have prices for - no effect
+$ hledger -f- print -x --value=now,Z
+2019/06/01
+    a             1 B
+    b            -1 B
+
+>=
+
+# 6. request commodity C - uses reverse of C->B price.
+# There's nothing setting C display style, so the default style is used,
+# which shows no decimal digits.
+# And because that makes it display as zero, the commodity symbol
+# and sign are not shown either.
+$ hledger -f- print -x --value=now,C
+2019/06/01
+    a               0
+    b               0
+
+>=
+# # There's nothing setting C display style, so the default style is used,
+# # but the precision is increased to show the decimal digit
+# # (otherwise it would show C0).
+# $ hledger -f- print -x --value=now,C
+# 2019/06/01
+#     a            C0.5
+#     b           C-0.5
+#
+# >=
+
+# 7. request commodity D - chains B->A, A->D prices
+$ hledger -f- print -x --value=now,D
+2019/06/01
+    a          1000 D
+    b         -1000 D
+
+>=
+
+# 8. request commodity E - chains B->A, A->D, reverse of D->E prices.
+# As with C above, E gets the default display style, with precision 0.
+$ hledger -f- print -x --value=now,E
+2019/06/01
+    a            E333
+    b           E-333
+
+>=
+# # As with C above, E gets the default display style, but with the precision
+# # increased to show the decimal digits, but no more than 8.
+# $ hledger -f- print -x --value=now,E
+# 2019/06/01
+#     a     E333.33333333
+#     b    E-333.33333333
+#
+# >=

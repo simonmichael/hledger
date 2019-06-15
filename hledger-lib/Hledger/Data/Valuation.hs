@@ -81,13 +81,23 @@ amountApplyValuation prices styles periodend today ismultiperiod v a =
 -- given valuation date. (The default valuation commodity is the
 -- commodity of the latest applicable market price before the
 -- valuation date.)
+--
+-- The returned amount will have its commodity's canonical style applied,
+-- but with the precision adjusted to show all significant decimal digits
+-- up to a maximum of 8. (experimental)
+--
 -- If the market prices available on that date are not sufficient to
 -- calculate this value, the amount is left unchanged.
 amountValueAtDate :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> Amount -> Amount
 amountValueAtDate pricedirectives styles mto d a =
   case priceLookup pricedirectives d (acommodity a) mto of
     Nothing           -> a
-    Just (comm, rate) -> styleAmount styles $ amount{acommodity=comm, aquantity=rate * aquantity a}
+    Just (comm, rate) ->
+      -- setNaturalPrecisionUpTo 8 $  -- XXX force higher precision in case amount appears to be zero ?
+                                      -- Make default display style use precision 2 instead of 0 ?
+                                      -- Leave as is for now; mentioned in manual.
+      styleAmount styles
+      amount{acommodity=comm, aquantity=rate * aquantity a}
 
 ------------------------------------------------------------------------------
 -- Building a price graph
