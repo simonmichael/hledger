@@ -2,59 +2,50 @@
 
 # simple aliases
 
-# simple alias directive
-hledger -f- accounts
-<<<
+# 1. simple alias directive
+<
 alias checking = assets:bank:checking
 1/1
     (checking:a)  1
->>>
+$ hledger -f- accounts
 assets:bank:checking:a
->>>=0
 
-# simple alias matches whole account name components only
-hledger -f- accounts
-<<<
+# 2. simple alias matches whole account name components only
+<
 alias a:b = A:B
 1/1
     (a:b:c)   1  ; should match this
 1/1
     (a:bb:d)  1  ; should not match this
->>>
+$ hledger -f- accounts
 A:B:c
 a:bb:d
->>>=0
 
-# a simple alias matching the whole account name works
-hledger -f- accounts
-<<<
+# 3. a simple alias matching the whole account name works
+<
 alias a:b = A:B
 1/1
     (a:b)   1
->>>
+$ hledger -f- accounts
 A:B
->>>=0
 
 # regular expression aliases
 
-# regex alias directive
-hledger -f- accounts
-<<<
+# 4. regex alias directive
+<
 alias /^(.+):bank:([^:]+):?(.*)/ = \1:\2 \3
 1/1
     (assets:bank:B:checking:a)  1
->>>
+$ hledger -f- accounts
 assets:B checking:a
->>>=0
 
-# regex alias pattern is a case-insensitive regular expression
+# 5. regex alias pattern is a case-insensitive regular expression
 # matching anywhere in the account name. All matching aliases are
 # applied to an account name in turn, most recently seen first. The
 # replacement can replace multiple matches within the account name.
 # The replacement pattern supports numeric backreferences.
 #
-hledger -f- print
-<<<
+<
 alias /a/ = b
 
 2011/01/01
@@ -69,7 +60,7 @@ alias /A (.)/=\1
     a a  2
     c
 
->>>
+$ hledger -f- print
 2011/01/01
     b b               1
     b b               2
@@ -80,32 +71,30 @@ alias /A (.)/=\1
     b               2
     c
 
->>>=0
+>=0
 
 # CLI
 
-# --alias command-line options are applied in the order written.
+# 6. --alias command-line options are applied in the order written.
 # Spaces are allowed if quoted.
 # 
-hledger -f- print --alias '/A (.)/=a' --alias /a/=b
-<<<
+<
 2011/01/01
     a a  1
     A a  2
     c
 
->>>
+$ hledger -f- print --alias '/A (.)/=a' --alias /a/=b
 2011/01/01
     b               1
     b               2
     c
 
->>>=0
+>=0
 
-# alias options are applied after alias directives.
+# 7. alias options are applied after alias directives.
 #
-hledger -f- print --alias /a/=A --alias /B/=C --alias /B/=D --alias /C/=D
-<<<
+<
 alias /^a/=B
 alias /^a/=E
 alias E=F
@@ -114,17 +103,15 @@ alias E=F
     [a:x]    1
     [x:a:x]
 
->>>
+$ hledger -f- print --alias /a/=A --alias /B/=C --alias /B/=D --alias /C/=D
 2011/01/01
     [E:x]                 1
     [x:A:x]
 
->>>2
->>>=0
+>=0
 
-# alias options 
-hledger -f- balance --alias=cc=credit-card --alias=b=bank
-<<<
+# 8. alias options 
+<
 01/01 Opening balances
 	(bank)         100
 	(credit-card)  -10
@@ -144,23 +131,18 @@ hledger -f- balance --alias=cc=credit-card --alias=b=bank
 01/05
 	expenses  5
 	b         = 75
->>>
+$ hledger -f- balance --alias=cc=credit-card --alias=b=bank
                   75  bank
                   15  expenses
 --------------------
                   90
->>>2
->>>=0
 
-# query will search both origin and substitution in alias
-hledger -f- reg '^a$' '^b$'
-<<<
+# 9. query will search both origin and substitution in alias
+<
 alias a = b
 2017/1/1
     a  1
     b  -1
->>>
+$ hledger -f- reg '^a$' '^b$'
 2017/01/01                      b                                1             1
                                 b                               -1             0
->>>2
->>>=0
