@@ -660,6 +660,10 @@ compatibility with the larger plain text accounting ecosystem,
 etc.
 -->
 
+### Related ideas
+
+http://neilmitchell.blogspot.com/2019/06/the-one-pr-per-day-rule.html
+
 
 ## Tests
 
