@@ -1085,15 +1085,32 @@ alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
 Also note that REPLACEMENT continues to the end of line (or on command line,
 to end of option argument), so it can contain trailing whitespace. 
 
-#### Multiple aliases
+#### Combining aliases
 
-You can define as many aliases as you like using directives or command-line options.
-Aliases are recursive - each alias sees the result of applying previous ones.
-(This is different from Ledger, where aliases are non-recursive by default).
-Aliases are applied in the following order:
+You can define as many aliases as you like, using journal directives and/or command line options.
+As each journal entry is parsed, the aliases currently in effect are applied in the following order:
 
-1. alias directives, most recently seen first (recent directives take precedence over earlier ones; directives not yet seen are ignored)
-2. alias options, in the order they appear on the command line
+1. `alias` directives, most recently parsed first (reading upward from the journal entry, bottom to top)
+2. `--alias` options, in the order they appear on the command line (left to right).
+
+Recursive aliases are allowed; each alias sees the result of applying previous ones.
+(This is different from Ledger.)
+
+Note how alias directives are applied: "most recently parsed first.. bottom to top". 
+This means that for a given journal entry:
+
+- aliases defined after/below the entry do not affect it
+- the nearest alias declaration before/above the entry is applied first
+- the next alias above that will be be applied next, and so on.
+
+This gives nearby aliases precedence over distant ones, and helps
+provide semantic stability - so that aliases will keep working the
+same way independent of which files are being read and in which order.
+
+(If you forget this, recursive aliases will not work as you expect.
+Tip: you can always add `--debug=6` to see which aliases are applied
+in which order.)
+
 
 #### `end aliases`
 
