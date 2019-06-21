@@ -146,3 +146,82 @@ alias a = b
 $ hledger -f- reg '^a$' '^b$'
 2017/01/01                      b                                1             1
                                 b                               -1             0
+
+# recursive aliases https://github.com/simonmichael/hledger/issues/1055
+
+# 10. Recursive command line simple aliases.
+<
+2000/01/01
+  (one)  1
+
+$ hledger -f- --alias "one=two" --alias "two=three" print
+2000/01/01
+    (three)               1
+
+>=0
+
+# 11. Recursive simple alias directives. Note the reverse order,
+# alias directives are applied most recent first (bottom up).
+<
+alias two = three
+alias one = two
+2000/01/01
+  (one)  1
+
+$ hledger -f- print
+2000/01/01
+    (three)               1
+
+>=0
+
+# 12. Only one of these is applied.
+<
+alias one = three
+alias one = two
+2000/01/01
+  (one)  1
+
+$ hledger -f- print
+2000/01/01
+    (two)               1
+
+>=0
+
+# 13. Recursive command line regexp aliases.
+<
+2000/01/01
+  (one)  1
+
+$ hledger -f- --alias "/one/=two" --alias "/two/=three" print
+2000/01/01
+    (three)               1
+
+>=0
+
+# 14. Recursive regexp alias directives.
+# Alias directives are applied most recent first (bottom up).
+<
+alias /two/ = three
+alias /one/ = two
+2000/01/01
+  (one)  1
+
+$ hledger -f- print
+2000/01/01
+    (three)               1
+
+>=0
+
+# 15. Only one of these is applied.
+<
+alias /one/ = three
+alias /one/ = two
+2000/01/01
+  (one)  1
+
+$ hledger -f- print
+2000/01/01
+    (two)               1
+
+>=0
+
