@@ -1088,29 +1088,27 @@ to end of option argument), so it can contain trailing whitespace.
 #### Combining aliases
 
 You can define as many aliases as you like, using journal directives and/or command line options.
-As each journal entry is parsed, the aliases currently in effect are applied in the following order:
 
-1. `alias` directives, most recently parsed first (reading upward from the journal entry, bottom to top)
-2. `--alias` options, in the order they appear on the command line (left to right).
+Recursive aliases - where an account name is rewritten by one alias, then by another alias, and so on - are allowed.
+Each alias sees the effect of previously applied aliases.
 
-Recursive aliases are allowed; each alias sees the result of applying previous ones.
-(This is different from Ledger.)
+In such cases it can be important to understand which aliases will be applied and in which order.
+For (each account name in) each journal entry, we apply:
 
-Note how alias directives are applied: "most recently parsed first.. bottom to top". 
-This means that for a given journal entry:
+1. `alias` directives preceding the journal entry, most recently parsed first (ie, reading upward from the journal entry, bottom to top)
+2. `--alias` options, in the order they appeared on the command line (left to right).
 
-- aliases defined after/below the entry do not affect it
+In other words, for (an account name in) a given journal entry:
+
 - the nearest alias declaration before/above the entry is applied first
-- the next alias above that will be be applied next, and so on.
+- the next alias before/above that will be be applied next, and so on
+- aliases defined after/below the entry do not affect it.
 
 This gives nearby aliases precedence over distant ones, and helps
-provide semantic stability - so that aliases will keep working the
-same way independent of which files are being read and in which order.
+provide semantic stability - aliases will keep working the same way
+independent of which files are being read and in which order.
 
-(If you forget this, recursive aliases will not work as you expect.
-Tip: you can always add `--debug=6` to see which aliases are applied
-in which order.)
-
+In case of trouble, adding `--debug=6` to the command line will show which aliases are being applied when.
 
 #### `end aliases`
 
