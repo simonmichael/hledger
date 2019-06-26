@@ -48,6 +48,7 @@ import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath
+import System.Info (os)
 import System.IO
 import Text.Printf
 
@@ -128,14 +129,28 @@ requireJournalFileExists f = do
     exitFailure
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
+-- On Windows, also ensure that the path contains no trailing dots
+-- which could cause data loss (see 'isWindowsUnsafeDotPath').
 ensureJournalFileExists :: FilePath -> IO ()
 ensureJournalFileExists f = do
+  when (os/="mingw32" && isWindowsUnsafeDotPath f) $ do
+    hPrintf stderr "Part of file path %s\n ends with a dot, which is unsafe on Windows; please use a different path.\n" (show f)
+    exitFailure
   exists <- doesFileExist f
   when (not exists) $ do
     hPrintf stderr "Creating hledger journal file %s.\n" f
     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
     -- we currently require unix line endings on all platforms.
     newJournalContent >>= writeFile f
+
+-- | Does any part of this path contain non-. characters and end with a . ?
+-- Such paths are not safe to use on Windows (cf #1056).
+isWindowsUnsafeDotPath :: FilePath -> Bool
+isWindowsUnsafeDotPath =
+  not . null .
+  filter (not . all (=='.')) .
+  filter ((=='.').last) .
+  splitDirectories
 
 -- | Give the content for a new auto-created journal file.
 newJournalContent :: IO String
