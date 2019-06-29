@@ -232,19 +232,19 @@ balancetypeopt rawopts =
 -- -p/--period options, using the given date to interpret relative date expressions.
 periodFromRawOpts :: Day -> RawOpts -> Period
 periodFromRawOpts d rawopts =
-  case (mearliestb, mlateste) of
+  case (mlastb, mlaste) of
     (Nothing, Nothing) -> PeriodAll
     (Just b, Nothing)  -> PeriodFrom b
     (Nothing, Just e)  -> PeriodTo e
     (Just b, Just e)   -> simplifyPeriod $
                           PeriodBetween b e
   where
-    mearliestb = case beginDatesFromRawOpts d rawopts of
+    mlastb = case beginDatesFromRawOpts d rawopts of
                    [] -> Nothing
-                   bs -> Just $ minimum bs
-    mlateste   = case endDatesFromRawOpts d rawopts of
+                   bs -> Just $ last bs
+    mlaste = case endDatesFromRawOpts d rawopts of
                    [] -> Nothing
-                   es -> Just $ maximum es
+                   es -> Just $ last es
 
 -- Get all begin dates specified by -b/--begin or -p/--period options, in order,
 -- using the given date to interpret relative date expressions.
