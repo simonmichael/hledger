@@ -43,7 +43,7 @@ module Hledger.Cli.Main where
 import Data.Char (isDigit)
 import Data.List
 import Safe
-import System.Console.CmdArgs.Explicit as C
+import qualified System.Console.CmdArgs.Explicit as C
 import System.Environment
 import System.Exit
 import System.FilePath
@@ -204,7 +204,7 @@ argsToCliOpts :: [String] -> [String] -> IO CliOpts
 argsToCliOpts args addons = do
   let
     args'        = moveFlagsAfterCommand $ replaceNumericFlags args
-    cmdargsopts  = either usageError id $ process (mainmode addons) args'
+    cmdargsopts  = either usageError id $ C.process (mainmode addons) args'
     cmdargsopts' = decodeRawOpts cmdargsopts
   rawOptsToCliOpts cmdargsopts'
 
