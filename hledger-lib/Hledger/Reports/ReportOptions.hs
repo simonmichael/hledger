@@ -228,8 +228,11 @@ balancetypeopt rawopts =
     ("cumulative":_) -> CumulativeChange
     _                -> PeriodChange
 
--- Get the period specified by the intersection of -b/--begin, -e/--end and/or
--- -p/--period options, using the given date to interpret relative date expressions.
+-- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
+-- options appearing in the command line.
+-- Its bounds are the rightmost begin date specified by a -b or -p, and
+-- the rightmost end date specified by a -e or -p. Cf #1011.
+-- Today's date is provided to help interpret any relative dates.
 periodFromRawOpts :: Day -> RawOpts -> Period
 periodFromRawOpts d rawopts =
   case (mlastb, mlaste) of
