@@ -1,5 +1,3 @@
-# Test prices addon
-
 # by default only market prices are reported
 hledger prices -f-
 <<<

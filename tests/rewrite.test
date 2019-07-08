@@ -1,5 +1,3 @@
-# Tests for rewrite addon
-
 # Add proportional income tax (from documentation)
 hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax'
 <<<
