@@ -165,7 +165,7 @@ comment note: %somefield - %anotherfield, date: %1
 Field assignments can be used instead of or in addition to a field list.
 
 Note, interpolation strips any outer whitespace, so a CSV value like
-`" 1 "` becomes `1` when interpolated.
+`" 1 "` becomes `1` when interpolated ([#1051](https://github.com/simonmichael/hledger/issues/1051)).
 
 ## conditional block
 
