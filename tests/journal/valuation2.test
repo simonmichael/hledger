@@ -1,4 +1,4 @@
-; More valuation tests. See also tests/journal/valuation.test.
+# More valuation tests. See also valuation.test.
 
 ; some market prices
 P 2019-01-01 B   10 A
@@ -100,3 +100,86 @@ $ hledger -f- print -x --value=now,E
 #     b    E-333.33333333
 #
 # >=
+
+
+# Document some print behaviour. 
+# I think I've forgotten some other weird cases meant for here.
+# First an example with no market price, just a transaction price.
+<
+2000/01/01
+    a         -1A @ 1B
+    b          1B
+
+# 9. Normal print output.
+$ hledger -f- print
+2000/01/01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# 10. Valuing in a commodity with no market price has no effect.
+$ hledger -f- print -XZ
+2000/01/01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# 11. -B converts to the transaction price's commodity.
+$ hledger -f- print -B
+2000/01/01
+    a             -1B
+    b              1B
+
+>=0
+
+# 12. Note the -XZ nullifies the -B here, because both are forms of --value
+# (-B -XZ is equivalent to --value=cost --value=end,Z), and the rightmost wins.
+$ hledger -f- print -B -XZ
+2000/01/01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# With a market price: same as above.
+<
+P 2000/1/1 A 1B
+
+2000/01/01
+    a         -1A @ 1B
+    b          1B
+
+# 13. 
+$ hledger -f- print
+2000/01/01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# 14. 
+$ hledger -f- print -XZ
+2000/01/01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# 15. 
+$ hledger -f- print -B
+2000/01/01
+    a             -1B
+    b              1B
+
+>=0
+
+# 16. 
+$ hledger -f- print -B -XZ
+2000/01/01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
