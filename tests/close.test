@@ -23,53 +23,17 @@ $ hledger close -f- -p 2016 assets liabilities
     assets:bank                        $-80 = $0
     assets:cash                        $-10 = $0
     liabilities                        $-25 = $0
-    equity:closing balances
+    equity:closing balances            $115
 
 2017/01/01 opening balances
     assets:bank                         $80 = $80
     assets:cash                         $10 = $10
     liabilities                         $25 = $25
-    equity:opening balances
+    equity:opening balances           $-115
 
 >=0
 
-# 2. Test aggregation of postings with prices
-<
-Y2016
-01/31
-	liabilities:employer  $5,000.00
-	income:salary
-
-02/05
-	liabilities:employer  -$5,000.00 @ 0.95 EUR
-	expenses:tax  1,852.50 EUR
-	assets:bank  2,897.00 EUR
-	liabilities:employer
-
-02/29
-	liabilities:employer  $5,000.00
-	income:salary
-
-03/04
-	liabilities:employer  -$5,000.0 @ 0.93 EUR
-	expenses:tax  1,813.50 EUR
-	assets:bank  2,836.00 EUR
-	liabilities:employer
-
-$ hledger close -f- -p 2016 assets liabilities
-2016/12/31 closing balances
-    assets:bank                  -5,733 EUR = 0 EUR
-    liabilities:employer             -1 EUR = 0 EUR
-    equity:closing balances
-
-2017/01/01 opening balances
-    assets:bank                    5,733 EUR = 5,733 EUR
-    liabilities:employer               1 EUR = 1 EUR
-    equity:opening balances
-
->=0
-
-# 3. A begin date should be ignored
+# 2. A begin date should be ignored
 <
 2017/1/1
     (a)   1
@@ -77,15 +41,15 @@ $ hledger close -f- -p 2016 assets liabilities
 $ hledger close -f- -b2017/6/1 -e2018
 2017/12/31 closing balances
     a                                    -1 = 0
-    equity:closing balances
+    equity:closing balances               1
 
 2018/01/01 opening balances
     a                                     1 = 1
-    equity:opening balances
+    equity:opening balances              -1
 
 >=0
 
-# 4. Print just the opening transaction
+# 3. Print just the opening transaction
 <
 2016/1/1 open
     assets:bank         $100
@@ -109,11 +73,11 @@ $ hledger close -f- -p 2016 assets liabilities --opening
     assets:bank                         $80 = $80
     assets:cash                         $10 = $10
     liabilities                         $25 = $25
-    equity:opening balances
+    equity:opening balances           $-115
 
 >=0
 
-# 5. Print just the closing transaction
+# 4. Print just the closing transaction
 <
 2016/1/1 open
     assets:bank         $100
@@ -137,11 +101,11 @@ $ hledger close -f- -p 2016 assets liabilities --closing
     assets:bank                        $-80 = $0
     assets:cash                        $-10 = $0
     liabilities                        $-25 = $0
-    equity:closing balances
+    equity:closing balances            $115
 
 >=0
 
-# 6. Supplying --opening --closing is the same as just "close"
+# 5. Supplying --opening --closing is the same as just "close"
 <
 2016/1/1 open
     assets:bank         $100
@@ -165,12 +129,113 @@ $ hledger close -f- -p 2016 assets liabilities --opening --closing
     assets:bank                        $-80 = $0
     assets:cash                        $-10 = $0
     liabilities                        $-25 = $0
-    equity:closing balances
+    equity:closing balances            $115
 
 2017/01/01 opening balances
     assets:bank                         $80 = $80
     assets:cash                         $10 = $10
     liabilities                         $25 = $25
-    equity:opening balances
+    equity:opening balances           $-115
+
+>=0
+
+# 6. Closing a multi-priced balance. The "lot" prices are preserved.
+# Only the last posting in each commodity gets a balance assertion (#1035).
+# Balance assertion amounts do not have a price.
+<
+2019/01/01
+    assets                          1A @ 1B
+    assets                          1A @ 1C
+    equity
+
+$ hledger -f- close assets -p 2019
+2019/12/31 closing balances
+    assets                         -1A @ 1B
+    assets                         -1A @ 1C = 0A
+    equity:closing balances         1A @ 1B
+    equity:closing balances         1A @ 1C
+
+2020/01/01 opening balances
+    assets                          1A @ 1B
+    assets                          1A @ 1C = 2A
+    equity:opening balances        -1A @ 1B
+    equity:opening balances        -1A @ 1C
+
+>=0
+
+# 7. Closing a multi-priced balance, slightly more complex
+# (different price in each transaction). Hopefully
+# equivalent to 8.
+<
+2019/01/01
+    (assets)                        1A @ 1B
+
+2019/01/02
+    (assets)                        1A @ 2B
+
+$ hledger -f- close assets -p 2019
+2019/12/31 closing balances
+    assets                         -1A @ 1B
+    assets                         -1A @ 2B = 0A
+    equity:closing balances         1A @ 1B
+    equity:closing balances         1A @ 2B
+
+2020/01/01 opening balances
+    assets                          1A @ 1B
+    assets                          1A @ 2B = 2A
+    equity:opening balances        -1A @ 1B
+    equity:opening balances        -1A @ 2B
+
+>=0
+
+# 8. Closing a multi-priced balance, a more complex example.
+<
+2016/01/31
+    liabilities:employer                      $5,000.00
+    income:salary
+
+2016/02/05
+    liabilities:employer                     $-5,000.00 @ 0.95 EUR
+    expenses:tax                               1,852.50 EUR
+    assets:bank                                2,897.00 EUR
+    liabilities:employer
+
+2016/02/29
+    liabilities:employer                      $5,000.00
+    income:salary
+
+2016/03/04
+    liabilities:employer                     $-5,000.00 @ 0.93 EUR
+    expenses:tax                               1,813.50 EUR
+    assets:bank                                2,836.00 EUR
+    liabilities:employer
+
+; Note: without these declarations, the closing/opening entries below
+; would cause decimal marks to be misparsed. (How ?)
+;commodity $1,000.00
+;commodity 1,000.00 EUR
+
+$ hledger -f- close -p 2016 assets liabilities
+2016/12/31 closing balances
+    assets:bank                       -5,733 EUR = 0 EUR
+    liabilities:employer                $-10,000
+    liabilities:employer       $5,000 @ 0.93 EUR
+    liabilities:employer       $5,000 @ 0.95 EUR = $0
+    liabilities:employer                  -1 EUR = 0 EUR
+    equity:closing balances           $10,000.00
+    equity:closing balances    $-5,000.00 @ 0.93 EUR
+    equity:closing balances    $-5,000.00 @ 0.95 EUR
+    equity:closing balances         5,734.00 EUR
+
+2017/01/01 opening balances
+    assets:bank                         5,733 EUR = 5,733 EUR
+    liabilities:employer                  $10,000
+    liabilities:employer       $-5,000 @ 0.93 EUR
+    liabilities:employer       $-5,000 @ 0.95 EUR = $0
+    liabilities:employer                    1 EUR = 1 EUR
+    equity:opening balances           $-10,000.00
+    equity:opening balances    $5,000.00 @ 0.93 EUR
+    equity:opening balances    $5,000.00 @ 0.95 EUR
+    equity:opening balances         -5,734.00 EUR
 
 >=0

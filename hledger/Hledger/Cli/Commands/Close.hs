@@ -8,6 +8,8 @@ module Hledger.Cli.Commands.Close (
 where
 
 import Control.Monad (when)
+import Data.Function (on)
+import Data.List (groupBy)
 import Data.Maybe
 import Data.Time.Calendar
 import System.Console.CmdArgs.Explicit as C
@@ -19,6 +21,7 @@ closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
   [flagNone ["opening"] (setboolopt "opening") "show just opening transaction"
   ,flagNone ["closing"] (setboolopt "closing") "show just closing transaction"
+  -- ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ]
   [generalflagsgroup1]
   hiddenflags
@@ -36,31 +39,61 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       openingdate = fromMaybe today $ queryEndDate False q
       closingdate = addDays (-1) openingdate
       (acctbals,_) = balanceReportFromMultiBalanceReport ropts_ q j
-      balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmountSquashPricesForDisplay b) acctbals
+      balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmount b) acctbals
 
       -- since balance assertion amounts are required to be exact, the
       -- amounts in opening/closing transactions should be too (#941)
       -- setprec = setFullPrecision
       setprec = setNaturalPrecision
-      -- balance assertion amounts will be unpriced, cf #824
-      closingps = [posting{paccount=a
-                          ,pamount=mixed [setprec $ negate b]
-                          ,pbalanceassertion=Just assertion{baamount=setprec b{aquantity=0, aprice=Nothing}}
+      -- balance assertion amounts will be unpriced (#824)
+      -- only the last posting in each commodity will have a balance assertion (#1035)
+      closingps = [posting{paccount          = a
+                          ,pamount           = mixed [setprec $ negate b]
+                          ,pbalanceassertion = if islast then Just assertion{baamount=setprec b{aquantity=0, aprice=Nothing}} else Nothing
                           }
                   | (a,_,_,mb) <- acctbals
-                  , b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
+                    -- the balances in each commodity, and for each transaction price
+                  , let bs = amounts $ normaliseMixedAmount mb
+                    -- mark the last balance in each commodity
+                  , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
+                                     | bs <- groupBy ((==) `on` acommodity) bs]
+                  , (b, islast) <- bs'
                   ]
-                  ++ [posting{paccount="equity:closing balances", pamount=negate balancingamt}]
+                  -- The balancing posting to equity. Allow this one to have a multicommodity amount,
+                  -- and don't try to assert its balance.
+                  ++
+                  [posting{paccount = "equity:closing balances"
+                          ,pamount  = negate balancingamt
+                          }
+                  ]
 
-      openingps = [posting{paccount=a
-                          ,pamount=mixed [setprec b]
-                          ,pbalanceassertion=Just assertion{baamount=setprec b{aprice=Nothing}}
+      openingps = [posting{paccount          = a
+                          ,pamount           = mixed [setprec b]
+                          ,pbalanceassertion = case mcommoditysum of
+                                                 Just s  -> Just assertion{baamount=setprec s{aprice=Nothing}}
+                                                 Nothing -> Nothing
                           }
                   | (a,_,_,mb) <- acctbals
-                  , b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
+                    -- the balances in each commodity, and for each transaction price
+                  , let bs = amounts $ normaliseMixedAmount mb
+                    -- mark the last balance in each commodity, with the unpriced sum in that commodity
+                  , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
+                                     | bs <- groupBy ((==) `on` acommodity) bs
+                                     , let commoditysum = (sum bs)]
+                  , (b, mcommoditysum) <- bs'
                   ]
-                  ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
+                  ++
+                  [posting{paccount = "equity:opening balances"
+                          ,pamount  = balancingamt
+                          }
+                  ]
 
-  when closing $ putStr $ showTransaction (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps})
-  when opening $ putStr $ showTransaction (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps})
+      -- With -x, show all amounts explicitly (ie, also in the balancing equity posting(s)).
+      -- print also does it for -B; I think that isn't needed here.
+      -- showtxn | boolopt "explicit" rawopts = showTransactionUnelided
+      --         | otherwise                  = showTransaction
+      showtxn = showTransactionUnelided
+
+  when closing $ putStr $ showtxn (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps})
+  when opening $ putStr $ showtxn (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps})
 

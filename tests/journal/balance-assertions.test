@@ -365,23 +365,7 @@ hledger -f- print --explicit
 
 >>>=0
 
-# 21. close generates balance assertions without prices
-hledger -f- close -e 2019/1/2
-<<<
-2019/01/01
-    (a)         1A @ 1B = 1A @ 2B
->>>
-2019/01/01 closing balances
-    a                              -1A @ 1B = 0A
-    equity:closing balances
-
-2019/01/02 opening balances
-    a                               1A @ 1B = 1A
-    equity:opening balances
-
->>>=0
-
-# 22. The exact amounts are compared; display precision does not affect assertions.
+# 21. The exact amounts are compared; display precision does not affect assertions.
 hledger -f- print
 <<<
 commodity $1000.00
@@ -396,7 +380,7 @@ commodity $1000.00
 >>>2
 >>>=0
 
-# 23. This fails
+# 22. This fails
 hledger -f- print
 <<<
 commodity $1000.00
@@ -410,7 +394,7 @@ commodity $1000.00
 >>>2 /difference: 0\.004/
 >>>=1
 
-# 24. This fails
+# 23. This fails
 hledger -f- print
 <<<
 commodity $1000.00
@@ -424,7 +408,7 @@ commodity $1000.00
 >>>2 /difference: 0\.0001/
 >>>=1
 
-# 25. Inclusive assertions include balances from subaccounts.
+# 24. Inclusive assertions include balances from subaccounts.
 hledger -f- print
 <<<
 2019/1/1
