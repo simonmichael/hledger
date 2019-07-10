@@ -1,0 +1,25 @@
+# payees command
+
+# basic payees report
+<
+2018/1/1 foo  ; foo:
+  a
+
+2018/1/1 bar | baz
+  a
+
+$ hledger -f - payees
+bar
+foo
+>=
+
+# with payee and note fields togother
+$ hledger -f - payees --notes
+bar | baz
+foo
+>=
+
+# filtering transactions by tag
+$ hledger -f - payees tag:foo
+foo
+>=
