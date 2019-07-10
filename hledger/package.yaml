@@ -70,6 +70,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Help.txt
 - Hledger/Cli/Commands/Import.txt
 - Hledger/Cli/Commands/Incomestatement.txt
+- Hledger/Cli/Commands/Payees.txt
 - Hledger/Cli/Commands/Prices.txt
 - Hledger/Cli/Commands/Print.txt
 - Hledger/Cli/Commands/Printunique.txt
@@ -172,6 +173,7 @@ library:
   - Hledger.Cli.Commands.Files
   - Hledger.Cli.Commands.Import
   - Hledger.Cli.Commands.Incomestatement
+  - Hledger.Cli.Commands.Payees
   - Hledger.Cli.Commands.Prices
   - Hledger.Cli.Commands.Print
   - Hledger.Cli.Commands.Printunique
