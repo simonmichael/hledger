@@ -18,7 +18,8 @@ module Hledger.Cli.Commands.Descriptions (
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Data.List
+import Data.List.Extra (nubSortBy)
+import qualified Data.Text.ICU as T
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -39,6 +40,6 @@ descriptions CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      descriptions = nub $ sort $ map tdescription ts
+      descriptions = nubSortBy (T.compare [T.CompareIgnoreCase]) $ map tdescription ts
 
   mapM_ T.putStrLn descriptions
