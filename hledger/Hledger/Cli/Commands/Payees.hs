@@ -20,8 +20,6 @@ module Hledger.Cli.Commands.Payees (
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
-import Data.List
-import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import System.Console.CmdArgs.Explicit as C
 
@@ -41,7 +39,10 @@ payeesmode = hledgerCommandMode
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
 payees CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
-  let notes  = notes_ ropts
-      payees = []
+  d <- getCurrentDay
+  let shownotes = boolopt "notes" rawopts
+      q  = queryFromOpts d ropts
+      ts = entriesReport ropts q j
+      payees = map (if shownotes then tdescription else transactionPayee) ts
 
-  mapM_ (T.putStrLn . render) payees
+  mapM_ T.putStrLn payees
