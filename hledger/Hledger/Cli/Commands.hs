@@ -32,6 +32,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
+  ,module Hledger.Cli.Commands.Payees
   ,module Hledger.Cli.Commands.Prices
   ,module Hledger.Cli.Commands.Print
   ,module Hledger.Cli.Commands.Printunique
@@ -75,6 +76,7 @@ import Hledger.Cli.Commands.Files
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Import
 import Hledger.Cli.Commands.Incomestatement
+import Hledger.Cli.Commands.Payees
 import Hledger.Cli.Commands.Prices
 import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Printunique
@@ -107,6 +109,7 @@ builtinCommands = [
   ,(filesmode              , files)
   ,(diffmode               , diff)
   ,(incomestatementmode    , incomestatement)
+  ,(payeesmode             , payees)
   ,(pricesmode             , prices)
   ,(printmode              , print')
   ,(printuniquemode        , printunique)
@@ -173,6 +176,7 @@ commandsList = unlines [
   ," balance (b, bal)         show balance changes/end balances/budgets in accounts"
   ," commodities              show commodity/currency symbols"
   ," files                    show input file paths"
+  ," payees                   show payees"
   ," prices                   show market price records"
   ," print (p, txns)          show transactions (journal entries)"
   ," print-unique             show only transactions with unique descriptions"
