@@ -20,6 +20,8 @@ module Hledger.Cli.Commands.Payees (
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
+import Data.Function
+import Data.List
 import qualified Data.Text.IO as T
 import System.Console.CmdArgs.Explicit as C
 
@@ -43,6 +45,6 @@ payees CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   let shownotes = boolopt "notes" rawopts
       q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      payees = map (if shownotes then tdescription else transactionPayee) ts
+      payees = nub $ sort $ map (if shownotes then tdescription else transactionPayee) ts
 
   mapM_ T.putStrLn payees
