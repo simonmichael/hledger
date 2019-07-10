@@ -1,0 +1,19 @@
+# descriptions command
+
+# basic descriptions report
+<
+2018/1/1 foo  ; foo:
+  a
+
+2018/1/1 bar | baz
+  a
+
+$ hledger -f - descriptions
+bar | baz
+foo
+>=
+
+# filtering transactions by tag
+$ hledger -f - descriptions tag:foo
+foo
+>=

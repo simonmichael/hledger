@@ -72,11 +72,13 @@ extra-source-files:
     Hledger/Cli/Commands/Checkdupes.txt
     Hledger/Cli/Commands/Close.txt
     Hledger/Cli/Commands/Commodities.txt
+    Hledger/Cli/Commands/Descriptions.txt
     Hledger/Cli/Commands/Diff.txt
     Hledger/Cli/Commands/Files.txt
     Hledger/Cli/Commands/Help.txt
     Hledger/Cli/Commands/Import.txt
     Hledger/Cli/Commands/Incomestatement.txt
+    Hledger/Cli/Commands/Notes.txt
     Hledger/Cli/Commands/Payees.txt
     Hledger/Cli/Commands/Prices.txt
     Hledger/Cli/Commands/Print.txt
@@ -123,11 +125,13 @@ library
       Hledger.Cli.Commands.Checkdupes
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Commodities
+      Hledger.Cli.Commands.Descriptions
       Hledger.Cli.Commands.Diff
       Hledger.Cli.Commands.Help
       Hledger.Cli.Commands.Files
       Hledger.Cli.Commands.Import
       Hledger.Cli.Commands.Incomestatement
+      Hledger.Cli.Commands.Notes
       Hledger.Cli.Commands.Payees
       Hledger.Cli.Commands.Prices
       Hledger.Cli.Commands.Print
