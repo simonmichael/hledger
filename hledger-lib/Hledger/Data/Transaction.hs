@@ -35,6 +35,10 @@ module Hledger.Data.Transaction (
   transactionDate2,
   -- * arithmetic
   transactionPostingBalances,
+  -- * transaction description parts
+  transactionPayee,
+  transactionNote,
+  -- payeeAndNoteFromDescription,
   -- * rendering
   showTransaction,
   showTransactionUnelided,
@@ -99,6 +103,23 @@ nulltransaction = Transaction {
 -- | Make a simple transaction with the given date and postings.
 transaction :: String -> [Posting] -> Transaction 
 transaction datestr ps = txnTieKnot $ nulltransaction{tdate=parsedate datestr, tpostings=ps}
+
+transactionPayee :: Transaction -> Text
+transactionPayee = fst . payeeAndNoteFromDescription . tdescription
+
+transactionNote :: Transaction -> Text
+transactionNote = snd . payeeAndNoteFromDescription . tdescription
+
+-- | Parse a transaction's description into payee and note (aka narration) fields,
+-- assuming a convention of separating these with | (like Beancount).
+-- Ie, everything up to the first | is the payee, everything after it is the note.
+-- When there's no |, payee == note == description.
+payeeAndNoteFromDescription :: Text -> (Text,Text)
+payeeAndNoteFromDescription t
+  | T.null n = (t, t)
+  | otherwise = (textstrip p, textstrip $ T.drop 1 n)
+  where
+    (p, n) = T.span (/= '|') t
 
 {-|
 Render a journal transaction as text in the style of Ledger's print command. 
