@@ -1,6 +1,6 @@
 {-|
 
-The @payees@ command lists allpayees seen in transactions.
+The @notes@ command lists allpayees seen in transactions.
 
 -}
 
@@ -10,9 +10,9 @@ The @payees@ command lists allpayees seen in transactions.
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
 
-module Hledger.Cli.Commands.Payees (
-  payeesmode
- ,payees
+module Hledger.Cli.Commands.Notes (
+  notesmode
+ ,notes
 ) where
 
 #if !(MIN_VERSION_base(4,11,0))
@@ -26,19 +26,19 @@ import Hledger.Cli.CliOptions
 
 
 -- | Command line options for this command.
-payeesmode = hledgerCommandMode
-  $(embedFileRelative "Hledger/Cli/Commands/Payees.txt")
+notesmode = hledgerCommandMode
+  $(embedFileRelative "Hledger/Cli/Commands/Notes.txt")
   []
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
--- | The payees command.
-payees :: CliOpts -> Journal -> IO ()
-payees CliOpts{reportopts_=ropts} j = do
+-- | The notes command.
+notes :: CliOpts -> Journal -> IO ()
+notes CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      payees = nub $ sort $ map transactionPayee ts
+      notes = nub $ sort $ map transactionNote ts
 
-  mapM_ T.putStrLn payees
+  mapM_ T.putStrLn notes

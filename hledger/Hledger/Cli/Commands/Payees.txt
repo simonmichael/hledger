@@ -3,9 +3,7 @@ Show payee names.
 
 _FLAGS_
 
-This command lists all payee names that appear in transactions. With the
-optional notes directive (--notes) it will include the note field along
-with the base payee name.
+This command lists all payee names that appear in transactions.
 
 Examples:
 

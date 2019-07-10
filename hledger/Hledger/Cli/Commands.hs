@@ -28,10 +28,12 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Checkdupes
   ,module Hledger.Cli.Commands.Close
   ,module Hledger.Cli.Commands.Commodities
+  ,module Hledger.Cli.Commands.Descriptions
   ,module Hledger.Cli.Commands.Diff
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
+  ,module Hledger.Cli.Commands.Notes
   ,module Hledger.Cli.Commands.Payees
   ,module Hledger.Cli.Commands.Prices
   ,module Hledger.Cli.Commands.Print
@@ -71,11 +73,13 @@ import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Close
 import Hledger.Cli.Commands.Commodities
+import Hledger.Cli.Commands.Descriptions
 import Hledger.Cli.Commands.Diff
 import Hledger.Cli.Commands.Files
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Import
 import Hledger.Cli.Commands.Incomestatement
+import Hledger.Cli.Commands.Notes
 import Hledger.Cli.Commands.Payees
 import Hledger.Cli.Commands.Prices
 import Hledger.Cli.Commands.Print
@@ -104,11 +108,13 @@ builtinCommands = [
   ,(checkdupesmode         , checkdupes)
   ,(closemode              , close)
   ,(commoditiesmode        , commodities)
+  ,(descriptionsmode        , descriptions)
   ,(helpmode               , help')
   ,(importmode             , importcmd)
   ,(filesmode              , files)
   ,(diffmode               , diff)
   ,(incomestatementmode    , incomestatement)
+  ,(notesmode              , notes)
   ,(payeesmode             , payees)
   ,(pricesmode             , prices)
   ,(printmode              , print')
@@ -175,8 +181,10 @@ commandsList = unlines [
   ," activity                 show postings-per-interval bar charts"
   ," balance (b, bal)         show balance changes/end balances/budgets in accounts"
   ," commodities              show commodity/currency symbols"
+  ," descriptions             show unique transaction descriptions"
   ," files                    show input file paths"
-  ," payees                   show payees"
+  ," notes                    show unique note segments of transaction descriptions"
+  ," payees                   show unique payee segments of transaction descriptions"
   ," prices                   show market price records"
   ," print (p, txns)          show transactions (journal entries)"
   ," print-unique             show only transactions with unique descriptions"
