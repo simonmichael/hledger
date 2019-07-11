@@ -32,7 +32,7 @@ extra-deps:
 # Try dropping this.. after stack 2 has been out a while ? Or now ? How about now ?
 #- haskell-src-exts-1.21.0
 
-# Workaround for https://github.com/simonmichael/hledger/issues/1039
+# Use at least 0.46 to work around https://github.com/simonmichael/hledger/issues/1039
 # (hledger-web build failure with GHC 8.6 on Windows 7)
 # Might also be fixed by using GHC 8.6.5+, mixed reports
-- unix-time-0.4.6
+#- unix-time-0.4.6
