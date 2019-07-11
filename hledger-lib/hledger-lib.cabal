@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0fcd674c691f4a2c3be53c25f5f5f07c1b3d7e253aa45177acb50a1cfe70dcc3
+-- hash: 43f7883fbcb26e577890deba24ed91b7dc36352a686d6830b10a1bc667adece0
 
 name:           hledger-lib
 version:        1.14.99
@@ -25,7 +25,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.3
+tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
 build-type:     Simple
 extra-source-files:
     CHANGES.md
