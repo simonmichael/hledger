@@ -1,7 +1,16 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# c9e16b83
+# 6a506970
+
+- web: register page: clip linked accounts to 40 characters (Henning Thielemann)
+  This was the behaviour before adding the links.
+
+- web: avoid spaces before commas in register account links (Henning Thielemann)
+
+- web: add links to accounts in register transactions (Henning Thielemann)
+
+- web: fix "_create_locale could not be located" error on windows 7 (#1039)
 
 - use hledger 1.15
 

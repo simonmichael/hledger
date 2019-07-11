@@ -1,7 +1,101 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# ebf5ed93
+# 6a506970
+
+- close: preserve transaction prices (costs) accurately (#1035)
+  Transaction prices were being collapsed/misreported after close/open;
+  this is fixed. Now each separately-priced amount gets its own posting,
+  and only the last of these (for each commodity) gets a balance
+  assertion. Also the equity posting's amount is now always shown
+  explicitly, which in multicommodity situations means that multiple
+  equity postings are shown. The upshot is that a balance -B report
+  will be unchanged after closing & opening transactions.
+
+- csv: strip outer whitespace when interpolating CSV values (#1051)
+  This removes a potential snag in amount field assignments, and
+  hopefully is harmless and acceptable otherwise.
+
+- csv: don't show invalid inter-field spaces in CSV error messages
+  Errors involving a record like:
+
+  2000-01-01,a,"1"
+
+  displayed the record with extra spaces:
+
+  the CSV record is:       "2000-01-01", "a", "1"
+
+  which was not accurate or valid RFC-4180.
+
+- Bugfix for #1011: begin/end date options (Jakob Schöttl)
+
+- Fix and update documentation on date options (Jakob Schöttl)
+
+- add, web: disallow unsafe trailing dot paths on windows (fix #1056)
+  On Windows, ensureJournalFileExists now rejects file paths
+  containing any problematic trailing dots, to prevent data loss.
+  This affects the add command and hledger-web's add form.
+
+- lib: -X/--exchange now supports indirect price chains (#131)
+  Adds fgl as a dependency.
+
+- lib: support -X/--exchange (direct/reverse prices only) (#131)
+
+- lib: --value can select commodity (via direct/reverse prices) (#131)
+
+- lib: parse optional ,COMM suffix in --value (#131)
+
+- print: also canonicalise balance assertions' amount style (fix #1042)
+
+- csv: fix parse error printing, broken since 1.11 (#1038)
+
+- cli: restore --aux-date and --effective as --date2 aliases (#1034)
+  These Ledger-ish spellings were dropped over the years, to improve
+  --help's layout. Now they work again, but are considered hidden flags
+  so --help doesn't show them automatically (but I decided to mention
+  them manually in --date2's description).
+
+- make -V do --value=end in multiperiod reports (#329)
+
+- reg: replace --value=transaction with --value=cost
+
+- print: replace --value=transaction with --value=cost
+
+- bal etc.: replace --value=transaction with --value=cost (#329)
+
+- opts: new -B/--cost, -V/--market, --value flags (#329)
+
+- bal: --budget: don't always convert to cost
+  And don't show a percentage when budgeted and actual amounts are in
+  different commodities.
+
+- opts: shorten csv separator arg template
+
+- bal/bs/bse: -H or --cumulative now disables -T (#329)
+  To reduce confusion, multiperiod balance reports using -H/--historical
+  or --cumulative, which show end balances, no longer show a Totals
+  column since summing end balances generally doesn't make sense.
+  Also the underlying MultiBalanceReport now returns zero for those
+  totals when in cumulative or historical mode.
+
+- bal/bs/cf/is: support --value-at with -H; fix row/col/grand totals
+  This also includes a big cleanup of multiBalanceReport, which got
+  accidentally mingled.
+
+- bal/bs/cf/is: mention valuation type in report title
+
+- bal: document and test --value-at with --budget (#329)
+
+- reg: fix --value-at=transaction with -M (#329)
+
+- reg: support --value-at with -H (#329)
+
+- bal: fix --value-at for old-style single period balance reports (#329)
+
+- bal: support --value-at=p/t with multiperiod reports (#329)
+
+- reg: support --value-at=period with periodic reports (#329)
+
 
 - date-aware valuation: more thorough --value-at; document status (#329, #999)
   This feature turns out to be quite involved, as valuation interacts

@@ -1,7 +1,7 @@
 User-visible changes in hledger-api.
 See also the hledger changelog.
 
-# c9e16b83
+# 6a506970
 
 - use hledger 1.15
 

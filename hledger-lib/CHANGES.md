@@ -1,7 +1,55 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# ebf5ed93
+# 6a506970
+
+- lib: setNaturalPrecisionUpTo
+
+- lib: -X/--exchange now supports indirect price chains (#131)
+  Adds fgl as a dependency.
+
+- lib: clarify price types (#131)
+  dropped journalPrices
+
+  renamed Price to AmountPrice,  AKA "transaction price"
+
+  renamed MarketPrice to PriceDirective.
+
+  added new MarketPrice (more pure form of PriceDirective without the amount style information)
+
+  Prices is now a more efficient data structure, but not used yet.
+
+- lib: accountTransactionsReportItems: rewrite using catMaybes and mapAccumL (Henning Thielemann)
+  I find the report function less convolved without the integrated recursion.
+
+- lib: debug helpers: add ptraceAtWith, dbgNWith
+
+- restore TransactionsReport
+  hledger-web's register chart uses it, I didn't see it
+  because it's called from a hamlet template.
+
+- lib: drop TransactionsReport, BalanceHistoryReport
+  They seem unused.
+
+- lib: TransactionsReport/AccountTransactionsReport cleanup
+  Split them into separate files, rename journalTransactionsReport to
+  transactionsReport.
+
+- lib: drop postingValueAtDate
+
+- lib: postingTransformAmount, postingToCost, postingValue
+
+- lib: amountToCost, mixedAmountToCost
+
+- lib: valueTypeFromOpts helper
+
+- bal/bs/cf/is: support --value-at with -H; fix row/col/grand totals
+  This also includes a big cleanup of multiBalanceReport, which got
+  accidentally mingled.
+
+- lib: mapJournalTransactions, mapJournalPostings, mapTransactionPostings
+
+
 
 - lib: save the current date in ReportOpts
   We need this for choosing a valuation date, otherwise, report

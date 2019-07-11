@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1ac6c040
+# 6a506970
 
 - support brick >=0.47 also
 

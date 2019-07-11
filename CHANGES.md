@@ -1,7 +1,21 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 7dd54751
+# 23a7787a
+
+- Update shell completion script (Jakob Schöttl)
+
+- travis: skip hledger-api at least for now to stay under time limit
+
+- Create FUNDING.yml
+
+- examples: fix incompatible syntax in bcexample.hledger
+
+- make tag: include all hledger-web hs files in tags
+
+- shake: show htmlmanuals target in help
+
+
 
 - make site-watch: site-liverender & site-livereload in one command
 
