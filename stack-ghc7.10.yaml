@@ -56,6 +56,7 @@ extra-deps:
 - parser-combinators-1.0.0
 - persistent-2.7.0
 - persistent-template-2.5.4
+- process-1.2.3.0
 - profunctors-5.2.2
 - resourcet-1.1.11
 - scientific-0.3.6.2

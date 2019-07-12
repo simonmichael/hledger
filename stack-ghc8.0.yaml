@@ -37,6 +37,7 @@ extra-deps:
 - network-2.6.3.5
 - parser-combinators-1.0.0
 - persistent-template-2.5.4
+- process-1.4.3.0
 - scientific-0.3.6.2
 - servant-0.13.0.1
 - servant-server-0.13.0.1
