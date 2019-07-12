@@ -238,10 +238,10 @@ or left blank. Transaction descriptions can be queried, unlike [comments](#comme
 
 ### Payee and note
 
-You can optionally include a `|` (pipe) character in a description to 
-subdivide it into a payee/payer name on the left and additional notes on the right.
-This may be worthwhile if you need to do more precise
-[querying](/hledger.html#queries) and [pivoting](/hledger.html#pivoting) by payee.
+You can optionally include a `|` (pipe) character in descriptions to subdivide the description
+into separate fields for payee/payer name on the left (up to the first `|`) and an additional note
+field on the right (after the first `|`). This may be worthwhile if you need to do more precise
+[querying](/hledger.html#queries) and [pivoting](/hledger.html#pivoting) by payee or by note.
 
 ## Account names
 
