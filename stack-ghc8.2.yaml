@@ -21,6 +21,7 @@ extra-deps:
 - doctest-0.16.0
 - megaparsec-7.0.1
 - parser-combinators-1.0.0
+- process-1.6.5.1
 - swagger2-2.2.2
 # avoid no hashable instance for AccountName from doctests
 - hashtables-1.2.3.1
