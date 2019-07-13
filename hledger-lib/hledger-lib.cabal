@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 940be6dde18cf33cca2096d9176100b9ba178418eea2f1427d94fc5ffe58e783
+-- hash: 4cfc4e9879ec711800e91c2cfe108a99c36d80ccb81b59e1df314915e94d5523
 
 name:           hledger-lib
 version:        1.14.99
@@ -120,7 +120,7 @@ library
     , deepseq
     , directory
     , easytest >=0.2.1 && <0.3
-    , extra
+    , extra >=1.6.3
     , fgl >=5.5.4.0
     , file-embed >=0.0.10
     , filepath
@@ -223,7 +223,7 @@ test-suite doctests
     , directory
     , doctest >=0.16
     , easytest >=0.2.1 && <0.3
-    , extra
+    , extra >=1.6.3
     , fgl >=5.5.4.0
     , file-embed >=0.0.10
     , filepath
@@ -325,7 +325,7 @@ test-suite easytests
     , deepseq
     , directory
     , easytest >=0.2.1 && <0.3
-    , extra
+    , extra >=1.6.3
     , fgl >=5.5.4.0
     , file-embed >=0.0.10
     , filepath

@@ -27,7 +27,7 @@ import Data.Decimal (roundTo)
 import Data.Function (on)
 import Data.Graph.Inductive  (Gr, Node, NodeMap, mkMapGraph, mkNode, lab, out, sp)
 import Data.List
--- import Data.List.Extra (nubSortBy)
+import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Text as T
@@ -120,9 +120,7 @@ pricesAtDate pricedirectives d = PriceGraph{prGraph=g, prNodemap=m, prDeclaredPa
     -- get the latest (on or before date d) declared price for each commodity pair
     declaredprices :: [MarketPrice] =
       dbg5 "declaredprices" $
-      -- XXX Data.List.Extra.nubSortBy might be more efficient (n Log n vs n^2 ?)
-      -- but is not in ghc 7.10, 8.0 stackage snapshots
-      nub $ sortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto))) $  -- keep only the first (ie newest and latest parsed) price for each pair
+      nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto))) $  -- keep only the first (ie newest and latest parsed) price for each pair
       map snd $  -- discard the parse order label
       sortBy (flip compare `on` (\(parseorder,mp)->(mpdate mp,parseorder))) $  -- sort with newest dates and latest parse order first
       zip [1..] $  -- label with parse order

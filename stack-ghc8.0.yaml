@@ -24,6 +24,7 @@ extra-deps:
 - config-ini-0.2.3.0
 - criterion-1.4.1.0
 - doctest-0.16.0
+- extra-1.6.17
 - fgl-5.5.4.0
 - generics-sop-0.3.2.0
 - hashable-1.2.7.0
