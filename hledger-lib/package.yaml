@@ -156,25 +156,24 @@ library:
 tests:
 
   doctests:
-    main: doctests.hs
     source-dirs: test
+    main: doctests.hs
     dependencies:
     - Glob >=0.7
-    # Use a doctest new enough to support --fast and --verbose.
+    # Need a doctest new enough to support --fast and --verbose.
     - doctest >=0.16
-    # Note: doctest with ghc 8.4+ on mac breaks, needs this workaround:
+
+    # ghc 8.4+ on mac needs this workaround (see
+    # https://github.com/sol/doctest/issues/199,
+    # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10):
     #  ~$ locate HSinteger-gmp-1.0.2.0.o
     #  /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o
     #  ~$ mv /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o{,_DISABLE_GHC_ISSUE_15105}
-    # See https://github.com/sol/doctest/issues/199,
-    # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10 .
-    # Should probably disable it by default, but I think my testing convenience
-    # outweighs the small number of folks who'll hit this.. if I'm wrong let me know.
+    # Should probably disable it by default:
     #when:
     # - condition: os(darwin) && impl(ghc >= 8.4)
     #   buildable: false
 
-    # 201907 hard-to-debug doctest breakages
     # ghc 7.10 on linux:
     #  doctests: <command line>: Can't parse package flag: package-db /home/simon/.stack/snapshots/i386-linux/026d718ac4d5f70d983bbeebb712f79d402a8e7003bbfe787f9e853573ed7ed6/7.10.3/pkgdb
     # ghc 8.0 on linux:
@@ -185,7 +184,7 @@ tests:
 
 
   easytests:
-    main: easytests.hs
     source-dirs: test
+    main: easytests.hs
     dependencies:
     - hledger-lib
