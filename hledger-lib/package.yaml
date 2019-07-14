@@ -174,6 +174,16 @@ tests:
     # - condition: os(darwin) && impl(ghc >= 8.4)
     #   buildable: false
 
+    # 201907 hard-to-debug doctest breakages
+    # ghc 7.10 on linux:
+    #  doctests: <command line>: Can't parse package flag: package-db /home/simon/.stack/snapshots/i386-linux/026d718ac4d5f70d983bbeebb712f79d402a8e7003bbfe787f9e853573ed7ed6/7.10.3/pkgdb
+    # ghc 8.0 on linux:
+    #  Hledger/Read/JournalReader.hs:126: failure in expression `rejp (journalp <* eof) "2015/1/1\n a  0\n"' ... Variable not in scope: rejp :: f0 a0 -> [Char] -> t
+    when:
+    - condition: (impl(ghc < 8.2))
+      buildable: false
+
+
   easytests:
     main: easytests.hs
     source-dirs: test
