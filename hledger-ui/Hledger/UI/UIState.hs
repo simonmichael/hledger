@@ -35,15 +35,15 @@ toggleCleared :: UIState -> UIState
 toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatusSomehow Cleared copts ropts}}}
 
--- TODO testing different status toggle styles 
+-- TODO testing different status toggle styles
 
--- | Generate zero or more indicators of the status filters currently active, 
+-- | Generate zero or more indicators of the status filters currently active,
 -- which will be shown comma-separated as part of the indicators list.
 uiShowStatus :: CliOpts -> [Status] -> [String]
 uiShowStatus copts ss =
   case style of
-    -- in style 2, instead of "Y, Z" show "not X" 
-    Just 2 | length ss == numstatuses-1 
+    -- in style 2, instead of "Y, Z" show "not X"
+    Just 2 | length ss == numstatuses-1
       -> map (("not "++). showstatus) $ sort $ complement ss  -- should be just one
     _ -> map showstatus $ sort ss
   where
@@ -55,7 +55,7 @@ uiShowStatus copts ss =
 
 reportOptsToggleStatusSomehow :: Status -> CliOpts -> ReportOpts -> ReportOpts
 reportOptsToggleStatusSomehow s copts ropts =
-  case maybeintopt "status-toggles" $ rawopts_ copts of 
+  case maybeintopt "status-toggles" $ rawopts_ copts of
      Just 2 -> reportOptsToggleStatus2 s ropts
      Just 3 -> reportOptsToggleStatus3 s ropts
 --     Just 4 -> reportOptsToggleStatus4 s ropts
@@ -78,7 +78,7 @@ reportOptsToggleStatus1 s ropts@ReportOpts{statuses_=ss}
 reportOptsToggleStatus2 s ropts@ReportOpts{statuses_=ss}
   | ss == [s]            = ropts{statuses_=complement [s]}
   | ss == complement [s] = ropts{statuses_=[]}
-  | otherwise            = ropts{statuses_=[s]}  -- XXX assume only three values 
+  | otherwise            = ropts{statuses_=[s]}  -- XXX assume only three values
 
 -- 3 UPC toggles each X
 reportOptsToggleStatus3 s ropts@ReportOpts{statuses_=ss}

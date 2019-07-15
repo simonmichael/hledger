@@ -46,9 +46,9 @@ tests_Valuation = tests "Valuation" [
 
 ------------------------------------------------------------------------------
 -- Valuation
-                     
+
 -- Apply a specified valuation to this mixed amount, using the provided
--- prices db, commodity styles, period-end/current dates, 
+-- prices db, commodity styles, period-end/current dates,
 -- and whether this is for a multiperiod report or not.
 mixedAmountApplyValuation :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
 mixedAmountApplyValuation prices styles periodend today ismultiperiod v (Mixed as) =
@@ -63,7 +63,7 @@ mixedAmountValueAtDate :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle 
 mixedAmountValueAtDate prices styles mc d (Mixed as) = Mixed $ map (amountValueAtDate prices styles mc d) as
 
 -- | Apply a specified valuation to this amount, using the provided
--- prices db, commodity styles, period-end/current dates, 
+-- prices db, commodity styles, period-end/current dates,
 -- and whether this is for a multiperiod report or not.
 amountApplyValuation :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> Amount -> Amount
 amountApplyValuation prices styles periodend today ismultiperiod v a =
@@ -101,7 +101,7 @@ amountValueAtDate pricedirectives styles mto d a =
 
 ------------------------------------------------------------------------------
 -- Building a price graph
-                     
+
 -- | Convert a list of market price directives in parse order to a
 -- graph of all prices in effect on a given day, allowing efficient
 -- lookup of exchange rates between commodity pairs.
@@ -148,7 +148,7 @@ marketPriceReverse mp@MarketPrice{..} = mp{mpfrom=mpto, mpto=mpfrom, mprate=1/mp
 
 ------------------------------------------------------------------------------
 -- Market price lookup
-                     
+
 tests_priceLookup =
   let
     d = parsedate
@@ -214,7 +214,7 @@ priceLookup pricedirectives d from mto =
       where
         -- If to is unspecified, try to pick a default valuation commodity from declared prices (only).
         -- XXX how to choose ? Take lowest sorted ?
-        -- Take first, hoping current order is useful ?       <- 
+        -- Take first, hoping current order is useful ?       <-
         -- Keep parse order in label and take latest parsed ?
         mdefaultto =
           dbg4 ("default valuation commodity for "++T.unpack from) $
@@ -257,7 +257,7 @@ node m = fst . fst . mkNode m
 pathEdgeLabels :: (Show b, Ord b) => Gr a b -> [Node] -> [b]
 pathEdgeLabels g = map frommaybe . map (nodesEdgeLabel g) . pathEdges
   where frommaybe = fromMaybe (error' "pathEdgeLabels: expected no Nothings here")
-  
+
 -- | Convert a path to node pairs representing the path's edges.
 pathEdges :: [Node] -> [(Node,Node)]
 pathEdges p = [(f,t) | f:t:_ <- tails p]

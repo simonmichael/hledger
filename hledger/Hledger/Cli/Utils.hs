@@ -60,7 +60,7 @@ import Hledger.Reports
 import Hledger.Utils
 
 -- | Parse the user's specified journal file(s) as a Journal, maybe apply some
--- transformations according to options, and run a hledger command with it. 
+-- transformations according to options, and run a hledger command with it.
 -- Or, throw an error.
 withJournalDo :: CliOpts -> (Journal -> IO a) -> IO a
 withJournalDo opts cmd = do
@@ -149,10 +149,10 @@ journalAddForecast opts@CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
       forecasttxns' = (if auto_ iopts then modifyTransactions (jtxnmodifiers j) else id) forecasttxns
 
   return $
-    if forecast_ ropts 
+    if forecast_ ropts
       then journalBalanceTransactions' opts j{ jtxns = concat [jtxns j, forecasttxns'] }
       else j
-  where      
+  where
     journalBalanceTransactions' opts j =
       let assrt = not . ignore_assertions_ $ inputopts_ opts
       in
@@ -164,7 +164,7 @@ writeOutput :: CliOpts -> String -> IO ()
 writeOutput opts s = do
   f <- outputFileFromOpts opts
   (if f == "-" then putStr else writeFile f) s
-  
+
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal
 -- readJournal opts s = readJournal def Nothing s >>= either error' return

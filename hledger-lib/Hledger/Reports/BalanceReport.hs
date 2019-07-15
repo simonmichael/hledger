@@ -11,7 +11,7 @@ module Hledger.Reports.BalanceReport (
   BalanceReportItem,
   balanceReport,
   flatShowsExclusiveBalance,
-  sortAccountItemsLike, 
+  sortAccountItemsLike,
 
   -- * Tests
   tests_BalanceReport
@@ -26,7 +26,7 @@ import Data.Time.Calendar
 import Hledger.Data
 import Hledger.Read (mamountp')
 import Hledger.Query
-import Hledger.Utils 
+import Hledger.Utils
 import Hledger.Reports.ReportOptions
 
 
@@ -64,8 +64,8 @@ flatShowsExclusiveBalance    = True
 -- This is like PeriodChangeReport with a single column (but more mature,
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
-balanceReport ropts@ReportOpts{..} q j@Journal{..} = 
-  (if invert_ then brNegate  else id) $ 
+balanceReport ropts@ReportOpts{..} q j@Journal{..} =
+  (if invert_ then brNegate  else id) $
   (sorteditems, total)
     where
       -- dbg1 = const id -- exclude from debug output
@@ -117,24 +117,24 @@ balanceReport ropts@ReportOpts{..} q j@Journal{..} =
       items = dbg1 "items" $ map (balanceReportItem ropts q) displayaccts
 
       -- Sort report rows (except sorting by amount in tree mode, which was done above).
-      sorteditems 
+      sorteditems
         | sort_amount_ && tree_ ropts = items
         | sort_amount_                = sortFlatBRByAmount items
         | otherwise                   = sortBRByAccountDeclaration items
-        where    
-          -- Sort the report rows, representing a flat account list, by row total. 
+        where
+          -- Sort the report rows, representing a flat account list, by row total.
           sortFlatBRByAmount :: [BalanceReportItem] -> [BalanceReportItem]
           sortFlatBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . fourth4))
             where
               maybeflip = if normalbalance_ == Just NormallyNegative then id else flip
-          -- Sort the report rows by account declaration order then account name. 
+          -- Sort the report rows by account declaration order then account name.
           sortBRByAccountDeclaration :: [BalanceReportItem] -> [BalanceReportItem]
           sortBRByAccountDeclaration rows = sortedrows
-            where 
+            where
               anamesandrows = [(first4 r, r) | r <- rows]
               anames = map fst anamesandrows
               sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
-              sortedrows = sortAccountItemsLike sortedanames anamesandrows 
+              sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
       -- Calculate the grand total.
       total | not (flat_ ropts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
@@ -145,7 +145,7 @@ balanceReport ropts@ReportOpts{..} q j@Journal{..} =
 
 -- | A sorting helper: sort a list of things (eg report rows) keyed by account name
 -- to match the provided ordering of those same account names.
-sortAccountItemsLike :: [AccountName] -> [(AccountName, b)] -> [b] 
+sortAccountItemsLike :: [AccountName] -> [(AccountName, b)] -> [b]
 sortAccountItemsLike sortedas items =
   concatMap (\a -> maybe [] (:[]) $ lookup a items) sortedas
 
@@ -181,7 +181,7 @@ balanceReportItem opts q a
 
 -- | Flip the sign of all amounts in a BalanceReport.
 brNegate :: BalanceReport -> BalanceReport
-brNegate (is, tot) = (map brItemNegate is, -tot) 
+brNegate (is, tot) = (map brItemNegate is, -tot)
   where
     brItemNegate (a, a', d, amt) = (a, a', d, -amt)
 
@@ -222,10 +222,10 @@ tests_BalanceReport = tests "BalanceReport" [
         (showMixedAmountDebug etotal) `is` (showMixedAmountDebug atotal)
       usd0 = usd 0
     in [
-  
+
      test "balanceReport with no args on null journal" $
      (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
-  
+
     ,test "balanceReport with no args on sample journal" $
      (defreportopts, samplejournal) `gives`
       ([
@@ -242,7 +242,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,("income:salary","salary",1, mamountp' "$-1.00")
        ],
        Mixed [usd0])
-  
+
     ,test "balanceReport with --depth=N" $
      (defreportopts{depth_=Just 1}, samplejournal) `gives`
       ([
@@ -250,7 +250,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,("income",      "income",      0, mamountp' "$-2.00")
        ],
        Mixed [usd0])
-  
+
     ,test "balanceReport with depth:N" $
      (defreportopts{query_="depth:1"}, samplejournal) `gives`
       ([
@@ -258,7 +258,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,("income",      "income",      0, mamountp' "$-2.00")
        ],
        Mixed [usd0])
-  
+
     ,tests "balanceReport with a date or secondary date span" [
      (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
       ([],
@@ -278,7 +278,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,("income:salary","income:salary",0, mamountp' "$-1.00")
        ],
        Mixed [usd0])
-  
+
     ,test "balanceReport with not:desc:" $
      (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
       ([
@@ -291,7 +291,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,("income:gifts","income:gifts",0, mamountp' "$-1.00")
        ],
        Mixed [usd0])
-  
+
     ,test "balanceReport with period on a populated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}, samplejournal) `gives`
        (
@@ -300,13 +300,13 @@ tests_BalanceReport = tests "BalanceReport" [
         ,("income:salary","income:salary",0, mamountp' "$-1.00")
         ],
         Mixed [usd0])
-  
+
      ,test "balanceReport with period on an unpopulated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}, samplejournal) `gives`
        ([],Mixed [nullamt])
-  
-  
-  
+
+
+
   {-
       ,test "accounts report with account pattern o" ~:
        defreportopts{patterns_=["o"]} `gives`
@@ -317,7 +317,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"--------------------"
        ,"                 $-1"
        ]
-  
+
       ,test "accounts report with account pattern o and --depth 1" ~:
        defreportopts{patterns_=["o"],depth_=Just 1} `gives`
        ["                  $1  expenses"
@@ -325,7 +325,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"--------------------"
        ,"                 $-1"
        ]
-  
+
       ,test "accounts report with account pattern a" ~:
        defreportopts{patterns_=["a"]} `gives`
        ["                 $-1  assets"
@@ -336,7 +336,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"--------------------"
        ,"                 $-1"
        ]
-  
+
       ,test "accounts report with account pattern e" ~:
        defreportopts{patterns_=["e"]} `gives`
        ["                 $-1  assets"
@@ -352,7 +352,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"--------------------"
        ,"                   0"
        ]
-  
+
       ,test "accounts report with unmatched parent of two matched subaccounts" ~:
        defreportopts{patterns_=["cash","saving"]} `gives`
        ["                 $-1  assets"
@@ -361,14 +361,14 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"--------------------"
        ,"                 $-1"
        ]
-  
+
       ,test "accounts report with multi-part account name" ~:
        defreportopts{patterns_=["expenses:food"]} `gives`
        ["                  $1  expenses:food"
        ,"--------------------"
        ,"                  $1"
        ]
-  
+
       ,test "accounts report with negative account pattern" ~:
        defreportopts{patterns_=["not:assets"]} `gives`
        ["                  $2  expenses"
@@ -381,20 +381,20 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"--------------------"
        ,"                  $1"
        ]
-  
+
       ,test "accounts report negative account pattern always matches full name" ~:
        defreportopts{patterns_=["not:e"]} `gives`
        ["--------------------"
        ,"                   0"
        ]
-  
+
       ,test "accounts report negative patterns affect totals" ~:
        defreportopts{patterns_=["expenses","not:food"]} `gives`
        ["                  $1  expenses:supplies"
        ,"--------------------"
        ,"                  $1"
        ]
-  
+
       ,test "accounts report with -E shows zero-balance accounts" ~:
        defreportopts{patterns_=["assets"],empty_=True} `gives`
        ["                 $-1  assets"
@@ -405,7 +405,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ,"--------------------"
        ,"                 $-1"
        ]
-  
+
       ,test "accounts report with cost basis" $
          j <- (readJournal def Nothing $ unlines
                 [""

@@ -166,7 +166,7 @@ showPeriod (PeriodFrom b)      = formatTime defaultTimeLocale "%0C%y/%m/%d-" b  
 showPeriod (PeriodTo e)        = formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e)    -- -INCLUSIVEENDDATE
 showPeriod PeriodAll           = "-"
 
--- | Like showPeriod, but if it's a month period show just 
+-- | Like showPeriod, but if it's a month period show just
 -- the 3 letter month name abbreviation for the current locale.
 showPeriodMonthAbbrev (MonthPeriod _ m)                           -- Jan
   | m > 0 && m <= length monthnames = snd $ monthnames !! (m-1)

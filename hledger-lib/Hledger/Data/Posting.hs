@@ -78,7 +78,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
 
-import Hledger.Utils 
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
@@ -221,7 +221,7 @@ postingDate2 p = headDef nulldate $ catMaybes dates
 -- | Get a posting's status. This is cleared or pending if those are
 -- explicitly set on the posting, otherwise the status of its parent
 -- transaction, or unmarked if there is no parent transaction. (Note
--- the ambiguity, unmarked can mean "posting and transaction are both 
+-- the ambiguity, unmarked can mean "posting and transaction are both
 -- unmarked" or "posting is unmarked and don't know about the transaction".
 postingStatus :: Posting -> Status
 postingStatus Posting{pstatus=s, ptransaction=mt}

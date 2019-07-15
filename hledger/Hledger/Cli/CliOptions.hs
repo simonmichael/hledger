@@ -282,7 +282,7 @@ type CommandDoc = String
 -- from a help template and flag/argument specifications.
 -- Reduces boilerplate a little, though the complicated cmdargs
 -- flag and argument specs are still required.
-hledgerCommandMode :: CommandDoc -> [Flag RawOpts] -> [(String, [Flag RawOpts])] 
+hledgerCommandMode :: CommandDoc -> [Flag RawOpts] -> [(String, [Flag RawOpts])]
   -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
 hledgerCommandMode doc unnamedflaggroup namedflaggroups hiddenflaggroup argsdescr =
   case parseCommandDoc doc of
@@ -404,7 +404,7 @@ defaultWidth :: Int
 defaultWidth = 80
 
 -- | Replace any numeric flags (eg -2) with their long form (--depth 2),
--- as I'm guessing cmdargs doesn't support this directly.  
+-- as I'm guessing cmdargs doesn't support this directly.
 replaceNumericFlags :: [String] -> [String]
 replaceNumericFlags = map replace
   where
@@ -452,10 +452,10 @@ checkCliOpts opts =
       Right _  -> Right ()
   -- XXX check registerWidthsFromOpts opts
 
--- | A helper for addon commands: this parses options and arguments from 
--- the current command line using the given hledger-style cmdargs mode, 
--- and returns a CliOpts. Or, with --help or -h present, it prints 
--- long or short help, and exits the program. 
+-- | A helper for addon commands: this parses options and arguments from
+-- the current command line using the given hledger-style cmdargs mode,
+-- and returns a CliOpts. Or, with --help or -h present, it prints
+-- long or short help, and exits the program.
 -- When --debug is present, also prints some debug output.
 -- Note this is not used by the main hledger executable.
 --
@@ -472,7 +472,7 @@ checkCliOpts opts =
 -- hledger options not displayed.
 --
 -- Tips:
--- Empty lines in the pre/postamble are removed by cmdargs; 
+-- Empty lines in the pre/postamble are removed by cmdargs;
 -- add a space character to preserve them.
 --
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
@@ -640,7 +640,7 @@ defaultBalanceLineFormat = BottomAligned [
 -- or more versions (or two versions that don't look like a
 -- source/compiled pair), they are all included, with file extensions
 -- intact.
--- 
+--
 hledgerAddons :: IO [String]
 hledgerAddons = do
   -- past bug generator
@@ -658,10 +658,10 @@ dropRedundantSourceVersion [f,g]
   | takeExtension g `elem` compiledExts = [g]
 dropRedundantSourceVersion fs = fs
 
-compiledExts = ["",".com",".exe"] 
+compiledExts = ["",".com",".exe"]
 
 
--- | Get all sorted unique filenames in the current user's PATH. 
+-- | Get all sorted unique filenames in the current user's PATH.
 -- We do not currently filter out non-file objects or files without execute permission.
 likelyExecutablesInPath :: IO [String]
 likelyExecutablesInPath = do
@@ -677,8 +677,8 @@ likelyExecutablesInPath = do
 
 -- | Get the sorted unique filenames of all hledger-* executables in
 -- the current user's PATH. These are files in any of the PATH directories,
--- named hledger-*, with either no extension (and no periods in the name) 
--- or one of the addonExtensions. 
+-- named hledger-*, with either no extension (and no periods in the name)
+-- or one of the addonExtensions.
 -- We do not currently filter out non-file objects or files without execute permission.
 hledgerExecutablesInPath :: IO [String]
 hledgerExecutablesInPath = filter isHledgerExeName <$> likelyExecutablesInPath

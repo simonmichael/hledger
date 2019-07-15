@@ -16,7 +16,7 @@ do the right thing, so this file is a no-op and on its way to being removed.
 Not carefully tested.
 
 -}
--- TODO obsolete ? 
+-- TODO obsolete ?
 
 module Hledger.Utils.UTF8IOCompat (
   readFile,
@@ -119,5 +119,5 @@ userError' = userError . toSystemString
 
 -- | A SystemString-aware version of error that adds a usage hint.
 usageError :: String -> a
-usageError = error' . (++ " (use -h to see usage)")  
+usageError = error' . (++ " (use -h to see usage)")
 

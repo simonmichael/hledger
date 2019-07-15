@@ -23,7 +23,7 @@ import Data.Time.Calendar (Day, addDays)
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
-import Hledger.Utils 
+import Hledger.Utils
 
 
 -- | A journal entries report is a list of whole transactions as

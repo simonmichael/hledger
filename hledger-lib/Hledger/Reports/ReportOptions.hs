@@ -81,7 +81,7 @@ instance Default AccountListMode where def = ALDefault
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
 -- or query arguments, but not all. Some are used only by certain
--- commands, as noted below. 
+-- commands, as noted below.
 data ReportOpts = ReportOpts {
      today_          :: Maybe Day  -- ^ The current date. A late addition to ReportOpts.
                                    -- Optional, but when set it may affect some reports:
@@ -116,10 +116,10 @@ data ReportOpts = ReportOpts {
       -- ^ This can be set when running balance reports on a set of accounts
       --   with the same normal balance type (eg all assets, or all incomes).
       -- - It helps --sort-amount know how to sort negative numbers
-      --   (eg in the income section of an income statement) 
-      -- - It helps compound balance report commands (is, bs etc.) do  
-      --   sign normalisation, converting normally negative subreports to 
-      --   normally positive for a more conventional display.   
+      --   (eg in the income section of an income statement)
+      -- - It helps compound balance report commands (is, bs etc.) do
+      --   sign normalisation, converting normally negative subreports to
+      --   normally positive for a more conventional display.
     ,color_          :: Bool
     ,forecast_       :: Bool
     ,transpose_      :: Bool
@@ -328,7 +328,7 @@ simplifyStatuses l
   | length l' >= numstatuses = []
   | otherwise                = l'
   where
-    l' = nub $ sort l 
+    l' = nub $ sort l
     numstatuses = length [minBound .. maxBound :: Status]
 
 -- | Add/remove this status from the status list. Used by hledger-ui.
@@ -442,7 +442,7 @@ queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
 -- Report dates.
 
 -- | The effective report span is the start and end dates specified by
--- options or queries, or otherwise the earliest and latest transaction or 
+-- options or queries, or otherwise the earliest and latest transaction or
 -- posting dates in the journal. If no dates are specified by options/queries
 -- and the journal is empty, returns the null date span.
 -- Needs IO to parse smart dates in options/queries.
@@ -500,7 +500,7 @@ reportPeriodOrJournalStart ropts@ReportOpts{..} j =
   reportPeriodStart ropts <|> journalStartDate False j
 
 -- Get the last day of the overall report period.
--- This the inclusive end date (one day before the 
+-- This the inclusive end date (one day before the
 -- more commonly used, exclusive, report end date).
 -- If no report period is specified, will be Nothing.
 -- Will also be Nothing if ReportOpts does not have today_ set,
@@ -528,7 +528,7 @@ tests_ReportOptions = tests "ReportOptions" [
       (queryFromOpts nulldate defreportopts) `is` Any
      ,(queryFromOpts nulldate defreportopts{query_="a"}) `is` (Acct "a")
      ,(queryFromOpts nulldate defreportopts{query_="desc:'a a'"}) `is` (Desc "a a")
-     ,(queryFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01"),query_="date:'to 2013'" }) 
+     ,(queryFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01"),query_="date:'to 2013'" })
       `is` (Date $ mkdatespan "2012/01/01" "2013/01/01")
      ,(queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"}) `is` (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
      ,(queryFromOpts nulldate defreportopts{query_="'a a' 'b"}) `is` (Or [Acct "a a", Acct "'b"])

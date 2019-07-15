@@ -4,7 +4,7 @@
 module Hledger.Cli.Commands.Registermatch (
   registermatchmode
  ,registermatch
-) 
+)
 where
 
 import Data.Char (toUpper)

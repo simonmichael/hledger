@@ -112,10 +112,10 @@ rsInit d reset ui@UIState{aopts=uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts}
     -- otherwise, the previously selected transaction if possible;
     -- otherwise, the transaction nearest in date to it;
     -- or if there's several with the same date, the nearest in journal order;
-    -- otherwise, the last (latest) transaction. 
+    -- otherwise, the last (latest) transaction.
     newitems' = listMoveTo newselidx newitems
       where
-        newselidx = 
+        newselidx =
           case (reset, listSelectedElement rsList) of
             (True, _)    -> endidx
             (_, Nothing) -> endidx
@@ -164,7 +164,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
-        changewidth = min maxchangewidth maxchangewidthseen 
+        changewidth = min maxchangewidth maxchangewidthseen
         balwidth = min maxbalwidth maxbalwidthseen
         -- assign the remaining space to the description and accounts columns
         -- maxdescacctswidth = totalwidth - (whitespacewidth - 4) - changewidth - balwidth
@@ -177,7 +177,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         -- descwidthproportion = (descwidth' + acctswidth') / descwidth'
         -- maxdescwidth = min (maxdescacctswidth - 7) (maxdescacctswidth / descwidthproportion)
         -- maxacctswidth = maxdescacctswidth - maxdescwidth
-        -- descwidth = min maxdescwidth descwidth' 
+        -- descwidth = min maxdescwidth descwidth'
         -- acctswidth = min maxacctswidth acctswidth'
         -- allocating equally.
         descwidth = maxdescacctswidth `div` 2
@@ -232,7 +232,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 --              ,("RIGHT", str "transaction")
               ,("T", renderToggle (tree_ ropts) "flat(-subs)" "tree(+subs)") -- rsForceInclusive may override, but use tree_ to ensure a visible toggle effect
               ,("H", renderToggle (not ishistorical) "historical" "period")
-              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future") 
+              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future")
 --               ,("a", "add")
 --               ,("g", "reload")
 --               ,("q", "quit")
@@ -271,11 +271,11 @@ rsHandle ui@UIState{
   ,aMode=mode
   } ev = do
   d <- liftIO getCurrentDay
-  let 
+  let
     journalspan = journalDateSpan False j
     nonblanks = V.takeWhile (not . null . rsItemDate) $ rsList^.listElementsL
     lastnonblankidx = max 0 (length nonblanks - 1)
-  
+
   case mode of
     Minibuffer ed ->
       case ev of
@@ -358,9 +358,9 @@ rsHandle ui@UIState{
         -- prevent moving down over blank padding items;
         -- instead scroll down by one, until maximally scrolled - shows the end has been reached
         VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-          vScrollBy (viewportScroll $ rsList^.listNameL) 1 
+          vScrollBy (viewportScroll $ rsList^.listNameL) 1
           continue ui
-          where 
+          where
             mnextelement = listSelectedElement $ listMoveDown rsList
 
         -- if page down or end leads to a blank padding item, stop at last non-blank
@@ -373,7 +373,7 @@ rsHandle ui@UIState{
             continue ui{aScreen=s{rsList=list'}}
           else
             continue ui{aScreen=s{rsList=list}}
-          
+
         -- fall through to the list's event handler (handles other [pg]up/down events)
         VtyEvent ev -> do
           let ev' = normaliseMovementKeys ev
@@ -386,7 +386,7 @@ rsHandle ui@UIState{
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"
 
-isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just "" 
+isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 
 rsCenterAndContinue ui = do
   scrollSelectionToMiddle $ rsList $ aScreen ui

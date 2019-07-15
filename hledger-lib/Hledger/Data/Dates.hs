@@ -156,7 +156,7 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 -- If no interval is specified, the original span is returned.
 -- If the original span is the null date span, ie unbounded, the null date span is returned.
 -- If the original span is empty, eg if the end date is <= the start date, no spans are returned.
--- 
+--
 --
 -- ==== Examples:
 -- >>> let t i d1 d2 = splitSpan i $ mkdatespan d1 d2
@@ -531,19 +531,19 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 -- Examples: lets take 2017-11-22. Year-long intervals covering it that
 -- starts before Nov 22 will start in 2017. However
 -- intervals that start after Nov 23rd should start in 2016:
--- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> let wed22nd = parsedate "2017-11-22"
 -- >>> nthdayofyearcontaining 11 21 wed22nd
--- 2017-11-21          
+-- 2017-11-21
 -- >>> nthdayofyearcontaining 11 22 wed22nd
--- 2017-11-22          
+-- 2017-11-22
 -- >>> nthdayofyearcontaining 11 23 wed22nd
--- 2016-11-23          
+-- 2016-11-23
 -- >>> nthdayofyearcontaining 12 02 wed22nd
--- 2016-12-02          
+-- 2016-12-02
 -- >>> nthdayofyearcontaining 12 31 wed22nd
--- 2016-12-31          
+-- 2016-12-31
 -- >>> nthdayofyearcontaining 1 1 wed22nd
--- 2017-01-01          
+-- 2017-01-01
 nthdayofyearcontaining :: Month -> MonthDay -> Day -> Day
 nthdayofyearcontaining m md date
   | not (validMonth $ show m)  = error' $ "nthdayofyearcontaining: invalid month "++show m
@@ -555,23 +555,23 @@ nthdayofyearcontaining m md date
         s = startofyear date
 
 -- | For given date d find month-long interval that starts on nth day of month
--- and covers it. 
+-- and covers it.
 -- The given day of month should be basically valid (1-31), or an error is raised.
 --
 -- Examples: lets take 2017-11-22. Month-long intervals covering it that
 -- start on 1st-22nd of month will start in Nov. However
 -- intervals that start on 23rd-30th of month should start in Oct:
--- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> let wed22nd = parsedate "2017-11-22"
 -- >>> nthdayofmonthcontaining 1 wed22nd
--- 2017-11-01          
+-- 2017-11-01
 -- >>> nthdayofmonthcontaining 12 wed22nd
--- 2017-11-12          
+-- 2017-11-12
 -- >>> nthdayofmonthcontaining 22 wed22nd
--- 2017-11-22          
+-- 2017-11-22
 -- >>> nthdayofmonthcontaining 23 wed22nd
--- 2017-10-23          
+-- 2017-10-23
 -- >>> nthdayofmonthcontaining 30 wed22nd
--- 2017-10-30          
+-- 2017-10-30
 nthdayofmonthcontaining :: MonthDay -> Day -> Day
 nthdayofmonthcontaining md date
   | not (validDay $ show md) = error' $ "nthdayofmonthcontaining: invalid day "  ++show md
@@ -582,22 +582,22 @@ nthdayofmonthcontaining md date
         s = startofmonth date
 
 -- | For given date d find week-long interval that starts on nth day of week
--- and covers it. 
+-- and covers it.
 --
 -- Examples: 2017-11-22 is Wed. Week-long intervals that cover it and
 -- start on Mon, Tue or Wed will start in the same week. However
--- intervals that start on Thu or Fri should start in prev week:          
--- >>> let wed22nd = parsedate "2017-11-22"          
+-- intervals that start on Thu or Fri should start in prev week:
+-- >>> let wed22nd = parsedate "2017-11-22"
 -- >>> nthdayofweekcontaining 1 wed22nd
--- 2017-11-20          
+-- 2017-11-20
 -- >>> nthdayofweekcontaining 2 wed22nd
 -- 2017-11-21
 -- >>> nthdayofweekcontaining 3 wed22nd
--- 2017-11-22          
+-- 2017-11-22
 -- >>> nthdayofweekcontaining 4 wed22nd
--- 2017-11-16          
+-- 2017-11-16
 -- >>> nthdayofweekcontaining 5 wed22nd
--- 2017-11-17          
+-- 2017-11-17
 nthdayofweekcontaining :: WeekDay -> Day -> Day
 nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
                            | otherwise = nthOfPrevWeek
@@ -606,12 +606,12 @@ nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
           s = startofweek d
 
 -- | For given date d find month-long interval that starts on nth weekday of month
--- and covers it. 
+-- and covers it.
 --
 -- Examples: 2017-11-22 is 3rd Wed of Nov. Month-long intervals that cover it and
 -- start on 1st-4th Wed will start in Nov. However
--- intervals that start on 4th Thu or Fri or later should start in Oct:          
--- >>> let wed22nd = parsedate "2017-11-22"          
+-- intervals that start on 4th Thu or Fri or later should start in Oct:
+-- >>> let wed22nd = parsedate "2017-11-22"
 -- >>> nthweekdayofmonthcontaining 1 3 wed22nd
 -- 2017-11-01
 -- >>> nthweekdayofmonthcontaining 3 2 wed22nd
@@ -630,12 +630,12 @@ nthweekdayofmonthcontaining n wd d | nthWeekdaySameMonth <= d  = nthWeekdaySameM
 
 -- | Advance to nth weekday wd after given start day s
 advancetonthweekday :: Int -> WeekDay -> Day -> Day
-advancetonthweekday n wd s = 
+advancetonthweekday n wd s =
   maybe err (addWeeks (n-1)) $ firstMatch (>=s) $ iterate (addWeeks 1) $ firstweekday s
   where
     err = error' "advancetonthweekday: should not happen"
     addWeeks k = addDays (7 * fromIntegral k)
-    firstMatch p = headMay . dropWhile (not . p) 
+    firstMatch p = headMay . dropWhile (not . p)
     firstweekday = addDays (fromIntegral wd-1) . startofweek
 
 ----------------------------------------------------------------------
@@ -834,7 +834,7 @@ md = do
   failIfInvalidDay d
   return ("",m,d)
 
--- These are compared case insensitively, and should all be kept lower case. 
+-- These are compared case insensitively, and should all be kept lower case.
 months         = ["january","february","march","april","may","june",
                   "july","august","september","october","november","december"]
 monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
@@ -864,8 +864,8 @@ weekday = do
   wday <- T.toLower <$> (choice . map string' $ weekdays ++ weekdayabbrevs)
   case catMaybes $ [wday `elemIndex` weekdays, wday `elemIndex` weekdayabbrevs] of
     (i:_) -> return (i+1)
-    []    -> fail  $ "weekday: should not happen: attempted to find " <> 
-                      show wday <> " in " <> show (weekdays ++ weekdayabbrevs) 
+    []    -> fail  $ "weekday: should not happen: attempted to find " <>
+                      show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
 
 today,yesterday,tomorrow :: TextParser m SmartDate
 today     = string' "today"     >> return ("","","today")
@@ -909,7 +909,7 @@ lastthisnextthing = do
 -- >>> p "every 2nd day"
 -- Right (DayOfMonth 2,DateSpan -)
 -- >>> p "every 2nd day 2009-"
--- Right (DayOfMonth 2,DateSpan 2009/01/01-)  
+-- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 -- >>> p "every 29th Nov"
 -- Right (DayOfYear 11 29,DateSpan -)
 -- >>> p "every 29th nov -2009"
@@ -1007,9 +1007,9 @@ reportingintervalp = choice' [
         string' "of"
         skipMany spacenonewline
         string' period
-        
+
       optOf_ period = optional $ try $ of_ period
-      
+
       nth = do n <- some digitChar
                choice' $ map string' ["st","nd","rd","th"]
                return $ read n

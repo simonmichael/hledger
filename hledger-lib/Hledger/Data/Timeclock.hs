@@ -26,7 +26,7 @@ import System.Locale (defaultTimeLocale)
 #endif
 import Text.Printf
 
-import Hledger.Utils 
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
@@ -130,10 +130,10 @@ tests_Timeclock = tests "Timeclock" [
                   parseTime defaultTimeLocale "%H:%M:%S"
 #endif
        showtime = formatTime defaultTimeLocale "%H:%M"
-       txndescs = map (T.unpack . tdescription) . timeclockEntriesToTransactions now 
+       txndescs = map (T.unpack . tdescription) . timeclockEntriesToTransactions now
        future = utcToLocalTime tz $ addUTCTime 100 now'
        futurestr = showtime future
-   tests "timeclockEntriesToTransactions" [ 
+   tests "timeclockEntriesToTransactions" [
      test "started yesterday, split session at midnight" $
       txndescs [clockin (mktime yesterday "23:00:00") "" ""] `is` ["23:00-23:59","00:00-"++nowstr]
      ,test "split multi-day sessions at each midnight" $

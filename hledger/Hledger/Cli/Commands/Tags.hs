@@ -4,7 +4,7 @@
 module Hledger.Cli.Commands.Tags (
   tagsmode
  ,tags
-) 
+)
 where
 
 import Data.List
@@ -15,7 +15,7 @@ import Hledger.Cli.CliOptions
 
 tagsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Tags.txt")
-  [] -- [flagNone ["strict"] (setboolopt "strict") "makes date comparing strict"] -- 
+  [] -- [flagNone ["strict"] (setboolopt "strict") "makes date comparing strict"] --
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[TAGREGEX [QUERY...]]")
@@ -26,10 +26,10 @@ tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     args      = listofstringopt "args" rawopts
     mtagpats  = headMay args
     queryargs = drop 1 args
-    q = queryFromOpts d $ ropts{query_ = unwords queryargs} 
+    q = queryFromOpts d $ ropts{query_ = unwords queryargs}
     txns = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
-    tags = 
-      nub $ sort $ 
-      (maybe id (filter . regexMatchesCI) mtagpats) $ 
+    tags =
+      nub $ sort $
+      (maybe id (filter . regexMatchesCI) mtagpats) $
       map (T.unpack . fst) $ concatMap transactionAllTags txns
   mapM_ putStrLn tags

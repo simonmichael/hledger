@@ -55,7 +55,7 @@ postAddR = do
       |]
 
 -- Add a single new transaction, send as JSON via PUT, to the journal.
--- The web form handler above should probably use PUT as well.  
+-- The web form handler above should probably use PUT as well.
 putAddR :: Handler RepJson
 putAddR = do
   VD{caps, j, opts} <- getViewData
@@ -66,4 +66,4 @@ putAddR = do
     Error err -> sendStatusJSON status400 ("could not parse json: " ++ err ::String)
     Success t -> do
       void $ liftIO $ journalAddTransaction j (cliopts_ opts) t
-      sendResponseCreated TransactionsR 
+      sendResponseCreated TransactionsR

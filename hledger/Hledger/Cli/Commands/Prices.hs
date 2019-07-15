@@ -3,7 +3,7 @@
 module Hledger.Cli.Commands.Prices (
   pricesmode
  ,prices
-) 
+)
 where
 
 import Data.Maybe
@@ -22,7 +22,7 @@ pricesmode = hledgerCommandMode
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
--- XXX the original hledger-prices script always ignored assertions 
+-- XXX the original hledger-prices script always ignored assertions
 prices opts j = do
   d <- getCurrentDay
   let

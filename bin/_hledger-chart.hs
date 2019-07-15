@@ -56,7 +56,7 @@ cmdmode = hledgerCommandMode
   [here| chart
 Generate a pie chart for the top account balances with the same sign,
 in SVG format.
- 
+
 Based on the old hledger-chart package, this is not yet useful.
 It's supposed to show only balances of one sign, but this might be broken.
   |]

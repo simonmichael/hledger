@@ -184,7 +184,7 @@ findReader Nothing (Just path) =
 -- Combining Journals means concatenating them, basically.
 -- The parse state resets at the start of each file, which means that
 -- directives & aliases do not affect subsequent sibling or parent files.
--- They do affect included child files though. 
+-- They do affect included child files though.
 -- Also the final parse state saved in the Journal does span all files.
 readJournalFiles :: InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
 readJournalFiles iopts =
@@ -207,7 +207,7 @@ readJournalFiles iopts =
 -- generation, a rules file for converting CSV data, etc.
 readJournalFile :: InputOpts -> PrefixedFilePath -> IO (Either String Journal)
 readJournalFile iopts prefixedfile = do
-  let 
+  let
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
   requireJournalFileExists f
@@ -235,13 +235,13 @@ latestDates = headDef [] . take 1 . group . reverse . sort
 
 -- | Remember that these transaction dates were the latest seen when
 -- reading this journal file.
-saveLatestDates :: LatestDates -> FilePath -> IO () 
+saveLatestDates :: LatestDates -> FilePath -> IO ()
 saveLatestDates dates f = writeFile (latestDatesFileFor f) $ unlines $ map showDate dates
 
--- | What were the latest transaction dates seen the last time this 
+-- | What were the latest transaction dates seen the last time this
 -- journal file was read ? If there were multiple transactions on the
 -- latest date, that number of dates is returned, otherwise just one.
--- Or none if no transactions were read, or if latest dates info is not 
+-- Or none if no transactions were read, or if latest dates info is not
 -- available for this file.
 previousLatestDates :: FilePath -> IO LatestDates
 previousLatestDates f = do
@@ -299,7 +299,7 @@ readJournal iopts mfile txt =
 --
 -- Try to parse the given text to a Journal using each reader in turn,
 -- returning the first success, or if all of them fail, the first error message.
---    
+--
 -- Input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
 -- enable or disable balance assertion checking and automated posting generation.
 --

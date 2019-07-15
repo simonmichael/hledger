@@ -7,11 +7,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Web.Handler.MiscR
-  ( getAccountnamesR       
-  , getTransactionsR       
-  , getPricesR             
-  , getCommoditiesR        
-  , getAccountsR           
+  ( getAccountnamesR
+  , getTransactionsR
+  , getPricesR
+  , getCommoditiesR
+  , getAccountsR
   , getAccounttransactionsR
   , getDownloadR
   , getFaviconR

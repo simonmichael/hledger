@@ -163,12 +163,12 @@ data InputOpts = InputOpts {
     ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
     ,separator_         :: Char                 -- ^ the separator to use (when reading CSV)
     ,aliases_           :: [String]             -- ^ account name aliases to apply
-    ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data 
+    ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data
     ,ignore_assertions_ :: Bool                 -- ^ don't check balance assertions
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
-    ,pivot_             :: String               -- ^ use the given field's value as the account name 
-    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed     
+    ,pivot_             :: String               -- ^ use the given field's value as the account name
+    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
  } deriving (Show, Data) --, Typeable)
 
 instance Default InputOpts where def = definputopts
@@ -188,7 +188,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,new_               = boolopt "new" rawopts
   ,new_save_          = True
   ,pivot_             = stringopt "pivot" rawopts
-  ,auto_              = boolopt "auto" rawopts                        
+  ,auto_              = boolopt "auto" rawopts
   }
 
 --- * parsing utilities
@@ -219,7 +219,7 @@ rejp = runErroringJournalParser
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
 
--- | Construct a generic start & end line parse position from start and end megaparsec SourcePos's. 
+-- | Construct a generic start & end line parse position from start and end megaparsec SourcePos's.
 journalSourcePos :: SourcePos -> SourcePos -> GenericSourcePos
 journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p, fromIntegral $ line')
     where line'
@@ -355,7 +355,7 @@ getAmountStyle commodity = do
     return effectiveStyle
 
 addDeclaredAccountType :: AccountName -> AccountType -> JournalParser m ()
-addDeclaredAccountType acct atype = 
+addDeclaredAccountType acct atype =
   modify' (\j -> j{jdeclaredaccounttypes = M.insertWith (++) atype [acct] (jdeclaredaccounttypes j)})
 
 pushParentAccount :: AccountName -> JournalParser m ()
@@ -542,7 +542,7 @@ secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
 
 --- ** account names
 
--- | Parse an account name (plus one following space if present), 
+-- | Parse an account name (plus one following space if present),
 -- then apply any parent account prefix and/or account aliases currently in effect,
 -- in that order. (Ie first add the parent account prefix, then rewrite with aliases).
 modifiedaccountnamep :: JournalParser m AccountName
@@ -556,9 +556,9 @@ modifiedaccountnamep = do
     joinAccountNames parent
     a
 
--- | Parse an account name, plus one following space if present. 
+-- | Parse an account name, plus one following space if present.
 -- Account names have one or more parts separated by the account separator character,
--- and are terminated by two or more spaces (or end of input). 
+-- and are terminated by two or more spaces (or end of input).
 -- Each part is at least one character long, may have single spaces inside it,
 -- and starts with a non-whitespace.
 -- Note, this means "{account}", "%^!" and ";comment" are all accepted
@@ -791,7 +791,7 @@ exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 --
 -- Returns:
 -- - the decimal number
--- - the precision (number of digits after the decimal point)  
+-- - the precision (number of digits after the decimal point)
 -- - the decimal point character, if any
 -- - the digit group style, if any (digit group character and sizes of digit groups)
 fromRawNumber
@@ -811,7 +811,7 @@ fromRawNumber raw mExp = case raw of
     in  Right (quantity, precision, mDecPt, Nothing)
 
   WithSeparators digitSep digitGrps mDecimals -> case mExp of
-    Nothing -> 
+    Nothing ->
       let mDecPt = fmap fst mDecimals
           decimalGrp = maybe mempty snd mDecimals
           digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
@@ -1038,7 +1038,7 @@ followingcommentp' contentp = do
     -- if there's just a next-line comment, insert an empty same-line comment
     -- so the next-line comment doesn't get rendered as a same-line comment.
     sameLine' | null sameLine && not (null nextLines) = [("",mempty)]
-              | otherwise = sameLine 
+              | otherwise = sameLine
     (texts, contents) = unzip $ sameLine' ++ nextLines
     strippedCommentText = T.unlines $ map T.strip texts
     commentContent = mconcat contents
@@ -1306,32 +1306,32 @@ tests_Common = tests "Common" [
    tests "amountp" [
     test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
    ,test "ends with decimal mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
-   ,test "unit price"             $ expectParseEq amountp "$10 @ €0.5" 
+   ,test "unit price"             $ expectParseEq amountp "$10 @ €0.5"
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
          acommodity="$"
-        ,aquantity=10 -- need to test internal precision with roundTo ? I think not 
+        ,aquantity=10 -- need to test internal precision with roundTo ? I think not
         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
         ,aprice=Just $ UnitPrice $
           amount{
              acommodity="€"
             ,aquantity=0.5
             ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
-            } 
-        } 
+            }
+        }
    ,test "total price"            $ expectParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
-        ,aquantity=10 
+        ,aquantity=10
         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
         ,aprice=Just $ TotalPrice $
           amount{
              acommodity="€"
             ,aquantity=5
             ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
-            } 
-        } 
+            }
+        }
     ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
@@ -1355,7 +1355,7 @@ tests_Common = tests "Common" [
     ,test "." $ expectParseError p ".1," ""
     ,test "." $ expectParseError p ",1." ""
     ]
-  
+
   ,tests "spaceandamountormissingp" [
      test "space and amount" $ expectParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
     ,test "empty string" $ expectParseEq spaceandamountormissingp "" missingmixedamt

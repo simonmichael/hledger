@@ -497,7 +497,7 @@ main = do
       | pkg <- packages ]
 
     phony "commandhelp" $ need commandtxts
-    
+
     commandtxts |%> \out -> do
       let src = out -<.> "md"
       need [src]
@@ -695,7 +695,7 @@ main = do
       -- tagrelease: \
       --   $(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
       --   for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
-       
+
     -- MISC
 
     -- Generate the web manuals based on the current checkout and save
@@ -777,7 +777,7 @@ wikiLink :: Markdown -> Markdown
 wikiLink =
   replaceBy wikilinkre         wikilinkReplace         .
   replaceBy labelledwikilinkre labelledwikilinkReplace
-  
+
 -- regex stuff
 
 -- couldn't figure out how to use match subgroups, so we don't

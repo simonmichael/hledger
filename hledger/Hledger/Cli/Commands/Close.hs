@@ -4,7 +4,7 @@
 module Hledger.Cli.Commands.Close (
   closemode
  ,close
-) 
+)
 where
 
 import Control.Monad (when)
@@ -29,8 +29,8 @@ closemode = hledgerCommandMode
 
 close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   today <- getCurrentDay
-  let 
-      (opening, closing) = 
+  let
+      (opening, closing) =
         case (boolopt "opening" rawopts, boolopt "closing" rawopts) of
           (False, False) -> (True, True) -- by default show both opening and closing
           (o, c) -> (o, c)

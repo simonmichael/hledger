@@ -21,7 +21,7 @@
 --{-# LANGUAGE TypeFamilies        #-}
 --{-# LANGUAGE TypeOperators       #-}
 
-module Hledger.Web.Json ( 
+module Hledger.Web.Json (
   -- * Instances
   -- * Utilities
    readJsonFile
@@ -66,11 +66,11 @@ instance ToJSON Posting where
     ,"ptype"             .= toJSON ptype
     ,"ptags"             .= toJSON ptags
     ,"pbalanceassertion" .= toJSON pbalanceassertion
-    -- To avoid a cycle, show just the parent transaction's index number 
+    -- To avoid a cycle, show just the parent transaction's index number
     -- in a dummy field. When re-parsed, there will be no parent.
     ,"ptransaction_"     .= toJSON (maybe "" (show.tindex) ptransaction)
     -- This is probably not wanted in json, we discard it.
-    ,"poriginal"         .= toJSON (Nothing :: Maybe Posting) 
+    ,"poriginal"         .= toJSON (Nothing :: Maybe Posting)
     ]
 
 instance ToJSON Transaction
@@ -82,7 +82,7 @@ instance ToJSON Account where
     ,"aibalance"    .= toJSON (aibalance a)
     ,"anumpostings" .= toJSON (anumpostings a)
     ,"aboring"      .= toJSON (aboring a)
-    -- To avoid a cycle, show just the parent account's name 
+    -- To avoid a cycle, show just the parent account's name
     -- in a dummy field. When re-parsed, there will be no parent.
     ,"aparent_"     .= toJSON (maybe "" aname $ aparent a)
     -- Just the names of subaccounts, as a dummy field, ignored when parsed.
@@ -110,14 +110,14 @@ instance FromJSON Posting
 instance FromJSON Transaction
 instance FromJSON AccountDeclarationInfo
 -- XXX The ToJSON instance replaces subaccounts with just names.
--- Here we should try to make use of those to reconstruct the 
+-- Here we should try to make use of those to reconstruct the
 -- parent-child relationships.
 instance FromJSON Account
 
 -- Decimal, various attempts
 --
 -- https://stackoverflow.com/questions/40331851/haskell-data-decimal-as-aeson-type
-----instance FromJSON Decimal where parseJSON = 
+----instance FromJSON Decimal where parseJSON =
 ----  A.withScientific "Decimal" (return . right . eitherFromRational . toRational)
 --
 -- https://github.com/bos/aeson/issues/474
@@ -156,7 +156,7 @@ instance FromJSON (DecimalRaw Integer)
 readJsonFile :: FromJSON a => FilePath -> IO a
 readJsonFile f = do
   bs <- BL.readFile f
-  let v = fromMaybe (error "could not decode bytestring as json value") (decode bs :: Maybe Value) 
+  let v = fromMaybe (error "could not decode bytestring as json value") (decode bs :: Maybe Value)
   case fromJSON v :: FromJSON a => Result a of
     Error e   -> error e
     Success t -> return t

@@ -3,7 +3,7 @@
 module Hledger.Cli.Commands.Printunique (
   printuniquemode
  ,printunique
-) 
+)
 where
 
 import Data.List

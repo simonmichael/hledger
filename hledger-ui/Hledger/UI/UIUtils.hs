@@ -59,7 +59,7 @@ suspendSignal = return ()
 #else
 import System.Posix.Signals
 suspendSignal :: IO ()
-suspendSignal = raiseSignal sigSTOP 
+suspendSignal = raiseSignal sigSTOP
 #endif
 
 -- | On posix platforms, suspend the program using the STOP signal,
@@ -121,7 +121,7 @@ helpDialog _copts =
                 vBox [
                    withAttr ("help" <> "heading") $ str "Filtering"
                   ,renderKey ("/   ", "set a filter query")
-                  ,renderKey ("UPC ", "show unmarked/pending/cleared") 
+                  ,renderKey ("UPC ", "show unmarked/pending/cleared")
                   ,renderKey ("F   ", "show future/present txns")
                   ,renderKey ("R   ", "show real/all postings")
                   ,renderKey ("Z   ", "show nonzero/all amounts")
@@ -208,12 +208,12 @@ borderKeysStr' keydescs =
     -- sep = str " | "
     sep = str " "
 
--- | Render the two states of a toggle, highlighting the active one. 
+-- | Render the two states of a toggle, highlighting the active one.
 renderToggle :: Bool -> String -> String -> Widget Name
 renderToggle isright l r =
   let bold = withAttr ("border" <> "selected") in
   if isright
-  then str (l++"/") <+> bold (str r) 
+  then str (l++"/") <+> bold (str r)
   else bold (str l) <+> str ("/"++r)
 
 -- temporary shenanigans:
@@ -310,13 +310,13 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [("border", attr)])
 --scrollToTop :: List Name e -> EventM Name ()
 --scrollToTop list = do
 --  let vpname = list^.listNameL
---  setTop (viewportScroll vpname) 0 
+--  setTop (viewportScroll vpname) 0
 
 -- | Scroll a list's viewport so that the selected item is centered in the
 -- middle of the display area.
 scrollSelectionToMiddle :: List Name e -> EventM Name ()
 scrollSelectionToMiddle list = do
-  let mselectedrow = list^.listSelectedL 
+  let mselectedrow = list^.listSelectedL
       vpname = list^.listNameL
   mvp <- lookupViewport vpname
   case (mselectedrow, mvp) of
@@ -326,7 +326,7 @@ scrollSelectionToMiddle list = do
         vpheight     = dbg4 "vpheight" $ vp^.vpSize._2
         itemsperpage = dbg4 "itemsperpage" $ vpheight `div` itemheight
         toprow       = dbg4 "toprow" $ max 0 (selectedrow - (itemsperpage `div` 2)) -- assuming ViewportScroll's row offset is measured in list items not screen rows
-      setTop (viewportScroll vpname) toprow 
+      setTop (viewportScroll vpname) toprow
     _ -> return ()
 
 --                 arrow keys       vi keys               emacs keys

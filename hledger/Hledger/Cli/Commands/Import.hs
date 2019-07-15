@@ -4,7 +4,7 @@
 module Hledger.Cli.Commands.Import (
   importmode
  ,importcmd
-) 
+)
 where
 
 import Control.Monad
@@ -18,7 +18,7 @@ import Text.Printf
 
 importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
-  [flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"] 
+  [flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"]
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "FILE [...]")
@@ -33,7 +33,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
     fs -> do
       enewj <- readJournalFiles iopts' fs
       case enewj of
-        Left e     -> error' e 
+        Left e     -> error' e
         Right newj ->
           case sortOn tdate $ jtxns newj of
             [] -> return ()

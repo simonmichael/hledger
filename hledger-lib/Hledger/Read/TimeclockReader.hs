@@ -96,7 +96,7 @@ timeclockfilep = do many timeclockitemp
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      timeclockitemp = choice [ 
+      timeclockitemp = choice [
                             void (lift emptyorcommentlinep)
                           , timeclockentryp >>= \e -> modify' (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
                           ] <?> "timeclock entry, or default year or historical price directive"

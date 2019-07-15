@@ -30,7 +30,7 @@ import Text.Tabular.AsciiWide
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils 
+import Hledger.Utils
 import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.BalanceReport
@@ -85,13 +85,13 @@ type ClippedAccountName = AccountName
 -- | Generate a multicolumn balance report for the matched accounts,
 -- showing the change of balance, accumulated balance, or historical balance
 -- in each of the specified periods. Does not support tree-mode boring parent eliding.
--- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts 
+-- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts
 -- (see ReportOpts and CompoundBalanceCommand).
 -- hledger's most powerful and useful report, used by the balance
 -- command (in multiperiod mode) and by the bs/cf/is commands.
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
-  (if invert_ then mbrNegate else id) $ 
+  (if invert_ then mbrNegate else id) $
   MultiBalanceReport (colspans, sortedrows, totalsrow)
     where
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
@@ -115,18 +115,18 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
       -- This list can be empty if the journal was empty,
       -- or if hledger-ui has added its special date:-tomorrow to the query
       -- and all txns are in the future.
-      intervalspans  = dbg1 "intervalspans"  $ splitSpan interval_ requestedspan'           
+      intervalspans  = dbg1 "intervalspans"  $ splitSpan interval_ requestedspan'
       -- The requested span enlarged to enclose a whole number of intervals.
-      -- This can be the null span if there were no intervals. 
+      -- This can be the null span if there were no intervals.
       reportspan     = dbg1 "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans)
                                                         (maybe Nothing spanEnd   $ lastMay intervalspans)
       mreportstart = spanStart reportspan
       -- The user's query with no depth limit, and expanded to the report span
       -- if there is one (otherwise any date queries are left as-is, which
       -- handles the hledger-ui+future txns case above).
-      reportq   = dbg1 "reportq" $ depthless $ 
-        if reportspan == nulldatespan 
-        then q 
+      reportq   = dbg1 "reportq" $ depthless $
+        if reportspan == nulldatespan
+        then q
         else And [datelessq, reportspandatesq]
           where
             reportspandatesq = dbg1 "reportspandatesq" $ dateqcons reportspan
@@ -157,12 +157,12 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                   precedingperiod = dateSpanAsPeriod $ spanIntersect (DateSpan Nothing mreportstart) $ periodAsDateSpan period_
               -- q projected back before the report start date.
               -- When there's no report start date, in case there are future txns (the hledger-ui case above),
-              -- we use emptydatespan to make sure they aren't counted as starting balance.  
+              -- we use emptydatespan to make sure they aren't counted as starting balance.
               startbalq = dbg1 "startbalq" $ And [datelessq, dateqcons precedingspan]
                 where
                   precedingspan = case mreportstart of
                                   Just d  -> DateSpan Nothing (Just d)
-                                  Nothing -> emptydatespan 
+                                  Nothing -> emptydatespan
       -- The matched accounts with a starting balance. All of these should appear
       -- in the report even if they have no postings during the report period.
       startaccts = dbg1 "startaccts" $ map fst startbals
@@ -282,7 +282,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                   (error' "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
                   (addDays (-1)))
                 . spanEnd) colspans
-          
+
       ----------------------------------------------------------------------
       -- 7. Sort the report rows.
 
@@ -307,24 +307,24 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                   accounttree = accountTree "root" anames
                   accounttreewithbals = mapAccounts setibalance accounttree
                     where
-                      -- should not happen, but it's dangerous; TODO 
+                      -- should not happen, but it's dangerous; TODO
                       setibalance a = a{aibalance=fromMaybe (error "sortTreeMBRByAmount 1") $ lookup (aname a) atotals}
                   sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive normalbalance_) accounttreewithbals
                   sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
-                  sortedrows = sortAccountItemsLike sortedanames anamesandrows 
+                  sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
-              -- Sort the report rows, representing a flat account list, by row total. 
+              -- Sort the report rows, representing a flat account list, by row total.
               sortFlatMBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . fifth6))
                 where
                   maybeflip = if normalbalance_ == Just NormallyNegative then id else flip
 
-              -- Sort the report rows by account declaration order then account name. 
+              -- Sort the report rows by account declaration order then account name.
               sortMBRByAccountDeclaration rows = sortedrows
-                where 
+                where
                   anamesandrows = [(first6 r, r) | r <- rows]
                   anames = map fst anamesandrows
                   sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
-                  sortedrows = sortAccountItemsLike sortedanames anamesandrows 
+                  sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
       ----------------------------------------------------------------------
       -- 8. Build the report totals row.
@@ -364,9 +364,9 @@ multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
 multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
 multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
 
--- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport, 
--- in order to support --historical. Does not support tree-mode boring parent eliding. 
--- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts 
+-- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
+-- in order to support --historical. Does not support tree-mode boring parent eliding.
+-- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts
 -- (see ReportOpts and CompoundBalanceCommand).
 balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReportFromMultiBalanceReport opts q j = (rows', total)
@@ -408,11 +408,11 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
       ((\(_, b, _) -> showMixedAmountDebug b) atotal) `is` (showMixedAmountDebug etotal) -- we only check the sum of the totals
     usd0 = usd 0
     amount0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, aismultiplier=False}
-  in 
+  in
    tests "multiBalanceReport" [
       test "null journal"  $
       (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
-  
+
      ,test "with -H on a populated period"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (
@@ -421,7 +421,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
         ,("income:salary"       ,"salary"   , 2, [mamountp' "$-1.00"], Mixed [nullamt], Mixed [amount0 {aquantity=(-1)}])
         ],
         Mixed [nullamt])
-  
+
      ,_test "a valid history on an empty period"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (
@@ -430,7 +430,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
         ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
         ],
         Mixed [usd0])
-  
+
      ,_test "a valid history on an empty period (more complex)"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2009 1 1) (fromGregorian 2009 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (

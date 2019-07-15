@@ -31,7 +31,7 @@ import qualified Data.Text as T
 import Safe (headDef)
 import Text.Printf
 
-import Hledger.Utils.Test 
+import Hledger.Utils.Test
 import Hledger.Data.Types
 import Hledger.Data.Account
 import Hledger.Data.Journal

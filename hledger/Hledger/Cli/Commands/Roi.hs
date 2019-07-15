@@ -6,7 +6,7 @@ The @roi@ command prints internal rate of return and time-weighted rate of retur
 
 -}
 
-module Hledger.Cli.Commands.Roi ( 
+module Hledger.Cli.Commands.Roi (
   roimode
   , roi
 ) where
@@ -40,40 +40,40 @@ roimode = hledgerCommandMode
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
--- One reporting span, 
-data OneSpan = OneSpan 
+-- One reporting span,
+data OneSpan = OneSpan
   Day -- start date, inclusive
   Day   -- end date, exclusive
   Quantity -- value of investment at the beginning of day on spanBegin_
   Quantity  -- value of investment at the end of day on spanEnd_
   [(Day,Quantity)] -- all deposits and withdrawals (but not changes of value) in the DateSpan [spanBegin_,spanEnd_)
  deriving (Show)
-  
+
 
 roi ::  CliOpts -> Journal -> IO ()
 roi CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   d <- getCurrentDay
-  let 
+  let
     investmentsQuery = queryFromOpts d $ ropts{query_ = stringopt "investment" rawopts,period_=PeriodAll}
     pnlQuery         = queryFromOpts d $ ropts{query_ = stringopt "pnl" rawopts,period_=PeriodAll}
     showCashFlow      = boolopt "cashflow" rawopts
     prettyTables     = pretty_tables_ ropts
-    
+
     trans = dbg3 "investments" $ jtxns $ filterJournalTransactions investmentsQuery j
-  
-    journalSpan = 
-        let dates = map transactionDate2 trans in 
-        DateSpan (Just $ minimum dates) (Just $ addDays 1 $ maximum dates)            
-        
+
+    journalSpan =
+        let dates = map transactionDate2 trans in
+        DateSpan (Just $ minimum dates) (Just $ addDays 1 $ maximum dates)
+
     requestedSpan = periodAsDateSpan $ period_ ropts
     requestedInterval = interval_ ropts
-    
-    wholeSpan = spanDefaultsFrom requestedSpan journalSpan 
+
+    wholeSpan = spanDefaultsFrom requestedSpan journalSpan
 
   when (null trans) $ do
     putStrLn "No relevant transactions found. Check your investments query"
     exitFailure
-  
+
   let spans = case requestedInterval of
         NoInterval -> [wholeSpan]
         interval ->
@@ -82,23 +82,23 @@ roi CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
 
   tableBody <- forM spans $ \(DateSpan (Just spanBegin) (Just spanEnd)) -> do
     -- Spans are [spanBegin,spanEnd), and spanEnd is 1 day after then actual end date we are interested in
-    let 
+    let
       valueBefore =
         total trans (And [ investmentsQuery
                          , Date (DateSpan Nothing (Just spanBegin))])
-    
-      valueAfter  = 
+
+      valueAfter  =
         total trans (And [investmentsQuery
                          , Date (DateSpan Nothing (Just spanEnd))])
-        
-      cashFlow = 
+
+      cashFlow =
         calculateCashFlow trans (And [ Not investmentsQuery
                                      , Not pnlQuery
                                      , Date (DateSpan (Just spanBegin) (Just spanEnd)) ] )
-      
-      thisSpan = dbg3 "processing span" $ 
+
+      thisSpan = dbg3 "processing span" $
                  OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow
-      
+
     irr <- internalRateOfReturn showCashFlow prettyTables thisSpan
     twr <- timeWeightedReturn showCashFlow prettyTables investmentsQuery trans thisSpan
     let cashFlowAmt = negate $ sum $ map snd cashFlow
@@ -112,28 +112,28 @@ roi CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
            , printf "%0.2f%%" $ smallIsZero irr
            , printf "%0.2f%%" $ smallIsZero twr ]
 
-  let table = Table 
-              (Tbl.Group NoLine (map (Header . show) (take (length tableBody) [1..]))) 
-              (Tbl.Group DoubleLine 
+  let table = Table
+              (Tbl.Group NoLine (map (Header . show) (take (length tableBody) [1..])))
+              (Tbl.Group DoubleLine
                [ Tbl.Group SingleLine [Header "Begin", Header "End"]
                , Tbl.Group SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
                , Tbl.Group SingleLine [Header "IRR", Header "TWR"]])
               tableBody
-  
+
   putStrLn $ Ascii.render prettyTables id id id table
 
 timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow) = do
   let initialUnitPrice = 100
   let initialUnits = valueBefore / initialUnitPrice
-  let cashflow = 
+  let cashflow =
         -- Aggregate all entries for a single day, assuming that intraday interest is negligible
         map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, sum cash))
         $ groupBy ((==) `on` fst)
-        $ sortOn fst 
-        $ map (\(d,a) -> (d, negate a)) 
+        $ sortOn fst
+        $ map (\(d,a) -> (d, negate a))
         $ filter ((/=0).snd) cashFlow
-    
-  let units = 
+
+  let units =
         tail $
         scanl
           (\(_, _, _, unitBalance) (date, amt) ->
@@ -146,14 +146,14 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
               in (valueOnDate, unitsBoughtOrSold, unitPrice, unitBalance + unitsBoughtOrSold))
           (0, 0, 0, initialUnits)
           cashflow
-  
+
   let finalUnitBalance = if null units then initialUnits else let (_,_,_,u) = last units in u
       finalUnitPrice = valueAfter / finalUnitBalance
       totalTWR = roundTo 2 $ (finalUnitPrice - initialUnitPrice)
       years = fromIntegral (diffDays spanEnd spanBegin) / 365 :: Double
       annualizedTWR = 100*((1+(realToFrac totalTWR/100))**(1/years)-1) :: Double
-        
-  let s d = show $ roundTo 2 d 
+
+  let s d = show $ roundTo 2 d
   when showCashFlow $ do
     printf "\nTWR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates', amounts') = unzip cashflow
@@ -165,27 +165,27 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
         unitPrices = add initialUnitPrice unitPrices'
         unitBalances = add initialUnits unitBalances'
         valuesOnDate = add 0 valuesOnDate'
-        
-    putStr $ Ascii.render prettyTables id id id 
-      (Table 
+
+    putStr $ Ascii.render prettyTables id id id
+      (Table
        (Tbl.Group NoLine (map (Header . showDate) dates))
-       (Tbl.Group DoubleLine [ Tbl.Group SingleLine [Header "Portfolio value", Header "Unit balance"] 
+       (Tbl.Group DoubleLine [ Tbl.Group SingleLine [Header "Portfolio value", Header "Unit balance"]
                          , Tbl.Group SingleLine [Header "Cash", Header "Unit price", Header "Units"]
                          , Tbl.Group SingleLine [Header "New Unit Balance"]])
-       [ [value, oldBalance, amt, prc, udelta, balance] 
+       [ [value, oldBalance, amt, prc, udelta, balance]
        | value <- map s valuesOnDate
        | oldBalance <- map s (0:unitBalances)
        | balance <- map s unitBalances
        | amt <- map s amounts
        | prc <- map s unitPrices
        | udelta <- map s unitsBoughtOrSold ])
-  
-    printf "Final unit price: %s/%s=%s U.\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n" (s valueAfter) (s finalUnitBalance) (s finalUnitPrice) (s totalTWR) years annualizedTWR
-  
-  return annualizedTWR
-  
 
-internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow) = do 
+    printf "Final unit price: %s/%s=%s U.\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n" (s valueAfter) (s finalUnitBalance) (s finalUnitPrice) (s totalTWR) years annualizedTWR
+
+  return annualizedTWR
+
+
+internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow) = do
   let prefix = (spanBegin, negate valueBefore)
 
       postfix = (spanEnd, valueAfter)
@@ -193,18 +193,18 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
       totalCF = filter ((/=0) . snd) $ prefix : (sortOn fst cashFlow) ++ [postfix]
 
   when showCashFlow $ do
-    printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd)) 
+    printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates, amounts) = unzip totalCF
-    putStrLn $ Ascii.render prettyTables id id id 
-      (Table 
+    putStrLn $ Ascii.render prettyTables id id id
+      (Table
        (Tbl.Group NoLine (map (Header . showDate) dates))
        (Tbl.Group SingleLine [Header "Amount"])
        (map ((:[]) . show) amounts))
-                             
+
   -- 0% is always a solution, so require at least something here
-  case ridders 
+  case ridders
 #if MIN_VERSION_math_functions(0,3,0)
-    (RiddersParam 100 (AbsTol 0.00001)) 
+    (RiddersParam 100 (AbsTol 0.00001))
 #else
     0.00001
 #endif
@@ -227,9 +227,9 @@ calculateCashFlow trans query = map go trans
 
 total :: [Transaction] -> Query -> Quantity
 total trans query = unMix $ sumPostings $ filter (matchesPosting query) $ concatMap realPostings trans
-    
-unMix :: MixedAmount -> Quantity   
-unMix a = 
+
+unMix :: MixedAmount -> Quantity
+unMix a =
   case (normaliseMixedAmount $ costOfMixedAmount a) of
     (Mixed [a]) -> aquantity a
     _ -> error "MixedAmount failed to normalize"

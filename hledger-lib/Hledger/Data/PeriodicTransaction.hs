@@ -34,7 +34,7 @@ import Hledger.Utils.UTF8IOCompat (error')
 -- doctest helper, too much hassle to define in the comment
 -- XXX duplicates some logic in periodictransactionp
 _ptgen str = do
-  let 
+  let
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
   case checkPeriodicTransactionStartDate i s t of
@@ -42,7 +42,7 @@ _ptgen str = do
     Nothing ->
       mapM_ (putStr . showTransaction) $
         runPeriodicTransaction
-          nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] } 
+          nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
           nulldatespan
 
 
@@ -184,13 +184,13 @@ instance Show PeriodicTransaction where
 -- *** Exception: Unable to generate transactions according to "weekly from 2017" because 2017-01-01 is not a first day of the week
 --
 -- >>> _ptgen "monthly from 2017/5/4"
--- *** Exception: Unable to generate transactions according to "monthly from 2017/5/4" because 2017-05-04 is not a first day of the month        
+-- *** Exception: Unable to generate transactions according to "monthly from 2017/5/4" because 2017-05-04 is not a first day of the month
 --
 -- >>> _ptgen "every quarter from 2017/1/2"
--- *** Exception: Unable to generate transactions according to "every quarter from 2017/1/2" because 2017-01-02 is not a first day of the quarter        
+-- *** Exception: Unable to generate transactions according to "every quarter from 2017/1/2" because 2017-01-02 is not a first day of the quarter
 --
 -- >>> _ptgen "yearly from 2017/1/14"
--- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the year        
+-- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the year
 --
 -- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ parsedate "2018-01-01") (Just $ parsedate "2018-01-03"))
 -- []
@@ -203,28 +203,28 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
     t = nulltransaction{
            tstatus      = ptstatus
           ,tcode        = ptcode
-          ,tdescription = ptdescription 
+          ,tdescription = ptdescription
           ,tcomment     = (if T.null ptcomment then "\n" else ptcomment) <> "recur: " <> ptperiodexpr
-          ,ttags        = ("recur", ptperiodexpr) : pttags 
+          ,ttags        = ("recur", ptperiodexpr) : pttags
           ,tpostings    = ptpostings
           }
 
--- | Check that this date span begins at a boundary of this interval, 
+-- | Check that this date span begins at a boundary of this interval,
 -- or return an explanatory error message including the provided period expression
 -- (from which the span and interval are derived).
-checkPeriodicTransactionStartDate :: Interval -> DateSpan -> T.Text -> Maybe String 
-checkPeriodicTransactionStartDate i s periodexpr = 
+checkPeriodicTransactionStartDate :: Interval -> DateSpan -> T.Text -> Maybe String
+checkPeriodicTransactionStartDate i s periodexpr =
   case (i, spanStart s) of
     (Weeks _,    Just d) -> checkStart d "week"
     (Months _,   Just d) -> checkStart d "month"
     (Quarters _, Just d) -> checkStart d "quarter"
     (Years _,    Just d) -> checkStart d "year"
-    _                    -> Nothing 
+    _                    -> Nothing
     where
       checkStart d x =
-        let firstDate = fixSmartDate d ("","this",x) 
-        in   
-         if d == firstDate 
+        let firstDate = fixSmartDate d ("","this",x)
+        in
+         if d == firstDate
          then Nothing
          else Just $
           "Unable to generate transactions according to "++show (T.unpack periodexpr)

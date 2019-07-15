@@ -4,7 +4,7 @@
 {-|
 
 A 'TransactionModifier' is a rule that modifies certain 'Transaction's,
-typically adding automated postings to them. 
+typically adding automated postings to them.
 
 -}
 module Hledger.Data.TransactionModifier (
@@ -41,7 +41,7 @@ modifyTransactions tmods = map applymods
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function,
 -- which applies the modification(s) specified by the TransactionModifier.
 -- Currently this means adding automated postings when certain other postings are present.
--- The postings of the transformed transaction will reference it in the usual 
+-- The postings of the transformed transaction will reference it in the usual
 -- way (ie, 'txnTieKnot' is called).
 --
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
@@ -60,16 +60,16 @@ modifyTransactions tmods = map applymods
 -- <BLANKLINE>
 --
 transactionModifierToFunction :: TransactionModifier -> (Transaction -> Transaction)
-transactionModifierToFunction mt = 
+transactionModifierToFunction mt =
   \t@(tpostings -> ps) -> txnTieKnot t{ tpostings=generatePostings ps } -- TODO add modifier txn comment/tags ?
   where
     q = simplifyQuery $ tmParseQuery mt (error' "a transaction modifier's query cannot depend on current date")
     mods = map tmPostingRuleToFunction $ tmpostingrules mt
     generatePostings ps = [p' | p <- ps
                               , p' <- if q `matchesPosting` p then p:[ m p | m <- mods] else [p]]
-    
--- | Parse the 'Query' from a 'TransactionModifier's 'tmquerytxt', 
--- and return it as a function requiring the current date. 
+
+-- | Parse the 'Query' from a 'TransactionModifier's 'tmquerytxt',
+-- and return it as a function requiring the current date.
 --
 -- >>> tmParseQuery (TransactionModifier "" []) undefined
 -- Any
@@ -85,9 +85,9 @@ tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 -- | Converts a 'TransactionModifier''s posting rule to a 'Posting'-generating function,
 -- which will be used to make a new posting based on the old one (an "automated posting").
 -- The new posting's amount can optionally be the old posting's amount multiplied by a constant.
--- If the old posting had a total-priced amount, the new posting's multiplied amount will be unit-priced. 
+-- If the old posting had a total-priced amount, the new posting's multiplied amount will be unit-priced.
 tmPostingRuleToFunction :: TMPostingRule -> (Posting -> Posting)
-tmPostingRuleToFunction pr = 
+tmPostingRuleToFunction pr =
   \p -> renderPostingCommentDates $ pr
       { pdate = pdate p
       , pdate2 = pdate2 p
@@ -103,15 +103,15 @@ tmPostingRuleToFunction pr =
             matchedamount = dbg6 "matchedamount" $ pamount p
             -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
             -- Approach 1: convert to a unit price and increase the display precision slightly
-            -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount 
-            -- Approach 2: multiply the total price (keeping it positive) as well as the quantity 
-            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmountAndPrice` matchedamount 
+            -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
+            -- Approach 2: multiply the total price (keeping it positive) as well as the quantity
+            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmountAndPrice` matchedamount
           in
             case acommodity pramount of
               "" -> Mixed as
               -- TODO multipliers with commodity symbols are not yet a documented feature.
-              -- For now: in addition to multiplying the quantity, it also replaces the 
-              -- matched amount's commodity, display style, and price with those of the posting rule.   
+              -- For now: in addition to multiplying the quantity, it also replaces the
+              -- matched amount's commodity, display style, and price with those of the posting rule.
               c  -> Mixed [a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount} | a <- as]
 
 postingRuleMultiplier :: TMPostingRule -> Maybe Quantity

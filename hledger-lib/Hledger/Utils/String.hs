@@ -322,9 +322,9 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
 -- see also http://unicode.org/reports/tr11/#Description
 
 -- | Calculate the render width of a string, considering
--- wide characters (counted as double width), ANSI escape codes 
+-- wide characters (counted as double width), ANSI escape codes
 -- (not counted), and line breaks (in a multi-line string, the longest
--- line determines the width). 
+-- line determines the width).
 strWidth :: String -> Int
 strWidth "" = 0
 strWidth s = maximum $ map (foldr (\a b -> charWidth a + b) 0) $ lines s'
