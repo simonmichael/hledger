@@ -622,8 +622,8 @@ Rebase your commits against latest master for easiest review. Especially if they
 Some conventions we often use in commit messages:
 
 - prepend a  [component](#components) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
-- prepend a semicolon (`;`) to indicate boring commits that won't affect changelogs/release notes (as in the Emacs project)
-- add a final `[ci skip]` line for commits which probably don't need to trigger a CI build, to reduce carbon emissions from Travis
+- prepend a semicolon (`;`) to indicate commits that need not be mentioned in changelogs/release notes (as in the Emacs project)
+- append a final `[ci skip]` line to indicate commits that need not trigger a CI build, to reduce carbon emissions from Travis.
 
 ### The docs
 
