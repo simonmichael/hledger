@@ -1253,7 +1253,7 @@ input format, output format, etc. Each component gets a light blue label
 in the issue tracker. Component names (sometimes abbreviated) are used
 as a prefix to commit messages, and to organise changelogs and release
 notes. The current components, and their open issues, can be seen in
-the Open Issues table above.
+the [Open Issues](#open-issues) table above.
 
 ### Custodians
 
