@@ -33,7 +33,7 @@ data PeriodicReport a =
 type PeriodicReportRow a =
   ( AccountName  -- A full account name.
   , AccountName  -- Shortened form of the account name to display in tree mode. Usually the leaf name, possibly with parent accounts prefixed.
-  , Int          -- Indent level for displaying this account name in tree mode. 0, 1, 2... 
+  , Int          -- Indent level for displaying this account name in tree mode. 0, 1, 2...
   , [a]          -- The data value for each subperiod.
   , a            -- The total of this row's values.
   , a            -- The average of this row's values.

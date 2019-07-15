@@ -230,7 +230,7 @@ customErrorBundlePretty errBundle =
     -- (since only one custom error should be used at a time).
     findCustomError :: ParseError Text CustomErr -> Maybe CustomErr
     findCustomError err = case err of
-      FancyError _ errSet -> 
+      FancyError _ errSet ->
         finds (\case {ErrorCustom e -> Just e; _ -> Nothing}) errSet
       _ -> Nothing
 

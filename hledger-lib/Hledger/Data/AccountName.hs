@@ -29,7 +29,7 @@ module Hledger.Data.AccountName (
   ,expandAccountName
   ,expandAccountNames
   ,isAccountNamePrefixOf
---  ,isAccountRegex 
+--  ,isAccountRegex
   ,isSubAccountNameOf
   ,parentAccountName
   ,parentAccountNames
@@ -50,7 +50,7 @@ import Data.Tree
 import Text.Printf
 
 import Hledger.Data.Types
-import Hledger.Utils 
+import Hledger.Utils
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -88,13 +88,13 @@ accountNameLevel "" = 0
 accountNameLevel a = T.length (T.filter (==acctsepchar) a) + 1
 
 -- | A top-level account prefixed to some accounts in budget reports.
--- Defined here so it can be ignored by accountNameDrop. 
+-- Defined here so it can be ignored by accountNameDrop.
 unbudgetedAccountName :: T.Text
 unbudgetedAccountName = "<unbudgeted>"
 
 -- | Remove some number of account name components from the front of the account name.
 -- If the special "<unbudgeted>" top-level account is present, it is preserved and
--- dropping affects the rest of the account name. 
+-- dropping affects the rest of the account name.
 accountNameDrop :: Int -> AccountName -> AccountName
 accountNameDrop n a
   | a == unbudgetedAccountName = a
@@ -103,7 +103,7 @@ accountNameDrop n a
         "" -> unbudgetedAccountName
         a' -> unbudgetedAccountAndSep <> a'
   | otherwise = accountNameFromComponents $ drop n $ accountNameComponents a
-  where 
+  where
     unbudgetedAccountAndSep = unbudgetedAccountName <> acctsep
 
 -- | Sorted unique account names implied by these account names,

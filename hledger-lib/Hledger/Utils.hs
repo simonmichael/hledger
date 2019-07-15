@@ -161,14 +161,14 @@ firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
 
--- | Read text from a file, 
+-- | Read text from a file,
 -- handling any of the usual line ending conventions,
 -- using the system locale's text encoding,
--- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8. 
+-- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
 readFilePortably :: FilePath -> IO Text
 readFilePortably f =  openFile f ReadMode >>= readHandlePortably
 
--- | Like readFilePortably, but read from standard input if the path is "-". 
+-- | Like readFilePortably, but read from standard input if the path is "-".
 readFileOrStdinPortably :: String -> IO Text
 readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
   where
@@ -236,7 +236,7 @@ embedFileRelative f = makeRelativeToProject f >>= embedStringFile
 -- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
 --   where
 --     QuasiQuoter{quoteExp=hereFileExp} = hereFile
-    
+
 tests_Utils = tests "Utils" [
   tests_Text
   ]

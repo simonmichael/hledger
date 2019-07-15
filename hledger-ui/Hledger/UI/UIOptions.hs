@@ -85,7 +85,7 @@ rawOptsToUIOpts rawopts = checkUIOpts <$> do
              ,cliopts_ = cliopts
              }
 
--- | Should transactions dated later than today be included ? 
+-- | Should transactions dated later than today be included ?
 -- Like flat/tree mode, there are three states, and the meaning of default can vary by command.
 data PresentOrFutureOpt = PFDefault | PFPresent | PFFuture deriving (Eq, Show, Data, Typeable)
 instance Default PresentOrFutureOpt where def = PFDefault
@@ -109,7 +109,7 @@ getHledgerUIOpts :: IO UIOpts
 --getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= rawOptsToUIOpts
 getHledgerUIOpts = do
   args <- getArgs >>= expandArgsAt
-  let args' = replaceNumericFlags args 
+  let args' = replaceNumericFlags args
   let cmdargopts = either usageError id $ process uimode args'
-  rawOptsToUIOpts $ decodeRawOpts cmdargopts 
+  rawOptsToUIOpts $ decodeRawOpts cmdargopts
 

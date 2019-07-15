@@ -320,7 +320,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
               "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
               _      -> budgetReportAsText ropts
         writeOutput opts $ render budgetreport
-          
+
       else
         if multiperiod then do  -- multi period balance report
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
@@ -337,7 +337,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
                                | otherwise   = ropts{accountlistmode_=ALTree}
                     in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j
                           -- for historical balances we must use balanceReportFromMultiBalanceReport (also forces --no-elide)
-                | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report 
+                | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
               render = case format of
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
@@ -458,7 +458,7 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
-  maybetranspose $ 
+  maybetranspose $
   ("Account" : map showDateSpan colspans
    ++ ["Total"   | row_total_]
    ++ ["Average" | average_]
@@ -481,7 +481,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_} (MultiBalanceRepor
   where
     maybetranspose | transpose_ opts = transpose
                    | otherwise = id
-    
+
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
 multiBalanceReportAsHtml ropts mbr =
@@ -505,7 +505,7 @@ multiBalanceReportHtmlRows ropts mbr =
   in
     (multiBalanceReportHtmlHeadRow ropts headingsrow
     ,map (multiBalanceReportHtmlBodyRow ropts) bodyrows
-    ,multiBalanceReportHtmlFootRow ropts <$> mtotalsrow -- TODO pad totals row with zeros when there are 
+    ,multiBalanceReportHtmlFootRow ropts <$> mtotalsrow -- TODO pad totals row with zeros when there are
     )
 
 -- | Render one MultiBalanceReport heading row as a HTML table row.
@@ -548,8 +548,8 @@ multiBalanceReportHtmlBodyRow ropts (label:rest) =
 multiBalanceReportHtmlFootRow :: ReportOpts -> [String] -> Html ()
 multiBalanceReportHtmlFootRow _ropts [] = mempty
 -- TODO pad totals row with zeros when subreport is empty
---  multiBalanceReportHtmlFootRow ropts $ 
---     "" 
+--  multiBalanceReportHtmlFootRow ropts $
+--     ""
 --   : repeat nullmixedamt zeros
 --  ++ (if row_total_ ropts then [nullmixedamt] else [])
 --  ++ (if average_ ropts   then [nullmixedamt]   else [])
@@ -597,7 +597,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
 balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
    maybetranspose $
-   addtotalrow $ 
+   addtotalrow $
    Table
      (T.Group NoLine $ map Header accts)
      (T.Group NoLine $ map Header colheadings)
@@ -625,7 +625,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_} (MultiB
                                     ))
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id
-                   
+
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output.

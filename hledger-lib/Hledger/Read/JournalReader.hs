@@ -107,9 +107,9 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts = parseAndFinaliseJournal journalp' iopts
   where
-    journalp' = do 
+    journalp' = do
       -- reverse parsed aliases to ensure that they are applied in order given on commandline
-      mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts) 
+      mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts)
       journalp
 
 -- | Get the account name aliases from options, if any.
@@ -267,12 +267,12 @@ accountdirectivep = do
   -- maybe an account type code (ALERX) after two or more spaces
   -- XXX added in 1.11, deprecated in 1.13, remove in 1.14
   mtypecode :: Maybe Char <- lift $ optional $ try $ do
-    skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp 
+    skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp
     choice $ map char "ALERX"
 
   -- maybe a comment, on this and/or following lines
   (cmt, tags) <- lift transactioncommentp
-  
+
   -- maybe Ledger-style subdirectives (ignored)
   skipMany indentedlinep
 
@@ -386,7 +386,7 @@ formatdirectivep expectedsym = do
   Amount{acommodity,astyle} <- amountp
   _ <- lift followingcommentp
   if acommodity==expectedsym
-    then 
+    then
       if asdecimalpoint astyle == Nothing
       then customFailure $ parseErrorAt off pleaseincludedecimalpoint
       else return $ dbg2 "style from format subdirective" astyle
@@ -532,7 +532,7 @@ transactionmodifierp = do
 -- | Parse a periodic transaction
 --
 -- This reuses periodexprp which parses period expressions on the command line.
--- This is awkward because periodexprp supports relative and partial dates, 
+-- This is awkward because periodexprp supports relative and partial dates,
 -- which we don't really need here, and it doesn't support the notion of a
 -- default year set by a Y directive, which we do need to consider here.
 -- We resolve it as follows: in periodic transactions' period expressions,
@@ -546,12 +546,12 @@ periodictransactionp = do
   lift $ skipMany spacenonewline
   -- a period expression
   off <- getOffset
-  
+
   -- if there's a default year in effect, use Y/1/1 as base for partial/relative dates
   today <- liftIO getCurrentDay
   mdefaultyear <- getYear
   let refdate = case mdefaultyear of
-                  Nothing -> today 
+                  Nothing -> today
                   Just y  -> fromGregorian y 1 1
   periodExcerpt <- lift $ excerpt_ $
                     singlespacedtextsatisfyingp (\c -> c /= ';' && c /= '\n')
@@ -576,7 +576,7 @@ periodictransactionp = do
   case checkPeriodicTransactionStartDate interval span periodtxt of
     Just e -> customFailure $ parseErrorAt off e
     Nothing -> pure ()
-  
+
   status <- lift statusp <?> "cleared status"
   code <- lift codep <?> "transaction code"
   description <- lift $ T.strip <$> descriptionp
@@ -678,7 +678,7 @@ tests_JournalReader = tests "JournalReader" [
     test "YYYY-MM-DD" $ expectParse datep "2018-01-01"
     test "YYYY.MM.DD" $ expectParse datep "2018.01.01"
     test "yearless date with no default year" $ expectParseError datep "1/1" "current year is unknown"
-    test "yearless date with default year" $ do 
+    test "yearless date with default year" $ do
       let s = "1/1"
       ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep s
       either (fail.("parse error at "++).customErrorBundlePretty) (const ok) ep
@@ -703,7 +703,7 @@ tests_JournalReader = tests "JournalReader" [
   ,tests "periodictransactionp" [
 
     test "more period text in comment after one space" $ expectParseEq periodictransactionp
-      "~ monthly from 2018/6 ;In 2019 we will change this\n" 
+      "~ monthly from 2018/6 ;In 2019 we will change this\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
@@ -713,7 +713,7 @@ tests_JournalReader = tests "JournalReader" [
         }
 
     ,test "more period text in description after two spaces" $ expectParseEq periodictransactionp
-      "~ monthly from 2018/6   In 2019 we will change this\n" 
+      "~ monthly from 2018/6   In 2019 we will change this\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
@@ -748,16 +748,16 @@ tests_JournalReader = tests "JournalReader" [
     ]
 
   ,tests "postingp" [
-     test "basic" $ expectParseEq (postingp Nothing) 
+     test "basic" $ expectParseEq (postingp Nothing)
       "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n"
       posting{
-        paccount="expenses:food:dining", 
-        pamount=Mixed [usd 10], 
-        pcomment="a: a a\nb: b b\n", 
+        paccount="expenses:food:dining",
+        pamount=Mixed [usd 10],
+        pcomment="a: a a\nb: b b\n",
         ptags=[("a","a a"), ("b","b b")]
         }
 
-    ,test "posting dates" $ expectParseEq (postingp Nothing) 
+    ,test "posting dates" $ expectParseEq (postingp Nothing)
       " a  1. ; date:2012/11/28, date2=2012/11/29,b:b\n"
       nullposting{
          paccount="a"
@@ -768,14 +768,14 @@ tests_JournalReader = tests "JournalReader" [
         ,pdate2=Nothing  -- Just $ fromGregorian 2012 11 29
         }
 
-    ,test "posting dates bracket syntax" $ expectParseEq (postingp Nothing) 
+    ,test "posting dates bracket syntax" $ expectParseEq (postingp Nothing)
       " a  1. ; [2012/11/28=2012/11/29]\n"
       nullposting{
          paccount="a"
         ,pamount=Mixed [num 1]
         ,pcomment="[2012/11/28=2012/11/29]\n"
         ,ptags=[]
-        ,pdate= Just $ fromGregorian 2012 11 28 
+        ,pdate= Just $ fromGregorian 2012 11 28
         ,pdate2=Just $ fromGregorian 2012 11 29
         }
 
@@ -788,7 +788,7 @@ tests_JournalReader = tests "JournalReader" [
 
   ,tests "transactionmodifierp" [
 
-    test "basic" $ expectParseEq transactionmodifierp 
+    test "basic" $ expectParseEq transactionmodifierp
       "= (some value expr)\n some:postings  1.\n"
       nulltransactionmodifier {
         tmquerytxt = "(some value expr)"
@@ -797,10 +797,10 @@ tests_JournalReader = tests "JournalReader" [
     ]
 
   ,tests "transactionp" [
-  
+
      test "just a date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
-  
-    ,test "more complex" $ expectParseEq transactionp 
+
+    ,test "more complex" $ expectParseEq transactionp
       (T.unlines [
         "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
         "    ; tcomment2",
@@ -833,7 +833,7 @@ tests_JournalReader = tests "JournalReader" [
             }
           ]
       }
-  
+
     ,test "parses a well-formed transaction" $
       expect $ isRight $ rjp transactionp $ T.unlines
         ["2007/01/28 coopportunity"
@@ -841,10 +841,10 @@ tests_JournalReader = tests "JournalReader" [
         ,"    assets:checking                          $-47.18"
         ,""
         ]
-  
+
     ,test "does not parse a following comment as part of the description" $
       expectParseEqOn transactionp "2009/1/1 a ;comment\n b 1\n" tdescription "a"
-  
+
     ,test "transactionp parses a following whitespace line" $
       expect $ isRight $ rjp transactionp $ T.unlines
         ["2012/1/1"
@@ -863,7 +863,7 @@ tests_JournalReader = tests "JournalReader" [
         ]
 
     ,test "comments everywhere, two postings parsed" $
-      expectParseEqOn transactionp 
+      expectParseEqOn transactionp
         (T.unlines
           ["2009/1/1 x  ; transaction comment"
           ," a  1  ; posting 1 comment"
@@ -873,13 +873,13 @@ tests_JournalReader = tests "JournalReader" [
           ])
         (length . tpostings)
         2
-  
+
     ]
 
   -- directives
 
   ,tests "directivep" [
-    test "supports !" $ do 
+    test "supports !" $ do
       expectParseE directivep "!account a\n"
       expectParseE directivep "!D 1.0\n"
     ]

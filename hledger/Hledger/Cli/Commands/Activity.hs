@@ -2,7 +2,7 @@
 
 {-|
 
-Print a bar chart of posting activity per day, or other report interval. 
+Print a bar chart of posting activity per day, or other report interval.
 
 -}
 

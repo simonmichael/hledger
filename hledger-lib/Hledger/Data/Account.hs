@@ -76,8 +76,8 @@ accountsFromPostings ps =
   in
     acctsflattened
 
--- | Convert a list of account names to a tree of Account objects, 
--- with just the account names filled in. 
+-- | Convert a list of account names to a tree of Account objects,
+-- with just the account names filled in.
 -- A single root account with the given name is added.
 accountTree :: AccountName -> [AccountName] -> Account
 accountTree rootname as = nullacct{aname=rootname, asubs=map (uncurry accountTree') $ M.assocs m }
@@ -193,7 +193,7 @@ filterAccounts p a
     | otherwise = concatMap (filterAccounts p) (asubs a)
 
 -- | Sort each group of siblings in an account tree by inclusive amount,
--- so that the accounts with largest normal balances are listed first.  
+-- so that the accounts with largest normal balances are listed first.
 -- The provided normal balance sign determines whether normal balances
 -- are negative or positive, affecting the sort order. Ie,
 -- if balances are normally negative, then the most negative balances
@@ -217,10 +217,10 @@ accountSetDeclarationInfo j a@Account{..} =
 -- | Sort account names by the order in which they were declared in
 -- the journal, at each level of the account tree (ie within each
 -- group of siblings). Undeclared accounts are sorted last and
--- alphabetically. 
+-- alphabetically.
 -- This is hledger's default sort for reports organised by account.
 -- The account list is converted to a tree temporarily, adding any
--- missing parents; these can be kept (suitable for a tree-mode report) 
+-- missing parents; these can be kept (suitable for a tree-mode report)
 -- or removed (suitable for a flat-mode report).
 --
 sortAccountNamesByDeclaration :: Journal -> Bool -> [AccountName] -> [AccountName]
@@ -235,14 +235,14 @@ sortAccountNamesByDeclaration j keepparents as =
   as
 
 -- | Sort each group of siblings in an account tree by declaration order, then account name.
--- So each group will contain first the declared accounts, 
--- in the same order as their account directives were parsed, 
--- and then the undeclared accounts, sorted by account name. 
+-- So each group will contain first the declared accounts,
+-- in the same order as their account directives were parsed,
+-- and then the undeclared accounts, sorted by account name.
 sortAccountTreeByDeclaration :: Account -> Account
 sortAccountTreeByDeclaration a
   | null $ asubs a = a
   | otherwise      = a{asubs=
-      sortOn accountDeclarationOrderAndName $ 
+      sortOn accountDeclarationOrderAndName $
       map sortAccountTreeByDeclaration $ asubs a
       }
 

@@ -17,7 +17,7 @@ import Yesod.Default.Config
 import Hledger.Data (Journal, nulljournal)
 
 import Hledger.Web.Handler.AddR
-import Hledger.Web.Handler.MiscR 
+import Hledger.Web.Handler.MiscR
 import Hledger.Web.Handler.EditR
 import Hledger.Web.Handler.UploadR
 import Hledger.Web.Handler.JournalR

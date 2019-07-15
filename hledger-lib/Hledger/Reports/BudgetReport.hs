@@ -72,14 +72,14 @@ budgetReport ropts' assrt reportspan d j =
     -- and that reports with and without --empty make sense when compared side by side
     ropts = ropts' { accountlistmode_ = ALTree }
     showunbudgeted = empty_ ropts
-    q = queryFromOpts d ropts 
-    budgetedaccts = 
+    q = queryFromOpts d ropts
+    budgetedaccts =
       dbg2 "budgetedacctsinperiod" $
-      nub $ 
+      nub $
       concatMap expandAccountName $
-      accountNamesFromPostings $ 
-      concatMap tpostings $ 
-      concatMap (flip runPeriodicTransaction reportspan) $ 
+      accountNamesFromPostings $
+      concatMap tpostings $
+      concatMap (flip runPeriodicTransaction reportspan) $
       jperiodictxns j
     actualj = dbg1 "actualj" $ budgetRollUp budgetedaccts showunbudgeted j
     budgetj = dbg1 "budgetj" $ budgetJournal assrt ropts reportspan j
@@ -87,10 +87,10 @@ budgetReport ropts' assrt reportspan d j =
     budgetgoalreport@(MultiBalanceReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
     budgetgoalreport'
       -- If no interval is specified:
-      -- budgetgoalreport's span might be shorter actualreport's due to periodic txns; 
-      -- it should be safe to replace it with the latter, so they combine well. 
+      -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
+      -- it should be safe to replace it with the latter, so they combine well.
       | interval_ ropts == NoInterval = MultiBalanceReport (actualspans, budgetgoalitems, budgetgoaltotals)
-      | otherwise = budgetgoalreport 
+      | otherwise = budgetgoalreport
     budgetreport = combineBudgetAndActual budgetgoalreport' actualreport
     sortedbudgetreport = sortBudgetReport ropts j budgetreport
   in
@@ -100,13 +100,13 @@ budgetReport ropts' assrt reportspan d j =
 sortBudgetReport :: ReportOpts -> Journal -> BudgetReport -> BudgetReport
 sortBudgetReport ropts j (PeriodicReport (ps, rows, trow)) = PeriodicReport (ps, sortedrows, trow)
   where
-    sortedrows 
+    sortedrows
       | sort_amount_ ropts && tree_ ropts = sortTreeBURByActualAmount rows
       | sort_amount_ ropts                = sortFlatBURByActualAmount rows
       | otherwise                         = sortByAccountDeclaration rows
 
     -- Sort a tree-mode budget report's rows by total actual amount at each level.
-    sortTreeBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow] 
+    sortTreeBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
     sortTreeBURByActualAmount rows = sortedrows
       where
         anamesandrows = [(first6 r, r) | r <- rows]
@@ -116,21 +116,21 @@ sortBudgetReport ropts j (PeriodicReport (ps, rows, trow)) = PeriodicReport (ps,
         accounttreewithbals = mapAccounts setibalance accounttree
           where
             setibalance a = a{aibalance=
-              fromMaybe 0 $ -- when there's no actual amount, assume 0; will mess up with negative amounts ? TODO 
-              fromMaybe (error "sortTreeByAmount 1") $ -- should not happen, but it's ugly; TODO 
+              fromMaybe 0 $ -- when there's no actual amount, assume 0; will mess up with negative amounts ? TODO
+              fromMaybe (error "sortTreeByAmount 1") $ -- should not happen, but it's ugly; TODO
               lookup (aname a) atotals
               }
         sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
         sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
-        sortedrows = sortAccountItemsLike sortedanames anamesandrows 
+        sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
     -- Sort a flat-mode budget report's rows by total actual amount.
-    sortFlatBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow] 
+    sortFlatBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
     sortFlatBURByActualAmount = sortBy (maybeflip $ comparing (fst . fifth6))
       where
         maybeflip = if normalbalance_ ropts == Just NormallyNegative then id else flip
 
-    -- Sort the report rows by account declaration order then account name. 
+    -- Sort the report rows by account declaration order then account name.
     -- <unbudgeted> remains at the top.
     sortByAccountDeclaration rows = sortedrows
       where
@@ -138,9 +138,9 @@ sortBudgetReport ropts j (PeriodicReport (ps, rows, trow)) = PeriodicReport (ps,
         anamesandrows = [(first6 r, r) | r <- rows']
         anames = map fst anamesandrows
         sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
-        sortedrows = unbudgetedrow ++ sortAccountItemsLike sortedanames anamesandrows 
+        sortedrows = unbudgetedrow ++ sortAccountItemsLike sortedanames anamesandrows
 
--- | Use all periodic transactions in the journal to generate 
+-- | Use all periodic transactions in the journal to generate
 -- budget transactions in the specified report period.
 -- Budget transactions are similar to forecast transactions except
 -- their purpose is to set goal amounts (of change) per account and period.
@@ -159,11 +159,11 @@ budgetJournal assrt _ropts reportspan j =
 
 -- | Adjust a journal's account names for budget reporting, in two ways:
 --
--- 1. accounts with no budget goal anywhere in their ancestry are moved 
+-- 1. accounts with no budget goal anywhere in their ancestry are moved
 --    under the "unbudgeted" top level account.
 --
 -- 2. subaccounts with no budget goal are merged with their closest parent account
---    with a budget goal, so that only budgeted accounts are shown. 
+--    with a budget goal, so that only budgeted accounts are shown.
 --    This can be disabled by --empty.
 --
 budgetRollUp :: [AccountName] -> Bool -> Journal -> Journal
@@ -176,7 +176,7 @@ budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
           where
             remapAccount a
               | hasbudget         = a
-              | hasbudgetedparent = if showunbudgeted then a else budgetedparent 
+              | hasbudgetedparent = if showunbudgeted then a else budgetedparent
               | otherwise         = if showunbudgeted then u <> acctsep <> a else u
               where
                 hasbudget = a `elem` budgetedaccts
@@ -270,7 +270,7 @@ budgetReportSpan (PeriodicReport (spans, _, _)) = DateSpan (spanStart $ head spa
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
 budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
-  title ++ "\n\n" ++ 
+  title ++ "\n\n" ++
   tableAsText ropts showcell (maybetranspose $ budgetReportAsTable ropts budgetr)
   where
     multiperiod = interval_ /= NoInterval
@@ -319,7 +319,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
     percentage :: Change -> BudgetGoal -> Maybe Percentage
     percentage actual budget =
       case (maybecost $ normaliseMixedAmount actual, maybecost $ normaliseMixedAmount budget) of
-        (Mixed [a], Mixed [b]) | (acommodity a == acommodity b || isZeroAmount a) && not (isZeroAmount b) 
+        (Mixed [a], Mixed [b]) | (acommodity a == acommodity b || isZeroAmount a) && not (isZeroAmount b)
             -> Just $ 100 * aquantity a / aquantity b
         _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
                Nothing
@@ -337,14 +337,14 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
 
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table String String (Maybe MixedAmount, Maybe MixedAmount)
-budgetReportAsTable 
-  ropts 
+budgetReportAsTable
+  ropts
   (PeriodicReport
     ( periods
     , rows
     , (_, _, _, coltots, grandtot, grandavg)
     )) =
-    addtotalrow $ 
+    addtotalrow $
     Table
       (T.Group NoLine $ map Header accts)
       (T.Group NoLine $ map Header colheadings)
@@ -368,7 +368,7 @@ budgetReportAsTable
                                      ))
 
 -- XXX here for now
--- TODO: does not work for flat-by-default reports with --flat not specified explicitly  
+-- TODO: does not work for flat-by-default reports with --flat not specified explicitly
 -- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
 maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
 maybeAccountNameDrop opts a | flat_ opts = accountNameDrop (drop_ opts) a

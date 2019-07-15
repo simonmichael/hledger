@@ -3,7 +3,7 @@
 module Hledger.Cli.Commands.Checkdupes (
   checkdupesmode
  ,checkdupes
-) 
+)
 where
 
 import Data.Function

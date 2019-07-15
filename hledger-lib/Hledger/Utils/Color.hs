@@ -2,7 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.Utils.Color 
+module Hledger.Utils.Color
 (
   color,
   bgColor,

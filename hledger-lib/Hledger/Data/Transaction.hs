@@ -62,7 +62,7 @@ import Data.Time.Calendar
 import Text.Printf
 import qualified Data.Map as Map
 
-import Hledger.Utils 
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Posting
@@ -101,7 +101,7 @@ nulltransaction = Transaction {
                   }
 
 -- | Make a simple transaction with the given date and postings.
-transaction :: String -> [Posting] -> Transaction 
+transaction :: String -> [Posting] -> Transaction
 transaction datestr ps = txnTieKnot $ nulltransaction{tdate=parsedate datestr, tpostings=ps}
 
 transactionPayee :: Transaction -> Text
@@ -122,7 +122,7 @@ payeeAndNoteFromDescription t
     (p, n) = T.span (/= '|') t
 
 {-|
-Render a journal transaction as text in the style of Ledger's print command. 
+Render a journal transaction as text in the style of Ledger's print command.
 
 Ledger 2.x's standard format looks like this:
 
@@ -139,7 +139,7 @@ pcommentwidth = no limit -- 22
 @
 
 The output will be parseable journal syntax.
-To facilitate this, postings with explicit multi-commodity amounts 
+To facilitate this, postings with explicit multi-commodity amounts
 are displayed as multiple similar postings, one per commodity.
 (Normally does not happen with this function).
 
@@ -148,8 +148,8 @@ and the transaction appears obviously balanced
 (postings sum to 0, without needing to infer conversion prices),
 the last posting's amount will not be shown.
 -}
--- XXX why that logic ? 
--- XXX where is/should this be still used ? 
+-- XXX why that logic ?
+-- XXX where is/should this be still used ?
 -- XXX rename these, after amount expressions/mixed posting amounts lands
 --     eg showTransactionSimpleAmountsElidingLast, showTransactionSimpleAmounts, showTransaction
 showTransaction :: Transaction -> String
@@ -158,19 +158,19 @@ showTransaction = showTransactionHelper True False
 -- | Like showTransaction, but does not change amounts' explicitness.
 -- Explicit amounts are shown and implicit amounts are not.
 -- The output will be parseable journal syntax.
--- To facilitate this, postings with explicit multi-commodity amounts 
+-- To facilitate this, postings with explicit multi-commodity amounts
 -- are displayed as multiple similar postings, one per commodity.
 -- Most often, this is the one you want to use.
 showTransactionUnelided :: Transaction -> String
 showTransactionUnelided = showTransactionHelper False False
 
--- | Like showTransactionUnelided, but explicit multi-commodity amounts 
--- are shown on one line, comma-separated. In this case the output will 
+-- | Like showTransactionUnelided, but explicit multi-commodity amounts
+-- are shown on one line, comma-separated. In this case the output will
 -- not be parseable journal syntax.
 showTransactionUnelidedOneLineAmounts :: Transaction -> String
 showTransactionUnelidedOneLineAmounts = showTransactionHelper False True
 
--- | Helper for showTransaction*. 
+-- | Helper for showTransaction*.
 showTransactionHelper :: Bool -> Bool -> Transaction -> String
 showTransactionHelper elide onelineamounts t =
     unlines $ [descriptionline]
@@ -205,7 +205,7 @@ renderCommentLines t =
 -- for `print` output. Normally this output will be valid journal syntax which
 -- hledger can reparse (though it may include no-longer-valid balance assertions).
 --
--- Explicit amounts are shown, any implicit amounts are not. 
+-- Explicit amounts are shown, any implicit amounts are not.
 --
 -- Setting elide to true forces the last posting's amount to be implicit, if:
 -- there are other postings, all with explicit amounts, and the transaction
@@ -215,36 +215,36 @@ renderCommentLines t =
 -- if onelineamounts is true, these amounts are shown on one line,
 -- comma-separated, and the output will not be valid journal syntax.
 -- Otherwise, they are shown as several similar postings, one per commodity.
--- 
+--
 -- The output will appear to be a balanced transaction.
 -- Amounts' display precisions, which may have been limited by commodity
 -- directives, will be increased if necessary to ensure this.
 --
 -- Posting amounts will be aligned with each other, starting about 4 columns
 -- beyond the widest account name (see postingAsLines for details).
--- 
+--
 postingsAsLines :: Bool -> Bool -> Transaction -> [Posting] -> [String]
 postingsAsLines elide onelineamounts t ps
   | elide && length ps > 1 && all hasAmount ps && isTransactionBalanced Nothing t -- imprecise balanced check
    = concatMap (postingAsLines False onelineamounts ps) (init ps) ++ postingAsLines True onelineamounts ps (last ps)
   | otherwise = concatMap (postingAsLines False onelineamounts ps) ps
 
--- | Render one posting, on one or more lines, suitable for `print` output.  
+-- | Render one posting, on one or more lines, suitable for `print` output.
 -- There will be an indented account name, plus one or more of status flag,
 -- posting amount, balance assertion, same-line comment, next-line comments.
--- 
+--
 -- If the posting's amount is implicit or if elideamount is true, no amount is shown.
 --
--- If the posting's amount is explicit and multi-commodity, multiple similar 
+-- If the posting's amount is explicit and multi-commodity, multiple similar
 -- postings are shown, one for each commodity, to help produce parseable journal syntax.
 -- Or if onelineamounts is true, such amounts are shown on one line, comma-separated
 -- (and the output will not be valid journal syntax).
 --
--- By default, 4 spaces (2 if there's a status flag) are shown between 
+-- By default, 4 spaces (2 if there's a status flag) are shown between
 -- account name and start of amount area, which is typically 12 chars wide
--- and contains a right-aligned amount (so 10-12 visible spaces between 
+-- and contains a right-aligned amount (so 10-12 visible spaces between
 -- account name and amount is typical).
--- When given a list of postings to be aligned with, the whitespace will be 
+-- When given a list of postings to be aligned with, the whitespace will be
 -- increased if needed to match the posting with the longest account name.
 -- This is used to align the amounts of a transaction's postings.
 --
@@ -255,10 +255,10 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     | postingblock <- postingblocks]
   where
     postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
-    assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p 
+    assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p
     statusandaccount = lineIndent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
-          -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  
+          -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
           minwidth = maximum $ map ((2+) . textWidth . T.pack . pacctstr) pstoalignwith
           pstatusandacct p' = pstatusprefix p' ++ pacctstr p'
           pstatusprefix p' | null s    = ""
@@ -279,8 +279,8 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
 
--- | Render a balance assertion, as the =[=][*] symbol and expected amount. 
-showBalanceAssertion BalanceAssertion{..} = 
+-- | Render a balance assertion, as the =[=][*] symbol and expected amount.
+showBalanceAssertion BalanceAssertion{..} =
   "=" ++ ['=' | batotal] ++ ['*' | bainclusive] ++ " " ++ showAmountWithZeroCommodity baamount
 
 -- | Render a posting, simply. Used in balance assertion errors.
@@ -296,7 +296,7 @@ showBalanceAssertion BalanceAssertion{..} =
 --     assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity . baamount) $ pbalanceassertion p
 
 -- | Render a posting, at the appropriate width for aligning with
--- its siblings if any. Used by the rewrite command. 
+-- its siblings if any. Used by the rewrite command.
 showPostingLines :: Posting -> [String]
 showPostingLines p = postingAsLines False False ps p where
     ps | Just t <- ptransaction p = tpostings t
@@ -366,14 +366,14 @@ isTransactionBalanced styles t =
       bvsum' = canonicalise $ costOfMixedAmount bvsum
       canonicalise = maybe id canonicaliseMixedAmount styles
 
--- | Balance this transaction, ensuring that its postings 
+-- | Balance this transaction, ensuring that its postings
 -- (and its balanced virtual postings) sum to 0,
--- by inferring a missing amount or conversion price(s) if needed. 
+-- by inferring a missing amount or conversion price(s) if needed.
 -- Or if balancing is not possible, because the amounts don't sum to 0 or
 -- because there's more than one missing amount, return an error message.
 --
 -- Transactions with balance assignments can have more than one
--- missing amount; to balance those you should use the more powerful  
+-- missing amount; to balance those you should use the more powerful
 -- journalBalanceTransactions.
 --
 -- The "sum to 0" test is done using commodity display precisions,
@@ -383,18 +383,18 @@ balanceTransaction ::
      Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   -> Transaction
   -> Either String Transaction
-balanceTransaction mstyles = fmap fst . balanceTransactionHelper mstyles 
+balanceTransaction mstyles = fmap fst . balanceTransactionHelper mstyles
 
 -- | Helper used by balanceTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
--- use one of those instead. It also returns a list of accounts 
+-- use one of those instead. It also returns a list of accounts
 -- and amounts that were inferred.
 balanceTransactionHelper ::
      Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper mstyles t = do
-  (t', inferredamtsandaccts) <- 
-    inferBalancingAmount (fromMaybe Map.empty mstyles) $ inferBalancingPrices t 
+  (t', inferredamtsandaccts) <-
+    inferBalancingAmount (fromMaybe Map.empty mstyles) $ inferBalancingPrices t
   if isTransactionBalanced mstyles t'
   then Right (txnTieKnot t', inferredamtsandaccts)
   else Left $ annotateErrorWithTransaction t' $ nonzerobalanceerror t'
@@ -413,7 +413,7 @@ balanceTransactionHelper mstyles t = do
           sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
 annotateErrorWithTransaction :: Transaction -> String -> String
-annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransactionUnelided t]    
+annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransactionUnelided t]
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -423,7 +423,7 @@ annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsou
 -- We can infer a missing amount when there are multiple postings and exactly
 -- one of them is amountless. If the amounts had price(s) the inferred amount
 -- have the same price(s), and will be converted to the price commodity.
-inferBalancingAmount :: 
+inferBalancingAmount ::
      Map.Map CommoditySymbol AmountStyle -- ^ commodity display styles
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
@@ -446,16 +446,16 @@ inferBalancingAmount styles t@Transaction{tpostings=ps}
     inferamount p =
       let
         minferredamt = case ptype p of
-          RegularPosting         | not (hasAmount p) -> Just realsum 
-          BalancedVirtualPosting | not (hasAmount p) -> Just bvsum 
-          _                                          -> Nothing 
+          RegularPosting         | not (hasAmount p) -> Just realsum
+          BalancedVirtualPosting | not (hasAmount p) -> Just bvsum
+          _                                          -> Nothing
       in
         case minferredamt of
           Nothing -> (p, Nothing)
-          Just a  -> (p{pamount=a', poriginal=Just $ originalPosting p}, Just a') 
+          Just a  -> (p{pamount=a', poriginal=Just $ originalPosting p}, Just a')
             where
               -- Inferred amounts are converted to cost.
-              -- Also ensure the new amount has the standard style for its commodity  
+              -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
               a' = styleMixedAmount styles $ normaliseMixedAmount $ costOfMixedAmount (-a)
 
@@ -613,7 +613,7 @@ tests_Transaction =
               ]
         ]
    -- postingsAsLines
-    -- one implicit amount 
+    -- one implicit amount
     , let timp = nulltransaction {tpostings = ["a" `post` usd 1, "b" `post` missingamt]}
     -- explicit amounts, balanced
           texp = nulltransaction {tpostings = ["a" `post` usd 1, "b" `post` usd (-1)]}
@@ -659,7 +659,7 @@ tests_Transaction =
             , test "one-explicit-amount-elide-true" $
               let t = texp1
                in postingsAsLines True False t (tpostings t) `is`
-                  [ "    (a)           $1.00" -- explicit amount remains explicit since only one posting 
+                  [ "    (a)           $1.00" -- explicit amount remains explicit since only one posting
                   ]
             , test "explicit-amounts-two-commodities-elide-true" $
               let t = texp2

@@ -32,7 +32,7 @@ import Safe (headMay, lastMay)
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils 
+import Hledger.Utils
 import Hledger.Reports.ReportOptions
 
 
@@ -103,7 +103,7 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
-        | multiperiod = 
+        | multiperiod =
             let summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
             in [(pvalue p lastday, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
         | otherwise =
@@ -286,13 +286,13 @@ tests_PostingsReport = tests "PostingsReport" [
      ,(Depth 2, samplejournal) `gives` 13
      ,(And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
      ,(And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
-  
+
      -- with query and/or command-line options
      ,(length $ snd $ postingsReport defreportopts Any samplejournal) `is` 13
      ,(length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal) `is` 11
      ,(length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal) `is` 20
      ,(length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal) `is` 5
-  
+
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
      -- [(Just (parsedate "2008-01-01","income"),assets:bank:checking             $1,$1)
      -- ,(Nothing,income:salary                   $-1,0)
@@ -304,7 +304,7 @@ tests_PostingsReport = tests "PostingsReport" [
      -- ,(Nothing,expenses:supplies                $1,$2)
      -- ,(Nothing,assets:cash                     $-2,0)
      -- ,(Just (2008-12-31,"pay off"),liabilities:debts                $1,$1)
-     -- ,(Nothing,assets:bank:checking            $-1,0)    
+     -- ,(Nothing,assets:bank:checking            $-1,0)
 
     {-
         let opts = defreportopts
@@ -321,7 +321,7 @@ tests_PostingsReport = tests "PostingsReport" [
          ,"2008/12/31 pay off              liabilities:debts                $1           $1"
          ,"                                assets:bank:checking            $-1            0"
          ]
-    
+
       ,"postings report with cleared option" ~:
        do
         let opts = defreportopts{cleared_=True}
@@ -333,7 +333,7 @@ tests_PostingsReport = tests "PostingsReport" [
          ,"2008/12/31 pay off              liabilities:debts                $1           $1"
          ,"                                assets:bank:checking            $-1            0"
          ]
-    
+
       ,"postings report with uncleared option" ~:
        do
         let opts = defreportopts{uncleared_=True}
@@ -346,7 +346,7 @@ tests_PostingsReport = tests "PostingsReport" [
          ,"2008/06/02 save                 assets:bank:saving               $1           $1"
          ,"                                assets:bank:checking            $-1            0"
          ]
-    
+
       ,"postings report sorts by date" ~:
        do
         j <- readJournal' $ unlines
@@ -360,7 +360,7 @@ tests_PostingsReport = tests "PostingsReport" [
             ]
         let opts = defreportopts
         registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/02/02"]
-    
+
       ,"postings report with account pattern" ~:
        do
         j <- samplejournal
@@ -368,7 +368,7 @@ tests_PostingsReport = tests "PostingsReport" [
         (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
          ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
          ]
-    
+
       ,"postings report with account pattern, case insensitive" ~:
        do
         j <- samplejournal
@@ -376,7 +376,7 @@ tests_PostingsReport = tests "PostingsReport" [
         (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
          ["2008/06/03 eat & shop           assets:cash                     $-2          $-2"
          ]
-    
+
       ,"postings report with display expression" ~:
        do
         j <- samplejournal
@@ -388,7 +388,7 @@ tests_PostingsReport = tests "PostingsReport" [
         "d=[2008/6/2]"  `gives` ["2008/06/02"]
         "d>=[2008/6/2]" `gives` ["2008/06/02","2008/06/03","2008/12/31"]
         "d>[2008/6/2]"  `gives` ["2008/06/03","2008/12/31"]
-    
+
       ,"postings report with period expression" ~:
        do
         j <- samplejournal
@@ -416,9 +416,9 @@ tests_PostingsReport = tests "PostingsReport" [
         registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/10/01"]
         let opts = defreportopts{period_=maybePeriod date1 "quarterly",empty_=True}
         registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` ["2008/01/01","2008/04/01","2008/07/01","2008/10/01"]
-    
+
       ]
-    
+
       , "postings report with depth arg" ~:
        do
         j <- samplejournal
@@ -436,7 +436,7 @@ tests_PostingsReport = tests "PostingsReport" [
          ,"2008/12/31 pay off              liabilities:debts                $1           $1"
          ,"                                assets:bank                     $-1            0"
          ]
-    
+
     -}
     ]
 
@@ -445,7 +445,7 @@ tests_PostingsReport = tests "PostingsReport" [
       summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] `is` []
       ]
    ]
-  
+
   -- ,tests_summarisePostingsInDateSpan = [
     --  "summarisePostingsInDateSpan" ~: do
     --   let gives (b,e,depth,showempty,ps) =
@@ -481,5 +481,5 @@ tests_PostingsReport = tests "PostingsReport" [
     --    [
     --     nullposting{lpdate=parsedate "2008/01/01",lpdescription="- 2008/12/31",lpaccount="",lpamount=Mixed [usd 15]}
     --    ]
-  
+
  ]

@@ -30,7 +30,7 @@ import Data.Functor (($>))
 import Data.Graph.Inductive (Gr,Node,NodeMap)
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
---XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html 
+--XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
 --You will eventually need all the values stored.
 --The stored values don't represent large virtual data structures to be lazily computed.
@@ -158,7 +158,7 @@ instance ToMarkup Quantity
 -- | An amount's per-unit or total cost/selling price in another
 -- commodity, as recorded in the journal entry eg with @ or @@.
 -- Docs call this "transaction price". The amount is always positive.
-data AmountPrice = UnitPrice Amount | TotalPrice Amount 
+data AmountPrice = UnitPrice Amount | TotalPrice Amount
   deriving (Eq,Ord,Typeable,Data,Generic,Show)
 
 instance NFData AmountPrice
@@ -301,7 +301,7 @@ data Posting = Posting {
                                                     --   Tying this knot gets tedious, Maybe makes it easier/optional.
       poriginal         :: Maybe Posting            -- ^ When this posting has been transformed in some way
                                                     --   (eg its amount or price was inferred, or the account name was
-                                                    --   changed by a pivot or budget report), this references the original 
+                                                    --   changed by a pivot or budget report), this references the original
                                                     --   untransformed posting (which will have Nothing in this field).
     } deriving (Typeable,Data,Generic)
 
@@ -358,10 +358,10 @@ data Transaction = Transaction {
 instance NFData Transaction
 
 -- | A transaction modifier rule. This has a query which matches postings
--- in the journal, and a list of transformations to apply to those 
+-- in the journal, and a list of transformations to apply to those
 -- postings or their transactions. Currently there is one kind of transformation:
--- the TMPostingRule, which adds a posting ("auto posting") to the transaction, 
--- optionally setting its amount to the matched posting's amount multiplied by a constant. 
+-- the TMPostingRule, which adds a posting ("auto posting") to the transaction,
+-- optionally setting its amount to the matched posting's amount multiplied by a constant.
 data TransactionModifier = TransactionModifier {
       tmquerytxt :: Text,
       tmpostingrules :: [TMPostingRule]
@@ -383,8 +383,8 @@ type TMPostingRule = Posting
 -- | A periodic transaction rule, describing a transaction that recurs.
 data PeriodicTransaction = PeriodicTransaction {
       ptperiodexpr   :: Text,     -- ^ the period expression as written
-      ptinterval     :: Interval, -- ^ the interval at which this transaction recurs 
-      ptspan         :: DateSpan, -- ^ the (possibly unbounded) period during which this transaction recurs. Contains a whole number of intervals. 
+      ptinterval     :: Interval, -- ^ the interval at which this transaction recurs
+      ptspan         :: DateSpan, -- ^ the (possibly unbounded) period during which this transaction recurs. Contains a whole number of intervals.
       --
       ptstatus       :: Status,   -- ^ some of Transaction's fields
       ptcode         :: Text,
@@ -496,8 +496,8 @@ data Journal = Journal {
   ,jparsetimeclockentries :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
   ,jincludefilestack      :: [FilePath]
   -- principal data
-  ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation) 
-  ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts) 
+  ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation)
+  ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts)
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
   ,jpricedirectives       :: [PriceDirective]                       -- ^ All market price declarations (P directives), in parse order (after journal finalisation).
@@ -558,12 +558,12 @@ data Account = Account {
   ,aibalance                 :: MixedAmount    -- ^ this account's balance, including subaccounts
   } deriving (Typeable, Data, Generic)
 
--- | Whether an account's balance is normally a positive number (in 
--- accounting terms, a debit balance) or a negative number (credit balance). 
+-- | Whether an account's balance is normally a positive number (in
+-- accounting terms, a debit balance) or a negative number (credit balance).
 -- Assets and expenses are normally positive (debit), while liabilities, equity
 -- and income are normally negative (credit).
 -- https://en.wikipedia.org/wiki/Normal_balance
-data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Data, Eq) 
+data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Data, Eq)
 
 -- | A Ledger has the journal it derives from, and the accounts
 -- derived from that. Accounts are accessible both list-wise and

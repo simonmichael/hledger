@@ -46,10 +46,10 @@ helpmode = hledgerCommandMode
   []
   ([], Just $ argsFlag "[MANUAL]")
 
--- | List or display one of the hledger manuals in various formats. 
+-- | List or display one of the hledger manuals in various formats.
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager`, `--cat` flags.
 -- Otherwise it will use the first available of: info, man, $PAGER, less, stdout
--- (and always stdout if output is non-interactive). 
+-- (and always stdout if output is non-interactive).
 help' :: CliOpts -> Journal -> IO ()
 help' opts _ = do
   exes <- likelyExecutablesInPath
@@ -60,18 +60,18 @@ help' opts _ = do
     topic = case args of
               [pat] -> headMay [t | t <- docTopics, map toLower pat `isInfixOf` t]
               _   -> Nothing
-    [info, man, pager, cat] = 
+    [info, man, pager, cat] =
       [runInfoForTopic, runManForTopic, runPagerForTopic pagerprog, printHelpForTopic]
     viewer
       | boolopt "info"  $ rawopts_ opts = info
       | boolopt "man"   $ rawopts_ opts = man
       | boolopt "pager" $ rawopts_ opts = pager
       | boolopt "cat"   $ rawopts_ opts = cat
-      | not interactive                 = cat 
+      | not interactive                 = cat
       | "info"    `elem` exes           = info
       | "man"     `elem` exes           = man
       | pagerprog `elem` exes           = pager
-      | otherwise                       = cat 
+      | otherwise                       = cat
   case topic of
     Nothing -> putStrLn $ unlines [
        "Please choose a manual by typing \"hledger help MANUAL\" (any substring is ok)."

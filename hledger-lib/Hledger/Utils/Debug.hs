@@ -94,7 +94,7 @@ traceWith f a = trace (f a) a
 -- touch and reload this module to see the effect of a new --debug option.
 -- After command-line processing, it is also available as the @debug_@
 -- field of 'Hledger.Cli.CliOptions.CliOpts'.
--- {-# OPTIONS_GHC -fno-cse #-} 
+-- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE debugLevel #-}
 debugLevel :: Int
 debugLevel = case snd $ break (=="--debug") args of
@@ -251,7 +251,7 @@ dbg9IO = ptraceAtIO 9
 plog :: Show a => String -> a -> a
 plog = plogAt 0
 
--- | Log a label and a pretty-printed showable value to ./debug.log, 
+-- | Log a label and a pretty-printed showable value to ./debug.log,
 -- if the global debug level is at or above the specified level.
 -- At level 0, always logs. Otherwise, uses unsafePerformIO.
 -- Tends to fail if called more than once, at least when built with -threaded
@@ -259,7 +259,7 @@ plog = plogAt 0
 plogAt :: Show a => Int -> String -> a -> a
 plogAt lvl
     | lvl > 0 && debugLevel < lvl = flip const
-    | otherwise = \s a -> 
+    | otherwise = \s a ->
         let p = ppShow a
             ls = lines p
             nlorspace | length ls > 1 = "\n"

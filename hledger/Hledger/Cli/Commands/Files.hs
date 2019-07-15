@@ -34,7 +34,7 @@ files :: CliOpts -> Journal -> IO ()
 files CliOpts{rawopts_=rawopts} j = do
   let args = listofstringopt "args" rawopts
       regex = headMay args
-      files = maybe id (filter . regexMatches) regex 
-              $ map fst 
+      files = maybe id (filter . regexMatches) regex
+              $ map fst
               $ jfiles j
   mapM_ putStrLn files

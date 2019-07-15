@@ -71,7 +71,7 @@ asInit d reset ui@UIState{
         selidx = case (reset, listSelectedElement $ _asList s) of
                    (True, _)               -> 0
                    (_, Nothing)            -> 0
-                   (_, Just (_,AccountsScreenItem{asItemAccountName=a})) -> 
+                   (_, Just (_,AccountsScreenItem{asItemAccountName=a})) ->
                      headDef 0 $ catMaybes [
                        findIndex (a ==) as
                       ,findIndex (a `isAccountNamePrefixOf`) as
@@ -88,7 +88,7 @@ asInit d reset ui@UIState{
     pfq | presentorfuture_ uopts == PFFuture = Any
         | otherwise                          = Date $ DateSpan Nothing (Just $ addDays 1 d)
     q = And [queryFromOpts d ropts, pfq]
-        
+
 
     -- run the report
     (items,_total) = report ropts' q j
@@ -104,14 +104,14 @@ asInit d reset ui@UIState{
     displayitem (fullacct, shortacct, indent, bal) =
       AccountsScreenItem{asItemIndentLevel        = indent
                         ,asItemAccountName        = fullacct
-                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts' then shortacct else fullacct 
+                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts' then shortacct else fullacct
                         ,asItemRenderedAmounts    = map showAmountWithoutPrice amts -- like showMixedAmountOneLineWithoutPrice
                         }
       where
         Mixed amts = normaliseMixedAmountSquashPricesForDisplay $ stripPrices bal
         stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
     displayitems = map displayitem items
-    -- blanks added for scrolling control, cf RegisterScreen 
+    -- blanks added for scrolling control, cf RegisterScreen
     blankitems = replicate 100
       AccountsScreenItem{asItemIndentLevel        = 0
                         ,asItemAccountName        = ""
@@ -201,7 +201,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             curidx = case _asList s ^. listSelectedL of
                        Nothing -> "-"
                        Just i -> show (i + 1)
-            totidx = show $ V.length nonblanks 
+            totidx = show $ V.length nonblanks
               where
                 nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ s ^. asList . listElementsL
 
@@ -215,7 +215,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,("-+", str "depth")
               ,("T", renderToggle (tree_ ropts) "flat" "tree")
               ,("H", renderToggle (not ishistorical) "end-bals" "changes")
-              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future") 
+              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future")
               --,("/", "filter")
               --,("DEL", "unfilter")
               --,("ESC", "cancel/top")
@@ -346,14 +346,14 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
-        -- enter register screen for selected account (if there is one), 
+        -- enter register screen for selected account (if there is one),
         -- centering its selected transaction if possible
-        VtyEvent e | e `elem` moveRightEvents 
+        VtyEvent e | e `elem` moveRightEvents
                    , not $ isBlankElement $ listSelectedElement _asList->
-          -- TODO center selection after entering register screen; neither of these works till second time entering; easy strictifications didn't help 
-          rsCenterAndContinue $  
+          -- TODO center selection after entering register screen; neither of these works till second time entering; easy strictifications didn't help
+          rsCenterAndContinue $
           -- flip rsHandle (VtyEvent (EvKey (KChar 'l') [MCtrl])) $
-            screenEnter d regscr ui 
+            screenEnter d regscr ui
           where
             regscr = rsSetAccount selacct isdepthclipped registerScreen
             isdepthclipped = case getDepth ui of
@@ -363,9 +363,9 @@ asHandle ui0@UIState{
         -- prevent moving down over blank padding items;
         -- instead scroll down by one, until maximally scrolled - shows the end has been reached
         VtyEvent (EvKey (KDown)     []) | isBlankElement mnextelement -> do
-          vScrollBy (viewportScroll $ _asList^.listNameL) 1 
+          vScrollBy (viewportScroll $ _asList^.listNameL) 1
           continue ui
-          where 
+          where
             mnextelement = listSelectedElement $ listMoveDown _asList
 
         -- if page down or end leads to a blank padding item, stop at last non-blank
@@ -378,7 +378,7 @@ asHandle ui0@UIState{
             continue ui{aScreen=scr{_asList=list'}}
           else
             continue ui{aScreen=scr{_asList=list}}
-          
+
         -- fall through to the list's event handler (handles up/down)
         VtyEvent ev -> do
           newitems <- handleListEvent (normaliseMovementKeys ev) _asList
@@ -398,7 +398,7 @@ asHandle _ _ = error "event handler called with wrong screen type, should not ha
 asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
 asSetSelectedAccount _ s = s
 
-isBlankElement mel = ((asItemAccountName . snd) <$> mel) == Just "" 
+isBlankElement mel = ((asItemAccountName . snd) <$> mel) == Just ""
 
 asCenterAndContinue ui = do
   scrollSelectionToMiddle $ _asList $ aScreen ui

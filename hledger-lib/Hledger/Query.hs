@@ -654,7 +654,7 @@ matchesPriceDirective _ _           = True
 
 tests_Query = tests "Query" [
    tests "simplifyQuery" [
-    
+
      (simplifyQuery $ Or [Acct "a"])      `is` (Acct "a")
     ,(simplifyQuery $ Or [Any,None])      `is` (Any)
     ,(simplifyQuery $ And [Any,None])     `is` (None)
@@ -665,7 +665,7 @@ tests_Query = tests "Query" [
       `is` (Date (DateSpan (Just $ parsedate "2012-01-01") (Just $ parsedate "2013-01-01")))
     ,(simplifyQuery $ And [Or [],Or [Desc "b b"]]) `is` (Desc "b b")
    ]
-  
+
   ,tests "parseQuery" [
      (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") `is` (And [Acct "expenses:autres d\233penses", Desc "b"], [])
     ,parseQuery nulldate "inacct:a desc:\"b b\""                     `is` (Desc "b b", [QueryOptInAcct "a"])
@@ -674,18 +674,18 @@ tests_Query = tests "Query" [
     ,parseQuery nulldate "'a a' 'b"                                  `is` (Or [Acct "a a",Acct "'b"], [])
     ,parseQuery nulldate "\""                                        `is` (Acct "\"", [])
    ]
-  
+
   ,tests "words''" [
-      (words'' [] "a b")                   `is` ["a","b"]        
-    , (words'' [] "'a b'")                 `is` ["a b"]          
-    , (words'' [] "not:a b")               `is` ["not:a","b"]    
-    , (words'' [] "not:'a b'")             `is` ["not:a b"]      
-    , (words'' [] "'not:a b'")             `is` ["not:a b"]      
-    , (words'' ["desc:"] "not:desc:'a b'") `is` ["not:desc:a b"] 
+      (words'' [] "a b")                   `is` ["a","b"]
+    , (words'' [] "'a b'")                 `is` ["a b"]
+    , (words'' [] "not:a b")               `is` ["not:a","b"]
+    , (words'' [] "not:'a b'")             `is` ["not:a b"]
+    , (words'' [] "'not:a b'")             `is` ["not:a b"]
+    , (words'' ["desc:"] "not:desc:'a b'") `is` ["not:desc:a b"]
     , (words'' prefixes "\"acct:expenses:autres d\233penses\"") `is` ["acct:expenses:autres d\233penses"]
     , (words'' prefixes "\"")              `is` ["\""]
     ]
-  
+
   ,tests "filterQuery" [
      filterQuery queryIsDepth Any       `is` Any
     ,filterQuery queryIsDepth (Depth 1) `is` Depth 1
@@ -714,7 +714,7 @@ tests_Query = tests "Query" [
     ,parseQueryTerm nulldate "amt:<0"                           `is` (Left $ Amt Lt 0)
     ,parseQueryTerm nulldate "amt:>10000.10"                    `is` (Left $ Amt AbsGt 10000.1)
    ]
-  
+
   ,tests "parseAmountQueryTerm" [
      parseAmountQueryTerm "<0"        `is` (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
     ,parseAmountQueryTerm ">0"        `is` (Gt,0) -- special case for convenience and consistency with above
@@ -725,7 +725,7 @@ tests_Query = tests "Query" [
     ,parseAmountQueryTerm "-0.23"     `is` (Eq,(-0.23))
     ,_test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" `is` (AbsEq,0.23)  -- XXX
     ]
-  
+
   ,tests "matchesAccount" [
      expect $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
     ,expect $ not $ (Acct "^a:b") `matchesAccount` "c:a:b"
@@ -736,7 +736,7 @@ tests_Query = tests "Query" [
     ,expect $ Date2 nulldatespan `matchesAccount` "a"
     ,expect $ not $ (Tag "a" Nothing) `matchesAccount` "a"
   ]
-  
+
   ,tests "matchesPosting" [
      test "positive match on cleared posting status"  $
       expect $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
@@ -766,7 +766,7 @@ tests_Query = tests "Query" [
     ,test "l" $ expect $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
     ,test "m" $ expect $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
   ]
-  
+
   ,tests "matchesTransaction" [
      expect $ Any `matchesTransaction` nulltransaction
     ,expect $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}

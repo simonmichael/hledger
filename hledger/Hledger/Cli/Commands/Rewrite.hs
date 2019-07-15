@@ -5,7 +5,7 @@
 module Hledger.Cli.Commands.Rewrite (
   rewritemode
  ,rewrite
-) 
+)
 where
 
 #if !(MIN_VERSION_base(4,11,0))
@@ -36,7 +36,7 @@ rewritemode = hledgerCommandMode
 -- TODO interpolating match groups in replacement
 -- TODO allow using this on unbalanced entries, eg to rewrite while editing
 
-rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do 
+rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do
   -- rewrite matched transactions
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
   let j' = j{jtxns=modifyTransactions modifiers ts}
@@ -46,7 +46,7 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = d
 -- | Build a 'TransactionModifier' from any query arguments and --add-posting flags
 -- provided on the command line, or throw a parse error.
 transactionModifierFromOpts :: CliOpts -> TransactionModifier
-transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} = 
+transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} =
   TransactionModifier{tmquerytxt=q, tmpostingrules=ps}
   where
     q = T.pack $ query_ ropts

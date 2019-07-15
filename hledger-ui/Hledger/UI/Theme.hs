@@ -73,7 +73,7 @@ themesList = [
     ,("border" <> "bold"                              , currentAttr & bold)
     ,("border" <> "depth"                             , active)
     ,("border" <> "filename"                          , currentAttr)
-    ,("border" <> "key"                               , active)  
+    ,("border" <> "key"                               , active)
     ,("border" <> "minibuffer"                        , white `on` black & bold)
     ,("border" <> "query"                             , active)
     ,("border" <> "selected"                          , active)

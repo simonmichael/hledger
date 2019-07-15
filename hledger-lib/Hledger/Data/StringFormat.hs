@@ -137,7 +137,7 @@ fieldp = do
 
 ----------------------------------------------------------------------
 
-formatStringTester fs value expected = actual `is` expected 
+formatStringTester fs value expected = actual `is` expected
   where
     actual = case fs of
       FormatLiteral l                   -> formatString False Nothing Nothing l

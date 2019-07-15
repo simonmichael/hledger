@@ -24,7 +24,7 @@ module Hledger.Utils.Test (
   ,expectParseEqOn
   ,expectParseEqOnE
   ,expectParseStateOn
-) 
+)
 where
 
 import Control.Exception
@@ -36,7 +36,7 @@ import Data.Monoid ((<>))
 import Data.CallStack
 import Data.List
 import qualified Data.Text as T
-import Safe 
+import Safe
 import System.Exit
 import Text.Megaparsec
 import Text.Megaparsec.Custom
@@ -50,38 +50,38 @@ import Hledger.Utils.UTF8IOCompat (error')
 -- * easytest helpers
 
 -- | Name the given test(s). A readability synonym for easytest's "scope".
-test :: T.Text -> E.Test a -> E.Test a 
+test :: T.Text -> E.Test a -> E.Test a
 test = E.scope
 
 -- | Skip the given test(s), with the same type signature as "test".
 -- If called in a monadic sequence of tests, also skips following tests.
-_test :: T.Text -> E.Test a -> E.Test a 
-_test _name = (E.skip >>) 
+_test :: T.Text -> E.Test a -> E.Test a
+_test _name = (E.skip >>)
 
 -- | Name the given test(s). A synonym for "test".
-it :: T.Text -> E.Test a -> E.Test a 
+it :: T.Text -> E.Test a -> E.Test a
 it = test
 
--- | Skip the given test(s), and any following tests in a monadic sequence. 
+-- | Skip the given test(s), and any following tests in a monadic sequence.
 -- A synonym for "_test".
-_it :: T.Text -> E.Test a -> E.Test a 
+_it :: T.Text -> E.Test a -> E.Test a
 _it = _test
 
 -- | Name and group a list of tests. Combines easytest's "scope" and "tests".
-tests :: T.Text -> [E.Test ()] -> E.Test () 
+tests :: T.Text -> [E.Test ()] -> E.Test ()
 tests name = E.scope name . E.tests
 
 -- | Skip the given list of tests, and any following tests in a monadic sequence,
 -- with the same type signature as "group".
-_tests :: T.Text -> [E.Test ()] -> E.Test () 
+_tests :: T.Text -> [E.Test ()] -> E.Test ()
 _tests _name = (E.skip >>) . E.tests
 
 -- | Run some easytest tests, catching easytest's ExitCode exception,
 -- returning True if there was a problem.
 -- With arguments, runs only the scope (or single test) named by the first argument
--- (exact, case sensitive). 
+-- (exact, case sensitive).
 -- If there is a second argument, it should be an integer and will be used
--- as the seed for randomness. 
+-- as the seed for randomness.
 runEasytests :: [String] -> E.Test () -> IO Bool
 runEasytests args tests = (do
   case args of
@@ -96,7 +96,7 @@ runEasytests args tests = (do
   `catch` (\(_::ExitCode) -> return True)
 
 -- | Like easytest's expectEq (asserts the second (actual) value equals the first (expected) value)
--- but pretty-prints the values in the failure output. 
+-- but pretty-prints the values in the failure output.
 expectEqPP :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
 expectEqPP expected actual = if expected == actual then E.ok else E.crash $
   "\nexpected:\n" <> T.pack (pshow expected) <> "\nbut got:\n" <> T.pack (pshow actual) <> "\n"
@@ -105,10 +105,10 @@ expectEqPP expected actual = if expected == actual then E.ok else E.crash $
 is :: (Eq a, Show a, HasCallStack) => a -> a -> Test ()
 is = flip expectEqPP
 
--- | Test that this stateful parser runnable in IO successfully parses 
--- all of the given input text, showing the parse error if it fails. 
+-- | Test that this stateful parser runnable in IO successfully parses
+-- all of the given input text, showing the parse error if it fails.
 -- Suitable for hledger's JournalParser parsers.
-expectParse :: (Monoid st, Eq a, Show a, HasCallStack) => 
+expectParse :: (Monoid st, Eq a, Show a, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> E.Test ()
 expectParse parser input = do
   ep <- E.io (runParserT (evalStateT (parser <* eof) mempty) "" input)
@@ -135,9 +135,9 @@ expectParseE parser input = do
              (const ok)
              ep
 
--- | Test that this stateful parser runnable in IO fails to parse 
--- the given input text, with a parse error containing the given string. 
-expectParseError :: (Monoid st, Eq a, Show a, HasCallStack) => 
+-- | Test that this stateful parser runnable in IO fails to parse
+-- the given input text, with a parse error containing the given string.
+expectParseError :: (Monoid st, Eq a, Show a, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> String -> E.Test ()
 expectParseError parser input errstr = do
   ep <- E.io (runParserT (evalStateT parser mempty) "" input)
@@ -173,8 +173,8 @@ expectParseErrorE parser input errstr = do
         else fail $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
 
 -- | Like expectParse, but also test the parse result is an expected value,
--- pretty-printing both if it fails. 
-expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) => 
+-- pretty-printing both if it fails.
+expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
 expectParseEq parser input expected = expectParseEqOn parser input id expected
 
@@ -186,9 +186,9 @@ expectParseEqE
   -> E.Test ()
 expectParseEqE parser input expected = expectParseEqOnE parser input id expected
 
--- | Like expectParseEq, but transform the parse result with the given function 
+-- | Like expectParseEq, but transform the parse result with the given function
 -- before comparing it.
-expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) => 
+expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) =>
   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
 expectParseEqOn parser input f expected = do
   ep <- E.io $ runParserT (evalStateT (parser <* eof) mempty) "" input

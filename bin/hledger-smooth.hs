@@ -45,7 +45,7 @@ hledger smooth revenues:consulting | hledger -f- incomestatement -W
 
 FLAGS
   |]
-  [] 
+  []
   [generalflagsgroup1]
   []
   ([], Just $ argsFlag "ACCT")
@@ -64,7 +64,7 @@ main = do
       q = queryFromOpts today ropts
       acct = T.pack $ headDef (error' "Please provide an account name argument") args
       pr = postingsReport ropts (And [Acct $ accountNameToAccountRegex acct, q]) j
-      
+
       -- dates of postings to acct (in report)
       pdates = map (postingDate . fourth5) (snd pr)
       -- the specified report end date or today's date

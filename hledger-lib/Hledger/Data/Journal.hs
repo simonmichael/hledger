@@ -111,7 +111,7 @@ import Data.Tree
 import System.Time (ClockTime(TOD))
 import Text.Printf
 
-import Hledger.Utils 
+import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
@@ -160,12 +160,12 @@ instance Show Journal where
 --                      ]
 
 -- The monoid instance for Journal is useful for two situations.
--- 
+--
 -- 1. concatenating finalised journals, eg with multiple -f options:
 -- FIRST <> SECOND. The second's list fields are appended to the
 -- first's, map fields are combined, transaction counts are summed,
 -- the parse state of the second is kept.
--- 
+--
 -- 2. merging a child parsed journal, eg with the include directive:
 -- CHILD <> PARENT. A parsed journal's data is in reverse order, so
 -- this gives what we want.
@@ -268,7 +268,7 @@ journalPostings = concatMap tpostings . jtxns
 journalAccountNamesUsed :: Journal -> [AccountName]
 journalAccountNamesUsed = accountNamesFromPostings . journalPostings
 
--- | Sorted unique account names implied by this journal's transactions - 
+-- | Sorted unique account names implied by this journal's transactions -
 -- accounts posted to and all their implied parent accounts.
 journalAccountNamesImplied :: Journal -> [AccountName]
 journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
@@ -289,31 +289,31 @@ journalAccountNamesDeclaredOrImplied j = nub $ sort $ journalAccountNamesDeclare
 
 -- | Convenience/compatibility alias for journalAccountNamesDeclaredOrImplied.
 journalAccountNames :: Journal -> [AccountName]
-journalAccountNames = journalAccountNamesDeclaredOrImplied 
+journalAccountNames = journalAccountNamesDeclaredOrImplied
 
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
 -- queries for standard account types
 
--- | Get a query for accounts of a certain type (Asset, Liability..) in this journal.  
--- The query will match all accounts which were declared as that type by account directives, 
--- plus all their subaccounts which have not been declared as a different type. 
--- If no accounts were declared as this type, the query will instead match accounts 
+-- | Get a query for accounts of a certain type (Asset, Liability..) in this journal.
+-- The query will match all accounts which were declared as that type by account directives,
+-- plus all their subaccounts which have not been declared as a different type.
+-- If no accounts were declared as this type, the query will instead match accounts
 -- with names matched by the provided case-insensitive regular expression.
 journalAccountTypeQuery :: AccountType -> Regexp -> Journal -> Query
 journalAccountTypeQuery atype fallbackregex j =
   case M.lookup atype (jdeclaredaccounttypes j) of
     Nothing -> Acct fallbackregex
     Just as ->
-      -- XXX Query isn't able to match account type since that requires extra info from the journal. 
+      -- XXX Query isn't able to match account type since that requires extra info from the journal.
       -- So we do a hacky search by name instead.
-      And [ 
+      And [
          Or $ map (Acct . accountNameToAccountRegex) as
         ,Not $ Or $ map (Acct . accountNameToAccountRegex) differentlytypedsubs
         ]
       where
-        differentlytypedsubs = concat 
+        differentlytypedsubs = concat
           [subs | (t,bs) <- M.toList (jdeclaredaccounttypes j)
               , t /= atype
               , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
@@ -321,35 +321,35 @@ journalAccountTypeQuery atype fallbackregex j =
 
 -- | A query for accounts in this journal which have been
 -- declared as Asset by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression 
+-- accounts with names matched by the case-insensitive regular expression
 -- @^assets?(:|$)@.
 journalAssetAccountQuery :: Journal -> Query
 journalAssetAccountQuery = journalAccountTypeQuery Asset "^assets?(:|$)"
 
 -- | A query for accounts in this journal which have been
 -- declared as Liability by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression 
+-- accounts with names matched by the case-insensitive regular expression
 -- @^(debts?|liabilit(y|ies))(:|$)@.
 journalLiabilityAccountQuery :: Journal -> Query
 journalLiabilityAccountQuery = journalAccountTypeQuery Liability "^(debts?|liabilit(y|ies))(:|$)"
 
 -- | A query for accounts in this journal which have been
 -- declared as Equity by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression 
+-- accounts with names matched by the case-insensitive regular expression
 -- @^equity(:|$)@.
 journalEquityAccountQuery :: Journal -> Query
 journalEquityAccountQuery = journalAccountTypeQuery Equity "^equity(:|$)"
 
 -- | A query for accounts in this journal which have been
 -- declared as Revenue by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression 
+-- accounts with names matched by the case-insensitive regular expression
 -- @^(income|revenue)s?(:|$)@.
 journalRevenueAccountQuery :: Journal -> Query
 journalRevenueAccountQuery = journalAccountTypeQuery Revenue "^(income|revenue)s?(:|$)"
 
 -- | A query for accounts in this journal which have been
 -- declared as Expense by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression 
+-- accounts with names matched by the case-insensitive regular expression
 -- @^(income|revenue)s?(:|$)@.
 journalExpenseAccountQuery  :: Journal -> Query
 journalExpenseAccountQuery = journalAccountTypeQuery Expense "^expenses?(:|$)"
@@ -371,7 +371,7 @@ journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
 
 -- | A query for Cash (-equivalent) accounts in this journal (ie,
 -- accounts which appear on the cashflow statement.)  This is currently
--- hard-coded to be all the Asset accounts except for those with names 
+-- hard-coded to be all the Asset accounts except for those with names
 -- containing the case-insensitive regular expression @(receivable|:A/R|:fixed)@.
 journalCashAccountQuery  :: Journal -> Query
 journalCashAccountQuery j = And [journalAssetAccountQuery j, Not $ Acct "(receivable|:A/R|:fixed)"]
@@ -579,7 +579,7 @@ journalTieTransactions j@Journal{jtxns=ts} = j{jtxns=map txnTieKnot ts}
 journalUntieTransactions :: Transaction -> Transaction
 journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
 
--- | Apply any transaction modifier rules in the journal 
+-- | Apply any transaction modifier rules in the journal
 -- (adding automated postings to transactions, eg).
 journalModifyTransactions :: Journal -> Journal
 journalModifyTransactions j = j{ jtxns = modifyTransactions (jtxnmodifiers j) (jtxns j) }
@@ -591,7 +591,7 @@ journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTran
 
 -- "Transaction balancing" - inferring missing amounts and checking transaction balancedness and balance assertions
 
--- | Monad used for statefully balancing/amount-inferring/assertion-checking 
+-- | Monad used for statefully balancing/amount-inferring/assertion-checking
 -- a sequence of transactions.
 -- Perhaps can be simplified, or would a different ordering of layers make sense ?
 -- If you see a way, let us know.
@@ -613,9 +613,9 @@ data BalancingState s = BalancingState {
 withB :: (BalancingState s -> ST s a) -> Balancing s a
 withB f = ask >>= lift . lift . f
 
--- | Get an account's running balance so far. 
+-- | Get an account's running balance so far.
 getAmountB :: AccountName -> Balancing s MixedAmount
-getAmountB acc = withB $ \BalancingState{bsBalances} -> do 
+getAmountB acc = withB $ \BalancingState{bsBalances} -> do
   fromMaybe 0 <$> H.lookup bsBalances acc
 
 -- | Add an amount to an account's running balance, and return the new running balance.
@@ -626,7 +626,7 @@ addAmountB acc amt = withB $ \BalancingState{bsBalances} -> do
   H.insert bsBalances acc new
   return new
 
--- | Set an account's running balance to this amount, and return the difference from the old. 
+-- | Set an account's running balance to this amount, and return the difference from the old.
 setAmountB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 setAmountB acc amt = withB $ \BalancingState{bsBalances} -> do
   old <- fromMaybe 0 <$> H.lookup bsBalances acc
@@ -639,15 +639,15 @@ storeTransactionB t = withB $ \BalancingState{bsTransactions}  ->
   void $ writeArray bsTransactions (tindex t) t
 
 -- | Infer any missing amounts (to satisfy balance assignments and
--- to balance transactions) and check that all transactions balance 
+-- to balance transactions) and check that all transactions balance
 -- and (optional) all balance assertions pass. Or return an error message
 -- (just the first error encountered).
 --
 -- Assumes journalInferCommodityStyles has been called, since those affect transaction balancing.
 --
--- This does multiple things because amount inferring, balance assignments, 
+-- This does multiple things because amount inferring, balance assignments,
 -- balance assertions and posting dates are interdependent.
--- 
+--
 -- This can be simplified further. Overview as of 20190219:
 -- @
 -- ****** parseAndFinaliseJournal['] (Cli/Utils.hs), journalAddForecast (Common.hs), budgetJournal (BudgetReport.hs), tests (BalanceReport.hs)
@@ -670,19 +670,19 @@ storeTransactionB t = withB $ \BalancingState{bsTransactions}  ->
 journalBalanceTransactions :: Bool -> Journal -> Either String Journal
 journalBalanceTransactions assrt j' =
   let
-    -- ensure transactions are numbered, so we can store them by number 
+    -- ensure transactions are numbered, so we can store them by number
     j@Journal{jtxns=ts} = journalNumberTransactions j'
     -- display precisions used in balanced checking
     styles = Just $ journalCommodityStyles j
     -- balance assignments will not be allowed on these
-    txnmodifieraccts = S.fromList $ map paccount $ concatMap tmpostingrules $ jtxnmodifiers j 
-  in 
-    runST $ do 
+    txnmodifieraccts = S.fromList $ map paccount $ concatMap tmpostingrules $ jtxnmodifiers j
+  in
+    runST $ do
       -- We'll update a mutable array of transactions as we balance them,
       -- not strictly necessary but avoids a sort at the end I think.
       balancedtxns <- newListArray (1, genericLength ts) ts
 
-      -- Infer missing posting amounts, check transactions are balanced, 
+      -- Infer missing posting amounts, check transactions are balanced,
       -- and check balance assertions. This is done in two passes:
       runExceptT $ do
 
@@ -691,14 +691,14 @@ journalBalanceTransactions assrt j' =
         -- The postings and not-yet-balanced transactions remain in the same relative order.
         psandts :: [Either Posting Transaction] <- fmap concat $ forM ts $ \case
           t | null $ assignmentPostings t -> case balanceTransaction styles t of
-              Left  e  -> throwError e 
+              Left  e  -> throwError e
               Right t' -> do
                 lift $ writeArray balancedtxns (tindex t') t'
                 return $ map Left $ tpostings t'
           t -> return [Right t]
 
         -- 2. Sort these items by date, preserving the order of same-day items,
-        -- and step through them while keeping running account balances, 
+        -- and step through them while keeping running account balances,
         runningbals <- lift $ H.newSized (length $ journalAccountNamesUsed j)
         flip runReaderT (BalancingState styles txnmodifieraccts assrt runningbals balancedtxns) $ do
           -- performing balance assignments in, and balancing, the remaining transactions,
@@ -706,17 +706,17 @@ journalBalanceTransactions assrt j' =
           void $ mapM' balanceTransactionAndCheckAssertionsB $ sortOn (either postingDate tdate) psandts
 
         ts' <- lift $ getElems balancedtxns
-        return j{jtxns=ts'} 
+        return j{jtxns=ts'}
 
--- | This function is called statefully on each of a date-ordered sequence of 
--- 1. fully explicit postings from already-balanced transactions and 
+-- | This function is called statefully on each of a date-ordered sequence of
+-- 1. fully explicit postings from already-balanced transactions and
 -- 2. not-yet-balanced transactions containing balance assignments.
--- It executes balance assignments and finishes balancing the transactions, 
+-- It executes balance assignments and finishes balancing the transactions,
 -- and checks balance assertions on each posting as it goes.
--- An error will be thrown if a transaction can't be balanced 
+-- An error will be thrown if a transaction can't be balanced
 -- or if an illegal balance assignment is found (cf checkIllegalBalanceAssignment).
 -- Transaction prices are removed, which helps eg balance-assertions.test: 15. Mix different commodities and assignments.
--- This stores the balanced transactions in case 2 but not in case 1.  
+-- This stores the balanced transactions in case 2 but not in case 1.
 balanceTransactionAndCheckAssertionsB :: Either Posting Transaction -> Balancing s ()
 
 balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
@@ -726,28 +726,28 @@ balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
 balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- make sure we can handle the balance assignments
   mapM_ checkIllegalBalanceAssignmentB ps
-  -- for each posting, infer its amount from the balance assignment if applicable, 
+  -- for each posting, infer its amount from the balance assignment if applicable,
   -- update the account's running balance and check the balance assertion if any
   ps' <- forM ps $ \p -> pure (removePrices p) >>= addOrAssignAmountAndCheckAssertionB
-  -- infer any remaining missing amounts, and make sure the transaction is now fully balanced 
+  -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
   case balanceTransactionHelper styles t{tpostings=ps'} of
-    Left err -> throwError err 
+    Left err -> throwError err
     Right (t', inferredacctsandamts) -> do
-      -- for each amount just inferred, update the running balance 
+      -- for each amount just inferred, update the running balance
       mapM_ (uncurry addAmountB) inferredacctsandamts
       -- and save the balanced transaction.
-      storeTransactionB t' 
+      storeTransactionB t'
 
 -- | If this posting has an explicit amount, add it to the account's running balance.
--- If it has a missing amount and a balance assignment, infer the amount from, and 
+-- If it has a missing amount and a balance assignment, infer the amount from, and
 -- reset the running balance to, the assigned balance.
 -- If it has a missing amount and no balance assignment, leave it for later.
 -- Then test the balance assertion if any.
 addOrAssignAmountAndCheckAssertionB :: Posting -> Balancing s Posting
 addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanceassertion=mba}
   | hasAmount p = do
-      newbal <- addAmountB acc amt 
+      newbal <- addAmountB acc amt
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p newbal
       return p
   | Just BalanceAssertion{baamount,batotal} <- mba = do
@@ -760,8 +760,8 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
         False -> do
           -- a partial balance assignment
           oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getAmountB acc
-          let assignedbalthiscommodity = Mixed [baamount] 
-              newbal = oldbalothercommodities + assignedbalthiscommodity   
+          let assignedbalthiscommodity = Mixed [baamount]
+              newbal = oldbalothercommodities + assignedbalthiscommodity
           diff <- setAmountB acc newbal
           return (diff,newbal)
       let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
@@ -774,7 +774,7 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
 -- optionally check the posting's balance assertion if any.
 -- The posting is expected to have an explicit amount (otherwise this does nothing).
 -- Adding and checking balance assertions are tightly paired because we
--- need to see the balance as it stands after each individual posting. 
+-- need to see the balance as it stands after each individual posting.
 addAmountAndCheckAssertionB :: Posting -> Balancing s Posting
 addAmountAndCheckAssertionB p | hasAmount p = do
   newbal <- addAmountB (paccount p) (pamount p)
@@ -806,17 +806,17 @@ checkBalanceAssertionB _ _ = return ()
 checkBalanceAssertionOneCommodityB :: Posting -> Amount -> MixedAmount -> Balancing s ()
 checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt actualbal = do
   let isinclusive = maybe False bainclusive $ pbalanceassertion p
-  actualbal' <- 
-    if isinclusive 
-    then 
-      -- sum the running balances of this account and any of its subaccounts seen so far 
-      withB $ \BalancingState{bsBalances} -> 
-        H.foldM 
-          (\ibal (acc, amt) -> return $ ibal + 
+  actualbal' <-
+    if isinclusive
+    then
+      -- sum the running balances of this account and any of its subaccounts seen so far
+      withB $ \BalancingState{bsBalances} ->
+        H.foldM
+          (\ibal (acc, amt) -> return $ ibal +
             if assertedacct==acc || assertedacct `isAccountNamePrefixOf` acc then amt else 0)
-          0 
+          0
           bsBalances
-    else return actualbal  
+    else return actualbal
   let
     assertedcomm    = acommodity assertedamt
     actualbalincomm = headDef 0 $ amounts $ filterMixedAmountByCommodity assertedcomm $ actualbal'
@@ -863,17 +863,17 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
 
 -- | Throw an error if this posting is trying to do an illegal balance assignment.
 checkIllegalBalanceAssignmentB :: Posting -> Balancing s ()
-checkIllegalBalanceAssignmentB p = do 
+checkIllegalBalanceAssignmentB p = do
   checkBalanceAssignmentPostingDateB p
   checkBalanceAssignmentUnassignableAccountB p
-  
+
 -- XXX these should show position. annotateErrorWithTransaction t ?
 
 -- | Throw an error if this posting is trying to do a balance assignment and
 -- has a custom posting date (which makes amount inference too hard/impossible).
 checkBalanceAssignmentPostingDateB :: Posting -> Balancing s ()
 checkBalanceAssignmentPostingDateB p =
-  when (hasBalanceAssignment p && isJust (pdate p)) $ 
+  when (hasBalanceAssignment p && isJust (pdate p)) $
     throwError $ unlines $
       ["postings which are balance assignments may not have a custom date."
       ,"Please write the posting amount explicitly, or remove the posting date:"
@@ -918,8 +918,8 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} = j''
       fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
       fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmount styles a}
 
--- | Get all the amount styles defined in this journal, either declared by 
--- a commodity directive or inferred from amounts, as a map from symbol to style. 
+-- | Get all the amount styles defined in this journal, either declared by
+-- a commodity directive or inferred from amounts, as a map from symbol to style.
 -- Styles declared by commodity directives take precedence, and these also are
 -- guaranteed to know their decimal point character.
 journalCommodityStyles :: Journal -> M.Map CommoditySymbol AmountStyle
@@ -1078,23 +1078,23 @@ journalPivot fieldortagname j = j{jtxns = map (transactionPivot fieldortagname) 
 
 -- | Replace this transaction's postings' account names with the value
 -- of the given field or tag, if any.
-transactionPivot :: Text -> Transaction -> Transaction         
+transactionPivot :: Text -> Transaction -> Transaction
 transactionPivot fieldortagname t = t{tpostings = map (postingPivot fieldortagname) . tpostings $ t}
 
 -- | Replace this posting's account name with the value
 -- of the given field or tag, if any, otherwise the empty string.
-postingPivot :: Text -> Posting -> Posting         
+postingPivot :: Text -> Posting -> Posting
 postingPivot fieldortagname p = p{paccount = pivotedacct, poriginal = Just $ originalPosting p}
   where
     pivotedacct
-      | Just t <- ptransaction p, fieldortagname == "code"        = tcode t  
-      | Just t <- ptransaction p, fieldortagname == "description" = tdescription t  
-      | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t  
-      | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t  
+      | Just t <- ptransaction p, fieldortagname == "code"        = tcode t
+      | Just t <- ptransaction p, fieldortagname == "description" = tdescription t
+      | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t
+      | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t
       | Just (_, value) <- postingFindTag fieldortagname p        = value
       | otherwise                                                 = ""
 
-postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)         
+postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
 
 -- -- | Build a database of market prices in effect on the given date,
@@ -1333,8 +1333,8 @@ tests_Journal = tests "Journal" [
             nulljournal{ jtxns = [
                transaction "2019/01/01" [ vpost' "a" (num 2)    (balassert (num 2)) ]
               ,transaction "2019/01/01" [
-                 post' "b" (num 1)     Nothing  
-                ,post' "a"  missingamt Nothing  
+                 post' "b" (num 1)     Nothing
+                ,post' "a"  missingamt Nothing
               ]
               ,transaction "2019/01/01" [ post' "a" (num 0)     (balassert (num 1)) ]
             ]}

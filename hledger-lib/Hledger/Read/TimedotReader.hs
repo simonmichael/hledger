@@ -142,16 +142,16 @@ timedotnumericp = do
   (q, _, _, _) <- lift $ numberp Nothing
   msymbol <- optional $ choice $ map (string . fst) timeUnits
   lift (skipMany spacenonewline)
-  let q' = 
+  let q' =
         case msymbol of
           Nothing  -> q
           Just sym ->
             case lookup sym timeUnits of
-              Just mult -> q * mult  
+              Just mult -> q * mult
               Nothing   -> q  -- shouldn't happen.. ignore
   return q'
 
--- (symbol, equivalent in hours). 
+-- (symbol, equivalent in hours).
 timeUnits =
   [("s",2.777777777777778e-4)
   ,("mo",5040) -- before "m"
