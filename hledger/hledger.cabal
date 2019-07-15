@@ -159,6 +159,7 @@ library
     , data-default >=0.5
     , directory
     , easytest >=0.2.1 && <0.3
+    , extra
     , filepath
     , hashable >=1.2.4
     , haskeline >=0.6
@@ -179,6 +180,7 @@ library
     , tabular >=0.2
     , temporary
     , text >=0.11
+    , text-icu
     , time >=1.5
     , timeit
     , transformers
