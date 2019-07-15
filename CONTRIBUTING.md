@@ -619,6 +619,12 @@ so think about future developers trying to understand them, git bisect, etc.
 
 Rebase your commits against latest master for easiest review. Especially if they start to conflict.
 
+Some conventions we often use in commit messages:
+
+- prepend a  [component](#components) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
+- prepend a semicolon (`;`) to indicate boring commits that won't affect changelogs/release notes (as in the Emacs project)
+- add a final `[ci skip]` line for commits which probably don't need to trigger a CI build, to reduce carbon emissions from Travis
+
 ### The docs
 
 PRs should include appropriate updates to reference documentation, unless otherwise agreed.
