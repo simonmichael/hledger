@@ -10,6 +10,7 @@ They are:
 
 - hledger-check.hs      - check more complex account balance assertions
 - hledger-smooth.hs     - an attempt at automatically splitting infrequent/irregular transactions
+- hledger-swap-dates.hs - swap all date and date2 fields
 
 A reminder from http://hledger.org/hledger.html#add-on-commands :
 when using the main hledger executable to run add-on commands, remember
