@@ -209,12 +209,13 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
           ,tcode        = ptcode
           ,tdescription = ptdescription
           ,tcomment     = ptcomment
-                          `commentAddTagNextLine` ("generated-transaction",ptperiodexpr)
-          ,ttags        = ("_generated-transaction",ptperiodexpr) :
-                          ("generated-transaction" ,ptperiodexpr) :
+                          `commentAddTagNextLine` ("generated-transaction",period)
+          ,ttags        = ("_generated-transaction",period) :
+                          ("generated-transaction" ,period) :
                           pttags
           ,tpostings    = ptpostings
           }
+    period = "~ " <> ptperiodexpr
 
 -- | Check that this date span begins at a boundary of this interval,
 -- or return an explanatory error message including the provided period expression

@@ -87,7 +87,7 @@ D $1000.
 >>>
 2018/01/01  ; modified:
     (a)              €1
-    (b)              €2  ; generated-posting:
+    (b)              €2  ; generated-posting:= a
 
 >>>=
 
