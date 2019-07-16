@@ -54,6 +54,9 @@ module Hledger.Data.Posting (
   concatAccountNames,
   accountNameApplyAliases,
   accountNameApplyAliasesMemo,
+  -- * comment/tag operations
+  commentAddTag,
+  commentAddTagNextLine,
   -- * arithmetic
   sumPostings,
   -- * rendering
@@ -355,6 +358,13 @@ postingValueAtDate prices styles mc d p = postingTransformAmount (mixedAmountVal
 -- | Apply a transform function to this posting's amount.
 postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting
 postingTransformAmount f p@Posting{pamount=a} = p{pamount=f a}
+
+commentAddTag :: Text -> Tag -> Text
+commentAddTag cmt (t,v) = textchomp cmt <> ", " <> t <> ":" <> v 
+
+commentAddTagNextLine :: Text -> Tag -> Text
+commentAddTagNextLine cmt (t,v) =
+  cmt <> if "\n" `T.isSuffixOf` cmt then "" else "\n" <> t <> ":" <> v 
 
 
 -- tests

@@ -30,7 +30,7 @@ module Hledger.Utils.Text
   textstrip,
   textlstrip,
   textrstrip,
- -- chomp,
+  textchomp,
  -- elideLeft,
   textElideRight,
  -- formatString,
@@ -90,9 +90,9 @@ textlstrip = T.dropWhile (`elem` (" \t" :: String)) :: Text -> Text -- XXX isSpa
 textrstrip = T.reverse . textlstrip . T.reverse
 textrstrip :: Text -> Text
 
--- -- | Remove trailing newlines/carriage returns.
--- chomp :: String -> String
--- chomp = reverse . dropWhile (`elem` "\r\n") . reverse
+-- | Remove trailing newlines/carriage returns (and other whitespace).
+textchomp :: Text -> Text
+textchomp = T.stripEnd
 
 -- stripbrackets :: String -> String
 -- stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String

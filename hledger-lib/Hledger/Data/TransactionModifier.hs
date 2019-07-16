@@ -23,6 +23,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Query
+import Hledger.Data.Posting (commentAddTag)
 import Hledger.Utils.UTF8IOCompat (error')
 import Hledger.Utils.Debug
 
@@ -36,7 +37,15 @@ import Hledger.Utils.Debug
 modifyTransactions :: [TransactionModifier] -> [Transaction] -> [Transaction]
 modifyTransactions tmods = map applymods
   where
-    applymods = foldr (flip (.) . transactionModifierToFunction) id tmods
+    applymods t = taggedt'
+      where
+        t' = foldr (flip (.) . transactionModifierToFunction) id tmods t
+        taggedt'
+          -- PERF: compares txns to see if any modifier had an effect, inefficient ?
+          | t' /= t   = t'{tcomment = tcomment t' `commentAddTag` ("modified","")
+                          ,ttags    = ("modified","") : ttags t'
+                          }
+          | otherwise = t'
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function,
 -- which applies the modification(s) specified by the TransactionModifier.
@@ -61,7 +70,7 @@ modifyTransactions tmods = map applymods
 --
 transactionModifierToFunction :: TransactionModifier -> (Transaction -> Transaction)
 transactionModifierToFunction mt =
-  \t@(tpostings -> ps) -> txnTieKnot t{ tpostings=generatePostings ps } -- TODO add modifier txn comment/tags ?
+  \t@(tpostings -> ps) -> txnTieKnot t{ tpostings=generatePostings ps }
   where
     q = simplifyQuery $ tmParseQuery mt (error' "a transaction modifier's query cannot depend on current date")
     mods = map tmPostingRuleToFunction $ tmpostingrules mt
@@ -86,12 +95,18 @@ tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 -- which will be used to make a new posting based on the old one (an "automated posting").
 -- The new posting's amount can optionally be the old posting's amount multiplied by a constant.
 -- If the old posting had a total-priced amount, the new posting's multiplied amount will be unit-priced.
+-- The new posting will have two tags added: a normal generated-posting: tag which also appears in the comment,
+-- and a hidden _generated-posting: tag which does not. 
 tmPostingRuleToFunction :: TMPostingRule -> (Posting -> Posting)
 tmPostingRuleToFunction pr =
   \p -> renderPostingCommentDates $ pr
       { pdate = pdate p
       , pdate2 = pdate2 p
       , pamount = amount' p
+      , pcomment = pcomment p `commentAddTag` ("generated-posting","")
+      , ptags    = ("generated-posting", "") :
+                   ("_generated-posting","") : 
+                   ptags p
       }
   where
     amount' = case postingRuleMultiplier pr of
