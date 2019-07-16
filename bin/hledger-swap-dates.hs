@@ -6,8 +6,10 @@
    --package text
 -}
 
-{-# LANGUAGE QuasiQuotes #-}
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 import Data.List
 import Data.String.Here
@@ -18,7 +20,8 @@ import Hledger.Cli
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
   [here| swap-dates
-Swap date and date2, on transactions and postings which have date2 defined.
+Swap date and date2, on transactions which have date2 defined.
+(Does not yet swap posting dates.)
 FLAGS
   |]
   [] 
@@ -29,14 +32,16 @@ FLAGS
 
 main :: IO ()
 main = do
-  opts <- getHledgerCliOpts cmdmode
+  opts@CliOpts{reportopts_=ropts} <- getHledgerCliOpts cmdmode
   withJournalDo opts $
-   \CliOpts{rawopts_=_rawopts,reportopts_=ropts} j -> do
+   \j -> do
     d <- getCurrentDay
     let
       q = queryFromOpts d ropts
       ts = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
-      tags = nub $ sort $ map fst $ concatMap transactionAllTags ts
-    mapM_ T.putStrLn tags
-    -- replace txns with date-swapped txns
-    -- print txns
+      ts' = map transactionSwapDates ts
+    mapM_ (putStrLn . showTransactionUnelided) ts'
+
+transactionSwapDates :: Transaction -> Transaction
+transactionSwapDates t@Transaction{tdate2=Nothing} = t
+transactionSwapDates t@Transaction{tdate2=Just d} = t{tdate=d, tdate2=Just $ tdate t}
