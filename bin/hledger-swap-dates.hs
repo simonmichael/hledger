@@ -11,9 +11,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-import Data.List
 import Data.String.Here
-import qualified Data.Text.IO as T
 import Hledger
 import Hledger.Cli
 

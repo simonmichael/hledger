@@ -85,7 +85,7 @@ main = do
 -- into equivalent daily postings up to the next given end date,
 -- keeping track of remaining end dates.
 splitTransactionPostings :: Query -> AccountName -> [Day] -> Transaction -> ([Day], Transaction)
-splitTransactionPostings q acct dates t
+splitTransactionPostings _q acct dates t
   -- | q `matchesTransaction` t = (dates', t')
   -- | otherwise                = (dates, t)
   | otherwise                = (dates', t')
