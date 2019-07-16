@@ -110,7 +110,7 @@ main :: IO ()
 main = do
     opts <- execParser args
     journalFile <- maybe H.defaultJournalPath pure (file opts)
-    ejournal    <- H.readJournalFile Nothing Nothing (not $ ignoreAssertions opts) journalFile
+    ejournal    <- H.readJournalFile H.definputopts{H.ignore_assertions_=ignoreAssertions opts} journalFile
     case ejournal of
       Right j -> do
         (journal, starting) <- fixupJournal opts j
@@ -237,7 +237,7 @@ fixupJournal opts j = do
            . (if pending   opts then H.filterJournalTransactions (H.StatusQ H.Pending)  else id)
            . (if unmarked  opts then H.filterJournalTransactions (H.StatusQ H.Unmarked) else id)
            . (if real      opts then H.filterJournalTransactions (H.Real   True)       else id)
-           $ H.journalApplyAliases (aliases opts) j
+           $ j
     let starting = case begin opts of
           Just _  ->
               let dateSpan = H.DateSpan Nothing (fixDay today begin)
