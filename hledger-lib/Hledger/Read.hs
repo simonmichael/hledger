@@ -25,6 +25,7 @@ module Hledger.Read (
   readJournal',
 
   -- * Re-exported
+  JournalReader.accountaliasp,
   JournalReader.postingp,
   module Hledger.Read.Common,
 

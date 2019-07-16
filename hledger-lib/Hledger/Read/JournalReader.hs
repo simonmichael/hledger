@@ -55,7 +55,8 @@ module Hledger.Read.JournalReader (
   postingp,
   statusp,
   emptyorcommentlinep,
-  followingcommentp
+  followingcommentp,
+  accountaliasp
 
   -- * Tests
   ,tests_JournalReader
