@@ -55,6 +55,7 @@ module Hledger.Data.Posting (
   accountNameApplyAliases,
   accountNameApplyAliasesMemo,
   -- * comment/tag operations
+  commentJoin,
   commentAddTag,
   commentAddTagNextLine,
   -- * arithmetic
@@ -359,9 +360,25 @@ postingValueAtDate prices styles mc d p = postingTransformAmount (mixedAmountVal
 postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting
 postingTransformAmount f p@Posting{pamount=a} = p{pamount=f a}
 
-commentAddTag :: Text -> Tag -> Text
-commentAddTag cmt (t,v) = textchomp cmt <> ", " <> t <> ":" <> v 
+-- | Join two parts of a comment, eg a tag and another tag, or a tag
+-- and a non-tag, on a single line. Interpolates a comma and space
+-- unless one of the parts is empty.
+commentJoin :: Text -> Text -> Text
+commentJoin c1 c2
+  | T.null c1 = c2
+  | T.null c2 = c1
+  | otherwise = c1 <> ", " <> c2
 
+-- | Add a tag to a comment, comma-separated from any prior content.
+commentAddTag :: Text -> Tag -> Text
+commentAddTag c (t,v)
+  | T.null c' = tag
+  | otherwise = c' `commentJoin` tag
+  where
+    c'  = textchomp c
+    tag = t <> ":" <> v
+
+-- | Add a tag on its own line to a comment, preserving any prior content.
 commentAddTagNextLine :: Text -> Tag -> Text
 commentAddTagNextLine cmt (t,v) =
   cmt <> if "\n" `T.isSuffixOf` cmt then "" else "\n" <> t <> ":" <> v 
@@ -397,5 +414,14 @@ tests_Posting = tests "Posting" [
     ,concatAccountNames ["a","(b)","[c:d]"] `is` "(a:b:c:d)"
   ]
 
+ ,tests "commentAddTag" [
+    commentAddTag "" ("a","") `is` "a:"
+   ,commentAddTag "[1/2]" ("a","") `is` "[1/2], a:"
+  ]
+
+ ,tests "commentAddTagNextLine" [
+    commentAddTagNextLine "" ("a","") `is` "\na:"
+   ,commentAddTagNextLine "[1/2]" ("a","") `is` "[1/2]\na:"
+  ]
  ]
 

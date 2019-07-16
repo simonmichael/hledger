@@ -12,6 +12,7 @@ module Hledger.Data.TransactionModifier (
 )
 where
 
+import Control.Applicative ((<|>))
 import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
@@ -23,7 +24,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Query
-import Hledger.Data.Posting (commentAddTag)
+import Hledger.Data.Posting (commentJoin, commentAddTag)
 import Hledger.Utils.UTF8IOCompat (error')
 import Hledger.Utils.Debug
 
@@ -100,13 +101,13 @@ tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 tmPostingRuleToFunction :: TMPostingRule -> (Posting -> Posting)
 tmPostingRuleToFunction pr =
   \p -> renderPostingCommentDates $ pr
-      { pdate = pdate p
-      , pdate2 = pdate2 p
-      , pamount = amount' p
-      , pcomment = pcomment p `commentAddTag` ("generated-posting","")
+      { pdate    = pdate  pr <|> pdate  p
+      , pdate2   = pdate2 pr <|> pdate2 p
+      , pamount  = amount' p
+      , pcomment = pcomment pr `commentAddTag` ("generated-posting","")
       , ptags    = ("generated-posting", "") :
                    ("_generated-posting","") : 
-                   ptags p
+                   ptags pr
       }
   where
     amount' = case postingRuleMultiplier pr of
@@ -138,7 +139,7 @@ postingRuleMultiplier p =
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }
     where
-        datesComment = T.concat $ catMaybes [T.pack . showDate <$> pdate p, ("=" <>) . T.pack . showDate <$> pdate2 p]
+        dates = T.concat $ catMaybes [T.pack . showDate <$> pdate p, ("=" <>) . T.pack . showDate <$> pdate2 p]
         comment'
-            | T.null datesComment = pcomment p
-            | otherwise = T.intercalate "\n" $ filter (not . T.null) [T.strip $ pcomment p, "[" <> datesComment <> "]"]
+            | T.null dates = pcomment p
+            | otherwise    = ("[" <> dates <> "]") `commentJoin` pcomment p

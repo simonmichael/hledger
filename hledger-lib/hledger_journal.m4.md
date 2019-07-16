@@ -1257,11 +1257,11 @@ and
 
 ## Auto postings / transaction modifiers
 
-Transaction modifier rules describe changes to be applied automatically to certain matched transactions.
+Transaction modifier rules, AKA auto posting rules, describe changes to be applied automatically to certain matched transactions.
 Currently just one kind of change is possible - adding extra postings, which we call "automated postings" or just "auto postings".
 These rules become active when you use the `--auto` flag.
 
-A transaction modifier, AKA auto posting rule, looks much like a normal transaction
+A transaction modifier rule looks much like a normal transaction
 except the first line is an equals sign followed by a [query](manual.html#queries) that matches certain postings
 (mnemonic: `=` suggests matching).
 And each "posting" is actually a posting-generating rule:
@@ -1315,6 +1315,24 @@ $ hledger print --auto
     assets:checking            $20
 ```
 
+### Auto postings and dates
+
+A [posting date](#posting-dates) (or secondary date) in the matched posting,
+or (taking precedence) a posting date in the auto posting rule itself,
+will also be used in the generated posting.
+
+### Auto postings and transaction balancing / inferred amounts / balance assertions
+
+Currently, transaction modifiers are applied / auto postings are added:
+
+- after [missing amounts are inferred, and transactions are checked for balancedness](#postings),
+- but before [balance assertions](#balance-assertions) are checked.
+
+Note this means that journal entries must be balanced both before and
+after auto postings are added. This changed in hledger 1.12+; see
+[#893](https://github.com/simonmichael/hledger/issues/893) for
+background.
+
 ### Auto posting tags
 
 Postings added by transaction modifiers will have some extra [tags](#tags-1):  
@@ -1330,17 +1348,7 @@ Also, any transaction that has been changed by transaction modifier rules will h
 - `modified:` - this transaction was modified
 - `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
 
-### Auto postings and transaction balancing / inferred amounts / balance assertions
 
-Currently, transaction modifiers are applied / auto postings are added:
-
-- after [missing amounts are inferred, and transactions are checked for balancedness](#postings),
-- but before [balance assertions](#balance-assertions) are checked.
-
-Note this means that journal entries must be balanced both before and
-after auto postings are added. This changed in hledger 1.12+; see
-[#893](https://github.com/simonmichael/hledger/issues/893) for
-background.
 
 # EDITOR SUPPORT
 
