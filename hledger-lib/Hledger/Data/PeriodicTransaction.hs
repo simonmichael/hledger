@@ -21,7 +21,7 @@ import Text.Printf
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
-import Hledger.Data.Posting (post, commentAddTag, commentAddTagNextLine)
+import Hledger.Data.Posting (post, commentAddTagNextLine)
 import Hledger.Data.Transaction
 import Hledger.Utils.UTF8IOCompat (error')
 -- import Hledger.Utils.Debug
@@ -208,13 +208,11 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
            tstatus      = ptstatus
           ,tcode        = ptcode
           ,tdescription = ptdescription
-          ,tcomment     = ptcomment 
-                          `commentAddTagNextLine` ("recur", ptperiodexpr) 
-                          `commentAddTag` ("generated-transaction","")
-          ,ttags        = ("recur", ptperiodexpr)       : 
-                          ("generated-transaction","")  : 
-                          ("_generated-transaction","") : 
-                          pttags 
+          ,tcomment     = ptcomment
+                          `commentAddTagNextLine` ("generated-transaction",ptperiodexpr)
+          ,ttags        = ("_generated-transaction",ptperiodexpr) :
+                          ("generated-transaction" ,ptperiodexpr) :
+                          pttags
           ,tpostings    = ptpostings
           }
 

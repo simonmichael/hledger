@@ -106,7 +106,7 @@ tmPostingRuleToFunction pr =
       , pamount  = amount' p
       , pcomment = pcomment pr `commentAddTag` ("generated-posting","")
       , ptags    = ("generated-posting", "") :
-                   ("_generated-posting","") : 
+                   ("_generated-posting","") :
                    ptags pr
       }
   where
