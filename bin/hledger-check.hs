@@ -1,5 +1,6 @@
 #!/usr/bin/env stack
 {- stack runghc --verbosity info
+  --package base-compat
   --package filepath
   --package hledger-lib
   --package optparse-applicative
@@ -76,7 +77,8 @@ hledger-check "(assets:overdraft  < £2000) ==> (*assets:checking  == £0)"
 "If I have taken money from my overdraft, then I must have no money in
 my checking account (including subaccounts)."
 -}
-{-# LANGUAGE CPP #-}
+
+{-# LANGUAGE PackageImports #-}
 
 module Main where
 
@@ -90,9 +92,6 @@ import Data.Functor.Identity (Identity(..))
 import Data.List (foldl', groupBy, intercalate, nub, sortOn)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty, toList)
 import Data.Maybe (fromMaybe, mapMaybe)
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
-#endif
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Calendar.OrdinalDate (mondayStartWeek, sundayStartWeek, toOrdinalDate)
 import Data.Text (isPrefixOf, pack, unpack)
@@ -101,6 +100,7 @@ import qualified Hledger.Query as H
 import qualified Hledger.Read as H
 import qualified Hledger.Utils.Parse as H
 import Options.Applicative
+import "base-compat" Prelude.Compat ((<>))
 import System.Exit (exitFailure)
 import System.FilePath (FilePath)
 import qualified Text.Megaparsec as P
