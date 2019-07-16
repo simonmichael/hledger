@@ -55,8 +55,15 @@ FLAGS
 
 main :: IO ()
 main = do
-  copts' <- getHledgerCliOpts cmdmode
-  withJournalDo copts' $ \copts@CliOpts{reportopts_=ropts, rawopts_} j -> do
+  copts@CliOpts{reportopts_=ropts, rawopts_} <- getHledgerCliOpts cmdmode
+  let copts' = copts{
+        -- One of our postings will probably have a missing amount; this ensures it's
+        -- explicit on all the others.
+        rawopts_=("explicit",""):rawopts_
+        -- Don't let our ACCT argument be interpreted as a query by print
+        ,reportopts_=ropts{query_=""}
+        }
+  withJournalDo copts' $ \j -> do
     today <- getCurrentDay
     menddate <- specifiedEndDate ropts
     let
@@ -72,13 +79,6 @@ main = do
       dates = pdates ++ [enddate]
       (_,ts') = mapAccumL (splitTransactionPostings q acct) dates $ jtxns j
       j' = j{jtxns=ts'}
-      copts' = copts{
-         -- One of our postings will probably have a missing amount; this ensures it's
-         -- explicit on all the others.
-         rawopts_=("explicit",""):rawopts_
-         -- Don't let our ACCT argument be interpreted as a query by print
-        ,reportopts_=ropts{query_=""}
-        }
     print' copts' j'
 
 -- | Split a transaction's postings to acct, if the transaction is matched by q,
@@ -108,7 +108,7 @@ splitPosting acct dates p@Posting{paccount,pamount}
         [d]        -> (d, [])
         []         -> error' "splitPosting ran out of dates, should not happen"
     days = initSafe [start..end]
-    amt  = pamount `divideMixedAmount` (fromIntegral $ length days)
+    amt  = (fromIntegral $ length days) `divideMixedAmount` pamount
     -- give one of the postings an exact balancing amount to ensure the transaction is balanced
     -- lastamt = pamount - ptrace (amt `multiplyMixedAmount` (fromIntegral $ length days))
     lastamt = missingmixedamt
