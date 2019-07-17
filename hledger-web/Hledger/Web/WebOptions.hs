@@ -44,6 +44,11 @@ webflags =
       "ORIGIN"
       ("allow cross-origin requests from the specified origin; setting ORIGIN to \"*\" allows requests from any origin")
   , flagReq
+      ["socket"]
+      (\s opts -> Right $ setopt "socket" s opts)
+      "SOCKET"
+      "use the given socket instead of the given IP and port (implies --serve)"
+  , flagReq
       ["host"]
       (\s opts -> Right $ setopt "host" s opts)
       "IPADDR"
@@ -110,10 +115,11 @@ data WebOpts = WebOpts
   , capabilities_ :: [Capability]
   , capabilitiesHeader_ :: Maybe (CI ByteString)
   , cliopts_ :: CliOpts
+  , socket_ :: Maybe String
   } deriving (Show)
 
 defwebopts :: WebOpts
-defwebopts = WebOpts def def Nothing def def def def [CapView, CapAdd] Nothing def
+defwebopts = WebOpts def def Nothing def def def def [CapView, CapAdd] Nothing def Nothing
 
 instance Default WebOpts where def = defwebopts
 
@@ -131,9 +137,12 @@ rawOptsToWebOpts rawopts =
           Left e -> error' ("Unknown capability: " ++ T.unpack e)
           Right [] -> [CapView, CapAdd]
           Right xs -> xs
+        sock = stripTrailingSlash <$> maybestringopt "socket" rawopts
     return
       defwebopts
-      { serve_ = boolopt "serve" rawopts
+      { serve_ = case sock of
+          Just _ -> True
+          Nothing -> boolopt "serve" rawopts
       , serve_api_ = boolopt "serve-api" rawopts
       , cors_ = maybestringopt "cors" rawopts
       , host_ = h
@@ -143,6 +152,7 @@ rawOptsToWebOpts rawopts =
       , capabilities_ = caps
       , capabilitiesHeader_ = mk . BC.pack <$> maybestringopt "capabilities-header" rawopts
       , cliopts_ = cliopts
+      , socket_ = sock
       }
   where
     stripTrailingSlash = reverse . dropWhile (== '/') . reverse -- yesod don't like it

@@ -120,12 +120,14 @@ library:
   - http-types
   - megaparsec >=7.0.0 && <8
   - mtl >=2.2.1
+  - network
   - semigroups
   - shakespeare >=2.0.2.2
   - template-haskell
   - text >=1.2
   - time >=1.5
   - transformers
+  - unix-compat
   - utf8-string
   - wai
   - wai-extra

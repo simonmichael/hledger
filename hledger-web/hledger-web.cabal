@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.32.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 194a16a30440803cd2bef5d5df0b6115ad66076c44407ed31efea9c4602e5e95
+-- hash: a9a6dea39ea5c963970cda9f595e7c4251332954aacd137fb6638a1e7640ee59
 
 name:           hledger-web
 version:        1.16.99
@@ -176,12 +176,14 @@ library
     , http-types
     , megaparsec >=7.0.0 && <8
     , mtl >=2.2.1
+    , network
     , semigroups
     , shakespeare >=2.0.2.2
     , template-haskell
     , text >=1.2
     , time >=1.5
     , transformers
+    , unix-compat
     , utf8-string
     , wai
     , wai-cors
