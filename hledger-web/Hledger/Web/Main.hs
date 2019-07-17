@@ -9,15 +9,19 @@ Released under GPL version 3 or later.
 
 module Hledger.Web.Main where
 
+import Control.Exception (bracket)
 import Control.Monad (when)
 import Data.String (fromString)
 import qualified Data.Text as T
+import Network.Socket
 import Network.Wai (Application)
-import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
+import Network.Wai.Handler.Warp (runSettings, runSettingsSocket, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortUrl)
 import Prelude hiding (putStrLn)
-import System.Exit (exitSuccess)
+import System.Directory (removeFile)
+import System.Exit (exitSuccess, exitFailure)
 import System.IO (hFlush, stdout)
+import System.PosixCompat.Files (getFileStatus, isSocket)
 import Text.Printf (printf)
 import Yesod.Default.Config
 import Yesod.Default.Main (defaultDevelApp)
@@ -76,7 +80,27 @@ web opts j = do
       putStrLn "Press ctrl-c to quit"
       hFlush stdout
       let warpsettings = setHost (fromString h) (setPort p defaultSettings)
-      Network.Wai.Handler.Warp.runSettings warpsettings app
+      case socket_ opts of
+        Just s -> do
+          if isUnixDomainSocketAvailable then
+            bracket
+              (do
+                  sock <- socket AF_UNIX Stream 0
+                  setSocketOption sock ReuseAddr 1
+                  bind sock $ SockAddrUnix s
+                  listen sock maxListenQueue
+                  return sock
+              )
+              (\_ -> do
+                  sockstat <-  getFileStatus s
+                  when (isSocket sockstat) $ removeFile s
+              )
+              (\sock -> Network.Wai.Handler.Warp.runSettingsSocket warpsettings sock app)
+            else do
+              putStrLn "Unix domain sockets are not available on your operating system"
+              putStrLn "Please try again without --socket"
+              exitFailure
+        Nothing -> Network.Wai.Handler.Warp.runSettings warpsettings app
     else do
       putStrLn "This server will exit after 2m with no browser windows open (or press ctrl-c)"
       putStrLn "Opening web browser..."

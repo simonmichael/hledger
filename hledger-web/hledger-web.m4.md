@@ -72,6 +72,10 @@ as shown in the synopsis above.
 `--port=PORT`
 : listen on this TCP port (default: 5000)
 
+`--socket=SOCKETFILE`
+: use a unix domain socket file to listen for requests instead of a TCP socket. Implies
+`--serve`. It can only be used if the operating system can provide this type of socket.
+
 `--base-url=URL`
 : set the base url (default: http://IPADDR:PORT).
 You would change this when sharing over the network, or integrating within a larger website.
@@ -118,6 +122,20 @@ You can use `--host` to change this, eg `--host 0.0.0.0` to listen on all config
 
 Similarly, use `--port` to set a TCP port other than 5000, eg if you are
 running multiple hledger-web instances.
+
+Both of these options are ignored when `--socket` is used. In this case, it 
+creates an `AF_UNIX` socket file at the supplied path and uses that for communication.
+This is an alternative way of running multiple hledger-web instances behind 
+a reverse proxy that handles authentication for different users.
+The path can be derived in a predictable way, eg by using the username within the path.
+As an example, `nginx` as reverse proxy can use the variabel `$remote_user` to 
+derive a path from the username used in a [HTTP basic authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/). 
+The following `proxy_pass` directive allows access to all `hledger-web` 
+instances that created a socket in `/tmp/hledger/`:
+
+```
+  proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
+```
 
 You can use `--base-url` to change the protocol, hostname, port and path that appear in hyperlinks,
 useful eg for integrating hledger-web within a larger website.
