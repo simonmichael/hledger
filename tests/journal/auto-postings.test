@@ -15,11 +15,11 @@
 
 # 1. print
 $ hledger print -f- --auto
-2016/01/01 paycheck
+2016/01/01 paycheck  ; modified:
     income:remuneration           $-100
-    (liabilities:tax)              $-33  ; income tax
+    (liabilities:tax)              $-33  ; income tax, generated-posting:= ^income
     income:donations               $-15
-    (liabilities:tax)               $-5  ; income tax
+    (liabilities:tax)               $-5  ; income tax, generated-posting:= ^income
     assets:bank
 
 2016/01/01 withdraw
@@ -80,10 +80,10 @@ $ hledger register -f- --auto
 
 # 5.
 $ hledger print -f- --auto
-2018/10/07 * MARKET
+2018/10/07 * MARKET  ; modified:
     expenses:groceries:food
-    [budget:groceries]                 $-20
-    [assets:bank:checking]              $20
+    [budget:groceries]                 $-20  ; generated-posting:= ^expenses:groceries
+    [assets:bank:checking]              $20  ; generated-posting:= ^expenses:groceries
     assets:bank:checking               $-20
 
 >=
@@ -99,10 +99,10 @@ $ hledger print -f- --auto
 
 # 6.
 $ hledger -f- print --auto -x
-2018/01/01
+2018/01/01  ; modified:
     (assets:billable:client1)     0.50h @ $90
-    assets:receivable:client1    50.00h @ $90
-    revenues:client1                   $-4500
+    assets:receivable:client1    50.00h @ $90  ; generated-posting:= assets:billable:client1
+    revenues:client1                   $-4500  ; generated-posting:= assets:billable:client1
 
 >=
 
@@ -117,10 +117,10 @@ $ hledger -f- print --auto -x
 
 # 7.
 $ hledger -f- print --auto -x
-2018/01/01
+2018/01/01  ; modified:
     (assets:billable:client1)           0.50h
-    assets:receivable:client1             $50
-    revenues:client1                     $-50
+    assets:receivable:client1             $50  ; generated-posting:= assets:billable:client1
+    revenues:client1                     $-50  ; generated-posting:= assets:billable:client1
 
 >=
 
@@ -135,10 +135,10 @@ $ hledger -f- print --auto -x
 
 # 8.
 $ hledger -f- print --auto -x
-2018/01/01
+2018/01/01  ; modified:
     (assets:billable:client1)                       0.50h @ $90
-    assets:receivable:client1    0.50 "Client1 Hours" @ $100.00
-    revenues:client1                                    $-50.00
+    assets:receivable:client1    0.50 "Client1 Hours" @ $100.00  ; generated-posting:= assets:billable:client1
+    revenues:client1                                    $-50.00  ; generated-posting:= assets:billable:client1
 
 >=
 
@@ -180,11 +180,11 @@ $ hledger print -f- --auto
 
 # 10.
 $ hledger -f- print --auto
-2018/01/01
+2018/01/01  ; modified:
     Expenses:Joint:Widgets     $100.00 @ £0.50
-    Expenses:Joint            $-100.00 @ £0.50
-    Liabilities:Joint:Bob       $50.00 @ £0.50
-    Liabilities:Joint:Bill      $50.00 @ £0.50
+    Expenses:Joint            $-100.00 @ £0.50  ; generated-posting:= ^Expenses:Joint
+    Liabilities:Joint:Bob       $50.00 @ £0.50  ; generated-posting:= ^Expenses:Joint
+    Liabilities:Joint:Bill      $50.00 @ £0.50  ; generated-posting:= ^Expenses:Joint
     Assets:Joint:Bank                  £-50.00
 
 >=0
@@ -202,11 +202,11 @@ $ hledger -f- print --auto
 
 # 11.
 $ hledger -f- print --auto
-2018/01/01
+2018/01/01  ; modified:
     Expenses:Joint:Widgets     $100.00 @@ £50
-    Expenses:Joint            $-100.00 @@ £50
-    Liabilities:Joint:Bob       $50.00 @@ £25
-    Liabilities:Joint:Bill      $50.00 @@ £25
+    Expenses:Joint            $-100.00 @@ £50  ; generated-posting:= ^Expenses:Joint
+    Liabilities:Joint:Bob       $50.00 @@ £25  ; generated-posting:= ^Expenses:Joint
+    Liabilities:Joint:Bill      $50.00 @@ £25  ; generated-posting:= ^Expenses:Joint
     Assets:Joint:Bank                 £-50.00
 
 >=0
@@ -231,11 +231,11 @@ $ hledger -f- print --auto
 
 # 12.
 $ hledger -f- print --auto
-2018/01/01
+2018/01/01  ; modified:
     Expenses:Joint:Widgets            $100.00
-    Expenses:Joint            $-100.00 @@ £50
-    Liabilities:Joint:Bob       $50.00 @@ £25
-    Liabilities:Joint:Bill      $50.00 @@ £25
+    Expenses:Joint            $-100.00 @@ £50  ; generated-posting:= ^Expenses:Joint
+    Liabilities:Joint:Bob       $50.00 @@ £25  ; generated-posting:= ^Expenses:Joint
+    Liabilities:Joint:Bill      $50.00 @@ £25  ; generated-posting:= ^Expenses:Joint
     Assets:Joint:Bank                 £-50.00
 
 >=0
@@ -264,11 +264,11 @@ $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
     assets:bank
 
 2016/02/01 paycheck
-    ; recur: monthly from 2016-01
+    ; generated-transaction:~ monthly from 2016-01, modified:
     income:remuneration           $-100
-    (liabilities:tax)              $-33  ; income tax
+    (liabilities:tax)              $-33  ; income tax, generated-posting:= ^income
     income:donations               $-15
-    (liabilities:tax)               $-5  ; income tax
+    (liabilities:tax)               $-5  ; income tax, generated-posting:= ^income
     assets:bank
 
 >=
@@ -280,7 +280,7 @@ $ hledger print -f- --forecast -b 2016-01 -e 2016-03
     assets:bank
 
 2016/02/01 paycheck
-    ; recur: monthly from 2016-01
+    ; generated-transaction:~ monthly from 2016-01
     income:remuneration           $-100
     income:donations               $-15
     assets:bank

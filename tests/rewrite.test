@@ -1,4 +1,4 @@
-# Add proportional income tax (from documentation)
+# 1. Add proportional income tax (from documentation)
 hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax'
 <<<
 2016/1/1 paycheck
@@ -10,11 +10,11 @@ hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax
     assets:cash             $20
     assets:bank
 >>>
-2016/01/01 paycheck
+2016/01/01 paycheck  ; modified:
     income:remuneration           $-100
-    (liabilities:tax)              $-33  ; income tax
+    (liabilities:tax)              $-33  ; income tax, generated-posting:= ^income
     income:donations               $-15
-    (liabilities:tax)               $-5  ; income tax
+    (liabilities:tax)               $-5  ; income tax, generated-posting:= ^income
     assets:bank
 
 2016/01/01 withdraw
@@ -24,7 +24,8 @@ hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax
 >>>2
 >>>=0
 
-# Duplicate posting for budgeting (from documentation)
+# 2. Duplicate posting for budgeting (from documentation).
+# It uses same date as the matched posting.
 hledger rewrite -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
 <<<
 2016/1/1 withdraw
@@ -39,15 +40,15 @@ hledger rewrite -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
     assets:cash             $20
     assets:bank
 
-2016/01/01 gift
+2016/01/01 gift  ; modified:
     assets:cash               $-15
     expenses:gifts      ; [1/2]
-    (budget:gifts)            $-15  ; [2016/01/02]
+    (budget:gifts)            $-15  ; [2016/01/02], generated-posting:= expenses:gifts
 
 >>>2
 >>>=0
 
-# Add postings in another commodity
+# 3. Add postings in another commodity
 hledger rewrite -f-
 <<<
 2017/04/24 * 09:00-09:25
@@ -66,23 +67,23 @@ hledger rewrite -f-
 = ^assets:unbilled:client2
   (assets:to bill:client2)   *150.00 CAD
 >>>
-2017/04/24 * 09:00-09:25
+2017/04/24 * 09:00-09:25  ; modified:
     (assets:unbilled:client1)           0.42h
-    (assets:to bill:client1)        42.00 CAD
+    (assets:to bill:client1)        42.00 CAD  ; generated-posting:= ^assets:unbilled:client1
 
-2017/04/25 * 10:00-11:15
+2017/04/25 * 10:00-11:15  ; modified:
     (assets:unbilled:client1)           1.25h
-    (assets:to bill:client1)       125.00 CAD
+    (assets:to bill:client1)       125.00 CAD  ; generated-posting:= ^assets:unbilled:client1
 
-2017/04/25 * 14:00-15:32
+2017/04/25 * 14:00-15:32  ; modified:
     (assets:unbilled:client2)           1.54h
-    (assets:to bill:client2)       231.00 CAD
+    (assets:to bill:client2)       231.00 CAD  ; generated-posting:= ^assets:unbilled:client2
 
 >>>2
 >>>=0
 
 
-# Add postings with prices
+# 4. Add postings with prices
 hledger rewrite -f- -B
 <<<
 2017/04/24 * 09:00-09:25
@@ -103,25 +104,26 @@ hledger rewrite -f- -B
   assets:to bill:client2   *1.00 hours @ $150.00
   income:consulting:client2
 >>>
-2017/04/24 * 09:00-09:25
+2017/04/24 * 09:00-09:25  ; modified:
     (assets:unbilled:client1)           0.42h
-    assets:to bill:client1             $42.00
-    income:consulting:client1
+    assets:to bill:client1             $42.00  ; generated-posting:= ^assets:unbilled:client1
+    income:consulting:client1      ; generated-posting:= ^assets:unbilled:client1
 
-2017/04/25 * 10:00-11:15
+2017/04/25 * 10:00-11:15  ; modified:
     (assets:unbilled:client1)           1.25h
-    assets:to bill:client1            $125.00
-    income:consulting:client1
+    assets:to bill:client1            $125.00  ; generated-posting:= ^assets:unbilled:client1
+    income:consulting:client1      ; generated-posting:= ^assets:unbilled:client1
 
-2017/04/25 * 14:00-15:32
+2017/04/25 * 14:00-15:32  ; modified:
     (assets:unbilled:client2)           1.54h
-    assets:to bill:client2            $231.00
-    income:consulting:client2
+    assets:to bill:client2            $231.00  ; generated-posting:= ^assets:unbilled:client2
+    income:consulting:client2      ; generated-posting:= ^assets:unbilled:client2
 
 >>>2
 >>>=0
 
-# Add absolute bank processing fee
+# 5. Add absolute bank processing fee
+# XXX is "and" really processed here ?
 hledger rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/1/1 withdraw
@@ -137,22 +139,22 @@ hledger rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  -
 #     income:remuneration     $-100
 #     assets:bank
 >>>
-2016/01/01 withdraw
+2016/01/01 withdraw  ; modified:
     assets:cash              $20
     assets:bank
-    expenses:fee              $5
-    assets:bank              $-5
+    expenses:fee              $5  ; generated-posting:= assets:bank and amt:<0
+    assets:bank              $-5  ; generated-posting:= assets:bank and amt:<0
 
-2016/01/02 withdraw
+2016/01/02 withdraw  ; modified:
     assets:cash
     assets:bank             $-30
-    expenses:fee              $5
-    assets:bank              $-5
+    expenses:fee              $5  ; generated-posting:= assets:bank and amt:<0
+    assets:bank              $-5  ; generated-posting:= assets:bank and amt:<0
 
 >>>2
 >>>=0
 
-# Rewrite rule within journal
+# 6. Rewrite rule within journal
 hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0'
 <<<
 = ^assets:bank$ date:2017/1 amt:<0
@@ -186,32 +188,32 @@ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0'
 = ^expenses not:housing not:grocery not:food
     (budget:misc)  *-1
 >>>
-2016/12/31
+2016/12/31  ; modified:
     expenses:housing         $600.00
-    (budget:housing)        $-600.00
+    (budget:housing)        $-600.00  ; generated-posting:= ^expenses:housing
     assets:cash
 
-2017/01/01
+2017/01/01  ; modified:
     expenses:food             $20.00
-    (budget:food)            $-20.00
-    Here comes Santa               0
+    (budget:food)            $-20.00  ; generated-posting:= ^expenses:grocery ^expenses:food
+    Here comes Santa               0  ; generated-posting:= date:2017/1
     expenses:leisure          $15.00
-    (budget:misc)            $-15.00
-    Here comes Santa               0
+    (budget:misc)            $-15.00  ; generated-posting:= ^expenses not:housing not:grocery not:food
+    Here comes Santa               0  ; generated-posting:= date:2017/1
     expenses:grocery          $30.00
-    (budget:food)            $-30.00
-    Here comes Santa               0
+    (budget:food)            $-30.00  ; generated-posting:= ^expenses:grocery ^expenses:food
+    Here comes Santa               0  ; generated-posting:= date:2017/1
     assets:cash
-    Here comes Santa               0
+    Here comes Santa               0  ; generated-posting:= date:2017/1
 
-2017/01/02
+2017/01/02  ; modified:
     assets:cash              $200.00
-    Here comes Santa               0
+    Here comes Santa               0  ; generated-posting:= date:2017/1
     assets:bank
-    assets:bank               $-1.60
-    expenses:fee               $1.60  ; cash withdraw fee
-    (budget:misc)             $-1.60
-    Here comes Santa               0
+    assets:bank               $-1.60  ; generated-posting:= ^assets:bank$ date:2017/1 amt:<0
+    expenses:fee               $1.60  ; cash withdraw fee, generated-posting:= ^assets:bank$ date:2017/1 amt:<0
+    (budget:misc)             $-1.60  ; generated-posting:= ^expenses not:housing not:grocery not:food
+    Here comes Santa               0  ; generated-posting:= date:2017/1
 
 2017/02/01
     assets:cash         $100.00
@@ -220,7 +222,7 @@ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0'
 >>>2
 >>>=0
 
-# Rewrite using diff output
+# 7. Rewrite using diff output
 hledger rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/01/01 withdraw
@@ -234,16 +236,18 @@ hledger rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee 
 --- -
 +++ -
 @@ -1,3 +1,5 @@
- 2016/01/01 withdraw
+-2016/01/01 withdraw
++2016/01/01 withdraw  ; modified:
      assets:cash              $20
      assets:bank
-+    expenses:fee              $5
-+    assets:bank              $-5
++    expenses:fee              $5  ; generated-posting:= assets:bank and amt:<0
++    assets:bank              $-5  ; generated-posting:= assets:bank and amt:<0
 @@ -5,3 +7,5 @@
- 2016/01/02 withdraw
+-2016/01/02 withdraw
++2016/01/02 withdraw  ; modified:
      assets:cash
      assets:bank             $-30
-+    expenses:fee              $5
-+    assets:bank              $-5
++    expenses:fee              $5  ; generated-posting:= assets:bank and amt:<0
++    assets:bank              $-5  ; generated-posting:= assets:bank and amt:<0
 >>>2
 >>>=0
