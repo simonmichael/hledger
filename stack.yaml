@@ -17,16 +17,13 @@ nix:
 # allow-newer: true
 
 extra-deps:
-# hledger-lib:
-# hledger:
-# hledger-ui:
+# for hledger-lib:
+# for hledger:
+# for hledger-ui:
 - brick-0.47
-- text-zipper-0.10.1
-- config-ini-0.2.4.0
-- data-clist-0.1.2.2
-- word-wrap-0.4.1
-# hledger-web:
-# hledger-api:
+- data-clist-0.1.2.3
+# for hledger-web:
+# for hledger-api:
 
 # Workaround for https://github.com/commercialhaskell/stack/issues/3922
 # Try dropping this.. after stack 2 has been out a while ? Or now ? How about now ?
