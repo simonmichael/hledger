@@ -5,35 +5,31 @@ User-visible changes in the hledger command line tool and library.
 
 ## General
 
-- There is a new valuation option --value=TYPE[,COMM], with
-  backwards-compatible -B/--cost, -V/--market, -X/--exchange=COMM
+- There is a new valuation option `--value=TYPE[,COMM]`, with
+  backwards-compatible `-B/--cost`, `-V/--market`, `-X/--exchange=COMM`
   variants. These provide control over valuation date (#329), and
   inference of indirect market prices (similar to Ledger's -X) (#131).
-  Experimental. Currently there is a performance regression,
-  market valuation is slower than before (#999). Eg (10k txns, 3 balance report columns):
+  Experimental.
+  
+  Currently there is a performance regression:
+  market valuation with large data, already slow (#999), is now even slower. 
+  Eg (10k txns, 3 balance report columns):
 
-      $ stack exec -- quickbench -w hledger-1.14,hledger-1.15 "_ -f examples/10000x1000x10.journal bal -Y" "_ -f examples/10000x1000x10.journal bal -YV" "_ -f examples/10000x1000x10.journal reg" "_ -f examples/10000x1000x10.journal reg -V" "_ -f examples/10000x1000x10.journal print" "_ -f examples/10000x1000x10.journal print -V"
-      Running 6 tests 1 times with 2 executables at 2019-07-25 11:50:29 IST:
-
-      Best times:
       +--------------------------------------------++--------------+--------------+
       |                                            || hledger-1.14 | hledger-1.15 |
       +============================================++==============+==============+
-      | -f examples/10000x1000x10.journal bal -Y   ||         3.21 |         3.30 |
       | -f examples/10000x1000x10.journal bal -YV  ||        50.17 |        70.39 |
-      | -f examples/10000x1000x10.journal reg      ||         3.08 |         3.07 |
       | -f examples/10000x1000x10.journal reg -V   ||        53.90 |       104.39 |
-      | -f examples/10000x1000x10.journal print    ||         2.46 |         2.42 |
       | -f examples/10000x1000x10.journal print -V ||        43.85 |       110.46 |
       +--------------------------------------------++--------------+--------------+
 
-- How date options like -M and -p interact has been updated and clarified.
+- How date options like `-M` and `-p` interact has been updated and clarified.
   (Jakob Schöttl) (#1008, #1009, #1011)
 
-- Restore --aux-date and --effective as --date2 aliases (#1034).
+- Restore `--aux-date` and `--effective` as `--date2` aliases (#1034).
   These Ledger-ish spellings were dropped over the years, to improve
-  --help's layout. Now we support them again, as semi-hidden flags
-  (--help doesn't list them, but they are mentioned in --date2's help).
+  `--help`'s layout. Now we support them again, as semi-hidden flags
+  (`--help` doesn't list them, but they are mentioned in `--date2`'s help).
 
 ## commands
 
@@ -47,8 +43,8 @@ User-visible changes in the hledger command line tool and library.
 - bal: --budget: don't show a percentage when budgeted and actual
   amounts are in different commodities.
 
-- bal/bs/bse: -H/--historical or --cumulative now disables -T/--row-total (#329).
-  Multiperiod balance reports which show end balances (eg, bal -MH or bs -M)
+- bal/bs/bse: `-H/--historical` or `--cumulative` now disables `-T/--row-total` (#329).
+  Multiperiod balance reports which show end balances (eg, `bal -MH` or `bs -M`)
   no longer show a Totals column, since summing end balances generally
   doesn't make sense.
 
@@ -69,7 +65,7 @@ User-visible changes in the hledger command line tool and library.
 
 - print: now also canonicalises the display style of balance assertion amounts (#1042)
 
-- reg: fix --average, broken since 1.12 (#1003)
+- reg: fix `--average`, broken since 1.12 (#1003)
 
 ## journal format
 
@@ -80,9 +76,9 @@ User-visible changes in the hledger command line tool and library.
 
 ## csv format
 
-- When interpolating CSV values, outer whitespace is now stripped (#1051).
-  This removes a potential snag in amount field assignments, and
-  hopefully is harmless and acceptable otherwise.
+- When interpolating CSV values, outer whitespace is now stripped.
+  This removes a potential snag in amount field assignments (#1051),
+  and hopefully is harmless and acceptable otherwise.
 
 - Don't show invalid inter-field spaces in CSV error messages.
   Some CSV errors, eg from an inconsistently quoted record like this:
@@ -94,11 +90,11 @@ User-visible changes in the hledger command line tool and library.
 
       the CSV record is:       "2000-01-01", "a", "1"
 
-- Make CSV parse errors human readable again, broken since 1.11 (#1038)
+- Make CSV parse errors human-readable again, broken since 1.11 (#1038)
 
 - CSV rules now allow the amount to be unassigned, if there is an
-  assignment to "balance", generating a balance assignment in this
-  case. (#1000)
+  assignment to "balance" (generating a balance assignment in this
+  case). (#1000)
 
 
 # 1.14.2 2019-03-20
