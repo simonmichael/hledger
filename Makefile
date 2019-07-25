@@ -59,7 +59,7 @@ dummy2: $(call def-help,RULE -n, show what RULE would do )
 export LANG?=en_US.UTF-8
 
 # command to run during profiling (time and heap)
-PROFCMD=stack exec -- hledgerprof balance -f examples/10000x1000x10.journal >/dev/null
+PROFCMD=stack exec --profile -- hledger balance -f examples/10000x1000x10.journal >/dev/null
 
 #PROFRTSFLAGS=-p
 PROFRTSFLAGS=-P
@@ -281,14 +281,11 @@ templates: \
 	)
 	ln -sf hledger-web/$@
 
-# force a compile even if binary exists, since we don't specify dependencies for these
-.PHONY: bin/hledgerprof bin/hledgercov
-
 hledgerprof: \
-	$(call def-help,hledgerprof, build "hledgerprof" for profiling (with stack) )
-	$(STACK) build hledger-lib hledger --library-profiling --executable-profiling --ghc-options=-fprof-auto
-	cp `$(STACK) exec which hledger`{,prof}
-	@echo to profile, use $(STACK) exec -- hledgerprof ...
+	$(call def-help,hledgerprof, build a hledger executable with profiling enabled (with stack) )
+	$(STACK) build --profile hledger
+# hledger-lib --ghc-options=-fprof-auto
+#	@echo "to profile, use $(STACK) exec --profile -- hledger ..."
 
 hledgercov: \
 	$(call def-help,hledgercov, build "bin/hledgercov" for coverage reports (with ghc) )
@@ -636,13 +633,16 @@ bench: samplejournals bench.sh $(call def-help,bench, benchmark commands in benc
 
 quickprof-%: hledgerprof samplejournals \
 		$(call def-help,quickprof-"CMD", run some command against a sample journal and display the execution profile )
-	$(STACK) exec -- hledgerprof +RTS $(PROFRTSFLAGS) -RTS $* -f examples/10000x1000x10.journal >/dev/null
-	profiterole hledgerprof.prof
+	$(STACK) exec --profile -- hledger +RTS $(PROFRTSFLAGS) -RTS $* -f examples/1000x1000x10.journal >/dev/null
+	profiterole hledger.prof
 	@echo
-	@head -20 hledgerprof.prof
+	@head -20 hledger.prof
 	@echo ...
 	@echo
-	@echo see hledgerprof.prof or hledgerprof.prof.html for the full report
+	@head -20 hledger.profiterole.txt
+	@echo ...
+	@echo
+	@echo "See hledger.prof, hledger.profiterole.txt, hledger.profiterole.html for more."
 
 # heap: samplejournals \
 # 	$(call def-help,heap,\
