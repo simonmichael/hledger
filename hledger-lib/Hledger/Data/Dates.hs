@@ -892,7 +892,11 @@ lastthisnextthing = do
 
   return ("", T.unpack r, T.unpack p)
 
--- |
+-- | Parse a period expression, specifying a date span and optionally
+-- a reporting interval. Requires a reference "today" date for
+-- resolving any relative start/end dates (only; it is not needed for
+-- parsing the reporting interval).
+--
 -- >>> let p = parsePeriodExpr (parsedate "2008/11/26")
 -- >>> p "from Aug to Oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
@@ -944,6 +948,7 @@ periodexprp rdate = do
                     (,) NoInterval <$> periodexprdatespanp rdate
                    ]
 
+-- Parse a reporting interval and a date span.
 intervalanddateperiodexprp :: Day -> TextParser m (Interval, DateSpan)
 intervalanddateperiodexprp rdate = do
   i <- reportingintervalp
