@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 6a506970
+# 6073c002
 
 - web: register page: clip linked accounts to 40 characters (Henning Thielemann)
   This was the behaviour before adding the links.

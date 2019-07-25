@@ -1,7 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 6a506970
+# 6073c002
+
+- lib: export aliasnamep for hledger-check (#1072)
 
 - lib: setNaturalPrecisionUpTo
 

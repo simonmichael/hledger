@@ -1,17 +1,23 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 23a7787a
+# a4c2f70a
 
-- Update shell completion script (Jakob Schöttl)
+- bump default stack.yaml to nightly-2019-07-24 / ghc 8.6.5
+
+- bin: add hledger-swap-dates; update hledger-check, hledger-smooth (#1072)
+
+- Update shell completions (Jakob Schöttl)
 
 - travis: skip hledger-api at least for now to stay under time limit
 
-- Create FUNDING.yml
+- Create FUNDING.yml / github sponsor button
 
 - examples: fix incompatible syntax in bcexample.hledger
 
 - make tag: include all hledger-web hs files in tags
+
+- shake: be more verbose when updating changelogs
 
 - shake: show htmlmanuals target in help
 

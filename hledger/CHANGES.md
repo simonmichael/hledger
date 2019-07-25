@@ -1,7 +1,12 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 6a506970
+# 6073c002
+
+- rule-generated txns and postings are now marked with tags
+  (generated-transaction, generated-posting, modified)
+
+- add descriptions, payees, notes commands (Caleb Maclennan)
 
 - close: preserve transaction prices (costs) accurately (#1035)
   Transaction prices were being collapsed/misreported after close/open;
