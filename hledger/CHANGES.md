@@ -13,7 +13,7 @@ User-visible changes in the hledger command line tool and library.
   
   Currently there is a performance regression:
   market valuation with large data, already slow (#999), is now even slower. 
-  Eg (10k txns, 3 balance report columns):
+  Eg (10k txns, 1 commodity, 3 balance report columns):
 
       +--------------------------------------------++--------------+--------------+
       |                                            || hledger-1.14 | hledger-1.15 |
@@ -71,8 +71,8 @@ User-visible changes in the hledger command line tool and library.
 
 - Transactions and postings generated/modified by periodic transaction
   rules and/or transaction modifier rules are now marked with tags
-  (generated-transaction, generated-posting, modified) for easier
-  troubleshooting and filtering.
+  (`generated-transaction`, `generated-posting`, `modified`) for
+  easier troubleshooting and filtering.
 
 ## csv format
 
@@ -80,17 +80,18 @@ User-visible changes in the hledger command line tool and library.
   This removes a potential snag in amount field assignments (#1051),
   and hopefully is harmless and acceptable otherwise.
 
-- Don't show invalid inter-field spaces in CSV error messages.
-  Some CSV errors, eg from an inconsistently quoted record like this:
+- We no longer add inter-field spaces in CSV error messages.
+  Some CSV errors would show the problem record, eg:
 
       2000-01-01,a,"1"
+  
+  with extra spaces added, eg:
 
-  redisplayed the record with spaces added, 
-  which was inaccurate and not valid RFC-4180 CSV format:
+      the CSV record is: "2000-01-01", "a", "1"
 
-      the CSV record is:       "2000-01-01", "a", "1"
+  which was inaccurate and not valid RFC-4180 CSV format.
 
-- Make CSV parse errors human-readable again, broken since 1.11 (#1038)
+- CSV parse errors are human-readable again (broken since 1.11) (#1038)
 
 - CSV rules now allow the amount to be unassigned, if there is an
   assignment to "balance" (generating a balance assignment in this
