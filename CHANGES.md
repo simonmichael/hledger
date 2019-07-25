@@ -21,8 +21,6 @@ For package-specific changes, see the package changelogs.
 
 - shake: show htmlmanuals target in help
 
-
-
 - make site-watch: site-liverender & site-livereload in one command
 
 - site: download: wine

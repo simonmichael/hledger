@@ -3,69 +3,34 @@ For user-visible changes, see the hledger package changelog.
 
 # 6073c002
 
-- lib: export aliasnamep for hledger-check (#1072)
+Removals include:
 
-- lib: setNaturalPrecisionUpTo
+- journalPrices
+- BalanceHistoryReport
+- postingValueAtDate
 
-- lib: -X/--exchange now supports indirect price chains (#131)
-  Adds fgl as a dependency.
+Additions include:
 
-- lib: clarify price types (#131)
-  dropped journalPrices
+- aliasnamep (export)
+- setNaturalPrecisionUpTo
+- new MarketPrice (more pure form of PriceDirective without the amount style information)
+- dbgNWith, ptraceAtWith
+- postingTransformAmount, postingToCost, postingValue
+- amountToCost, mixedAmountToCost
+- valueTypeFromOpts
+- mapJournalTransactions, mapJournalPostings, mapTransactionPostings
+- journalStartDate, journalEndDate
 
-  renamed Price to AmountPrice,  AKA "transaction price"
+Changes include:
 
-  renamed MarketPrice to PriceDirective.
-
-  added new MarketPrice (more pure form of PriceDirective without the amount style information)
-
-  Prices is now a more efficient data structure, but not used yet.
-
-- lib: accountTransactionsReportItems: rewrite using catMaybes and mapAccumL (Henning Thielemann)
-  I find the report function less convolved without the integrated recursion.
-
-- lib: debug helpers: add ptraceAtWith, dbgNWith
-
-- restore TransactionsReport
-  hledger-web's register chart uses it, I didn't see it
-  because it's called from a hamlet template.
-
-- lib: drop TransactionsReport, BalanceHistoryReport
-  They seem unused.
-
-- lib: TransactionsReport/AccountTransactionsReport cleanup
-  Split them into separate files, rename journalTransactionsReport to
-  transactionsReport.
-
-- lib: drop postingValueAtDate
-
-- lib: postingTransformAmount, postingToCost, postingValue
-
-- lib: amountToCost, mixedAmountToCost
-
-- lib: valueTypeFromOpts helper
-
-- bal/bs/cf/is: support --value-at with -H; fix row/col/grand totals
-  This also includes a big cleanup of multiBalanceReport, which got
-  accidentally mingled.
-
-- lib: mapJournalTransactions, mapJournalPostings, mapTransactionPostings
-
-
-
-- lib: save the current date in ReportOpts
-  We need this for choosing a valuation date, otherwise, report
-  functions would have to be in IO or we'd have to pass in yet another
-  argument.
-
-  It's optional because it's useful to be able to create report opts
-  purely (I think ?) This is not ideal but maybe not a problem.
-
-- lib: journalStartDate, journalEndDate
-
-- Change unused argument to undefined to make possible bugs more obvious (Jakob Schöttl)
-
-- rejigger Hledger.Cli tests to have correct prefix, add Cli.Utils
+- Price -> AmountPrice,  AKA "transaction price"
+- old MarketPrice -> PriceDirective
+- TransactionsReport/AccountTransactionsReport split into separate files
+- journalTransactionsReport -> transactionsReport
+- accountTransactionsReportItems: rewrite using catMaybes and mapAccumL (Henning Thielemann)
+- optionally save the current date in ReportOpts
+- Hledger.Cli tests now have correct prefix; add Cli.Utils tests
+- MultiBalanceReport now returns zero for row totals when in cumulative or historical mode (#329)
 
 
 # 1.14.1 2019-03-20

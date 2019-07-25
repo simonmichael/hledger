@@ -3,171 +3,103 @@ User-visible changes in the hledger command line tool and library.
 
 # 6073c002
 
-- rule-generated txns and postings are now marked with tags
-  (generated-transaction, generated-posting, modified)
+## General
 
-- add descriptions, payees, notes commands (Caleb Maclennan)
+- There is a new valuation option --value=TYPE[,COMM], with
+  backwards-compatible -B/--cost, -V/--market, -X/--exchange=COMM
+  variants. These provide control over valuation date (#329), and
+  inference of indirect market prices (similar to Ledger's -X) (#131).
+  Experimental. Currently there is a performance regression,
+  market valuation is slower than before (#999). Eg (10k txns, 3 balance report columns):
 
-- close: preserve transaction prices (costs) accurately (#1035)
-  Transaction prices were being collapsed/misreported after close/open;
-  this is fixed. Now each separately-priced amount gets its own posting,
-  and only the last of these (for each commodity) gets a balance
-  assertion. Also the equity posting's amount is now always shown
-  explicitly, which in multicommodity situations means that multiple
-  equity postings are shown. The upshot is that a balance -B report
-  will be unchanged after closing & opening transactions.
+      $ stack exec -- quickbench -w hledger-1.14,hledger-1.15 "_ -f examples/10000x1000x10.journal bal -Y" "_ -f examples/10000x1000x10.journal bal -YV" "_ -f examples/10000x1000x10.journal reg" "_ -f examples/10000x1000x10.journal reg -V" "_ -f examples/10000x1000x10.journal print" "_ -f examples/10000x1000x10.journal print -V"
+      Running 6 tests 1 times with 2 executables at 2019-07-25 11:50:29 IST:
 
-- csv: strip outer whitespace when interpolating CSV values (#1051)
-  This removes a potential snag in amount field assignments, and
-  hopefully is harmless and acceptable otherwise.
+      Best times:
+      +--------------------------------------------++--------------+--------------+
+      |                                            || hledger-1.14 | hledger-1.15 |
+      +============================================++==============+==============+
+      | -f examples/10000x1000x10.journal bal -Y   ||         3.21 |         3.30 |
+      | -f examples/10000x1000x10.journal bal -YV  ||        50.17 |        70.39 |
+      | -f examples/10000x1000x10.journal reg      ||         3.08 |         3.07 |
+      | -f examples/10000x1000x10.journal reg -V   ||        53.90 |       104.39 |
+      | -f examples/10000x1000x10.journal print    ||         2.46 |         2.42 |
+      | -f examples/10000x1000x10.journal print -V ||        43.85 |       110.46 |
+      +--------------------------------------------++--------------+--------------+
 
-- csv: don't show invalid inter-field spaces in CSV error messages
-  Errors involving a record like:
+- How date options like -M and -p interact has been updated and clarified.
+  (Jakob Schöttl) (#1008, #1009, #1011)
 
-  2000-01-01,a,"1"
+- Restore --aux-date and --effective as --date2 aliases (#1034).
+  These Ledger-ish spellings were dropped over the years, to improve
+  --help's layout. Now we support them again, as semi-hidden flags
+  (--help doesn't list them, but they are mentioned in --date2's help).
 
-  displayed the record with extra spaces:
+## commands
 
-  the CSV record is:       "2000-01-01", "a", "1"
-
-  which was not accurate or valid RFC-4180.
-
-- Bugfix for #1011: begin/end date options (Jakob Schöttl)
-
-- Fix and update documentation on date options (Jakob Schöttl)
-
-- add, web: disallow unsafe trailing dot paths on windows (fix #1056)
+- add, web: disallow unsafe trailing dot paths on windows (#1056).
   On Windows, ensureJournalFileExists now rejects file paths
   containing any problematic trailing dots, to prevent data loss.
   This affects the add command and hledger-web's add form.
 
-- lib: -X/--exchange now supports indirect price chains (#131)
-  Adds fgl as a dependency.
+- bal: --budget: don't always convert to cost.
 
-- lib: support -X/--exchange (direct/reverse prices only) (#131)
+- bal: --budget: don't show a percentage when budgeted and actual
+  amounts are in different commodities.
 
-- lib: --value can select commodity (via direct/reverse prices) (#131)
+- bal/bs/bse: -H/--historical or --cumulative now disables -T/--row-total (#329).
+  Multiperiod balance reports which show end balances (eg, bal -MH or bs -M)
+  no longer show a Totals column, since summing end balances generally
+  doesn't make sense.
 
-- lib: parse optional ,COMM suffix in --value (#131)
+- close: preserve transaction prices (costs) accurately (#1035).
+  The generated closing/opening transactions were collapsing/misreporting
+  the costs in balances involving multiple costs.
+  Now, each separately-priced amount gets its own posting.
+  (And only the last of these (for each commodity) gets a balance assertion.)
+  Also the equity posting's amount is now always shown explicitly, 
+  which in multicommodity situations means that multiple equity postings are shown. 
+  The upshot is that a balance -B report will be unchanged after
+  the closing & opening transactions generated by the close command.
 
-- print: also canonicalise balance assertions' amount style (fix #1042)
+- descriptions, payees, notes commands added (Caleb Maclennan)
 
-- csv: fix parse error printing, broken since 1.11 (#1038)
+- Gabriel Ebner's hledger-diff is now a built in command,
+  and https://github.com/gebner/hledger-diff is deprecated.
 
-- cli: restore --aux-date and --effective as --date2 aliases (#1034)
-  These Ledger-ish spellings were dropped over the years, to improve
-  --help's layout. Now they work again, but are considered hidden flags
-  so --help doesn't show them automatically (but I decided to mention
-  them manually in --date2's description).
+- print: now also canonicalises the display style of balance assertion amounts (#1042)
 
-- make -V do --value=end in multiperiod reports (#329)
+- reg: fix --average, broken since 1.12 (#1003)
 
-- reg: replace --value=transaction with --value=cost
+## journal format
 
-- print: replace --value=transaction with --value=cost
+- Transactions and postings generated/modified by periodic transaction
+  rules and/or transaction modifier rules are now marked with tags
+  (generated-transaction, generated-posting, modified) for easier
+  troubleshooting and filtering.
 
-- bal etc.: replace --value=transaction with --value=cost (#329)
+## csv format
 
-- opts: new -B/--cost, -V/--market, --value flags (#329)
+- When interpolating CSV values, outer whitespace is now stripped (#1051).
+  This removes a potential snag in amount field assignments, and
+  hopefully is harmless and acceptable otherwise.
 
-- bal: --budget: don't always convert to cost
-  And don't show a percentage when budgeted and actual amounts are in
-  different commodities.
+- Don't show invalid inter-field spaces in CSV error messages.
+  Some CSV errors, eg from an inconsistently quoted record like this:
 
-- opts: shorten csv separator arg template
+      2000-01-01,a,"1"
 
-- bal/bs/bse: -H or --cumulative now disables -T (#329)
-  To reduce confusion, multiperiod balance reports using -H/--historical
-  or --cumulative, which show end balances, no longer show a Totals
-  column since summing end balances generally doesn't make sense.
-  Also the underlying MultiBalanceReport now returns zero for those
-  totals when in cumulative or historical mode.
+  redisplayed the record with spaces added, 
+  which was inaccurate and not valid RFC-4180 CSV format:
 
-- bal/bs/cf/is: support --value-at with -H; fix row/col/grand totals
-  This also includes a big cleanup of multiBalanceReport, which got
-  accidentally mingled.
+      the CSV record is:       "2000-01-01", "a", "1"
 
-- bal/bs/cf/is: mention valuation type in report title
+- Make CSV parse errors human readable again, broken since 1.11 (#1038)
 
-- bal: document and test --value-at with --budget (#329)
+- CSV rules now allow the amount to be unassigned, if there is an
+  assignment to "balance", generating a balance assignment in this
+  case. (#1000)
 
-- reg: fix --value-at=transaction with -M (#329)
-
-- reg: support --value-at with -H (#329)
-
-- bal: fix --value-at for old-style single period balance reports (#329)
-
-- bal: support --value-at=p/t with multiperiod reports (#329)
-
-- reg: support --value-at=period with periodic reports (#329)
-
-
-- date-aware valuation: more thorough --value-at; document status (#329, #999)
-  This feature turns out to be quite involved, as valuation interacts
-  with the many report variations. Various bugs/specs have been
-  fixed/clarified relating to register's running total, balance totals
-  etc. Eg register's total should now be the sum of the posting amount
-  values, not the values of the original sums. Current level of support
-  has been documented.
-
-  When valuing at transaction date, we once again do early valuation of
-  all posting amounts, to get more correct results. variants. This means
-  --value-at=t can be slower than other valuation modes when there are
-  many transactions and many prices. This could be revisited for
-  optimisation when things are more settled.
-
-- faster valuation: speed up -V/--value by converting reports, not the journal (#999)
-  Instead of converting all journal amounts to value early on, we now
-  convert just the report amounts to value, before rendering.
-
-  This was basically how it originally worked (for the balance command),
-  but now it's built in to the four basic reports used by print,
-  register, balance and their variants - Entries, Postings, Balance,
-  MultiBalance - each of which now has its own xxValue helper.
-
-  This should mostly fix -V's performance when there are many
-  transactions and prices (the price lookups could still be optimised),
-  and allow more flexibility for report-specific value calculations.
-
-  +------------------------------------------++-----------------+-------------------+--------------------------+
-  |                                          || hledger.999.pre | hledger.999.1sort | hledger.999.after-report |
-  +==========================================++=================+===================+==========================+
-  | -f examples/1000x1000x10.journal bal -V  ||            1.08 |              0.96 |                     0.76 |
-  | -f examples/2000x1000x10.journal bal -V  ||            1.65 |              1.05 |                     0.73 |
-  | -f examples/3000x1000x10.journal bal -V  ||            2.43 |              1.58 |                     0.84 |
-  | -f examples/4000x1000x10.journal bal -V  ||            4.39 |              1.96 |                     0.93 |
-  | -f examples/5000x1000x10.journal bal -V  ||            7.75 |              2.99 |                     1.07 |
-  | -f examples/6000x1000x10.journal bal -V  ||           11.21 |              3.72 |                     1.16 |
-  | -f examples/7000x1000x10.journal bal -V  ||           16.91 |              4.72 |                     1.19 |
-  | -f examples/8000x1000x10.journal bal -V  ||           27.10 |              9.83 |                     1.40 |
-  | -f examples/9000x1000x10.journal bal -V  ||           39.73 |             15.00 |                     1.51 |
-  | -f examples/10000x1000x10.journal bal -V ||           50.72 |             25.61 |                     2.15 |
-  +------------------------------------------++-----------------+-------------------+--------------------------+
-
-  There's one new limitation, not yet resolved: -V once again can pick a
-  valuation date in the future, if no report end date is specified and
-  the journal has future-dated transactions. We prefer to avoid that,
-  but reports currently are pure and don't have access to today's date.
-
-- lib: speed up -V by sorting market prices just once (#999)
-  -V is still quite a bit slower than no -V, but not as much as before:
-
-  +===========================================================++=======+
-  | hledger.999.pre -f examples/10000x10000x10.journal bal    ||  5.20 |
-  | hledger.999.pre -f examples/10000x10000x10.journal bal -V || 57.20 |
-  | hledger.999 -f examples/10000x10000x10.journal bal        ||  5.34 |
-  | hledger.999 -f examples/10000x10000x10.journal bal -V     || 17.50 |
-  +-----------------------------------------------------------++-------+
-
-- Gabriel Ebner's hledger-diff is now built in as the diff command.
-  (And the addon command, https://github.com/gebner/hledger-diff, is now deprecated.)
-
-- Fix behavior of options like -Mp2019 (Jakob Schöttl)
-  This fixes the issue #1008
-
-- reg: test and fix for --average, broken since 1.12 (#1003)
-
-- csv: accept a balance field assignment instead of an amount (#1000)
 
 # 1.14.2 2019-03-20
 
