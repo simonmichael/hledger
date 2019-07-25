@@ -585,7 +585,9 @@ main = do
                 ]
           liftIO $ if dryrun
                    then putStr newcontent
-                   else writeFile out newfile
+                   else do
+                     writeFile out newfile
+                     putStrLn $ out ++ ": updated to " ++ headrev
         )
 
     -- [PKG/]CHANGES.md-finalise <- PKG/.version
@@ -609,7 +611,9 @@ main = do
         date    <- liftIO getCurrentDay
         let (before, _:after) = break ("# " `isPrefixOf`) $ lines old
             new = unlines $ before ++ ["# "++version++" "++show date] ++ after
-        liftIO $ writeFile out new
+        liftIO $ do
+          writeFile out new
+          putStrLn $ out ++ ": updated to " ++ version
         )
 
     -- VERSION NUMBERS
