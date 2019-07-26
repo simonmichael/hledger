@@ -1,0 +1,28 @@
+# tags command
+
+2000/1/1    ; ttag:foo
+  (a)    1  ; ptag:bar
+
+2000/1/2    ; ttag2:foo
+  (a)    1  ; ptag:qux
+
+# 1. list all tags
+$ hledger -f - tags
+ptag
+ttag
+ttag2
+
+# 2. list tag names matching a regex
+$ hledger -f - tags ttag
+ttag
+ttag2
+
+# 3. list tag values
+$ hledger -f - tags --values
+bar
+foo
+qux
+
+# 4. list values of tags matching a regex from transactions matching a query
+$ hledger -f - tags --values ptag date:2000/1/1
+bar
