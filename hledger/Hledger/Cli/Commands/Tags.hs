@@ -7,7 +7,7 @@ module Hledger.Cli.Commands.Tags (
 )
 where
 
-import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Safe
@@ -33,7 +33,7 @@ tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     q = queryFromOpts d $ ropts{query_ = unwords queryargs}
     txns = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
     tagsorvalues =
-      nub $ sort $
+      nubSort $
       [if values then v else t
       | (t,v) <- concatMap transactionAllTags txns
       , maybe True (`regexMatchesCI` T.unpack t) mtagpat
