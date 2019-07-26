@@ -22,7 +22,7 @@ RUN stack install
 
 FROM debian:stable-slim
 
-RUN apt-get update && apt-get install libgmp10 && rm -rf /var/lib/apt/lists
+RUN apt-get update && apt-get install libtinfo5 libgmp10 && rm -rf /var/lib/apt/lists
 
 COPY --from=dev /root/.local/bin/hledger* /usr/bin/
 
