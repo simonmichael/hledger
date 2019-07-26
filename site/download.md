@@ -122,6 +122,8 @@ Or, you can install stack or cabal yourself and deal with them directly.
 
 On Windows, hledger-ui is not available and should be omitted from the commands above (except, it probably works in WSL).
 
+For less verbose output, you can add `--verbosity error`.
+
 #### Resource usage
 
 Building Haskell programs typically involves downloading and compiling and
@@ -139,9 +141,9 @@ To estimate the build time remaining, add `--dry-run`.
 
 #### Using stack
 
-The latest release of stack (eg 1.9.3) will be the most reliable and is recommended. 
-If you have an older version, you can probably run `stack upgrade` to upgrade it. 
-1.7.1 is the oldest that will work.
+The latest version of stack (2.1.3 as of 2019-07) will likely work best, so we recommend it.
+If you have an older version, you can usually upgrade quickly with `stack upgrade`.
+Versions older than 1.7.1 will definitely not work.
 On Windows, the 64-bit version of stack is recommended.
 
 <!--
