@@ -33,9 +33,9 @@ User-visible changes in the hledger command line tool and library.
 
 ## commands
 
-- add, web: disallow unsafe trailing dot paths on windows (#1056).
-  On Windows, ensureJournalFileExists now rejects file paths
-  containing any problematic trailing dots, to prevent data loss.
+- add, web: on Windows, trying to add transactions to a file path
+  containing trailing periods (eg `hledger add -f  Documents.\.hledger.journal`) 
+  now gives an error, since this could cause data loss otherwise (#1056).
   This affects the add command and hledger-web's add form.
 
 - bal: --budget: don't always convert to cost.
