@@ -13,9 +13,9 @@ transaction's first posting amount.
 
 Examples:
 
-hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
-hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
-hledger-rewrite.hs -f rewrites.hledger
+$ hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
+$ hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
+$ hledger-rewrite.hs -f rewrites.hledger
 
 rewrites.hledger may consist of entries like:
 

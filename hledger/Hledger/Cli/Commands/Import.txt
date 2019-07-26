@@ -18,7 +18,7 @@ see only uncategorised transactions:
 
 $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 
-Importing balance assignments:
+Importing balance assignments
 
 Entries added by import will have their posting amounts made explicit
 (like hledger print -x). This means that any balance assignments in

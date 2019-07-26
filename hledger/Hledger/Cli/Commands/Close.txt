@@ -41,6 +41,10 @@ balance assertions will depend on these flags. Likewise, if you run this
 command with --auto, the balance assertions will probably always require
 --auto.
 
+When account balances have cost information (transaction prices), the
+closing/opening transactions will preserve it, so that eg balance -B
+reports will not be affected.
+
 Examples:
 
 Carrying asset/liability balances into a new file for 2019, all from

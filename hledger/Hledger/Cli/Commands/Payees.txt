@@ -1,5 +1,4 @@
-payees
-Show payee names.
+payees Show payee names.
 
 _FLAGS_
 

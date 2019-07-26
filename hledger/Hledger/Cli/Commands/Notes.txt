@@ -1,5 +1,4 @@
-notes
-Show notes.
+notes Show notes.
 
 _FLAGS_
 

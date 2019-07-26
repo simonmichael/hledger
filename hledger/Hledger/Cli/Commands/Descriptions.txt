@@ -1,5 +1,4 @@
-descriptions
-Show descriptions.
+descriptions Show descriptions.
 
 _FLAGS_
 
