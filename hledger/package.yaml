@@ -119,6 +119,7 @@ dependencies:
 - Decimal
 - directory
 - easytest >= 0.2.1 && <0.3
+- extra >=1.6.3
 - filepath
 - haskeline >=0.6
 - megaparsec >=7.0.0 && <8
