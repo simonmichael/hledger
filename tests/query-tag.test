@@ -128,7 +128,7 @@ hledger -f - print not:tag:.
 >>>=0
 
 # 6. query is not affected by implicit tags
-hledger -f ../../examples/sample.journal reg tag:d
+hledger -f ../examples/sample.journal reg tag:d
 >>>
 >>>2
 >>>=0
