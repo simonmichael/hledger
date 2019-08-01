@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 540aab47f6186c280e13c9bcc60863d8e29fc9830886c34aa95bfc9805623dad
+-- hash: f53d007c317d0d34ee5afecee41cbdfc43b6ae3b4ae9f119a5f7ad11bf231b29
 
 name:           hledger-lib
 version:        1.14.99
@@ -139,6 +139,7 @@ library
     , template-haskell
     , text >=1.2
     , time >=1.5
+    , timeit
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
@@ -242,6 +243,7 @@ test-suite doctests
     , template-haskell
     , text >=1.2
     , time >=1.5
+    , timeit
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
@@ -347,6 +349,7 @@ test-suite easytests
     , template-haskell
     , text >=1.2
     , time >=1.5
+    , timeit
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
