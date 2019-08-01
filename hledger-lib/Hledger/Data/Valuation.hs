@@ -100,53 +100,6 @@ amountValueAtDate pricedirectives styles mto d a =
       amount{acommodity=comm, aquantity=rate * aquantity a}
 
 ------------------------------------------------------------------------------
--- Building a price graph
-
--- | Convert a list of market price directives in parse order to a
--- graph of all prices in effect on a given day, allowing efficient
--- lookup of exchange rates between commodity pairs.
-pricesAtDate :: [PriceDirective] -> Day -> PriceGraph
-pricesAtDate pricedirectives d = PriceGraph{prGraph=g, prNodemap=m, prDeclaredPairs=dps}
-  where
-    -- build the graph and associated node map
-    (g :: Gr CommoditySymbol Quantity, m :: NodeMap CommoditySymbol) =
-      mkMapGraph
-      (dbg5 "g nodelabels" $ sort allcomms) -- this must include all nodes mentioned in edges
-      (dbg5 "g edges"      $ [(mpfrom, mpto, mprate) | MarketPrice{..} <- prices])
-      where
-        prices   = declaredprices ++ reverseprices
-        allcomms = map mpfrom prices
-
-    -- get the latest (on or before date d) declared price for each commodity pair
-    declaredprices :: [MarketPrice] =
-      dbg5 "declaredprices" $
-      nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto))) $  -- keep only the first (ie newest and latest parsed) price for each pair
-      map snd $  -- discard the parse order label
-      sortBy (flip compare `on` (\(parseorder,mp)->(mpdate mp,parseorder))) $  -- sort with newest dates and latest parse order first
-      zip [1..] $  -- label with parse order
-      map priceDirectiveToMarketPrice $
-      filter ((<=d).pddate) pricedirectives  -- consider only price declarations up to the valuation date
-
-    -- infer additional reverse prices where not already declared
-    reverseprices =
-      dbg5 "reverseprices" $
-      map marketPriceReverse declaredprices \\ declaredprices
-
-    -- remember which edges correspond to declared prices
-    dps = [(node m mpfrom, node m mpto) | MarketPrice{..} <- declaredprices ]
-
-priceDirectiveToMarketPrice :: PriceDirective -> MarketPrice
-priceDirectiveToMarketPrice PriceDirective{..} =
-  MarketPrice{ mpdate = pddate
-             , mpfrom = pdcommodity
-             , mpto   = acommodity pdamount
-             , mprate = aquantity pdamount
-             }
-
-marketPriceReverse :: MarketPrice -> MarketPrice
-marketPriceReverse mp@MarketPrice{..} = mp{mpfrom=mpto, mpto=mpfrom, mprate=1/mprate}
-
-------------------------------------------------------------------------------
 -- Market price lookup
 
 tests_priceLookup =
@@ -241,6 +194,60 @@ priceLookup pricedirectives d from mto =
 
           -- log a message and a Maybe Quantity, hiding Just/Nothing and limiting decimal places
           dbg msg = dbg4With (((msg++": ")++) . maybe "" (show . roundTo 8))
+
+------------------------------------------------------------------------------
+-- Building the price graph (network of commodity conversions) on a given day.
+
+-- | Convert a list of market price directives in parse order to a
+-- graph of all prices in effect on a given day, allowing efficient
+-- lookup of exchange rates between commodity pairs.
+pricesAtDate :: [PriceDirective] -> Day -> PriceGraph
+pricesAtDate pricedirectives d = PriceGraph{prGraph=g, prNodemap=m, prDeclaredPairs=dps}
+  where
+    declaredprices = latestPriceForEachPairOn pricedirectives d
+
+    -- infer additional reverse prices where not already declared
+    reverseprices =
+      dbg5 "reverseprices" $
+      map marketPriceReverse declaredprices \\ declaredprices
+
+    -- build the graph and associated node map
+    -- (g :: Gr CommoditySymbol Quantity, m :: NodeMap CommoditySymbol) =
+    (g, m) =
+      mkMapGraph
+      (dbg5 "g nodelabels" $ sort allcomms) -- this must include all nodes mentioned in edges
+      (dbg5 "g edges"      $ [(mpfrom, mpto, mprate) | MarketPrice{..} <- prices])
+      :: (Gr CommoditySymbol Quantity, NodeMap CommoditySymbol)
+      where
+        prices   = declaredprices ++ reverseprices
+        allcomms = map mpfrom prices
+
+    -- remember which edges correspond to declared prices
+    dps = [(node m mpfrom, node m mpto) | MarketPrice{..} <- declaredprices ]
+
+-- From a list of price directives in parse order, get the latest
+-- price declared on or before date d for each commodity pair.
+latestPriceForEachPairOn :: [PriceDirective] -> Day -> [MarketPrice]
+latestPriceForEachPairOn pricedirectives d =
+  dbg5 "latestPriceForEachPairOn" $
+  nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto))) $  -- keep only the first (ie newest and latest parsed) price for each pair
+  map snd $  -- discard the parse order label
+  sortBy (flip compare `on` (\(parseorder,mp)->(mpdate mp,parseorder))) $  -- sort with newest dates and latest parse order first
+  zip [1..] $  -- label with parse order
+  map priceDirectiveToMarketPrice $
+  filter ((<=d).pddate) pricedirectives  -- consider only price declarations up to the valuation date
+
+
+priceDirectiveToMarketPrice :: PriceDirective -> MarketPrice
+priceDirectiveToMarketPrice PriceDirective{..} =
+  MarketPrice{ mpdate = pddate
+             , mpfrom = pdcommodity
+             , mpto   = acommodity pdamount
+             , mprate = aquantity pdamount
+             }
+
+marketPriceReverse :: MarketPrice -> MarketPrice
+marketPriceReverse mp@MarketPrice{..} = mp{mpfrom=mpto, mpto=mpfrom, mprate=1/mprate}
 
 ------------------------------------------------------------------------------
 -- fgl helpers
