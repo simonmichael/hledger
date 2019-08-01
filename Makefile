@@ -632,7 +632,7 @@ bench: samplejournals bench.sh $(call def-help,bench, benchmark commands in benc
 # 	tools/simplifyprof.hs doc/profs/latest.prof
 
 quickprof-%: hledgerprof samplejournals \
-		$(call def-help,quickprof-"CMD", run some command against a sample journal and display the execution profile )
+		$(call def-help,quickprof-"CMD", run some command against a standard sample journal and display the execution profile )
 	$(STACK) exec --profile -- hledger +RTS $(PROFRTSFLAGS) -RTS $* -f examples/1000x1000x10.journal >/dev/null
 	profiterole hledger.prof
 	@echo
