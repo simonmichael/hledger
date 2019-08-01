@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, RecordWildCards, ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances, RecordWildCards, ScopedTypeVariables, OverloadedStrings, DeriveGeneric #-}
 {-|
 
 Multi-column balance reports, used by the balance command.
@@ -20,6 +20,8 @@ module Hledger.Reports.MultiBalanceReport (
 )
 where
 
+import GHC.Generics (Generic)
+import Control.DeepSeq (NFData)
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -69,8 +71,12 @@ newtype MultiBalanceReport =
                      ,[MultiBalanceReportRow]
                      ,MultiBalanceReportTotals
                      )
+  deriving (Generic)
+
 type MultiBalanceReportRow    = (AccountName, AccountName, Int, [MixedAmount], MixedAmount, MixedAmount)
 type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount) -- (Totals list, sum of totals, average of totals)
+
+instance NFData MultiBalanceReport
 
 instance Show MultiBalanceReport where
     -- use pshow (pretty-show's ppShow) to break long lists onto multiple lines

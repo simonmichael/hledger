@@ -464,7 +464,9 @@ data PriceGraph = PriceGraph {
     --   but those have to be Real for shortest path finding,
     --   so we'd have to transform them all first.
   }
-  deriving (Show)
+  deriving (Show,Generic)
+
+instance NFData PriceGraph
 
 -- | What kind of value conversion should be done on amounts ?
 -- UI: --value=cost|end|now|DATE[,COMM]
