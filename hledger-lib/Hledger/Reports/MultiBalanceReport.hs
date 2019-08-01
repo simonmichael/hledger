@@ -273,7 +273,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
           --   cost: summed/averaged row amounts
           --   end:  summed/averaged row amounts
           --   date: summed/averaged row amounts
-          today = fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
+          today = fromMaybe (error' "multiBalanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_  -- XXX shouldn't error if not needed, eg valuation type is AtDate
           -- Market prices, commodity display styles.
           styles = journalCommodityStyles j
           -- The last day of each column subperiod.
