@@ -48,7 +48,7 @@ Balance Sheet 2016/01/01
 #
 hledger -f sample.journal balancesheet -p 'monthly in 2008'
 >>>
-Balance Sheet 2008
+Balance Sheet 2008/01/31,,2008/12/31
 
                       || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31 
 ======================++================================================================================================================================================
@@ -94,7 +94,7 @@ Balance Sheet 2008
 #
 hledger -f sample.journal balancesheet -p 'monthly in 2008' --tree
 >>>
-Balance Sheet 2008
+Balance Sheet 2008/01/31,,2008/12/31
 
               || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31 
 ==============++================================================================================================================================================
@@ -123,7 +123,7 @@ Balance Sheet 2008
 # by default (shows ending balances).
 hledger -f sample.journal balancesheet -p 'monthly in 2008' -NAT
 >>>
-Balance Sheet 2008
+Balance Sheet 2008/01/31,,2008/12/31
 
                       || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31  Average 
 ======================++=========================================================================================================================================================
@@ -199,7 +199,7 @@ hledger -f- balancesheet -YA
 2017/1/1
   (assets)  $1
 >>>
-Balance Sheet 2017/01/01
+Balance Sheet 2017/12/31
 
              || 2017/12/31  Average 
 =============++=====================
@@ -218,14 +218,14 @@ Balance Sheet 2017/01/01
 >>>2
 >>>=0
 
-# 9. --pretty-tables uses unicode chars for borders
+# 8. --pretty-tables uses unicode chars for borders
 hledger -f - balancesheet -M --pretty-tables
 <<<
 2016/1/1
   assets  1
   b
 >>>
-Balance Sheet 2016/01/01
+Balance Sheet 2016/01/31
 
              ║ 2016/01/31 
 ═════════════╬════════════
@@ -244,7 +244,7 @@ Balance Sheet 2016/01/01
 >>>2
 >>>= 0
 
-# 10. Check that accounts brought to zero by subaccount balances
+# 9. Check that accounts brought to zero by subaccount balances
 # are not erased from balancesheet
 hledger -f - balancesheet
 <<<
@@ -262,7 +262,7 @@ hledger -f - balancesheet
    assets:this account should not disappear:subaccount   -$10
    assets:this account should not disappear
 >>>
-Balance Sheet 2018/10/01-2018/10/03
+Balance Sheet 2018/10/03
 
                                      || 2018/10/03 
 =====================================++============

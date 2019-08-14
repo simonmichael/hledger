@@ -14,9 +14,11 @@ module Hledger.Cli.CompoundBalanceCommand (
 ) where
 
 import Data.List (foldl')
-import Data.Maybe (fromMaybe,catMaybes)
+import Data.Maybe
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
+import Data.Time.Calendar
+import Data.Time.Format
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvReader (CSV, printCSV)
 import Lucid as L hiding (value_)
@@ -128,28 +130,6 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
           "change":_     -> Just PeriodChange
           _              -> Nothing
       balancetype = fromMaybe cbctype mBalanceTypeOverride
-      title =
-        cbctitle ++ " " ++ showDateSpan requestedspan
-        ++ maybe "" (' ':) mtitleclarification
-        ++ valuation
-        where
-          requestedspan = queryDateSpan date2_ userq `spanDefaultsFrom` journalDateSpan date2_ j
-          -- when user overrides, add an indication to the report title
-          mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
-            case t of
-              PeriodChange      -> "(Balance Changes)"
-              CumulativeChange  -> "(Cumulative Ending Balances)"
-              HistoricalBalance -> "(Historical Ending Balances)"
-          multiperiod = interval_ /= NoInterval
-          valuation = case value_ of
-            Just (AtCost _mc)   -> ", valued at cost"
-            Just (AtEnd _mc)    -> ", valued at period ends"
-            Just (AtNow _mc)    -> ", current value"
-            Just (AtDefault _mc) | multiperiod   -> ", valued at period ends"
-            Just (AtDefault _mc)    -> ", current value"
-            Just (AtDate d _mc) -> ", valued at "++showDate d
-            Nothing             -> ""
-
       -- Set balance type in the report options.
       -- Also, use tree mode (by default, at least?) if --cumulative/--historical
       -- are used in single column mode, since in that situation we will be using
@@ -174,10 +154,12 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
                 ,cbcsubreportincreasestotal
                 ))
             cbcqueries
+
       subtotalrows =
         [(coltotals, increasesoveralltotal)
         | (_, MultiBalanceReport (_,_,(coltotals,_,_)), increasesoveralltotal) <- subreports
         ]
+
       -- Sum the subreport totals by column. Handle these cases:
       -- - no subreports
       -- - empty subreports, having no subtotals (#588)
@@ -199,10 +181,49 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
                      | otherwise      = fromIntegral (length coltotals) `divideMixedAmount` grandtotal
           in
             (coltotals, grandtotal, grandavg)
+
       colspans =
         case subreports of
           (_, MultiBalanceReport (ds,_,_), _):_ -> ds
           [] -> []
+
+      title =
+        cbctitle
+        ++ " "
+        ++ titledatestr
+        ++ maybe "" (' ':) mtitleclarification
+        ++ valuationdesc
+        where
+
+          -- XXX #1078 the title of ending balance reports
+          -- (HistoricalBalance) should mention the end date(s) shown as
+          -- column heading(s) (not the date span of the transactions).
+          -- Also the dates should not be simplified (it should show
+          -- "2008/01/01-2008/12/31", not "2008").
+          titledatestr
+            | balancetype == HistoricalBalance = showEndDates enddates
+            | otherwise                        = showDateSpan requestedspan 
+            where
+              enddates = map (addDays (-1)) $ catMaybes $ map spanEnd colspans  -- these spans will always have a definite end date
+              requestedspan = queryDateSpan date2_ userq `spanDefaultsFrom` journalDateSpan date2_ j
+
+          -- when user overrides, add an indication to the report title
+          mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
+            case t of
+              PeriodChange      -> "(Balance Changes)"
+              CumulativeChange  -> "(Cumulative Ending Balances)"
+              HistoricalBalance -> "(Historical Ending Balances)"
+
+          valuationdesc = case value_ of
+            Just (AtCost _mc)   -> ", valued at cost"
+            Just (AtEnd _mc)    -> ", valued at period ends"
+            Just (AtNow _mc)    -> ", current value"
+            Just (AtDefault _mc) | multiperiod   -> ", valued at period ends"
+            Just (AtDefault _mc)    -> ", current value"
+            Just (AtDate d _mc) -> ", valued at "++showDate d
+            Nothing             -> ""
+            where
+              multiperiod = interval_ /= NoInterval
       cbr =
         (title
         ,colspans
@@ -216,6 +237,18 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
         "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
         "html" -> (++ "\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
         _      -> compoundBalanceReportAsText ropts' cbr
+
+-- | Summarise one or more (inclusive) end dates, in a way that's
+-- visually different from showDateSpan, suggesting discrete end dates
+-- rather than a continuous span.
+showEndDates :: [Day] -> String
+showEndDates es = case es of
+  -- cf showPeriod
+  (e:_:_) -> showdate e ++ ",," ++ showdate (last es)
+  [e]     -> showdate e
+  []      -> ""
+  where
+    showdate = formatTime defaultTimeLocale "%0C%y/%m/%d" 
 
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.
