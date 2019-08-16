@@ -8,7 +8,7 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
-- hledger-api
+#- hledger-api
 
 nix:
   pure: false
