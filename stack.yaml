@@ -1,7 +1,7 @@
 # stack build plan using GHC 8.6.5
 
-#resolver: lts-13.29
-resolver: nightly-2019-07-26
+resolver: lts-14.1
+#resolver: nightly-2019-07-26
 
 packages:
 - hledger-lib
@@ -20,8 +20,6 @@ extra-deps:
 # for hledger-lib:
 # for hledger:
 # for hledger-ui:
-- brick-0.47.1
-- data-clist-0.1.2.3
 # for hledger-web:
 # for hledger-api:
 
