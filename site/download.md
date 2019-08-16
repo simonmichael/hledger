@@ -117,7 +117,7 @@ Or, you can install stack or cabal yourself and deal with them directly.
 |--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |                                                                    |                                                                                                                                                                                                                                                                                                                                                                         |
 | [hledger-install.sh]<br><small>*Linux,&nbsp;Mac,&nbsp;WSL*</small> | <span style="font-size:medium;">**`curl -s https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh -O`**<br>**`less hledger-install.sh`**&nbsp;&nbsp;&nbsp;&nbsp;*# satisfy yourself that the script is safe*<br>**`bash hledger-install.sh`**&nbsp;&nbsp;&nbsp;&nbsp;*# runs stack or cabal, installing stack if needed*</span> |
-| [stack]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>          | <span style="font-size:medium;">**`stack install --resolver=nightly-2019-05-11 hledger hledger-web hledger-ui --verbosity=error`**</span>&nbsp;&nbsp;&nbsp;&nbsp;*# installs GHC if needed.*                                                                                                                                                                                              |
+| [stack]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>          | <span style="font-size:medium;">**`stack install --resolver=lts-14.1 hledger hledger-web hledger-ui --verbosity=error`**</span>&nbsp;&nbsp;&nbsp;&nbsp;*# installs GHC if needed.*                                                                                                                                                                                              |
 | [cabal]<br><small>*Linux,&nbsp;Mac,&nbsp;Windows*</small>          | <span style="font-size:medium;">**`cabal v2-update && cabal v2-install hledger-1.14.2 hledger-web-1.14.1 hledger-ui-1.14.2`**</span>                                                                                                                                                                                                                                    |
 
 On Windows, hledger-ui is not available and should be omitted from the commands above (except, it probably works in WSL).
@@ -151,8 +151,7 @@ Some other [add-on tools](/hledger.html#third-party-add-ons) like
 and [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 can be installed like so:
 
-  **`stack install --resolver=nightly-2019-03-21 hledger-api hledger-interest hledger-iadd`**\
-  &nbsp;&nbsp;**`hledger-interest-1.5.3 hledger-iadd-1.3.9 brick-0.46 text-zipper-0.10.1 config-ini-0.2.4.0 data-clist-0.1.2.2 word-wrap-0.4.1`**\
+  **`stack install --resolver=lts-14.1 hledger-api hledger-interest hledger-iadd hledger-interest-1.5.3 hledger-iadd-1.3.9`**
 -->
 
 <!-- <a name="b3"></a> -->
