@@ -22,6 +22,7 @@ import Hledger.Web.Widget.Common (accountQuery, mixedAmountAsHtml)
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
+  checkServerSideUiEnabled
   VD{caps, j, m, opts, qopts, today} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
 

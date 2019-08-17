@@ -23,7 +23,7 @@ import Hledger.Web.Handler.UploadR
 import Hledger.Web.Handler.JournalR
 import Hledger.Web.Handler.RegisterR
 import Hledger.Web.Import
-import Hledger.Web.WebOptions (WebOpts(serve_))
+import Hledger.Web.WebOptions (WebOpts(serve_,serve_api_))
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -41,7 +41,7 @@ makeApplication opts' j' conf' = do
     logWare <$> toWaiApp foundation
   where
     logWare | development  = logStdoutDev
-            | serve_ opts' = logStdout
+            | serve_ opts' || serve_api_ opts' = logStdout
             | otherwise    = id
 
 makeFoundation :: AppConfig DefaultEnv Extra -> WebOpts -> IO App

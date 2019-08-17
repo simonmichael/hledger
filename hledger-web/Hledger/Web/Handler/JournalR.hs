@@ -17,6 +17,7 @@ import Hledger.Web.Widget.Common (accountQuery, mixedAmountAsHtml)
 -- | The formatted journal view, with sidebar.
 getJournalR :: Handler Html
 getJournalR = do
+  checkServerSideUiEnabled
   VD{caps, j, m, opts, qopts, today} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   let title = case inAccount qopts of

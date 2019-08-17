@@ -24,10 +24,13 @@ import Hledger.Web.WebOptions (WebOpts(..))
 import Hledger.Web.Widget.AddForm (addForm)
 
 getAddR :: Handler ()
-getAddR = postAddR
+getAddR = do
+  checkServerSideUiEnabled
+  postAddR
 
 postAddR :: Handler ()
 postAddR = do
+  checkServerSideUiEnabled
   VD{caps, j, today} <- getViewData
   when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
 
@@ -58,6 +61,7 @@ postAddR = do
 -- The web form handler above should probably use PUT as well.
 putAddR :: Handler RepJson
 putAddR = do
+  checkServerSideUiEnabled
   VD{caps, j, opts} <- getViewData
   when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
 

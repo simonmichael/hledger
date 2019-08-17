@@ -23,10 +23,13 @@ editForm f txt =
     fs = FieldSettings "text" mzero mzero mzero [("class", "form-control"), ("rows", "25")]
 
 getEditR :: FilePath -> Handler ()
-getEditR = postEditR
+getEditR f = do
+  checkServerSideUiEnabled
+  postEditR f
 
 postEditR :: FilePath -> Handler ()
 postEditR f = do
+  checkServerSideUiEnabled
   VD {caps, j} <- getViewData
   when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
 

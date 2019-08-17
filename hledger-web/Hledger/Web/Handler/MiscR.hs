@@ -30,10 +30,13 @@ import Hledger.Web.Import
 import Hledger.Web.Widget.Common (journalFile404)
 
 getRootR :: Handler Html
-getRootR = redirect JournalR
+getRootR = do
+  checkServerSideUiEnabled
+  redirect JournalR
 
 getManageR :: Handler Html
 getManageR = do
+  checkServerSideUiEnabled
   VD{caps, j} <- getViewData
   when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
   defaultLayout $ do
@@ -42,6 +45,7 @@ getManageR = do
 
 getDownloadR :: FilePath -> Handler TypedContent
 getDownloadR f = do
+  checkServerSideUiEnabled
   VD{caps, j} <- getViewData
   when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
   (f', txt) <- journalFile404 f j

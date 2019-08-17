@@ -16,7 +16,7 @@
 
 module Hledger.Web.Foundation where
 
-import Control.Monad (join)
+import Control.Monad (join, when)
 import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
@@ -96,7 +96,9 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
   approot = ApprootMaster $ appRoot . settings
 
-  makeSessionBackend _ = Just <$> defaultClientSessionBackend 120 ".hledger-web_client_session_key.aes"
+  makeSessionBackend _ =
+    let sessionexpirysecs = 120
+    in  Just <$> defaultClientSessionBackend sessionexpirysecs ".hledger-web_client_session_key.aes"
 
   defaultLayout widget = do
     master <- getYesod
@@ -203,6 +205,11 @@ getViewData = do
         Left e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml (BC.unpack e))
         Right c -> pure [c]
   return VD {opts, today, j, q, m, qopts, caps}
+
+checkServerSideUiEnabled :: Handler ()
+checkServerSideUiEnabled = do
+  VD{opts=WebOpts{serve_api_}} <- getViewData
+  when serve_api_ $ permissionDenied "server-side UI is disabled due to --serve-api"
 
 -- | Find out if the sidebar should be visible. Show it, unless there is a
 -- showsidebar cookie set to "0", or a ?sidebar=0 query parameter.

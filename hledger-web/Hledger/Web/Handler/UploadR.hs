@@ -27,10 +27,13 @@ uploadForm f =
     fs = FieldSettings "file" Nothing (Just "file") (Just "file") []
 
 getUploadR :: FilePath -> Handler ()
-getUploadR = postUploadR
+getUploadR f = do
+  checkServerSideUiEnabled
+  postUploadR f
 
 postUploadR :: FilePath -> Handler ()
 postUploadR f = do
+  checkServerSideUiEnabled
   VD {caps, j} <- getViewData
   when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
 

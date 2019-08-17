@@ -64,6 +64,9 @@ as shown in the synopsis above.
 `--serve`
 : serve and log requests, don't browse or auto-exit
 
+`--serve-api`
+: like --serve, but serve only the JSON web API, without the server-side web UI
+
 `--host=IPADDR`
 : listen on this IP address (default: 127.0.0.1)
 
@@ -108,6 +111,8 @@ browser window, and will exit after two minutes of inactivity (no
 requests and no browser windows viewing it).
 With `--serve`, it just runs the web app without exiting, and logs
 requests to the console.
+With `--serve-api`, only the JSON web api (see below) is served, 
+with the usual HTML server-side web UI disabled.
 
 By default the server listens on IP address 127.0.0.1, accessible only to local requests.
 You can use `--host` to change this, eg `--host 0.0.0.0` to listen on all configured addresses.
@@ -216,6 +221,9 @@ And here's how to test adding that with curl:
 ```shell
 $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
 ```
+
+By default, both the server-side HTML UI and the JSON API are served.
+Running with `--serve-api` disables the former, useful if you only want to serve the API.
 
 _man_({{
 

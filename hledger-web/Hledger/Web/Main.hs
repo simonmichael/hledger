@@ -69,16 +69,18 @@ web opts j = do
                            }
   app <- makeApplication opts j' appconfig
   -- XXX would like to allow a host name not just an IP address here
-  _ <- printf "Starting web app on IP address %s port %d with base url %s\n" h p u
-  if serve_ opts
+  _ <- printf "Serving web %s on %s:%d with base url %s\n"
+         (if serve_api_ opts then "API" else "UI and API" :: String) h p u
+  if serve_ opts || serve_api_ opts
     then do
       putStrLn "Press ctrl-c to quit"
       hFlush stdout
       let warpsettings = setHost (fromString h) (setPort p defaultSettings)
       Network.Wai.Handler.Warp.runSettings warpsettings app
     else do
-      putStrLn "Starting web browser..."
-      putStrLn "Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)"
+      putStrLn "This server will exit after 2m with no browser windows open (or press ctrl-c)"
+      putStrLn "Opening web browser..."
       hFlush stdout
+      -- exits after 2m of inactivity (hardcoded)
       Network.Wai.Handler.Launch.runHostPortUrl h p "" app
 

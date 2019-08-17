@@ -31,6 +31,10 @@ webflags =
       ["serve", "server"]
       (setboolopt "serve")
       "serve and log requests, don't browse or auto-exit"
+  , flagNone
+      ["serve-api"]
+      (setboolopt "serve-api")
+      "like --serve, but serve only the JSON web API, without the server-side web UI"
   , flagReq
       ["host"]
       (\s opts -> Right $ setopt "host" s opts)
@@ -89,6 +93,7 @@ webmode =
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts
   { serve_ :: Bool
+  , serve_api_ :: Bool
   , host_ :: String
   , port_ :: Int
   , base_url_ :: String
@@ -99,7 +104,7 @@ data WebOpts = WebOpts
   } deriving (Show)
 
 defwebopts :: WebOpts
-defwebopts = WebOpts def def def def def [CapView, CapAdd] Nothing def
+defwebopts = WebOpts def def def def def def [CapView, CapAdd] Nothing def
 
 instance Default WebOpts where def = defwebopts
 
@@ -120,6 +125,7 @@ rawOptsToWebOpts rawopts =
     return
       defwebopts
       { serve_ = boolopt "serve" rawopts
+      , serve_api_ = boolopt "serve-api" rawopts
       , host_ = h
       , port_ = p
       , base_url_ = b
