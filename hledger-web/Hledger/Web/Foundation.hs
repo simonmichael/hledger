@@ -228,7 +228,12 @@ shouldShowSidebar :: Handler Bool
 shouldShowSidebar = do
   msidebarparam <- lookupGetParam "sidebar"
   msidebarcookie <- lookup "showsidebar" . reqCookies <$> getRequest
-  return $ maybe (msidebarcookie /= Just "0") (/="0") msidebarparam
+  return $
+    let disablevalues = ["","0"]
+    in maybe
+         (not $ msidebarcookie `elem` map Just disablevalues)
+         (not . (`elem` disablevalues))
+         msidebarparam
 
 -- | Update our copy of the journal if the file changed. If there is an
 -- error while reloading, keep the old one and return the error, and set a
