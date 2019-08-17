@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6025c523ede871ad526e3aebfad5081510743b1efbc1482a1fd046634093bb26
+-- hash: cfdba68c1a3ad11055ca8171723638880d9cebed815a2d70677fd29a900055d8
 
 name:           hledger-api
 version:        1.14.99
@@ -63,7 +63,7 @@ executable hledger-api
     , safe
     , servant-server >=0.10
     , servant-swagger
-    , swagger2 >=2.0
+    , swagger2 >=2.0 && <2.4
     , text
     , transformers
     , wai
