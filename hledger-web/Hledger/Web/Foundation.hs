@@ -26,6 +26,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
+import Network.HTTP.Types (status403)
 import Network.Wai (requestHeaders)
 import System.FilePath (takeFileName)
 import Text.Blaze (Markup)
@@ -100,7 +101,14 @@ instance Yesod App where
     let sessionexpirysecs = 120
     in  Just <$> defaultClientSessionBackend sessionexpirysecs ".hledger-web_client_session_key.aes"
 
+  -- defaultLayout :: WidgetFor site () -> HandlerFor site Html
   defaultLayout widget = do
+
+    -- Don't run if server-side UI is disabled.
+    -- This single check probably covers all the HTML-returning handlers,
+    -- but for now they do the check as well.
+    checkServerSideUiEnabled
+
     master <- getYesod
     here <- fromMaybe RootR <$> getCurrentRoute
     VD {caps, j, m, opts, q, qopts} <- getViewData
@@ -209,7 +217,10 @@ getViewData = do
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do
   VD{opts=WebOpts{serve_api_}} <- getViewData
-  when serve_api_ $ permissionDenied "server-side UI is disabled due to --serve-api"
+  when serve_api_ $
+    -- this one gives 500 internal server error when called from defaultLayout:
+    --  permissionDenied "server-side UI is disabled due to --serve-api"
+    sendResponseStatus status403 ("server-side UI is disabled due to --serve-api" :: Text)
 
 -- | Find out if the sidebar should be visible. Show it, unless there is a
 -- showsidebar cookie set to "0", or a ?sidebar=0 query parameter.
