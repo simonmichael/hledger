@@ -513,6 +513,7 @@ $(call def-help-subheading,BENCHMARKING:)
 
 samplejournals: $(call def-help,samplejournals, regenerate standard sample journals in examples/) \
 	examples/sample.journal \
+	examples/10x10x10.journal \
 	examples/100x100x10.journal \
 	examples/1000x1000x10.journal \
 	examples/1000x10000x10.journal \
@@ -534,6 +535,9 @@ samplejournals: $(call def-help,samplejournals, regenerate standard sample journ
 
 examples/sample.journal:
 	true # XXX should probably regenerate this
+
+examples/10x10x10.journal: tools/generatejournal
+	tools/generatejournal 10 10 10 >$@
 
 examples/100x100x10.journal: tools/generatejournal
 	tools/generatejournal 100 100 10 >$@
