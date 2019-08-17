@@ -61,7 +61,6 @@ postAddR = do
 -- The web form handler above should probably use PUT as well.
 putAddR :: Handler RepJson
 putAddR = do
-  checkServerSideUiEnabled
   VD{caps, j, opts} <- getViewData
   when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
 
