@@ -27,7 +27,6 @@ import Data.Data
 import Data.Decimal
 import Data.Default
 import Data.Functor (($>))
-import Data.Graph.Inductive (Gr,Node,NodeMap)
 import Data.List (intercalate)
 import Text.Blaze (ToMarkup(..))
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
@@ -446,42 +445,7 @@ data MarketPrice = MarketPrice {
 
 instance NFData MarketPrice
 
--- | A snapshot of the known exchange rates between commodity pairs at a given date,
--- as a graph allowing fast lookup and path finding, along with some helper data.
-data PriceGraph = PriceGraph {
-   prGraph   :: Gr CommoditySymbol Quantity
-    -- ^ A directed graph of exchange rates between commodity pairs.
-    -- Node labels are commodities and edge labels are exchange rates,
-    -- either explicitly declared (preferred) or inferred by reversing a declared rate.
-    -- There will be at most one edge between each directed pair of commodities,
-    -- eg there can be one USD->EUR and one EUR->USD.
-  ,prNodemap :: NodeMap CommoditySymbol
-    -- ^ Mapping of graph node ids to commodity symbols.
-  ,prDeclaredPairs :: [(Node,Node)]
-    -- ^ Which of the edges in this graph are declared rates,
-    --   rather than inferred reverse rates.
-    --   A bit ugly. We could encode this in the edges,
-    --   but those have to be Real for shortest path finding,
-    --   so we'd have to transform them all first.
-  }
-  deriving (Show,Generic)
-
-instance NFData PriceGraph
-
--- | A price oracle is a magic function that looks up market prices
--- (exchange rates) from one commodity to another (or if unspecified,
--- to a default valuation commodity) on a given date, somewhat efficiently.
-type PriceOracle = (Day, CommoditySymbol, Maybe CommoditySymbol) -> Maybe (CommoditySymbol, Quantity)
-
--- | What kind of value conversion should be done on amounts ?
--- UI: --value=cost|end|now|DATE[,COMM]
-data ValuationType =
-    AtCost     (Maybe CommoditySymbol)  -- ^ convert to cost commodity using transaction prices, then optionally to given commodity using market prices at posting date
-  | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices at period end(s)
-  | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using current market prices
-  | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices on some date
-  | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
-  deriving (Show,Data,Eq) -- Typeable
+-- additional valuation-related types in Valuation.hs
 
 -- | A Journal, containing transactions and various other things.
 -- The basic data model for hledger.
