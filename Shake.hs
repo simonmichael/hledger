@@ -566,6 +566,7 @@ main = do
             lastversion = words oldheading !! 1
             lastrev | iscommithash lastversion = lastversion
                     | otherwise                = fromMaybe "hledger" pkg ++ "-" ++ lastversion
+            excludeboring = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
 
         headrev <- unwords . words . fromStdout <$>
                    (cmd Shell gitlog "-1 --pretty=%h -- " gitlogpaths :: Action (Stdout String))
@@ -574,7 +575,7 @@ main = do
         then liftIO $ putStrLn $ out ++ ": up to date"
         else do
           newitems <- fromStdout <$>
-                        (cmd Shell gitlog changelogGitFormat (lastrev++"..") "--" gitlogpaths
+                        (cmd Shell gitlog changelogGitFormat (lastrev++"..") excludeboring "--" gitlogpaths
                          "|" changelogCleanupCmd :: Action (Stdout String))
           let newcontent = "# "++headrev++"\n\n" ++ newitems
               newfile = unlines $ concat [
