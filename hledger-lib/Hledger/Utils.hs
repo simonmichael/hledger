@@ -93,6 +93,27 @@ fourth6 (_,_,_,x,_,_) = x
 fifth6  (_,_,_,_,x,_) = x
 sixth6  (_,_,_,_,_,x) = x
 
+-- currying
+
+
+curry2 :: ((a, b) -> c) -> a -> b -> c
+curry2 f x y = f (x, y)
+
+uncurry2 :: (a -> b -> c) -> (a, b) -> c
+uncurry2 f (x, y) = f x y
+
+curry3 :: ((a, b, c) -> d) -> a -> b -> c -> d
+curry3 f x y z = f (x, y, z)
+
+uncurry3 :: (a -> b -> c -> d) -> (a, b, c) -> d
+uncurry3 f (x, y, z) = f x y z
+
+curry4 :: ((a, b, c, d) -> e) -> a -> b -> c -> d -> e
+curry4 f w x y z = f (w, x, y, z)
+
+uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
+uncurry4 f (w, x, y, z) = f w x y z
+
 -- lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
