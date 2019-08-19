@@ -1,7 +1,11 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 6073c002
+# e70c7123
+
+- web: ?sidebar= hides the sidebar, like ?sidebar=0
+
+- web: --serve-api disables server-side UI
 
 - register page: clip linked accounts to 40 characters (Henning Thielemann)
   This was the behaviour before adding the links.

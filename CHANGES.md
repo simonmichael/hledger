@@ -1,9 +1,11 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# a4c2f70a
+# cc9d7f8a
 
-- bump default stack.yaml to nightly-2019-07-24 / ghc 8.6.5
+- stop building hledger-api
+
+- bump default stack.yaml to lts-14.1 / ghc 8.6.5
 
 - bin: add hledger-swap-dates; update hledger-check, hledger-smooth (#1072)
 

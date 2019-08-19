@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 6073c002
+# 62e96b1b
 
 Removals include:
 
@@ -11,15 +11,20 @@ Removals include:
 
 Additions include:
 
+- MarketPrice (more pure form of PriceDirective without the amount style information)
+- PriceOracle (efficient lookup of exchange rates)
+- ValuationType (ways to convert amount value)
 - aliasnamep (export)
 - setNaturalPrecisionUpTo
-- new MarketPrice (more pure form of PriceDirective without the amount style information)
 - dbgNWith, ptraceAtWith
 - postingTransformAmount, postingToCost, postingValue
 - amountToCost, mixedAmountToCost
 - valueTypeFromOpts
 - mapJournalTransactions, mapJournalPostings, mapTransactionPostings
 - journalStartDate, journalEndDate
+- journalPriceOracle
+- mixedAmountApplyValuation
+- mixedAmountValueAtDate
 
 Changes include:
 

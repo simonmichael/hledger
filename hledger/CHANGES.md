@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 6073c002
+# 5bc1e774
 
 ## General
 
@@ -11,17 +11,16 @@ User-visible changes in the hledger command line tool and library.
   inference of indirect market prices (similar to Ledger's -X) (#131).
   Experimental.
   
-  Currently there is a performance regression:
-  market valuation with large data, already slow (#999), is now even slower. 
-  Eg (10k txns, 1 commodity, 3 balance report columns):
+- Market valuation (-V/-X/--value) is now much faster (#999):
 
-      +--------------------------------------------++--------------+--------------+
-      |                                            || hledger-1.14 | hledger-1.15 |
-      +============================================++==============+==============+
-      | -f examples/10000x1000x10.journal bal -YV  ||        50.17 |        70.39 |
-      | -f examples/10000x1000x10.journal reg -V   ||        53.90 |       104.39 |
-      | -f examples/10000x1000x10.journal print -V ||        43.85 |       110.46 |
-      +--------------------------------------------++--------------+--------------+
+      +-------------------------------------------++--------------+--------------+
+      |                                           || hledger-1.14 | hledger-1.15 |
+      +===========================================++==============+==============+
+      | -f examples/10000x1000x10.journal bal -Y  ||         2.43 |         2.44 |
+      | -f examples/10000x1000x10.journal bal -YV ||        44.91 |         6.48 |
+      | -f examples/10000x1000x10.journal reg -Y  ||         4.60 |         4.15 |
+      | -f examples/10000x1000x10.journal reg -YV ||        61.09 |         7.21 |
+      +-------------------------------------------++--------------+--------------+
 
 - How date options like `-M` and `-p` interact has been updated and clarified.
   (Jakob Schöttl) (#1008, #1009, #1011)
@@ -48,6 +47,13 @@ User-visible changes in the hledger command line tool and library.
   no longer show a Totals column, since summing end balances generally
   doesn't make sense.
 
+- bs: show end date(s) in title, not transactions date span (#1078)
+  Compound balance reports showing ending balances (eg balancesheet),
+  now show the ending date (single column) or range of ending
+  dates (multi column) in their title. ,, (double comma) is used
+  rather than - (hyphen) to suggest a sequence of discrete dates
+  rather than a continuous span.
+
 - close: preserve transaction prices (costs) accurately (#1035).
   The generated closing/opening transactions were collapsing/misreporting
   the costs in balances involving multiple costs.
@@ -66,6 +72,12 @@ User-visible changes in the hledger command line tool and library.
 - print: now also canonicalises the display style of balance assertion amounts (#1042)
 
 - reg: fix `--average`, broken since 1.12 (#1003)
+
+- stats: show count of market prices (P directives), and the commodities covered
+
+- tags: add --values flag to list tag values.
+
+- tags: now runs much faster when there many tags
 
 ## journal format
 
