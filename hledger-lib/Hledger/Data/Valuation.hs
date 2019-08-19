@@ -15,13 +15,13 @@ module Hledger.Data.Valuation (
    ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
-  -- ,amountValueAtDate
   -- ,amountApplyValuation
-  ,mixedAmountValueAtDate
+  -- ,amountValueAtDate
   ,mixedAmountApplyValuation
-  ,marketPriceReverse
-  ,priceDirectiveToMarketPrice
-  ,priceLookup
+  ,mixedAmountValueAtDate
+  -- ,marketPriceReverse
+  -- ,priceDirectiveToMarketPrice
+  -- ,priceLookup
   ,tests_Valuation
 )
 where
