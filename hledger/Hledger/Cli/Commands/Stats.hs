@@ -70,6 +70,7 @@ showLedgerStats l today span =
         ,("Payees/descriptions", show $ size $ fromList $ map (tdescription) ts)
         ,("Accounts", printf "%d (depth %d)" acctnum acctdepth)
         ,("Commodities", printf "%s (%s)" (show $ length cs) (T.intercalate ", " cs))
+        ,("Market prices", printf "%s (%s)" (show $ length mktprices) (T.intercalate ", " mktpricecommodities))
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
       -- Unmarked transactions      : %(unmarked)s
       -- Days since reconciliation   : %(reconcileelapsed)s
@@ -106,4 +107,5 @@ showLedgerStats l today span =
              acctnum = length as
              acctdepth | null as = 0
                        | otherwise = maximum $ map accountNameLevel as
-
+             mktprices = jpricedirectives j
+             mktpricecommodities = nub $ sort $ map pdcommodity mktprices
