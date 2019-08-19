@@ -23,6 +23,8 @@ Additions include:
 - mapJournalTransactions, mapJournalPostings, mapTransactionPostings
 - journalStartDate, journalEndDate
 - journalPriceOracle
+- marketPriceReverse
+- priceDirectiveToMarketPrice
 - mixedAmountApplyValuation
 - mixedAmountValueAtDate
 

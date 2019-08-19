@@ -19,8 +19,8 @@ module Hledger.Data.Valuation (
   -- ,amountValueAtDate
   ,mixedAmountApplyValuation
   ,mixedAmountValueAtDate
-  -- ,marketPriceReverse
-  -- ,priceDirectiveToMarketPrice
+  ,marketPriceReverse
+  ,priceDirectiveToMarketPrice
   -- ,priceLookup
   ,tests_Valuation
 )
