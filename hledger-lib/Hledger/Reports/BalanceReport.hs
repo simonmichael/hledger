@@ -80,11 +80,12 @@ balanceReport ropts@ReportOpts{..} q j@Journal{..} =
       accttree = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j
 
       -- For other kinds of valuation, convert the summed amounts to value.
+      priceoracle = journalPriceOracle j
       valuedaccttree = mapAccounts valueaccount accttree
         where
           valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
             where
-              val = maybe id (mixedAmountApplyValuation jpricedirectives styles periodlastday today multiperiod) value_
+              val = maybe id (mixedAmountApplyValuation priceoracle styles periodlastday today multiperiod) value_
                 where
                   periodlastday =
                     fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen

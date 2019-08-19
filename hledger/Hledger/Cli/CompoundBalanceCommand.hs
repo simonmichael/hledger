@@ -145,12 +145,14 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
       userq = queryFromOpts d ropts'
       format = outputFormatFromOpts opts
 
-      -- make a CompoundBalanceReport
+      -- make a CompoundBalanceReport.
+      -- For efficiency, generate a price oracle here and reuse it with each subreport.
+      priceoracle = journalPriceOracle j
       subreports =
         map (\CBCSubreportSpec{..} ->
                 (cbcsubreporttitle
                 ,mbrNormaliseSign cbcsubreportnormalsign $ -- <- convert normal-negative to normal-positive
-                  compoundBalanceSubreport ropts' userq j cbcsubreportquery cbcsubreportnormalsign
+                  compoundBalanceSubreport ropts' userq j priceoracle cbcsubreportquery cbcsubreportnormalsign
                 ,cbcsubreportincreasestotal
                 ))
             cbcqueries
@@ -252,14 +254,14 @@ showEndDates es = case es of
 
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.
-compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> NormalSign -> MultiBalanceReport
-compoundBalanceSubreport ropts@ReportOpts{..} userq j subreportqfn subreportnormalsign = r'
+compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> PriceOracle -> (Journal -> Query) -> NormalSign -> MultiBalanceReport
+compoundBalanceSubreport ropts@ReportOpts{..} userq j priceoracle subreportqfn subreportnormalsign = r'
   where
     -- force --empty to ensure same columns in all sections
     ropts' = ropts { empty_=True, normalbalance_=Just subreportnormalsign }
     -- run the report
     q = And [subreportqfn j, userq]
-    r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j
+    r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReportWith ropts' q j priceoracle
     -- if user didn't specify --empty, now remove the all-zero rows, unless they have non-zero subaccounts
     -- in this report
     r' | empty_    = r

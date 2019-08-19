@@ -40,7 +40,8 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
     datefn = transactionDateFn ropts
     styles = journalCommodityStyles j
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
-    pvalue p = maybe p (postingApplyValuation jpricedirectives styles end today False p) value_
+    priceoracle = journalPriceOracle j
+    pvalue p = maybe p (postingApplyValuation priceoracle styles end today False p) value_
       where
         today  = fromMaybe (error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now") today_
         end    = fromMaybe (postingDate p) mperiodorjournallastday

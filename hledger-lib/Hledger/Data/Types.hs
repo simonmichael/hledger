@@ -468,6 +468,11 @@ data PriceGraph = PriceGraph {
 
 instance NFData PriceGraph
 
+-- | A price oracle is a magic function that looks up market prices
+-- (exchange rates) from one commodity to another (or if unspecified,
+-- to a default valuation commodity) on a given date, somewhat efficiently.
+type PriceOracle = (Day, CommoditySymbol, Maybe CommoditySymbol) -> Maybe (CommoditySymbol, Quantity)
+
 -- | What kind of value conversion should be done on amounts ?
 -- UI: --value=cost|end|now|DATE[,COMM]
 data ValuationType =

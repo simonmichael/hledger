@@ -9,6 +9,7 @@ module Hledger.Reports.MultiBalanceReport (
   MultiBalanceReport(..),
   MultiBalanceReportRow,
   multiBalanceReport,
+  multiBalanceReportWith,
   balanceReportFromMultiBalanceReport,
   mbrNegate,
   mbrNormaliseSign,
@@ -94,9 +95,16 @@ type ClippedAccountName = AccountName
 -- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts
 -- (see ReportOpts and CompoundBalanceCommand).
 -- hledger's most powerful and useful report, used by the balance
--- command (in multiperiod mode) and by the bs/cf/is commands.
+-- command (in multiperiod mode) and (via multiBalanceReport') by the bs/cf/is commands.
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
+multiBalanceReport ropts q j = multiBalanceReportWith ropts q j (journalPriceOracle j)
+
+-- | A helper for multiBalanceReport. This one takes an extra argument, a
+-- PriceOracle to be used for looking up market prices. Commands which
+-- run multiple reports (bs etc.) can generate the price oracle just once
+-- for efficiency, passing it to each report by calling this function directly.
+multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> MultiBalanceReport
+multiBalanceReportWith ropts@ReportOpts{..} q j@Journal{..} priceoracle =
   (if invert_ then mbrNegate else id) $
   MultiBalanceReport (colspans, sortedrows, totalsrow)
     where
@@ -252,7 +260,7 @@ multiBalanceReport ropts@ReportOpts{..} q j@Journal{..} =
                    CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
                    HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
              -- The row amounts valued according to --value if needed.
-           , let val end = maybe id (mixedAmountApplyValuation jpricedirectives styles end today multiperiod) value_
+           , let val end = maybe id (mixedAmountApplyValuation priceoracle styles end today multiperiod) value_
            , let valuedrowbals = dbg1 "valuedrowbals" $ [val periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
              -- The total and average for the row, and their values.
              -- Total for a cumulative/historical report is always zero.

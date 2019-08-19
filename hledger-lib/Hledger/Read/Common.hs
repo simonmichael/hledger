@@ -552,7 +552,7 @@ modifiedaccountnamep = do
   a <- lift accountnamep
   return $!
     accountNameApplyAliases aliases $
-     -- XXX accountNameApplyAliasesMemo ? doesn't seem to make a difference
+     -- XXX accountNameApplyAliasesMemo ? doesn't seem to make a difference (retest that function)
     joinAccountNames parent
     a
 

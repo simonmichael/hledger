@@ -11,8 +11,9 @@ looking up historical market prices (exchange rates) between commodities.
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Hledger.Data.Valuation (
-   amountValueAtDate
-  ,amountApplyValuation
+   journalPriceOracle
+  -- ,amountValueAtDate
+  -- ,amountApplyValuation
   ,mixedAmountValueAtDate
   ,mixedAmountApplyValuation
   ,marketPriceReverse
@@ -32,6 +33,7 @@ import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
+import Data.MemoUgly (memo)
 import Safe (headMay)
 
 import Hledger.Utils
@@ -44,37 +46,39 @@ tests_Valuation = tests "Valuation" [
    tests_priceLookup
   ]
 
+
+
 ------------------------------------------------------------------------------
 -- Valuation
 
--- Apply a specified valuation to this mixed amount, using the provided
--- prices db, commodity styles, period-end/current dates,
+-- | Apply a specified valuation to this mixed amount, using the provided
+-- price oracle, commodity styles, period-end/current dates,
 -- and whether this is for a multiperiod report or not.
-mixedAmountApplyValuation :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
-mixedAmountApplyValuation prices styles periodend today ismultiperiod v (Mixed as) =
-  Mixed $ map (amountApplyValuation prices styles periodend today ismultiperiod v) as
+mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
+mixedAmountApplyValuation priceoracle styles periodend today ismultiperiod v (Mixed as) =
+  Mixed $ map (amountApplyValuation priceoracle styles periodend today ismultiperiod v) as
+
+-- | Apply a specified valuation to this amount, using the provided
+-- price oracle, commodity styles, period-end/current dates,
+-- and whether this is for a multiperiod report or not.
+amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> Amount -> Amount
+amountApplyValuation priceoracle styles periodend today ismultiperiod v a =
+  case v of
+    AtCost    Nothing            -> amountToCost styles a
+    AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodend $ amountToCost styles a
+    AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodend a
+    AtNow     mc                 -> amountValueAtDate priceoracle styles mc today     a
+    AtDefault mc | ismultiperiod -> amountValueAtDate priceoracle styles mc periodend a
+    AtDefault mc                 -> amountValueAtDate priceoracle styles mc today     a
+    AtDate d  mc                 -> amountValueAtDate priceoracle styles mc d         a
 
 -- | Find the market value of each component amount in the given
 -- commodity, or its default valuation commodity, at the given
--- valuation date, using the given market prices.
+-- valuation date, using the given market price oracle.
 -- When market prices available on that date are not sufficient to
 -- calculate the value, amounts are left unchanged.
-mixedAmountValueAtDate :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> MixedAmount -> MixedAmount
-mixedAmountValueAtDate prices styles mc d (Mixed as) = Mixed $ map (amountValueAtDate prices styles mc d) as
-
--- | Apply a specified valuation to this amount, using the provided
--- prices db, commodity styles, period-end/current dates,
--- and whether this is for a multiperiod report or not.
-amountApplyValuation :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> Amount -> Amount
-amountApplyValuation prices styles periodend today ismultiperiod v a =
-  case v of
-    AtCost    Nothing            -> amountToCost styles a
-    AtCost    mc                 -> amountValueAtDate prices styles mc periodend $ amountToCost styles a
-    AtEnd     mc                 -> amountValueAtDate prices styles mc periodend a
-    AtNow     mc                 -> amountValueAtDate prices styles mc today     a
-    AtDefault mc | ismultiperiod -> amountValueAtDate prices styles mc periodend a
-    AtDefault mc                 -> amountValueAtDate prices styles mc today     a
-    AtDate d  mc                 -> amountValueAtDate prices styles mc d         a
+mixedAmountValueAtDate :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> MixedAmount -> MixedAmount
+mixedAmountValueAtDate priceoracle styles mc d (Mixed as) = Mixed $ map (amountValueAtDate priceoracle styles mc d) as
 
 -- | Find the market value of this amount in the given valuation
 -- commodity if any, otherwise the default valuation commodity, at the
@@ -88,9 +92,9 @@ amountApplyValuation prices styles periodend today ismultiperiod v a =
 --
 -- If the market prices available on that date are not sufficient to
 -- calculate this value, the amount is left unchanged.
-amountValueAtDate :: [PriceDirective] -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> Amount -> Amount
-amountValueAtDate pricedirectives styles mto d a =
-  case priceLookup pricedirectives d (acommodity a) mto of
+amountValueAtDate :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> Amount -> Amount
+amountValueAtDate priceoracle styles mto d a =
+  case priceoracle (d, acommodity a, mto) of
     Nothing           -> a
     Just (comm, rate) ->
       -- setNaturalPrecisionUpTo 8 $  -- XXX force higher precision in case amount appears to be zero ?
@@ -102,24 +106,21 @@ amountValueAtDate pricedirectives styles mto d a =
 ------------------------------------------------------------------------------
 -- Market price lookup
 
-tests_priceLookup =
+-- From a journal's market price directives, generate a memoising function
+-- that efficiently looks up exchange rates between commodities on any date.
+-- For best results, you should generate this only once per journal, reusing it
+-- across reports if there are more than one (as in compoundBalanceCommand).
+journalPriceOracle :: Journal -> PriceOracle
+journalPriceOracle Journal{jpricedirectives} =
+  -- traceStack "journalPriceOracle" $
   let
-    d = parsedate
-    a q c = amount{acommodity=c, aquantity=q}
-    p date from q to = PriceDirective{pddate=d date, pdcommodity=from, pdamount=a q to}
-    ps1 = [
-       p "2000/01/01" "A" 10 "B"
-      ,p "2000/01/01" "B" 10 "C"
-      ,p "2000/01/01" "C" 10 "D"
-      ,p "2000/01/01" "E"  2 "D"
-      ,p "2001/01/01" "A" 11 "B"
-      ]
-  in tests "priceLookup" [
-     priceLookup ps1 (d "1999/01/01") "A" Nothing    `is` Nothing
-    ,priceLookup ps1 (d "2000/01/01") "A" Nothing    `is` Just ("B",10)
-    ,priceLookup ps1 (d "2000/01/01") "B" (Just "A") `is` Just ("A",0.1)
-    ,priceLookup ps1 (d "2000/01/01") "A" (Just "E") `is` Just ("E",500)
-    ]
+    pricesatdate =
+      memo $
+      pricesAtDate jpricedirectives
+  in
+    memo $
+    uncurry3 $
+    priceLookup pricesatdate
 
 -- | Given a list of price directives in parse order, find the market
 -- value at the given date of one unit of a given source commodity, in
@@ -152,16 +153,13 @@ tests_priceLookup =
 -- prices can be found, or the source commodity and the valuation
 -- commodity are the same, returns Nothing.
 --
--- A 'PriceGraph' is built each time this is called, which is probably
--- wasteful when looking up multiple prices on the same day; it could
--- be built at a higher level, or memoised.
---
-priceLookup :: [PriceDirective] -> Day -> CommoditySymbol -> Maybe CommoditySymbol -> Maybe (CommoditySymbol, Quantity)
-priceLookup pricedirectives d from mto =
+priceLookup :: (Day -> PriceGraph) -> Day -> CommoditySymbol -> Maybe CommoditySymbol -> Maybe (CommoditySymbol, Quantity)
+priceLookup pricesatdate d from mto =
+  -- trace ("priceLookup ("++show d++", "++show from++", "++show mto++")") $
   let
     -- build a graph of the commodity exchange rates in effect on this day
     -- XXX should hide these fgl details better
-    PriceGraph{prGraph=g, prNodemap=m, prDeclaredPairs=dps} = pricesAtDate pricedirectives d
+    PriceGraph{prGraph=g, prNodemap=m, prDeclaredPairs=dps} = pricesatdate d
     fromnode = node m from
     mto' = mto <|> mdefaultto
       where
@@ -195,6 +193,26 @@ priceLookup pricedirectives d from mto =
           -- log a message and a Maybe Quantity, hiding Just/Nothing and limiting decimal places
           dbg msg = dbg4With (((msg++": ")++) . maybe "" (show . roundTo 8))
 
+tests_priceLookup =
+  let
+    d = parsedate
+    a q c = amount{acommodity=c, aquantity=q}
+    p date from q to = PriceDirective{pddate=d date, pdcommodity=from, pdamount=a q to}
+    ps1 = [
+       p "2000/01/01" "A" 10 "B"
+      ,p "2000/01/01" "B" 10 "C"
+      ,p "2000/01/01" "C" 10 "D"
+      ,p "2000/01/01" "E"  2 "D"
+      ,p "2001/01/01" "A" 11 "B"
+      ]
+    pricesatdate = pricesAtDate ps1
+  in tests "priceLookup" [
+     priceLookup pricesatdate (d "1999/01/01") "A" Nothing    `is` Nothing
+    ,priceLookup pricesatdate (d "2000/01/01") "A" Nothing    `is` Just ("B",10)
+    ,priceLookup pricesatdate (d "2000/01/01") "B" (Just "A") `is` Just ("A",0.1)
+    ,priceLookup pricesatdate (d "2000/01/01") "A" (Just "E") `is` Just ("E",500)
+    ]
+
 ------------------------------------------------------------------------------
 -- Building the price graph (network of commodity conversions) on a given day.
 
@@ -202,7 +220,9 @@ priceLookup pricedirectives d from mto =
 -- graph of all prices in effect on a given day, allowing efficient
 -- lookup of exchange rates between commodity pairs.
 pricesAtDate :: [PriceDirective] -> Day -> PriceGraph
-pricesAtDate pricedirectives d = PriceGraph{prGraph=g, prNodemap=m, prDeclaredPairs=dps}
+pricesAtDate pricedirectives d =
+  -- trace ("pricesAtDate ("++show d++")") $
+  PriceGraph{prGraph=g, prNodemap=m, prDeclaredPairs=dps}
   where
     declaredprices = latestPriceForEachPairOn pricedirectives d
 
@@ -212,7 +232,6 @@ pricesAtDate pricedirectives d = PriceGraph{prGraph=g, prNodemap=m, prDeclaredPa
       map marketPriceReverse declaredprices \\ declaredprices
 
     -- build the graph and associated node map
-    -- (g :: Gr CommoditySymbol Quantity, m :: NodeMap CommoditySymbol) =
     (g, m) =
       mkMapGraph
       (dbg5 "g nodelabels" $ sort allcomms) -- this must include all nodes mentioned in edges
@@ -236,7 +255,6 @@ latestPriceForEachPairOn pricedirectives d =
   zip [1..] $  -- label with parse order
   map priceDirectiveToMarketPrice $
   filter ((<=d).pddate) pricedirectives  -- consider only price declarations up to the valuation date
-
 
 priceDirectiveToMarketPrice :: PriceDirective -> MarketPrice
 priceDirectiveToMarketPrice PriceDirective{..} =
