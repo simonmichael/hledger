@@ -175,8 +175,10 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
               BalancedVirtualPosting -> (\s -> "["++s++"]", acctwidth-2)
               VirtualPosting         -> (\s -> "("++s++")", acctwidth-2)
               _                      -> (id,acctwidth)
-      amt = showMixedAmountWithoutPrice $ pamount p
-      bal = showMixedAmountWithoutPrice b
+      showamt | color_ (reportopts_ opts) = cshowMixedAmountWithoutPrice
+              | otherwise                 = showMixedAmountWithoutPrice
+      amt = showamt $ pamount p
+      bal = showamt b
       -- alternate behaviour, show null amounts as 0 instead of blank
       -- amt = if null amt' then "0" else amt'
       -- bal = if null bal' then "0" else bal'
