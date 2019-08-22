@@ -1,9 +1,0 @@
-Snapshots of past versions of the web content.
-
-At each major release, a new snapshot should be generated 
-(with ./Shake site/doc/VERSION/.snapshot) and committed.
-
-Major releases should also be added to the "available versions" links in site.js.
-
-TODO: These were in this "doc/" subdirectory so that hakyll-std would see them, perhaps that's no longer necessary.
-
