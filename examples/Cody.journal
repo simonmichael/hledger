@@ -32,7 +32,7 @@ P 2018/01/02 17:35:00 🐑 $1080
 
 2018/01/03 *Poe & Mary
     Assets:Farm  2 
-    Assets:Savings
+    Assets:Savings  $-600
 
 ;Report considers transactions in all currencies 
 ;and commodity but shows totals in a base currency.
@@ -43,8 +43,8 @@ P 2018/01/02 17:35:00 🐑 $1080
 ;Yabapalooza ; uncomment to show error
 
 ;There are other
-% ways
-|of
+;% ways
+;|of
 *commenting
 
 ;Here's my salary for 2018
@@ -87,12 +87,12 @@ P 2018/01/02 17:35:00 🐑 $1080
     Assets:Current  $7800
     Income:Salary    
 
-%At this point, I'll like to introduce you to 
-%search (and replace).
+;%At this point, I'll like to introduce you to 
+;%search (and replace).
 
-%Let's say you want to replace all instances of 
-%Assets:Current with Assets:Savings, press
-%Command-F, followed by the + sign
+;%Let's say you want to replace all instances of 
+;%Assets:Current with Assets:Savings, press
+;%Command-F, followed by the + sign
 
 ;Here's a few of my monthly expenses
 
