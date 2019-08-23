@@ -156,6 +156,7 @@ main = do
   dbgIO "interval from opts" (interval_ $ reportopts_ opts)
   dbgIO "query from opts & args" (queryFromOpts d $ reportopts_ opts)
   let
+    journallesserror = error "journal-less command tried to use the journal"
     runHledgerCommand
       -- high priority flags and situations. -h, then --help, then --info are highest priority.
       | hasHelpFlag argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
@@ -171,13 +172,15 @@ main = do
       -- builtin commands
       | Just (cmdmode, cmdaction) <- findCommand cmd =
         (case cmd of
-          "test" -> -- should not read the journal
-            cmdaction opts (error "journal-less command tried to use the journal")
-          "add" ->  -- should create the journal if missing
-            (ensureJournalFileExists =<< (head <$> journalFilePathFromOpts opts)) >>
+           -- these commands should not require or read the journal
+          "test" -> cmdaction opts journallesserror
+          "help" -> cmdaction opts journallesserror
+          -- this command should create the journal if missing
+          "add" -> do
+            (ensureJournalFileExists =<< (head <$> journalFilePathFromOpts opts))
             withJournalDo opts (cmdaction opts)
-          _ ->      -- all other commands: read the journal or fail if missing
-            withJournalDo opts (cmdaction opts)
+          -- other commands read the journal and should fail if it's missing
+          _ -> withJournalDo opts (cmdaction opts)
         )
         `orShowHelp` cmdmode
 
