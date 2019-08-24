@@ -179,7 +179,6 @@ DOCSOURCEFILES:= \
 	$(MANUALSOURCEFILES) \
 	$(COMMANDHELPFILES) \
 	site/*.md \
-	wiki/*.md \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -748,21 +747,16 @@ haddock: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
-site-liverender: Shake \
-		$(call def-help,site-liverender, update the local website html when source files are saved  )
+site-live: Shake \
+		$(call def-help,site-live, update the local website html when source files are saved  )
 	ls $(DOCSOURCEFILES) | entr ./Shake website
 
 LIVERELOAD=livereloadx -p $(LIVERELOADPORT)
 LIVERELOADPORT=8001
 
-site-livereload: \
-		$(call def-help,site-livereload, open a browser on the local website html and reload the page when it updates  )
-	(sleep 1; open http://localhost:$(LIVERELOADPORT)) &
-	$(LIVERELOAD) -s site/_site
-
 site-watch:
 		$(call def-help,site-livereload, open a browser on the local website html and rerender & reload the page on file change  )
-	make site-liverender &
+	make site-live &
 	(sleep 1; $(BROWSE) http://localhost:$(LIVERELOADPORT)/) &
 	$(LIVERELOAD) -s site/_site/
 

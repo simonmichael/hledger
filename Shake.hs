@@ -82,7 +82,6 @@ usage = unlines
   ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
   ,""
   ,"./Shake mainpages                   build the web pages from the main repo"
-  ,"./Shake wikipages                   build the web pages from the wiki repo"
   -- ,"./Shake site/index.md               update wiki links on the website home page"
   ,"./Shake FILE                        build any individual file"
   ,"./Shake setversion                  update all packages from PKG/.version"
@@ -125,8 +124,6 @@ main = do
     filter (not . ("README." `isPrefixOf`) . takeFileName) . filter (".md" `isSuffixOf`) . map (commandsdir </>)
     <$> S.getDirectoryContents commandsdir
   let commandtxts = map (-<.> "txt") commandmds
-  let wikidir = "wiki"
-  wikipagefilenames <- map dropExtension . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents wikidir
 
   shakeArgs
     shakeOptions
@@ -227,9 +224,6 @@ main = do
         ,"README"
         ,"CONTRIBUTING"
         ]
-
-      -- the html for website pages kept in the wiki repo (cookbook content)
-      wikipageshtml = map (normalise . ("site/_site" </>) . (<.> ".html")) wikipagefilenames
 
       -- TODO: make website URIs lower-case ?
 
@@ -373,7 +367,6 @@ main = do
     phony "website" $ need [
        "webassets"
       ,"mainpages"
-      ,"wikipages"
       ,"htmlmanuals"
       ]
 
@@ -397,45 +390,27 @@ main = do
     "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webassetexts ] |%> \out -> do
         copyFile' ("site" </> dropDirectory2 out) out
 
-    -- embed the wiki's latest table of contents into the main site's home page
-    "site/index.md" %> \out -> do
-      wikicontent <- dropWhile (not . ("#" `isPrefixOf`)) . lines <$> readFile' "wiki/Home.md"
-      old <- liftIO $ readFileStrictly "site/index.md"
-      let (startmarker, endmarker) = ("<!-- WIKICONTENT -->", "<!-- ENDWIKICONTENT -->")
-          (before, after') = break (startmarker `isPrefixOf`) $ lines old
-          (_, after)       = break (endmarker   `isPrefixOf`) $ after'
-          new = unlines $ concat [before, [startmarker], wikicontent, after]
-      liftIO $ writeFile out new
-
     -- render all web pages from the main repo (manuals, home, download, relnotes etc) as html, saved in site/_site/
     phony "mainpages" $ need mainpageshtml
-
-    -- render all pages from the wiki as html, saved in site/_site/.
-    -- We assume there are no filename collisions with mainpages.
-    phony "wikipages" $ need wikipageshtml
 
     phony "htmlmanuals" $ need htmlmanuals
 
     phony "oldmanuals" $ need oldhtmlmanuals
 
-    -- Render one website page (main or wiki) as html, saved in sites/_site/.
-    -- Wiki pages will have a heading and TOC placeholder prepended.
+    -- Render one website page as html, saved in sites/_site/.
+    -- Github-style wiki links will be hyperlinked.
     -- The download page will have a TOC placeholder prepended.
-    -- All pages will have github-style wiki links hyperlinked.
     "site/_site//*.html" %> \out -> do
         let filename = takeBaseName out
             pagename = fileNameToPageName filename
-            iswikipage = filename `elem` wikipagefilenames
             isdownloadpage = filename == "download"
             isoldmanual = "site/_site/doc/" `isPrefixOf` out
             source
-              | iswikipage  = "wiki" </> filename <.> "md"
               | isoldmanual = "site" </> (drop 11 $ dropExtension out) <.> "md"
               | otherwise   = "site" </> filename <.> "md"
             template = "site/site.tmpl"
             siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
-            maybeAddToc | iswikipage     = addHeading pagename . addToc
-                        | isdownloadpage = addToc
+            maybeAddToc | isdownloadpage = addToc
                         | otherwise      = id
         need [source, template]
         -- read markdown source, link any wikilinks, maybe add a heading and TOC, pipe it to pandoc, write html out
@@ -449,7 +424,7 @@ main = do
 
     -- This rule, for updating the live hledger.org site, gets called by:
     -- 1. github-post-receive (github webhook handler), when something is pushed
-    --    to the main or wiki repos on Github. Config:
+    --    to the main repo on Github. Config:
     --     /etc/supervisord.conf -> [program:github-post-receive]
     --     /etc/github-post-receive.conf
     -- 2. cron, nightly. Config: /etc/crontab
@@ -462,25 +437,11 @@ main = do
 
         -- print timestamp. On mac, use brew-installed GNU date.
         "PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
-        -- pull latest wiki repo
-        "&& printf 'wiki repo: ' && git -C wiki pull"
         -- pull latest main repo - sometimes already done by webhook, not always
         "&& printf 'main repo: ' && git pull"
 
       -- Shake.hs might have been updated, but we won't execute the
       -- new one, too insecure. Continue with this one.
-
-      -- update wiki links on website front page
-      need [ "site/index.md" ]
-
-      -- if it changed, commit (and push) it.
-      -- XXX the push will cause another webhook invocation of this script, try to avoid
-      cmd_ Shell
-        "git diff --quiet -- site/index.md"
-        "|| ("
-          "git commit -m ';site: update cookbook links' -m '[ci skip]' site/index.md"
-          "&& git push"
-        ")"
 
       -- update the live site based on all latest content
       need [ "website-all" ]
