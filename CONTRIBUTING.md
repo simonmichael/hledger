@@ -1,6 +1,3 @@
-<!-- consolidating dev docs from wiki, https://github.com/simonmichael/hledger/issues/920 WIP -->
-$TOC$
-
 <style>
 /* table styles */
 tr.even { background-color:#eee;}
@@ -8,8 +5,6 @@ th, td  {white-space:nowrap;}
 </style>
 
 # Contributor Guide
-
-<br clear=all>
 
 ## Quick Links
 
