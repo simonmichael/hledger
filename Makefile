@@ -776,8 +776,10 @@ site: \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
-			./Shake hledgerorg -VV \
+			./Shake hledgerorg -VV; \
+			make -C site html; \
 		) 2>&1 | tee -a site.log
+#     ^ running both shake and sphinx for now
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
