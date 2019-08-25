@@ -776,7 +776,7 @@ site: \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
-			./Shake hledgerorg -VVV \
+			./Shake hledgerorg -VV \
 		) 2>&1 | tee -a site.log
 
 ###############################################################################
