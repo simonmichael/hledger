@@ -430,8 +430,9 @@ main = do
 
         -- print timestamp. On mac, use brew-installed GNU date.
         "PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
-        -- pull latest main repo - sometimes already done by webhook, not always
-        "&& printf 'main repo: ' && git pull"
+        -- pull latest code and site repos - sometimes already done by webhook, not always
+        "&& printf 'code repo: ' && git pull"
+        "&& printf 'site repo: ' && git pull"
 
       -- Shake.hs might have been updated, but we won't execute the
       -- new one, too insecure. Continue with this one.
