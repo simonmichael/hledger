@@ -125,6 +125,9 @@ main = do
     <$> S.getDirectoryContents commandsdir
   let commandtxts = map (-<.> "txt") commandmds
 
+  let sitedir = "site"
+  pages <- map takeBaseName . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents sitedir
+
   shakeArgs
     shakeOptions
       {
@@ -213,17 +216,7 @@ main = do
         [ v </> "manual"           | v <- docversions, v <"1.0" ]  -- before 1.0 there was only the combined manual
 
       -- the html for website pages kept in the main repo
-      mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) [
-        -- from site/*.md
-         "contributors"
-        ,"download"
-        ,"ledgertips"
-        ,"index"
-        ,"intro"
-        ,"release-notes"
-        ,"README"
-        ,"CONTRIBUTING"
-        ]
+      mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) pages
 
       -- TODO: make website URIs lower-case ?
 
