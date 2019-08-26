@@ -4,7 +4,6 @@
 
 _web_({{
 _docversionlinks_({{hledger-web}})
-_toc_
 }})
 
 _man_({{
