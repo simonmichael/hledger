@@ -208,7 +208,7 @@ main = do
       mdmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
       -- latest version of the manuals rendered to html
-      htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames++["manual"]]
+      htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames]
 
       -- old versions of the manuals rendered to html
       oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
@@ -219,9 +219,6 @@ main = do
       mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) pages
 
       -- TODO: make website URIs lower-case ?
-
-      -- manuals rendered to markdown and combined, ready for web rendering
-      mdcombinedmanual = "site/manual.md"
 
       -- extensions of static web asset files, to be copied to the website
       webassetexts = ["png", "gif", "cur", "js", "css", "eot", "ttf", "woff", "svg"]
@@ -333,18 +330,6 @@ main = do
         pandoc fromsrcmd towebmd
         "--lua-filter tools/pandoc-demote-headers.lua"
         ">>" out
-
-    -- Generate the combined web manual's markdown source, by
-    -- concatenating tweaked versions of the individual manuals.
-    phony "mdcombinedmanual" $ need [ mdcombinedmanual ]
-    mdcombinedmanual %> \out -> do
-      need mdmanuals
-      liftIO $ writeFile mdcombinedmanual ""
-      forM_ mdmanuals $ \f -> do -- site/hledger.md, site/journal.md
-        cmd_ Shell ("printf '\\n\\n' >>") mdcombinedmanual
-        cmd_ Shell pandoc f towebmd
-          "--lua-filter tools/pandoc-demote-headers.lua"
-          ">>" mdcombinedmanual
 
     -- Copy some extra markdown files from the main repo into the site
     -- TODO adding table of contents placeholders
@@ -657,12 +642,11 @@ main = do
     -- them as the specified versioned snapshot in site/doc/VER/ .
     -- .snapshot is a dummy file.
     "site/doc/*/.snapshot" %> \out -> do
-      need $ mdcombinedmanual : mdmanuals
+      need mdmanuals
       let snapshot = takeDirectory out
       cmd_ Shell "mkdir -p" snapshot
       forM_ mdmanuals $ \f -> -- site/hledger.md, site/journal.md
         cmd_ Shell "cp" f (snapshot </> takeFileName f)
-      cmd_ Shell "cp" "site/manual.md" snapshot
       cmd_ Shell "cp -r site/images" snapshot
       cmd_ Shell "touch" out
 
@@ -673,7 +657,6 @@ main = do
       -- removeFilesAfter "." commandtxts
       putNormal "Cleaning generated manuals, staged site content"
       removeFilesAfter "." mdmanuals
-      removeFilesAfter "." [mdcombinedmanual]
       removeFilesAfter "." [
         -- "site/README.md",
         -- "site/CONTRIBUTING.md"
