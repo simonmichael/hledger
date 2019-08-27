@@ -106,22 +106,22 @@ you'll need to specify the format.
 DATEFMT is a [strptime-like date parsing pattern](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime),
 which must parse the date field values completely. Examples:
 
-``` {.rules .display-table}
+``` rules
 # for dates like "11/06/2013":
 date-format %m/%d/%Y
 ```
 
-``` {.rules .display-table}
+``` rules
 # for dates like "6/11/2013" (note the - to make leading zeros optional):
 date-format %-d/%-m/%Y
 ```
 
-``` {.rules .display-table}
+``` rules
 # for dates like "2013-Nov-06":
 date-format %Y-%h-%d
 ```
 
-``` {.rules .display-table}
+``` rules
 # for dates like "11/6/2013 11:32 PM":
 date-format %-m/%-d/%Y %l:%M %p
 ```
@@ -152,11 +152,11 @@ This sets a journal entry field (one of the standard names above) to the given t
 which can include CSV field values interpolated by name (`%CSVFIELDNAME`) or 1-based position (`%N`).
 <!-- Whitespace before or after the value is ignored. -->
 Eg:
-```{.rules .display-table}
+```rules
 # set the amount to the 4th CSV field with "USD " prepended
 amount USD %4
 ```
-```{.rules .display-table}
+```rules
 # combine three fields to make a comment (containing two tags)
 comment note: %somefield - %anotherfield, date: %1
 ```
@@ -183,12 +183,12 @@ specific field).  When there are multiple patterns they can be written
 on separate lines, unindented.
 The field assignments are on separate lines indented by at least one space.
 Examples:
-```{.rules .display-table}
+```rules
 # if the CSV record contains "groceries", set account2 to "expenses:groceries"
 if groceries
  account2 expenses:groceries
 ```
-```{.rules .display-table}
+```rules
 # if the CSV record contains any of these patterns, set account2 and comment as shown
 if
 monthly service fee

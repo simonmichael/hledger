@@ -117,7 +117,7 @@ fromsrcmd = "-f markdown-smart-tex_math_dollars"
 --  recommonmark (Commonmark syntax, https://spec.commonmark.org)
 --  sphinx-markdown-tables (PHP Markdown Extra table syntax, https://michelf.ca/projects/php-markdown/extra/#table)
 -- XXX trying to force the use of pipe_tables here, but sometimes it uses html instead
-towebmd = "-t markdown-smart-fenced_divs-simple_tables-multiline_tables-grid_tables --atx-headers"
+towebmd = "-t markdown-smart-fenced_divs-fenced_code_attributes-simple_tables-multiline_tables-grid_tables --atx-headers"
 
 
 main = do

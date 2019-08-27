@@ -694,7 +694,7 @@ About testing in the hledger project, as of 201809.
 
     Here\'s the pattern (let us know if you see a better way):
 
-    ``` {.haskell}
+    ``` haskell
     module Foo (
       ...
       tests_Foo -- export this module's and submodules' tests
@@ -836,19 +836,19 @@ tests, at least. It would be useful to set this up for hledger.
 
 Run unit tests:
 
-``` {.example}
+``` example
 $ make unittest
 ```
 
 Run doctests:
 
-``` {.example}
+``` example
 $ make doctest
 ```
 
 Run functional tests (and unit tests, now):
 
-``` {.example}
+``` example
 $ stack install shelltestrunner
 $ make functest
 ```
@@ -856,37 +856,37 @@ $ make functest
 Run the package tests (unit tests, maybe doctests, but not functional
 tests) of all or selected packages.
 
-``` {.example}
+``` example
 $ stack test [PKG]
 ```
 
 Run \"default tests: package plus functional tests\":
 
-``` {.example}
+``` example
 $ make test
 ```
 
 Test generation of haddock docs:
 
-``` {.example}
+``` example
 $ make haddocktest
 ```
 
 Thorough test for build issues with current GHC:
 
-``` {.example}
+``` example
 $ make buildtest
 ```
 
 Thorough test for build issues with all supported GHC versions:
 
-``` {.example}
+``` example
 $ make buildtestall
 ```
 
 Run built-in hledger/hledger-lib unit tests via hledger command:
 
-``` {.example}
+``` example
 $ hledger test  # test installed hledger
 $ stack build hledger && stack exec -- hledger test  # test just-built hledger
 $ hledger test --help
@@ -903,19 +903,19 @@ test [TESTPATTERN] [SEED]
 
 Rebuild and rerun hledger/hledger-lib unit tests via ghcid:
 
-``` {.example}
+``` example
 $ make ghcid-test
 ```
 
 Rebuild and rerun only some tests via ghcid (see hledger test --help):
 
-``` {.example}
+``` example
 $ make ghcid-test-TESTPATTERN
 ```
 
 See all test-related make rules:
 
-``` {.example}
+``` example
 $ make help-test
 ```
 
