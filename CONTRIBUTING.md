@@ -197,7 +197,7 @@ express gratitude,
 build prosperity consciousness,
 and help transform world finance!
 
-- Use the donate links on the [home page](/)
+- Use the donate links on the [home page](https://hledger.org)
 - Configure a recurring donation
 - Contribute or pledge bounties on issues you care about
 - Ask your organization to contribute
@@ -1511,7 +1511,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 ### Add yourself to the contributor list
 
-- after getting something into the master branch, read and sign the [contributor list & agreement](contributors.html). Or, [ask](/docs.html#helpfeedback) to be added.
+- after getting something into the master branch, read and sign the [contributor list & agreement](https://hledger.org/contributors.html). Or, [ask](/index.html#help-feedback) to be added.
 - give yourself a high five!
 
 ### Work on docs
