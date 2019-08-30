@@ -50,13 +50,13 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20190309
+HLEDGER_INSTALL_VERSION=201900830
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-RESOLVER="--resolver=lts-13.27"
+RESOLVER="--resolver=lts-14.1"
 
 # things to be installed
 
@@ -75,7 +75,7 @@ hledger-interest \
 # latest hledger package versions; update often:
 HLEDGER_LIB_VERSION=1.14.1
 HLEDGER_VERSION=1.14.2
-HLEDGER_UI_VERSION=1.14.1
+HLEDGER_UI_VERSION=1.14.2
 HLEDGER_WEB_VERSION=1.14.1
 HLEDGER_API_VERSION=1.14
 
@@ -84,12 +84,13 @@ HLEDGER_INTEREST_VERSION=1.5.3
 
 # extra dependencies that aren't in stackage:
 EXTRA_DEPS="\
-brick-0.46 \
-text-zipper-0.10.1 \
-config-ini-0.2.4.0 \
-data-clist-0.1.2.2 \
-word-wrap-0.4.1 \
 "
+# brick-0.46 \
+# text-zipper-0.10.1 \
+# config-ini-0.2.4.0 \
+# data-clist-0.1.2.2 \
+# word-wrap-0.4.1 \
+#
 # cassava-megaparsec-2.0.0 \
 # config-ini-0.2.4.0 \
 # easytest-0.2.1 \
