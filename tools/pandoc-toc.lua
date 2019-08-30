@@ -1,3 +1,5 @@
+-- Replace a $TOC$ marker with a table of contents generated from the document's headings.
+
 local headers = {}
 
 function Header(h)

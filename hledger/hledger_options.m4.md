@@ -37,7 +37,7 @@ which are often a [query](#queries), filtering the data in some way.
 You can save a set of command line options/arguments in a file, one per line,
 and then reuse them by writing `@FILENAME` in a command line.
 To prevent this expansion of `@`-arguments, precede them with a `--` argument.
-For more, see [Save frequently used options](Save-frequently-used-options.html).
+For more, see [Save frequently used options](save-frequently-used-options.html).
 
 ## Special characters in arguments and queries
 
@@ -168,12 +168,12 @@ but it can also be one of several other formats, listed below.
 hledger detects the format automatically based on the file extension,
 or if that is not recognised, by trying each built-in "reader" in turn:
 
-| Reader:         | Reads:                                                | Used for file extensions:                          
-|-----------------|-------------------------------------------------------|-------------------------------------------
-| `journal`       | hledger's journal format, also some Ledger journals   | `.journal` `.j` `.hledger` `.ledger`   
-| `timeclock`     | timeclock files (precise time logging)                | `.timeclock`                              
-| `timedot`       | timedot files (approximate time logging)              | `.timedot`                                
-| `csv`           | comma-separated values (data interchange)             | `.csv`                                    
+| Reader:     | Reads:                                              | Used for file extensions:                           |
+|-------------|-----------------------------------------------------|-----------------------------------------------------|
+| `journal`   | hledger's journal format, also some Ledger journals | `.journal` `.j` `.hledger` `.ledger`                |
+| `timeclock` | timeclock files (precise time logging)              | `.timeclock`                                        |
+| `timedot`   | timedot files (approximate time logging)            | `.timedot`                                          |
+| `csv`       | comma-separated values (data interchange)           | `.csv`                                              |
 
 If needed (eg to ensure correct error messages when a file has the "wrong" extension), 
 you can force a specific reader/format by prepending it to the file path with a colon. 

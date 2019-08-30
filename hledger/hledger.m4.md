@@ -15,7 +15,6 @@ m4_dnl  hledger_troubleshooting.m4.md
 
 _web_({{
 _docversionlinks_({{hledger}})
-_toc_
 }})
 
 _man_({{

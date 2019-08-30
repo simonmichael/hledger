@@ -28,13 +28,9 @@ This doc is for version **_version_**
 m4_dnl comment (dev) for releases, uncomment between releases:
 m4_dnl (dev)
 .
-<span class="docversions">m4_dnl
-</span>)m4_dnl
-m4_dnl
-m4_dnl Insert a table of contents marker, which doc build scripts will populate.
-m4_define({{_toc_}},{{
-\$TOC\$
-}})m4_dnl
+m4_dnl <span class="docversions">m4_dnl
+m4_dnl </span>
+)m4_dnl
 m4_dnl
 m4_dnl Helpers for generating table markup.
 m4_dnl _table_({{

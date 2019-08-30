@@ -4,7 +4,6 @@
 
 _web_({{
 _docversionlinks_({{timeclock}})
-_toc_
 }})
 _man_({{
 
@@ -38,7 +37,7 @@ some number of hours to an account. Or if the session spans more than
 one day, it is split into several transactions, one for each day. For
 the above time log, `hledger print` generates these journal entries:
 
-``` {.shell}
+``` shell
 $ hledger -f t.timeclock print
 2015/03/30 * optional description after two spaces
     (some:account name)         0.33h

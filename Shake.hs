@@ -113,7 +113,11 @@ sed      = "sed -E"
 fromsrcmd = "-f markdown-smart-tex_math_dollars"
 
 -- The kind of markdown we like to generate for the website.
-towebmd = "-t markdown-smart-fenced_divs --atx-headers"
+-- This will be consumed by sphinx extensions:
+--  recommonmark (Commonmark syntax, https://spec.commonmark.org)
+--  sphinx-markdown-tables (PHP Markdown Extra table syntax, https://michelf.ca/projects/php-markdown/extra/#table)
+-- XXX trying to force the use of pipe_tables here, but sometimes it uses html instead
+towebmd = "-t markdown-smart-fenced_divs-fenced_code_attributes-simple_tables-multiline_tables-grid_tables --atx-headers"
 
 
 main = do
@@ -208,7 +212,7 @@ main = do
       mdmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
       -- latest version of the manuals rendered to html
-      htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames++["manual"]]
+      htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames]
 
       -- old versions of the manuals rendered to html
       oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
@@ -219,9 +223,6 @@ main = do
       mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) pages
 
       -- TODO: make website URIs lower-case ?
-
-      -- manuals rendered to markdown and combined, ready for web rendering
-      mdcombinedmanual = "site/manual.md"
 
       -- extensions of static web asset files, to be copied to the website
       webassetexts = ["png", "gif", "cur", "js", "css", "eot", "ttf", "woff", "svg"]
@@ -334,19 +335,6 @@ main = do
         "--lua-filter tools/pandoc-demote-headers.lua"
         ">>" out
 
-    -- Generate the combined web manual's markdown source, by
-    -- concatenating tweaked versions of the individual manuals.
-    phony "mdcombinedmanual" $ need [ mdcombinedmanual ]
-    mdcombinedmanual %> \out -> do
-      need mdmanuals
-      liftIO $ writeFile mdcombinedmanual $ addToc ""
-      forM_ mdmanuals $ \f -> do -- site/hledger.md, site/journal.md
-        cmd_ Shell ("printf '\\n\\n' >>") mdcombinedmanual
-        cmd_ Shell pandoc f towebmd
-          "--lua-filter tools/pandoc-drop-toc.lua"
-          "--lua-filter tools/pandoc-demote-headers.lua"
-          ">>" mdcombinedmanual
-
     -- Copy some extra markdown files from the main repo into the site
     -- TODO adding table of contents placeholders
     [
@@ -392,7 +380,6 @@ main = do
 
     -- Render one website page as html, saved in sites/_site/.
     -- Github-style wiki links will be hyperlinked.
-    -- The download page will have a TOC placeholder prepended.
     "site/_site//*.html" %> \out -> do
         let filename = takeBaseName out
             pagename = fileNameToPageName filename
@@ -403,16 +390,13 @@ main = do
               | otherwise   = "site" </> filename <.> "md"
             template = "site/site.tmpl"
             siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
-            maybeAddToc | isdownloadpage = addToc
-                        | otherwise      = id
         need [source, template]
-        -- read markdown source, link any wikilinks, maybe add a heading and TOC, pipe it to pandoc, write html out
-        Stdin . wikiLink . maybeAddToc <$> (readFile' source) >>=
+        -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
+        Stdin . wikiLink <$> (readFile' source) >>=
           (cmd Shell pandoc "-" fromsrcmd "-t html"
                            "--template" template
                            ("--metadata=siteRoot:" ++ siteRoot)
                            ("--metadata=\"title:" ++ pagename ++ "\"")
-                           "--lua-filter=tools/pandoc-toc.lua"
                            "-o" out )
 
     -- This rule, for updating the live hledger.org site, gets called by:
@@ -662,12 +646,11 @@ main = do
     -- them as the specified versioned snapshot in site/doc/VER/ .
     -- .snapshot is a dummy file.
     "site/doc/*/.snapshot" %> \out -> do
-      need $ mdcombinedmanual : mdmanuals
+      need mdmanuals
       let snapshot = takeDirectory out
       cmd_ Shell "mkdir -p" snapshot
       forM_ mdmanuals $ \f -> -- site/hledger.md, site/journal.md
         cmd_ Shell "cp" f (snapshot </> takeFileName f)
-      cmd_ Shell "cp" "site/manual.md" snapshot
       cmd_ Shell "cp -r site/images" snapshot
       cmd_ Shell "touch" out
 
@@ -678,7 +661,6 @@ main = do
       -- removeFilesAfter "." commandtxts
       putNormal "Cleaning generated manuals, staged site content"
       removeFilesAfter "." mdmanuals
-      removeFilesAfter "." [mdcombinedmanual]
       removeFilesAfter "." [
         -- "site/README.md",
         -- "site/CONTRIBUTING.md"
@@ -726,11 +708,6 @@ type Markdown = String
 -- | Prepend a markdown heading.
 addHeading :: String -> Markdown -> Markdown
 addHeading h = (("# "++h++"\n\n")++)
-
--- | Prepend a table of contents placeholder.
-addToc :: Markdown -> Markdown
-addToc = ((tocMarker++"\n\n")++)
-  where tocMarker = "$TOC$"
 
 -- | Convert Github-style wikilinks to hledger website links.
 wikiLink :: Markdown -> Markdown

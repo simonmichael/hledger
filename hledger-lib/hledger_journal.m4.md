@@ -4,7 +4,6 @@
 
 _web_({{
 _docversionlinks_({{journal}})
-_toc_
 }})
 _man_({{
 
@@ -404,7 +403,7 @@ double equals sign (`== EXPECTEDBALANCE`).
 This asserts that there are no other unasserted commodities in the account 
 (or, that their balance is 0). 
 
-``` {.journal}
+``` journal
 2013/1/1
   a   $1
   a    1€
@@ -424,7 +423,7 @@ This asserts that there are no other unasserted commodities in the account
 It's not yet possible to make a complete assertion about a balance that has multiple commodities.
 One workaround is to isolate each commodity into its own subaccount:
 
-``` {.journal}
+``` journal
 2013/1/1
   a:usd   $1
   a:euro   1€
