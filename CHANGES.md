@@ -1,7 +1,11 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# cc9d7f8a
+# 63fec5a8
+
+- install: update resolver to lts-13.27 for freebsd12 (zieone)
+
+- site: remove site/, which has moved to its own hledger_site repo
 
 - stop building hledger-api
 

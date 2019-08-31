@@ -1,7 +1,9 @@
 User-visible changes in hledger-api.
 See also the hledger changelog.
 
-# 53b995bc
+# da671880
+
+
 
 - api: set upper bound for swagger2
 

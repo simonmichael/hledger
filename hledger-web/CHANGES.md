@@ -1,7 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# e70c7123
+# 81c58f34
+
+
 
 - web: ?sidebar= hides the sidebar, like ?sidebar=0
 

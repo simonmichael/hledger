@@ -1,7 +1,12 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 5bc1e774
+# 65692b0e
+
+- help: don't require a journal file
+
+- reg: show negative amounts in red, like balance and Ledger
+
 
 ## General
 
