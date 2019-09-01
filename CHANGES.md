@@ -9,10 +9,8 @@ For package-specific changes, see the package changelogs.
 
 - api: drop from Shake scripts
 
-
-
-- new hledger.org: the site now has its own git repo, has absorbed the
-  github wiki, and is generated with Sphinx.
+- new unified website: hledger.org now has its own git repo, has
+  absorbed the github wiki, and is generated with Sphinx.
 
 - hledger-api's functionality is now included in hledger-web,
   and the hledger-api package is mothballed.

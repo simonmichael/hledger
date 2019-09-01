@@ -3,16 +3,11 @@ See also the hledger changelog.
 
 # 1.15 2019-09-01
 
-- web: ?sidebar= hides the sidebar, like ?sidebar=0
+- --serve-api disables the usual server-side web UI (leaving only the API routes)
 
-- web: --serve-api disables server-side UI
+- register page: account names are hyperlinked
 
-- register page: clip linked accounts to 40 characters (Henning Thielemann)
-  This was the behaviour before adding the links.
-
-- avoid spaces before commas in register account links (Henning Thielemann)
-
-- add links to accounts in register transactions (Henning Thielemann)
+- ?sidebar= now hides the sidebar, same as ?sidebar=0
 
 - fix "_create_locale could not be located" error on windows 7 (#1039)
 

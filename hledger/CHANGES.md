@@ -3,11 +3,6 @@ User-visible changes in the hledger command line tool and library.
 
 # 1.15 2019-09-01
 
-- help: don't require a journal file
-
-- reg: show negative amounts in red, like balance and Ledger
-
-
 ## General
 
 - There is a new valuation option `--value=TYPE[,COMM]`, with
@@ -71,10 +66,14 @@ User-visible changes in the hledger command line tool and library.
 
 - descriptions, payees, notes commands added (Caleb Maclennan)
 
-- Gabriel Ebner's hledger-diff is now a built in command,
+- diff: Gabriel Ebner's hledger-diff is now a built in command,
   and https://github.com/gebner/hledger-diff is deprecated.
 
+- help: don't require a journal file
+
 - print: now also canonicalises the display style of balance assertion amounts (#1042)
+
+- reg: show negative amounts in red, like balance and Ledger
 
 - reg: fix `--average`, broken since 1.12 (#1003)
 
