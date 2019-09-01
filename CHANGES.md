@@ -1,71 +1,44 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 63fec5a8
+# e8d5e569
 
-- install: update resolver to lts-13.27 for freebsd12 (zieone)
+- install: bump to lts-14.4, hledger 1.15, drop hledger-api
 
-- site: remove site/, which has moved to its own hledger_site repo
+- bump versions to 1.15
 
-- stop building hledger-api
+- api: drop from Shake scripts
 
-- bump default stack.yaml to lts-14.1 / ghc 8.6.5
 
-- bin: add hledger-swap-dates; update hledger-check, hledger-smooth (#1072)
 
-- Update shell completions (Jakob Schöttl)
+- new hledger.org: the site now has its own git repo, has absorbed the
+  github wiki, and is generated with Sphinx.
 
-- travis: skip hledger-api at least for now to stay under time limit
+- hledger-api's functionality is now included in hledger-web,
+  and the hledger-api package is mothballed.
 
-- Create FUNDING.yml / github sponsor button
+- hledger-install.sh: updated, now also works on FreeBSD 12 (zieone)
 
-- examples: fix incompatible syntax in bcexample.hledger
+- bin/ addon scripts: hledger-swap-dates added; hledger-check,
+  hledger-smooth updated. (#1072)
 
-- make tag: include all hledger-web hs files in tags
+- shell-completion/ scripts: updated (Jakob Schöttl)
 
-- shake: be more verbose when updating changelogs
+- github: FUNDING.yml / sponsor button configured
 
-- shake: show htmlmanuals target in help
+- site: Wine option added to download page
 
-- make site-watch: site-liverender & site-livereload in one command
+- tools: generatejournal updates: vary amount, make reports with fewer
+  zeroes, start from a fixed year to keep tests stable, also generate
+  P records. (#999)
 
-- site: download: wine
-
-- tools: generatejournal: vary amount, make reports with fewer zeroes
-
-- make samplejournals: more; don't remake ones used for tests
-
-- tools: generatejournal: start from a fixed year, not last year
-  So regenerating sample journals doesn't require updating tests.
-
-- tools: generatejournal: also generate P records (#999)
+- tools: make, shake, CI: misc. updates
 
 - doc: add a README for the functional tests, linked from contrib guide
 
-- Rename hledger-makeitso to hledger-flow (Andreas Pauley)
+- hledger-makeitso has been renamed to hledger-flow (Andreas Pauley)
 
-- docker: use "haskell" image as base (Dmitry Astapov)
-
-- appveyor: enable web
-  [skip ci]
-
-- travis: enable web, api
-
-- bump default stack.yaml to nightly-2019-03-09 / ghc 8.6.4
-
-- shake site: also commit & push home page when wiki links change
-
-- tools: move site.sh into shake; stop running just-pushed shakefile
-  Running the just pushed Shake.hs was too insecure.
-
-- make: rename sub-makefiles; start moving site script to make/shake
-
-- tools: commit missing pandoc filters (#981)
-
-- site: download: more cleanup
-
-- site: download: improve nix/docker/sandstorm links/descriptions
-
+- The hledger docker image is now based on the "haskell" image (Dmitry Astapov)
 
 
 # 1.14 2019-03-01

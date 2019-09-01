@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# f55985eb
+# 93f48c45
 
 Removals include:
 

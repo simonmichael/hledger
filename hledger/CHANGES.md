@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 65692b0e
+# 93f48c45
 
 - help: don't require a journal file
 
