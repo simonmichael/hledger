@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 93f48c45
+# 1.15 2019-09-01
 
 - help: don't require a journal file
 

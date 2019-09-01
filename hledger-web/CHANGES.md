@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 93f48c45
+# 1.15 2019-09-01
 
 - web: ?sidebar= hides the sidebar, like ?sidebar=0
 

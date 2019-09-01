@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 93f48c45
+# 1.15 2019-09-01
 
 - allow brick >=0.47
 
