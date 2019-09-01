@@ -76,107 +76,107 @@ instance Show PeriodicTransaction where
 --
 -- >>> _ptgen "monthly from 2017/1 to 2017/4"
 -- 2017/01/01
---     ; recur: monthly from 2017/1 to 2017/4
+--     ; generated-transaction:~ monthly from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/01
---     ; recur: monthly from 2017/1 to 2017/4
+--     ; generated-transaction:~ monthly from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/01
---     ; recur: monthly from 2017/1 to 2017/4
+--     ; generated-transaction:~ monthly from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "monthly from 2017/1 to 2017/5"
 -- 2017/01/01
---     ; recur: monthly from 2017/1 to 2017/5
+--     ; generated-transaction:~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/01
---     ; recur: monthly from 2017/1 to 2017/5
+--     ; generated-transaction:~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/01
---     ; recur: monthly from 2017/1 to 2017/5
+--     ; generated-transaction:~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/04/01
---     ; recur: monthly from 2017/1 to 2017/5
+--     ; generated-transaction:~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 2nd day of month from 2017/02 to 2017/04"
 -- 2017/01/02
---     ; recur: every 2nd day of month from 2017/02 to 2017/04
+--     ; generated-transaction:~ every 2nd day of month from 2017/02 to 2017/04
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/02
---     ; recur: every 2nd day of month from 2017/02 to 2017/04
+--     ; generated-transaction:~ every 2nd day of month from 2017/02 to 2017/04
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/02
---     ; recur: every 2nd day of month from 2017/02 to 2017/04
+--     ; generated-transaction:~ every 2nd day of month from 2017/02 to 2017/04
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 30th day of month from 2017/1 to 2017/5"
 -- 2016/12/30
---     ; recur: every 30th day of month from 2017/1 to 2017/5
+--     ; generated-transaction:~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/01/30
---     ; recur: every 30th day of month from 2017/1 to 2017/5
+--     ; generated-transaction:~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/28
---     ; recur: every 30th day of month from 2017/1 to 2017/5
+--     ; generated-transaction:~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/30
---     ; recur: every 30th day of month from 2017/1 to 2017/5
+--     ; generated-transaction:~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/04/30
---     ; recur: every 30th day of month from 2017/1 to 2017/5
+--     ; generated-transaction:~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 2nd Thursday of month from 2017/1 to 2017/4"
 -- 2016/12/08
---     ; recur: every 2nd Thursday of month from 2017/1 to 2017/4
+--     ; generated-transaction:~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/01/12
---     ; recur: every 2nd Thursday of month from 2017/1 to 2017/4
+--     ; generated-transaction:~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/09
---     ; recur: every 2nd Thursday of month from 2017/1 to 2017/4
+--     ; generated-transaction:~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/09
---     ; recur: every 2nd Thursday of month from 2017/1 to 2017/4
+--     ; generated-transaction:~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every nov 29th from 2017 to 2019"
 -- 2016/11/29
---     ; recur: every nov 29th from 2017 to 2019
+--     ; generated-transaction:~ every nov 29th from 2017 to 2019
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/11/29
---     ; recur: every nov 29th from 2017 to 2019
+--     ; generated-transaction:~ every nov 29th from 2017 to 2019
 --     a           $1.00
 -- <BLANKLINE>
 -- 2018/11/29
---     ; recur: every nov 29th from 2017 to 2019
+--     ; generated-transaction:~ every nov 29th from 2017 to 2019
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "2017/1"
 -- 2017/01/01
---     ; recur: 2017/1
+--     ; generated-transaction:~ 2017/1
 --     a           $1.00
 -- <BLANKLINE>
 --
