@@ -3,8 +3,8 @@ This is hledger.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger(1) hledger 1.14.99
-**************************
+hledger(1) hledger 1.15
+***********************
 
 This is hledger's command-line interface (there are also curses and web
 interfaces).  Its basic function is to read a plain text file describing
@@ -130,9 +130,7 @@ File: hledger.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 * Period expressions::
 * Depth limiting::
 * Pivoting::
-* Cost::
-* Market value::
-* Combining -B -V --value::
+* Valuation::
 * Output destination::
 * Output format::
 * Regular expressions::
@@ -209,7 +207,7 @@ by most hledger commands, run 'hledger -h'.
 '-p --period=PERIODEXP'
 
      set start date, end date, and/or reporting interval all at once
-     using period expressions syntax (overrides the flags above)
+     using period expressions syntax
 '--date2'
 
      match the secondary date instead (see command help for other
@@ -455,16 +453,16 @@ be one of several other formats, listed below.  hledger detects the
 format automatically based on the file extension, or if that is not
 recognised, by trying each built-in "reader" in turn:
 
-Reader:     Reads:                              Used for file extensions:
-----------------------------------------------------------------------------
-'journal'   hledger's journal format, also      '.journal' '.j'
-            some Ledger journals                '.hledger' '.ledger'
-'timeclock' timeclock files (precise time       '.timeclock'
-            logging)
-'timedot'   timedot files (approximate time     '.timedot'
-            logging)
-'csv'       comma-separated values (data        '.csv'
-            interchange)
+Reader:  Reads:                           Used for file extensions:
+---------------------------------------------------------------------------
+'journal'hledger's journal format, also   '.journal' '.j' '.hledger'
+         some Ledger journals             '.ledger'
+'timeclock'timeclock files (precise time  '.timeclock'
+         logging)
+'timedot'timedot files (approximate       '.timedot'
+         time logging)
+'csv'    comma-separated values (data     '.csv'
+         interchange)
 
    If needed (eg to ensure correct error messages when a file has the
 "wrong" extension), you can force a specific reader/format by prepending
@@ -530,9 +528,18 @@ the journal.
    Often you will want to see a shorter time span, such as the current
 month.  You can specify a start and/or end date using '-b/--begin',
 '-e/--end', '-p/--period' or a 'date:' query (described below).  All of
-these accept the smart date syntax.  One important thing to be aware of
-when specifying end dates: as in Ledger, end dates are exclusive, so you
-need to write the date _after_ the last day you want to include.
+these accept the smart date syntax.
+
+   Some notes:
+
+   * As in Ledger, end dates are exclusive, so you need to write the
+     date _after_ the last day you want to include.
+   * As noted in reporting options: among start/end dates specified with
+     _options_, the last (i.e.  right-most) option takes precedence.
+   * The effective report start and end dates are the intersection of
+     the start/end dates from options and that from 'date:' queries.
+     That is, 'date:2019-01 date:2019 -p'2000 to 2030'' yields January
+     2019, the smallest common time span.
 
    Examples:
 
@@ -556,7 +563,7 @@ balance and activity will divide their reports into multiple subperiods.
 The basic intervals can be selected with one of '-D/--daily',
 '-W/--weekly', '-M/--monthly', '-Q/--quarterly', or '-Y/--yearly'.  More
 complex intervals may be specified with a period expression.  Report
-intervals can not be specified with a query, currently.
+intervals can not be specified with a query.
 
 
 File: hledger.info,  Node: Period expressions,  Next: Depth limiting,  Prev: Report intervals,  Up: OPTIONS
@@ -679,7 +686,7 @@ less detail.  This flag has the same effect as a 'depth:' query argument
 (so '-2', '--depth=2' or 'depth:2' are basically equivalent).
 
 
-File: hledger.info,  Node: Pivoting,  Next: Cost,  Prev: Depth limiting,  Up: OPTIONS
+File: hledger.info,  Node: Pivoting,  Next: Valuation,  Prev: Depth limiting,  Up: OPTIONS
 
 2.14 Pivoting
 =============
@@ -736,24 +743,54 @@ $ hledger balance --pivot member acct:.
               -2 EUR
 
 
-File: hledger.info,  Node: Cost,  Next: Market value,  Prev: Pivoting,  Up: OPTIONS
+File: hledger.info,  Node: Valuation,  Next: Output destination,  Prev: Pivoting,  Up: OPTIONS
 
-2.15 Cost
-=========
+2.15 Valuation
+==============
 
-The '-B/--cost' flag converts amounts to their cost at transaction time,
-if they have a transaction price specified.
+* Menu:
+
+* -B Cost::
+* -V Market value::
+* -X Market value in specified commodity::
+* --value::
+* Combining -B -V -X --value::
 
 
-File: hledger.info,  Node: Market value,  Next: Combining -B -V --value,  Prev: Cost,  Up: OPTIONS
+File: hledger.info,  Node: -B Cost,  Next: -V Market value,  Up: Valuation
 
-2.16 Market value
-=================
+2.15.1 -B: Cost
+---------------
+
+The '-B/--cost' flag converts amounts to their cost (or selling price)
+at transaction time, if they have a transaction price specified.  This
+flag is equivalent to '--value=cost', described below.
+
+
+File: hledger.info,  Node: -V Market value,  Next: -X Market value in specified commodity,  Prev: -B Cost,  Up: Valuation
+
+2.15.2 -V: Market value
+-----------------------
 
 The '-V/--market' flag converts reported amounts to their market value
-in another commodity.  It uses the commodity referenced in the latest
-market price (P directive) dated on or before the valuation date.  The
-default valuation date is today.  For example:
+in a default valuation commodity, using the historical market prices in
+effect on a default valuation date.
+
+   For single period reports, the valuation date is today.  For
+multiperiod reports, it is the last day of each subperiod.
+
+   The valuation commodity will be the one referenced in the latest
+applicable market price dated on or before the valuation date.  If most
+of your P declarations lead to a single home currency, this will usually
+be what you want.
+
+   Unlike the similar flag in Ledger, it does not infer market prices
+from transaction prices.  In hledger, -B uses transaction prices, -V and
+-X use market prices.
+
+   It is equivalent to '--value=now' or '--value=end'.
+
+   Here's a quick example:
 
 # one euro is worth this many dollars from nov 1
 P 2016/11/01 € $1.10
@@ -782,55 +819,101 @@ specified, defaults to today)
 $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 
-   Ledger users: Ledger's -V also infers market prices from journal
-entries, but we don't do that.  hledger's -V uses only market prices
-declared explicitly, with P directives.  (Mnemonic: -B/-cost uses
-transaction prices, -V/-market uses market prices.)
+
+File: hledger.info,  Node: -X Market value in specified commodity,  Next: --value,  Prev: -V Market value,  Up: Valuation
 
-* Menu:
+2.15.3 -X: Market value in specified commodity
+----------------------------------------------
 
-* More control over valuation::
-* Effect of --value on reports::
-* Some useful value reports::
+The '-X/--exchange' option is like '-V/--market' except it takes a
+commodity symbol argument, so that you can select a different target
+commodity.  It is similar to the same option in Ledger, with the same
+caveat mentioned for '-V'/'--value' above.  It is equivalent to
+'--value=now,COMM' or '--value=end,COMM'; for more details, read on.
 
 
-File: hledger.info,  Node: More control over valuation,  Next: Effect of --value on reports,  Up: Market value
+File: hledger.info,  Node: --value,  Next: Combining -B -V -X --value,  Prev: -X Market value in specified commodity,  Up: Valuation
 
-2.16.1 More control over valuation
-----------------------------------
+2.15.4 -value
+-------------
 
 _(experimental, added 201905)_
 
-   You can control valuation more precisely with the '--value' option.
+   '-B', '-V' and '-X' are special cases of the more general '--value'
+option:
 
- --value=TYPE   which type of valuation should be done ? cost|end|now|YYYY-MM-DD
+ --value=TYPE[,COMM]  TYPE is cost, end, now or YYYY-MM-DD.
+                      COMM is an optional commodity symbol.
+                      Shows amounts converted to:
+                      - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
+                      - default valuation commodity (or COMM) using market prices at period end(s)
+                      - default valuation commodity (or COMM) using current market prices
+                      - default valuation commodity (or COMM) using market prices at some date
 
-   The argument is one of the keywords shown, or their first letter, or
-a custom date.  The precise effect of the keywords is command-specific,
-but here is their general meaning:
+* Menu:
 
-'--value=cost' (or 'c')
+* Valuation type::
+* Valuation commodity::
+* --value examples::
+* Effect of --value on reports::
+
+
+File: hledger.info,  Node: Valuation type,  Next: Valuation commodity,  Up: --value
+
+2.15.4.1 Valuation type
+.......................
+
+TYPE is one of these keywords, or their first letter, or a date (which
+must be 8 digits with '-' or '/' or '.' separators):
+
+'--value=cost'
 
      Convert amounts to cost, using the prices recorded in transactions.
-     '-B'/'--cost' does this.
-'--value=end' (or 'e')
+     '-B'/'--cost' is equivalent to this.
+'--value=end'
 
      Convert amounts to their value in default valuation commodity using
      market prices on the last day of the report period (or of each
      subperiod in a multiperiod report).  When no report period is
      specified, uses the journal's last transaction date.
-'--value=now' (or 'n')
+'--value=now'
 
      Convert amounts to their value in default valuation commodity using
      current market prices (as of when report is generated).
-     '-V'/'--market' does this.
+     '-V'/'--market' is equivalent to this.
 '--value=YYYY-MM-DD'
 
      Convert amounts to their value in default valuation commodity using
-     market prices on the given date (which must be 8 digits with '-' or
-     '/' or '.' separators).  Eg '--value=2019-04-25'.
+     market prices on this date.  Eg '--value=2019-04-25'.
 
-   Here are the effects of '--value' as seen with 'print':
+
+File: hledger.info,  Node: Valuation commodity,  Next: --value examples,  Prev: Valuation type,  Up: --value
+
+2.15.4.2 Valuation commodity
+............................
+
+The default valuation commodity is the commodity mentioned in the most
+recent applicable market price declaration.  When all your price
+declarations lead to a single home currency, this will usually do what
+you want.
+
+   To select a different valuation commodity: write the commodity symbol
+after the valuation type, separated by a comma (eg:
+*'--value=now,EUR'*).  This will use, in this preferred order:
+
+   * declared prices (from source commodity to valuation commodity)
+   * reverse prices (declared prices from valuation to source commodity,
+     inverted)
+   * indirect prices (prices calculated from the shortest chain of
+     declared or reverse prices from source to valuation commodity).
+
+
+File: hledger.info,  Node: --value examples,  Next: Effect of --value on reports,  Prev: Valuation commodity,  Up: --value
+
+2.15.4.3 -value examples
+........................
+
+Here are the effects of '--value' as seen with 'print':
 
 P 2000-01-01 A  1 B
 P 2000-02-01 A  2 B
@@ -905,11 +988,43 @@ $ hledger -f- print --value=2000-01-15
 2000/03/01
     (a)             1 B
 
-
-File: hledger.info,  Node: Effect of --value on reports,  Next: Some useful value reports,  Prev: More control over valuation,  Up: Market value
+   You may need to explicitly set a commodity's display style, when
+reverse prices are used.  Eg this output might be surprising:
 
-2.16.2 Effect of -value on reports
-----------------------------------
+P 2000-01-01 A 2B
+
+2000-01-01
+  a  1B
+  b
+
+$ hledger print -x -X A
+2000/01/01
+    a               0
+    b               0
+
+   Explanation: because there's no amount or commodity directive
+specifying a display style for A, 0.5A gets the default style, which
+shows no decimal digits.  Because the displayed amount looks like zero,
+the commodity symbol and minus sign are not displayed either.  Adding a
+commodity directive sets a more useful display style for A:
+
+P 2000-01-01 A 2B
+commodity 0.00A
+
+2000-01-01
+  a  1B
+  b
+
+$ hledger print -X A
+2000/01/01
+    a           0.50A
+    b          -0.50A
+
+
+File: hledger.info,  Node: Effect of --value on reports,  Prev: --value examples,  Up: --value
+
+2.15.4.4 Effect of -value on reports
+....................................
 
 Below is how '--value' affects each of hledger's reports, currently.
 You're not expected to remember all this, but when troubleshooting a
@@ -962,33 +1077,17 @@ totals/averagesof the        end of sum/average of      DATE of
               values                                    postings
 
 
-File: hledger.info,  Node: Some useful value reports,  Prev: Effect of --value on reports,  Up: Market value
+File: hledger.info,  Node: Combining -B -V -X --value,  Prev: --value,  Up: Valuation
 
-2.16.3 Some useful value reports
---------------------------------
-
-Here are some probably useful reports - please send suggestions if you
-find out more:
-
-Command:          Description of report:       Could answer:
----------------------------------------------------------------------------
-'hledger bs -M    Monthly historical value     How are my investments
---value=p'        of assets/liabilities        performing ?
-'hledger is -M    Monthly contemporaneous      How much foreign currency
---value=t'        value of revenues/expenses   have I been spending ?
-
-
-File: hledger.info,  Node: Combining -B -V --value,  Next: Output destination,  Prev: Market value,  Up: OPTIONS
-
-2.17 Combining -B, -V, -value
-=============================
+2.15.5 Combining -B, -V, -X, -value
+-----------------------------------
 
 The rightmost of these flags wins.
 
 
-File: hledger.info,  Node: Output destination,  Next: Output format,  Prev: Combining -B -V --value,  Up: OPTIONS
+File: hledger.info,  Node: Output destination,  Next: Output format,  Prev: Valuation,  Up: OPTIONS
 
-2.18 Output destination
+2.16 Output destination
 =======================
 
 Some commands (print, register, stats, the balance commands) can write
@@ -1001,7 +1100,7 @@ $ hledger balance -o FILE  # write to FILE
 
 File: hledger.info,  Node: Output format,  Next: Regular expressions,  Prev: Output destination,  Up: OPTIONS
 
-2.19 Output format
+2.17 Output format
 ==================
 
 Some commands can write their output in other formats.  Eg print and
@@ -1015,7 +1114,7 @@ $ hledger balance -o FILE.csv  # write CSV to FILE.csv
 
 File: hledger.info,  Node: Regular expressions,  Prev: Output format,  Up: OPTIONS
 
-2.20 Regular expressions
+2.18 Regular expressions
 ========================
 
 hledger uses regular expressions in a number of places:
@@ -1327,6 +1426,10 @@ Save this transaction to the journal ? [y]:
 Saved.
 Starting the next transaction (. or ctrl-D/ctrl-C to quit)
 Date [2015/05/22]: <CTRL-D> $
+
+   On Microsoft Windows, the add command makes sure that no part of the
+file path ends with a period, as it can cause data loss on that platform
+(cf #1056).
 
 
 File: hledger.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMMANDS
@@ -2055,6 +2158,10 @@ balance assertions will depend on these flags.  Likewise, if you run
 this command with -auto, the balance assertions will probably always
 require -auto.
 
+   When account balances have cost information (transaction prices), the
+closing/opening transactions will preserve it, so that eg balance -B
+reports will not be affected.
+
    Examples:
 
    Carrying asset/liability balances into a new file for 2019, all from
@@ -2713,6 +2820,7 @@ Transactions last 7 days : 0 (0.0 per day)
 Payees/descriptions      : 5
 Accounts                 : 8 (depth 3)
 Commodities              : 1 ($)
+Market prices            : 12 ($)
 
    This command also supports output destination and output format
 selection.
@@ -2727,7 +2835,8 @@ tags
 List all the tag names used in the journal.  With a TAGREGEX argument,
 only tag names matching the regular expression (case insensitive) are
 shown.  With QUERY arguments, only transactions matching the query are
-considered.
+considered.  With -values flag, the tags' unique values are listed
+instead.
 
 
 File: hledger.info,  Node: test,  Prev: tags,  Up: COMMANDS
@@ -2931,168 +3040,176 @@ hledger-check.hs checks more powerful account balance assertions.
 
 Tag Table:
 Node: Top68
-Node: EXAMPLES1891
-Ref: #examples1991
-Node: OPTIONS3637
-Ref: #options3739
-Node: General options4178
-Ref: #general-options4303
-Node: Command options6985
-Ref: #command-options7136
-Node: Command arguments7534
-Ref: #command-arguments7688
-Node: Argument files7809
-Ref: #argument-files7985
-Node: Special characters in arguments and queries8251
-Ref: #special-characters-in-arguments-and-queries8485
-Node: More escaping8936
-Ref: #more-escaping9098
-Node: Even more escaping9394
-Ref: #even-more-escaping9588
-Node: Less escaping10259
-Ref: #less-escaping10421
-Node: Command line tips10666
-Ref: #command-line-tips10852
-Node: Unicode characters11229
-Ref: #unicode-characters11385
-Node: Input files12797
-Ref: #input-files12933
-Node: Smart dates14903
-Ref: #smart-dates15044
-Node: Report start & end date16450
-Ref: #report-start-end-date16622
-Node: Report intervals17688
-Ref: #report-intervals17853
-Node: Period expressions18254
-Ref: #period-expressions18414
-Node: Depth limiting22371
-Ref: #depth-limiting22515
-Node: Pivoting22857
-Ref: #pivoting22975
-Node: Cost24651
-Ref: #cost24759
-Node: Market value24877
-Ref: #market-value25016
-Node: More control over valuation26257
-Ref: #more-control-over-valuation26442
-Node: Effect of --value on reports28897
-Ref: #effect-of---value-on-reports29116
-Node: Some useful value reports31807
-Ref: #some-useful-value-reports31986
-Node: Combining -B -V --value32484
-Ref: #combining--b--v---value32661
-Node: Output destination32697
-Ref: #output-destination32863
-Node: Output format33146
-Ref: #output-format33298
-Node: Regular expressions33683
-Ref: #regular-expressions33820
-Node: QUERIES35181
-Ref: #queries35283
-Node: COMMANDS39245
-Ref: #commands39357
-Node: accounts40358
-Ref: #accounts40456
-Node: activity41155
-Ref: #activity41265
-Node: add41648
-Ref: #add41747
-Node: balance44334
-Ref: #balance44445
-Node: Classic balance report45887
-Ref: #classic-balance-report46060
-Node: Customising the classic balance report47429
-Ref: #customising-the-classic-balance-report47657
-Node: Colour support49733
-Ref: #colour-support49900
-Node: Flat mode50073
-Ref: #flat-mode50221
-Node: Depth limited balance reports50634
-Ref: #depth-limited-balance-reports50834
-Node: Multicolumn balance report51290
-Ref: #multicolumn-balance-report51488
-Node: Budget report56802
-Ref: #budget-report56945
-Node: Nested budgets62147
-Ref: #nested-budgets62259
-Ref: #output-format-165739
-Node: balancesheet65817
-Ref: #balancesheet65953
-Node: balancesheetequity67268
-Ref: #balancesheetequity67417
-Node: cashflow67978
-Ref: #cashflow68106
-Node: check-dates69134
-Ref: #check-dates69261
-Node: check-dupes69540
-Ref: #check-dupes69664
-Node: close69957
-Ref: #close70065
-Node: files73479
-Ref: #files73580
-Node: help73727
-Ref: #help73827
-Node: import74920
-Ref: #import75034
-Node: Importing balance assignments75822
-Ref: #importing-balance-assignments75970
-Node: incomestatement76619
-Ref: #incomestatement76753
-Node: prices78089
-Ref: #prices78204
-Node: print78483
-Ref: #print78593
-Node: print-unique83086
-Ref: #print-unique83212
-Node: register83497
-Ref: #register83624
-Node: Custom register output87796
-Ref: #custom-register-output87925
-Node: register-match89187
-Ref: #register-match89321
-Node: rewrite89672
-Ref: #rewrite89787
-Node: Re-write rules in a file91642
-Ref: #re-write-rules-in-a-file91776
-Node: Diff output format92986
-Ref: #diff-output-format93155
-Node: rewrite vs print --auto94247
-Ref: #rewrite-vs.-print---auto94426
-Node: roi94982
-Ref: #roi95080
-Node: stats96092
-Ref: #stats96191
-Node: tags96945
-Ref: #tags97043
-Node: test97273
-Ref: #test97357
-Node: ADD-ON COMMANDS98118
-Ref: #add-on-commands98228
-Node: Official add-ons99516
-Ref: #official-add-ons99656
-Node: api99744
-Ref: #api99833
-Node: ui99885
-Ref: #ui99984
-Node: web100042
-Ref: #web100131
-Node: Third party add-ons100177
-Ref: #third-party-add-ons100352
-Node: diff100488
-Ref: #diff100585
-Node: iadd100684
-Ref: #iadd100798
-Node: interest100881
-Ref: #interest101002
-Node: irr101097
-Ref: #irr101195
-Node: Experimental add-ons101326
-Ref: #experimental-add-ons101478
-Node: autosync101759
-Ref: #autosync101870
-Node: chart102109
-Ref: #chart102228
-Node: check102299
-Ref: #check102401
+Node: EXAMPLES1885
+Ref: #examples1985
+Node: OPTIONS3631
+Ref: #options3733
+Node: General options4132
+Ref: #general-options4257
+Node: Command options6911
+Ref: #command-options7062
+Node: Command arguments7460
+Ref: #command-arguments7614
+Node: Argument files7735
+Ref: #argument-files7911
+Node: Special characters in arguments and queries8177
+Ref: #special-characters-in-arguments-and-queries8411
+Node: More escaping8862
+Ref: #more-escaping9024
+Node: Even more escaping9320
+Ref: #even-more-escaping9514
+Node: Less escaping10185
+Ref: #less-escaping10347
+Node: Command line tips10592
+Ref: #command-line-tips10778
+Node: Unicode characters11155
+Ref: #unicode-characters11311
+Node: Input files12723
+Ref: #input-files12859
+Node: Smart dates14788
+Ref: #smart-dates14929
+Node: Report start & end date16335
+Ref: #report-start-end-date16507
+Node: Report intervals17931
+Ref: #report-intervals18096
+Node: Period expressions18486
+Ref: #period-expressions18646
+Node: Depth limiting22603
+Ref: #depth-limiting22747
+Node: Pivoting23089
+Ref: #pivoting23212
+Node: Valuation24888
+Ref: #valuation25017
+Node: -B Cost25145
+Ref: #b-cost25256
+Node: -V Market value25454
+Ref: #v-market-value25628
+Node: -X Market value in specified commodity27034
+Ref: #x-market-value-in-specified-commodity27254
+Node: --value27594
+Ref: #value27759
+Node: Valuation type28560
+Ref: #valuation-type28696
+Node: Valuation commodity29581
+Ref: #valuation-commodity29752
+Node: --value examples30452
+Ref: #value-examples30629
+Node: Effect of --value on reports32612
+Ref: #effect-of---value-on-reports32785
+Node: Combining -B -V -X --value35476
+Ref: #combining--b--v--x---value35638
+Node: Output destination35674
+Ref: #output-destination35826
+Node: Output format36109
+Ref: #output-format36261
+Node: Regular expressions36646
+Ref: #regular-expressions36783
+Node: QUERIES38144
+Ref: #queries38246
+Node: COMMANDS42208
+Ref: #commands42320
+Node: accounts43321
+Ref: #accounts43419
+Node: activity44118
+Ref: #activity44228
+Node: add44611
+Ref: #add44710
+Node: balance47455
+Ref: #balance47566
+Node: Classic balance report49008
+Ref: #classic-balance-report49181
+Node: Customising the classic balance report50550
+Ref: #customising-the-classic-balance-report50778
+Node: Colour support52854
+Ref: #colour-support53021
+Node: Flat mode53194
+Ref: #flat-mode53342
+Node: Depth limited balance reports53755
+Ref: #depth-limited-balance-reports53955
+Node: Multicolumn balance report54411
+Ref: #multicolumn-balance-report54609
+Node: Budget report59923
+Ref: #budget-report60066
+Node: Nested budgets65268
+Ref: #nested-budgets65380
+Ref: #output-format-168860
+Node: balancesheet68938
+Ref: #balancesheet69074
+Node: balancesheetequity70389
+Ref: #balancesheetequity70538
+Node: cashflow71099
+Ref: #cashflow71227
+Node: check-dates72255
+Ref: #check-dates72382
+Node: check-dupes72661
+Ref: #check-dupes72785
+Node: close73078
+Ref: #close73186
+Node: files76773
+Ref: #files76874
+Node: help77021
+Ref: #help77121
+Node: import78214
+Ref: #import78328
+Node: Importing balance assignments79116
+Ref: #importing-balance-assignments79264
+Node: incomestatement79913
+Ref: #incomestatement80047
+Node: prices81383
+Ref: #prices81498
+Node: print81777
+Ref: #print81887
+Node: print-unique86380
+Ref: #print-unique86506
+Node: register86791
+Ref: #register86918
+Node: Custom register output91090
+Ref: #custom-register-output91219
+Node: register-match92481
+Ref: #register-match92615
+Node: rewrite92966
+Ref: #rewrite93081
+Node: Re-write rules in a file94936
+Ref: #re-write-rules-in-a-file95070
+Node: Diff output format96280
+Ref: #diff-output-format96449
+Node: rewrite vs print --auto97541
+Ref: #rewrite-vs.-print---auto97720
+Node: roi98276
+Ref: #roi98374
+Node: stats99386
+Ref: #stats99485
+Node: tags100273
+Ref: #tags100371
+Node: test100665
+Ref: #test100749
+Node: ADD-ON COMMANDS101510
+Ref: #add-on-commands101620
+Node: Official add-ons102908
+Ref: #official-add-ons103048
+Node: api103136
+Ref: #api103225
+Node: ui103277
+Ref: #ui103376
+Node: web103434
+Ref: #web103523
+Node: Third party add-ons103569
+Ref: #third-party-add-ons103744
+Node: diff103880
+Ref: #diff103977
+Node: iadd104076
+Ref: #iadd104190
+Node: interest104273
+Ref: #interest104394
+Node: irr104489
+Ref: #irr104587
+Node: Experimental add-ons104718
+Ref: #experimental-add-ons104870
+Node: autosync105151
+Ref: #autosync105262
+Node: chart105501
+Ref: #chart105620
+Node: check105691
+Ref: #check105793
 
 End Tag Table

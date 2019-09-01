@@ -1,5 +1,5 @@
 
-.TH "hledger_csv" "5" "March 2019" "hledger 1.14.99" "hledger User Manuals"
+.TH "hledger_csv" "5" "August 2019" "hledger 1.15" "hledger User Manuals"
 
 
 
@@ -186,6 +186,9 @@ comment note: %somefield - %anotherfield, date: %1
 .fi
 .PP
 Field assignments can be used instead of or in addition to a field list.
+.PP
+Note, interpolation strips any outer whitespace, so a CSV value like
+\f[C]\[dq] 1 \[dq]\f[R] becomes \f[C]1\f[R] when interpolated (#1051).
 .SS conditional block
 .PP
 \f[C]if\f[R] \f[I]\f[CI]PATTERN\f[I]\f[R]
@@ -332,6 +335,18 @@ arguments on the command line, and hledger will look for a
 correspondingly-named rules file for each.
 Note if you use the \f[C]--rules-file\f[R] option, this one rules file
 will be used for all the CSV files being read.
+.SS Valid CSV
+.PP
+hledger follows RFC 4180, with the addition of a customisable separator
+character.
+.PP
+Some things to note:
+.PP
+When quoting fields,
+.IP \[bu] 2
+you must use double quotes, not single quotes
+.IP \[bu] 2
+spaces outside the quotes are not allowed.
 
 
 .SH "REPORTING BUGS"

@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "March 2019" "hledger 1.14.99" "hledger User Manuals"
+.TH "hledger" "1" "August 2019" "hledger 1.15" "hledger User Manuals"
 
 
 
@@ -218,7 +218,7 @@ multiperiod/multicolumn report by year
 .TP
 .B \f[C]-p --period=PERIODEXP\f[R]
 set start date, end date, and/or reporting interval all at once using
-period expressions syntax (overrides the flags above)
+period expressions syntax
 .TP
 .B \f[C]--date2\f[R]
 match the secondary date instead (see command help for other effects)
@@ -455,7 +455,7 @@ turn:
 .PP
 .TS
 tab(@);
-lw(10.3n) lw(33.5n) lw(26.2n).
+lw(7.6n) lw(31.2n) lw(31.2n).
 T{
 Reader:
 T}@T{
@@ -622,9 +622,20 @@ You can specify a start and/or end date using \f[C]-b/--begin\f[R],
 \f[C]-e/--end\f[R], \f[C]-p/--period\f[R] or a \f[C]date:\f[R] query
 (described below).
 All of these accept the smart date syntax.
-One important thing to be aware of when specifying end dates: as in
-Ledger, end dates are exclusive, so you need to write the date
+.PP
+Some notes:
+.IP \[bu] 2
+As in Ledger, end dates are exclusive, so you need to write the date
 \f[I]after\f[R] the last day you want to include.
+.IP \[bu] 2
+As noted in reporting options: among start/end dates specified with
+\f[I]options\f[R], the last (i.e.
+right-most) option takes precedence.
+.IP \[bu] 2
+The effective report start and end dates are the intersection of the
+start/end dates from options and that from \f[C]date:\f[R] queries.
+That is, \f[C]date:2019-01 date:2019 -p\[aq]2000 to 2030\[aq]\f[R]
+yields January 2019, the smallest common time span.
 .PP
 Examples:
 .PP
@@ -679,7 +690,7 @@ The basic intervals can be selected with one of \f[C]-D/--daily\f[R],
 \f[C]-W/--weekly\f[R], \f[C]-M/--monthly\f[R], \f[C]-Q/--quarterly\f[R],
 or \f[C]-Y/--yearly\f[R].
 More complex intervals may be specified with a period expression.
-Report intervals can not be specified with a query, currently.
+Report intervals can not be specified with a query.
 .SS Period expressions
 .PP
 The \f[C]-p/--period\f[R] option accepts period expressions, a shorthand
@@ -993,18 +1004,33 @@ $ hledger balance --pivot member acct:.
               -2 EUR
 \f[R]
 .fi
-.SS Cost
+.SS Valuation
+.SS -B: Cost
 .PP
-The \f[C]-B/--cost\f[R] flag converts amounts to their cost at
-transaction time, if they have a transaction price specified.
-.SS Market value
+The \f[C]-B/--cost\f[R] flag converts amounts to their cost (or selling
+price) at transaction time, if they have a transaction price specified.
+This flag is equivalent to \f[C]--value=cost\f[R], described below.
+.SS -V: Market value
 .PP
 The \f[C]-V/--market\f[R] flag converts reported amounts to their market
-value in another commodity.
-It uses the commodity referenced in the latest market price (P
-directive) dated on or before the valuation date.
-The default valuation date is today.
-For example:
+value in a default valuation commodity, using the historical market
+prices in effect on a default valuation date.
+.PP
+For single period reports, the valuation date is today.
+For multiperiod reports, it is the last day of each subperiod.
+.PP
+The valuation commodity will be the one referenced in the latest
+applicable market price dated on or before the valuation date.
+If most of your P declarations lead to a single home currency, this will
+usually be what you want.
+.PP
+Unlike the similar flag in Ledger, it does not infer market prices from
+transaction prices.
+In hledger, -B uses transaction prices, -V and -X use market prices.
+.PP
+It is equivalent to \f[C]--value=now\f[R] or \f[C]--value=end\f[R].
+.PP
+Here\[aq]s a quick example:
 .IP
 .nf
 \f[C]
@@ -1048,52 +1074,79 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 \f[R]
 .fi
+.SS -X: Market value in specified commodity
 .PP
-Ledger users: Ledger\[aq]s -V also infers market prices from journal
-entries, but we don\[aq]t do that.
-hledger\[aq]s -V uses only market prices declared explicitly, with P
-directives.
-(Mnemonic: -B/--cost uses transaction prices, -V/--market uses market
-prices.)
-.SS More control over valuation
+The \f[C]-X/--exchange\f[R] option is like \f[C]-V/--market\f[R] except
+it takes a commodity symbol argument, so that you can select a different
+target commodity.
+It is similar to the same option in Ledger, with the same caveat
+mentioned for \f[C]-V\f[R]/\f[C]--value\f[R] above.
+It is equivalent to \f[C]--value=now,COMM\f[R] or
+\f[C]--value=end,COMM\f[R]; for more details, read on.
+.SS --value
 .PP
 \f[I](experimental, added 201905)\f[R]
 .PP
-You can control valuation more precisely with the \f[C]--value\f[R]
-option.
+\f[C]-B\f[R], \f[C]-V\f[R] and \f[C]-X\f[R] are special cases of the
+more general \f[C]--value\f[R] option:
 .IP
 .nf
 \f[C]
- --value=TYPE   which type of valuation should be done ? cost|end|now|YYYY-MM-DD
+ --value=TYPE[,COMM]  TYPE is cost, end, now or YYYY-MM-DD.
+                      COMM is an optional commodity symbol.
+                      Shows amounts converted to:
+                      - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
+                      - default valuation commodity (or COMM) using market prices at period end(s)
+                      - default valuation commodity (or COMM) using current market prices
+                      - default valuation commodity (or COMM) using market prices at some date
 \f[R]
 .fi
+.SS Valuation type
 .PP
-The argument is one of the keywords shown, or their first letter, or a
-custom date.
-The precise effect of the keywords is command-specific, but here is
-their general meaning:
+TYPE is one of these keywords, or their first letter, or a date (which
+must be 8 digits with \f[C]-\f[R] or \f[C]/\f[R] or \f[C].\f[R]
+separators):
 .TP
-.B \f[C]--value=cost\f[R] (or \f[C]c\f[R])
+.B \f[C]--value=cost\f[R]
 Convert amounts to cost, using the prices recorded in transactions.
-\f[C]-B\f[R]/\f[C]--cost\f[R] does this.
+\f[C]-B\f[R]/\f[C]--cost\f[R] is equivalent to this.
 .TP
-.B \f[C]--value=end\f[R] (or \f[C]e\f[R])
+.B \f[C]--value=end\f[R]
 Convert amounts to their value in default valuation commodity using
 market prices on the last day of the report period (or of each subperiod
 in a multiperiod report).
 When no report period is specified, uses the journal\[aq]s last
 transaction date.
 .TP
-.B \f[C]--value=now\f[R] (or \f[C]n\f[R])
+.B \f[C]--value=now\f[R]
 Convert amounts to their value in default valuation commodity using
 current market prices (as of when report is generated).
-\f[C]-V\f[R]/\f[C]--market\f[R] does this.
+\f[C]-V\f[R]/\f[C]--market\f[R] is equivalent to this.
 .TP
 .B \f[C]--value=YYYY-MM-DD\f[R]
 Convert amounts to their value in default valuation commodity using
-market prices on the given date (which must be 8 digits with \f[C]-\f[R]
-or \f[C]/\f[R] or \f[C].\f[R] separators).
+market prices on this date.
 Eg \f[C]--value=2019-04-25\f[R].
+.SS Valuation commodity
+.PP
+The default valuation commodity is the commodity mentioned in the most
+recent applicable market price declaration.
+When all your price declarations lead to a single home currency, this
+will usually do what you want.
+.PP
+To select a different valuation commodity: write the commodity symbol
+after the valuation type, separated by a comma (eg:
+\f[B]\f[CB]--value=now,EUR\f[B]\f[R]).
+This will use, in this preferred order:
+.IP \[bu] 2
+declared prices (from source commodity to valuation commodity)
+.IP \[bu] 2
+reverse prices (declared prices from valuation to source commodity,
+inverted)
+.IP \[bu] 2
+indirect prices (prices calculated from the shortest chain of declared
+or reverse prices from source to valuation commodity).
+.SS --value examples
 .PP
 Here are the effects of \f[C]--value\f[R] as seen with \f[C]print\f[R]:
 .IP
@@ -1190,6 +1243,56 @@ $ hledger -f- print --value=2000-01-15
 
 2000/03/01
     (a)             1 B
+\f[R]
+.fi
+.PP
+You may need to explicitly set a commodity\[aq]s display style, when
+reverse prices are used.
+Eg this output might be surprising:
+.IP
+.nf
+\f[C]
+P 2000-01-01 A 2B
+
+2000-01-01
+  a  1B
+  b
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print -x -X A
+2000/01/01
+    a               0
+    b               0
+\f[R]
+.fi
+.PP
+Explanation: because there\[aq]s no amount or commodity directive
+specifying a display style for A, 0.5A gets the default style, which
+shows no decimal digits.
+Because the displayed amount looks like zero, the commodity symbol and
+minus sign are not displayed either.
+Adding a commodity directive sets a more useful display style for A:
+.IP
+.nf
+\f[C]
+P 2000-01-01 A 2B
+commodity 0.00A
+
+2000-01-01
+  a  1B
+  b
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger print -X A
+2000/01/01
+    a           0.50A
+    b          -0.50A
 \f[R]
 .fi
 .SS Effect of --value on reports
@@ -1333,38 +1436,7 @@ T}@T{
 market value at DATE of sum/average of postings
 T}
 .TE
-.SS Some useful value reports
-.PP
-Here are some probably useful reports - please send suggestions if you
-find out more:
-.PP
-.TS
-tab(@);
-lw(15.9n) lw(27.6n) lw(26.5n).
-T{
-Command:
-T}@T{
-Description of report:
-T}@T{
-Could answer:
-T}
-_
-T{
-\f[C]hledger bs -M --value=p\f[R]
-T}@T{
-Monthly historical value of assets/liabilities
-T}@T{
-How are my investments performing ?
-T}
-T{
-\f[C]hledger is -M --value=t\f[R]
-T}@T{
-Monthly contemporaneous value of revenues/expenses
-T}@T{
-How much foreign currency have I been spending ?
-T}
-.TE
-.SS Combining -B, -V, --value
+.SS Combining -B, -V, -X, --value
 .PP
 The rightmost of these flags wins.
 .SS Output destination
@@ -1708,6 +1780,10 @@ Starting the next transaction (. or ctrl-D/ctrl-C to quit)
 Date [2015/05/22]: <CTRL-D> $
 \f[R]
 .fi
+.PP
+On Microsoft Windows, the add command makes sure that no part of the
+file path ends with a period, as it can cause data loss on that platform
+(cf #1056).
 .SS balance
 .PP
 balance, bal, b
@@ -2497,6 +2573,10 @@ assertions will depend on these flags.
 Likewise, if you run this command with --auto, the balance assertions
 will probably always require --auto.
 .PP
+When account balances have cost information (transaction prices), the
+closing/opening transactions will preserve it, so that eg balance -B
+reports will not be affected.
+.PP
 Examples:
 .PP
 Carrying asset/liability balances into a new file for 2019, all from
@@ -3256,6 +3336,7 @@ Transactions last 7 days : 0 (0.0 per day)
 Payees/descriptions      : 5
 Accounts                 : 8 (depth 3)
 Commodities              : 1 ($)
+Market prices            : 12 ($)
 \f[R]
 .fi
 .PP
@@ -3272,6 +3353,7 @@ With a TAGREGEX argument, only tag names matching the regular expression
 (case insensitive) are shown.
 With QUERY arguments, only transactions matching the query are
 considered.
+With --values flag, the tags\[aq] unique values are listed instead.
 .SS test
 .PP
 test

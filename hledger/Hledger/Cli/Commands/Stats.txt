@@ -20,6 +20,7 @@ Transactions last 7 days : 0 (0.0 per day)
 Payees/descriptions      : 5
 Accounts                 : 8 (depth 3)
 Commodities              : 1 ($)
+Market prices            : 12 ($)
 
 This command also supports output destination and output format
 selection.

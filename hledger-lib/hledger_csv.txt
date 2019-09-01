@@ -134,6 +134,9 @@ CSV RULES
        Field assignments can be used instead of or  in  addition  to  a  field
        list.
 
+       Note,  interpolation strips any outer whitespace, so a CSV value like "
+       1 " becomes 1 when interpolated (#1051).
+
    conditional block
        if PATTERN
            FIELDASSIGNMENTS...
@@ -143,12 +146,12 @@ CSV RULES
        PATTERN...
            FIELDASSIGNMENTS...
 
-       This  applies  one or more field assignments, only to those CSV records
+       This applies one or more field assignments, only to those  CSV  records
        matched by one of the PATTERNs.  The patterns are case-insensitive reg-
        ular expressions which match anywhere within the whole CSV record (it's
-       not yet possible to match within a specific  field).   When  there  are
-       multiple  patterns  they  can be written on separate lines, unindented.
-       The field assignments are on separate lines indented by  at  least  one
+       not  yet  possible  to  match within a specific field).  When there are
+       multiple patterns they can be written on  separate  lines,  unindented.
+       The  field  assignments  are on separate lines indented by at least one
        space.  Examples:
 
               # if the CSV record contains "groceries", set account2 to "expenses:groceries"
@@ -175,33 +178,33 @@ CSV RULES
    newest-first
        newest-first
 
-       Consider  adding  this rule if all of the following are true: you might
-       be processing just one day of data, your CSV  records  are  in  reverse
-       chronological  order  (newest first), and you care about preserving the
-       order of same-day  transactions.   It  usually  isn't  needed,  because
-       hledger  autodetects  the  CSV order, but when all CSV records have the
+       Consider adding this rule if all of the following are true:  you  might
+       be  processing  just  one  day of data, your CSV records are in reverse
+       chronological order (newest first), and you care about  preserving  the
+       order  of  same-day  transactions.   It  usually  isn't needed, because
+       hledger autodetects the CSV order, but when all CSV  records  have  the
        same date it will assume they are oldest first.
 
 CSV TIPS
    CSV ordering
-       The generated journal entries will be sorted by  date.   The  order  of
-       same-day  entries  will  be preserved (except in the special case where
+       The  generated  journal  entries  will be sorted by date.  The order of
+       same-day entries will be preserved (except in the  special  case  where
        you might need newest-first, see above).
 
    CSV accounts
-       Each journal entry will have two postings,  to  account1  and  account2
+       Each  journal  entry  will  have two postings, to account1 and account2
        respectively.  It's not yet possible to generate entries with more than
-       two postings.  It's conventional and recommended to  use  account1  for
+       two  postings.   It's  conventional and recommended to use account1 for
        the account whose CSV we are reading.
 
    CSV amounts
        A transaction amount must be set, in one of these ways:
 
-       o with  an  amount  field  assignment,  which  sets the first posting's
+       o with an amount field  assignment,  which  sets  the  first  posting's
          amount
 
        o (When the CSV has debit and credit amounts in separate fields:)
-       with field assignments for the amount-in and amount-out  pseudo  fields
+       with  field  assignments for the amount-in and amount-out pseudo fields
        (both of them).  Whichever one has a value will be used, with appropri-
        ate sign.  If both contain a value, it might not work so well.
 
@@ -209,32 +212,44 @@ CSV TIPS
 
        There is some special handling for sign in amounts:
 
-       o If an amount value is parenthesised, it will be de-parenthesised  and
+       o If  an amount value is parenthesised, it will be de-parenthesised and
          sign-flipped.
 
        o If an amount value begins with a double minus sign, those will cancel
          out and be removed.
 
-       If the currency/commodity symbol is provided as a separate  CSV  field,
+       If  the  currency/commodity symbol is provided as a separate CSV field,
        assign it to the currency pseudo field; the symbol will be prepended to
-       the amount (TODO: when there is an amount).  Or, you can use an  amount
+       the  amount (TODO: when there is an amount).  Or, you can use an amount
        field assignment for more control, eg:
 
               fields date,description,currency,amount
               amount %amount %currency
 
    CSV balance assertions/assignments
-       If  the  CSV  includes a running balance, you can assign that to one of
-       the pseudo fields balance (or balance1) or balance2.  This will  gener-
-       ate  a  balance  assertion  (or  if the amount is left empty, a balance
-       assignment), on the first or second posting, whenever the running  bal-
+       If the CSV includes a running balance, you can assign that  to  one  of
+       the  pseudo fields balance (or balance1) or balance2.  This will gener-
+       ate a balance assertion (or if the amount  is  left  empty,  a  balance
+       assignment),  on the first or second posting, whenever the running bal-
        ance field is non-empty.  (TODO: #1000)
 
    Reading multiple CSV files
-       You  can read multiple CSV files at once using multiple -f arguments on
-       the command line, and hledger will  look  for  a  correspondingly-named
+       You can read multiple CSV files at once using multiple -f arguments  on
+       the  command  line,  and  hledger will look for a correspondingly-named
        rules file for each.  Note if you use the --rules-file option, this one
        rules file will be used for all the CSV files being read.
+
+   Valid CSV
+       hledger follows RFC 4180, with the addition of a customisable separator
+       character.
+
+       Some things to note:
+
+       When quoting fields,
+
+       o you must use double quotes, not single quotes
+
+       o spaces outside the quotes are not allowed.
 
 
 
@@ -261,4 +276,4 @@ SEE ALSO
 
 
 
-hledger 1.14.99                   March 2019                    hledger_csv(5)
+hledger 1.15                      August 2019                   hledger_csv(5)

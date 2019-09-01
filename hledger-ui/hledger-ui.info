@@ -3,8 +3,8 @@ This is hledger-ui.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.14.99
-********************************
+hledger-ui(1) hledger-ui 1.15
+*****************************
 
 hledger-ui is hledger's curses-style interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
@@ -117,7 +117,7 @@ the data.
 '-p --period=PERIODEXP'
 
      set start date, end date, and/or reporting interval all at once
-     using period expressions syntax (overrides the flags above)
+     using period expressions syntax
 '--date2'
 
      match the secondary date instead (see command help for other
@@ -399,19 +399,19 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top71
-Node: OPTIONS1107
-Ref: #options1204
-Node: KEYS4623
-Ref: #keys4718
-Node: SCREENS7974
-Ref: #screens8059
-Node: Accounts screen8149
-Ref: #accounts-screen8277
-Node: Register screen10493
-Ref: #register-screen10648
-Node: Transaction screen12644
-Ref: #transaction-screen12802
-Node: Error screen13672
-Ref: #error-screen13794
+Node: OPTIONS1101
+Ref: #options1198
+Node: KEYS4589
+Ref: #keys4684
+Node: SCREENS7940
+Ref: #screens8025
+Node: Accounts screen8115
+Ref: #accounts-screen8243
+Node: Register screen10459
+Ref: #register-screen10614
+Node: Transaction screen12610
+Ref: #transaction-screen12768
+Node: Error screen13638
+Ref: #error-screen13760
 
 End Tag Table

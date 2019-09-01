@@ -1,5 +1,5 @@
 
-.TH "hledger-web" "1" "March 2019" "hledger-web 1.14.99" "hledger User Manuals"
+.TH "hledger-web" "1" "August 2019" "hledger-web 1.15" "hledger User Manuals"
 
 
 
@@ -53,6 +53,10 @@ Note: if invoking hledger-web as a hledger subcommand, write
 .TP
 .B \f[C]--serve\f[R]
 serve and log requests, don\[aq]t browse or auto-exit
+.TP
+.B \f[C]--serve-api\f[R]
+like --serve, but serve only the JSON web API, without the server-side
+web UI
 .TP
 .B \f[C]--host=IPADDR\f[R]
 listen on this IP address (default: 127.0.0.1)
@@ -128,7 +132,7 @@ multiperiod/multicolumn report by year
 .TP
 .B \f[C]-p --period=PERIODEXP\f[R]
 set start date, end date, and/or reporting interval all at once using
-period expressions syntax (overrides the flags above)
+period expressions syntax
 .TP
 .B \f[C]--date2\f[R]
 match the secondary date instead (see command help for other effects)
@@ -194,6 +198,8 @@ open in a browser window, and will exit after two minutes of inactivity
 (no requests and no browser windows viewing it).
 With \f[C]--serve\f[R], it just runs the web app without exiting, and
 logs requests to the console.
+With \f[C]--serve-api\f[R], only the JSON web api (see below) is served,
+with the usual HTML server-side web UI disabled.
 .PP
 By default the server listens on IP address 127.0.0.1, accessible only
 to local requests.
@@ -276,6 +282,9 @@ edit it directly, outside of hledger-web), and it will show the new data
 when you reload the page or navigate to a new page.
 If a change makes a file unparseable, hledger-web will display an error
 message until the file has been fixed.
+.PP
+(Note: if you are viewing files mounted from another machine, make sure
+that both machine clocks are roughly in step.)
 .SH JSON API
 .PP
 In addition to the web UI, hledger-web provides some API routes that
@@ -329,6 +338,10 @@ And here\[aq]s how to test adding that with curl:
 $ curl -s http://127.0.0.1:5000/add -X PUT -H \[aq]Content-Type: application/json\[aq] --data-binary \[at]txn.pretty.json; echo
 \f[R]
 .fi
+.PP
+By default, both the server-side HTML UI and the JSON API are served.
+Running with \f[C]--serve-api\f[R] disables the former, useful if you
+only want to serve the API.
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[R] The journal file path when not specified with

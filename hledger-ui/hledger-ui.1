@@ -1,5 +1,5 @@
 
-.TH "hledger-ui" "1" "March 2019" "hledger-ui 1.14.99" "hledger User Manuals"
+.TH "hledger-ui" "1" "August 2019" "hledger-ui 1.15" "hledger User Manuals"
 
 
 
@@ -118,7 +118,7 @@ multiperiod/multicolumn report by year
 .TP
 .B \f[C]-p --period=PERIODEXP\f[R]
 set start date, end date, and/or reporting interval all at once using
-period expressions syntax (overrides the flags above)
+period expressions syntax
 .TP
 .B \f[C]--date2\f[R]
 match the secondary date instead (see command help for other effects)
@@ -426,6 +426,9 @@ Symptoms include: unresponsive UI, periodic resetting of the cursor
 position, momentary display of parse errors, high CPU usage eventually
 subsiding, and possibly a small but persistent build-up of CPU usage
 until the program is restarted.
+.PP
+Also, if you are viewing files mounted from another machine,
+\f[C]--watch\f[R] requires that both machine clocks are roughly in step.
 
 
 .SH "REPORTING BUGS"

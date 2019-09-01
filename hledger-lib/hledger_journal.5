@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "March 2019" "hledger 1.14.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "August 2019" "hledger 1.15" "hledger User Manuals"
 
 
 
@@ -314,11 +314,12 @@ can be used for whatever you wish, or left blank.
 Transaction descriptions can be queried, unlike comments.
 .SS Payee and note
 .PP
-You can optionally include a \f[C]|\f[R] (pipe) character in a
-description to subdivide it into a payee/payer name on the left and
-additional notes on the right.
+You can optionally include a \f[C]|\f[R] (pipe) character in
+descriptions to subdivide the description into separate fields for
+payee/payer name on the left (up to the first \f[C]|\f[R]) and an
+additional note field on the right (after the first \f[C]|\f[R]).
 This may be worthwhile if you need to do more precise querying and
-pivoting by payee.
+pivoting by payee or by note.
 .SS Account names
 .PP
 Account names typically have several parts separated by a full colon,
@@ -727,7 +728,7 @@ Write the price per unit, as \f[C]\[at] UNITPRICE\f[R] after the amount:
 \f[C]
 2009/1/1
   assets:euros     \[Eu]100 \[at] $1.35  ; one hundred euros purchased at $1.35 each
-  assets:dollars               ; balancing amount is -$135.00
+  assets:dollars                 ; balancing amount is -$135.00
 \f[R]
 .fi
 .RE
@@ -752,8 +753,8 @@ hledger infer the price that balances the transaction:
 .nf
 \f[C]
 2009/1/1
-  assets:euros     \[Eu]100        ; one hundred euros purchased
-  assets:dollars  $-135        ; for $135
+  assets:euros     \[Eu]100          ; one hundred euros purchased
+  assets:dollars  $-135          ; for $135
 \f[R]
 .fi
 .RE
@@ -786,8 +787,8 @@ equivalent, -B shows something different:
 .nf
 \f[C]
 2009/1/1
-  assets:dollars  $-135             ; 135 dollars sold
-  assets:euros     \[Eu]100             ; for 100 euros
+  assets:dollars  $-135              ; 135 dollars sold
+  assets:euros     \[Eu]100              ; for 100 euros
 \f[R]
 .fi
 .IP
@@ -870,7 +871,7 @@ comma separated:
 .IP
 .nf
 \f[C]
-    assets:checking      ; a comment containing tag1:, tag2: some value ...
+    assets:checking  ; a comment containing tag1:, tag2: some value ...
 \f[R]
 .fi
 .PP
@@ -1118,7 +1119,8 @@ Y2010  ; change default year to 2010
 .SS Declaring commodities
 .PP
 The \f[C]commodity\f[R] directive declares commodities which may be used
-in the journal (though currently we do not enforce this).
+in the journal, and their display format.
+.PP
 It may be written on a single line, like this:
 .IP
 .nf
@@ -1149,14 +1151,20 @@ commodity INR
 \f[R]
 .fi
 .PP
-Commodity directives have a second purpose: they define the standard
-display format for amounts in the commodity.
+Declaring commodites may be useful as documentation, but currently we do
+not enforce that only declared commodities may be used.
+This directive is mainly useful for customising the preferred display
+format for a commodity.
+.PP
 Normally the display format is inferred from journal entries, but this
 can be unpredictable; declaring it with a commodity directive overrides
 this and removes ambiguity.
 Towards this end, amounts in commodity directives must always be written
 with a decimal point (a period or comma, followed by 0 or more decimal
 digits).
+.PP
+Commodity directives do not affect how amounts are parsed; the parser
+will read multiple formats.
 .SS Default commodity
 .PP
 The \f[C]D\f[R] directive sets a default commodity (and display format),
@@ -1334,11 +1342,11 @@ Eg:
 .nf
 \f[C]
 ; make \[dq]liabilities\[dq] not have the liability type - who knows why
-account liabilities   ; type:E
+account liabilities  ; type:E
 
 ; we need to ensure some other account has the liability type, 
 ; otherwise balancesheet would still show \[dq]liabilities\[dq] under Liabilities 
-account -             ; type:L
+account -            ; type:L
 \f[R]
 .fi
 .SS Account display order
@@ -1474,20 +1482,39 @@ alias /\[ha](.+):bank:([\[ha]:]+)(.*)/ = \[rs]1:\[rs]2 \[rs]3
 .PP
 Also note that REPLACEMENT continues to the end of line (or on command
 line, to end of option argument), so it can contain trailing whitespace.
-.SS Multiple aliases
+.SS Combining aliases
 .PP
-You can define as many aliases as you like using directives or
-command-line options.
-Aliases are recursive - each alias sees the result of applying previous
-ones.
-(This is different from Ledger, where aliases are non-recursive by
-default).
-Aliases are applied in the following order:
+You can define as many aliases as you like, using journal directives
+and/or command line options.
+.PP
+Recursive aliases - where an account name is rewritten by one alias,
+then by another alias, and so on - are allowed.
+Each alias sees the effect of previously applied aliases.
+.PP
+In such cases it can be important to understand which aliases will be
+applied and in which order.
+For (each account name in) each journal entry, we apply:
 .IP "1." 3
-alias directives, most recently seen first (recent directives take
-precedence over earlier ones; directives not yet seen are ignored)
+\f[C]alias\f[R] directives preceding the journal entry, most recently
+parsed first (ie, reading upward from the journal entry, bottom to top)
 .IP "2." 3
-alias options, in the order they appear on the command line
+\f[C]--alias\f[R] options, in the order they appeared on the command
+line (left to right).
+.PP
+In other words, for (an account name in) a given journal entry:
+.IP \[bu] 2
+the nearest alias declaration before/above the entry is applied first
+.IP \[bu] 2
+the next alias before/above that will be be applied next, and so on
+.IP \[bu] 2
+aliases defined after/below the entry do not affect it.
+.PP
+This gives nearby aliases precedence over distant ones, and helps
+provide semantic stability - aliases will keep working the same way
+independent of which files are being read and in which order.
+.PP
+In case of trouble, adding \f[C]--debug=6\f[R] to the command line will
+show which aliases are being applied when.
 .SS \f[C]end aliases\f[R]
 .PP
 You can clear (forget) all currently defined aliases with the
@@ -1603,8 +1630,18 @@ example:
 With the \f[C]--forecast\f[R] flag, each periodic transaction rule
 generates future transactions recurring at the specified interval.
 These are not saved in the journal, but appear in all reports.
-They will look like normal transactions, but with an extra tag named
-\f[C]recur\f[R], whose value is the generating period expression.
+They will look like normal transactions, but with an extra tag:
+.IP \[bu] 2
+\f[C]generated-transaction:\[ti] PERIODICEXPR\f[R] - shows that this was
+generated by a periodic transaction rule, and the period
+.PP
+There is also a hidden tag, with an underscore prefix, which does not
+appear in hledger\[aq]s output:
+.IP \[bu] 2
+\f[C]_generated-transaction:\[ti] PERIODICEXPR\f[R]
+.PP
+This can be used to match transactions generated \[dq]just now\[dq],
+rather than generated in the past and saved to the journal.
 .PP
 Forecast transactions start on the first occurrence, and end on the last
 occurrence, of their interval within the forecast period.
@@ -1654,16 +1691,16 @@ and Forecasting.
 .PP
 .SS Auto postings / transaction modifiers
 .PP
-Transaction modifier rules describe changes to be applied automatically
-to certain matched transactions.
+Transaction modifier rules, AKA auto posting rules, describe changes to
+be applied automatically to certain matched transactions.
 Currently just one kind of change is possible - adding extra postings,
 which we call \[dq]automated postings\[dq] or just \[dq]auto
 postings\[dq].
 These rules become active when you use the \f[C]--auto\f[R] flag.
 .PP
-A transaction modifier, AKA auto posting rule, looks much like a normal
-transaction except the first line is an equals sign followed by a query
-that matches certain postings (mnemonic: \f[C]=\f[R] suggests matching).
+A transaction modifier rule looks much like a normal transaction except
+the first line is an equals sign followed by a query that matches
+certain postings (mnemonic: \f[C]=\f[R] suggests matching).
 And each \[dq]posting\[dq] is actually a posting-generating rule:
 .IP
 .nf
@@ -1736,6 +1773,11 @@ $ hledger print --auto
     assets:checking            $20
 \f[R]
 .fi
+.SS Auto postings and dates
+.PP
+A posting date (or secondary date) in the matched posting, or (taking
+precedence) a posting date in the auto posting rule itself, will also be
+used in the generated posting.
 .SS Auto postings and transaction balancing / inferred amounts / balance assertions
 .PP
 Currently, transaction modifiers are applied / auto postings are added:
@@ -1748,6 +1790,25 @@ but before balance assertions are checked.
 Note this means that journal entries must be balanced both before and
 after auto postings are added.
 This changed in hledger 1.12+; see #893 for background.
+.SS Auto posting tags
+.PP
+Postings added by transaction modifiers will have some extra tags:
+.IP \[bu] 2
+\f[C]generated-posting:= QUERY\f[R] - shows this was generated by an
+auto posting rule, and the query
+.IP \[bu] 2
+\f[C]_generated-posting:= QUERY\f[R] - a hidden tag, which does not
+appear in hledger\[aq]s output.
+This can be used to match postings generated \[dq]just now\[dq], rather
+than generated in the past and saved to the journal.
+.PP
+Also, any transaction that has been changed by transaction modifier
+rules will have these tags added:
+.IP \[bu] 2
+\f[C]modified:\f[R] - this transaction was modified
+.IP \[bu] 2
+\f[C]_modified:\f[R] - a hidden tag not appearing in the comment; this
+transaction was modified \[dq]just now\[dq].
 .SH EDITOR SUPPORT
 .PP
 Helper modes exist for popular text editors, which make working with

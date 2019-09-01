@@ -3,8 +3,8 @@ This is hledger-web.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.14.99
-**********************************
+hledger-web(1) hledger-web 1.15
+*******************************
 
 hledger-web is hledger's web interface.  It starts a simple web
 application for browsing and adding transactions, and optionally opens
@@ -50,6 +50,10 @@ before options, as shown in the synopsis above.
 '--serve'
 
      serve and log requests, don't browse or auto-exit
+'--serve-api'
+
+     like -serve, but serve only the JSON web API, without the
+     server-side web UI
 '--host=IPADDR'
 
      listen on this IP address (default: 127.0.0.1)
@@ -127,7 +131,7 @@ before options, as shown in the synopsis above.
 '-p --period=PERIODEXP'
 
      set start date, end date, and/or reporting interval all at once
-     using period expressions syntax (overrides the flags above)
+     using period expressions syntax
 '--date2'
 
      match the secondary date instead (see command help for other
@@ -193,7 +197,9 @@ also opens it in your default web browser if possible.  In this mode the
 web app will keep running for as long as you have it open in a browser
 window, and will exit after two minutes of inactivity (no requests and
 no browser windows viewing it).  With '--serve', it just runs the web
-app without exiting, and logs requests to the console.
+app without exiting, and logs requests to the console.  With
+'--serve-api', only the JSON web api (see below) is served, with the
+usual HTML server-side web UI disabled.
 
    By default the server listens on IP address 127.0.0.1, accessible
 only to local requests.  You can use '--host' to change this, eg '--host
@@ -282,6 +288,9 @@ when you reload the page or navigate to a new page.  If a change makes a
 file unparseable, hledger-web will display an error message until the
 file has been fixed.
 
+   (Note: if you are viewing files mounted from another machine, make
+sure that both machine clocks are roughly in step.)
+
 
 File: hledger-web.info,  Node: JSON API,  Prev: RELOADING,  Up: Top
 
@@ -325,18 +334,22 @@ $ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readabl
 
 $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
 
+   By default, both the server-side HTML UI and the JSON API are served.
+Running with '--serve-api' disables the former, useful if you only want
+to serve the API.
+
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1361
-Ref: #options1466
-Node: PERMISSIONS6556
-Ref: #permissions6695
-Node: EDITING UPLOADING DOWNLOADING7907
-Ref: #editing-uploading-downloading8088
-Node: RELOADING8922
-Ref: #reloading9056
-Node: JSON API9366
-Ref: #json-api9460
+Node: OPTIONS1355
+Ref: #options1460
+Node: PERMISSIONS6739
+Ref: #permissions6878
+Node: EDITING UPLOADING DOWNLOADING8090
+Ref: #editing-uploading-downloading8271
+Node: RELOADING9105
+Ref: #reloading9239
+Node: JSON API9672
+Ref: #json-api9766
 
 End Tag Table

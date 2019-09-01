@@ -3,8 +3,8 @@ This is hledger_csv.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 
-hledger_csv(5) hledger 1.14.99
-******************************
+hledger_csv(5) hledger 1.15
+***************************
 
 hledger can read CSV (comma-separated value) files as if they were
 journal files, automatically converting each CSV record into a
@@ -171,6 +171,9 @@ comment note: %somefield - %anotherfield, date: %1
    Field assignments can be used instead of or in addition to a field
 list.
 
+   Note, interpolation strips any outer whitespace, so a CSV value like
+'" 1 "' becomes '1' when interpolated (#1051).
+
 
 File: hledger_csv.info,  Node: conditional block,  Next: include,  Prev: field assignment,  Up: CSV RULES
 
@@ -248,6 +251,7 @@ File: hledger_csv.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
 * CSV amounts::
 * CSV balance assertions/assignments::
 * Reading multiple CSV files::
+* Valid CSV::
 
 
 File: hledger_csv.info,  Node: CSV ordering,  Next: CSV accounts,  Up: CSV TIPS
@@ -317,7 +321,7 @@ assignment), on the first or second posting, whenever the running
 balance field is non-empty.  (TODO: #1000)
 
 
-File: hledger_csv.info,  Node: Reading multiple CSV files,  Prev: CSV balance assertions/assignments,  Up: CSV TIPS
+File: hledger_csv.info,  Node: Reading multiple CSV files,  Next: Valid CSV,  Prev: CSV balance assertions/assignments,  Up: CSV TIPS
 
 2.5 Reading multiple CSV files
 ==============================
@@ -328,35 +332,53 @@ rules file for each.  Note if you use the '--rules-file' option, this
 one rules file will be used for all the CSV files being read.
 
 
+File: hledger_csv.info,  Node: Valid CSV,  Prev: Reading multiple CSV files,  Up: CSV TIPS
+
+2.6 Valid CSV
+=============
+
+hledger follows RFC 4180, with the addition of a customisable separator
+character.
+
+   Some things to note:
+
+   When quoting fields,
+
+   * you must use double quotes, not single quotes
+   * spaces outside the quotes are not allowed.
+
+
 Tag Table:
 Node: Top72
-Node: CSV RULES2167
-Ref: #csv-rules2275
-Node: skip2538
-Ref: #skip2632
-Node: date-format2804
-Ref: #date-format2931
-Node: field list3481
-Ref: #field-list3618
-Node: field assignment4348
-Ref: #field-assignment4503
-Node: conditional block5007
-Ref: #conditional-block5161
-Node: include6057
-Ref: #include6187
-Node: newest-first6418
-Ref: #newest-first6532
-Node: CSV TIPS6943
-Ref: #csv-tips7037
-Node: CSV ordering7167
-Ref: #csv-ordering7285
-Node: CSV accounts7466
-Ref: #csv-accounts7604
-Node: CSV amounts7858
-Ref: #csv-amounts8016
-Node: CSV balance assertions/assignments9096
-Ref: #csv-balance-assertionsassignments9314
-Node: Reading multiple CSV files9635
-Ref: #reading-multiple-csv-files9817
+Node: CSV RULES2161
+Ref: #csv-rules2269
+Node: skip2532
+Ref: #skip2626
+Node: date-format2798
+Ref: #date-format2925
+Node: field list3475
+Ref: #field-list3612
+Node: field assignment4342
+Ref: #field-assignment4497
+Node: conditional block5121
+Ref: #conditional-block5275
+Node: include6171
+Ref: #include6301
+Node: newest-first6532
+Ref: #newest-first6646
+Node: CSV TIPS7057
+Ref: #csv-tips7151
+Node: CSV ordering7295
+Ref: #csv-ordering7413
+Node: CSV accounts7594
+Ref: #csv-accounts7732
+Node: CSV amounts7986
+Ref: #csv-amounts8144
+Node: CSV balance assertions/assignments9224
+Ref: #csv-balance-assertionsassignments9442
+Node: Reading multiple CSV files9763
+Ref: #reading-multiple-csv-files9963
+Node: Valid CSV10237
+Ref: #valid-csv10360
 
 End Tag Table

@@ -114,7 +114,7 @@ OPTIONS
 
        -p --period=PERIODEXP
               set  start date, end date, and/or reporting interval all at once
-              using period expressions syntax (overrides the flags above)
+              using period expressions syntax
 
        --date2
               match the secondary date instead (see  command  help  for  other
@@ -381,10 +381,13 @@ BUGS
        siding, and possibly a small but persistent build-up of CPU usage until
        the program is restarted.
 
+       Also,  if  you  are viewing files mounted from another machine, --watch
+       requires that both machine clocks are roughly in step.
+
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -398,7 +401,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -406,4 +409,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.14.99                March 2019                     hledger-ui(1)
+hledger-ui 1.15                   August 2019                    hledger-ui(1)
