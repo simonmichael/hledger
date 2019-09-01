@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cfdba68c1a3ad11055ca8171723638880d9cebed815a2d70677fd29a900055d8
+-- hash: abc0cf2dc37fed2028d3e6ead7e20d838b74f598bf8fa421130fd47f91d845f6
 
 name:           hledger-api
-version:        1.14.99
+version:        1.15
 synopsis:       Web API server for the hledger accounting tool
 description:    This is a simple web API server for hledger data.
                 It comes with a series of simple client-side web app examples.
@@ -46,7 +46,7 @@ executable hledger-api
   other-modules:
       Paths_hledger_api
   ghc-options: -threaded
-  cpp-options: -DVERSION="1.14.99"
+  cpp-options: -DVERSION="1.15"
   build-depends:
       Decimal
     , aeson
@@ -56,8 +56,8 @@ executable hledger-api
     , data-default >=0.5
     , docopt
     , either
-    , hledger >=1.14.99 && <1.15
-    , hledger-lib >=1.14.99 && <1.15
+    , hledger >=1.15 && <1.16
+    , hledger-lib >=1.15 && <1.16
     , microlens >=0.4
     , microlens-platform >=0.2.3.1
     , safe
