@@ -15,9 +15,6 @@ module Hledger.Cli.Commands.Payees (
  ,payees
 ) where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Data.List
 import qualified Data.Text.IO as T
 
