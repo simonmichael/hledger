@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.6.5
 
-resolver: lts-14.1
+resolver: lts-14.4
 #resolver: nightly-2019-07-26
 
 packages:
