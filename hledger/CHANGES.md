@@ -1,6 +1,10 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# ebacb20b
+
+- add commodities, descriptions, diff, notes, payees commands to manual
+
 # 1.15 2019-09-01
 
 ## General
