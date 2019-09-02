@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 16a3c96d
+# 1.15.1 2019-09-02
 
 - fix failing doctests
 
