@@ -839,8 +839,8 @@ The `D` directive sets a default commodity (and display format), to be used for 
 The commodity and display format will be applied to all subsequent commodity-less amounts, or until the next `D` directive.
 
 ```journal
-# commodity-less amounts should be treated as dollars
-# (and displayed with symbol on the left, thousands separators and two decimal places)
+; commodity-less amounts should be treated as dollars
+; (and displayed with symbol on the left, thousands separators and two decimal places)
 D $1,000.00
 
 1/1
@@ -1054,7 +1054,7 @@ new one. Subaccounts are also affected. Eg:
 
 ```journal
 alias checking = assets:bank:wells fargo:checking
-# rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+; rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
 ```
 
 #### Regex aliases
@@ -1078,7 +1078,7 @@ Eg:
 
 ```journal
 alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
-# rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+; rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 ```
 
 Also note that REPLACEMENT continues to the end of line (or on command line,
