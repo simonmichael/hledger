@@ -482,15 +482,15 @@ It is equivalent to `--value=now` or `--value=end`.
 Here's a quick example:
 
 ```journal
-# one euro is worth this many dollars from nov 1
+; one euro is worth this many dollars from nov 1
 P 2016/11/01 € $1.10
 
-# purchase some euros on nov 3
+; purchase some euros on nov 3
 2016/11/3
     assets:euros        €100
     assets:checking
 
-# the euro is worth fewer dollars by dec 21
+; the euro is worth fewer dollars by dec 21
 P 2016/12/21 € $1.03
 ```
 How many euros do I have ?
