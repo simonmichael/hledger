@@ -56,6 +56,18 @@ _include_({{Hledger/Cli/Commands/Checkdupes.md}})
 
 _include_({{Hledger/Cli/Commands/Close.md}})
 
+## commodities
+
+_include_({{Hledger/Cli/Commands/Commodities.md}})
+
+## descriptions
+
+_include_({{Hledger/Cli/Commands/Descriptions.md}})
+
+## diff
+
+_include_({{Hledger/Cli/Commands/Diff.md}})
+
 ## files
 
 _include_({{Hledger/Cli/Commands/Files.md}})
@@ -71,6 +83,14 @@ _include_({{Hledger/Cli/Commands/Import.md}})
 ## incomestatement
 
 _include_({{Hledger/Cli/Commands/Incomestatement.md}})
+
+## notes
+
+_include_({{Hledger/Cli/Commands/Notes.md}})
+
+## payees
+
+_include_({{Hledger/Cli/Commands/Payees.md}})
 
 ## prices
 
