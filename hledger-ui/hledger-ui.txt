@@ -117,8 +117,8 @@ OPTIONS
               using period expressions syntax
 
        --date2
-              match the secondary date instead (see  command  help  for  other
-              effects)
+              match the secondary date instead (see command help for other ef-
+              fects)
 
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)
@@ -204,8 +204,8 @@ KEYS
        BACKSPACE or DELETE removes all filters, showing all transactions.
 
        As  mentioned  above, hledger-ui shows auto-generated periodic transac-
-       tions,  and  hides  future  transactions  (auto-generated  or  not)  by
-       default.  F toggles showing and hiding these future transactions.  This
+       tions, and hides future transactions (auto-generated  or  not)  by  de-
+       fault.   F  toggles showing and hiding these future transactions.  This
        is similar to using a query like date:-tomorrow, but  more  convenient.
        (experimental)
 
@@ -227,8 +227,8 @@ KEYS
        file.  This allows some basic data entry.
 
        A is like a, but runs the hledger-iadd tool, which provides  a  curses-
-       style  interface.   This  key  will  be  available  if  hledger-iadd is
-       installed in $PATH.
+       style  interface.   This  key  will be available if hledger-iadd is in-
+       stalled in $PATH.
 
        E runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (emacsclient -a  ""
        -nw)  on  the  journal file.  With some editors (emacs, vi), the cursor
@@ -250,36 +250,35 @@ SCREENS
 
        Account names are shown as a flat list by default.  Press T  to  toggle
        tree  mode.   In  flat  mode,  account balances are exclusive of subac-
-       counts, except where subaccounts are  hidden  by  a  depth  limit  (see
-       below).   In  tree  mode,  all account balances are inclusive of subac-
-       counts.
+       counts, except where subaccounts are hidden by a depth limit  (see  be-
+       low).  In tree mode, all account balances are inclusive of subaccounts.
 
-       To see less detail, press a number key, 1 to 9, to set a  depth  limit.
+       To  see  less detail, press a number key, 1 to 9, to set a depth limit.
        Or use - to decrease and +/= to increase the depth limit.  0 shows even
-       less detail, collapsing all accounts to a single total.  To remove  the
-       depth  limit,  set  it  higher than the maximum account depth, or press
-       ESCAPE.
+       less  detail, collapsing all accounts to a single total.  To remove the
+       depth limit, set it higher than the maximum account depth, or press ES-
+       CAPE.
 
        H toggles between showing historical balances or period balances.  His-
-       torical  balances  (the  default) are ending balances at the end of the
-       report period, taking into account all transactions  before  that  date
-       (filtered  by  the  filter query if any), including transactions before
-       the start of the report period.  In other  words,  historical  balances
-       are  what  you  would  see on a bank statement for that account (unless
-       disturbed by a filter  query).   Period  balances  ignore  transactions
-       before the report start date, so they show the change in balance during
+       torical balances (the default) are ending balances at the  end  of  the
+       report  period,  taking  into account all transactions before that date
+       (filtered by the filter query if any),  including  transactions  before
+       the  start  of  the report period.  In other words, historical balances
+       are what you would see on a bank statement  for  that  account  (unless
+       disturbed  by a filter query).  Period balances ignore transactions be-
+       fore the report start date, so they show the change in  balance  during
        the report period.  They are more useful eg when viewing a time log.
 
        U toggles filtering by unmarked status, including or excluding unmarked
        postings in the balances.  Similarly, P toggles pending postings, and C
-       toggles cleared postings.  (By default, balances include all  postings;
-       if  you  activate  one  or  two status filters, only those postings are
-       included; and if you activate all three, the filter is removed.)
+       toggles  cleared postings.  (By default, balances include all postings;
+       if you activate one or two status filters, only those postings are  in-
+       cluded; and if you activate all three, the filter is removed.)
 
        R toggles real mode, in which virtual postings are ignored.
 
-       Z toggles nonzero mode, in which only accounts  with  nonzero  balances
-       are  shown (hledger-ui shows zero items by default, unlike command-line
+       Z  toggles  nonzero  mode, in which only accounts with nonzero balances
+       are shown (hledger-ui shows zero items by default, unlike  command-line
        hledger).
 
        Press right or enter to view an account's transactions register.
@@ -288,32 +287,32 @@ SCREENS
        This screen shows the transactions affecting a particular account, like
        a check register.  Each line represents one transaction and shows:
 
-       o the  other  account(s)  involved, in abbreviated form.  (If there are
-         both real and virtual postings, it shows only the  accounts  affected
+       o the other account(s) involved, in abbreviated form.   (If  there  are
+         both  real  and virtual postings, it shows only the accounts affected
          by real postings.)
 
-       o the  overall change to the current account's balance; positive for an
+       o the overall change to the current account's balance; positive for  an
          inflow to this account, negative for an outflow.
 
        o the running historical total or period total for the current account,
-         after  the  transaction.  This can be toggled with H.  Similar to the
-         accounts screen, the historical total  is  affected  by  transactions
-         (filtered  by  the  filter query) before the report start date, while
+         after the transaction.  This can be toggled with H.  Similar  to  the
+         accounts  screen,  the  historical  total is affected by transactions
+         (filtered by the filter query) before the report  start  date,  while
          the period total is not.  If the historical total is not disturbed by
-         a  filter  query, it will be the running historical balance you would
+         a filter query, it will be the running historical balance  you  would
          see on a bank register for the current account.
 
-       Transactions affecting this account's subaccounts will be  included  in
+       Transactions  affecting  this account's subaccounts will be included in
        the register if the accounts screen is in tree mode, or if it's in flat
-       mode but this account has subaccounts which are  not  shown  due  to  a
-       depth  limit.   In  other words, the register always shows the transac-
+       mode  but  this  account  has  subaccounts which are not shown due to a
+       depth limit.  In other words, the register always  shows  the  transac-
        tions contributing to the balance shown on the accounts screen.
        Tree mode/flat mode can be toggled with T here also.
 
-       U toggles filtering by unmarked  status,  showing  or  hiding  unmarked
+       U  toggles  filtering  by  unmarked  status, showing or hiding unmarked
        transactions.  Similarly, P toggles pending transactions, and C toggles
-       cleared transactions.  (By default, transactions with all statuses  are
-       shown;  if  you activate one or two status filters, only those transac-
+       cleared  transactions.  (By default, transactions with all statuses are
+       shown; if you activate one or two status filters, only  those  transac-
        tions are shown; and if you activate all three, the filter is removed.)
 
        R toggles real mode, in which virtual postings are ignored.
@@ -329,16 +328,16 @@ SCREENS
        similar to hledger's print command and  journal  format  (hledger_jour-
        nal(5)).
 
-       The  transaction's  date(s)  and  any  cleared  flag, transaction code,
-       description, comments, along with  all  of  its  account  postings  are
-       shown.   Simple  transactions  have two postings, but there can be more
-       (or in certain cases, fewer).
+       The  transaction's  date(s) and any cleared flag, transaction code, de-
+       scription, comments, along with all of its account postings are  shown.
+       Simple  transactions  have  two  postings, but there can be more (or in
+       certain cases, fewer).
 
        up and down will step through all transactions listed in  the  previous
        account  register screen.  In the title bar, the numbers in parentheses
-       show your position  within  that  account  register.   They  will  vary
-       depending on which account register you came from (remember most trans-
-       actions appear in multiple account registers).  The #N number preceding
+       show your position within that account register.  They  will  vary  de-
+       pending on which account register you came from (remember most transac-
+       tions appear in multiple account registers).  The #N  number  preceding
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 

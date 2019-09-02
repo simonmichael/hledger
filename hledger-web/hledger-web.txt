@@ -19,9 +19,9 @@ DESCRIPTION
        hledger-web is hledger's web interface.  It starts a simple web  appli-
        cation for browsing and adding transactions, and optionally opens it in
        a web browser window if possible.  It provides a more user-friendly  UI
-       than  the  hledger  CLI  or  hledger-ui interface, showing more at once
-       (accounts, the current account register, balance charts)  and  allowing
-       history-aware data entry, interactive searching, and bookmarking.
+       than the hledger CLI or hledger-ui interface, showing more at once (ac-
+       counts, the current account register, balance charts) and allowing his-
+       tory-aware data entry, interactive searching, and bookmarking.
 
        hledger-web  also  lets you share a ledger with multiple users, or even
        the public web.  There is no access control, so if you  need  that  you
@@ -127,8 +127,8 @@ OPTIONS
               using period expressions syntax
 
        --date2
-              match  the  secondary  date  instead (see command help for other
-              effects)
+              match the secondary date instead (see command help for other ef-
+              fects)
 
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)
@@ -208,14 +208,14 @@ OPTIONS
        for better caching or cookie-less serving on high performance websites.
 
 PERMISSIONS
-       By default, hledger-web allows anyone who can  reach  it  to  view  the
+       By  default,  hledger-web  allows  anyone  who can reach it to view the
        journal and to add new transactions, but not to change existing data.
 
        You can restrict who can reach it by
 
-       o setting  the IP address it listens on (see --host above).  By default
-         it listens on  127.0.0.1,  accessible  to  all  users  on  the  local
-         machine.
+       o setting the IP address it listens on (see --host above).  By  default
+         it  listens  on  127.0.0.1,  accessible to all users on the local ma-
+         chine.
 
        o putting it behind an authenticating proxy, using eg apache or nginx
 
@@ -224,54 +224,54 @@ PERMISSIONS
        You can restrict what the users who reach it can do, by
 
        o using the --capabilities=CAP[,CAP..] flag when you start it, enabling
-         one or more of the following  capabilities.   The  default  value  is
+         one  or  more  of  the  following capabilities.  The default value is
          view,add:
 
          o view - allows viewing the journal file and all included files
 
          o add - allows adding new transactions to the main journal file
 
-         o manage  -  allows  editing,  uploading  or  downloading the main or
-           included files
+         o manage - allows editing, uploading or downloading the main  or  in-
+           cluded files
 
-       o using the --capabilities-header=HTTPHEADER flag  to  specify  a  HTTP
-         header  from  which it will read capabilities to enable.  hledger-web
-         on Sandstorm uses the  X-Sandstorm-Permissions  header  to  integrate
+       o using  the  --capabilities-header=HTTPHEADER  flag  to specify a HTTP
+         header from which it will read capabilities to  enable.   hledger-web
+         on  Sandstorm  uses  the  X-Sandstorm-Permissions header to integrate
          with Sandstorm's permissions.  This is disabled by default.
 
 EDITING, UPLOADING, DOWNLOADING
-       If  you  enable the manage capability mentioned above, you'll see a new
-       "spanner" button to the right of the search form.  Clicking  this  will
-       let  you  edit,  upload,  or  download the journal file or any files it
-       includes.
+       If you enable the manage capability mentioned above, you'll see  a  new
+       "spanner"  button  to the right of the search form.  Clicking this will
+       let you edit, upload, or download the journal file or any files it  in-
+       cludes.
 
-       Note, unlike any other hledger command, in this mode you (or any  visi-
+       Note,  unlike any other hledger command, in this mode you (or any visi-
        tor) can alter or wipe the data files.
 
-       Normally  whenever  a  file is changed in this way, hledger-web saves a
-       numbered backup (assuming file permissions allow it, the  disk  is  not
-       full,  etc.)  hledger-web is not aware of version control systems, cur-
-       rently; if you use one, you'll have to arrange to  commit  the  changes
+       Normally whenever a file is changed in this way,  hledger-web  saves  a
+       numbered  backup  (assuming  file permissions allow it, the disk is not
+       full, etc.) hledger-web is not aware of version control  systems,  cur-
+       rently;  if  you  use one, you'll have to arrange to commit the changes
        yourself (eg with a cron job or a file watcher like entr).
 
-       Changes  which would leave the journal file(s) unparseable or non-valid
-       (eg with failing balance assertions) are prevented.   (Probably.   This
+       Changes which would leave the journal file(s) unparseable or  non-valid
+       (eg  with  failing balance assertions) are prevented.  (Probably.  This
        needs re-testing.)
 
 RELOADING
        hledger-web detects changes made to the files by other means (eg if you
-       edit it directly, outside of hledger-web), and it  will  show  the  new
-       data  when  you reload the page or navigate to a new page.  If a change
-       makes a file unparseable, hledger-web will  display  an  error  message
-       until the file has been fixed.
+       edit  it  directly,  outside  of hledger-web), and it will show the new
+       data when you reload the page or navigate to a new page.  If  a  change
+       makes a file unparseable, hledger-web will display an error message un-
+       til the file has been fixed.
 
        (Note: if you are viewing files mounted from another machine, make sure
        that both machine clocks are roughly in step.)
 
 JSON API
-       In addition to the web UI, hledger-web provides some  API  routes  that
-       serve  JSON in response to GET requests.  Currently these are same ones
-       provided by the hledger-api tool, but hledger-web will  likely  receive
+       In  addition  to  the web UI, hledger-web provides some API routes that
+       serve JSON in response to GET requests.  Currently these are same  ones
+       provided  by  the hledger-api tool, but hledger-web will likely receive
        more attention than hledger-api in future:
 
               /accountnames
@@ -281,17 +281,17 @@ JSON API
               /accounts
               /accounttransactions/#AccountName
 
-       Also,  you can append a new transaction to the journal by sending a PUT
-       request to /add (hledger-web only).  As with the  web  UI's  add  form,
-       hledger-web  must  be started with the add capability for this (enabled
+       Also, you can append a new transaction to the journal by sending a  PUT
+       request  to  /add  (hledger-web  only).  As with the web UI's add form,
+       hledger-web must be started with the add capability for  this  (enabled
        by default).
 
-       The payload should be a valid hledger transaction as JSON,  similar  to
+       The  payload  should be a valid hledger transaction as JSON, similar to
        what you get from /transactions or /accounttransactions.
 
-       Another  way  to generate test data is with the readJsonFile/writeJson-
-       File helpers in Hledger.Web.Json, which read or write any of  hledger's
-       JSON-capable  types  from  or  to  a  file.  Eg here we write the first
+       Another way to generate test data is with  the  readJsonFile/writeJson-
+       File  helpers in Hledger.Web.Json, which read or write any of hledger's
+       JSON-capable types from or to a file.   Eg  here  we  write  the  first
        transaction of a sample journal:
 
               $ make ghci-web
@@ -306,23 +306,23 @@ JSON API
 
               $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
 
-       By default, both the server-side HTML UI and the JSON API  are  served.
-       Running  with  --serve-api disables the former, useful if you only want
+       By  default,  both the server-side HTML UI and the JSON API are served.
+       Running with --serve-api disables the former, useful if you  only  want
        to serve the API.
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to precede options with -- when invoked from hledger is awk-
+       The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
        -f- doesn't work (hledger-web can't read from stdin).
@@ -336,7 +336,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -350,7 +350,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

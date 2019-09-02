@@ -1013,36 +1013,32 @@ This flag is equivalent to \f[C]--value=cost\f[R], described below.
 .SS -V: Market value
 .PP
 The \f[C]-V/--market\f[R] flag converts reported amounts to their market
-value in a default valuation commodity, using the historical market
-prices in effect on a default valuation date.
+value in a default valuation commodity, using the market prices in
+effect on a default valuation date.
+For single period reports, the valuation date is today; for multiperiod
+reports, it is the last day of each subperiod.
+It is equivalent to \f[C]--value=now\f[R] or \f[C]--value=end\f[R] (see
+below).
 .PP
-For single period reports, the valuation date is today.
-For multiperiod reports, it is the last day of each subperiod.
-.PP
-The valuation commodity will be the one referenced in the latest
+The default valuation commodity is the one referenced in the latest
 applicable market price dated on or before the valuation date.
 If most of your P declarations lead to a single home currency, this will
 usually be what you want.
-.PP
-Unlike the similar flag in Ledger, it does not infer market prices from
-transaction prices.
-In hledger, -B uses transaction prices, -V and -X use market prices.
-.PP
-It is equivalent to \f[C]--value=now\f[R] or \f[C]--value=end\f[R].
+(To specify the commodity, see -X below.)
 .PP
 Here\[aq]s a quick example:
 .IP
 .nf
 \f[C]
-# one euro is worth this many dollars from nov 1
+; one euro is worth this many dollars from nov 1
 P 2016/11/01 \[Eu] $1.10
 
-# purchase some euros on nov 3
+; purchase some euros on nov 3
 2016/11/3
     assets:euros        \[Eu]100
     assets:checking
 
-# the euro is worth fewer dollars by dec 21
+; the euro is worth fewer dollars by dec 21
 P 2016/12/21 \[Eu] $1.03
 \f[R]
 .fi
@@ -1074,15 +1070,19 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 \f[R]
 .fi
+.PP
+Note that in hledger, market prices are always declared explicitly with
+P directives; we do not infer them from transaction prices as Ledger
+does.
 .SS -X: Market value in specified commodity
 .PP
 The \f[C]-X/--exchange\f[R] option is like \f[C]-V/--market\f[R] except
 it takes a commodity symbol argument, so that you can select a different
 target commodity.
 It is similar to the same option in Ledger, with the same caveat
-mentioned for \f[C]-V\f[R]/\f[C]--value\f[R] above.
+mentioned above.
 It is equivalent to \f[C]--value=now,COMM\f[R] or
-\f[C]--value=end,COMM\f[R]; for more details, read on.
+\f[C]--value=end,COMM\f[R].
 .SS --value
 .PP
 \f[I](experimental, added 201905)\f[R]
@@ -2628,6 +2628,65 @@ Here\[aq]s one way to resolve that:
     assets:checking
 \f[R]
 .fi
+.SS commodities
+.PP
+commodities
+.PD 0
+.P
+.PD
+List all commodity/currency symbols used or declared in the journal.
+.SS descriptions
+.PP
+descriptions Show descriptions.
+.PP
+This command lists all descriptions that appear in transactions.
+.PP
+Examples:
+.IP
+.nf
+\f[C]
+$ hledger descriptions
+Store Name
+Gas Station | Petrol
+Person A
+\f[R]
+.fi
+.SS diff
+.PP
+diff
+.PD 0
+.P
+.PD
+Compares a particular account\[aq]s transactions in two input files.
+It shows any transactions to this account which are in one file but not
+in the other.
+.PP
+More precisely, for each posting affecting this account in either file,
+it looks for a corresponding posting in the other file which posts the
+same amount to the same account (ignoring date, description, etc.) Since
+postings not transactions are compared, this also works when multiple
+bank transactions have been combined into a single journal entry.
+.PP
+This is useful eg if you have downloaded an account\[aq]s transactions
+from your bank (eg as CSV data).
+When hledger and your bank disagree about the account balance, you can
+compare the bank data with your journal to find out the cause.
+.PP
+Examples:
+.IP
+.nf
+\f[C]
+$ hledger diff -f $LEDGER_FILE -f bank.csv assets:bank:giro 
+These transactions are in the first file only:
+
+2014/01/01 Opening Balances
+    assets:bank:giro              EUR ...
+    ...
+    equity:opening balances       EUR -...
+
+These transactions are in the second file only:
+\f[R]
+.fi
 .SS files
 .PP
 files
@@ -2785,6 +2844,37 @@ with multicolumn balance reports you can alter the report mode with
 .PP
 This command also supports output destination and output format
 selection.
+.SS notes
+.PP
+notes Show notes.
+.PP
+This command lists all notes that appear in transactions.
+.PP
+Examples:
+.IP
+.nf
+\f[C]
+$ hledger notes
+Petrol
+Snacks
+\f[R]
+.fi
+.SS payees
+.PP
+payees Show payee names.
+.PP
+This command lists all payee names that appear in transactions.
+.PP
+Examples:
+.IP
+.nf
+\f[C]
+$ hledger payees
+Store Name
+Gas Station
+Person A
+\f[R]
+.fi
 .SS prices
 .PP
 prices

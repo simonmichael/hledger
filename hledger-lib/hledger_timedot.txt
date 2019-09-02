@@ -28,8 +28,8 @@ FILE FORMAT
 
        Quantities can be written as:
 
-       o a  sequence  of  dots  (.)  representing  quarter  hours.  Spaces may
-         optionally be used for grouping and readability.  Eg: ....  ..
+       o a  sequence  of  dots (.) representing quarter hours.  Spaces may op-
+         tionally be used for grouping and readability.  Eg: ....  ..
 
        o an integral or decimal number, representing hours.  Eg: 1.5
 

@@ -1042,8 +1042,8 @@ this differs from Ledger's default commodity directive.)  The commodity
 and display format will be applied to all subsequent commodity-less
 amounts, or until the next 'D' directive.
 
-# commodity-less amounts should be treated as dollars
-# (and displayed with symbol on the left, thousands separators and two decimal places)
+; commodity-less amounts should be treated as dollars
+; (and displayed with symbol on the left, thousands separators and two decimal places)
 D $1,000.00
 
 1/1
@@ -1289,7 +1289,7 @@ replace any occurrence of the old account name with the new one.
 Subaccounts are also affected.  Eg:
 
 alias checking = assets:bank:wells fargo:checking
-# rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+; rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
 
 
 File: hledger_journal.info,  Node: Regex aliases,  Next: Combining aliases,  Prev: Basic aliases,  Up: Rewriting accounts
@@ -1310,7 +1310,7 @@ REPLACEMENT. If REGEX contains parenthesised match groups, these can be
 referenced by the usual numeric backreferences in REPLACEMENT. Eg:
 
 alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
-# rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+; rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 
    Also note that REPLACEMENT continues to the end of line (or on
 command line, to end of option argument), so it can contain trailing

@@ -7,11 +7,11 @@ NAME
        Timeclock - the time logging format of timeclock.el, as read by hledger
 
 DESCRIPTION
-       hledger can read timeclock files.  As with Ledger, these are (a  subset
+       hledger  can read timeclock files.  As with Ledger, these are (a subset
        of) timeclock.el's format, containing clock-in and clock-out entries as
-       in the example below.  The date is a simple date.  The time  format  is
-       HH:MM[:SS][+-ZZZZ].   Seconds and timezone are optional.  The timezone,
-       if present, must be four digits and is ignored (currently the  time  is
+       in  the  example below.  The date is a simple date.  The time format is
+       HH:MM[:SS][+-ZZZZ].  Seconds and timezone are optional.  The  timezone,
+       if  present,  must be four digits and is ignored (currently the time is
        always interpreted as a local time).
 
               i 2015/03/30 09:00:00 some:account name  optional description after two spaces
@@ -19,9 +19,9 @@ DESCRIPTION
               i 2015/03/31 22:21:45 another account
               o 2015/04/01 02:00:34
 
-       hledger  treats  each  clock-in/clock-out pair as a transaction posting
-       some number of hours to an account.  Or if the session spans more  than
-       one  day, it is split into several transactions, one for each day.  For
+       hledger treats each clock-in/clock-out pair as  a  transaction  posting
+       some  number of hours to an account.  Or if the session spans more than
+       one day, it is split into several transactions, one for each day.   For
        the above time log, hledger print generates these journal entries:
 
               $ hledger -f t.timeclock print
@@ -42,21 +42,21 @@ DESCRIPTION
 
        To generate time logs, ie to clock in and clock out, you could:
 
-       o use emacs and the built-in timeclock.el, or the  extended  timeclock-
+       o use  emacs  and the built-in timeclock.el, or the extended timeclock-
          x.el and perhaps the extras in ledgerutils.el
 
        o at the command line, use these bash aliases: shell   alias ti="echo i
-         `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"   alias to="echo o  `date
+         `date  '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"   alias to="echo o `date
          '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
 
        o or use the old ti and to scripts in the ledger 2.x repository.  These
-         rely on a "timeclock" executable which I think is just the  ledger  2
+         rely  on  a "timeclock" executable which I think is just the ledger 2
          executable renamed.
 
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -70,7 +70,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

@@ -773,34 +773,27 @@ File: hledger.info,  Node: -V Market value,  Next: -X Market value in specified 
 -----------------------
 
 The '-V/--market' flag converts reported amounts to their market value
-in a default valuation commodity, using the historical market prices in
-effect on a default valuation date.
+in a default valuation commodity, using the market prices in effect on a
+default valuation date.  For single period reports, the valuation date
+is today; for multiperiod reports, it is the last day of each subperiod.
+It is equivalent to '--value=now' or '--value=end' (see below).
 
-   For single period reports, the valuation date is today.  For
-multiperiod reports, it is the last day of each subperiod.
-
-   The valuation commodity will be the one referenced in the latest
+   The default valuation commodity is the one referenced in the latest
 applicable market price dated on or before the valuation date.  If most
 of your P declarations lead to a single home currency, this will usually
-be what you want.
-
-   Unlike the similar flag in Ledger, it does not infer market prices
-from transaction prices.  In hledger, -B uses transaction prices, -V and
--X use market prices.
-
-   It is equivalent to '--value=now' or '--value=end'.
+be what you want.  (To specify the commodity, see -X below.)
 
    Here's a quick example:
 
-# one euro is worth this many dollars from nov 1
+; one euro is worth this many dollars from nov 1
 P 2016/11/01 € $1.10
 
-# purchase some euros on nov 3
+; purchase some euros on nov 3
 2016/11/3
     assets:euros        €100
     assets:checking
 
-# the euro is worth fewer dollars by dec 21
+; the euro is worth fewer dollars by dec 21
 P 2016/12/21 € $1.03
 
    How many euros do I have ?
@@ -819,6 +812,10 @@ specified, defaults to today)
 $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 
+   Note that in hledger, market prices are always declared explicitly
+with P directives; we do not infer them from transaction prices as
+Ledger does.
+
 
 File: hledger.info,  Node: -X Market value in specified commodity,  Next: --value,  Prev: -V Market value,  Up: Valuation
 
@@ -828,8 +825,8 @@ File: hledger.info,  Node: -X Market value in specified commodity,  Next: --valu
 The '-X/--exchange' option is like '-V/--market' except it takes a
 commodity symbol argument, so that you can select a different target
 commodity.  It is similar to the same option in Ledger, with the same
-caveat mentioned for '-V'/'--value' above.  It is equivalent to
-'--value=now,COMM' or '--value=end,COMM'; for more details, read on.
+caveat mentioned above.  It is equivalent to '--value=now,COMM' or
+'--value=end,COMM'.
 
 
 File: hledger.info,  Node: --value,  Next: Combining -B -V -X --value,  Prev: -X Market value in specified commodity,  Up: Valuation
@@ -1294,10 +1291,15 @@ detailed command help.
 * check-dates::
 * check-dupes::
 * close::
+* commodities::
+* descriptions::
+* diff::
 * files::
 * help::
 * import::
 * incomestatement::
+* notes::
+* payees::
 * prices::
 * print::
 * print-unique::
@@ -2110,7 +2112,7 @@ the default journal file, or another specified as an argument.
    An example: http://stefanorodighiero.net/software/hledger-dupes.html
 
 
-File: hledger.info,  Node: close,  Next: files,  Prev: check-dupes,  Up: COMMANDS
+File: hledger.info,  Node: close,  Next: commodities,  Prev: check-dupes,  Up: COMMANDS
 
 4.10 close
 ==========
@@ -2199,9 +2201,70 @@ breaking balance assertions:
     assets:checking
 
 
-File: hledger.info,  Node: files,  Next: help,  Prev: close,  Up: COMMANDS
+File: hledger.info,  Node: commodities,  Next: descriptions,  Prev: close,  Up: COMMANDS
 
-4.11 files
+4.11 commodities
+================
+
+commodities
+List all commodity/currency symbols used or declared in the journal.
+
+
+File: hledger.info,  Node: descriptions,  Next: diff,  Prev: commodities,  Up: COMMANDS
+
+4.12 descriptions
+=================
+
+descriptions Show descriptions.
+
+   This command lists all descriptions that appear in transactions.
+
+   Examples:
+
+$ hledger descriptions
+Store Name
+Gas Station | Petrol
+Person A
+
+
+File: hledger.info,  Node: diff,  Next: files,  Prev: descriptions,  Up: COMMANDS
+
+4.13 diff
+=========
+
+diff
+Compares a particular account's transactions in two input files.  It
+shows any transactions to this account which are in one file but not in
+the other.
+
+   More precisely, for each posting affecting this account in either
+file, it looks for a corresponding posting in the other file which posts
+the same amount to the same account (ignoring date, description, etc.)
+Since postings not transactions are compared, this also works when
+multiple bank transactions have been combined into a single journal
+entry.
+
+   This is useful eg if you have downloaded an account's transactions
+from your bank (eg as CSV data).  When hledger and your bank disagree
+about the account balance, you can compare the bank data with your
+journal to find out the cause.
+
+   Examples:
+
+$ hledger diff -f $LEDGER_FILE -f bank.csv assets:bank:giro 
+These transactions are in the first file only:
+
+2014/01/01 Opening Balances
+    assets:bank:giro              EUR ...
+    ...
+    equity:opening balances       EUR -...
+
+These transactions are in the second file only:
+
+
+File: hledger.info,  Node: files,  Next: help,  Prev: diff,  Up: COMMANDS
+
+4.14 files
 ==========
 
 files
@@ -2211,7 +2274,7 @@ file names matching the regular expression (case sensitive) are shown.
 
 File: hledger.info,  Node: help,  Next: import,  Prev: files,  Up: COMMANDS
 
-4.12 help
+4.15 help
 =========
 
 help
@@ -2251,7 +2314,7 @@ DESCRIPTION
 
 File: hledger.info,  Node: import,  Next: incomestatement,  Prev: help,  Up: COMMANDS
 
-4.13 import
+4.16 import
 ===========
 
 import
@@ -2279,7 +2342,7 @@ $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 
 File: hledger.info,  Node: Importing balance assignments,  Up: import
 
-4.13.1 Importing balance assignments
+4.16.1 Importing balance assignments
 ------------------------------------
 
 Entries added by import will have their posting amounts made explicit
@@ -2296,9 +2359,9 @@ $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
 please test it and send a pull request.)
 
 
-File: hledger.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: COMMANDS
+File: hledger.info,  Node: incomestatement,  Next: notes,  Prev: import,  Up: COMMANDS
 
-4.14 incomestatement
+4.17 incomestatement
 ====================
 
 incomestatement, is
@@ -2343,9 +2406,42 @@ report mode with '--change'/'--cumulative'/'--historical'.
 selection.
 
 
-File: hledger.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: COMMANDS
+File: hledger.info,  Node: notes,  Next: payees,  Prev: incomestatement,  Up: COMMANDS
 
-4.15 prices
+4.18 notes
+==========
+
+notes Show notes.
+
+   This command lists all notes that appear in transactions.
+
+   Examples:
+
+$ hledger notes
+Petrol
+Snacks
+
+
+File: hledger.info,  Node: payees,  Next: prices,  Prev: notes,  Up: COMMANDS
+
+4.19 payees
+===========
+
+payees Show payee names.
+
+   This command lists all payee names that appear in transactions.
+
+   Examples:
+
+$ hledger payees
+Store Name
+Gas Station
+Person A
+
+
+File: hledger.info,  Node: prices,  Next: print,  Prev: payees,  Up: COMMANDS
+
+4.20 prices
 ===========
 
 prices
@@ -2357,7 +2453,7 @@ Prices (and postings providing prices) can be filtered by a query.
 
 File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
 
-4.16 print
+4.21 print
 ==========
 
 print, txns, p
@@ -2458,7 +2554,7 @@ $ hledger print -Ocsv
 
 File: hledger.info,  Node: print-unique,  Next: register,  Prev: print,  Up: COMMANDS
 
-4.17 print-unique
+4.22 print-unique
 =================
 
 print-unique
@@ -2479,7 +2575,7 @@ $ LEDGER_FILE=unique.journal hledger print-unique
 
 File: hledger.info,  Node: register,  Next: register-match,  Prev: print-unique,  Up: COMMANDS
 
-4.18 register
+4.23 register
 =============
 
 register, reg, r
@@ -2569,7 +2665,7 @@ length and comparable to the others in the report.
 
 File: hledger.info,  Node: Custom register output,  Up: register
 
-4.18.1 Custom register output
+4.23.1 Custom register output
 -----------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -2600,7 +2696,7 @@ selection.
 
 File: hledger.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
 
-4.19 register-match
+4.24 register-match
 ===================
 
 register-match
@@ -2613,7 +2709,7 @@ ledger-autosync detect already-seen transactions when importing.
 
 File: hledger.info,  Node: rewrite,  Next: roi,  Prev: register-match,  Up: COMMANDS
 
-4.20 rewrite
+4.25 rewrite
 ============
 
 rewrite
@@ -2665,7 +2761,7 @@ commodity.
 
 File: hledger.info,  Node: Re-write rules in a file,  Up: rewrite
 
-4.20.1 Re-write rules in a file
+4.25.1 Re-write rules in a file
 -------------------------------
 
 During the run this tool will execute so called "Automated Transactions"
@@ -2708,7 +2804,7 @@ postings.
 
 File: hledger.info,  Node: Diff output format,  Next: rewrite vs print --auto,  Up: Re-write rules in a file
 
-4.20.1.1 Diff output format
+4.25.1.1 Diff output format
 ...........................
 
 To use this tool for batch modification of your journal files you may
@@ -2749,7 +2845,7 @@ output from 'hledger print'.
 
 File: hledger.info,  Node: rewrite vs print --auto,  Prev: Diff output format,  Up: Re-write rules in a file
 
-4.20.1.2 rewrite vs. print -auto
+4.25.1.2 rewrite vs. print -auto
 ................................
 
 This command predates print -auto, and currently does much the same
@@ -2769,7 +2865,7 @@ thing, but with these differences:
 
 File: hledger.info,  Node: roi,  Next: stats,  Prev: rewrite,  Up: COMMANDS
 
-4.21 roi
+4.26 roi
 ========
 
 roi
@@ -2797,7 +2893,7 @@ regardless of the length of reporting interval.
 
 File: hledger.info,  Node: stats,  Next: tags,  Prev: roi,  Up: COMMANDS
 
-4.22 stats
+4.27 stats
 ==========
 
 stats
@@ -2828,7 +2924,7 @@ selection.
 
 File: hledger.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
 
-4.23 tags
+4.28 tags
 =========
 
 tags
@@ -2841,7 +2937,7 @@ instead.
 
 File: hledger.info,  Node: test,  Prev: tags,  Up: COMMANDS
 
-4.24 test
+4.29 test
 =========
 
 test
@@ -2957,9 +3053,6 @@ hledger release.
 * interest::
 * irr::
 
-
-File: hledger.info,  Node: diff,  Next: iadd,  Up: Third party add-ons
-
 5.2.1 diff
 ----------
 
@@ -2967,7 +3060,7 @@ hledger-diff shows differences in an account's transactions between one
 journal file and another.
 
 
-File: hledger.info,  Node: iadd,  Next: interest,  Prev: diff,  Up: Third party add-ons
+File: hledger.info,  Node: iadd,  Next: interest,  Prev: ,  Up: Third party add-ons
 
 5.2.2 iadd
 ----------
@@ -3084,132 +3177,141 @@ Node: -B Cost25145
 Ref: #b-cost25256
 Node: -V Market value25454
 Ref: #v-market-value25628
-Node: -X Market value in specified commodity27034
-Ref: #x-market-value-in-specified-commodity27254
-Node: --value27594
-Ref: #value27759
-Node: Valuation type28560
-Ref: #valuation-type28696
-Node: Valuation commodity29581
-Ref: #valuation-commodity29752
-Node: --value examples30452
-Ref: #value-examples30629
-Node: Effect of --value on reports32612
-Ref: #effect-of---value-on-reports32785
-Node: Combining -B -V -X --value35476
-Ref: #combining--b--v--x---value35638
-Node: Output destination35674
-Ref: #output-destination35826
-Node: Output format36109
-Ref: #output-format36261
-Node: Regular expressions36646
-Ref: #regular-expressions36783
-Node: QUERIES38144
-Ref: #queries38246
-Node: COMMANDS42208
-Ref: #commands42320
-Node: accounts43321
-Ref: #accounts43419
-Node: activity44118
-Ref: #activity44228
-Node: add44611
-Ref: #add44710
-Node: balance47455
-Ref: #balance47566
-Node: Classic balance report49008
-Ref: #classic-balance-report49181
-Node: Customising the classic balance report50550
-Ref: #customising-the-classic-balance-report50778
-Node: Colour support52854
-Ref: #colour-support53021
-Node: Flat mode53194
-Ref: #flat-mode53342
-Node: Depth limited balance reports53755
-Ref: #depth-limited-balance-reports53955
-Node: Multicolumn balance report54411
-Ref: #multicolumn-balance-report54609
-Node: Budget report59923
-Ref: #budget-report60066
-Node: Nested budgets65268
-Ref: #nested-budgets65380
-Ref: #output-format-168860
-Node: balancesheet68938
-Ref: #balancesheet69074
-Node: balancesheetequity70389
-Ref: #balancesheetequity70538
-Node: cashflow71099
-Ref: #cashflow71227
-Node: check-dates72255
-Ref: #check-dates72382
-Node: check-dupes72661
-Ref: #check-dupes72785
-Node: close73078
-Ref: #close73186
-Node: files76773
-Ref: #files76874
-Node: help77021
-Ref: #help77121
-Node: import78214
-Ref: #import78328
-Node: Importing balance assignments79116
-Ref: #importing-balance-assignments79264
-Node: incomestatement79913
-Ref: #incomestatement80047
-Node: prices81383
-Ref: #prices81498
-Node: print81777
-Ref: #print81887
-Node: print-unique86380
-Ref: #print-unique86506
-Node: register86791
-Ref: #register86918
-Node: Custom register output91090
-Ref: #custom-register-output91219
-Node: register-match92481
-Ref: #register-match92615
-Node: rewrite92966
-Ref: #rewrite93081
-Node: Re-write rules in a file94936
-Ref: #re-write-rules-in-a-file95070
-Node: Diff output format96280
-Ref: #diff-output-format96449
-Node: rewrite vs print --auto97541
-Ref: #rewrite-vs.-print---auto97720
-Node: roi98276
-Ref: #roi98374
-Node: stats99386
-Ref: #stats99485
-Node: tags100273
-Ref: #tags100371
-Node: test100665
-Ref: #test100749
-Node: ADD-ON COMMANDS101510
-Ref: #add-on-commands101620
-Node: Official add-ons102908
-Ref: #official-add-ons103048
-Node: api103136
-Ref: #api103225
-Node: ui103277
-Ref: #ui103376
-Node: web103434
-Ref: #web103523
-Node: Third party add-ons103569
-Ref: #third-party-add-ons103744
-Node: diff103880
-Ref: #diff103977
-Node: iadd104076
-Ref: #iadd104190
-Node: interest104273
-Ref: #interest104394
-Node: irr104489
-Ref: #irr104587
-Node: Experimental add-ons104718
-Ref: #experimental-add-ons104870
-Node: autosync105151
-Ref: #autosync105262
-Node: chart105501
-Ref: #chart105620
-Node: check105691
-Ref: #check105793
+Node: -X Market value in specified commodity27058
+Ref: #x-market-value-in-specified-commodity27278
+Node: --value27572
+Ref: #value27737
+Node: Valuation type28538
+Ref: #valuation-type28674
+Node: Valuation commodity29559
+Ref: #valuation-commodity29730
+Node: --value examples30430
+Ref: #value-examples30607
+Node: Effect of --value on reports32590
+Ref: #effect-of---value-on-reports32763
+Node: Combining -B -V -X --value35454
+Ref: #combining--b--v--x---value35616
+Node: Output destination35652
+Ref: #output-destination35804
+Node: Output format36087
+Ref: #output-format36239
+Node: Regular expressions36624
+Ref: #regular-expressions36761
+Node: QUERIES38122
+Ref: #queries38224
+Node: COMMANDS42186
+Ref: #commands42298
+Node: accounts43362
+Ref: #accounts43460
+Node: activity44159
+Ref: #activity44269
+Node: add44652
+Ref: #add44751
+Node: balance47496
+Ref: #balance47607
+Node: Classic balance report49049
+Ref: #classic-balance-report49222
+Node: Customising the classic balance report50591
+Ref: #customising-the-classic-balance-report50819
+Node: Colour support52895
+Ref: #colour-support53062
+Node: Flat mode53235
+Ref: #flat-mode53383
+Node: Depth limited balance reports53796
+Ref: #depth-limited-balance-reports53996
+Node: Multicolumn balance report54452
+Ref: #multicolumn-balance-report54650
+Node: Budget report59964
+Ref: #budget-report60107
+Node: Nested budgets65309
+Ref: #nested-budgets65421
+Ref: #output-format-168901
+Node: balancesheet68979
+Ref: #balancesheet69115
+Node: balancesheetequity70430
+Ref: #balancesheetequity70579
+Node: cashflow71140
+Ref: #cashflow71268
+Node: check-dates72296
+Ref: #check-dates72423
+Node: check-dupes72702
+Ref: #check-dupes72826
+Node: close73119
+Ref: #close73233
+Node: commodities76820
+Ref: #commodities76947
+Node: descriptions77029
+Ref: #descriptions77157
+Node: diff77338
+Ref: #diff77444
+Node: files78491
+Ref: #files78591
+Node: help78738
+Ref: #help78838
+Node: import79931
+Ref: #import80045
+Node: Importing balance assignments80833
+Ref: #importing-balance-assignments80981
+Node: incomestatement81630
+Ref: #incomestatement81763
+Node: notes83099
+Ref: #notes83212
+Node: payees83338
+Ref: #payees83444
+Node: prices83602
+Ref: #prices83708
+Node: print83987
+Ref: #print84097
+Node: print-unique88590
+Ref: #print-unique88716
+Node: register89001
+Ref: #register89128
+Node: Custom register output93300
+Ref: #custom-register-output93429
+Node: register-match94691
+Ref: #register-match94825
+Node: rewrite95176
+Ref: #rewrite95291
+Node: Re-write rules in a file97146
+Ref: #re-write-rules-in-a-file97280
+Node: Diff output format98490
+Ref: #diff-output-format98659
+Node: rewrite vs print --auto99751
+Ref: #rewrite-vs.-print---auto99930
+Node: roi100486
+Ref: #roi100584
+Node: stats101596
+Ref: #stats101695
+Node: tags102483
+Ref: #tags102581
+Node: test102875
+Ref: #test102959
+Node: ADD-ON COMMANDS103720
+Ref: #add-on-commands103830
+Node: Official add-ons105118
+Ref: #official-add-ons105258
+Node: api105346
+Ref: #api105435
+Node: ui105487
+Ref: #ui105586
+Node: web105644
+Ref: #web105733
+Node: Third party add-ons105779
+Ref: #third-party-add-ons105954
+Ref: #diff-1106113
+Node: iadd106212
+Ref: #iadd106322
+Node: interest106405
+Ref: #interest106526
+Node: irr106621
+Ref: #irr106719
+Node: Experimental add-ons106850
+Ref: #experimental-add-ons107002
+Node: autosync107283
+Ref: #autosync107394
+Node: chart107633
+Ref: #chart107752
+Node: check107823
+Ref: #check107925
 
 End Tag Table

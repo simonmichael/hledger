@@ -1175,8 +1175,8 @@ commodity-less amounts, or until the next \f[C]D\f[R] directive.
 .IP
 .nf
 \f[C]
-# commodity-less amounts should be treated as dollars
-# (and displayed with symbol on the left, thousands separators and two decimal places)
+; commodity-less amounts should be treated as dollars
+; (and displayed with symbol on the left, thousands separators and two decimal places)
 D $1,000.00
 
 1/1
@@ -1450,7 +1450,7 @@ Eg:
 .nf
 \f[C]
 alias checking = assets:bank:wells fargo:checking
-# rewrites \[dq]checking\[dq] to \[dq]assets:bank:wells fargo:checking\[dq], or \[dq]checking:a\[dq] to \[dq]assets:bank:wells fargo:checking:a\[dq]
+; rewrites \[dq]checking\[dq] to \[dq]assets:bank:wells fargo:checking\[dq], or \[dq]checking:a\[dq] to \[dq]assets:bank:wells fargo:checking:a\[dq]
 \f[R]
 .fi
 .SS Regex aliases
@@ -1476,7 +1476,7 @@ Eg:
 .nf
 \f[C]
 alias /\[ha](.+):bank:([\[ha]:]+)(.*)/ = \[rs]1:\[rs]2 \[rs]3
-# rewrites \[dq]assets:bank:wells fargo:checking\[dq] to  \[dq]assets:wells fargo checking\[dq]
+; rewrites \[dq]assets:bank:wells fargo:checking\[dq] to  \[dq]assets:wells fargo checking\[dq]
 \f[R]
 .fi
 .PP
