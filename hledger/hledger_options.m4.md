@@ -464,20 +464,15 @@ This flag is equivalent to `--value=cost`, described below.
 ### -V: Market value
 
 The `-V/--market` flag converts reported amounts to their market value in a default valuation commodity,
-using the [historical market prices](journal.html#market-prices) in effect on a default valuation date.
+using the [market prices](journal.html#market-prices) in effect on a default valuation date.
+For single period reports, the valuation date is today;
+for [multiperiod reports](#report-intervals), it is the last day of each subperiod.
+It is equivalent to `--value=now` or `--value=end` (see below).
 
-For single period reports, the valuation date is today.
-For [multiperiod reports](#report-intervals), it is the last day of each subperiod.
-
-The valuation commodity will be the one referenced in the latest
+The default valuation commodity is the one referenced in the latest
 applicable market price dated on or before the valuation date.
 If most of your P declarations lead to a single home currency, this will usually be what you want.
-
-Unlike the similar flag in Ledger, it does not infer market prices
-from [transaction prices](/manual.html#transaction-prices). In
-hledger, -B uses transaction prices, -V and -X use market prices.
-
-It is equivalent to `--value=now` or `--value=end`.
+(To specify the commodity, see -X below.)
 
 Here's a quick example:
 
@@ -509,12 +504,15 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 ```
 
+Note that in hledger, market prices are always declared explicitly with P directives;
+we do not infer them from [transaction prices](/manual.html#transaction-prices) as Ledger does.
+
 ### -X: Market value in specified commodity
 
 The `-X/--exchange` option is like `-V/--market` except it takes a
 commodity symbol argument, so that you can select a different target commodity.
-It is similar to the same option in Ledger, with the same caveat mentioned for `-V`/`--value` above.
-It is equivalent to `--value=now,COMM` or `--value=end,COMM`; for more details, read on.
+It is similar to the same option in Ledger, with the same caveat mentioned above.
+It is equivalent to `--value=now,COMM` or `--value=end,COMM`.
 
 ### --value
 
