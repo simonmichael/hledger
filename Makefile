@@ -130,13 +130,13 @@ SOURCEFILES:= \
 	hledger/Hledger/*/*/*hs   \
 	hledger-*/*hs             \
 	hledger-*/app/*hs         \
-	hledger-*/src/*hs         \
 	hledger-*/test/*hs        \
 	hledger-*/tests/*hs       \
 	hledger-*/Hledger/*hs     \
 	hledger-*/Hledger/*/*hs   \
 	hledger-*/Hledger/*/*/*hs \
 	hledger-lib/Text/*/*hs    \
+#	hledger-*/src/*hs         \
 
 # show the sorted, unique files matched by SOURCEFILES
 sourcefiles:
