@@ -98,8 +98,8 @@ usage = unlines
   ,"See also: make help"
   ]
 
-groff    = "groff"
-makeinfo = "makeinfo"
+-- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
+makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
 pandoc   = "pandoc"
 
 -- Must support both BSD sed and GNU sed. Tips:
@@ -285,7 +285,13 @@ main = do
     txtmanuals |%> \out -> do  -- hledger/hledger.txt
       let src = manualNameToManpageName $ dropExtension out
       need [src]
-      cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -bx >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
+      -- cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -b >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
+      -- Workaround: groff 1.22.4 always calls grotty in a way that adds ANSI/SGR escape codes.
+      -- (groff -c is supposed to switch those to backspaces, which we could
+      -- remove with col -b, but it doesn't as can be seen with groff -V.)
+      -- To get plain text, we run groff's lower-level commands (from -V) and add -cbuo.
+      -- -Wall silences most troff warnings, remove to see them
+      cmd Shell "tbl" src "| eqn -Tascii | troff -Wall -mandoc -Tascii | grotty -cbuo >" out
 
     -- Generate Info manuals suitable for viewing with info.
     phony "infomanuals" $ need infomanuals
