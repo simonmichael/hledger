@@ -465,16 +465,18 @@ This flag is equivalent to `--value=cost`, described below.
 
 The `-V/--market` flag converts reported amounts to their market value in a default valuation commodity,
 using the [market prices](journal.html#market-prices) in effect on a default valuation date.
-For single period reports, the valuation date is today;
-for [multiperiod reports](#report-intervals), it is the last day of each subperiod.
-It is equivalent to `--value=now` or `--value=end` (see below).
+For single period reports, the valuation date is today (equivalent to `--value=now`);
+for [multiperiod reports](#report-intervals), it is the last day of each subperiod (equivalent to `--value=end`).
 
 The default valuation commodity is the one referenced in the latest
 applicable market price dated on or before the valuation date.
 If most of your P declarations lead to a single home currency, this will usually be what you want.
 (To specify the commodity, see -X below.)
 
-Here's a quick example:
+Note that in hledger, market prices are always declared explicitly with P directives;
+we do not infer them from [transaction prices](/manual.html#transaction-prices) as Ledger does.
+
+Here's a quick example of -V:
 
 ```journal
 ; one euro is worth this many dollars from nov 1
@@ -504,17 +506,12 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 ```
 
-Note that in hledger, market prices are always declared explicitly with P directives;
-we do not infer them from [transaction prices](/manual.html#transaction-prices) as Ledger does.
-
 ### -X: Market value in specified commodity
 
-The `-X/--exchange` option is like `-V/--market` except it takes a
-commodity symbol argument, so that you can select a different target commodity.
-It is similar to the same option in Ledger, with the same caveat mentioned above.
+The `-X/--exchange` option is like `-V`, except it specifies the target commodity you would like to convert to.
 It is equivalent to `--value=now,COMM` or `--value=end,COMM`.
 
-### --value
+### --value: Flexible valuation
 
 *(experimental, added 201905)*
 
@@ -528,46 +525,40 @@ It is equivalent to `--value=now,COMM` or `--value=end,COMM`.
                           - default valuation commodity (or COMM) using current market prices
                           - default valuation commodity (or COMM) using market prices at some date
 
-#### Valuation type
-
-TYPE is one of these keywords, or their first letter, or a date (which
-must be 8 digits with `-` or `/` or `.` separators):
+The TYPE part basically selects either "cost", or "market value" plus a valuation date:
 
 `--value=cost`
 : Convert amounts to cost, using the prices recorded in transactions.
-  `-B`/`--cost` is equivalent to this.
 
 `--value=end`
-: Convert amounts to their value in default valuation commodity using market prices 
-  on the last day of the report period (or of each subperiod in a multiperiod report).
-  When no report period is specified, uses the journal's last transaction date.
+: Convert amounts to their value in a default valuation commodity, using market prices
+  on the last day of the report period (or if unspecified, the journal's end date);
+  or in multiperiod reports, market prices on the last day of each subperiod.
 
 `--value=now`
 : Convert amounts to their value in default valuation commodity using current market prices 
-  (as of when report is generated). `-V`/`--market` is equivalent to this.
+  (as of when report is generated).
 
 `--value=YYYY-MM-DD`
 : Convert amounts to their value in default valuation commodity using market prices 
-  on this date.  Eg `--value=2019-04-25`.
-
-#### Valuation commodity
+  on this date.
 
 The default valuation commodity is the commodity mentioned in the most
 recent applicable market price declaration. When all your price
 declarations lead to a single home currency, this will usually do what
 you want.
 
-To select a different valuation commodity: write the commodity symbol
-after the valuation type, separated by a comma (eg: **`--value=now,EUR`**). 
-This will use, in this preferred order:
+To select a different valuation commodity, add the optional `,COMM` part:
+a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
+hledger will do its best to convert amounts to this commodity, using:
 
 - declared prices (from source commodity to valuation commodity)
 - reverse prices (declared prices from valuation to source commodity, inverted)
-- indirect prices (prices calculated from the shortest chain of declared or reverse prices from source to valuation commodity).
+- indirect prices (prices calculated from the shortest chain of declared or reverse prices from source to valuation commodity)
 
-#### --value examples
+in that order. 
 
-Here are the effects of `--value` as seen with `print`:
+Here are some examples showing the effect of `--value` as seen with `print`:
 
 ```journal
 P 2000-01-01 A  1 B
@@ -688,13 +679,13 @@ $ hledger print -X A
 
 ```
 
-#### Effect of --value on reports
+### Effect of --value on reports
 
 Below is how `--value` affects each of hledger's reports, currently.
 You're not expected to remember all this, but when troubleshooting a report, look here.
 If you find problems - useless reports, misbehaving reports, or error
-messages being printed - please report them (with reproducible examples) eg at
-[#329](https://github.com/simonmichael/hledger/issues/329).
+messages being printed - please report them with a reproducible example,
+eg at [#329](https://github.com/simonmichael/hledger/issues/329).
 
 | Report type                      | `--value` `cost`&nbsp;              | `--value` `end`&nbsp;                                               | `--value` `DATE`/`now`&nbsp;                     |
 |----------------------------------|-------------------------------------|---------------------------------------------------------------------|--------------------------------------------------|
@@ -712,6 +703,10 @@ messages being printed - please report them (with reproducible examples) eg at
 | balances, multiperiod report     | summed costs                        | market value at period end of sum of postings                       | market value at DATE of sum of postings          |
 | budget amounts with --budget     | costs of budget amounts             | budget-setting periodic txns are valued at period end               | budget-setting periodic txns are valued at DATE  |
 | column/row/grand totals/averages | sum/average of the displayed values | market value at period end of sum/average of postings               | market value at DATE of sum/average of postings  |
+
+ Additional notes:
+
+print -V and register -V use today as the valuation date, whereas --value-end uses the report end date. ([#1083](https://github.com/simonmichael/hledger/issues/1083)).
 
 ### Combining -B, -V, -X, --value
 
