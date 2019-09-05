@@ -681,32 +681,63 @@ $ hledger print -X A
 
 ### Effect of --value on reports
 
-Below is how `--value` affects each of hledger's reports, currently.
-You're not expected to remember all this, but when troubleshooting a report, look here.
-If you find problems - useless reports, misbehaving reports, or error
-messages being printed - please report them with a reproducible example,
-eg at [#329](https://github.com/simonmichael/hledger/issues/329).
+Here is a reference for how `--value` currently affects each part of hledger's reports.
+It's work in progress, but may be useful for troubleshooting or reporting bugs.
+See also the definitions and notes below.
+If you find problems, please report them, ideally with a reproducible example.
+Related: [#329](https://github.com/simonmichael/hledger/issues/329).
 
-| Report type                      | `--value` `cost`&nbsp;              | `--value` `end`&nbsp;                                               | `--value` `DATE`/`now`&nbsp;                     |
-|----------------------------------|-------------------------------------|---------------------------------------------------------------------|--------------------------------------------------|
-| <br>**print**                    |                                     |                                                                     |                                                  |
-| posting amounts                  | cost, as recorded in transaction    | market value at report end                                          | market value at DATE                             |
-| balance assertions/assignments   | show unvalued                       | show unvalued                                                       | show unvalued                                    |
-| <br>**register**                 |                                     |                                                                     |                                                  |
-| starting balance with -H         | cost of starting balance            | market value at day before report start                             | market value at DATE                             |
-| posting amounts                  | cost                                | market value at report end                                          | market value at DATE                             |
-| posting amounts, multiperiod     | summarised cost                     | market value each summary posting at period end                     | market value each summary posting at DATE        |
-| running total/average            | sum/average of the displayed values | sum/average of the displayed values                                 | sum/average of the displayed values              |
-| <br>**balance (bs, cf, is..)**   |                                     |                                                                     |                                                  |
-| starting balances with -H        | costs of starting balances          | market value at day before report start of sum of previous postings | market value at DATE of sum of previous postings |
-| balances, simple balance report  | summed costs                        | market value at period end of sum of postings                       | market value at DATE of sum of postings          |
-| balances, multiperiod report     | summed costs                        | market value at period end of sum of postings                       | market value at DATE of sum of postings          |
-| budget amounts with --budget     | costs of budget amounts             | budget-setting periodic txns are valued at period end               | budget-setting periodic txns are valued at DATE  |
-| column/row/grand totals/averages | sum/average of the displayed values | market value at period end of sum/average of postings               | market value at DATE of sum/average of postings  |
+| Report type                                     | `-B`, `--value=cost`               | `-V`, `-X`                               | `--value=end`                                      | `--value=DATE`, `--value=now`           |
+|:------------------------------------------------|:-----------------------------------|:-----------------------------------------|:---------------------------------------------------|:----------------------------------------|
+| **print**                                       |                                    |                                          |                                                    |                                         |
+| posting amounts                                 | cost                               | value today[1]                           | value at report or journal end or posting date     | value at DATE/today                     |
+| balance assertions / assignments                | unchanged                          | unchanged                                | unchanged                                          | unchanged                               |
+| <br>                                            |                                    |                                          |                                                    |                                         |
+| **register**                                    |                                    |                                          |                                                    |                                         |
+| starting balance (with -H)                      | cost                               | value today[1]                           | value at day before report or journal start        | value at DATE/today                     |
+| posting amounts (no report interval)            | cost                               | value today[1]                           | value at report or journal end                     | value at DATE/today                     |
+| summary posting amounts (with report interval)  | summarised cost                    | value at period ends                     | value at period ends                               | value at DATE/today                     |
+| running total/average                           | sum/average of displayed values    | sum/average of displayed values          | sum/average of displayed values                    | sum/average of displayed values         |
+| <br>                                            |                                    |                                          |                                                    |                                         |
+| **balance (bs, bse, cf, is..)**                 |                                    |                                          |                                                    |                                         |
+| balances (no report interval)                   | sums of costs                      | value today[1] of sums of postings       | value at report or journal end of sums of postings | value at DATE/today of sums of postings |
+| starting balances (with report interval and -H) | sums of costs of previous postings | sums of previous postings                | sums of previous postings                          | sums of previous postings               |
+| balances (with report interval)                 | sums of costs                      | value at period ends of sums of postings | value at period ends of sums of postings           | value at DATE/today of sums of postings |
+| budget amounts with --budget                    | like balances                      | like balances                            | like balances                                      | like balances                           |
+| grand total (no report interval)                | sum of displayed values            | sum of displayed values                  | sum of displayed values                            | sum of displayed values                 |
+| row totals/averages (with report interval)      | sums/averages of displayed values  | sums/averages of displayed values        | sums/averages of displayed values                  | sums/averages of displayed values       |
+| column totals                                   | sums of displayed values           | sums of displayed values                 | sums of displayed values                           | sums of displayed values                |
+| grand total/average                             | sum/average of column totals       | sum/average of column totals             | sum/average of column totals                       | sum/average of column totals            |
+| <br>                                            |                                    |                                          |                                                    |                                         |
 
- Additional notes:
+**Additional notes**
 
-print -V and register -V use today as the valuation date, whereas --value-end uses the report end date. ([#1083](https://github.com/simonmichael/hledger/issues/1083)).
+*cost*
+: calculated using price(s) recorded in the transaction(s).
+
+*value*
+: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
+
+*report start*
+: the first day of the report period specified with -b or -p or date:, otherwise today.
+
+*report or journal start*
+: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
+
+*report end*
+: the last day of the report period specified with -e or -p or date:, otherwise today.
+
+*report or journal end*
+: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
+
+*report interval*
+: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
+
+[1] As of hledger 1.15, print -V and register -V, with no report interval,
+    use today as the valuation date, ignoring any end date specified with
+    -e/-p/date:, unlike hledger-1.14 and Ledger. Workaround: use
+    --value=end instead.
+    ([#1083](https://github.com/simonmichael/hledger/issues/1083)).
 
 ### Combining -B, -V, -X, --value
 
