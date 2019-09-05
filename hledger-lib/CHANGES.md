@@ -1,6 +1,13 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.15.2 2019-09-05
+
+Changes:
+
+- postingApplyValuation, mixedAmountApplyValuation, amountApplyValuation
+  take an argument, the report end date if one was specified.
+
 # 1.15.1 2019-09-02
 
 - fix failing doctests

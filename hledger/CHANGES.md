@@ -1,6 +1,16 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.15.2 2019-09-05
+
+- -V and -X now respect a report end date (set with -e or -p or date:)
+  when choosing the valuation date (which determines the market prices
+  used). This is how -V works in hledger 1.14 and Ledger, and it means
+  that -V isn't exactly equivalent to either --value=end or
+  --value=now. Possibly some other corner cases in valuation have been
+  fixed as well. "Effect of --value on reports" in the hledger manual
+  has been updated and is more accurate.
+
 # 1.15.1 2019-09-02
 
 - add commodities, descriptions, diff, notes, payees commands to manual
