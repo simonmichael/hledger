@@ -685,7 +685,9 @@ Here is a reference for how `--value` currently affects each part of hledger's r
 It's work in progress, but may be useful for troubleshooting or reporting bugs.
 See also the definitions and notes below.
 If you find problems, please report them, ideally with a reproducible example.
-Related: [#329](https://github.com/simonmichael/hledger/issues/329).
+Related: 
+[#329](https://github.com/simonmichael/hledger/issues/329),
+[#1083](https://github.com/simonmichael/hledger/issues/1083).
 
 | Report type                                     | `-B`, `--value=cost`                          | `-V`, `-X`                                       | `--value=end`                                      | `--value=DATE`, `--value=now`           |
 |:------------------------------------------------|:----------------------------------------------|:-------------------------------------------------|:---------------------------------------------------|:----------------------------------------|
