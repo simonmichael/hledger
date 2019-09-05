@@ -45,7 +45,8 @@ $ hledger -f- bal -N -V a
              €130.00  a
 
 
-# 4. Market prices in the future (later than today's date) are ignored by default. #453, #683
+# 4. Market prices in the future are ignored when the valuation date
+# is today, which is the default with -V. #453, #683
 <
 P 2000/1/1 $ €1.20
 P 3000/1/1 $ €1.30
@@ -57,8 +58,9 @@ $ hledger -f- bal -N -V
              €120.00  a
 
 
-# 5. Market prices in the future are still ignored by default even
-# with an explicit future report end date, unlike hledger 1.14-.
+# 5. Market prices in the future are not ignored when they are before
+# the valuation date set with an explicit report end date, as in 
+# hledger 1.14 and older, and Ledger. See also valuation2.test, #1083
 <
 P 3000/1/1 $ €1.10
 
@@ -66,7 +68,7 @@ P 3000/1/1 $ €1.10
   (a)    $100
 
 $ hledger -f- bal -N -V -e 3000/2
-                $100  a
+             €110.00  a
 
 
 # 6. Market prices interact with D directives and with amount style canonicalisation. #131

@@ -245,9 +245,6 @@ multiBalanceReportWith ropts@ReportOpts{..} q j@Journal{..} priceoracle =
       -- 6. Build the report rows.
 
       -- One row per account, with account name info, row amounts, row total and row average.
-      -- Row amounts are converted to value if that has been requested.
-      -- Row total/average are always simply the sum/average of the row amounts.
-      multiperiod = interval_ /= NoInterval
       rows :: [MultiBalanceReportRow] =
           dbg1 "rows" $
           [(a, accountLeafName a, accountNameLevel a, valuedrowbals, rowtot, rowavg)
@@ -259,38 +256,25 @@ multiBalanceReportWith ropts@ReportOpts{..} q j@Journal{..} priceoracle =
                    PeriodChange      -> changes
                    CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
                    HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
-             -- The row amounts valued according to --value if needed.
-           , let val end = maybe id (mixedAmountApplyValuation priceoracle styles end today multiperiod) value_
-           , let valuedrowbals = dbg1 "valuedrowbals" $ [val periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
-             -- The total and average for the row, and their values.
+             -- We may be converting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
+           , let valuedrowbals = dbg1 "valuedrowbals" $ [avalue periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
+             -- The total and average for the row.
+             -- These are always simply the sum/average of the displayed row amounts.
              -- Total for a cumulative/historical report is always zero.
            , let rowtot = if balancetype_==PeriodChange then sum valuedrowbals else 0
            , let rowavg = averageMixedAmounts valuedrowbals
            , empty_ || depth == 0 || any (not . isZeroMixedAmount) valuedrowbals
            ]
         where
-          -- Some things needed if doing valuation.
-          -- Here's the current intended effect of --value on each part of the report:
-          --  -H/--historical starting balances:
-          --   cost: summed cost of previous postings
-          --   end:  historical starting balances valued at day before report start
-          --   date: historical starting balances valued at date
-          --  table cells:
-          --   cost: summed costs of postings
-          --   end:  summed postings, valued at subperiod end
-          --   date: summed postings, valued at date
-          --  column totals:
-          --   cost: summed column amounts
-          --   end:  summed column amounts
-          --   date: summed column amounts
-          --  row totals & averages, grand total & average:
-          --   cost: summed/averaged row amounts
-          --   end:  summed/averaged row amounts
-          --   date: summed/averaged row amounts
-          today = fromMaybe (error' "multiBalanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_  -- XXX shouldn't error if not needed, eg valuation type is AtDate
-          -- Market prices, commodity display styles.
-          styles = journalCommodityStyles j
-          -- The last day of each column subperiod.
+          avalue periodlast =
+            maybe id (mixedAmountApplyValuation priceoracle styles periodlast mreportlast today multiperiod) value_
+            where
+              -- Some things needed if doing valuation.
+              styles = journalCommodityStyles j
+              mreportlast = reportPeriodLastDay ropts
+              today = fromMaybe (error' "multiBalanceReport: could not pick a valuation date, ReportOpts today_ is unset") today_  -- XXX shouldn't happen
+              multiperiod = interval_ /= NoInterval
+          -- The last day of each column's subperiod.
           lastdays =
             map ((maybe
                   (error' "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen

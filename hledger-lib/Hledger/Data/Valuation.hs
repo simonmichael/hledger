@@ -97,26 +97,52 @@ data ValuationType =
 ------------------------------------------------------------------------------
 -- Valuation
 
--- | Apply a specified valuation to this mixed amount, using the provided
--- price oracle, commodity styles, period-end/current dates,
--- and whether this is for a multiperiod report or not.
-mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
-mixedAmountApplyValuation priceoracle styles periodend today ismultiperiod v (Mixed as) =
-  Mixed $ map (amountApplyValuation priceoracle styles periodend today ismultiperiod v) as
+-- | Apply a specified valuation to this mixed amount, using the
+-- provided price oracle, commodity styles, reference dates, and
+-- whether this is for a multiperiod report or not.
+-- See amountApplyValuation.
+mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
+mixedAmountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v (Mixed as) =
+  Mixed $ map (amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v) as
 
 -- | Apply a specified valuation to this amount, using the provided
--- price oracle, commodity styles, period-end/current dates,
--- and whether this is for a multiperiod report or not.
-amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Bool -> ValuationType -> Amount -> Amount
-amountApplyValuation priceoracle styles periodend today ismultiperiod v a =
+-- price oracle, reference dates, and whether this is for a
+-- multiperiod report or not. Also fix up its display style using the
+-- provided commodity styles.
+--
+-- When the valuation requires converting to another commodity, a
+-- valuation (conversion) date is chosen based on the valuation type,
+-- the provided reference dates, and whether this is for a
+-- single-period or multi-period report. It will be one of:
+--
+-- - a fixed date specified by the ValuationType itself
+--   (--value=DATE).
+-- 
+-- - the provided "period end" date - this is typically the last day
+--   of a subperiod (--value=end with a multi-period report), or of
+--   the specified report period or the journal (--value=end with a
+--   single-period report).
+--
+-- - the provided "report end" date - the last day of the specified
+--   report period, if any (-V/-X with a report end date).
+--
+-- - the provided "today" date - (--value=now, or -V/X with no report
+--   end date).
+-- 
+-- This is all a bit complicated. See the reference doc at
+-- https://hledger.org/hledger.html#effect-of-value-on-reports
+-- (hledger_options.m4.md "Effect of --value on reports"), and #1083.
+--
+amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> ValuationType -> Amount -> Amount
+amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v a =
   case v of
     AtCost    Nothing            -> amountToCost styles a
-    AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodend $ amountToCost styles a
-    AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodend a
-    AtNow     mc                 -> amountValueAtDate priceoracle styles mc today     a
-    AtDefault mc | ismultiperiod -> amountValueAtDate priceoracle styles mc periodend a
-    AtDefault mc                 -> amountValueAtDate priceoracle styles mc today     a
-    AtDate d  mc                 -> amountValueAtDate priceoracle styles mc d         a
+    AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodlast $ amountToCost styles a
+    AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodlast a
+    AtNow     mc                 -> amountValueAtDate priceoracle styles mc today a
+    AtDefault mc | ismultiperiod -> amountValueAtDate priceoracle styles mc periodlast a
+    AtDefault mc                 -> amountValueAtDate priceoracle styles mc (fromMaybe today mreportlast) a
+    AtDate d  mc                 -> amountValueAtDate priceoracle styles mc d a
 
 -- | Find the market value of each component amount in the given
 -- commodity, or its default valuation commodity, at the given

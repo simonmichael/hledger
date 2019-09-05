@@ -687,28 +687,28 @@ See also the definitions and notes below.
 If you find problems, please report them, ideally with a reproducible example.
 Related: [#329](https://github.com/simonmichael/hledger/issues/329).
 
-| Report type                                     | `-B`, `--value=cost`               | `-V`, `-X`                               | `--value=end`                                      | `--value=DATE`, `--value=now`           |
-|:------------------------------------------------|:-----------------------------------|:-----------------------------------------|:---------------------------------------------------|:----------------------------------------|
-| **print**                                       |                                    |                                          |                                                    |                                         |
-| posting amounts                                 | cost                               | value today[1]                           | value at report or journal end or posting date     | value at DATE/today                     |
-| balance assertions / assignments                | unchanged                          | unchanged                                | unchanged                                          | unchanged                               |
-| <br>                                            |                                    |                                          |                                                    |                                         |
-| **register**                                    |                                    |                                          |                                                    |                                         |
-| starting balance (with -H)                      | cost                               | value today[1]                           | value at day before report or journal start        | value at DATE/today                     |
-| posting amounts (no report interval)            | cost                               | value today[1]                           | value at report or journal end                     | value at DATE/today                     |
-| summary posting amounts (with report interval)  | summarised cost                    | value at period ends                     | value at period ends                               | value at DATE/today                     |
-| running total/average                           | sum/average of displayed values    | sum/average of displayed values          | sum/average of displayed values                    | sum/average of displayed values         |
-| <br>                                            |                                    |                                          |                                                    |                                         |
-| **balance (bs, bse, cf, is..)**                 |                                    |                                          |                                                    |                                         |
-| balances (no report interval)                   | sums of costs                      | value today[1] of sums of postings       | value at report or journal end of sums of postings | value at DATE/today of sums of postings |
-| starting balances (with report interval and -H) | sums of costs of previous postings | sums of previous postings                | sums of previous postings                          | sums of previous postings               |
-| balances (with report interval)                 | sums of costs                      | value at period ends of sums of postings | value at period ends of sums of postings           | value at DATE/today of sums of postings |
-| budget amounts with --budget                    | like balances                      | like balances                            | like balances                                      | like balances                           |
-| grand total (no report interval)                | sum of displayed values            | sum of displayed values                  | sum of displayed values                            | sum of displayed values                 |
-| row totals/averages (with report interval)      | sums/averages of displayed values  | sums/averages of displayed values        | sums/averages of displayed values                  | sums/averages of displayed values       |
-| column totals                                   | sums of displayed values           | sums of displayed values                 | sums of displayed values                           | sums of displayed values                |
-| grand total/average                             | sum/average of column totals       | sum/average of column totals             | sum/average of column totals                       | sum/average of column totals            |
-| <br>                                            |                                    |                                          |                                                    |                                         |
+| Report type                                     | `-B`, `--value=cost`                          | `-V`, `-X`                                       | `--value=end`                                      | `--value=DATE`, `--value=now`           |
+|:------------------------------------------------|:----------------------------------------------|:-------------------------------------------------|:---------------------------------------------------|:----------------------------------------|
+| **print**                                       |                                               |                                                  |                                                    |                                         |
+| posting amounts                                 | cost                                          | value at report end or today                     | value at report or journal end                     | value at DATE/today                     |
+| balance assertions / assignments                | unchanged                                     | unchanged                                        | unchanged                                          | unchanged                               |
+| <br>                                            |                                               |                                                  |                                                    |                                         |
+| **register**                                    |                                               |                                                  |                                                    |                                         |
+| starting balance (with -H)                      | cost                                          | value at day before report or journal start      | value at day before report or journal start        | value at DATE/today                     |
+| posting amounts (no report interval)            | cost                                          | value at report end or today                     | value at report or journal end                     | value at DATE/today                     |
+| summary posting amounts (with report interval)  | summarised cost                               | value at period ends                             | value at period ends                               | value at DATE/today                     |
+| running total/average                           | sum/average of displayed values               | sum/average of displayed values                  | sum/average of displayed values                    | sum/average of displayed values         |
+| <br>                                            |                                               |                                                  |                                                    |                                         |
+| **balance (bs, bse, cf, is..)**                 |                                               |                                                  |                                                    |                                         |
+| balances (no report interval)                   | sums of costs                                 | value at report end or today of sums of postings | value at report or journal end of sums of postings | value at DATE/today of sums of postings |
+| balances (with report interval)                 | sums of costs                                 | value at period ends of sums of postings         | value at period ends of sums of postings           | value at DATE/today of sums of postings |
+| starting balances (with report interval and -H) | sums of costs of postings before report start | sums of postings before report start             | sums of postings before report start               | sums of postings before report start    |
+| budget amounts with --budget                    | like balances                                 | like balances                                    | like balances                                      | like balances                           |
+| grand total (no report interval)                | sum of displayed values                       | sum of displayed values                          | sum of displayed values                            | sum of displayed values                 |
+| row totals/averages (with report interval)      | sums/averages of displayed values             | sums/averages of displayed values                | sums/averages of displayed values                  | sums/averages of displayed values       |
+| column totals                                   | sums of displayed values                      | sums of displayed values                         | sums of displayed values                           | sums of displayed values                |
+| grand total/average                             | sum/average of column totals                  | sum/average of column totals                     | sum/average of column totals                       | sum/average of column totals            |
+| <br>                                            |                                               |                                                  |                                                    |                                         |
 
 **Additional notes**
 
@@ -733,11 +733,6 @@ Related: [#329](https://github.com/simonmichael/hledger/issues/329).
 *report interval*
 : a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
 
-[1] As of hledger 1.15, print -V and register -V, with no report interval,
-    use today as the valuation date, ignoring any end date specified with
-    -e/-p/date:, unlike hledger-1.14 and Ledger. Workaround: use
-    --value=end instead.
-    ([#1083](https://github.com/simonmichael/hledger/issues/1083)).
 
 ### Combining -B, -V, -X, --value
 

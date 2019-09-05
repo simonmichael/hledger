@@ -14,11 +14,9 @@ module Hledger.Reports.EntriesReport (
 )
 where
 
-import Control.Applicative ((<|>))
 import Data.List
 import Data.Maybe
 import Data.Ord
-import Data.Time.Calendar (Day, addDays)
 
 import Hledger.Data
 import Hledger.Query
@@ -35,28 +33,19 @@ type EntriesReportItem = Transaction
 -- | Select transactions for an entries report.
 entriesReport :: ReportOpts -> Query -> Journal -> EntriesReport
 entriesReport ropts@ReportOpts{..} q j@Journal{..} =
-  sortBy (comparing datefn) $ filter (q `matchesTransaction`) $ map tvalue jtxns
+  sortBy (comparing getdate) $ filter (q `matchesTransaction`) $ map tvalue jtxns
   where
-    datefn = transactionDateFn ropts
-    styles = journalCommodityStyles j
+    getdate = transactionDateFn ropts
+    -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
-    priceoracle = journalPriceOracle j
-    pvalue p = maybe p (postingApplyValuation priceoracle styles end today False p) value_
       where
-        today  = fromMaybe (error' "erValue: ReportOpts today_ is unset so could not satisfy --value=now") today_
-        end    = fromMaybe (postingDate p) mperiodorjournallastday
+        pvalue p = maybe p
+          (postingApplyValuation (journalPriceOracle j) (journalCommodityStyles j) periodlast mreportlast today False p)
+          value_
           where
-            mperiodorjournallastday = mperiodlastday <|> journalEndDate False j
-              where
-                -- The last day of the report period.
-                -- Will be Nothing if no report period is specified, or also
-                -- if ReportOpts does not have today_ set, since we need that
-                -- to get the report period robustly.
-                mperiodlastday :: Maybe Day = do
-                  t <- today_
-                  let q = queryFromOpts t ropts
-                  qend <- queryEndDate False q
-                  return $ addDays (-1) qend
+            periodlast  = fromMaybe today $ reportPeriodOrJournalLastDay ropts j
+            mreportlast = reportPeriodLastDay ropts
+            today       = fromMaybe (error' "erValue: could not pick a valuation date, ReportOpts today_ is unset") today_  -- should not happen
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

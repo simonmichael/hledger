@@ -71,25 +71,24 @@ balanceReport ropts@ReportOpts{..} q j@Journal{..} =
       -- dbg1 = const id -- exclude from debug output
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
-      today = fromMaybe (error' "balanceReport: ReportOpts today_ is unset so could not satisfy --value=now") today_
-      multiperiod = interval_ /= NoInterval
-      styles = journalCommodityStyles j
-
       -- Get all the summed accounts & balances, according to the query, as an account tree.
       -- If doing cost valuation, amounts will be converted to cost first.
       accttree = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j
 
-      -- For other kinds of valuation, convert the summed amounts to value.
-      priceoracle = journalPriceOracle j
-      valuedaccttree = mapAccounts valueaccount accttree
+      -- For other kinds of valuation, convert the summed amounts to value,
+      -- per hledger_options.m4.md "Effect of --value on reports".
+      valuedaccttree = mapAccounts avalue accttree
         where
-          valueaccount a@Account{..} = a{aebalance=val aebalance, aibalance=val aibalance}
+          avalue a@Account{..} = a{aebalance=bvalue aebalance, aibalance=bvalue aibalance}
             where
-              val = maybe id (mixedAmountApplyValuation priceoracle styles periodlastday today multiperiod) value_
+              bvalue = maybe id (mixedAmountApplyValuation (journalPriceOracle j) (journalCommodityStyles j) periodlast mreportlast today multiperiod) value_
                 where
-                  periodlastday =
+                  periodlast =
                     fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen
                     reportPeriodOrJournalLastDay ropts j
+                  mreportlast = reportPeriodLastDay ropts
+                  today = fromMaybe (error' "balanceReport: could not pick a valuation date, ReportOpts today_ is unset") today_
+                  multiperiod = interval_ /= NoInterval
 
       -- Modify this tree for display - depth limit, boring parents, zeroes - and convert to a list.
       displayaccts :: [Account]

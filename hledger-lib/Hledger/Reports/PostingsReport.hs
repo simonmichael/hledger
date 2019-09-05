@@ -70,37 +70,16 @@ postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
 postingsReport ropts@ReportOpts{..} q j@Journal{..} =
   (totallabel, items)
     where
-      reportspan = adjustReportDates ropts q j
-      whichdate = whichDateFromOpts ropts
-      depth = queryDepth q
-      styles = journalCommodityStyles j
+      reportspan  = adjustReportDates ropts q j
+      whichdate   = whichDateFromOpts ropts
+      depth       = queryDepth q
+      styles      = journalCommodityStyles j
+      priceoracle = journalPriceOracle j
+      multiperiod = interval_ /= NoInterval
+      today       = fromMaybe (error' "postingsReport: could not pick a valuation date, ReportOpts today_ is unset") today_
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
-
-      -- We may be converting amounts to value.
-      -- Currently this is done as follows (keep synced with hledger_options.m4.md):
-      --  register -M --value
-      --   cost: value each posting at cost, then summarise ; value -H starting balance at cost
-      --   end:  value each summary posting at period end   ; value -H starting balance at day before report start
-      --   date: value each summary posting at date         ; value -H starting balance at date
-      --  register --value
-      --   cost: value each posting at cost                 ; value -H starting balance at cost
-      --   end:  value each posting at report end           ; value -H starting balance at day before report start
-      --   date: value each posting at date                 ; value -H starting balance at date
-      --
-      --  In all cases, the running total/average is calculated from the above numbers.
-      --  "Day before report start" is a bit arbitrary.
-      today =
-        fromMaybe (error' "postingsReport: ReportOpts today_ is unset so could not satisfy --value=now")
-        today_
-      reportperiodlastday =
-        fromMaybe (error' "postingsReport: expected a non-empty journal") $ -- XXX shouldn't happen
-        reportPeriodOrJournalLastDay ropts j
-      multiperiod = interval_ /= NoInterval
-      showempty = empty_ || average_
-      priceoracle = journalPriceOracle j
-      pvalue p end = maybe p (postingApplyValuation priceoracle styles end today multiperiod p) value_
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
@@ -108,29 +87,43 @@ postingsReport ropts@ReportOpts{..} q j@Journal{..} =
             let summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
             in [(pvalue p lastday, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
         | otherwise =
-            [(pvalue p reportperiodlastday, Nothing) | p <- reportps]
-
-      -- posting report items ready for display
-      items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbalvalued runningcalc startnum
+            [(pvalue p reportorjournallast, Nothing) | p <- reportps]
         where
-          historical = balancetype_ == HistoricalBalance
-          precedingsum = sumPostings precedingps
-          precedingavg | null precedingps = 0
-                       | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
-          startbal | average_  = if historical then precedingavg else 0
-                   | otherwise = if historical then precedingsum else 0
-          -- For --value=end/now/DATE, convert the initial running total/average to value.
-          startbalvalued = val startbal
+          showempty = empty_ || average_
+          -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
+          pvalue p periodlast = maybe p (postingApplyValuation priceoracle styles periodlast mreportlast today multiperiod p) value_
             where
-              val = maybe id (mixedAmountApplyValuation priceoracle styles daybeforereportstart today multiperiod) value_
-                where
-                  daybeforereportstart = maybe
-                                         (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
-                                         (addDays (-1))
-                                         $ reportPeriodOrJournalStart ropts j
+              mreportlast = reportPeriodLastDay ropts
+          reportorjournallast =
+            fromMaybe (error' "postingsReport: expected a non-empty journal") $ -- XXX shouldn't happen
+            reportPeriodOrJournalLastDay ropts j
 
-          startnum = if historical then length precedingps + 1 else 1
+      -- Posting report items ready for display.
+      items =
+        dbg1 "postingsReport items" $
+        postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
+        where
+          -- In historical mode we'll need a starting balance, which we
+          -- may be converting to value per hledger_options.m4.md "Effect
+          -- of --value on reports".
+          -- XXX balance report doesn't value starting balance.. should this ?
+          historical = balancetype_ == HistoricalBalance
+          startbal | average_  = if historical then bvalue precedingavg else 0
+                   | otherwise = if historical then bvalue precedingsum else 0
+            where
+              precedingsum = sumPostings precedingps
+              precedingavg | null precedingps = 0
+                           | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
+              bvalue = maybe id (mixedAmountApplyValuation priceoracle styles daybeforereportstart Nothing today multiperiod) value_
+                  -- XXX constrain valuation type to AtDate daybeforereportstart here ?
+                where
+                  daybeforereportstart =
+                    maybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
+                    (addDays (-1))
+                    $ reportPeriodOrJournalStart ropts j
+
           runningcalc = registerRunningCalculationFn ropts
+          startnum = if historical then length precedingps + 1 else 1
 
 -- | Based on the given report options, return a function that does the appropriate
 -- running calculation for the register report, ie a running average or running total.

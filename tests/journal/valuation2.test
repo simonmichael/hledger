@@ -183,3 +183,27 @@ $ hledger -f- print -B -XZ
 
 >=0
 
+# A few more tests for -V (and -X, which should work similarly). #1083.
+<
+P 2000/01/01 A  2 B
+P 2002/01/01 A  3 B
+
+2000/01/01
+  (a)      1 A
+
+# 17. -V uses today as the default valuation date, unlike --value=end.
+$ hledger -f- reg -V
+2000/01/01                      (a)                            3 B           3 B
+
+# 18. -V uses the report end date, if specified, as valuation date.
+$ hledger -f- reg -V -e 2001
+2000/01/01                      (a)                            2 B           2 B
+
+# 19. In balance reports too.
+$ hledger -f- bal -N -V
+                 3 B  a
+
+# 20.
+$ hledger -f- bal -N -V -e 2001
+                 2 B  a
+
