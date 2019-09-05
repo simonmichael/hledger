@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "August 2019" "hledger 1.15" "hledger User Manuals"
+.TH "hledger" "1" "September 2019" "hledger 1.15.2" "hledger User Manuals"
 
 
 
@@ -1015,10 +1015,9 @@ This flag is equivalent to \f[C]--value=cost\f[R], described below.
 The \f[C]-V/--market\f[R] flag converts reported amounts to their market
 value in a default valuation commodity, using the market prices in
 effect on a default valuation date.
-For single period reports, the valuation date is today; for multiperiod
-reports, it is the last day of each subperiod.
-It is equivalent to \f[C]--value=now\f[R] or \f[C]--value=end\f[R] (see
-below).
+For single period reports, the valuation date is today (equivalent to
+\f[C]--value=now\f[R]); for multiperiod reports, it is the last day of
+each subperiod (equivalent to \f[C]--value=end\f[R]).
 .PP
 The default valuation commodity is the one referenced in the latest
 applicable market price dated on or before the valuation date.
@@ -1026,7 +1025,11 @@ If most of your P declarations lead to a single home currency, this will
 usually be what you want.
 (To specify the commodity, see -X below.)
 .PP
-Here\[aq]s a quick example:
+Note that in hledger, market prices are always declared explicitly with
+P directives; we do not infer them from transaction prices as Ledger
+does.
+.PP
+Here\[aq]s a quick example of -V:
 .IP
 .nf
 \f[C]
@@ -1070,20 +1073,13 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 \f[R]
 .fi
-.PP
-Note that in hledger, market prices are always declared explicitly with
-P directives; we do not infer them from transaction prices as Ledger
-does.
 .SS -X: Market value in specified commodity
 .PP
-The \f[C]-X/--exchange\f[R] option is like \f[C]-V/--market\f[R] except
-it takes a commodity symbol argument, so that you can select a different
-target commodity.
-It is similar to the same option in Ledger, with the same caveat
-mentioned above.
+The \f[C]-X/--exchange\f[R] option is like \f[C]-V\f[R], except it
+specifies the target commodity you would like to convert to.
 It is equivalent to \f[C]--value=now,COMM\f[R] or
 \f[C]--value=end,COMM\f[R].
-.SS --value
+.SS --value: Flexible valuation
 .PP
 \f[I](experimental, added 201905)\f[R]
 .PP
@@ -1101,43 +1097,36 @@ more general \f[C]--value\f[R] option:
                       - default valuation commodity (or COMM) using market prices at some date
 \f[R]
 .fi
-.SS Valuation type
 .PP
-TYPE is one of these keywords, or their first letter, or a date (which
-must be 8 digits with \f[C]-\f[R] or \f[C]/\f[R] or \f[C].\f[R]
-separators):
+The TYPE part basically selects either \[dq]cost\[dq], or \[dq]market
+value\[dq] plus a valuation date:
 .TP
 .B \f[C]--value=cost\f[R]
 Convert amounts to cost, using the prices recorded in transactions.
-\f[C]-B\f[R]/\f[C]--cost\f[R] is equivalent to this.
 .TP
 .B \f[C]--value=end\f[R]
-Convert amounts to their value in default valuation commodity using
-market prices on the last day of the report period (or of each subperiod
-in a multiperiod report).
-When no report period is specified, uses the journal\[aq]s last
-transaction date.
+Convert amounts to their value in a default valuation commodity, using
+market prices on the last day of the report period (or if unspecified,
+the journal\[aq]s end date); or in multiperiod reports, market prices on
+the last day of each subperiod.
 .TP
 .B \f[C]--value=now\f[R]
 Convert amounts to their value in default valuation commodity using
 current market prices (as of when report is generated).
-\f[C]-V\f[R]/\f[C]--market\f[R] is equivalent to this.
 .TP
 .B \f[C]--value=YYYY-MM-DD\f[R]
 Convert amounts to their value in default valuation commodity using
 market prices on this date.
-Eg \f[C]--value=2019-04-25\f[R].
-.SS Valuation commodity
 .PP
 The default valuation commodity is the commodity mentioned in the most
 recent applicable market price declaration.
 When all your price declarations lead to a single home currency, this
 will usually do what you want.
 .PP
-To select a different valuation commodity: write the commodity symbol
-after the valuation type, separated by a comma (eg:
-\f[B]\f[CB]--value=now,EUR\f[B]\f[R]).
-This will use, in this preferred order:
+To select a different valuation commodity, add the optional
+\f[C],COMM\f[R] part: a comma, then the target commodity\[aq]s symbol.
+Eg: \f[B]\f[CB]--value=now,EUR\f[B]\f[R].
+hledger will do its best to convert amounts to this commodity, using:
 .IP \[bu] 2
 declared prices (from source commodity to valuation commodity)
 .IP \[bu] 2
@@ -1145,10 +1134,12 @@ reverse prices (declared prices from valuation to source commodity,
 inverted)
 .IP \[bu] 2
 indirect prices (prices calculated from the shortest chain of declared
-or reverse prices from source to valuation commodity).
-.SS --value examples
+or reverse prices from source to valuation commodity)
 .PP
-Here are the effects of \f[C]--value\f[R] as seen with \f[C]print\f[R]:
+in that order.
+.PP
+Here are some examples showing the effect of \f[C]--value\f[R] as seen
+with \f[C]print\f[R]:
 .IP
 .nf
 \f[C]
@@ -1297,25 +1288,28 @@ $ hledger print -X A
 .fi
 .SS Effect of --value on reports
 .PP
-Below is how \f[C]--value\f[R] affects each of hledger\[aq]s reports,
-currently.
-You\[aq]re not expected to remember all this, but when troubleshooting a
-report, look here.
-If you find problems - useless reports, misbehaving reports, or error
-messages being printed - please report them (with reproducible examples)
-eg at #329.
+Here is a reference for how \f[C]--value\f[R] currently affects each
+part of hledger\[aq]s reports.
+It\[aq]s work in progress, but may be useful for troubleshooting or
+reporting bugs.
+See also the definitions and notes below.
+If you find problems, please report them, ideally with a reproducible
+example.
+Related: #329, #1083.
 .PP
 .TS
 tab(@);
-lw(12.5n) lw(13.6n) lw(25.4n) lw(18.4n).
+lw(14.4n) lw(13.8n) lw(14.6n) lw(15.2n) lw(12.0n).
 T{
 Report type
 T}@T{
-\f[C]--value\f[R] \f[C]cost\f[R]\ 
+\f[C]-B\f[R], \f[C]--value=cost\f[R]
 T}@T{
-\f[C]--value\f[R] \f[C]end\f[R]\ 
+\f[C]-V\f[R], \f[C]-X\f[R]
 T}@T{
-\f[C]--value\f[R] \f[C]DATE\f[R]/\f[C]now\f[R]\ 
+\f[C]--value=end\f[R]
+T}@T{
+\f[C]--value=DATE\f[R], \f[C]--value=now\f[R]
 T}
 _
 T{
@@ -1323,119 +1317,224 @@ T{
 T}@T{
 T}@T{
 T}@T{
-T}
-T{
-posting amounts
 T}@T{
-cost, as recorded in transaction
-T}@T{
-market value at report end
-T}@T{
-market value at DATE
-T}
-T{
-balance assertions/assignments
-T}@T{
-show unvalued
-T}@T{
-show unvalued
-T}@T{
-show unvalued
-T}
-T{
-\f[B]register\f[R]
-T}@T{
-T}@T{
-T}@T{
-T}
-T{
-starting balance with -H
-T}@T{
-cost of starting balance
-T}@T{
-market value at day before report start
-T}@T{
-market value at DATE
 T}
 T{
 posting amounts
 T}@T{
 cost
 T}@T{
-market value at report end
+value at report end or today
 T}@T{
-market value at DATE
+value at report or journal end
+T}@T{
+value at DATE/today
 T}
 T{
-posting amounts, multiperiod
+balance assertions / assignments
+T}@T{
+unchanged
+T}@T{
+unchanged
+T}@T{
+unchanged
+T}@T{
+unchanged
+T}
+T{
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+T}
+T{
+\f[B]register\f[R]
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+T}
+T{
+starting balance (with -H)
+T}@T{
+cost
+T}@T{
+value at day before report or journal start
+T}@T{
+value at day before report or journal start
+T}@T{
+value at DATE/today
+T}
+T{
+posting amounts (no report interval)
+T}@T{
+cost
+T}@T{
+value at report end or today
+T}@T{
+value at report or journal end
+T}@T{
+value at DATE/today
+T}
+T{
+summary posting amounts (with report interval)
 T}@T{
 summarised cost
 T}@T{
-market value each summary posting at period end
+value at period ends
 T}@T{
-market value each summary posting at DATE
+value at period ends
+T}@T{
+value at DATE/today
 T}
 T{
 running total/average
 T}@T{
-sum/average of the displayed values
+sum/average of displayed values
 T}@T{
-sum/average of the displayed values
+sum/average of displayed values
 T}@T{
-sum/average of the displayed values
+sum/average of displayed values
+T}@T{
+sum/average of displayed values
 T}
 T{
-\f[B]balance (bs, cf, is..)\f[R]
+T}@T{
 T}@T{
 T}@T{
 T}@T{
 T}
 T{
-starting balances with -H
+\f[B]balance (bs, bse, cf, is..)\f[R]
 T}@T{
-costs of starting balances
 T}@T{
-market value at day before report start of sum of previous postings
 T}@T{
-market value at DATE of sum of previous postings
+T}@T{
 T}
 T{
-balances, simple balance report
+balances (no report interval)
 T}@T{
-summed costs
+sums of costs
 T}@T{
-market value at period end of sum of postings
+value at report end or today of sums of postings
 T}@T{
-market value at DATE of sum of postings
+value at report or journal end of sums of postings
+T}@T{
+value at DATE/today of sums of postings
 T}
 T{
-balances, multiperiod report
+balances (with report interval)
 T}@T{
-summed costs
+sums of costs
 T}@T{
-market value at period end of sum of postings
+value at period ends of sums of postings
 T}@T{
-market value at DATE of sum of postings
+value at period ends of sums of postings
+T}@T{
+value at DATE/today of sums of postings
+T}
+T{
+starting balances (with report interval and -H)
+T}@T{
+sums of costs of postings before report start
+T}@T{
+sums of postings before report start
+T}@T{
+sums of postings before report start
+T}@T{
+sums of postings before report start
 T}
 T{
 budget amounts with --budget
 T}@T{
-costs of budget amounts
+like balances
 T}@T{
-budget-setting periodic txns are valued at period end
+like balances
 T}@T{
-budget-setting periodic txns are valued at DATE
+like balances
+T}@T{
+like balances
 T}
 T{
-column/row/grand totals/averages
+grand total (no report interval)
 T}@T{
-sum/average of the displayed values
+sum of displayed values
 T}@T{
-market value at period end of sum/average of postings
+sum of displayed values
 T}@T{
-market value at DATE of sum/average of postings
+sum of displayed values
+T}@T{
+sum of displayed values
+T}
+T{
+row totals/averages (with report interval)
+T}@T{
+sums/averages of displayed values
+T}@T{
+sums/averages of displayed values
+T}@T{
+sums/averages of displayed values
+T}@T{
+sums/averages of displayed values
+T}
+T{
+column totals
+T}@T{
+sums of displayed values
+T}@T{
+sums of displayed values
+T}@T{
+sums of displayed values
+T}@T{
+sums of displayed values
+T}
+T{
+grand total/average
+T}@T{
+sum/average of column totals
+T}@T{
+sum/average of column totals
+T}@T{
+sum/average of column totals
+T}@T{
+sum/average of column totals
+T}
+T{
+T}@T{
+T}@T{
+T}@T{
+T}@T{
 T}
 .TE
+.PP
+\f[B]Additional notes\f[R]
+.TP
+.B \f[I]cost\f[R]
+calculated using price(s) recorded in the transaction(s).
+.TP
+.B \f[I]value\f[R]
+market value using available market price declarations, or the unchanged
+amount if no conversion rate can be found.
+.TP
+.B \f[I]report start\f[R]
+the first day of the report period specified with -b or -p or date:,
+otherwise today.
+.TP
+.B \f[I]report or journal start\f[R]
+the first day of the report period specified with -b or -p or date:,
+otherwise the earliest transaction date in the journal, otherwise today.
+.TP
+.B \f[I]report end\f[R]
+the last day of the report period specified with -e or -p or date:,
+otherwise today.
+.TP
+.B \f[I]report or journal end\f[R]
+the last day of the report period specified with -e or -p or date:,
+otherwise the latest transaction date in the journal, otherwise today.
+.TP
+.B \f[I]report interval\f[R]
+a flag (-D/-W/-M/-Q/-Y) or period expression that activates the
+report\[aq]s multi-period mode (whether showing one or many subperiods).
 .SS Combining -B, -V, -X, --value
 .PP
 The rightmost of these flags wins.

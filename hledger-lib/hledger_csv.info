@@ -3,8 +3,8 @@ This is hledger_csv.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 
-hledger_csv(5) hledger 1.15
-***************************
+hledger_csv(5) hledger 1.15.2
+*****************************
 
 hledger can read CSV (comma-separated value) files as if they were
 journal files, automatically converting each CSV record into a
@@ -350,35 +350,35 @@ character.
 
 Tag Table:
 Node: Top72
-Node: CSV RULES2161
-Ref: #csv-rules2269
-Node: skip2532
-Ref: #skip2626
-Node: date-format2798
-Ref: #date-format2925
-Node: field list3475
-Ref: #field-list3612
-Node: field assignment4342
-Ref: #field-assignment4497
-Node: conditional block5121
-Ref: #conditional-block5275
-Node: include6171
-Ref: #include6301
-Node: newest-first6532
-Ref: #newest-first6646
-Node: CSV TIPS7057
-Ref: #csv-tips7151
-Node: CSV ordering7295
-Ref: #csv-ordering7413
-Node: CSV accounts7594
-Ref: #csv-accounts7732
-Node: CSV amounts7986
-Ref: #csv-amounts8144
-Node: CSV balance assertions/assignments9224
-Ref: #csv-balance-assertionsassignments9442
-Node: Reading multiple CSV files9763
-Ref: #reading-multiple-csv-files9963
-Node: Valid CSV10237
-Ref: #valid-csv10360
+Node: CSV RULES2165
+Ref: #csv-rules2273
+Node: skip2536
+Ref: #skip2630
+Node: date-format2802
+Ref: #date-format2929
+Node: field list3479
+Ref: #field-list3616
+Node: field assignment4346
+Ref: #field-assignment4501
+Node: conditional block5125
+Ref: #conditional-block5279
+Node: include6175
+Ref: #include6305
+Node: newest-first6536
+Ref: #newest-first6650
+Node: CSV TIPS7061
+Ref: #csv-tips7155
+Node: CSV ordering7299
+Ref: #csv-ordering7417
+Node: CSV accounts7598
+Ref: #csv-accounts7736
+Node: CSV amounts7990
+Ref: #csv-amounts8148
+Node: CSV balance assertions/assignments9228
+Ref: #csv-balance-assertionsassignments9446
+Node: Reading multiple CSV files9767
+Ref: #reading-multiple-csv-files9967
+Node: Valid CSV10241
+Ref: #valid-csv10364
 
 End Tag Table
