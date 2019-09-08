@@ -49,14 +49,15 @@ type SimpleStringParser a = Parsec CustomErr String a
 -- | A parser of strict text to some type.
 type SimpleTextParser = Parsec CustomErr Text  -- XXX an "a" argument breaks the CsvRulesParser declaration somehow
 
--- | A parser of text in some monad.
+-- | A parser of text that runs in some monad.
 type TextParser m a = ParsecT CustomErr Text m a
 
--- | A parser of text in some monad, with a journal as state.
+-- | A parser of text that runs in some monad, keeping a Journal as state.
 type JournalParser m a = StateT Journal (ParsecT CustomErr Text m) a
 
--- | A parser of text in some monad, with a journal as state, that can throw a
--- "final" parse error that does not backtrack.
+-- | A parser of text that runs in some monad, keeping a Journal as
+-- state, that can throw an exception to end parsing, preventing
+-- further parser backtracking.
 type ErroringJournalParser m a =
   StateT Journal (ParsecT CustomErr Text (ExceptT FinalParseError m)) a
 
