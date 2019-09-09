@@ -1159,11 +1159,13 @@ If account aliases are present, they are applied after the default parent accoun
 ## Periodic transactions
 
 Periodic transaction rules describe transactions that recur.
-They allow you to generate future transactions for forecasting,
-without having to write them out explicitly in the journal (with `--forecast`).
-Secondly, they also can be used to define budget goals (with `--budget`).
+They allow hledger to generate temporary future transactions to help with forecasting,
+so you don't have to write out each one in the journal,
+and it's easy to try out different forecasts.
+Secondly, they are also used to define the budgets shown in budget reports.
 
-These can be a little tricky, so before you use them, read this whole section - or at least these tips:
+Periodic transactions can be a little tricky, so before you use them,
+read this whole section - or at least these tips:
 
 1. Two spaces accidentally added or omitted will cause you trouble - read about this below.
 2. For troubleshooting, show the generated transactions with `hledger print --forecast tag:generated` or `hledger register --forecast tag:generated`.
@@ -1171,12 +1173,12 @@ These can be a little tricky, so before you use them, read this whole section - 
 4. Forecasted transactions will end 6 months from today, by default. See below for the exact start/end rules.
 5. [period expressions](hledger.html#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
 6. Some period expressions with a repeating interval must begin on a natural boundary of that interval.
-   Eg in `weekly from DATE`, DATE must be a monday; `~ weekly from 2019/10/1` (a tuesday) will give an error.
+   Eg in `weekly from DATE`, DATE must be a monday. `~ weekly from 2019/10/1` (a tuesday) will give an error.
 7. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
-   (This is done for reporting purposes, but also affects periodic transactions. Yes, this is a bit inconsistent with the above, currently.)
-   Eg  `~ every 10th day of month from 2020/01/10` starts on 2020/01/10,
-   but `~ every 10th day of month from 2020/01`, which is equivalent to `~ every 10th day of month from 2020/01/01`,
-   will be adjusted to start on 2019/12/10.
+   (This is done to improve reports, but it also affects periodic transactions. Yes, it's a bit inconsistent with the above.)
+   Eg: <br>
+   `~ every 10th day of month from 2020/01`, which is equivalent to <br>
+   `~ every 10th day of month from 2020/01/01`, will be adjusted to start on 2019/12/10.
 
 ### Periodic rule syntax
 
