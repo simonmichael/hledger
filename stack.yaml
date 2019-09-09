@@ -18,6 +18,9 @@ nix:
 
 extra-deps:
 # for hledger-lib:
+# testing:
+# - base-compat-batteries-0.11.0
+# - base-compat-0.11.0
 # for hledger:
 # for hledger-ui:
 # for hledger-web:

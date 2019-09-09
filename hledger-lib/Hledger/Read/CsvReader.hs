@@ -31,7 +31,8 @@ module Hledger.Read.CsvReader (
 )
 where
 import Prelude ()
-import "base-compat-batteries" Prelude.Compat
+import "base-compat-batteries" Prelude.Compat hiding (fail)
+import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
@@ -599,7 +600,7 @@ conditionalblockp = do
   ms <- some recordmatcherp
   as <- many (lift (skipSome spacenonewline) >> fieldassignmentp)
   when (null as) $
-    fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
+    Fail.fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
   return (ms, as)
   <?> "conditional block"
 
@@ -610,7 +611,7 @@ recordmatcherp = do
   _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
   ps <- patternsp
   when (null ps) $
-    fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
+    Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
   return ps
   <?> "record matcher"
 

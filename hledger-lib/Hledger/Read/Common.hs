@@ -100,10 +100,10 @@ module Hledger.Read.Common (
 where
 --- * imports
 import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (readFile)
-import "base-compat-batteries" Control.Monad.Compat
+import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
+import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict hiding (fail)
 import Data.Bifunctor (bimap, second)
 import Data.Char
 import Data.Data
@@ -781,7 +781,7 @@ numberp suggestedStyle = label "number" $ do
     dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
     case dbg8 "numberp quantity,precision,mdecimalpoint,mgrps"
            $ fromRawNumber rawNum mExp of
-      Left errMsg -> fail errMsg
+      Left errMsg -> Fail.fail errMsg
       Right (q, p, d, g) -> pure (sign q, p, d, g)
 
 exponentp :: TextParser m Int
@@ -883,7 +883,7 @@ rawnumberp = label "number" $ do
   -- Guard against mistyped numbers
   mExtraDecimalSep <- optional $ lookAhead $ satisfy isDecimalPointChar
   when (isJust mExtraDecimalSep) $
-    fail "invalid number (invalid use of separator)"
+    Fail.fail "invalid number (invalid use of separator)"
 
   mExtraFragment <- optional $ lookAhead $ try $
     char ' ' *> getOffset <* digitChar
@@ -1273,7 +1273,7 @@ bracketeddatetagsp mYear1 = do
        $ between (char '[') (char ']')
        $ takeWhile1P Nothing isBracketedDateChar
     unless (T.any isDigit s && T.any isDateSepChar s) $
-      fail "not a bracketed date"
+      Fail.fail "not a bracketed date"
   -- Looks sufficiently like a bracketed date to commit to parsing a date
 
   between (char '[') (char ']') $ do

@@ -63,12 +63,15 @@ module Hledger.Read.JournalReader (
 )
 where
 --- * imports
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (readFile)
+import qualified Prelude (fail)
+import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
+import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import qualified Control.Exception as C
-import Control.Monad
+import Control.Monad (forM_, when, void)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
-import Control.Monad.State.Strict
+import Control.Monad.State.Strict (get,modify',put)
+import Control.Monad.Trans.Class (lift)
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -215,7 +218,7 @@ includedirectivep = do
 
       let parentfilestack = jincludefilestack parentj
       when (filepath `elem` parentfilestack) $
-        fail ("Cyclic include: " ++ filepath)
+        Fail.fail ("Cyclic include: " ++ filepath)
 
       childInput <- lift $ readFilePortably filepath
                             `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
@@ -251,7 +254,7 @@ orRethrowIOError io msg = do
   eResult <- liftIO $ (Right <$> io) `C.catch` \(e::C.IOException) -> pure $ Left $ printf "%s:\n%s" msg (show e)
   case eResult of
     Right res -> pure res
-    Left errMsg -> fail errMsg
+    Left errMsg -> Fail.fail errMsg
 
 -- Parse an account directive, adding its info to the journal's
 -- list of account declarations.
@@ -682,7 +685,7 @@ tests_JournalReader = tests "JournalReader" [
     test "yearless date with default year" $ do
       let s = "1/1"
       ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep s
-      either (fail.("parse error at "++).customErrorBundlePretty) (const ok) ep
+      either (Prelude.fail . ("parse error at "++) . customErrorBundlePretty) (const ok) ep
     test "no leading zero" $ expectParse datep "2018/1/1"
 
   ,test "datetimep" $ do

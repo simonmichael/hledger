@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0deef0df7a1a0ef153ebf7e31ddd57882a2671941a0f801bc2980dae7080501f
+-- hash: b157e8031b886cdba4226a4710189f672b05418f5bb4889477f6b3b6369c6f4d
 
 name:           hledger-ui
 version:        1.15
@@ -69,7 +69,7 @@ executable hledger-ui
       ansi-terminal >=0.6.2.3
     , async
     , base >=4.8 && <4.13
-    , base-compat-batteries >=0.10.1 && <0.11
+    , base-compat-batteries >=0.10.1 && <0.12
     , cmdargs >=0.8
     , containers
     , data-default

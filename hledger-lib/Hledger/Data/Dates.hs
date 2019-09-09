@@ -77,9 +77,10 @@ module Hledger.Data.Dates (
 where
 
 import Prelude ()
-import "base-compat-batteries" Prelude.Compat
+import "base-compat-batteries" Prelude.Compat hiding (fail)
+import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (MonadFail, fail)
 import Control.Applicative.Permutations
-import Control.Monad
+import Control.Monad (unless)
 import "base-compat-batteries" Data.List.Compat
 import Data.Default
 import Data.Maybe
@@ -771,10 +772,10 @@ validYear s = length s >= 4 && isJust (readMay s :: Maybe Year)
 validMonth s = maybe False (\n -> n>=1 && n<=12) $ readMay s
 validDay s = maybe False (\n -> n>=1 && n<=31) $ readMay s
 
-failIfInvalidYear, failIfInvalidMonth, failIfInvalidDay :: (Monad m) => String -> m ()
-failIfInvalidYear s  = unless (validYear s)  $ fail $ "bad year number: " ++ s
-failIfInvalidMonth s = unless (validMonth s) $ fail $ "bad month number: " ++ s
-failIfInvalidDay s   = unless (validDay s)   $ fail $ "bad day number: " ++ s
+failIfInvalidYear, failIfInvalidMonth, failIfInvalidDay :: (Fail.MonadFail m) => String -> m ()
+failIfInvalidYear s  = unless (validYear s)  $ Fail.fail $ "bad year number: " ++ s
+failIfInvalidMonth s = unless (validMonth s) $ Fail.fail $ "bad month number: " ++ s
+failIfInvalidDay s   = unless (validDay s)   $ Fail.fail $ "bad day number: " ++ s
 
 yyyymmdd :: TextParser m SmartDate
 yyyymmdd = do
@@ -864,8 +865,8 @@ weekday = do
   wday <- T.toLower <$> (choice . map string' $ weekdays ++ weekdayabbrevs)
   case catMaybes $ [wday `elemIndex` weekdays, wday `elemIndex` weekdayabbrevs] of
     (i:_) -> return (i+1)
-    []    -> fail  $ "weekday: should not happen: attempted to find " <>
-                      show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
+    []    -> Fail.fail $ "weekday: should not happen: attempted to find " <>
+                         show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
 
 today,yesterday,tomorrow :: TextParser m SmartDate
 today     = string' "today"     >> return ("","","today")

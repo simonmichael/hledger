@@ -16,9 +16,9 @@ module Hledger.Cli.Commands.Add (
 where
 
 import Prelude ()
-import "base-compat-batteries" Prelude.Compat
+import "base-compat-batteries" Prelude.Compat hiding (fail)
 import Control.Exception as E
-import Control.Monad
+import Control.Monad (when)
 import Control.Monad.Trans.Class
 import Control.Monad.State.Strict (evalState, evalStateT)
 import Control.Monad.Trans (liftIO)
@@ -118,7 +118,7 @@ getAndAddTransactions :: EntryState -> IO ()
 getAndAddTransactions es@EntryState{..} = (do
   mt <- runInputT (setComplete noCompletion defaultSettings) (System.Console.Wizard.run $ haskeline $ confirmedTransactionWizard es)
   case mt of
-    Nothing -> fail "urk ?"
+    Nothing -> error "Could not interpret the input, restarting"  -- caught below causing a restart, I believe
     Just t -> do
       j <- if debug_ esOpts > 0
            then do hPrintf stderr "Skipping journal add due to debug mode.\n"
