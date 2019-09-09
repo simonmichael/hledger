@@ -17,7 +17,7 @@ instead most commands show transactions/postings/accounts which match (or negati
 - any of the status terms AND
 - all the other terms.
 
-The [print](/manual.html#print) command instead shows transactions which:
+The [print](hledger.html#print) command instead shows transactions which:
 
 - match any of the description terms AND
 - have any postings matching any of the positive account terms AND
@@ -57,9 +57,9 @@ or `hledger print cur:\\$`.
 
 **`date:PERIODEXPR`**
 : match dates within the specified period.
-PERIODEXPR is a [period expression](#period-expressions) (with no report interval).
+PERIODEXPR is a [period expression](hledger.html#period-expressions) (with no report interval).
 Examples: `date:2016`, `date:thismonth`, `date:2000/2/1-2/15`, `date:lastweek-`.
-If the `--date2` command line flag is present, this matches [secondary dates](manual.html#secondary-dates) instead.
+If the `--date2` command line flag is present, this matches [secondary dates](journal.html#secondary-dates) instead.
 
 **`date2:PERIODEXPR`**
 : match secondary dates within the specified period.
@@ -68,11 +68,11 @@ If the `--date2` command line flag is present, this matches [secondary dates](ma
 : match (or display, depending on command) accounts at or above this depth
 
 **`note:REGEX`**
-: match transaction [notes](/manual.html#payee-and-note)
+: match transaction [notes](journal.html#payee-and-note)
 (part of description right of `|`, or whole description when there's no `|`)
 
 **`payee:REGEX`**
-: match transaction [payee/payer names](/manual.html#payee-and-note)
+: match transaction [payee/payer names](journal.html#payee-and-note)
 (part of description left of `|`, or whole description when there's no `|`)
 
 **`real:, real:0`**

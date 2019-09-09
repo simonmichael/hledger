@@ -203,7 +203,7 @@ mark &nbsp; | status
 
 When reporting, you can filter by status with
 the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags;
-or the `status:`, `status:!`, and `status:*` [queries](/manual.html#queries);
+or the `status:`, `status:!`, and `status:*` [queries](hledger.html#queries);
 or the U, P, C keys in hledger-ui.
 
 Note, in Ledger and in older versions of hledger, the "unmarked" state is called
@@ -240,7 +240,7 @@ or left blank. Transaction descriptions can be queried, unlike [comments](#comme
 You can optionally include a `|` (pipe) character in descriptions to subdivide the description
 into separate fields for payee/payer name on the left (up to the first `|`) and an additional note
 field on the right (after the first `|`). This may be worthwhile if you need to do more precise
-[querying](/hledger.html#queries) and [pivoting](/hledger.html#pivoting) by payee or by note.
+[querying](hledger.html#queries) and [pivoting](hledger.html#pivoting) by payee or by note.
 
 ## Account names
 
@@ -384,7 +384,7 @@ in the right file.
 ### Assertions and multiple -f options
 
 Balance assertions don't work well across files specified
-with multiple -f options. Use include or [concatenate the files](/hledger.html#input-files)
+with multiple -f options. Use include or [concatenate the files](hledger.html#input-files)
 instead.
 
 ### Assertions and commodities
@@ -445,9 +445,9 @@ and should normally be written without one:
   (a)     $1 @ €1 = $1
 ```
 
-We do allow prices to be written there, however, and [print](/manual.html#print) shows them,
+We do allow prices to be written there, however, and [print](hledger.html#print) shows them,
 even though they don't affect whether the assertion passes or fails.
-This is for backward compatibility (hledger's [close](/manual.html#close) command used to generate balance assertions with prices),
+This is for backward compatibility (hledger's [close](hledger.html#close) command used to generate balance assertions with prices),
 and because [balance *assignments*](#balance-assignments) do use them (see below).
 
 ### Assertions and subaccounts
@@ -633,7 +633,7 @@ You can also comment larger regions of a file using [`comment` and `end comment`
 ## Tags
 
 Tags are a way to add extra labels or labelled data to postings and transactions,
-which you can then [search](/hledger.html#queries) or [pivot](/hledger.html#pivoting) on.
+which you can then [search](hledger.html#queries) or [pivot](hledger.html#pivoting) on.
 
 A simple tag is a word (which may contain hyphens) followed by a full colon,
 written inside a transaction or posting [comment](#comments) line:
@@ -877,7 +877,7 @@ P 2009/1/1 € $1.35
 P 2010/1/1 € $1.40
 ```
 
-The [`-V/--value`](manual.html#market-value) flag can be used to convert reported amounts
+The [`-V/--value`](hledger.html#market-value) flag can be used to convert reported amounts
 to another commodity using these prices.
 
 ### Declaring accounts
@@ -894,7 +894,7 @@ Though not required, they can provide several benefits:
 - They help with account name completion 
   in the add command, hledger-iadd, hledger-web, ledger-mode etc. 
 
-The simplest form is just the word `account` followed by a hledger-style [account name](manual.html#account-names), eg:
+The simplest form is just the word `account` followed by a hledger-style [account name](journal.html#account-names), eg:
 ```journal
 account assets:bank:checking
 ```
@@ -933,9 +933,9 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 hledger recognises five types (or classes) of account: Asset, Liability, Equity, Revenue, Expense.
 This is used by a few accounting-aware reports such as [balancesheet][], [incomestatement][] and [cashflow][].
 
-[balancesheet]: manual.html#balancesheet
-[cashflow]: manual.html#cashflow
-[incomestatement]: manual.html#incomestatement
+[balancesheet]: hledger.html#balancesheet
+[cashflow]: hledger.html#cashflow
+[incomestatement]: hledger.html#incomestatement
 
 ##### Auto-detected account types
 
@@ -1164,7 +1164,7 @@ without having to write them out explicitly in the journal (with `--forecast`).
 Secondly, they also can be used to define budget goals (with `--budget`).
 
 A periodic transaction rule looks like a normal journal entry,
-with the date replaced by a tilde (`~`) followed by a [period expression](manual.html#period-expressions)
+with the date replaced by a tilde (`~`) followed by a [period expression](hledger.html#period-expressions)
 (mnemonic: `~` looks like a recurring sine wave.):
 ```journal
 ~ monthly
@@ -1200,7 +1200,7 @@ can not accidentally alter their meaning, as in this example:
 With the `--forecast` flag, each periodic transaction rule generates
 future transactions recurring at the specified interval.
 These are not saved in the journal, but appear in all reports.
-They will look like normal transactions, but with an extra [tag](manual.html#tags-1):
+They will look like normal transactions, but with an extra [tag](journal.html#tags):
  
 - `generated-transaction:~ PERIODICEXPR`  - shows that this was generated by a periodic transaction rule, and the period
 
@@ -1245,12 +1245,12 @@ With the `--budget` flag, currently supported by the balance command,
 each periodic transaction rule declares recurring budget goals for the specified accounts.
 Eg the first example above declares a goal of spending $2000 on rent
 (and also, a goal of depositing $2000 into checking) every month.
-Goals and actual performance can then be compared in [budget reports](/manual.html#budget-report).
+Goals and actual performance can then be compared in [budget reports](hledger.html#budget-report).
 
 For more details, see:
-[balance: Budget report](manual.html#budget-report)
+[balance: Budget report](hledger.html#budget-report)
 and
-[Cookbook: Budgeting and Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting-and-forecasting).
+[Budgeting and Forecasting](budgeting-and-forecasting.html).
 
 
 <a name="automated-postings"></a>
@@ -1263,7 +1263,7 @@ Currently just one kind of change is possible - adding extra postings, which we 
 These rules become active when you use the `--auto` flag.
 
 A transaction modifier rule looks much like a normal transaction
-except the first line is an equals sign followed by a [query](manual.html#queries) that matches certain postings
+except the first line is an equals sign followed by a [query](hledger.html#queries) that matches certain postings
 (mnemonic: `=` suggests matching).
 And each "posting" is actually a posting-generating rule:
 

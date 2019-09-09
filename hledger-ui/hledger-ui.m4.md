@@ -123,7 +123,7 @@ the period will move automatically to track the current date.
 To set a non-standard period, you can use `/` and a `date:` query.
 
 `/` lets you set a general filter query limiting the data shown,
-using the same [query terms](/hledger.html#queries) as in hledger and hledger-web.
+using the same [query terms](hledger.html#queries) as in hledger and hledger-web.
 While editing the query, you can use [CTRL-a/e/d/k, BS, cursor keys](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor); 
 press `ENTER` to set it, or `ESCAPE`to cancel.
 There are also keys for quickly adjusting some common filters like account depth and transaction status (see below).
@@ -189,7 +189,7 @@ balances are what you would see on a bank statement for that account (unless dis
 a filter query). Period balances ignore transactions before the report start date, so they
 show the change in balance during the report period. They are more useful eg when viewing a time log.
 
-`U` toggles filtering by [unmarked status](/journal.html#status), 
+`U` toggles filtering by [unmarked status](journal.html#status), 
 including or excluding unmarked postings in the balances. 
 Similarly, `P` toggles pending postings, 
 and `C` toggles cleared postings.
@@ -197,7 +197,7 @@ and `C` toggles cleared postings.
 if you activate one or two status filters, only those postings are included; 
 and if you activate all three, the filter is removed.)
 
-`R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
+`R` toggles real mode, in which [virtual postings](journal.html#virtual-postings) are ignored.
 
 `Z` toggles nonzero mode, in which only accounts with nonzero balances
 are shown (hledger-ui shows zero items by default, unlike command-line
@@ -230,13 +230,13 @@ or if it's in flat mode but this account has subaccounts which are not shown due
 In other words, the register always shows the transactions contributing to the balance shown on the accounts screen.  
 Tree mode/flat mode can be toggled with `T` here also.
 
-`U` toggles filtering by [unmarked status](/journal.html#status), showing or hiding unmarked transactions. 
+`U` toggles filtering by [unmarked status](journal.html#status), showing or hiding unmarked transactions. 
 Similarly, `P` toggles pending transactions, and `C` toggles cleared transactions.
 (By default, transactions with all statuses are shown;
 if you activate one or two status filters, only those transactions are shown; 
 and if you activate all three, the filter is removed.)
 
-`R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
+`R` toggles real mode, in which [virtual postings](journal.html#virtual-postings) are ignored.
 
 `Z` toggles nonzero mode, in which only transactions posting a nonzero
 change are shown (hledger-ui shows zero items by default,

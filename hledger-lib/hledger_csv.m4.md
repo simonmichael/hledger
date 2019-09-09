@@ -224,19 +224,19 @@ but when all CSV records have the same date it will assume they are oldest first
 
 ## CSV ordering
 
-The generated [journal entries](/journal.html#transactions) will be sorted by date. 
+The generated [journal entries](journal.html#transactions) will be sorted by date. 
 The order of same-day entries will be preserved 
 (except in the special case where you might need [`newest-first`](#newest-first), see above).
 
 ## CSV accounts
 
-Each journal entry will have two [postings](/journal.html#postings), to `account1` and `account2` respectively.
+Each journal entry will have two [postings](journal.html#postings), to `account1` and `account2` respectively.
 It's not yet possible to generate entries with more than two postings.
 It's conventional and recommended to use `account1` for the account whose CSV we are reading.
 
 ## CSV amounts
 
-A transaction [amount](/journal.html#amounts) must be set, in one of these ways:
+A transaction [amount](journal.html#amounts) must be set, in one of these ways:
 
 - with an `amount` field assignment, which sets the first posting's amount
 
@@ -245,7 +245,7 @@ A transaction [amount](/journal.html#amounts) must be set, in one of these ways:
   fields (both of them). Whichever one has a value will be used, with
   appropriate sign. If both contain a value, it might not work so well.
 
-- or implicitly by means of a [balance assignment](/journal.html#balance-assignments) (see below).
+- or implicitly by means of a [balance assignment](journal.html#balance-assignments) (see below).
 
 There is some special handling for sign in amounts:
 
@@ -266,8 +266,8 @@ amount %amount %currency
 
 If the CSV includes a running balance, you can assign that to one of the pseudo fields
 `balance` (or `balance1`) or `balance2`.
-This will generate a [balance assertion](/journal.html#balance-assertions) 
-(or if the amount is left empty, a [balance assignment](/journal.html#balance-assignments)),
+This will generate a [balance assertion](journal.html#balance-assertions) 
+(or if the amount is left empty, a [balance assignment](journal.html#balance-assignments)),
 on the first or second posting,
 whenever the running balance field is non-empty.
 (TODO: [#1000](https://github.com/simonmichael/hledger/issues/1000))

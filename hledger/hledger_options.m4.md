@@ -187,9 +187,9 @@ You can also specify multiple `-f` options, to read multiple files as one big jo
 There are some limitations with this:
 
 - directives in one file will not affect the other files
-- [balance assertions](/journal.html#balance-assertions) will not see any account balances from previous files
+- [balance assertions](journal.html#balance-assertions) will not see any account balances from previous files
 
-If you need those, either use the [include directive](/journal.html#including-other-files),
+If you need those, either use the [include directive](journal.html#including-other-files),
 or concatenate the files, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Smart dates
@@ -407,7 +407,7 @@ Normally hledger sums amounts, and organizes them in a hierarchy, based on accou
 The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
 FIELD can be:
 `code`, `description`, `payee`, `note`, 
-or the full name (case insensitive) of any [tag](/journal.html#tags).
+or the full name (case insensitive) of any [tag](journal.html#tags).
 As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
 
 `--pivot` is a general option affecting all reports; you can think of hledger transforming 
@@ -458,7 +458,7 @@ $ hledger balance --pivot member acct:.
 ### -B: Cost
 
 The `-B/--cost` flag converts amounts to their cost (or selling price) at transaction time, 
-if they have a [transaction price](/journal.html#transaction-prices) specified.
+if they have a [transaction price](journal.html#transaction-prices) specified.
 This flag is equivalent to `--value=cost`, described below.
 
 ### -V: Market value
@@ -474,7 +474,7 @@ If most of your P declarations lead to a single home currency, this will usually
 (To specify the commodity, see -X below.)
 
 Note that in hledger, market prices are always declared explicitly with P directives;
-we do not infer them from [transaction prices](/manual.html#transaction-prices) as Ledger does.
+we do not infer them from [transaction prices](journal.html#transaction-prices) as Ledger does.
 
 Here's a quick example of -V:
 

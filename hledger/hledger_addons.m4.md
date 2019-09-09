@@ -47,7 +47,7 @@ shows differences in an account's transactions between one journal file and anot
 ### iadd
 
 [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
-is a curses-style, more interactive replacement for the [add command](/hledger.html#add). 
+is a curses-style, more interactive replacement for the [add command](hledger.html#add). 
 
 ### interest
 
@@ -61,8 +61,7 @@ but it's superseded now by the built-in [roi](#roi) command.
 
 ## Experimental add-ons
   
-These are available in source form in the hledger repo's bin/ directory; 
-installing them is [pretty easy](/download.html#d).
+These are available in source form in the hledger repo's bin/ directory.
 They may be less mature and documented than built-in commands.
 Reading and tweaking these is a good way to start making your own!
 
