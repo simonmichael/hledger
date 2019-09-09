@@ -1163,6 +1163,17 @@ They allow you to generate future transactions for forecasting,
 without having to write them out explicitly in the journal (with `--forecast`).
 Secondly, they also can be used to define budget goals (with `--budget`).
 
+These can be a little tricky, so take note of these tips before you move on:
+
+1. Two spaces accidentally added or omitted will cause you trouble - read about this below.
+2. For troubleshooting, use `print --forecast tag:generated` or `register --forecast tag:generated` to see the generated transactions.
+3. [period expressions](hledger.html#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
+4. Some period expressions with a repeating interval must begin on a natural boundary of that interval. Eg in `weekly from DATE`, DATE must be a monday; `~ weekly from 2019/9/8` will give an error.
+5. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
+   (This is done for reporting purposes, but also affects periodic transactions.)
+   Eg  `~ every 10th day of month from 2020/01/10` starts on 2010/01/01,
+   but `~ every 10th day of month from 2020/01` will be adjusted to start on 2019/12/01.
+
 A periodic transaction rule looks like a normal journal entry,
 with the date replaced by a tilde (`~`) followed by a [period expression](hledger.html#period-expressions)
 (mnemonic: `~` looks like a recurring sine wave.):
