@@ -123,15 +123,16 @@ anonymise j
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).
 --
--- They start on or after the day following the latest normal transaction in the journal,
--- or today if there are none.
--- They end on or before the specified report end date, or 180 days from today if unspecified.
+-- They can start no earlier than: the day following the latest normal
+-- transaction in the journal (or today if there are none).
+-- They end on or before the specified report end date, or 180 days
+-- from today if unspecified.
 --
 journalAddForecast :: CliOpts -> Journal -> IO Journal
 journalAddForecast opts@CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
   today <- getCurrentDay
 
-  -- "They start on or after the day following the latest normal transaction in the journal, or today if there are none."
+  -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
   let mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
       forecaststart = dbg2 "forecaststart" $ fromMaybe today mjournalend
 
