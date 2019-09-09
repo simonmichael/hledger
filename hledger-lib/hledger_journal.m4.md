@@ -1163,16 +1163,22 @@ They allow you to generate future transactions for forecasting,
 without having to write them out explicitly in the journal (with `--forecast`).
 Secondly, they also can be used to define budget goals (with `--budget`).
 
-These can be a little tricky, so take note of these tips before you move on:
+These can be a little tricky, so before you use them, read this whole section - or at least these tips:
 
 1. Two spaces accidentally added or omitted will cause you trouble - read about this below.
-2. For troubleshooting, use `print --forecast tag:generated` or `register --forecast tag:generated` to see the generated transactions.
-3. [period expressions](hledger.html#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
-4. Some period expressions with a repeating interval must begin on a natural boundary of that interval. Eg in `weekly from DATE`, DATE must be a monday; `~ weekly from 2019/9/8` will give an error.
-5. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
-   (This is done for reporting purposes, but also affects periodic transactions.)
-   Eg  `~ every 10th day of month from 2020/01/10` starts on 2010/01/01,
-   but `~ every 10th day of month from 2020/01` will be adjusted to start on 2019/12/01.
+2. For troubleshooting, show the generated transactions with `hledger print --forecast tag:generated` or `hledger register --forecast tag:generated`.
+3. Forecasted transactions will begin only after the last non-forecasted transaction's date.
+4. Forecasted transactions will end 6 months from today, by default. See below for the exact start/end rules.
+5. [period expressions](hledger.html#period-expressions) can be tricky. Their documentation needs improvement, but is worth studying.
+6. Some period expressions with a repeating interval must begin on a natural boundary of that interval.
+   Eg in `weekly from DATE`, DATE must be a monday; `~ weekly from 2019/10/1` (a tuesday) will give an error.
+7. Other period expressions with an interval are automatically expanded to cover a whole number of that interval.
+   (This is done for reporting purposes, but also affects periodic transactions. Yes, this is a bit inconsistent with the above, currently.)
+   Eg  `~ every 10th day of month from 2020/01/10` starts on 2020/01/10,
+   but `~ every 10th day of month from 2020/01`, which is equivalent to `~ every 10th day of month from 2020/01/01`,
+   will be adjusted to start on 2019/12/10.
+
+### Periodic rule syntax
 
 A periodic transaction rule looks like a normal journal entry,
 with the date replaced by a tilde (`~`) followed by a [period expression](hledger.html#period-expressions)
@@ -1190,7 +1196,7 @@ Partial or relative dates (M/D, D, tomorrow, last week) in the period expression
 can work (useful or not). They will be relative to today's date, unless 
 a Y default year directive is in effect, in which case they will be relative to Y/1/1.
 
-### Two spaces after the period expression
+### Two spaces between period expression and description!
 
 If the period expression is followed by a transaction description,
 these must be separated by **two or more spaces**.
@@ -1205,6 +1211,11 @@ can not accidentally alter their meaning, as in this example:
     assets:bank:checking   $1500
     income:acme inc
 ```
+
+So,
+
+- Do write two spaces between your period expression and your transaction description, if any.
+- Don't accidentally write two spaces in the middle of your period expression.
 
 ### Forecasting with periodic transactions
 
