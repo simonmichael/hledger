@@ -1412,12 +1412,52 @@ File: hledger_journal.info,  Node: Periodic transactions,  Next: Auto postings /
 ==========================
 
 Periodic transaction rules describe transactions that recur.  They allow
-you to generate future transactions for forecasting, without having to
-write them out explicitly in the journal (with '--forecast').  Secondly,
-they also can be used to define budget goals (with '--budget').
+hledger to generate temporary future transactions to help with
+forecasting, so you don't have to write out each one in the journal, and
+it's easy to try out different forecasts.  Secondly, they are also used
+to define the budgets shown in budget reports.
 
-   A periodic transaction rule looks like a normal journal entry, with
-the date replaced by a tilde ('~') followed by a period expression
+   Periodic transactions can be a little tricky, so before you use them,
+read this whole section - or at least these tips:
+
+  1. Two spaces accidentally added or omitted will cause you trouble -
+     read about this below.
+  2. For troubleshooting, show the generated transactions with 'hledger
+     print --forecast tag:generated' or 'hledger register --forecast
+     tag:generated'.
+  3. Forecasted transactions will begin only after the last
+     non-forecasted transaction's date.
+  4. Forecasted transactions will end 6 months from today, by default.
+     See below for the exact start/end rules.
+  5. period expressions can be tricky.  Their documentation needs
+     improvement, but is worth studying.
+  6. Some period expressions with a repeating interval must begin on a
+     natural boundary of that interval.  Eg in 'weekly from DATE', DATE
+     must be a monday.  '~ weekly from 2019/10/1' (a tuesday) will give
+     an error.
+  7. Other period expressions with an interval are automatically
+     expanded to cover a whole number of that interval.  (This is done
+     to improve reports, but it also affects periodic transactions.
+     Yes, it's a bit inconsistent with the above.)  Eg: '~ every 10th
+     day of month from 2020/01', which is equivalent to '~ every 10th
+     day of month from 2020/01/01', will be adjusted to start on
+     2019/12/10.
+
+* Menu:
+
+* Periodic rule syntax::
+* Two spaces between period expression and description!::
+* Forecasting with periodic transactions::
+* Budgeting with periodic transactions::
+
+
+File: hledger_journal.info,  Node: Periodic rule syntax,  Next: Two spaces between period expression and description!,  Up: Periodic transactions
+
+1.15.1 Periodic rule syntax
+---------------------------
+
+A periodic transaction rule looks like a normal journal entry, with the
+date replaced by a tilde ('~') followed by a period expression
 (mnemonic: '~' looks like a recurring sine wave.):
 
 ~ monthly
@@ -1433,17 +1473,11 @@ expression can work (useful or not).  They will be relative to today's
 date, unless a Y default year directive is in effect, in which case they
 will be relative to Y/1/1.
 
-* Menu:
-
-* Two spaces after the period expression::
-* Forecasting with periodic transactions::
-* Budgeting with periodic transactions::
-
 
-File: hledger_journal.info,  Node: Two spaces after the period expression,  Next: Forecasting with periodic transactions,  Up: Periodic transactions
+File: hledger_journal.info,  Node: Two spaces between period expression and description!,  Next: Forecasting with periodic transactions,  Prev: Periodic rule syntax,  Up: Periodic transactions
 
-1.15.1 Two spaces after the period expression
----------------------------------------------
+1.15.2 Two spaces between period expression and description!
+------------------------------------------------------------
 
 If the period expression is followed by a transaction description, these
 must be separated by *two or more spaces*.  This helps hledger know
@@ -1457,10 +1491,17 @@ accidentally alter their meaning, as in this example:
     assets:bank:checking   $1500
     income:acme inc
 
-
-File: hledger_journal.info,  Node: Forecasting with periodic transactions,  Next: Budgeting with periodic transactions,  Prev: Two spaces after the period expression,  Up: Periodic transactions
+   So,
 
-1.15.2 Forecasting with periodic transactions
+   * Do write two spaces between your period expression and your
+     transaction description, if any.
+   * Don't accidentally write two spaces in the middle of your period
+     expression.
+
+
+File: hledger_journal.info,  Node: Forecasting with periodic transactions,  Next: Budgeting with periodic transactions,  Prev: Two spaces between period expression and description!,  Up: Periodic transactions
+
+1.15.3 Forecasting with periodic transactions
 ---------------------------------------------
 
 With the '--forecast' flag, each periodic transaction rule generates
@@ -1513,7 +1554,7 @@ disables forecast transactions on previous dates.)
 
 File: hledger_journal.info,  Node: Budgeting with periodic transactions,  Prev: Forecasting with periodic transactions,  Up: Periodic transactions
 
-1.15.3 Budgeting with periodic transactions
+1.15.4 Budgeting with periodic transactions
 -------------------------------------------
 
 With the '--budget' flag, currently supported by the balance command,
@@ -1523,8 +1564,8 @@ spending $2000 on rent (and also, a goal of depositing $2000 into
 checking) every month.  Goals and actual performance can then be
 compared in budget reports.
 
-   For more details, see: balance: Budget report and Cookbook: Budgeting
-and Forecasting.
+   For more details, see: balance: Budget report and Budgeting and
+Forecasting.
 
 
 File: hledger_journal.info,  Node: Auto postings / transaction modifiers,  Prev: Periodic transactions,  Up: FILE FORMAT
@@ -1760,21 +1801,23 @@ Node: Default parent account50218
 Ref: #default-parent-account50384
 Node: Periodic transactions51268
 Ref: #periodic-transactions51466
-Node: Two spaces after the period expression52592
-Ref: #two-spaces-after-the-period-expression52837
-Node: Forecasting with periodic transactions53322
-Ref: #forecasting-with-periodic-transactions53612
-Node: Budgeting with periodic transactions55638
-Ref: #budgeting-with-periodic-transactions55877
-Node: Auto postings / transaction modifiers56336
-Ref: #auto-postings-transaction-modifiers56547
-Node: Auto postings and dates58776
-Ref: #auto-postings-and-dates59033
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions59208
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions59583
-Node: Auto posting tags59961
-Ref: #auto-posting-tags60200
-Node: EDITOR SUPPORT60865
-Ref: #editor-support60983
+Node: Periodic rule syntax53338
+Ref: #periodic-rule-syntax53544
+Node: Two spaces between period expression and description!54248
+Ref: #two-spaces-between-period-expression-and-description54567
+Node: Forecasting with periodic transactions55251
+Ref: #forecasting-with-periodic-transactions55556
+Node: Budgeting with periodic transactions57582
+Ref: #budgeting-with-periodic-transactions57821
+Node: Auto postings / transaction modifiers58270
+Ref: #auto-postings-transaction-modifiers58481
+Node: Auto postings and dates60710
+Ref: #auto-postings-and-dates60967
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions61142
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions61517
+Node: Auto posting tags61895
+Ref: #auto-posting-tags62134
+Node: EDITOR SUPPORT62799
+Ref: #editor-support62917
 
 End Tag Table

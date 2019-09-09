@@ -3119,10 +3119,9 @@ File: hledger.info,  Node: Experimental add-ons,  Prev: Third party add-ons,  Up
 5.3 Experimental add-ons
 ========================
 
-These are available in source form in the hledger repo's bin/ directory;
-installing them is pretty easy.  They may be less mature and documented
-than built-in commands.  Reading and tweaking these is a good way to
-start making your own!
+These are available in source form in the hledger repo's bin/ directory.
+They may be less mature and documented than built-in commands.  Reading
+and tweaking these is a good way to start making your own!
 
 * Menu:
 
@@ -3328,11 +3327,11 @@ Node: irr108282
 Ref: #irr108380
 Node: Experimental add-ons108511
 Ref: #experimental-add-ons108663
-Node: autosync108944
-Ref: #autosync109055
-Node: chart109294
-Ref: #chart109413
-Node: check109484
-Ref: #check109586
+Node: autosync108911
+Ref: #autosync109022
+Node: chart109261
+Ref: #chart109380
+Node: check109451
+Ref: #check109553
 
 End Tag Table

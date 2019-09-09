@@ -1579,11 +1579,45 @@ parent account.
 .SS Periodic transactions
 .PP
 Periodic transaction rules describe transactions that recur.
-They allow you to generate future transactions for forecasting, without
-having to write them out explicitly in the journal (with
-\f[C]--forecast\f[R]).
-Secondly, they also can be used to define budget goals (with
-\f[C]--budget\f[R]).
+They allow hledger to generate temporary future transactions to help
+with forecasting, so you don\[aq]t have to write out each one in the
+journal, and it\[aq]s easy to try out different forecasts.
+Secondly, they are also used to define the budgets shown in budget
+reports.
+.PP
+Periodic transactions can be a little tricky, so before you use them,
+read this whole section - or at least these tips:
+.IP "1." 3
+Two spaces accidentally added or omitted will cause you trouble - read
+about this below.
+.IP "2." 3
+For troubleshooting, show the generated transactions with
+\f[C]hledger print --forecast tag:generated\f[R] or
+\f[C]hledger register --forecast tag:generated\f[R].
+.IP "3." 3
+Forecasted transactions will begin only after the last non-forecasted
+transaction\[aq]s date.
+.IP "4." 3
+Forecasted transactions will end 6 months from today, by default.
+See below for the exact start/end rules.
+.IP "5." 3
+period expressions can be tricky.
+Their documentation needs improvement, but is worth studying.
+.IP "6." 3
+Some period expressions with a repeating interval must begin on a
+natural boundary of that interval.
+Eg in \f[C]weekly from DATE\f[R], DATE must be a monday.
+\f[C]\[ti] weekly from 2019/10/1\f[R] (a tuesday) will give an error.
+.IP "7." 3
+Other period expressions with an interval are automatically expanded to
+cover a whole number of that interval.
+(This is done to improve reports, but it also affects periodic
+transactions.
+Yes, it\[aq]s a bit inconsistent with the above.) Eg:
+\f[C]\[ti] every 10th day of month from 2020/01\f[R], which is
+equivalent to \f[C]\[ti] every 10th day of month from 2020/01/01\f[R],
+will be adjusted to start on 2019/12/10.
+.SS Periodic rule syntax
 .PP
 A periodic transaction rule looks like a normal journal entry, with the
 date replaced by a tilde (\f[C]\[ti]\f[R]) followed by a period
@@ -1607,7 +1641,7 @@ Partial or relative dates (M/D, D, tomorrow, last week) in the period
 expression can work (useful or not).
 They will be relative to today\[aq]s date, unless a Y default year
 directive is in effect, in which case they will be relative to Y/1/1.
-.SS Two spaces after the period expression
+.SS Two spaces between period expression and description!
 .PP
 If the period expression is followed by a transaction description, these
 must be separated by \f[B]two or more spaces\f[R].
@@ -1625,6 +1659,14 @@ example:
     income:acme inc
 \f[R]
 .fi
+.PP
+So,
+.IP \[bu] 2
+Do write two spaces between your period expression and your transaction
+description, if any.
+.IP \[bu] 2
+Don\[aq]t accidentally write two spaces in the middle of your period
+expression.
 .SS Forecasting with periodic transactions
 .PP
 With the \f[C]--forecast\f[R] flag, each periodic transaction rule
@@ -1686,8 +1728,8 @@ Eg the first example above declares a goal of spending $2000 on rent
 (and also, a goal of depositing $2000 into checking) every month.
 Goals and actual performance can then be compared in budget reports.
 .PP
-For more details, see: balance: Budget report and Cookbook: Budgeting
-and Forecasting.
+For more details, see: balance: Budget report and Budgeting and
+Forecasting.
 .PP
 .SS Auto postings / transaction modifiers
 .PP
