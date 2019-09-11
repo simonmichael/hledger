@@ -9,7 +9,7 @@ _docversionlinks_({{hledger-ui}})
 _man_({{
 # NAME
 
-hledger-ui - curses-style interface for the hledger accounting tool
+hledger-ui - terminal interface for the hledger accounting tool
 
 # SYNOPSIS
 
@@ -39,7 +39,7 @@ _web_({{
 </div>
 }})
 
-hledger-ui is hledger's curses-style interface, providing an efficient full-window text UI
+hledger-ui is hledger's terminal interface, providing an efficient full-window text UI
 for viewing accounts and transactions, and some limited data entry capability.
 It is easier than hledger's command-line interface, and 
 sometimes quicker and more convenient than the web interface.
@@ -151,7 +151,7 @@ Disabling balance assertions temporarily can be useful for troubleshooting.
 This allows some basic data entry. 
 
 `A` is like `a`, but runs the [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd) tool, 
-which provides a curses-style interface.
+which provides a terminal interface.
 This key will be available if `hledger-iadd` is installed in $PATH.  
 
 `E` runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (`emacsclient -a "" -nw`) on the journal file.

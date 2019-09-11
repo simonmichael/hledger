@@ -5,7 +5,7 @@
 hledger is a computer program for easily tracking money, time, or other commodities,
 on unix, mac and windows (and web-capable mobile devices, to some extent).
 
-It is first a command-line tool, but there are also curses-style and
+It is first a command-line tool, but there are also terminal and
 web interfaces, and a Haskell library
 (http://hackage.haskell.org/package/hledger-lib) for building your own
 programs and scripts (hledger is written in Haskell).  hledger was

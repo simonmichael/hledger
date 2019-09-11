@@ -34,7 +34,7 @@ Tested on unix, mac, windows, hledger aims to be a reliable, practical
 tool for daily use.
 }})
 
-This is hledger’s command-line interface (there are also curses and web
+This is hledger’s command-line interface (there are also terminal and web
 interfaces). Its basic function is to read a plain text file describing
 financial transactions (in accounting terms, a general journal) and
 print useful reports on standard output, or export them as CSV. hledger

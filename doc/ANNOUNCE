@@ -4,7 +4,7 @@ Henning Thielemann, Dmitry Astapov, Ben Creasy, zieone, Boyd Kelly,
 Gabriel Ebner, Hans-Peter Deifel, and Andreas Pauley.
 
 hledger is a robust, cross-platform, multicurrency, plain text
-accounting tool, with command-line, console and web UIs. It is one of
+accounting tool, with command-line, terminal and web UIs. It is one of
 the leading implementations of plain text accounting, and is a modern
 and largely compatible reimplementation of Ledger. Use it for tracking
 money, time, stocks, cryptocurrencies or any other commodity,

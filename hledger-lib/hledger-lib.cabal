@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c4535c00ecf88919b278f19cdd8f72caf2212d43fb3dc6ee21299451ee977ea0
+-- hash: 030f9139cc46202b3d02732e01d84b4d4e41b54e564e92c5ec2678b8e4a09931
 
 name:           hledger-lib
 version:        1.15.2
@@ -14,7 +14,7 @@ description:    This is a reusable library containing hledger's core functionali
                 hledger is a cross-platform program for tracking money, time, or
                 any other commodity, using double-entry accounting and a simple,
                 editable file format. It is inspired by and largely compatible
-                with ledger(1).  hledger provides command-line, curses and web
+                with ledger(1).  hledger provides command-line, terminal and web
                 interfaces, and aims to be a reliable, practical tool for daily
                 use.
 category:       Finance

@@ -446,7 +446,7 @@ and [hledger-lib:Hledger.Utils](https://github.com/simonmichael/hledger/blob/mas
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-ui),
 [manual](http://hledger.org/manual.html#hledger-ui)
 
-A curses-style text interface.
+A terminal interface.
 
 #### hledger-web
 
