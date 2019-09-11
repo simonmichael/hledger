@@ -81,8 +81,8 @@ budgetReport ropts' assrt reportspan d j =
       concatMap tpostings $
       concatMap (flip runPeriodicTransaction reportspan) $
       jperiodictxns j
-    actualj = dbg1 "actualj" $ budgetRollUp budgetedaccts showunbudgeted j
-    budgetj = dbg1 "budgetj" $ budgetJournal assrt ropts reportspan j
+    actualj = dbg1With (("actualj"++).show.jtxns)  $ budgetRollUp budgetedaccts showunbudgeted j
+    budgetj = dbg1With (("budgetj"++).show.jtxns)  $ budgetJournal assrt ropts reportspan j
     actualreport@(MultiBalanceReport (actualspans, _, _)) = dbg1 "actualreport" $ multiBalanceReport ropts  q actualj
     budgetgoalreport@(MultiBalanceReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
     budgetgoalreport'
