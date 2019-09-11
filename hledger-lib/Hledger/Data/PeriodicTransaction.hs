@@ -24,7 +24,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Posting (post, commentAddTagNextLine)
 import Hledger.Data.Transaction
 import Hledger.Utils.UTF8IOCompat (error')
--- import Hledger.Utils.Debug
+import Hledger.Utils.Debug
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -201,9 +201,8 @@ instance Show PeriodicTransaction where
 --
 runPeriodicTransaction :: PeriodicTransaction -> DateSpan -> [Transaction]
 runPeriodicTransaction PeriodicTransaction{..} requestedspan =
-    [ t{tdate=d} | (DateSpan (Just d) _) <- ptinterval `splitSpan` spantofill ]
+    [ t{tdate=d} | (DateSpan (Just d) _) <- alltxnspans, spanContainsDate requestedspan d ]
   where
-    spantofill = spanIntervalIntersect ptinterval ptspan requestedspan
     t = nulltransaction{
            tstatus      = ptstatus
           ,tcode        = ptcode
@@ -216,7 +215,11 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
           ,tpostings    = ptpostings
           }
     period = "~ " <> ptperiodexpr
-
+    -- All spans described by this periodic transaction, where spanStart is event date.
+    -- If transaction does not have start/end date, we set them to start/end of requested span,
+    -- to avoid generating (infinitely) many events. 
+    alltxnspans = dbg3 "alltxnspans" $ ptinterval `splitSpan` (spanDefaultsFrom ptspan requestedspan)
+      
 -- | Check that this date span begins at a boundary of this interval,
 -- or return an explanatory error message including the provided period expression
 -- (from which the span and interval are derived).

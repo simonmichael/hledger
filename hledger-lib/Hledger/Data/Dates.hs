@@ -60,7 +60,6 @@ module Hledger.Data.Dates (
   spansSpan,
   spanIntersect,
   spansIntersect,
-  spanIntervalIntersect,
   spanDefaultsFrom,
   spanUnion,
   spansUnion,
@@ -262,27 +261,6 @@ spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
     where
       b = latest b1 b2
       e = earliest e1 e2
-
--- | Calculate the intersection of two DateSpans, adjusting the start date so
--- the interval is preserved.
---
--- >>> let intervalIntersect = spanIntervalIntersect (Days 3)
--- >>> mkdatespan "2018-01-01" "2018-01-03" `intervalIntersect` mkdatespan "2018-01-01" "2018-01-05"
--- DateSpan 2018/01/01-2018/01/02
--- >>> mkdatespan "2018-01-01" "2018-01-05" `intervalIntersect` mkdatespan "2018-01-02" "2018-01-05"
--- DateSpan 2018/01/04
--- >>> mkdatespan "2018-01-01" "2018-01-05" `intervalIntersect` mkdatespan "2018-01-03" "2018-01-05"
--- DateSpan 2018/01/04
--- >>> mkdatespan "2018-01-01" "2018-01-05" `intervalIntersect` mkdatespan "2018-01-04" "2018-01-05"
--- DateSpan 2018/01/04
--- >>> mkdatespan "2018-01-01" "2018-01-05" `intervalIntersect` mkdatespan "2017-12-01" "2018-01-05"
--- DateSpan 2018/01/01-2018/01/04
-spanIntervalIntersect :: Interval -> DateSpan -> DateSpan -> DateSpan
-spanIntervalIntersect (Days n) (DateSpan (Just b1) e1) sp2@(DateSpan (Just b2) _) =
-      DateSpan (Just b) e1 `spanIntersect` sp2
-    where
-      b = if b1 < b2 then addDays (diffDays b1 b2 `mod` toInteger n) b2 else b1
-spanIntervalIntersect _ sp1 sp2 = sp1 `spanIntersect` sp2
 
 -- | Fill any unspecified dates in the first span with the dates from
 -- the second one. Sort of a one-way spanIntersect.
