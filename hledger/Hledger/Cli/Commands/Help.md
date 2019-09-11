@@ -16,7 +16,7 @@ Examples:
 ```shell
 $ hledger help
 Please choose a manual by typing "hledger help MANUAL" (a substring is ok).
-Manuals: hledger hledger-ui hledger-web hledger-api journal csv timeclock timedot
+Manuals: hledger hledger-ui hledger-web journal csv timeclock timedot
 ```
 
 ```shell

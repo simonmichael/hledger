@@ -7,8 +7,8 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
-- hledger-api
 
+# TODO: some of these were for hledger-api and can be removed
 extra-deps:
 - easytest-0.2.1
 # use the latest base-compat with all ghc versions

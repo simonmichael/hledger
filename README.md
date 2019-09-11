@@ -121,5 +121,4 @@ downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/t
 [![](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds)](http://packdeps.haskellers.com/feed?needle=hledger)
 [![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-ui)
 [![](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-web)
-[![](https://img.shields.io/hackage-deps/v/hledger-api.svg?label=hledger-api+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-api)
 

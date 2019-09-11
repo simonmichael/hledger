@@ -26,9 +26,6 @@ Here are some hledger add-ons available:
 
 These are maintained and released along with hledger.   
 
-### api
-[hledger-api](hledger-api.html) serves hledger data as a JSON web API. 
-
 ### ui
 [hledger-ui](hledger-ui.html) provides an efficient terminal interface. 
 

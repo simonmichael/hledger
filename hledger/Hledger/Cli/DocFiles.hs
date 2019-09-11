@@ -53,11 +53,6 @@ docFiles = [
     ,$(embedFileRelative "embeddedfiles/hledger-web.txt")
     ,$(embedFileRelative "embeddedfiles/hledger-web.info")
     ))
-  ,("hledger-api",
-    ($(embedFileRelative "embeddedfiles/hledger-api.1")
-    ,$(embedFileRelative "embeddedfiles/hledger-api.txt")
-    ,$(embedFileRelative "embeddedfiles/hledger-api.info")
-    ))
   ,("journal",
     ($(embedFileRelative "embeddedfiles/hledger_journal.5")
     ,$(embedFileRelative "embeddedfiles/hledger_journal.txt")

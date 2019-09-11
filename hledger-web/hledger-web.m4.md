@@ -186,9 +186,8 @@ sure that both machine clocks are roughly in step.)
 # JSON API
 
 In addition to the web UI, hledger-web provides some API routes that
-serve JSON in response to GET requests. Currently these are same ones
-provided by the hledger-api tool, but hledger-web will likely receive
-more attention than hledger-api in future:
+serve JSON in response to GET requests. (And when started with `--serve-api`,
+it provides only these routes.):
 ```
 /accountnames
 /transactions

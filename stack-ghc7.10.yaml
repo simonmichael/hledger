@@ -10,7 +10,6 @@ packages:
 # (we need megaparsec 7, only config-ini's 0.2.3.0 version allows that, but it requires a newer base/GHC). 
 #- hledger-ui
 - hledger-web
-#- hledger-api
 
 extra-deps:
 - easytest-0.2.1
@@ -75,25 +74,6 @@ extra-deps:
 - vty-5.21
 - word-wrap-0.4.1
 - yesod-persistent-1.4.2
-
-# - servant-0.13.0.1
-# - servant-server-0.13.0.1
-# - servant-swagger-1.1.5
-# - swagger2-2.2.2
-# # - attoparsec-iso8601-1.0.0.0
-# # - base-compat-0.9.3
-# - brick-0.24.2
-# - cpphs-1.20.8
-# - data-clist-0.1.2.0
-# - http-api-data-0.3.7.1
-# - natural-transformation-0.4
-# # - persistent-template-2.5.2
-# # - servant-0.11
-# # - servant-server-0.11
-# - text-zipper-0.10
-# - th-orphans-0.13.4
-# - vty-5.17.1
-# - word-wrap-0.4.1
 
 # hledger-ui
 # newer fsnotify has a different api and may be more robust

@@ -104,7 +104,6 @@ PACKAGES=\
 	hledger \
 	hledger-ui \
 	hledger-web \
-#	hledger-api \
 
 INCLUDEPATHS=\
 	-ihledger-lib \
@@ -113,7 +112,6 @@ INCLUDEPATHS=\
 	-ihledger-ui \
 	-ihledger-web \
 	-ihledger-web/app \
-#	-ihledger-api \
 
 MAIN=hledger/app/hledger-cli.hs
 
@@ -330,9 +328,6 @@ ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hle
 ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
 	ghcid -c 'make ghci-web'
 
-# ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
-# 	ghcid -c 'make ghci-api'
-
 ghcid-test: $(call def-help,ghcid-test, start ghcid autobuilding and running the test command)
 	ghcid -c 'make ghci' --test ':main test'
 
@@ -372,14 +367,10 @@ ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hle
 ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
-# ghci-api: $(call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hledger-api)
-# 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
-
 # ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
 # 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) \
 # 		hledger-ui/Hledger/UI/Main.hs \
 # 		hledger-web/app/main.hs \
-# 		hledger-api/hledger-api.hs \
 
 ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib doctests)
 	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
@@ -495,7 +486,6 @@ travistest: $(call def-help,travistest, run tests similar to our travis CI tests
 	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
 	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
 	make functest
-#	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
 
 # committest: hlinttest unittest doctest functest haddocktest buildtest quickcabaltest \
 # 	$(call def-help,committest,more thorough pre-commit/pre-push tests)

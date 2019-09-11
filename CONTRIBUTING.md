@@ -518,13 +518,14 @@ ghci> :main --serve
 (This rule also creates symbolic links to hledger-web's `config`, `messages`, `static` and `templates`
 directories, needed in developer mode, so it can run from the top directory. This may not work on Windows.)
 
-#### hledger-api
+#### hledger-api (old)
 
 [package](http://hackage.haskell.org/package/hledger-api),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-api),
 [manual](http://hledger.org/manual.html#hledger-api)
 
 A web API server. Uses the servant framework.
+Retired as of 2019-09; use hledger-web instead.
 
 ### Quality
 
@@ -809,7 +810,6 @@ About testing in the hledger project, as of 201809.
       hledger       test         builtin test command (hledger\'s + hledger-lib\'s unit tests)
       hledger-ui                 
       hledger-web                
-      hledger-api                
       ------------- ------------ ---------------------------------------------------------------
 
 ### Coverage
@@ -826,7 +826,6 @@ Our current test coverage can be summarised like so:
   hledger       X            X
   hledger-ui                 
   hledger-web                
-  hledger-api                
   ------------- ------ ----- ------------
 
 There are ways to generate detailed coverage reports for haskell unit

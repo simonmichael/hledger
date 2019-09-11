@@ -165,7 +165,6 @@ main = do
         ,"hledger"
         ,"hledger-ui"
         ,"hledger-web"
-        -- ,"hledger-api"
         ]
 
       changelogs = "CHANGES.md" : map (</> "CHANGES.md") packages
@@ -185,7 +184,6 @@ main = do
          "hledger.1"
         ,"hledger-ui.1"
         ,"hledger-web.1"
-        -- ,"hledger-api.1"
         ,"hledger_journal.5"
         ,"hledger_csv.5"
         ,"hledger_timeclock.5"
@@ -479,7 +477,6 @@ main = do
         ,":!hledger"
         ,":!hledger-ui"
         ,":!hledger-web"
-        ,":!hledger-api"
         ,":!tests"
         ]
 

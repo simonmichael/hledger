@@ -329,13 +329,12 @@ showModeUsage = (showText defaultWrap :: [Text] -> String) .
                (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
 -- | Get the most appropriate documentation topic for a mode.
--- Currently, that is either the hledger, hledger-ui, hledger-web or
--- hledger-api manual.
+-- Currently, that is either the hledger, hledger-ui or hledger-web
+-- manual.
 topicForMode :: Mode a -> Topic
 topicForMode m
   | n == "hledger-ui"  = "ui"
   | n == "hledger-web" = "web"
-  --  | n == "hledger-api" = lookupDocTxt "api" -- hledger-api uses docopt
   | otherwise          = "cli"
   where n = headDef "" $ modeNames m
 

@@ -52,7 +52,7 @@ getDownloadR f = do
   addHeader "Content-Disposition" ("attachment; filename=\"" <> T.pack f' <> "\"")
   sendResponse ("text/plain" :: ByteString, toContent txt)
 
--- hledger-web equivalents of hledger-api's handlers
+-- hledger-web equivalents of the old hledger-api's handlers
 
 getAccountnamesR :: Handler TypedContent
 getAccountnamesR = do

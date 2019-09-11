@@ -33,9 +33,6 @@ extra-source-files:
 - embeddedfiles/hledger.1
 - embeddedfiles/hledger.txt
 - embeddedfiles/hledger.info
-- embeddedfiles/hledger-api.1
-- embeddedfiles/hledger-api.txt
-- embeddedfiles/hledger-api.info
 - embeddedfiles/hledger-ui.1
 - embeddedfiles/hledger-ui.txt
 - embeddedfiles/hledger-ui.info

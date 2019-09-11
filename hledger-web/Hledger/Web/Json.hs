@@ -37,8 +37,7 @@ import           GHC.Generics (Generic)
 
 import           Hledger.Data
 
--- JSON instances. See also hledger-api.
--- Should they be in hledger-lib Types.hs ?
+-- JSON instances. Should they be in hledger-lib Types.hs ?
 
 -- To JSON
 

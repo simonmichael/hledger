@@ -64,7 +64,6 @@ HLEDGER_MAIN_TOOLS="\
 hledger \
 hledger-ui \
 hledger-web \
-hledger-api \
 "
 
 HLEDGER_OTHER_TOOLS="\

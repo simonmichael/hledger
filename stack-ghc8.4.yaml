@@ -7,7 +7,6 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
-- hledger-api
 
 extra-deps:
 - easytest-0.2.1
