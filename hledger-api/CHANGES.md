@@ -3,13 +3,9 @@ See also the hledger changelog.
 
 # da671880
 
+- allow hledger 1.15
 
-
-- api: set upper bound for swagger2
-
-
-
-- use hledger 1.15
+- set upper bound for swagger2
 
 # 1.14 2019-03-01
 
