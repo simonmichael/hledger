@@ -1024,8 +1024,8 @@ cleanghco: \
 clean: cleanghco \
 	$(call def-help,clean, default cleanup (ghc build leftovers) )
 
-Clean: stackclean cabalclean cleanghc cleantags clean-manpages \
-	$(call def-help,Clean, thorough cleanup (stack/cabal/ghc builds and tags) )
+Clean: stackclean cleanghco cleantags \
+	$(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
 
 # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
