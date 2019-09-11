@@ -30,7 +30,7 @@ These are maintained and released along with hledger.
 [hledger-api](hledger-api.html) serves hledger data as a JSON web API. 
 
 ### ui
-[hledger-ui](hledger-ui.html) provides an efficient curses-style interface. 
+[hledger-ui](hledger-ui.html) provides an efficient terminal interface. 
 
 ### web
 [hledger-web](hledger-web.html) provides a simple web interface.
@@ -47,7 +47,7 @@ shows differences in an account's transactions between one journal file and anot
 ### iadd
 
 [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
-is a curses-style, more interactive replacement for the [add command](hledger.html#add). 
+is a more interactive, terminal UI replacement for the [add command](hledger.html#add). 
 
 ### interest
 
