@@ -8,7 +8,6 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
-#- hledger-api
 
 nix:
   pure: false
@@ -24,7 +23,6 @@ extra-deps:
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
-# for hledger-api:
 
 # Workaround for https://github.com/commercialhaskell/stack/issues/3922
 # Try dropping this.. after stack 2 has been out a while ? Or now ? How about now ?

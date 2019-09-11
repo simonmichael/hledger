@@ -71,7 +71,6 @@ install:
 
 # --bench failed on windows, not tried recently
 # hledger-ui's vty dep isn't available on windows
-# hledger-api not tried recently 
 build_script:
 - stack build --test --copy-bins --local-bin-path=. hledger hledger-web
 
@@ -119,7 +118,6 @@ branches:
 #
 #- cmd: for /f %%i in (".\hledger --version") do set HLEDGER_VERSION=%%i
 #- cmd: for /f %%i in (".\hledger-web --version") do set HLEDGER_WEB_VERSION=%%i
-#- cmd: for /f %%i in (".\hledger-api --version") do set HLEDGER_API_VERSION=%%i
 #
 #deploy:
 #  - provider: GitHub

@@ -56,7 +56,6 @@ cache:
     - hledger/.stack-work/
     - hledger-ui/.stack-work/
     - hledger-web/.stack-work/
-    - hledger-api/.stack-work/
 #    - shelltestrunner/
 
 # addons:
@@ -113,7 +112,6 @@ install: # command output is hidden as they complete
     # TODO does this build hledger-lib & hledger, then rebuild them later with -Werror ?
   # - stack build cryptohash
   # - stack build --only-dependencies hledger-web # --test
-  # - stack build --only-dependencies hledger-api # --test
   # addon dependencies
   #- stack build Chart Chart-diagrams colour Diff
 
@@ -135,8 +133,6 @@ script:  # command output is not hidden
 
   - stack build --ghc-options=-Werror hledger-ui
   - stack build --ghc-options=-Werror hledger-web
-# XXX skip this to stay within time limit
-#  - stack build --ghc-options=-Werror hledger-api
 
   # run the built-in hunit tests. This doesn't run the doctests, 
   # but doesn't require rebuilding and is fast
@@ -150,7 +146,6 @@ script:  # command output is not hidden
   #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
   #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
   #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
-  #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
 
   # build hledger addons, ensuring no warnings
   #- stack build Diff
