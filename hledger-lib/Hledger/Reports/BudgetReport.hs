@@ -286,11 +286,11 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
         Just (AtDate d _mc) -> ", valued at "++showDate d
         Nothing             -> "")
     actualwidth =
-      maximum [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) amt
+      maximum' [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) amt
       | (_, _, _, amtandgoals, _, _) <- rows
       , (amt, _) <- amtandgoals ]
     budgetwidth =
-      maximum [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) goal
+      maximum' [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) goal
       | (_, _, _, amtandgoals, _, _) <- rows
       , (_, goal) <- amtandgoals ]
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
