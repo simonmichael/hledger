@@ -293,7 +293,7 @@ balance report, is not yet supported in multicolumn reports.
 With `--budget`, extra columns are displayed showing budget goals for each account and period, if any.
 Budget goals are defined by [periodic transactions](journal.html#periodic-transactions).
 This is very useful for comparing planned and actual income, expenses, time usage, etc.
---budget is most often combined with a [report interval](manual.html#report-intervals).
+--budget is most often combined with a [report interval](hledger.html#report-intervals).
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
 ```journal
