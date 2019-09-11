@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ce50d0ba9ba3843d1efb8d01a465fbb11fcca82d5d5ed98d23136dac22655b29
+-- hash: 28124784347b85a45c54846f2cc24147e3b8b0ea1fefed8d1cac762bcf166682
 
 name:           hledger
 version:        1.15.2
@@ -40,9 +40,6 @@ extra-source-files:
     embeddedfiles/hledger.1
     embeddedfiles/hledger.txt
     embeddedfiles/hledger.info
-    embeddedfiles/hledger-api.1
-    embeddedfiles/hledger-api.txt
-    embeddedfiles/hledger-api.info
     embeddedfiles/hledger-ui.1
     embeddedfiles/hledger-ui.txt
     embeddedfiles/hledger-ui.info
