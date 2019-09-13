@@ -1,5 +1,5 @@
 name        : hledger-ui
-version     : 1.15
+version     : 1.15.99
 synopsis    : Terminal user interface for the hledger accounting tool
 description : |
   This is hledger's terminal interface.
@@ -37,11 +37,11 @@ flags:
     manual: false
     default: true
 
-cpp-options: -DVERSION="1.15"
+cpp-options: -DVERSION="1.15.99"
 
 dependencies:
-- hledger-lib >=1.15 && <1.16
-- hledger >=1.15 && <1.16
+- hledger-lib >=1.15.99 && <1.16
+- hledger >=1.15.99 && <1.16
 - ansi-terminal >=0.6.2.3
 - async
 - base >=4.8 && <4.13
