@@ -1,6 +1,27 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# aa20f34b
+
+- import: message cleanups, mention input files
+  Only the --dry-run message needs the semicolon, so dry run output can
+  be piped into hledger.
+
+- import: --catchup marks all transactions imported, without importing
+
+- import: also show a message when nothing was imported
+
+- import: create the journal if missing, like the add command
+  Streamlines import/migration instructions.
+
+- bal: don't raise an error (maximum) when there is neither budget nor transactions in the report period (Dmitry Astapov)
+
+- bal: improve debug output for budget report (show budget txns) (Dmitry Astapov)
+
+- fix generation of periodic transactions with days/months/... repeat (Dmitry Astapov)
+
+- lib, cli, ui: start using Control.Monad.Fail, allow base-compat 0.11
+
 # 1.15.2 2019-09-05
 
 - -V and -X now respect a report end date (set with -e or -p or date:)

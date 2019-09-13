@@ -1,6 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# aa20f34b
+
+
 # 1.15 2019-09-01
 
 - --serve-api disables the usual server-side web UI (leaving only the API routes)

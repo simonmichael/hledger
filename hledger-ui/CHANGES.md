@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# aa20f34b
+
+- lib, cli, ui: start using Control.Monad.Fail, allow base-compat 0.11
+
 # 1.15 2019-09-01
 
 - allow brick >=0.47

@@ -1,6 +1,10 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# 4db14ef7
+
+- add descriptions to most issue tracker labels
+
 # 1.15 2019-09-01
 
 - install: bump to lts-14.4, hledger 1.15, drop hledger-api
