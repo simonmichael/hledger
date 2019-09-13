@@ -36,7 +36,8 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
         Left e     -> error' e
         Right newj ->
           case sortOn tdate $ jtxns newj of
-            [] -> return ()
+            [] -> do
+              printf "; no new transactions found.\n\n"
             newts | dryrun -> do
               printf "; would import %d new transactions:\n\n" (length newts)
               -- TODO how to force output here ?
