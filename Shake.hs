@@ -250,7 +250,9 @@ main = do
     -- MANUALS
 
     -- Generate the manuals in nroff, plain text and info formats.
-    phony "manuals" $ need $ concat [
+    phony "manuals" $ need $
+      "commandhelp" :
+      concat [
        nroffmanuals
       ,infomanuals
       ,txtmanuals
