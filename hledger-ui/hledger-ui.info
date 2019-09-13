@@ -6,7 +6,7 @@ File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-ui(1) hledger-ui 1.15
 *****************************
 
-hledger-ui is hledger's curses-style interface, providing an efficient
+hledger-ui is hledger's terminal interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
 limited data entry capability.  It is easier than hledger's command-line
 interface, and sometimes quicker and more convenient than the web
@@ -239,7 +239,7 @@ temporarily can be useful for troubleshooting.
 file.  This allows some basic data entry.
 
    'A' is like 'a', but runs the hledger-iadd tool, which provides a
-curses-style interface.  This key will be available if 'hledger-iadd' is
+terminal interface.  This key will be available if 'hledger-iadd' is
 installed in $PATH.
 
    'E' runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default ('emacsclient
@@ -399,19 +399,19 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top71
-Node: OPTIONS1101
-Ref: #options1198
-Node: KEYS4589
-Ref: #keys4684
-Node: SCREENS7940
-Ref: #screens8025
-Node: Accounts screen8115
-Ref: #accounts-screen8243
-Node: Register screen10459
-Ref: #register-screen10614
-Node: Transaction screen12610
-Ref: #transaction-screen12768
-Node: Error screen13638
-Ref: #error-screen13760
+Node: OPTIONS1097
+Ref: #options1194
+Node: KEYS4585
+Ref: #keys4680
+Node: SCREENS7932
+Ref: #screens8017
+Node: Accounts screen8107
+Ref: #accounts-screen8235
+Node: Register screen10451
+Ref: #register-screen10606
+Node: Transaction screen12602
+Ref: #transaction-screen12760
+Node: Error screen13630
+Ref: #error-screen13752
 
 End Tag Table

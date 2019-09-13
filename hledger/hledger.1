@@ -30,8 +30,8 @@ hledger is inspired by and largely compatible with ledger(1).
 Tested on unix, mac, windows, hledger aims to be a reliable, practical
 tool for daily use.
 .PP
-This is hledger\[cq]s command-line interface (there are also curses and
-web interfaces).
+This is hledger\[cq]s command-line interface (there are also terminal
+and web interfaces).
 Its basic function is to read a plain text file describing financial
 transactions (in accounting terms, a general journal) and print useful
 reports on standard output, or export them as CSV.
@@ -2820,7 +2820,7 @@ Examples:
 \f[C]
 $ hledger help
 Please choose a manual by typing \[dq]hledger help MANUAL\[dq] (a substring is ok).
-Manuals: hledger hledger-ui hledger-web hledger-api journal csv timeclock timedot
+Manuals: hledger hledger-ui hledger-web journal csv timeclock timedot
 \f[R]
 .fi
 .IP
@@ -2852,6 +2852,8 @@ import
 Read new transactions added to each FILE since last run, and add them to
 the main journal file.
 Or with --dry-run, just print the transactions that would be added.
+Or with --catchup, just mark all of the FILEs\[aq] transactions as
+imported, without actually importing any.
 .PP
 The input files are specified as arguments - no need to write -f before
 each one.
@@ -3602,12 +3604,9 @@ Here are some hledger add-ons available:
 .SS Official add-ons
 .PP
 These are maintained and released along with hledger.
-.SS api
-.PP
-hledger-api serves hledger data as a JSON web API.
 .SS ui
 .PP
-hledger-ui provides an efficient curses-style interface.
+hledger-ui provides an efficient terminal interface.
 .SS web
 .PP
 hledger-web provides a simple web interface.
@@ -3621,7 +3620,7 @@ hledger-diff shows differences in an account\[aq]s transactions between
 one journal file and another.
 .SS iadd
 .PP
-hledger-iadd is a curses-style, more interactive replacement for the add
+hledger-iadd is a more interactive, terminal UI replacement for the add
 command.
 .SS interest
 .PP
@@ -3784,7 +3783,7 @@ Simon Michael <simon@joyful.com> and contributors
 
 .SH COPYRIGHT
 
-Copyright (C) 2007-2016 Simon Michael.
+Copyright (C) 2007-2019 Simon Michael.
 .br
 Released under GNU GPL v3 or later.
 
