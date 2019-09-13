@@ -26,6 +26,7 @@ importmode = hledgerCommandMode
   ([], Just $ argsFlag "FILE [...]")
 
 importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
+  -- XXX could be helpful to show the last-seen date, and number of old transactions, too
   let
     inputfiles = listofstringopt "args" rawopts
     inputstr = intercalate ", " inputfiles
@@ -44,7 +45,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
             [] -> do
               -- in this case, we vary the output depending on --dry-run, which is a bit awkward
               let semicolon = if dryrun then "; " else "" :: String
-              printf "%sno new transactions found in %s.\n\n" semicolon inputstr
+              printf "%sno new transactions found in %s\n\n" semicolon inputstr
             newts | dryrun -> do
               printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
               -- TODO how to force output here ?
