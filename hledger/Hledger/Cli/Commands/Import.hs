@@ -18,7 +18,9 @@ import Text.Printf
 
 importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
-  [flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"]
+  [flagNone ["catchup"] (setboolopt "catchup") "just mark all transactions as already imported"
+  ,flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"
+  ]
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "FILE [...]")
@@ -26,6 +28,8 @@ importmode = hledgerCommandMode
 importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   let
     inputfiles = listofstringopt "args" rawopts
+    inputstr = intercalate ", " inputfiles
+    catchup = boolopt "catchup" rawopts
     dryrun = boolopt "dry-run" rawopts
     iopts' = iopts{new_=True, new_save_=not dryrun}
   case inputfiles of
@@ -43,6 +47,8 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
               -- TODO how to force output here ?
               -- length (jtxns newj) `seq` print' opts{rawopts_=("explicit",""):rawopts} newj
               mapM_ (putStr . showTransactionUnelided) newts
+            newts | catchup -> do
+              printf "marked %s as caught up, skipping %d unimported transactions\n\n" inputstr (length newts)
             newts -> do
               foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
               printf "imported %d new transactions\n" (length newts)

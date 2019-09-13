@@ -1,7 +1,8 @@
 import\
 Read new transactions added to each FILE since last run, and add them to
 the main journal file. Or with --dry-run, just print the transactions 
-that would be added.
+that would be added. Or with --catchup, just mark all of the FILEs'
+transactions as imported, without actually importing any.
 
 _FLAGS_
 
