@@ -41,9 +41,9 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
         Right newj ->
           case sortOn tdate $ jtxns newj of
             [] -> do
-              printf "; no new transactions found.\n\n"
+              printf "no new transactions found in %s.\n\n" inputstr
             newts | dryrun -> do
-              printf "; would import %d new transactions:\n\n" (length newts)
+              printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
               -- TODO how to force output here ?
               -- length (jtxns newj) `seq` print' opts{rawopts_=("explicit",""):rawopts} newj
               mapM_ (putStr . showTransactionUnelided) newts
@@ -51,4 +51,4 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
               printf "marked %s as caught up, skipping %d unimported transactions\n\n" inputstr (length newts)
             newts -> do
               foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
-              printf "imported %d new transactions\n" (length newts)
+              printf "imported %d new transactions from %s\n" (length newts) inputstr
