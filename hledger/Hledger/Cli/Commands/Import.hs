@@ -40,8 +40,11 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
         Left e     -> error' e
         Right newj ->
           case sortOn tdate $ jtxns newj of
+            -- with --dry-run the output should be valid journal format, so messages have ; prepended
             [] -> do
-              printf "no new transactions found in %s.\n\n" inputstr
+              -- in this case, we vary the output depending on --dry-run, which is a bit awkward
+              let semicolon = if dryrun then "; " else "" :: String
+              printf "%sno new transactions found in %s.\n\n" semicolon inputstr
             newts | dryrun -> do
               printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
               -- TODO how to force output here ?
