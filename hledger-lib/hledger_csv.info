@@ -3,8 +3,8 @@ This is hledger_csv.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 
-hledger_csv(5) hledger 1.15.2
-*****************************
+hledger_csv(5) hledger 1.15.99
+******************************
 
 hledger can read CSV (comma-separated value) files as if they were
 journal files, automatically converting each CSV record into a
@@ -350,35 +350,35 @@ character.
 
 Tag Table:
 Node: Top72
-Node: CSV RULES2165
-Ref: #csv-rules2273
-Node: skip2536
-Ref: #skip2630
-Node: date-format2802
-Ref: #date-format2929
-Node: field list3479
-Ref: #field-list3616
-Node: field assignment4346
-Ref: #field-assignment4501
-Node: conditional block5125
-Ref: #conditional-block5279
-Node: include6175
-Ref: #include6305
-Node: newest-first6536
-Ref: #newest-first6650
-Node: CSV TIPS7061
-Ref: #csv-tips7155
-Node: CSV ordering7299
-Ref: #csv-ordering7417
-Node: CSV accounts7598
-Ref: #csv-accounts7736
-Node: CSV amounts7990
-Ref: #csv-amounts8148
-Node: CSV balance assertions/assignments9228
-Ref: #csv-balance-assertionsassignments9446
-Node: Reading multiple CSV files9767
-Ref: #reading-multiple-csv-files9967
-Node: Valid CSV10241
-Ref: #valid-csv10364
+Node: CSV RULES2167
+Ref: #csv-rules2275
+Node: skip2538
+Ref: #skip2632
+Node: date-format2804
+Ref: #date-format2931
+Node: field list3481
+Ref: #field-list3618
+Node: field assignment4348
+Ref: #field-assignment4503
+Node: conditional block5127
+Ref: #conditional-block5281
+Node: include6177
+Ref: #include6307
+Node: newest-first6538
+Ref: #newest-first6652
+Node: CSV TIPS7063
+Ref: #csv-tips7157
+Node: CSV ordering7301
+Ref: #csv-ordering7419
+Node: CSV accounts7600
+Ref: #csv-accounts7738
+Node: CSV amounts7992
+Ref: #csv-amounts8150
+Node: CSV balance assertions/assignments9230
+Ref: #csv-balance-assertionsassignments9448
+Node: Reading multiple CSV files9769
+Ref: #reading-multiple-csv-files9969
+Node: Valid CSV10243
+Ref: #valid-csv10366
 
 End Tag Table

@@ -408,4 +408,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.15                   August 2019                    hledger-ui(1)
+hledger-ui 1.15.99                August 2019                    hledger-ui(1)
