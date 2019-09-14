@@ -18,7 +18,7 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
+tested-with: GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
 
 extra-source-files:
 - CHANGES.md
@@ -39,7 +39,7 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.8 && <4.13
+- base >=4.9 && <4.13
 - base-compat-batteries >=0.10.1 && <0.12
 - ansi-terminal >=0.6.2.3
 - array

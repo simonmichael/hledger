@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bd203b8004a809390f7eb686721bee2a5d48e606a0aa25a873aaf2e133aada80
+-- hash: cfbd7109f5527399580a07f847fc8f5d01951caffc3667948b6348f82183be52
 
 name:           hledger
 version:        1.15.99
@@ -27,7 +27,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
+tested-with:    GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
 build-type:     Simple
 extra-source-files:
     CHANGES.md
@@ -148,7 +148,7 @@ library
       Decimal
     , Diff
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.13
+    , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
     , bytestring
     , cmdargs >=0.10
@@ -200,7 +200,7 @@ executable hledger
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.13
+    , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
     , bytestring
     , cmdargs >=0.10
@@ -254,7 +254,7 @@ test-suite test
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.13
+    , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
     , bytestring
     , cmdargs >=0.10
@@ -307,7 +307,7 @@ benchmark bench
   build-depends:
       Decimal
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <4.13
+    , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
     , bytestring
     , cmdargs >=0.10

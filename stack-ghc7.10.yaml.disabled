@@ -1,3 +1,6 @@
+# 201909: disabled due to hassles with MonadFail in JournalReader.hs.
+# Feel free to work on this if you still need GHC 7 support.
+
 # stack build plan using GHC 7.10.3
 # This is unlikely to work on OSX Sierra+ due to https://ghc.haskell.org/trac/ghc/ticket/12479
 

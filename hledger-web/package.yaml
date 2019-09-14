@@ -20,7 +20,7 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
+tested-with: GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
 
 extra-source-files:
 - CHANGES.md
@@ -102,7 +102,7 @@ library:
   - hledger-lib >=1.15.99 && <1.16
   - hledger >=1.15.99 && <1.16
   - aeson
-  - base >=4.8 && <4.13
+  - base >=4.9 && <4.13
   - blaze-html
   - blaze-markup
   - bytestring

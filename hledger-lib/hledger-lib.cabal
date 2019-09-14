@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1a86e1ea033680b16a056d843fda4101e7e6c06babcc6118bffb79e0042d17a7
+-- hash: 76c7a62a518ff4226e139c42540aaf8f3331fb1a7250cc7a784f9cf9a2e4b123
 
 name:           hledger-lib
 version:        1.15.99
@@ -25,7 +25,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
+tested-with:    GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
 build-type:     Simple
 extra-source-files:
     CHANGES.md
@@ -107,7 +107,7 @@ library
     , Glob >=0.9
     , ansi-terminal >=0.6.2.3
     , array
-    , base >=4.8 && <4.13
+    , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
@@ -210,7 +210,7 @@ test-suite doctests
     , Glob >=0.7
     , ansi-terminal >=0.6.2.3
     , array
-    , base >=4.8 && <4.13
+    , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
@@ -317,7 +317,7 @@ test-suite easytests
     , Glob >=0.9
     , ansi-terminal >=0.6.2.3
     , array
-    , base >=4.8 && <4.13
+    , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
     , blaze-markup >=0.5.1
     , bytestring
