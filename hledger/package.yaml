@@ -214,6 +214,7 @@ tests:
 
 benchmarks:
   bench:
+    buildable: false
     source-dirs: bench
     main: bench.hs
     dependencies:

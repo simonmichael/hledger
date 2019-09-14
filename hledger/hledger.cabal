@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b864d03deb10457bee840db359d886fab19a33d56e673afa900265f845d17618
+-- hash: bd203b8004a809390f7eb686721bee2a5d48e606a0aa25a873aaf2e133aada80
 
 name:           hledger
 version:        1.15.99
@@ -344,6 +344,7 @@ benchmark bench
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
     , wizards >=1.0
+  buildable: False
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo

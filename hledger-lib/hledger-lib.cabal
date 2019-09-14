@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5800a813057af070936e23a2a043e79ba8d5eadb30d8d9d8953b87b0599c4d23
+-- hash: 1a86e1ea033680b16a056d843fda4101e7e6c06babcc6118bffb79e0042d17a7
 
 name:           hledger-lib
 version:        1.15.99
@@ -247,6 +247,7 @@ test-suite doctests
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
+  buildable: False
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
@@ -353,6 +354,7 @@ test-suite easytests
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
+  buildable: False
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*

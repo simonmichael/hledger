@@ -156,7 +156,11 @@ library:
 
 tests:
 
+  # 201909: disabled these by default. They (each ?) require a slow rebuild 
+  # of hledger-lib and are not worth the time, energy and carbon.
+
   doctests:
+    buildable: false
     source-dirs: test
     main: doctests.hs
     dependencies:
@@ -185,6 +189,7 @@ tests:
 
 
   easytests:
+    buildable: false
     source-dirs: test
     main: easytests.hs
     dependencies:
