@@ -307,6 +307,8 @@ readJournal iopts mfile txt =
 tryReaders :: InputOpts -> Maybe FilePath -> [Reader] -> Text -> IO (Either String Journal)
 tryReaders iopts mpath readers txt = firstSuccessOrFirstError [] readers
   where
+    -- TODO: #1087 when parsing csv with -f -, if the csv (rules) parser fails, 
+    -- we would rather see that error, not the one from the journal parser
     firstSuccessOrFirstError :: [String] -> [Reader] -> IO (Either String Journal)
     firstSuccessOrFirstError [] []        = return $ Left "no readers found"
     firstSuccessOrFirstError errs (r:rs) = do
