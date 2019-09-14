@@ -33,11 +33,13 @@ where
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
-import Control.Exception hiding (try)
-import Control.Monad
-import Control.Monad.Except
+import Control.Exception          (IOException, handle, throw)
+import Control.Monad              (liftM, unless, when)
+import Control.Monad.Except       (ExceptT(ExceptT) , runExceptT, throwError)
+import Control.Monad.IO.Class     (liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
-import Data.Char (toLower, isDigit, isSpace, ord)
+import Control.Monad.Trans.Class  (lift)
+import Data.Char                  (toLower, isDigit, isSpace, ord)
 import "base-compat-batteries" Data.List.Compat
 import Data.Maybe
 import Data.Ord
