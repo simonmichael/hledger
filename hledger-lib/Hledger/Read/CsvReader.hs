@@ -35,11 +35,12 @@ import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Exception          (IOException, handle, throw)
 import Control.Monad              (liftM, unless, when)
-import Control.Monad.Except       (ExceptT(ExceptT) , runExceptT, throwError)
+import Control.Monad.Except       (ExceptT, throwError)
 import Control.Monad.IO.Class     (liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, ord)
+import Data.Bifunctor             (first)
 import "base-compat-batteries" Data.List.Compat
 import Data.Maybe
 import Data.Ord
@@ -93,7 +94,7 @@ parse iopts f t = do
   let rulesfile = mrules_file_ iopts
   let separator = separator_ iopts
   r <- liftIO $ readJournalFromCsv separator rulesfile f t
-  case r of Left e -> throwError e
+  case r of Left e  -> throwError e
             Right j -> return $ journalNumberAndTieTransactions j
 -- XXX does not use parseAndFinaliseJournal like the other readers
 
@@ -111,32 +112,35 @@ parse iopts f t = do
 readJournalFromCsv :: Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
 readJournalFromCsv _ Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
 readJournalFromCsv separator mrulesfile csvfile csvdata =
- handle (\e -> return $ Left $ show (e :: IOException)) $ do
+ handle (\(e::IOException) -> return $ Left $ show e) $ do
+
+  -- make and throw an IO exception.. which we catch and convert to an Either above ?
   let throwerr = throw . userError
 
-  -- parse rules
+  -- parse the csv rules
   let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
   rulesfileexists <- doesFileExist rulesfile
   rulestext <-
     if rulesfileexists
     then do
       dbg1IO "using conversion rules file" rulesfile
-      liftIO $ (readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile))
-    else return $ defaultRulesText rulesfile
-  rules <- liftIO (runExceptT $ parseAndValidateCsvRules rulesfile rulestext) >>= either throwerr return
+      readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
+    else 
+      return $ defaultRulesText rulesfile
+  rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
   dbg2IO "rules" rules
 
-  -- apply skip directive
-  let skip = maybe 0 oneorerror $ getDirective "skip" rules
-        where
-          oneorerror "" = 1
-          oneorerror s  = readDef (throwerr $ "could not parse skip value: " ++ show s) s
+  -- parse the skip directive's value, if any
+  let skiplines = case getDirective "skip" rules of
+                    Nothing -> 0
+                    Just "" -> 1
+                    Just s  -> readDef (throwerr $ "could not parse skip value: " ++ show s) s
 
   -- parse csv
-  -- parsec seems to fail if you pass it "-" here XXX try again with megaparsec
+  -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
   records <- (either throwerr id .
-              dbg2 "validateCsv" . validateCsv skip .
+              dbg2 "validateCsv" . validateCsv skiplines .
               dbg2 "parseCsv")
              `fmap` parseCsv separator parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
@@ -402,16 +406,19 @@ getDirective directivename = lookup directivename . rdirectives
 instance ShowErrorComponent String where
   showErrorComponent = id
 
--- | An error-throwing action that parses this file's content
+-- Not used by hledger; just for lib users, 
+-- | An pure-exception-throwing IO action that parses this file's content
 -- as CSV conversion rules, interpolating any included files first,
 -- and runs some extra validation checks.
 parseRulesFile :: FilePath -> ExceptT String IO CsvRules
 parseRulesFile f =
-  liftIO (readFilePortably f >>= expandIncludes (takeDirectory f)) >>= parseAndValidateCsvRules f
+  liftIO (readFilePortably f >>= expandIncludes (takeDirectory f))
+    >>= either throwError return . parseAndValidateCsvRules f
 
 -- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
 -- Included file paths may be relative to the directory of the provided file path.
--- This is a cheap hack to avoid rewriting the CSV rules parser.
+-- This is done as a pre-parse step to simplify the CSV rules parser.
+expandIncludes :: FilePath -> Text -> IO Text
 expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return . T.unlines
   where
     expandLine dir line =
@@ -422,22 +429,17 @@ expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return 
             dir' = takeDirectory f'
         _ -> return line
 
--- | An error-throwing action that parses this text as CSV conversion rules
--- and runs some extra validation checks. The file path is for error messages.
-parseAndValidateCsvRules :: FilePath -> T.Text -> ExceptT String IO CsvRules
-parseAndValidateCsvRules rulesfile s = do
-  let rules = parseCsvRules rulesfile s
-  case rules of
-    Left e -> ExceptT $ return $ Left $ customErrorBundlePretty e
-    Right r -> do
-               r_ <- liftIO $ runExceptT $ validateRules r
-               ExceptT $ case r_ of
-                 Left  s -> return $ Left $ parseErrorPretty $ makeParseError s
-                 Right r -> return $ Right r
-
+-- | An error-throwing IO action that parses this text as CSV conversion rules
+-- and runs some extra validation checks. The file path is used in error messages.
+parseAndValidateCsvRules :: FilePath -> T.Text -> Either String CsvRules
+parseAndValidateCsvRules rulesfile s =
+  case parseCsvRules rulesfile s of
+    Left err    -> Left $ customErrorBundlePretty err
+    Right rules -> first makeFancyParseError $ validateRules rules
   where
-    makeParseError :: String -> ParseError T.Text String
-    makeParseError s = FancyError 0 (S.singleton $ ErrorFail s)
+    makeFancyParseError :: String -> String
+    makeFancyParseError s = 
+      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail s) :: ParseError Text String)
 
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
 parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
@@ -446,18 +448,18 @@ parseCsvRules rulesfile s =
   runParser (evalStateT rulesp defrules) rulesfile s
 
 -- | Return the validated rules, or an error.
-validateRules :: CsvRules -> ExceptT String IO CsvRules
+validateRules :: CsvRules -> Either String CsvRules
 validateRules rules = do
-  unless (isAssigned "date")   $ ExceptT $ return $ Left "Please specify (at top level) the date field. Eg: date %1\n"
+  unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1\n"
   unless ((amount && not (amountin || amountout)) ||
           (not amount && (amountin && amountout)) ||
           balance)
-    $ ExceptT $ return $ Left $ unlines [
+    $ Left $ unlines [
        "Please specify (as a top level CSV rule) either the amount field,"
       ,"both the amount-in and amount-out fields, or the balance field. Eg:"
       ,"amount %2\n"
       ]
-  ExceptT $ return $ Right rules
+  Right rules
   where
     amount    = isAssigned "amount"
     amountin  = isAssigned "amount-in"
