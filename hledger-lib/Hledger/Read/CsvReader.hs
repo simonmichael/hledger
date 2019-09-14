@@ -365,7 +365,7 @@ type RecordMatcher    = [RegexpPattern] -- match if any regexps match any of the
 type DateFormat       = String
 type RegexpPattern           = String
 
-rules = CsvRules {
+defrules = CsvRules {
   rdirectives=[],
   rcsvfieldindexes=[],
   rassignments=[],
@@ -441,7 +441,7 @@ parseAndValidateCsvRules rulesfile s = do
 parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
-  runParser (evalStateT rulesp rules) rulesfile s
+  runParser (evalStateT rulesp defrules) rulesfile s
 
 -- | Return the validated rules, or an error.
 validateRules :: CsvRules -> ExceptT String IO CsvRules
@@ -893,21 +893,21 @@ parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith format
 tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [
      test "empty file" $
-      parseCsvRules "unknown" "" `is` Right rules
+      parseCsvRules "unknown" "" `is` Right defrules
     ]
   ,tests "rulesp" [
      test "trailing comments" $
-      parseWithState' rules rulesp "skip\n# \n#\n" `is` Right rules{rdirectives = [("skip","")]}
+      parseWithState' defrules rulesp "skip\n# \n#\n" `is` Right defrules{rdirectives = [("skip","")]}
 
     ,test "trailing blank lines" $
-      parseWithState' rules rulesp "skip\n\n  \n" `is` (Right rules{rdirectives = [("skip","")]})
+      parseWithState' defrules rulesp "skip\n\n  \n" `is` (Right defrules{rdirectives = [("skip","")]})
 
     ,test "no final newline" $
-      parseWithState' rules rulesp "skip" `is` (Right rules{rdirectives=[("skip","")]})
+      parseWithState' defrules rulesp "skip" `is` (Right defrules{rdirectives=[("skip","")]})
 
     ,test "assignment with empty value" $
-      parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n" `is`
-        (Right rules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
+      parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" `is`
+        (Right defrules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
 
     ]
   ]
