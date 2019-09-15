@@ -39,7 +39,7 @@ When developing/troubleshooting this script, these are useful:
 watch Shake.hs for compile errors: make ghcid-shake
 load Shake.hs in GHCI: make ghci-shake
 rebuild things when files change with entr (file watcher), eg:
- find hledger-lib hledger | entr ./Shake website
+ find hledger-lib hledger | entr ./Shake manuals
 view rule dependency graph:
  ./Shake --report, open report.html?mode=rule-graph&query=!name(/(doc%7Cimages%7Cjs%7Ccss%7Cfonts%7Ctime%7Capi%7Cui%7Ccsv)/)
 
@@ -70,25 +70,25 @@ usage = unlines
     ---------------------------------------79--------------------------------------
   ["Usage:"
   ,"./Shake.hs               (re)compile this script"
-  ,"./Shake commandhelp      build embedded help texts for the hledger CLI"
-  ,"./Shake manuals          build html/txt/man/info manuals for all packages"
-  ,"./Shake htmlmanuals      build html manuals for all packages"
-  ,"./Shake oldmanuals       build old versions of html manuals for all packages"
+  ,"./Shake commandhelp      build help texts for the hledger CLI"
+  ,"./Shake manuals          build txt/man/info/web manuals for all packages"
+  -- ,"./Shake htmlmanuals      build html manuals for all packages"
+  -- ,"./Shake oldmanuals       build old versions of html manuals for all packages"
   ,"./Shake PKG              build a single hledger package and its embedded docs"
   ,"./Shake build            build all hledger packages and their embedded docs"
-  ,"./Shake website          build the website and web manuals"
-  ,"./Shake website-all      build the website and all web manual versions"
+  -- ,"./Shake website          build the website and web manuals"
+  -- ,"./Shake website-all      build the website and all web manual versions"
   ,"./Shake all              build all the above"
-  ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
+  -- ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
   ,""
-  ,"./Shake mainpages                   build the web pages from the main repo"
+  -- ,"./Shake mainpages                   build the web pages from the main repo"
   -- ,"./Shake site/index.md               update wiki links on the website home page"
   ,"./Shake FILE                        build any individual file"
   ,"./Shake setversion                  update all packages from PKG/.version"
   ,"./Shake changelogs                  update the changelogs with any new commits"
   ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
   ,"./Shake [PKG/]CHANGES.md-finalise   set final release heading in this changelog"
-  ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
+  -- ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
   ,""
   ,"./Shake clean            clean help texts, manuals, staged site content"
   ,"./Shake Clean            also clean rendered site, object files, Shake's cache"
@@ -144,7 +144,7 @@ main = do
 
     phony "help" $ liftIO $ putStrLn usage
 
-    phony "all" $ need ["commandhelp", "manuals", "build", "website"]
+    phony "all" $ need ["commandhelp", "manuals", "build"]  --, "website"]
 
     -- phony "compile" $ need ["Shake"]
     -- "Shake" %> \out -> do
@@ -197,33 +197,33 @@ main = do
       -- These may include additional files using m4.
       m4manuals = [manualDir m </> m <.> "m4.md" | m <- manualNames]
 
-      -- manuals rendered to nroff, ready for man (hledger/hledger.1)
-      nroffmanuals = [manpageDir m </> m | m <- manpageNames]
-
-      -- manuals rendered to plain text, ready for embedding (hledger/hledger.txt)
+      -- manuals as plain text, ready for embedding as CLI help (hledger/hledger.txt)
       txtmanuals = [manualDir m </> m <.> "txt" | m <- manualNames]
 
-      -- manuals rendered to info, ready for info (hledger/hledger.info)
+      -- manuals as nroff, ready for man (hledger/hledger.1)
+      nroffmanuals = [manpageDir m </> m | m <- manpageNames]
+
+      -- manuals as info, ready for info (hledger/hledger.info)
       infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
 
-      -- individual manuals rendered to markdown, ready for conversion to html (site/hledger.md)
-      mdmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
+      -- manuals as web-ready markdown, written into the website for Sphinx (site/hledger.md)
+      webmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
 
-      -- latest version of the manuals rendered to html
-      htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames]
+      -- -- latest version of the manuals rendered to html (site/_site/hledger.html)
+      -- htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames]
 
-      -- old versions of the manuals rendered to html
-      oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
-        [ v </> manpageNameToUri p | v <- docversions, v>="1.0", p <- manpageNames ++ ["manual"] ] ++
-        [ v </> "manual"           | v <- docversions, v <"1.0" ]  -- before 1.0 there was only the combined manual
+      -- -- old versions of the manuals rendered to html (site/_site/doc/1.14/hledger.html)
+      -- oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
+      --   [ v </> manpageNameToUri p | v <- docversions, v>="1.0", p <- manpageNames ++ ["manual"] ] ++
+      --   [ v </> "manual"           | v <- docversions, v <"1.0" ]  -- before 1.0 there was only the combined manual
 
       -- the html for website pages kept in the main repo
-      mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) pages
+      -- mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) pages
 
       -- TODO: make website URIs lower-case ?
 
       -- extensions of static web asset files, to be copied to the website
-      webassetexts = ["png", "gif", "cur", "js", "css", "eot", "ttf", "woff", "svg"]
+      -- webassetexts = ["png", "gif", "cur", "js", "css", "eot", "ttf", "woff", "svg"]
 
       -- The directory in which to find this man page.
       -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
@@ -249,14 +249,14 @@ main = do
 
     -- MANUALS
 
-    -- Generate the manuals in nroff, plain text and info formats.
+    -- Generate the manuals in plain text, nroff, info, and markdown formats.
     phony "manuals" $ need $
       "commandhelp" :
       concat [
        nroffmanuals
       ,infomanuals
       ,txtmanuals
-      ,htmlmanuals
+      ,webmanuals
       ]
 
     -- Generate nroff man pages suitable for man output.
@@ -318,8 +318,8 @@ main = do
 
     -- Generate the individual web manuals' markdown source, using m4
     -- and pandoc to tweak content.
-    phony "mdmanuals" $ need mdmanuals
-    mdmanuals |%> \out -> do -- site/hledger.md
+    phony "webmanuals" $ need webmanuals
+    webmanuals |%> \out -> do -- site/hledger.md
       let manpage   = manpageUriToName $ dropExtension $ takeFileName out -- hledger
           manual    = manpageNameToManualName manpage
           dir       = manpageDir manpage
@@ -343,67 +343,67 @@ main = do
 
     -- Copy some extra markdown files from the main repo into the site
     -- TODO adding table of contents placeholders
-    [
-      -- "site/README.md",
-      -- "site/CONTRIBUTING.md"
-      ]  |%> \out ->
-      copyFile' (dropDirectory1 out) out -- XXX (map toLower out)
+    -- [
+    --   -- "site/README.md",
+    --   -- "site/CONTRIBUTING.md"
+    --   ]  |%> \out ->
+    --   copyFile' (dropDirectory1 out) out -- XXX (map toLower out)
 
     -- WEBSITE HTML & ASSETS
 
-    phony "website" $ need [
-       "webassets"
-      ,"mainpages"
-      ,"htmlmanuals"
-      ]
+    -- phony "website" $ need [
+    --    "webassets"
+    --   -- ,"mainpages"
+    --   -- ,"htmlmanuals"
+    --   ]
 
-    phony "website-all" $ need [
-       "website"
-      ,"oldmanuals"
-      ]
+    -- phony "website-all" $ need [
+    --    "website"
+    --   -- ,"oldmanuals"
+    --   ]
 
-    -- copy all static asset files (files with certain extensions
-    -- found under sites, plus one or two more) to sites/_site/
-    phony "webassets" $ do
-        assets <- getDirectoryFiles "site" (map ("//*" <.>) webassetexts)
-        need [ "site/_site" </> file
-                | file <- assets ++ [
-                    "files/README"
-                    ]
-                , not ("_site//*" ?== file)
-             ]
+    -- -- copy all static asset files (files with certain extensions
+    -- -- found under sites, plus one or two more) to sites/_site/
+    -- phony "webassets" $ do
+    --     assets <- getDirectoryFiles "site" (map ("//*" <.>) webassetexts)
+    --     need [ "site/_site" </> file
+    --             | file <- assets ++ [
+    --                 "files/README"
+    --                 ]
+    --             , not ("_site//*" ?== file)
+    --          ]
 
     -- copy any one of the static asset files to sites/_site/
-    "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webassetexts ] |%> \out -> do
-        copyFile' ("site" </> dropDirectory2 out) out
+    -- "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webassetexts ] |%> \out -> do
+    --     copyFile' ("site" </> dropDirectory2 out) out
 
     -- render all web pages from the main repo (manuals, home, download, relnotes etc) as html, saved in site/_site/
-    phony "mainpages" $ need mainpageshtml
+    -- phony "mainpages" $ need mainpageshtml
 
-    phony "htmlmanuals" $ need htmlmanuals
+    -- phony "htmlmanuals" $ need htmlmanuals
 
-    phony "oldmanuals" $ need oldhtmlmanuals
+    -- phony "oldmanuals" $ need oldhtmlmanuals
 
     -- Render one website page as html, saved in sites/_site/.
     -- Github-style wiki links will be hyperlinked.
-    "site/_site//*.html" %> \out -> do
-        let filename = takeBaseName out
-            pagename = fileNameToPageName filename
-            isdownloadpage = filename == "download"
-            isoldmanual = "site/_site/doc/" `isPrefixOf` out
-            source
-              | isoldmanual = "site" </> (drop 11 $ dropExtension out) <.> "md"
-              | otherwise   = "site" </> filename <.> "md"
-            template = "site/site.tmpl"
-            siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
-        need [source, template]
-        -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
-        Stdin . wikiLink <$> (readFile' source) >>=
-          (cmd Shell pandoc "-" fromsrcmd "-t html"
-                           "--template" template
-                           ("--metadata=siteRoot:" ++ siteRoot)
-                           ("--metadata=\"title:" ++ pagename ++ "\"")
-                           "-o" out )
+    -- "site/_site//*.html" %> \out -> do
+    --     let filename = takeBaseName out
+    --         pagename = fileNameToPageName filename
+    --         isdownloadpage = filename == "download"
+    --         isoldmanual = "site/_site/doc/" `isPrefixOf` out
+    --         source
+    --           | isoldmanual = "site" </> (drop 11 $ dropExtension out) <.> "md"
+    --           | otherwise   = "site" </> filename <.> "md"
+    --         template = "site/site.tmpl"
+    --         siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
+    --     need [source, template]
+    --     -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
+    --     Stdin . wikiLink <$> (readFile' source) >>=
+    --       (cmd Shell pandoc "-" fromsrcmd "-t html"
+    --                        "--template" template
+    --                        ("--metadata=siteRoot:" ++ siteRoot)
+    --                        ("--metadata=\"title:" ++ pagename ++ "\"")
+    --                        "-o" out )
 
     -- This rule, for updating the live hledger.org site, gets called by:
     -- 1. github-post-receive (github webhook handler), when something is pushed
@@ -412,23 +412,23 @@ main = do
     --     /etc/github-post-receive.conf
     -- 2. cron, nightly. Config: /etc/crontab
     -- 3. manually (make site).
-    phony "hledgerorg" $ do
-      -- XXX ideally we would ensure here that output is logged in site.log,
-      -- but I don't know how to do that for the Shake rules.
-      -- Instead we'll do the logging in "make site".
-      cmd_ Shell
+    -- phony "hledgerorg" $ do
+    --   -- XXX ideally we would ensure here that output is logged in site.log,
+    --   -- but I don't know how to do that for the Shake rules.
+    --   -- Instead we'll do the logging in "make site".
+    --   cmd_ Shell
 
-        -- print timestamp. On mac, use brew-installed GNU date.
-        "PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
-        -- pull latest code and site repos - sometimes already done by webhook, not always
-        "&& printf 'code repo: ' && git pull"
-        "&& printf 'site repo: ' && git -C site pull"
+    --     -- print timestamp. On mac, use brew-installed GNU date.
+    --     "PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
+    --     -- pull latest code and site repos - sometimes already done by webhook, not always
+    --     "&& printf 'code repo: ' && git pull"
+    --     "&& printf 'site repo: ' && git -C site pull"
 
-      -- Shake.hs might have been updated, but we won't execute the
-      -- new one, too insecure. Continue with this one.
+    --   -- Shake.hs might have been updated, but we won't execute the
+    --   -- new one, too insecure. Continue with this one.
 
-      -- update the live site based on all latest content
-      need [ "website-all" ]
+    --   -- update the live site based on all latest content
+    --   need [ "website-all" ]
 
     -- HLEDGER PACKAGES/EXECUTABLES
 
@@ -650,14 +650,14 @@ main = do
     -- Generate the web manuals based on the current checkout and save
     -- them as the specified versioned snapshot in site/doc/VER/ .
     -- .snapshot is a dummy file.
-    "site/doc/*/.snapshot" %> \out -> do
-      need mdmanuals
-      let snapshot = takeDirectory out
-      cmd_ Shell "mkdir -p" snapshot
-      forM_ mdmanuals $ \f -> -- site/hledger.md, site/journal.md
-        cmd_ Shell "cp" f (snapshot </> takeFileName f)
-      cmd_ Shell "cp -r site/images" snapshot
-      cmd_ Shell "touch" out
+    -- "site/doc/*/.snapshot" %> \out -> do
+    --   need webmanuals
+    --   let snapshot = takeDirectory out
+    --   cmd_ Shell "mkdir -p" snapshot
+    --   forM_ webmanuals $ \f -> -- site/hledger.md, site/journal.md
+    --     cmd_ Shell "cp" f (snapshot </> takeFileName f)
+    --   cmd_ Shell "cp -r site/images" snapshot
+    --   cmd_ Shell "touch" out
 
     -- Cleanup.
 
@@ -665,7 +665,7 @@ main = do
       -- putNormal "Cleaning generated help texts, manuals, staged site content"
       -- removeFilesAfter "." commandtxts
       putNormal "Cleaning generated manuals, staged site content"
-      removeFilesAfter "." mdmanuals
+      removeFilesAfter "." webmanuals
       removeFilesAfter "." [
         -- "site/README.md",
         -- "site/CONTRIBUTING.md"
