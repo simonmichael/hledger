@@ -11,7 +11,6 @@
 # - profiterole (hackage/stackage, simplifies profiles)
 # - profiteur (hackage/stackage, renders profiles as html)
 # - hpack (hackage/stackage, generates cabal files from package.yaml files)
-# - site/hakyll-std/hakyll-std (generic site-building hakyll script)
 # - perl
 #
 # Kinds of hledger builds:
@@ -162,10 +161,6 @@ MANUALGENFILES:= \
 COMMANDHELPFILES:= \
 	hledger/Hledger/Cli/Commands/*.md \
 
-# site/*.md includes website source files and generated web manual files
-# WEBDOCFILES:= \
-# 	site/*.md \
-
 WEBCODEFILES:= \
 	hledger-web/templates/* \
 	hledger-web/static/*.js \
@@ -176,7 +171,6 @@ DOCSOURCEFILES:= \
   CONTRIBUTING.md \
 	$(MANUALSOURCEFILES) \
 	$(COMMANDHELPFILES) \
-	site/*.md \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -737,13 +731,9 @@ haddock: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
-site-live: Shake \
-		$(call def-help,site-live, update the local website html when source files are saved  )
-	ls $(DOCSOURCEFILES) | entr ./Shake website
-
-site-watch:
-		$(call def-help,site-watch, open a browser on the website (in ./site) and rerender & reload the page when source files change  )
-	make site-live &
+site-watch: Shake
+		$(call def-help,site-watch, open a browser on the website (in ./site) and rerender/reload when manuals or site content changes  )
+	(ls $(DOCSOURCEFILES) | entr ./Shake manuals) &
 	make -C site html-watch
 
 # This rule, for updating the live hledger.org site, gets called by:
@@ -753,7 +743,7 @@ site-watch:
 #     /etc/github-post-receive.conf
 # 2. cron, nightly. Config: /etc/crontab
 # 3. manually (make site).
-# This must use the existing Shake executable without rebuilding it, 
+# This uses the existing Shake executable without rebuilding it, 
 # as we don't want to immediately execute new code from any collaborator.
 .PHONY: site
 site: \
@@ -762,10 +752,8 @@ site: \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
-			./Shake hledgerorg -VV; \
 			make -C site html; \
 		) 2>&1 | tee -a site.log
-#     ^ running both shake and sphinx for now
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
