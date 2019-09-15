@@ -662,21 +662,12 @@ main = do
     -- Cleanup.
 
     phony "clean" $ do
-      -- putNormal "Cleaning generated help texts, manuals, staged site content"
-      -- removeFilesAfter "." commandtxts
-      putNormal "Cleaning generated manuals, staged site content"
-      removeFilesAfter "." webmanuals
-      removeFilesAfter "." [
-        -- "site/README.md",
-        -- "site/CONTRIBUTING.md"
-        ]
+      putNormal "Cleaning object files in tools"
+      removeFilesAfter "tools"  ["*.o","*.p_o","*.hi"]
 
     phony "Clean" $ do
       need ["clean"]
-      putNormal "Cleaning generated site content, object files, shake build cache"
-      removeFilesAfter "site" ["_*"]
-      removeFilesAfter "tools"  ["*.o","*.p_o","*.hi"]
-      removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
+      putNormal "Cleaning shake build cache"
       removeFilesAfter ".shake" ["//*"]
 
 
