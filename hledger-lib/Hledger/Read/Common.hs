@@ -946,12 +946,30 @@ isDecimalPointChar c = c == '.' || c == ','
 isDigitSeparatorChar :: Char -> Bool
 isDigitSeparatorChar c = isDecimalPointChar c || c == ' '
 
+-- | Some kinds of number literal we might parse.
+data RawNumber
+  = NoSeparators   DigitGrp (Maybe (Char, DigitGrp))
+    -- ^ A number with no digit group separators (eg 100),
+    --   or with a leading or trailing comma or period
+    --   which (apparently) we interpret as a decimal mark (like 100. or .100)
+  | WithSeparators Char [DigitGrp] (Maybe (Char, DigitGrp))
+    -- ^ A number with identifiable digit group separators
+    --   (eg 1,000,000 or 1,000.50 or 1 000)
+  deriving (Show, Eq)
 
+-- | Another kind of number literal: this one contains either a digit
+-- group separator or a decimal mark, we're not sure which (eg 1,000 or 100.50).
+data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp
+  deriving (Show, Eq)
+
+-- | Description of a single digit group in a number literal.
+-- "Thousands" is one well known digit grouping, but there are others.
 data DigitGrp = DigitGrp {
-  digitGroupLength :: !Int,
-  digitGroupNumber :: !Integer
+  digitGroupLength :: !Int,    -- ^ The number of digits in this group.
+  digitGroupNumber :: !Integer -- ^ The natural number formed by this group's digits.
 } deriving (Eq)
 
+-- | A custom show instance, showing digit groups as the parser saw them.
 instance Show DigitGrp where
   show (DigitGrp len num)
     | len > 0 = "\"" ++ padding ++ numStr ++ "\""
@@ -972,14 +990,6 @@ digitgroupp = label "digits"
   where
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
     step (!l, !a) c = (l+1, a*10 + fromIntegral (digitToInt c))
-
-data RawNumber
-  = NoSeparators   DigitGrp (Maybe (Char, DigitGrp))        -- 100 or 100. or .100 or 100.50
-  | WithSeparators Char [DigitGrp] (Maybe (Char, DigitGrp)) -- 1,000,000 or 1,000.50
-  deriving (Show, Eq)
-
-data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp  -- 1,000
-  deriving (Show, Eq)
 
 --- ** comments
 
