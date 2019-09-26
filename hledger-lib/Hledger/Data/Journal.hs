@@ -1352,4 +1352,29 @@ tests_Journal = tests "Journal" [
 
     ]
 
+    ,tests "commodityStylesFromAmounts" $ [
+
+      test "#1091" $ do
+        -- The journal from #1091 causing problems (when txns are processed in reverse order):
+        -- 2019/09/24
+        --     a                  2,000.00
+        --     b                  1,000
+        --     c
+        --
+        -- 2019/09/26
+        --     (d)             2000,00
+        --
+        commodityStylesFromAmounts [
+           nullamt{aquantity=2000, astyle=AmountStyle L False 2 (Just ',') Nothing}
+          ,nullamt{aquantity=2000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
+          ,nullamt{aquantity=   1, astyle=AmountStyle L False 3 (Just ',') Nothing}
+          -- there was an AUTO amount here too but it doesn't matter
+          ]
+         `is` 
+          M.fromList [
+            ("", AmountStyle L False 3 (Just '.') (Just (DigitGroups ',' [3])))
+          ]
+
+     ]
+
   ]
