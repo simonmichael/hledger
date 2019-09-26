@@ -253,6 +253,13 @@ parseAndFinaliseJournal parser iopts f txt = do
         -- be false pending modifiers) and we don't reorder the second
         -- time. If we are only running once, we reorder and follow
         -- the options for checking assertions.
+        --
+        -- TODO: since #903's refactoring for hledger 1.12,
+        -- journalApplyCommodityStyles here is seeing the
+        -- transactions before they get reversesd to normal order.
+        -- And this can trigger a bug in commodityStylesFromAmounts
+        -- (#1091).
+        --
         let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
 
                  -- transaction modifiers are active
