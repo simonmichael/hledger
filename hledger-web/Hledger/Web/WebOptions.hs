@@ -35,6 +35,10 @@ webflags =
       ["serve-api"]
       (setboolopt "serve-api")
       "like --serve, but serve only the JSON web API, without the server-side web UI"
+  , flagNone
+      ["cors"]
+      (setboolopt "cors")
+      ("allow cross-origin requests, setting the Access-Control-Allow-Origin HTTP header to *")
   , flagReq
       ["host"]
       (\s opts -> Right $ setopt "host" s opts)
@@ -94,6 +98,7 @@ webmode =
 data WebOpts = WebOpts
   { serve_ :: Bool
   , serve_api_ :: Bool
+  , cors_ :: Bool
   , host_ :: String
   , port_ :: Int
   , base_url_ :: String
@@ -104,7 +109,7 @@ data WebOpts = WebOpts
   } deriving (Show)
 
 defwebopts :: WebOpts
-defwebopts = WebOpts def def def def def def [CapView, CapAdd] Nothing def
+defwebopts = WebOpts def def def def def def def [CapView, CapAdd] Nothing def
 
 instance Default WebOpts where def = defwebopts
 
@@ -126,6 +131,7 @@ rawOptsToWebOpts rawopts =
       defwebopts
       { serve_ = boolopt "serve" rawopts
       , serve_api_ = boolopt "serve-api" rawopts
+      , cors_ = boolopt "cors" rawopts
       , host_ = h
       , port_ = p
       , base_url_ = b
