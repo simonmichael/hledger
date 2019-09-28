@@ -867,14 +867,14 @@ disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
 -- | Parse and interpret the structure of a number without external hints.
 -- Numbers are digit strings, possibly separated into digit groups by one
 -- of two types of separators. (1) Numbers may optionally have a decimal
--- point, which may be either a period or comma. (2) Numbers may
--- optionally contain digit group separators, which must all be either a
+-- mark, which may be either a period or comma. (2) Numbers may
+-- optionally contain digit group marks, which must all be either a
 -- period, a comma, or a space.
 --
--- It is our task to deduce the identities of the decimal point and digit
--- separator characters, based on the allowed syntax. For instance, we
--- make use of the fact that a decimal point can occur at most once and
--- must succeed all digit group separators.
+-- It is our task to deduce the characters used as decimal mark and
+-- digit group mark, based on the allowed syntax. For instance, we
+-- make use of the fact that a decimal mark can occur at most once and
+-- must be to the right of all digit group marks.
 --
 -- >>> parseTest rawnumberp "1,234,567.89"
 -- Right (WithSeparators ',' ["1","234","567"] (Just ('.',"89")))
@@ -956,11 +956,11 @@ isDigitSeparatorChar c = isDecimalPointChar c || c == ' '
 -- | Some kinds of number literal we might parse.
 data RawNumber
   = NoSeparators   DigitGrp (Maybe (Char, DigitGrp))
-    -- ^ A number with no digit group separators (eg 100),
+    -- ^ A number with no digit group marks (eg 100),
     --   or with a leading or trailing comma or period
     --   which (apparently) we interpret as a decimal mark (like 100. or .100)
   | WithSeparators Char [DigitGrp] (Maybe (Char, DigitGrp))
-    -- ^ A number with identifiable digit group separators
+    -- ^ A number with identifiable digit group marks
     --   (eg 1,000,000 or 1,000.50 or 1 000)
   deriving (Show, Eq)
 

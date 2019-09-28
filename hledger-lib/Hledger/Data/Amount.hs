@@ -412,9 +412,9 @@ showamountquantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p, asdecim
         | p == maxprecision          = chopdotzero $ show q
         | otherwise                  = show $ roundTo (fromIntegral p) q
 
--- | Replace a number string's decimal point with the specified character,
--- and add the specified digit group separators. The last digit group will
--- be repeated as needed.
+-- | Replace a number string's decimal mark with the specified
+-- character, and add the specified digit group marks. The last digit
+-- group will be repeated as needed.
 punctuatenumber :: Char -> Maybe DigitGroupStyle -> String -> String
 punctuatenumber dec mgrps s = sign ++ reverse (applyDigitGroupStyle mgrps (reverse int)) ++ frac''
     where

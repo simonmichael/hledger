@@ -257,51 +257,99 @@ Account names can be [aliased](#rewriting-accounts).
 ## Amounts
 
 After the account name, there is usually an amount.
-Important: between account name and amount, there must be **two or more spaces**.
+(Important: between account name and amount, there must be **two or more spaces**.)
 
-Amounts consist of a number and (usually) a currency symbol or commodity name. Some examples:
+hledger's amount format is flexible, supporting several international formats. 
+Here are some examples.
+Amounts have a number (the "quantity"):
 
-  `2.00001`\
-  `$1`\
-  `4000 AAPL`\
-  `3 "green apples"`\
-  `-$1,000,000.00`\
-  `INR 9,99,99,999.00`\
-  `EUR -2.000.000,00`\
-  `1 999 999.9455`\
-  `EUR 1E3`\
-  `1000E-6s`
+    1
 
-As you can see, the amount format is somewhat flexible:
+..and usually a currency or commodity name (the "commodity"). This is
+a symbol, word, or phrase, to the left or right of the quantity, with
+or without a separating space:
 
-- amounts are a number (the "quantity") and optionally a currency symbol/commodity name (the "commodity").
-- the commodity is a symbol, word, or phrase, on the left or right, with or without a separating space.
-  If the commodity contains numbers, spaces or non-word punctuation it must be enclosed in double quotes.
-- negative amounts with a commodity on the left can have the minus sign before or after it
-- digit groups (thousands, or any other grouping) can be separated by space or comma or period and should be used as separator between all groups
-- decimal part can be separated by comma or period and should be different from digit groups separator
-- scientific E-notation is allowed. 
-  Be careful not to use a digit group separator character in scientific notation, as it's not supported and it might get mistaken for a decimal point. 
-  (Declaring the digit group separator character explicitly with a commodity directive will prevent this.) 
+    $1
+    4000 AAPL
 
-You can use any of these variations when recording data. However, there is some ambiguous way of representing numbers like `$1.000` and `$1,000` both may mean either one thousand or one dollar. By default hledger will assume that this is sole delimiter is used only for decimals. On the other hand commodity format declared prior to that line will help to resolve that ambiguity differently:
+If the commodity name contains spaces, numbers, or punctuation, it
+must be enclosed in double quotes:
 
-``` journal
+    3 "no. 42 green apples"
+
+Amounts can be negative. The minus sign can be written before or after
+a left-side commodity symbol:
+
+    -$1
+    $-1
+
+Scientific E notation is allowed:
+
+    1E-6
+    EUR 1E3
+
+A decimal mark (decimal point) can be written with a period or a comma:
+
+    1.23
+    1,23456780000009
+
+### Digit group marks
+
+In the integer part of the quantity (left of the decimal mark), groups
+of digits can optionally be separated by a "digit group mark" - a
+space, comma, or period (different from the decimal mark):
+  
+         $1,000,000.00
+      EUR 2.000.000,00
+    INR 9,99,99,999.00
+          1 000 000.9455
+
+Note, a number containing a single group mark and no decimal mark is ambiguous.
+Are these group marks or decimal marks ?
+
+    1,000
+    1.000
+
+hledger will treat them both as decimal marks by default (cf
+[#793](https://github.com/simonmichael/hledger/issues/793)).
+If you use digit group marks,
+to prevent confusion and undetected typos
+we recommend you write [commodity directives](#declaring-commodities) 
+at the top of the file to explicitly declare the decimal mark (and
+optionally a digit group mark).
+Note, these formats ("amount styles") are specific to each commodity,
+so if your data uses multiple formats, hledger can handle it:
+
+```journal
 commodity $1,000.00
-
-2017/12/25 New life of Scrooge
-    expenses:gifts  $1,000
-    assets
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.00
+;commodity "" 1 000 000.9455  ; can't declare a format for the null commodity yet
 ```
 
-Though journal may contain mixed styles to represent amount, when hledger displays amounts, it will choose a consistent format for each commodity.
-(Except for [price amounts](#prices), which are always formatted as written). The display format is chosen as follows:
+### Amount display format
 
-- if there is a [commodity directive](#declaring-commodities) specifying the format, that is used
-- otherwise the format is inferred from the first posting amount in that commodity in the journal, and the precision (number of decimal places) will be the maximum from all posting amounts in that commmodity
-- or if there are no such amounts in the journal, a default format is used (like `$1000.00`).
+For each commodity, hledger chooses a consistent format to use when
+displaying amounts. (Except [price amounts](#prices), which are always
+displayed as written). The display format is chosen as follows:
 
-Price amounts and amounts in `D` directives usually don't affect amount format inference, but in some situations they can do so indirectly. (Eg when D's default commodity is applied to a commodity-less amount, or when an amountless posting is balanced using a price's commodity, or when -V is used.) If you find this causing problems, set the desired format with a commodity directive.
+- If there is a [commodity directive](#declaring-commodities) for the commodity,
+  that format is used (see examples above).
+
+- Otherwise the format of the first posting amount in that commodity
+  seen in the journal is used.
+  But the number of decimal places ("precision") will be the maximum
+  from all posting amounts in that commmodity.
+
+- Or if there are no such amounts in the journal, a default format is
+  used (like `$1000.00`).
+
+Price amounts, and amounts in `D` directives don't affect the amount
+display format directly, but occasionally they can do so indirectly.
+(Eg when D's default commodity is applied to a commodity-less amount,
+or when an amountless posting is balanced using a price's commodity,
+or when -V is used.) If you find this causing problems, use a
+commodity directive to set the display format.
 
 ## Virtual Postings
 

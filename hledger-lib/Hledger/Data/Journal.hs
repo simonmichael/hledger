@@ -1361,12 +1361,13 @@ tests_Journal = tests "Journal" [
       -- 2019/09/26
       --     (a)             1000,000
       --
-      -- Fails because commodityStylesFromAmounts takes the
-      -- decimal mark & digit group separator chars from the first amount which seems
-      -- to specify them (note txns are processed in reverse order since #903/1.12),
-      -- which might be two separate amounts which inconsistent with one another,
-      -- allowing it to choose the same character for both, generating an invalid
-      -- amount style giving confusing output.
+      -- Fails because commodityStylesFromAmounts takes the decimal
+      -- mark & digit group mark from the first amount which seems to
+      -- specify them (note txns are processed in reverse order since
+      -- #903/1.12), which might be two separate amounts which
+      -- inconsistent with one another, allowing it to choose the same
+      -- character for both, generating an invalid amount style giving
+      -- confusing output.
       --
       _test "1091" $ do
         commodityStylesFromAmounts [
@@ -1374,8 +1375,8 @@ tests_Journal = tests "Journal" [
           ,nullamt{aquantity=1000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
           ]
          `is`
-          -- The commodity style should have period as decimal mark and
-          -- comma as digit group separator.
+          -- The commodity style should have period as decimal mark
+          -- and comma as digit group mark.
           M.fromList [
             ("", AmountStyle L False 3 (Just '.') (Just (DigitGroups ',' [3])))
           ]
