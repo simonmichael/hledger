@@ -939,7 +939,7 @@ journalInferCommodityStyles :: Journal -> Either String Journal
 journalInferCommodityStyles j =
   case
     commodityStylesFromAmounts $
-    dbg8 "journalInferCommmodityStyles using amounts" $
+    dbg8 "journalInferCommodityStyles using amounts" $
     journalAmounts j
   of
     Left e   -> Left e
