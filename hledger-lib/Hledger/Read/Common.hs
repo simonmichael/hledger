@@ -239,6 +239,7 @@ parseAndFinaliseJournal parser iopts f txt = do
         , jincludefilestack = [f] }
   eep <- liftIO $ runExceptT $
     runParserT (evalStateT parser initJournal) f txt
+  -- TODO: urgh.. clean this up somehow
   case eep of
     Left finalParseError ->
       throwError $ finalErrorBundlePretty $ attachSource f txt finalParseError
@@ -247,51 +248,54 @@ parseAndFinaliseJournal parser iopts f txt = do
       Left e -> throwError $ customErrorBundlePretty e
 
       Right pj ->
-        -- If we are using automated transactions, we finalize twice:
-        -- once before and once after. However, if we are running it
-        -- twice, we don't check assertions the first time (they might
-        -- be false pending modifiers) and we don't reorder the second
-        -- time. If we are only running once, we reorder and follow
-        -- the options for checking assertions.
-        --
+
+        -- Infer and apply canonical styles for each commodity (or fail).
         -- TODO: since #903's refactoring for hledger 1.12,
         -- journalApplyCommodityStyles here is seeing the
         -- transactions before they get reversesd to normal order.
-        -- And this can trigger a bug in commodityStylesFromAmounts
-        -- (#1091).
-        --
-        let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
+        case journalApplyCommodityStyles pj of
+          Left e    -> throwError e
+          Right pj' -> 
+            -- Finalise the parsed journal.
+            let fj =
+                  if auto_ iopts && (not . null . jtxnmodifiers) pj
+                  then
+                    -- When automatic postings are active, we finalise twice:
+                    -- once before and once after. However, if we are running it
+                    -- twice, we don't check assertions the first time (they might
+                    -- be false pending modifiers) and we don't reorder the second
+                    -- time. If we are only running once, we reorder and follow
+                    -- the options for checking assertions.
+                    --
+                    -- first pass, doing most of the work
+                    (
+                     (journalModifyTransactions <$>) $  -- add auto postings after balancing ? #893b fails
+                     journalBalanceTransactions False $
+                     -- journalModifyTransactions <$>   -- add auto postings before balancing ? probably #893a, #928, #938 fail
+                     journalReverse $
+                     journalAddFile (f, txt) $
+                     pj')
+                    -- second pass, checking balance assertions
+                    >>= (\j ->
+                       journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                       journalSetLastReadTime t $
+                       j)
 
-                 -- transaction modifiers are active
-                 then
-                   -- first pass, doing most of the work
-                     (
-                      (journalModifyTransactions <$>) $  -- add auto postings after balancing ? #893b fails
-                      journalBalanceTransactions False $
-                      -- journalModifyTransactions <$>   -- add auto postings before balancing ? probably #893a, #928, #938 fail
-                      journalReverse $
-                      journalAddFile (f, txt) $
-                      journalApplyCommodityStyles pj)
-                   -- second pass, checking balance assertions
-                   >>= (\j ->
-                      journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                      journalSetLastReadTime t $
-                      j)
-
-                 -- transaction modifiers are not active
-                 else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                      journalReverse $
-                      journalAddFile (f, txt) $
-                      journalApplyCommodityStyles $
-                      journalSetLastReadTime t $
-                      pj
-        in
-          case fj of
-            Right j -> return j
-            Left e  -> throwError e
+                  else
+                    -- automatic postings are not active
+                    journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                    journalReverse $
+                    journalAddFile (f, txt) $
+                    journalSetLastReadTime t $
+                    pj'
+            in
+              case fj of
+                Left e  -> throwError e
+                Right j -> return j
 
 -- Like parseAndFinaliseJournal but takes a (non-Erroring) JournalParser.
--- Used for timeclock/timedot. XXX let them use parseAndFinaliseJournal instead
+-- Used for timeclock/timedot.
+-- TODO: get rid of this, use parseAndFinaliseJournal instead
 parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal' parser iopts f txt = do
@@ -301,35 +305,31 @@ parseAndFinaliseJournal' parser iopts f txt = do
         { jparsedefaultyear = Just y
         , jincludefilestack = [f] }
   ep <- liftIO $ runParserT (evalStateT parser initJournal) f txt
+  -- see notes above
   case ep of
     Left e   -> throwError $ customErrorBundlePretty e
-
     Right pj ->
-      -- If we are using automated transactions, we finalize twice:
-      -- once before and once after. However, if we are running it
-      -- twice, we don't check assertions the first time (they might
-      -- be false pending modifiers) and we don't reorder the second
-      -- time. If we are only running once, we reorder and follow the
-      -- options for checking assertions.
-      let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
-               then journalModifyTransactions <$>
-                    (journalBalanceTransactions False $
-                     journalReverse $
-                     journalApplyCommodityStyles pj) >>=
-                    (\j -> journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                           journalAddFile (f, txt) $
-                           journalSetLastReadTime t $
-                           j)
-               else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                    journalReverse $
-                    journalAddFile (f, txt) $
-                    journalApplyCommodityStyles $
-                    journalSetLastReadTime t $
-                    pj
-      in
-        case fj of
-          Right j -> return j
-          Left e  -> throwError e
+      case journalApplyCommodityStyles pj of
+        Left e    -> throwError e
+        Right pj' -> 
+          let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
+                   then journalModifyTransactions <$>
+                        (journalBalanceTransactions False $
+                         journalReverse $
+                         pj') >>=
+                        (\j -> journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                               journalAddFile (f, txt) $
+                               journalSetLastReadTime t $
+                               j)
+                   else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                        journalReverse $
+                        journalAddFile (f, txt) $
+                        journalSetLastReadTime t $
+                        pj'
+          in
+            case fj of
+              Left e  -> throwError e
+              Right j -> return j
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})

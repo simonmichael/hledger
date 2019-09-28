@@ -905,18 +905,21 @@ checkBalanceAssignmentUnassignableAccountB p = do
 -- | Choose and apply a consistent display format to the posting
 -- amounts in each commodity. Each commodity's format is specified by
 -- a commodity format directive, or otherwise inferred from posting
--- amounts as in hledger < 0.28.
-journalApplyCommodityStyles :: Journal -> Journal
-journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} = j''
-    where
-      j' = journalInferCommodityStyles j
-      styles = journalCommodityStyles j'
-      j'' = j'{jtxns=map fixtransaction ts, jpricedirectives=map fixpricedirective pds}
-      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-      fixposting p = p{pamount=styleMixedAmount styles $ pamount p
-                      ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
-      fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
-      fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmount styles a}
+-- amounts as in hledger < 0.28. Can return an error message
+-- eg if inconsistent number formats are found.
+journalApplyCommodityStyles :: Journal -> Either String Journal
+journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
+  case journalInferCommodityStyles j of
+    Left e   -> Left e
+    Right j' -> Right j''
+      where
+        styles = journalCommodityStyles j'
+        j'' = j'{jtxns=map fixtransaction ts, jpricedirectives=map fixpricedirective pds}
+        fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
+        fixposting p = p{pamount=styleMixedAmount styles $ pamount p
+                        ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
+        fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
+        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmount styles a}
 
 -- | Get all the amount styles defined in this journal, either declared by
 -- a commodity directive or inferred from amounts, as a map from symbol to style.
@@ -931,16 +934,29 @@ journalCommodityStyles j = declaredstyles <> inferredstyles
 -- | Collect and save inferred amount styles for each commodity based on
 -- the posting amounts in that commodity (excluding price amounts), ie:
 -- "the format of the first amount, adjusted to the highest precision of all amounts".
-journalInferCommodityStyles :: Journal -> Journal
+-- Can return an error message eg if inconsistent number formats are found.
+journalInferCommodityStyles :: Journal -> Either String Journal
 journalInferCommodityStyles j =
-  j{jinferredcommodities =
+  case
     commodityStylesFromAmounts $
-    dbg8 "journalInferCommmodityStyles using amounts" $ journalAmounts j}
+    dbg8 "journalInferCommmodityStyles using amounts" $
+    journalAmounts j
+  of
+    Left e   -> Left e
+    Right cs -> Right j{jinferredcommodities = cs}
 
--- | Given a list of amounts in parse order, build a map from their commodity names
--- to standard commodity display formats.
-commodityStylesFromAmounts :: [Amount] -> M.Map CommoditySymbol AmountStyle
-commodityStylesFromAmounts amts = M.fromList commstyles
+-- | Given a list of parsed amounts, in parse order, build a map from
+-- their commodity names to standard commodity display formats. Can
+-- return an error message eg if inconsistent number formats are
+-- found.
+--
+-- Though, these amounts may have come from multiple files, so we
+-- shouldn't assume they use consistent number formats.
+-- And currently we don't enforce that even within a single file.
+--
+commodityStylesFromAmounts :: [Amount] -> Either String (M.Map CommoditySymbol AmountStyle)
+commodityStylesFromAmounts amts =
+  Right $ M.fromList commstyles
   where
     commamts = groupSort [(acommodity as, as) | as <- amts]
     commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
@@ -1377,9 +1393,9 @@ tests_Journal = tests "Journal" [
          `is`
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
-          M.fromList [
+          Right (M.fromList [
             ("", AmountStyle L False 3 (Just '.') (Just (DigitGroups ',' [3])))
-          ]
+          ])
 
      ]
 
