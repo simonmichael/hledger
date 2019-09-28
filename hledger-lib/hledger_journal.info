@@ -337,77 +337,109 @@ File: hledger_journal.info,  Node: Amounts,  Next: Virtual Postings,  Prev: Acco
 1.7 Amounts
 ===========
 
-After the account name, there is usually an amount.  Important: between
-account name and amount, there must be *two or more spaces*.
+After the account name, there is usually an amount.  (Important: between
+account name and amount, there must be *two or more spaces*.)
 
-   Amounts consist of a number and (usually) a currency symbol or
-commodity name.  Some examples:
+   hledger's amount format is flexible, supporting several international
+formats.  Here are some examples.  Amounts have a number (the
+"quantity"):
 
-   '2.00001'
-'$1'
-'4000 AAPL'
-'3 "green apples"'
-'-$1,000,000.00'
-'INR 9,99,99,999.00'
-'EUR -2.000.000,00'
-'1 999 999.9455'
-'EUR 1E3'
-'1000E-6s'
+1
 
-   As you can see, the amount format is somewhat flexible:
+   ..and usually a currency or commodity name (the "commodity").  This
+is a symbol, word, or phrase, to the left or right of the quantity, with
+or without a separating space:
 
-   * amounts are a number (the "quantity") and optionally a currency
-     symbol/commodity name (the "commodity").
-   * the commodity is a symbol, word, or phrase, on the left or right,
-     with or without a separating space.  If the commodity contains
-     numbers, spaces or non-word punctuation it must be enclosed in
-     double quotes.
-   * negative amounts with a commodity on the left can have the minus
-     sign before or after it
-   * digit groups (thousands, or any other grouping) can be separated by
-     space or comma or period and should be used as separator between
-     all groups
-   * decimal part can be separated by comma or period and should be
-     different from digit groups separator
-   * scientific E-notation is allowed.  Be careful not to use a digit
-     group separator character in scientific notation, as it's not
-     supported and it might get mistaken for a decimal point.
-     (Declaring the digit group separator character explicitly with a
-     commodity directive will prevent this.)
+$1
+4000 AAPL
 
-   You can use any of these variations when recording data.  However,
-there is some ambiguous way of representing numbers like '$1.000' and
-'$1,000' both may mean either one thousand or one dollar.  By default
-hledger will assume that this is sole delimiter is used only for
-decimals.  On the other hand commodity format declared prior to that
-line will help to resolve that ambiguity differently:
+   If the commodity name contains spaces, numbers, or punctuation, it
+must be enclosed in double quotes:
+
+3 "no. 42 green apples"
+
+   Amounts can be negative.  The minus sign can be written before or
+after a left-side commodity symbol:
+
+-$1
+$-1
+
+   Scientific E notation is allowed:
+
+1E-6
+EUR 1E3
+
+   A decimal mark (decimal point) can be written with a period or a
+comma:
+
+1.23
+1,23456780000009
+
+* Menu:
+
+* Digit group marks::
+* Amount display format::
+
+
+File: hledger_journal.info,  Node: Digit group marks,  Next: Amount display format,  Up: Amounts
+
+1.7.1 Digit group marks
+-----------------------
+
+In the integer part of the quantity (left of the decimal mark), groups
+of digits can optionally be separated by a "digit group mark" - a space,
+comma, or period (different from the decimal mark):
+
+     $1,000,000.00
+  EUR 2.000.000,00
+INR 9,99,99,999.00
+      1 000 000.9455
+
+   Note, a number containing a single group mark and no decimal mark is
+ambiguous.  Are these group marks or decimal marks ?
+
+1,000
+1.000
+
+   hledger will treat them both as decimal marks by default (cf #793).
+If you use digit group marks, to prevent confusion and undetected typos
+we recommend you write commodity directives at the top of the file to
+explicitly declare the decimal mark (and optionally a digit group mark).
+Note, these formats ("amount styles") are specific to each commodity, so
+if your data uses multiple formats, hledger can handle it:
 
 commodity $1,000.00
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.00
+;commodity "" 1 000 000.9455  ; can't declare a format for the null commodity yet
 
-2017/12/25 New life of Scrooge
-    expenses:gifts  $1,000
-    assets
+
+File: hledger_journal.info,  Node: Amount display format,  Prev: Digit group marks,  Up: Amounts
 
-   Though journal may contain mixed styles to represent amount, when
-hledger displays amounts, it will choose a consistent format for each
-commodity.  (Except for price amounts, which are always formatted as
-written).  The display format is chosen as follows:
+1.7.2 Amount display format
+---------------------------
 
-   * if there is a commodity directive specifying the format, that is
-     used
-   * otherwise the format is inferred from the first posting amount in
-     that commodity in the journal, and the precision (number of decimal
-     places) will be the maximum from all posting amounts in that
-     commmodity
-   * or if there are no such amounts in the journal, a default format is
+For each commodity, hledger chooses a consistent format to use when
+displaying amounts.  (Except price amounts, which are always displayed
+as written).  The display format is chosen as follows:
+
+   * If there is a commodity directive for the commodity, that format is
+     used (see examples above).
+
+   * Otherwise the format of the first posting amount in that commodity
+     seen in the journal is used.  But the number of decimal places
+     ("precision") will be the maximum from all posting amounts in that
+     commmodity.
+
+   * Or if there are no such amounts in the journal, a default format is
      used (like '$1000.00').
 
-   Price amounts and amounts in 'D' directives usually don't affect
-amount format inference, but in some situations they can do so
-indirectly.  (Eg when D's default commodity is applied to a
-commodity-less amount, or when an amountless posting is balanced using a
-price's commodity, or when -V is used.)  If you find this causing
-problems, set the desired format with a commodity directive.
+   Price amounts, and amounts in 'D' directives don't affect the amount
+display format directly, but occasionally they can do so indirectly.
+(Eg when D's default commodity is applied to a commodity-less amount, or
+when an amountless posting is balanced using a price's commodity, or
+when -V is used.)  If you find this causing problems, use a commodity
+directive to set the display format.
 
 
 File: hledger_journal.info,  Node: Virtual Postings,  Next: Balance Assertions,  Prev: Amounts,  Up: FILE FORMAT
@@ -1733,91 +1765,95 @@ Node: Account names11337
 Ref: #account-names11480
 Node: Amounts11967
 Ref: #amounts12103
-Node: Virtual Postings15120
-Ref: #virtual-postings15279
-Node: Balance Assertions16499
-Ref: #balance-assertions16674
-Node: Assertions and ordering17633
-Ref: #assertions-and-ordering17819
-Node: Assertions and included files18519
-Ref: #assertions-and-included-files18760
-Node: Assertions and multiple -f options19093
-Ref: #assertions-and-multiple--f-options19347
-Node: Assertions and commodities19479
-Ref: #assertions-and-commodities19709
-Node: Assertions and prices20865
-Ref: #assertions-and-prices21077
-Node: Assertions and subaccounts21517
-Ref: #assertions-and-subaccounts21744
-Node: Assertions and virtual postings22068
-Ref: #assertions-and-virtual-postings22308
-Node: Assertions and precision22450
-Ref: #assertions-and-precision22641
-Node: Balance Assignments22908
-Ref: #balance-assignments23089
-Node: Balance assignments and prices24254
-Ref: #balance-assignments-and-prices24426
-Node: Transaction prices24650
-Ref: #transaction-prices24819
-Node: Comments27085
-Ref: #comments27219
-Node: Tags28389
-Ref: #tags28507
-Node: Directives29900
-Ref: #directives30043
-Node: Comment blocks35651
-Ref: #comment-blocks35796
-Node: Including other files35972
-Ref: #including-other-files36152
-Node: Default year36560
-Ref: #default-year36729
-Node: Declaring commodities37136
-Ref: #declaring-commodities37319
-Node: Default commodity38748
-Ref: #default-commodity38924
-Node: Market prices39558
-Ref: #market-prices39723
-Node: Declaring accounts40564
-Ref: #declaring-accounts40740
-Node: Account comments41665
-Ref: #account-comments41828
-Node: Account subdirectives42223
-Ref: #account-subdirectives42418
-Node: Account types42731
-Ref: #account-types42915
-Node: Account display order44557
-Ref: #account-display-order44727
-Node: Rewriting accounts45856
-Ref: #rewriting-accounts46041
-Node: Basic aliases46777
-Ref: #basic-aliases46923
-Node: Regex aliases47627
-Ref: #regex-aliases47799
-Node: Combining aliases48517
-Ref: #combining-aliases48695
-Node: end aliases49971
-Ref: #end-aliases50119
-Node: Default parent account50220
-Ref: #default-parent-account50386
-Node: Periodic transactions51270
-Ref: #periodic-transactions51468
-Node: Periodic rule syntax53340
-Ref: #periodic-rule-syntax53546
-Node: Two spaces between period expression and description!54250
-Ref: #two-spaces-between-period-expression-and-description54569
-Node: Forecasting with periodic transactions55253
-Ref: #forecasting-with-periodic-transactions55558
-Node: Budgeting with periodic transactions57584
-Ref: #budgeting-with-periodic-transactions57823
-Node: Auto postings / transaction modifiers58272
-Ref: #auto-postings-transaction-modifiers58483
-Node: Auto postings and dates60712
-Ref: #auto-postings-and-dates60969
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions61144
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions61519
-Node: Auto posting tags61897
-Ref: #auto-posting-tags62136
-Node: EDITOR SUPPORT62801
-Ref: #editor-support62919
+Node: Digit group marks13036
+Ref: #digit-group-marks13185
+Node: Amount display format14174
+Ref: #amount-display-format14331
+Node: Virtual Postings15356
+Ref: #virtual-postings15515
+Node: Balance Assertions16735
+Ref: #balance-assertions16910
+Node: Assertions and ordering17869
+Ref: #assertions-and-ordering18055
+Node: Assertions and included files18755
+Ref: #assertions-and-included-files18996
+Node: Assertions and multiple -f options19329
+Ref: #assertions-and-multiple--f-options19583
+Node: Assertions and commodities19715
+Ref: #assertions-and-commodities19945
+Node: Assertions and prices21101
+Ref: #assertions-and-prices21313
+Node: Assertions and subaccounts21753
+Ref: #assertions-and-subaccounts21980
+Node: Assertions and virtual postings22304
+Ref: #assertions-and-virtual-postings22544
+Node: Assertions and precision22686
+Ref: #assertions-and-precision22877
+Node: Balance Assignments23144
+Ref: #balance-assignments23325
+Node: Balance assignments and prices24490
+Ref: #balance-assignments-and-prices24662
+Node: Transaction prices24886
+Ref: #transaction-prices25055
+Node: Comments27321
+Ref: #comments27455
+Node: Tags28625
+Ref: #tags28743
+Node: Directives30136
+Ref: #directives30279
+Node: Comment blocks35887
+Ref: #comment-blocks36032
+Node: Including other files36208
+Ref: #including-other-files36388
+Node: Default year36796
+Ref: #default-year36965
+Node: Declaring commodities37372
+Ref: #declaring-commodities37555
+Node: Default commodity38984
+Ref: #default-commodity39160
+Node: Market prices39794
+Ref: #market-prices39959
+Node: Declaring accounts40800
+Ref: #declaring-accounts40976
+Node: Account comments41901
+Ref: #account-comments42064
+Node: Account subdirectives42459
+Ref: #account-subdirectives42654
+Node: Account types42967
+Ref: #account-types43151
+Node: Account display order44793
+Ref: #account-display-order44963
+Node: Rewriting accounts46092
+Ref: #rewriting-accounts46277
+Node: Basic aliases47013
+Ref: #basic-aliases47159
+Node: Regex aliases47863
+Ref: #regex-aliases48035
+Node: Combining aliases48753
+Ref: #combining-aliases48931
+Node: end aliases50207
+Ref: #end-aliases50355
+Node: Default parent account50456
+Ref: #default-parent-account50622
+Node: Periodic transactions51506
+Ref: #periodic-transactions51704
+Node: Periodic rule syntax53576
+Ref: #periodic-rule-syntax53782
+Node: Two spaces between period expression and description!54486
+Ref: #two-spaces-between-period-expression-and-description54805
+Node: Forecasting with periodic transactions55489
+Ref: #forecasting-with-periodic-transactions55794
+Node: Budgeting with periodic transactions57820
+Ref: #budgeting-with-periodic-transactions58059
+Node: Auto postings / transaction modifiers58508
+Ref: #auto-postings-transaction-modifiers58719
+Node: Auto postings and dates60948
+Ref: #auto-postings-and-dates61205
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions61380
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions61755
+Node: Auto posting tags62133
+Ref: #auto-posting-tags62372
+Node: EDITOR SUPPORT63037
+Ref: #editor-support63155
 
 End Tag Table
