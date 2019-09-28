@@ -324,7 +324,7 @@ so if your data uses multiple formats, hledger can handle it:
 commodity $1,000.00
 commodity EUR 1.000,00
 commodity INR 9,99,99,999.00
-;commodity "" 1 000 000.9455  ; can't declare a format for the null commodity yet
+commodity       1 000 000.9455
 ```
 
 ### Amount display format
