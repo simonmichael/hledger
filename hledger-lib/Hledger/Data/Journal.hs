@@ -952,7 +952,8 @@ journalInferCommodityStyles j =
 --
 -- Though, these amounts may have come from multiple files, so we
 -- shouldn't assume they use consistent number formats.
--- And currently we don't enforce that even within a single file.
+-- Currently we don't enforce that even within a single file,
+-- and this function never reports an error.
 --
 commodityStylesFromAmounts :: [Amount] -> Either String (M.Map CommoditySymbol AmountStyle)
 commodityStylesFromAmounts amts =
@@ -961,21 +962,32 @@ commodityStylesFromAmounts amts =
     commamts = groupSort [(acommodity as, as) | as <- amts]
     commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
 
--- | Given an ordered list of amount styles, choose a canonical style.
--- That is: the style of the first, and the maximum precision of all.
+-- TODO: should probably detect and report inconsistencies here
+-- | Given a list of amount styles (assumed to be from parsed amounts
+-- in a single commodity), in parse order, choose a canonical style.
+-- Traditionally it's "the style of the first, with the maximum precision of all".
+--
 canonicalStyleFrom :: [AmountStyle] -> AmountStyle
 canonicalStyleFrom [] = amountstyle
-canonicalStyleFrom ss@(first:_) = first {asprecision = prec, asdecimalpoint = mdec, asdigitgroups = mgrps}
+canonicalStyleFrom ss@(s:_) =
+  s{asprecision=prec, asdecimalpoint=Just decmark, asdigitgroups=mgrps}
   where
-    mgrps = headMay $ mapMaybe asdigitgroups ss
     -- precision is maximum of all precisions
     prec = maximumStrict $ map asprecision ss
-    mdec = Just $ headDef '.' $ mapMaybe asdecimalpoint ss
-    -- precision is that of first amount with a decimal point
-    -- (mdec, prec) =
-    --   case filter (isJust . asdecimalpoint) ss of
-    --   (s:_) -> (asdecimalpoint s, asprecision s)
-    --   []    -> (Just '.', 0)
+    -- identify the digit group mark (& group sizes)
+    mgrps = headMay $ mapMaybe asdigitgroups ss
+    -- if a digit group mark was identified above, we can rely on that;
+    -- make sure the decimal mark is different. If not, default to period.
+    defdecmark =
+      case mgrps of
+        Just (DigitGroups '.' _) -> ','
+        _                        -> '.'
+    -- identify the decimal mark: the first one used, or the above default,
+    -- but never the same character as the digit group mark.
+    -- urgh.. refactor..
+    decmark = case mgrps of
+                Just _ -> defdecmark
+                _      -> headDef defdecmark $ mapMaybe asdecimalpoint ss
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyPriceDirectives :: Journal -> Journal
@@ -1370,25 +1382,29 @@ tests_Journal = tests "Journal" [
 
     ,tests "commodityStylesFromAmounts" $ [
 
-      -- Journal similar to the one on #1091, causes problems:
+      -- Journal similar to the one on #1091:
       -- 2019/09/24
       --     (a)            1,000.00
       -- 
       -- 2019/09/26
       --     (a)             1000,000
       --
-      -- Fails because commodityStylesFromAmounts takes the decimal
-      -- mark & digit group mark from the first amount which seems to
-      -- specify them (note txns are processed in reverse order since
-      -- #903/1.12), which might be two separate amounts which
-      -- inconsistent with one another, allowing it to choose the same
-      -- character for both, generating an invalid amount style giving
-      -- confusing output.
-      --
-      _test "1091" $ do
+      test "1091a" $ do
         commodityStylesFromAmounts [
            nullamt{aquantity=1000, astyle=AmountStyle L False 3 (Just ',') Nothing}
           ,nullamt{aquantity=1000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
+          ]
+         `is`
+          -- The commodity style should have period as decimal mark
+          -- and comma as digit group mark.
+          Right (M.fromList [
+            ("", AmountStyle L False 3 (Just '.') (Just (DigitGroups ',' [3])))
+          ])
+        -- same journal, entries in reverse order
+      ,test "1091b" $ do
+        commodityStylesFromAmounts [
+           nullamt{aquantity=1000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False 3 (Just ',') Nothing}
           ]
          `is`
           -- The commodity style should have period as decimal mark
