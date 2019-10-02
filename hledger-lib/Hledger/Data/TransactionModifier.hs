@@ -57,7 +57,7 @@ modifyTransactions tmods = map applymods
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
 --     ping           $1.00
---     pong           $2.00  ; generated-posting:=
+--     pong           $2.00  ; generated-posting: =
 -- <BLANKLINE>
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
@@ -66,7 +66,7 @@ modifyTransactions tmods = map applymods
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{aismultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
 --     ping           $2.00
---     pong           $6.00  ; generated-posting:= ping
+--     pong           $6.00  ; generated-posting: = ping
 -- <BLANKLINE>
 --
 transactionModifierToFunction :: TransactionModifier -> (Transaction -> Transaction)

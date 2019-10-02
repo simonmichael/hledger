@@ -51,7 +51,7 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     assets:cash
 
 2017/01/01 * marked cleared, and with a description
-    ; generated-transaction:~ monthly from 2016/1
+    ; generated-transaction: ~ monthly from 2016/1
     income                    $-1000
     expenses:food                $20
     expenses:leisure             $15
@@ -118,7 +118,7 @@ Y 2000
 
 >>>
 2000/02/01 forecast
-    ; generated-transaction:~ 2/1
+    ; generated-transaction: ~ 2/1
 
 >>>2
 >>>=0
@@ -135,7 +135,7 @@ Y 2000
 
 >>>
 2000/01/15 forecast
-    ; generated-transaction:~ 15
+    ; generated-transaction: ~ 15
 
 >>>2
 >>>=0
@@ -152,7 +152,7 @@ Y 2000
 
 >>>
 2000/02/01 forecast
-    ; generated-transaction:~ next month
+    ; generated-transaction: ~ next month
 
 >>>2
 >>>=0

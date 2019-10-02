@@ -372,18 +372,20 @@ commentJoin c1 c2
   | otherwise = c1 <> ", " <> c2
 
 -- | Add a tag to a comment, comma-separated from any prior content.
+-- A space is inserted following the colon, before the value.
 commentAddTag :: Text -> Tag -> Text
 commentAddTag c (t,v)
   | T.null c' = tag
   | otherwise = c' `commentJoin` tag
   where
     c'  = textchomp c
-    tag = t <> ":" <> v
+    tag = t <> ": " <> v
 
 -- | Add a tag on its own line to a comment, preserving any prior content.
+-- A space is inserted following the colon, before the value.
 commentAddTagNextLine :: Text -> Tag -> Text
 commentAddTagNextLine cmt (t,v) =
-  cmt <> if "\n" `T.isSuffixOf` cmt then "" else "\n" <> t <> ":" <> v 
+  cmt <> if "\n" `T.isSuffixOf` cmt then "" else "\n" <> t <> ": " <> v 
 
 
 -- tests
@@ -417,13 +419,13 @@ tests_Posting = tests "Posting" [
   ]
 
  ,tests "commentAddTag" [
-    commentAddTag "" ("a","") `is` "a:"
-   ,commentAddTag "[1/2]" ("a","") `is` "[1/2], a:"
+    commentAddTag "" ("a","") `is` "a: "
+   ,commentAddTag "[1/2]" ("a","") `is` "[1/2], a: "
   ]
 
  ,tests "commentAddTagNextLine" [
-    commentAddTagNextLine "" ("a","") `is` "\na:"
-   ,commentAddTagNextLine "[1/2]" ("a","") `is` "[1/2]\na:"
+    commentAddTagNextLine "" ("a","") `is` "\na: "
+   ,commentAddTagNextLine "[1/2]" ("a","") `is` "[1/2]\na: "
   ]
  ]
 
