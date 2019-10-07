@@ -129,6 +129,7 @@ library:
   - text >=1.2
   - time >=1.5
   - transformers
+  - utf8-string
   - wai
   - wai-extra
   - wai-handler-launch >=1.3
