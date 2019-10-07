@@ -4,6 +4,7 @@ module Hledger.Web.WebOptions where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
+import Data.ByteString.UTF8 (fromString)
 import Data.CaseInsensitive (CI, mk)
 import Control.Monad (join)
 import Data.Default (Default(def))
@@ -11,6 +12,8 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Text (Text)
 import System.Environment (getArgs)
+import Network.Wai as WAI
+import Network.Wai.Middleware.Cors
 
 import Hledger.Cli hiding (progname, version)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
@@ -35,10 +38,11 @@ webflags =
       ["serve-api"]
       (setboolopt "serve-api")
       "like --serve, but serve only the JSON web API, without the server-side web UI"
-  , flagNone
+  , flagReq
       ["cors"]
-      (setboolopt "cors")
-      ("allow cross-origin requests, setting the Access-Control-Allow-Origin HTTP header to *")
+      (\s opts -> Right $ setopt "cors" s opts)
+      "ORIGIN"
+      ("allow cross-origin requests from the specified origin; setting ORIGIN to \"*\" allows requests from any origin")
   , flagReq
       ["host"]
       (\s opts -> Right $ setopt "host" s opts)
@@ -98,7 +102,7 @@ webmode =
 data WebOpts = WebOpts
   { serve_ :: Bool
   , serve_api_ :: Bool
-  , cors_ :: Bool
+  , cors_ :: Maybe String
   , host_ :: String
   , port_ :: Int
   , base_url_ :: String
@@ -109,7 +113,7 @@ data WebOpts = WebOpts
   } deriving (Show)
 
 defwebopts :: WebOpts
-defwebopts = WebOpts def def def def def def def [CapView, CapAdd] Nothing def
+defwebopts = WebOpts def def Nothing def def def def [CapView, CapAdd] Nothing def
 
 instance Default WebOpts where def = defwebopts
 
@@ -131,7 +135,7 @@ rawOptsToWebOpts rawopts =
       defwebopts
       { serve_ = boolopt "serve" rawopts
       , serve_api_ = boolopt "serve-api" rawopts
-      , cors_ = boolopt "cors" rawopts
+      , cors_ = maybestringopt "cors" rawopts
       , host_ = h
       , port_ = p
       , base_url_ = b
@@ -172,3 +176,21 @@ capabilityFromBS "view" = Right CapView
 capabilityFromBS "add" = Right CapAdd
 capabilityFromBS "manage" = Right CapManage
 capabilityFromBS x = Left x
+
+simplePolicyWithOrigin :: Origin -> CorsResourcePolicy
+simplePolicyWithOrigin origin =
+    simpleCorsResourcePolicy { corsOrigins = Just ([origin], False) }
+
+
+corsPolicyFromString :: String -> WAI.Middleware
+corsPolicyFromString origin =
+  let
+    policy = case origin of
+        "*" -> simpleCorsResourcePolicy
+        url -> simplePolicyWithOrigin $ fromString url
+  in
+    cors (const $ Just policy)
+
+corsPolicy :: WebOpts -> (Application -> Application)
+corsPolicy opts =
+  maybe id corsPolicyFromString $ cors_ opts

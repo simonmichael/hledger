@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bb22226fe2d7562c91dc7dabb7767a786db0ea4441bb79b9016c414c0d5edf59
+-- hash: 4595326c17d463479b0d80c19012ffd367ef2cedbbdee610e8792fd88d4e4c4c
 
 name:           hledger-web
 version:        1.15.99
@@ -183,6 +183,7 @@ library
     , text >=1.2
     , time >=1.5
     , transformers
+    , utf8-string
     , wai
     , wai-cors
     , wai-extra
