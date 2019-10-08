@@ -9,9 +9,9 @@ Dated targets we are aiming for:
 
 - **hledger 1.16** - 2019-12-01
   - ghc 8.8 support
-  - hledger-install.sh installs terminfo lib
   - updated home page, faq, manuals
   - basic bar charts
+  - reduce install hassles with terminfo C lib
 
 ----
 
