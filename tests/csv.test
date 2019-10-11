@@ -152,6 +152,14 @@ $  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $
 
 >=0
 
+# 15. recursive interpolation
+$  printf 'fields account1, date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\nif Flubber\n    account1  assets:%%account1\n    amount  (%%amount)' >t.$$.csv.rules; printf 'myacct,10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+2009/09/10 Flubber Co
+    assets:myacct             $-50
+    income:unknown
+
+>=0
+
 # . TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
