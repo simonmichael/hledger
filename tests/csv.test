@@ -144,6 +144,14 @@ $  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescrip
 
 >=0
 
+# 14. multiline descriptions
+$  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,"Flubber Co\nCo\nCo",50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+2009/09/10 Flubber Co Co Co
+    assets:myacct               $50
+    expense:unknown
+
+>=0
+
 # . TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
