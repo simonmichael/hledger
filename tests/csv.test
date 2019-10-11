@@ -111,6 +111,25 @@ $  printf 'fields date, description, amount, balance1, balance2\ndate-format %%d
 >=0
 
 
+# 11. More than two postings 
+$  printf 'fields date, description, amount, balance1, balance2, amount3,comment3\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\naccount3   expenses:tax\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,321,123,0.234,VAT\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+2009/09/10 Flubber Co
+    assets:myacct               $50 = $321
+    expense:unknown     = $123
+    expenses:tax             $0.234  ; VAT
+
+>=0
+
+# 12. More than two postings and different currencies 
+$  printf 'fields date, description, amount, balance1, balance2, currency3, amount3,comment3\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\naccount3   expenses:tax\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,321,123,£,0.234,VAT\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+2009/09/10 Flubber Co
+    assets:myacct               $50 = $321
+    expense:unknown     = $123
+    expenses:tax             £0.234  ; VAT
+
+>=0
+
+
 # . TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
