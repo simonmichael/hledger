@@ -709,10 +709,10 @@ transactionFromCsvRecord sourcepos rules record = t
               ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
               ,"the parse error is:      "++customErrorBundlePretty err
               ]
-    code        = maybe "" render $ mfieldtemplate "code"
-    description = maybe "" render $ mfieldtemplate "description"
-    comment     = maybe "" render $ mfieldtemplate "comment"
-    precomment  = maybe "" render $ mfieldtemplate "precomment"
+    code        = singleline $ maybe "" render $ mfieldtemplate "code"
+    description = singleline $ maybe "" render $ mfieldtemplate "description"
+    comment     = singleline $ maybe "" render $ mfieldtemplate "comment"
+    precomment  = singleline $ maybe "" render $ mfieldtemplate "precomment"
 
     s `or` def  = if null s then def else s
     parsebalance currency n str
