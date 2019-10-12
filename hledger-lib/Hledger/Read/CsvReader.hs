@@ -689,7 +689,7 @@ transactionFromCsvRecord sourcepos rules record = t
     mdate2'     = maybe Nothing (maybe (error' $ dateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . mparsedate) mdate2
     dateerror datefield value mdateformat = unlines
       ["error: could not parse \""++value++"\" as a date using date format "++maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" show mdateformat
-      ,"the CSV record is:  "++showRecord record
+      , showRecord record
       ,"the "++datefield++" rule is:   "++(fromMaybe "required, but missing" $ mfieldtemplate datefield)
       ,"the date-format is: "++fromMaybe "unspecified" mdateformat
       ,"you may need to "
