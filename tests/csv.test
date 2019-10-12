@@ -160,6 +160,25 @@ $  printf 'fields account1, date, description, amount-in, amount-out\ndate-forma
 
 >=0
 
+# 16. use a script for cleaner csv tests?
+<
+myacct,10/2009/09,Flubber Co,50,
+
+RULES
+
+fields account1, date, description, amount-in, amount-out
+date-format %d/%Y/%m
+currency $
+if Flubber
+  account1  assets:%account1
+  amount-in  (%amount-in)
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    assets:myacct             $-50
+    income:unknown
+
+>=0
+
 # . TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
