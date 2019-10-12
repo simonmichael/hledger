@@ -145,7 +145,7 @@ $  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescrip
 >=0
 
 # 14. multiline descriptions
-$  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,"Flubber Co\nCo\nCo",50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+$  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,"Flubber Co\n\n\n\nCo\nCo\n\n\n\n\n",50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 2009/09/10 Flubber Co Co Co
     assets:myacct               $50
     expense:unknown

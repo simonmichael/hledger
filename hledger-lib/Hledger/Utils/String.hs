@@ -77,9 +77,9 @@ rstrip = reverse . lstrip . reverse
 chomp :: String -> String
 chomp = reverse . dropWhile (`elem` "\r\n") . reverse
 
--- | Remove line breaks
+-- | Remove consequtive line breaks, replacing them with single space
 singleline :: String -> String
-singleline = map (\c -> if c `elem` "\r\n" then ' ' else c) 
+singleline = unwords . filter (/="") . (map strip) . lines
 
 stripbrackets :: String -> String
 stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String
