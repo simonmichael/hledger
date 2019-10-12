@@ -729,22 +729,35 @@ transactionFromCsvRecord sourcepos rules record = t
     unknownAccountForAmount amt =
       case isNegativeMixedAmount amt of
         Just True -> "income:unknown"
-        _         -> "expense:unknown"
+        Just False -> "expense:unknown"
+        _ -> "unknown"
         
     parsePosting' number accountFld amtForUnknownAccount amountFld amountInFld amountOutFld balanceFld commentFld =
-      let currency  = maybe (fromMaybe "" mdefaultcurrency) render $
+      let currency = maybe (fromMaybe "" mdefaultcurrency) render $
                       (mfieldtemplate ("currency"++number) `or `mfieldtemplate "currency")
           amount = chooseAmountStr rules record currency amountFld amountInFld amountOutFld                      
-          account = ((T.pack . render) <$> (mfieldtemplate accountFld
+          account' = ((T.pack . render) <$> (mfieldtemplate accountFld
                                            `or` mdirective ("default-account" ++ number)))
                     `or` (unknownAccountForAmount <$> amtForUnknownAccount)
-          balance  = (parsebalance currency number.render) =<< mfieldtemplate balanceFld
-          comment  = T.pack $ maybe "" render $ mfieldtemplate commentFld
+          balance = (parsebalance currency number.render) =<< mfieldtemplate balanceFld
+          comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
+          account =
+            case account' of
+              Just account -> Just account
+              Nothing ->
+                -- If we have amount or balance assertion (which implies potential amount change),
+                -- but no account name, lets generate "unknown" account name.
+                -- If we can figure out whether this is income or expense based on amount, do that
+                -- otherwise stick to "unknown"
+                case (amount, balance) of
+                  (Just amt, _ ) -> Just $ unknownAccountForAmount amt
+                  (_, Just _)  -> Just "unknown"
+                  (Nothing, Nothing) -> Nothing
           in
         case account of
-             Nothing -> Nothing
-             Just account -> 
-               Just $ posting {paccount=account, pamount=fromMaybe nullmixedamt amount, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance, pcomment = comment}
+          Nothing -> Nothing
+          Just account -> 
+            Just $ posting {paccount=account, pamount=fromMaybe nullmixedamt amount, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance, pcomment = comment}
 
     parsePosting number =              
       parsePosting' number
