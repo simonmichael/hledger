@@ -554,8 +554,9 @@ fieldassignmentp :: CsvRulesParser (JournalFieldName, FieldTemplate)
 fieldassignmentp = do
   lift $ dbgparse 3 "trying fieldassignmentp"
   f <- journalfieldnamep
-  assignmentseparatorp
-  v <- fieldvalp
+  v <- choiceInState [ assignmentseparatorp >> fieldvalp
+                     , lift eolof >> return ""
+                     ]
   return (f,v)
   <?> "field assignment"
 
@@ -594,12 +595,9 @@ journalfieldnames =
 assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
   lift $ dbgparse 3 "trying assignmentseparatorp"
-  choice [
-    -- try (lift (skipMany spacenonewline) >> oneOf ":="),
-    try (lift (skipMany spacenonewline) >> char ':'),
-    spaceChar
-    ]
-  _ <- lift (skipMany spacenonewline)
+  _ <- choiceInState [ lift (skipMany spacenonewline) >> char ':' >> lift (skipMany spacenonewline)
+                     , lift (skipSome spacenonewline)
+                     ]
   return ()
 
 fieldvalp :: CsvRulesParser String
