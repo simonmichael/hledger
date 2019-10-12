@@ -86,7 +86,8 @@ Blank lines and lines beginning with `#` or `;` are ignored.
 
 `skip `*`N`*
 
-Skip this number of CSV records at the beginning.
+Skip this many non-empty lines preceding the CSV data.
+(Empty/blank lines are skipped automatically.)
 You'll need this whenever your CSV data contains header lines. Eg:
 <!-- XXX -->
 <!-- hledger tries to skip initial CSV header lines automatically. -->
