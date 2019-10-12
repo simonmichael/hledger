@@ -9,8 +9,8 @@ account1 assets:myacct
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct               $50
-    expense:unknown
+    assets:myacct              $50
+    income:unknown
 
 >=0
 
@@ -30,11 +30,11 @@ currency $
 $  ./hledger-csv
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
-    expense:unknown
+    income:unknown
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    income:unknown
+    expense:unknown
 
 >=0
 
@@ -69,8 +69,8 @@ account1 assets:myacct
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct               $50 = $123
-    expense:unknown
+    assets:myacct              $50 = $123
+    income:unknown
 
 >=0
 
@@ -87,12 +87,12 @@ account1 assets:myacct
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct               $50 = $123
-    expense:unknown
+    assets:myacct              $50 = $123
+    income:unknown
 
 2009/09/11 Blubber Co
-    assets:myacct               $60
-    expense:unknown
+    assets:myacct              $60
+    income:unknown
 
 >=0
 
@@ -109,12 +109,12 @@ account1 assets:myacct
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct               $50 = $123
-    expense:unknown
+    assets:myacct              $50 = $123
+    income:unknown
 
 2009/09/11 Blubber Co
-    assets:myacct               $60
-    expense:unknown
+    assets:myacct              $60
+    income:unknown
 
 >=0
 
@@ -161,11 +161,11 @@ currency $
 $  ./hledger-csv --separator ';'
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
-    expense:unknown
+    income:unknown
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    income:unknown
+    expense:unknown
 
 >=0
 
@@ -181,8 +181,8 @@ account1 assets:myacct
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct               $50
-    expense:unknown     = $123
+    assets:myacct              $50
+    income:unknown     = $123
 
 >=0
 
@@ -198,8 +198,8 @@ account1 assets:myacct
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct               $50 = $321
-    expense:unknown     = $123
+    assets:myacct              $50 = $321
+    income:unknown     = $123
 
 >=0
 
@@ -258,11 +258,11 @@ currency $
 $  ./hledger-csv
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
-    expense:unknown
+    income:unknown
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    income:unknown
+    expense:unknown
 
 >=0
 
@@ -287,8 +287,8 @@ currency $
 account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co Co Co
-    assets:myacct               $50
-    expense:unknown
+    assets:myacct              $50
+    income:unknown
 
 >=0
 
@@ -306,14 +306,14 @@ if Flubber
    amount-in  (%amount-in)
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct             $-50
-    income:unknown
+    assets:myacct              $-50
+    expense:unknown
 
 >=0
 
 # 16. Real life-ish paypal parsing example
 <
-"12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXZZZZZXXAX","","57.60",""
+"12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","57.60",""
 
 RULES
 fields date, time, timezone, description, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
@@ -336,6 +336,20 @@ $  ./hledger-csv
 
 >=0
 
+# 18. Show that #415 is fixed
+<
+"2016/01/01","$1"
+"2016/02/02","$1,000.00"
+RULES
+account1 unknown
+amount %2
+date %1
+date-format %Y/%m/%d
+$  ./hledger-csv | hledger balance -f - --no-total 
+          $-1,001.00  income:unknown
+           $1,001.00  unknown
+>=0
+
 # . TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
@@ -355,7 +369,7 @@ $  ./hledger-csv
 # $  ./hledger-csv
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
-#     income:unknown              $-50
+#     expense:unknown              $-50
 #
 # 2009/09/11 Flubber Co🎅
 #     Assets:MyAccount            $-50
@@ -378,7 +392,7 @@ $  ./hledger-csv
 # $  ./hledger-csv
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
-#     income:unknown              $-50
+#     expense:unknown              $-50
 #
 # 2009/09/11 Flubber Co🎅
 #     Assets:MyAccount            $-50

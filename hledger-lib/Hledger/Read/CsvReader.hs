@@ -806,7 +806,7 @@ transactionFromCsvRecord sourcepos rules record = t
     postings3to9 = catMaybes $ [ parsePosting i | x<-[3..9], let i = show x]
     postings =
       if postings3to9 == []
-      then [fromMaybe justOnePostingError $ parsePosting' "2" "account2" (Just $ pamount posting1) "amount2" "amount2-in" "amount2-out" "balance2" "comment2"]
+      then [fromMaybe justOnePostingError $ parsePosting' "2" "account2" (Just $ negate $ pamount posting1) "amount2" "amount2-in" "amount2-out" "balance2" "comment2"]
       else case parsePosting "2" of
         Just posting2 -> posting2:postings3to9
         Nothing -> postings3to9
