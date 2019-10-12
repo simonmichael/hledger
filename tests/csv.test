@@ -379,6 +379,34 @@ $  ./hledger-csv
 
 >=0
 
+# 19. Lines with just balance, no amount (#1000)
+<
+2018-10-15,100
+2018-10-16,200
+2018-10-17,300
+RULES
+fields date,bal
+
+balance EUR %bal
+date-format %Y-%m-%d
+description Assets Update
+account1 assets
+account2 income
+$  ./hledger-csv
+2018/10/15 Assets Update
+    assets     = EUR 100
+    income
+
+2018/10/16 Assets Update
+    assets     = EUR 200
+    income
+
+2018/10/17 Assets Update
+    assets     = EUR 300
+    income
+
+>=0
+
 # . TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
