@@ -133,7 +133,15 @@ date-format %-m/%-d/%Y %l:%M %p
 
 This (a) names the CSV fields, in order (names may not contain whitespace; uninteresting names may be left blank),
 and (b) assigns them to journal entry fields if you use any of these standard field names:
-`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`, `balance`, `balance1`, `balance2`.
+
+Fields `date`, `date2`, `status`, `code`, `description` will form transaction description.
+
+Fields `accountX`, `amountX`, `amountX-in`, `amount-X-out`, `currencyX`, `balanceX`, `commentX`, where X is a number from 1 to 9, will form up to 9 postings in the transaction.
+
+Fields `amount`, `amount-in`, `amount-out`, `currency`, `balance` and `comment` are treated as aliases for `amount1`, and so on. If your rules file leads to both aliased fields having different values, `hledger` will raise an error.
+
+You need to provide enough information to create at least two postings.
+
 Eg:
 ```rules
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
@@ -144,10 +152,6 @@ Eg:
 # entry field:
 fields date, description, , amount, , , somefield, anotherfield
 ```
-
-If you want one line of CSV file to produce more that two postings, you can use the following fields, substituting X with a number from 1 to 9: `accountX`, `amountX`, `amountX-in`, `amount-X-out`, `currencyX`, `balanceX`, `commentX`.
-
-Fields `amount`, `amount-in`, `amount-out`, `currency` and `balance` are treated as aliases for `amount1`, and so on. If your rules file leads to both aliased fields having different values, `hledger` will raise an error.
 
 ## field assignment
 
@@ -174,12 +178,12 @@ Note, interpolation strips any outer whitespace, so a CSV value like
 ## conditional block
 
 `if` *`PATTERN`*\
-&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS`*...
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip`*...
 
 `if`\
 *`PATTERN`*\
 *`PATTERN`*...\
-&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS`*...
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip`*...
 
 This applies one or more field assignments, only to those CSV records matched by one of the PATTERNs.
 The patterns are case-insensitive regular expressions which match anywhere
@@ -187,6 +191,9 @@ within the whole CSV record (it's not yet possible to match within a
 specific field).  When there are multiple patterns they can be written
 on separate lines, unindented.
 The field assignments are on separate lines indented by at least one space.
+
+Instead of field assignments you can specify `skip` to skip the matching record.
+
 Examples:
 ```rules
 # if the CSV record contains "groceries", set account2 to "expenses:groceries"
@@ -243,10 +250,10 @@ It's conventional and recommended to use `account1` for the account whose CSV we
 
 A transaction [amount](journal.html#amounts) must be set, in one of these ways:
 
-- with an `amount` field assignment, which sets the first posting's amount
+- with an `amount` or `amount1` field assignment, which sets the first posting's amount
 
 - (When the CSV has debit and credit amounts in separate fields:)\
-  with field assignments for the `amount-in` and `amount-out` pseudo
+  with field assignments for the `amount-in` and `amount-out` (or `amount1-in` and `amount1-out`) pseudo
   fields (both of them). Whichever one has a value will be used, with
   appropriate sign. If both contain a value, it might not work so well.
 
@@ -270,12 +277,10 @@ amount %amount %currency
 ## CSV balance assertions/assignments
 
 If the CSV includes a running balance, you can assign that to one of the pseudo fields
-`balance` (or `balance1`) or `balance2`.
+`balance` (or `balance1`), `balance2`, ... up to `balance9`.
 This will generate a [balance assertion](journal.html#balance-assertions) 
 (or if the amount is left empty, a [balance assignment](journal.html#balance-assignments)),
-on the first or second posting,
-whenever the running balance field is non-empty.
-(TODO: [#1000](https://github.com/simonmichael/hledger/issues/1000))
+on the appropriate posting, whenever the running balance field is non-empty.
 
 ## Reading multiple CSV files
 
