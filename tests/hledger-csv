@@ -12,4 +12,4 @@ BEGIN{output=CSV}
 
 trap "rm -f t.$$.csv t.$$.csv.rules" EXIT ERR
 
-hledger -f csv:t.$$.csv --rules-file t.$$.csv.rules print
+hledger -f csv:t.$$.csv --rules-file t.$$.csv.rules print "$@"
