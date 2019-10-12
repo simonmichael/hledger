@@ -782,14 +782,19 @@ transactionFromCsvRecord sourcepos rules record = t
               amount =
                 let al = pamount legacy
                     a1 = pamount posting1
-                    in if al == a1 then al
-                       else if isZeroMixedAmount a1 then al
-                            else error' $ unlines [ "amount/amount-in/amount-out and amount1/amount1-in/amount1-out produced conflicting values"
-                                                  , showRecord record
-                                                  , showRules rules record
-                                                  , "amount/amount-in/amount-out is " ++ show al
-                                                  , "amount1/amount1-in/amount1-out is" ++ show a1
-                                                  ]
+                in
+                  if al == a1 then al
+                  else
+                    case (isZeroMixedAmount al, isZeroMixedAmount a1) of
+                      (True, _) -> a1
+                      (False, True) -> al
+                      (False, False) ->
+                        error' $ unlines [ "amount/amount-in/amount-out and amount1/amount1-in/amount1-out produced conflicting values"
+                                         , showRecord record
+                                         , showRules rules record
+                                         , "amount/amount-in/amount-out is " ++ showMixedAmount al
+                                         , "amount1/amount1-in/amount1-out is " ++ showMixedAmount a1
+                                         ]
           in posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t, pbalanceassertion=balanceassertion, pcomment = pcomment posting1}
         (Nothing, Nothing) -> error' $ unlines [ "sadly, no posting was generated for account1"
                                                , showRecord record

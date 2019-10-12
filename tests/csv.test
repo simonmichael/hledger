@@ -311,22 +311,28 @@ $  ./hledger-csv
 
 >=0
 
-# 16. use a script for cleaner csv tests?
+# 16. Real life-ish paypal parsing example
 <
-myacct,10/2009/09,Flubber Co,50,
+"12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXZZZZZXXAX","","57.60",""
 
 RULES
-
-fields account1, date, description, amount-in, amount-out
-date-format %d/%Y/%m
+fields date, time, timezone, description, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
+account1 sm:assets:online:paypal
+amount1 %netamount
+account2 sm:expenses:unknown
+account3 JS:expenses:banking:paypal
+amount3 %feeamount
+balance %18
+code %13
 currency $
-if Flubber
-  account1  assets:%account1
-  amount-in  (%amount-in)
+date %1
+date-format %m/%d/%Y
+description %description for %itemtitle 
 $  ./hledger-csv
-2009/09/10 Flubber Co
-    assets:myacct             $-50
-    income:unknown
+2018/12/22 (123456789) Someone for Joyful Systems
+    sm:assets:online:paypal              $9.41 = $57.60
+    sm:expenses:unknown
+    JS:expenses:banking:paypal          $-0.59
 
 >=0
 
