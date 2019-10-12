@@ -140,7 +140,7 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
   -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
   records <- (either throwerr id .
-              dbg2 "validateCsv" . validateCsv skiplines .
+              dbg2 "validateCsv" . validateCsv rules skiplines .
               dbg2 "parseCsv")
              `fmap` parseCsv separator parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
@@ -216,11 +216,12 @@ printCSV records = unlined (printRecord `map` records)
           unlined = concat . intersperse "\n"
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: Int -> Either String CSV -> Either String [CsvRecord]
-validateCsv _           (Left err) = Left err
-validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
+validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]
+validateCsv _ _           (Left err) = Left err
+validateCsv rules numhdrlines (Right rs) = validate $ filter (not.shouldSkip) $ drop numhdrlines $ filternulls rs
   where
     filternulls = filter (/=[""])
+    shouldSkip r = isJust $ getEffectiveAssignment rules r "skip"
     validate [] = Right []
     validate rs@(_first:_)
       | isJust lessthan2 = let r = fromJust lessthan2 in
@@ -587,6 +588,7 @@ journalfieldnames =
   ,"date"
   ,"description"
   ,"status"
+  ,"skip" -- skip is not really a field, but we list it here to allow conditional rules that skip records
   ]
 
 assignmentseparatorp :: CsvRulesParser ()
