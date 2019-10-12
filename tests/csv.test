@@ -367,7 +367,7 @@ if HEADER
 MIDDLE
 END OF FILE
   skip
-  
+
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50
@@ -403,6 +403,39 @@ $  ./hledger-csv
 
 2018/10/17 Assets Update
     assets     = EUR 300
+    income
+
+>=0
+
+# 20. Test for #1001 - empty assignment to amount show not eat next line 
+<
+2018-10-15,100
+2018-10-16,200
+2018-10-17,300
+RULES
+fields date,bal
+
+balance EUR %bal
+date-format %Y-%m-%d
+description Assets Update
+account1 assets
+account2 income
+if 2018
+  amount
+  comment  Dont eat me
+  balance
+  comment  Dont eat me
+$  ./hledger-csv
+2018/10/15 Assets Update  ; Dont eat me
+    assets
+    income
+
+2018/10/16 Assets Update  ; Dont eat me
+    assets
+    income
+
+2018/10/17 Assets Update  ; Dont eat me
+    assets
     income
 
 >=0
