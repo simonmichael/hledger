@@ -336,7 +336,7 @@ $  ./hledger-csv
 
 >=0
 
-# 18. Show that #415 is fixed
+# 17. Show that #415 is fixed
 <
 "2016/01/01","$1"
 "2016/02/02","$1,000.00"
@@ -348,6 +348,35 @@ date-format %Y/%m/%d
 $  ./hledger-csv | hledger balance -f - --no-total 
           $-1,001.00  income:unknown
            $1,001.00  unknown
+>=0
+
+# 18. Conditional skips
+<
+HEADER
+10/2009/09,Flubber Co,50
+MIDDLE
+10/2009/09,Flubber Co,50
+*** END OF FILE ***
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+if HEADER
+MIDDLE
+END OF FILE
+  skip
+  
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    assets:myacct              $50
+    income:unknown
+
+2009/09/10 Flubber Co
+    assets:myacct              $50
+    income:unknown
+
 >=0
 
 # . TODO: without --separator gives obscure error
