@@ -92,7 +92,7 @@ You'll need this whenever your CSV data contains header lines. Eg:
 <!-- XXX -->
 <!-- hledger tries to skip initial CSV header lines automatically. -->
 <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
-<!-- This can also be used in a conditional block to ignore certain CSV records. -->
+This can also be used in a conditional block (without numeric argument) to ignore certain CSV records.
 ```rules
 # ignore the first CSV line
 skip 1
@@ -144,6 +144,10 @@ Eg:
 # entry field:
 fields date, description, , amount, , , somefield, anotherfield
 ```
+
+If you want one line of CSV file to produce more that two postings, you can use the following fields, substituting X with a number from 1 to 9: `accountX`, `amountX`, `amountX-in`, `amount-X-out`, `currencyX`, `balanceX`, `commentX`.
+
+Fields `amount`, `amount-in`, `amount-out`, `currency` and `balance` are treated as aliases for `amount1`, and so on. If your rules file leads to both aliased fields having different values, `hledger` will raise an error.
 
 ## field assignment
 
