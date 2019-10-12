@@ -782,10 +782,21 @@ transactionFromCsvRecord sourcepos rules record = t
                                                , showRecord record
                                                , showRules rules record
                                                ]
-    -- Posting 2 is special -- we want account to be income:unknown or expense:unknown if it is not specified,
+    -- Posting 2 is special -- if there are no postings 3-9, we want to preserve legacy behaviour and
+    -- we want account to be income:unknown or expense:unknown if it is not specified,
     -- based on the amount from posting 1
-    posting2 = parsePosting' "2" "account2" (Just $ pamount posting1) "amount2" "amount2-in" "amount2-out" "balance2" "comment2"
-    postings2to9 = catMaybes $ posting2:[ parsePosting i | x<-[3..9], let i = show x]
+    postings3to9 = catMaybes $ [ parsePosting i | x<-[3..9], let i = show x]
+    postings =
+      if postings3to9 == []
+      then [fromMaybe justOnePostingError $ parsePosting' "2" "account2" (Just $ pamount posting1) "amount2" "amount2-in" "amount2-out" "balance2" "comment2"]
+      else case parsePosting "2" of
+        Just posting2 -> posting2:postings3to9
+        Nothing -> postings3to9
+        
+    justOnePostingError = error' $ unlines [ "Found single posting, cannot generate transaction"
+                                           , showRecord record
+                                           , showRules rules record
+                                           ]                                           
     -- build the transaction
     t = nulltransaction{
       tsourcepos               = genericSourcePos sourcepos,
@@ -796,7 +807,7 @@ transactionFromCsvRecord sourcepos rules record = t
       tdescription             = T.pack description,
       tcomment                 = T.pack comment,
       tprecedingcomment        = T.pack precomment,
-      tpostings                = posting1:postings2to9
+      tpostings                = posting1:postings
       }
     toAssertion (a, b) = assertion{
       baamount   = a,
