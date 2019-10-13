@@ -136,7 +136,7 @@ and (b) assigns them to journal entry fields if you use any of these standard fi
 
 Fields `date`, `date2`, `status`, `code`, `description` will form transaction description.
 
-Fields `accountX`, `amountX`, `amountX-in`, `amount-X-out`, `currencyX`, `balanceX`, `commentX`, where X is a number from 1 to 9, will form up to 9 postings in the transaction.
+An assignment to any of `accountN`, `amountN`, `amountN-in`, `amountN-out`, `balanceN` or `currencyN` will generate a posting (though it's your responsibility to ensure it is a well formed one). Normally the `N`'s are consecutive starting from 1 but it's not required. One posting will be generated for each unique `N`. If you wish to supply a comment for the posting, use `commentN`, though comment on its own will not cause posting to be generated.
 
 Fields `amount`, `amount-in`, `amount-out`, `currency`, `balance` and `comment` are treated as aliases for `amount1`, and so on. If your rules file leads to both aliased fields having different values, `hledger` will raise an error.
 
