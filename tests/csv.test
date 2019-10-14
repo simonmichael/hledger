@@ -354,7 +354,9 @@ $  ./hledger-csv | hledger balance -f - --no-total
 <
 HEADER
 10/2009/09,Flubber Co,50
-MIDDLE
+MIDDLE SKIP THIS LINE
+AND THIS
+AND THIS ONE
 10/2009/09,Flubber Co,50
 *** END OF FILE ***
 RULES
@@ -364,9 +366,11 @@ currency $
 account1 assets:myacct
 
 if HEADER
-MIDDLE
 END OF FILE
   skip
+
+if MIDDLE
+  skip 3
 
 $  ./hledger-csv
 2009/09/10 Flubber Co

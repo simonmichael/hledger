@@ -92,7 +92,7 @@ You'll need this whenever your CSV data contains header lines. Eg:
 <!-- XXX -->
 <!-- hledger tries to skip initial CSV header lines automatically. -->
 <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
-This can also be used in a conditional block (without numeric argument) to ignore certain CSV records.
+This can also be used in a conditional block to ignore certain CSV records.
 ```rules
 # ignore the first CSV line
 skip 1
@@ -178,12 +178,12 @@ Note, interpolation strips any outer whitespace, so a CSV value like
 ## conditional block
 
 `if` *`PATTERN`*\
-&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip`*...
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip N`*...
 
 `if`\
 *`PATTERN`*\
 *`PATTERN`*...\
-&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip`*...
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip N`*...
 
 This applies one or more field assignments, only to those CSV records matched by one of the PATTERNs.
 The patterns are case-insensitive regular expressions which match anywhere
@@ -192,7 +192,7 @@ specific field).  When there are multiple patterns they can be written
 on separate lines, unindented.
 The field assignments are on separate lines indented by at least one space.
 
-Instead of field assignments you can specify `skip` to skip the matching record.
+Instead of field assignments you can specify `skip N` to skip the next N records (including the one that matchied).
 
 Examples:
 ```rules

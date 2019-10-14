@@ -218,10 +218,19 @@ printCSV records = unlined (printRecord `map` records)
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
 validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]
 validateCsv _ _           (Left err) = Left err
-validateCsv rules numhdrlines (Right rs) = validate $ filter (not.shouldSkip) $ drop numhdrlines $ filternulls rs
+validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ drop numhdrlines $ filternulls rs
   where
     filternulls = filter (/=[""])
-    shouldSkip r = isJust $ getEffectiveAssignment rules r "skip"
+    skipCount r =
+      case getEffectiveAssignment rules r "skip" of
+        Nothing -> Nothing
+        Just "" -> Just 1
+        Just x -> Just (read x)
+    applyConditionalSkips [] = []
+    applyConditionalSkips (r:rest) =
+      case skipCount r of
+        Nothing -> r:(applyConditionalSkips rest)
+        Just cnt -> applyConditionalSkips (drop (cnt-1) rest)
     validate [] = Right []
     validate rs@(_first:_)
       | isJust lessthan2 = let r = fromJust lessthan2 in
