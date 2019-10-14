@@ -178,12 +178,12 @@ Note, interpolation strips any outer whitespace, so a CSV value like
 ## conditional block
 
 `if` *`PATTERN`*\
-&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip N`*...
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS` or `skip N` or `skip end`*...
 
 `if`\
 *`PATTERN`*\
 *`PATTERN`*...\
-&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS or skip N`*...
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS` or `skip N` or `skip end`*...
 
 This applies one or more field assignments, only to those CSV records matched by one of the PATTERNs.
 The patterns are case-insensitive regular expressions which match anywhere
@@ -192,7 +192,7 @@ specific field).  When there are multiple patterns they can be written
 on separate lines, unindented.
 The field assignments are on separate lines indented by at least one space.
 
-Instead of field assignments you can specify `skip N` to skip the next N records (including the one that matchied).
+Instead of field assignments you can specify `skip N` to skip the next N records (including the one that matchied). Special form `skip end` will cause the rest of the file to be skipped.
 
 Examples:
 ```rules

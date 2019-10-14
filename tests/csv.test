@@ -359,6 +359,8 @@ AND THIS
 AND THIS ONE
 10/2009/09,Flubber Co,50
 *** END OF FILE ***
+More lines of the trailer here
+They all should be ignored
 RULES
 fields date, description, amount
 date-format %d/%Y/%m
@@ -366,8 +368,11 @@ currency $
 account1 assets:myacct
 
 if HEADER
-END OF FILE
   skip
+
+if
+END OF FILE
+  skip end
 
 if MIDDLE
   skip 3

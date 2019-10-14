@@ -225,6 +225,7 @@ validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ dr
       case getEffectiveAssignment rules r "skip" of
         Nothing -> Nothing
         Just "" -> Just 1
+        Just "end" -> Just maxBound
         Just x -> Just (read x)
     applyConditionalSkips [] = []
     applyConditionalSkips (r:rest) =
