@@ -292,6 +292,37 @@ This will generate a [balance assertion](journal.html#balance-assertions)
 (or if the amount is left empty, a [balance assignment](journal.html#balance-assignments)),
 on the appropriate posting, whenever the running balance field is non-empty.
 
+## References to other fields and evaluation order
+
+Field assignments could include references to other fields or even to the same field you are trying to assign:
+
+```
+fields date,description,currency,amount1
+
+amount1 %amount1 USD
+amount1 %amount1 EUR
+amount1 %amount1 %currency
+
+if SOME_REGEXP
+    amount1 %amount1 GBP
+```
+This is how this file would be evaluated.
+
+First, parts of CVS record are assigned according to `fields` directive.
+
+Then all other field assignments -- written at top level, or included in `if` blocks -- are considered to see if they should be applied. They are checked in the order they are written, with later assignment overwriting earlier ones.
+
+Once full set of field assignments that should be applied is known, their values are computed, and this is when all `%<fieldname>` references are evaluated.
+
+So for a particular row from CSV file, value from fourth column would be assigned to `amount1`.
+
+Then `hledger` will decide that `amount1` would have to be amended to `%amount1 USD`, but this will not happen immediately. This choice would be replaced by decision to rewrite `amount1` to `%amount EUR`, which will in turn be thrown away in favor of `%amount1 %currency`. If the `if` block condition will match the row, it will assign `amount1` to `%amount1 GBP`.
+
+Overall, we will end up with one of the two alternatives for `amount1` - either `%amount1 %currency` or `%amount1 GBP`.
+
+Now substitution of all referenced values will happen, using the current values for `%amount1` and `currency`, which were provided by the `fields` directive.
+
+
 ## Reading multiple CSV files
 
 You can read multiple CSV files at once using multiple `-f` arguments on the command line,
