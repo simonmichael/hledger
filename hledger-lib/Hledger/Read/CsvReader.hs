@@ -950,7 +950,7 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
 -- | Render a field assigment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.
 renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> String
-renderTemplate rules record t = regexReplaceBy "%[A-z0-9-]+" replace t
+renderTemplate rules record t = regexReplaceBy "%[A-z0-9_-]+" replace t
   where
     replace ('%':pat) = maybe pat (\i -> strip $ atDef "" record (i-1)) mindex
       where
