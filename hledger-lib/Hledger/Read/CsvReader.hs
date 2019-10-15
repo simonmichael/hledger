@@ -738,19 +738,12 @@ transactionFromCsvRecord sourcepos rules record = t
       ,"the parse error is:      "++customErrorBundlePretty err
       ]
 
-    unknownAccountForAmount amt =
-      case isNegativeMixedAmount amt of
-        Just True -> "income:unknown"
-        Just False -> "expense:unknown"
-        _ -> "unknown"
-        
-    parsePosting' number accountFld amtForUnknownAccount amountFld amountInFld amountOutFld balanceFld commentFld =
+    parsePosting' number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
       let currency = maybe (fromMaybe "" mdefaultcurrency) render $
                       (mfieldtemplate ("currency"++number) `or `mfieldtemplate "currency")
-          amount = chooseAmountStr rules record currency amountFld amountInFld amountOutFld                      
+          amount = chooseAmount rules record currency amountFld amountInFld amountOutFld                      
           account' = ((T.pack . render) <$> (mfieldtemplate accountFld
                                            `or` mdirective ("default-account" ++ number)))
-                    `or` (unknownAccountForAmount <$> amtForUnknownAccount)
           balance = (parsebalance currency number.render) =<< mfieldtemplate balanceFld
           comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
           account =
@@ -759,29 +752,26 @@ transactionFromCsvRecord sourcepos rules record = t
               Nothing ->
                 -- If we have amount or balance assertion (which implies potential amount change),
                 -- but no account name, lets generate "unknown" account name.
-                -- If we can figure out whether this is income or expense based on amount, do that
-                -- otherwise stick to "unknown"
                 case (amount, balance) of
-                  (Just amt, _ ) -> Just $ unknownAccountForAmount amt
+                  (Just _, _ ) -> Just "unknown"
                   (_, Just _)  -> Just "unknown"
                   (Nothing, Nothing) -> Nothing
           in
         case account of
           Nothing -> Nothing
           Just account -> 
-            Just $ posting {paccount=account, pamount=fromMaybe nullmixedamt amount, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance, pcomment = comment}
+            Just $ posting {paccount=account, pamount=fromMaybe missingmixedamt amount, ptransaction=Just t', pbalanceassertion=toAssertion <$> balance, pcomment = comment}
 
     parsePosting number =              
       parsePosting' number
       ("account"++number)
-      Nothing
       ("amount"++number)
       ("amount"++number++"-in")
       ("amount"++number++"-out")
       ("balance"++number)
       ("comment" ++ number)
       
-    postingLegacy = parsePosting' "" "account1" Nothing "amount" "amount-in" "amount-out" "balance" "comment1"
+    postingLegacy = parsePosting' "" "account1" "amount" "amount-in" "amount-out" "balance" "comment1"
     posting1' = parsePosting "1"
     posting1 =
       case (postingLegacy,posting1') of
@@ -807,28 +797,37 @@ transactionFromCsvRecord sourcepos rules record = t
                                          , "amount/amount-in/amount-out is " ++ showMixedAmount al
                                          , "amount1/amount1-in/amount1-out is " ++ showMixedAmount a1
                                          ]
-          in posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t, pbalanceassertion=balanceassertion, pcomment = pcomment posting1}
-        (Nothing, Nothing) -> error' $ unlines [ "sadly, no posting was generated for account1"
+          in posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t', pbalanceassertion=balanceassertion, pcomment = pcomment posting1}
+        (Nothing, Nothing) -> error' $ unlines [ "sadly, no posting was generated for account1, cannot generate transaction"
                                                , showRecord record
                                                , showRules rules record
                                                ]
-    -- Posting 2 is special -- if there are no postings 3-9, we want to preserve legacy behaviour and
-    -- we want account to be income:unknown or expense:unknown if it is not specified,
-    -- based on the amount from posting 1
-    postings3to9 = catMaybes $ [ parsePosting i | x<-[3..9], let i = show x]
+    postings2to9 = catMaybes $ [ parsePosting i | x<-[2..9], let i = show x]
     postings =
-      if postings3to9 == []
-      then [fromMaybe justOnePostingError $ parsePosting' "2" "account2" (Just $ negate $ pamount posting1) "amount2" "amount2-in" "amount2-out" "balance2" "comment2"]
-      else case parsePosting "2" of
-        Just posting2 -> posting2:postings3to9
-        Nothing -> postings3to9
+      if postings2to9 == []
+      then [posting1,posting{paccount="unknown", pamount=missingmixedamt, ptransaction=Just t'}]
+      else posting1:postings2to9
         
-    justOnePostingError = error' $ unlines [ "Found single posting, cannot generate transaction"
-                                           , showRecord record
-                                           , showRules rules record
-                                           ]                                           
+    balanced = balanceTransaction Nothing t'
+    t =
+      case balanced of
+        Left _ -> t'
+        Right balanced ->
+          -- If we managed to balance transaction, lets infer better names for all "unknown" accounts
+          t' {tpostings =
+              [ originalPosting {paccount=newAccount}
+              | (originalPosting,p) <- zip postings (tpostings balanced)
+              , let account = paccount p
+              , let newAccount =
+                      if account/="unknown"
+                      then account
+                      else case isNegativeMixedAmount (pamount p) of
+                             Just True -> "income:unknown"
+                             Just False -> "expense:unknown"
+                             _ -> "unknown"
+              ]}
     -- build the transaction
-    t = nulltransaction{
+    t' = nulltransaction{
       tsourcepos               = genericSourcePos sourcepos,
       tdate                    = date',
       tdate2                   = mdate2',
@@ -837,15 +836,15 @@ transactionFromCsvRecord sourcepos rules record = t
       tdescription             = T.pack description,
       tcomment                 = T.pack comment,
       tprecedingcomment        = T.pack precomment,
-      tpostings                = posting1:postings
+      tpostings                = postings
       }
     toAssertion (a, b) = assertion{
       baamount   = a,
       baposition = b
       }
 
-chooseAmountStr :: CsvRules -> CsvRecord -> String -> String -> String -> String -> Maybe MixedAmount
-chooseAmountStr rules record currency amountFld amountInFld amountOutFld =
+chooseAmount :: CsvRules -> CsvRecord -> String -> String -> String -> String -> Maybe MixedAmount
+chooseAmount rules record currency amountFld amountInFld amountOutFld =
  let
    mamount    = getEffectiveAssignment rules record amountFld
    mamountin  = getEffectiveAssignment rules record amountInFld

@@ -217,9 +217,9 @@ account3   expenses:tax
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct             $50 = $321
-    unknown           = $123
-    expenses:tax           $0.234  ; VAT
+    assets:myacct              $50 = $321
+    income:unknown     = $123
+    expenses:tax            $0.234  ; VAT
 
 >=0
 
@@ -346,8 +346,8 @@ amount %2
 date %1
 date-format %Y/%m/%d
 $  ./hledger-csv | hledger balance -f - --no-total 
+           $1,001.00  expense:unknown
           $-1,001.00  income:unknown
-           $1,001.00  unknown
 >=0
 
 # 18. Conditional skips
