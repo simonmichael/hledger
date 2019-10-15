@@ -775,8 +775,8 @@ transactionFromCsvRecord sourcepos rules record = t
     posting1' = parsePosting "1"
     posting1 =
       case (postingLegacy,posting1') of
-        (Just legacy, Nothing) -> legacy
-        (Nothing, Just posting1) -> posting1
+        (Just legacy, Nothing) -> Just legacy
+        (Nothing, Just posting1) -> Just posting1
         (Just legacy, Just posting1) ->
           -- Here we merge legacy fields such as "amount" with "amount1", etc
           -- Account and Comment would be the same by construction
@@ -797,16 +797,15 @@ transactionFromCsvRecord sourcepos rules record = t
                                          , "amount/amount-in/amount-out is " ++ showMixedAmount al
                                          , "amount1/amount1-in/amount1-out is " ++ showMixedAmount a1
                                          ]
-          in posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t', pbalanceassertion=balanceassertion, pcomment = pcomment posting1}
-        (Nothing, Nothing) -> error' $ unlines [ "sadly, no posting was generated for account1, cannot generate transaction"
-                                               , showRecord record
-                                               , showRules rules record
-                                               ]
-    postings2to9 = catMaybes $ [ parsePosting i | x<-[2..9], let i = show x]
+          in Just $ posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t', pbalanceassertion=balanceassertion, pcomment = pcomment posting1}
+        (Nothing, Nothing) -> Nothing
+    postings' = catMaybes $ posting1:[ parsePosting i | x<-[2..9], let i = show x]
     postings =
-      if postings2to9 == []
-      then [posting1,posting{paccount="unknown", pamount=missingmixedamt, ptransaction=Just t'}]
-      else posting1:postings2to9
+      case postings' of
+        -- To be compatible with the behavior of the old code which allowed two postings only, we enforce
+        -- second posting when rules generated just one of them.
+        [posting1] -> [posting1,posting{paccount="unknown", pamount=missingmixedamt, ptransaction=Just t'}]
+        _ -> postings'
         
     balanced = balanceTransaction Nothing t'
     t =
