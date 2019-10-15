@@ -277,7 +277,7 @@ defaultRulesText csvfile = T.pack $ unlines
   ,""
   ,"account1 assets:bank:checking"
   ,""
-  ,"fields date, description, amount"
+  ,"fields date, description, amount1"
   ,""
   ,"#skip 1"
   ,"#newest-first"
