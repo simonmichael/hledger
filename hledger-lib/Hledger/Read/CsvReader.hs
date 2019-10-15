@@ -222,11 +222,11 @@ validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ dr
   where
     filternulls = filter (/=[""])
     skipCount r =
-      case getEffectiveAssignment rules r "skip" of
-        Nothing -> Nothing
-        Just "" -> Just 1
-        Just "end" -> Just maxBound
-        Just x -> Just (read x)
+      case (getEffectiveAssignment rules r "end", getEffectiveAssignment rules r "skip") of
+        (Nothing, Nothing) -> Nothing
+        (Just _, _) -> Just maxBound
+        (Nothing, Just "") -> Just 1
+        (Nothing, Just x) -> Just (read x)
     applyConditionalSkips [] = []
     applyConditionalSkips (r:rest) =
       case skipCount r of
@@ -601,7 +601,8 @@ journalfieldnames =
   ,"date"
   ,"description"
   ,"status"
-  ,"skip" -- skip is not really a field, but we list it here to allow conditional rules that skip records
+  ,"skip" -- skip and end are not really fields, but we list it here to allow conditional rules that skip records
+  ,"end"
   ]
 
 assignmentseparatorp :: CsvRulesParser ()

@@ -372,7 +372,7 @@ if HEADER
 
 if
 END OF FILE
-  skip end
+  end
 
 if MIDDLE
   skip 3
