@@ -823,7 +823,7 @@ transactionFromCsvRecord sourcepos rules record = t
                       then account
                       else case isNegativeMixedAmount (pamount p) of
                              Just True -> "income:unknown"
-                             Just False -> "expense:unknown"
+                             Just False -> "expenses:unknown"
                              _ -> "unknown"
               ]}
     -- build the transaction
