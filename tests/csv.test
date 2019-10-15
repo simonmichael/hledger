@@ -34,7 +34,7 @@ $  ./hledger-csv
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    expense:unknown
+    expenses:unknown
 
 >=0
 
@@ -165,7 +165,7 @@ $  ./hledger-csv --separator ';'
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    expense:unknown
+    expenses:unknown
 
 >=0
 
@@ -262,7 +262,7 @@ $  ./hledger-csv
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    expense:unknown
+    expenses:unknown
 
 >=0
 
@@ -306,8 +306,8 @@ if Flubber
    amount-in  (%amount-in)
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct              $-50
-    expense:unknown
+    assets:myacct               $-50
+    expenses:unknown
 
 >=0
 
@@ -346,7 +346,7 @@ amount %2
 date %1
 date-format %Y/%m/%d
 $  ./hledger-csv | hledger balance -f - --no-total 
-           $1,001.00  expense:unknown
+           $1,001.00  expenses:unknown
           $-1,001.00  income:unknown
 >=0
 
@@ -468,7 +468,7 @@ $  ./hledger-csv
 # $  ./hledger-csv
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
-#     expense:unknown              $-50
+#     expenses:unknown              $-50
 #
 # 2009/09/11 Flubber Co🎅
 #     Assets:MyAccount            $-50
@@ -491,7 +491,7 @@ $  ./hledger-csv
 # $  ./hledger-csv
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
-#     expense:unknown              $-50
+#     expenses:unknown              $-50
 #
 # 2009/09/11 Flubber Co🎅
 #     Assets:MyAccount            $-50
