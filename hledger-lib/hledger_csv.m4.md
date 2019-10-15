@@ -280,8 +280,8 @@ to the amount
 (TODO: <s>when there is an amount</s>).
 Or, you can use an `amountN` [field assignment](#field-assignment) for more control, eg:
 ```
-fields date,description,currency,amount_
-amount1 %amount_ %currency
+fields date,description,currency,amount1
+amount1 %amount1 %currency
 ```
 
 ## CSV balance assertions/assignments
