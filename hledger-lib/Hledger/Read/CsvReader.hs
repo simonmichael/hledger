@@ -465,22 +465,8 @@ parseCsvRules rulesfile s =
 validateRules :: CsvRules -> Either String CsvRules
 validateRules rules = do
   unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1\n"
-  unless ((amount && not (amountin || amountout)) ||
-          (not amount && (amountin && amountout)) ||
-          balance)
-    $ Left $ unlines [
-       "Please specify (as a top level CSV rule) either the amount1 field,"
-      ,"both the amount1-in and amount1-out fields, or the balance1 field. Eg:"
-      ,"amount1 %2\n"
-      ,"You can also use amount, or both amount-in and amount-out, or balance,"
-      ,"though this syntax is considered legacy." 
-      ]
   Right rules
   where
-    amount    = isAssigned "amount" || isAssigned "amount1"
-    amountin  = isAssigned "amount-in" || isAssigned "amount1-in"
-    amountout = isAssigned "amount-out" || isAssigned "amount1-out"
-    balance   = isAssigned "balance" || isAssigned "balance1"
     isAssigned f = isJust $ getEffectiveAssignment rules [] f
 
 -- parsers
