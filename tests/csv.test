@@ -10,7 +10,7 @@ account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50
-    income:unknown
+    income:unknown            $-50
 
 >=0
 
@@ -30,11 +30,11 @@ currency $
 $  ./hledger-csv
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
-    income:unknown
+    income:unknown              $-50
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    expenses:unknown
+    expenses:unknown             $50
 
 >=0
 
@@ -53,7 +53,7 @@ if Flubber
 $  ./hledger-csv
 2009/09/10 Flubber Co  ; cmt
     assets:myacct             $50
-    acct
+    acct                     $-50
 
 >=0
 
@@ -70,7 +70,7 @@ account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $123
-    income:unknown
+    income:unknown            $-50
 
 >=0
 
@@ -88,11 +88,11 @@ account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $123
-    income:unknown
+    income:unknown            $-50
 
 2009/09/11 Blubber Co
     assets:myacct              $60
-    income:unknown
+    income:unknown            $-60
 
 >=0
 
@@ -110,11 +110,11 @@ account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $123
-    income:unknown
+    income:unknown            $-50
 
 2009/09/11 Blubber Co
     assets:myacct              $60
-    income:unknown
+    income:unknown            $-60
 
 >=0
 
@@ -137,11 +137,11 @@ account2 expense:other
 $  ./hledger-csv
 2009/10/09
     liabilities:bank            $-50
-    expense:other
+    expense:other                $50
 
 2009/11/09
     liabilities:bank             $60
-    expense:other
+    expense:other               $-60
 
 >=0
 
@@ -161,11 +161,11 @@ currency $
 $  ./hledger-csv --separator ';'
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
-    income:unknown
+    income:unknown              $-50
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    expenses:unknown
+    expenses:unknown             $50
 
 >=0
 
@@ -182,7 +182,7 @@ account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50
-    income:unknown     = $123
+    income:unknown            $-50 = $123
 
 >=0
 
@@ -199,7 +199,7 @@ account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $321
-    income:unknown     = $123
+    income:unknown            $-50 = $123
 
 >=0
 
@@ -218,7 +218,7 @@ account3   expenses:tax
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $321
-    income:unknown     = $123
+    income:unknown        $-50.234 = $123
     expenses:tax            $0.234  ; VAT
 
 >=0
@@ -237,7 +237,8 @@ account3   expenses:tax
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct             $50 = $321
-    unknown           = $123
+    unknown                  $-50 = $123
+    unknown               £-0.234 = $123
     expenses:tax           £0.234  ; VAT
 
 >=0
@@ -258,11 +259,11 @@ currency $
 $  ./hledger-csv
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
-    income:unknown
+    income:unknown              $-50
 
 2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
-    expenses:unknown
+    expenses:unknown             $50
 
 >=0
 
@@ -288,7 +289,7 @@ account1 assets:myacct
 $  ./hledger-csv
 2009/09/10 Flubber Co Co Co
     assets:myacct              $50
-    income:unknown
+    income:unknown            $-50
 
 >=0
 
@@ -307,7 +308,7 @@ if Flubber
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct               $-50
-    expenses:unknown
+    expenses:unknown             $50
 
 >=0
 
@@ -331,7 +332,7 @@ description %description for %itemtitle
 $  ./hledger-csv
 2018/12/22 (123456789) Someone for Joyful Systems
     sm:assets:online:paypal              $9.41 = $57.60
-    sm:expenses:unknown
+    sm:expenses:unknown                 $-8.82
     JS:expenses:banking:paypal          $-0.59
 
 >=0
@@ -380,11 +381,11 @@ if MIDDLE
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50
-    income:unknown
+    income:unknown            $-50
 
 2009/09/10 Flubber Co
     assets:myacct              $50
-    income:unknown
+    income:unknown            $-50
 
 >=0
 

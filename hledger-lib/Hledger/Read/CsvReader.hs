@@ -801,7 +801,7 @@ transactionFromCsvRecord sourcepos rules record = t
         Right balanced ->
           -- If we managed to balance transaction, lets infer better names for all "unknown" accounts
           t' {tpostings =
-              [ originalPosting {paccount=newAccount}
+              [ originalPosting {paccount=newAccount, pamount=newAmount}
               | (originalPosting,p) <- zip postings (tpostings balanced)
               , let account = paccount p
               , let newAccount =
@@ -811,6 +811,11 @@ transactionFromCsvRecord sourcepos rules record = t
                              Just True -> "income:unknown"
                              Just False -> "expenses:unknown"
                              _ -> "unknown"
+              , let newAmount =
+                      if pamount originalPosting == missingmixedamt &&
+                         pamount p /= missingmixedamt
+                      then pamount p
+                      else pamount originalPosting
               ]}
     -- build the transaction
     t' = nulltransaction{
