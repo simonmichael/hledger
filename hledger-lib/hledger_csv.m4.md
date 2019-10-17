@@ -253,11 +253,8 @@ The order of same-day entries will be preserved
 
 ## CSV accounts
 
-Each journal entry will have at least two [postings](journal.html#postings), usually to `account1` and `account2`.
-
-It is entirely up to you which account field to assign to the account whose CSV we are reading, however you might
-consider assigning it to the last posting (`account2` in the simplest case). This way, if the CSV contrains transactions in multiple currencies,
-and you don't provide posting [prices](journal.html#transaction-prices) explicitly they will be priced in the currency of the last posting.
+Each journal entry will have at least two [postings](journal.html#postings), to `account1` and some other account (usually `account2`).
+It's conventional and recommended to use `account1` for the account whose CSV we are reading.
 
 ## CSV amounts
 
