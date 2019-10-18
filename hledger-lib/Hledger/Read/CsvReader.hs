@@ -735,6 +735,9 @@ transactionFromCsvRecord sourcepos rules record = t
           comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
           account =
             case account' of
+              -- If account is explicitly "unassigned", suppress posting
+              -- Otherwise, generate posting with "unknown" account if we have amount/balance information
+              Just "" -> Nothing
               Just account -> Just account
               Nothing ->
                 -- If we have amount or balance assertion (which implies potential amount change),

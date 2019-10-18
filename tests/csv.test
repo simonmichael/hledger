@@ -450,6 +450,46 @@ $  ./hledger-csv
 
 >=0
 
+# 21. Amountless postings and conditional third posting
+<
+"12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","57.60",""
+"12/22/2018","06:22:50","PST","Someone","Empty fee","Completed","USD","10.00","","6.66","someone@some.where","simon@joyful.com","987654321","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","99.60",""
+"12/22/2018","06:22:50","PST","Someone","Conditional Empty fee","Completed","USD","10.00","-1.23","7.77","someone@some.where","simon@joyful.com","10101010101","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","88.66",""
+
+RULES
+fields date, time, timezone, description, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
+account1 sm:assets:online:paypal
+amount1 %netamount
+account2 sm:expenses:unknown
+account3 JS:expenses:banking:paypal
+amount3 %feeamount
+balance %18
+code %13
+currency $
+date %1
+date-format %m/%d/%Y
+description %description for %itemtitle
+if Conditional Empty Fee
+    account3
+
+$  ./hledger-csv
+2018/12/22 (123456789) Someone for Joyful Systems
+    sm:assets:online:paypal              $9.41 = $57.60
+    sm:expenses:unknown                 $-8.82
+    JS:expenses:banking:paypal          $-0.59
+
+2018/12/22 (987654321) Someone for Joyful Systems
+    sm:assets:online:paypal              $6.66 = $99.60
+    sm:expenses:unknown
+    JS:expenses:banking:paypal
+
+2018/12/22 (10101010101) Someone for Joyful Systems
+    sm:assets:online:paypal           $7.77 = $88.66
+    sm:expenses:unknown              $-7.77
+
+>=0
+
+
 # . TODO: without --separator gives obscure error
 #   |
 # 1 | 10/2009/09;Flubber Co🎅;50;
