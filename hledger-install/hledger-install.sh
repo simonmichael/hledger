@@ -50,7 +50,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20190905
+HLEDGER_INSTALL_VERSION=20191018
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
