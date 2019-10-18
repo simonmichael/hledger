@@ -143,8 +143,6 @@ An assignment to any of `accountN`, `amountN`, `amountN-in`, `amountN-out`, `bal
 
 Fields `amount`, `amount-in`, `amount-out`, `currency`, `balance` and `comment` are treated as aliases for `amount1`, and so on. If your rules file leads to both aliased fields having different values, `hledger` will raise an error.
 
-You need to provide enough information to create at least one posting (not necessary number 1).
-
 Eg:
 ```rules
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
