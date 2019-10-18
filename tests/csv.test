@@ -218,7 +218,7 @@ account3   expenses:tax
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $321
-    income:unknown        $-50.234 = $123
+    income:unknown     = $123
     expenses:tax            $0.234  ; VAT
 
 >=0
@@ -237,8 +237,7 @@ account3   expenses:tax
 $  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct             $50 = $321
-    unknown                  $-50 = $123
-    unknown               £-0.234 = $123
+    unknown           = $123
     expenses:tax           £0.234  ; VAT
 
 >=0
@@ -332,7 +331,7 @@ description %description for %itemtitle
 $  ./hledger-csv
 2018/12/22 (123456789) Someone for Joyful Systems
     sm:assets:online:paypal              $9.41 = $57.60
-    sm:expenses:unknown                 $-8.82
+    sm:expenses:unknown
     JS:expenses:banking:paypal          $-0.59
 
 >=0
@@ -475,7 +474,7 @@ if Conditional Empty Fee
 $  ./hledger-csv
 2018/12/22 (123456789) Someone for Joyful Systems
     sm:assets:online:paypal              $9.41 = $57.60
-    sm:expenses:unknown                 $-8.82
+    sm:expenses:unknown
     JS:expenses:banking:paypal          $-0.59
 
 2018/12/22 (987654321) Someone for Joyful Systems

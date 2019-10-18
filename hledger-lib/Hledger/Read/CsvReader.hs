@@ -750,7 +750,7 @@ transactionFromCsvRecord sourcepos rules record = t
         case account of
           Nothing -> Nothing
           Just account -> 
-            Just $ posting {paccount=account, pamount=fromMaybe missingmixedamt amount, ptransaction=Just t', pbalanceassertion=toAssertion <$> balance, pcomment = comment}
+            Just $ (number, posting {paccount=account, pamount=fromMaybe missingmixedamt amount, ptransaction=Just t', pbalanceassertion=toAssertion <$> balance, pcomment = comment})
 
     parsePosting number =              
       parsePosting' number
@@ -765,9 +765,9 @@ transactionFromCsvRecord sourcepos rules record = t
     posting1' = parsePosting "1"
     posting1 =
       case (postingLegacy,posting1') of
-        (Just legacy, Nothing) -> Just legacy
-        (Nothing, Just posting1) -> Just posting1
-        (Just legacy, Just posting1) ->
+        (Just (_,legacy), Nothing) -> Just ("1", legacy)
+        (Nothing, Just (_,posting1)) -> Just ("1", posting1)
+        (Just (_,legacy), Just (_,posting1)) ->
           -- Here we merge legacy fields such as "amount" with "amount1", etc
           -- Account and Comment would be the same by construction
           let balanceassertion = (pbalanceassertion legacy) `or` (pbalanceassertion posting1)
@@ -787,15 +787,20 @@ transactionFromCsvRecord sourcepos rules record = t
                                          , "amount/amount-in/amount-out is " ++ showMixedAmount al
                                          , "amount1/amount1-in/amount1-out is " ++ showMixedAmount a1
                                          ]
-          in Just $ posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t', pbalanceassertion=balanceassertion, pcomment = pcomment posting1}
+          in Just $ ("1", posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t', pbalanceassertion=balanceassertion, pcomment = pcomment posting1})
         (Nothing, Nothing) -> Nothing
     postings' = catMaybes $ posting1:[ parsePosting i | x<-[2..9], let i = show x]
     postings =
       case postings' of
         -- To be compatible with the behavior of the old code which allowed two postings only, we enforce
-        -- second posting when rules generated just one of them.
-        [posting1] -> [posting1,posting{paccount="unknown", pamount=missingmixedamt, ptransaction=Just t'}]
-        _ -> postings'
+        -- second posting when rules generated just first of them.
+        -- When we have srictly first and second posting, but second posting does not have amount, we fill it in.
+        [("1",posting1)] -> [posting1,posting{paccount="unknown", pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t'}]
+        [("1",posting1),("2",posting2)] ->
+          case (pamount posting1 == missingmixedamt , pamount posting2 == missingmixedamt) of
+            (False, True) -> [posting1, posting2{pamount=costOfMixedAmount(-(pamount posting1))}]
+            _  -> [posting1, posting2]
+        _ -> map snd postings'
         
     balanced = balanceTransaction Nothing t'
     t =
@@ -804,7 +809,7 @@ transactionFromCsvRecord sourcepos rules record = t
         Right balanced ->
           -- If we managed to balance transaction, lets infer better names for all "unknown" accounts
           t' {tpostings =
-              [ originalPosting {paccount=newAccount, pamount=newAmount}
+              [ originalPosting {paccount=newAccount}
               | (originalPosting,p) <- zip postings (tpostings balanced)
               , let account = paccount p
               , let newAccount =
@@ -814,11 +819,6 @@ transactionFromCsvRecord sourcepos rules record = t
                              Just True -> "income:unknown"
                              Just False -> "expenses:unknown"
                              _ -> "unknown"
-              , let newAmount =
-                      if pamount originalPosting == missingmixedamt &&
-                         pamount p /= missingmixedamt
-                      then pamount p
-                      else pamount originalPosting
               ]}
     -- build the transaction
     t' = nulltransaction{
