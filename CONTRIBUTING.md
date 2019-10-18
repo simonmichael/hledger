@@ -208,8 +208,8 @@ and help transform world finance!
 - Test installation on platforms you have access to
 - Test examples, advice, and links in the docs
 - Run the latest release or developer build in daily use
-- Run [[tests|Developer-workflows#run-package-tests]]
-- Run [[benchmarks|Developer-workflows#run-package-benchmarks]]
+- Run [tests](#run-package-tests)
+- Run [benchmarks](#run-package-benchmarks)
 - Report packaging, documentation, UX, functional, performance issues
 - Report and help analyse problems via irc/mail list/bug tracker
 
@@ -271,7 +271,7 @@ Marketing and market understanding is vital.
 
 ### Developer
 
-See [[Developer workflows]]
+See [Developer workflows](#developer-workflows).
 
 
 
@@ -284,7 +284,7 @@ and to insulate us a little from the ever-evolving Haskell tools ecosystem.
 Using it is entirely optional, but recommended.
 You'll need [GNU Make](http://www.gnu.org/software/make) installed.
 
-The Makefile contains a fair amount of obsolete cruft and needs cleanup. Some tasks (docs, website) are now handled by the [[Shake]] file instead.
+The Makefile contains a fair amount of obsolete cruft and needs cleanup. Some tasks (docs, website) are now handled by the [Shake](#shake) file instead.
 
 The Makefile is self-documenting. Run `make` to see a list of the main make rules:
 
@@ -605,7 +605,7 @@ Library-user-impacting commits, eg API changes, ideally will also
 be called out, and can described in more technical language.
 Commits affecting hledger internals are less important, 
 but you may notice some adhoc conventions if you browse the history.
-In particular, you can optionally prefix the summary with short component codes (cf [[Issues]])
+In particular, you can optionally prefix the summary with short component codes (cf [Issues](#issues))
 to facilitate history reading and changelog/release note production.
 
 Rewrite and force-push your commits freely (rebase -i, push -f) to clean them up. 
@@ -1515,7 +1515,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 ### Work on docs
 
-Most docs tasks are handled by [[Shake]]. 
+Most docs tasks are handled by [Shake](#shake). 
 
 #### List Shake rules:
 
