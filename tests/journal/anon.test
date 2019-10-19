@@ -1,0 +1,35 @@
+
+# Input for the following tests:
+
+account assets
+account expenses
+alias tips=expenses:tips
+
+2019-01-01 (receipt)  ; signed
+    (assets)   2
+
+2019-02-01 borrow
+    (liabilities)   1
+    (tips)  3
+
+# Basic tests on accounts
+
+$ hledger -f- print --anon
+> !/assets|liabilities|expenses|tips/
+
+$ hledger -f- reg --anon
+> !/assets|liabilities|expenses|tips/
+
+$ hledger -f- bal --anon
+> !/assets|liabilities|expenses|tips/
+
+$ hledger -f- accounts --anon
+> !/assets|liabilities|expenses|tips/
+
+# Basic tests on descriptions and comments
+
+$ hledger -f- print --anon
+> !/borrow|signed/
+
+$ hledger -f- reg --anon
+> !/borrow/
