@@ -35,7 +35,6 @@ module Hledger.Cli.CliOptions (
   CliOpts(..),
   defcliopts,
   getHledgerCliOpts,
-  decodeRawOpts,
   rawOptsToCliOpts,
   checkCliOpts,
   outputFormats,
@@ -394,10 +393,6 @@ defcliopts = CliOpts
     def
     defaultWidth
 
--- | Convert possibly encoded option values to regular unicode strings.
-decodeRawOpts :: RawOpts -> RawOpts
-decodeRawOpts = id  -- TODO: drop usage of this
-
 -- | Default width for hledger console output, when not otherwise specified.
 defaultWidth :: Int
 defaultWidth = 80
@@ -477,7 +472,7 @@ checkCliOpts opts =
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do
   args' <- getArgs >>= expandArgsAt
-  let rawopts = either usageError decodeRawOpts $ process mode' args'
+  let rawopts = either usageError id $ process mode' args'
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
   when ("help" `inRawOpts` rawopts_ opts) $ putStr shorthelp >> exitSuccess

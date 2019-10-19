@@ -207,8 +207,7 @@ argsToCliOpts args addons = do
   let
     args'        = moveFlagsAfterCommand $ replaceNumericFlags args
     cmdargsopts  = either usageError id $ C.process (mainmode addons) args'
-    cmdargsopts' = decodeRawOpts cmdargsopts
-  rawOptsToCliOpts cmdargsopts'
+  rawOptsToCliOpts cmdargsopts
 
 -- | A hacky workaround for cmdargs not accepting flags before the
 -- subcommand name: try to detect and move such flags after the

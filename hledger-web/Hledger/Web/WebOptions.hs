@@ -157,7 +157,7 @@ checkWebOpts wopts = do
 getHledgerWebOpts :: IO WebOpts
 getHledgerWebOpts = do
   args <- fmap replaceNumericFlags . expandArgsAt =<< getArgs
-  rawOptsToWebOpts . decodeRawOpts . either usageError id $ process webmode args
+  rawOptsToWebOpts . either usageError id $ process webmode args
 
 data Capability
   = CapView
