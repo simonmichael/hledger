@@ -42,6 +42,7 @@ instance Anon Posting where
 instance Anon Transaction where
     anon txn = txnTieKnot $ txn { tpostings = map anon . tpostings $ txn
                                 , tdescription = anon . tdescription $ txn
+                                , tcode = anon . tcode $ txn
                                 , tcomment = T.empty
                                 }
 

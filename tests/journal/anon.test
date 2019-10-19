@@ -33,3 +33,8 @@ $ hledger -f- print --anon
 
 $ hledger -f- reg --anon
 > !/borrow/
+
+# Basic tests on transaction code
+
+$ hledger -f- print --anon
+> !/receipt/
