@@ -736,15 +736,15 @@ transactionFromCsvRecord sourcepos rules record = t
           account =
             case account' of
               -- If account is explicitly "unassigned", suppress posting
-              -- Otherwise, generate posting with "unknown" account if we have amount/balance information
+              -- Otherwise, generate posting with "expenses:unknown" account if we have amount/balance information
               Just "" -> Nothing
               Just account -> Just account
               Nothing ->
                 -- If we have amount or balance assertion (which implies potential amount change),
-                -- but no account name, lets generate "unknown" account name.
+                -- but no account name, lets generate "expenses:unknown" account name.
                 case (amount, balance) of
-                  (Just _, _ ) -> Just "unknown"
-                  (_, Just _)  -> Just "unknown"
+                  (Just _, _ ) -> Just "expenses:unknown"
+                  (_, Just _)  -> Just "expenses:unknown"
                   (Nothing, Nothing) -> Nothing
           in
         case account of
@@ -792,7 +792,7 @@ transactionFromCsvRecord sourcepos rules record = t
     postings' = catMaybes $ posting1:[ parsePosting i | x<-[2..9], let i = show x]
 
     improveUnknownAccountName p =
-      if paccount p /="unknown"
+      if paccount p /="expenses:unknown"
       then p
       else case isNegativeMixedAmount (pamount p) of
         Just True -> p{paccount = "income:unknown"}
@@ -805,7 +805,7 @@ transactionFromCsvRecord sourcepos rules record = t
         -- second posting when rules generated just first of them.
         -- When we have srictly first and second posting, but second posting does not have amount, we fill it in.
         [("1",posting1)] ->
-          [posting1,improveUnknownAccountName (posting{paccount="unknown", pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t})]
+          [posting1,improveUnknownAccountName (posting{paccount="expenses:unknown", pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t})]
         [("1",posting1),("2",posting2)] ->
           case (pamount posting1 == missingmixedamt , pamount posting2 == missingmixedamt) of
             (False, True) -> [posting1, improveUnknownAccountName (posting2{pamount=costOfMixedAmount(-(pamount posting1))})]
