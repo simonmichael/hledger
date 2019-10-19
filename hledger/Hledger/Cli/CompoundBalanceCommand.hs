@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, LambdaCase #-}
 {-|
 
 Common helpers for making multi-section balance report commands
@@ -125,11 +125,12 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
     let
       -- use the default balance type for this report, unless the user overrides
       mBalanceTypeOverride =
-        case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst rawopts of
-          "historical":_ -> Just HistoricalBalance
-          "cumulative":_ -> Just CumulativeChange
-          "change":_     -> Just PeriodChange
-          _              -> Nothing
+        choiceopt parse rawopts where
+          parse = \case
+            "historical" -> Just HistoricalBalance
+            "cumulative" -> Just CumulativeChange
+            "change"     -> Just PeriodChange
+            _            -> Nothing
       balancetype = fromMaybe cbctype mBalanceTypeOverride
       -- Set balance type in the report options.
       -- Also, use tree mode (by default, at least?) if --cumulative/--historical

@@ -4,6 +4,7 @@ Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
@@ -97,7 +98,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
             depth_ =depthfromoptsandargs,
             period_=periodfromoptsandargs,
             query_ =unwords -- as in ReportOptions, with same limitations
-                    [quoteIfNeeded v | (k,v) <- rawopts_ copts, k=="args", not $ any (`isPrefixOf` v) ["depth","date"]],
+                    $ collectopts filteredQueryArg (rawopts_ copts),
             -- always disable boring account name eliding, unlike the CLI, for a more regular tree
             no_elide_=True,
             -- flip the default for items with zero amounts, show them by default
@@ -114,6 +115,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
         datespanfromargs = queryDateSpan (date2_ ropts) $ fst $ parseQuery d (T.pack $ query_ ropts)
         periodfromoptsandargs =
           dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
+        filteredQueryArg = \case
+            ("args", v)
+                | not $ any (`isPrefixOf` v) ["depth:", "date:"] -- skip depth/date passed as query
+                    -> Just (quoteIfNeeded v)
+            _ -> Nothing
 
     -- XXX move this stuff into Options, UIOpts
     theme = maybe defaultTheme (fromMaybe defaultTheme . getTheme) $

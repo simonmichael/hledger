@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LambdaCase #-}
 {-|
 
 -}
@@ -10,6 +11,7 @@ import Data.Data (Data)
 import Data.Default
 import Data.Typeable (Typeable)
 import Data.List (intercalate)
+import Data.Maybe (fromMaybe)
 import System.Environment
 
 import Hledger.Cli hiding (progname,version,prognameandversion)
@@ -45,8 +47,8 @@ uiflags = [
   -- ,flagNone ["no-elide"] (setboolopt "no-elide") "don't compress empty parent accounts on one line"
  ]
 
---uimode :: Mode [([Char], [Char])]
-uimode =  (mode "hledger-ui" [("command","ui")]
+--uimode :: Mode RawOpts
+uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
             "browse accounts, postings and entries in a full-window curses interface"
             (argsFlag "[PATTERNS]") []){
               modeGroupFlags = Group {
@@ -91,11 +93,12 @@ data PresentOrFutureOpt = PFDefault | PFPresent | PFFuture deriving (Eq, Show, D
 instance Default PresentOrFutureOpt where def = PFDefault
 
 presentorfutureopt :: RawOpts -> PresentOrFutureOpt
-presentorfutureopt rawopts =
-  case reverse $ filter (`elem` ["present","future"]) $ map fst rawopts of
-    ("present":_) -> PFPresent
-    ("future":_)  -> PFFuture
-    _             -> PFDefault
+presentorfutureopt =
+  fromMaybe PFDefault . choiceopt parse where
+    parse = \case
+      "present" -> Just PFPresent
+      "future"  -> Just PFFuture
+      _         -> Nothing
 
 checkUIOpts :: UIOpts -> UIOpts
 checkUIOpts opts =

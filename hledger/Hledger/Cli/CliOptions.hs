@@ -223,7 +223,7 @@ defMode = Mode {
    ,groupHidden  = []             --  flags not displayed in the usage
    }
  ,modeArgs        = ([], Nothing) -- description of arguments accepted by the command
- ,modeValue       = []            -- value returned when this mode is used to parse a command line
+ ,modeValue       = def           -- value returned when this mode is used to parse a command line
  ,modeCheck       = Right         -- whether the mode's value is correct
  ,modeReform      = const Nothing -- function to convert the value back to a command line arguments
  ,modeExpandAt    = True          -- expand @ arguments for program ?
@@ -245,7 +245,7 @@ defCommandMode names = defMode {
     ,groupHidden  = []             --  flags not displayed in the usage
     }
   ,modeArgs = ([], Just $ argsFlag "[QUERY]")
-  ,modeValue=[("command", headDef "" names)]
+  ,modeValue=setopt "command" (headDef "" names) def
   }
 
 -- | A cmdargs mode representing the hledger add-on command with the
