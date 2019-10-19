@@ -31,14 +31,11 @@ where
 import Control.Exception as C
 import Control.Monad
 
-import Data.Hashable (hash)
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time (Day, addDays)
-import Data.Word
-import Numeric
 import Safe (readMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile)
@@ -54,6 +51,7 @@ import System.Time (ClockTime(TOD))
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Anon
 import Hledger.Data
 import Hledger.Read
 import Hledger.Reports
@@ -98,27 +96,9 @@ pivotByOpts opts =
 -- | Apply the anonymisation transformation on a journal, if option is present
 anonymiseByOpts :: CliOpts -> Journal -> Journal
 anonymiseByOpts opts =
-  case maybestringopt "anon" . rawopts_ $ opts of
-    Just _  -> anonymise
-    Nothing -> id
-
--- | Apply the anonymisation transformation on a journal
-anonymise :: Journal -> Journal
-anonymise j
-  = let
-      pAnons p = p { paccount = T.intercalate (T.pack ":") . map anon . T.splitOn (T.pack ":") . paccount $ p
-                   , pcomment = T.empty
-                   , ptransaction = fmap tAnons . ptransaction $ p
-                   , poriginal = pAnons <$> poriginal p
-                   }
-      tAnons txn = txn { tpostings = map pAnons . tpostings $ txn
-                       , tdescription = anon . tdescription $ txn
-                       , tcomment = T.empty
-                       }
-    in
-      j { jtxns = map tAnons . jtxns $ j }
-  where
-    anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
+  if anon_ . inputopts_ $ opts
+      then anon
+      else id
 
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).
