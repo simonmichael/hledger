@@ -50,7 +50,7 @@ transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} =
   TransactionModifier{tmquerytxt=q, tmpostingrules=ps}
   where
     q = T.pack $ query_ ropts
-    ps = map (parseposting . stripquotes . T.pack) $ listofstringopt "add-posting" rawopts
+    ps = map (parseposting . T.pack) $ listofstringopt "add-posting" rawopts
     parseposting t = either (error' . errorBundlePretty) id ep
       where
         ep = runIdentity (runJournalParser (postingp Nothing <* eof) t')

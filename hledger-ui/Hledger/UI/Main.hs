@@ -97,7 +97,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
             depth_ =depthfromoptsandargs,
             period_=periodfromoptsandargs,
             query_ =unwords -- as in ReportOptions, with same limitations
-                    [v | (k,v) <- rawopts_ copts, k=="args", not $ any (`isPrefixOf` v) ["depth","date"]],
+                    [quoteIfNeeded v | (k,v) <- rawopts_ copts, k=="args", not $ any (`isPrefixOf` v) ["depth","date"]],
             -- always disable boring account name eliding, unlike the CLI, for a more regular tree
             no_elide_=True,
             -- flip the default for items with zero amounts, show them by default

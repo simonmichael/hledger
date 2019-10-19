@@ -29,7 +29,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   -- XXX could be helpful to show the last-seen date, and number of old transactions, too
   let
     inputfiles = listofstringopt "args" rawopts
-    inputstr = intercalate ", " inputfiles
+    inputstr = intercalate ", " $ map quoteIfNeeded inputfiles
     catchup = boolopt "catchup" rawopts
     dryrun = boolopt "dry-run" rawopts
     iopts' = iopts{new_=True, new_save_=not dryrun}

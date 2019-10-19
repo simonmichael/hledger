@@ -98,7 +98,8 @@ data ReportOpts = ReportOpts {
     ,no_elide_       :: Bool
     ,real_           :: Bool
     ,format_         :: Maybe FormatStr
-    ,query_          :: String -- all arguments, as a string
+    ,query_          :: String -- ^ All query arguments space sepeareted
+                               --   and quoted if needed (see 'quoteIfNeeded')
     --
     ,average_        :: Bool
     -- register command only
@@ -175,7 +176,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,no_elide_    = boolopt "no-elide" rawopts'
     ,real_        = boolopt "real" rawopts'
     ,format_      = maybestringopt "format" rawopts' -- XXX move to CliOpts or move validation from Cli.CliOptions to here
-    ,query_       = unwords $ listofstringopt "args" rawopts' -- doesn't handle an arg like "" right
+    ,query_       = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts' -- doesn't handle an arg like "" right
     ,average_     = boolopt "average" rawopts'
     ,related_     = boolopt "related" rawopts'
     ,balancetype_ = balancetypeopt rawopts'
