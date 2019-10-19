@@ -396,7 +396,7 @@ defcliopts = CliOpts
 
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts :: RawOpts -> RawOpts
-decodeRawOpts = map (\(name',val) -> (name', fromSystemString val))
+decodeRawOpts = id  -- TODO: drop usage of this
 
 -- | Default width for hledger console output, when not otherwise specified.
 defaultWidth :: Int

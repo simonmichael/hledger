@@ -15,6 +15,9 @@ Example usage:
 do the right thing, so this file is a no-op and on its way to being removed.
 Not carefully tested.
 
+2019/10/20 update: all packages have base>=4.9 which corresponds to GHC v8.0.1
+and higher. Tear this file apart!
+
 -}
 -- TODO obsolete ?
 
@@ -29,9 +32,6 @@ module Hledger.Utils.UTF8IOCompat (
   hPutStr,
   hPutStrLn,
   --
-  SystemString,
-  fromSystemString,
-  toSystemString,
   error',
   userError',
   usageError,
@@ -85,37 +85,19 @@ import System.IO -- (Handle)
 -- bs_hPutStr        = B8.hPut
 -- bs_hPutStrLn h bs = B8.hPut h bs >> B8.hPut h (B.singleton 0x0a)
 
-
--- | A string received from or being passed to the operating system, such
--- as a file path, command-line argument, or environment variable name or
--- value. With GHC versions before 7.2 on some platforms (posix) these are
--- typically encoded. When converting, we assume the encoding is UTF-8 (cf
--- <http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html#UTF8>).
-type SystemString = String
-
--- | Convert a system string to an ordinary string, decoding from UTF-8 if
--- it appears to be UTF8-encoded and GHC version is less than 7.2.
-fromSystemString :: SystemString -> String
-fromSystemString = id
-
--- | Convert a unicode string to a system string, encoding with UTF-8 if
--- we are on a posix platform with GHC < 7.2.
-toSystemString :: String -> SystemString
-toSystemString = id
-
 -- | A SystemString-aware version of error.
 error' :: String -> a
 error' =
 #if __GLASGOW_HASKELL__ < 800
 -- (easier than if base < 4.9)
-  error . toSystemString
+  error
 #else
-  errorWithoutStackTrace . toSystemString
+  errorWithoutStackTrace
 #endif
 
 -- | A SystemString-aware version of userError.
 userError' :: String -> IOError
-userError' = userError . toSystemString
+userError' = userError
 
 -- | A SystemString-aware version of error that adds a usage hint.
 usageError :: String -> a
