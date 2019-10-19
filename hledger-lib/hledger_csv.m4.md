@@ -154,6 +154,8 @@ Eg:
 fields date, description, , amount1, , , somefield, anotherfield
 ```
 
+For backwards compatibility, we treat posting 1 specially. If your rules generated just posting 1, another posting would be added to your transaction to balance it. If your rules generated posting 1 and posting 2, but amount in the posting 2 is empty, hledger will fill it out with the opposite of posting 1. This special handling is needed to ensure smooth upgrade path from version 1.15.
+
 ## field assignment
 
 *`ENTRYFIELDNAME`* *`FIELDVALUE`*
