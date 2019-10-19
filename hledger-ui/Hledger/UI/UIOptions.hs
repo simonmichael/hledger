@@ -106,10 +106,10 @@ checkUIOpts opts =
 
 -- XXX some refactoring seems due
 getHledgerUIOpts :: IO UIOpts
---getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= rawOptsToUIOpts
+--getHledgerUIOpts = processArgs uimode >>= return >>= rawOptsToUIOpts
 getHledgerUIOpts = do
   args <- getArgs >>= expandArgsAt
   let args' = replaceNumericFlags args
   let cmdargopts = either usageError id $ process uimode args'
-  rawOptsToUIOpts $ decodeRawOpts cmdargopts
+  rawOptsToUIOpts cmdargopts
 
