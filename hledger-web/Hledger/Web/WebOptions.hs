@@ -28,7 +28,7 @@ version = ""
 prognameandversion :: String
 prognameandversion = progname ++ " " ++ version :: String
 
-webflags :: [Flag [(String, String)]]
+webflags :: [Flag RawOpts]
 webflags =
   [ flagNone
       ["serve", "server"]
@@ -75,11 +75,11 @@ webflags =
       "read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)"
   ]
 
-webmode :: Mode [(String, String)]
+webmode :: Mode RawOpts
 webmode =
   (mode
      "hledger-web"
-     [("command", "web")]
+     (setopt "command" "web" def)
      "start serving the hledger web interface"
      (argsFlag "[PATTERNS]")
      [])

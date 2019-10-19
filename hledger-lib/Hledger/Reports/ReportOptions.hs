@@ -4,7 +4,7 @@ Options common to most hledger reports.
 
 -}
 
-{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, LambdaCase, DeriveDataTypeable #-}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
@@ -216,18 +216,20 @@ checkReportOpts ropts@ReportOpts{..} =
       _              -> Right ()
 
 accountlistmodeopt :: RawOpts -> AccountListMode
-accountlistmodeopt rawopts =
-  case reverse $ filter (`elem` ["tree","flat"]) $ map fst rawopts of
-    ("tree":_) -> ALTree
-    ("flat":_) -> ALFlat
-    _          -> ALDefault
+accountlistmodeopt =
+  fromMaybe ALDefault . choiceopt parse where
+    parse = \case
+      "tree" -> Just ALTree
+      "flat" -> Just ALFlat
+      _      -> Nothing
 
 balancetypeopt :: RawOpts -> BalanceType
-balancetypeopt rawopts =
-  case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst rawopts of
-    ("historical":_) -> HistoricalBalance
-    ("cumulative":_) -> CumulativeChange
-    _                -> PeriodChange
+balancetypeopt =
+  fromMaybe PeriodChange . choiceopt parse where
+    parse = \case
+      "historical" -> Just HistoricalBalance
+      "cumulative" -> Just CumulativeChange
+      _            -> Nothing
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
 -- options appearing in the command line.
@@ -253,7 +255,7 @@ periodFromRawOpts d rawopts =
 -- Get all begin dates specified by -b/--begin or -p/--period options, in order,
 -- using the given date to interpret relative date expressions.
 beginDatesFromRawOpts :: Day -> RawOpts -> [Day]
-beginDatesFromRawOpts d = catMaybes . map (begindatefromrawopt d)
+beginDatesFromRawOpts d = collectopts (begindatefromrawopt d)
   where
     begindatefromrawopt d (n,v)
       | n == "begin" =
@@ -271,7 +273,7 @@ beginDatesFromRawOpts d = catMaybes . map (begindatefromrawopt d)
 -- Get all end dates specified by -e/--end or -p/--period options, in order,
 -- using the given date to interpret relative date expressions.
 endDatesFromRawOpts :: Day -> RawOpts -> [Day]
-endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
+endDatesFromRawOpts d = collectopts (enddatefromrawopt d)
   where
     enddatefromrawopt d (n,v)
       | n == "end" =
@@ -290,7 +292,7 @@ endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
 -- -D/--daily, -W/--weekly, -M/--monthly etc. options.
 -- An interval from --period counts only if it is explicitly defined.
 intervalFromRawOpts :: RawOpts -> Interval
-intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
+intervalFromRawOpts = lastDef NoInterval . collectopts intervalfromrawopt
   where
     intervalfromrawopt (n,v)
       | n == "period" =
@@ -317,7 +319,7 @@ extractIntervalOrNothing (interval, _) = Just interval
 -- -P/--pending, -C/--cleared flags. -UPC is equivalent to no flags,
 -- so this returns a list of 0-2 unique statuses.
 statusesFromRawOpts :: RawOpts -> [Status]
-statusesFromRawOpts = simplifyStatuses . catMaybes . map statusfromrawopt
+statusesFromRawOpts = simplifyStatuses . collectopts statusfromrawopt
   where
     statusfromrawopt (n,_)
       | n == "unmarked"  = Just Unmarked
@@ -343,7 +345,7 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
 -- -B/--cost, -V, -X/--exchange, or --value flags. If there's more
 -- than one of these, the rightmost flag wins.
 valuationTypeFromRawOpts :: RawOpts -> Maybe ValuationType
-valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromrawopt
+valuationTypeFromRawOpts = lastMay . collectopts valuationfromrawopt
   where
     valuationfromrawopt (n,v)  -- option name, value
       | n == "B"     = Just $ AtCost Nothing

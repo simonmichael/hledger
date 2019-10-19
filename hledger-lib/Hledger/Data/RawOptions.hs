@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+
 {-|
 
 hledger's cmdargs modes parse command-line arguments to an
@@ -13,6 +15,8 @@ module Hledger.Data.RawOptions (
   setboolopt,
   inRawOpts,
   boolopt,
+  choiceopt,
+  collectopts,
   stringopt,
   maybestringopt,
   listofstringopt,
@@ -23,38 +27,65 @@ module Hledger.Data.RawOptions (
 where
 
 import Data.Maybe
+import Data.Data
+import Data.Default
 import Safe
 
 import Hledger.Utils
 
 
 -- | The result of running cmdargs: an association list of option names to string values.
-type RawOpts = [(String,String)]
+newtype RawOpts = RawOpts { unRawOpts :: [(String,String)] }
+    deriving (Show, Data, Typeable)
+
+instance Default RawOpts where def = RawOpts []
+
+overRawOpts f = RawOpts . f . unRawOpts
 
 setopt :: String -> String -> RawOpts -> RawOpts
-setopt name val = (++ [(name, val)])
+setopt name val = overRawOpts (++ [(name, val)])
 
 setboolopt :: String -> RawOpts -> RawOpts
-setboolopt name = (++ [(name,"")])
+setboolopt name = overRawOpts (++ [(name,"")])
 
 -- | Is the named option present ?
 inRawOpts :: String -> RawOpts -> Bool
-inRawOpts name = isJust . lookup name
+inRawOpts name = isJust . lookup name . unRawOpts
 
 boolopt :: String -> RawOpts -> Bool
 boolopt = inRawOpts
 
+-- | Get latests successfully parsed flag
+--
+-- >>> choiceopt Just (RawOpts [("a",""), ("b",""), ("c","")])
+-- Just "c"
+-- >>> choiceopt (const Nothing) (RawOpts [("a","")])
+-- Nothing
+-- >>> choiceopt (listToMaybe . filter (`elem` ["a","b"])) (RawOpts [("a",""), ("b",""), ("c","")])
+-- Just "b"
+choiceopt :: (String -> Maybe a) -> RawOpts -> Maybe a
+choiceopt f = lastMay . collectopts (f . fst)
+
+-- | Collects processed and filtered list of options preserving their order
+--
+-- >>> collectopts (const Nothing) (RawOpts [("x","")])
+-- []
+-- >>> collectopts Just (RawOpts [("a",""),("b","")])
+-- [("a",""),("b","")]
+collectopts :: ((String, String) -> Maybe a) -> RawOpts -> [a]
+collectopts f = mapMaybe f . unRawOpts
+
 maybestringopt :: String -> RawOpts -> Maybe String
-maybestringopt name = lookup name . reverse
+maybestringopt name = lookup name . reverse . unRawOpts
 
 stringopt :: String -> RawOpts -> String
 stringopt name = fromMaybe "" . maybestringopt name
 
 maybecharopt :: String -> RawOpts -> Maybe Char
-maybecharopt name rawopts = lookup name rawopts >>= headMay
+maybecharopt name (RawOpts rawopts) = lookup name rawopts >>= headMay
 
 listofstringopt :: String -> RawOpts -> [String]
-listofstringopt name rawopts = [v | (k,v) <- rawopts, k==name]
+listofstringopt name (RawOpts rawopts) = [v | (k,v) <- rawopts, k==name]
 
 maybeintopt :: String -> RawOpts -> Maybe Int
 maybeintopt name rawopts =
