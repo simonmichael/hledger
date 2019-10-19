@@ -30,7 +30,7 @@ tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     mtagpat   = headMay args
     queryargs = drop 1 args
     values    = boolopt "values" rawopts
-    q = queryFromOpts d $ ropts{query_ = unwords queryargs}
+    q = queryFromOpts d $ ropts{query_ = unwords $ map quoteIfNeeded queryargs}
     txns = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
     tagsorvalues =
       nubSort $

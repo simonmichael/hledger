@@ -92,7 +92,7 @@ add opts j
         showHelp
         today <- getCurrentDay
         let es = defEntryState{esOpts=opts
-                              ,esArgs=map (T.unpack . stripquotes . T.pack) $ listofstringopt "args" $ rawopts_ opts
+                              ,esArgs=listofstringopt "args" $ rawopts_ opts
                               ,esToday=today
                               ,esDefDate=today
                               ,esJournal=j

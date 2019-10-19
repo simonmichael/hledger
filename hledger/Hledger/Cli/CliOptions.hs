@@ -430,7 +430,7 @@ rawOptsToCliOpts rawopts = checkCliOpts <$> do
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
-             ,file_            = map (T.unpack . stripquotes . T.pack) $ listofstringopt "file" rawopts
+             ,file_            = listofstringopt "file" rawopts
              ,inputopts_       = iopts
              ,reportopts_      = ropts
              ,output_file_     = maybestringopt "output-file" rawopts

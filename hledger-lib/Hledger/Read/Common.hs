@@ -178,11 +178,11 @@ definputopts = InputOpts def def ',' def def def def True def def
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
 rawOptsToInputOpts rawopts = InputOpts{
-   -- files_             = map (T.unpack . stripquotes . T.pack) $ listofstringopt "file" rawopts
+   -- files_             = listofstringopt "file" rawopts
    mformat_           = Nothing
   ,mrules_file_       = maybestringopt "rules-file" rawopts
   ,separator_         = fromMaybe ',' (maybecharopt "separator" rawopts)
-  ,aliases_           = map (T.unpack . stripquotes . T.pack) $ listofstringopt "alias" rawopts
+  ,aliases_           = listofstringopt "alias" rawopts
   ,anon_              = boolopt "anon" rawopts
   ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
   ,new_               = boolopt "new" rawopts

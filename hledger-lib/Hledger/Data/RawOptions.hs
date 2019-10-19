@@ -23,7 +23,6 @@ module Hledger.Data.RawOptions (
 where
 
 import Data.Maybe
-import qualified Data.Text as T
 import Safe
 
 import Hledger.Utils
@@ -33,7 +32,7 @@ import Hledger.Utils
 type RawOpts = [(String,String)]
 
 setopt :: String -> String -> RawOpts -> RawOpts
-setopt name val = (++ [(name, quoteIfNeeded $ val)])
+setopt name val = (++ [(name, val)])
 
 setboolopt :: String -> RawOpts -> RawOpts
 setboolopt name = (++ [(name,"")])
@@ -46,7 +45,7 @@ boolopt :: String -> RawOpts -> Bool
 boolopt = inRawOpts
 
 maybestringopt :: String -> RawOpts -> Maybe String
-maybestringopt name = fmap (T.unpack . stripquotes . T.pack) . lookup name . reverse
+maybestringopt name = lookup name . reverse
 
 stringopt :: String -> RawOpts -> String
 stringopt name = fromMaybe "" . maybestringopt name
