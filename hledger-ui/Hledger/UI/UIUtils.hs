@@ -129,7 +129,7 @@ helpDialog _copts =
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Help"
                   ,renderKey ("?   ", "toggle this help")
-                  ,renderKey ("pmi ", "(with this help open)\nshow manual in pager/man/info")
+                  ,renderKey ("p/m/i ", "(with this help open)\nshow manual in pager/man/info")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
