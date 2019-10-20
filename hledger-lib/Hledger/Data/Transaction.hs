@@ -60,7 +60,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Text.Printf
-import qualified Data.Map as Map
+import qualified Data.Map as M
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -356,7 +356,7 @@ transactionPostingBalances t = (sumPostings $ realPostings t
 -- and summing the real postings, and summing the balanced virtual postings;
 -- and applying the given display styles if any (maybe affecting decimal places);
 -- do both totals appear to be zero when rendered ?
-isTransactionBalanced :: Maybe (Map.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
+isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
 isTransactionBalanced styles t =
     -- isReallyZeroMixedAmountCost rsum && isReallyZeroMixedAmountCost bvsum
     isZeroMixedAmount rsum' && isZeroMixedAmount bvsum'
@@ -380,7 +380,7 @@ isTransactionBalanced styles t =
 -- if provided, so that the result agrees with the numbers users can see.
 --
 balanceTransaction ::
-     Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+     Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   -> Transaction
   -> Either String Transaction
 balanceTransaction mstyles = fmap fst . balanceTransactionHelper mstyles
@@ -389,12 +389,12 @@ balanceTransaction mstyles = fmap fst . balanceTransactionHelper mstyles
 -- use one of those instead. It also returns a list of accounts
 -- and amounts that were inferred.
 balanceTransactionHelper ::
-     Maybe (Map.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+     Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper mstyles t = do
   (t', inferredamtsandaccts) <-
-    inferBalancingAmount (fromMaybe Map.empty mstyles) $ inferBalancingPrices t
+    inferBalancingAmount (fromMaybe M.empty mstyles) $ inferBalancingPrices t
   if isTransactionBalanced mstyles t'
   then Right (txnTieKnot t', inferredamtsandaccts)
   else Left $ annotateErrorWithTransaction t' $ nonzerobalanceerror t'
@@ -424,7 +424,7 @@ annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsou
 -- one of them is amountless. If the amounts had price(s) the inferred amount
 -- have the same price(s), and will be converted to the price commodity.
 inferBalancingAmount ::
-     Map.Map CommoditySymbol AmountStyle -- ^ commodity display styles
+     M.Map CommoditySymbol AmountStyle -- ^ commodity display styles
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 inferBalancingAmount styles t@Transaction{tpostings=ps}
@@ -684,10 +684,10 @@ tests_Transaction =
             ]
     , tests
          "inferBalancingAmount"
-         [ (fst <$> inferBalancingAmount Map.empty nulltransaction) `is` Right nulltransaction
-         , (fst <$> inferBalancingAmount Map.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` missingamt]}) `is`
+         [ (fst <$> inferBalancingAmount M.empty nulltransaction) `is` Right nulltransaction
+         , (fst <$> inferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` missingamt]}) `is`
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` usd 5]}
-         , (fst <$> inferBalancingAmount Map.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) `is`
+         , (fst <$> inferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) `is`
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
          ]
     , tests
