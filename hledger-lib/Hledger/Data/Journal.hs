@@ -24,7 +24,7 @@ module Hledger.Data.Journal (
   journalApplyCommodityStyles,
   commodityStylesFromAmounts,
   journalCommodityStyles,
-  journalConvertAmountsToCost,
+  journalToCost,
   journalReverse,
   journalSetLastReadTime,
   journalPivot,
@@ -1011,8 +1011,8 @@ canonicalStyleFrom ss@(s:_) =
 
 -- | Convert all this journal's amounts to cost using the transaction prices, if any.
 -- The journal's commodity styles are applied to the resulting amounts.
-journalConvertAmountsToCost :: Journal -> Journal
-journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
+journalToCost :: Journal -> Journal
+journalToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
     where
       styles = journalCommodityStyles j
 

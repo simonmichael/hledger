@@ -416,7 +416,7 @@ flat_ = (==ALFlat) . accountlistmode_
 journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
 journalSelectingAmountFromOpts opts =
   case value_ opts of
-    Just (AtCost _) -> journalConvertAmountsToCost
+    Just (AtCost _) -> journalToCost
     _               -> id
 
 -- | Convert report options and arguments to a query.
