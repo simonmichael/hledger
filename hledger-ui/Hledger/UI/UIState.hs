@@ -108,6 +108,32 @@ toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
   where
     toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
 
+-- | Show primary amounts, not cost or value.
+clearCostValue :: UIState -> UIState
+clearCostValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{value_ = plog "clearing value mode" Nothing}}}}
+
+-- | Toggle between showing the primary amounts or costs.
+toggleCost :: UIState -> UIState
+toggleCost ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{value_ = valuationToggleCost $ value_ ropts}}}}
+
+-- | Toggle between showing primary amounts or default valuation.
+toggleValue :: UIState -> UIState
+toggleValue ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{
+    value_ = plog "toggling value mode to" $ valuationToggleValue $ value_ ropts}}}}
+
+-- | Basic toggling of -B/cost, for hledger-ui.
+valuationToggleCost :: Maybe ValuationType -> Maybe ValuationType
+valuationToggleCost (Just (AtCost _)) = Nothing
+valuationToggleCost _                 = Just $ AtCost Nothing
+
+-- | Basic toggling of -V, for hledger-ui.
+valuationToggleValue :: Maybe ValuationType -> Maybe ValuationType
+valuationToggleValue (Just (AtDefault _)) = Nothing
+valuationToggleValue _                    = Just $ AtDefault Nothing
+
 -- | Toggle between flat and tree mode. If current mode is unspecified/default, assume it's flat.
 toggleTree :: UIState -> UIState
 toggleTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =

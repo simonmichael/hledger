@@ -161,6 +161,31 @@ when invoked from the error screen.
 
 `q` quits the application.
 
+Experimental:
+
+`B` toggles cost mode, showing amounts in their transaction price's
+commodity (like toggling the
+[`-B/--cost`](https://hledger.org/hledger.html#b-cost) flag).
+
+`V` toggles value mode, showing amounts' current market value in their
+default valuation commodity (like toggling the
+[`-V/--market`](https://hledger.org/hledger.html#v-market-value) flag).
+Note, "current market value" means the value on the report end date if specified, otherwise today.
+To see the value on another date, such as the transaction's date, you can 
+temporarily set a date filter ending on the following day.
+Eg to see the contemporaneous value of a transaction on july 30,
+go to the accounts or register screen, press `/`, add ` date:-7/30`.
+
+At most one of cost or value mode can be active at once (in hledger-ui).
+
+There's not yet any visual reminder when cost or value mode is active; 
+for now pressing `B` `B` `V` should reliably reset to normal mode.
+
+With --watch active, if you save an edit to the journal file
+while viewing the transaction screen in cost or value mode, 
+the `B`/`V` keys will stop working. 
+To work around, press g to force a manual reload, or exit the transaction screen.
+
 Additional screen-specific keys are described below.
 
 # SCREENS

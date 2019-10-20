@@ -82,26 +82,44 @@ totallabel   = "Period Total"
 balancelabel = "Historical Total"
 
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport opts j reportq thisacctq = (label, items)
+accountTransactionsReport ropts j reportq thisacctq = (label, items)
   where
     -- a depth limit does not affect the account transactions report
     -- seems unnecessary for some reason XXX
     reportq' = -- filterQuery (not . queryIsDepth)
                reportq
-    -- get all transactions, with amounts converted to cost basis if -B
-    ts1 = jtxns $ journalSelectingAmountFromOpts opts j
+
+    -- get all transactions
+    ts1 = jtxns j
+
     -- apply any cur:SYM filters in reportq'
     symq  = filterQuery queryIsSym reportq'
     ts2 = (if queryIsNull symq then id else map (filterTransactionAmounts symq)) ts1
+
     -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
     realq = filterQuery queryIsReal reportq'
     statusq = filterQuery queryIsStatus reportq'
     ts3 = filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
+
+    -- maybe convert these transactions to cost or value
+    prices = journalPriceOracle j
+    styles = journalCommodityStyles j
+    periodlast =
+      fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
+      reportPeriodOrJournalLastDay ropts j
+    mreportlast = reportPeriodLastDay ropts
+    today = fromMaybe (error' "journalApplyValuation: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts
+    multiperiod = interval_ ropts /= NoInterval
+    tval = case value_ ropts of
+             Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast today multiperiod t v
+             Nothing -> id
+    ts4 = map tval ts3 
+
     -- sort by the transaction's register date, for accurate starting balance
-    ts = sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts3
+    ts = sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
 
     (startbal,label)
-      | balancetype_ opts == HistoricalBalance = (sumPostings priorps, balancelabel)
+      | balancetype_ ropts == HistoricalBalance = (sumPostings priorps, balancelabel)
       | otherwise                              = (nullmixedamt,        totallabel)
       where
         priorps = dbg1 "priorps" $
@@ -113,7 +131,7 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
           case mstartdate of
             Just _  -> Date (DateSpan Nothing mstartdate)
             Nothing -> None  -- no start date specified, there are no prior postings
-        mstartdate = queryStartDate (date2_ opts) reportq'
+        mstartdate = queryStartDate (date2_ ropts) reportq'
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
 
     items = reverse $

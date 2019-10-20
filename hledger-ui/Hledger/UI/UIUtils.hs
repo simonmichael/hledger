@@ -134,8 +134,10 @@ helpDialog _copts =
                   ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
                   ,renderKey ("A   ", "add transaction (hledger-iadd)")
+                  ,renderKey ("B   ", "toggle normal/cost mode")
                   ,renderKey ("E   ", "open editor")
                   ,renderKey ("I   ", "toggle balance assertions")
+                  ,renderKey ("V   ", "toggle normal/value mode")
                   ,renderKey ("g   ", "reload data")
                   ,renderKey ("C-l ", "redraw & recenter")
                   ,renderKey ("C-z ", "suspend")
