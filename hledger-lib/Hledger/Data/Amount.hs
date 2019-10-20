@@ -66,6 +66,7 @@ module Hledger.Data.Amount (
   -- ** rendering
   amountstyle,
   styleAmount,
+  styleAmountExceptPrecision,
   showAmount,
   cshowAmount,
   showAmountWithZeroCommodity,
@@ -366,6 +367,13 @@ styleAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 styleAmount styles a =
   case M.lookup (acommodity a) styles of
     Just s  -> a{astyle=s}
+    Nothing -> a
+
+-- | Like styleAmount, but keep the number of decimal places unchanged.
+styleAmountExceptPrecision :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+styleAmountExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=origp}} =
+  case M.lookup (acommodity a) styles of
+    Just s  -> a{astyle=s{asprecision=origp}}
     Nothing -> a
 
 -- | Get the string representation of an amount, based on its
