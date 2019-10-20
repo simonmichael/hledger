@@ -1012,13 +1012,8 @@ canonicalStyleFrom ss@(s:_) =
 -- | Convert all this journal's amounts to cost using the transaction prices, if any.
 -- The journal's commodity styles are applied to the resulting amounts.
 journalConvertAmountsToCost :: Journal -> Journal
-journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
     where
-      -- similar to journalApplyCommodityStyles
-      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-      fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
-      fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = styleAmount styles . costOfAmount
       styles = journalCommodityStyles j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
