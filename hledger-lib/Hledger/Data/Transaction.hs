@@ -30,6 +30,9 @@ module Hledger.Data.Transaction (
   isTransactionBalanced,
   balanceTransaction,
   balanceTransactionHelper,
+  transactionTransformPostings,
+  transactionApplyValuation,
+  transactionToCost,
   -- nonzerobalanceerror,
   -- * date operations
   transactionDate2,
@@ -67,6 +70,7 @@ import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
+import Hledger.Data.Valuation
 
 sourceFilePath :: GenericSourcePos -> FilePath
 sourceFilePath = \case
@@ -552,6 +556,22 @@ txnUntieKnot t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction
 -- | Set a posting's parent transaction.
 postingSetTransaction :: Transaction -> Posting -> Posting
 postingSetTransaction t p = p{ptransaction=Just t}
+
+-- | Apply a transform function to this transaction's amounts.
+transactionTransformPostings :: (Posting -> Posting) -> Transaction -> Transaction
+transactionTransformPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
+
+-- | Apply a specified valuation to this transaction's amounts, using
+-- the provided price oracle, commodity styles, reference dates, and
+-- whether this is for a multiperiod report or not. See
+-- amountApplyValuation.
+transactionApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> Transaction -> ValuationType -> Transaction
+transactionApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod t v =
+  transactionTransformPostings (\p -> postingApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod p v) t
+
+-- | Convert this transaction's amounts to cost, and apply the appropriate amount styles.
+transactionToCost :: M.Map CommoditySymbol AmountStyle -> Transaction -> Transaction
+transactionToCost styles t@Transaction{tpostings=ps} = t{tpostings=map (postingToCost styles) ps}
 
 -- tests
 

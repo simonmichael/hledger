@@ -38,6 +38,7 @@ module Hledger.Reports.ReportOptions (
   reportPeriodLastDay,
   reportPeriodOrJournalLastDay,
   valuationTypeIsCost,
+  valuationTypeIsDefaultValue,
 
   tests_ReportOptions
 )
@@ -371,6 +372,12 @@ valuationTypeIsCost ropts =
   case value_ ropts of
     Just (AtCost _) -> True
     _               -> False
+
+valuationTypeIsDefaultValue :: ReportOpts -> Bool
+valuationTypeIsDefaultValue ropts =
+  case value_ ropts of
+    Just (AtDefault _) -> True
+    _                  -> False
 
 type DisplayExp = String
 
