@@ -1,4 +1,4 @@
-# by default only market prices are reported
+# 1. by default only market prices are reported
 <
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -15,7 +15,7 @@ $ hledger prices -f-
 P 2016-01-01 EUR $1.06
 P 2016-02-01 EUR $1.05
 
-# costs from postings can be included also
+# 2. costs from postings can be included also
 <
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -38,7 +38,7 @@ P 2016-01-02 EUR $1.07
 P 2016-01-03 EUR $1.0725
 P 2016-02-01 EUR $1.05
 
-# inverted costs from postings can be calculated
+# 3. inverted costs from postings can be calculated
 <
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -55,3 +55,28 @@ $ hledger prices -f- --inverted-costs
 P 2016-01-01 EUR $1.06
 P 2016-01-03 EUR $1.0725
 P 2016-02-01 EUR $1.05
+
+#
+<
+commodity 1.000,00 A
+
+P 2019-01-01 X A1000,123
+P 2019-01-02 X A1000,1
+
+2019-02-01
+  (a)   X1 @ A1000,2345
+2019-02-02
+  (a)   X1 @ A1000,2
+
+# 4. Commodity styles are applied, but precision is left unchanged.
+$ hledger -f- prices
+P 2019-01-01 X 1.000,123 A
+P 2019-01-02 X 1.000,1 A
+
+# 5. Commodity styles aren't yet applied to prices inferred from transaction prices.
+$ hledger -f- prices --costs
+P 2019-01-01 X 1.000,123 A
+P 2019-01-02 X 1.000,1 A
+P 2019-02-01 X 1.000,2345 A
+P 2019-02-02 X 1.000,2 A
+

@@ -6,6 +6,7 @@ module Hledger.Cli.Commands.Prices (
 )
 where
 
+import qualified Data.Map as M
 import Data.Maybe
 import Data.List
 import qualified Data.Text as T
@@ -26,11 +27,12 @@ pricesmode = hledgerCommandMode
 prices opts j = do
   d <- getCurrentDay
   let
+    styles     = journalCommodityStyles j
     q          = queryFromOpts d (reportopts_ opts)
     ps         = filter (matchesPosting q) $ allPostings j
     mprices    = jpricedirectives j
-    cprices    = concatMap postingCosts ps
-    icprices   = concatMap postingCosts . mapAmount invertPrice $ ps
+    cprices    = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts ps
+    icprices   = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts $ mapAmount invertPrice ps
     allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
   mapM_ (putStrLn . showPriceDirective) $
     sortOn pddate $
@@ -65,8 +67,12 @@ invertPrice a =
             a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = Just $ TotalPrice pa' } where
                 pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = Nothing, astyle = astyle a }
 
-amountCost :: Day -> Amount -> Maybe PriceDirective
-amountCost d a =
+postingsPriceDirectivesFromCosts :: Posting -> [PriceDirective]
+postingsPriceDirectivesFromCosts p = mapMaybe (amountPriceDirectiveFromCost date) . amounts $ pamount p  where
+   date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
+
+amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
+amountPriceDirectiveFromCost d a =
     case aprice a of
         Nothing -> Nothing
         Just (UnitPrice pa) -> Just
@@ -74,9 +80,12 @@ amountCost d a =
         Just (TotalPrice pa) -> Just
             PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = abs (aquantity a) `divideAmount'` pa }
 
-postingCosts :: Posting -> [PriceDirective]
-postingCosts p = mapMaybe (amountCost date) . amounts $ pamount p  where
-   date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
+-- | Given a map of standard amount display styles, apply the
+-- appropriate one, if any, to this price directive's amount.
+-- But keep the number of decimal places unchanged.
+stylePriceDirectiveExceptPrecision :: M.Map CommoditySymbol AmountStyle -> PriceDirective -> PriceDirective
+stylePriceDirectiveExceptPrecision styles pd@PriceDirective{pdamount=a} =
+  pd{pdamount = styleAmountExceptPrecision styles a}
 
 allPostings :: Journal -> [Posting]
 allPostings = concatMap tpostings . jtxns

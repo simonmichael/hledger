@@ -914,12 +914,14 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
     Right j' -> Right j''
       where
         styles = journalCommodityStyles j'
-        j'' = j'{jtxns=map fixtransaction ts, jpricedirectives=map fixpricedirective pds}
+        j'' = j'{jtxns=map fixtransaction ts
+                ,jpricedirectives=map fixpricedirective pds
+                }
         fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
         fixposting p = p{pamount=styleMixedAmount styles $ pamount p
                         ,pbalanceassertion=fixbalanceassertion <$> pbalanceassertion p}
         fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
-        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmount styles a}
+        fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
 
 -- | Get all the amount styles defined in this journal, either declared by
 -- a commodity directive or inferred from amounts, as a map from symbol to style.
