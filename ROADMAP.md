@@ -105,18 +105,19 @@ Discussing/moving any of these forward is a big help.
 Some project achievements to unlock, for fun:
 
 - <s>**1.0 release**</s>
-- <s>packaged in major distros</s>
+- <s>**packaged in major distros, binaries available**</s>
 - <s>100 committers</s>
 - <s>1k github stars</s>
 - <s>among top 50 haskell projects by github stars</s>
 - <s>discussed on Hacker News</s>
-- **mentioned in "what good Haskell software exists" discussions**
 - match ledger IRC channel
-- match ledger committers
+- multiple people providing support
+- **mentioned in "what good Haskell software exists" discussions**
 - 100 IRC chatters
 - 2k github stars
 - among top 40 haskell projects by github stars
 - **match ledger speed**
+- match ledger committers
 - 200 committers
 - 2.0 release
 - match ledger stars
