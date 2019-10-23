@@ -97,3 +97,28 @@ Discussing/moving any of these forward is a big help.
 - migrate to tasty, unblock ghc 8.8 support
 - survey/document current testing setup (process, coverage, redundancy..); identify weaknesses; design a policy for tests; make a plan for achieving that
 - start adding property tests/other new kinds of testing if appropriate
+
+----
+
+## Milestones
+
+Some project achievements to unlock, for fun:
+
+- <s>**1.0 release**</s>
+- <s>packaged in major distros</s>
+- <s>100 committers</s>
+- <s>1k github stars</s>
+- <s>among top 50 haskell projects by github stars</s>
+- <s>discussed on Hacker News</s>
+- **mentioned in "what good Haskell software exists" discussions**
+- match ledger IRC channel
+- match ledger committers
+- 100 IRC chatters
+- 2k github stars
+- among top 40 haskell projects by github stars
+- **match ledger speed**
+- 200 committers
+- 2.0 release
+- match ledger stars
+- match beancount mail list
+- match ledger mail list
