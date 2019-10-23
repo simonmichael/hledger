@@ -67,7 +67,7 @@ This assumes that transactions added to FILE always have same or increasing date
 and that transactions on the same day do not get reordered.
 See also the [import](#import) command.    
 
-This command also supports [output destination](/manual.html#output-destination) and [output format](/manual.html#output-format) selection.
+This command also supports [output destination](hledger.html#output-destination) and [output format](hledger.html#output-format) selection.
 Here's an example of print's CSV output:
 
 ```shell

@@ -42,5 +42,5 @@ you need for a balance sheet; note this means it ignores report begin
 dates (and `-T/--row-total`, since summing end balances generally does not make sense).
 
 This command also supports
-[output destination](/manual.html#output-destination) and
-[output format](/manual.html#output-format) selection.
+[output destination](hledger.html#output-destination) and
+[output format](hledger.html#output-format) selection.

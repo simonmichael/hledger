@@ -33,5 +33,5 @@ as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 
 This command also supports
-[output destination](/manual.html#output-destination) and
-[output format](/manual.html#output-format) selection.
+[output destination](hledger.html#output-destination) and
+[output format](hledger.html#output-format) selection.

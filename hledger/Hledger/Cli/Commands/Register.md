@@ -118,6 +118,6 @@ $ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 ```
 
 This command also supports
-[output destination](/manual.html#output-destination) and
-[output format](/manual.html#output-format) selection.
+[output destination](hledger.html#output-destination) and
+[output format](hledger.html#output-format) selection.
 
