@@ -88,8 +88,9 @@ ignored.
 .PP
 \f[C]skip\f[R]\f[I]\f[CI]N\f[I]\f[R]
 .PP
-Skip this number of CSV records at the beginning.
-You\[aq]ll need this whenever your CSV data contains header lines.
+Skip this many non-empty lines preceding the CSV data.
+(Empty/blank lines are skipped automatically.) You\[aq]ll need this
+whenever your CSV data contains header lines.
 Eg:
 .IP
 .nf

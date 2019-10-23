@@ -96,8 +96,9 @@ File: hledger_csv.info,  Node: skip,  Next: date-format,  Up: CSV RULES
 
 'skip'_'N'_
 
-   Skip this number of CSV records at the beginning.  You'll need this
-whenever your CSV data contains header lines.  Eg:
+   Skip this many non-empty lines preceding the CSV data.  (Empty/blank
+lines are skipped automatically.)  You'll need this whenever your CSV
+data contains header lines.  Eg:
 
 # ignore the first CSV line
 skip 1
@@ -354,31 +355,31 @@ Node: CSV RULES2167
 Ref: #csv-rules2275
 Node: skip2538
 Ref: #skip2632
-Node: date-format2804
-Ref: #date-format2931
-Node: field list3481
-Ref: #field-list3618
-Node: field assignment4348
-Ref: #field-assignment4503
-Node: conditional block5127
-Ref: #conditional-block5281
-Node: include6177
-Ref: #include6307
-Node: newest-first6538
-Ref: #newest-first6652
-Node: CSV TIPS7063
-Ref: #csv-tips7157
-Node: CSV ordering7301
-Ref: #csv-ordering7419
-Node: CSV accounts7600
-Ref: #csv-accounts7738
-Node: CSV amounts7992
-Ref: #csv-amounts8150
-Node: CSV balance assertions/assignments9230
-Ref: #csv-balance-assertionsassignments9448
-Node: Reading multiple CSV files9769
-Ref: #reading-multiple-csv-files9969
-Node: Valid CSV10243
-Ref: #valid-csv10366
+Node: date-format2857
+Ref: #date-format2984
+Node: field list3534
+Ref: #field-list3671
+Node: field assignment4401
+Ref: #field-assignment4556
+Node: conditional block5180
+Ref: #conditional-block5334
+Node: include6230
+Ref: #include6360
+Node: newest-first6591
+Ref: #newest-first6705
+Node: CSV TIPS7116
+Ref: #csv-tips7210
+Node: CSV ordering7354
+Ref: #csv-ordering7472
+Node: CSV accounts7653
+Ref: #csv-accounts7791
+Node: CSV amounts8045
+Ref: #csv-amounts8203
+Node: CSV balance assertions/assignments9283
+Ref: #csv-balance-assertionsassignments9501
+Node: Reading multiple CSV files9822
+Ref: #reading-multiple-csv-files10022
+Node: Valid CSV10296
+Ref: #valid-csv10419
 
 End Tag Table

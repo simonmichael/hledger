@@ -2477,6 +2477,7 @@ Print market price directives from the journal.  With -costs, also print
 synthetic market prices based on transaction prices.  With
 -inverted-costs, also print inverse prices based on transaction prices.
 Prices (and postings providing prices) can be filtered by a query.
+Price amounts are always displayed with their full precision.
 
 
 File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
@@ -3272,56 +3273,56 @@ Node: payees85096
 Ref: #payees85202
 Node: prices85360
 Ref: #prices85466
-Node: print85745
-Ref: #print85855
-Node: print-unique90348
-Ref: #print-unique90474
-Node: register90759
-Ref: #register90886
-Node: Custom register output95058
-Ref: #custom-register-output95187
-Node: register-match96449
-Ref: #register-match96583
-Node: rewrite96934
-Ref: #rewrite97049
-Node: Re-write rules in a file98904
-Ref: #re-write-rules-in-a-file99038
-Node: Diff output format100248
-Ref: #diff-output-format100417
-Node: rewrite vs print --auto101509
-Ref: #rewrite-vs.-print---auto101688
-Node: roi102244
-Ref: #roi102342
-Node: stats103354
-Ref: #stats103453
-Node: tags104241
-Ref: #tags104339
-Node: test104633
-Ref: #test104717
-Node: ADD-ON COMMANDS105478
-Ref: #add-on-commands105588
-Node: Official add-ons106876
-Ref: #official-add-ons107016
-Node: ui107096
-Ref: #ui107183
-Node: web107237
-Ref: #web107326
-Node: Third party add-ons107372
-Ref: #third-party-add-ons107547
-Ref: #diff-1107706
-Node: iadd107805
-Ref: #iadd107915
-Node: interest107997
-Ref: #interest108118
-Node: irr108213
-Ref: #irr108311
-Node: Experimental add-ons108442
-Ref: #experimental-add-ons108594
-Node: autosync108842
-Ref: #autosync108953
-Node: chart109192
-Ref: #chart109311
-Node: check109382
-Ref: #check109484
+Node: print85807
+Ref: #print85917
+Node: print-unique90410
+Ref: #print-unique90536
+Node: register90821
+Ref: #register90948
+Node: Custom register output95120
+Ref: #custom-register-output95249
+Node: register-match96511
+Ref: #register-match96645
+Node: rewrite96996
+Ref: #rewrite97111
+Node: Re-write rules in a file98966
+Ref: #re-write-rules-in-a-file99100
+Node: Diff output format100310
+Ref: #diff-output-format100479
+Node: rewrite vs print --auto101571
+Ref: #rewrite-vs.-print---auto101750
+Node: roi102306
+Ref: #roi102404
+Node: stats103416
+Ref: #stats103515
+Node: tags104303
+Ref: #tags104401
+Node: test104695
+Ref: #test104779
+Node: ADD-ON COMMANDS105540
+Ref: #add-on-commands105650
+Node: Official add-ons106938
+Ref: #official-add-ons107078
+Node: ui107158
+Ref: #ui107245
+Node: web107299
+Ref: #web107388
+Node: Third party add-ons107434
+Ref: #third-party-add-ons107609
+Ref: #diff-1107768
+Node: iadd107867
+Ref: #iadd107977
+Node: interest108059
+Ref: #interest108180
+Node: irr108275
+Ref: #irr108373
+Node: Experimental add-ons108504
+Ref: #experimental-add-ons108656
+Node: autosync108904
+Ref: #autosync109015
+Node: chart109254
+Ref: #chart109373
+Node: check109444
+Ref: #check109546
 
 End Tag Table
