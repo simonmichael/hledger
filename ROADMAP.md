@@ -106,13 +106,16 @@ Some project achievements to unlock, for fun:
 
 - <s>**1.0 release**</s>
 - <s>**packaged in major distros, binaries available**</s>
+- <s>**pretty good reference docs**</s>
 - <s>100 committers</s>
 - <s>1k github stars</s>
 - <s>among top 50 haskell projects by github stars</s>
 - <s>discussed on Hacker News</s>
 - match ledger IRC channel
 - multiple people providing support
+- **pretty good tutorial docs**
 - **mentioned in "what good Haskell software exists" discussions**
+- **pretty good cookbook docs**
 - 100 IRC chatters
 - 2k github stars
 - among top 40 haskell projects by github stars
