@@ -1,6 +1,8 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+- site: matrix.hledger.org now redirects to a more readable/useful url
+
 # 4db14ef7
 
 - add descriptions to most issue tracker labels
