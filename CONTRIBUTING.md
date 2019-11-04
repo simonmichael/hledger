@@ -615,7 +615,7 @@ so think about future developers trying to understand them, git bisect, etc.
 
 Rebase your commits against latest master for easiest review. Especially if they start to conflict.
 
-Some conventions we often use in commit messages:
+We like to use some conventions in commit messages when it makes sense. These aren't mandatory, but appreciated:
 
 - prepend a  [component](#components) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
 - prepend a semicolon (`;`) to indicate commits that need not be mentioned in changelogs/release notes (as in the Emacs project)
