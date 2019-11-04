@@ -9,7 +9,8 @@ $(document).ready(function() {
   var dateEl = $('#dateWrap').datepicker({
     showOnFocus: false,
     autoclose: true,
-    format: 'yyyy-mm-dd'
+    format: 'yyyy-mm-dd',
+    weekStart: 1 // Monday
   });;
 
   // ensure add form always focuses its first field
