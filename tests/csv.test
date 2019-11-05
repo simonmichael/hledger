@@ -217,9 +217,9 @@ account3   expenses:tax
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct             $50 = $321
-    unknown           = $123
-    expenses:tax           $0.234  ; VAT
+    assets:myacct                $50 = $321
+    expenses:unknown     = $123
+    expenses:tax              $0.234  ; VAT
 
 >=0
 
@@ -236,9 +236,9 @@ account3   expenses:tax
 
 $  ./hledger-csv
 2009/09/10 Flubber Co
-    assets:myacct             $50 = $321
-    unknown           = $123
-    expenses:tax           £0.234  ; VAT
+    assets:myacct                $50 = $321
+    expenses:unknown     = $123
+    expenses:tax              £0.234  ; VAT
 
 >=0
 
