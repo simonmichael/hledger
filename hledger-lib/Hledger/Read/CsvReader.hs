@@ -140,7 +140,7 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
   -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
   records <- (either throwerr id .
-              dbg2 "validateCsv" . validateCsv skiplines .
+              dbg2 "validateCsv" . validateCsv rules skiplines .
               dbg2 "parseCsv")
              `fmap` parseCsv separator parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
@@ -216,11 +216,22 @@ printCSV records = unlined (printRecord `map` records)
           unlined = concat . intersperse "\n"
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: Int -> Either String CSV -> Either String [CsvRecord]
-validateCsv _           (Left err) = Left err
-validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
+validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]
+validateCsv _ _           (Left err) = Left err
+validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ drop numhdrlines $ filternulls rs
   where
     filternulls = filter (/=[""])
+    skipCount r =
+      case (getEffectiveAssignment rules r "end", getEffectiveAssignment rules r "skip") of
+        (Nothing, Nothing) -> Nothing
+        (Just _, _) -> Just maxBound
+        (Nothing, Just "") -> Just 1
+        (Nothing, Just x) -> Just (read x)
+    applyConditionalSkips [] = []
+    applyConditionalSkips (r:rest) =
+      case skipCount r of
+        Nothing -> r:(applyConditionalSkips rest)
+        Just cnt -> applyConditionalSkips (drop (cnt-1) rest)
     validate [] = Right []
     validate rs@(_first:_)
       | isJust lessthan2 = let r = fromJust lessthan2 in
@@ -266,7 +277,7 @@ defaultRulesText csvfile = T.pack $ unlines
   ,""
   ,"account1 assets:bank:checking"
   ,""
-  ,"fields date, description, amount"
+  ,"fields date, description, amount1"
   ,""
   ,"#skip 1"
   ,"#newest-first"
@@ -454,20 +465,8 @@ parseCsvRules rulesfile s =
 validateRules :: CsvRules -> Either String CsvRules
 validateRules rules = do
   unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1\n"
-  unless ((amount && not (amountin || amountout)) ||
-          (not amount && (amountin && amountout)) ||
-          balance)
-    $ Left $ unlines [
-       "Please specify (as a top level CSV rule) either the amount field,"
-      ,"both the amount-in and amount-out fields, or the balance field. Eg:"
-      ,"amount %2\n"
-      ]
   Right rules
   where
-    amount    = isAssigned "amount"
-    amountin  = isAssigned "amount-in"
-    amountout = isAssigned "amount-out"
-    balance   = isAssigned "balance" || isAssigned "balance1" || isAssigned "balance2"
     isAssigned f = isJust $ getEffectiveAssignment rules [] f
 
 -- parsers
@@ -553,8 +552,9 @@ fieldassignmentp :: CsvRulesParser (JournalFieldName, FieldTemplate)
 fieldassignmentp = do
   lift $ dbgparse 3 "trying fieldassignmentp"
   f <- journalfieldnamep
-  assignmentseparatorp
-  v <- fieldvalp
+  v <- choiceInState [ assignmentseparatorp >> fieldvalp
+                     , lift eolof >> return ""
+                     ]
   return (f,v)
   <?> "field assignment"
 
@@ -566,14 +566,19 @@ journalfieldnamep = do
 -- Transaction fields and pseudo fields for CSV conversion.
 -- Names must precede any other name they contain, for the parser
 -- (amount-in before amount; date2 before date). TODO: fix
-journalfieldnames = [
-   "account1"
-  ,"account2"
-  ,"amount-in"
+journalfieldnames =
+  concat [[ "account" ++ i
+          ,"amount" ++ i ++ "-in"
+          ,"amount" ++ i ++ "-out"
+          ,"amount" ++ i
+          ,"balance" ++ i
+          ,"comment" ++ i
+          ,"currency" ++ i
+          ] | x <- [1..9], let i = show x]
+  ++
+  ["amount-in"
   ,"amount-out"
   ,"amount"
-  ,"balance1"
-  ,"balance2"
   ,"balance"
   ,"code"
   ,"comment"
@@ -582,17 +587,16 @@ journalfieldnames = [
   ,"date"
   ,"description"
   ,"status"
+  ,"skip" -- skip and end are not really fields, but we list it here to allow conditional rules that skip records
+  ,"end"
   ]
 
 assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
   lift $ dbgparse 3 "trying assignmentseparatorp"
-  choice [
-    -- try (lift (skipMany spacenonewline) >> oneOf ":="),
-    try (lift (skipMany spacenonewline) >> char ':'),
-    spaceChar
-    ]
-  _ <- lift (skipMany spacenonewline)
+  _ <- choiceInState [ lift (skipMany spacenonewline) >> char ':' >> lift (skipMany spacenonewline)
+                     , lift (skipSome spacenonewline)
+                     ]
   return ()
 
 fieldvalp :: CsvRulesParser String
@@ -662,8 +666,9 @@ regexp = do
 
 type CsvRecord = [String]
 
--- Convert a CSV record to a transaction using the rules, or raise an
--- error if the data can not be parsed.
+showRules rules record =
+  unlines $ catMaybes [ (("the "++fld++" rule is: ")++) <$> getEffectiveAssignment rules record fld | fld <- journalfieldnames]
+
 transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord sourcepos rules record = t
   where
@@ -679,11 +684,11 @@ transactionFromCsvRecord sourcepos rules record = t
     mdateformat = mdirective "date-format"
     date        = render $ fromMaybe "" $ mfieldtemplate "date"
     date'       = fromMaybe (error' $ dateerror "date" date mdateformat) $ mparsedate date
-    mdate2      = maybe Nothing (Just . render) $ mfieldtemplate "date2"
+    mdate2      = render <$> mfieldtemplate "date2"
     mdate2'     = maybe Nothing (maybe (error' $ dateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . mparsedate) mdate2
     dateerror datefield value mdateformat = unlines
       ["error: could not parse \""++value++"\" as a date using date format "++maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" show mdateformat
-      ,"the CSV record is:  "++showRecord record
+      , showRecord record
       ,"the "++datefield++" rule is:   "++(fromMaybe "required, but missing" $ mfieldtemplate datefield)
       ,"the date-format is: "++fromMaybe "unspecified" mdateformat
       ,"you may need to "
@@ -703,58 +708,110 @@ transactionFromCsvRecord sourcepos rules record = t
               ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
               ,"the parse error is:      "++customErrorBundlePretty err
               ]
-    code        = maybe "" render $ mfieldtemplate "code"
-    description = maybe "" render $ mfieldtemplate "description"
-    comment     = maybe "" render $ mfieldtemplate "comment"
-    precomment  = maybe "" render $ mfieldtemplate "precomment"
-    currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
-    amountstr   = (currency++) <$> simplifySign <$> getAmountStr rules record
-    maybeamount      = either amounterror (Mixed . (:[])) <$> runParser (evalStateT (amountp <* eof) mempty) "" <$> T.pack <$> amountstr
-    amounterror err = error' $ unlines
-      ["error: could not parse \""++fromJust amountstr++"\" as an amount"
-      ,showRecord record
-      ,"the amount rule is:      "++(fromMaybe "" $ mfieldtemplate "amount")
-      ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
-      ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
-      ,"the parse error is:      "++customErrorBundlePretty err
-      ,"you may need to "
-       ++"change your amount or currency rules, "
-       ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
-      ]
-    amount1 = case maybeamount of
-                Just a -> a
-                Nothing | balance1 /= Nothing || balance2 /= Nothing -> nullmixedamt
-                Nothing -> error' $ "amount and balance have no value\n"++showRecord record
-    -- convert balancing amount to cost like hledger print, so eg if
-    -- amount1 is "10 GBP @@ 15 USD", amount2 will be "-15 USD".
-    amount2        = costOfMixedAmount (-amount1)
+    code        = singleline $ maybe "" render $ mfieldtemplate "code"
+    description = singleline $ maybe "" render $ mfieldtemplate "description"
+    comment     = singleline $ maybe "" render $ mfieldtemplate "comment"
+    precomment  = singleline $ maybe "" render $ mfieldtemplate "precomment"
+
     s `or` def  = if null s then def else s
-    defaccount1 = fromMaybe "unknown" $ mdirective "default-account1"
-    defaccount2 = case isNegativeMixedAmount amount2 of
-                   Just True -> "income:unknown"
-                   _         -> "expenses:unknown"
-    account1    = T.pack $ maybe "" render (mfieldtemplate "account1") `or` defaccount1
-    account2    = T.pack $ maybe "" render (mfieldtemplate "account2") `or` defaccount2
-    balance1template =
-      case (mfieldtemplate "balance", mfieldtemplate "balance1") of
-        (Nothing, Nothing)  -> Nothing
-        (balance, Nothing)  -> balance
-        (Nothing, balance1) -> balance1
-        (Just _, Just _)    -> error' "Please use either balance or balance1, but not both"
-    balance1     = maybe Nothing (parsebalance "1".render) $ balance1template
-    balance2     = maybe Nothing (parsebalance "2".render) $ mfieldtemplate "balance2"
-    parsebalance n str
+    parsebalance currency n str
       | all isSpace str  = Nothing
       | otherwise = Just $ (either (balanceerror n str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str, nullsourcepos)
     balanceerror n str err = error' $ unlines
       ["error: could not parse \""++str++"\" as balance"++n++" amount"
       ,showRecord record
-      ,"the balance"++n++" rule is:      "++(fromMaybe "" $ mfieldtemplate ("balance"++n))
-      ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
+      ,showRules rules record
       ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
       ,"the parse error is:      "++customErrorBundlePretty err
       ]
 
+    parsePosting' number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
+      let currency = maybe (fromMaybe "" mdefaultcurrency) render $
+                      (mfieldtemplate ("currency"++number) `or `mfieldtemplate "currency")
+          amount = chooseAmount rules record currency amountFld amountInFld amountOutFld                      
+          account' = ((T.pack . render) <$> (mfieldtemplate accountFld
+                                           `or` mdirective ("default-account" ++ number)))
+          balance = (parsebalance currency number.render) =<< mfieldtemplate balanceFld
+          comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
+          account =
+            case account' of
+              -- If account is explicitly "unassigned", suppress posting
+              -- Otherwise, generate posting with "expenses:unknown" account if we have amount/balance information
+              Just "" -> Nothing
+              Just account -> Just account
+              Nothing ->
+                -- If we have amount or balance assertion (which implies potential amount change),
+                -- but no account name, lets generate "expenses:unknown" account name.
+                case (amount, balance) of
+                  (Just _, _ ) -> Just "expenses:unknown"
+                  (_, Just _)  -> Just "expenses:unknown"
+                  (Nothing, Nothing) -> Nothing
+          in
+        case account of
+          Nothing -> Nothing
+          Just account -> 
+            Just $ (number, posting {paccount=account, pamount=fromMaybe missingmixedamt amount, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance, pcomment = comment})
+
+    parsePosting number =              
+      parsePosting' number
+      ("account"++number)
+      ("amount"++number)
+      ("amount"++number++"-in")
+      ("amount"++number++"-out")
+      ("balance"++number)
+      ("comment" ++ number)
+      
+    postingLegacy = parsePosting' "" "account1" "amount" "amount-in" "amount-out" "balance" "comment1"
+    posting1' = parsePosting "1"
+    posting1 =
+      case (postingLegacy,posting1') of
+        (Just (_,legacy), Nothing) -> Just ("1", legacy)
+        (Nothing, Just (_,posting1)) -> Just ("1", posting1)
+        (Just (_,legacy), Just (_,posting1)) ->
+          -- Here we merge legacy fields such as "amount" with "amount1", etc
+          -- Account and Comment would be the same by construction
+          let balanceassertion = (pbalanceassertion legacy) `or` (pbalanceassertion posting1)
+              amount =
+                let al = pamount legacy
+                    a1 = pamount posting1
+                in
+                  if al == a1 then al
+                  else
+                    case (isZeroMixedAmount al, isZeroMixedAmount a1) of
+                      (True, _) -> a1
+                      (False, True) -> al
+                      (False, False) ->
+                        error' $ unlines [ "amount/amount-in/amount-out and amount1/amount1-in/amount1-out produced conflicting values"
+                                         , showRecord record
+                                         , showRules rules record
+                                         , "amount/amount-in/amount-out is " ++ showMixedAmount al
+                                         , "amount1/amount1-in/amount1-out is " ++ showMixedAmount a1
+                                         ]
+          in Just $ ("1", posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t, pbalanceassertion=balanceassertion, pcomment = pcomment posting1})
+        (Nothing, Nothing) -> Nothing
+    postings' = catMaybes $ posting1:[ parsePosting i | x<-[2..9], let i = show x]
+
+    improveUnknownAccountName p =
+      if paccount p /="expenses:unknown"
+      then p
+      else case isNegativeMixedAmount (pamount p) of
+        Just True -> p{paccount = "income:unknown"}
+        Just False -> p{paccount = "expenses:unknown"}
+        _ -> p
+        
+    postings =
+      case postings' of
+        -- To be compatible with the behavior of the old code which allowed two postings only, we enforce
+        -- second posting when rules generated just first of them.
+        -- When we have srictly first and second posting, but second posting does not have amount, we fill it in.
+        [("1",posting1)] ->
+          [posting1,improveUnknownAccountName (posting{paccount="expenses:unknown", pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t})]
+        [("1",posting1),("2",posting2)] ->
+          case (pamount posting1 == missingmixedamt , pamount posting2 == missingmixedamt) of
+            (False, True) -> [posting1, improveUnknownAccountName (posting2{pamount=costOfMixedAmount(-(pamount posting1))})]
+            _  -> [posting1, posting2]
+        _ -> map snd postings'
+        
     -- build the transaction
     t = nulltransaction{
       tsourcepos               = genericSourcePos sourcepos,
@@ -764,39 +821,56 @@ transactionFromCsvRecord sourcepos rules record = t
       tcode                    = T.pack code,
       tdescription             = T.pack description,
       tcomment                 = T.pack comment,
-      tprecedingcomment = T.pack precomment,
-      tpostings                =
-        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance1}
-        ,posting {paccount=account2, pamount=amount2, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance2}
-        ]
+      tprecedingcomment        = T.pack precomment,
+      tpostings                = postings
       }
     toAssertion (a, b) = assertion{
       baamount   = a,
       baposition = b
       }
 
-getAmountStr :: CsvRules -> CsvRecord -> Maybe String
-getAmountStr rules record =
+chooseAmount :: CsvRules -> CsvRecord -> String -> String -> String -> String -> Maybe MixedAmount
+chooseAmount rules record currency amountFld amountInFld amountOutFld =
  let
-   mamount    = getEffectiveAssignment rules record "amount"
-   mamountin  = getEffectiveAssignment rules record "amount-in"
-   mamountout = getEffectiveAssignment rules record "amount-out"
-   render     = fmap (strip . renderTemplate rules record)
+   mamount    = getEffectiveAssignment rules record amountFld
+   mamountin  = getEffectiveAssignment rules record amountInFld
+   mamountout = getEffectiveAssignment rules record amountOutFld
+   parse  amt = notZero =<< (parseAmount currency <$> notEmpty =<< (strip . renderTemplate rules record) <$> amt)
  in
-  case (render mamount, render mamountin, render mamountout) of
-    (Just "", Nothing, Nothing) -> Nothing
+  case (parse mamount, parse mamountin, parse mamountout) of
+    (Nothing, Nothing, Nothing) -> Nothing
     (Just a,  Nothing, Nothing) -> Just a
-    (Nothing, Just "", Just "") -> error' $    "neither amount-in or amount-out has a value\n"
-                                            ++ "    record: " ++ showRecord record
-    (Nothing, Just i,  Just "") -> Just i
-    (Nothing, Just "", Just o)  -> Just $ negateStr o
-    (Nothing, Just i,  Just o)  -> error' $    "both amount-in and amount-out have a value\n"
-                                            ++ "    amount-in: "  ++ i ++ "\n"
-                                            ++ "    amount-out: " ++ o ++ "\n"
+    (Nothing, Just i,  Nothing) -> Just i
+    (Nothing, Nothing, Just o)  -> Just $ negate o
+    (Nothing, Just i,  Just o)  -> error' $    "both "++amountInFld++" and "++amountOutFld++" have a value\n"
+                                            ++ "    "++amountInFld++": "  ++ show i ++ "\n"
+                                            ++ "    "++amountOutFld++": " ++ show o ++ "\n"
                                             ++ "    record: "     ++ showRecord record
-    _                           -> error' $    "found values for amount and for amount-in/amount-out\n"
-                                            ++ "please use either amount or amount-in/amount-out\n"
+    _                           -> error' $    "found values for "++amountFld++" and for "++amountInFld++"/"++amountOutFld++"\n"
+                                            ++ "please use either "++amountFld++" or "++amountInFld++"/"++amountOutFld++"\n"
                                             ++ "    record: " ++ showRecord record
+ where
+   notZero amt = if isZeroMixedAmount amt then Nothing else Just amt
+   notEmpty str = if str=="" then Nothing else Just str
+
+   parseAmount currency amountstr =
+     either (amounterror amountstr) (Mixed . (:[]))
+     <$> runParser (evalStateT (amountp <* eof) mempty) ""
+     <$> T.pack
+     <$> (currency++)
+     <$> simplifySign
+     <$> amountstr
+
+   amounterror amountstr err = error' $ unlines
+     ["error: could not parse \""++fromJust amountstr++"\" as an amount"
+     ,showRecord record
+     ,showRules rules record
+     ,"the default-currency is: "++fromMaybe "unspecified" (getDirective "default-currency" rules)
+     ,"the parse error is:      "++customErrorBundlePretty err
+     ,"you may need to "
+      ++"change your amount or currency rules, "
+      ++"or add or change your skip rule"
+     ]
 
 type CsvAmountString = String
 
@@ -861,7 +935,7 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
 -- | Render a field assigment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.
 renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> String
-renderTemplate rules record t = regexReplaceBy "%[A-z0-9]+" replace t
+renderTemplate rules record t = regexReplaceBy "%[A-z0-9_-]+" replace t
   where
     replace ('%':pat) = maybe pat (\i -> strip $ atDef "" record (i-1)) mindex
       where

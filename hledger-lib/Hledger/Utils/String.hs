@@ -21,6 +21,7 @@ module Hledger.Utils.String (
  lstrip,
  rstrip,
  chomp,
+ singleline,
  elideLeft,
  elideRight,
  formatString,
@@ -75,6 +76,10 @@ rstrip = reverse . lstrip . reverse
 -- | Remove trailing newlines/carriage returns.
 chomp :: String -> String
 chomp = reverse . dropWhile (`elem` "\r\n") . reverse
+
+-- | Remove consequtive line breaks, replacing them with single space
+singleline :: String -> String
+singleline = unwords . filter (/="") . (map strip) . lines
 
 stripbrackets :: String -> String
 stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String

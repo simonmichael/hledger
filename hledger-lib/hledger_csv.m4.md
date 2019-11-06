@@ -38,7 +38,7 @@ At minimum, the rules file must identify the date and amount fields.
 It's often necessary to specify the date format, and the number of header lines to skip, also.
 Eg:
 ```
-fields date, _, _, amount
+fields date, _, _, amount1
 date-format  %d/%m/%Y
 skip 1
 ```
@@ -55,7 +55,7 @@ A more complete example:
 skip 1
 
 # name the csv fields (and assign the transaction's date, amount and code)
-fields date, _, toorfrom, name, amzstatus, amount, fees, code
+fields date, _, toorfrom, name, amzstatus, amount1, fees, code
 
 # how to parse the date
 date-format %b %-d, %Y
@@ -64,7 +64,7 @@ date-format %b %-d, %Y
 description %toorfrom %name
 
 # save these fields as tags
-comment     status:%amzstatus, fees:%fees
+comment     status:%amzstatus
 
 # set the base account for all transactions
 account1    assets:amazon
@@ -72,6 +72,9 @@ account1    assets:amazon
 # flip the sign on the amount
 amount      -%amount
 
+# Put fees in a separate posting
+amount3     %fees
+comment3    fees
 ```
 
 For more examples, see [Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert-CSV-files).
@@ -92,7 +95,7 @@ You'll need this whenever your CSV data contains header lines. Eg:
 <!-- XXX -->
 <!-- hledger tries to skip initial CSV header lines automatically. -->
 <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
-<!-- This can also be used in a conditional block to ignore certain CSV records. -->
+This can also be used in a conditional block to ignore certain CSV records.
 ```rules
 # ignore the first CSV line
 skip 1
@@ -133,7 +136,13 @@ date-format %-m/%-d/%Y %l:%M %p
 
 This (a) names the CSV fields, in order (names may not contain whitespace; uninteresting names may be left blank),
 and (b) assigns them to journal entry fields if you use any of these standard field names:
-`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`, `balance`, `balance1`, `balance2`.
+
+Fields `date`, `date2`, `status`, `code`, `description` will form transaction description.
+
+An assignment to any of `accountN`, `amountN`, `amountN-in`, `amountN-out`, `balanceN` or `currencyN` will generate a posting (though it's your responsibility to ensure it is a well formed one). Normally the `N`'s are consecutive starting from 1 but it's not required. One posting will be generated for each unique `N`. If you wish to supply a comment for the posting, use `commentN`, though comment on its own will not cause posting to be generated.
+
+Fields `amount`, `amount-in`, `amount-out`, `currency`, `balance` and `comment` are treated as aliases for `amount1`, and so on. If your rules file leads to both aliased fields having different values, `hledger` will raise an error.
+
 Eg:
 ```rules
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
@@ -142,8 +151,10 @@ Eg:
 # CSV field:
 #      1     2            3 4       5 6 7          8
 # entry field:
-fields date, description, , amount, , , somefield, anotherfield
+fields date, description, , amount1, , , somefield, anotherfield
 ```
+
+For backwards compatibility, we treat posting 1 specially. If your rules generated just posting 1, another posting would be added to your transaction to balance it. If your rules generated posting 1 and posting 2, but amount in the posting 2 is empty, hledger will fill it out with the opposite of posting 1. This special handling is needed to ensure smooth upgrade path from version 1.15.
 
 ## field assignment
 
@@ -177,12 +188,23 @@ Note, interpolation strips any outer whitespace, so a CSV value like
 *`PATTERN`*...\
 &nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS`*...
 
+`if` *`PATTERN`*\
+*`PATTERN`*...\
+&nbsp;&nbsp;&nbsp;&nbsp;*`skip N`*...
+
+`if` *`PATTERN`*\
+*`PATTERN`*...\
+&nbsp;&nbsp;&nbsp;&nbsp;*`end`*...
+
 This applies one or more field assignments, only to those CSV records matched by one of the PATTERNs.
 The patterns are case-insensitive regular expressions which match anywhere
 within the whole CSV record (it's not yet possible to match within a
 specific field).  When there are multiple patterns they can be written
 on separate lines, unindented.
 The field assignments are on separate lines indented by at least one space.
+
+Instead of field assignments you can specify `skip` or `skip 1` to skip this record, `skip N` to skip the next N records (including the one that matchied) or `end` to skip the rest of the file.
+
 Examples:
 ```rules
 # if the CSV record contains "groceries", set account2 to "expenses:groceries"
@@ -231,22 +253,21 @@ The order of same-day entries will be preserved
 
 ## CSV accounts
 
-Each journal entry will have two [postings](journal.html#postings), to `account1` and `account2` respectively.
-It's not yet possible to generate entries with more than two postings.
+Each journal entry will have at least two [postings](journal.html#postings), to `account1` and some other account (usually `account2`).
 It's conventional and recommended to use `account1` for the account whose CSV we are reading.
 
 ## CSV amounts
 
-A transaction [amount](journal.html#amounts) must be set, in one of these ways:
+A posting [amount](journal.html#amounts) could be set in one of these ways:
 
-- with an `amount` field assignment, which sets the first posting's amount
+- with an `amountN` field assignment, which sets the Nth posting's amount
 
 - (When the CSV has debit and credit amounts in separate fields:)\
-  with field assignments for the `amount-in` and `amount-out` pseudo
+  with field assignments for the `amountN-in` and `amountN-out` pseudo
   fields (both of them). Whichever one has a value will be used, with
   appropriate sign. If both contain a value, it might not work so well.
 
-- or implicitly by means of a [balance assignment](journal.html#balance-assignments) (see below).
+- with `balanceN` field assignment that creates a [balance assignment](journal.html#balance-assignments) (see below).
 
 There is some special handling for sign in amounts:
 
@@ -254,24 +275,53 @@ There is some special handling for sign in amounts:
 - If an amount value begins with a double minus sign, those will cancel out and be removed.
 
 If the currency/commodity symbol is provided as a separate CSV field,
-assign it to the `currency` pseudo field; the symbol will be prepended
+assign it to the `currency` pseudo field (applicable to the whole transaction) or `currencyN` (applicable to Nth posting only); the symbol will be prepended
 to the amount 
 (TODO: <s>when there is an amount</s>).
-Or, you can use an `amount` [field assignment](#field-assignment) for more control, eg:
+Or, you can use an `amountN` [field assignment](#field-assignment) for more control, eg:
 ```
-fields date,description,currency,amount
-amount %amount %currency
+fields date,description,currency,amount1
+amount1 %amount1 %currency
 ```
 
 ## CSV balance assertions/assignments
 
 If the CSV includes a running balance, you can assign that to one of the pseudo fields
-`balance` (or `balance1`) or `balance2`.
+`balance` (or `balance1`), `balance2`, ... up to `balance9`.
 This will generate a [balance assertion](journal.html#balance-assertions) 
 (or if the amount is left empty, a [balance assignment](journal.html#balance-assignments)),
-on the first or second posting,
-whenever the running balance field is non-empty.
-(TODO: [#1000](https://github.com/simonmichael/hledger/issues/1000))
+on the appropriate posting, whenever the running balance field is non-empty.
+
+## References to other fields and evaluation order
+
+Field assignments could include references to other fields or even to the same field you are trying to assign:
+
+```
+fields date,description,currency,amount1
+
+amount1 %amount1 USD
+amount1 %amount1 EUR
+amount1 %amount1 %currency
+
+if SOME_REGEXP
+    amount1 %amount1 GBP
+```
+This is how this file would be evaluated.
+
+First, parts of CVS record are assigned according to `fields` directive.
+
+Then all other field assignments -- written at top level, or included in `if` blocks -- are considered to see if they should be applied. They are checked in the order they are written, with later assignment overwriting earlier ones.
+
+Once full set of field assignments that should be applied is known, their values are computed, and this is when all `%<fieldname>` references are evaluated.
+
+So for a particular row from CSV file, value from fourth column would be assigned to `amount1`.
+
+Then `hledger` will decide that `amount1` would have to be amended to `%amount1 USD`, but this will not happen immediately. This choice would be replaced by decision to rewrite `amount1` to `%amount EUR`, which will in turn be thrown away in favor of `%amount1 %currency`. If the `if` block condition will match the row, it will assign `amount1` to `%amount1 GBP`.
+
+Overall, we will end up with one of the two alternatives for `amount1` - either `%amount1 %currency` or `%amount1 GBP`.
+
+Now substitution of all referenced values will happen, using the current values for `%amount1` and `currency`, which were provided by the `fields` directive.
+
 
 ## Reading multiple CSV files
 

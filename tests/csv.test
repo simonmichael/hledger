@@ -1,11 +1,13 @@
-# These tests read CSV from stdin for convenience, so to ensure we get the CSV reader's
-# error, the csv: prefix is used. 
-#
-# The final cleanup command is chained with && so as not to mask hledger's exit code,
-# but this means a temp file is left behind whenever hledger fails. What TODO ?
-
 # 1. read CSV to hledger journal format
-$  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+10/2009/09,Flubber Co,50
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+$  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50
@@ -16,7 +18,16 @@ $  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $
 <
 10/2009/09,Flubber Co🎅,50,
 11/2009/09,Flubber Co🎅,,50
-$  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >t.$$.csv.rules ; hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+RULES
+account1 Assets:MyAccount
+date %1
+date-format %d/%Y/%m
+description %2
+amount-in %3
+amount-out %4
+currency $
+
+$  ./hledger-csv
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
@@ -28,7 +39,18 @@ $  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescrip
 >=0
 
 # 3. handle conditions assigning multiple fields
-$  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+10/2009/09,Flubber Co,50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if Flubber
+  account2 acct
+  comment cmt
+$  ./hledger-csv
 2009/09/10 Flubber Co  ; cmt
     assets:myacct             $50
     acct                     $-50
@@ -36,7 +58,16 @@ $  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $
 >=0
 
 # 4. read CSV with balance field
-$  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+10/2009/09,Flubber Co,50,123
+
+RULES
+fields date, description, amount, balance
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+$  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
@@ -44,7 +75,17 @@ $  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\nc
 >=0
 
 # 5. read CSV with empty balance field
-$  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+10/2009/09,Flubber Co,50,123
+11/2009/09,Blubber Co,60,
+
+RULES
+fields date, description, amount, balance
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+$  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
@@ -56,7 +97,17 @@ $  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\nc
 >=0
 
 # 6. read CSV with only whitespace in balance field
-$  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,   \n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+10/2009/09,Flubber Co,50,123
+11/2009/09,Blubber Co,60,   
+
+RULES
+fields date, description, amount, balance
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+$  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
@@ -68,7 +119,22 @@ $  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\nc
 >=0
 
 # 7. read CSV with rule double-negating column
-$  printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%payment\naccount1 liabilities:bank\naccount2 expense:other' >t.$$.csv.rules; printf 'date,payee,amount\n2009/10/9,Flubber Co,50\n2009/11/09,Merchant Credit,-60\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+date,payee,amount
+2009/10/9,Flubber Co,50
+2009/11/09,Merchant Credit,-60
+
+RULES
+skip 1
+
+currency $
+
+fields date, payee, payment
+
+amount -%payment
+account1 liabilities:bank
+account2 expense:other
+$  ./hledger-csv
 2009/10/09
     liabilities:bank            $-50
     expense:other                $50
@@ -83,7 +149,16 @@ $  printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%paym
 <
 10/2009/09;Flubber Co🎅;50;
 11/2009/09;Flubber Co🎅;;50
-$  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >rules.$$ ; hledger --separator ';' -f csv:- --rules-file rules.$$ print && rm -rf rules.$$
+RULES
+account1 Assets:MyAccount
+date %1
+date-format %d/%Y/%m
+description %2
+amount-in %3
+amount-out %4
+currency $
+
+$  ./hledger-csv --separator ';'
 2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
@@ -95,7 +170,16 @@ $  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescrip
 >=0
 
 # 9. read CSV with balance2 field
-$  printf 'fields date, description, amount, balance2\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+10/2009/09,Flubber Co,50,123
+
+RULES
+fields date, description, amount, balance2
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+$  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50 = $123
@@ -103,10 +187,304 @@ $  printf 'fields date, description, amount, balance2\ndate-format %%d/%%Y/%%m\n
 >=0
 
 # 10. read CSV with balance1 and balance2 fields
-$  printf 'fields date, description, amount, balance1, balance2\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,321,123\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<
+10/2009/09,Flubber Co,50,321,123
+
+RULES
+fields date, description, amount, balance1, balance2
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+$  ./hledger-csv
 2009/09/10 Flubber Co
     assets:myacct              $50 = $321
     income:unknown            $-50 = $123
+
+>=0
+
+
+# 11. More than two postings
+<
+10/2009/09,Flubber Co,50,321,123,0.234,VAT
+
+RULES
+fields date, description, amount, balance1, balance2, amount3,comment3
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+account3   expenses:tax
+
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    assets:myacct                $50 = $321
+    expenses:unknown     = $123
+    expenses:tax              $0.234  ; VAT
+
+>=0
+
+# 12. More than two postings and different currencies
+<
+10/2009/09,Flubber Co,50,321,123,£,0.234,VAT
+
+RULES
+fields date, description, amount, balance1, balance2, currency3, amount3,comment3
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+account3   expenses:tax
+
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    assets:myacct                $50 = $321
+    expenses:unknown     = $123
+    expenses:tax              £0.234  ; VAT
+
+>=0
+
+# 13. reading CSV with in-field and out-field, where one could be zero
+<
+10/2009/09,Flubber Co🎅,50,0
+11/2009/09,Flubber Co🎅,0.00,50
+RULES
+account1 Assets:MyAccount
+date %1
+date-format %d/%Y/%m
+description %2
+amount-in %3
+amount-out %4
+currency $
+
+$  ./hledger-csv
+2009/09/10 Flubber Co🎅
+    Assets:MyAccount             $50
+    income:unknown              $-50
+
+2009/09/11 Flubber Co🎅
+    Assets:MyAccount            $-50
+    expenses:unknown             $50
+
+>=0
+
+# 14. multiline descriptions
+<
+10/2009/09,"Flubber Co
+
+
+
+Co
+Co
+
+
+
+
+",50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+$  ./hledger-csv
+2009/09/10 Flubber Co Co Co
+    assets:myacct              $50
+    income:unknown            $-50
+
+>=0
+
+# 15. recursive interpolation
+<
+myacct,10/2009/09,Flubber Co,50,
+
+RULES
+
+fields account1, date, description, amount-in, amount-out
+date-format %d/%Y/%m
+currency $
+if Flubber
+   account1  assets:%account1
+   amount-in  (%amount-in)
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    assets:myacct               $-50
+    expenses:unknown             $50
+
+>=0
+
+# 16. Real life-ish paypal parsing example
+<
+"12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","57.60",""
+
+RULES
+fields date, time, timezone, description, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
+account1 sm:assets:online:paypal
+amount1 %netamount
+account2 sm:expenses:unknown
+account3 JS:expenses:banking:paypal
+amount3 %feeamount
+balance %18
+code %13
+currency $
+date %1
+date-format %m/%d/%Y
+description %description for %itemtitle 
+$  ./hledger-csv
+2018/12/22 (123456789) Someone for Joyful Systems
+    sm:assets:online:paypal              $9.41 = $57.60
+    sm:expenses:unknown
+    JS:expenses:banking:paypal          $-0.59
+
+>=0
+
+# 17. Show that #415 is fixed
+<
+"2016/01/01","$1"
+"2016/02/02","$1,000.00"
+RULES
+account1 unknown
+amount %2
+date %1
+date-format %Y/%m/%d
+$  ./hledger-csv | hledger balance -f - --no-total 
+          $-1,001.00  income:unknown
+           $1,001.00  unknown
+>=0
+
+# 18. Conditional skips
+<
+HEADER
+10/2009/09,Flubber Co,50
+MIDDLE SKIP THIS LINE
+AND THIS
+AND THIS ONE
+10/2009/09,Flubber Co,50
+*** END OF FILE ***
+More lines of the trailer here
+They all should be ignored
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+
+if HEADER
+  skip
+
+if
+END OF FILE
+  end
+
+if MIDDLE
+  skip 3
+
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    assets:myacct              $50
+    income:unknown            $-50
+
+2009/09/10 Flubber Co
+    assets:myacct              $50
+    income:unknown            $-50
+
+>=0
+
+# 19. Lines with just balance, no amount (#1000)
+<
+2018-10-15,100
+2018-10-16,200
+2018-10-17,300
+RULES
+fields date,bal
+
+balance EUR %bal
+date-format %Y-%m-%d
+description Assets Update
+account1 assets
+account2 income
+$  ./hledger-csv
+2018/10/15 Assets Update
+    assets     = EUR 100
+    income
+
+2018/10/16 Assets Update
+    assets     = EUR 200
+    income
+
+2018/10/17 Assets Update
+    assets     = EUR 300
+    income
+
+>=0
+
+# 20. Test for #1001 - empty assignment to amount show not eat next line 
+<
+2018-10-15,100
+2018-10-16,200
+2018-10-17,300
+RULES
+fields date,bal
+
+balance EUR %bal
+date-format %Y-%m-%d
+description Assets Update
+account1 assets
+account2 income
+if 2018
+  amount
+  comment  Dont eat me
+  balance
+  comment  Dont eat me
+$  ./hledger-csv
+2018/10/15 Assets Update  ; Dont eat me
+    assets
+    income
+
+2018/10/16 Assets Update  ; Dont eat me
+    assets
+    income
+
+2018/10/17 Assets Update  ; Dont eat me
+    assets
+    income
+
+>=0
+
+# 21. Amountless postings and conditional third posting
+<
+"12/22/2018","06:22:50","PST","Someone","Subscription Payment","Completed","USD","10.00","-0.59","9.41","someone@some.where","simon@joyful.com","123456789","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","57.60",""
+"12/22/2018","06:22:50","PST","Someone","Empty fee","Completed","USD","10.00","","6.66","someone@some.where","simon@joyful.com","987654321","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","99.60",""
+"12/22/2018","06:22:50","PST","Someone","Conditional Empty fee","Completed","USD","10.00","-1.23","7.77","someone@some.where","simon@joyful.com","10101010101","Joyful Systems","","9KCXINCOME:UNKNOWNZXXAX","","88.66",""
+
+RULES
+fields date, time, timezone, description, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
+account1 sm:assets:online:paypal
+amount1 %netamount
+account2 sm:expenses:unknown
+account3 JS:expenses:banking:paypal
+amount3 %feeamount
+balance %18
+code %13
+currency $
+date %1
+date-format %m/%d/%Y
+description %description for %itemtitle
+if Conditional Empty Fee
+    account3
+
+$  ./hledger-csv
+2018/12/22 (123456789) Someone for Joyful Systems
+    sm:assets:online:paypal              $9.41 = $57.60
+    sm:expenses:unknown
+    JS:expenses:banking:paypal          $-0.59
+
+2018/12/22 (987654321) Someone for Joyful Systems
+    sm:assets:online:paypal              $6.66 = $99.60
+    sm:expenses:unknown
+    JS:expenses:banking:paypal
+
+2018/12/22 (10101010101) Someone for Joyful Systems
+    sm:assets:online:paypal           $7.77 = $88.66
+    sm:expenses:unknown              $-7.77
 
 >=0
 
@@ -119,10 +497,18 @@ $  printf 'fields date, description, amount, balance1, balance2\ndate-format %%d
 # <
 # 10/2009/09;Flubber Co🎅;50;
 # 11/2009/09;Flubber Co🎅;;50
-# $  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >rules.$$ ; hledger -f csv:- --rules-file rules.$$ print && rm -rf rules.$$
+# RULES
+# account1 Assets:MyAccount
+# date %1
+# date-format %d/%Y/%m
+# description %2
+# amount-in %3
+# amount-out %4
+# currency $
+# $  ./hledger-csv
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
-#     income:unknown              $-50
+#     expenses:unknown              $-50
 #
 # 2009/09/11 Flubber Co🎅
 #     Assets:MyAccount            $-50
@@ -134,10 +520,18 @@ $  printf 'fields date, description, amount, balance1, balance2\ndate-format %%d
 # <
 # 10/2009/09	Flubber Co🎅	50	
 # 11/2009/09	Flubber Co🎅		50
-# $  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >rules.$$ ; hledger --separator "\t" -f csv:- --rules-file rules.$$ print && rm -rf rules.$$
+# RULES
+# account1 Assets:MyAccount
+# date %1
+# date-format %d/%Y/%m
+# description %2
+# amount-in %3
+# amount-out %4
+# currency $
+# $  ./hledger-csv
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
-#     income:unknown              $-50
+#     expenses:unknown              $-50
 #
 # 2009/09/11 Flubber Co🎅
 #     Assets:MyAccount            $-50
