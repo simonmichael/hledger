@@ -124,7 +124,7 @@ HLEDGERFIELDNAME FIELDVALUE
 Instead of or in addition to a [fields list](#fields), you can
 assign a value to a hledger field by writing its name
 (any of the standard names above) followed by a text value.
-The value may contain interpolated CSV fields, 
+The value may contain interpolated CSV fields ([only](#referencing-other-fields)), 
 referenced by their 1-based position in the CSV record (`%N`),
 or by the name they were given in the fields list (`%CSVFIELDNAME`).
 Eg:
@@ -139,8 +139,6 @@ comment note: %somefield - %anotherfield, date: %1
 Interpolation strips any outer whitespace, so a CSV value like `" 1 "`
 becomes `1` when interpolated
 ([#1051](https://github.com/simonmichael/hledger/issues/1051)).
-Note you can only interpolate CSV fields, not the hledger fields being assigned to;
-for more on this, see [TIPS](#tips).
 
 ## `date-format`
 
@@ -376,10 +374,11 @@ A posting amount can be set in one of these ways:
   setting the amount indirectly via a 
   [balance assignment](journal.html#balance-assignments).
 
-There is some special handling for sign in amounts:
+There is some special handling for an amount's sign:
 
 - If an amount value is parenthesised, it will be de-parenthesised and sign-flipped.
 - If an amount value begins with a double minus sign, those cancel out and are removed.
+- If an amount value begins with a plus sign, that will be removed
 
 If the currency/commodity symbol is provided as a separate CSV field,
 you can assign it to `currency` (affects all posting amounts) or `currencyN` (affects just posting N's amount).
@@ -429,28 +428,36 @@ if something
 
 ## How CSV rules are evaluated
 
-Here's how to think of CSV rules being evaluated (if you really need to). First,
+Here's how to think of CSV rules being evaluated (if you really need to).
+First,
 
-- include - all includes are inlined, from top to bottom, depth first. (At each include point the file is inlined and scanned for further includes, before proceeding.)
+- `include` - all includes are inlined, from top to bottom, depth
+  first. (At each include point the file is inlined and scanned for
+  further includes, recursively, before proceeding.)
 
-Then "global" rules are evaluated, top to bottom. If a rule is repeated, the last one wins:
+Then "global" rules are evaluated, top to bottom. If a rule is
+repeated, the last one wins:
 
-- skip (at top level)
-- date-format
-- newest-first
-- fields - names the CSV fields, optionally sets up initial assignments to hledger fields
+- `skip` (at top level)
+- `date-format`
+- `newest-first`
+- `fields` - names the CSV fields, optionally sets up initial assignments to hledger fields
 
 Then for each CSV record in turn:
 
 - test all `if` blocks. If any of them contain a `end` rule, skip all remaining CSV records.
   Otherwise if any of them contain a `skip` rule, skip that many CSV records.
-  If there are multiple matched skip rules, the first one wins.
-- collect all field assignments at top level and in matched if blocks.
+  If there are multiple matched `skip` rules, the first one wins.
+- collect all field assignments at top level and in matched `if` blocks.
   When there are multiple assignments for a field, keep only the last one.
 - compute a value for each hledger field - either the one that was assigned to it
   (and interpolate the %CSVFIELDNAME references), or a default
-- generate a synthetic hledger transaction from these values, 
-  which becomes part of the input to the hledger command that has been selected
+- generate a synthetic hledger transaction from these values.
+
+This is all part of the CSV reader, one of several readers hledger can
+use to parse input files. When all files have been read successfully,
+the transactions are passed as input to whichever hledger command the
+user specified.
 
 ## Valid transactions
 
@@ -461,9 +468,8 @@ transactions. Or, amounts may not be displayed with a canonical
 display style.
 
 So when setting up or adjusting CSV rules, you should check your
-results visually with the print command. You can pipe print's output
-through hledger once more to validate and canonicalise fully.
-Eg:
+results visually with the print command. You can also pipe the output
+through hledger once more to fully validate and canonicalise it:
 
 ```shell
 $ hledger -f some.csv print | hledger -f- print -I
