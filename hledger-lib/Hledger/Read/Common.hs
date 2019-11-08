@@ -35,6 +35,7 @@ module Hledger.Read.Common (
   journalSourcePos,
   parseAndFinaliseJournal,
   parseAndFinaliseJournal',
+  finaliseJournal,
   setYear,
   getYear,
   setDefaultCommodityAndStyle,
@@ -228,78 +229,26 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ 
 
 
 -- | Given a megaparsec ParsedJournal parser, input options, file
--- path and file content: parse and post-process a Journal, or give an error.
+-- path and file content: parse and finalise a Journal, or give an error.
 parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser iopts f txt = do
-  t <- liftIO getClockTime
   y <- liftIO getCurrentYear
-  let initJournal = nulljournal
-        { jparsedefaultyear = Just y
-        , jincludefilestack = [f] }
-  eep <- liftIO $ runExceptT $
-    runParserT (evalStateT parser initJournal) f txt
+  let initJournal = nulljournal{ jparsedefaultyear = Just y, jincludefilestack = [f] }
+  eep <- liftIO $ runExceptT $ runParserT (evalStateT parser initJournal) f txt
   -- TODO: urgh.. clean this up somehow
   case eep of
-    Left finalParseError ->
-      throwError $ finalErrorBundlePretty $ attachSource f txt finalParseError
-
+    Left finalParseError -> throwError $ finalErrorBundlePretty $ attachSource f txt finalParseError
     Right ep -> case ep of
-      Left e -> throwError $ customErrorBundlePretty e
+                  Left e   -> throwError $ customErrorBundlePretty e
+                  Right pj -> finaliseJournal iopts f txt pj
 
-      Right pj ->
-
-        -- Infer and apply canonical styles for each commodity (or fail).
-        -- TODO: since #903's refactoring for hledger 1.12,
-        -- journalApplyCommodityStyles here is seeing the
-        -- transactions before they get reversesd to normal order.
-        case journalApplyCommodityStyles pj of
-          Left e    -> throwError e
-          Right pj' -> 
-            -- Finalise the parsed journal.
-            let fj =
-                  if auto_ iopts && (not . null . jtxnmodifiers) pj
-                  then
-                    -- When automatic postings are active, we finalise twice:
-                    -- once before and once after. However, if we are running it
-                    -- twice, we don't check assertions the first time (they might
-                    -- be false pending modifiers) and we don't reorder the second
-                    -- time. If we are only running once, we reorder and follow
-                    -- the options for checking assertions.
-                    --
-                    -- first pass, doing most of the work
-                    (
-                     (journalModifyTransactions <$>) $  -- add auto postings after balancing ? #893b fails
-                     journalBalanceTransactions False $
-                     -- journalModifyTransactions <$>   -- add auto postings before balancing ? probably #893a, #928, #938 fail
-                     journalReverse $
-                     journalAddFile (f, txt) $
-                     pj')
-                    -- second pass, checking balance assertions
-                    >>= (\j ->
-                       journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                       journalSetLastReadTime t $
-                       j)
-
-                  else
-                    -- automatic postings are not active
-                    journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                    journalReverse $
-                    journalAddFile (f, txt) $
-                    journalSetLastReadTime t $
-                    pj'
-            in
-              case fj of
-                Left e  -> throwError e
-                Right j -> return j
-
--- Like parseAndFinaliseJournal but takes a (non-Erroring) JournalParser.
+-- | Like parseAndFinaliseJournal but takes a (non-Erroring) JournalParser.
 -- Used for timeclock/timedot.
 -- TODO: get rid of this, use parseAndFinaliseJournal instead
 parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal' parser iopts f txt = do
-  t <- liftIO getClockTime
   y <- liftIO getCurrentYear
   let initJournal = nulljournal
         { jparsedefaultyear = Just y
@@ -308,28 +257,66 @@ parseAndFinaliseJournal' parser iopts f txt = do
   -- see notes above
   case ep of
     Left e   -> throwError $ customErrorBundlePretty e
-    Right pj ->
-      case journalApplyCommodityStyles pj of
-        Left e    -> throwError e
-        Right pj' -> 
-          let fj = if auto_ iopts && (not . null . jtxnmodifiers) pj
-                   then journalModifyTransactions <$>
-                        (journalBalanceTransactions False $
-                         journalReverse $
-                         pj') >>=
-                        (\j -> journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                               journalAddFile (f, txt) $
-                               journalSetLastReadTime t $
-                               j)
-                   else journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                        journalReverse $
-                        journalAddFile (f, txt) $
-                        journalSetLastReadTime t $
-                        pj'
-          in
-            case fj of
-              Left e  -> throwError e
-              Right j -> return j
+    Right pj -> finaliseJournal iopts f txt pj
+
+-- | Post-process a Journal that has just been parsed or generated, in this order:
+--
+-- - apply canonical amount styles,
+--
+-- - save misc info and reverse transactions into their original parse order,
+--
+-- - evaluate balance assignments and balance each transaction,
+--
+-- - apply transaction modifiers (auto postings) if enabled,
+--
+-- - check balance assertions if enabled.
+--
+finaliseJournal :: InputOpts -> FilePath -> Text -> Journal -> ExceptT String IO Journal
+finaliseJournal iopts f txt pj = do
+  t <- liftIO getClockTime
+  -- Infer and apply canonical styles for each commodity (or fail).
+  -- TODO: since #903's refactoring for hledger 1.12,
+  -- journalApplyCommodityStyles here is seeing the
+  -- transactions before they get reversesd to normal order.
+  case journalApplyCommodityStyles pj of
+    Left e    -> throwError e
+    Right pj' -> 
+      -- Finalise the parsed journal.
+      let fj =
+            if auto_ iopts && (not . null . jtxnmodifiers) pj
+            then
+              -- When automatic postings are active, we finalise twice:
+              -- once before and once after. However, if we are running it
+              -- twice, we don't check assertions the first time (they might
+              -- be false pending modifiers) and we don't reorder the second
+              -- time. If we are only running once, we reorder and follow
+              -- the options for checking assertions.
+              --
+              -- first pass, doing most of the work
+              (
+               (journalModifyTransactions <$>) $  -- add auto postings after balancing ? #893b fails
+               journalBalanceTransactions False $ -- balance transactions without checking assertions
+               -- journalModifyTransactions <$>   -- add auto postings before balancing ? probably #893a, #928, #938 fail
+               journalReverse $
+               journalSetLastReadTime t $
+               journalAddFile (f, txt) $
+               pj')
+              -- balance transactions a second time, now just checking balance assertions
+              >>= (\j ->
+                 journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+                 j)
+
+            else
+              -- automatic postings are not active
+              journalBalanceTransactions (not $ ignore_assertions_ iopts) $
+              journalReverse $
+              journalSetLastReadTime t $
+              journalAddFile (f, txt) $
+              pj'
+      in
+        case fj of
+          Left e  -> throwError e
+          Right j -> return j
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
