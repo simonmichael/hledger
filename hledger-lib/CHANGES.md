@@ -20,16 +20,22 @@ For user-visible changes, see the hledger package changelog.
 
   Migration notes:
 
-  - CSV rules now give you more freedom to generate any journal
-    entries you want, including malformed or unbalanced ones. hledger
-    validates the generated journal and will report such errors.
-
-  - Balance assertions generated from CSV are not checked.
-
   - When `print`ing from CSV, there is now one less space between
     transaction descriptions and comments. If you are comparing old
     and new reports, diff -w (--ignore-all-space) will ignore this
     change.
+
+  - CSV rules now give you more freedom to generate any journal
+    entries you want, including malformed or unbalanced ones. 
+    The csv reader now checks the journal after conversion,
+    so it will report any problems with the generated entries.
+
+  - Balance assertions generated from CSV are not checked, currently.
+    This is appropriate when you are downloading partial CSV data to
+    be merged into your main journal. If you do need to check balance
+    assertions right away, you can pipe through hledger again:
+
+        $ hledger -f a.csv print | hledger -f- print
 
 - lib: fix for multiline descriptions in csv (fixes #841, #416) (Dmitry Astapov)
 
