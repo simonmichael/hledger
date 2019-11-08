@@ -3,7 +3,17 @@ For package-specific changes, see the package changelogs.
 
 - site: matrix.hledger.org now redirects to a more readable/useful url
 
-# 4db14ef7
+# 96453177
+
+- Fix internal Markdown links (Brian Wignall)
+
+- Make resolver in hledger-install.sh consistent with that in stack.yaml (Brian Wignall)
+
+- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
+  in JournalReader.hs. If you still need this, feel free to work on
+  those errors. But hopefully not, because dropping base 4.8 should
+  permit some code cleanups.
+
 
 - add descriptions to most issue tracker labels
 

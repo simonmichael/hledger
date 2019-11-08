@@ -1,7 +1,24 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# aa20f34b
+# 6b5026c2
+
+- Weeks in date picker start from Mondays (fix for #1109) (Timofey ZAKREVSKIY)
+
+- web: Modify the --cors option to require a specific origin (Alejandro García Montoro)
+  - Modified the cors option to require a String
+  - Moved the logic to build the cors policy to WebOptions.hs
+  - Specify the --cors "*" example in the cors option help
+  - Added utf8-string dependency to convert a String into a ByteString
+
+- web: Allow CORS to be enabled in hledger-web (Alejandro García Montoro)
+  Add a --cors option to the CLI to enable simple cross-origin requests
+
+- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
+  in JournalReader.hs. If you still need this, feel free to work on
+  those errors. But hopefully not, because dropping base 4.8 should
+  permit some code cleanups.
+
 
 
 # 1.15 2019-09-01

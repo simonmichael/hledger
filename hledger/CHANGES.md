@@ -1,7 +1,32 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# aa20f34b
+# 445adbe9
+
+- prices: style price amounts; always show full precision
+
+- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
+  in JournalReader.hs. If you still need this, feel free to work on
+  those errors. But hopefully not, because dropping base 4.8 should
+  permit some code cleanups.
+
+- lib, cli: disable hledger-lib test suites, hledger benchmark suite
+  by default. hledger-lib's doctests and easytests test suites (each ?)
+  require an additional slow rebuild of hledger-lib and are not worth
+  the time, energy and carbon. hledger's test suite runs those same
+  easytest tests (but not the doctests).
+
+- import: message cleanups, mention input files
+  Only the --dry-run message needs the semicolon, so dry run output can
+  be piped into hledger.
+
+- import: --catchup marks all transactions imported, without importing
+
+- import: also show a message when nothing was imported
+
+- import: create the journal if missing, like the add command
+  Streamlines import/migration instructions.
+
 
 - import: message cleanups, mention input files
   Only the --dry-run message needs the semicolon, so dry run output can

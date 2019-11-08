@@ -1,7 +1,13 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# aa20f34b
+# e83cbacb
+
+- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
+  in JournalReader.hs. If you still need this, feel free to work on
+  those errors. But hopefully not, because dropping base 4.8 should
+  permit some code cleanups.
+
 
 - lib, cli, ui: start using Control.Monad.Fail, allow base-compat 0.11
 

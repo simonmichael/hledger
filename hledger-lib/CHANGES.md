@@ -1,7 +1,72 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# aa20f34b
+# 7ecc42f1
+
+- CSV reading improvements (#1095)
+
+  - can now generate a variable number of postings, from zero to nine (#627, #1095)
+  - skip can be used in conditional blocks; so can the new "end" rule (skips all remaining) (#1076)
+  - both the amount-in/amount-out fields having a value is now ok, if one of them is zero (#570)
+  - line feeds/carriage returns in quoted CSV values are now converted to spaces (#416, #841)
+  - field assignments can now unset a field (eg a posting can be
+    suppressed by assigning no value to its account)
+  - fixed: empty field assignment consumes next line (#1001)
+  - fixed: interpolation of field names containing punctuation (underscore, hyphens etc)
+  - fixed: show two spaces between description and comment, not three
+  - clarified that hledger field assignments can reference csv fields only, not other hledger fields (#500)
+  - new docs, tests
+  - can now generate postings with balance assignments (#1000, WIP)
+
+  Migration notes:
+
+  - CSV rules now give you more freedom to generate any journal
+    entries you want, including malformed entries or unbalanced
+    transactions. And, this is not checked, currently. In fact
+    journals generated from CSV are not fully finalised and should not
+    be used directly for reports. You should probably pipe their print
+    output through another hledger to validate. Eg: 
+
+      ```shell
+      $ hledger -f a.csv print | hledger -f- -I CMD`
+      ```
+
+    (#1000, WIP)
+
+  - When `print`ing from CSV, there is now one less space between
+    transaction descriptions and comments. If you are comparing old
+    and new reports, diff -w (--ignore-all-space) will ignore this
+    change.
+
+- lib: fix for multiline descriptions in csv (fixes #841, #416) (Dmitry Astapov)
+
+- prices: style price amounts; always show full precision
+
+- csv: allow csv records with varying lengths, padding with empties
+  Sometimes trailing empty fields are omitted entirely (including the
+  commas) in CSV records. (I see this in exported Google spreadsheets.)
+  Now we don't raise an error in this case, instead we automatically pad
+  any "short" records with empty fields. Not yet well tested.
+
+- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
+  in JournalReader.hs. If you still need this, feel free to work on
+  those errors. But hopefully not, because dropping base 4.8 should
+  permit some code cleanups.
+
+- lib, cli: disable hledger-lib test suites, hledger benchmark suite
+  by default. hledger-lib's doctests and easytests test suites (each ?)
+  require an additional slow rebuild of hledger-lib and are not worth
+  the time, energy and carbon. hledger's test suite runs those same
+  easytest tests (but not the doctests).
+
+- lib: more runPeriodicTransaction tests (lifted from #1085 and spanIntervalIntersect) (Dmitry Astapov)
+
+- lib: dont raise when there is neither budget nor transactions in the report period (Dmitry Astapov)
+
+- bin: improve debug output for budger report (show budget txns) (Dmitry Astapov)
+
+- lib: fix generation of periodic transactions with days/months/... repeat (Dmitry Astapov)
+
 
 - lib, cli, ui: start using Control.Monad.Fail, allow base-compat 0.11
   fail is moving out of Monad and into it's own MonadFail class.
