@@ -71,7 +71,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos)
+import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, finaliseJournal)
 
 type CSV = [Record]
 
@@ -88,15 +88,21 @@ reader = Reader
   }
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
--- XXX currently ignores the string and reads from the file path
+-- Does not check balance assertions.
+-- XXX currently ignores the provided data, reads it from the file path instead.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f t = do
   let rulesfile = mrules_file_ iopts
   let separator = separator_ iopts
   r <- liftIO $ readJournalFromCsv separator rulesfile f t
-  case r of Left e  -> throwError e
-            Right j -> return $ journalNumberAndTieTransactions j
--- XXX does not use parseAndFinaliseJournal like the other readers
+  case r of Left e   -> throwError e
+            Right pj -> finaliseJournal iopts{ignore_assertions_=True} f t pj'
+              where
+                -- finaliseJournal assumes the journal's items are
+                -- reversed, as produced by JournalReader's parser.
+                -- But here they are already properly ordered. So we'd
+                -- better preemptively reverse them once more. XXX inefficient
+                pj' = journalReverse pj
 
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
@@ -163,10 +169,10 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
                    (initialPos parsecfilename) records
 
     -- Ensure transactions are ordered chronologically.
-    -- First, reverse them to get same-date transactions ordered chronologically,
-    -- if the CSV records seem to be most-recent-first, ie if there's an explicit
-    -- "newest-first" directive, or if there's more than one date and the first date
-    -- is more recent than the last.
+    -- First, if the CSV records seem to be most-recent-first (because
+    -- there's an explicit "newest-first" directive, or there's more
+    -- than one date and the first date is more recent than the last):
+    -- reverse them to get same-date transactions ordered chronologically.
     txns' =
       (if newestfirst || mseemsnewestfirst == Just True then reverse else id) txns
       where
