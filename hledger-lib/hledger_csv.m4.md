@@ -380,15 +380,31 @@ There is some special handling for an amount's sign:
 - If an amount value begins with a double minus sign, those cancel out and are removed.
 - If an amount value begins with a plus sign, that will be removed
 
-If the currency/commodity symbol is provided as a separate CSV field,
-you can assign it to `currency` (affects all posting amounts) or `currencyN` (affects just posting N's amount).
-The symbol will be prepended to the amount.
-Or for more control, you can set both currency symbol and amount with a field assignment, eg:
-```
-fields date,description,currency,amount
-# add currency symbol on the right:
-amount %amount %currency
-```
+## Setting currency/commodity
+
+If the currency/commodity symbol is included in the  CSV's amount field(s),
+you don't have to do anything special.
+
+If the currency is provided as a separate CSV field, you can either:
+
+- assign that to `currency`, which adds it to all posting amounts. The
+  symbol will prepended to the amount quantity (on the left side). If
+  you write a trailing space after the symbol, there will be a space
+  between symbol and amount (an exception to the usual whitespace
+  stripping).
+
+- or assign it to `currencyN` which adds it to the amount set with
+  `amountN` only. (Note: does not affect amounts set with `amount`,
+  currently).
+
+- or for more control, construct the amount from symbol and quantity
+  using field assignment, eg:
+
+   ```
+   fields date,description,currency,quantity
+   # add currency symbol on the right:
+   amount %quantity %currency
+   ```
 
 ## Referencing other fields
 
