@@ -226,7 +226,7 @@ With @-E/--empty@:
 /What to show in empty cells/
 
 An empty periodic balance report cell is one which has no corresponding postings.
-An empty cumulative/historical balance report cell is one which has no correponding
+An empty cumulative/historical balance report cell is one which has no corresponding
 or prior postings, ie the account doesn't exist yet.
 Currently, empty cells show 0.
 

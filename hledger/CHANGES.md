@@ -1289,7 +1289,7 @@ Miscellaneous:
     On non-windows systems, we now build with terminfo support by
     default, useful for detecting terminal width and other things.
 
-    This requires the C curses dev libaries, which makes POSIX
+    This requires the C curses dev libraries, which makes POSIX
     installation slightly harder; if it causes problems you can
     disable terminfo support with the new `curses` cabal flag, eg:
     cabal install -f-curses ... (or cabal might try this
