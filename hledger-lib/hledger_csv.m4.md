@@ -96,24 +96,24 @@ Here are the standard hledger field names:
 Most often there are two postings, so you'll want to set `account1` and `account2`.
 <!-- (Often, `account1` is fixed and `account2` will be set later by a [conditional block](#if).) -->
 
-A number of field/pseudo-field names are available for setting posting [amounts](journal.html#amounts):
+`amountN` sets posting N's amount. Or, `amount` with no N sets posting 1's. 
+Or if the CSV has debits and credits in separate fields, you can use
+`amountN-in` and `amountN-out`, or `amount-in` and `amount-out` with
+no N for posting 1.
 
-- `amountN` sets posting N's amount
-- `amountN-in` and `amountN-out` can be used instead, if the CSV has separate fields for debits and credits
-- `currencyN` sets a currency symbol to be left-prefixed to the amount, useful if the CSV provides that as a separate field
-- `balanceN` sets a (separate) [balance assertion](journal.html#balance-assertions) amount 
-   (or when no posting amount is set, a [balance assignment](journal.html#balance-assignments))
+For convenience and backwards compatibility, if you set the amount of
+posting 1 only, a second posting with the negative amount will be
+generated automatically.
 
-If you write these with no number
-(`amount`, `amount-in`, `amount-out`, `currency`, `balance`),
-it means posting 1.
-Also, if you set an amount for posting 1 only, 
-a second posting that balances the transaction will be generated automatically.
-This helps support CSV rules created before hledger 1.16.
-<!-- XXX check exact behaviour, eg in three-posting example below -->
+If the CSV has the currency symbol in a separate field, you can use
+`currencyN` to prepend it to posting N's amount. `currency` with no N
+affects ALL postings.
+
+`balanceN` sets a separate [balance assertion](journal.html#balance-assertions) amount 
+(or if the posting amount is left empty, a [balance assignment](journal.html#balance-assignments)).
 
 Finally, `commentN` sets a [comment](journal.html#comments) on the Nth posting. 
-Comments can of course contain [tags](journal.html#tags).
+Comments can also contain [tags](journal.html#tags), as usual.
 
 ## `(field assignment)`
 
