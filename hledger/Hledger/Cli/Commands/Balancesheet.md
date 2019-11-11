@@ -40,6 +40,8 @@ you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
 dates (and `-T/--row-total`, since summing end balances generally does not make sense).
+Instead of absolute values [percentages](#percentages) can be displayed
+with `-%`.
 
 This command also supports
 [output destination](hledger.html#output-destination) and
