@@ -106,7 +106,7 @@ multiBalanceReport ropts q j = multiBalanceReportWith ropts q j (journalPriceOra
 multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> MultiBalanceReport
 multiBalanceReportWith ropts@ReportOpts{..} q j@Journal{..} priceoracle =
   (if invert_ then mbrNegate else id) $
-  MultiBalanceReport (colspans, sortedrows, totalsrow)
+  MultiBalanceReport (colspans, mappedsortedrows, mappedtotalsrow)
     where
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
       -- dbg1 = const id  -- exclude this function from debug output
@@ -162,7 +162,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j@Journal{..} priceoracle =
       -- These balances are unvalued except maybe converted to cost.
       startbals :: [(AccountName, MixedAmount)] = dbg1 "startbals" $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
         where
-          (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport ropts''{value_=Nothing} startbalq j'
+          (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport ropts''{value_=Nothing, percent_=False} startbalq j'
             where
               ropts' | tree_ ropts = ropts{no_elide_=True}
                      | otherwise   = ropts{accountlistmode_=ALFlat}
@@ -343,6 +343,25 @@ multiBalanceReportWith ropts@ReportOpts{..} q j@Journal{..} priceoracle =
       -- Totals row.
       totalsrow :: MultiBalanceReportTotals =
         dbg1 "totalsrow" (coltotals, grandtotal, grandaverage)
+
+      ----------------------------------------------------------------------
+      -- 9. Map the report rows to percentages if needed
+      -- It is not correct to do this before step 6 due to the total and average columns.
+      -- This is not done in step 6, since the report totals are calculated in 8.
+      
+      -- Perform the divisions to obtain percentages
+      mappedsortedrows :: [MultiBalanceReportRow] =
+        if not percent_ then sortedrows
+        else dbg1 "mappedsortedrows"
+          [(aname, alname, alevel, zipWith perdivide rowvals coltotals, rowtotal `perdivide` grandtotal, rowavg `perdivide` grandaverage)
+           | (aname, alname, alevel, rowvals, rowtotal, rowavg) <- sortedrows
+          ]
+      mappedtotalsrow :: MultiBalanceReportTotals =
+        if not percent_ then totalsrow
+        else dbg1 "mappedtotalsrow" (
+          map (\t -> perdivide t t) coltotals,
+          perdivide grandtotal grandtotal,
+          perdivide grandaverage grandaverage)
 
 -- | Given a MultiBalanceReport and its normal balance sign,
 -- if it is known to be normally negative, convert it to normally positive.

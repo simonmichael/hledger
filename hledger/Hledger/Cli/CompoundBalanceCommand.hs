@@ -106,6 +106,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode when displaying tables"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
+    ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,outputFormatFlag
     ,outputFileFlag
     ]
@@ -135,13 +136,11 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
       -- are used in single column mode, since in that situation we will be using
       -- balanceReportFromMultiBalanceReport which does not support eliding boring parents,
       -- and tree mode hides this.. or something.. XXX
-      ropts'
-        | not (flat_ ropts) &&
-          interval_==NoInterval &&
-          balancetype `elem` [CumulativeChange, HistoricalBalance]
-            = ropts{balancetype_=balancetype, accountlistmode_=ALTree}
-        | otherwise
-            = ropts{balancetype_=balancetype}
+      ropts' = ropts{
+        balancetype_=balancetype,
+        accountlistmode_=if not (flat_ ropts) && interval_==NoInterval && balancetype `elem` [CumulativeChange, HistoricalBalance] then ALTree else accountlistmode_,
+        no_total_=if percent_ && length cbcqueries > 1 then True else no_total_
+      }
       userq = queryFromOpts d ropts'
       format = outputFormatFromOpts opts
 

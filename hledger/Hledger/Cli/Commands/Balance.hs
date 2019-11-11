@@ -292,6 +292,7 @@ balancemode = hledgerCommandMode
    ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
    ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
+   ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
    ]
    ++ outputflags
   )

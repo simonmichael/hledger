@@ -1,0 +1,42 @@
+#!/usr/bin/env shelltest
+# 1. Single column percent
+hledger -f sample.journal balance expenses -%
+>>>
+             100.0 %  expenses
+              50.0 %    food
+              50.0 %    supplies
+--------------------
+             100.0 %
+>>>= 0
+
+# 2. Multi column percent
+hledger -f sample.journal balance expenses -% -p daily
+>>>
+Balance changes in 2008/06/03:
+
+                   || 2008/06/03 
+===================++============
+ expenses:food     ||     50.0 % 
+ expenses:supplies ||     50.0 % 
+-------------------++------------
+                   ||    100.0 % 
+>>>= 0
+
+# 3. In a balanced ledger everything should sum up to zero, therefore all percentages should be zero.
+hledger -f sample.journal balance -% -p quarterly
+>>>
+Balance changes in 2008:
+
+                      || 2008q1  2008q2  2008q3  2008q4 
+======================++================================
+ assets:bank:checking ||      0       0       0       0 
+ assets:bank:saving   ||      0       0       0       0 
+ assets:cash          ||      0       0       0       0 
+ expenses:food        ||      0       0       0       0 
+ expenses:supplies    ||      0       0       0       0 
+ income:gifts         ||      0       0       0       0 
+ income:salary        ||      0       0       0       0 
+ liabilities:debts    ||      0       0       0       0 
+----------------------++--------------------------------
+                      ||      0       0       0       0 
+>>>= 0

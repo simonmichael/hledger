@@ -12,6 +12,8 @@ module Hledger.Reports.BalanceReport (
   balanceReport,
   flatShowsExclusiveBalance,
   sortAccountItemsLike,
+  unifyMixedAmount,
+  perdivide,
 
   -- * Tests
   tests_BalanceReport
@@ -66,7 +68,7 @@ flatShowsExclusiveBalance    = True
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport ropts@ReportOpts{..} q j@Journal{..} =
   (if invert_ then brNegate  else id) $
-  (sorteditems, total)
+  (mappedsorteditems, mappedtotal)
     where
       -- dbg1 = const id -- exclude from debug output
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
@@ -142,6 +144,14 @@ balanceReport ropts@ReportOpts{..} q j@Journal{..} =
                                   if flatShowsExclusiveBalance
                                   then sum $ map fourth4 items
                                   else sum $ map aebalance $ clipAccountsAndAggregate 1 displayaccts
+      
+      -- Calculate percentages if needed.
+      mappedtotal | percent_  = dbg1 "mappedtotal" $ total `perdivide` total
+                  | otherwise = total
+      mappedsorteditems | percent_ =
+                            dbg1 "mappedsorteditems" $
+                            map (\(fname, sname, indent, amount) -> (fname, sname, indent, amount `perdivide` total)) sorteditems
+                        | otherwise = sorteditems
 
 -- | A sorting helper: sort a list of things (eg report rows) keyed by account name
 -- to match the provided ordering of those same account names.
@@ -185,6 +195,28 @@ brNegate (is, tot) = (map brItemNegate is, -tot)
   where
     brItemNegate (a, a', d, amt) = (a, a', d, -amt)
 
+-- | Helper to unify a MixedAmount to a single commodity value.
+unifyMixedAmount :: MixedAmount -> Amount
+unifyMixedAmount mixedAmount = foldl combine (num 0) (amounts mixedAmount)
+  where
+    combine amount result =
+      if isReallyZeroAmount amount
+      then result
+      else if isReallyZeroAmount result
+        then amount
+        else if acommodity amount == acommodity result
+          then amount + result
+          else error' "Cannot calculate percentages for accounts with multiple commodities. (Hint: Try --cost, -V or similar flags.)"
+
+-- | Helper to calculate the percentage from two mixed. Keeps the sign of the first argument.
+-- Uses unifyMixedAmount to unify each argument and then divides them.
+perdivide :: MixedAmount -> MixedAmount -> MixedAmount
+perdivide a b =
+  let a' = unifyMixedAmount a
+      b' = unifyMixedAmount b
+  in if isReallyZeroAmount a' || isReallyZeroAmount b' || acommodity a' == acommodity b'
+    then mixed [per $ if aquantity b' == 0 then 0 else (aquantity a' / abs (aquantity b') * 100)]
+    else error' "Cannot calculate percentages if accounts have different commodities. (Hint: Try --cost, -V or similar flags.)"
 
 -- tests
 

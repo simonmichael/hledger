@@ -51,6 +51,7 @@ module Hledger.Data.Amount (
   usd,
   eur,
   gbp,
+  per,
   hrs,
   at,
   (@@),
@@ -181,6 +182,7 @@ hrs n = amount{acommodity="h", aquantity=n,           astyle=amountstyle{aspreci
 usd n = amount{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
 eur n = amount{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
 gbp n = amount{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
+per n = amount{acommodity="%", aquantity=n,           astyle=amountstyle{asprecision=1, ascommodityside=R, ascommodityspaced=True}}
 amt `at` priceamt = amt{aprice=Just $ UnitPrice priceamt}
 amt @@ priceamt = amt{aprice=Just $ TotalPrice priceamt}
 

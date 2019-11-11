@@ -113,6 +113,7 @@ data ReportOpts = ReportOpts {
     ,no_total_       :: Bool
     ,pretty_tables_  :: Bool
     ,sort_amount_    :: Bool
+    ,percent_        :: Bool
     ,invert_         :: Bool  -- ^ if true, flip all amount signs in reports
     ,normalbalance_  :: Maybe NormalSign
       -- ^ This can be set when running balance reports on a set of accounts
@@ -131,6 +132,7 @@ instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -186,6 +188,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,row_total_   = boolopt "row-total" rawopts'
     ,no_total_    = boolopt "no-total" rawopts'
     ,sort_amount_ = boolopt "sort-amount" rawopts'
+    ,percent_     = boolopt "percent" rawopts'
     ,invert_      = boolopt "invert" rawopts'
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
     ,color_       = color

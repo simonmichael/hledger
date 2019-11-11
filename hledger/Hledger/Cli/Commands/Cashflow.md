@@ -31,6 +31,8 @@ will be shown, one for each report period.
 Normally cashflow shows changes in assets per period, though
 as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
+Instead of absolute values [percentages](#percentages) can be displayed
+with `-%`.
 
 This command also supports
 [output destination](hledger.html#output-destination) and
