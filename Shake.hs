@@ -334,6 +334,10 @@ main = do
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
       need $ [src, commonm4, packagem4] ++ deps
       when (manual=="hledger") $ need commandmds
+      -- add the web page's heading.
+      -- XXX Might be nice to do this atomically with the below, so
+      -- make avoid any double refresh when watch docs with entr/livereload.
+      -- But cmd Shell doesn't handle arguments containing spaces properly.
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir commonm4 packagem4 src "|"
