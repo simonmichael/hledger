@@ -17,39 +17,42 @@ CSV - how hledger reads CSV data, and the CSV rules file format
 
 hledger can read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values)
-(comma-separated value) files as if they were journal files,
+(comma-separated value, or character-separated value) files as if they were journal files,
 automatically converting each CSV record into a transaction.  (To
 learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
 
-Converting CSV to transactions requires some special conversion rules.
-These do several things:
+To instruct hledger how to convert CSV records to transactions, we
+must provide a CSV rules file. By default this is named like the CSV
+file with a `.rules` extension added. Eg when reading `FILE.csv`,
+hledger also looks for `FILE.csv.rules` in the same directory. You can
+specify a different rules file with the `--rules-file` option. If a
+rules file is not found, hledger will auto-create it with some example
+rules, which you'll need to adjust.
 
-- they describe the layout and format of the CSV data
-- they can customize the generated journal entries (transactions) using a simple templating language
-- they can add refinements based on patterns in the CSV data, eg categorizing transactions with more detailed account names.
+The CSV rules describe the CSV data (header line, fields layout,
+date format etc.), and how to construct hledger journal entries
+(transactions) from it. Often there will also be a list of
+conditional rules for categorising transactions based on their
+descriptions.
 
-When reading a CSV file named `FILE.csv`, hledger looks for a
-conversion rules file named `FILE.csv.rules` in the same directory.
-You can override this with the `--rules-file` option.
-If the rules file does not exist, hledger will auto-create one with
-some example rules, which you'll need to adjust.
-
-At minimum, the rules file must identify the date and amount fields. 
-It's often necessary to specify the date format, and the number of header lines to skip, also.
-Eg:
+At minimum, the rules file must identify the date and amount fields,
+and often it also specifies the date format and how many header lines
+there are. Here's a typical simple rules file:
 ```
-fields date, _, _, amount
+fields       date, description, _, amount
 date-format  %d/%m/%Y
-skip 1
+skip         1
 ```
 
-More examples in the EXAMPLES section below.
+More examples can be found in the EXAMPLES section below.
+
 
 # CSV RULES
 
 The following kinds of rule can appear in the rules file, in any order
-(except for `end` which can appear only inside a conditional block).
+(`end` can appear only inside an `if` block).
 Blank lines and lines beginning with `#` or `;` are ignored.
+
 
 ## `skip`
 
@@ -61,45 +64,54 @@ tells hledger to ignore this many non-empty lines preceding the CSV data.
 (Empty/blank lines are skipped automatically.)
 You'll need this whenever your CSV data contains header lines.
 
-It also has a second purpose: it can be used to ignore certain CSV
-records, see [conditional blocks](#if) below.
+It also has a second purpose: it can be used inside [if blocks](#if)
+'to ignore certain CSV records (described below).
+
 
 ## `fields`
 
 ```rules
 fields FIELDNAME1, FIELDNAME2, ...
 ```
-A fields list ("fields" followed by one or more comma-separated field names) is the quick way to assign CSV field values to hledger fields.
-It  (a) names the CSV fields, in order (names may not contain whitespace; fields you don't care about can be left unnamed),
-and (b) assigns them to hledger fields if you use standard hledger field names.
-Here's an example:
-```rules
-# use the 1st, 2nd and 4th CSV fields as the transaction's date, description and amount,
-# ignore the 3rd, 5th and 6th fields,
-# and name the 7th and 8th fields for later reference:
-#      1     2           3  4       5 6  7          8
+A fields list (the word "fields" followed by comma-separated field
+names) is the quick way to assign CSV field values to hledger fields.
+It does two things:
 
-fields date, description, , amount1, , , somefield, anotherfield
+1. it names the CSV fields. 
+   This is optional, but can be convenient later for interpolating them.
+
+2. when you use a standard hledger field name,
+   it assigns the CSV value to that part of the hledger transaction.
+
+Here's an example that says 
+"use the 1st, 2nd and 4th fields as the transaction's date, description and amount;
+name the last two fields for later reference; and ignore the others":
+```rules
+fields date, description, , amount, , , somefield, anotherfield
 ```
 
-Here are the standard hledger field names:
+Field names may not contain whitespace. 
+Fields you don't care about can be left unnamed.
+Currently there must be least two items (there must be at least one comma).
 
-### Transaction fields
+Here are the standard hledger field/pseudo-field names. 
+For more about the transaction parts they refer to, see the manual for hledger's journal format.
+
+### Transaction field names
 
 `date`, `date2`, `status`, `code`, `description`, `comment` can be used to form the
-[transaction's](journal.html#transactions) first line. Only `date` is required.
-(See also [date-format](#date-format) below.)
+[transaction's](journal.html#transactions) first line.
 
-### Posting fields
+### Posting field names
 
 `accountN`, where N is 1 to 9, sets the Nth [posting's](journal.html#postings) account name.
 Most often there are two postings, so you'll want to set `account1` and `account2`.
 <!-- (Often, `account1` is fixed and `account2` will be set later by a [conditional block](#if).) -->
 
-`amountN` sets posting N's amount. Or, `amount` with no N sets posting 1's. 
-Or if the CSV has debits and credits in separate fields, you can use
-`amountN-in` and `amountN-out`, or `amount-in` and `amount-out` with
-no N for posting 1.
+`amountN` sets posting N's amount. Or, `amount` with no N sets posting
+1's. If the CSV has debits and credits in separate fields, use
+`amountN-in` and `amountN-out` instead. Or `amount-in` and
+`amount-out` with no N for posting 1.
 
 For convenience and backwards compatibility, if you set the amount of
 posting 1 only, a second posting with the negative amount will be
@@ -115,30 +127,34 @@ affects ALL postings.
 Finally, `commentN` sets a [comment](journal.html#comments) on the Nth posting. 
 Comments can also contain [tags](journal.html#tags), as usual.
 
+See TIPS below for more about setting amounts and currency.
+
+
 ## `(field assignment)`
 
 ```rules
 HLEDGERFIELDNAME FIELDVALUE
 ```
 
-Instead of or in addition to a [fields list](#fields), you can
-assign a value to a hledger field by writing its name
-(any of the standard names above) followed by a text value.
-The value may contain interpolated CSV fields ([only](#referencing-other-fields)), 
+Instead of or in addition to a [fields list](#fields), you can use
+a "field assignment" rule to set the value of a single hledger field,
+by writing its name (any of the standard names above) followed by a text value.
+The value may contain interpolated CSV fields, 
 referenced by their 1-based position in the CSV record (`%N`),
 or by the name they were given in the fields list (`%CSVFIELDNAME`).
-Eg:
+Some examples:
 ```rules
 # set the amount to the 4th CSV field, with " USD" appended
 amount %4 USD
-```
-```rules
+
 # combine three fields to make a comment, containing note: and date: tags
 comment note: %somefield - %anotherfield, date: %1
 ```
-Interpolation strips any outer whitespace, so a CSV value like `" 1 "`
-becomes `1` when interpolated
+Interpolation strips outer whitespace (so a CSV value like `" 1 "`
+becomes `1` when interpolated)
 ([#1051](https://github.com/simonmichael/hledger/issues/1051)).
+See TIPS below for more about referencing other fields.
+
 
 ## `date-format`
 
@@ -147,29 +163,29 @@ date-format DATEFMT
 ```
 This is a helper for the `date` (and `date2`) fields.
 If your CSV dates are not formatted like `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`,
-you'll need to specify the format by writing "date-format" followed by 
-a [strptime-like date parsing pattern](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime),
-which must parse the date field values completely. Examples:
-
+you'll need to add a date-format rule describing them with a
+strptime date parsing pattern, which must parse the CSV date value completely.
+Some examples:
 ``` rules
-# for dates like "11/06/2013":
-date-format %m/%d/%Y
+# MM/DD/YY
+date-format %m/%d/%y
 ```
-
 ``` rules
-# for dates like "6/11/2013". The - allows leading zeros to be optional.
+# D/M/YYYY. The - makes leading zeros optional.
 date-format %-d/%-m/%Y
 ```
-
 ``` rules
-# for dates like "2013-Nov-06":
+# YYYY-Mmm-DD
 date-format %Y-%h-%d
 ```
-
 ``` rules
-# for dates like "11/6/2013 11:32 PM":
-date-format %-m/%-d/%Y %l:%M %p
+# M/D/YYYY HH:MM AM some other junk.
+# The time and junk must be parsed, though only the date is used.
+date-format %-m/%-d/%Y %l:%M %p some other junk
 ```
+For the full pattern syntax, see
+<https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>.
+
 
 ## `if`
 
@@ -185,24 +201,30 @@ PATTERN
  RULE
 ```
 
-Conditional blocks apply one or more rules to CSV records which are
-matched by any of the PATTERNs. This allows transactions to be
-customised or categorised based on patterns in the data.
+Conditional blocks ("if blocks") are a block of rules that are applied
+only to CSV records which match certain patterns. They are often used
+for customising account names based on transaction descriptions.
 
 A single pattern can be written on the same line as the "if";
 or multiple patterns can be written on the following lines, non-indented.
-
+Multiple patterns are OR'd (any one of them can match).
 Patterns are case-insensitive [regular expressions](hledger.html#regular-expressions)
 which try to match any part of the whole CSV record.
-It's not yet possible to match within a specific field.
 Note the CSV record they see is close but not identical to the one in the CSV file;
-eg double quotes are removed, and the separator character becomes comma.
+eg double quotes are removed, and the separator character is always comma.
 
-After the patterns, there should be one or more rules to apply, all
+It's not yet easy to match within a specific field.
+If the data does not contain commas, you can hack it with a regular expression like:
+```rules
+# match "foo" in the fourth field
+if ^([^,]*,){3}foo
+```
+
+After the patterns there should be one or more rules to apply, all
 indented by at least one space. Three kinds of rule are allowed in
 conditional blocks:
 
-- [field assignments](#field-assignment) (to set a field's value)
+- [field assignments](#field-assignment) (to set a hledger field)
 - [skip](#skip) (to skip the matched CSV record)
 - [end](#end) (to skip all remaining CSV records).
 
@@ -222,16 +244,18 @@ banking thru software
  comment  XXX deductible ? check it
 ```
 
+
 ## `end`
 
-As mentioned above, this rule can be used inside conditional blocks
-(only) to cause hledger to stop reading CSV records and proceed with
-command execution. Eg:
+This rule can be used inside [if blocks](#if) (only), to make hledger stop
+reading this CSV file and move on (to the next input file, or to command execution). 
+Eg:
 ```rules
 # ignore everything following the first empty record
 if ,,,,
  end
 ```
+
 
 ## `include`
 
@@ -241,19 +265,19 @@ include RULESFILE
 
 Include another CSV rules file at this point, as if it were written inline. 
 `RULESFILE` is an absolute file path or a path relative to the current file's directory.
-
-This can be useful eg for reusing common rules in several rules files:
+This can be useful for sharing common rules between several rules files, eg:
 ```rules
 # someaccount.csv.rules
 
 ## someaccount-specific rules
-fields date,description,amount
-account1 some:account
-account2 some:misc
+fields   date,description,amount
+account1 assets:someaccount
+account2 expenses:misc
 
 ## common rules
 include categorisation.rules
 ```
+
 
 ## `newest-first`
 
@@ -263,30 +287,34 @@ as hledger can usually auto-detect whether the CSV's normal order is oldest firs
 But if all of the following are true:
 
 - the CSV might sometimes contain just one day of data (all records having the same date)
-- the CSV records are normally in reverse chronological order (newest first)
+- the CSV records are normally in reverse chronological order (newest at the top)
 - and you care about preserving the order of same-day transactions
 
-you should add the `newest-first` rule as a hint. Eg:
+then, you should add the `newest-first` rule as a hint. Eg:
 ```rules
-# tell hledger explicitly that the CSV is normally newest-first
+# tell hledger explicitly that the CSV is normally newest first
 newest-first
 ```
 
+
 # EXAMPLES
 
-A more complete example, generating three-posting transactions:
+A more complete example, generating two- or three-posting transactions
+from amazon.com order history:
+```csv
+"Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
+"Jul 29, 2012","Payment","To","Foo.","Completed","$20.00","$0.00","16000000000000DGLNJPI1P9B8DKPVHL"
+"Jul 30, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$1.00","17LA58JSKRD4HDGLNJPI1P9B8DKPVHL"
 ```
-# hledger CSV rules for amazon.com order history
-
-# sample:
-# "Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
-# "Jul 29, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$0.00","17LA58JSK6PRD4HDGLNJQPI1PB9N8DKPVHL"
+```rules
+# hledger CSV rules for amazon.csv
 
 # skip one header line
 skip 1
 
-# name the csv fields (and assign the transaction's date, amount and code)
-fields date, _, toorfrom, name, amzstatus, amount1, fees, code
+# name the csv fields, and assign the transaction's date, amount and code.
+# Avoided the "status" and "amount" hledger field names to prevent confusion.
+fields date, _, toorfrom, name, amzstatus, amzamount, fees, code
 
 # how to parse the date
 date-format %b %-d, %Y
@@ -294,70 +322,112 @@ date-format %b %-d, %Y
 # combine two fields to make the description
 description %toorfrom %name
 
-# save these fields as tags
+# save the status as a tag
 comment     status:%amzstatus
 
 # set the base account for all transactions
 account1    assets:amazon
+# leave amount1 blank so it can balance the other(s).
+# I'm assuming amzamount excludes the fees, don't remember
 
-# flip the sign on the amount
-amount      -%amount
+# set a generic account2
+account2    expenses:misc
+amount2     %amzamount
+# and maybe refine it further:
+#include categorisation.rules
 
-# Put fees in a separate posting
-amount3     %fees
-comment3    fees
+# add a third posting for fees, but only if they are non-zero.
+# Commas in the data makes counting fields hard, so count from the right instead.
+# (Regex translation: "a field containing a non-zero dollar amount, 
+# immediately before the 1 right-most fields")
+if ,\$[1-9][.0-9]+(,[^,]*){1}$
+ account3    expenses:fees
+ amount3     %fees
+```
+```shell
+$ hledger -f amazon.csv print
+2012/07/29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
+    assets:amazon
+    expenses:misc          $20.00
+
+2012/07/30 (17LA58JSKRD4HDGLNJPI1P9B8DKPVHL) To Adapteva, Inc.  ; status:Completed
+    assets:amazon
+    expenses:misc          $25.00
+    expenses:fees           $1.00
+
 ```
 
 For more examples, see [Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert-CSV-files).
 
+
 # TIPS
-
-## Reading multiple CSV files
-
-You can read multiple CSV files at once using multiple `-f` arguments on the command line.
-hledger will look for a correspondingly-named rules file for each CSV file.
-If you use the `--rules-file` option, that rules file will be used for all the CSV files.
-
-## Deduplicating, importing
-
-When you download a CSV file repeatedly, eg to get your latest bank
-transactions, the new file may contain some of the same records as the
-old one. The [print --new](hledger.html#print) command is one simple
-way to detect just the new transactions. Or better still, the
-[import](hledger.html#import) command appends those new transactions
-to your main journal. This is the easiest way to import CSV data. Eg,
-after downloading your latest CSV files:
-```shell
-$ hledger import *.csv [--dry]
-```
-
-## Other import methods
-
-A number of other tools and workflows, hledger-specific and otherwise,
-exist for converting, deduplicating, classifying and managing CSV data.
-See:
-
-- <https://hledger.org> -> sidebar -> real world setups
-- <https://plaintextaccounting.org> -> data import/conversion
 
 ## Valid CSV
 
 hledger accepts CSV conforming to [RFC 4180](https://tools.ietf.org/html/rfc4180).
-Some things to note when values are enclosed in quotes:
+When CSV values are enclosed in quotes, note:
 
-- you must use double quotes (not single quotes)
+- they must be double quotes (not single quotes)
 - spaces outside the quotes are [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field)
 
 ## Other separator characters
 
-With the `--separator 'CHAR'` option, hledger will expect the
+With the `--separator 'CHAR'` option (experimental), hledger will expect the
 separator to be CHAR instead of a comma. Ie it will read other
 "Character Separated Values" formats, such as TSV (Tab Separated Values).
 Note: on the command line, use a real tab character in quotes, not \t. Eg:
 ```shell
 $ hledger -f foo.tsv --separator '	' print
 ```
-(Experimental.)
+
+## Reading multiple CSV files
+
+If you use multiple `-f` options to read multiple CSV files at once,
+hledger will look for a correspondingly-named rules file for each CSV file.
+But if you use the `--rules-file` option, that rules file will be used for all the CSV files.
+
+## Valid transactions
+
+After reading a CSV file, hledger post-processes and validates the
+generated journal entries as it would for a journal file - balancing
+them, applying balance assignments, and canonicalising amount styles.
+Any errors at this stage will be reported in the usual way, displaying
+the problem entry.
+
+There is one exception: balance assertions, if you have generated
+them, will not be checked, since normally these will work only when
+the CSV data is part of the main journal. If you do need to check
+balance assertions generated from CSV right away, pipe into another hledger:
+```shell
+$ hledger -f file.csv print | hledger -f- print
+```
+
+## Deduplicating, importing
+
+When you download a CSV file periodically, eg to get your latest bank
+transactions, the new file may overlap with the old one, containing
+some of the same records.
+
+The [import](hledger.html#import) command will (a) detect the new
+transactions, and (b) append just those transactions to your main
+journal. It is idempotent, so you don't have to remember how many
+times you ran it or with which version of the CSV.
+(It keeps state in a hidden `.latest.FILE.csv` file.)
+This is the easiest way to import CSV data. Eg:
+```shell
+# download the latest CSV files, then run this command.
+# Note, no -f flags needed here.
+$ hledger import *.csv [--dry]
+```
+This method works for most CSV files.
+(Where records have a stable chronological order, and new records appear only at the new end.)
+
+A number of other tools and workflows, hledger-specific and otherwise,
+exist for converting, deduplicating, classifying and managing CSV
+data. See:
+
+- <https://hledger.org> -> sidebar -> real world setups
+- <https://plaintextaccounting.org> -> data import/conversion
 
 ## Setting amounts
 
@@ -400,7 +470,7 @@ If the currency is provided as a separate CSV field, you can either:
 - or for more control, construct the amount from symbol and quantity
   using field assignment, eg:
 
-   ```
+   ```rules
    fields date,description,currency,quantity
    # add currency symbol on the right:
    amount %quantity %currency
@@ -475,21 +545,4 @@ use to parse input files. When all files have been read successfully,
 the transactions are passed as input to whichever hledger command the
 user specified.
 
-## Valid transactions
 
-hledger currently does not post-process and validate transactions
-generated from CSV as thoroughly as transactions read from a journal
-file. This means that if your rules are wrong, you can generate invalid
-transactions. Or, amounts may not be displayed with a canonical
-display style.
-
-So when setting up or adjusting CSV rules, you should check your
-results visually with the print command. You can also pipe the output
-through hledger once more to fully validate and canonicalise it:
-
-```shell
-$ hledger -f some.csv print | hledger -f- print -I
-```
-
-(The -I/--ignore-assertions flag disables balance assertion checks,
-usually needed when re-parsing print output.)
