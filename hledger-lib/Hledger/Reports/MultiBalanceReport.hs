@@ -24,6 +24,7 @@ where
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Data.List
+import qualified Data.Map as M
 import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
@@ -150,7 +151,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
           displayspan
             | empty_    = dbg1 "displayspan (-E)" reportspan                              -- all the requested intervals
             | otherwise = dbg1 "displayspan" $ requestedspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
-          matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts ropts) ps
+          matchedspan = dbg1 "matchedspan" . daysSpan $ map snd ps
 
       -- If doing cost valuation, convert amounts to cost.
       j' = journalSelectingAmountFromOpts ropts j
@@ -187,17 +188,26 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- 3. Gather postings for each column.
 
       -- Postings matching the query within the report period.
-      ps :: [Posting] =
+      ps :: [(Posting, Day)] =
           dbg1 "ps" $
+          map postingWithDate $
           journalPostings $
           filterJournalAmounts symq $      -- remove amount parts excluded by cur:
           filterJournalPostings reportq $  -- remove postings not matched by (adjusted) query
           j'
+        where
+          postingWithDate p = case whichDateFromOpts ropts of
+              PrimaryDate   -> (p, postingDate p)
+              SecondaryDate -> (p, postingDate2 p)
 
       -- Group postings into their columns, with the column end dates.
       colps :: [([Posting], Maybe Day)] =
           dbg1 "colps"
-          [(filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps, spanEnd s) | s <- colspans]
+          [ (posts, end) | (DateSpan _ end, posts) <- M.toList colMap ]
+        where
+          colMap = foldr addPosting emptyMap ps
+          addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
+          emptyMap = M.fromList . zip colspans $ repeat []
 
       ----------------------------------------------------------------------
       -- 4. Calculate account balance changes in each column.
@@ -228,13 +238,13 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
           then nub $ sort $ startaccts ++ allpostedaccts
           else allpostedaccts
         where
-          allpostedaccts :: [AccountName] = dbg1 "allpostedaccts" $ sort $ accountNamesFromPostings ps
+          allpostedaccts :: [AccountName] =
+            dbg1 "allpostedaccts" . sort . accountNamesFromPostings $ map fst ps
       -- Each column's balance changes for each account, adding zeroes where needed.
       colallacctchanges :: [[(ClippedAccountName, MixedAmount)]] =
           dbg1 "colallacctchanges"
-          [sortBy (comparing fst) $
-           unionBy (\(a,_) (a',_) -> a == a') postedacctchanges zeroes
-           | postedacctchanges <- colacctchanges]
+          [ sortOn fst $ unionBy (\(a,_) (a',_) -> a == a') postedacctchanges zeroes
+             | postedacctchanges <- colacctchanges ]
           where zeroes = [(a, nullmixedamt) | a <- displayaccts]
       -- Transpose to get each account's balance changes across all columns.
       acctchanges :: [(ClippedAccountName, [MixedAmount])] =
