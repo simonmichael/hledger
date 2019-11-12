@@ -1,20 +1,17 @@
-# hledger csv conversion rules for bank of ireland
-
-# sample of CSV being converted
-# Date,Details,Debit,Credit,Balance
-# 07/12/2012,LODGMENT       529898,,10.0,131.21
-# 07/12/2012,PAYMENT,5,,126
-# 1    2       3     4      5 
+# bankofireland-checking.csv.rules
 
 # skip the header line
 skip
 
 # name the csv fields, and assign some of them as journal entry fields
 fields  date, description, amount-out, amount-in, balance
-# Note: we generate balance assertions from the balance field here,
-# but you may sometimes need to remove these because:
+
+# We generate balance assertions by assigning to "balance"
+# above, but you may sometimes need to remove these because:
+#
 # - the CSV balance differs from the true balance, 
 #   by up to 0.0000000000005 in my experience
+#
 # - it is sometimes calculated based on non-chronological ordering,
 #   eg when multiple transactions clear on the same day
 
@@ -25,10 +22,4 @@ date-format  %d/%m/%Y
 currency  EUR
 
 # set the base account for all txns
-account1  assets:personal:bank:bank of ireland:checking
-
-# an alternative to using amount-in & amount-out:
-# use the (sign-flipped) third field by default, or if it's empty, the fourth
-# amount  -%3
-# if ^[^,]*,[^,]*,,
-#  amount  %4
+account1  assets:bank:boi:checking
