@@ -767,34 +767,24 @@ transactionFromCsvRecord sourcepos rules record = t
       ("balance"++number)
       ("comment" ++ number)
       
-    postingLegacy = parsePosting' "" "account1" "amount" "amount-in" "amount-out" "balance" "comment1"
-    posting1' = parsePosting "1"
-    posting1 =
-      case (postingLegacy,posting1') of
-        (Just (_,legacy), Nothing) -> Just ("1", legacy)
-        (Nothing, Just (_,posting1)) -> Just ("1", posting1)
-        (Just (_,legacy), Just (_,posting1)) ->
-          -- Here we merge legacy fields such as "amount" with "amount1", etc
-          -- Account and Comment would be the same by construction
-          let balanceassertion = (pbalanceassertion legacy) `or` (pbalanceassertion posting1)
-              amount =
-                let al = pamount legacy
-                    a1 = pamount posting1
-                in
-                  if al == a1 then al
-                  else
-                    case (isZeroMixedAmount al, isZeroMixedAmount a1) of
-                      (True, _) -> a1
-                      (False, True) -> al
-                      (False, False) ->
-                        error' $ unlines [ "amount/amount-in/amount-out and amount1/amount1-in/amount1-out produced conflicting values"
-                                         , showRecord record
-                                         , showRules rules record
-                                         , "amount/amount-in/amount-out is " ++ showMixedAmount al
-                                         , "amount1/amount1-in/amount1-out is " ++ showMixedAmount a1
-                                         ]
-          in Just $ ("1", posting {paccount=paccount posting1, pamount=amount, ptransaction=Just t, pbalanceassertion=balanceassertion, pcomment = pcomment posting1})
-        (Nothing, Nothing) -> Nothing
+    withAlias fld alias =
+      case (mfieldtemplate fld, mfieldtemplate alias) of
+        (Just fld, Just alias) -> error' $ unlines
+          [ "error: both \"" ++ fld ++ "\" and \"" ++ alias ++ "\" have values."
+          , showRecord record
+          , showRules rules record
+          ]
+        (Nothing, Just _) -> alias
+        (_, Nothing)      -> fld
+
+    posting1 = parsePosting' "1"
+               ("account1" `withAlias` "account")
+               ("amount1" `withAlias` "amount")
+               ("amount1-in" `withAlias` "amount-in")
+               ("amount1-out" `withAlias` "amount-out")
+               ("balance1" `withAlias` "balance")
+               "comment1" -- comment1 does not have legacy alias
+
     postings' = catMaybes $ posting1:[ parsePosting i | x<-[2..9], let i = show x]
 
     improveUnknownAccountName p =
