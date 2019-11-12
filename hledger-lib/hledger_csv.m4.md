@@ -21,30 +21,347 @@ hledger can read
 automatically converting each CSV record into a transaction.  (To
 learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
 
-To instruct hledger how to convert CSV records to transactions, we
-must provide a CSV rules file. By default this is named like the CSV
-file with a `.rules` extension added. Eg when reading `FILE.csv`,
-hledger also looks for `FILE.csv.rules` in the same directory. You can
-specify a different rules file with the `--rules-file` option. If a
-rules file is not found, hledger will auto-create it with some example
-rules, which you'll need to adjust.
+We describe each CSV file's format with a corresponding *rules file*.
+By default this is named like the CSV file with a `.rules` extension
+added. Eg when reading `FILE.csv`, hledger also looks for
+`FILE.csv.rules` in the same directory. You can specify a different
+rules file with the `--rules-file` option. If a rules file is not
+found, hledger will create a sample rules file, which you'll need to
+adjust.
 
-The CSV rules describe the CSV data (header line, fields layout,
-date format etc.), and how to construct hledger journal entries
-(transactions) from it. Often there will also be a list of
+This file contains rules describing the CSV data (header line, fields
+layout, date format etc.), and how to construct hledger journal
+entries (transactions) from it. Often there will also be a list of
 conditional rules for categorising transactions based on their
-descriptions.
+descriptions. Here's an overview of the CSV rules;
+these are described more fully below, after the examples:
+
+------------------------------------------- ---------------------------------------------------
+[**`skip`**](#skip)                         skip one or more header lines or matched CSV records
+[**`fields`**](#fields)                     name CSV fields, assign them to hledger fields
+[**field assignment**](#field-assignment)    assign a value to one hledger field, with interpolation
+[**`if`**](#if)                             apply some rules to matched CSV records
+[**`end`**](#end)                           stop processing CSV records
+[**`date-format`**](#date-format)           describe the format of CSV dates
+[**`newest-first`**](#newest-first)         disambiguate record order when there's only one date
+[**`include`**](#include)                   inline another CSV rules file
+------------------------------------------- ---------------------------------------------------
+
+There's also a [Convert CSV files](convert-csv-files.html) tutorial on hledger.org.
+
+# EXAMPLES
+
+Here are some sample hledger CSV rules files. See also the full collection at:\
+<https://github.com/simonmichael/hledger/tree/master/examples/csv>
+
+## Basic
 
 At minimum, the rules file must identify the date and amount fields,
 and often it also specifies the date format and how many header lines
-there are. Here's a typical simple rules file:
+there are. Here's a simple CSV file and a rules file for it:
+```csv
+Date, Description, Id, Amount
+12/11/2019, Foo, 123, 10.23
 ```
+<!-- examples/csv/basic.csv.rules -->
+```rules
+# basic.csv.rules
+skip         1
 fields       date, description, _, amount
 date-format  %d/%m/%Y
-skip         1
+```
+```shell
+$ hledger print -f basic.csv
+2019/11/12 Foo
+    expenses:unknown           10.23
+    income:unknown            -10.23
+
+```
+Default account names are chosen, since we didn't set them.
+
+## Bank of Ireland
+
+Here's a CSV with two amount fields (Debit and Credit), and a balance field,
+which we can use to add balance assertions, which is not necessary but
+provides extra error checking:
+
+```csv
+Date,Details,Debit,Credit,Balance
+07/12/2012,LODGMENT       529898,,10.0,131.21
+07/12/2012,PAYMENT,5,,126
+```
+<!-- examples/csv/bankofireland-checking.csv.rules -->
+```rules
+# bankofireland-checking.csv.rules
+
+# skip the header line
+skip
+
+# name the csv fields, and assign some of them as journal entry fields
+fields  date, description, amount-out, amount-in, balance
+
+# We generate balance assertions by assigning to "balance"
+# above, but you may sometimes need to remove these because:
+#
+# - the CSV balance differs from the true balance, 
+#   by up to 0.0000000000005 in my experience
+#
+# - it is sometimes calculated based on non-chronological ordering,
+#   eg when multiple transactions clear on the same day
+
+# date is in UK/Ireland format
+date-format  %d/%m/%Y
+
+# set the currency
+currency  EUR
+
+# set the base account for all txns
+account1  assets:bank:boi:checking
+```
+```shell
+$ hledger -f bankofireland-checking.csv print
+2012/12/07 LODGMENT       529898
+    assets:bank:boi:checking         EUR10.0 = EUR131.2
+    income:unknown                  EUR-10.0
+
+2012/12/07 PAYMENT
+    assets:bank:boi:checking         EUR-5.0 = EUR126.0
+    expenses:unknown                  EUR5.0
+
+```
+The balance assertions don't raise an error above, because we're
+reading directly from CSV, but they will be checked if these entries
+are imported into a journal file.
+
+## Amazon
+
+Here we convert amazon.com order history, and use an if block to
+generate a third posting if there's a fee.
+(In practice you'd probably get this data from your bank instead,
+but it's an example.)
+
+```csv
+"Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
+"Jul 29, 2012","Payment","To","Foo.","Completed","$20.00","$0.00","16000000000000DGLNJPI1P9B8DKPVHL"
+"Jul 30, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$1.00","17LA58JSKRD4HDGLNJPI1P9B8DKPVHL"
+```
+<!-- examples/csv/amazon.csv.rules -->
+```rules
+# amazon.csv.rules
+
+# skip one header line
+skip 1
+
+# name the csv fields, and assign the transaction's date, amount and code.
+# Avoided the "status" and "amount" hledger field names to prevent confusion.
+fields date, _, toorfrom, name, amzstatus, amzamount, fees, code
+
+# how to parse the date
+date-format %b %-d, %Y
+
+# combine two fields to make the description
+description %toorfrom %name
+
+# save the status as a tag
+comment     status:%amzstatus
+
+# set the base account for all transactions
+account1    assets:amazon
+# leave amount1 blank so it can balance the other(s).
+# I'm assuming amzamount excludes the fees, don't remember
+
+# set a generic account2
+account2    expenses:misc
+amount2     %amzamount
+# and maybe refine it further:
+#include categorisation.rules
+
+# add a third posting for fees, but only if they are non-zero.
+# Commas in the data makes counting fields hard, so count from the right instead.
+# (Regex translation: "a field containing a non-zero dollar amount, 
+# immediately before the 1 right-most fields")
+if ,\$[1-9][.0-9]+(,[^,]*){1}$
+ account3    expenses:fees
+ amount3     %fees
+```
+```shell
+$ hledger -f amazon.csv print
+2012/07/29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
+    assets:amazon
+    expenses:misc          $20.00
+
+2012/07/30 (17LA58JSKRD4HDGLNJPI1P9B8DKPVHL) To Adapteva, Inc.  ; status:Completed
+    assets:amazon
+    expenses:misc          $25.00
+    expenses:fees           $1.00
+
 ```
 
-More examples can be found in the EXAMPLES section below.
+## Paypal
+
+Here's a real-world rules file for (customised) Paypal CSV,
+with some Paypal-specific rules, and a second rules file included:
+
+```csv
+"Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Item Title","Item ID","Reference Txn ID","Receipt ID","Balance","Note"
+"10/01/2019","03:46:20","PDT","Calm Radio","Subscription Payment","Completed","USD","-6.99","0.00","-6.99","simon@joyful.com","memberships@calmradio.com","60P57143A8206782E","MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month","","I-R8YLY094FJYR","","-6.99",""
+"10/01/2019","03:46:20","PDT","","Bank Deposit to PP Account ","Pending","USD","6.99","0.00","6.99","","simon@joyful.com","0TU1544T080463733","","","60P57143A8206782E","","0.00",""
+"10/01/2019","08:57:01","PDT","Patreon","PreApproved Payment Bill User Payment","Completed","USD","-7.00","0.00","-7.00","simon@joyful.com","support@patreon.com","2722394R5F586712G","Patreon* Membership","","B-0PG93074E7M86381M","","-7.00",""
+"10/01/2019","08:57:01","PDT","","Bank Deposit to PP Account ","Pending","USD","7.00","0.00","7.00","","simon@joyful.com","71854087RG994194F","Patreon* Membership","","2722394R5F586712G","","0.00",""
+"10/19/2019","03:02:12","PDT","Wikimedia Foundation, Inc.","Subscription Payment","Completed","USD","-2.00","0.00","-2.00","simon@joyful.com","tle@wikimedia.org","K9U43044RY432050M","Monthly donation to the Wikimedia Foundation","","I-R5C3YUS3285L","","-2.00",""
+"10/19/2019","03:02:12","PDT","","Bank Deposit to PP Account ","Pending","USD","2.00","0.00","2.00","","simon@joyful.com","3XJ107139A851061F","","","K9U43044RY432050M","","0.00",""
+"10/22/2019","05:07:06","PDT","Noble Benefactor","Subscription Payment","Completed","USD","10.00","-0.59","9.41","noble@bene.fac.tor","simon@joyful.com","6L8L1662YP1334033","Joyful Systems","","I-KC9VBGY2GWDB","","9.41",""
+```
+
+```rules
+# paypal-custom.csv.rules
+#
+# Paypal's default fields in 2018 were:
+# "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Shipping Address","Address Status","Item Title","Item ID","Shipping and Handling Amount","Insurance Amount","Sales Tax","Option 1 Name","Option 1 Value","Option 2 Name","Option 2 Value","Reference Txn ID","Invoice Number","Custom Number","Quantity","Receipt ID","Balance","Address Line 1","Address Line 2/District/Neighborhood","Town/City","State/Province/Region/County/Territory/Prefecture/Republic","Zip/Postal Code","Country","Contact Phone Number","Subject","Note","Country Code","Balance Impact"
+#
+# This rules file assumes the following more detailed fields, configured in paypal settings:
+# "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Item Title","Item ID","Reference Txn ID","Receipt ID","Balance","Note"
+
+fields date, time, timezone, description_, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
+
+skip  1
+
+date-format  %-m/%-d/%Y
+
+# ignore some records representing paypal events
+if
+In Progress
+Temporary Hold
+Update to 
+ skip
+
+# add some more fields to the description
+description %description_ %itemtitle 
+
+# save some other fields as tags
+comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_, balance:%balance, gross:%grossamount, fee:%feeamount
+
+# convert to short currency symbols
+if ,USD,
+ currency $
+if ,EUR,
+ currency E
+if ,GBP,
+ currency P
+
+# generate postings
+
+# the first posting will be the money leaving/entering my paypal account
+# (negative means leaving my account, in all amount fields)
+account1 assets:online:paypal
+amount1  %netamount
+
+# the second posting will be money sent to/received from other party
+# (account2 is set below)
+amount2  -%grossamount
+
+# if there's a fee (9th field), add a third posting for the money taken by paypal.
+# Note: in conditional blocks' regexps, the line of csv being matched
+# is a synthetic one, not the original. It is just the field values
+# with commas between them, without quotes. (This makes it hard to
+# match the Nth field robustly, since data might contain commas.)
+# TODO: This regexp fails when fields contain a comma (generates a third posting with zero amount)
+if ^[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^0]
+ account3 expenses:banking:paypal
+ amount3  -%feeamount
+ comment3 business:
+
+# choose an account for the second posting
+
+# override the default account names:
+# if amount (8th field) is positive, it's income (a debit)
+if ^([^,]+,){7}[0-9]
+ account2 income:unknown
+# if negative, it's an expense (a credit)
+if ^([^,]+,){7}-
+ account2 expenses:unknown
+
+# apply common rules for setting account2 & other tweaks
+include common.rules
+
+# apply some overrides specific to this csv
+
+# Transfers from/to bank. These are usually marked Pending, 
+# which can be disregarded in this case.
+if 
+Bank Account
+Bank Deposit to PP Account
+ description %type for %referencetxnid %itemtitle
+ account2 sm:assets:bank:wf:pchecking
+ account1 sm:assets:online:paypal
+
+# Currency conversions
+if Currency Conversion
+ account2 equity:currency conversion
+```
+
+```rules
+# common.rules
+
+if
+darcs
+Noble Benefactor
+ account2 revenues:foss donations:darcshub
+ comment2 business:
+
+if
+MOBILEME
+Calm Radio
+WP-EMAIL SERVICE
+ account2 expenses:online:apps
+
+if
+electronic frontier foundation
+wikimedia
+Advent of Code
+ account2 expenses:dues
+
+if Patreon
+ account2 expenses:dues
+
+if Google
+ account2 expenses:online:apps
+ description google | music
+```
+
+```shell
+$ hledger -f paypal-custom.csv  print
+2019/10/01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed, balance:-6.99, gross:-6.99, fee:0.00
+    assets:online:paypal          $-6.99 = $-6.99
+    expenses:online:apps           $6.99  ; business:
+
+2019/10/01 (0TU1544T080463733) Bank Deposit to PP Account for 60P57143A8206782E  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:46:20, type:Bank Deposit to PP Account, status:Pending, balance:0.00, gross:6.99, fee:0.00
+    assets:online:paypal               $6.99 = $0.00
+    assets:bank:wf:pchecking          $-6.99
+
+2019/10/01 (2722394R5F586712G) Patreon Patreon* Membership  ; itemid:, fromemail:simon@joyful.com, toemail:support@patreon.com, time:08:57:01, type:PreApproved Payment Bill User Payment, status:Completed, balance:-7.00, gross:-7.00, fee:0.00
+    assets:online:paypal          $-7.00 = $-7.00
+    expenses:dues                  $7.00
+
+2019/10/01 (71854087RG994194F) Bank Deposit to PP Account for 2722394R5F586712G Patreon* Membership  ; itemid:, fromemail:, toemail:simon@joyful.com, time:08:57:01, type:Bank Deposit to PP Account, status:Pending, balance:0.00, gross:7.00, fee:0.00
+    assets:online:paypal               $7.00 = $0.00
+    assets:bank:wf:pchecking          $-7.00
+
+2019/10/19 (K9U43044RY432050M) Wikimedia Foundation, Inc. Monthly donation to the Wikimedia Foundation  ; itemid:, fromemail:simon@joyful.com, toemail:tle@wikimedia.org, time:03:02:12, type:Subscription Payment, status:Completed, balance:-2.00, gross:-2.00, fee:0.00
+    assets:online:paypal             $-2.00 = $-2.00
+    expenses:dues                     $2.00  ; business:
+    expenses:banking:paypal      ; business:
+
+2019/10/19 (3XJ107139A851061F) Bank Deposit to PP Account for K9U43044RY432050M  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:02:12, type:Bank Deposit to PP Account, status:Pending, balance:0.00, gross:2.00, fee:0.00
+    assets:online:paypal               $2.00 = $0.00
+    assets:bank:wf:pchecking          $-2.00
+
+2019/10/22 (6L8L1662YP1334033) Noble Benefactor Joyful Systems  ; itemid:, fromemail:noble@bene.fac.tor, toemail:simon@joyful.com, time:05:07:06, type:Subscription Payment, status:Completed, balance:9.41, gross:10.00, fee:-0.59
+    assets:online:paypal                       $9.41 = $9.41
+    revenues:foss donations:darcshub         $-10.00  ; business:
+    expenses:banking:paypal                    $0.59  ; business:
+
+```
 
 
 # CSV RULES
@@ -132,7 +449,7 @@ Comments can also contain [tags](journal.html#tags), as usual.
 See TIPS below for more about setting amounts and currency.
 
 
-## `(field assignment)`
+## field assignment
 
 ```rules
 HLEDGERFIELDNAME FIELDVALUE
@@ -157,38 +474,6 @@ Interpolation strips outer whitespace (so a CSV value like `" 1 "`
 becomes `1` when interpolated)
 ([#1051](https://github.com/simonmichael/hledger/issues/1051)).
 See TIPS below for more about referencing other fields.
-
-
-## `date-format`
-
-```rules
-date-format DATEFMT
-```
-This is a helper for the `date` (and `date2`) fields.
-If your CSV dates are not formatted like `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`,
-you'll need to add a date-format rule describing them with a
-strptime date parsing pattern, which must parse the CSV date value completely.
-Some examples:
-``` rules
-# MM/DD/YY
-date-format %m/%d/%y
-```
-``` rules
-# D/M/YYYY
-# The - makes leading zeros optional.
-date-format %-d/%-m/%Y
-```
-``` rules
-# YYYY-Mmm-DD
-date-format %Y-%h-%d
-```
-``` rules
-# M/D/YYYY HH:MM AM some other junk
-# Note the time and junk must be fully parsed, though only the date is used.
-date-format %-m/%-d/%Y %l:%M %p some other junk
-```
-For the supported strptime syntax, see:\
-<https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>
 
 
 ## `if`
@@ -261,26 +546,36 @@ if ,,,,
 ```
 
 
-## `include`
+## `date-format`
 
 ```rules
-include RULESFILE
+date-format DATEFMT
 ```
-
-This includes another CSV rules file at this point, as if it were written inline. 
-`RULESFILE` is an absolute file path or a path relative to the current file's directory.
-This can be useful for sharing common rules between several rules files, eg:
-```rules
-# someaccount.csv.rules
-
-## someaccount-specific rules
-fields   date,description,amount
-account1 assets:someaccount
-account2 expenses:misc
-
-## common rules
-include categorisation.rules
+This is a helper for the `date` (and `date2`) fields.
+If your CSV dates are not formatted like `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`,
+you'll need to add a date-format rule describing them with a
+strptime date parsing pattern, which must parse the CSV date value completely.
+Some examples:
+``` rules
+# MM/DD/YY
+date-format %m/%d/%y
 ```
+``` rules
+# D/M/YYYY
+# The - makes leading zeros optional.
+date-format %-d/%-m/%Y
+```
+``` rules
+# YYYY-Mmm-DD
+date-format %Y-%h-%d
+```
+``` rules
+# M/D/YYYY HH:MM AM some other junk
+# Note the time and junk must be fully parsed, though only the date is used.
+date-format %-m/%-d/%Y %l:%M %p some other junk
+```
+For the supported strptime syntax, see:\
+<https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>
 
 
 ## `newest-first`
@@ -301,67 +596,26 @@ newest-first
 ```
 
 
-# EXAMPLES
+## `include`
 
-A more complete example, generating two- or three-posting transactions
-from amazon.com order history:
-```csv
-"Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
-"Jul 29, 2012","Payment","To","Foo.","Completed","$20.00","$0.00","16000000000000DGLNJPI1P9B8DKPVHL"
-"Jul 30, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$1.00","17LA58JSKRD4HDGLNJPI1P9B8DKPVHL"
-```
 ```rules
-# hledger CSV rules for amazon.csv
-
-# skip one header line
-skip 1
-
-# name the csv fields, and assign the transaction's date, amount and code.
-# Avoided the "status" and "amount" hledger field names to prevent confusion.
-fields date, _, toorfrom, name, amzstatus, amzamount, fees, code
-
-# how to parse the date
-date-format %b %-d, %Y
-
-# combine two fields to make the description
-description %toorfrom %name
-
-# save the status as a tag
-comment     status:%amzstatus
-
-# set the base account for all transactions
-account1    assets:amazon
-# leave amount1 blank so it can balance the other(s).
-# I'm assuming amzamount excludes the fees, don't remember
-
-# set a generic account2
-account2    expenses:misc
-amount2     %amzamount
-# and maybe refine it further:
-#include categorisation.rules
-
-# add a third posting for fees, but only if they are non-zero.
-# Commas in the data makes counting fields hard, so count from the right instead.
-# (Regex translation: "a field containing a non-zero dollar amount, 
-# immediately before the 1 right-most fields")
-if ,\$[1-9][.0-9]+(,[^,]*){1}$
- account3    expenses:fees
- amount3     %fees
-```
-```shell
-$ hledger -f amazon.csv print
-2012/07/29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
-    assets:amazon
-    expenses:misc          $20.00
-
-2012/07/30 (17LA58JSKRD4HDGLNJPI1P9B8DKPVHL) To Adapteva, Inc.  ; status:Completed
-    assets:amazon
-    expenses:misc          $25.00
-    expenses:fees           $1.00
-
+include RULESFILE
 ```
 
-For more examples, see [Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert-CSV-files).
+This includes another CSV rules file at this point, as if it were written inline. 
+`RULESFILE` is an absolute file path or a path relative to the current file's directory.
+This can be useful for sharing common rules between several rules files, eg:
+```rules
+# someaccount.csv.rules
+
+## someaccount-specific rules
+fields   date,description,amount
+account1 assets:someaccount
+account2 expenses:misc
+
+## common rules
+include categorisation.rules
+```
 
 
 # TIPS
