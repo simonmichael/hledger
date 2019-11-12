@@ -716,9 +716,7 @@ If the currency is provided as a separate CSV field, you can either:
   between symbol and amount (an exception to the usual whitespace
   stripping).
 
-- or assign it to `currencyN` which adds it to the amount set with
-  `amountN` only. (Note: does not affect amounts set with `amount`,
-  currently).
+- or assign it to `currencyN` which adds it to posting N's amount only.
 
 - or for more control, construct the amount from symbol and quantity
   using field assignment, eg:
