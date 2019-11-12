@@ -41,7 +41,7 @@ these are described more fully below, after the examples:
 [**`fields`**](#fields)                     name CSV fields, assign them to hledger fields
 [**field assignment**](#field-assignment)    assign a value to one hledger field, with interpolation
 [**`if`**](#if)                             apply some rules to matched CSV records
-[**`end`**](#end)                           stop processing CSV records
+[**`end`**](#end)                           skip the remaining CSV records
 [**`date-format`**](#date-format)           describe the format of CSV dates
 [**`newest-first`**](#newest-first)         disambiguate record order when there's only one date
 [**`include`**](#include)                   inline another CSV rules file
@@ -63,7 +63,6 @@ there are. Here's a simple CSV file and a rules file for it:
 Date, Description, Id, Amount
 12/11/2019, Foo, 123, 10.23
 ```
-<!-- examples/csv/basic.csv.rules -->
 ```rules
 # basic.csv.rules
 skip         1
@@ -90,7 +89,6 @@ Date,Details,Debit,Credit,Balance
 07/12/2012,LODGMENT       529898,,10.0,131.21
 07/12/2012,PAYMENT,5,,126
 ```
-<!-- examples/csv/bankofireland-checking.csv.rules -->
 ```rules
 # bankofireland-checking.csv.rules
 
@@ -145,9 +143,8 @@ but it's an example.)
 "Jul 29, 2012","Payment","To","Foo.","Completed","$20.00","$0.00","16000000000000DGLNJPI1P9B8DKPVHL"
 "Jul 30, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$1.00","17LA58JSKRD4HDGLNJPI1P9B8DKPVHL"
 ```
-<!-- examples/csv/amazon.csv.rules -->
 ```rules
-# amazon.csv.rules
+# amazon-orders.csv.rules
 
 # skip one header line
 skip 1
@@ -185,7 +182,7 @@ if ,\$[1-9][.0-9]+(,[^,]*){1}$
  amount3     %fees
 ```
 ```shell
-$ hledger -f amazon.csv print
+$ hledger -f amazon-orders.csv print
 2012/07/29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
     assets:amazon
     expenses:misc          $20.00
@@ -215,11 +212,13 @@ with some Paypal-specific rules, and a second rules file included:
 
 ```rules
 # paypal-custom.csv.rules
-#
+
+# Tips:
+# Export from Activity -> Statements -> Custom -> Activity download
+# Suggested transaction type: "Balance affecting"
 # Paypal's default fields in 2018 were:
 # "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Shipping Address","Address Status","Item Title","Item ID","Shipping and Handling Amount","Insurance Amount","Sales Tax","Option 1 Name","Option 1 Value","Option 2 Name","Option 2 Value","Reference Txn ID","Invoice Number","Custom Number","Quantity","Receipt ID","Balance","Address Line 1","Address Line 2/District/Neighborhood","Town/City","State/Province/Region/County/Territory/Prefecture/Republic","Zip/Postal Code","Country","Contact Phone Number","Subject","Note","Country Code","Balance Impact"
-#
-# This rules file assumes the following more detailed fields, configured in paypal settings:
+# This rules file assumes the following more detailed fields, configured in "Customize report fields":
 # "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Item Title","Item ID","Reference Txn ID","Receipt ID","Balance","Note"
 
 fields date, time, timezone, description_, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
@@ -228,20 +227,22 @@ skip  1
 
 date-format  %-m/%-d/%Y
 
-# ignore some records representing paypal events
+# ignore some paypal events
 if
 In Progress
 Temporary Hold
 Update to 
  skip
 
-# add some more fields to the description
+# add more fields to the description
 description %description_ %itemtitle 
 
 # save some other fields as tags
-comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_, balance:%balance, gross:%grossamount, fee:%feeamount
+comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
 
 # convert to short currency symbols
+# Note: in conditional block regexps, the line of csv being matched is
+# a synthetic one: the unquoted field values, with commas between them.
 if ,USD,
  currency $
 if ,EUR,
@@ -261,12 +262,8 @@ amount1  %netamount
 amount2  -%grossamount
 
 # if there's a fee (9th field), add a third posting for the money taken by paypal.
-# Note: in conditional blocks' regexps, the line of csv being matched
-# is a synthetic one, not the original. It is just the field values
-# with commas between them, without quotes. (This makes it hard to
-# match the Nth field robustly, since data might contain commas.)
 # TODO: This regexp fails when fields contain a comma (generates a third posting with zero amount)
-if ^[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^,]+,[^0]
+if ^([^,]+,){8}[^0]
  account3 expenses:banking:paypal
  amount3  -%feeamount
  comment3 business:
@@ -292,8 +289,8 @@ if
 Bank Account
 Bank Deposit to PP Account
  description %type for %referencetxnid %itemtitle
- account2 sm:assets:bank:wf:pchecking
- account1 sm:assets:online:paypal
+ account2 assets:bank:wf:pchecking
+ account1 assets:online:paypal
 
 # Currency conversions
 if Currency Conversion
@@ -305,58 +302,54 @@ if Currency Conversion
 
 if
 darcs
-Noble Benefactor
+noble benefactor
  account2 revenues:foss donations:darcshub
  comment2 business:
 
 if
-MOBILEME
 Calm Radio
-WP-EMAIL SERVICE
  account2 expenses:online:apps
 
 if
 electronic frontier foundation
+Patreon
 wikimedia
 Advent of Code
- account2 expenses:dues
-
-if Patreon
  account2 expenses:dues
 
 if Google
  account2 expenses:online:apps
  description google | music
+
 ```
 
 ```shell
-$ hledger -f paypal-custom.csv  print
-2019/10/01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed, balance:-6.99, gross:-6.99, fee:0.00
+2019/10/01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed
     assets:online:paypal          $-6.99 = $-6.99
-    expenses:online:apps           $6.99  ; business:
+    expenses:online:apps           $6.99
 
-2019/10/01 (0TU1544T080463733) Bank Deposit to PP Account for 60P57143A8206782E  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:46:20, type:Bank Deposit to PP Account, status:Pending, balance:0.00, gross:6.99, fee:0.00
+2019/10/01 (0TU1544T080463733) Bank Deposit to PP Account for 60P57143A8206782E  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:46:20, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $6.99 = $0.00
     assets:bank:wf:pchecking          $-6.99
 
-2019/10/01 (2722394R5F586712G) Patreon Patreon* Membership  ; itemid:, fromemail:simon@joyful.com, toemail:support@patreon.com, time:08:57:01, type:PreApproved Payment Bill User Payment, status:Completed, balance:-7.00, gross:-7.00, fee:0.00
+2019/10/01 (2722394R5F586712G) Patreon Patreon* Membership  ; itemid:, fromemail:simon@joyful.com, toemail:support@patreon.com, time:08:57:01, type:PreApproved Payment Bill User Payment, status:Completed
     assets:online:paypal          $-7.00 = $-7.00
     expenses:dues                  $7.00
 
-2019/10/01 (71854087RG994194F) Bank Deposit to PP Account for 2722394R5F586712G Patreon* Membership  ; itemid:, fromemail:, toemail:simon@joyful.com, time:08:57:01, type:Bank Deposit to PP Account, status:Pending, balance:0.00, gross:7.00, fee:0.00
+2019/10/01 (71854087RG994194F) Bank Deposit to PP Account for 2722394R5F586712G Patreon* Membership  ; itemid:, fromemail:, toemail:simon@joyful.com, time:08:57:01, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $7.00 = $0.00
     assets:bank:wf:pchecking          $-7.00
 
-2019/10/19 (K9U43044RY432050M) Wikimedia Foundation, Inc. Monthly donation to the Wikimedia Foundation  ; itemid:, fromemail:simon@joyful.com, toemail:tle@wikimedia.org, time:03:02:12, type:Subscription Payment, status:Completed, balance:-2.00, gross:-2.00, fee:0.00
+2019/10/19 (K9U43044RY432050M) Wikimedia Foundation, Inc. Monthly donation to the Wikimedia Foundation  ; itemid:, fromemail:simon@joyful.com, toemail:tle@wikimedia.org, time:03:02:12, type:Subscription Payment, status:Completed
     assets:online:paypal             $-2.00 = $-2.00
-    expenses:dues                     $2.00  ; business:
+    expenses:dues                     $2.00
     expenses:banking:paypal      ; business:
 
-2019/10/19 (3XJ107139A851061F) Bank Deposit to PP Account for K9U43044RY432050M  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:02:12, type:Bank Deposit to PP Account, status:Pending, balance:0.00, gross:2.00, fee:0.00
+2019/10/19 (3XJ107139A851061F) Bank Deposit to PP Account for K9U43044RY432050M  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:02:12, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $2.00 = $0.00
     assets:bank:wf:pchecking          $-2.00
 
-2019/10/22 (6L8L1662YP1334033) Noble Benefactor Joyful Systems  ; itemid:, fromemail:noble@bene.fac.tor, toemail:simon@joyful.com, time:05:07:06, type:Subscription Payment, status:Completed, balance:9.41, gross:10.00, fee:-0.59
+2019/10/22 (6L8L1662YP1334033) Noble Benefactor Joyful Systems  ; itemid:, fromemail:noble@bene.fac.tor, toemail:simon@joyful.com, time:05:07:06, type:Subscription Payment, status:Completed
     assets:online:paypal                       $9.41 = $9.41
     revenues:foss donations:darcshub         $-10.00  ; business:
     expenses:banking:paypal                    $0.59  ; business:
@@ -366,8 +359,7 @@ $ hledger -f paypal-custom.csv  print
 
 # CSV RULES
 
-The following kinds of rule can appear in the rules file, in any order
-(`end` can appear only inside an `if` block).
+The following kinds of rule can appear in the rules file, in any order.
 Blank lines and lines beginning with `#` or `;` are ignored.
 
 
@@ -421,7 +413,8 @@ For more about the transaction parts they refer to, see the manual for hledger's
 
 ### Posting field names
 
-`accountN`, where N is 1 to 9, sets the Nth [posting's](journal.html#postings) account name.
+`accountN`, where N is 1 to 9, generates a
+[posting](journal.html#postings), with that account name.
 Most often there are two postings, so you'll want to set `account1` and `account2`.
 If a posting's account name is left unset but its amount is set, 
 a default account name will be chosen (like expenses:unknown or income:unknown).
@@ -440,7 +433,7 @@ If the CSV has the currency symbol in a separate field, you can use
 `currencyN` to prepend it to posting N's amount. `currency` with no N
 affects ALL postings.
 
-`balanceN` sets a separate [balance assertion](journal.html#balance-assertions) amount 
+`balanceN` sets a [balance assertion](journal.html#balance-assertions) amount 
 (or if the posting amount is left empty, a [balance assignment](journal.html#balance-assignments)).
 
 Finally, `commentN` sets a [comment](journal.html#comments) on the Nth posting. 
@@ -497,10 +490,11 @@ for customising account names based on transaction descriptions.
 A single pattern can be written on the same line as the "if";
 or multiple patterns can be written on the following lines, non-indented.
 Multiple patterns are OR'd (any one of them can match).
-Patterns are case-insensitive [regular expressions](hledger.html#regular-expressions)
-which try to match any part of the whole CSV record.
-Note the CSV record they see is close but not identical to the one in the CSV file;
-eg double quotes are removed, and the separator character is always comma.
+Patterns are case-insensitive regular expressions
+which try to match anywhere within the whole CSV record
+(POSIX extended regular expressions with some additions, see https://hledger.org/hledger.html#regular-expressions).
+Note the CSV record they see is close to, but not identical to, the one in the CSV file;
+enclosing double quotes will be removed, and the separator character is always comma.
 
 It's not yet easy to match within a specific field.
 If the data does not contain commas, you can hack it with a regular expression like:
@@ -602,7 +596,7 @@ newest-first
 include RULESFILE
 ```
 
-This includes another CSV rules file at this point, as if it were written inline. 
+This includes the contents of another CSV rules file at this point.
 `RULESFILE` is an absolute file path or a path relative to the current file's directory.
 This can be useful for sharing common rules between several rules files, eg:
 ```rules
