@@ -63,6 +63,8 @@ module Hledger.Data.Dates (
   spanDefaultsFrom,
   spanUnion,
   spansUnion,
+  daysSpan,
+  latestSpanContaining,
   smartdate,
   splitSpan,
   fixSmartDate,
@@ -79,10 +81,11 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (MonadFail, fail)
 import Control.Applicative.Permutations
-import Control.Monad (unless)
+import Control.Monad (guard, unless)
 import "base-compat-batteries" Data.List.Compat
 import Data.Default
 import Data.Maybe
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 #if MIN_VERSION_time(1,5,0)
@@ -95,7 +98,7 @@ import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Clock
 import Data.Time.LocalTime
-import Safe (headMay, lastMay, readMay)
+import Safe (headMay, lastMay, readMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
@@ -231,9 +234,8 @@ daysInSpan _ = Nothing
 
 -- | Is this an empty span, ie closed with the end date on or before the start date ?
 isEmptySpan :: DateSpan -> Bool
-isEmptySpan s = case daysInSpan s of
-                  Just n  -> n < 1
-                  Nothing -> False
+isEmptySpan (DateSpan (Just s) (Just e)) = e <= s
+isEmptySpan _                            = False
 
 -- | Does the span include the given date ?
 spanContainsDate :: DateSpan -> Day -> Bool
@@ -286,6 +288,36 @@ latest (Just d1) (Just d2) = Just $ max d1 d2
 earliest d Nothing = d
 earliest Nothing d = d
 earliest (Just d1) (Just d2) = Just $ min d1 d2
+
+-- | Calculate the minimal DateSpan containing all of the given Days (in the
+-- usual exclusive-end-date sense: beginning on the earliest, and ending on
+-- the day after the latest).
+daysSpan :: [Day] -> DateSpan
+daysSpan ds = DateSpan (minimumMay ds) (addDays 1 <$> maximumMay ds)
+
+-- | Select the DateSpan containing a given Day, if any, from a given list of
+-- DateSpans.
+--
+-- If the DateSpans are non-overlapping, this returns the unique containing
+-- DateSpan, if it exists. If the DateSpans are overlapping, it will return the
+-- containing DateSpan with the latest start date, and then latest end date.
+
+-- Note: This will currently return `DateSpan (Just s) (Just e)` before it will
+-- return `DateSpan (Just s) Nothing`. It's unclear which behaviour is desired.
+-- This is irrelevant at the moment as it's never applied to any list with
+-- overlapping DateSpans.
+latestSpanContaining :: [DateSpan] -> Day -> Maybe DateSpan
+latestSpanContaining datespans = go
+  where
+    go day = do
+        span <- Set.lookupLT supSpan spanSet
+        guard $ spanContainsDate span day
+        return span
+      where
+        -- The smallest DateSpan larger than any DateSpan containing day.
+        supSpan = DateSpan (Just $ addDays 1 day) Nothing
+
+    spanSet = Set.fromList $ filter (not . isEmptySpan) datespans
 
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
