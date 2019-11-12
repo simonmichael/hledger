@@ -1,0 +1,171 @@
+; Example from hledger mail list.
+; roi usually shows rate of return based on realised gains. 
+; By adding some fake transactions you can make it show unrealised gains.
+
+comment
+$ hledger -f jr-stocks-sample.ledger roi --inv Assets -b 2015-01-01 -e 2019-01-01 --pnl  Income --yearly
++---++------------+------------++---------------+----------+-------------+--------++--------+--------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |    PnL ||    IRR |    TWR |
++===++============+============++===============+==========+=============+========++========+========+
+| 1 || 2015/01/01 | 2015/12/31 ||         717.4 |        0 |      756.30 |  38.90 ||  5.42% |  5.42% |
+| 2 || 2016/01/01 | 2016/12/31 ||        756.30 |        0 |      998.80 | 242.50 || 31.96% | 31.96% |
+| 3 || 2017/01/01 | 2017/12/31 ||        998.80 |        0 |     1151.20 | 152.40 || 15.26% | 15.26% |
+| 4 || 2018/01/01 | 2018/12/31 ||       1151.20 |        0 |     1145.00 |  -6.20 || -0.54% | -0.54% |
++---++------------+------------++---------------+----------+-------------+--------++--------+--------+
+end comment
+
+
+2014-12-31 Initial Deposit
+    Equity:Opening    -722.40
+    Assets:Trading:Cash
+
+2014-12-31 Buy Royal Bank of Canada @ 71.74
+    Assets:Trading:RY     10 RY @ 71.74
+    Assets:Trading:Cash    -722.40
+    Expenses:Fees      5.00
+
+2015-01-22	0.75 Dividend
+    Assets:Trading:Cash       7.50
+    Income:Dividend:RY
+
+2015-04-21	0.77 Dividend
+    Assets:Trading:Cash       7.70
+    Income:Dividend:RY
+
+2015-07-23	0.77 Dividend
+    Assets:Trading:Cash       7.70
+    Income:Dividend:RY
+
+2015-10-22	0.79 Dividend
+    Assets:Trading:Cash       7.90
+    Income:Dividend:RY
+
+2016-01-22	0.79 Dividend
+    Assets:Trading:Cash       7.90
+    Income:Dividend:RY
+
+2016-04-21	0.81 Dividend
+    Assets:Trading:Cash       8.10
+    Income:Dividend:RY
+
+2016-07-22	0.81 Dividend
+    Assets:Trading:Cash      8.10
+    Income:Dividend:RY
+
+2016-10-24	0.83 Dividend
+    Assets:Trading:Cash       8.30
+    Income:Dividend:RY
+
+2017-01-24	0.83 Dividend
+    Assets:Trading:Cash       8.30
+    Income:Dividend:RY
+
+2017-04-21	0.87 Dividend
+    Assets:Trading:Cash       8.70
+    Income:Dividend:RY
+
+2017-07-24	0.87 Dividend
+    Assets:Trading:Cash       8.70
+    Income:Dividend:RY
+
+2017-10-25	0.91 Dividend
+    Assets:Trading:Cash       9.10
+    Income:Dividend:RY
+
+2018-01-24	0.91 Dividend
+    Assets:Trading:Cash       9.10
+    Income:Dividend:RY
+
+2018-01-25	0.91 Dividend
+    Assets:Trading:Cash       9.10
+    Income:Dividend:RY
+
+2018-04-24	0.94 Dividend
+    Assets:Trading:Cash       9.40
+    Income:Dividend:RY
+
+2018-07-25	0.94 Dividend
+    Assets:Trading:Cash       9.40
+    Income:Dividend:RY
+
+2018-10-24	0.98 Dividend
+    Assets:Trading:Cash       9.80
+    Income:Dividend:RY
+
+2019-01-23	0.98 Dividend
+    Assets:Trading:Cash       9.80
+    Income:Dividend:RY
+
+2019-04-24	1.02 Dividend
+    Assets:Trading:Cash      10.20
+    Income:Dividend:RY
+
+2019-07-24	1.02 Dividend
+    Assets:Trading:Cash      10.20
+    Income:Dividend:RY
+
+2019-10-23	1.05 Dividend
+    Assets:Trading:Cash      10.50
+    Income:Dividend:RY
+
+; Here begins the pricing information
+
+P 2014-12-30 RY 72.55
+P 2015-12-30 RY 72.55
+P 2016-12-30 RY 93.56
+P 2017-12-30 RY 105.32
+P 2018-12-30 RY 100.02
+P 2019-11-10 RY 108.44
+
+; Here begins the fake transactions that allow the roi command to give an estimate for the unrealized yearly investment, these are not actual buy and sell transactions!
+
+2015-12-31 Pretend to Sell all to get PnL value for end of 2015
+    Income:PnL
+    Assets:Trading:RY     -10 RY @ 71.74
+    Assets:Cash            725.50
+
+2016-01-01 Reverse Pretend to Sell all to get PnL value for end of 2015
+    Income:PnL
+    Assets:Trading:RY     10 RY @ 71.74
+    Assets:Cash           -725.50
+
+2016-12-31 Pretend to Sell all to get PnL value for end of 2016
+    Income:PnL
+    Assets:Trading:RY     -10 RY @ 71.74
+    Assets:Cash            935.60
+
+2017-01-01 Reverse Pretend to Sell all to get PnL value for end of 2016
+    Income:PnL
+    Assets:Trading:RY     10 RY @ 71.74
+    Assets:Cash           -935.60
+
+2017-12-31 Pretend to Sell all to get PnL value for end of 2017
+    Income:PnL
+    Assets:Trading:RY     -10 RY @ 71.74
+    Assets:Cash            1053.20
+
+2018-01-01 Reverse Pretend to Sell all to get PnL value for end of 2017
+    Income:PnL
+    Assets:Trading:RY     10 RY @ 71.74
+    Assets:Cash           -1053.20
+
+2018-12-31 Pretend to Sell all to get PnL value for end of 2018
+    Income:PnL
+    Assets:Trading:RY     -10 RY @ 71.74
+    Assets:Cash            1000.20
+
+2019-01-01 Reverse Pretend to Sell all to get PnL value for end of 2018
+    Income:PnL
+    Assets:Trading:RY     10 RY @ 71.74
+    Assets:Cash           -1000.20
+
+2019-11-09 Pretend to Sell all to get PnL value for end of 2019-11-10
+    Income:PnL
+    Assets:Trading:RY     -10 RY @ 71.74
+    Assets:Cash            1084.40
+
+2019-11-10 Reverse Pretend to Sell all to get PnL value for end of 2019-11-10
+    Income:PnL
+    Assets:Trading:RY     10 RY @ 71.74
+    Assets:Cash           -1084.40
+
