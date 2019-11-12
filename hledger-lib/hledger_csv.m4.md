@@ -65,7 +65,7 @@ tells hledger to ignore this many non-empty lines preceding the CSV data.
 You'll need this whenever your CSV data contains header lines.
 
 It also has a second purpose: it can be used inside [if blocks](#if)
-'to ignore certain CSV records (described below).
+to ignore certain CSV records (described below).
 
 
 ## `fields`
@@ -106,7 +106,8 @@ For more about the transaction parts they refer to, see the manual for hledger's
 
 `accountN`, where N is 1 to 9, sets the Nth [posting's](journal.html#postings) account name.
 Most often there are two postings, so you'll want to set `account1` and `account2`.
-<!-- (Often, `account1` is fixed and `account2` will be set later by a [conditional block](#if).) -->
+If a posting's account name is left unset but its amount is set, 
+a default account name will be chosen (like expenses:unknown or income:unknown).
 
 `amountN` sets posting N's amount. Or, `amount` with no N sets posting
 1's. If the CSV has debits and credits in separate fields, use
@@ -116,6 +117,7 @@ Most often there are two postings, so you'll want to set `account1` and `account
 For convenience and backwards compatibility, if you set the amount of
 posting 1 only, a second posting with the negative amount will be
 generated automatically.
+(This also means you can't generate a transaction with just one posting.)
 
 If the CSV has the currency symbol in a separate field, you can use
 `currencyN` to prepend it to posting N's amount. `currency` with no N
@@ -136,9 +138,10 @@ See TIPS below for more about setting amounts and currency.
 HLEDGERFIELDNAME FIELDVALUE
 ```
 
-Instead of or in addition to a [fields list](#fields), you can use
-a "field assignment" rule to set the value of a single hledger field,
-by writing its name (any of the standard names above) followed by a text value.
+Instead of or in addition to a [fields list](#fields), you can use a
+"field assignment" rule to set the value of a single hledger field, by
+writing its name (any of the standard hledger field names above)
+followed by a text value.
 The value may contain interpolated CSV fields, 
 referenced by their 1-based position in the CSV record (`%N`),
 or by the name they were given in the fields list (`%CSVFIELDNAME`).
@@ -171,7 +174,8 @@ Some examples:
 date-format %m/%d/%y
 ```
 ``` rules
-# D/M/YYYY. The - makes leading zeros optional.
+# D/M/YYYY
+# The - makes leading zeros optional.
 date-format %-d/%-m/%Y
 ```
 ``` rules
@@ -179,12 +183,12 @@ date-format %-d/%-m/%Y
 date-format %Y-%h-%d
 ```
 ``` rules
-# M/D/YYYY HH:MM AM some other junk.
-# The time and junk must be parsed, though only the date is used.
+# M/D/YYYY HH:MM AM some other junk
+# Note the time and junk must be fully parsed, though only the date is used.
 date-format %-m/%-d/%Y %l:%M %p some other junk
 ```
-For the full pattern syntax, see
-<https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>.
+For the supported strptime syntax, see:\
+<https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>
 
 
 ## `if`
@@ -248,7 +252,7 @@ banking thru software
 ## `end`
 
 This rule can be used inside [if blocks](#if) (only), to make hledger stop
-reading this CSV file and move on (to the next input file, or to command execution). 
+reading this CSV file and move on to the next input file, or to command execution. 
 Eg:
 ```rules
 # ignore everything following the first empty record
@@ -263,7 +267,7 @@ if ,,,,
 include RULESFILE
 ```
 
-Include another CSV rules file at this point, as if it were written inline. 
+This includes another CSV rules file at this point, as if it were written inline. 
 `RULESFILE` is an absolute file path or a path relative to the current file's directory.
 This can be useful for sharing common rules between several rules files, eg:
 ```rules
@@ -443,6 +447,7 @@ A posting amount can be set in one of these ways:
 - by assigning to `balanceN` (or `balance`) instead of the above,
   setting the amount indirectly via a 
   [balance assignment](journal.html#balance-assignments).
+  If you do this the default account name may be wrong, so you should set that explicitly.
 
 There is some special handling for an amount's sign:
 
