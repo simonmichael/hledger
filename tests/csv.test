@@ -475,14 +475,14 @@ $  ./hledger-csv
 
 >=0
 
-# 22. read CSV with balance-style directive
+# 22. read CSV with balance-type directive
 <
 10/2009/09,Flubber Co,50,123
 
 RULES
 fields date, description, amount, balance
 date-format %d/%Y/%m
-balance-style ==*
+balance-type ==*
 currency $
 account1 assets:myacct
 
