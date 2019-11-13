@@ -523,7 +523,7 @@ directives =
   ,"newest-first"
    -- ,"base-account"
    -- ,"base-currency"
-  , "balance-style"
+  , "balance-type"
   ]
 
 directivevalp :: CsvRulesParser String
@@ -823,14 +823,14 @@ transactionFromCsvRecord sourcepos rules record = t
       }
 
     defaultAssertion =
-      case mdirective "balance-style" of
+      case mdirective "balance-type" of
         Nothing -> assertion
         Just "=" -> assertion
         Just "==" -> assertion {batotal=True}
         Just "=*" -> assertion {bainclusive=True}
         Just "==*" -> assertion{batotal=True, bainclusive=True}
         Just x -> error' $ unlines
-          [ "balance-style \"" ++ x ++"\" is invalid. Use =, ==, =* or ==*." 
+          [ "balance-type \"" ++ x ++"\" is invalid. Use =, ==, =* or ==*." 
           , showRecord record
           , showRules rules record
           ]
