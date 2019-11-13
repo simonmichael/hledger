@@ -615,7 +615,7 @@ conditionalblockp = do
   lift $ dbgparse 3 "trying conditionalblockp"
   string "if" >> lift (skipMany spacenonewline) >> optional newline
   ms <- some recordmatcherp
-  as <- many (lift (skipSome spacenonewline) >> fieldassignmentp)
+  as <- many (try $ lift (skipSome spacenonewline) >> fieldassignmentp)
   when (null as) $
     Fail.fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
   return (ms, as)
@@ -985,6 +985,10 @@ tests_CsvReader = tests "CsvReader" [
     ,test "assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" `is`
         (Right defrules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
-
-    ]
+  ]
+  ,tests "conditionalblockp" [
+    test "space after conditional" $ -- #1120
+      parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" `is`
+        (Right ([["a"]],[("account2","b")]))
+  ]
   ]
