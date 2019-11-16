@@ -87,6 +87,9 @@ module Hledger.Read.Common (
   transactioncommentp,
   postingcommentp,
 
+  -- ** tags
+  commenttagsp,
+
   -- ** bracketed dates
   bracketeddatetagsp,
 

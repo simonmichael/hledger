@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3228f8dbb178d427e76291b5e60b3dee1eb4d2e5f9ab803ce8e3fe85e79f25ad
+-- hash: 917b342b9c8ed55fc97be614d3864e5715e0738f000ad1c47dbb9a57f151ad39
 
 name:           hledger-lib
 version:        1.16
@@ -65,6 +65,7 @@ library
       Hledger.Data.StringFormat
       Hledger.Data.Posting
       Hledger.Data.RawOptions
+      Hledger.Data.Testing
       Hledger.Data.Timeclock
       Hledger.Data.Transaction
       Hledger.Data.TransactionModifier
@@ -77,6 +78,7 @@ library
       Hledger.Read.JournalReader
       Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
+      Hledger.Processing.Common
       Hledger.Reports
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
@@ -107,6 +109,7 @@ library
   build-depends:
       Decimal
     , Glob >=0.9
+    , QuickCheck >=2.11
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.9 && <4.14
@@ -158,6 +161,7 @@ test-suite doctest
   build-depends:
       Decimal
     , Glob >=0.7
+    , QuickCheck >=2.11
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.9 && <4.14
@@ -213,6 +217,7 @@ test-suite unittest
   build-depends:
       Decimal
     , Glob >=0.9
+    , QuickCheck >=2.11
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.9 && <4.14
