@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase, ViewPatterns #-}
 
 module Hledger.Processing.Common (
-    addMissingTags
+    syncTxn
 )
 where
 
@@ -11,6 +11,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 import Hledger.Data.Types
+import Hledger.Data.Transaction
 import Hledger.Data.Posting
 import Hledger.Read.Common
 
@@ -19,10 +20,26 @@ import Hledger.Read.Common
 -- >>> :set -XOverloadedStrings
 -- >>> includes xs = all (`elem` xs)
 
+-- | Synchronize some 'Transaction' metadata backso 'showTransaction' will show it.
+syncTxn :: Transaction -> Transaction
+syncTxn = txnTieKnot . syncTxnComments
+
+-- | Get 'Transaction' and its 'Posting' comments updated if needed.
+-- Note that current behavior is limited only to adding missing tags
+syncTxnComments t = t' where
+    t' = t { tcomment = ttags t `addMissingTags` tcomment t
+           , tpostings = map syncPostingComments $ tpostings t
+           }
+
+-- | Get 'Posting' comments updated if needed.
+-- Note that current behavior is limited only to adding missing tags
+syncPostingComments p = p' where
+    p' = p { pcomment = ptags p `addMissingTags` pcomment p }
+
 -- | Ensure that comment contains all tags
 --
 -- New tag included in updated comment:
--- prop> \(ArbComment cmnt) (ArbTag tag') -> tag' `elem` scanTags (addMissingTags [tag'] cmnt)
+-- prop> \(ArbComment cmnt) (ArbTag tag') -> isDynamicTag tag' || tag' `elem` scanTags (addMissingTags [tag'] cmnt)
 --
 -- All tags from original comment preserved:
 -- prop> \(ArbComment cmnt) (ArbTag tag') -> scanTags (addMissingTags [tag'] cmnt) `includes` scanTags cmnt
@@ -33,8 +50,12 @@ import Hledger.Read.Common
 addMissingTags :: [Tag] -> Text -> Text
 addMissingTags (nub -> tags) cmnt = foldr (flip commentAddTag) cmnt tags'
     where
-        tags' = filter (not. (`elem` tags0)) tags
+        tags' = filter isMissing . filter (not . isDynamicTag) $ tags
         tags0 = scanTags cmnt
+        isMissing = not . (`elem` tags0)
+
+isDynamicTag :: Tag -> Bool
+isDynamicTag = T.isPrefixOf "_" . fst
 
 -- | Get tags from comment
 --

@@ -21,6 +21,7 @@ import System.Console.CmdArgs.Explicit
 import Hledger.Read.CsvReader (CSV, printCSV)
 
 import Hledger
+import Hledger.Processing.Common
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
@@ -59,7 +60,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
   writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransaction . gettxn)
+entriesReportAsText opts = concatMap (showTransaction . syncTxn . gettxn)
   where
     gettxn | useexplicittxn = id                   -- use fully inferred amounts & txn prices
            | otherwise      = originalTransaction  -- use original as-written amounts/txn prices
@@ -162,7 +163,7 @@ printMatch CliOpts{reportopts_=ropts} j desc = do
   let q = queryFromOpts d ropts
   case similarTransaction' j q desc of
                 Nothing -> putStrLn "no matches found."
-                Just t  -> putStr $ showTransaction t
+                Just t  -> putStr . showTransaction $ syncTxn t
 
   where
     -- Identify the closest recent match for this description in past transactions.

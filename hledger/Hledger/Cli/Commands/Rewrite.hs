@@ -15,6 +15,7 @@ import Data.Functor.Identity
 import Data.List (sortOn, foldl')
 import qualified Data.Text as T
 import Hledger
+import Hledger.Processing.Common
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
 import System.Console.CmdArgs.Explicit
@@ -132,7 +133,7 @@ diffTxn j t t' =
                 diffs = map mapDiff $ D.getDiff source changed'
                 source | Just contents <- lookup fp $ jfiles j = map T.unpack . drop (line-1) . take line' $ T.lines contents
                        | otherwise = []
-                changed = lines $ showTransaction t'
+                changed = lines . showTransaction $ syncTxn t'
                 changed' | null changed = changed
                          | null $ last changed = init changed
                          | otherwise = changed
