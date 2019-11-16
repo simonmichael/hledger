@@ -44,6 +44,7 @@ module Hledger.Data.Transaction (
   -- payeeAndNoteFromDescription,
   -- * rendering
   showTransaction,
+  showTransactionOneLineAmounts,
   showTransactionUnelided,
   showTransactionUnelidedOneLineAmounts,
   -- showPostingLine,
@@ -146,40 +147,29 @@ The output will be parseable journal syntax.
 To facilitate this, postings with explicit multi-commodity amounts
 are displayed as multiple similar postings, one per commodity.
 (Normally does not happen with this function).
-
-If there are multiple postings, all with explicit amounts,
-and the transaction appears obviously balanced
-(postings sum to 0, without needing to infer conversion prices),
-the last posting's amount will not be shown.
 -}
--- XXX why that logic ?
--- XXX where is/should this be still used ?
--- XXX rename these, after amount expressions/mixed posting amounts lands
---     eg showTransactionSimpleAmountsElidingLast, showTransactionSimpleAmounts, showTransaction
 showTransaction :: Transaction -> String
-showTransaction = showTransactionHelper True False
+showTransaction = showTransactionHelper False
 
--- | Like showTransaction, but does not change amounts' explicitness.
--- Explicit amounts are shown and implicit amounts are not.
--- The output will be parseable journal syntax.
--- To facilitate this, postings with explicit multi-commodity amounts
--- are displayed as multiple similar postings, one per commodity.
--- Most often, this is the one you want to use.
+-- | Deprecated alias for 'showTransaction'
 showTransactionUnelided :: Transaction -> String
-showTransactionUnelided = showTransactionHelper False False
+showTransactionUnelided = showTransaction  -- TODO: drop it
 
--- | Like showTransactionUnelided, but explicit multi-commodity amounts
+-- | Like showTransaction, but explicit multi-commodity amounts
 -- are shown on one line, comma-separated. In this case the output will
 -- not be parseable journal syntax.
-showTransactionUnelidedOneLineAmounts :: Transaction -> String
-showTransactionUnelidedOneLineAmounts = showTransactionHelper False True
+showTransactionOneLineAmounts :: Transaction -> String
+showTransactionOneLineAmounts = showTransactionHelper True
+
+-- | Deprecated alias for 'showTransactionOneLineAmounts'
+showTransactionUnelidedOneLineAmounts = showTransactionOneLineAmounts  -- TODO: drop it
 
 -- | Helper for showTransaction*.
-showTransactionHelper :: Bool -> Bool -> Transaction -> String
-showTransactionHelper elide onelineamounts t =
+showTransactionHelper :: Bool -> Transaction -> String
+showTransactionHelper onelineamounts t =
     unlines $ [descriptionline]
               ++ newlinecomments
-              ++ (postingsAsLines elide onelineamounts t (tpostings t))
+              ++ (postingsAsLines onelineamounts (tpostings t))
               ++ [""]
     where
       descriptionline = rstrip $ concat [date, status, code, desc, samelinecomment]
@@ -211,10 +201,6 @@ renderCommentLines t =
 --
 -- Explicit amounts are shown, any implicit amounts are not.
 --
--- Setting elide to true forces the last posting's amount to be implicit, if:
--- there are other postings, all with explicit amounts, and the transaction
--- appears balanced.
---
 -- Postings with multicommodity explicit amounts are handled as follows:
 -- if onelineamounts is true, these amounts are shown on one line,
 -- comma-separated, and the output will not be valid journal syntax.
@@ -227,11 +213,8 @@ renderCommentLines t =
 -- Posting amounts will be aligned with each other, starting about 4 columns
 -- beyond the widest account name (see postingAsLines for details).
 --
-postingsAsLines :: Bool -> Bool -> Transaction -> [Posting] -> [String]
-postingsAsLines elide onelineamounts t ps
-  | elide && length ps > 1 && all hasAmount ps && isTransactionBalanced Nothing t -- imprecise balanced check
-   = concatMap (postingAsLines False onelineamounts ps) (init ps) ++ postingAsLines True onelineamounts ps (last ps)
-  | otherwise = concatMap (postingAsLines False onelineamounts ps) ps
+postingsAsLines :: Bool -> [Posting] -> [String]
+postingsAsLines onelineamounts ps = concatMap (postingAsLines False onelineamounts ps) ps
 
 -- | Render one posting, on one or more lines, suitable for `print` output.
 -- There will be an indented account name, plus one or more of status flag,
@@ -417,7 +400,7 @@ balanceTransactionHelper mstyles t = do
           sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
 annotateErrorWithTransaction :: Transaction -> String -> String
-annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransactionUnelided t]
+annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransaction t]
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -579,39 +562,6 @@ tests_Transaction =
   tests
     "Transaction"
     [ tests
-        "showTransactionUnelided"
-        [ showTransactionUnelided nulltransaction `is` "0000/01/01\n\n"
-        , showTransactionUnelided
-            nulltransaction
-              { tdate = parsedate "2012/05/14"
-              , tdate2 = Just $ parsedate "2012/05/15"
-              , tstatus = Unmarked
-              , tcode = "code"
-              , tdescription = "desc"
-              , tcomment = "tcomment1\ntcomment2\n"
-              , ttags = [("ttag1", "val1")]
-              , tpostings =
-                  [ nullposting
-                      { pstatus = Cleared
-                      , paccount = "a"
-                      , pamount = Mixed [usd 1, hrs 2]
-                      , pcomment = "\npcomment2\n"
-                      , ptype = RegularPosting
-                      , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
-                      }
-                  ]
-              } `is`
-          unlines
-            [ "2012/05/14=2012/05/15 (code) desc  ; tcomment1"
-            , "    ; tcomment2"
-            , "    * a         $1.00"
-            , "    ; pcomment2"
-            , "    * a         2.00h"
-            , "    ; pcomment2"
-            , ""
-            ]
-        ]
-    , tests
         "postingAsLines"
         [ postingAsLines False False [posting] posting `is` [""]
         , let p =
@@ -651,55 +601,43 @@ tests_Transaction =
             "postingsAsLines"
             [ test "null-transaction" $
               let t = nulltransaction
-               in postingsAsLines True False t (tpostings t) `is` []
-            , test "implicit-amount-elide-false" $
+               in postingsAsLines False (tpostings t) `is` []
+            , test "implicit-amount" $
               let t = timp
-               in postingsAsLines False False t (tpostings t) `is`
+               in postingsAsLines False (tpostings t) `is`
                   [ "    a           $1.00"
                   , "    b" -- implicit amount remains implicit
                   ]
-            , test "implicit-amount-elide-true" $
-              let t = timp
-               in postingsAsLines True False t (tpostings t) `is`
-                  [ "    a           $1.00"
-                  , "    b" -- implicit amount remains implicit
-                  ]
-            , test "explicit-amounts-elide-false" $
+            , test "explicit-amounts" $
               let t = texp
-               in postingsAsLines False False t (tpostings t) `is`
+               in postingsAsLines False (tpostings t) `is`
                   [ "    a           $1.00"
-                  , "    b          $-1.00" -- both amounts remain explicit
+                  , "    b          $-1.00"
                   ]
-            , test "explicit-amounts-elide-true" $
-              let t = texp
-               in postingsAsLines True False t (tpostings t) `is`
-                  [ "    a           $1.00"
-                  , "    b" -- explicit amount is made implicit
-                  ]
-            , test "one-explicit-amount-elide-true" $
+            , test "one-explicit-amount" $
               let t = texp1
-               in postingsAsLines True False t (tpostings t) `is`
-                  [ "    (a)           $1.00" -- explicit amount remains explicit since only one posting
+               in postingsAsLines False (tpostings t) `is`
+                  [ "    (a)           $1.00"
                   ]
-            , test "explicit-amounts-two-commodities-elide-true" $
+            , test "explicit-amounts-two-commodities" $
               let t = texp2
-               in postingsAsLines True False t (tpostings t) `is`
+               in postingsAsLines False (tpostings t) `is`
                   [ "    a             $1.00"
-                  , "    b" -- explicit amount is made implicit since txn is explicitly balanced
+                  , "    b    -1.00h @ $1.00"
                   ]
-            , test "explicit-amounts-not-explicitly-balanced-elide-true" $
+            , test "explicit-amounts-not-explicitly-balanced" $
               let t = texp2b
-               in postingsAsLines True False t (tpostings t) `is`
+               in postingsAsLines False (tpostings t) `is`
                   [ "    a           $1.00"
-                  , "    b          -1.00h" -- explicit amount remains explicit since a conversion price would have be inferred to balance
+                  , "    b          -1.00h"
                   ]
             , test "implicit-amount-not-last" $
               let t = t3
-               in postingsAsLines True False t (tpostings t) `is`
+               in postingsAsLines False (tpostings t) `is`
                   ["    a           $1.00", "    b", "    c          $-1.00"]
             , _test "ensure-visibly-balanced" $
               let t = t4
-               in postingsAsLines False False t (tpostings t) `is`
+               in postingsAsLines False (tpostings t) `is`
                   ["    a          $-0.01", "    b           $0.005", "    c           $0.005"]
             ]
     , tests
@@ -712,26 +650,37 @@ tests_Transaction =
          ]
     , tests
         "showTransaction"
-        [ test "show a balanced transaction, eliding last amount" $
-          let t =
-                Transaction
-                  0
-                  ""
-                  nullsourcepos
-                  (parsedate "2007/01/28")
-                  Nothing
-                  Unmarked
-                  ""
-                  "coopportunity"
-                  ""
-                  []
-                  [ posting {paccount = "expenses:food:groceries", pamount = Mixed [usd 47.18], ptransaction = Just t}
-                  , posting {paccount = "assets:checking", pamount = Mixed [usd (-47.18)], ptransaction = Just t}
+        [ showTransaction nulltransaction `is` "0000/01/01\n\n"
+        , showTransaction
+            nulltransaction
+              { tdate = parsedate "2012/05/14"
+              , tdate2 = Just $ parsedate "2012/05/15"
+              , tstatus = Unmarked
+              , tcode = "code"
+              , tdescription = "desc"
+              , tcomment = "tcomment1\ntcomment2\n"
+              , ttags = [("ttag1", "val1")]
+              , tpostings =
+                  [ nullposting
+                      { pstatus = Cleared
+                      , paccount = "a"
+                      , pamount = Mixed [usd 1, hrs 2]
+                      , pcomment = "\npcomment2\n"
+                      , ptype = RegularPosting
+                      , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
+                      }
                   ]
-           in showTransaction t `is`
-              unlines
-                ["2007/01/28 coopportunity", "    expenses:food:groceries          $47.18", "    assets:checking", ""]
-        , test "show a balanced transaction, no eliding" $
+              } `is`
+          unlines
+            [ "2012/05/14=2012/05/15 (code) desc  ; tcomment1"
+            , "    ; tcomment2"
+            , "    * a         $1.00"
+            , "    ; pcomment2"
+            , "    * a         2.00h"
+            , "    ; pcomment2"
+            , ""
+            ]
+        , test "show a balanced transaction" $
           (let t =
                  Transaction
                    0
@@ -747,14 +696,13 @@ tests_Transaction =
                    [ posting {paccount = "expenses:food:groceries", pamount = Mixed [usd 47.18], ptransaction = Just t}
                    , posting {paccount = "assets:checking", pamount = Mixed [usd (-47.18)], ptransaction = Just t}
                    ]
-            in showTransactionUnelided t) `is`
+            in showTransaction t) `is`
           (unlines
              [ "2007/01/28 coopportunity"
              , "    expenses:food:groceries          $47.18"
              , "    assets:checking                 $-47.18"
              , ""
              ])
-     -- document some cases that arise in debug/testing:
         , test "show an unbalanced transaction, should not elide" $
           (showTransaction
              (txnTieKnot $
@@ -778,22 +726,6 @@ tests_Transaction =
              , "    assets:checking                 $-47.19"
              , ""
              ])
-        , test "show an unbalanced transaction with one posting, should not elide" $
-          (showTransaction
-             (txnTieKnot $
-              Transaction
-                0
-                ""
-                nullsourcepos
-                (parsedate "2007/01/28")
-                Nothing
-                Unmarked
-                ""
-                "coopportunity"
-                ""
-                []
-                [posting {paccount = "expenses:food:groceries", pamount = Mixed [usd 47.18]}])) `is`
-          (unlines ["2007/01/28 coopportunity", "    expenses:food:groceries          $47.18", ""])
         , test "show a transaction with one posting and a missing amount" $
           (showTransaction
              (txnTieKnot $
