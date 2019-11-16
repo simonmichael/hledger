@@ -148,7 +148,8 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
           cashflow
 
   let finalUnitBalance = if null units then initialUnits else let (_,_,_,u) = last units in u
-      finalUnitPrice = valueAfter / finalUnitBalance
+      finalUnitPrice = if finalUnitBalance == 0 then initialUnitPrice
+                       else valueAfter / finalUnitBalance
       totalTWR = roundTo 2 $ (finalUnitPrice - initialUnitPrice)
       years = fromIntegral (diffDays spanEnd spanBegin) / 365 :: Double
       annualizedTWR = 100*((1+(realToFrac totalTWR/100))**(1/years)-1) :: Double
@@ -202,16 +203,19 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
        (map ((:[]) . show) amounts))
 
   -- 0% is always a solution, so require at least something here
-  case ridders
+  case totalCF of
+    [] -> return 0
+    _ -> 
+      case ridders
 #if MIN_VERSION_math_functions(0,3,0)
-    (RiddersParam 100 (AbsTol 0.00001))
+        (RiddersParam 100 (AbsTol 0.00001))
 #else
-    0.00001
+        0.00001
 #endif
-    (0.000000000001,10000) (interestSum spanEnd totalCF) of
-    Root rate -> return ((rate-1)*100)
-    NotBracketed -> error "Error: No solution -- not bracketed."
-    SearchFailed -> error "Error: Failed to find solution."
+        (0.000000000001,10000) (interestSum spanEnd totalCF) of
+        Root rate -> return ((rate-1)*100)
+        NotBracketed -> error "Error: No solution -- not bracketed."
+        SearchFailed -> error "Error: Failed to find solution."
 
 type CashFlow = [(Day, Quantity)]
 
