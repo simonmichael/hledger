@@ -45,7 +45,7 @@ checkdates CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
      (show $ date previous)
      (show $ date error)
      (show $ tsourcepos error)
-     (showTransactionUnelided error)
+     (showTransaction error)
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a

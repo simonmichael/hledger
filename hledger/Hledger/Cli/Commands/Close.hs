@@ -21,7 +21,6 @@ closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
   [flagNone ["opening"] (setboolopt "opening") "show just opening transaction"
   ,flagNone ["closing"] (setboolopt "closing") "show just closing transaction"
-  -- ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ]
   [generalflagsgroup1]
   hiddenflags
@@ -88,12 +87,6 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                           }
                   ]
 
-      -- With -x, show all amounts explicitly (ie, also in the balancing equity posting(s)).
-      -- print also does it for -B; I think that isn't needed here.
-      -- showtxn | boolopt "explicit" rawopts = showTransactionUnelided
-      --         | otherwise                  = showTransaction
-      showtxn = showTransactionUnelided
-
-  when closing $ putStr $ showtxn (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps})
-  when opening $ putStr $ showtxn (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps})
+  when closing $ putStr $ showTransaction (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps})
+  when opening $ putStr $ showTransaction (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps})
 
