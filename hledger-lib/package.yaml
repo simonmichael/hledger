@@ -156,13 +156,14 @@ library:
 
 tests:
 
-  # 201909: disabled these by default. They (each ?) require a slow rebuild 
+  # 201909: disabled easytests by default. It require a slow rebuild
   # of hledger-lib and are not worth the time, energy and carbon.
 
   doctests:
-    buildable: false
+    buildable: true
     source-dirs: test
     main: doctests.hs
+    other-modules: []  # https://github.com/sol/hpack/issues/188
     dependencies:
     - Glob >=0.7
     # Need a doctest new enough to support --fast and --verbose.

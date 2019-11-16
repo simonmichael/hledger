@@ -242,14 +242,9 @@ validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ dr
     validate rs@(_first:_)
       | isJust lessthan2 = let r = fromJust lessthan2 in
           Left $ printf "CSV record %s has less than two fields" (show r)
-      -- | isJust different = let r = fromJust different in
-      --     Left $ printf "the first CSV record %s has %d fields but %s has %d"
-      --       (show first) length1 (show r) (length r)
       | otherwise        = Right rs
       where
         lessthan2 = headMay $ filter ((<2).length) rs
-        -- length1   = length first
-        -- different = headMay $ filter ((/=length1).length) rs
 
 -- -- | The highest (0-based) field index referenced in the field
 -- -- definitions, or -1 if no fields are defined.
