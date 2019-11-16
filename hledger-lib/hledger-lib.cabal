@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d8bff513572239ec58023f9d69f207434d3ce06db8866c7d6469bbdb26daa47d
+-- hash: 4b32c89e49ba64c66ca8552bb3ac2d54099cff23f9950b7fe294a32297a9b01a
 
 name:           hledger-lib
 version:        1.15.99
@@ -208,56 +208,6 @@ test-suite doctests
 test-suite easytests
   type: exitcode-stdio-1.0
   main-is: easytests.hs
-  other-modules:
-      Hledger
-      Hledger.Data
-      Hledger.Data.Account
-      Hledger.Data.AccountName
-      Hledger.Data.Amount
-      Hledger.Data.Commodity
-      Hledger.Data.Dates
-      Hledger.Data.Journal
-      Hledger.Data.Ledger
-      Hledger.Data.Period
-      Hledger.Data.PeriodicTransaction
-      Hledger.Data.Posting
-      Hledger.Data.RawOptions
-      Hledger.Data.StringFormat
-      Hledger.Data.Timeclock
-      Hledger.Data.Transaction
-      Hledger.Data.TransactionModifier
-      Hledger.Data.Types
-      Hledger.Data.Valuation
-      Hledger.Query
-      Hledger.Read
-      Hledger.Read.Common
-      Hledger.Read.CsvReader
-      Hledger.Read.JournalReader
-      Hledger.Read.TimeclockReader
-      Hledger.Read.TimedotReader
-      Hledger.Reports
-      Hledger.Reports.AccountTransactionsReport
-      Hledger.Reports.BalanceReport
-      Hledger.Reports.BudgetReport
-      Hledger.Reports.EntriesReport
-      Hledger.Reports.MultiBalanceReport
-      Hledger.Reports.PostingsReport
-      Hledger.Reports.ReportOptions
-      Hledger.Reports.ReportTypes
-      Hledger.Reports.TransactionsReport
-      Hledger.Utils
-      Hledger.Utils.Color
-      Hledger.Utils.Debug
-      Hledger.Utils.Parse
-      Hledger.Utils.Regex
-      Hledger.Utils.String
-      Hledger.Utils.Test
-      Hledger.Utils.Text
-      Hledger.Utils.Tree
-      Hledger.Utils.UTF8IOCompat
-      Text.Megaparsec.Custom
-      Text.Tabular.AsciiWide
-      Paths_hledger_lib
   hs-source-dirs:
       ./.
       test
@@ -304,7 +254,7 @@ test-suite easytests
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
-  buildable: False
+  buildable: True
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*

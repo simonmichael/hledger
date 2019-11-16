@@ -156,9 +156,6 @@ library:
 
 tests:
 
-  # 201909: disabled easytests by default. It require a slow rebuild
-  # of hledger-lib and are not worth the time, energy and carbon.
-
   doctests:
     buildable: true
     source-dirs: test
@@ -190,8 +187,9 @@ tests:
 
 
   easytests:
-    buildable: false
+    buildable: true
     source-dirs: test
     main: easytests.hs
+    other-modules: []  # https://github.com/sol/hpack/issues/188
     dependencies:
     - hledger-lib
