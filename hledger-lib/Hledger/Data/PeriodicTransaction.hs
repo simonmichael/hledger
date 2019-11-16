@@ -21,7 +21,7 @@ import Text.Printf
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
-import Hledger.Data.Posting (post, commentAddTagNextLine)
+import Hledger.Data.Posting (post)
 import Hledger.Data.Transaction
 import Hledger.Utils.UTF8IOCompat (error')
 import Hledger.Utils.Debug
@@ -87,107 +87,84 @@ instance Show PeriodicTransaction where
 --
 -- >>> _ptgen "monthly from 2017/1 to 2017/4"
 -- 2017/01/01
---     ; generated-transaction: ~ monthly from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/01
---     ; generated-transaction: ~ monthly from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/01
---     ; generated-transaction: ~ monthly from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "monthly from 2017/1 to 2017/5"
 -- 2017/01/01
---     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/01
---     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/01
---     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/04/01
---     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 2nd day of month from 2017/02 to 2017/04"
 -- 2017/01/02
---     ; generated-transaction: ~ every 2nd day of month from 2017/02 to 2017/04
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/02
---     ; generated-transaction: ~ every 2nd day of month from 2017/02 to 2017/04
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/02
---     ; generated-transaction: ~ every 2nd day of month from 2017/02 to 2017/04
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 30th day of month from 2017/1 to 2017/5"
 -- 2016/12/30
---     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/01/30
---     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/28
---     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/30
---     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/04/30
---     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 2nd Thursday of month from 2017/1 to 2017/4"
 -- 2016/12/08
---     ; generated-transaction: ~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/01/12
---     ; generated-transaction: ~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/02/09
---     ; generated-transaction: ~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/03/09
---     ; generated-transaction: ~ every 2nd Thursday of month from 2017/1 to 2017/4
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every nov 29th from 2017 to 2019"
 -- 2016/11/29
---     ; generated-transaction: ~ every nov 29th from 2017 to 2019
 --     a           $1.00
 -- <BLANKLINE>
 -- 2017/11/29
---     ; generated-transaction: ~ every nov 29th from 2017 to 2019
 --     a           $1.00
 -- <BLANKLINE>
 -- 2018/11/29
---     ; generated-transaction: ~ every nov 29th from 2017 to 2019
 --     a           $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "2017/1"
 -- 2017/01/01
---     ; generated-transaction: ~ 2017/1
 --     a           $1.00
 -- <BLANKLINE>
 --
@@ -214,21 +191,17 @@ instance Show PeriodicTransaction where
 --  
 -- >>> _ptgenspan "every 3 months from 2019-05" (mkdatespan "2020-02-01" "2020-03-01")
 -- 2020/02/01
---     ; generated-transaction: ~ every 3 months from 2019-05
 --     a           $1.00
 -- <BLANKLINE>
 -- >>> _ptgenspan "every 3 days from 2018" (mkdatespan "2018-01-01" "2018-01-05")
 -- 2018/01/01
---     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
 -- <BLANKLINE>
 -- 2018/01/04
---     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
 -- <BLANKLINE>
 -- >>> _ptgenspan "every 3 days from 2018" (mkdatespan "2018-01-02" "2018-01-05")
 -- 2018/01/04
---     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
 -- <BLANKLINE>
 
@@ -240,8 +213,7 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
            tstatus      = ptstatus
           ,tcode        = ptcode
           ,tdescription = ptdescription
-          ,tcomment     = ptcomment
-                          `commentAddTagNextLine` ("generated-transaction",period)
+          ,tcomment     = ptcomment <> "\n"  -- force all further comments on new lines
           ,ttags        = ("_generated-transaction",period) :
                           ("generated-transaction" ,period) :
                           pttags
