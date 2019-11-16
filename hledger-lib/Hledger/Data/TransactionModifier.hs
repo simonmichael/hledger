@@ -24,7 +24,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Query
-import Hledger.Data.Posting (commentJoin, commentAddTag)
+import Hledger.Data.Posting (commentJoin)
 import Hledger.Utils.UTF8IOCompat (error')
 import Hledger.Utils.Debug
 
@@ -43,9 +43,7 @@ modifyTransactions tmods = map applymods
         t' = foldr (flip (.) . transactionModifierToFunction) id tmods t
         taggedt'
           -- PERF: compares txns to see if any modifier had an effect, inefficient ?
-          | t' /= t   = t'{tcomment = tcomment t' `commentAddTag` ("modified","")
-                          ,ttags    = ("modified","") : ttags t'
-                          }
+          | t' /= t   = t'{ttags    = ("modified","") : ttags t'}
           | otherwise = t'
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function,
@@ -57,7 +55,7 @@ modifyTransactions tmods = map applymods
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
 --     ping           $1.00
---     pong           $2.00  ; generated-posting: =
+--     pong           $2.00
 -- <BLANKLINE>
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
@@ -66,7 +64,7 @@ modifyTransactions tmods = map applymods
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{aismultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
 --     ping           $2.00
---     pong           $6.00  ; generated-posting: = ping
+--     pong           $6.00
 -- <BLANKLINE>
 --
 transactionModifierToFunction :: TransactionModifier -> (Transaction -> Transaction)
@@ -106,7 +104,6 @@ tmPostingRuleToFunction querytxt pr =
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
       , pamount  = amount' p
-      , pcomment = pcomment pr `commentAddTag` ("generated-posting",qry)
       , ptags    = ("generated-posting", qry) :
                    ("_generated-posting",qry) :
                    ptags pr
