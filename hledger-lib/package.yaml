@@ -160,7 +160,7 @@ tests:
     buildable: true
     source-dirs: test
     main: doctests.hs
-    other-modules: []  # https://github.com/sol/hpack/issues/188
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
     - Glob >=0.7
     # Need a doctest new enough to support --fast and --verbose.
@@ -190,6 +190,6 @@ tests:
     buildable: true
     source-dirs: test
     main: easytests.hs
-    other-modules: []  # https://github.com/sol/hpack/issues/188
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
     - hledger-lib
