@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8f2e354491d77c4334484836a2b1f0f95f6810abf49fffeaebeb19d37132a15a
+-- hash: 6bdd5e55ef3db9761bde530f23cd7fe97dc63e707e18129732a4d827505c6aa4
 
 name:           hledger
 version:        1.15.99
@@ -246,8 +246,6 @@ executable hledger
 test-suite test
   type: exitcode-stdio-1.0
   main-is: test.hs
-  other-modules:
-      Paths_hledger
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
@@ -300,8 +298,6 @@ test-suite test
 benchmark bench
   type: exitcode-stdio-1.0
   main-is: bench.hs
-  other-modules:
-      Paths_hledger
   hs-source-dirs:
       bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path

@@ -207,6 +207,7 @@ tests:
   test:
     source-dirs: test
     main: test.hs
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     cpp-options: -DVERSION="1.15.99"
     dependencies:
     - hledger
@@ -218,6 +219,7 @@ benchmarks:
     buildable: false
     source-dirs: bench
     main: bench.hs
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
     - hledger
     - criterion
