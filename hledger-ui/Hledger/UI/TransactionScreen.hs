@@ -62,7 +62,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
   where
     maincontent = Widget Greedy Greedy $ do
       render $ defaultLayout toplabel bottomlabel $ str $
-        showTransactionUnelidedOneLineAmounts $
+        showTransactionOneLineAmounts $
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
         t
       where

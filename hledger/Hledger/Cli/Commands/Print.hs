@@ -59,7 +59,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
   writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransactionUnelided . gettxn)
+entriesReportAsText opts = concatMap (showTransaction . gettxn)
   where
     gettxn | useexplicittxn = id                   -- use fully inferred amounts & txn prices
            | otherwise      = originalTransaction  -- use original as-written amounts/txn prices
@@ -162,7 +162,7 @@ printMatch CliOpts{reportopts_=ropts} j desc = do
   let q = queryFromOpts d ropts
   case similarTransaction' j q desc of
                 Nothing -> putStrLn "no matches found."
-                Just t  -> putStr $ showTransactionUnelided t
+                Just t  -> putStr $ showTransaction t
 
   where
     -- Identify the closest recent match for this description in past transactions.

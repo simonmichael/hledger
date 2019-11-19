@@ -38,7 +38,7 @@ main = do
       q = queryFromOpts d ropts
       ts = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
       ts' = map transactionSwapDates ts
-    mapM_ (putStrLn . showTransactionUnelided) ts'
+    mapM_ (putStrLn . showTransaction) ts'
 
 transactionSwapDates :: Transaction -> Transaction
 transactionSwapDates t@Transaction{tdate2=Nothing} = t
