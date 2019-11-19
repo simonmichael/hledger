@@ -196,6 +196,10 @@ brNegate (is, tot) = (map brItemNegate is, -tot)
     brItemNegate (a, a', d, amt) = (a, a', d, -amt)
 
 -- | Helper to unify a MixedAmount to a single commodity value.
+-- Like normaliseMixedAmount, this consolidates amounts of the same commodity
+-- and discards zero amounts; but this one insists on simplifying to
+-- a single commodity, and will throw a program-terminating error if
+-- this is not possible.
 unifyMixedAmount :: MixedAmount -> Amount
 unifyMixedAmount mixedAmount = foldl combine (num 0) (amounts mixedAmount)
   where
