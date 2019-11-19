@@ -55,15 +55,19 @@ inRawOpts name = isJust . lookup name . unRawOpts
 boolopt :: String -> RawOpts -> Bool
 boolopt = inRawOpts
 
--- | Get latests successfully parsed flag
+-- | Get latests successfully parsed flag.
+--
+-- Expected to be used for exclusive choice flags like "--json" vs "--csv".
 --
 -- >>> choiceopt Just (RawOpts [("a",""), ("b",""), ("c","")])
 -- Just "c"
 -- >>> choiceopt (const Nothing) (RawOpts [("a","")])
 -- Nothing
--- >>> choiceopt (listToMaybe . filter (`elem` ["a","b"])) (RawOpts [("a",""), ("b",""), ("c","")])
--- Just "b"
-choiceopt :: (String -> Maybe a) -> RawOpts -> Maybe a
+-- >>> choiceopt readMay (RawOpts [("LT",""),("EQ",""),("Neither","")]) :: Maybe Ordering
+-- Just EQ
+choiceopt :: (String -> Maybe a) -- ^ "parser" that returns 'Just' value for valid choice
+          -> RawOpts             -- ^ actual options where to look for flag
+          -> Maybe a             -- ^ exclusive choice among those returned as 'Just' from "parser"
 choiceopt f = lastMay . collectopts (f . fst)
 
 -- | Collects processed and filtered list of options preserving their order
