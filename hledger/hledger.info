@@ -1498,6 +1498,7 @@ is used to ensure this (more below).
 * Colour support::
 * Flat mode::
 * Depth limited balance reports::
+* Percentages::
 * Multicolumn balance report::
 * Budget report::
 * Output format::
@@ -1639,7 +1640,7 @@ $ hledger balance -p 2008/6 expenses -N --flat --drop 1
                   $1  supplies
 
 
-File: hledger.info,  Node: Depth limited balance reports,  Next: Multicolumn balance report,  Prev: Flat mode,  Up: balance
+File: hledger.info,  Node: Depth limited balance reports,  Next: Percentages,  Prev: Flat mode,  Up: balance
 
 4.4.5 Depth limited balance reports
 -----------------------------------
@@ -1658,9 +1659,41 @@ $ hledger balance -N -1
 show inclusive balances at the depth limit.
 
 
-File: hledger.info,  Node: Multicolumn balance report,  Next: Budget report,  Prev: Depth limited balance reports,  Up: balance
+File: hledger.info,  Node: Percentages,  Next: Multicolumn balance report,  Prev: Depth limited balance reports,  Up: balance
 
-4.4.6 Multicolumn balance report
+4.4.6 Percentages
+-----------------
+
+With '-%' or '--percent', balance reports show each account's value
+expressed as a percentage of the column's total.  This is useful to get
+an overview of the relative sizes of account balances.  For example to
+obtain an overview of expenses:
+
+$ hledger balance expenses -%
+             100.0 %  expenses
+              50.0 %    food
+              50.0 %    supplies
+--------------------
+             100.0 %
+
+   Note that '--tree' does not have an effect on '-%'.  The percentages
+are always relative to the total sum of each column, they are never
+relative to the parent account.
+
+   Since the percentages are relative to the columns sum, it is usually
+not useful to calculate percentages if the signs of the amounts are
+mixed.  Although the results are technically correct, they are most
+likely useless.  Especially in a balance report that sums up to zero (eg
+'hledger balance -B') all percentage values will be zero.
+
+   This flag does not work if the report contains any mixed commodity
+accounts.  If there are mixed commodity accounts in the report be sure
+to use '-V' or '-B' to coerce the report into using a single commodity.
+
+
+File: hledger.info,  Node: Multicolumn balance report,  Next: Budget report,  Prev: Percentages,  Up: balance
+
+4.4.7 Multicolumn balance report
 --------------------------------
 
 Multicolumn or tabular balance reports are a very useful hledger
@@ -1777,7 +1810,7 @@ balance report, is not yet supported in multicolumn reports.
 
 File: hledger.info,  Node: Budget report,  Next: ,  Prev: Multicolumn balance report,  Up: balance
 
-4.4.7 Budget report
+4.4.8 Budget report
 -------------------
 
 With '--budget', extra columns are displayed showing budget goals for
@@ -1900,7 +1933,7 @@ Budget performance in 2017/11/01-2017/12/31:
 
 File: hledger.info,  Node: Nested budgets,  Up: Budget report
 
-4.4.7.1 Nested budgets
+4.4.8.1 Nested budgets
 ......................
 
 You can add budgets to any account in your account hierarchy.  If you
@@ -1985,7 +2018,7 @@ Budget performance in 2019/01:
 ----------------------------------------++-------------------------------
                                         ||        0 [                 0] 
 
-4.4.8 Output format
+4.4.9 Output format
 -------------------
 
 The balance command supports output destination and output format
@@ -2034,7 +2067,8 @@ the report mode with '--change'/'--cumulative'/'--historical'.  Normally
 balancesheet shows historical ending balances, which is what you need
 for a balance sheet; note this means it ignores report begin dates (and
 '-T/--row-total', since summing end balances generally does not make
-sense).
+sense).  Instead of absolute values percentages can be displayed with
+'-%'.
 
    This command also supports output destination and output format
 selection.
@@ -2108,7 +2142,8 @@ Total:
    With a reporting interval, multiple columns will be shown, one for
 each report period.  Normally cashflow shows changes in assets per
 period, though as with multicolumn balance reports you can alter the
-report mode with '--change'/'--cumulative'/'--historical'.
+report mode with '--change'/'--cumulative'/'--historical'.  Instead of
+absolute values percentages can be displayed with '-%'.
 
    This command also supports output destination and output format
 selection.
@@ -2428,7 +2463,8 @@ Total:
    With a reporting interval, multiple columns will be shown, one for
 each report period.  Normally incomestatement shows revenues/expenses
 per period, though as with multicolumn balance reports you can alter the
-report mode with '--change'/'--cumulative'/'--historical'.
+report mode with '--change'/'--cumulative'/'--historical'.  Instead of
+absolute values percentages can be displayed with '-%'.
 
    This command also supports output destination and output format
 selection.
@@ -3222,107 +3258,109 @@ Node: add46317
 Ref: #add46416
 Node: balance49161
 Ref: #balance49272
-Node: Classic balance report50714
-Ref: #classic-balance-report50887
-Node: Customising the classic balance report52256
-Ref: #customising-the-classic-balance-report52484
-Node: Colour support54560
-Ref: #colour-support54727
-Node: Flat mode54900
-Ref: #flat-mode55048
-Node: Depth limited balance reports55461
-Ref: #depth-limited-balance-reports55661
-Node: Multicolumn balance report56117
-Ref: #multicolumn-balance-report56315
-Node: Budget report61629
-Ref: #budget-report61772
-Node: Nested budgets66974
-Ref: #nested-budgets67086
-Ref: #output-format-170566
-Node: balancesheet70644
-Ref: #balancesheet70780
-Node: balancesheetequity72095
-Ref: #balancesheetequity72244
-Node: cashflow72805
-Ref: #cashflow72933
-Node: check-dates73961
-Ref: #check-dates74088
-Node: check-dupes74367
-Ref: #check-dupes74491
-Node: close74784
-Ref: #close74898
-Node: commodities78485
-Ref: #commodities78612
-Node: descriptions78694
-Ref: #descriptions78822
-Node: diff79003
-Ref: #diff79109
-Node: files80156
-Ref: #files80256
-Node: help80403
-Ref: #help80503
-Node: import81584
-Ref: #import81698
-Node: Importing balance assignments82591
-Ref: #importing-balance-assignments82739
-Node: incomestatement83388
-Ref: #incomestatement83521
-Node: notes84857
-Ref: #notes84970
-Node: payees85096
-Ref: #payees85202
-Node: prices85360
-Ref: #prices85466
-Node: print85807
-Ref: #print85917
-Node: print-unique90410
-Ref: #print-unique90536
-Node: register90821
-Ref: #register90948
-Node: Custom register output95120
-Ref: #custom-register-output95249
-Node: register-match96511
-Ref: #register-match96645
-Node: rewrite96996
-Ref: #rewrite97111
-Node: Re-write rules in a file98966
-Ref: #re-write-rules-in-a-file99100
-Node: Diff output format100310
-Ref: #diff-output-format100479
-Node: rewrite vs print --auto101571
-Ref: #rewrite-vs.-print---auto101750
-Node: roi102306
-Ref: #roi102404
-Node: stats103416
-Ref: #stats103515
-Node: tags104303
-Ref: #tags104401
-Node: test104695
-Ref: #test104779
-Node: ADD-ON COMMANDS105540
-Ref: #add-on-commands105650
-Node: Official add-ons106938
-Ref: #official-add-ons107078
-Node: ui107158
-Ref: #ui107245
-Node: web107299
-Ref: #web107388
-Node: Third party add-ons107434
-Ref: #third-party-add-ons107609
-Ref: #diff-1107768
-Node: iadd107867
-Ref: #iadd107977
-Node: interest108059
-Ref: #interest108180
-Node: irr108275
-Ref: #irr108373
-Node: Experimental add-ons108504
-Ref: #experimental-add-ons108656
-Node: autosync108904
-Ref: #autosync109015
-Node: chart109254
-Ref: #chart109373
-Node: check109444
-Ref: #check109546
+Node: Classic balance report50730
+Ref: #classic-balance-report50903
+Node: Customising the classic balance report52272
+Ref: #customising-the-classic-balance-report52500
+Node: Colour support54576
+Ref: #colour-support54743
+Node: Flat mode54916
+Ref: #flat-mode55064
+Node: Depth limited balance reports55477
+Ref: #depth-limited-balance-reports55662
+Node: Percentages56118
+Ref: #percentages56284
+Node: Multicolumn balance report57421
+Ref: #multicolumn-balance-report57601
+Node: Budget report62915
+Ref: #budget-report63058
+Node: Nested budgets68260
+Ref: #nested-budgets68372
+Ref: #output-format-171852
+Node: balancesheet71930
+Ref: #balancesheet72066
+Node: balancesheetequity73449
+Ref: #balancesheetequity73598
+Node: cashflow74159
+Ref: #cashflow74287
+Node: check-dates75383
+Ref: #check-dates75510
+Node: check-dupes75789
+Ref: #check-dupes75913
+Node: close76206
+Ref: #close76320
+Node: commodities79907
+Ref: #commodities80034
+Node: descriptions80116
+Ref: #descriptions80244
+Node: diff80425
+Ref: #diff80531
+Node: files81578
+Ref: #files81678
+Node: help81825
+Ref: #help81925
+Node: import83006
+Ref: #import83120
+Node: Importing balance assignments84013
+Ref: #importing-balance-assignments84161
+Node: incomestatement84810
+Ref: #incomestatement84943
+Node: notes86347
+Ref: #notes86460
+Node: payees86586
+Ref: #payees86692
+Node: prices86850
+Ref: #prices86956
+Node: print87297
+Ref: #print87407
+Node: print-unique91900
+Ref: #print-unique92026
+Node: register92311
+Ref: #register92438
+Node: Custom register output96610
+Ref: #custom-register-output96739
+Node: register-match98001
+Ref: #register-match98135
+Node: rewrite98486
+Ref: #rewrite98601
+Node: Re-write rules in a file100456
+Ref: #re-write-rules-in-a-file100590
+Node: Diff output format101800
+Ref: #diff-output-format101969
+Node: rewrite vs print --auto103061
+Ref: #rewrite-vs.-print---auto103240
+Node: roi103796
+Ref: #roi103894
+Node: stats104906
+Ref: #stats105005
+Node: tags105793
+Ref: #tags105891
+Node: test106185
+Ref: #test106269
+Node: ADD-ON COMMANDS107030
+Ref: #add-on-commands107140
+Node: Official add-ons108428
+Ref: #official-add-ons108568
+Node: ui108648
+Ref: #ui108735
+Node: web108789
+Ref: #web108878
+Node: Third party add-ons108924
+Ref: #third-party-add-ons109099
+Ref: #diff-1109258
+Node: iadd109357
+Ref: #iadd109467
+Node: interest109549
+Ref: #interest109670
+Node: irr109765
+Ref: #irr109863
+Node: Experimental add-ons109994
+Ref: #experimental-add-ons110146
+Node: autosync110394
+Ref: #autosync110505
+Node: chart110744
+Ref: #chart110863
+Node: check110934
+Ref: #check111036
 
 End Tag Table

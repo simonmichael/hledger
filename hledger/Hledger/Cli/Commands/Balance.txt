@@ -160,6 +160,34 @@ $ hledger balance -N -1
 Flat-mode balance reports, which normally show exclusive balances, show
 inclusive balances at the depth limit.
 
+Percentages
+
+With -% or --percent, balance reports show each account's value
+expressed as a percentage of the column's total. This is useful to get
+an overview of the relative sizes of account balances. For example to
+obtain an overview of expenses:
+
+$ hledger balance expenses -%
+             100.0 %  expenses
+              50.0 %    food
+              50.0 %    supplies
+--------------------
+             100.0 %
+
+Note that --tree does not have an effect on -%. The percentages are
+always relative to the total sum of each column, they are never relative
+to the parent account.
+
+Since the percentages are relative to the columns sum, it is usually not
+useful to calculate percentages if the signs of the amounts are mixed.
+Although the results are technically correct, they are most likely
+useless. Especially in a balance report that sums up to zero (eg
+hledger balance -B) all percentage values will be zero.
+
+This flag does not work if the report contains any mixed commodity
+accounts. If there are mixed commodity accounts in the report be sure to
+use -V or -B to coerce the report into using a single commodity.
+
 Multicolumn balance report
 
 Multicolumn or tabular balance reports are a very useful hledger

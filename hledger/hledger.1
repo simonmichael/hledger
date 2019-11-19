@@ -2083,6 +2083,41 @@ $ hledger balance -N -1
 .PP
 Flat-mode balance reports, which normally show exclusive balances, show
 inclusive balances at the depth limit.
+.SS Percentages
+.PP
+With \f[C]-%\f[R] or \f[C]--percent\f[R], balance reports show each
+account\[aq]s value expressed as a percentage of the column\[aq]s total.
+This is useful to get an overview of the relative sizes of account
+balances.
+For example to obtain an overview of expenses:
+.IP
+.nf
+\f[C]
+$ hledger balance expenses -%
+             100.0 %  expenses
+              50.0 %    food
+              50.0 %    supplies
+--------------------
+             100.0 %
+\f[R]
+.fi
+.PP
+Note that \f[C]--tree\f[R] does not have an effect on \f[C]-%\f[R].
+The percentages are always relative to the total sum of each column,
+they are never relative to the parent account.
+.PP
+Since the percentages are relative to the columns sum, it is usually not
+useful to calculate percentages if the signs of the amounts are mixed.
+Although the results are technically correct, they are most likely
+useless.
+Especially in a balance report that sums up to zero (eg
+\f[C]hledger balance -B\f[R]) all percentage values will be zero.
+.PP
+This flag does not work if the report contains any mixed commodity
+accounts.
+If there are mixed commodity accounts in the report be sure to use
+\f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
+commodity.
 .SS Multicolumn balance report
 .PP
 Multicolumn or tabular balance reports are a very useful hledger
@@ -2510,6 +2545,8 @@ Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
 dates (and \f[C]-T/--row-total\f[R], since summing end balances
 generally does not make sense).
+Instead of absolute values percentages can be displayed with
+\f[C]-%\f[R].
 .PP
 This command also supports output destination and output format
 selection.
@@ -2591,6 +2628,8 @@ report period.
 Normally cashflow shows changes in assets per period, though as with
 multicolumn balance reports you can alter the report mode with
 \f[C]--change\f[R]/\f[C]--cumulative\f[R]/\f[C]--historical\f[R].
+Instead of absolute values percentages can be displayed with
+\f[C]-%\f[R].
 .PP
 This command also supports output destination and output format
 selection.
@@ -2942,6 +2981,8 @@ report period.
 Normally incomestatement shows revenues/expenses per period, though as
 with multicolumn balance reports you can alter the report mode with
 \f[C]--change\f[R]/\f[C]--cumulative\f[R]/\f[C]--historical\f[R].
+Instead of absolute values percentages can be displayed with
+\f[C]-%\f[R].
 .PP
 This command also supports output destination and output format
 selection.

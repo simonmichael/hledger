@@ -1454,18 +1454,45 @@ COMMANDS
        Flat-mode balance reports, which normally show exclusive balances, show
        inclusive balances at the depth limit.
 
+   Percentages
+       With  -%  or  --percent,  balance reports show each account's value ex-
+       pressed as a percentage of the column's total.  This is useful  to  get
+       an  overview of the relative sizes of account balances.  For example to
+       obtain an overview of expenses:
+
+              $ hledger balance expenses -%
+                           100.0 %  expenses
+                            50.0 %    food
+                            50.0 %    supplies
+              --------------------
+                           100.0 %
+
+       Note that --tree does not have an effect on -%.   The  percentages  are
+       always  relative  to the total sum of each column, they are never rela-
+       tive to the parent account.
+
+       Since the percentages are relative to the columns sum,  it  is  usually
+       not  useful  to  calculate  percentages if the signs of the amounts are
+       mixed.  Although the results are technically  correct,  they  are  most
+       likely  useless.   Especially  in a balance report that sums up to zero
+       (eg hledger balance -B) all percentage values will be zero.
+
+       This flag does not work if the report contains any mixed commodity  ac-
+       counts.  If there are mixed commodity accounts in the report be sure to
+       use -V or -B to coerce the report into using a single commodity.
+
    Multicolumn balance report
-       Multicolumn  or  tabular balance reports are a very useful hledger fea-
-       ture, and usually the preferred style.  They share many  of  the  above
-       features,  but they show the report as a table, with columns represent-
-       ing time periods.  This mode is activated by providing a reporting  in-
+       Multicolumn or tabular balance reports are a very useful  hledger  fea-
+       ture,  and  usually  the preferred style.  They share many of the above
+       features, but they show the report as a table, with columns  represent-
+       ing  time periods.  This mode is activated by providing a reporting in-
        terval.
 
-       There  are three types of multicolumn balance report, showing different
+       There are three types of multicolumn balance report, showing  different
        information:
 
        1. By default: each column shows the sum of postings in that period, ie
-          the  account's  change of balance in that period.  This is useful eg
+          the account's change of balance in that period.  This is  useful  eg
           for a monthly income statement:
 
                   $ hledger balance --quarterly income expenses -E
@@ -1481,7 +1508,7 @@ COMMANDS
                                      ||     $-1      $1       0       0
 
        2. With --cumulative: each column shows the ending balance for that pe-
-          riod,  accumulating  the  changes across periods, starting from 0 at
+          riod, accumulating the changes across periods, starting  from  0  at
           the report start date:
 
                   $ hledger balance --quarterly income expenses -E --cumulative
@@ -1497,8 +1524,8 @@ COMMANDS
                                      ||         $-1           0           0           0
 
        3. With --historical/-H: each column shows the actual historical ending
-          balance  for  that  period, accumulating the changes across periods,
-          starting from the actual balance at the report start date.  This  is
+          balance for that period, accumulating the  changes  across  periods,
+          starting  from the actual balance at the report start date.  This is
           useful eg for a multi-period balance sheet, and when you are showing
           only the data after a certain start date:
 
@@ -1517,26 +1544,26 @@ COMMANDS
        Note that --cumulative or --historical/-H disable --row-total/-T, since
        summing end balances generally does not make sense.
 
-       Multicolumn  balance  reports display accounts in flat mode by default;
+       Multicolumn balance reports display accounts in flat mode  by  default;
        to see the hierarchy, use --tree.
 
-       With  a  reporting  interval  (like  --quarterly  above),  the   report
-       start/end  dates  will  be adjusted if necessary so that they encompass
+       With   a  reporting  interval  (like  --quarterly  above),  the  report
+       start/end dates will be adjusted if necessary so  that  they  encompass
        the displayed report periods.  This is so that the first and last peri-
        ods will be "full" and comparable to the others.
 
-       The  -E/--empty  flag  does  two things in multicolumn balance reports:
+       The -E/--empty flag does two things  in  multicolumn  balance  reports:
        first, the report will show all columns within the specified report pe-
-       riod  (without -E, leading and trailing columns with all zeroes are not
-       shown).  Second, all accounts which existed at the  report  start  date
-       will  be  considered, not just the ones with activity during the report
-       period (use -E to include low-activity accounts which  would  otherwise
+       riod (without -E, leading and trailing columns with all zeroes are  not
+       shown).   Second,  all  accounts which existed at the report start date
+       will be considered, not just the ones with activity during  the  report
+       period  (use  -E to include low-activity accounts which would otherwise
        would be omitted).
 
        The -T/--row-total flag adds an additional column showing the total for
        each row.
 
-       The -A/--average flag adds a column showing the average value  in  each
+       The  -A/--average  flag adds a column showing the average value in each
        row.
 
        Here's an example of all three:
@@ -1560,20 +1587,20 @@ COMMANDS
        Limitations:
 
        In multicolumn reports the -V/--value flag uses the market price on the
-       report end date, for all columns (not the price on  each  column's  end
+       report  end  date,  for all columns (not the price on each column's end
        date).
 
-       Eliding  of boring parent accounts in tree mode, as in the classic bal-
+       Eliding of boring parent accounts in tree mode, as in the classic  bal-
        ance report, is not yet supported in multicolumn reports.
 
    Budget report
-       With --budget, extra columns are displayed  showing  budget  goals  for
-       each  account and period, if any.  Budget goals are defined by periodic
+       With  --budget,  extra  columns  are displayed showing budget goals for
+       each account and period, if any.  Budget goals are defined by  periodic
        transactions.  This is very useful for comparing planned and actual in-
-       come,  expenses, time usage, etc.  --budget is most often combined with
+       come, expenses, time usage, etc.  --budget is most often combined  with
        a report interval.
 
-       For example, you can take average monthly expenses in  the  common  ex-
+       For  example,  you  can take average monthly expenses in the common ex-
        pense categories to construct a minimal monthly budget:
 
               ;; Budget
@@ -1620,25 +1647,25 @@ COMMANDS
 
        Note this is different from a normal balance report in several ways:
 
-       o Only  accounts  with budget goals during the report period are shown,
+       o Only accounts with budget goals during the report period  are  shown,
          by default.
 
-       o In each column, in square brackets after the actual amount,  budgeted
+       o In  each column, in square brackets after the actual amount, budgeted
          amounts are shown, along with the percentage of budget used.
 
-       o All  parent accounts are always shown, even in flat mode.  Eg assets,
+       o All parent accounts are always shown, even in flat mode.  Eg  assets,
          assets:bank, and expenses above.
 
-       o Amounts always include all subaccounts, budgeted or unbudgeted,  even
+       o Amounts  always include all subaccounts, budgeted or unbudgeted, even
          in flat mode.
 
        This means that the numbers displayed will not always add up! Eg above,
-       the expenses actual amount includes the  gifts  and  supplies  transac-
-       tions,  but  the  expenses:gifts and expenses:supplies accounts are not
+       the  expenses  actual  amount  includes the gifts and supplies transac-
+       tions, but the expenses:gifts and expenses:supplies  accounts  are  not
        shown, as they have no budget amounts declared.
 
-       This can be confusing.  When you need to make things clearer,  use  the
-       -E/--empty  flag,  which  will reveal all accounts including unbudgeted
+       This  can  be confusing.  When you need to make things clearer, use the
+       -E/--empty flag, which will reveal all  accounts  including  unbudgeted
        ones, giving the full picture.  Eg:
 
               $ hledger balance -M --budget --empty
@@ -1680,12 +1707,12 @@ COMMANDS
        For more examples, see Budgeting and Forecasting.
 
    Nested budgets
-       You can add budgets to any account in your account hierarchy.   If  you
+       You  can  add budgets to any account in your account hierarchy.  If you
        have budgets on both parent account and some of its children, then bud-
-       get(s) of the child account(s) would be added to the  budget  of  their
+       get(s)  of  the  child account(s) would be added to the budget of their
        parent, much like account balances behave.
 
-       In  the  most  simple case this means that once you add a budget to any
+       In the most simple case this means that once you add a  budget  to  any
        account, all its parents would have budget as well.
 
        To illustrate this, consider the following budget:
@@ -1695,13 +1722,13 @@ COMMANDS
                   expenses:personal:electronics    $100.00
                   liabilities
 
-       With this, monthly budget for electronics is defined  to  be  $100  and
-       budget  for  personal  expenses is an additional $1000, which implicity
+       With  this,  monthly  budget  for electronics is defined to be $100 and
+       budget for personal expenses is an additional  $1000,  which  implicity
        means that budget for both expenses:personal and expenses is $1100.
 
-       Transactions in expenses:personal:electronics will be counted both  to-
+       Transactions  in expenses:personal:electronics will be counted both to-
        wards its $100 budget and $1100 of expenses:personal , and transactions
-       in any other subaccount of expenses:personal would be  counted  towards
+       in  any  other subaccount of expenses:personal would be counted towards
        only towards the budget of expenses:personal.
 
        For example, let's consider these transactions:
@@ -1727,9 +1754,9 @@ COMMANDS
                   expenses:personal          $30.00
                   liabilities
 
-       As  you  can  see,  we have transactions in expenses:personal:electron-
-       ics:upgrades and expenses:personal:train tickets,  and  since  both  of
-       these  accounts  are  without explicitly defined budget, these transac-
+       As you can see, we  have  transactions  in  expenses:personal:electron-
+       ics:upgrades  and  expenses:personal:train  tickets,  and since both of
+       these accounts are without explicitly defined  budget,  these  transac-
        tions would be counted towards budgets of expenses:personal:electronics
        and expenses:personal accordingly:
 
@@ -1745,7 +1772,7 @@ COMMANDS
               -------------------------------++-------------------------------
                                              ||        0 [                 0]
 
-       And  with --empty, we can get a better picture of budget allocation and
+       And with --empty, we can get a better picture of budget allocation  and
        consumption:
 
               $ hledger balance --budget -M --empty
@@ -1763,17 +1790,17 @@ COMMANDS
                                                       ||        0 [                 0]
 
    Output format
-       The balance command supports output destination and output  format  se-
+       The  balance  command supports output destination and output format se-
        lection.
 
    balancesheet
        balancesheet, bs
        This command displays a simple balance sheet, showing historical ending
-       balances of asset and liability accounts  (ignoring  any  report  begin
-       date).   It  assumes that these accounts are under a top-level asset or
+       balances  of  asset  and  liability accounts (ignoring any report begin
+       date).  It assumes that these accounts are under a top-level  asset  or
        liability account (case insensitive, plural forms also allowed).
 
-       Note this report shows all account balances with normal  positive  sign
+       Note  this  report shows all account balances with normal positive sign
        (like conventional financial statements, unlike balance/print/register)
        (experimental).
 
@@ -1799,12 +1826,13 @@ COMMANDS
                                  0
 
        With a reporting interval, multiple columns will be shown, one for each
-       report  period.  As with multicolumn balance reports, you can alter the
-       report mode  with  --change/--cumulative/--historical.   Normally  bal-
-       ancesheet  shows historical ending balances, which is what you need for
-       a balance sheet; note this means it ignores  report  begin  dates  (and
-       -T/--row-total,  since  summing  end  balances  generally does not make
-       sense).
+       report period.  As with multicolumn balance reports, you can alter  the
+       report  mode  with  --change/--cumulative/--historical.   Normally bal-
+       ancesheet shows historical ending balances, which is what you need  for
+       a  balance  sheet;  note  this means it ignores report begin dates (and
+       -T/--row-total, since summing end  balances  generally  does  not  make
+       sense).   Instead  of absolute values percentages can be displayed with
+       -%.
 
        This command also supports output destination and output format  selec-
        tion.
@@ -1868,79 +1896,80 @@ COMMANDS
        With a reporting interval, multiple columns will be shown, one for each
        report period.  Normally cashflow shows changes in assets  per  period,
        though  as  with  multicolumn  balance reports you can alter the report
-       mode with --change/--cumulative/--historical.
+       mode with --change/--cumulative/--historical.  Instead of absolute val-
+       ues percentages can be displayed with -%.
 
-       This command also supports output destination and output format  selec-
+       This  command also supports output destination and output format selec-
        tion.
 
    check-dates
        check-dates
-       Check  that  transactions are sorted by increasing date.  With --date2,
-       checks secondary dates instead.  With  --strict,  dates  must  also  be
-       unique.   With  a  query, only matched transactions' dates are checked.
+       Check that transactions are sorted by increasing date.   With  --date2,
+       checks  secondary  dates  instead.   With  --strict, dates must also be
+       unique.  With a query, only matched transactions'  dates  are  checked.
        Reads the default journal file, or another specified with -f.
 
    check-dupes
        check-dupes
-       Reports account names having the same leaf but different prefixes.   In
-       other  words,  two  or  more  leaves  that are categorized differently.
+       Reports  account names having the same leaf but different prefixes.  In
+       other words, two or  more  leaves  that  are  categorized  differently.
        Reads the default journal file, or another specified as an argument.
 
        An example: http://stefanorodighiero.net/software/hledger-dupes.html
 
    close
        close, equity
-       Prints a "closing  balances"  transaction  and  an  "opening  balances"
+       Prints  a  "closing  balances"  transaction  and  an "opening balances"
        transaction that bring account balances to and from zero, respectively.
        Useful for bringing asset/liability balances forward into a new journal
-       file,  or for closing out revenues/expenses to retained earnings at the
+       file, or for closing out revenues/expenses to retained earnings at  the
        end of a period.
 
-       The closing transaction  transfers  balances  to  "equity:closing  bal-
-       ances".   The opening transaction transfers balances from "equity:open-
+       The  closing  transaction  transfers  balances  to "equity:closing bal-
+       ances".  The opening transaction transfers balances from  "equity:open-
        ing balances".  You can choose to print just one of the transactions by
        using the --opening or --closing flag.
 
        If you split your journal files by time (eg yearly), you will typically
-       run this command at the end of the year, and save the closing  transac-
-       tion  as last entry of the old file, and the opening transaction as the
-       first entry of the new file.  This makes the files self  contained,  so
-       that  correct balances are reported no matter which of them are loaded.
-       Ie, if you load just one file, the balances are initialised  correctly;
-       or  if  you  load several files, the redundant closing/opening transac-
-       tions cancel each other out.  (They will show up in print  or  register
-       reports;  you  can  exclude  them  with  a  query like not:desc:'(open-
+       run  this command at the end of the year, and save the closing transac-
+       tion as last entry of the old file, and the opening transaction as  the
+       first  entry  of the new file.  This makes the files self contained, so
+       that correct balances are reported no matter which of them are  loaded.
+       Ie,  if you load just one file, the balances are initialised correctly;
+       or if you load several files, the  redundant  closing/opening  transac-
+       tions  cancel  each other out.  (They will show up in print or register
+       reports; you can  exclude  them  with  a  query  like  not:desc:'(open-
        ing|closing) balances'.)
 
        If you're running a business, you might also use this command to "close
-       the  books"  at  the  end  of an accounting period, transferring income
-       statement account balances to retained  earnings.   (You  may  want  to
+       the books" at the end of  an  accounting  period,  transferring  income
+       statement  account  balances  to  retained  earnings.  (You may want to
        change the equity account name to something like "equity:retained earn-
        ings".)
 
-       By default, the closing transaction is dated  yesterday,  the  balances
-       are  calculated  as of end of yesterday, and the opening transaction is
-       dated today.  To close on some other date, use: hledger close -e  OPEN-
-       INGDATE.   Eg,  to  close/open  on the 2018/2019 boundary, use -e 2019.
+       By  default,  the  closing transaction is dated yesterday, the balances
+       are calculated as of end of yesterday, and the opening  transaction  is
+       dated  today.  To close on some other date, use: hledger close -e OPEN-
+       INGDATE.  Eg, to close/open on the 2018/2019  boundary,  use  -e  2019.
        You can also use -p or date:PERIOD (any starting date is ignored).
 
-       Both transactions will include balance assertions  for  the  closed/re-
+       Both  transactions  will  include balance assertions for the closed/re-
        opened accounts.  You probably shouldn't use status or realness filters
-       (like -C or -R or status:) with this command, or the generated  balance
-       assertions  will depend on these flags.  Likewise, if you run this com-
-       mand with --auto, the balance assertions will probably  always  require
+       (like  -C or -R or status:) with this command, or the generated balance
+       assertions will depend on these flags.  Likewise, if you run this  com-
+       mand  with  --auto, the balance assertions will probably always require
        --auto.
 
-       When  account  balances have cost information (transaction prices), the
-       closing/opening transactions will preserve it, so that  eg  balance  -B
+       When account balances have cost information (transaction  prices),  the
+       closing/opening  transactions  will  preserve it, so that eg balance -B
        reports will not be affected.
 
        Examples:
 
-       Carrying  asset/liability  balances  into a new file for 2019, all from
+       Carrying asset/liability balances into a new file for  2019,  all  from
        command line:
 
-       Warning: we use >> here to append; be careful not to type  a  single  >
+       Warning:  we  use  >> here to append; be careful not to type a single >
        which would wipe your journal!
 
               $ hledger close -f 2018.journal -e 2019 assets liabilities --opening >>2019.journal
@@ -1989,18 +2018,18 @@ COMMANDS
 
    diff
        diff
-       Compares a particular account's transactions in two  input  files.   It
+       Compares  a  particular  account's transactions in two input files.  It
        shows any transactions to this account which are in one file but not in
        the other.
 
        More precisely, for each posting affecting this account in either file,
-       it  looks for a corresponding posting in the other file which posts the
-       same amount to the same  account  (ignoring  date,  description,  etc.)
+       it looks for a corresponding posting in the other file which posts  the
+       same  amount  to  the  same  account (ignoring date, description, etc.)
        Since postings not transactions are compared, this also works when mul-
        tiple bank transactions have been combined into a single journal entry.
 
        This is useful eg if you have downloaded an account's transactions from
-       your  bank (eg as CSV data).  When hledger and your bank disagree about
+       your bank (eg as CSV data).  When hledger and your bank disagree  about
        the account balance, you can compare the bank data with your journal to
        find out the cause.
 
@@ -2018,20 +2047,20 @@ COMMANDS
 
    files
        files
-       List  all  files  included in the journal.  With a REGEX argument, only
+       List all files included in the journal.  With a  REGEX  argument,  only
        file names matching the regular expression (case sensitive) are shown.
 
    help
        help
        Show any of the hledger manuals.
 
-       The help command displays any of the main hledger manuals,  in  one  of
-       several  ways.  Run it with no argument to list the manuals, or provide
+       The  help  command  displays any of the main hledger manuals, in one of
+       several ways.  Run it with no argument to list the manuals, or  provide
        a full or partial manual name to select one.
 
-       hledger manuals are available in several formats.   hledger  help  will
-       use  the  first  of  these  display  methods  that it finds: info, man,
-       $PAGER, less, stdout (or when non-interactive, just stdout).   You  can
+       hledger  manuals  are  available in several formats.  hledger help will
+       use the first of these  display  methods  that  it  finds:  info,  man,
+       $PAGER,  less,  stdout (or when non-interactive, just stdout).  You can
        force a particular viewer with the --info, --man, --pager, --cat flags.
 
        Examples:
@@ -2058,9 +2087,9 @@ COMMANDS
 
    import
        import
-       Read  new  transactions added to each FILE since last run, and add them
-       to the main journal file.  Or with --dry-run, just print  the  transac-
-       tions  that  would  be  added.  Or with --catchup, just mark all of the
+       Read new transactions added to each FILE since last run, and  add  them
+       to  the  main journal file.  Or with --dry-run, just print the transac-
+       tions that would be added.  Or with --catchup, just  mark  all  of  the
        FILEs' transactions as imported, without actually importing any.
 
        The input files are specified as arguments - no need to write -f before
@@ -2071,36 +2100,36 @@ COMMANDS
        ing transactions are always added to the input files in increasing date
        order, and by saving .latest.FILE state files.
 
-       The --dry-run output is in journal format, so you can filter it, eg  to
+       The  --dry-run output is in journal format, so you can filter it, eg to
        see only uncategorised transactions:
 
               $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 
    Importing balance assignments
-       Entries  added  by import will have their posting amounts made explicit
-       (like hledger print -x).  This means that any  balance  assignments  in
-       imported  files must be evaluated; but, imported files don't get to see
-       the main file's account balances.  As a result, importing entries  with
+       Entries added by import will have their posting amounts  made  explicit
+       (like  hledger  print  -x).  This means that any balance assignments in
+       imported files must be evaluated; but, imported files don't get to  see
+       the  main file's account balances.  As a result, importing entries with
        balance assignments (eg from an institution that provides only balances
-       and not posting  amounts)  will  probably  generate  incorrect  posting
+       and  not  posting  amounts)  will  probably  generate incorrect posting
        amounts.  To avoid this problem, use print instead of import:
 
               $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
 
-       (If  you  think  import  should leave amounts implicit like print does,
+       (If you think import should leave amounts  implicit  like  print  does,
        please test it and send a pull request.)
 
    incomestatement
        incomestatement, is
-       This command displays a simple income statement, showing  revenues  and
-       expenses  during  a period.  It assumes that these accounts are under a
-       top-level revenue or income or expense account (case insensitive,  plu-
-       ral  forms  also allowed).  Note this report shows all account balances
-       with normal positive sign (like conventional financial statements,  un-
+       This  command  displays a simple income statement, showing revenues and
+       expenses during a period.  It assumes that these accounts are  under  a
+       top-level  revenue or income or expense account (case insensitive, plu-
+       ral forms also allowed).  Note this report shows all  account  balances
+       with  normal positive sign (like conventional financial statements, un-
        like balance/print/register) (experimental).
 
-       This  command displays a simple income statement.  It currently assumes
-       that you have top-level accounts named income (or revenue) and  expense
+       This command displays a simple income statement.  It currently  assumes
+       that  you have top-level accounts named income (or revenue) and expense
        (plural forms also allowed.)
 
               $ hledger incomestatement
@@ -2125,9 +2154,10 @@ COMMANDS
                                  0
 
        With a reporting interval, multiple columns will be shown, one for each
-       report period.  Normally incomestatement  shows  revenues/expenses  per
-       period,  though  as  with multicolumn balance reports you can alter the
-       report mode with --change/--cumulative/--historical.
+       report  period.   Normally  incomestatement shows revenues/expenses per
+       period, though as with multicolumn balance reports you  can  alter  the
+       report  mode with --change/--cumulative/--historical.  Instead of abso-
+       lute values percentages can be displayed with -%.
 
        This command also supports output destination and output format  selec-
        tion.
