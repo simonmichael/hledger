@@ -1020,7 +1020,7 @@ emptyorcommentlinep = do
 -- Several journal items may be followed by comments, which begin with
 -- semicolons and extend to the end of the line. Such comments may span
 -- multiple lines, but comment lines below the journal item must be
--- preceeded by leading whitespace.
+-- preceded by leading whitespace.
 --
 -- This parser combinator accepts a parser that consumes all input up
 -- until the next newline. This parser should extract the "content" from
@@ -1077,7 +1077,7 @@ followingcommentp =
 -- The first line of a transaction may be followed by comments, which
 -- begin with semicolons and extend to the end of the line. Transaction
 -- comments may span multiple lines, but comment lines below the
--- transaction must be preceeded by leading whitespace.
+-- transaction must be preceded by leading whitespace.
 --
 -- 2000/1/1 ; a transaction comment starting on the same line ...
 --   ; extending to the next line
@@ -1131,7 +1131,7 @@ commenttagsp = do
 --
 -- Postings may be followed by comments, which begin with semicolons and
 -- extend to the end of the line. Posting comments may span multiple
--- lines, but comment lines below the posting must be preceeded by
+-- lines, but comment lines below the posting must be preceded by
 -- leading whitespace.
 --
 -- 2000/1/1

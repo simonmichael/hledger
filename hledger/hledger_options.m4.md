@@ -339,7 +339,7 @@ associated period expression specifies different explicit start and end date.
 For example:
 
 ------------------------------------------
-`-p "weekly from 2009/1/1 to 2009/4/1"` -- starts on 2008/12/29, closest preceeding Monday
+`-p "weekly from 2009/1/1 to 2009/4/1"` -- starts on 2008/12/29, closest preceding Monday
 `-p "monthly in 2008/11/25"` -- starts on 2018/11/01                  
 `-p "quarterly from 2009-05-05 to 2009-06-01"` - starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 
 `-p "yearly from 2009-12-29"` - starts on 2009/01/01, first day of 2009
@@ -358,7 +358,7 @@ Examples:
 
 ------------------------------------------
 `-p "bimonthly from 2008"` -- periods will have boundaries on 2008/01/01, 2008/03/01, ...
-`-p "every 2 weeks"`  -- starts on closest preceeding Monday
+`-p "every 2 weeks"`  -- starts on closest preceding Monday
 `-p "every 5 month from 2009/03"` -- periods will have boundaries on 2009/03/01, 2009/08/01, ...
 ------------------------------------------
 

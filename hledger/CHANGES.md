@@ -445,7 +445,7 @@ User-visible changes in the hledger command line tool and library.
 
     It seems the simple and really only way to do this reliably is to require
     an explicit decimal point character. Most folks probably do this already.
-    Unfortunately, it makes another potential incompatiblity with ledger and
+    Unfortunately, it makes another potential incompatibility with ledger and
     beancount journals. But the error message will be clear and easy to
     work around.
 
