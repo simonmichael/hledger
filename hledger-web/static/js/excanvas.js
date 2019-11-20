@@ -50,7 +50,7 @@ if (!document.createElement('canvas').getContext) {
   var Z2 = Z / 2;
 
   /**
-   * This funtion is assigned to the <canvas> elements as element.getContext().
+   * This function is assigned to the <canvas> elements as element.getContext().
    * @this {HTMLElement}
    * @return {CanvasRenderingContext2D_}
    */

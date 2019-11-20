@@ -581,7 +581,7 @@ OPTIONS
        will  have  boundaries  on  2008/01/01,
        2008/03/01, ...
        -p "every 2 weeks" -- starts on closest
-       preceeding Monday
+       preceding Monday
        -p  "every 5 month from 2009/03" -- pe-
        riods   will   have    boundaries    on
        2009/03/01, 2009/08/01, ...
