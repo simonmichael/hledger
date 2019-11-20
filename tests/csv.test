@@ -493,6 +493,40 @@ $  ./hledger-csv
 
 >=0
 
+# 23. create unbalanced virtual posting
+<
+10/2009/09,Flubber Co,50,123
+
+RULES
+fields date, description, amount, balance
+date-format %d/%Y/%m
+currency $
+account1 (assets:myacct)
+
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    (assets:myacct)             $50 = $123
+
+>=0
+
+# 24. create balanced virtual posting
+<
+10/2009/09,Flubber Co,50,-50
+
+RULES
+fields date, description, amount1, amount2
+date-format %d/%Y/%m
+currency $
+account1 [assets:myacct]
+account2 [assets:another-acct]
+
+$  ./hledger-csv
+2009/09/10 Flubber Co
+    [assets:myacct]                   $50
+    [assets:another-acct]            $-50
+
+>=0
+
 
 # . TODO: without --separator gives obscure error
 #   |
