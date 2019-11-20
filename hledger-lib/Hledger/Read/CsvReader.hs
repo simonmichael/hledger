@@ -752,7 +752,12 @@ transactionFromCsvRecord sourcepos rules record = t
         case account of
           Nothing -> Nothing
           Just account -> 
-            Just $ (number, posting {paccount=account, pamount=fromMaybe missingmixedamt amount, ptransaction=Just t, pbalanceassertion=toAssertion <$> balance, pcomment = comment})
+            Just $ (number, posting {paccount=accountNameWithoutPostingType account
+                                    , pamount=fromMaybe missingmixedamt amount
+                                    , ptransaction=Just t
+                                    , pbalanceassertion=toAssertion <$> balance
+                                    , pcomment = comment
+                                    , ptype = accountNamePostingType account})
 
     parsePosting number =              
       parsePosting' number
@@ -794,10 +799,13 @@ transactionFromCsvRecord sourcepos rules record = t
     postings =
       case postings' of
         -- To be compatible with the behavior of the old code which allowed two postings only, we enforce
-        -- second posting when rules generated just first of them.
+        -- second posting when rules generated just first of them, and posting is of type that should be balanced.
         -- When we have srictly first and second posting, but second posting does not have amount, we fill it in.
         [("1",posting1)] ->
-          [posting1,improveUnknownAccountName (posting{paccount="expenses:unknown", pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t})]
+          case ptype posting1 of
+            VirtualPosting -> [posting1]
+            _ ->
+              [posting1,improveUnknownAccountName (posting{paccount="expenses:unknown", pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t})]
         [("1",posting1),("2",posting2)] ->
           case (pamount posting1 == missingmixedamt , pamount posting2 == missingmixedamt) of
             (False, True) -> [posting1, improveUnknownAccountName (posting2{pamount=costOfMixedAmount(-(pamount posting1))})]
