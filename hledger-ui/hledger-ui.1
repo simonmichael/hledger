@@ -258,6 +258,34 @@ error screen.
 .PP
 \f[C]q\f[R] quits the application.
 .PP
+Experimental:
+.PP
+\f[C]B\f[R] toggles cost mode, showing amounts in their transaction
+price\[aq]s commodity (like toggling the \f[C]-B/--cost\f[R] flag).
+.PP
+\f[C]V\f[R] toggles value mode, showing amounts\[aq] current market
+value in their default valuation commodity (like toggling the
+\f[C]-V/--market\f[R] flag).
+Note, \[dq]current market value\[dq] means the value on the report end
+date if specified, otherwise today.
+To see the value on another date, such as the transaction\[aq]s date,
+you can temporarily set a date filter ending on the following day.
+Eg to see the contemporaneous value of a transaction on july 30, go to
+the accounts or register screen, press \f[C]/\f[R], add
+\f[C]date:-7/30\f[R].
+.PP
+At most one of cost or value mode can be active at once (in hledger-ui).
+.PP
+There\[aq]s not yet any visual reminder when cost or value mode is
+active; for now pressing \f[C]B\f[R] \f[C]B\f[R] \f[C]V\f[R] should
+reliably reset to normal mode.
+.PP
+With --watch active, if you save an edit to the journal file while
+viewing the transaction screen in cost or value mode, the
+\f[C]B\f[R]/\f[C]V\f[R] keys will stop working.
+To work around, press g to force a manual reload, or exit the
+transaction screen.
+.PP
 Additional screen-specific keys are described below.
 .SH SCREENS
 .SS Accounts screen
