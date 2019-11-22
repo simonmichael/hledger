@@ -558,7 +558,7 @@ OPTIONS
 
        -p "weekly from 2009/1/1  to  2009/4/1"
        --  starts  on 2008/12/29, closest pre-
-       ceeding Monday
+       ceding Monday
        -p "monthly in 2008/11/25" -- starts on
        2018/11/01
        -p   "quarterly   from   2009-05-05  to
