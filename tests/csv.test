@@ -541,9 +541,7 @@ $  ./hledger-csv
 #
 #>=0
 #
-## 26. A single zero posting also should not generate a balancing posting.
-## (Really what we'd like is "if the single posting does not require balancing, 
-## no extra posting is generated").
+## 26. A single posting that's zero also should not generate a balancing posting.
 #<
 #2019-01-01,0
 #
@@ -557,33 +555,20 @@ $  ./hledger-csv
 #
 #>=0
 
-
-# fields date,amount
-# account2 (a)
-# $ hledger -f a.csv print
-# hledger: "/Users/simon/src/PLAINTEXTACCOUNTING/hledger/a.csv" (line 2, column 1)
-# could not balance this transaction (real postings are off by 1)
-# 2019/01/01
-#     expenses:unknown               1
-#     (a)                           -1
-
-# fields date,
-# account1 (a)
-# amount 0
-# $ hledger -f a.csv print
-# 2019/01/01
-#     (a)
-
-# fields date,
-# account1 a
-# amount 0
-# $ hledger -f a.csv print
-# hledger: "/Users/simon/src/PLAINTEXTACCOUNTING/hledger/a.csv" (line 2, column 1)
-# could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)
-# 2019/01/01
-#     a
-#     expenses:unknown
-
+## 27. With a bracketed account name, the auto-generated second posting should also be bracketed.
+#<
+#2019-01-01,1
+#
+#RULES
+#fields date,amount
+#account1 [a]
+#
+#$  ./hledger-csv
+#2019/01/01
+#    [a]                          1
+#    [income:unknown]            -1
+#
+#>=0
 
 
 
