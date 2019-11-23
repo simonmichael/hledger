@@ -9,6 +9,7 @@ module Hledger.Cli.Commands.Checkdates (
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
+import System.Exit
 import Text.Printf
 
 checkdatesmode :: Mode RawOpts
@@ -33,10 +34,10 @@ checkdates CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
         then date a <  date b
         else date a <= date b
   case checkTransactions compare ts of
-   FoldAcc{fa_previous=Nothing} -> putStrLn "ok (empty journal)"
-   FoldAcc{fa_error=Nothing}    -> putStrLn "ok"
+   FoldAcc{fa_previous=Nothing} -> putStrLn "ok (empty journal)" >> exitSuccess
+   FoldAcc{fa_error=Nothing}    -> putStrLn "ok" >> exitSuccess
    FoldAcc{fa_error=Just error, fa_previous=Just previous} ->
-    putStrLn $ printf ("ERROR: transaction out of%s date order"
+    (putStrLn $ printf ("ERROR: transaction out of%s date order"
      ++ "\nPrevious date: %s"
      ++ "\nDate: %s"
      ++ "\nLocation: %s"
@@ -45,7 +46,7 @@ checkdates CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
      (show $ date previous)
      (show $ date error)
      (show $ tsourcepos error)
-     (showTransaction error)
+     (showTransaction error)) >> exitFailure
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a
