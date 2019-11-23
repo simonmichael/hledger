@@ -55,9 +55,9 @@ inRawOpts name = isJust . lookup name . unRawOpts
 boolopt :: String -> RawOpts -> Bool
 boolopt = inRawOpts
 
--- | Get latests successfully parsed flag.
---
--- Expected to be used for exclusive choice flags like "--json" vs "--csv".
+-- | From a list of RawOpts, get the last one (ie the right-most on the command line)
+-- for which the given predicate returns a Just value.
+-- Useful for exclusive choice flags like --daily|--weekly|--quarterly...
 --
 -- >>> choiceopt Just (RawOpts [("a",""), ("b",""), ("c","")])
 -- Just "c"
