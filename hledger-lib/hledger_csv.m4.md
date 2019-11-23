@@ -428,7 +428,8 @@ a default account name will be chosen (like expenses:unknown or income:unknown).
 For convenience and backwards compatibility, if you set the amount of
 posting 1 only, a second posting with the negative amount will be
 generated automatically.
-(This also means you can't generate a transaction with just one posting.)
+(Unless the account name is parenthesised indicating an 
+[unbalanced posting](journal.html#virtual-postings).)
 
 If the CSV has the currency symbol in a separate field, you can use
 `currencyN` to prepend it to posting N's amount. `currency` with no N
