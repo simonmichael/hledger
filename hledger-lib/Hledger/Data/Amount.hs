@@ -135,19 +135,18 @@ module Hledger.Data.Amount (
 import Data.Char (isDigit)
 import Data.Decimal (roundTo, decimalPlaces, normalizeDecimal)
 import Data.Function (on)
+import Data.String
 import Data.List
 import qualified Data.Map as M
 import Data.Map (findWithDefault)
 import Data.Maybe
 import qualified Data.Text as T
-import Safe (maximumDef)
 import Text.Printf
-import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), group)
-import qualified Text.PrettyPrint.ANSI.Leijen as P
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
-import Hledger.Utils
+import Hledger.Utils hiding (Red)
+import Hledger.Utils.Pretty
 
 
 deriving instance Show MarketPrice
@@ -173,10 +172,10 @@ instance Num Amount where
     (*)                          = similarAmountsOp (*)
 
 instance Pretty Amount where
-    pretty a | a == missingamt = empty
+    pretty a | a == missingamt = mempty
     pretty a =
-        (if isNegativeAmount a then dullred else id) $
-        text $ showAmount a
+        (if isNegativeAmount a then annNegative else id) $
+        fromString $ showAmount a
 
 -- | The empty simple amount.
 amount, nullamt :: Amount
@@ -393,10 +392,10 @@ cshowAmount = cshowPretty
 amountStripPrice :: Amount -> Amount
 amountStripPrice a = a {aprice=Nothing}
 
-prettyAmountWithZeroCommodity :: Amount -> Doc
+prettyAmountWithZeroCommodity :: Amount -> Doc AnsiStyle
 prettyAmountWithZeroCommodity a =
-    (if isNegativeAmount a then dullred else id) $
-    text $ showAmountWithZeroCommodity a
+    (if isNegativeAmount a then annNegative else id) $
+    fromString $ showAmountWithZeroCommodity a
 
 -- | Strip commodity and precision from zero amount
 -- Have no effect on non-zero values
@@ -673,21 +672,21 @@ showMixedAmountWithZeroCommodity = showWide . plain . prettyMixedAmountWithZeroC
 
 -- | Get the one-line string representation of a mixed amount.
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = showWide . plain . P.group . pretty
+showMixedAmountOneLine = showWide . plain . hgroup . pretty
 
-prettyMixedAmountWithZeroCommodity :: MixedAmount -> Doc
+prettyMixedAmountWithZeroCommodity :: MixedAmount -> Doc AnsiStyle
 prettyMixedAmountWithZeroCommodity = prettyMixedAmountHelper prettyAmountWithZeroCommodity
 
 -- | Helper for rendering 'MixedAmount' with vertical/horizontal layout, but with custom prettify function.
 -- >>> prettyMixedAmountHelper pretty $ Mixed [usd 1, eur 10]
 --  $1.00
 -- €10.00
-prettyMixedAmountHelper :: (Amount -> Doc) -> MixedAmount -> Doc
+prettyMixedAmountHelper :: (Amount -> Doc a) -> MixedAmount -> Doc a
 prettyMixedAmountHelper prettyAmount m = verical `flatAlt` flat where
     Mixed as = normaliseMixedAmountSquashPricesForDisplay m
     docs = map prettyAmount as
     verical = vcatRight docs
-    flat = encloseSep empty empty (text ", ") docs
+    flat = encloseSep mempty mempty ", " docs
 
 -- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount
@@ -745,7 +744,7 @@ showMixedAmountOneLineWithoutPrice = showMixedAmountOneLine . mixedAmountStripPr
 
 -- | Colour version.
 cshowMixedAmountOneLineWithoutPrice :: MixedAmount -> String
-cshowMixedAmountOneLineWithoutPrice = showWide . P.group . pretty . mixedAmountStripPrices
+cshowMixedAmountOneLineWithoutPrice = showWide . hgroup . pretty . mixedAmountStripPrices
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
@@ -757,37 +756,8 @@ canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styl
 mixedAmountTotalPriceToUnitPrice :: MixedAmount -> MixedAmount
 mixedAmountTotalPriceToUnitPrice (Mixed as) = Mixed $ map amountTotalPriceToUnitPrice as
 
--- | Align multiple documents joined vertically to the right
---
--- >>> vcatRight [text "abc", text "defg", text "hi"]
---  abc
--- defg
---   hi
-vcatRight :: [Doc] -> Doc
-vcatRight docs = vcat [indent (totalWidth - width) doc | (width, doc) <- measured]
-  where
-    measured = [(docWidth doc, doc) | doc <- docs]
-    totalWidth = maximumDef 0 $ map fst measured
+annNegative = annotate (colorDull Red)
 
--- | Simple estimation of 'Doc' width given that there is no width limit
---
--- >>> docWidth $ string "abc\ndefg\nhi"
--- 4
---
--- Note that current implementation is really dummy...
-docWidth :: Doc -> Int
-docWidth = maximumDef 0 . map length . lines . showWide . plain
-
--- Temporary utility for show*/cshow* functions.
--- TODO: drop once fully migrated to 'Doc'
-showPretty, cshowPretty :: Pretty a => a -> String
-showPretty = showWide . plain . pretty
-cshowPretty = showWide . pretty
-
-showWide :: Doc -> String
-showWide = (`displayS` "") . renderPretty 1 1000000
-    -- We don't want to have effect of ribbon width.
-    -- We don't want to limit width since we don't know it yet.
 
 -------------------------------------------------------------------------------
 -- tests

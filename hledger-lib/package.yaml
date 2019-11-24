@@ -41,7 +41,8 @@ extra-source-files:
 dependencies:
 - base >=4.9 && <4.13
 - base-compat-batteries >=0.10.1 && <0.12
-- ansi-wl-pprint >= 0.6.9
+- prettyprinter <1.6
+- prettyprinter-ansi-terminal >=1.1 && <1.2
 - ansi-terminal >=0.6.2.3
 - array
 - blaze-markup >=0.5.1
@@ -145,6 +146,7 @@ library:
   - Hledger.Utils.Color
   - Hledger.Utils.Debug
   - Hledger.Utils.Parse
+  - Hledger.Utils.Pretty
   - Hledger.Utils.Regex
   - Hledger.Utils.String
   - Hledger.Utils.Test

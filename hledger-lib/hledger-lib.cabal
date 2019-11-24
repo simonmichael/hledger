@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9abd74785f943d93fc234129fc59b1f48cd61d34d86e1cb6845e93623175d5ba
+-- hash: 04c852c9a08aecf07c48a3567a66ef336d19b14e771802589239ee2810e4b9d9
 
 name:           hledger-lib
 version:        1.15.99
@@ -89,6 +89,7 @@ library
       Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
+      Hledger.Utils.Pretty
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
@@ -106,7 +107,6 @@ library
       Decimal
     , Glob >=0.9
     , ansi-terminal >=0.6.2.3
-    , ansi-wl-pprint >=0.6.9
     , array
     , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
@@ -133,6 +133,8 @@ library
     , parsec >=3
     , parser-combinators >=0.4.0
     , pretty-show >=1.6.4
+    , prettyprinter <1.6
+    , prettyprinter-ansi-terminal >=1.1 && <1.2
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
@@ -160,7 +162,6 @@ test-suite doctests
       Decimal
     , Glob >=0.7
     , ansi-terminal >=0.6.2.3
-    , ansi-wl-pprint >=0.6.9
     , array
     , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
@@ -188,6 +189,8 @@ test-suite doctests
     , parsec >=3
     , parser-combinators >=0.4.0
     , pretty-show >=1.6.4
+    , prettyprinter <1.6
+    , prettyprinter-ansi-terminal >=1.1 && <1.2
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
@@ -218,7 +221,6 @@ test-suite easytests
       Decimal
     , Glob >=0.9
     , ansi-terminal >=0.6.2.3
-    , ansi-wl-pprint >=0.6.9
     , array
     , base >=4.9 && <4.13
     , base-compat-batteries >=0.10.1 && <0.12
@@ -246,6 +248,8 @@ test-suite easytests
     , parsec >=3
     , parser-combinators >=0.4.0
     , pretty-show >=1.6.4
+    , prettyprinter <1.6
+    , prettyprinter-ansi-terminal >=1.1 && <1.2
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
