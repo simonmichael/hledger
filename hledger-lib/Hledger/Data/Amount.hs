@@ -138,6 +138,8 @@ import Data.Maybe
 import qualified Data.Text as T
 import Safe (maximumDef)
 import Text.Printf
+import Text.PrettyPrint.ANSI.Leijen hiding ((<$>), group)
+import qualified Text.PrettyPrint.ANSI.Leijen as P
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
@@ -165,6 +167,11 @@ instance Num Amount where
     (+)                          = similarAmountsOp (+)
     (-)                          = similarAmountsOp (-)
     (*)                          = similarAmountsOp (*)
+
+instance Pretty Amount where
+    pretty a =
+        (if isNegativeAmount a then dullred else id) $
+        text $ showAmountHelper False a
 
 -- | The empty simple amount.
 amount, nullamt :: Amount
@@ -318,7 +325,7 @@ showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice a = showAmount a{aprice=Nothing}
+showAmountWithoutPrice = showPretty . amountStripPrice
 
 -- | Set an amount's internal precision, ie rounds the Decimal representing
 -- the amount's quantity to some number of decimal places.
@@ -344,10 +351,6 @@ setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
 -- | Set (or clear) an amount's display decimal point, flipped.
 withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
-
--- | Colour version.
-cshowAmountWithoutPrice :: Amount -> String
-cshowAmountWithoutPrice a = cshowAmount a{aprice=Nothing}
 
 -- | Get the string representation of an amount, without any price or commodity symbol.
 showAmountWithoutPriceOrCommodity :: Amount -> String
@@ -383,14 +386,16 @@ styleAmountExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=origp}
 -- zero are converted to just \"0\". The special "missing" amount is
 -- displayed as the empty string.
 showAmount :: Amount -> String
-showAmount = showAmountHelper False
+showAmount = showPretty
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
 cshowAmount :: Amount -> String
-cshowAmount a =
-  (if isNegativeAmount a then color Dull Red else id) $
-  showAmountHelper False a
+cshowAmount = cshowPretty
+
+-- | Strips price information from amount
+amountStripPrice :: Amount -> Amount
+amountStripPrice a = a {aprice=Nothing}
 
 showAmountHelper :: Bool -> Amount -> String
 showAmountHelper _ Amount{acommodity="AUTO"} = ""
@@ -475,6 +480,12 @@ instance Num MixedAmount where
     (*)    = error' "error, mixed amounts do not support multiplication"
     abs    = error' "error, mixed amounts do not support abs"
     signum = error' "error, mixed amounts do not support signum"
+
+instance Pretty MixedAmount where
+    pretty m = (vcatRight docs) `flatAlt` encloseSep empty empty (text ", ") docs
+        where
+            Mixed as = normaliseMixedAmountSquashPricesForDisplay m
+            docs = map pretty as
 
 -- | The empty mixed amount.
 nullmixedamt :: MixedAmount
@@ -680,43 +691,40 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 -- TODO these and related fns are comically complicated:
 
 -- | Get the string representation of a mixed amount, without showing any transaction prices.
+--
+-- For multi-currency output it alignes everything to the right:
+-- >>> putStrLn . showMixedAmountWithoutPrice $ Mixed [usd 1, eur 10]
+--  $1.00
+-- €10.00
+--
+-- Before rendering 'MixedAmount' implicitly normalized for displaying:
+-- >>> putStrLn . showMixedAmountWithoutPrice $ Mixed [usd 1, usd (-1)]
+-- 0
 showMixedAmountWithoutPrice :: MixedAmount -> String
-showMixedAmountWithoutPrice m = intercalate "\n" $ map showamt as
-  where
-    Mixed as = normaliseMixedAmountSquashPricesForDisplay $ mixedAmountStripPrices m
-    showamt = printf (printf "%%%ds" width) . showAmountWithoutPrice
-      where
-        width = maximumDef 0 $ map (length . showAmount) as
+showMixedAmountWithoutPrice = showPretty . mixedAmountStripPrices
 
 -- | Colour version of showMixedAmountWithoutPrice. Any individual Amount
 -- which is negative is wrapped in ANSI codes to make it display in red.
 cshowMixedAmountWithoutPrice :: MixedAmount -> String
-cshowMixedAmountWithoutPrice m = intercalate "\n" $ map showamt as
-  where
-    Mixed as = normaliseMixedAmountSquashPricesForDisplay $ mixedAmountStripPrices m
-    showamt a =
-      (if isNegativeAmount a then color Dull Red else id) $
-      printf (printf "%%%ds" width) $ showAmountWithoutPrice a
-      where
-        width = maximumDef 0 $ map (length . showAmount) as
+cshowMixedAmountWithoutPrice = cshowPretty . mixedAmountStripPrices
 
+-- | Strip price from 'MixedAmount'
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
-mixedAmountStripPrices (Mixed as) = Mixed $ map (\a -> a{aprice=Nothing}) as
+mixedAmountStripPrices (Mixed as) = Mixed $ map amountStripPrice as
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.
+--
+-- >>> showMixedAmountOneLineWithoutPrice $ Mixed [usd 1, hrs 10]
+-- "$1.00, 10.00h"
+--
+-- Note that this implementation doesn't guarantee flattened look
 showMixedAmountOneLineWithoutPrice :: MixedAmount -> String
-showMixedAmountOneLineWithoutPrice m = intercalate ", " $ map showAmountWithoutPrice as
-    where
-      (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
+showMixedAmountOneLineWithoutPrice = showWide . plain . P.group . pretty . mixedAmountStripPrices
 
 -- | Colour version.
 cshowMixedAmountOneLineWithoutPrice :: MixedAmount -> String
-cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithoutPrice as
-    where
-      (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
+cshowMixedAmountOneLineWithoutPrice = showWide . P.group . pretty . mixedAmountStripPrices
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
@@ -728,6 +736,37 @@ canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styl
 mixedAmountTotalPriceToUnitPrice :: MixedAmount -> MixedAmount
 mixedAmountTotalPriceToUnitPrice (Mixed as) = Mixed $ map amountTotalPriceToUnitPrice as
 
+-- | Align multiple documents joined vertically to the right
+--
+-- >>> vcatRight [text "abc", text "defg", text "hi"]
+--  abc
+-- defg
+--   hi
+vcatRight :: [Doc] -> Doc
+vcatRight docs = vcat [indent (totalWidth - width) doc | (width, doc) <- measured]
+  where
+    measured = [(docWidth doc, doc) | doc <- docs]
+    totalWidth = maximumDef 0 $ map fst measured
+
+-- | Simple estimation of 'Doc' width given that there is no width limit
+--
+-- >>> docWidth $ string "abc\ndefg\nhi"
+-- 4
+--
+-- Note that current implementation is really dummy...
+docWidth :: Doc -> Int
+docWidth = maximumDef 0 . map length . lines . showWide . plain
+
+-- Temporary utility for show*/cshow* functions.
+-- TODO: drop once fully migrated to 'Doc'
+showPretty, cshowPretty :: Pretty a => a -> String
+showPretty = showWide . plain . pretty
+cshowPretty = showWide . pretty
+
+showWide :: Doc -> String
+showWide = (`displayS` "") . renderPretty 1 1000000
+    -- We don't want to have effect of ribbon width.
+    -- We don't want to limit width since we don't know it yet.
 
 -------------------------------------------------------------------------------
 -- tests
