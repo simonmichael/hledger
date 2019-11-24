@@ -71,6 +71,7 @@ module Hledger.Data.Amount (
   showAmount,
   cshowAmount,
   showAmountWithZeroCommodity,
+  prettyAmountWithZeroCommodity,
   showAmountDebug,
   showAmountWithoutPrice,
   maxprecision,
@@ -85,6 +86,8 @@ module Hledger.Data.Amount (
   setAmountDecimalPoint,
   withDecimalPoint,
   canonicaliseAmount,
+  simplifyZeroAmount,
+  amountStripPrice,
   -- * MixedAmount
   nullmixedamt,
   missingmixedamt,
@@ -94,6 +97,7 @@ module Hledger.Data.Amount (
   filterMixedAmountByCommodity,
   normaliseMixedAmountSquashPricesForDisplay,
   normaliseMixedAmount,
+  mixedAmountStripPrices,
   -- ** arithmetic
   costOfMixedAmount,
   mixedAmountToCost,
@@ -169,9 +173,10 @@ instance Num Amount where
     (*)                          = similarAmountsOp (*)
 
 instance Pretty Amount where
+    pretty a | a == missingamt = empty
     pretty a =
         (if isNegativeAmount a then dullred else id) $
-        text $ showAmountHelper False a
+        text $ showAmount a
 
 -- | The empty simple amount.
 amount, nullamt :: Amount
@@ -273,16 +278,11 @@ digits = "123456789" :: String
 -- | Does this amount appear to be zero when displayed with its given precision ?
 isZeroAmount :: Amount -> Bool
 isZeroAmount --  a==missingamt = False
-  = not . any (`elem` digits) . showAmountWithoutPriceOrCommodity
+  = not . any (`elem` digits) . showamountquantity
 
 -- | Is this amount "really" zero, regardless of the display precision ?
 isReallyZeroAmount :: Amount -> Bool
 isReallyZeroAmount Amount{aquantity=q} = q == 0
-
--- | Get the string representation of an amount, based on its commodity's
--- display settings except using the specified precision.
-showAmountWithPrecision :: Int -> Amount -> String
-showAmountWithPrecision p = showAmount . setAmountPrecision p
 
 -- | Set an amount's display precision.
 setAmountPrecision :: Int -> Amount -> Amount
@@ -352,10 +352,6 @@ setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
 withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
 
--- | Get the string representation of an amount, without any price or commodity symbol.
-showAmountWithoutPriceOrCommodity :: Amount -> String
-showAmountWithoutPriceOrCommodity a = showAmount a{acommodity="", aprice=Nothing}
-
 showAmountPrice :: Maybe AmountPrice -> String
 showAmountPrice Nothing                = ""
 showAmountPrice (Just (UnitPrice pa))  = " @ "  ++ showAmount pa
@@ -386,7 +382,7 @@ styleAmountExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=origp}
 -- zero are converted to just \"0\". The special "missing" amount is
 -- displayed as the empty string.
 showAmount :: Amount -> String
-showAmount = showPretty
+showAmount = showAmountWithZeroCommodity . simplifyZeroAmount
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
@@ -397,23 +393,41 @@ cshowAmount = cshowPretty
 amountStripPrice :: Amount -> Amount
 amountStripPrice a = a {aprice=Nothing}
 
-showAmountHelper :: Bool -> Amount -> String
-showAmountHelper _ Amount{acommodity="AUTO"} = ""
-showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=mp, astyle=AmountStyle{..}} =
-    case ascommodityside of
-      L -> printf "%s%s%s%s" (T.unpack c') space quantity' price
-      R -> printf "%s%s%s%s" quantity' space (T.unpack c') price
-    where
-      quantity = showamountquantity a
-      displayingzero = not (any (`elem` digits) quantity)
-      (quantity',c') | displayingzero && not showzerocommodity = ("0","")
-                     | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
-      space = if not (T.null c') && ascommodityspaced then " " else "" :: String
-      price = showAmountPrice mp
+prettyAmountWithZeroCommodity :: Amount -> Doc
+prettyAmountWithZeroCommodity a =
+    (if isNegativeAmount a then dullred else id) $
+    text $ showAmountWithZeroCommodity a
+
+-- | Strip commodity and precision from zero amount
+-- Have no effect on non-zero values
+-- >>> plain . pretty . simplifyZeroAmount $ hrs 1
+-- 1.00h
+--
+-- But will strip uselss information from zero
+-- >>> plain . pretty . simplifyZeroAmount $ usd 0.00 @@ eur 12
+-- 0 @@ €12.00
+--
+-- Unless it is 'missingamt'
+-- >>> plain . pretty . simplifyZeroAmount $ missingamt
+-- <BLANKLINE>
+simplifyZeroAmount :: Amount -> Amount
+simplifyZeroAmount a@Amount{astyle=astyle0}
+    | a == missingamt = a
+    | isZeroAmount a = a{acommodity="", aquantity=0, astyle=astyle0{asprecision=0}}
+    | otherwise = a
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 showAmountWithZeroCommodity :: Amount -> String
-showAmountWithZeroCommodity = showAmountHelper True
+showAmountWithZeroCommodity a | a == missingamt = ""
+showAmountWithZeroCommodity a@Amount{acommodity=c, aprice=mp, astyle=AmountStyle{..}} =
+    case ascommodityside of
+      L -> printf "%s%s%s%s" (T.unpack c') space quantity price
+      R -> printf "%s%s%s%s" quantity space (T.unpack c') price
+    where
+      quantity = showamountquantity a
+      c' = quoteCommoditySymbolIfNeeded c
+      space = if not (T.null c') && ascommodityspaced then " " else "" :: String
+      price = showAmountPrice mp
 
 -- | Get the string representation of the number part of of an amount,
 -- using the display settings from its commodity.
@@ -482,10 +496,7 @@ instance Num MixedAmount where
     signum = error' "error, mixed amounts do not support signum"
 
 instance Pretty MixedAmount where
-    pretty m = (vcatRight docs) `flatAlt` encloseSep empty empty (text ", ") docs
-        where
-            Mixed as = normaliseMixedAmountSquashPricesForDisplay m
-            docs = map pretty as
+    pretty = prettyMixedAmountHelper pretty
 
 -- | The empty mixed amount.
 nullmixedamt :: MixedAmount
@@ -646,26 +657,37 @@ styleMixedAmount styles (Mixed as) = Mixed $ map (styleAmount styles) as
 -- | Get the string representation of a mixed amount, after
 -- normalising it to one amount per commodity. Assumes amounts have
 -- no or similar prices, otherwise this can show misleading prices.
+-- >>> showMixedAmount $ mixed [usd 0]
+-- "0"
+-- >>> showMixedAmount $ mixed [usd 1, usd (-1), hrs 5]
+-- "5.00h"
 showMixedAmount :: MixedAmount -> String
-showMixedAmount = showMixedAmountHelper False False
+showMixedAmount = showPretty
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
+-- >>> showMixedAmountWithZeroCommodity $ mixed [usd 0]
+-- "$0.00"
 showMixedAmountWithZeroCommodity :: MixedAmount -> String
-showMixedAmountWithZeroCommodity = showMixedAmountHelper True False
+showMixedAmountWithZeroCommodity = showWide . plain . prettyMixedAmountWithZeroCommodity
 
 -- | Get the one-line string representation of a mixed amount.
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = showMixedAmountHelper False True
+showMixedAmountOneLine = showWide . plain . P.group . pretty
 
-showMixedAmountHelper :: Bool -> Bool -> MixedAmount -> String
-showMixedAmountHelper showzerocommodity useoneline m =
-  join $ map showamt $ amounts $ normaliseMixedAmountSquashPricesForDisplay m
-  where
-    join | useoneline = intercalate ", "
-         | otherwise  = vConcatRightAligned
-    showamt | showzerocommodity = showAmountWithZeroCommodity
-            | otherwise         = showAmount
+prettyMixedAmountWithZeroCommodity :: MixedAmount -> Doc
+prettyMixedAmountWithZeroCommodity = prettyMixedAmountHelper prettyAmountWithZeroCommodity
+
+-- | Helper for rendering 'MixedAmount' with vertical/horizontal layout, but with custom prettify function.
+-- >>> prettyMixedAmountHelper pretty $ Mixed [usd 1, eur 10]
+--  $1.00
+-- €10.00
+prettyMixedAmountHelper :: (Amount -> Doc) -> MixedAmount -> Doc
+prettyMixedAmountHelper prettyAmount m = verical `flatAlt` flat where
+    Mixed as = normaliseMixedAmountSquashPricesForDisplay m
+    docs = map prettyAmount as
+    verical = vcatRight docs
+    flat = encloseSep empty empty (text ", ") docs
 
 -- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount
@@ -679,8 +701,7 @@ setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 -- component amounts with the specified precision, ignoring their
 -- commoditys' display precision settings.
 showMixedAmountWithPrecision :: Int -> MixedAmount -> String
-showMixedAmountWithPrecision p m =
-    vConcatRightAligned $ map (showAmountWithPrecision p) $ amounts $ normaliseMixedAmountSquashPricesForDisplay m
+showMixedAmountWithPrecision p = showWide . plain . pretty . setMixedAmountPrecision p
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
@@ -715,12 +736,12 @@ mixedAmountStripPrices (Mixed as) = Mixed $ map amountStripPrice as
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.
 --
--- >>> showMixedAmountOneLineWithoutPrice $ Mixed [usd 1, hrs 10]
+-- >>> showMixedAmountOneLineWithoutPrice $ Mixed [usd 1 @@ eur 3, hrs 10]
 -- "$1.00, 10.00h"
 --
 -- Note that this implementation doesn't guarantee flattened look
 showMixedAmountOneLineWithoutPrice :: MixedAmount -> String
-showMixedAmountOneLineWithoutPrice = showWide . plain . P.group . pretty . mixedAmountStripPrices
+showMixedAmountOneLineWithoutPrice = showMixedAmountOneLine . mixedAmountStripPrices
 
 -- | Colour version.
 cshowMixedAmountOneLineWithoutPrice :: MixedAmount -> String
