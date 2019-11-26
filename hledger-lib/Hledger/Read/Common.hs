@@ -1363,7 +1363,7 @@ tests_Common = tests "Common" [
   ,tests "spaceandamountormissingp" [
      test "space and amount" $ expectParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
     ,test "empty string" $ expectParseEq spaceandamountormissingp "" missingmixedamt
-    ,_test "just space" $ expectParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
+    -- ,_test "just space" $ expectParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
     -- ,test "just amount" $ expectParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
     ]
 

@@ -723,7 +723,7 @@ tests_Query = tests "Query" [
     ,parseAmountQueryTerm "0.23"      `is` (AbsEq,0.23)
     ,parseAmountQueryTerm "<=+0.23"   `is` (LtEq,0.23)
     ,parseAmountQueryTerm "-0.23"     `is` (Eq,(-0.23))
-    ,_test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" `is` (AbsEq,0.23)  -- XXX
+    -- ,_test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" `is` (AbsEq,0.23)  -- XXX
     ]
 
   ,tests "matchesAccount" [

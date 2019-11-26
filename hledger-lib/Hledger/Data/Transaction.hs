@@ -596,7 +596,7 @@ tests_Transaction =
     -- one missing amount, not the last one
           t3 = nulltransaction {tpostings = ["a" `post` usd 1, "b" `post` missingamt, "c" `post` usd (-1)]}
     -- unbalanced amounts when precision is limited (#931)
-          t4 = nulltransaction {tpostings = ["a" `post` usd (-0.01), "b" `post` usd (0.005), "c" `post` usd (0.005)]}
+          -- t4 = nulltransaction {tpostings = ["a" `post` usd (-0.01), "b" `post` usd (0.005), "c" `post` usd (0.005)]}
        in tests
             "postingsAsLines"
             [ test "null-transaction" $
@@ -635,10 +635,11 @@ tests_Transaction =
               let t = t3
                in postingsAsLines False (tpostings t) `is`
                   ["    a           $1.00", "    b", "    c          $-1.00"]
-            , _test "ensure-visibly-balanced" $
-              let t = t4
-               in postingsAsLines False (tpostings t) `is`
-                  ["    a          $-0.01", "    b           $0.005", "    c           $0.005"]
+            -- , _test "ensure-visibly-balanced" $
+            --   let t = t4
+            --    in postingsAsLines False (tpostings t) `is`
+            --       ["    a          $-0.01", "    b           $0.005", "    c           $0.005"]
+
             ]
     , tests
          "inferBalancingAmount"

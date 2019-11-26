@@ -18,7 +18,7 @@ import "base-compat-batteries" Prelude.Compat
 import Numeric
 import Data.Char (isPrint)
 import Data.Maybe
-import qualified Data.Text as T
+-- import qualified Data.Text as T
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -157,7 +157,7 @@ tests_StringFormat = tests "StringFormat" [
     ]
 
   ,tests "parseStringFormat" $
-    let s `gives` expected = test (T.pack s) $ parseStringFormat s `is` Right expected
+    let s `gives` expected = test s $ parseStringFormat s `is` Right expected
     in [
       ""                           `gives` (defaultStringFormatStyle [])
     , "D"                          `gives` (defaultStringFormatStyle [FormatLiteral "D"])

@@ -640,10 +640,10 @@ balanceReportTableAsText ropts = tableAsText ropts showamt
 tests_Balance = tests "Balance" [
 
    tests "balanceReportAsText" [
-    test "unicode in balance layout" $ do
-      j <- io $ readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+    testCaseSteps "unicode in balance layout" $ \_step -> do
+      j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let opts = defreportopts
-      balanceReportAsText opts (balanceReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) `is`
+      balanceReportAsText opts (balanceReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) @?=
         unlines
         ["                -100  актив:наличные"
         ,"                 100  расходы:покупки"

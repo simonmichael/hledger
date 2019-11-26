@@ -1324,16 +1324,16 @@ tests_Journal = tests "Journal" [
 
   ,tests "journalBalanceTransactions" [
 
-     test "balance-assignment" $ do
+     test "balance-assignment" $ testCaseSteps "sometests" $ \_step -> do
       let ej = journalBalanceTransactions True $
             --2019/01/01
             --  (a)            = 1
             nulljournal{ jtxns = [
               transaction "2019/01/01" [ vpost' "a" missingamt (balassert (num 1)) ]
             ]}
-      expectRight ej
+      assertRight ej
       let Right j = ej
-      (jtxns j & head & tpostings & head & pamount) `is` Mixed [num 1]
+      (jtxns j & head & tpostings & head & pamount) @?= Mixed [num 1]
 
     ,test "same-day-1" $ do
       expectRight $ journalBalanceTransactions True $

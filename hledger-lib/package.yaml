@@ -39,7 +39,7 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.9 && <4.13
+- base >=4.9 && <4.14
 - base-compat-batteries >=0.10.1 && <0.12
 - ansi-terminal >=0.6.2.3
 - array
@@ -54,7 +54,6 @@ dependencies:
 - Decimal
 - deepseq
 - directory
-- easytest >= 0.2.1 && <0.3
 - fgl >=5.5.4.0
 - file-embed >=0.0.10
 - filepath
@@ -70,6 +69,8 @@ dependencies:
 - safe >=0.2
 - split >=0.1
 - tabular >=0.2
+- tasty >=1.2.3
+- tasty-hunit >=0.10.0.2
 - template-haskell
 - text >=1.2
 - time >=1.5
@@ -186,10 +187,10 @@ tests:
       buildable: false
 
 
-  easytests:
-    buildable: true
-    source-dirs: test
-    main: easytests.hs
-    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-    dependencies:
-    - hledger-lib
+  # easytests:
+  #   buildable: true
+  #   source-dirs: test
+  #   main: easytests.hs
+  #   other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
+  #   dependencies:
+  #   - hledger-lib
