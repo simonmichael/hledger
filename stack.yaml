@@ -16,10 +16,14 @@ nix:
 # allow-newer: true
 
 extra-deps:
+# for testing base-compat 0.11 compatibility:
+- aeson-1.4.6.0
+- aeson-compat-0.3.9
+- attoparsec-iso8601-1.0.1.0
+- base-compat-batteries-0.11.0
+- base-compat-0.11.0
+- http-api-data-0.4.1.1
 # for hledger-lib:
-# testing:
-# - base-compat-batteries-0.11.0
-# - base-compat-0.11.0
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
