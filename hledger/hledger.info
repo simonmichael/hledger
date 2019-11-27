@@ -3008,22 +3008,23 @@ File: hledger.info,  Node: test,  Prev: tags,  Up: COMMANDS
 test
 Run built-in unit tests.
 
-   This command runs the unit tests built in to hledger-lib and hledger,
-printing test names and results on stdout.  If any test fails, the exit
-code will be non-zero.
+   This command runs the unit tests built in to hledger and hledger-lib,
+printing the results on stdout.  If any test fails, the exit code will
+be non-zero.
 
-   Test names include a group prefix.  If a (exact, case sensitive)
-group prefix, or a full test name is provided as the first argument,
-only that group or test is run.
+   This is mainly used by hledger developers, but you can also use it to
+sanity-check the installed hledger executable on your platform.  All
+tests are expected to pass - if you ever see a failure, please report as
+a bug!
 
-   If a numeric second argument is provided, it will set the randomness
-seed, for repeatable results from tests using randomness (currently none
-of them).
+   This command also accepts tasty test runner options, written after a
+- (double hyphen).  Eg to run only the tests in Hledger.Data.Amount,
+with ANSI colour codes disabled:
 
-   This is mainly used by developers, but it's nice to be able to
-sanity-check your installed hledger executable at any time.  All tests
-are expected to pass - if you ever see otherwise, something has gone
-wrong, please report a bug!
+$ hledger test -- -pData.Amount --color=never
+
+   For help on these, see https://github.com/feuerbach/tasty#options
+('-- --help' currently doesn't show them).
 
 
 File: hledger.info,  Node: ADD-ON COMMANDS,  Prev: COMMANDS,  Up: Top
@@ -3337,30 +3338,30 @@ Node: tags105791
 Ref: #tags105889
 Node: test106183
 Ref: #test106267
-Node: ADD-ON COMMANDS107028
-Ref: #add-on-commands107138
-Node: Official add-ons108426
-Ref: #official-add-ons108566
-Node: ui108646
-Ref: #ui108733
-Node: web108787
-Ref: #web108876
-Node: Third party add-ons108922
-Ref: #third-party-add-ons109097
-Ref: #diff-1109256
-Node: iadd109355
-Ref: #iadd109465
-Node: interest109547
-Ref: #interest109668
-Node: irr109763
-Ref: #irr109861
-Node: Experimental add-ons109992
-Ref: #experimental-add-ons110144
-Node: autosync110392
-Ref: #autosync110503
-Node: chart110742
-Ref: #chart110861
-Node: check110932
-Ref: #check111034
+Node: ADD-ON COMMANDS107014
+Ref: #add-on-commands107124
+Node: Official add-ons108412
+Ref: #official-add-ons108552
+Node: ui108632
+Ref: #ui108719
+Node: web108773
+Ref: #web108862
+Node: Third party add-ons108908
+Ref: #third-party-add-ons109083
+Ref: #diff-1109242
+Node: iadd109341
+Ref: #iadd109451
+Node: interest109533
+Ref: #interest109654
+Node: irr109749
+Ref: #irr109847
+Node: Experimental add-ons109978
+Ref: #experimental-add-ons110130
+Node: autosync110378
+Ref: #autosync110489
+Node: chart110728
+Ref: #chart110847
+Node: check110918
+Ref: #check111020
 
 End Tag Table

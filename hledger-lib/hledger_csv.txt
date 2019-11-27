@@ -388,8 +388,8 @@ CSV RULES
 
        For  convenience  and backwards compatibility, if you set the amount of
        posting 1 only, a second posting with the negative amount will be  gen-
-       erated  automatically.   (This also means you can't generate a transac-
-       tion with just one posting.)
+       erated  automatically.  (Unless the account name is parenthesised indi-
+       cating an unbalanced posting.)
 
        If the CSV has the currency symbol in a separate  field,  you  can  use
        currencyN  to prepend it to posting N's amount.  currency with no N af-

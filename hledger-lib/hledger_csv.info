@@ -458,8 +458,8 @@ with no N for posting 1.
 
    For convenience and backwards compatibility, if you set the amount of
 posting 1 only, a second posting with the negative amount will be
-generated automatically.  (This also means you can't generate a
-transaction with just one posting.)
+generated automatically.  (Unless the account name is parenthesised
+indicating an unbalanced posting.)
 
    If the CSV has the currency symbol in a separate field, you can use
 'currencyN' to prepend it to posting N's amount.  'currency' with no N
@@ -908,37 +908,37 @@ Node: Transaction field names16428
 Ref: #transaction-field-names16588
 Node: Posting field names16699
 Ref: #posting-field-names16851
-Node: field assignment18080
-Ref: #field-assignment18216
-Node: if19034
-Ref: #if19143
-Node: end20859
-Ref: #end20965
-Node: date-format21189
-Ref: #date-format21321
-Node: newest-first22070
-Ref: #newest-first22208
-Node: include22891
-Ref: #include22999
-Node: TIPS23443
-Ref: #tips23525
-Node: Valid CSV23774
-Ref: #valid-csv23893
-Node: Other separator characters24085
-Ref: #other-separator-characters24273
-Node: Reading multiple CSV files24602
-Ref: #reading-multiple-csv-files24799
-Node: Valid transactions25040
-Ref: #valid-transactions25218
-Node: Deduplicating importing25846
-Ref: #deduplicating-importing26025
-Node: Setting amounts27058
-Ref: #setting-amounts27227
-Node: Setting currency/commodity28213
-Ref: #setting-currencycommodity28405
-Node: Referencing other fields29208
-Ref: #referencing-other-fields29408
-Node: How CSV rules are evaluated30305
-Ref: #how-csv-rules-are-evaluated30476
+Node: field assignment18083
+Ref: #field-assignment18219
+Node: if19037
+Ref: #if19146
+Node: end20862
+Ref: #end20968
+Node: date-format21192
+Ref: #date-format21324
+Node: newest-first22073
+Ref: #newest-first22211
+Node: include22894
+Ref: #include23002
+Node: TIPS23446
+Ref: #tips23528
+Node: Valid CSV23777
+Ref: #valid-csv23896
+Node: Other separator characters24088
+Ref: #other-separator-characters24276
+Node: Reading multiple CSV files24605
+Ref: #reading-multiple-csv-files24802
+Node: Valid transactions25043
+Ref: #valid-transactions25221
+Node: Deduplicating importing25849
+Ref: #deduplicating-importing26028
+Node: Setting amounts27061
+Ref: #setting-amounts27230
+Node: Setting currency/commodity28216
+Ref: #setting-currencycommodity28408
+Node: Referencing other fields29211
+Ref: #referencing-other-fields29411
+Node: How CSV rules are evaluated30308
+Ref: #how-csv-rules-are-evaluated30479
 
 End Tag Table

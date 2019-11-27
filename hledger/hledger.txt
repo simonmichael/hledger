@@ -2609,46 +2609,47 @@ COMMANDS
        test
        Run built-in unit tests.
 
-       This command runs the unit tests built in to hledger-lib  and  hledger,
-       printing test names and results on stdout.  If any test fails, the exit
-       code will be non-zero.
+       This command runs the unit tests built in to hledger  and  hledger-lib,
+       printing  the results on stdout.  If any test fails, the exit code will
+       be non-zero.
 
-       Test names include a group prefix.  If a (exact, case sensitive)  group
-       prefix,  or  a  full  test name is provided as the first argument, only
-       that group or test is run.
+       This is mainly used by hledger developers, but you can also use  it  to
+       sanity-check  the  installed  hledger executable on your platform.  All
+       tests are expected to pass - if you ever see a failure,  please  report
+       as a bug!
 
-       If a numeric second argument is provided, it will  set  the  randomness
-       seed,  for  repeatable  results  from tests using randomness (currently
-       none of them).
+       This command also accepts tasty test runner options, written after a --
+       (double hyphen).  Eg to run only the tests in Hledger.Data.Amount, with
+       ANSI colour codes disabled:
 
-       This is mainly used by developers, but it's nice to be able to  sanity-
-       check your installed hledger executable at any time.  All tests are ex-
-       pected to pass - if you ever see otherwise, something has  gone  wrong,
-       please report a bug!
+              $ hledger test -- -pData.Amount --color=never
+
+       For  help  on these, see https://github.com/feuerbach/tasty#options (--
+       --help currently doesn't show them).
 
 ADD-ON COMMANDS
-       hledger  also  searches  for external add-on commands, and will include
+       hledger also searches for external add-on commands,  and  will  include
        these in the commands list.  These are programs or scripts in your PATH
-       whose  name starts with hledger- and ends with a recognised file exten-
+       whose name starts with hledger- and ends with a recognised file  exten-
        sion (currently: no extension, bat,com,exe, hs,lhs,pl,py,rb,rkt,sh).
 
-       Add-ons can be invoked like any hledger command, but there  are  a  few
+       Add-ons  can  be  invoked like any hledger command, but there are a few
        things to be aware of.  Eg if the hledger-web add-on is installed,
 
-       o hledger  -h  web  shows  hledger's  help,  while hledger web -h shows
+       o hledger -h web shows hledger's  help,  while  hledger  web  -h  shows
          hledger-web's help.
 
-       o Flags specific to the add-on must have a preceding --  to  hide  them
-         from  hledger.   So hledger web --serve --port 9000 will be rejected;
+       o Flags  specific  to  the add-on must have a preceding -- to hide them
+         from hledger.  So hledger web --serve --port 9000 will  be  rejected;
          you must use hledger web -- --serve --port 9000.
 
        o You can always run add-ons directly if preferred: hledger-web --serve
          --port 9000.
 
-       Add-ons  are  a relatively easy way to add local features or experiment
-       with new ideas.  They can be  written  in  any  language,  but  haskell
-       scripts  have  a  big  advantage:  they  can  use the same hledger (and
-       haskell) library functions that built-in commands do, for  command-line
+       Add-ons are a relatively easy way to add local features  or  experiment
+       with  new  ideas.   They  can  be  written in any language, but haskell
+       scripts have a big advantage:  they  can  use  the  same  hledger  (and
+       haskell)  library functions that built-in commands do, for command-line
        options, journal parsing, reporting, etc.
 
        Here are some hledger add-ons available:
@@ -2663,7 +2664,7 @@ ADD-ON COMMANDS
        hledger-web provides a simple web interface.
 
    Third party add-ons
-       These  are  maintained  separately, and usually updated shortly after a
+       These are maintained separately, and usually updated  shortly  after  a
        hledger release.
 
    diff
@@ -2683,14 +2684,14 @@ ADD-ON COMMANDS
        count, but it's superseded now by the built-in roi command.
 
    Experimental add-ons
-       These are available in source form in the hledger  repo's  bin/  direc-
-       tory.   They  may be less mature and documented than built-in commands.
+       These  are  available  in source form in the hledger repo's bin/ direc-
+       tory.  They may be less mature and documented than  built-in  commands.
        Reading and tweaking these is a good way to start making your own!
 
    autosync
        hledger-autosync is a symbolic link for easily running ledger-autosync,
-       if  installed.   ledger-autosync  does  deduplicating conversion of OFX
-       data and some CSV formats, and can also download the data if your  bank
+       if installed.  ledger-autosync does  deduplicating  conversion  of  OFX
+       data  and some CSV formats, and can also download the data if your bank
        offers OFX Direct Connect.
 
    chart
@@ -2700,21 +2701,21 @@ ADD-ON COMMANDS
        hledger-check.hs checks more powerful account balance assertions.
 
 ENVIRONMENT
-       COLUMNS  The  screen  width used by the register command.  Default: the
+       COLUMNS The screen width used by the register  command.   Default:  the
        full terminal width.
 
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 LIMITATIONS
-       The  need  to  precede  addon command options with -- when invoked from
+       The need to precede addon command options with  --  when  invoked  from
        hledger is awkward.
 
        When input data contains non-ascii characters, a suitable system locale
@@ -2730,33 +2731,33 @@ LIMITATIONS
        In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
        add.
 
-       Not  all of Ledger's journal file syntax is supported.  See file format
+       Not all of Ledger's journal file syntax is supported.  See file  format
        differences.
 
-       On large data files, hledger  is  slower  and  uses  more  memory  than
+       On  large  data  files,  hledger  is  slower  and uses more memory than
        Ledger.
 
 TROUBLESHOOTING
-       Here  are some issues you might encounter when you run hledger (and re-
-       member you can also seek help from the IRC channel, mail  list  or  bug
+       Here are some issues you might encounter when you run hledger (and  re-
+       member  you  can  also seek help from the IRC channel, mail list or bug
        tracker):
 
        Successfully installed, but "No command 'hledger' found"
        stack and cabal install binaries into a special directory, which should
-       be added to your PATH environment variable.  Eg on  unix-like  systems,
+       be  added  to your PATH environment variable.  Eg on unix-like systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        I set a custom LEDGER_FILE, but hledger is still using the default file
-       LEDGER_FILE  should  be  a  real environment variable, not just a shell
-       variable.  The command env | grep LEDGER_FILE should show it.  You  may
+       LEDGER_FILE should be a real environment variable,  not  just  a  shell
+       variable.   The command env | grep LEDGER_FILE should show it.  You may
        need to use export.  Here's an explanation.
 
-       "Illegal  byte  sequence"  or  "Invalid or incomplete multibyte or wide
+       "Illegal byte sequence" or "Invalid or  incomplete  multibyte  or  wide
        character" errors
        In order to handle non-ascii letters and symbols (like ), hledger needs
        an appropriate locale.  This is usually configured system-wide; you can
        also configure it temporarily.  The locale may need to be one that sup-
-       ports  UTF-8,  if you built hledger with GHC < 7.2 (or possibly always,
+       ports UTF-8, if you built hledger with GHC < 7.2 (or  possibly  always,
        I'm not sure yet).
 
        Here's  an  example  of  setting  the  locale  temporarily,  on  ubuntu
@@ -2775,7 +2776,7 @@ TROUBLESHOOTING
               $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
               $ bash --login
 
-       If  we  preferred  to  use eg fr_FR.utf8, we might have to install that
+       If we preferred to use eg fr_FR.utf8, we might  have  to  install  that
        first:
 
               $ apt-get install language-pack-fr
@@ -2796,7 +2797,7 @@ TROUBLESHOOTING
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -2810,7 +2811,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
