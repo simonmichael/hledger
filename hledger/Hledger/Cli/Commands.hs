@@ -258,12 +258,16 @@ testmode = hledgerCommandMode
   []
   [generalflagsgroup3]
   []
-  ([], Just $ argsFlag "[TESTPATTERN] [SEED]")
+  ([], Just $ argsFlag "[-- TASTYOPTS]")
 
 -- | The test command.
 -- Unlike most hledger commands, this one does not read the user's journal.
 -- A 'Journal' argument remains in the type signature, but it should
 -- not be used (and would raise an error).
+--
+-- This command also accepts tasty test runner options,
+-- written after a -- (double hyphen).
+--
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   withArgs (words' $ query_ $ reportopts_ opts) $

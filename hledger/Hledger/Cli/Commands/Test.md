@@ -3,19 +3,20 @@ Run built-in unit tests.
 
 _FLAGS_
 
-This command runs the unit tests built in to hledger-lib and hledger,
-printing test names and results on stdout.  If any test fails, the
-exit code will be non-zero.
+This command runs the unit tests built in to hledger and hledger-lib,
+printing the results on stdout. If any test fails, the exit code will
+be non-zero.
 
-Test names include a group prefix.  If a (exact, case sensitive) group
-prefix, or a full test name is provided as the first argument, only
-that group or test is run.
+This is mainly used by hledger developers, but you can also use it to
+sanity-check the installed hledger executable on your platform. All
+tests are expected to pass - if you ever see a failure, please report
+as a bug!
 
-If a numeric second argument is provided, it will set the randomness
-seed, for repeatable results from tests using randomness (currently
-none of them).
-
-This is mainly used by developers, but it's nice to be able to
-sanity-check your installed hledger executable at any time.  All tests
-are expected to pass - if you ever see otherwise, something has gone
-wrong, please report a bug!
+This command also accepts tasty test runner options, written after a
+-- (double hyphen). Eg to run only the tests in Hledger.Data.Amount,
+with ANSI colour codes disabled:
+```shell
+$ hledger test -- -pData.Amount --color=never
+```
+For help on these, see https://github.com/feuerbach/tasty#options 
+(`-- --help` currently doesn't show them).
