@@ -11,16 +11,22 @@ import Control.Monad (when)
 import Data.Function (on)
 import Data.List (groupBy)
 import Data.Maybe
+import qualified Data.Text as T (pack)
 import Data.Time.Calendar
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
 
+defclosingacct = "equity:closing balances"
+defopeningacct = "equity:opening balances"
+
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["opening"] (setboolopt "opening") "show just opening transaction"
-  ,flagNone ["closing"] (setboolopt "closing") "show just closing transaction"
+  [flagNone ["closing"] (setboolopt "closing") "show just closing transaction"
+  ,flagNone ["opening"] (setboolopt "opening") "show just opening transaction"
+  ,flagReq  ["close-to"] (\s opts -> Right $ setopt "close-to" s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
+  ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-from" s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
   ]
   [generalflagsgroup1]
   hiddenflags
@@ -33,6 +39,8 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
         case (boolopt "opening" rawopts, boolopt "closing" rawopts) of
           (False, False) -> (True, True) -- by default show both opening and closing
           (o, c) -> (o, c)
+      closingacct = T.pack $ fromMaybe defclosingacct $ maybestringopt "close-to" rawopts
+      openingacct = T.pack $ fromMaybe defopeningacct $ maybestringopt "open-from" rawopts
       ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
       q = queryFromOpts today ropts_
       openingdate = fromMaybe today $ queryEndDate False q
@@ -61,7 +69,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                   -- The balancing posting to equity. Allow this one to have a multicommodity amount,
                   -- and don't try to assert its balance.
                   ++
-                  [posting{paccount = "equity:closing balances"
+                  [posting{paccount = closingacct
                           ,pamount  = negate balancingamt
                           }
                   ]
@@ -82,7 +90,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                   , (b, mcommoditysum) <- bs'
                   ]
                   ++
-                  [posting{paccount = "equity:opening balances"
+                  [posting{paccount = openingacct
                           ,pamount  = balancingamt
                           }
                   ]
