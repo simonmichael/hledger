@@ -1308,14 +1308,14 @@ match' p = do
 tests_Common = tests "Common" [
 
    tests "amountp" [
-    test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
-   ,test "ends with decimal mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
-   ,test "unit price"             $ expectParseEq amountp "$10 @ €0.5"
+    testCase "basic"                  $ assertParseEq amountp "$47.18"     (usd 47.18)
+   ,testCase "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+   ,testCase "unit price"             $ assertParseEq amountp "$10 @ €0.5"
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
          acommodity="$"
-        ,aquantity=10 -- need to test internal precision with roundTo ? I think not
+        ,aquantity=10 -- need to testCase internal precision with roundTo ? I think not
         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
         ,aprice=Just $ UnitPrice $
           amount{
@@ -1324,7 +1324,7 @@ tests_Common = tests "Common" [
             ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
             }
         }
-   ,test "total price"            $ expectParseEq amountp "$10 @@ €5"
+   ,testCase "total price"            $ assertParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
         ,aquantity=10
@@ -1339,32 +1339,31 @@ tests_Common = tests "Common" [
     ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
-   tests "numberp" [
-     test "." $ expectParseEq p "0"          (0, 0, Nothing, Nothing)
-    ,test "." $ expectParseEq p "1"          (1, 0, Nothing, Nothing)
-    ,test "." $ expectParseEq p "1.1"        (1.1, 1, Just '.', Nothing)
-    ,test "." $ expectParseEq p "1,000.1"    (1000.1, 1, Just '.', Just $ DigitGroups ',' [3])
-    ,test "." $ expectParseEq p "1.00.000,1" (100000.1, 1, Just ',', Just $ DigitGroups '.' [3,2])
-    ,test "." $ expectParseEq p "1,000,000"  (1000000, 0, Nothing, Just $ DigitGroups ',' [3,3])  -- could be simplified to [3]
-    ,test "." $ expectParseEq p "1."         (1, 0, Just '.', Nothing)
-    ,test "." $ expectParseEq p "1,"         (1, 0, Just ',', Nothing)
-    ,test "." $ expectParseEq p ".1"         (0.1, 1, Just '.', Nothing)
-    ,test "." $ expectParseEq p ",1"         (0.1, 1, Just ',', Nothing)
-    ,test "." $ expectParseError p "" ""
-    ,test "." $ expectParseError p "1,000.000,1" ""
-    ,test "." $ expectParseError p "1.000,000.1" ""
-    ,test "." $ expectParseError p "1,000.000.1" ""
-    ,test "." $ expectParseError p "1,,1" ""
-    ,test "." $ expectParseError p "1..1" ""
-    ,test "." $ expectParseError p ".1," ""
-    ,test "." $ expectParseError p ",1." ""
-    ]
+   testCase "numberp" $ do
+     assertParseEq p "0"          (0, 0, Nothing, Nothing)
+     assertParseEq p "1"          (1, 0, Nothing, Nothing)
+     assertParseEq p "1.1"        (1.1, 1, Just '.', Nothing)
+     assertParseEq p "1,000.1"    (1000.1, 1, Just '.', Just $ DigitGroups ',' [3])
+     assertParseEq p "1.00.000,1" (100000.1, 1, Just ',', Just $ DigitGroups '.' [3,2])
+     assertParseEq p "1,000,000"  (1000000, 0, Nothing, Just $ DigitGroups ',' [3,3])  -- could be simplified to [3]
+     assertParseEq p "1."         (1, 0, Just '.', Nothing)
+     assertParseEq p "1,"         (1, 0, Just ',', Nothing)
+     assertParseEq p ".1"         (0.1, 1, Just '.', Nothing)
+     assertParseEq p ",1"         (0.1, 1, Just ',', Nothing)
+     assertParseError p "" ""
+     assertParseError p "1,000.000,1" ""
+     assertParseError p "1.000,000.1" ""
+     assertParseError p "1,000.000.1" ""
+     assertParseError p "1,,1" ""
+     assertParseError p "1..1" ""
+     assertParseError p ".1," ""
+     assertParseError p ",1." ""
 
   ,tests "spaceandamountormissingp" [
-     test "space and amount" $ expectParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
-    ,test "empty string" $ expectParseEq spaceandamountormissingp "" missingmixedamt
-    -- ,_test "just space" $ expectParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
-    -- ,test "just amount" $ expectParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
+     testCase "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
+    ,testCase "empty string" $ assertParseEq spaceandamountormissingp "" missingmixedamt
+    -- ,_testCase "just space" $ assertParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
+    -- ,testCase "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
     ]
 
   ]

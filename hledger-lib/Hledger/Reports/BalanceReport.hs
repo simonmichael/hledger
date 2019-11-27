@@ -248,20 +248,21 @@ Right samplejournal2 =
     }
 
 tests_BalanceReport = tests "BalanceReport" [
+
   let
-    (opts,journal) `gives` r = testCaseSteps "sometest" $ \_step -> do
+    (opts,journal) `gives` r = do
       let (eitems, etotal) = r
           (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
           showw (acct,acct',indent,amt) = (acct, acct', indent, showMixedAmountDebug amt)
       (map showw eitems) @?= (map showw aitems)
       (showMixedAmountDebug etotal) @?= (showMixedAmountDebug atotal)
-    usd0 = usd 0
-  in  tests "balanceReport" [
+  in
+    tests "balanceReport" [
 
-     test "balanceReport with no args on null journal" $
+     testCase "no args, null journal" $
      (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
 
-    ,test "balanceReport with no args on sample journal" $
+    ,testCase "no args, sample journal" $
      (defreportopts, samplejournal) `gives`
       ([
         ("assets","assets",0, mamountp' "$0.00")
@@ -276,45 +277,46 @@ tests_BalanceReport = tests "BalanceReport" [
        ,("income:gifts","gifts",1, mamountp' "$-1.00")
        ,("income:salary","salary",1, mamountp' "$-1.00")
        ],
-       Mixed [usd0])
+       Mixed [usd 0])
 
-    ,test "balanceReport with --depth=N" $
+    ,testCase "with --depth=N" $
      (defreportopts{depth_=Just 1}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
        ,("income",      "income",      0, mamountp' "$-2.00")
        ],
-       Mixed [usd0])
+       Mixed [usd 0])
 
-    ,test "balanceReport with depth:N" $
+    ,testCase "with depth:N" $
      (defreportopts{query_="depth:1"}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
        ,("income",      "income",      0, mamountp' "$-2.00")
        ],
-       Mixed [usd0])
+       Mixed [usd 0])
 
-    ,tests "balanceReport with a date or secondary date span" [
+    ,testCase "with date:" $
      (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
       ([],
        Mixed [nullamt])
-     ,(defreportopts{query_="date2:'in 2009'"}, samplejournal2) `gives`
+
+    ,testCase "with date2:" $
+     (defreportopts{query_="date2:'in 2009'"}, samplejournal2) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
        ,("income:salary","income:salary",0,mamountp' "$-1.00")
        ],
-       Mixed [usd0])
-     ]
+       Mixed [usd 0])
 
-    ,test "balanceReport with desc:" $
+    ,testCase "with desc:" $
      (defreportopts{query_="desc:income"}, samplejournal) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
        ,("income:salary","income:salary",0, mamountp' "$-1.00")
        ],
-       Mixed [usd0])
+       Mixed [usd 0])
 
-    ,test "balanceReport with not:desc:" $
+    ,testCase "with not:desc:" $
      (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
       ([
         ("assets","assets",0, mamountp' "$-1.00")
@@ -325,18 +327,18 @@ tests_BalanceReport = tests "BalanceReport" [
        ,("expenses:supplies","supplies",1, mamountp' "$1.00")
        ,("income:gifts","income:gifts",0, mamountp' "$-1.00")
        ],
-       Mixed [usd0])
+       Mixed [usd 0])
 
-    ,test "balanceReport with period on a populated period" $
+    ,testCase "with period on a populated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}, samplejournal) `gives`
        (
         [
          ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
         ,("income:salary","income:salary",0, mamountp' "$-1.00")
         ],
-        Mixed [usd0])
+        Mixed [usd 0])
 
-     ,test "balanceReport with period on an unpopulated period" $
+     ,testCase "with period on an unpopulated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}, samplejournal) `gives`
        ([],Mixed [nullamt])
 
@@ -456,7 +458,7 @@ tests_BalanceReport = tests "BalanceReport" [
            ,"                   0"
            ]
   -}
-   ]
+     ]
 
  ]
 

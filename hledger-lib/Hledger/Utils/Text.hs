@@ -421,13 +421,12 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 
 
 tests_Text = tests "Text" [
-   tests "quoteIfSpaced" [
-     quoteIfSpaced "a'a" `is` "a'a"
-    ,quoteIfSpaced "a\"a" `is` "a\"a"
-    ,quoteIfSpaced "a a" `is` "\"a a\""
-    ,quoteIfSpaced "mimi's cafe" `is` "\"mimi's cafe\""
-    ,quoteIfSpaced "\"alex\" cafe" `is` "\"\\\"alex\\\" cafe\""
-    ,quoteIfSpaced "le'shan's cafe" `is` "\"le'shan's cafe\""
-    ,quoteIfSpaced "\"be'any's\" cafe" `is` "\"\\\"be'any's\\\" cafe\""
-    ]
+   testCase "quoteIfSpaced" $ do
+     quoteIfSpaced "a'a" @?= "a'a"
+     quoteIfSpaced "a\"a" @?= "a\"a"
+     quoteIfSpaced "a a" @?= "\"a a\""
+     quoteIfSpaced "mimi's cafe" @?= "\"mimi's cafe\""
+     quoteIfSpaced "\"alex\" cafe" @?= "\"\\\"alex\\\" cafe\""
+     quoteIfSpaced "le'shan's cafe" @?= "\"le'shan's cafe\""
+     quoteIfSpaced "\"be'any's\" cafe" @?= "\"\\\"be'any's\\\" cafe\""
   ]

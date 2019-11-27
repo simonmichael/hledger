@@ -987,26 +987,26 @@ parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith format
 
 tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [
-     test "empty file" $
-      parseCsvRules "unknown" "" `is` Right defrules
+     testCase"empty file" $
+      parseCsvRules "unknown" "" @?= Right defrules
     ]
   ,tests "rulesp" [
-     test "trailing comments" $
-      parseWithState' defrules rulesp "skip\n# \n#\n" `is` Right defrules{rdirectives = [("skip","")]}
+     testCase"trailing comments" $
+      parseWithState' defrules rulesp "skip\n# \n#\n" @?= Right defrules{rdirectives = [("skip","")]}
 
-    ,test "trailing blank lines" $
-      parseWithState' defrules rulesp "skip\n\n  \n" `is` (Right defrules{rdirectives = [("skip","")]})
+    ,testCase"trailing blank lines" $
+      parseWithState' defrules rulesp "skip\n\n  \n" @?= (Right defrules{rdirectives = [("skip","")]})
 
-    ,test "no final newline" $
-      parseWithState' defrules rulesp "skip" `is` (Right defrules{rdirectives=[("skip","")]})
+    ,testCase"no final newline" $
+      parseWithState' defrules rulesp "skip" @?= (Right defrules{rdirectives=[("skip","")]})
 
-    ,test "assignment with empty value" $
-      parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" `is`
+    ,testCase"assignment with empty value" $
+      parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
         (Right defrules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
   ]
   ,tests "conditionalblockp" [
-    test "space after conditional" $ -- #1120
-      parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" `is`
+    testCase"space after conditional" $ -- #1120
+      parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
         (Right ([["a"]],[("account2","b")]))
   ]
   ]

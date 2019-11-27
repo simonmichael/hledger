@@ -48,11 +48,6 @@ import Hledger.Data.Amount
 import Hledger.Data.Dates (parsedate)
 
 
-tests_Valuation = tests "Valuation" [
-   tests_priceLookup
-  ]
-
-
 ------------------------------------------------------------------------------
 -- Types
 
@@ -278,12 +273,11 @@ tests_priceLookup =
       ,p "2001/01/01" "A" 11 "B"
       ]
     pricesatdate = pricesAtDate ps1
-  in tests "priceLookup" [
-     priceLookup pricesatdate (d "1999/01/01") "A" Nothing    `is` Nothing
-    ,priceLookup pricesatdate (d "2000/01/01") "A" Nothing    `is` Just ("B",10)
-    ,priceLookup pricesatdate (d "2000/01/01") "B" (Just "A") `is` Just ("A",0.1)
-    ,priceLookup pricesatdate (d "2000/01/01") "A" (Just "E") `is` Just ("E",500)
-    ]
+  in testCase "priceLookup" $ do
+    priceLookup pricesatdate (d "1999/01/01") "A" Nothing    @?= Nothing
+    priceLookup pricesatdate (d "2000/01/01") "A" Nothing    @?= Just ("B",10)
+    priceLookup pricesatdate (d "2000/01/01") "B" (Just "A") @?= Just ("A",0.1)
+    priceLookup pricesatdate (d "2000/01/01") "A" (Just "E") @?= Just ("E",500)
 
 ------------------------------------------------------------------------------
 -- Building the price graph (network of commodity conversions) on a given day.
@@ -365,3 +359,7 @@ nodesEdgeLabel :: Ord b => Gr a b -> (Node, Node) -> Maybe b
 nodesEdgeLabel g (from,to) = headMay $ sort [l | (_,t,l) <- out g from, t==to]
 
 ------------------------------------------------------------------------------
+
+tests_Valuation = tests "Valuation" [
+   tests_priceLookup
+  ]

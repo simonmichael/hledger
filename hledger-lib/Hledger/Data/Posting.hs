@@ -392,40 +392,34 @@ commentAddTagNextLine cmt (t,v) =
 
 tests_Posting = tests "Posting" [
 
-  tests "accountNamePostingType" [
-    accountNamePostingType "a" `is` RegularPosting
-    ,accountNamePostingType "(a)" `is` VirtualPosting
-    ,accountNamePostingType "[a]" `is` BalancedVirtualPosting
-  ]
+  testCase "accountNamePostingType" $ do
+    accountNamePostingType "a" @?= RegularPosting
+    accountNamePostingType "(a)" @?= VirtualPosting
+    accountNamePostingType "[a]" @?= BalancedVirtualPosting
 
- ,tests "accountNameWithoutPostingType" [
-    accountNameWithoutPostingType "(a)" `is` "a"
-  ]
+ ,testCase "accountNameWithoutPostingType" $ do
+    accountNameWithoutPostingType "(a)" @?= "a"
 
- ,tests "accountNameWithPostingType" [
-    accountNameWithPostingType VirtualPosting "[a]" `is` "(a)"
-  ]
+ ,testCase "accountNameWithPostingType" $ do
+    accountNameWithPostingType VirtualPosting "[a]" @?= "(a)"
 
- ,tests "joinAccountNames" [
-    "a" `joinAccountNames` "b:c" `is` "a:b:c"
-    ,"a" `joinAccountNames` "(b:c)" `is` "(a:b:c)"
-    ,"[a]" `joinAccountNames` "(b:c)" `is` "[a:b:c]"
-    ,"" `joinAccountNames` "a" `is` "a"
-  ]
+ ,testCase "joinAccountNames" $ do
+    "a" `joinAccountNames` "b:c" @?= "a:b:c"
+    "a" `joinAccountNames` "(b:c)" @?= "(a:b:c)"
+    "[a]" `joinAccountNames` "(b:c)" @?= "[a:b:c]"
+    "" `joinAccountNames` "a" @?= "a"
 
- ,tests "concatAccountNames" [
-    concatAccountNames [] `is` ""
-    ,concatAccountNames ["a","(b)","[c:d]"] `is` "(a:b:c:d)"
-  ]
+ ,testCase "concatAccountNames" $ do
+    concatAccountNames [] @?= ""
+    concatAccountNames ["a","(b)","[c:d]"] @?= "(a:b:c:d)"
 
- ,tests "commentAddTag" [
-    commentAddTag "" ("a","") `is` "a: "
-   ,commentAddTag "[1/2]" ("a","") `is` "[1/2], a: "
-  ]
+ ,testCase "commentAddTag" $ do
+    commentAddTag "" ("a","") @?= "a: "
+    commentAddTag "[1/2]" ("a","") @?= "[1/2], a: "
 
- ,tests "commentAddTagNextLine" [
-    commentAddTagNextLine "" ("a","") `is` "\na: "
-   ,commentAddTagNextLine "[1/2]" ("a","") `is` "[1/2]\na: "
-  ]
+ ,testCase "commentAddTagNextLine" $ do
+    commentAddTagNextLine "" ("a","") @?= "\na: "
+    commentAddTagNextLine "[1/2]" ("a","") @?= "[1/2]\na: "
+
  ]
 

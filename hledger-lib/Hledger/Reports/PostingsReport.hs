@@ -270,22 +270,20 @@ negatePostingAmount p = p { pamount = negate $ pamount p }
 
 tests_PostingsReport = tests "PostingsReport" [
 
-   tests "postingsReport" $
-    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) `is` n
-    in [
-     -- with the query specified explicitly
-      (Any, nulljournal) `gives` 0
-     ,(Any, samplejournal) `gives` 13
-     -- register --depth just clips account names
-     ,(Depth 2, samplejournal) `gives` 13
-     ,(And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
-     ,(And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
-
-     -- with query and/or command-line options
-     ,(length $ snd $ postingsReport defreportopts Any samplejournal) `is` 13
-     ,(length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal) `is` 11
-     ,(length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal) `is` 20
-     ,(length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal) `is` 5
+   testCase "postingsReport" $ do
+    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) @?= n
+    -- with the query specified explicitly
+    (Any, nulljournal) `gives` 0
+    (Any, samplejournal) `gives` 13
+    -- register --depth just clips account names
+    (Depth 2, samplejournal) `gives` 13
+    (And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
+    (And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
+    -- with query and/or command-line options
+    (length $ snd $ postingsReport defreportopts Any samplejournal) @?= 13
+    (length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal) @?= 11
+    (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal) @?= 20
+    (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal) @?= 5
 
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
      -- [(Just (parsedate "2008-01-01","income"),assets:bank:checking             $1,$1)
@@ -432,13 +430,9 @@ tests_PostingsReport = tests "PostingsReport" [
          ]
 
     -}
-    ]
 
-  ,tests "summarisePostingsByInterval" [
-    tests "summarisePostingsByInterval" [
-      summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] `is` []
-      ]
-   ]
+  ,testCase "summarisePostingsByInterval" $
+    summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] @?= []
 
   -- ,tests_summarisePostingsInDateSpan = [
     --  "summarisePostingsInDateSpan" ~: do

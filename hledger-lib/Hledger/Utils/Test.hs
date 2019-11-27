@@ -10,29 +10,18 @@ module Hledger.Utils.Test (
   -- ,module SC
   ,tests
   ,test
-  ,is
-  ,expect
-  ,assertEq
-  ,expectEq
   ,assertLeft
-  ,expectLeft
   ,assertRight
-  ,expectRight
-  ,expectParse
-  ,expectParseEq
-  ,expectParseEqOn
-  ,expectParseError
-  ,expectParseE
-  ,expectParseEqE
-  ,expectParseErrorE
-  ,expectParseStateOn
+  ,assertParse
+  ,assertParseEq
+  ,assertParseEqOn
+  ,assertParseError
+  ,assertParseE
+  ,assertParseEqE
+  ,assertParseErrorE
+  ,assertParseStateOn
 )
 where
-
-import Test.Tasty
-import Test.Tasty.HUnit
--- import Test.Tasty.QuickCheck as QC
--- import Test.Tasty.SmallCheck as SC
 
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.State.Strict (StateT, evalStateT, execStateT)
@@ -42,97 +31,76 @@ import Control.Monad.State.Strict (StateT, evalStateT, execStateT)
 -- import Data.CallStack
 import Data.List (isInfixOf)
 import qualified Data.Text as T
+import Test.Tasty
+import Test.Tasty.HUnit
+-- import Test.Tasty.QuickCheck as QC
+-- import Test.Tasty.SmallCheck as SC
 import Text.Megaparsec
 import Text.Megaparsec.Custom
+  ( CustomErr,
+    FinalParseError,
+    attachSource,
+    customErrorBundlePretty,
+    finalErrorBundlePretty,
+  )
 
 import Hledger.Utils.Debug (pshow)
 -- import Hledger.Utils.UTF8IOCompat (error')
 
 -- * tasty helpers
 
--- | Name and group a list of tests.
+-- TODO: pretty-print values in failure messages
+
+
+-- | Name and group a list of tests. Shorter alias for Test.Tasty.HUnit.testGroup.
 tests :: String -> [TestTree] -> TestTree
 tests = testGroup
 
--- | Name the given test(s).
--- test :: T.Text -> E.Test a -> E.Test a
--- test :: String -> Assertion -> TestTree
-test :: String -> TestTree -> TestTree
-test _name = id
-
--- | Skip the given test(s), with the same type signature as "test".
--- If called in a monadic sequence of tests, also skips following tests. (?)
--- _test :: T.Text -> E.Test a -> E.Test a
--- _test _name = (E.skip >>)
-
--- | Short equality test constructor. Actual value on the left, expected on the right.
-is :: (Eq a, Show a, HasCallStack) => a -> a -> TestTree
-is actual expected = testCase "sometest" $ actual @?= expected
-
--- | Expect True.
-expect :: HasCallStack => Bool -> TestTree
-expect val = testCase "sometest" $ assertBool "was false" val
-
--- | Assert equality. Expected first, actual second.
-assertEq :: (HasCallStack, Eq a, Show a) => a -> a -> Assertion
-assertEq expected actual = assertEqual "was not equal" expected actual
-
--- | Test for equality. Expected first, actual second.
-expectEq :: (HasCallStack, Eq a, Show a) => a -> a -> TestTree
-expectEq a b = testCase "sometest" $ assertEq a b
+-- | Name an assertion or sequence of assertions. Shorter alias for Test.Tasty.HUnit.testCase.
+test :: String -> Assertion -> TestTree
+test = testCase
 
 -- | Assert any Left value.
 assertLeft :: (HasCallStack, Eq b, Show b) => Either a b -> Assertion
 assertLeft (Left _)  = return ()
 assertLeft (Right b) = assertFailure $ "expected Left, got (Right " ++ show b ++ ")"
 
--- | Test for any Left value.
-expectLeft :: (HasCallStack, Eq a, Show a) => Either e a -> TestTree
-expectLeft = testCase "sometest" . assertLeft
-
 -- | Assert any Right value.
 assertRight :: (HasCallStack, Eq a, Show a) => Either a b -> Assertion
 assertRight (Right _) = return ()
 assertRight (Left a)  = assertFailure $ "expected Right, got (Left " ++ show a ++ ")"
 
--- | Test for any Right value.
-expectRight :: (HasCallStack, Eq a, Show a) => Either a b -> TestTree
-expectRight = testCase "sometest" . assertRight
-
--- | Test that this stateful parser runnable in IO successfully parses
+-- | Assert that this stateful parser runnable in IO successfully parses
 -- all of the given input text, showing the parse error if it fails.
 -- Suitable for hledger's JournalParser parsers.
--- expectParse :: (Monoid st, Eq a, Show a, HasCallStack) =>
---   StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> E.Test ()
-expectParse :: (HasCallStack, Eq a, Show a, Monoid st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> TestTree
-expectParse parser input = testCaseSteps "sometest" $ \_step -> do
+assertParse :: (HasCallStack, Eq a, Show a, Monoid st) =>
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> Assertion
+assertParse parser input = do
   ep <- runParserT (evalStateT (parser <* eof) mempty) "" input
   either (assertFailure.(++"\n").("\nparse error at "++).customErrorBundlePretty)
          (const $ return ())
          ep
 
--- -- pretty-printing both if it fails.
--- | Like expectParse, but also test the parse result is an expected value.
-expectParseEq :: (HasCallStack, Eq a, Show a, Monoid st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> TestTree
-expectParseEq parser input expected = expectParseEqOn parser input id expected
+-- | Assert a parser produces an expected value.
+assertParseEq :: (HasCallStack, Eq a, Show a, Monoid st) =>
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> Assertion
+assertParseEq parser input expected = assertParseEqOn parser input id expected
 
--- | Like expectParseEq, but transform the parse result with the given function
+-- | Like assertParseEq, but transform the parse result with the given function
 -- before comparing it.
-expectParseEqOn :: (HasCallStack, Eq b, Show b, Monoid st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> TestTree
-expectParseEqOn parser input f expected = testCaseSteps "sometest" $ \_step -> do
+assertParseEqOn :: (HasCallStack, Eq b, Show b, Monoid st) =>
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> Assertion
+assertParseEqOn parser input f expected = do
   ep <- runParserT (evalStateT (parser <* eof) mempty) "" input
   either (assertFailure . (++"\n") . ("\nparse error at "++) . customErrorBundlePretty)
-         (assertEq expected . f)
+         (assertEqual "" expected . f)
          ep
 
--- | Test that this stateful parser runnable in IO fails to parse
+-- | Assert that this stateful parser runnable in IO fails to parse
 -- the given input text, with a parse error containing the given string.
-expectParseError :: (HasCallStack, Eq a, Show a, Monoid st) =>
-  StateT st (ParsecT CustomErr T.Text IO) a -> String -> String -> TestTree
-expectParseError parser input errstr = testCaseSteps "sometest" $ \_step -> do
+assertParseError :: (HasCallStack, Eq a, Show a, Monoid st) =>
+  StateT st (ParsecT CustomErr T.Text IO) a -> String -> String -> Assertion
+assertParseError parser input errstr = do
   ep <- runParserT (evalStateT parser mempty) "" (T.pack input)
   case ep of
     Right v -> assertFailure $ "\nparse succeeded unexpectedly, producing:\n" ++ pshow v ++ "\n"
@@ -142,13 +110,28 @@ expectParseError parser input errstr = testCaseSteps "sometest" $ \_step -> do
       then return ()
       else assertFailure $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
 
--- Suitable for hledger's ErroringJournalParser parsers.
-expectParseE
+-- | Run a stateful parser in IO like assertParse, then assert that the
+-- final state (the wrapped state, not megaparsec's internal state),
+-- transformed by the given function, matches the given expected value.
+assertParseStateOn :: (HasCallStack, Eq b, Show b, Monoid st) =>
+     StateT st (ParsecT CustomErr T.Text IO) a
+  -> T.Text
+  -> (st -> b)
+  -> b
+  -> Assertion
+assertParseStateOn parser input f expected = do
+  es <- runParserT (execStateT (parser <* eof) mempty) "" input
+  case es of
+    Left err -> assertFailure $ (++"\n") $ ("\nparse error at "++) $ customErrorBundlePretty err
+    Right s  -> assertEqual "" expected $ f s
+
+-- | These "E" variants of the above are suitable for hledger's ErroringJournalParser parsers.
+assertParseE
   :: (HasCallStack, Eq a, Show a, Monoid st)
   => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
   -> T.Text
-  -> TestTree
-expectParseE parser input = testCaseSteps "sometest" $ \_step -> do
+  -> Assertion
+assertParseE parser input = do
   let filepath = ""
   eep <- runExceptT $
            runParserT (evalStateT (parser <* eof) mempty) filepath input
@@ -161,22 +144,22 @@ expectParseE parser input = testCaseSteps "sometest" $ \_step -> do
              (const $ return ())
              ep
 
-expectParseEqE
+assertParseEqE
   :: (Monoid st, Eq a, Show a, HasCallStack)
   => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
   -> T.Text
   -> a
-  -> TestTree
-expectParseEqE parser input expected = expectParseEqOnE parser input id expected
+  -> Assertion
+assertParseEqE parser input expected = assertParseEqOnE parser input id expected
 
-expectParseEqOnE
+assertParseEqOnE
   :: (HasCallStack, Eq b, Show b, Monoid st)
   => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
   -> T.Text
   -> (a -> b)
   -> b
-  -> TestTree
-expectParseEqOnE parser input f expected = testCaseSteps "sometest" $ \_step -> do
+  -> Assertion
+assertParseEqOnE parser input f expected = do
   let filepath = ""
   eep <- runExceptT $ runParserT (evalStateT (parser <* eof) mempty) filepath input
   case eep of
@@ -185,16 +168,16 @@ expectParseEqOnE parser input f expected = testCaseSteps "sometest" $ \_step -> 
       in  assertFailure $ "parse error at " <> prettyErr
     Right ep ->
       either (assertFailure . (++"\n") . ("\nparse error at "++) . customErrorBundlePretty)
-             (assertEq expected . f)
+             (assertEqual "" expected . f)
              ep
 
-expectParseErrorE
+assertParseErrorE
   :: (Monoid st, Eq a, Show a, HasCallStack)
   => StateT st (ParsecT CustomErr T.Text (ExceptT FinalParseError IO)) a
   -> T.Text
   -> String
-  -> TestTree
-expectParseErrorE parser input errstr = testCaseSteps "sometest" $ \_step -> do
+  -> Assertion
+assertParseErrorE parser input errstr = do
   let filepath = ""
   eep <- runExceptT $ runParserT (evalStateT parser mempty) filepath input
   case eep of
@@ -210,19 +193,3 @@ expectParseErrorE parser input errstr = testCaseSteps "sometest" $ \_step -> do
         if errstr `isInfixOf` e'
         then return ()
         else assertFailure $ "\nparse error is not as expected:\n" ++ e' ++ "\n"
-
--- | Run a stateful parser in IO like expectParse, then compare the
--- final state (the wrapped state, not megaparsec's internal state),
--- transformed by the given function, with the given expected value.
-expectParseStateOn :: (HasCallStack, Eq b, Show b, Monoid st) =>
-     StateT st (ParsecT CustomErr T.Text IO) a
-  -> T.Text
-  -> (st -> b)
-  -> b
-  -> TestTree
-expectParseStateOn parser input f expected = testCaseSteps "sometest" $ \_step -> do
-  es <- runParserT (execStateT (parser <* eof) mempty) "" input
-  case es of
-    Left err -> assertFailure $ (++"\n") $ ("\nparse error at "++) $ customErrorBundlePretty err
-    Right s  -> assertEq expected $ f s
-

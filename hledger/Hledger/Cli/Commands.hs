@@ -267,7 +267,7 @@ testmode = hledgerCommandMode
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   withArgs (words' $ query_ $ reportopts_ opts) $
-    defaultMain $ tests "sometests" [  -- Test.Tasty.defaultMain from Hledger.Util.Tests
+    defaultMain $ tests "hledger" [  -- Test.Tasty.defaultMain from Hledger.Util.Tests
        tests_Hledger
       ,tests "Hledger.Cli" [
          tests_Cli_Utils
@@ -282,36 +282,43 @@ tests_Commands = tests "Commands" [
 
   -- some more tests easiest to define here:
   
-  ,test "apply account directive" $ let
-      ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
-      sameParse str1 str2 = testCaseSteps "sometest" $ \_step -> do
-          j1 <- readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)
-          j2 <- readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
-          j1 @?= j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
-      in sameParse
-         ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
-          "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" <>
-          "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" <>
-          "end apply account\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" <>
-          "end apply account\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
-         )
-         ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
-          "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" <>
-          "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" <>
-          "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" <>
-          "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
-         )
+  ,tests "apply account directive" [
+     testCase "works" $ do
+        let
+          ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
+          sameParse str1 str2 = do
+            j1 <- readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)
+            j2 <- readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
+            j1 @?= j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
+        sameParse
+           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
+            "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" <>
+            "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" <>
+            "end apply account\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" <>
+            "end apply account\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+           )
+           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
+            "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" <>
+            "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" <>
+            "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" <>
+            "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+           )
 
-  ,testCaseSteps "apply account directive should preserve \"virtual\" posting type" $ \_step -> do
-    j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
-    let p = head $ tpostings $ head $ jtxns j
-    paccount p @?= "test:from"
-    ptype p @?= VirtualPosting
+    ,testCase "preserves \"virtual\" posting type" $ do
+      j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
+      let p = head $ tpostings $ head $ jtxns j
+      paccount p @?= "test:from"
+      ptype p @?= VirtualPosting
+    ]
   
-  ,testCaseSteps "account aliases" $ \_step -> do
+  ,testCase "alias directive" $ do
     j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
     paccount p @?= "equity:draw:personal:food"
+
+  ,testCase "Y default year directive" $ do
+    j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return
+    tdate (head $ jtxns j) @?= fromGregorian 2009 1 1
 
   ,testCase "ledgerAccountNames" $
     (ledgerAccountNames ledger7)
@@ -330,10 +337,6 @@ tests_Commands = tests "Commands" [
   --     @?= "aa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa")
   --    (elideAccountName 20 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     @?= "aa:aa:aaaaaaaaaaaaaa")
-
-  ,testCaseSteps "default year" $ \_step -> do
-    j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return
-    tdate (head $ jtxns j) @?= fromGregorian 2009 1 1
 
   ,testCase "show dollars" $ showAmount (usd 1) @?= "$1.00"
 

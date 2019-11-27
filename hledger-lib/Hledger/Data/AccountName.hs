@@ -227,27 +227,23 @@ accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1
 --isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
 
 tests_AccountName = tests "AccountName" [
-  tests "accountNameTreeFrom" [
-     accountNameTreeFrom ["a"]       `is` Node "root" [Node "a" []]
-    ,accountNameTreeFrom ["a","b"]   `is` Node "root" [Node "a" [], Node "b" []]
-    ,accountNameTreeFrom ["a","a:b"] `is` Node "root" [Node "a" [Node "a:b" []]]
-    ,accountNameTreeFrom ["a:b:c"]   `is` Node "root" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
-  ]
-  ,tests "expandAccountNames" [
-    expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] `is`
+   testCase "accountNameTreeFrom" $ do
+    accountNameTreeFrom ["a"]       @?= Node "root" [Node "a" []]
+    accountNameTreeFrom ["a","b"]   @?= Node "root" [Node "a" [], Node "b" []]
+    accountNameTreeFrom ["a","a:b"] @?= Node "root" [Node "a" [Node "a:b" []]]
+    accountNameTreeFrom ["a:b:c"]   @?= Node "root" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
+  ,testCase "expandAccountNames" $ do
+    expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] @?=
      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-  ]
-  ,tests "isAccountNamePrefixOf" [
-     "assets" `isAccountNamePrefixOf` "assets" `is` False
-    ,"assets" `isAccountNamePrefixOf` "assets:bank" `is` True
-    ,"assets" `isAccountNamePrefixOf` "assets:bank:checking" `is` True
-    ,"my assets" `isAccountNamePrefixOf` "assets:bank" `is` False
-  ]
-  ,tests "isSubAccountNameOf" [
-     "assets" `isSubAccountNameOf` "assets" `is` False
-    ,"assets:bank" `isSubAccountNameOf` "assets" `is` True
-    ,"assets:bank:checking" `isSubAccountNameOf` "assets" `is` False
-    ,"assets:bank" `isSubAccountNameOf` "my assets" `is` False
-  ]
+  ,testCase "isAccountNamePrefixOf" $ do
+    "assets" `isAccountNamePrefixOf` "assets" @?= False
+    "assets" `isAccountNamePrefixOf` "assets:bank" @?= True
+    "assets" `isAccountNamePrefixOf` "assets:bank:checking" @?= True
+    "my assets" `isAccountNamePrefixOf` "assets:bank" @?= False
+  ,testCase "isSubAccountNameOf" $ do
+    "assets" `isSubAccountNameOf` "assets" @?= False
+    "assets:bank" `isSubAccountNameOf` "assets" @?= True
+    "assets:bank:checking" `isSubAccountNameOf` "assets" @?= False
+    "assets:bank" `isSubAccountNameOf` "my assets" @?= False
  ]
 

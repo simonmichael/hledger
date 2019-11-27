@@ -653,130 +653,122 @@ matchesPriceDirective _ _           = True
 -- tests
 
 tests_Query = tests "Query" [
-   tests "simplifyQuery" [
+   testCase "simplifyQuery" $ do
+     (simplifyQuery $ Or [Acct "a"])      @?= (Acct "a")
+     (simplifyQuery $ Or [Any,None])      @?= (Any)
+     (simplifyQuery $ And [Any,None])     @?= (None)
+     (simplifyQuery $ And [Any,Any])      @?= (Any)
+     (simplifyQuery $ And [Acct "b",Any]) @?= (Acct "b")
+     (simplifyQuery $ And [Any,And [Date (DateSpan Nothing Nothing)]]) @?= (Any)
+     (simplifyQuery $ And [Date (DateSpan Nothing (Just $ parsedate "2013-01-01")), Date (DateSpan (Just $ parsedate "2012-01-01") Nothing)])
+       @?= (Date (DateSpan (Just $ parsedate "2012-01-01") (Just $ parsedate "2013-01-01")))
+     (simplifyQuery $ And [Or [],Or [Desc "b b"]]) @?= (Desc "b b")
 
-     (simplifyQuery $ Or [Acct "a"])      `is` (Acct "a")
-    ,(simplifyQuery $ Or [Any,None])      `is` (Any)
-    ,(simplifyQuery $ And [Any,None])     `is` (None)
-    ,(simplifyQuery $ And [Any,Any])      `is` (Any)
-    ,(simplifyQuery $ And [Acct "b",Any]) `is` (Acct "b")
-    ,(simplifyQuery $ And [Any,And [Date (DateSpan Nothing Nothing)]]) `is` (Any)
-    ,(simplifyQuery $ And [Date (DateSpan Nothing (Just $ parsedate "2013-01-01")), Date (DateSpan (Just $ parsedate "2012-01-01") Nothing)])
-      `is` (Date (DateSpan (Just $ parsedate "2012-01-01") (Just $ parsedate "2013-01-01")))
-    ,(simplifyQuery $ And [Or [],Or [Desc "b b"]]) `is` (Desc "b b")
-   ]
+  ,testCase "parseQuery" $ do
+     (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") @?= (And [Acct "expenses:autres d\233penses", Desc "b"], [])
+     parseQuery nulldate "inacct:a desc:\"b b\""                     @?= (Desc "b b", [QueryOptInAcct "a"])
+     parseQuery nulldate "inacct:a inacct:b"                         @?= (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
+     parseQuery nulldate "desc:'x x'"                                @?= (Desc "x x", [])
+     parseQuery nulldate "'a a' 'b"                                  @?= (Or [Acct "a a",Acct "'b"], [])
+     parseQuery nulldate "\""                                        @?= (Acct "\"", [])
 
-  ,tests "parseQuery" [
-     (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") `is` (And [Acct "expenses:autres d\233penses", Desc "b"], [])
-    ,parseQuery nulldate "inacct:a desc:\"b b\""                     `is` (Desc "b b", [QueryOptInAcct "a"])
-    ,parseQuery nulldate "inacct:a inacct:b"                         `is` (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
-    ,parseQuery nulldate "desc:'x x'"                                `is` (Desc "x x", [])
-    ,parseQuery nulldate "'a a' 'b"                                  `is` (Or [Acct "a a",Acct "'b"], [])
-    ,parseQuery nulldate "\""                                        `is` (Acct "\"", [])
-   ]
+  ,testCase "words''" $ do
+      (words'' [] "a b")                   @?= ["a","b"]
+      (words'' [] "'a b'")                 @?= ["a b"]
+      (words'' [] "not:a b")               @?= ["not:a","b"]
+      (words'' [] "not:'a b'")             @?= ["not:a b"]
+      (words'' [] "'not:a b'")             @?= ["not:a b"]
+      (words'' ["desc:"] "not:desc:'a b'") @?= ["not:desc:a b"]
+      (words'' prefixes "\"acct:expenses:autres d\233penses\"") @?= ["acct:expenses:autres d\233penses"]
+      (words'' prefixes "\"")              @?= ["\""]
 
-  ,tests "words''" [
-      (words'' [] "a b")                   `is` ["a","b"]
-    , (words'' [] "'a b'")                 `is` ["a b"]
-    , (words'' [] "not:a b")               `is` ["not:a","b"]
-    , (words'' [] "not:'a b'")             `is` ["not:a b"]
-    , (words'' [] "'not:a b'")             `is` ["not:a b"]
-    , (words'' ["desc:"] "not:desc:'a b'") `is` ["not:desc:a b"]
-    , (words'' prefixes "\"acct:expenses:autres d\233penses\"") `is` ["acct:expenses:autres d\233penses"]
-    , (words'' prefixes "\"")              `is` ["\""]
-    ]
+  ,testCase "filterQuery" $ do
+     filterQuery queryIsDepth Any       @?= Any
+     filterQuery queryIsDepth (Depth 1) @?= Depth 1
+     filterQuery (not.queryIsDepth) (And [And [StatusQ Cleared,Depth 1]]) @?= StatusQ Cleared
+     filterQuery queryIsDepth (And [Date nulldatespan, Not (Or [Any, Depth 1])]) @?= Any   -- XXX unclear
 
-  ,tests "filterQuery" [
-     filterQuery queryIsDepth Any       `is` Any
-    ,filterQuery queryIsDepth (Depth 1) `is` Depth 1
-    ,filterQuery (not.queryIsDepth) (And [And [StatusQ Cleared,Depth 1]]) `is` StatusQ Cleared
-    ,filterQuery queryIsDepth (And [Date nulldatespan, Not (Or [Any, Depth 1])]) `is` Any   -- XXX unclear
-   ]
+  ,testCase "parseQueryTerm" $ do
+     parseQueryTerm nulldate "a"                                @?= (Left $ Acct "a")
+     parseQueryTerm nulldate "acct:expenses:autres d\233penses" @?= (Left $ Acct "expenses:autres d\233penses")
+     parseQueryTerm nulldate "not:desc:a b"                     @?= (Left $ Not $ Desc "a b")
+     parseQueryTerm nulldate "status:1"                         @?= (Left $ StatusQ Cleared)
+     parseQueryTerm nulldate "status:*"                         @?= (Left $ StatusQ Cleared)
+     parseQueryTerm nulldate "status:!"                         @?= (Left $ StatusQ Pending)
+     parseQueryTerm nulldate "status:0"                         @?= (Left $ StatusQ Unmarked)
+     parseQueryTerm nulldate "status:"                          @?= (Left $ StatusQ Unmarked)
+     parseQueryTerm nulldate "payee:x"                          @?= (Left $ Tag "payee" (Just "x"))
+     parseQueryTerm nulldate "note:x"                           @?= (Left $ Tag "note" (Just "x"))
+     parseQueryTerm nulldate "real:1"                           @?= (Left $ Real True)
+     parseQueryTerm nulldate "date:2008"                        @?= (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
+     parseQueryTerm nulldate "date:from 2012/5/17"              @?= (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
+     parseQueryTerm nulldate "date:20180101-201804"             @?= (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
+     parseQueryTerm nulldate "inacct:a"                         @?= (Right $ QueryOptInAcct "a")
+     parseQueryTerm nulldate "tag:a"                            @?= (Left $ Tag "a" Nothing)
+     parseQueryTerm nulldate "tag:a=some value"                 @?= (Left $ Tag "a" (Just "some value"))
+     parseQueryTerm nulldate "amt:<0"                           @?= (Left $ Amt Lt 0)
+     parseQueryTerm nulldate "amt:>10000.10"                    @?= (Left $ Amt AbsGt 10000.1)
 
-  ,tests "parseQueryTerm" [
-     parseQueryTerm nulldate "a"                                `is` (Left $ Acct "a")
-    ,parseQueryTerm nulldate "acct:expenses:autres d\233penses" `is` (Left $ Acct "expenses:autres d\233penses")
-    ,parseQueryTerm nulldate "not:desc:a b"                     `is` (Left $ Not $ Desc "a b")
-    ,parseQueryTerm nulldate "status:1"                         `is` (Left $ StatusQ Cleared)
-    ,parseQueryTerm nulldate "status:*"                         `is` (Left $ StatusQ Cleared)
-    ,parseQueryTerm nulldate "status:!"                         `is` (Left $ StatusQ Pending)
-    ,parseQueryTerm nulldate "status:0"                         `is` (Left $ StatusQ Unmarked)
-    ,parseQueryTerm nulldate "status:"                          `is` (Left $ StatusQ Unmarked)
-    ,parseQueryTerm nulldate "payee:x"                          `is` (Left $ Tag "payee" (Just "x"))
-    ,parseQueryTerm nulldate "note:x"                           `is` (Left $ Tag "note" (Just "x"))
-    ,parseQueryTerm nulldate "real:1"                           `is` (Left $ Real True)
-    ,parseQueryTerm nulldate "date:2008"                        `is` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
-    ,parseQueryTerm nulldate "date:from 2012/5/17"              `is` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
-    ,parseQueryTerm nulldate "date:20180101-201804"             `is` (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
-    ,parseQueryTerm nulldate "inacct:a"                         `is` (Right $ QueryOptInAcct "a")
-    ,parseQueryTerm nulldate "tag:a"                            `is` (Left $ Tag "a" Nothing)
-    ,parseQueryTerm nulldate "tag:a=some value"                 `is` (Left $ Tag "a" (Just "some value"))
-    ,parseQueryTerm nulldate "amt:<0"                           `is` (Left $ Amt Lt 0)
-    ,parseQueryTerm nulldate "amt:>10000.10"                    `is` (Left $ Amt AbsGt 10000.1)
-   ]
+  ,testCase "parseAmountQueryTerm" $ do
+     parseAmountQueryTerm "<0"        @?= (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
+     parseAmountQueryTerm ">0"        @?= (Gt,0) -- special case for convenience and consistency with above
+     parseAmountQueryTerm ">10000.10" @?= (AbsGt,10000.1)
+     parseAmountQueryTerm "=0.23"     @?= (AbsEq,0.23)
+     parseAmountQueryTerm "0.23"      @?= (AbsEq,0.23)
+     parseAmountQueryTerm "<=+0.23"   @?= (LtEq,0.23)
+     parseAmountQueryTerm "-0.23"     @?= (Eq,(-0.23))
+    -- ,_test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" @?= (AbsEq,0.23)  -- XXX
 
-  ,tests "parseAmountQueryTerm" [
-     parseAmountQueryTerm "<0"        `is` (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
-    ,parseAmountQueryTerm ">0"        `is` (Gt,0) -- special case for convenience and consistency with above
-    ,parseAmountQueryTerm ">10000.10" `is` (AbsGt,10000.1)
-    ,parseAmountQueryTerm "=0.23"     `is` (AbsEq,0.23)
-    ,parseAmountQueryTerm "0.23"      `is` (AbsEq,0.23)
-    ,parseAmountQueryTerm "<=+0.23"   `is` (LtEq,0.23)
-    ,parseAmountQueryTerm "-0.23"     `is` (Eq,(-0.23))
-    -- ,_test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" `is` (AbsEq,0.23)  -- XXX
-    ]
-
-  ,tests "matchesAccount" [
-     expect $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
-    ,expect $ not $ (Acct "^a:b") `matchesAccount` "c:a:b"
-    ,expect $ Depth 2 `matchesAccount` "a"
-    ,expect $ Depth 2 `matchesAccount` "a:b"
-    ,expect $ not $ Depth 2 `matchesAccount` "a:b:c"
-    ,expect $ Date nulldatespan `matchesAccount` "a"
-    ,expect $ Date2 nulldatespan `matchesAccount` "a"
-    ,expect $ not $ (Tag "a" Nothing) `matchesAccount` "a"
-  ]
+  ,testCase "matchesAccount" $ do
+     assertBool "" $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
+     assertBool "" $ not $ (Acct "^a:b") `matchesAccount` "c:a:b"
+     assertBool "" $ Depth 2 `matchesAccount` "a"
+     assertBool "" $ Depth 2 `matchesAccount` "a:b"
+     assertBool "" $ not $ Depth 2 `matchesAccount` "a:b:c"
+     assertBool "" $ Date nulldatespan `matchesAccount` "a"
+     assertBool "" $ Date2 nulldatespan `matchesAccount` "a"
+     assertBool "" $ not $ (Tag "a" Nothing) `matchesAccount` "a"
 
   ,tests "matchesPosting" [
-     test "positive match on cleared posting status"  $
-      expect $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    ,test "negative match on cleared posting status"  $
-      expect $ not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    ,test "positive match on unmarked posting status" $
-      expect $ (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    ,test "negative match on unmarked posting status" $
-      expect $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    ,test "positive match on true posting status acquired from transaction" $
-      expect $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
-    ,test "real:1 on real posting" $ expect $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
-    ,test "real:1 on virtual posting fails" $ expect $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    ,test "real:1 on balanced virtual posting fails" $ expect $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
-    ,test "a" $ expect $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
-    ,test "b" $ expect $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
-    ,test "c" $ expect $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
-    ,test "d" $ expect $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
-    ,test "e" $ expect $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    ,test "f" $ expect $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    ,test "g" $ expect $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
-    ,test "h" $ expect $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
-     -- a tag match on a posting also sees inherited tags
-    ,test "i" $ expect $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
-    ,test "j" $ expect $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
-    ,test "k" $ expect $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
-    ,test "l" $ expect $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
-    ,test "m" $ expect $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
+     testCase "positive match on cleared posting status"  $
+      assertBool "" $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+    ,testCase "negative match on cleared posting status"  $
+      assertBool "" $ not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+    ,testCase "positive match on unmarked posting status" $
+      assertBool "" $ (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+    ,testCase "negative match on unmarked posting status" $
+      assertBool "" $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+    ,testCase "positive match on true posting status acquired from transaction" $
+      assertBool "" $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
+    ,testCase "real:1 on real posting" $ assertBool "" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
+    ,testCase "real:1 on virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    ,testCase "real:1 on balanced virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+    ,testCase "acct:" $ assertBool "" $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
+    ,testCase "tag:" $ do
+      assertBool "" $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
+      assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
+      assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
+      assertBool "" $ (Tag "foo" (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+      assertBool "" $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+      assertBool "" $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
+      assertBool "" $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
+    ,testCase "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    ,testCase "cur:" $ do
+      assertBool "" $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
+      assertBool "" $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
+      assertBool "" $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
+      assertBool "" $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
   ]
 
-  ,tests "matchesTransaction" [
-     expect $ Any `matchesTransaction` nulltransaction
-    ,expect $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
-    ,expect $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
+  ,testCase "matchesTransaction" $ do
+     assertBool "" $ Any `matchesTransaction` nulltransaction
+     assertBool "" $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
+     assertBool "" $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
      -- see posting for more tag tests
-    ,expect $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
-    ,expect $ (Tag "payee" (Just "payee")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
-    ,expect $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
+     assertBool "" $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
+     assertBool "" $ (Tag "payee" (Just "payee")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
+     assertBool "" $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
      -- a tag match on a transaction also matches posting tags
-    ,expect $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
-  ]
+     assertBool "" $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
 
  ]

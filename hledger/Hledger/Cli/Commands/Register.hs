@@ -194,10 +194,12 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
 tests_Register = tests "Register" [
 
    tests "postingsReportAsText" [
-    testCaseSteps "unicode in register layout" $ \_step -> do
+    testCase "unicode in register layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let opts = defreportopts
-      (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j) @?= unlines
+      (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j)
+        @?=
+        unlines
         ["2009/01/01 медвежья шкура       расходы:покупки                100           100"
         ,"                                актив:наличные                -100             0"]
    ]

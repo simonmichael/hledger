@@ -1296,7 +1296,7 @@ Right samplejournal = journalBalanceTransactions False $
 
 tests_Journal = tests "Journal" [
 
-   test "journalDateSpan" $
+   testCase "journalDateSpan" $
     journalDateSpan True nulljournal{
       jtxns = [nulltransaction{tdate = parsedate "2014/02/01"
                               ,tpostings = [posting{pdate=Just (parsedate "2014/01/10")}]
@@ -1306,7 +1306,7 @@ tests_Journal = tests "Journal" [
                               }
               ]
       }
-    `is` (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
+    @?= (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
 
   ,tests "standard account type queries" $
     let
@@ -1315,16 +1315,16 @@ tests_Journal = tests "Journal" [
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
     in [
-       test "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-      ,test "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-      ,test "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
-      ,test "income"      $ expectEq (namesfrom journalRevenueAccountQuery)    ["income","income:gifts","income:salary"]
-      ,test "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
+       testCase "assets"      $ assertEqual "" (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+      ,testCase "liabilities" $ assertEqual "" (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
+      ,testCase "equity"      $ assertEqual "" (namesfrom journalEquityAccountQuery)    []
+      ,testCase "income"      $ assertEqual "" (namesfrom journalRevenueAccountQuery)    ["income","income:gifts","income:salary"]
+      ,testCase "expenses"    $ assertEqual "" (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
     ]
 
   ,tests "journalBalanceTransactions" [
 
-     test "balance-assignment" $ testCaseSteps "sometests" $ \_step -> do
+     testCase "balance-assignment" $ do
       let ej = journalBalanceTransactions True $
             --2019/01/01
             --  (a)            = 1
@@ -1335,8 +1335,8 @@ tests_Journal = tests "Journal" [
       let Right j = ej
       (jtxns j & head & tpostings & head & pamount) @?= Mixed [num 1]
 
-    ,test "same-day-1" $ do
-      expectRight $ journalBalanceTransactions True $
+    ,testCase "same-day-1" $ do
+      assertRight $ journalBalanceTransactions True $
             --2019/01/01
             --  (a)            = 1
             --2019/01/01
@@ -1346,8 +1346,8 @@ tests_Journal = tests "Journal" [
               ,transaction "2019/01/01" [ vpost' "a" (num 1)    (balassert (num 2)) ]
             ]}
 
-    ,test "same-day-2" $ do
-      expectRight $ journalBalanceTransactions True $
+    ,testCase "same-day-2" $ do
+      assertRight $ journalBalanceTransactions True $
             --2019/01/01
             --    (a)                  2 = 2
             --2019/01/01
@@ -1364,8 +1364,8 @@ tests_Journal = tests "Journal" [
               ,transaction "2019/01/01" [ post' "a" (num 0)     (balassert (num 1)) ]
             ]}
 
-    ,test "out-of-order" $ do
-      expectRight $ journalBalanceTransactions True $
+    ,testCase "out-of-order" $ do
+      assertRight $ journalBalanceTransactions True $
             --2019/1/2
             --  (a)    1 = 2
             --2019/1/1
@@ -1386,24 +1386,24 @@ tests_Journal = tests "Journal" [
       -- 2019/09/26
       --     (a)             1000,000
       --
-      test "1091a" $ do
+      testCase "1091a" $ do
         commodityStylesFromAmounts [
            nullamt{aquantity=1000, astyle=AmountStyle L False 3 (Just ',') Nothing}
           ,nullamt{aquantity=1000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
           ]
-         `is`
+         @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
             ("", AmountStyle L False 3 (Just '.') (Just (DigitGroups ',' [3])))
           ])
         -- same journal, entries in reverse order
-      ,test "1091b" $ do
+      ,testCase "1091b" $ do
         commodityStylesFromAmounts [
            nullamt{aquantity=1000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
           ,nullamt{aquantity=1000, astyle=AmountStyle L False 3 (Just ',') Nothing}
           ]
-         `is`
+         @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [

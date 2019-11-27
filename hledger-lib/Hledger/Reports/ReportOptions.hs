@@ -539,23 +539,19 @@ reportPeriodOrJournalLastDay ropts@ReportOpts{..} j =
 -- tests
 
 tests_ReportOptions = tests "ReportOptions" [
-   tests "queryFromOpts" [
-      (queryFromOpts nulldate defreportopts) `is` Any
-     ,(queryFromOpts nulldate defreportopts{query_="a"}) `is` (Acct "a")
-     ,(queryFromOpts nulldate defreportopts{query_="desc:'a a'"}) `is` (Desc "a a")
-     ,(queryFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01"),query_="date:'to 2013'" })
-      `is` (Date $ mkdatespan "2012/01/01" "2013/01/01")
-     ,(queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"}) `is` (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
-     ,(queryFromOpts nulldate defreportopts{query_="'a a' 'b"}) `is` (Or [Acct "a a", Acct "'b"])
-     ]
+   testCase "queryFromOpts" $ do
+       queryFromOpts nulldate defreportopts @?= Any
+       queryFromOpts nulldate defreportopts{query_="a"} @?= Acct "a"
+       queryFromOpts nulldate defreportopts{query_="desc:'a a'"} @?= Desc "a a"
+       queryFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01"),query_="date:'to 2013'" }
+         @?= (Date $ mkdatespan "2012/01/01" "2013/01/01")
+       queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"} @?= (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
+       queryFromOpts nulldate defreportopts{query_="'a a' 'b"} @?= Or [Acct "a a", Acct "'b"]
 
-  ,tests "queryOptsFromOpts" [
-      (queryOptsFromOpts nulldate defreportopts) `is` []
-     ,(queryOptsFromOpts nulldate defreportopts{query_="a"}) `is` []
-     ,(queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01")
-                                                                   ,query_="date:'to 2013'"
-                                                                   })
-      `is` []
-    ]
+  ,testCase "queryOptsFromOpts" $ do
+      queryOptsFromOpts nulldate defreportopts @?= []
+      queryOptsFromOpts nulldate defreportopts{query_="a"} @?= []
+      queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01")
+                                              ,query_="date:'to 2013'"} @?= []
  ]
 
