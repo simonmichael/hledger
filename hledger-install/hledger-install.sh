@@ -91,7 +91,6 @@ EXTRA_DEPS="\
 #
 # cassava-megaparsec-2.0.0 \
 # config-ini-0.2.4.0 \
-# easytest-0.2.1 \
 # megaparsec-7.0.4 \
 
 # the oldest version of stack that might work:

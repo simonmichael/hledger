@@ -10,7 +10,6 @@ packages:
 
 # TODO: some of these were for hledger-api and can be removed
 extra-deps:
-- easytest-0.2.1
 # Many newer versions to allow using the latest base-compat with all ghc versions.
 # This is just the first workable install plan I found.
 - aeson-1.3.1.1
