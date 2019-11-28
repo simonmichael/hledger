@@ -186,11 +186,10 @@ tests:
     - condition: (impl(ghc < 8.2))
       buildable: false
 
-
-  # easytests:
-  #   buildable: true
-  #   source-dirs: test
-  #   main: easytests.hs
-  #   other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-  #   dependencies:
-  #   - hledger-lib
+  unittests:
+    buildable: true
+    source-dirs: test
+    main: unittests.hs
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
+    dependencies:
+    - hledger-lib

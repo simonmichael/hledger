@@ -419,8 +419,8 @@ pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 doctest: $(call def-help,doctest, run the doctests in hledger-lib module/function docs )
 	@($(STACKTEST) hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
 
-easytest: $(call def-help,easytest, run the easytest unit tests in hledger-lib )
-	@($(STACKTEST) hledger-lib:test:easytests && echo $@ PASSED) || (echo $@ FAILED; false)
+unittest: $(call def-help,unittest, run the unit tests in hledger-lib )
+	@($(STACKTEST) hledger-lib:test:unittests && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # assumes an up to date hledger executable is built.
 # I think we don't do it automatically to minimise unnecessary rebuilding.
