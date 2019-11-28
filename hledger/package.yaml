@@ -211,8 +211,6 @@ tests:
     cpp-options: -DVERSION="1.15.99"
     dependencies:
     - hledger
-    - test-framework
-    - test-framework-hunit
 
 benchmarks:
   bench:

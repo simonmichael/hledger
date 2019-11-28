@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2caa4c7971b9bba457b966879bd8d4037f556ae2691e2c214a7c38a2140a18d9
+-- hash: c34a49b389c7aa9792791b41a60416463ac2aff3589693aaf40f68e8b7b9cf75
 
 name:           hledger
 version:        1.15.99
@@ -280,8 +280,6 @@ test-suite test
     , tabular >=0.2
     , tasty >=1.2.3
     , temporary
-    , test-framework
-    , test-framework-hunit
     , text >=0.11
     , time >=1.5
     , timeit
