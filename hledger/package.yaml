@@ -131,6 +131,7 @@ dependencies:
 - split >=0.1
 - math-functions >=0.2.0.0
 - tabular >=0.2
+- tasty >=1.2.3
 - temporary
 - text >=0.11
 - time >=1.5

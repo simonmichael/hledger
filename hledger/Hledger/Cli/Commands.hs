@@ -57,6 +57,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import System.Environment (withArgs)
 import System.Console.CmdArgs.Explicit as C
+import Test.Tasty (defaultMain)
 
 import Hledger 
 import Hledger.Cli.CliOptions
@@ -271,7 +272,7 @@ testmode = hledgerCommandMode
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   withArgs (words' $ query_ $ reportopts_ opts) $
-    defaultMain $ tests "hledger" [  -- Test.Tasty.defaultMain from Hledger.Util.Tests
+    Test.Tasty.defaultMain $ tests "hledger" [
        tests_Hledger
       ,tests "Hledger.Cli" [
          tests_Cli_Utils

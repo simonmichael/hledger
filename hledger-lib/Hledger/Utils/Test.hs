@@ -31,7 +31,7 @@ import Control.Monad.State.Strict (StateT, evalStateT, execStateT)
 -- import Data.CallStack
 import Data.List (isInfixOf)
 import qualified Data.Text as T
-import Test.Tasty
+import Test.Tasty hiding (defaultMain)
 import Test.Tasty.HUnit
 -- import Test.Tasty.QuickCheck as QC
 -- import Test.Tasty.SmallCheck as SC
