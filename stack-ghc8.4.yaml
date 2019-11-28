@@ -12,6 +12,10 @@ extra-deps:
 - cassava-megaparsec-2.0.0
 - config-ini-0.2.3.0
 - megaparsec-7.0.2
+- tasty-1.2.3
+- tasty-hunit-0.10.0.2
+- ansi-terminal-0.10.2
+- ansi-wl-pprint-0.6.9
 
 nix:
   pure: false

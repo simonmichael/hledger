@@ -29,6 +29,11 @@ extra-deps:
 # hledger-ui
 # newer fsnotify has a different api and may be more robust
 - fsnotify-0.3.0.1
+- tasty-1.2.3
+- tasty-hunit-0.10.0.2
+- ansi-terminal-0.10.2
+- wcwidth-0.0.2
+- ansi-wl-pprint-0.6.9
 
 nix:
   pure: false

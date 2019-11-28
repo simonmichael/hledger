@@ -57,3 +57,9 @@ extra-deps:
 - Glob-0.9.2
 - brick-0.23
 - word-wrap-0.4.1
+- tasty-1.2.3
+- tasty-hunit-0.10.0.2
+- ansi-terminal-0.10.2
+- wcwidth-0.0.2
+- ansi-wl-pprint-0.6.9
+- optparse-applicative-0.15.1.0
