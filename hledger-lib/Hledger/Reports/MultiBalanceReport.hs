@@ -427,10 +427,10 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
       ((\(_, b, _) -> showMixedAmountDebug b) atotal) @?= (showMixedAmountDebug etotal) -- we only check the sum of the totals
   in
    tests "multiBalanceReport" [
-      testCase "null journal"  $
+      test "null journal"  $
       (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
 
-     ,testCase "with -H on a populated period"  $
+     ,test "with -H on a populated period"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (
         [
@@ -439,7 +439,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
         ],
         Mixed [nullamt])
 
-     -- ,testCase "a valid history on an empty period"  $
+     -- ,test "a valid history on an empty period"  $
      --  (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`
      --   (
      --    [
@@ -448,7 +448,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
      --    ],
      --    Mixed [usd0])
 
-     -- ,testCase "a valid history on an empty period (more complex)"  $
+     -- ,test "a valid history on an empty period (more complex)"  $
      --  (defreportopts{period_= PeriodBetween (fromGregorian 2009 1 1) (fromGregorian 2009 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
      --   (
      --    [

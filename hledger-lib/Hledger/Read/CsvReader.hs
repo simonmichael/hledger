@@ -987,25 +987,25 @@ parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith format
 
 tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [
-     testCase"empty file" $
+     test"empty file" $
       parseCsvRules "unknown" "" @?= Right defrules
     ]
   ,tests "rulesp" [
-     testCase"trailing comments" $
+     test"trailing comments" $
       parseWithState' defrules rulesp "skip\n# \n#\n" @?= Right defrules{rdirectives = [("skip","")]}
 
-    ,testCase"trailing blank lines" $
+    ,test"trailing blank lines" $
       parseWithState' defrules rulesp "skip\n\n  \n" @?= (Right defrules{rdirectives = [("skip","")]})
 
-    ,testCase"no final newline" $
+    ,test"no final newline" $
       parseWithState' defrules rulesp "skip" @?= (Right defrules{rdirectives=[("skip","")]})
 
-    ,testCase"assignment with empty value" $
+    ,test"assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
         (Right defrules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
   ]
   ,tests "conditionalblockp" [
-    testCase"space after conditional" $ -- #1120
+    test"space after conditional" $ -- #1120
       parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
         (Right ([["a"]],[("account2","b")]))
   ]

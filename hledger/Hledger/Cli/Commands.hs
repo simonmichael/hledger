@@ -288,7 +288,7 @@ tests_Commands = tests "Commands" [
   -- some more tests easiest to define here:
   
   ,tests "apply account directive" [
-     testCase "works" $ do
+     test "works" $ do
         let
           ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
           sameParse str1 str2 = do
@@ -309,23 +309,23 @@ tests_Commands = tests "Commands" [
             "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
            )
 
-    ,testCase "preserves \"virtual\" posting type" $ do
+    ,test "preserves \"virtual\" posting type" $ do
       j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
       let p = head $ tpostings $ head $ jtxns j
       paccount p @?= "test:from"
       ptype p @?= VirtualPosting
     ]
   
-  ,testCase "alias directive" $ do
+  ,test "alias directive" $ do
     j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
     paccount p @?= "equity:draw:personal:food"
 
-  ,testCase "Y default year directive" $ do
+  ,test "Y default year directive" $ do
     j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return
     tdate (head $ jtxns j) @?= fromGregorian 2009 1 1
 
-  ,testCase "ledgerAccountNames" $
+  ,test "ledgerAccountNames" $
     (ledgerAccountNames ledger7)
     @?=
     ["assets","assets:cash","assets:checking","assets:saving","equity","equity:opening balances",
@@ -343,9 +343,9 @@ tests_Commands = tests "Commands" [
   --    (elideAccountName 20 "aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa:aaaaaaaaaaaaaaaaaaaa"
   --     @?= "aa:aa:aaaaaaaaaaaaaa")
 
-  ,testCase "show dollars" $ showAmount (usd 1) @?= "$1.00"
+  ,test "show dollars" $ showAmount (usd 1) @?= "$1.00"
 
-  ,testCase "show hours" $ showAmount (hrs 1) @?= "1.00h"
+  ,test "show hours" $ showAmount (hrs 1) @?= "1.00h"
 
  ]
 

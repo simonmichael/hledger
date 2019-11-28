@@ -653,7 +653,7 @@ matchesPriceDirective _ _           = True
 -- tests
 
 tests_Query = tests "Query" [
-   testCase "simplifyQuery" $ do
+   test "simplifyQuery" $ do
      (simplifyQuery $ Or [Acct "a"])      @?= (Acct "a")
      (simplifyQuery $ Or [Any,None])      @?= (Any)
      (simplifyQuery $ And [Any,None])     @?= (None)
@@ -664,7 +664,7 @@ tests_Query = tests "Query" [
        @?= (Date (DateSpan (Just $ parsedate "2012-01-01") (Just $ parsedate "2013-01-01")))
      (simplifyQuery $ And [Or [],Or [Desc "b b"]]) @?= (Desc "b b")
 
-  ,testCase "parseQuery" $ do
+  ,test "parseQuery" $ do
      (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") @?= (And [Acct "expenses:autres d\233penses", Desc "b"], [])
      parseQuery nulldate "inacct:a desc:\"b b\""                     @?= (Desc "b b", [QueryOptInAcct "a"])
      parseQuery nulldate "inacct:a inacct:b"                         @?= (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
@@ -672,7 +672,7 @@ tests_Query = tests "Query" [
      parseQuery nulldate "'a a' 'b"                                  @?= (Or [Acct "a a",Acct "'b"], [])
      parseQuery nulldate "\""                                        @?= (Acct "\"", [])
 
-  ,testCase "words''" $ do
+  ,test "words''" $ do
       (words'' [] "a b")                   @?= ["a","b"]
       (words'' [] "'a b'")                 @?= ["a b"]
       (words'' [] "not:a b")               @?= ["not:a","b"]
@@ -682,13 +682,13 @@ tests_Query = tests "Query" [
       (words'' prefixes "\"acct:expenses:autres d\233penses\"") @?= ["acct:expenses:autres d\233penses"]
       (words'' prefixes "\"")              @?= ["\""]
 
-  ,testCase "filterQuery" $ do
+  ,test "filterQuery" $ do
      filterQuery queryIsDepth Any       @?= Any
      filterQuery queryIsDepth (Depth 1) @?= Depth 1
      filterQuery (not.queryIsDepth) (And [And [StatusQ Cleared,Depth 1]]) @?= StatusQ Cleared
      filterQuery queryIsDepth (And [Date nulldatespan, Not (Or [Any, Depth 1])]) @?= Any   -- XXX unclear
 
-  ,testCase "parseQueryTerm" $ do
+  ,test "parseQueryTerm" $ do
      parseQueryTerm nulldate "a"                                @?= (Left $ Acct "a")
      parseQueryTerm nulldate "acct:expenses:autres d\233penses" @?= (Left $ Acct "expenses:autres d\233penses")
      parseQueryTerm nulldate "not:desc:a b"                     @?= (Left $ Not $ Desc "a b")
@@ -709,7 +709,7 @@ tests_Query = tests "Query" [
      parseQueryTerm nulldate "amt:<0"                           @?= (Left $ Amt Lt 0)
      parseQueryTerm nulldate "amt:>10000.10"                    @?= (Left $ Amt AbsGt 10000.1)
 
-  ,testCase "parseAmountQueryTerm" $ do
+  ,test "parseAmountQueryTerm" $ do
      parseAmountQueryTerm "<0"        @?= (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
      parseAmountQueryTerm ">0"        @?= (Gt,0) -- special case for convenience and consistency with above
      parseAmountQueryTerm ">10000.10" @?= (AbsGt,10000.1)
@@ -717,9 +717,9 @@ tests_Query = tests "Query" [
      parseAmountQueryTerm "0.23"      @?= (AbsEq,0.23)
      parseAmountQueryTerm "<=+0.23"   @?= (LtEq,0.23)
      parseAmountQueryTerm "-0.23"     @?= (Eq,(-0.23))
-    -- ,_test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" @?= (AbsEq,0.23)  -- XXX
+    -- ,test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" @?= (AbsEq,0.23)  -- XXX
 
-  ,testCase "matchesAccount" $ do
+  ,test "matchesAccount" $ do
      assertBool "" $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
      assertBool "" $ not $ (Acct "^a:b") `matchesAccount` "c:a:b"
      assertBool "" $ Depth 2 `matchesAccount` "a"
@@ -730,21 +730,21 @@ tests_Query = tests "Query" [
      assertBool "" $ not $ (Tag "a" Nothing) `matchesAccount` "a"
 
   ,tests "matchesPosting" [
-     testCase "positive match on cleared posting status"  $
+     test "positive match on cleared posting status"  $
       assertBool "" $ (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    ,testCase "negative match on cleared posting status"  $
+    ,test "negative match on cleared posting status"  $
       assertBool "" $ not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    ,testCase "positive match on unmarked posting status" $
+    ,test "positive match on unmarked posting status" $
       assertBool "" $ (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    ,testCase "negative match on unmarked posting status" $
+    ,test "negative match on unmarked posting status" $
       assertBool "" $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
-    ,testCase "positive match on true posting status acquired from transaction" $
+    ,test "positive match on true posting status acquired from transaction" $
       assertBool "" $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
-    ,testCase "real:1 on real posting" $ assertBool "" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
-    ,testCase "real:1 on virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    ,testCase "real:1 on balanced virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
-    ,testCase "acct:" $ assertBool "" $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
-    ,testCase "tag:" $ do
+    ,test "real:1 on real posting" $ assertBool "" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
+    ,test "real:1 on virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
+    ,test "real:1 on balanced virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+    ,test "acct:" $ assertBool "" $ (Acct "'b") `matchesPosting` nullposting{paccount="'b"}
+    ,test "tag:" $ do
       assertBool "" $ not $ (Tag "a" (Just "r$")) `matchesPosting` nullposting
       assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","")]}
       assertBool "" $ (Tag "foo" Nothing) `matchesPosting` nullposting{ptags=[("foo","baz")]}
@@ -752,15 +752,15 @@ tests_Query = tests "Query" [
       assertBool "" $ not $ (Tag "foo" (Just "a$")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
       assertBool "" $ not $ (Tag " foo " (Just "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
       assertBool "" $ not $ (Tag "foo foo" (Just " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
-    ,testCase "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
-    ,testCase "cur:" $ do
+    ,test "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag "txntag" Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    ,test "cur:" $ do
       assertBool "" $ not $ (Sym "$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- becomes "^$$", ie testing for null symbol
       assertBool "" $ (Sym "\\$") `matchesPosting` nullposting{pamount=Mixed [usd 1]} -- have to quote $ for regexpr
       assertBool "" $ (Sym "shekels") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
       assertBool "" $ not $ (Sym "shek") `matchesPosting` nullposting{pamount=Mixed [nullamt{acommodity="shekels"}]}
   ]
 
-  ,testCase "matchesTransaction" $ do
+  ,test "matchesTransaction" $ do
      assertBool "" $ Any `matchesTransaction` nulltransaction
      assertBool "" $ not $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x"}
      assertBool "" $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}

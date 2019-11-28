@@ -259,10 +259,10 @@ tests_BalanceReport = tests "BalanceReport" [
   in
     tests "balanceReport" [
 
-     testCase "no args, null journal" $
+     test "no args, null journal" $
      (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
 
-    ,testCase "no args, sample journal" $
+    ,test "no args, sample journal" $
      (defreportopts, samplejournal) `gives`
       ([
         ("assets","assets",0, mamountp' "$0.00")
@@ -279,7 +279,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        Mixed [usd 0])
 
-    ,testCase "with --depth=N" $
+    ,test "with --depth=N" $
      (defreportopts{depth_=Just 1}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
@@ -287,7 +287,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        Mixed [usd 0])
 
-    ,testCase "with depth:N" $
+    ,test "with depth:N" $
      (defreportopts{query_="depth:1"}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
@@ -295,12 +295,12 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        Mixed [usd 0])
 
-    ,testCase "with date:" $
+    ,test "with date:" $
      (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
       ([],
        Mixed [nullamt])
 
-    ,testCase "with date2:" $
+    ,test "with date2:" $
      (defreportopts{query_="date2:'in 2009'"}, samplejournal2) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
@@ -308,7 +308,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        Mixed [usd 0])
 
-    ,testCase "with desc:" $
+    ,test "with desc:" $
      (defreportopts{query_="desc:income"}, samplejournal) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
@@ -316,7 +316,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        Mixed [usd 0])
 
-    ,testCase "with not:desc:" $
+    ,test "with not:desc:" $
      (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
       ([
         ("assets","assets",0, mamountp' "$-1.00")
@@ -329,7 +329,7 @@ tests_BalanceReport = tests "BalanceReport" [
        ],
        Mixed [usd 0])
 
-    ,testCase "with period on a populated period" $
+    ,test "with period on a populated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}, samplejournal) `gives`
        (
         [
@@ -338,7 +338,7 @@ tests_BalanceReport = tests "BalanceReport" [
         ],
         Mixed [usd 0])
 
-     ,testCase "with period on an unpopulated period" $
+     ,test "with period on an unpopulated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}, samplejournal) `gives`
        ([],Mixed [nullamt])
 

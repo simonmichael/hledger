@@ -1308,14 +1308,14 @@ match' p = do
 tests_Common = tests "Common" [
 
    tests "amountp" [
-    testCase "basic"                  $ assertParseEq amountp "$47.18"     (usd 47.18)
-   ,testCase "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` 0)
-   ,testCase "unit price"             $ assertParseEq amountp "$10 @ €0.5"
+    test "basic"                  $ assertParseEq amountp "$47.18"     (usd 47.18)
+   ,test "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+   ,test "unit price"             $ assertParseEq amountp "$10 @ €0.5"
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
          acommodity="$"
-        ,aquantity=10 -- need to testCase internal precision with roundTo ? I think not
+        ,aquantity=10 -- need to test internal precision with roundTo ? I think not
         ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
         ,aprice=Just $ UnitPrice $
           amount{
@@ -1324,7 +1324,7 @@ tests_Common = tests "Common" [
             ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
             }
         }
-   ,testCase "total price"            $ assertParseEq amountp "$10 @@ €5"
+   ,test "total price"            $ assertParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
         ,aquantity=10
@@ -1339,7 +1339,7 @@ tests_Common = tests "Common" [
     ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
-   testCase "numberp" $ do
+   test "numberp" $ do
      assertParseEq p "0"          (0, 0, Nothing, Nothing)
      assertParseEq p "1"          (1, 0, Nothing, Nothing)
      assertParseEq p "1.1"        (1.1, 1, Just '.', Nothing)
@@ -1360,10 +1360,10 @@ tests_Common = tests "Common" [
      assertParseError p ",1." ""
 
   ,tests "spaceandamountormissingp" [
-     testCase "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
-    ,testCase "empty string" $ assertParseEq spaceandamountormissingp "" missingmixedamt
-    -- ,_testCase "just space" $ assertParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
-    -- ,testCase "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
+     test "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
+    ,test "empty string" $ assertParseEq spaceandamountormissingp "" missingmixedamt
+    -- ,test "just space" $ assertParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
+    -- ,test "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
     ]
 
   ]

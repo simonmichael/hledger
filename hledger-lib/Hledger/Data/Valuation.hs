@@ -273,7 +273,7 @@ tests_priceLookup =
       ,p "2001/01/01" "A" 11 "B"
       ]
     pricesatdate = pricesAtDate ps1
-  in testCase "priceLookup" $ do
+  in test "priceLookup" $ do
     priceLookup pricesatdate (d "1999/01/01") "A" Nothing    @?= Nothing
     priceLookup pricesatdate (d "2000/01/01") "A" Nothing    @?= Just ("B",10)
     priceLookup pricesatdate (d "2000/01/01") "B" (Just "A") @?= Just ("A",0.1)

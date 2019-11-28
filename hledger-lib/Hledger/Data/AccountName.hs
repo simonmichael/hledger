@@ -227,20 +227,20 @@ accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1
 --isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
 
 tests_AccountName = tests "AccountName" [
-   testCase "accountNameTreeFrom" $ do
+   test "accountNameTreeFrom" $ do
     accountNameTreeFrom ["a"]       @?= Node "root" [Node "a" []]
     accountNameTreeFrom ["a","b"]   @?= Node "root" [Node "a" [], Node "b" []]
     accountNameTreeFrom ["a","a:b"] @?= Node "root" [Node "a" [Node "a:b" []]]
     accountNameTreeFrom ["a:b:c"]   @?= Node "root" [Node "a" [Node "a:b" [Node "a:b:c" []]]]
-  ,testCase "expandAccountNames" $ do
+  ,test "expandAccountNames" $ do
     expandAccountNames ["assets:cash","assets:checking","expenses:vacation"] @?=
      ["assets","assets:cash","assets:checking","expenses","expenses:vacation"]
-  ,testCase "isAccountNamePrefixOf" $ do
+  ,test "isAccountNamePrefixOf" $ do
     "assets" `isAccountNamePrefixOf` "assets" @?= False
     "assets" `isAccountNamePrefixOf` "assets:bank" @?= True
     "assets" `isAccountNamePrefixOf` "assets:bank:checking" @?= True
     "my assets" `isAccountNamePrefixOf` "assets:bank" @?= False
-  ,testCase "isSubAccountNameOf" $ do
+  ,test "isSubAccountNameOf" $ do
     "assets" `isSubAccountNameOf` "assets" @?= False
     "assets:bank" `isSubAccountNameOf` "assets" @?= True
     "assets:bank:checking" `isSubAccountNameOf` "assets" @?= False

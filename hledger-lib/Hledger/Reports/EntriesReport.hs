@@ -49,8 +49,8 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
-     testCase "not acct" $ (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal) @?= 1
-    ,testCase "date" $ (length $ entriesReport defreportopts (Date $ mkdatespan "2008/06/01" "2008/07/01") samplejournal) @?= 3
+     test "not acct" $ (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal) @?= 1
+    ,test "date" $ (length $ entriesReport defreportopts (Date $ mkdatespan "2008/06/01" "2008/07/01") samplejournal) @?= 3
   ]
  ]
 

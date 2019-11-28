@@ -145,7 +145,7 @@ formatStringTester fs value expected = actual @?= expected
 
 tests_StringFormat = tests "StringFormat" [
 
-   testCase "formatStringHelper" $ do
+   test "formatStringHelper" $ do
       formatStringTester (FormatLiteral " ")                                     ""            " "
       formatStringTester (FormatField False Nothing Nothing DescriptionField)    "description" "description"
       formatStringTester (FormatField False (Just 20) Nothing DescriptionField)  "description" "         description"
@@ -155,7 +155,7 @@ tests_StringFormat = tests "StringFormat" [
       formatStringTester (FormatField True (Just 20) (Just 20) DescriptionField) "description" "description         "
       formatStringTester (FormatField True Nothing (Just 3) DescriptionField)    "description" "des"
 
-  ,let s `gives` expected = testCase s $ parseStringFormat s @?= Right expected
+  ,let s `gives` expected = test s $ parseStringFormat s @?= Right expected
    in tests "parseStringFormat" [
       ""                           `gives` (defaultStringFormatStyle [])
     , "D"                          `gives` (defaultStringFormatStyle [FormatLiteral "D"])
@@ -174,6 +174,6 @@ tests_StringFormat = tests "StringFormat" [
                                                                      ,FormatLiteral " "
                                                                      ,FormatField False Nothing (Just 10) TotalField
                                                                      ])
-    , testCase "newline not parsed" $ assertLeft $ parseStringFormat "\n"
+    , test "newline not parsed" $ assertLeft $ parseStringFormat "\n"
     ]
  ]

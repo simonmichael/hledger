@@ -110,7 +110,7 @@ ledgerCommodities = M.keys . jinferredcommodities . ljournal
 
 tests_Ledger =
   tests "Ledger" [
-    testCase "ledgerFromJournal" $ do
+    test "ledgerFromJournal" $ do
         length (ledgerPostings $ ledgerFromJournal Any nulljournal) @?= 0
         length (ledgerPostings $ ledgerFromJournal Any samplejournal) @?= 13
         length (ledgerPostings $ ledgerFromJournal (Depth 2) samplejournal) @?= 7

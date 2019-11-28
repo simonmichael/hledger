@@ -698,10 +698,16 @@ About testing in the hledger project, as of 201809.
     tests. These are mostly in hledger-lib, with a few in hledger.
 
     Our unit tests use the
-    [tasty](http://hackage.haskell.org/package/tasty) test runner
+    [tasty](http://hackage.haskell.org/package/tasty) test runner,
+    [tasty-hunit](http://hackage.haskell.org/package/tasty-hunit) HUnit-style tests,
     and some helpers from
-    [Hledger.Utils.Test](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils/Test.hs).
-    We would like them to be:
+    [Hledger.Utils.Test](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils/Test.hs),
+    such as:
+    
+    - `tests` and `test` aliases for `testGroup` and `testCase`
+    - `assert*` helpers for constructing various kinds of assertions
+
+    We would like our unit tests to be:
 
     -   easy to read (clear, concise)
     -   easy to write (low boilerplate, low cognitive load)

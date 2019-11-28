@@ -539,7 +539,7 @@ reportPeriodOrJournalLastDay ropts@ReportOpts{..} j =
 -- tests
 
 tests_ReportOptions = tests "ReportOptions" [
-   testCase "queryFromOpts" $ do
+   test "queryFromOpts" $ do
        queryFromOpts nulldate defreportopts @?= Any
        queryFromOpts nulldate defreportopts{query_="a"} @?= Acct "a"
        queryFromOpts nulldate defreportopts{query_="desc:'a a'"} @?= Desc "a a"
@@ -548,7 +548,7 @@ tests_ReportOptions = tests "ReportOptions" [
        queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"} @?= (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
        queryFromOpts nulldate defreportopts{query_="'a a' 'b"} @?= Or [Acct "a a", Acct "'b"]
 
-  ,testCase "queryOptsFromOpts" $ do
+  ,test "queryOptsFromOpts" $ do
       queryOptsFromOpts nulldate defreportopts @?= []
       queryOptsFromOpts nulldate defreportopts{query_="a"} @?= []
       queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01")

@@ -270,7 +270,7 @@ negatePostingAmount p = p { pamount = negate $ pamount p }
 
 tests_PostingsReport = tests "PostingsReport" [
 
-   testCase "postingsReport" $ do
+   test "postingsReport" $ do
     let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) @?= n
     -- with the query specified explicitly
     (Any, nulljournal) `gives` 0
@@ -431,7 +431,7 @@ tests_PostingsReport = tests "PostingsReport" [
 
     -}
 
-  ,testCase "summarisePostingsByInterval" $
+  ,test "summarisePostingsByInterval" $
     summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] @?= []
 
   -- ,tests_summarisePostingsInDateSpan = [

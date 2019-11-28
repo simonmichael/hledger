@@ -421,7 +421,7 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 
 
 tests_Text = tests "Text" [
-   testCase "quoteIfSpaced" $ do
+   test "quoteIfSpaced" $ do
      quoteIfSpaced "a'a" @?= "a'a"
      quoteIfSpaced "a\"a" @?= "a\"a"
      quoteIfSpaced "a a" @?= "\"a a\""
