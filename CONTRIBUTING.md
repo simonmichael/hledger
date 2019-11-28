@@ -697,11 +697,11 @@ About testing in the hledger project, as of 201809.
     means a function. So, many of our functions have one or more unit
     tests. These are mostly in hledger-lib, with a few in hledger.
 
-    Our unit tests use
-    [easytest](http://hackage.haskell.org/package/easytest) and some
-    helpers from
-    [Hledger.Utils.Test](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils/Test.hs),
-    and follow a consistent pattern which aims to keep them
+    Our unit tests use the
+    [tasty](http://hackage.haskell.org/package/tasty) test runner
+    and some helpers from
+    [Hledger.Utils.Test](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils/Test.hs).
+    We would like them to be:
 
     -   easy to read (clear, concise)
     -   easy to write (low boilerplate, low cognitive load)
@@ -711,7 +711,7 @@ About testing in the hledger project, as of 201809.
     -   and scalable (usable for all devs, easy to run and select,
         suitable for small/large modules/packages).
 
-    Here\'s the pattern (let us know if you see a better way):
+    Here\'s the current pattern (let us know if you see a better way):
 
     ``` haskell
     module Foo (
@@ -730,30 +730,21 @@ About testing in the hledger project, as of 201809.
 
     tests_Foo = tests "Foo" [ -- define tests at the end of each module
 
+       -- a group of several named tests for functionA
        tests "functionA" [
-         test "a basic test"           $ expect SOMEBOOL
-        ,test "a pretty equality test" $ SOMEEXPR `is` EXPECTEDVALUE
-        ,test "a pretty parsing test"  $ expectParseEq PARSER INPUT EXPECTEDRESULT
-        ,test "a sequential test" $ do
-          A `is` B
-          io $ doSomeIO
-          C `is` D
-        ,_test "an ignored test"  $ ...  -- will be skipped
+         test "a basic test"           $ assertBool "" SOMEBOOL
+        ,test "a pretty equality test" $ SOMEEXPR @?= EXPECTEDVALUE
+        ,test "a pretty parsing test"  $ assertParseEq PARSER INPUT EXPECTEDRESULT
+        ,test "a multiple assertions test" $ do
+          A @?= B
+          doSomeIO
+          C @?= D
         ]
 
-      ,tests "functionB" [
-         it "does blah"  $ ...  -- alternate spelling for test/_test
-        ,_it "will bleh" $ ...
-        ]
-
-      ,tests "functionC" [
-         expect BOOL            -- unnamed tests (harder to identify/select)
-        ,EXPR `is` VALUE
-        ]
-
-      ,_tests "functionD" [     -- will be skipped
-        ...
-        ]
+       -- a single test containing multiple unnamed assertions for functionB
+      ,test "functionB" $ do
+         assertBool "" BOOL
+         EXPR @?= VALUE
 
       ,tests_Foo            -- aggregate submodule tests
       ,tests_Bar
@@ -770,7 +761,7 @@ About testing in the hledger project, as of 201809.
     command (`hledger test`).
 
     Here\'s the quick way to run unit tests while developing:\
-    `make ghcid-test` or `make ghcid-test-Hledger.Some.Module`.
+    `make ghcid-test` or `make ghcid-test-Some.Module`.
 
 2.  Doc tests
 
