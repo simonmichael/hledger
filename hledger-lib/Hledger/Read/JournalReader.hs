@@ -73,6 +73,9 @@ import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (get,modify',put)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.Map.Strict as M
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Monoid ((<>))
+#endif
 import Data.Text (Text)
 import Data.String
 import Data.List

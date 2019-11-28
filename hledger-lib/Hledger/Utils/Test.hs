@@ -25,9 +25,9 @@ where
 
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.State.Strict (StateT, evalStateT, execStateT)
--- #if !(MIN_VERSION_base(4,11,0))
--- import Data.Monoid ((<>))
--- #endif
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Monoid ((<>))
+#endif
 -- import Data.CallStack
 import Data.List (isInfixOf)
 import qualified Data.Text as T
