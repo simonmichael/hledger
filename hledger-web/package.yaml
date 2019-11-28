@@ -61,6 +61,10 @@ flags:
 ghc-options:
 - -Wall
 - -fwarn-tabs
+- -Wcompat
+- -Wincomplete-uni-patterns
+- -Wincomplete-record-updates
+- -Wredundant-constraints
 
 when:
 - condition: (flag(dev)) || (flag(library-only))
@@ -70,12 +74,6 @@ when:
 # 'ghc-options: -O0' is not needed. Use the --disable-optimization configure flag.
 - condition: flag(dev)
   ghc-options: -O0
-- condition: impl(ghc >=8)
-  ghc-options:
-  - -Wcompat
-  - -Wincomplete-uni-patterns
-  - -Wincomplete-record-updates
-  - -Wredundant-constraints
 
 library:
   source-dirs: .
@@ -136,17 +134,10 @@ library:
   - wai-cors
   - warp
   - yaml
-  # on mac Sierra or greater, ghc 7 will fail to build yesod; don't try
-  when:
-    - condition: os(darwin) && impl(ghc < 8.0)
-      then:
-        buildable: false
-      else:
-        dependencies:
-        - yesod        >=1.4 && < 1.7
-        - yesod-core   >=1.4 && < 1.7
-        - yesod-form   >=1.4 && < 1.7
-        - yesod-static >=1.4 && < 1.7
+  - yesod        >=1.4 && < 1.7
+  - yesod-core   >=1.4 && < 1.7
+  - yesod-form   >=1.4 && < 1.7
+  - yesod-static >=1.4 && < 1.7
 
 executables:
   hledger-web:
@@ -161,8 +152,6 @@ executables:
       buildable: false
     - condition: flag(threaded)
       ghc-options: -threaded
-    - condition: os(darwin) && impl(ghc < 8.0)
-      buildable: false
 
 # 2018/06 not building and not testing anything useful, disabled for now
 # tests:

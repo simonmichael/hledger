@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d44cc48a2f9dc087afe19992824ce4e95ddf82662880f81963eb6389a5ef4a83
+-- hash: cf0e219278c663cf046db556525050092c383724e703e70b43ed174a0cc146b9
 
 name:           hledger-lib
 version:        1.15.99
@@ -144,9 +144,6 @@ library
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
-  if (!impl(ghc >= 8.0))
-    build-depends:
-        semigroups ==0.18.*
   default-language: Haskell2010
 
 test-suite doctests
@@ -200,9 +197,6 @@ test-suite doctests
     , uglymemo
     , utf8-string >=0.3.5
   buildable: True
-  if (!impl(ghc >= 8.0))
-    build-depends:
-        semigroups ==0.18.*
   if (impl(ghc < 8.2))
     buildable: False
   default-language: Haskell2010
@@ -258,7 +252,4 @@ test-suite unittests
     , uglymemo
     , utf8-string >=0.3.5
   buildable: True
-  if (!impl(ghc >= 8.0))
-    build-depends:
-        semigroups ==0.18.*
   default-language: Haskell2010

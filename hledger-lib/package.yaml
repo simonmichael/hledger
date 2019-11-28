@@ -85,11 +85,6 @@ dependencies:
 #- system-filepath
 #- trifecta >=0.91
 
-when:
-- condition: (!impl(ghc >= 8.0))
-  dependencies:
-  - semigroups == 0.18.*
-
 ghc-options:
 - -Wall
 - -fno-warn-unused-do-bind
