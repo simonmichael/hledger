@@ -1,7 +1,111 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 445adbe9
+# caf8cdf0
+
+- prices: style price amounts; always show full precision
+
+- CSV reading improvements (#1095)
+
+  - can now generate a variable number of postings, from zero to nine (#627, #1095)
+  - can now generate postings with balance assignments (#1000)
+  - skip can be used in conditional blocks; so can the new "end" rule (skips all remaining) (#1076)
+  - both the amount-in/amount-out fields having a value is now ok, if one of them is zero (#570)
+  - line feeds/carriage returns in quoted CSV values are now converted to spaces (#416, #841)
+  - field assignments can now unset a field (eg a posting can be
+    suppressed by assigning no value to its account)
+  - fixed: empty field assignment consumes next line (#1001)
+  - fixed: interpolation of field names containing punctuation (underscore, hyphens etc)
+  - fixed: show two spaces between description and comment, not three
+  - clarified that hledger field assignments can reference csv fields only, not other hledger fields (#500)
+  - new docs, tests
+
+  Migration notes:
+
+  - When `print`ing from CSV, there is now one less space between
+    transaction descriptions and comments. If you are comparing old
+    and new reports, diff -w (--ignore-all-space) will ignore this
+    change.
+
+  - CSV rules now give you more freedom to generate any journal
+    entries you want, including malformed or unbalanced ones. 
+    The csv reader now checks the journal after conversion,
+    so it will report any problems with the generated entries.
+
+  - Balance assertions generated from CSV are not checked, currently.
+    This is appropriate when you are downloading partial CSV data to
+    be merged into your main journal. If you do need to check balance
+    assertions right away, you can pipe through hledger again:
+
+        $ hledger -f a.csv print | hledger -f- print
+
+- csv: finalise and check journals generated from CSV (#1000)
+  Invalid transactions generated from CSV will now be rejected.
+  I updated some csv tests to avoid this, except for 21, which
+  probably needs more cleanup.
+
+- csv: allow csv records with varying lengths, padding with empties
+  Sometimes trailing empty fields are omitted entirely (including the
+  commas) in CSV records. (I see this in exported Google spreadsheets.)
+  Now we don't raise an error in this case, instead we automatically pad
+  any "short" records with empty fields. Not yet well tested.
+
+- csv: fix parsing of whitespace on line after an if block (fix #1120)
+
+- csv: csv reader gets balance-type directive (Dmitry Astapov)
+
+- csv: support generation of (un)balanced virtual postings in csv reader (Dmitry Astapov)
+
+- support GHC 8.8, add stack-ghc8.8.yaml (#1090)
+
+- close: add --close-to, --open-from to choose account names
+
+- tests: port all unit tests to tasty, second pass (#1090)
+  easytest is not actively maintained and requires an old version of
+  hedgehog which does not support base-compat 0.11 & ghc 8.8.
+  Hledger.Util.Tests helpers have been cleaned up.
+  Some groups of unnamed tests have
+  been collapsed into a single named test containing a sequence of
+  assertions. The test command counts named tests, not assertions, so
+  the reported unit test count has dropped from 199 to 188.
+
+- Add exit status code to check-dates (Amitai Burstein)
+
+- budget: bal --budget no longer errors when there is neither budget nor
+  transactions in the report period (Dmitry Astapov)
+
+- budget: improved debug output for budget report (show budget txns) (Dmitry Astapov)
+
+- lib: fix generation of periodic transactions with days/months/... repeat (Dmitry Astapov)
+
+- cli: anonymize transaction code also (Mykola Orliuk)
+
+- cli: anonymize declared accounts also (Mykola Orliuk)
+  Fixes simonmichael/hledger#901
+
+- cli: Add -% to compound balance commands (Michael Kainer)
+  This commit introduces the commandline argument -%/--percent to show
+  percentages of the column's total instead of the absolute amounts for
+  each account in reports. The signs of the values are preserved.
+
+  This option is especially useful for the balance and incomestatement
+  commands.
+
+  If there are multiple commodities involved in a report hledger bails
+  with an error message. This can be avoided by using --cost. Also note
+  that if one uses -% with the balance command the chances are high that
+  all numbers are 0. This is due to the fact that by default balance sums
+  up to zero. If one wants to use -% in a meaningful way with balance one
+  has to add a query.
+
+  In order to keep the implementation as simple as possible --tree has no
+  influence over how the percentages are calculated, i.e., the percentages
+  always represent the fraction of the columns total. If one wants to know
+  the percentages relative to a parent account, one has to use a query to
+  narrow down the accounts.
+
+- lib: roi does not fail on empty input data (+test) (Dmitry Astapov)
+
 
 - prices: style price amounts; always show full precision
 

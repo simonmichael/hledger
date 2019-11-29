@@ -1,7 +1,11 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# e83cbacb
+# ebedae01
+
+- support GHC 8.8, add stack-ghc8.8.yaml (#1090)
+
+- ui: B and V keys toggle display of cost, value
 
 - drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
   in JournalReader.hs. If you still need this, feel free to work on

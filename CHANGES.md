@@ -3,7 +3,7 @@ For package-specific changes, see the package changelogs.
 
 - site: matrix.hledger.org now redirects to a more readable/useful url
 
-# 96453177
+# 3c226f86
 
 - Fix internal Markdown links (Brian Wignall)
 

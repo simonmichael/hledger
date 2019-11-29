@@ -1,7 +1,10 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 6b5026c2
+# ac5652b7
+
+- support GHC 8.8, add stack-ghc8.8.yaml (#1090)
+  hledger-web needs an unreleased version of json.
 
 - Weeks in date picker start from Mondays (fix for #1109) (Timofey ZAKREVSKIY)
 
