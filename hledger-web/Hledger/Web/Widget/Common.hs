@@ -18,7 +18,9 @@ module Hledger.Web.Widget.Common
 
 import Data.Default (def)
 import Data.Foldable (find, for_)
+#if !(MIN_VERSION_base(4,13,0))
 import Data.Semigroup ((<>))
+#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.FilePath (takeFileName)

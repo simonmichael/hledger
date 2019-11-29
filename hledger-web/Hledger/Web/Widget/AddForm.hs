@@ -15,7 +15,9 @@ import Control.Monad.State.Strict (evalStateT)
 import Data.Bifunctor (first)
 import Data.List (dropWhileEnd, nub, sort, unfoldr)
 import Data.Maybe (isJust)
+#if !(MIN_VERSION_base(4,13,0))
 import Data.Semigroup ((<>))
+#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
