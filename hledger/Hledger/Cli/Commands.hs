@@ -16,7 +16,7 @@ module Hledger.Cli.Commands (
   ,builtinCommands
   ,builtinCommandNames
   ,printCommandsList
-  ,tests_Commands
+  ,tests_Hledger_Cli
   ,module Hledger.Cli.Commands.Accounts
   ,module Hledger.Cli.Commands.Activity
   ,module Hledger.Cli.Commands.Add
@@ -261,32 +261,35 @@ testmode = hledgerCommandMode
   []
   ([], Just $ argsFlag "[-- TASTYOPTS]")
 
--- | The test command.
+-- | The test command, which runs the hledger and hledger-lib
+-- packages' unit tests. This command also accepts tasty test runner
+-- options, written after a -- (double hyphen).
+--
 -- Unlike most hledger commands, this one does not read the user's journal.
 -- A 'Journal' argument remains in the type signature, but it should
 -- not be used (and would raise an error).
---
--- This command also accepts tasty test runner options,
--- written after a -- (double hyphen).
 --
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do 
   withArgs (words' $ query_ $ reportopts_ opts) $
     Test.Tasty.defaultMain $ tests "hledger" [
        tests_Hledger
-      ,tests "Hledger.Cli" [
-         tests_Cli_Utils
-        ,tests_Commands
-        ]
+      ,tests_Hledger_Cli
       ]
 
+-- All unit tests for Hledger.Cli, defined here rather than
+-- Hledger.Cli so testcmd can use them.
+tests_Hledger_Cli = tests "Hledger.Cli" [
+   tests_Cli_Utils
+  ,tests_Commands
+  ]
 
 tests_Commands = tests "Commands" [
    tests_Balance
   ,tests_Register
 
   -- some more tests easiest to define here:
-  
+
   ,tests "apply account directive" [
      test "works" $ do
         let
@@ -315,7 +318,7 @@ tests_Commands = tests "Commands" [
       paccount p @?= "test:from"
       ptype p @?= VirtualPosting
     ]
-  
+
   ,test "alias directive" $ do
     j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
@@ -347,8 +350,7 @@ tests_Commands = tests "Commands" [
 
   ,test "show hours" $ showAmount (hrs 1) @?= "1.00h"
 
- ]
-
+  ]
 
 -- test data
 

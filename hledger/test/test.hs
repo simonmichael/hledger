@@ -1,8 +1,13 @@
 {-
-Run hledger's (and hledger-lib's) unit tests as a cabal test suite,
-by running the test command with no options.
+Run the hledger package's unit tests using the tasty test runner
+(by running the test command limited to Hledger.Cli tests).
 -}
 
-import Hledger.Cli
+-- cabal missing-home-modules workaround from hledger-lib, seems not needed here
+-- {-# LANGUAGE PackageImports #-}
+-- import "hledger" Hledger.Cli (tests_Hledger_Cli)
+import Hledger.Cli (tests_Hledger_Cli)
 
-main = testcmd defcliopts (error "journal-less command tried to use the journal")
+import Test.Tasty (defaultMain)
+
+main = defaultMain tests_Hledger_Cli

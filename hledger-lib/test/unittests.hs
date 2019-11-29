@@ -1,10 +1,11 @@
-{-# LANGUAGE PackageImports #-}
 {-
-Run hledger-lib's unit tests using tasty's test runner.
-Note that we use package-qualified import to overcome
-Cabal heuristic missing-home-modules.
+Run the hledger-lib package's unit tests using the tasty test runner.
 -}
-import "hledger-lib" Hledger
+
+-- package-qualified import to avoid cabal missing-home-modules warning (and double-building ?)
+{-# LANGUAGE PackageImports #-}
+import "hledger-lib" Hledger (tests_Hledger)
+
 import Test.Tasty (defaultMain)
 
 main = defaultMain tests_Hledger
