@@ -15,6 +15,8 @@ or:
 $ stack test hledger-lib:test:doctests [--test-arguments '[--verbose] [--slow] [CIFILEPATHSUBSTRINGS]']
 
 -}
+-- This file can't be called doctest.hs ("File name does not match module name")
+
 
 {-# LANGUAGE PackageImports #-}
 

@@ -23,6 +23,8 @@ tested-with: GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5, GHC==8.8.1
 extra-source-files:
 - CHANGES.md
 - README
+- test/unittest.hs
+- test/doctests.hs
 - hledger_csv.5
 - hledger_csv.txt
 - hledger_csv.info
@@ -150,20 +152,23 @@ library:
 #  other-modules:
 #  - Ledger.Parser.Text
 
+# "cabal test hledger-lib" currently fails, see doctest suite below
 tests:
 
-  unittests:
+  unittest:
     buildable: true
     source-dirs: test
-    main: unittests.hs
+    main: unittest.hs
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
     - hledger-lib
 
-  doctests:
+  # Running this test suite with cabal requires cabal exec:
+  # cabal exec -- cabal test hledger-lib:test:doctest
+  doctest:
     buildable: true
     source-dirs: test
-    main: doctests.hs
+    main: doctests.hs  # can't call it doctest.hs ("File name does not match module name")
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
     - Glob >=0.7

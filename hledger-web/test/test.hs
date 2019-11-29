@@ -4,6 +4,9 @@
 
 module Main where
 
+-- cabal missing-home-modules workaround from hledger-lib needed here ?
+-- {-# LANGUAGE PackageImports #-}
+
 import Import
 import Yesod.Default.Config
 import Yesod.Test

@@ -156,8 +156,9 @@ executables:
 # 2018/06 not building and not testing anything useful, disabled for now
 # tests:
 #   test:
-#     source-dirs: tests
-#     main: main.hs
+#     source-dirs: test
+#     main: test.hs
+#     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
 #     cpp-options: -DVERSION="1.15.99"
 #     dependencies:
 #     - base

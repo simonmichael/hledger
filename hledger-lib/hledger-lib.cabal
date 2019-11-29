@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cf0e219278c663cf046db556525050092c383724e703e70b43ed174a0cc146b9
+-- hash: 50ae1fdf62051f33ffe1ef49edc8913a28b524ebdba88d72ef257cc0b25a95c2
 
 name:           hledger-lib
 version:        1.15.99
@@ -30,6 +30,8 @@ build-type:     Simple
 extra-source-files:
     CHANGES.md
     README
+    test/unittest.hs
+    test/doctests.hs
     hledger_csv.5
     hledger_csv.txt
     hledger_csv.info
@@ -146,7 +148,7 @@ library
     , utf8-string >=0.3.5
   default-language: Haskell2010
 
-test-suite doctests
+test-suite doctest
   type: exitcode-stdio-1.0
   main-is: doctests.hs
   hs-source-dirs:
@@ -201,9 +203,9 @@ test-suite doctests
     buildable: False
   default-language: Haskell2010
 
-test-suite unittests
+test-suite unittest
   type: exitcode-stdio-1.0
-  main-is: unittests.hs
+  main-is: unittest.hs
   hs-source-dirs:
       ./.
       test
