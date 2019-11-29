@@ -9,7 +9,8 @@
    --package shake
    --package time
    ghc
--} -- uses the project's current stack resolver
+-}
+-- uses the project's default resolver & extra deps (see stack.yaml)
 {-
 
 One of two project scripts files (Makefile, Shake.hs). This one
