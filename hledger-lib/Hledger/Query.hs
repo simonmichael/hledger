@@ -59,7 +59,7 @@ import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Safe (readDef, headDef)
+import Safe (readDef, maximumByDef, maximumDef, minimumDef)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -475,28 +475,26 @@ queryDateSpan' (Date span)  = span
 queryDateSpan' (Date2 span) = span
 queryDateSpan' _            = nulldatespan
 
--- | What is the earliest of these dates, where Nothing is latest ?
+-- | What is the earliest of these dates, where Nothing is earliest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day
-earliestMaybeDate mds = head $ sortBy compareMaybeDates mds ++ [Nothing]
+earliestMaybeDate = minimumDef Nothing
 
 -- | What is the latest of these dates, where Nothing is earliest ?
 latestMaybeDate :: [Maybe Day] -> Maybe Day
-latestMaybeDate = headDef Nothing . sortBy (flip compareMaybeDates)
+latestMaybeDate = maximumDef Nothing
 
--- | What is the earliest of these dates, ignoring Nothings ?
+-- | What is the earliest of these dates, where Nothing is the latest ?
 earliestMaybeDate' :: [Maybe Day] -> Maybe Day
-earliestMaybeDate' = headDef Nothing . sortBy compareMaybeDates . filter isJust
+earliestMaybeDate' = minimumDef Nothing . filter isJust
 
--- | What is the latest of these dates, ignoring Nothings ?
+-- | What is the latest of these dates, where Nothing is the latest ?
 latestMaybeDate' :: [Maybe Day] -> Maybe Day
-latestMaybeDate' = headDef Nothing . sortBy (flip compareMaybeDates) . filter isJust
-
--- | Compare two maybe dates, Nothing is earliest.
-compareMaybeDates :: Maybe Day -> Maybe Day -> Ordering
-compareMaybeDates Nothing Nothing = EQ
-compareMaybeDates Nothing (Just _) = LT
-compareMaybeDates (Just _) Nothing = GT
-compareMaybeDates (Just a) (Just b) = compare a b
+latestMaybeDate' = maximumByDef Nothing compareNothingMax
+  where
+    compareNothingMax Nothing  Nothing  = EQ
+    compareNothingMax (Just _) Nothing  = LT
+    compareNothingMax Nothing  (Just _) = GT
+    compareNothingMax (Just a) (Just b) = compare a b
 
 -- | The depth limit this query specifies, or a large number if none.
 queryDepth :: Query -> Int
@@ -718,6 +716,22 @@ tests_Query = tests "Query" [
      parseAmountQueryTerm "<=+0.23"   @?= (LtEq,0.23)
      parseAmountQueryTerm "-0.23"     @?= (Eq,(-0.23))
     -- ,test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" @?= (AbsEq,0.23)  -- XXX
+
+  ,test "queryStartDate" $ do
+     let small = Just $ fromGregorian 2000 01 01
+         big   = Just $ fromGregorian 2000 01 02
+     queryStartDate False (And [Date $ DateSpan small Nothing, Date $ DateSpan big Nothing])     @?= big
+     queryStartDate False (And [Date $ DateSpan small Nothing, Date $ DateSpan Nothing Nothing]) @?= small
+     queryStartDate False (Or  [Date $ DateSpan small Nothing, Date $ DateSpan big Nothing])     @?= small
+     queryStartDate False (Or  [Date $ DateSpan small Nothing, Date $ DateSpan Nothing Nothing]) @?= Nothing
+
+  ,test "queryEndDate" $ do
+     let small = Just $ fromGregorian 2000 01 01
+         big   = Just $ fromGregorian 2000 01 02
+     queryEndDate False (And [Date $ DateSpan Nothing small, Date $ DateSpan Nothing big])     @?= small
+     queryEndDate False (And [Date $ DateSpan Nothing small, Date $ DateSpan Nothing Nothing]) @?= small
+     queryEndDate False (Or  [Date $ DateSpan Nothing small, Date $ DateSpan Nothing big])     @?= big
+     queryEndDate False (Or  [Date $ DateSpan Nothing small, Date $ DateSpan Nothing Nothing]) @?= Nothing
 
   ,test "matchesAccount" $ do
      assertBool "" $ (Acct "b:c") `matchesAccount` "a:bb:c:d"
