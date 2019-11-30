@@ -840,9 +840,25 @@ Y2010  ; change default year to 2010
 
 ### Declaring commodities
 
-The `commodity` directive declares commodities which may be used in the journal,
-and their display format.
+The `commodity` directive has several functions:
 
+1. It declares commodities which may be used in the journal.
+   This is currently not enforced, but can serve as documentation.
+
+2. It declares what decimal mark character to expect when parsing
+   input - useful to disambiguate international number formats in your
+   data. (Without this, hledger will parse both `1,000` and `1.000`
+   as 1).
+
+3. It declares the [amount display format](#amount-display-format) to
+   use in output - decimal and digit group marks, number of decimal
+   places, symbol placement etc.
+
+You are likely to run into one of the problems solved by commodity
+directives, sooner or later, so it's a good idea to just always use
+them to declare your commodities.
+
+A commodity directive is just the word `commodity` followed by an [amount](#amounts).
 It may be written on a single line, like this:
 
 ```journal
@@ -854,8 +870,8 @@ It may be written on a single line, like this:
 commodity 1,000.0000 AAAA
 ```
 
-or on multiple lines, using the "format" subdirective. In this case
-the commodity symbol appears twice and should be the same in both places:
+or on multiple lines, using the "format" subdirective. (In this case
+the commodity symbol appears twice and should be the same in both places.):
 
 ```journal
 ; commodity SYMBOL
@@ -865,20 +881,12 @@ the commodity symbol appears twice and should be the same in both places:
 ; thousands, lakhs and crores comma-separated,
 ; period as decimal point, and two decimal places.
 commodity INR
-  format INR 9,99,99,999.00
+  format INR 1,00,00,000.00
 ```
 
-Declaring commodites may be useful as documentation,
-but currently we do not enforce that only declared commodities may be used.
-This directive is mainly useful for customising the preferred display format for a commodity.
-
-Normally the display format is inferred from journal entries, but this can be unpredictable; 
-declaring it with a commodity directive overrides this and removes ambiguity. 
-Towards this end, amounts in commodity directives must always be written with a decimal point 
-(a period or comma, followed by 0 or more decimal digits). 
-
-Commodity directives do not affect how amounts are parsed;
-the parser will read multiple formats.
+The quantity of the amount does not matter; only the format is
+significant. The number must include a decimal mark: either a period
+or a comma, followed by 0 or more decimal digits.
 
 ### Default commodity
 
