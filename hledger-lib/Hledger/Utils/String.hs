@@ -111,7 +111,7 @@ underline s = s' ++ replicate (length s) '-' ++ "\n"
 -- | Double-quote this string if it contains whitespace, single quotes
 -- or double-quotes, escaping the quotes as needed.
 quoteIfNeeded :: String -> String
-quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = "\"" ++ escapeDoubleQuotes s ++ "\""
+quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars++redirectchars) = "\"" ++ escapeDoubleQuotes s ++ "\""
                 | otherwise = s
 -- | Single-quote this string if it contains whitespace or double-quotes.
 -- No good for strings containing single quotes.
@@ -119,9 +119,10 @@ singleQuoteIfNeeded :: String -> String
 singleQuoteIfNeeded s | any (`elem` s) whitespacechars = "'"++s++"'"
                       | otherwise = s
 
-quotechars, whitespacechars :: [Char]
+quotechars, whitespacechars, redirectchars :: [Char]
 quotechars      = "'\""
 whitespacechars = " \t\n\r"
+redirectchars   = "<>"
 
 escapeDoubleQuotes :: String -> String
 escapeDoubleQuotes = regexReplace "\"" "\""
