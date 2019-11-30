@@ -142,14 +142,14 @@ hledger rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  -
 2016/01/01 withdraw  ; modified:
     assets:cash              $20
     assets:bank
-    expenses:fee              $5  ; generated-posting: = assets:bank and amt:<0
-    assets:bank              $-5  ; generated-posting: = assets:bank and amt:<0
+    expenses:fee              $5  ; generated-posting: = assets:bank and "amt:<0"
+    assets:bank              $-5  ; generated-posting: = assets:bank and "amt:<0"
 
 2016/01/02 withdraw  ; modified:
     assets:cash
     assets:bank             $-30
-    expenses:fee              $5  ; generated-posting: = assets:bank and amt:<0
-    assets:bank              $-5  ; generated-posting: = assets:bank and amt:<0
+    expenses:fee              $5  ; generated-posting: = assets:bank and "amt:<0"
+    assets:bank              $-5  ; generated-posting: = assets:bank and "amt:<0"
 
 >>>2
 >>>=0
@@ -240,14 +240,14 @@ hledger rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee 
 +2016/01/01 withdraw  ; modified:
      assets:cash              $20
      assets:bank
-+    expenses:fee              $5  ; generated-posting: = assets:bank and amt:<0
-+    assets:bank              $-5  ; generated-posting: = assets:bank and amt:<0
++    expenses:fee              $5  ; generated-posting: = assets:bank and "amt:<0"
++    assets:bank              $-5  ; generated-posting: = assets:bank and "amt:<0"
 @@ -5,3 +7,5 @@
 -2016/01/02 withdraw
 +2016/01/02 withdraw  ; modified:
      assets:cash
      assets:bank             $-30
-+    expenses:fee              $5  ; generated-posting: = assets:bank and amt:<0
-+    assets:bank              $-5  ; generated-posting: = assets:bank and amt:<0
++    expenses:fee              $5  ; generated-posting: = assets:bank and "amt:<0"
++    assets:bank              $-5  ; generated-posting: = assets:bank and "amt:<0"
 >>>2
 >>>=0
