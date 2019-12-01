@@ -166,7 +166,7 @@ tests:
   # Running this test suite with cabal requires cabal exec:
   # cabal exec -- cabal test hledger-lib:test:doctest
   doctest:
-    buildable: true
+    buildable: false   # doesn't run with cabal test, https://github.com/simonmichael/hledger/issues/1139
     source-dirs: test
     main: doctests.hs  # can't call it doctest.hs ("File name does not match module name")
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
