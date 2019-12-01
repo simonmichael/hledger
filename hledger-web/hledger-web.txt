@@ -357,4 +357,4 @@ SEE ALSO
 
 
 
-hledger-web 1.15.99               August 2019                   hledger-web(1)
+hledger-web 1.16                 December 2019                  hledger-web(1)
