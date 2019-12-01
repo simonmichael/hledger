@@ -63,6 +63,8 @@ module Hledger.Read.JournalReader (
 )
 where
 --- * imports
+-- import qualified Prelude (fail)
+-- import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import qualified Control.Exception as C
 import Control.Monad (forM_, when, void)

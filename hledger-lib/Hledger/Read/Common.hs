@@ -100,6 +100,8 @@ module Hledger.Read.Common (
 )
 where
 --- * imports
+import Prelude ()
+import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import Control.Monad.State.Strict hiding (fail)

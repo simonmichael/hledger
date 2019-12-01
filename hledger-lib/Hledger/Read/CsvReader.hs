@@ -30,6 +30,8 @@ module Hledger.Read.CsvReader (
   tests_CsvReader,
 )
 where
+import Prelude ()
+import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Exception          (IOException, handle, throw)
 import Control.Monad              (liftM, unless, when)

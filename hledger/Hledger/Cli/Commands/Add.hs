@@ -15,6 +15,8 @@ module Hledger.Cli.Commands.Add (
 )
 where
 
+import Prelude ()
+import "base-compat-batteries" Prelude.Compat hiding (fail)
 import Control.Exception as E
 import Control.Monad (when)
 import Control.Monad.Trans.Class
