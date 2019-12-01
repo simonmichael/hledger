@@ -1,9 +1,75 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# caf8cdf0
+# 1.16 2019-12-01
 
-- prices: style price amounts; always show full precision
+## General
+
+- add support for GHC 8.8, base-compat 0.11 (#1090)
+
+- drop support for GHC 7.10
+
+- The benchmark suite has been disabled.
+
+- The --anon flag now also anonymises transaction codes and account
+  names declared with account directives. (Mykola Orliuk) (#901)
+
+## commands
+
+- balance/bs/cf/is: balance commands now support the -%/--percent flag
+  to show amounts as percentages of the column's total. (Michael Kainer)
+
+  If there are multiple commodities involved in a report hledger bails
+  with an error message. This can be avoided by using -B/--cost. Also note
+  that if one uses -% with the balance command the chances are high that
+  all numbers are 0. This is due to the fact that by default balance sums
+  up to zero. If one wants to use -% in a meaningful way with balance one
+  has to add a query.
+
+  In order to keep the implementation as simple as possible --tree has no
+  influence over how the percentages are calculated, i.e., the percentages
+  always represent the fraction of the columns total. If one wants to know
+  the percentages relative to a parent account, one has to use a query to
+  narrow down the accounts.
+
+- balance: --budget no longer errors when there is neither budget nor
+  transactions in the report period (Dmitry Astapov)
+
+- balance: --budget has improved debug output (shows budget txns)
+  (Dmitry Astapov)
+
+- check-dates: now sets the exit status code (Amitai Burstein)
+
+- close: no longer strips zeroes after the decimal mark, and preserves
+  parseable output (#1137)
+
+- close: the --close-to, --open-from options allow closing/opening
+  account names to be chosen
+
+- import: create the journal if missing, like the add command
+  Streamlines import/migration instructions.
+
+- import: --catchup marks all transactions imported, without importing
+
+- import: more informative output: mention the input files, also show
+  a message when nothing was imported
+
+- prices: show price amounts with proper display style; always show
+  full precision
+
+- roi: don't give an error with empty input data (Dmitry Astapov)
+
+- tests: unit tests are now run by tasty (#1090).
+  Test running options have changed, see the command help. 
+  Some unit tests have been collapsed, so the reported test count has
+  dropped a little.
+
+## journal format
+
+- journal: fix generation of periodic transactions with
+  days/months/... repeat (Dmitry Astapov)
+
+## csv format
 
 - CSV reading improvements (#1095)
 
@@ -56,100 +122,6 @@ User-visible changes in the hledger command line tool and library.
 
 - csv: support generation of (un)balanced virtual postings in csv reader (Dmitry Astapov)
 
-- support GHC 8.8, add stack-ghc8.8.yaml (#1090)
-
-- close: add --close-to, --open-from to choose account names
-
-- tests: port all unit tests to tasty, second pass (#1090)
-  easytest is not actively maintained and requires an old version of
-  hedgehog which does not support base-compat 0.11 & ghc 8.8.
-  Hledger.Util.Tests helpers have been cleaned up.
-  Some groups of unnamed tests have
-  been collapsed into a single named test containing a sequence of
-  assertions. The test command counts named tests, not assertions, so
-  the reported unit test count has dropped from 199 to 188.
-
-- Add exit status code to check-dates (Amitai Burstein)
-
-- budget: bal --budget no longer errors when there is neither budget nor
-  transactions in the report period (Dmitry Astapov)
-
-- budget: improved debug output for budget report (show budget txns) (Dmitry Astapov)
-
-- lib: fix generation of periodic transactions with days/months/... repeat (Dmitry Astapov)
-
-- cli: anonymize transaction code also (Mykola Orliuk)
-
-- cli: anonymize declared accounts also (Mykola Orliuk)
-  Fixes simonmichael/hledger#901
-
-- cli: Add -% to compound balance commands (Michael Kainer)
-  This commit introduces the commandline argument -%/--percent to show
-  percentages of the column's total instead of the absolute amounts for
-  each account in reports. The signs of the values are preserved.
-
-  This option is especially useful for the balance and incomestatement
-  commands.
-
-  If there are multiple commodities involved in a report hledger bails
-  with an error message. This can be avoided by using --cost. Also note
-  that if one uses -% with the balance command the chances are high that
-  all numbers are 0. This is due to the fact that by default balance sums
-  up to zero. If one wants to use -% in a meaningful way with balance one
-  has to add a query.
-
-  In order to keep the implementation as simple as possible --tree has no
-  influence over how the percentages are calculated, i.e., the percentages
-  always represent the fraction of the columns total. If one wants to know
-  the percentages relative to a parent account, one has to use a query to
-  narrow down the accounts.
-
-- lib: roi does not fail on empty input data (+test) (Dmitry Astapov)
-
-
-- prices: style price amounts; always show full precision
-
-- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
-  in JournalReader.hs. If you still need this, feel free to work on
-  those errors. But hopefully not, because dropping base 4.8 should
-  permit some code cleanups.
-
-- lib, cli: disable hledger-lib test suites, hledger benchmark suite
-  by default. hledger-lib's doctests and easytests test suites (each ?)
-  require an additional slow rebuild of hledger-lib and are not worth
-  the time, energy and carbon. hledger's test suite runs those same
-  easytest tests (but not the doctests).
-
-- import: message cleanups, mention input files
-  Only the --dry-run message needs the semicolon, so dry run output can
-  be piped into hledger.
-
-- import: --catchup marks all transactions imported, without importing
-
-- import: also show a message when nothing was imported
-
-- import: create the journal if missing, like the add command
-  Streamlines import/migration instructions.
-
-
-- import: message cleanups, mention input files
-  Only the --dry-run message needs the semicolon, so dry run output can
-  be piped into hledger.
-
-- import: --catchup marks all transactions imported, without importing
-
-- import: also show a message when nothing was imported
-
-- import: create the journal if missing, like the add command
-  Streamlines import/migration instructions.
-
-- bal: don't raise an error (maximum) when there is neither budget nor transactions in the report period (Dmitry Astapov)
-
-- bal: improve debug output for budget report (show budget txns) (Dmitry Astapov)
-
-- fix generation of periodic transactions with days/months/... repeat (Dmitry Astapov)
-
-- lib, cli, ui: start using Control.Monad.Fail, allow base-compat 0.11
 
 # 1.15.2 2019-09-05
 

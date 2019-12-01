@@ -1,28 +1,20 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# ac5652b7
+# 1.16 2019-12-01
 
-- support GHC 8.8, add stack-ghc8.8.yaml (#1090)
-  hledger-web needs an unreleased version of json.
+- add support for GHC 8.8, base-compat 0.11 (#1090).
+  For now, hledger-web needs an unreleased version of json.
 
-- Weeks in date picker start from Mondays (fix for #1109) (Timofey ZAKREVSKIY)
+- drop support for GHC 7.10
 
-- web: Modify the --cors option to require a specific origin (Alejandro García Montoro)
-  - Modified the cors option to require a String
-  - Moved the logic to build the cors policy to WebOptions.hs
-  - Specify the --cors "*" example in the cors option help
-  - Added utf8-string dependency to convert a String into a ByteString
+- Weeks in the add form's date picker now start on Mondays (#1109)
+  (Timofey Zakrevskiy)
 
-- web: Allow CORS to be enabled in hledger-web (Alejandro García Montoro)
-  Add a --cors option to the CLI to enable simple cross-origin requests
+- The --cors option allows simple cross-origin requests to hledger-web
+  (Alejandro García Montoro)
 
-- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
-  in JournalReader.hs. If you still need this, feel free to work on
-  those errors. But hopefully not, because dropping base 4.8 should
-  permit some code cleanups.
-
-
+- The test suite has been disabled for now.
 
 # 1.15 2019-09-01
 

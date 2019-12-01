@@ -1,46 +1,17 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# caf8cdf0
+# 1.16 2019-12-01
 
-- lib: refactor, prepare to drop showTransactionUnelided functionality
-  It seems we don't use it at all, and ony says it's not robust with
-  prices either.
+- drop support for GHC 7.10, due to MonadFail hassles in JournalReader.hs
 
-- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
-  in JournalReader.hs. If you still need this, feel free to work on
-  those errors. But hopefully not, because dropping base 4.8 should
-  permit some code cleanups.
+- add support for GHC 8.8, base-compat 0.11 (#1090)
 
-- disable hledger benchmark suite, hledger-web tests (?) by default. 
-
-- lib: more runPeriodicTransaction tests (lifted from #1085 and spanIntervalIntersect) (Dmitry Astapov)
-
-- lib, cli, ui: start using Control.Monad.Fail, allow base-compat 0.11
-  fail is moving out of Monad and into it's own MonadFail class.
-  This will be enforced in GHC 8.8 (I think).
-
-  base-compat/base-compat-batteries 0.11.0 have adapted to this,
-  and are approaching stackage nightly
-  (https://github.com/commercialhaskell/stackage/issues/4802).
-
-  hledger is now ready to build with base-compat-batteries 0.11.0, once
-  all of our deps do (eg aeson). We are still compatible with the older
-  0.10.x and GHC 7.10.3 as well.
-
-  For now we are using both fails:
-
-  - new fail (from Control.Monad.Fail), used in our parsers, imported
-    via base-compat-batteries Control.Monad.Fail.Compat to work with
-    older GHC versions.
-
-  - old fail (from GHC.Base, exported by Prelude, Control.Monad,
-    Control.Monad.State.Strict, Prelude.Compat, ...), used in easytest's
-    Test, since I couldn't find their existing fail implementation to update.
-
-  To reduce (my) confusion, these are imported carefully, consistently,
-  and qualified everywhere as Fail.fail and Prelude.fail, with clashing
-  re-exports suppressed, like so:
+  We are now using the new fail from the MonadFail class, which we
+  always import qualified as Fail.fail, from base-compat-batteries
+  Control.Monad.Fail.Compat to work with old GHC versions. If old fail
+  is needed (shouldn't be) it should be imported qualified as
+  Prelude.Fail, using imports such as:
 
       import Prelude hiding (fail)
       import qualified Prelude (fail)
@@ -48,6 +19,11 @@ For user-visible changes, see the hledger package changelog.
       import "base-compat-batteries" Prelude.Compat hiding (fail)
       import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail
 
+- hledger and hledger-lib unit tests have been ported to tasty.
+
+- The doctest suite has been disabled for now since it doesn't run
+  well with cabal (#1139)
+  
 # 1.15.2 2019-09-05
 
 Changes:

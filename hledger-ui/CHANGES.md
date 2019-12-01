@@ -1,19 +1,14 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# ebedae01
+# 1.16 2019-12-01
 
-- support GHC 8.8, add stack-ghc8.8.yaml (#1090)
+- add support for GHC 8.8, base-compat 0.11 (#1090)
 
-- ui: B and V keys toggle display of cost, value
+- drop support for GHC 7.10
 
-- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
-  in JournalReader.hs. If you still need this, feel free to work on
-  those errors. But hopefully not, because dropping base 4.8 should
-  permit some code cleanups.
-
-
-- lib, cli, ui: start using Control.Monad.Fail, allow base-compat 0.11
+- the B and V keys toggle cost or value display (like the -B and -V
+  command line flags)
 
 # 1.15 2019-09-01
 

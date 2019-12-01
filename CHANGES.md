@@ -1,21 +1,15 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-- site: matrix.hledger.org now redirects to a more readable/useful url
+# 1.16 2019-12-01
 
-# 3c226f86
+- add support for GHC 8.8, base-compat 0.11 (#1090)
 
-- Fix internal Markdown links (Brian Wignall)
-
-- Make resolver in hledger-install.sh consistent with that in stack.yaml (Brian Wignall)
-
-- drop GHC 7.10/base 4.8 support, finally, due to MonadFail hassles
-  in JournalReader.hs. If you still need this, feel free to work on
-  those errors. But hopefully not, because dropping base 4.8 should
-  permit some code cleanups.
-
+- drop support for GHC 7.10
 
 - add descriptions to most issue tracker labels
+
+- matrix.hledger.org now redirects to a more readable/useful url
 
 # 1.15 2019-09-01
 
