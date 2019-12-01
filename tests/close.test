@@ -189,6 +189,8 @@ $ hledger -f- close assets -p 2019
 >=0
 
 # 8. Closing a multi-priced balance, a more complex example.
+# Decimal places specified by the amount display style should not be stripped
+# even if they are zeros (#1137).
 <
 2016/01/31
     liabilities:employer                      $5,000.00
@@ -210,32 +212,28 @@ $ hledger -f- close assets -p 2019
     assets:bank                                2,836.00 EUR
     liabilities:employer
 
-; Note: without these declarations, the closing/opening entries below
-; would cause decimal marks to be misparsed. (How ?)
-;commodity $1,000.00
-;commodity 1,000.00 EUR
-
 $ hledger -f- close -p 2016 assets liabilities
 2016/12/31 closing balances
-    assets:bank                       -5,733 EUR = 0 EUR
-    liabilities:employer                $-10,000
-    liabilities:employer       $5,000 @ 0.93 EUR
-    liabilities:employer       $5,000 @ 0.95 EUR = $0
-    liabilities:employer                  -1 EUR = 0 EUR
-    equity:closing balances           $10,000.00
+    assets:bank                       -5,733.00 EUR = 0.00 EUR
+    liabilities:employer                $-10,000.00
+    liabilities:employer       $5,000.00 @ 0.93 EUR
+    liabilities:employer       $5,000.00 @ 0.95 EUR = $0.00
+    liabilities:employer                  -1.00 EUR = 0.00 EUR
+    equity:closing balances              $10,000.00
     equity:closing balances    $-5,000.00 @ 0.93 EUR
     equity:closing balances    $-5,000.00 @ 0.95 EUR
-    equity:closing balances         5,734.00 EUR
+    equity:closing balances            5,734.00 EUR
 
 2017/01/01 opening balances
-    assets:bank                         5,733 EUR = 5,733 EUR
-    liabilities:employer                  $10,000
-    liabilities:employer       $-5,000 @ 0.93 EUR
-    liabilities:employer       $-5,000 @ 0.95 EUR = $0
-    liabilities:employer                    1 EUR = 1 EUR
-    equity:opening balances           $-10,000.00
-    equity:opening balances    $5,000.00 @ 0.93 EUR
-    equity:opening balances    $5,000.00 @ 0.95 EUR
-    equity:opening balances         -5,734.00 EUR
+    assets:bank                         5,733.00 EUR = 5,733.00 EUR
+    liabilities:employer                  $10,000.00
+    liabilities:employer       $-5,000.00 @ 0.93 EUR
+    liabilities:employer       $-5,000.00 @ 0.95 EUR = $0.00
+    liabilities:employer                    1.00 EUR = 1.00 EUR
+    equity:opening balances              $-10,000.00
+    equity:opening balances     $5,000.00 @ 0.93 EUR
+    equity:opening balances     $5,000.00 @ 0.95 EUR
+    equity:opening balances            -5,734.00 EUR
 
 >=0
+

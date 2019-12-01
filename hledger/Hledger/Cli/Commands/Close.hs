@@ -49,9 +49,8 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmount b) acctbals
 
       -- since balance assertion amounts are required to be exact, the
-      -- amounts in opening/closing transactions should be too (#941)
-      -- setprec = setFullPrecision
-      setprec = setNaturalPrecision
+      -- amounts in opening/closing transactions should be too (#941, #1137)
+      setprec = setFullPrecision
       -- balance assertion amounts will be unpriced (#824)
       -- only the last posting in each commodity will have a balance assertion (#1035)
       closingps = [posting{paccount          = a
