@@ -375,6 +375,7 @@ commentJoin c1 c2
 -- A space is inserted following the colon, before the value.
 commentAddTag :: Text -> Tag -> Text
 commentAddTag c (t,v)
+  | "\n" `T.isSuffixOf` c = c <> tag -- never chomp last new-line
   | T.null c' = tag
   | otherwise = c' `commentJoin` tag
   where

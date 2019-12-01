@@ -15,6 +15,7 @@ import Data.Functor.Identity
 import Data.List (sortOn, foldl')
 import qualified Data.Text as T
 import Hledger
+import Hledger.Processing.Common
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
 import System.Console.CmdArgs.Explicit
@@ -24,10 +25,10 @@ import qualified Data.Algorithm.Diff as D
 
 rewritemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Rewrite.txt")
-  [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
+  ([flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
            "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
   ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
-  ]
+  ] ++ txnflags)
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
@@ -39,7 +40,7 @@ rewritemode = hledgerCommandMode
 rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do
   -- rewrite matched transactions
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
-  let j' = j{jtxns=modifyTransactions modifiers ts}
+  let j' = j{jtxns=prepareTxnFromOpts opts <$> modifyTransactions modifiers ts}
   -- run the print command, showing all transactions, or show diffs
   printOrDiff rawopts opts{reportopts_=ropts{query_=""}} j j'
 
@@ -65,6 +66,10 @@ diffOutput :: Journal -> Journal -> IO ()
 diffOutput j j' = do
     let changed = [(originalTransaction t, originalTransaction t') | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
     putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
+
+-- | Replace this transaction's postings with the original postings if any
+-- It is used for building correct diff
+originalTransaction = modPostings originalPosting
 
 type Chunk = (GenericSourcePos, [DiffLine String])
 
@@ -132,7 +137,7 @@ diffTxn j t t' =
                 diffs = map mapDiff $ D.getDiff source changed'
                 source | Just contents <- lookup fp $ jfiles j = map T.unpack . drop (line-1) . take line' $ T.lines contents
                        | otherwise = []
-                changed = lines $ showTransaction t'
+                changed = lines . showTransaction $ syncTxn t'
                 changed' | null changed = changed
                          | null $ last changed = init changed
                          | otherwise = changed

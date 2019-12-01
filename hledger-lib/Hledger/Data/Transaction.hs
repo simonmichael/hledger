@@ -187,7 +187,7 @@ showTransactionHelper onelineamounts t =
 -- The first line (unless empty) will have leading space, subsequent lines will have a larger indent.
 renderCommentLines :: Text -> [String]
 renderCommentLines t =
-  case lines $ T.unpack t of
+  case lines $ T.unpack (T.stripEnd t) of
     []      -> []
     [l]     -> [(commentSpace . comment) l]        -- single-line comment
     ("":ls) -> "" : map (lineIndent . comment) ls  -- multi-line comment with empty first line
@@ -576,10 +576,10 @@ tests_Transaction =
            in postingAsLines False False [p] p @?=
               [ "    * a         $1.00  ; pcomment1"
               , "    ; pcomment2"
-              , "    ;   tag3: val3  "
+              , "    ;   tag3: val3"
               , "    * a         2.00h  ; pcomment1"
               , "    ; pcomment2"
-              , "    ;   tag3: val3  "
+              , "    ;   tag3: val3"
               ]
         ]
 

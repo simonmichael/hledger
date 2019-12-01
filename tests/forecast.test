@@ -51,7 +51,6 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     assets:cash
 
 2017/01/01 * marked cleared, and with a description
-    ; generated-transaction: ~ monthly from 2016/1
     income                    $-1000
     expenses:food                $20
     expenses:leisure             $15
@@ -118,7 +117,6 @@ Y 2000
 
 >>>
 2000/02/01 forecast
-    ; generated-transaction: ~ 2/1
 
 >>>2
 >>>=0
@@ -135,7 +133,6 @@ Y 2000
 
 >>>
 2000/01/15 forecast
-    ; generated-transaction: ~ 15
 
 >>>2
 >>>=0
@@ -152,7 +149,35 @@ Y 2000
 
 >>>
 2000/02/01 forecast
-    ; generated-transaction: ~ next month
+
+>>>2
+>>>=0
+
+# 8. print forecasted transactions with dynamic tags
+hledger print -b 2016-11 -e 2017-02 -f - --forecast --dynamic-tags
+<<<
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+~ monthly from 2016/1  * marked cleared, and with a description
+    income  $-1000
+    expenses:food     $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:cash
+>>>
+2016/12/31
+    expenses:housing            $600
+    assets:cash
+
+2017/01/01 * marked cleared, and with a description
+    ; generated-transaction: ~ monthly from 2016/1
+    income                    $-1000
+    expenses:food                $20
+    expenses:leisure             $15
+    expenses:grocery             $30
+    assets:cash
 
 >>>2
 >>>=0
