@@ -277,17 +277,17 @@ isReallyZeroAmount Amount{aquantity=q} = q == 0
 showAmountWithPrecision :: Int -> Amount -> String
 showAmountWithPrecision p = showAmount . setAmountPrecision p
 
--- | Set an amount's display precision.
-setAmountPrecision :: Int -> Amount -> Amount
-setAmountPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
-
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> Int -> Amount
 withPrecision = flip setAmountPrecision
 
--- | Increase an amount's display precision, if necessary, enough so
--- that it will be shown exactly, with all significant decimal places
--- (excluding trailing zeros).
+-- | Set an amount's display precision.
+setAmountPrecision :: Int -> Amount -> Amount
+setAmountPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
+
+-- | Increase an amount's display precision, if needed, to enough
+-- decimal places to show it exactly (showing all significant decimal
+-- digits, excluding trailing zeros).
 setFullPrecision :: Amount -> Amount
 setFullPrecision a = setAmountPrecision p a
   where
@@ -295,16 +295,18 @@ setFullPrecision a = setAmountPrecision p a
     displayprecision = asprecision $ astyle a
     normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
 
--- | Set an amount's display precision to just enough so that it will
--- be shown exactly, with all significant decimal places.
+-- | Set an amount's display precision to just enough decimal places
+-- to show it exactly (possibly less than the number specified by
+-- the amount's display style).
 setNaturalPrecision :: Amount -> Amount
 setNaturalPrecision a = setAmountPrecision normalprecision a
   where
     normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
 
--- | Set an amount's display precision to just enough so that all
--- significant decimal digits will be shown, but not more than the
--- given maximum number of decimal digits.
+-- | Set an amount's display precision to just enough decimal places
+-- to show it exactly (possibly less than the number specified by the
+-- amount's display style), but not more than the given maximum number
+-- of decimal digits.
 setNaturalPrecisionUpTo :: Int -> Amount -> Amount
 setNaturalPrecisionUpTo n a = setAmountPrecision (min n normalprecision) a
   where
