@@ -75,8 +75,6 @@ module Hledger.Data.Dates (
 )
 where
 
-import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (MonadFail, fail)
 import Control.Applicative.Permutations
 import Control.Monad (unless)
