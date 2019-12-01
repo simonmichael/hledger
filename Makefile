@@ -128,7 +128,6 @@ SOURCEFILES:= \
 	hledger-*/*hs             \
 	hledger-*/app/*hs         \
 	hledger-*/test/*hs        \
-	hledger-*/tests/*hs       \
 	hledger-*/Hledger/*hs     \
 	hledger-*/Hledger/*/*hs   \
 	hledger-*/Hledger/*/*/*hs \
