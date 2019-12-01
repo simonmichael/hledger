@@ -4,17 +4,21 @@ A ledger-compatible @print@ command.
 
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, ViewPatterns #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Print (
   printmode
+ ,txnflags
  ,print'
  -- ,entriesReportAsText
- ,originalTransaction
+ ,modPostings
+ ,prepareTxnFromOpts
 )
 where
 
+import Data.Maybe (catMaybes)
+import Data.List (nub)
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
@@ -32,14 +36,26 @@ printmode = hledgerCommandMode
   ([let arg = "STR" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("show the transaction whose description is most similar to "++arg++", and is most recent")
-  ,flagNone ["explicit","x"] (setboolopt "explicit")
-    "show all amounts explicitly"
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
-  ] ++ outputflags)
+  ] ++ txnflags ++ outputflags)
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
+
+-- | Common flags between all commands that print parsable transactions
+txnflags =
+    [ flagNone ["explicit","x"] (setboolopt "explicit")
+      "show all amounts explicitly"
+    , flagNone ["dynamic-tags"] (setboolopt "dynamic-tags")
+      "include dynamic tags as normal ones"
+    ]
+
+enrichDynamicTags :: ([Tag] -> [Tag])
+enrichDynamicTags tags = nub $ tags ++ catMaybes (map enrichedMay tags) where
+    enrichedMay = \case
+      ((T.stripPrefix "_" -> Just tag), value) -> Just (tag, value)
+      _ -> Nothing
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
@@ -60,21 +76,33 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
   writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransaction . syncTxn . gettxn)
+entriesReportAsText opts = concatMap (showTransaction . syncTxn . prepareTxnFromOpts opts)
+
+-- | Create transaction update
+prepareTxnFromOpts :: CliOpts -> Transaction -> Transaction
+prepareTxnFromOpts opts =
+      (if boolopt "dynamic-tags" (rawopts_ opts) then modTags enrichDynamicTags else id).
+      (if useexplicittxn then id                                   -- use fully inferred amounts & txn prices
+                         else modPostings originalPostingAmounts)  -- use original as-written amounts/txn prices
   where
-    gettxn | useexplicittxn = id                   -- use fully inferred amounts & txn prices
-           | otherwise      = originalTransaction  -- use original as-written amounts/txn prices
     -- Original vs inferred transactions/postings were causing problems here, disabling -B (#551).
     -- Use the explicit one if -B or -x are active.
     -- This passes tests; does it also mean -B sometimes shows missing amounts unnecessarily ?
     useexplicittxn = boolopt "explicit" (rawopts_ opts) || (valuationTypeIsCost $ reportopts_ opts)
 
--- Replace this transaction's postings with the original postings if any, but keep the
--- current possibly rewritten account names.
-originalTransaction t = t { tpostings = map originalPostingPreservingAccount $ tpostings t }
+-- | Update postings of transaction
+-- Note that you still need to call 'txnTieKnot'
+modPostings mod t = t { tpostings = map mod $ tpostings t }
 
--- Get the original posting if any, but keep the current possibly rewritten account name.
-originalPostingPreservingAccount p = (originalPosting p) { paccount = paccount p }
+-- | Update tags of transaction and postings
+-- Note that you still need to call 'txnTieKnot'
+modTags :: ([Tag] -> [Tag]) -> Transaction -> Transaction
+modTags f t = t { ttags = f $ ttags t, tpostings = map modPosting $ tpostings t } where
+  modPosting p = p { ptags = f $ ptags p }
+
+-- Get the original amounts preserving everything else
+originalPostingAmounts p = p { pamount = pamount p0, pbalanceassertion = pbalanceassertion p0 }
+    where p0 = originalPosting p
 
 -- XXX
 -- tests_showTransactions = [

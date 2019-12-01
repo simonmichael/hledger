@@ -215,7 +215,6 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
           ,tdescription = ptdescription
           ,tcomment     = ptcomment <> "\n"  -- force all further comments on new lines
           ,ttags        = ("_generated-transaction",period) :
-                          ("generated-transaction" ,period) :
                           pttags
           ,tpostings    = ptpostings
           }

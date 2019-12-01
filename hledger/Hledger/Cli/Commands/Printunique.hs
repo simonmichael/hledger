@@ -13,13 +13,13 @@ import Hledger.Cli.Commands.Print
 
 printuniquemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Printunique.txt")
-  []
+  txnflags
   [generalflagsgroup1]
   hiddenflags
   ([], Nothing)
 
 printunique opts j@Journal{jtxns=ts} = do
-  print' opts j{jtxns=uniquify ts}
+  print' opts j{jtxns=prepareTxnFromOpts opts <$> uniquify ts}
   where
     uniquify = nubBy (\t1 t2 -> thingToCompare t1 == thingToCompare t2) . sortOn thingToCompare
     thingToCompare = tdescription

@@ -43,7 +43,7 @@ modifyTransactions tmods = map applymods
         t' = foldr (flip (.) . transactionModifierToFunction) id tmods t
         taggedt'
           -- PERF: compares txns to see if any modifier had an effect, inefficient ?
-          | t' /= t   = t'{ttags    = ("modified","") : ttags t'}
+          | t' /= t   = t'{ttags    = ("_modified","") : ttags t'}
           | otherwise = t'
 
 -- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function,
@@ -104,8 +104,7 @@ tmPostingRuleToFunction querytxt pr =
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
       , pamount  = amount' p
-      , ptags    = ("generated-posting", qry) :
-                   ("_generated-posting",qry) :
+      , ptags    = ("_generated-posting",qry) :
                    ptags pr
       }
   where

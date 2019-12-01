@@ -251,8 +251,8 @@ hledger rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee 
 >>>=0
 
 
-# 8. Trace mode
-hledger rewrite --trace -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
+# 8. Print dynamic tags
+hledger rewrite --dynamic-tags -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/01/01 withdraw
     assets:cash              $20
