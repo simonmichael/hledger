@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3228f8dbb178d427e76291b5e60b3dee1eb4d2e5f9ab803ce8e3fe85e79f25ad
+-- hash: 074161d9d859631d65696647ed5f6df51c89d5c35f96dfc62ebf4fa295cc1809
 
 name:           hledger-lib
 version:        1.16
@@ -127,8 +127,7 @@ library
     , filepath
     , hashtables >=1.2.3.1
     , megaparsec >=7.0.0 && <8
-    , mtl
-    , mtl-compat
+    , mtl >=2.2.1
     , old-time
     , parsec >=3
     , parser-combinators >=0.4.0
@@ -179,8 +178,7 @@ test-suite doctest
     , filepath
     , hashtables >=1.2.3.1
     , megaparsec >=7.0.0 && <8
-    , mtl
-    , mtl-compat
+    , mtl >=2.2.1
     , old-time
     , parsec >=3
     , parser-combinators >=0.4.0
@@ -234,8 +232,7 @@ test-suite unittest
     , hashtables >=1.2.3.1
     , hledger-lib
     , megaparsec >=7.0.0 && <8
-    , mtl
-    , mtl-compat
+    , mtl >=2.2.1
     , old-time
     , parsec >=3
     , parser-combinators >=0.4.0

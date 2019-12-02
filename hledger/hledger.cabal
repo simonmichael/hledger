@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f608f8976e44e104fc5fc49a65b2a01b1873a5f23f8b58be36335deec8c4549e
+-- hash: f66a371d64e36317dc27b2658c0b367d60424772c46b6ad0efc2845b61c4cb75
 
 name:           hledger
 version:        1.16
@@ -164,8 +164,7 @@ library
     , lucid
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
-    , mtl
-    , mtl-compat
+    , mtl >=2.2.1
     , old-time
     , parsec >=3
     , pretty-show >=1.6.4
@@ -215,8 +214,7 @@ executable hledger
     , hledger-lib >=1.16 && <1.17
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
-    , mtl
-    , mtl-compat
+    , mtl >=2.2.1
     , old-time
     , parsec >=3
     , pretty-show >=1.6.4
@@ -267,8 +265,7 @@ test-suite unittest
     , hledger-lib >=1.16 && <1.17
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
-    , mtl
-    , mtl-compat
+    , mtl >=2.2.1
     , old-time
     , parsec >=3
     , pretty-show >=1.6.4
@@ -318,8 +315,7 @@ benchmark bench
     , html
     , math-functions >=0.2.0.0
     , megaparsec >=7.0.0 && <8
-    , mtl
-    , mtl-compat
+    , mtl >=2.2.1
     , old-time
     , parsec >=3
     , pretty-show >=1.6.4

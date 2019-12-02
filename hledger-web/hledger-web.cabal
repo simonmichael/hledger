@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: feb3102322a4d8c36e44d90678edc2708511ccd69f6d6d1558de68da63c7f325
+-- hash: 0678e65f66ec6915e930f6224b0bf3c0558464f3f7aafefe57a84574c60506be
 
 name:           hledger-web
 version:        1.16
@@ -176,7 +176,7 @@ library
     , http-types
     , json
     , megaparsec >=7.0.0 && <8
-    , mtl
+    , mtl >=2.2.1
     , semigroups
     , shakespeare >=2.0.2.2
     , template-haskell

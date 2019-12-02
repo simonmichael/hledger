@@ -120,7 +120,7 @@ library:
   - http-types
   - json
   - megaparsec >=7.0.0 && <8
-  - mtl
+  - mtl >=2.2.1
   - semigroups
   - shakespeare >=2.0.2.2
   - template-haskell
