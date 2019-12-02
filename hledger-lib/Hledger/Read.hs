@@ -7,6 +7,7 @@ to import modules below this one.
 -}
 
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 
 module Hledger.Read (
 
@@ -36,7 +37,8 @@ module Hledger.Read (
 
 import Control.Arrow (right)
 import qualified Control.Exception as C
-import Control.Monad.Except
+import Control.Monad (when)
+import "mtl" Control.Monad.Except (runExceptT)
 import Data.Default
 import Data.List
 import Data.Maybe
