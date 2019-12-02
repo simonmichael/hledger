@@ -1,6 +1,12 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 0ce890e5
+
+- Drop unnecessary mtl-compat dependency
+
+- Fix building with GHC 8.0, 8.2
+
 # 1.16 2019-12-01
 
 - drop support for GHC 7.10, due to MonadFail hassles in JournalReader.hs

@@ -1,5 +1,10 @@
 User-visible changes in the hledger command line tool and library.
 
+# 0ce890e5
+
+- Drop unnecessary mtl-compat dependency
+
+- Fix building with GHC 8.0, 8.2
 
 # 1.16 2019-12-01
 
@@ -59,15 +64,14 @@ User-visible changes in the hledger command line tool and library.
 
 - roi: don't give an error with empty input data (Dmitry Astapov)
 
-- tests: unit tests are now run by tasty (#1090).
+- tests: unit tests are now run by tasty, and show coloured output by default (#1090).
   Test running options have changed, see the command help. 
   Some unit tests have been collapsed, so the reported test count has
   dropped a little.
 
 ## journal format
 
-- journal: fix generation of periodic transactions with
-  days/months/... repeat (Dmitry Astapov)
+- fix generation of periodic transactions with days/months/... repeat (Dmitry Astapov)
 
 ## csv format
 

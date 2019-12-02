@@ -1,6 +1,10 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 0ce890e5
+
+- Drop unnecessary mtl-compat dependency
+
 # 1.16 2019-12-01
 
 - add support for GHC 8.8, base-compat 0.11 (#1090).
