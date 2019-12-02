@@ -71,56 +71,65 @@ User-visible changes in the hledger command line tool and library.
 
 ## csv format
 
-- CSV reading improvements (#1095)
+CSV conversion is now more powerful (#1095, Dmitry Astapov, Simon Michael):
 
-  - can now generate a variable number of postings, from zero to nine (#627, #1095)
-  - can now generate postings with balance assignments (#1000)
-  - skip can be used in conditional blocks; so can the new "end" rule (skips all remaining) (#1076)
-  - both the amount-in/amount-out fields having a value is now ok, if one of them is zero (#570)
-  - line feeds/carriage returns in quoted CSV values are now converted to spaces (#416, #841)
-  - field assignments can now unset a field (eg a posting can be
-    suppressed by assigning no value to its account)
-  - fixed: empty field assignment consumes next line (#1001)
-  - fixed: interpolation of field names containing punctuation (underscore, hyphens etc)
-  - fixed: show two spaces between description and comment, not three
-  - clarified that hledger field assignments can reference csv fields only, not other hledger fields (#500)
-  - new docs, tests
+- A variable number of postings can be generated, from zero to nine. (#627, #1095)
 
-  Migration notes:
+- In conditional blocks, `skip` can be used to skip one or more
+  records after a pattern match, or the new `end` rule can be used to
+  skip all remaining records. (#1076)
 
-  - When `print`ing from CSV, there is now one less space between
-    transaction descriptions and comments. If you are comparing old
-    and new reports, diff -w (--ignore-all-space) will ignore this
-    change.
+- The new `balance-type` CSV rule controls which kind of balance
+  assertions are generated (=, ==, =*, ==*)
 
-  - CSV rules now give you more freedom to generate any journal
-    entries you want, including malformed or unbalanced ones. 
-    The csv reader now checks the journal after conversion,
-    so it will report any problems with the generated entries.
+- Postings with balance assignments can be generated. (#1000)
 
-  - Balance assertions generated from CSV are not checked, currently.
-    This is appropriate when you are downloading partial CSV data to
-    be merged into your main journal. If you do need to check balance
-    assertions right away, you can pipe through hledger again:
+- Both the amount-in/amount-out fields having a non-empty value is now
+  accepted, as long as one of them is zero. (#570)
 
-        $ hledger -f a.csv print | hledger -f- print
+- Line feeds/carriage returns in (quoted) CSV values are now converted
+  to spaces during conversion. (#416, #841)
 
-- csv: finalise and check journals generated from CSV (#1000)
-  Invalid transactions generated from CSV will now be rejected.
-  I updated some csv tests to avoid this, except for 21, which
-  probably needs more cleanup.
+- Field assignments can now unset a field (eg a posting can be
+  suppressed by assigning no value to its account).
 
-- csv: allow csv records with varying lengths, padding with empties
-  Sometimes trailing empty fields are omitted entirely (including the
-  commas) in CSV records. (I see this in exported Google spreadsheets.)
-  Now we don't raise an error in this case, instead we automatically pad
-  any "short" records with empty fields. Not yet well tested.
+- CSV records with varying lengths are now allowed; short records will
+  be padded with empty fields as needed. This allows us to handle eg
+  exported Google spreadsheets, where trailing empty fields are omitted.
 
-- csv: fix parsing of whitespace on line after an if block (fix #1120)
+- Journals generated from CSV are now finalised and checked like
+  ordinary journals (#1000). So invalid transactions generated from
+  CSV will be rejected, amount styles will be standardised etc.
 
-- csv: csv reader gets balance-type directive (Dmitry Astapov)
+- Fixed: we no longer add an extra (third) space between description and comment.
 
-- csv: support generation of (un)balanced virtual postings in csv reader (Dmitry Astapov)
+- Fixed: whitespace on the line after an if block no longer causes misparsing. (#1120)
+
+- Fixed: an empty field assignment no longer consumes the next line. (#1001)
+
+- Fixed: interpolation of field names containing punctuation now works.
+
+- Docs have been rewritten and clarified.
+
+Migration notes:
+
+- When `print`ing from CSV, there is now one less space between
+  transaction descriptions and comments, which may generate noisy
+  diffs if you are comparing old and new reports. diff -w
+  (--ignore-all-space) will filter these out.
+
+- CSV rules now give you more freedom to generate any journal
+  entries you want, including malformed or unbalanced ones. 
+  The csv reader now checks the journal after conversion,
+  so it will report any problems with the generated entries.
+
+- Balance assertions generated from CSV are not checked, currently.
+  This is appropriate when you are downloading partial CSV data to
+  be merged into your main journal. If you do need to check balance
+  assertions right away, you can pipe through hledger again:
+
+      $ hledger -f a.csv print | hledger -f- print
+
 
 
 # 1.15.2 2019-09-05
