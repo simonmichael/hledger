@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 439cb2e5
+# 1.16.1 2019-12-03
 
 - Drop old json dependency (#1190)
 
