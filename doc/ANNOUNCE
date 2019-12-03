@@ -1,7 +1,13 @@
-I'm pleased to announce hledger 1.15 !
-Thanks to release contributors Caleb Maclennan, Jakob Schöttl, 
-Henning Thielemann, Dmitry Astapov, Ben Creasy, zieone, Boyd Kelly,
-Gabriel Ebner, Hans-Peter Deifel, and Andreas Pauley.
+I'm pleased to announce hledger 1.16.1 !
+
+hledger 1.16 was released on schedule on 2019-12-01, but only to
+hackage and github, since I was travelling and behind a rain-disrupted
+microwave link. Today brings the release notes & docs updates on
+hledger.org, and a 1.16.1 point release with some packaging updates.
+
+Thanks to release contributors Dmitry Astapov, Mykola Orliuk, Brian
+Wignall, Alejandro García Montoro, Timofey ZAKREVSKIY, Amitai
+Burstein, and Michael Kainer.
 
 hledger is a robust, cross-platform, multicurrency, plain text
 accounting tool, with command-line, terminal and web UIs. It is one of
@@ -12,22 +18,20 @@ Learn more at http://hledger.org and http://plaintextaccounting.org .
 
 WHAT'S NEW:
 
-A new website, faster and more flexible valuation, more accurate close
-command, tags --values, new descriptions/payees/notes/diff commands,
-misc. fixes. For details, see
-https://hledger.org/release-notes#hledger-1-15 .
+GHC 8.8 support, much more powerful CSV conversion rules, percentage balance reports, misc improvements.
+https://hledger.org/release-notes#hledger-1-16 .
 
 GETTING STARTED:
 
 Many install methods are described at http://hledger.org/download .
-Some of these might take a few days to become up to date.
+Some of these might take a few days to become up to date; look for the green badges.
 You can build the latest by doing:
 
-stack install --resolver=lts-14.4 hledger-lib-1.15 hledger-1.15 hledger-web-1.15 hledger-ui-1.15 --verbosity=error
+stack update; stack install --resolver=lts hledger-lib-1.16.1 hledger-1.16.1 hledger-ui-1.16.1 hledger-web-1.16.1 --silent
 
 or:
 
-cabal v2-update && cabal v2-install hledger-1.15 hledger-web-1.15 hledger-ui-1.15
+cabal v2-update; cabal v2-install hledger-1.16.1 hledger-web-1.16.1 hledger-ui-1.16.1
 
 To start recording transactions: "hledger add".
 To list more commands: "hledger".
