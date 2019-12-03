@@ -1,9 +1,6 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 1.16.1 2019-12-03
-
-
 # 1.16 2019-12-01
 
 - add support for GHC 8.8, base-compat 0.11 (#1090)
