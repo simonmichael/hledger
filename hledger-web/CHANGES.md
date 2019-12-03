@@ -1,7 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 0ce890e5
+# 439cb2e5
+
+- Drop old json dependency (#1190)
 
 - Drop unnecessary mtl-compat dependency
 

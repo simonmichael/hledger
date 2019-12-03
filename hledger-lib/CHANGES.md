@@ -1,7 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 0ce890e5
+# e032eff8
+
+
 
 - Drop unnecessary mtl-compat dependency
 
