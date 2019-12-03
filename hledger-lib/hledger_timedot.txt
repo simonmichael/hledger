@@ -124,4 +124,4 @@ SEE ALSO
 
 
 
-hledger 1.16                     December 2019              hledger_timedot(5)
+hledger 1.16.1                   December 2019              hledger_timedot(5)
