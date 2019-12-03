@@ -431,4 +431,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.16                  December 2019                   hledger-ui(1)
+hledger-ui 1.16.1                December 2019                   hledger-ui(1)
