@@ -22,7 +22,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
 import Text.Blaze.Internal (Markup, preEscapedString)
-import Text.JSON
 import Text.Megaparsec (bundleErrors, eof, parseErrorTextPretty, runParser)
 import Yesod
 
@@ -71,13 +70,16 @@ addForm j today = identifyForm "add" $ \extra -> do
   (amtRes, _) <- mreq listField amtFS Nothing
   let (postRes, displayRows) = validatePostings acctRes amtRes
 
+  -- bindings used in add-form.hamlet
   let descriptions = sort $ nub $ tdescription <$> jtxns j
-      escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236
-      listToJsonValueObjArrayStr = preEscapedString . escapeJSSpecialChars .
-        encode . JSArray . fmap (\a -> JSObject $ toJSObject [("value", showJSON a)])
       journals = fst <$> jfiles j
+      listToJsonArray :: [Text] -> Markup
+      listToJsonArray = preEscapedString . escapeJSSpecialChars . show . toJSON
+        where
+          escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236
 
   pure (validateTransaction dateRes descRes postRes, $(widgetFile "add-form"))
+
   where
     dateFS = FieldSettings "date" Nothing Nothing (Just "date")
       [("class", "form-control input-lg"), ("placeholder", "Date")]

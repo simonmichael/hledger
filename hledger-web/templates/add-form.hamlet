@@ -1,7 +1,7 @@
 <script>
   jQuery(document).ready(function() {
     descriptionsSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr descriptions},
+      local:#{listToJsonArray descriptions},
       limit:100,
       datumTokenizer: function(d) { return [d.value]; },
       queryTokenizer: function(q) { return [q]; }
@@ -9,7 +9,7 @@
     descriptionsSuggester.initialize();
 
     accountsSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr (journalAccountNamesDeclaredOrImplied j)},
+      local:#{listToJsonArray (journalAccountNamesDeclaredOrImplied j)},
       limit:100,
       datumTokenizer: function(d) { return [d.value]; },
       queryTokenizer: function(q) { return [q]; }
