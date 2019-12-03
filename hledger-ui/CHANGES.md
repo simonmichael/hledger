@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# d922b6e7
+# 1.16.1 2019-12-03
 
 - use hledger 1.16.1, fixing GHC 8.0/8.2 build
 

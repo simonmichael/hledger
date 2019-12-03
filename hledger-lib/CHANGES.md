@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# e032eff8
+# 1.16.1 2019-12-03
 
 
 

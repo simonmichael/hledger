@@ -1,6 +1,6 @@
 User-visible changes in the hledger command line tool and library.
 
-# ca08951a
+# 1.16.1 2019-12-03
 
 
 
