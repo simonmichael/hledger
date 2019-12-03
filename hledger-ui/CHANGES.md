@@ -1,6 +1,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# d922b6e7
+
+
 # 1.16 2019-12-01
 
 - add support for GHC 8.8, base-compat 0.11 (#1090)

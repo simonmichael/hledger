@@ -1,6 +1,8 @@
 User-visible changes in the hledger command line tool and library.
 
-# 0ce890e5
+# ca08951a
+
+
 
 - Drop unnecessary mtl-compat dependency
 
