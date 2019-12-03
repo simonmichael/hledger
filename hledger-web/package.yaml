@@ -118,7 +118,6 @@ library:
   - http-conduit
   - http-client
   - http-types
-  - json
   - megaparsec >=7.0.0 && <8
   - mtl >=2.2.1
   - semigroups
