@@ -2,8 +2,6 @@ User-visible changes in the hledger command line tool and library.
 
 # 1.16.1 2019-12-03
 
-
-
 - Drop unnecessary mtl-compat dependency
 
 - Fix building with GHC 8.0, 8.2
