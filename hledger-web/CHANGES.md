@@ -3,9 +3,9 @@ See also the hledger changelog.
 
 # 1.16.1 2019-12-03
 
-- Drop old json dependency (#1190)
+- Drop unnecessary json (#1190), mtl-compat dependencies
 
-- Drop unnecessary mtl-compat dependency
+- use hledger 1.16.1, fixing GHC 8.0/8.2 build
 
 # 1.16 2019-12-01
 
