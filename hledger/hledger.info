@@ -2187,9 +2187,10 @@ file, or for closing out revenues/expenses to retained earnings at the
 end of a period.
 
    The closing transaction transfers balances to "equity:closing
-balances".  The opening transaction transfers balances from
-"equity:opening balances".  You can choose to print just one of the
-transactions by using the '--opening' or '--closing' flag.
+balances", and the opening transaction transfers balances from
+"equity:opening balances", or you can customise these with the
+'--close-to' and '--open-from' options.  You can choose to print just
+one of the transactions by using the '--opening' or '--closing' flag.
 
    If you split your journal files by time (eg yearly), you will
 typically run this command at the end of the year, and save the closing
@@ -3290,78 +3291,78 @@ Node: check-dupes75785
 Ref: #check-dupes75909
 Node: close76202
 Ref: #close76316
-Node: commodities79903
-Ref: #commodities80030
-Node: descriptions80112
-Ref: #descriptions80240
-Node: diff80421
-Ref: #diff80527
-Node: files81574
-Ref: #files81674
-Node: help81821
-Ref: #help81921
-Node: import83002
-Ref: #import83116
-Node: Importing balance assignments84009
-Ref: #importing-balance-assignments84157
-Node: incomestatement84806
-Ref: #incomestatement84939
-Node: notes86343
-Ref: #notes86456
-Node: payees86582
-Ref: #payees86688
-Node: prices86846
-Ref: #prices86952
-Node: print87293
-Ref: #print87403
-Node: print-unique91896
-Ref: #print-unique92022
-Node: register92307
-Ref: #register92434
-Node: Custom register output96606
-Ref: #custom-register-output96735
-Node: register-match97997
-Ref: #register-match98131
-Node: rewrite98482
-Ref: #rewrite98597
-Node: Re-write rules in a file100452
-Ref: #re-write-rules-in-a-file100586
-Node: Diff output format101796
-Ref: #diff-output-format101965
-Node: rewrite vs print --auto103057
-Ref: #rewrite-vs.-print---auto103236
-Node: roi103792
-Ref: #roi103890
-Node: stats104902
-Ref: #stats105001
-Node: tags105789
-Ref: #tags105887
-Node: test106181
-Ref: #test106265
-Node: ADD-ON COMMANDS107012
-Ref: #add-on-commands107122
-Node: Official add-ons108410
-Ref: #official-add-ons108550
-Node: ui108630
-Ref: #ui108717
-Node: web108771
-Ref: #web108860
-Node: Third party add-ons108906
-Ref: #third-party-add-ons109081
-Ref: #diff-1109240
-Node: iadd109339
-Ref: #iadd109449
-Node: interest109531
-Ref: #interest109652
-Node: irr109747
-Ref: #irr109845
-Node: Experimental add-ons109976
-Ref: #experimental-add-ons110128
-Node: autosync110376
-Ref: #autosync110487
-Node: chart110726
-Ref: #chart110845
-Node: check110916
-Ref: #check111018
+Node: commodities79982
+Ref: #commodities80109
+Node: descriptions80191
+Ref: #descriptions80319
+Node: diff80500
+Ref: #diff80606
+Node: files81653
+Ref: #files81753
+Node: help81900
+Ref: #help82000
+Node: import83081
+Ref: #import83195
+Node: Importing balance assignments84088
+Ref: #importing-balance-assignments84236
+Node: incomestatement84885
+Ref: #incomestatement85018
+Node: notes86422
+Ref: #notes86535
+Node: payees86661
+Ref: #payees86767
+Node: prices86925
+Ref: #prices87031
+Node: print87372
+Ref: #print87482
+Node: print-unique91975
+Ref: #print-unique92101
+Node: register92386
+Ref: #register92513
+Node: Custom register output96685
+Ref: #custom-register-output96814
+Node: register-match98076
+Ref: #register-match98210
+Node: rewrite98561
+Ref: #rewrite98676
+Node: Re-write rules in a file100531
+Ref: #re-write-rules-in-a-file100665
+Node: Diff output format101875
+Ref: #diff-output-format102044
+Node: rewrite vs print --auto103136
+Ref: #rewrite-vs.-print---auto103315
+Node: roi103871
+Ref: #roi103969
+Node: stats104981
+Ref: #stats105080
+Node: tags105868
+Ref: #tags105966
+Node: test106260
+Ref: #test106344
+Node: ADD-ON COMMANDS107091
+Ref: #add-on-commands107201
+Node: Official add-ons108489
+Ref: #official-add-ons108629
+Node: ui108709
+Ref: #ui108796
+Node: web108850
+Ref: #web108939
+Node: Third party add-ons108985
+Ref: #third-party-add-ons109160
+Ref: #diff-1109319
+Node: iadd109418
+Ref: #iadd109528
+Node: interest109610
+Ref: #interest109731
+Node: irr109826
+Ref: #irr109924
+Node: Experimental add-ons110055
+Ref: #experimental-add-ons110207
+Node: autosync110455
+Ref: #autosync110566
+Node: chart110805
+Ref: #chart110924
+Node: check110995
+Ref: #check111097
 
 End Tag Table
