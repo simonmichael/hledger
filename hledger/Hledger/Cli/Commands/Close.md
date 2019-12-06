@@ -7,8 +7,9 @@ period.
 
 _FLAGS_
 
-The closing transaction transfers balances to "equity:closing balances".
-The opening transaction transfers balances from "equity:opening balances".
+The closing transaction transfers balances to "equity:closing balances",
+and the opening transaction transfers balances from "equity:opening balances",
+or you can customise these with the `--close-to` and `--open-from` options.
 You can choose to print just one of the transactions by using the
 `--opening` or `--closing` flag.
 
