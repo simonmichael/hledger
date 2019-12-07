@@ -20,7 +20,6 @@ module Hledger.Data.Posting (
   vpost',
   nullsourcepos,
   nullassertion,
-  assertion,
   balassert,
   balassertTot,
   balassertParInc,
@@ -128,14 +127,13 @@ vpost' acc amt ass = (post' acc amt ass){ptype=VirtualPosting, pbalanceassertion
 nullsourcepos :: GenericSourcePos
 nullsourcepos = JournalSourcePos "" (1,1)
 
-nullassertion, assertion :: BalanceAssertion
+nullassertion :: BalanceAssertion
 nullassertion = BalanceAssertion
                   {baamount=nullamt
                   ,batotal=False
                   ,bainclusive=False
                   ,baposition=nullsourcepos
                   }
-assertion = nullassertion
 
 -- | Make a partial, exclusive balance assertion.
 balassert :: Amount -> Maybe BalanceAssertion

@@ -827,11 +827,11 @@ transactionFromCsvRecord sourcepos rules record = t
 
     defaultAssertion =
       case mdirective "balance-type" of
-        Nothing -> assertion
-        Just "=" -> assertion
-        Just "==" -> assertion {batotal=True}
-        Just "=*" -> assertion {bainclusive=True}
-        Just "==*" -> assertion{batotal=True, bainclusive=True}
+        Nothing -> nullassertion
+        Just "=" -> nullassertion
+        Just "==" -> nullassertion{batotal=True}
+        Just "=*" -> nullassertion{bainclusive=True}
+        Just "==*" -> nullassertion{batotal=True, bainclusive=True}
         Just x -> error' $ unlines
           [ "balance-type \"" ++ x ++"\" is invalid. Use =, ==, =* or ==*." 
           , showRecord record

@@ -55,7 +55,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       -- only the last posting in each commodity will have a balance assertion (#1035)
       closingps = [posting{paccount          = a
                           ,pamount           = mixed [setprec $ negate b]
-                          ,pbalanceassertion = if islast then Just assertion{baamount=setprec b{aquantity=0, aprice=Nothing}} else Nothing
+                          ,pbalanceassertion = if islast then Just nullassertion{baamount=setprec b{aquantity=0, aprice=Nothing}} else Nothing
                           }
                   | (a,_,_,mb) <- acctbals
                     -- the balances in each commodity, and for each transaction price
@@ -76,7 +76,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       openingps = [posting{paccount          = a
                           ,pamount           = mixed [setprec b]
                           ,pbalanceassertion = case mcommoditysum of
-                                                 Just s  -> Just assertion{baamount=setprec s{aprice=Nothing}}
+                                                 Just s  -> Just nullassertion{baamount=setprec s{aprice=Nothing}}
                                                  Nothing -> Nothing
                           }
                   | (a,_,_,mb) <- acctbals
