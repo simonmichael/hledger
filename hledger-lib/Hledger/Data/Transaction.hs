@@ -162,6 +162,7 @@ showTransactionOneLineAmounts :: Transaction -> String
 showTransactionOneLineAmounts = showTransactionHelper True
 
 -- | Deprecated alias for 'showTransactionOneLineAmounts'
+showTransactionUnelidedOneLineAmounts :: Transaction -> String
 showTransactionUnelidedOneLineAmounts = showTransactionOneLineAmounts  -- TODO: drop it
 
 -- | Helper for showTransaction*.
@@ -241,7 +242,7 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     ++ newlinecomments
     | postingblock <- postingblocks]
   where
-    postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
+    postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amt, assertion, samelinecomment] | amt <- shownAmounts]
     assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p
     statusandaccount = lineIndent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
@@ -267,6 +268,7 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
                                               c:cs -> (c,cs)
 
 -- | Render a balance assertion, as the =[=][*] symbol and expected amount.
+showBalanceAssertion :: BalanceAssertion -> [Char]
 showBalanceAssertion BalanceAssertion{..} =
   "=" ++ ['=' | batotal] ++ ['*' | bainclusive] ++ " " ++ showAmountWithZeroCommodity baamount
 
@@ -388,9 +390,9 @@ balanceTransactionHelper mstyles t = do
 
   where
     nonzerobalanceerror :: Transaction -> String
-    nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
+    nonzerobalanceerror tt = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
         where
-          (rsum, _, bvsum) = transactionPostingBalances t
+          (rsum, _, bvsum) = transactionPostingBalances tt
           rmsg | isReallyZeroMixedAmountCost rsum = ""
                | otherwise = "real postings are off by "
                  ++ showMixedAmount (costOfMixedAmount rsum)
@@ -558,6 +560,7 @@ transactionToCost styles t@Transaction{tpostings=ps} = t{tpostings=map (postingT
 
 -- tests
 
+tests_Transaction :: TestTree
 tests_Transaction =
   tests "Transaction" [
 
