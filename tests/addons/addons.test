@@ -4,22 +4,49 @@
 # they always run the first hledger executable in PATH
 
 # 1. flags after an add-command are handled by the add-on
- PATH=$PATH:. hledger addon --help
->>> /hledger-addon/
->>>=0
+$ PATH=$PATH:. hledger addon --help
+> /hledger-addon/
+>=0
 
 # 2. add-on flags which are not also defined in the main executable are a problem
- PATH=$PATH:. hledger addon --addonflag
->>>2 /Unknown flag: --addonflag/
->>>=1
+$ PATH=$PATH:. hledger addon --addonflag
+>2 /Unknown flag: --addonflag/
+>=1
 
 # 3. hledger main executable ignores anything after -- (and hides the -- from the add-on)
- PATH=$PATH:. hledger addon --help -- --addonflag
->>> /hledger-addon/
->>>=0
+$ PATH=$PATH:. hledger addon --help -- --addonflag
+> /hledger-addon/
+>=0
 
 # TODO how to reliably ensure no addons but still find the hledger executable ?
 # 4. having no addons shouldn't break the commands list
-# PATH= ~/.local/bin/stack exec -- hledger
-#>>>=0
+# $ PATH= ~/.local/bin/stack exec -- hledger
+# >=0
 
+# ############################    issue 457    #####################################
+#                                                                                  #
+# These tests are commented out, as they are not working properly. See:            #
+#  https://github.com/simonmichael/hledger/pull/1140#issuecomment-562793255        #
+#                                                                                  #
+# # 5. test for `>` in https://github.com/simonmichael/hledger/issues/457          #
+# # note a shelltest already provides one level of quoting, so amt:>0 not 'amt:>0' #
+# #                                                                                #
+# $ hledger -f - ui amt:>0                                                         #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+#                                                                                  #
+# # 6. test for `<` in https://github.com/simonmichael/hledger/issues/457          #
+# $ hledger -f - ui amt:<0                                                         #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+#                                                                                  #
+# # 7. test for `>=` in https://github.com/simonmichael/hledger/issues/457         #
+# $ hledger -f - ui amt:>=0                                                        #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+#                                                                                  #
+# # 8. test for `<=` in https://github.com/simonmichael/hledger/issues/457         #
+# $ hledger -f - ui amt:<=0                                                        #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+# ##################################################################################
