@@ -23,26 +23,30 @@
 # PATH= ~/.local/bin/stack exec -- hledger
 #>>>=0
 
-############################    issue 457    #####################################
-# 5. test for `>` in https://github.com/simonmichael/hledger/issues/457          #
-# note a shelltest already provides one level of quoting, so amt:>0 not 'amt:>0' #
-#                                                                                #
-$ hledger -f - ui amt:>0                                                         #
->2 !/could not parse/                                                            #
->=1                                                                              #
-                                                                                 #
-# 6. test for `<` in https://github.com/simonmichael/hledger/issues/457          #
-$ hledger -f - ui amt:<0                                                         #
->2 !/could not parse/                                                            #
->=1                                                                              #
-                                                                                 #
-# 7. test for `>=` in https://github.com/simonmichael/hledger/issues/457         #
-$ hledger -f - ui amt:>=0                                                        #
->2 !/could not parse/                                                            #
->=1                                                                              #
-                                                                                 #
-# 8. test for `<=` in https://github.com/simonmichael/hledger/issues/457         #
-$ hledger -f - ui amt:<=0                                                        #
->2 !/could not parse/                                                            #
->=1                                                                              #
-##################################################################################
+# ############################    issue 457    #####################################
+#                                                                                  #
+# These tests are commented out, as they are not working properly. See:            #
+#  https://github.com/simonmichael/hledger/pull/1140#issuecomment-562793255        #
+#                                                                                  #
+# # 5. test for `>` in https://github.com/simonmichael/hledger/issues/457          #
+# # note a shelltest already provides one level of quoting, so amt:>0 not 'amt:>0' #
+# #                                                                                #
+# $ hledger -f - ui amt:>0                                                         #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+#                                                                                  #
+# # 6. test for `<` in https://github.com/simonmichael/hledger/issues/457          #
+# $ hledger -f - ui amt:<0                                                         #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+#                                                                                  #
+# # 7. test for `>=` in https://github.com/simonmichael/hledger/issues/457         #
+# $ hledger -f - ui amt:>=0                                                        #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+#                                                                                  #
+# # 8. test for `<=` in https://github.com/simonmichael/hledger/issues/457         #
+# $ hledger -f - ui amt:<=0                                                        #
+# >2 !/could not parse/                                                            #
+# >=1                                                                              #
+# ##################################################################################
