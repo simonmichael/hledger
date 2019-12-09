@@ -616,6 +616,17 @@ include categorisation.rules
 
 # TIPS
 
+## Rapid feedback
+
+It's a good idea to get rapid feedback while creating/troubleshooting CSV rules.
+Here's a good way, using entr from http://eradman.com/entrproject :
+```shell
+$ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
+```
+A desc: query (eg) is used to select just one, or a few, transactions of interest.
+"bash -c" is used to run multiple commands, so we can echo a separator each time
+the command re-runs, making it easier to read the output.
+
 ## Valid CSV
 
 hledger accepts CSV conforming to [RFC 4180](https://tools.ietf.org/html/rfc4180).
