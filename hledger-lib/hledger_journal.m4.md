@@ -24,7 +24,7 @@ in a simple format readable by both hledger and humans.
 
 hledger's journal format is a compatible subset, mostly, of [ledger's
 journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format),
-so hledger can work with [compatible](https://github.com/simonmichael/hledger/wiki/FAQ#file-formats)
+so hledger can work with [compatible](faq.html#file-format-differences)
 ledger journal files as well.  It's safe, and encouraged, to run both
 hledger and ledger on the same journal file, eg to validate the results
 you're getting.
@@ -1089,7 +1089,7 @@ This can be useful for:
 Account aliases also rewrite account names in [account directives](#declaring-accounts).
 They do not affect account names being entered via hledger add or hledger-web.
 
-See also [Cookbook: Rewrite account names](https://github.com/simonmichael/hledger/wiki/Rewrite-account-names).
+See also [Rewrite account names](rewrite-account-names.html).
 
 #### Basic aliases
 
@@ -1441,5 +1441,5 @@ journal files easier. They add colour, formatting, tab completion, and
 helpful commands, and are quite recommended if you edit your journal
 with a text editor. They include ledger-mode or hledger-mode for
 Emacs, vim-ledger for Vim, hledger-vscode for Visual Studio Code, and
-others. See the [[Cookbook]] at hledger.org for the latest
-information.
+others. See the [Editor configuration](editors.html) at hledger.org
+for the latest information.

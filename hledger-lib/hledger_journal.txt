@@ -1024,7 +1024,7 @@ FILE FORMAT
        do not affect account names being entered via hledger add  or  hledger-
        web.
 
-       See also Cookbook: Rewrite account names.
+       See also Rewrite account names.
 
    Basic aliases
        To  set an account alias, use the alias directive in your journal file.
@@ -1386,8 +1386,8 @@ EDITOR SUPPORT
        helpful commands, and are quite recommended if you  edit  your  journal
        with  a  text  editor.   They  include  ledger-mode or hledger-mode for
        Emacs, vim-ledger for Vim, hledger-vscode for Visual Studio  Code,  and
-       others.   See  the  [[Cookbook]] at hledger.org for the latest informa-
-       tion.
+       others.  See the Editor configuration at hledger.org for the latest in-
+       formation.
 
 
 

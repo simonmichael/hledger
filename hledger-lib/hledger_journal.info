@@ -1297,7 +1297,7 @@ parts of them, before generating reports.  This can be useful for:
 They do not affect account names being entered via hledger add or
 hledger-web.
 
-   See also Cookbook: Rewrite account names.
+   See also Rewrite account names.
 
 * Menu:
 
@@ -1742,7 +1742,7 @@ journal files easier.  They add colour, formatting, tab completion, and
 helpful commands, and are quite recommended if you edit your journal
 with a text editor.  They include ledger-mode or hledger-mode for Emacs,
 vim-ledger for Vim, hledger-vscode for Visual Studio Code, and others.
-See the [[Cookbook]] at hledger.org for the latest information.
+See the Editor configuration at hledger.org for the latest information.
 
 
 Tag Table:
@@ -1831,35 +1831,35 @@ Node: Account display order44972
 Ref: #account-display-order45142
 Node: Rewriting accounts46271
 Ref: #rewriting-accounts46456
-Node: Basic aliases47192
-Ref: #basic-aliases47338
-Node: Regex aliases48042
-Ref: #regex-aliases48214
-Node: Combining aliases48932
-Ref: #combining-aliases49110
-Node: end aliases50386
-Ref: #end-aliases50534
-Node: Default parent account50635
-Ref: #default-parent-account50801
-Node: Periodic transactions51685
-Ref: #periodic-transactions51883
-Node: Periodic rule syntax53755
-Ref: #periodic-rule-syntax53961
-Node: Two spaces between period expression and description!54665
-Ref: #two-spaces-between-period-expression-and-description54984
-Node: Forecasting with periodic transactions55668
-Ref: #forecasting-with-periodic-transactions55973
-Node: Budgeting with periodic transactions57999
-Ref: #budgeting-with-periodic-transactions58238
-Node: Auto postings / transaction modifiers58687
-Ref: #auto-postings-transaction-modifiers58898
-Node: Auto postings and dates61127
-Ref: #auto-postings-and-dates61384
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions61559
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions61934
-Node: Auto posting tags62312
-Ref: #auto-posting-tags62551
-Node: EDITOR SUPPORT63216
-Ref: #editor-support63334
+Node: Basic aliases47182
+Ref: #basic-aliases47328
+Node: Regex aliases48032
+Ref: #regex-aliases48204
+Node: Combining aliases48922
+Ref: #combining-aliases49100
+Node: end aliases50376
+Ref: #end-aliases50524
+Node: Default parent account50625
+Ref: #default-parent-account50791
+Node: Periodic transactions51675
+Ref: #periodic-transactions51873
+Node: Periodic rule syntax53745
+Ref: #periodic-rule-syntax53951
+Node: Two spaces between period expression and description!54655
+Ref: #two-spaces-between-period-expression-and-description54974
+Node: Forecasting with periodic transactions55658
+Ref: #forecasting-with-periodic-transactions55963
+Node: Budgeting with periodic transactions57989
+Ref: #budgeting-with-periodic-transactions58228
+Node: Auto postings / transaction modifiers58677
+Ref: #auto-postings-transaction-modifiers58888
+Node: Auto postings and dates61117
+Ref: #auto-postings-and-dates61374
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions61549
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions61924
+Node: Auto posting tags62302
+Ref: #auto-posting-tags62541
+Node: EDITOR SUPPORT63206
+Ref: #editor-support63324
 
 End Tag Table
