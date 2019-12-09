@@ -1197,6 +1197,9 @@ tools/generatejournal 3 5 5 --mixed >examples/mixed.journal
 
 ### Four kinds of documentation
 
+20191209: needs update. See also doc/README.
+
+
 <div style="margin:1em 2em; font-style:italic;">
 "There is a secret that needs to be understood in order to write good
 software documentation: there isn’t one thing called documentation,

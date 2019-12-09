@@ -1,7 +1,9 @@
 HLEDGER_SRC/doc - starting point for hledger documentation files.
 
 
-20190901: needs update
+20190901: needs update.
+site/ is now a symlink to the separate hledger_site repo.
+See also Shake.hs.
 
 
 hledger doc files can be divided into several groups: 
