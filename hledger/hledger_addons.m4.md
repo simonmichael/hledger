@@ -36,11 +36,6 @@ These are maintained and released along with hledger.
 
 These are maintained separately, and usually updated shortly after a hledger release.
 
-### diff
-
-[hledger-diff](http://hackage.haskell.org/package/hledger-diff)
-shows differences in an account's transactions between one journal file and another.
-
 ### iadd
 
 [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
@@ -50,11 +45,6 @@ is a more interactive, terminal UI replacement for the [add command](hledger.htm
 
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 generates interest transactions for an account according to various schemes. 
-
-### irr
-[hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-calculates the internal rate of return of an investment account,
-but it's superseded now by the built-in [roi](#roi) command. 
 
 ## Experimental add-ons
   
@@ -73,11 +63,6 @@ and can also download the data
 
 ### chart
 
-[hledger-chart.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-chart.hs#L47)
-is an old pie chart generator, in need of some love.
-
-### check
-
-[hledger-check.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check.hs)
-checks more powerful account balance assertions.
+[hledger-chart.hs](https://github.com/simonmichael/hledger/blob/master/bin/_hledger-chart.hs#L47)
+is an old very basic pie chart generator.
 
