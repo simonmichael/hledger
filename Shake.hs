@@ -73,7 +73,7 @@ usage = unlines
   ,"./Shake.hs               (re)compile this script"
   ,"./Shake commandhelp      build help texts for the hledger CLI"
   ,"./Shake manuals          build txt/man/info/web manuals for all packages"
-  ,"./Shake webmanuals       build html manuals (in site/) for all packages"
+  ,"./Shake webmanuals       build web manuals (in site/) for all packages"
   -- ,"./Shake oldmanuals       build old versions of html manuals for all packages"
   ,"./Shake PKG              build a single hledger package and its embedded docs"
   ,"./Shake build            build all hledger packages and their embedded docs"
