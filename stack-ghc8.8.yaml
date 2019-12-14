@@ -1,6 +1,7 @@
 # stack build plan using GHC 8.8.1
 
 resolver: nightly-2019-11-28
+# allow-newer: true
 
 packages:
 - hledger-lib
@@ -12,26 +13,10 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-# allow-newer: true
-
 extra-deps:
 # for hledger-lib:
-# testing:
-# - base-compat-batteries-0.11.0
-# - base-compat-0.11.0
 # for hledger:
 # for hledger-ui:
 - brick-0.50.1
 - vty-5.26
 # for hledger-web:
-- git: https://github.com/GaloisInc/json.git
-  commit: 9d36ca5d865be7e4b2126b68a444b901941d2492
-
-# Workaround for https://github.com/commercialhaskell/stack/issues/3922
-# Try dropping this.. after stack 2 has been out a while ? Or now ? How about now ?
-#- haskell-src-exts-1.21.0
-
-# Use at least 0.46 to work around https://github.com/simonmichael/hledger/issues/1039
-# (hledger-web build failure with GHC 8.6 on Windows 7)
-# Might also be fixed by using GHC 8.6.5+, mixed reports
-#- unix-time-0.4.6
