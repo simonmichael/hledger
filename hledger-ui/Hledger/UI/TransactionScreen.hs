@@ -45,7 +45,7 @@ transactionScreen = TransactionScreen{
 tsInit :: Day -> Bool -> UIState -> UIState
 tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
                            ,ajournal=_j
-                           ,aScreen=TransactionScreen{..}
+                           ,aScreen=TransactionScreen{}
                            } =
   -- plog ("initialising TransactionScreen, value_ is "
   --       -- ++ (pshow (Just (AtDefault Nothing)::Maybe ValuationType))

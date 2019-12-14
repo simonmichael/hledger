@@ -134,7 +134,7 @@ getAndAddTransactions es@EntryState{..} = (do
 
 -- confirmedTransactionWizard :: (ArbitraryIO :<: b, OutputLn :<: b, Line :<: b) => EntryState -> Wizard b Transaction
 -- confirmedTransactionWizard :: EntryState -> Wizard Haskeline Transaction
-confirmedTransactionWizard es@EntryState{..} = do
+confirmedTransactionWizard es = do
   t <- transactionWizard es
   -- liftIO $ hPrintf stderr {- "Transaction entered:\n%s" -} (show t)
   output $ showTransaction t

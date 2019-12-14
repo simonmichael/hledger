@@ -104,7 +104,7 @@ multiBalanceReport ropts q j = multiBalanceReportWith ropts q j (journalPriceOra
 -- run multiple reports (bs etc.) can generate the price oracle just once
 -- for efficiency, passing it to each report by calling this function directly.
 multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> MultiBalanceReport
-multiBalanceReportWith ropts@ReportOpts{..} q j@Journal{..} priceoracle =
+multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
   (if invert_ then mbrNegate else id) $
   MultiBalanceReport (colspans, mappedsortedrows, mappedtotalsrow)
     where

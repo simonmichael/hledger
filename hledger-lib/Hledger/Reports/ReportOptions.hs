@@ -511,7 +511,7 @@ reportPeriodStart ropts@ReportOpts{..} = do
 -- the journal's start date (the earliest posting date). If there's no
 -- report period and nothing in the journal, will be Nothing.
 reportPeriodOrJournalStart :: ReportOpts -> Journal -> Maybe Day
-reportPeriodOrJournalStart ropts@ReportOpts{..} j =
+reportPeriodOrJournalStart ropts j =
   reportPeriodStart ropts <|> journalStartDate False j
 
 -- Get the last day of the overall report period.
@@ -533,7 +533,7 @@ reportPeriodLastDay ropts@ReportOpts{..} = do
 -- posting date). If there's no report period and nothing in the
 -- journal, will be Nothing.
 reportPeriodOrJournalLastDay :: ReportOpts -> Journal -> Maybe Day
-reportPeriodOrJournalLastDay ropts@ReportOpts{..} j =
+reportPeriodOrJournalLastDay ropts j =
   reportPeriodLastDay ropts <|> journalEndDate False j
 
 -- tests

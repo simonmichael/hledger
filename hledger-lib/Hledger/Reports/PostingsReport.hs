@@ -67,7 +67,7 @@ type SummaryPosting = (Posting, Day)
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
-postingsReport ropts@ReportOpts{..} q j@Journal{..} =
+postingsReport ropts@ReportOpts{..} q j =
   (totallabel, items)
     where
       reportspan  = adjustReportDates ropts q j

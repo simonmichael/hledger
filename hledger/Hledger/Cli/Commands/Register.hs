@@ -55,7 +55,7 @@ registermode = hledgerCommandMode
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()
-register opts@CliOpts{reportopts_=ropts@ReportOpts{..}} j = do
+register opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let fmt = outputFormatFromOpts opts
       render | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)

@@ -66,7 +66,7 @@ flatShowsExclusiveBalance    = True
 -- This is like PeriodChangeReport with a single column (but more mature,
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
-balanceReport ropts@ReportOpts{..} q j@Journal{..} =
+balanceReport ropts@ReportOpts{..} q j =
   (if invert_ then brNegate  else id) $
   (mappedsorteditems, mappedtotal)
     where

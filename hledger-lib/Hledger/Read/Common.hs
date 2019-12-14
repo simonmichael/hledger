@@ -372,7 +372,7 @@ getAccountAliases :: MonadState Journal m => m [AccountAlias]
 getAccountAliases = fmap jparsealiases get
 
 clearAccountAliases :: MonadState Journal m => m ()
-clearAccountAliases = modify' (\(j@Journal{..}) -> j{jparsealiases=[]})
+clearAccountAliases = modify' (\j -> j{jparsealiases=[]})
 
 -- getTransactionCount :: MonadState Journal m =>  m Integer
 -- getTransactionCount = fmap jparsetransactioncount get
