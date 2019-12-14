@@ -637,13 +637,20 @@ When CSV values are enclosed in quotes, note:
 
 ## Other separator characters
 
-With the `--separator 'CHAR'` option (experimental), hledger will expect the
-separator to be CHAR instead of a comma. Ie it will read other
-"Character Separated Values" formats, such as TSV (Tab Separated Values).
-Note: on the command line, use a real tab character in quotes, not \t. Eg:
+You can use the `--separator 'CHAR'` command line option
+(experimental) to read other kinds of character-separated data. 
+Eg to read SSV (Semicolon Separated Values), use:
+```shell
+$ hledger -f foo.tsv --separator ';' print
+```
+Note the semicolon is quoted because it's a 
+[special shell character](hledger.html#special-characters-in-arguments-and-queries).
+
+To read TSV (Tab Separated Values), use:
 ```shell
 $ hledger -f foo.tsv --separator '	' print
 ```
+Note, that's a real tab character in quotes, not `\t`.
 
 ## Reading multiple CSV files
 
