@@ -404,6 +404,9 @@ Field names may not contain whitespace.
 Fields you don't care about can be left unnamed.
 Currently there must be least two items (there must be at least one comma).
 
+Note, always use comma in the fields list, even if your CSV uses
+[another separator character](#other-separator-characters).
+
 Here are the standard hledger field/pseudo-field names. 
 For more about the transaction parts they refer to, see the manual for hledger's journal format.
 
