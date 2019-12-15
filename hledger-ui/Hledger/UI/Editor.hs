@@ -15,9 +15,6 @@ import System.Process
 
 import Hledger
 
--- | Editors we know how to create more specific command lines for.
-data EditorType = Emacs | EmacsClient | Vi | Other
-
 -- | A position we can move to in a text editor: a line and optional column number.
 -- 1 (or 0) means the first and -1 means the last (and -2 means the second last, etc.
 -- though this may not be well supported.)
@@ -50,17 +47,34 @@ editorCommand = do
         <|> Just "emacsclient -a '' -nw"
   return cmd
 
+-- | Editors which we know how to open at a specific file position,
+-- and Other for the rest.
+data EditorType = Emacs | EmacsClient | Vi | Other
+
+-- Identify which text editor is being used in the basic editor command, if possible.
+identifyEditor :: String -> EditorType
+identifyEditor cmd
+  | "emacsclient" `isPrefixOf` exe = EmacsClient
+  | "emacs" `isPrefixOf` exe       = Emacs
+  | exe `elem` ["vi","nvim","vim","ex","view","gvim","gview","evim","eview","rvim","rview","rgvim","rgview"]
+                                   = Vi
+  | otherwise                      = Other
+  where
+    exe = lowercase $ takeFileName $ headDef "" $ words' cmd
+
 -- | Get a shell command to start the user's preferred text editor, or a default,
 -- and optionally jump to a given position in the file. This will be the basic
 -- editor command, with the appropriate options added, if we know how.
 -- Currently we know how to do this for emacs and vi.
--- Some examples:
--- $EDITOR=notepad         -> "notepad FILE"
--- $EDITOR=vi              -> "vi +LINE FILE"
--- $EDITOR=vi, line -1     -> "vi + FILE"
--- $EDITOR=emacs           -> "emacs +LINE:COL FILE"
--- $EDITOR=emacs, line -1  -> "emacs FILE -f end-of-buffer"
--- $EDITOR not set         -> "emacs -nw FILE -f end-of-buffer"
+--
+-- Some tests:
+-- With:                     The command should be:
+-- EDITOR=notepad         -> "notepad FILE"
+-- EDITOR=vi              -> "vi +LINE FILE"
+-- EDITOR=vi, line -1     -> "vi + FILE"
+-- EDITOR=emacs           -> "emacs +LINE:COL FILE"
+-- EDITOR=emacs, line -1  -> "emacs FILE -f end-of-buffer"
+-- EDITOR not set         -> "emacs -nw FILE -f end-of-buffer"
 --
 editorOpenPositionCommand :: Maybe TextPosition -> FilePath -> IO String
 editorOpenPositionCommand mpos f = do
@@ -78,13 +92,3 @@ editorOpenPositionCommand mpos f = do
       emacsposopt l mc = "+" ++ show l ++ maybe "" ((":"++).show) mc
       viposopt l       = "+" ++ if l >= 0 then show l else ""
 
--- Identify which text editor is used in the basic editor command, if possible.
-identifyEditor :: String -> EditorType
-identifyEditor cmd
-  | "emacsclient" `isPrefixOf` exe = EmacsClient
-  | "emacs" `isPrefixOf` exe       = Emacs
-  | exe `elem` ["vi","nvim","vim","ex","view","gvim","gview","evim","eview","rvim","rview","rgvim","rgview"]
-                                   = Vi
-  | otherwise                      = Other
-  where
-    exe = lowercase $ takeFileName $ headDef "" $ words' cmd
