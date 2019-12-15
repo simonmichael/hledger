@@ -67,28 +67,35 @@ identifyEditor cmd
 -- editor command, with the appropriate options added, if we know how.
 -- Currently we know how to do this for emacs and vi.
 --
+-- @
 -- Some tests:
--- With:                     The command should be:
--- EDITOR=notepad         -> "notepad FILE"
--- EDITOR=vi              -> "vi +LINE FILE"
--- EDITOR=vi, line -1     -> "vi + FILE"
--- EDITOR=emacs           -> "emacs +LINE:COL FILE"
--- EDITOR=emacs, line -1  -> "emacs FILE -f end-of-buffer"
--- EDITOR not set         -> "emacs -nw FILE -f end-of-buffer"
+-- When EDITOR is:  The command should be:
+-- ---------------  -----------------------------------
+-- notepad          notepad FILE
+-- vi               vi +LINE FILE
+-- emacs            emacs +LINE:COL FILE
+-- (unset)          emacs -nw FILE -f end-of-buffer
+-- @
+--
+-- How to open editors at the last line of a file:
+-- @
+-- emacs:  emacs FILE -f end-of-buffer
+-- vi:     vi + FILE
+-- @
 --
 editorOpenPositionCommand :: Maybe TextPosition -> FilePath -> IO String
 editorOpenPositionCommand mpos f = do
   cmd <- editorCommand
-  let f' = singleQuoteIfNeeded f
-  return $
+  return $ cmd ++ " " ++ 
    case (identifyEditor cmd, mpos) of
-    (EmacsClient, Just (l,mc)) | l >= 0 -> cmd ++ " " ++ emacsposopt l mc ++ " " ++ f'
-    (EmacsClient, Just (l,mc)) | l < 0  -> cmd ++ " " ++ emacsposopt 999999999 mc ++ " " ++ f'
-    (Emacs, Just (l,mc))       | l >= 0 -> cmd ++ " " ++ emacsposopt l mc ++ " " ++ f'
-    (Emacs, Just (l,_))        | l < 0  -> cmd ++ " " ++ f' ++ " -f end-of-buffer"
-    (Vi, Just (l,_))                    -> cmd ++ " " ++ viposopt l ++ " " ++ f'
-    _                                   -> cmd ++ " " ++ f'
+    (EmacsClient , Just (l,mc)) | l >= 0 -> emacsposopt l mc ++ " " ++ f'
+    (EmacsClient , Just (l,mc)) | l <  0 -> emacsposopt 999999999 mc ++ " " ++ f'
+    (Emacs       , Just (l,mc)) | l >= 0 -> emacsposopt l mc ++ " " ++ f'
+    (Emacs       , Just (l,_))  | l <  0 -> f' ++ " -f end-of-buffer"
+    (Vi          , Just (l,_))           -> viposopt l ++ " " ++ f'
+    _                                    -> f'
     where
+      f' = singleQuoteIfNeeded f
       emacsposopt l mc = "+" ++ show l ++ maybe "" ((":"++).show) mc
       viposopt l       = "+" ++ if l >= 0 then show l else ""
 
