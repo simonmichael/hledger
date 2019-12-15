@@ -315,7 +315,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = case listSelectedElement rsList of
-                        Nothing -> (endPos, journalFilePath j)
+                        Nothing -> (endPosition, journalFilePath j)
                         Just (_, RegisterScreenItem{
                           rsItemTransaction=Transaction{tsourcepos=GenericSourcePos f l c}}) -> (Just (l, Just c),f)
                         Just (_, RegisterScreenItem{
