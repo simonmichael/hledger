@@ -64,7 +64,7 @@ identifyEditor cmd
     exe = lowercase $ takeFileName $ headDef "" $ words' cmd
 
 -- | Get a shell command to start the user's preferred text editor, or a default,
--- and optionally jump to a given position in the file. This will be the basic
+-- and optionally jump to a given position in the given file. This will be the basic
 -- editor command, with the appropriate options added, if we know how.
 -- Currently we know how to do this for emacs, vi and nano.
 --
