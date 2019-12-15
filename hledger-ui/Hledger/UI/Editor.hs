@@ -49,7 +49,7 @@ editorCommand = do
 
 -- | Editors which we know how to open at a specific file position,
 -- and Other for the rest.
-data EditorType = Emacs | EmacsClient | Vi | Other
+data EditorType = Emacs | EmacsClient | Vi | Nano | Other
 
 -- Identify which text editor is being used in the basic editor command, if possible.
 identifyEditor :: String -> EditorType
@@ -58,6 +58,7 @@ identifyEditor cmd
   | "emacs" `isPrefixOf` exe       = Emacs
   | exe `elem` ["vi","nvim","vim","ex","view","gvim","gview","evim","eview","rvim","rview","rgvim","rgview"]
                                    = Vi
+  | "nano" `isPrefixOf` exe        = Nano
   | otherwise                      = Other
   where
     exe = lowercase $ takeFileName $ headDef "" $ words' cmd
@@ -65,7 +66,7 @@ identifyEditor cmd
 -- | Get a shell command to start the user's preferred text editor, or a default,
 -- and optionally jump to a given position in the file. This will be the basic
 -- editor command, with the appropriate options added, if we know how.
--- Currently we know how to do this for emacs and vi.
+-- Currently we know how to do this for emacs, vi and nano.
 --
 -- @
 -- Some tests:
@@ -93,9 +94,10 @@ editorOpenPositionCommand mpos f = do
     (Emacs       , Just (l,mc)) | l >= 0 -> emacsposopt l mc ++ " " ++ f'
     (Emacs       , Just (l,_))  | l <  0 -> f' ++ " -f end-of-buffer"
     (Vi          , Just (l,_))           -> viposopt l ++ " " ++ f'
+    (Nano        , Just (l,_))           -> nanoposopt l ++ " " ++ f'
     _                                    -> f'
     where
       f' = singleQuoteIfNeeded f
       emacsposopt l mc = "+" ++ show l ++ maybe "" ((":"++).show) mc
       viposopt l       = "+" ++ if l >= 0 then show l else ""
-
+      nanoposopt l mc  = "+" ++ show l ++ maybe "" ((","++).show) mc
