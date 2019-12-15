@@ -61,8 +61,9 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 --
 -- How to open editors at the last line of a file:
 -- @
--- emacs:  emacs FILE -f end-of-buffer
--- vi:     vi + FILE
+-- emacs:       emacs FILE -f end-of-buffer
+-- emacsclient: can't
+-- vi:          vi + FILE
 -- @
 --
 editFileAtPositionCommand :: Maybe TextPosition -> FilePath -> IO String
