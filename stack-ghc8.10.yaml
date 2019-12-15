@@ -1,0 +1,78 @@
+# stack build plan using GHC 8.10.1 alpha
+
+# https://gist.github.com/DanBurton/277f5fd807711816a3422f03a9fa2723
+setup-info:
+  ghc:
+    linux-aarch64:
+        8.10.0.20191210:
+            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-aarch64-deb9-linux.tar.xz"
+            content-length: 309712944
+            sha1: 6ef4b668b88420a7a6f8fae5e7cd9006433430b5
+            sha256: 62202ef25ffd119ab0b7581ed69ddefb2b63dd31fae692a794224d6caba2d3f7
+    linux32:
+        8.10.0.20191210:
+            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-i386-deb9-linux.tar.xz"
+            content-length: 213198656
+            sha1: 1b1634a8f49edce38b52dbd2456078b272054c43
+            sha256: c9238f1cfb387cca9dbf9bb1c8d1b4b7fe95a35032f7a6bc9f843e9fa7d0b6d3
+    macosx:
+        8.10.0.20191210:
+            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-apple-darwin.tar.xz"
+            content-length: 190941304
+            sha1: b52a936eef8ec530168b7c6d8a742b22a0547a58
+            sha256: 1afbb13e81bf1bd36135f5440058bd62d3544d4d8376426a0976f38e30e21185
+    linux64-gmp4:
+        8.10.0.20191210:
+            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-centos7-linux.tar.xz"
+            content-length: 198483272
+            sha1: 3257fe41aa8e80321df5227d9b9798428d31f798
+            sha256: f66059adad117a6147f6e5e8004fa06340afc5386dec3d8e333d44359a97b77d
+    linux64-tinfo6:
+        8.10.0.20191210:
+            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-fedora27-linux.tar.xz"
+            content-length: 212211832
+            sha1: e17a202c6ac88827ad0ddb513cdf310c0d7f2cd2
+            sha256: 99ca9d12c7a1205d7cbc619901d8e5ff8a19c0a0365ff5475ab18d67b30879bf
+    windows64:
+        8.10.0.20191210:
+            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-unknown-mingw32.tar.xz"
+            content-length: 425305856
+            sha1: d6d5a0ab35f4f1cc67e05bddd66083d27e9a0b63
+            sha256: 69632fa8928e513d71b857e96551f5ff7af74ca590ea990944fe0a2063a68a71
+
+compiler: ghc-8.10.0.20191210
+allow-newer: true
+
+resolver: nightly-2019-11-28
+
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+- hledger-web
+
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
+
+extra-deps:
+# for hledger-lib:
+# file-embed-0.0.11 + ghc 8.10
+- git: https://github.com/simonmichael/file-embed.git
+  commit: 03484ad401260e1d3b9dfc5d6f7cda05d84f11c9
+# for hledger:
+# shakespeare-2.0.23 + ghc 8.10
+- git: https://github.com/simonmichael/shakespeare.git
+  commit: f96f00c6fd2f1335e74ac62d16c9beebcb1cefff
+# for hledger-ui:
+- brick-0.50.1
+- vty-5.26
+# for hledger-web:
+- git: https://github.com/simonmichael/yesod.git
+  commit: 91a47ffb76c6244bb2ec9cf10f742dd75c0ad92d
+  subdirs:
+    - yesod-core
+- git: https://github.com/simonmichael/persistent.git
+  commit: b35c287904647ec889340c5c7fdbd62c6ad4dc31
+  subdirs:
+    - persistent-sqlite
