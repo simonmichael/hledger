@@ -1,3 +1,7 @@
+{-
+JSON instances. Should they be in Types.hs ?
+-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 --{-# LANGUAGE CPP                 #-}
@@ -21,7 +25,7 @@
 --{-# LANGUAGE TypeFamilies        #-}
 --{-# LANGUAGE TypeOperators       #-}
 
-module Hledger.Web.Json (
+module Hledger.Data.Json (
   -- * Instances
   -- * Utilities
    readJsonFile
@@ -35,9 +39,7 @@ import           Data.Decimal
 import           Data.Maybe
 import           GHC.Generics (Generic)
 
-import           Hledger.Data
-
--- JSON instances. Should they be in hledger-lib Types.hs ?
+import           Hledger.Data.Types
 
 -- To JSON
 

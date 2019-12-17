@@ -19,7 +19,6 @@ import Yesod
 import Hledger
 import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout, journalAddTransaction)
 import Hledger.Web.Import
-import Hledger.Web.Json ()
 import Hledger.Web.WebOptions (WebOpts(..))
 import Hledger.Web.Widget.AddForm (addForm)
 

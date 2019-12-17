@@ -43,6 +43,7 @@ extra-source-files:
 dependencies:
 - base >=4.9 && <4.14
 - base-compat-batteries >=0.10.1 && <0.12
+- aeson
 - ansi-terminal >=0.6.2.3
 - array
 - blaze-markup >=0.5.1
@@ -108,6 +109,7 @@ library:
   - Hledger.Data.Commodity
   - Hledger.Data.Dates
   - Hledger.Data.Journal
+  - Hledger.Data.Json
   - Hledger.Data.Ledger
   - Hledger.Data.Period
   - Hledger.Data.PeriodicTransaction

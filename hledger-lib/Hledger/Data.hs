@@ -15,6 +15,7 @@ module Hledger.Data (
                module Hledger.Data.Commodity,
                module Hledger.Data.Dates,
                module Hledger.Data.Journal,
+               module Hledger.Data.Json,
                module Hledger.Data.Ledger,
                module Hledger.Data.Period,
                module Hledger.Data.PeriodicTransaction,
@@ -36,6 +37,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Journal
+import Hledger.Data.Json
 import Hledger.Data.Ledger
 import Hledger.Data.Period
 import Hledger.Data.PeriodicTransaction

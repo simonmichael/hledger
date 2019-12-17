@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e75b2c52f9b849b13eff2f1b6d6c15c8c0d6ffcaa24883475a63d8743c2cbfa9
+-- hash: 009db76878af9603a492a0f3a9fdd46e3a4fd5795cccef390e80325ec94c8808
 
 name:           hledger-web
 version:        1.16.1
@@ -139,7 +139,6 @@ library
       Hledger.Web.Handler.RegisterR
       Hledger.Web.Handler.UploadR
       Hledger.Web.Import
-      Hledger.Web.Json
       Hledger.Web.Main
       Hledger.Web.Settings
       Hledger.Web.Settings.StaticFiles

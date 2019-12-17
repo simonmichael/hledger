@@ -25,7 +25,6 @@ import qualified Data.Text as T
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger
-import Hledger.Web.Json ()
 import Hledger.Web.Import
 import Hledger.Web.Widget.Common (journalFile404)
 

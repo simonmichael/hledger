@@ -89,7 +89,6 @@ library:
   - Hledger.Web.Handler.RegisterR
   - Hledger.Web.Handler.UploadR
   - Hledger.Web.Import
-  - Hledger.Web.Json
   - Hledger.Web.Main
   - Hledger.Web.Settings
   - Hledger.Web.Settings.StaticFiles

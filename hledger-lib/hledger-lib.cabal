@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f67238ad457aa23ba68686a932bc3f37f30d6f3f9f4514468e35e960ab81fe1b
+-- hash: c470aed5e036160325eaec9264fbff17a3dcbe8a41728d7b661c014105fe0419
 
 name:           hledger-lib
 version:        1.16.1
@@ -59,6 +59,7 @@ library
       Hledger.Data.Commodity
       Hledger.Data.Dates
       Hledger.Data.Journal
+      Hledger.Data.Json
       Hledger.Data.Ledger
       Hledger.Data.Period
       Hledger.Data.PeriodicTransaction
@@ -107,6 +108,7 @@ library
   build-depends:
       Decimal
     , Glob >=0.9
+    , aeson
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.9 && <4.14
@@ -157,6 +159,7 @@ test-suite doctest
   build-depends:
       Decimal
     , Glob >=0.7
+    , aeson
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.9 && <4.14
@@ -211,6 +214,7 @@ test-suite unittest
   build-depends:
       Decimal
     , Glob >=0.9
+    , aeson
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.9 && <4.14
