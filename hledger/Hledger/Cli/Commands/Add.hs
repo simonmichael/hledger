@@ -3,7 +3,7 @@ A history-aware add command to help with data entry.
 |-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings, PackageImports #-}
+{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings, PackageImports, LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Add (
@@ -116,7 +116,7 @@ showHelp = hPutStr stderr $ unlines [
 -- most similar recent transaction in the journal.
 getAndAddTransactions :: EntryState -> IO ()
 getAndAddTransactions es@EntryState{..} = (do
-  mt <- runInputT (setComplete noCompletion defaultSettings) (System.Console.Wizard.run $ haskeline $ confirmedTransactionWizard es)
+  mt <- runInputT (setComplete noCompletion defaultSettings) (System.Console.Wizard.run $ haskeline $ confirmedTransactionWizard es [])
   case mt of
     Nothing -> error "Could not interpret the input, restarting"  -- caught below causing a restart, I believe
     Just t -> do
@@ -132,40 +132,105 @@ getAndAddTransactions es@EntryState{..} = (do
   `E.catch` (\(_::RestartTransactionException) ->
                  hPrintf stderr "Restarting this transaction.\n" >> getAndAddTransactions es)
 
--- confirmedTransactionWizard :: (ArbitraryIO :<: b, OutputLn :<: b, Line :<: b) => EntryState -> Wizard b Transaction
--- confirmedTransactionWizard :: EntryState -> Wizard Haskeline Transaction
-confirmedTransactionWizard es = do
-  t <- transactionWizard es
-  -- liftIO $ hPrintf stderr {- "Transaction entered:\n%s" -} (show t)
-  output $ showTransaction t
-  y <- let def = "y" in
-       retryMsg "Please enter y or n." $
-        parser ((fmap ('y' ==)) . headMay . map toLower . strip) $
-        defaultTo' def $ nonEmpty $
-        maybeRestartTransaction $
-        line $ green $ printf "Save this transaction to the journal ?%s: " (showDefault def)
-  if y then return t else throw RestartTransactionException
+data TxnParams = TxnParams
+  { txnDate :: Day
+  , txnCode :: Text
+  , txnDesc :: Text
+  , txnCmnt :: Text
+  } deriving (Show)
 
-transactionWizard es@EntryState{..} = do
-  (date,code)    <- dateAndCodeWizard es
-  let es1@EntryState{esArgs=args1} = es{esArgs=drop 1 esArgs, esDefDate=date}
-  (desc,comment) <- descriptionAndCommentWizard es1
-  let mbaset = similarTransaction es1 desc
-  when (isJust mbaset) $ liftIO $ hPrintf stderr "Using this similar transaction for defaults:\n%s" (showTransaction $ fromJust mbaset)
-  let es2 = es1{esArgs=drop 1 args1, esSimilarTransaction=mbaset}
-      balancedPostingsWizard = do
-        ps <- postingsWizard es2{esPostings=[]}
-        let t = nulltransaction{tdate=date
-                               ,tstatus=Unmarked
-                               ,tcode=code
-                               ,tdescription=desc
-                               ,tcomment=comment
-                               ,tpostings=ps
+data AddingStage = EnterDateAndCode
+                 | EnterDescAndComment (Day, Text)
+                 | EnterAccount TxnParams
+                 | EnterAmountAndComment TxnParams String
+                 | EndStage Transaction
+                 | EnterNewPosting TxnParams (Maybe Posting)
+
+confirmedTransactionWizard :: EntryState -> [AddingStage] -> Wizard Haskeline Transaction
+confirmedTransactionWizard es [] = confirmedTransactionWizard es [EnterDateAndCode]
+confirmedTransactionWizard es@EntryState{..} stack@(currentStage : _) = case currentStage of
+  EnterDateAndCode -> dateAndCodeWizard es >>= \case
+    Just (date, code) -> do
+      let es' = es
+            { esArgs = drop 1 esArgs
+            , esDefDate = date
+            }
+      confirmedTransactionWizard es' (EnterDescAndComment (date, code) : stack)
+    Nothing ->
+      confirmedTransactionWizard es stack
+
+  EnterDescAndComment (date, code) -> descriptionAndCommentWizard es >>= \case
+    Just (desc, comment) -> do
+      let mbaset = similarTransaction es desc
+          es' = es
+            { esArgs = drop 1 esArgs
+            , esPostings = []
+            , esSimilarTransaction = mbaset
+            }
+      when (isJust mbaset) $ liftIO $ hPrintf stderr "Using this similar transaction for defaults:\n%s" (showTransaction $ fromJust mbaset)
+      confirmedTransactionWizard es' ((EnterNewPosting TxnParams{txnDate=date, txnCode=code, txnDesc=desc, txnCmnt=comment} Nothing) : stack)
+    Nothing ->
+      confirmedTransactionWizard es (drop 1 stack)
+
+  EnterNewPosting txnParams@TxnParams{..} posting -> case (esPostings, posting) of
+    ([], Nothing) ->
+      confirmedTransactionWizard es (EnterAccount txnParams : stack)
+    (_, Just p) ->
+      confirmedTransactionWizard es (EnterAccount txnParams : stack)
+    (_, Nothing) -> do
+      let t = nulltransaction{tdate=txnDate
+                             ,tstatus=Unmarked
+                             ,tcode=txnCode
+                             ,tdescription=txnDesc
+                             ,tcomment=txnCmnt
+                             ,tpostings=esPostings
+                             }
+      case balanceTransaction Nothing t of -- imprecise balancing (?)
+        Right t' ->
+          confirmedTransactionWizard es (EndStage t' : stack)
+        Left err -> do
+          liftIO (hPutStrLn stderr $ "\n" ++ (capitalize err) ++ "please re-enter.")
+          let notFirstEnterPost stage = case stage of
+                EnterNewPosting _ Nothing -> False
+                _ -> True
+          confirmedTransactionWizard es{esPostings=[]} (dropWhile notFirstEnterPost stack)
+
+  EnterAccount txnParams -> accountWizard es >>= \case
+    Just account
+      | account `elem` [".", ""] ->
+          case (esPostings, postingsBalanced esPostings) of
+            ([],_)    -> liftIO (hPutStrLn stderr "Please enter some postings first.") >> confirmedTransactionWizard es stack
+            (_,False) -> liftIO (hPutStrLn stderr "Please enter more postings to balance the transaction.") >> confirmedTransactionWizard es stack
+            (_,True)  -> confirmedTransactionWizard es (EnterNewPosting (traceShowId txnParams) Nothing : stack)
+      | otherwise -> confirmedTransactionWizard es{esArgs=drop 1 esArgs} (EnterAmountAndComment txnParams account : stack)
+    Nothing -> do
+      let notPrevAmountAndNotEnterDesc stage = case stage of
+            EnterAmountAndComment _ _ -> False
+            EnterDescAndComment _ -> False
+            _ -> True
+      confirmedTransactionWizard es{esPostings=init esPostings} (dropWhile notPrevAmountAndNotEnterDesc stack)
+
+  EnterAmountAndComment txnParams account -> amountAndCommentWizard es >>= \case
+    Just (amount, comment) -> do
+      let posting = nullposting{paccount=T.pack $ stripbrackets account
+                               ,pamount=Mixed [amount]
+                               ,pcomment=comment
+                               ,ptype=accountNamePostingType $ T.pack account
                                }
-        case balanceTransaction Nothing t of -- imprecise balancing (?)
-          Right t' -> return t'
-          Left err -> liftIO (hPutStrLn stderr $ "\n" ++ (capitalize err) ++ "please re-enter.") >> balancedPostingsWizard
-  balancedPostingsWizard
+      confirmedTransactionWizard es{esPostings=esPostings++[posting], esArgs=drop 2 esArgs} (EnterNewPosting txnParams (Just posting) : stack)
+    Nothing -> confirmedTransactionWizard es (drop 1 stack)
+
+  EndStage t -> do
+    output $ showTransaction t
+    y <- let def = "y" in
+         retryMsg "Please enter y or n." $
+          parser ((fmap (\c -> if c == '<' then Nothing else Just c)) . headMay . map toLower . strip) $
+          defaultTo' def $ nonEmpty $
+          line $ green $ printf "Save this transaction to the journal ?%s: " (showDefault def)
+    case y of
+      Just 'y' -> return t
+      Just _   -> throw RestartTransactionException
+      Nothing  -> confirmedTransactionWizard es (drop 2 stack)
 
 -- Identify the closest recent match for this description in past transactions.
 similarTransaction :: EntryState -> Text -> Maybe Transaction
@@ -183,11 +248,10 @@ dateAndCodeWizard EntryState{..} = do
    withCompletion (dateCompleter def) $
    defaultTo' def $ nonEmpty $
    maybeExit $
-   maybeRestartTransaction $
    -- maybeShowHelp $
    line $ green $ printf "Date%s: " (showDefault def)
     where
-      parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
+      parseSmartDateAndCode refdate s = if s == "<" then return Nothing else either (const Nothing) (\(d,c) -> return $ Just (fixSmartDate refdate d, c)) edc
           where
             edc = runParser (dateandcodep <* eof) "" $ T.pack $ lowercase s
             dateandcodep :: SimpleTextParser (SmartDate, Text)
@@ -204,31 +268,12 @@ descriptionAndCommentWizard EntryState{..} = do
   let def = headDef "" esArgs
   s <- withCompletion (descriptionCompleter esJournal def) $
        defaultTo' def $ nonEmpty $
-       maybeRestartTransaction $
        line $ green $ printf "Description%s: " (showDefault def)
-  let (desc,comment) = (T.pack $ strip a, T.pack $ strip $ dropWhile (==';') b) where (a,b) = break (==';') s
-  return (desc, comment)
-
-postingsWizard es@EntryState{..} = do
-  mp <- postingWizard es
-  case mp of Nothing -> return esPostings
-             Just p  -> postingsWizard es{esArgs=drop 2 esArgs, esPostings=esPostings++[p]}
-
-postingWizard es@EntryState{..} = do
-  acct <- accountWizard es
-  if acct `elem` [".",""]
-  then case (esPostings, postingsBalanced esPostings) of
-         ([],_)    -> liftIO (hPutStrLn stderr "Please enter some postings first.") >> postingWizard es
-         (_,False) -> liftIO (hPutStrLn stderr "Please enter more postings to balance the transaction.") >> postingWizard es
-         (_,True)  -> return Nothing -- no more postings, end of transaction
-  else do
-    let es1 = es{esArgs=drop 1 esArgs}
-    (amt,comment)  <- amountAndCommentWizard es1
-    return $ Just nullposting{paccount=T.pack $ stripbrackets acct
-                             ,pamount=Mixed [amt]
-                             ,pcomment=comment
-                             ,ptype=accountNamePostingType $ T.pack acct
-                             }
+  if s == "<"
+    then return Nothing
+    else do
+      let (desc,comment) = (T.pack $ strip a, T.pack $ strip $ dropWhile (==';') b) where (a,b) = break (==';') s
+      return $ Just (desc, comment)
 
 postingsBalanced :: [Posting] -> Bool
 postingsBalanced ps = isRight $ balanceTransaction Nothing nulltransaction{tpostings=ps}
@@ -246,15 +291,15 @@ accountWizard EntryState{..} = do
    parser (parseAccountOrDotOrNull def canfinish) $
    withCompletion (accountCompleter esJournal def) $
    defaultTo' def $ -- nonEmpty $
-   maybeRestartTransaction $
    line $ green $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
-      parseAccountOrDotOrNull :: String -> Bool -> String -> Maybe String
-      parseAccountOrDotOrNull _  _ "."       = dbg1 $ Just "." -- . always signals end of txn
-      parseAccountOrDotOrNull "" True ""     = dbg1 $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
-      parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just def -- when there's a default, "" means use that
-      parseAccountOrDotOrNull _ _ s          = dbg1 $ fmap T.unpack $
+      parseAccountOrDotOrNull :: String -> Bool -> String -> Maybe (Maybe String)
+      parseAccountOrDotOrNull _  _ "<"       = dbg1 $ Just Nothing
+      parseAccountOrDotOrNull _  _ "."       = dbg1 $ Just $ Just "." -- . always signals end of txn
+      parseAccountOrDotOrNull "" True ""     = dbg1 $ Just $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
+      parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just $ Just def -- when there's a default, "" means use that
+      parseAccountOrDotOrNull _ _ s          = dbg1 $ fmap (Just . T.unpack) $
         either (const Nothing) validateAccount $
           flip evalState esJournal $ runParserT (accountnamep <* eof) "" (T.pack s) -- otherwise, try to parse the input as an accountname
         where
@@ -279,10 +324,9 @@ amountAndCommentWizard EntryState{..} = do
    parser parseAmountAndComment $
    withCompletion (amountCompleter def) $
    defaultTo' def $ nonEmpty $
-   maybeRestartTransaction $
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where
-      parseAmountAndComment s = either (const Nothing) Just $
+      parseAmountAndComment s = if s == "<" then return Nothing else either (const Nothing) (return . Just) $
                                 runParser
                                   (evalStateT (amountandcommentp <* eof) nodefcommodityj)
                                   ""
@@ -318,8 +362,6 @@ amountAndCommentWizard EntryState{..} = do
   --      liftIO $ hPutStrLn stderr $ printf "using default commodity (%s)" (fromJust mdefaultcommodityapplied)
 
 maybeExit = parser (\s -> if s=="." then throw UnexpectedEOF else Just s)
-
-maybeRestartTransaction = parser (\s -> if s=="<" then throw RestartTransactionException else Just s)
 
 -- maybeShowHelp :: Wizard Haskeline String -> Wizard Haskeline String
 -- maybeShowHelp wizard = maybe (liftIO showHelp >> wizard) return $
