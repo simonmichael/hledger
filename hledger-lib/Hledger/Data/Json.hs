@@ -38,6 +38,7 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Decimal
 import           Data.Maybe
 import           GHC.Generics (Generic)
+import           System.Time (ClockTime)
 
 import           Hledger.Data.Types
 
@@ -75,6 +76,20 @@ instance ToJSON Posting where
     ]
 
 instance ToJSON Transaction
+instance ToJSON TransactionModifier
+instance ToJSON PeriodicTransaction
+instance ToJSON PriceDirective
+instance ToJSON DateSpan
+instance ToJSON Interval
+instance ToJSON AccountAlias
+instance ToJSON AccountType
+instance ToJSONKey AccountType
+instance ToJSON AccountDeclarationInfo
+instance ToJSON Commodity
+instance ToJSON TimeclockCode
+instance ToJSON TimeclockEntry
+instance ToJSON ClockTime
+instance ToJSON Journal
 
 instance ToJSON Account where
   toJSON a = object
@@ -93,6 +108,9 @@ instance ToJSON Account where
     -- Omit the actual subaccounts
     ,"asubs"        .= toJSON ([]::[Account])
     ]
+
+deriving instance Generic (Ledger)
+instance ToJSON Ledger
 
 -- From JSON
 
