@@ -222,8 +222,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
             EnterAmountAndComment _ _ -> False
             EnterDescAndComment _ -> False
             _ -> True
-          prevAccount' = take (length esPostings) (prevAccount prevInput)
-      confirmedTransactionWizard prevInput{prevAccount=prevAccount'} es{esPostings=init esPostings} (dropWhile notPrevAmountAndNotEnterDesc stack)
+      confirmedTransactionWizard prevInput es{esPostings=init esPostings} (dropWhile notPrevAmountAndNotEnterDesc stack)
 
   EnterAmountAndComment txnParams account -> amountAndCommentWizard prevInput es >>= \case
     Just (amount, comment) -> do
@@ -236,7 +235,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
           prevAmountAndCmnt' = replaceNthOrAppend (length esPostings) amountAndCommentString (prevAmountAndCmnt prevInput)
           es' = es{esPostings=esPostings++[posting], esArgs=drop 2 esArgs}
       confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)
-    Nothing -> confirmedTransactionWizard prevInput{prevAmountAndCmnt=take (length esPostings) (prevAmountAndCmnt prevInput)} es (drop 1 stack)
+    Nothing -> confirmedTransactionWizard prevInput es (drop 1 stack)
 
   EndStage t -> do
     output $ showTransaction t
