@@ -101,13 +101,9 @@ Discussing/moving any of these forward is a big help.
 
 - build the contributor/dev guide from CONTRIBUTING.md plus the READMEs; clean up
 - move general PTA docs to plaintextaccounting.org
-- simplify manuals' TOC/structure on the website
-
-### Tests
-
-- migrate to tasty, unblock ghc 8.8 support
-- survey/document current testing setup (process, coverage, redundancy..); identify weaknesses; design a policy for tests; make a plan for achieving that
-- start adding property tests/other new kinds of testing if appropriate
+- clarify web manuals' structure/TOC
+- refresh/integrate home page & faq
+- new tutorial(s)
 
 ----
 
