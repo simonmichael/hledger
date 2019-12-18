@@ -129,6 +129,7 @@ Some project achievements to unlock, for fun:
 - **match ledger speed**
 - match ledger committers
 - 200 committers
+- [best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)
 - 2.0 release
 - match ledger stars
 - match beancount mail list
