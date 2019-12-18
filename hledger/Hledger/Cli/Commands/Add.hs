@@ -105,7 +105,7 @@ showHelp = hPutStr stderr $ unlines [
     ,"Use tab key to complete, readline keys to edit, enter to accept defaults."
     ,"An optional (CODE) may follow transaction dates."
     ,"An optional ; COMMENT may follow descriptions or amounts."
-    ,"If you make a mistake, enter < at any prompt to restart the transaction."
+    ,"If you make a mistake, enter < at any prompt to go one step backward."
     ,"To end a transaction, enter . when prompted."
     ,"To quit, enter . at a date prompt or press control-d or control-c."
     ]
