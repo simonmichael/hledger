@@ -7,11 +7,22 @@ Discussion welcome.
 
 Dated targets we are aiming for:
 
-- **hledger 1.16** - 2019-12-01
-  - ghc 8.8 support
-  - more powerful CSV conversion
-  - updated home page, faq, manuals
-  - reduce install hassles with terminfo C lib
+- **hledger 1.17, 2020-03-01**
+  - field matching in CSV rules 
+  - reduce install hassles with terminfo C lib (?)
+  - more import/export options
+  - simple console charts
+  - refreshed home page, faq, tutorials, manuals
+
+### Archive
+
+- <s>hledger 1.16, 2019-12-01</s> -
+<s>ghc 8.8 support</s>,
+<s>more powerful CSV conversion</s>,
+updated home page, faq, manuals,
+reduce install hassles with terminfo C lib
+
+
 
 ----
 
@@ -109,16 +120,16 @@ Some project achievements to unlock, for fun:
 - <s>**pretty good reference docs**</s>
 - <s>100 committers</s>
 - <s>1k github stars</s>
-- <s>among top 50 haskell projects by github stars</s>
+- <s>among top 50 starred haskell projects on github</s>
 - <s>discussed on Hacker News</s>
-- match ledger IRC channel
+- <s>match ledger IRC channel size</s>
+- <s>**mentioned in "what good Haskell software exists" discussions**</s>
 - multiple people providing support
 - **pretty good tutorial docs**
-- **mentioned in "what good Haskell software exists" discussions**
 - **pretty good cookbook docs**
+- among top 40 starred haskell projects on github
 - 100 IRC chatters
 - 2k github stars
-- among top 40 haskell projects by github stars
 - **match ledger speed**
 - match ledger committers
 - 200 committers
