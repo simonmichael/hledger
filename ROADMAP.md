@@ -120,17 +120,20 @@ Some project achievements to unlock, for fun:
 - <s>discussed on Hacker News</s>
 - <s>match ledger IRC channel size</s>
 - <s>**mentioned in "what good Haskell software exists" discussions**</s>
+- <s>among top 40 starred haskell projects on github</s>
 - multiple people providing support
 - **pretty good tutorial docs**
 - **pretty good cookbook docs**
-- among top 40 starred haskell projects on github
 - 100 IRC chatters
 - 2k github stars
+- in top 30 github starred haskell projects
 - **match ledger speed**
 - match ledger committers
 - 200 committers
 - [best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)
 - 2.0 release
+- in top 20 github starred haskell projects
 - match ledger stars
 - match beancount mail list
 - match ledger mail list
+- in top 10 github starred haskell projects
