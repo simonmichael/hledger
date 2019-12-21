@@ -800,7 +800,7 @@ transactionFromCsvRecord sourcepos rules record = t
       case postings' of
         -- To be compatible with the behavior of the old code which allowed two postings only, we enforce
         -- second posting when rules generated just first of them, and posting is of type that should be balanced.
-        -- When we have srictly first and second posting, but second posting does not have amount, we fill it in.
+        -- When we have strictly first and second posting, but second posting does not have amount, we fill it in.
         [("1",posting1)] ->
           case ptype posting1 of
             VirtualPosting -> [posting1]
