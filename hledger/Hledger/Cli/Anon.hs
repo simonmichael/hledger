@@ -35,7 +35,7 @@ instance Anon Journal where
 instance Anon Posting where
     anon p = p { paccount = anonAccount . paccount $ p
                , pcomment = T.empty
-               , ptransaction = fmap anon . ptransaction $ p  -- Note that this will be overriden
+               , ptransaction = fmap anon . ptransaction $ p  -- Note that this will be overridden
                , poriginal = anon <$> poriginal p
                }
 

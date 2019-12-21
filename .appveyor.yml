@@ -56,7 +56,7 @@ install:
 #
 # install latest stack master
 #- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
-# show the stack-installed binares that were restored from cache, can vary by instance
+# show the stack-installed binaries that were restored from cache, can vary by instance
 #- dir C:\Users\appveyor\AppData\Roaming\local\bin
 # - stack-release upgrade --git
 #- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-master.exe

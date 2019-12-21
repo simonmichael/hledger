@@ -159,7 +159,7 @@ Changes include:
 
 -   showTransaction: fix a case showing multiple missing amounts
     showTransaction could sometimes hide the last posting's amount even if
-    one of the other posting amounts was already implcit, producing invalid
+    one of the other posting amounts was already implicit, producing invalid
     transaction output.
 
 -   plog, plogAt: add missing newline

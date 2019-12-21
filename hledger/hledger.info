@@ -1952,7 +1952,7 @@ account, all its parents would have budget as well.
     liabilities
 
    With this, monthly budget for electronics is defined to be $100 and
-budget for personal expenses is an additional $1000, which implicity
+budget for personal expenses is an additional $1000, which implicitly
 means that budget for both 'expenses:personal' and 'expenses' is $1100.
 
    Transactions in 'expenses:personal:electronics' will be counted both

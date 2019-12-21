@@ -448,7 +448,7 @@ To illustrate this, consider the following budget:
     liabilities
 ```
 
-With this, monthly budget for electronics is defined to be $100 and budget for personal expenses is an additional $1000, which implicity means
+With this, monthly budget for electronics is defined to be $100 and budget for personal expenses is an additional $1000, which implicitly means
 that budget for both `expenses:personal` and `expenses` is $1100.
 
 Transactions in `expenses:personal:electronics` will be counted both towards its $100 budget and $1100 of `expenses:personal` , and transactions in any other subaccount of `expenses:personal` would be
