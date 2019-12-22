@@ -57,21 +57,21 @@ nix:
 
 extra-deps:
 # for hledger-lib:
-# file-embed-0.0.11 + ghc 8.10
-- git: https://github.com/simonmichael/file-embed.git
-  commit: 03484ad401260e1d3b9dfc5d6f7cda05d84f11c9
+- file-embed-0.0.11.1
 # for hledger:
-# shakespeare-2.0.23 + ghc 8.10
+# 2.0.23 + ghc 8.10. Updates: http://hackage.haskell.org/package/shakespeare/changelog
 - git: https://github.com/simonmichael/shakespeare.git
   commit: f96f00c6fd2f1335e74ac62d16c9beebcb1cefff
 # for hledger-ui:
 - brick-0.50.1
 - vty-5.26
 # for hledger-web:
+# 1.6.17 + ghc 8.10. Updates: http://hackage.haskell.org/package/yesod-core/changelog
 - git: https://github.com/simonmichael/yesod.git
   commit: 91a47ffb76c6244bb2ec9cf10f742dd75c0ad92d
   subdirs:
     - yesod-core
+# 2.10.5 + ghc 8.10. Updates: http://hackage.haskell.org/package/persistent-sqlite/changelog
 - git: https://github.com/simonmichael/persistent.git
   commit: b35c287904647ec889340c5c7fdbd62c6ad4dc31
   subdirs:
