@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.8.1
 
-resolver: nightly-2019-11-28
+resolver: nightly-2019-12-24
 # allow-newer: true
 
 packages:
