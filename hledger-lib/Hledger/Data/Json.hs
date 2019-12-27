@@ -59,20 +59,20 @@ instance ToJSON PostingType
 
 instance ToJSON Posting where
   toJSON Posting{..} = object
-    ["pdate"             .= toJSON pdate
-    ,"pdate2"            .= toJSON pdate2
-    ,"pstatus"           .= toJSON pstatus
-    ,"paccount"          .= toJSON paccount
-    ,"pamount"           .= toJSON pamount
-    ,"pcomment"          .= toJSON pcomment
-    ,"ptype"             .= toJSON ptype
-    ,"ptags"             .= toJSON ptags
-    ,"pbalanceassertion" .= toJSON pbalanceassertion
+    ["pdate"             .= pdate
+    ,"pdate2"            .= pdate2
+    ,"pstatus"           .= pstatus
+    ,"paccount"          .= paccount
+    ,"pamount"           .= pamount
+    ,"pcomment"          .= pcomment
+    ,"ptype"             .= ptype
+    ,"ptags"             .= ptags
+    ,"pbalanceassertion" .= pbalanceassertion
     -- To avoid a cycle, show just the parent transaction's index number
     -- in a dummy field. When re-parsed, there will be no parent.
-    ,"ptransaction_"     .= toJSON (maybe "" (show.tindex) ptransaction)
+    ,"ptransaction_"     .= maybe "" (show.tindex) ptransaction
     -- This is probably not wanted in json, we discard it.
-    ,"poriginal"         .= toJSON (Nothing :: Maybe Posting)
+    ,"poriginal"         .= (Nothing :: Maybe Posting)
     ]
 
 instance ToJSON Transaction
@@ -93,20 +93,20 @@ instance ToJSON Journal
 
 instance ToJSON Account where
   toJSON a = object
-    ["aname"        .= toJSON (aname a)
-    ,"aebalance"    .= toJSON (aebalance a)
-    ,"aibalance"    .= toJSON (aibalance a)
-    ,"anumpostings" .= toJSON (anumpostings a)
-    ,"aboring"      .= toJSON (aboring a)
+    ["aname"        .= aname a
+    ,"aebalance"    .= aebalance a
+    ,"aibalance"    .= aibalance a
+    ,"anumpostings" .= anumpostings a
+    ,"aboring"      .= aboring a
     -- To avoid a cycle, show just the parent account's name
     -- in a dummy field. When re-parsed, there will be no parent.
-    ,"aparent_"     .= toJSON (maybe "" aname $ aparent a)
+    ,"aparent_"     .= maybe "" aname (aparent a)
     -- Just the names of subaccounts, as a dummy field, ignored when parsed.
-    ,"asubs_"       .= toJSON (map aname $ asubs a)
+    ,"asubs_"       .= map aname (asubs a)
     -- The actual subaccounts (and their subs..), making a (probably highly redundant) tree
-    -- ,"asubs"        .= toJSON (asubs a)
+    -- ,"asubs"        .= asubs a
     -- Omit the actual subaccounts
-    ,"asubs"        .= toJSON ([]::[Account])
+    ,"asubs"        .= ([]::[Account])
     ]
 
 deriving instance Generic (Ledger)
@@ -184,4 +184,4 @@ readJsonFile f = do
 -- Example:
 -- >>> writeJsonFile "out.json" nullmixedamt
 writeJsonFile :: ToJSON a => FilePath -> a -> IO ()
-writeJsonFile f v = BL.writeFile f (encode $ toJSON v)
+writeJsonFile f v = BL.writeFile f (encode v)
