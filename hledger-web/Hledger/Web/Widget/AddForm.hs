@@ -13,7 +13,7 @@ module Hledger.Web.Widget.AddForm
 
 import Control.Monad.State.Strict (evalStateT)
 import Data.Bifunctor (first)
-import Data.List (dropWhileEnd, nub, sort, unfoldr)
+import Data.List (dropWhileEnd, intercalate, nub, sort, unfoldr)
 import Data.Maybe (isJust)
 #if !(MIN_VERSION_base(4,13,0))
 import Data.Semigroup ((<>))
@@ -73,10 +73,6 @@ addForm j today = identifyForm "add" $ \extra -> do
   -- bindings used in add-form.hamlet
   let descriptions = sort $ nub $ tdescription <$> jtxns j
       journals = fst <$> jfiles j
-      listToJsonArray :: [Text] -> Markup
-      listToJsonArray = preEscapedString . escapeJSSpecialChars . show . toJSON
-        where
-          escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236
 
   pure (validateTransaction dateRes descRes postRes, $(widgetFile "add-form"))
 
@@ -97,6 +93,28 @@ addForm j today = identifyForm "add" $ \extra -> do
       , fieldView = error "Don't render using this!"
       , fieldEnctype = UrlEncoded
       }
+
+    -- Used in add-form.hamlet
+    toBloodhoundJson :: [Text] -> Markup
+    toBloodhoundJson ts =
+      -- This used to work, but since 1.16, it seems like something changed.
+      -- toJSON ("a"::Text) gives String "a" instead of "a", etc.
+      -- preEscapedString . escapeJSSpecialChars . show . toJSON
+      preEscapedString $ concat [
+        "[",
+        intercalate "," $ map (
+          ("{\"value\":" ++).
+          (++"}").
+          escapeJSSpecialChars .
+          drop 7 .  -- "String "
+          show .
+          toJSON
+          ) ts,
+        "]"
+        ]
+      where
+        -- avoid https://github.com/simonmichael/hledger/issues/236
+        escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>"
 
 validateTransaction ::
      FormResult Day
