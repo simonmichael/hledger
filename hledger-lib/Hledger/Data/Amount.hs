@@ -40,6 +40,10 @@ exchange rates.
 
 -}
 
+-- Silence safe 0.3.18's deprecation warnings for (max|min)imum(By)?Def for now
+-- (may hide other deprecation warnings too). https://github.com/ndmitchell/safe/issues/26
+{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
+
 {-# LANGUAGE StandaloneDeriving, RecordWildCards, OverloadedStrings #-}
 
 module Hledger.Data.Amount (
