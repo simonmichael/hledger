@@ -200,7 +200,7 @@ tests_Register = tests "Register" [
       (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j)
         @?=
         unlines
-        ["2009/01/01 медвежья шкура       расходы:покупки                100           100"
+        ["2009-01-01 медвежья шкура       расходы:покупки                100           100"
         ,"                                актив:наличные                -100             0"]
    ]
 
