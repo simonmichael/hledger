@@ -30,7 +30,7 @@ import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
-import Data.Time.Format (formatTime, defaultTimeLocale)
+import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 import Data.Typeable (Typeable)
 import Safe (headDef, headMay, atMay)
 import System.Console.CmdArgs.Explicit
@@ -164,7 +164,8 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
             { esArgs = drop 1 esArgs
             , esDefDate = date
             }
-          dateAndCodeString = formatTime defaultTimeLocale "%Y/%m/%d" date ++ (if T.null code then "" else " (" ++ T.unpack code ++ ")")
+          dateAndCodeString = formatTime defaultTimeLocale yyyymmddFormat date ++ (if T.null code then "" else " (" ++ T.unpack code ++ ")")
+          yyyymmddFormat = iso8601DateFormat Nothing
       confirmedTransactionWizard prevInput{prevDateAndCode=Just dateAndCodeString} es' (EnterDescAndComment (date, code) : stack)
     Nothing ->
       confirmedTransactionWizard prevInput es stack
