@@ -8,7 +8,7 @@ currency $
 account1 assets:myacct
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50
 
@@ -28,11 +28,11 @@ amount-out %4
 currency $
 
 $  ./hledger-csv
-2009/09/10 Flubber Co🎅
+2009-09-10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
 
-2009/09/11 Flubber Co🎅
+2009-09-11 Flubber Co🎅
     Assets:MyAccount            $-50
     expenses:unknown             $50
 
@@ -51,7 +51,7 @@ if Flubber
   account2 acct
   comment cmt
 $  ./hledger-csv
-2009/09/10 Flubber Co  ; cmt
+2009-09-10 Flubber Co  ; cmt
     assets:myacct             $50
     acct                     $-50
 
@@ -68,7 +68,7 @@ currency $
 account1 assets:myacct
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
 
@@ -86,11 +86,11 @@ currency $
 account1 assets:myacct
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
 
-2009/09/11 Blubber Co
+2009-09-11 Blubber Co
     assets:myacct              $60
     income:unknown            $-60
 
@@ -108,11 +108,11 @@ currency $
 account1 assets:myacct
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
 
-2009/09/11 Blubber Co
+2009-09-11 Blubber Co
     assets:myacct              $60
     income:unknown            $-60
 
@@ -135,11 +135,11 @@ amount -%payment
 account1 liabilities:bank
 account2 expense:other
 $  ./hledger-csv
-2009/10/09
+2009-10-09
     liabilities:bank            $-50
     expense:other                $50
 
-2009/11/09
+2009-11-09
     liabilities:bank             $60
     expense:other               $-60
 
@@ -160,11 +160,11 @@ amount-out %4
 currency $
 
 $  ./hledger-csv
-2009/09/10 Flubber Co🎅
+2009-09-10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
 
-2009/09/11 Flubber Co🎅
+2009-09-11 Flubber Co🎅
     Assets:MyAccount            $-50
     expenses:unknown             $50
 
@@ -181,7 +181,7 @@ currency $
 account1 assets:myacct
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50 = $123
 
@@ -198,7 +198,7 @@ currency $
 account1 assets:myacct
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50 = $321
     income:unknown            $-50 = $123
 
@@ -218,7 +218,7 @@ account3 expenses:tax
 account4 the:remainder
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct            $50.000 = $321.000
     expenses:unknown     = $123.000
     expenses:tax              $0.234  ; VAT
@@ -239,7 +239,7 @@ account3 expenses:tax
 account4 the:remainder
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct                $50 = $321
     expenses:unknown     = $123
     expenses:tax              £0.234  ; VAT
@@ -261,11 +261,11 @@ amount-out %4
 currency $
 
 $  ./hledger-csv
-2009/09/10 Flubber Co🎅
+2009-09-10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
 
-2009/09/11 Flubber Co🎅
+2009-09-11 Flubber Co🎅
     Assets:MyAccount            $-50
     expenses:unknown             $50
 
@@ -291,7 +291,7 @@ date-format %d/%Y/%m
 currency $
 account1 assets:myacct
 $  ./hledger-csv
-2009/09/10 Flubber Co Co Co
+2009-09-10 Flubber Co Co Co
     assets:myacct              $50
     income:unknown            $-50
 
@@ -310,7 +310,7 @@ if Flubber
    account1  assets:%account1
    amount-in  (%amount-in)
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct               $-50
     expenses:unknown             $50
 
@@ -334,7 +334,7 @@ date %1
 date-format %m/%d/%Y
 description %description for %itemtitle 
 $  ./hledger-csv
-2018/12/22 (123456789) Someone for Joyful Systems
+2018-12-22 (123456789) Someone for Joyful Systems
     sm:assets:online:paypal              $9.41 = $57.60
     sm:expenses:unknown
     JS:expenses:banking:paypal          $-0.59
@@ -383,11 +383,11 @@ if MIDDLE
   skip 3
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50
 
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50
 
@@ -407,15 +407,15 @@ description Assets Update
 account1 assets
 account2 income
 $  ./hledger-csv
-2018/10/15 Assets Update
+2018-10-15 Assets Update
     assets     = EUR 100
     income
 
-2018/10/16 Assets Update
+2018-10-16 Assets Update
     assets     = EUR 200
     income
 
-2018/10/17 Assets Update
+2018-10-17 Assets Update
     assets     = EUR 300
     income
 
@@ -431,7 +431,7 @@ amount
 comment x
 
 $  ./hledger-csv
-2018/10/15  ; x
+2018-10-15  ; x
 
 >=0
 
@@ -465,12 +465,12 @@ if ,Empty fee
   skip
 
 $  ./hledger-csv
-2018/12/22 (123456789) Someone for Joyful Systems
+2018-12-22 (123456789) Someone for Joyful Systems
     sm:assets:online:paypal              $9.41 = $57.60
     sm:expenses:unknown
     JS:expenses:banking:paypal          $-0.59
 
-2018/12/22 (10101010101) Someone for Joyful Systems
+2018-12-22 (10101010101) Someone for Joyful Systems
     sm:assets:online:paypal           $7.77 = $88.66
     sm:expenses:unknown              $-7.77
 
@@ -488,7 +488,7 @@ currency $
 account1 assets:myacct
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     assets:myacct              $50 ==* $123
     income:unknown            $-50
 
@@ -505,7 +505,7 @@ currency $
 account1 (assets:myacct)
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     (assets:myacct)             $50 = $123
 
 >=0
@@ -522,7 +522,7 @@ account1 [assets:myacct]
 account2 [assets:another-acct]
 
 $  ./hledger-csv
-2009/09/10 Flubber Co
+2009-09-10 Flubber Co
     [assets:myacct]                   $50
     [assets:another-acct]            $-50
 
@@ -553,7 +553,7 @@ $  ./hledger-csv
 #account2 (a)
 #
 #$  ./hledger-csv
-#2019/01/01
+#2019-01-01
 #    (a)                                            1
 #
 #>=0

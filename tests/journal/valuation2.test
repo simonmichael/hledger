@@ -17,7 +17,7 @@ comment
 
 # 1. normal unvalued output
 $ hledger -f- print -x
-2019/06/01
+2019-06-01
     a             1 B
     b            -1 B
 
@@ -25,7 +25,7 @@ $ hledger -f- print -x
 
 # 2. current market value in default valuation commodity
 $ hledger -f- print -x -V
-2019/06/01
+2019-06-01
     a            10 A
     b           -10 A
 
@@ -33,7 +33,7 @@ $ hledger -f- print -x -V
 
 # 3. same as above, but request commodity A explicitly
 $ hledger -f- print -x --value=now,A
-2019/06/01
+2019-06-01
     a            10 A
     b           -10 A
 
@@ -41,7 +41,7 @@ $ hledger -f- print -x --value=now,A
 
 # 4. request commodity B - no effect
 $ hledger -f- print -x --value=now,B
-2019/06/01
+2019-06-01
     a             1 B
     b            -1 B
 
@@ -49,7 +49,7 @@ $ hledger -f- print -x --value=now,B
 
 # 5. request commodity we don't have prices for - no effect
 $ hledger -f- print -x --value=now,Z
-2019/06/01
+2019-06-01
     a             1 B
     b            -1 B
 
@@ -61,7 +61,7 @@ $ hledger -f- print -x --value=now,Z
 # And because that makes it display as zero, the commodity symbol
 # and sign are not shown either.
 $ hledger -f- print -x --value=now,C
-2019/06/01
+2019-06-01
     a               0
     b               0
 
@@ -70,7 +70,7 @@ $ hledger -f- print -x --value=now,C
 # # but the precision is increased to show the decimal digit
 # # (otherwise it would show C0).
 # $ hledger -f- print -x --value=now,C
-# 2019/06/01
+# 2019-06-01
 #     a            C0.5
 #     b           C-0.5
 #
@@ -78,7 +78,7 @@ $ hledger -f- print -x --value=now,C
 
 # 7. request commodity D - chains B->A, A->D prices
 $ hledger -f- print -x --value=now,D
-2019/06/01
+2019-06-01
     a          1000 D
     b         -1000 D
 
@@ -87,7 +87,7 @@ $ hledger -f- print -x --value=now,D
 # 8. request commodity E - chains B->A, A->D, reverse of D->E prices.
 # As with C above, E gets the default display style, with precision 0.
 $ hledger -f- print -x --value=now,E
-2019/06/01
+2019-06-01
     a            E333
     b           E-333
 
@@ -95,7 +95,7 @@ $ hledger -f- print -x --value=now,E
 # # As with C above, E gets the default display style, but with the precision
 # # increased to show the decimal digits, but no more than 8.
 # $ hledger -f- print -x --value=now,E
-# 2019/06/01
+# 2019-06-01
 #     a     E333.33333333
 #     b    E-333.33333333
 #
@@ -112,7 +112,7 @@ $ hledger -f- print -x --value=now,E
 
 # 9. Normal print output.
 $ hledger -f- print
-2000/01/01
+2000-01-01
     a        -1A @ 1B
     b              1B
 
@@ -120,7 +120,7 @@ $ hledger -f- print
 
 # 10. Valuing in a commodity with no market price has no effect.
 $ hledger -f- print -XZ
-2000/01/01
+2000-01-01
     a        -1A @ 1B
     b              1B
 
@@ -128,7 +128,7 @@ $ hledger -f- print -XZ
 
 # 11. -B converts to the transaction price's commodity.
 $ hledger -f- print -B
-2000/01/01
+2000-01-01
     a             -1B
     b              1B
 
@@ -137,7 +137,7 @@ $ hledger -f- print -B
 # 12. Note the -XZ nullifies the -B here, because both are forms of --value
 # (-B -XZ is equivalent to --value=cost --value=end,Z), and the rightmost wins.
 $ hledger -f- print -B -XZ
-2000/01/01
+2000-01-01
     a        -1A @ 1B
     b              1B
 
@@ -153,7 +153,7 @@ P 2000/1/1 A 1B
 
 # 13. 
 $ hledger -f- print
-2000/01/01
+2000-01-01
     a        -1A @ 1B
     b              1B
 
@@ -161,7 +161,7 @@ $ hledger -f- print
 
 # 14. 
 $ hledger -f- print -XZ
-2000/01/01
+2000-01-01
     a        -1A @ 1B
     b              1B
 
@@ -169,7 +169,7 @@ $ hledger -f- print -XZ
 
 # 15. 
 $ hledger -f- print -B
-2000/01/01
+2000-01-01
     a             -1B
     b              1B
 
@@ -177,7 +177,7 @@ $ hledger -f- print -B
 
 # 16. 
 $ hledger -f- print -B -XZ
-2000/01/01
+2000-01-01
     a        -1A @ 1B
     b              1B
 
@@ -193,11 +193,11 @@ P 2002/01/01 A  3 B
 
 # 17. -V uses today as the default valuation date, unlike --value=end.
 $ hledger -f- reg -V
-2000/01/01                      (a)                            3 B           3 B
+2000-01-01                      (a)                            3 B           3 B
 
 # 18. -V uses the report end date, if specified, as valuation date.
 $ hledger -f- reg -V -e 2001
-2000/01/01                      (a)                            2 B           2 B
+2000-01-01                      (a)                            2 B           2 B
 
 # 19. In balance reports too.
 $ hledger -f- bal -N -V

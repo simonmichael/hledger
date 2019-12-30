@@ -9,7 +9,7 @@ hledger -f - print desc:x
     b
 
 >>>
-2009/01/01 x
+2009-01-01 x
     a               1
     b
 

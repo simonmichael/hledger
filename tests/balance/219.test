@@ -4,7 +4,7 @@ hledger -f balance-multicol.journal bal -MEH --no-total date:2013/1 --tree --fla
 >>>
 Ending balances (historical) in 2013/01:
 
-                 || 2013/01/31 
+                 || 2013-01-31 
 =================++============
  assets:checking ||         10 
 >>>= 0
@@ -14,7 +14,7 @@ hledger -f balance-multicol.journal bal -MEH --no-total date:2013/1 --flat --tre
 >>>
 Ending balances (historical) in 2013/01:
 
-            || 2013/01/31 
+            || 2013-01-31 
 ============++============
  assets     ||         10 
    checking ||         10 

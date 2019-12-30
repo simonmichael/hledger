@@ -32,7 +32,7 @@ $ hledger -f- print
    a   10 "DE 0002 635307"
    b
 $ hledger -f- print --explicit
-2010/04/05 x
+2010-04-05 x
     a     10 "DE 0002 635307"
     b    -10 "DE 0002 635307"
 
@@ -53,7 +53,7 @@ $ hledger -f- balance
     Equity:Unbalanced
 
 $ hledger -f- print -x
-2016/01/01
+2016-01-01
     saving-card                   $-105
     snacks               95 EUR @@ $100
     Equity:Unbalanced                $5
@@ -105,10 +105,10 @@ $ hledger -f- bal -V -N
 #    (a)    1,000 A
 #
 #$ hledger -f- print
-#2015/01/01
+#2015-01-01
 #    (a)    1,000.00 A
 #
-#2015/01/01
+#2015-01-01
 #    (a)    1,000.00 A
 #
 #>=
@@ -160,6 +160,6 @@ $ hledger -f- print
 #
 # $ hledger -f- print
 # could not balance this transaction (real postings are off by $9,990,000)
-# 2000/01/01
+# 2000-01-01
 #     a        $-10,000
 #     b     $10,000,000

@@ -7,7 +7,7 @@ hledger -f - print --explicit
     b  USD 1  ; a dollar
     c         ; a euro and a dollar
 >>>
-2010/01/01
+2010-01-01
     a           EUR 1  ; a euro
     b           USD 1  ; a dollar
     c          EUR -1  ; a euro and a dollar
@@ -23,7 +23,7 @@ hledger -f - register
     b  USD 1  ; a dollar
     c         ; a euro and a dollar
 >>>
-2010/01/01                      a                            EUR 1         EUR 1
+2010-01-01                      a                            EUR 1         EUR 1
                                 b                            USD 1         EUR 1
                                                                            USD 1
                                 c                           EUR -1              
@@ -53,7 +53,7 @@ hledger -f- print --explicit --empty
   a  $0.00 @ 3EUR
   b
 >>>
-2010/03/01 x
+2010-03-01 x
     a        0 @ 3EUR
     b               0
 
@@ -93,14 +93,14 @@ D 1000,00€
 #     b  USD 1  ; a dollar
 #     c         ; a euro and a dollar
 # >>>
-# 2010/01/01
+# 2010-01-01
 #     a  EUR 1 @ USD 1.1  ; a euro
 #     b         USD 1  ; a dollar
 #        EUR -1 @ USD 1.1                       
 #     c            USD -1  ; a euro and a dollar
 #
 ##
-# 2010/01/01
+# 2010-01-01
 #     a  EUR 1 @ USD 1.1  ; a euro
 #     b       USD 1.0  ; a dollar
 #     c      USD -2.1  ; a euro and a dollar
@@ -115,7 +115,7 @@ D 1000,00€
 #     b  USD 1  ; a dollar
 #     c         ; a euro and a dollar
 # >>>
-# 2010/01/01                      a                             EUR 1        EUR 1
+# 2010-01-01                      a                             EUR 1        EUR 1
 #                                                                            EUR 1
 #                                 b                           USD 1.0      USD 1.0
 #                                                                            EUR 1

@@ -27,7 +27,7 @@ expecting date separator or digit
 # But in this case the timedot reader can parse it.
 $ hledger -f - print
 >
-2018/01/01 *
+2018-01-01 *
     (a)            1.00
 
 >=
@@ -51,7 +51,7 @@ $ hledger -f journal:- print
 # 5. hledger doesn't detect this as an error directly, it parses account name "(a) 1" and
 # amount 0 here.
 $ hledger -f - print -x
-2018/01/01
+2018-01-01
     (a) 1               0
 
 >=
