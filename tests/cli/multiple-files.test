@@ -24,15 +24,15 @@ Income Statement 2014/01/01-2014/01/02
 # 2. aliases etc. in files currently don't carry over to subsequent files
 hledger print -f personal.journal -f business.journal -f alias.journal -f personal.journal
 >>>
-2014/01/01
+2014-01-01
     expenses:office supplies              $1
     assets:business checking
 
-2014/01/02
+2014-01-02
     expenses:food              $1
     assets:cash
 
-2014/01/02
+2014-01-02
     expenses:food              $1
     assets:cash
 
@@ -46,14 +46,14 @@ hledger print -f personal.journal -f business.journal -f alias.journal -f person
 # 3. files can be of different formats
 hledger print -f personal.journal -f ../journal/a.timeclock -f ../journal/b.timedot
 >>>
-2014/01/02
+2014-01-02
     expenses:food              $1
     assets:cash
 
-2016/01/01 * 12:00-16:00
+2016-01-01 * 12:00-16:00
     (a:aa)           4.00h
 
-2016/01/01 *
+2016-01-01 *
     (b.bb)            1.00
 
 >>>2
@@ -62,7 +62,7 @@ hledger print -f personal.journal -f ../journal/a.timeclock -f ../journal/b.time
 # 4. same-date transactions in different files are shown in the right order
 hledger -f a.j -f b.j reg
 >>>
-2018/01/01 a1                   (a)                              1             1
-2018/01/01 b1                   (b)                              1             2
+2018-01-01 a1                   (a)                              1             1
+2018-01-01 b1                   (b)                              1             2
 >>>2
 >>>=0

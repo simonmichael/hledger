@@ -15,14 +15,14 @@
 
 # 1. print
 $ hledger print -f- --auto
-2016/01/01 paycheck  ; modified:
+2016-01-01 paycheck  ; modified:
     income:remuneration           $-100
     (liabilities:tax)              $-33  ; income tax, generated-posting: = ^income
     income:donations               $-15
     (liabilities:tax)               $-5  ; income tax, generated-posting: = ^income
     assets:bank
 
-2016/01/01 withdraw
+2016-01-01 withdraw
     assets:cash             $20
     assets:bank
 
@@ -30,12 +30,12 @@ $ hledger print -f- --auto
 
 # 2. register
 $ hledger register -f- --auto
-2016/01/01 paycheck             income:remuneration          $-100         $-100
+2016-01-01 paycheck             income:remuneration          $-100         $-100
                                 (liabilities:tax)             $-33         $-133
                                 income:donations              $-15         $-148
                                 (liabilities:tax)              $-5         $-153
                                 assets:bank                   $115          $-38
-2016/01/01 withdraw             assets:cash                    $20          $-18
+2016-01-01 withdraw             assets:cash                    $20          $-18
                                 assets:bank                   $-20          $-38
 >=
 
@@ -63,7 +63,7 @@ $ hledger balance -f- --auto
 
 # 4.
 $ hledger register -f- --auto
-2018/01/01                      (trigger)                        1             1
+2018-01-01                      (trigger)                        1             1
                                 (target)                        10            11
                                 (target)                         1            12
 >=
@@ -80,7 +80,7 @@ $ hledger register -f- --auto
 
 # 5.
 $ hledger print -f- --auto
-2018/10/07 * MARKET  ; modified:
+2018-10-07 * MARKET  ; modified:
     expenses:groceries:food
     [budget:groceries]                 $-20  ; generated-posting: = ^expenses:groceries
     [assets:bank:checking]              $20  ; generated-posting: = ^expenses:groceries
@@ -99,7 +99,7 @@ $ hledger print -f- --auto
 
 # 6.
 $ hledger -f- print --auto -x
-2018/01/01  ; modified:
+2018-01-01  ; modified:
     (assets:billable:client1)     0.50h @ $90
     assets:receivable:client1    50.00h @ $90  ; generated-posting: = assets:billable:client1
     revenues:client1                   $-4500  ; generated-posting: = assets:billable:client1
@@ -117,7 +117,7 @@ $ hledger -f- print --auto -x
 
 # 7.
 $ hledger -f- print --auto -x
-2018/01/01  ; modified:
+2018-01-01  ; modified:
     (assets:billable:client1)           0.50h
     assets:receivable:client1             $50  ; generated-posting: = assets:billable:client1
     revenues:client1                     $-50  ; generated-posting: = assets:billable:client1
@@ -135,7 +135,7 @@ $ hledger -f- print --auto -x
 
 # 8.
 $ hledger -f- print --auto -x
-2018/01/01  ; modified:
+2018-01-01  ; modified:
     (assets:billable:client1)                       0.50h @ $90
     assets:receivable:client1    0.50 "Client1 Hours" @ $100.00  ; generated-posting: = assets:billable:client1
     revenues:client1                                    $-50.00  ; generated-posting: = assets:billable:client1
@@ -180,7 +180,7 @@ $ hledger print -f- --auto
 
 # 10.
 $ hledger -f- print --auto
-2018/01/01  ; modified:
+2018-01-01  ; modified:
     Expenses:Joint:Widgets     $100.00 @ £0.50
     Expenses:Joint            $-100.00 @ £0.50  ; generated-posting: = ^Expenses:Joint
     Liabilities:Joint:Bob       $50.00 @ £0.50  ; generated-posting: = ^Expenses:Joint
@@ -202,7 +202,7 @@ $ hledger -f- print --auto
 
 # 11.
 $ hledger -f- print --auto
-2018/01/01  ; modified:
+2018-01-01  ; modified:
     Expenses:Joint:Widgets     $100.00 @@ £50
     Expenses:Joint            $-100.00 @@ £50  ; generated-posting: = ^Expenses:Joint
     Liabilities:Joint:Bob       $50.00 @@ £25  ; generated-posting: = ^Expenses:Joint
@@ -231,7 +231,7 @@ $ hledger -f- print --auto
 
 # 12.
 $ hledger -f- print --auto
-2018/01/01  ; modified:
+2018-01-01  ; modified:
     Expenses:Joint:Widgets            $100.00
     Expenses:Joint            $-100.00 @@ £50  ; generated-posting: = ^Expenses:Joint
     Liabilities:Joint:Bob       $50.00 @@ £25  ; generated-posting: = ^Expenses:Joint
@@ -259,11 +259,11 @@ $ hledger -f- print --auto
 
 # 13.
 $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
-2016/01/03 withdraw
+2016-01-03 withdraw
     assets:cash             $20
     assets:bank
 
-2016/02/01 paycheck
+2016-02-01 paycheck
     ; generated-transaction: ~ monthly from 2016-01, modified: 
     income:remuneration           $-100
     (liabilities:tax)              $-33  ; income tax, generated-posting: = ^income
@@ -275,11 +275,11 @@ $ hledger print -f- --auto --forecast -b 2016-01 -e 2016-03
 
 # 14. and they don't force --auto on
 $ hledger print -f- --forecast -b 2016-01 -e 2016-03
-2016/01/03 withdraw
+2016-01-03 withdraw
     assets:cash             $20
     assets:bank
 
-2016/02/01 paycheck
+2016-02-01 paycheck
     ; generated-transaction: ~ monthly from 2016-01
     income:remuneration           $-100
     income:donations               $-15
@@ -299,7 +299,7 @@ $ hledger print -f- --forecast -b 2016-01 -e 2016-03
 
 # 15.
 $ hledger -f- register --auto
-2019/10/07 MARKET               ex:groceries:food              $20           $20
+2019-10-07 MARKET               ex:groceries:food              $20           $20
                                 [budget:groceries]            $-20             0
                                 [as:bank:checking]             $20           $20
                                 assets:bank:checking          $-20             0
@@ -316,7 +316,7 @@ $ hledger -f- register --auto
 
 # 16. Transaction balancing sees auto postings ?
 # $ hledger -f- print -x --auto
-# 2018/12/18
+# 2018-12-18
 #     a          EUR -10.00  ; :tax20:
 #     taxes       EUR -2.00
 #     b           EUR 12.00
