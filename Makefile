@@ -328,7 +328,7 @@ ghcid-test-%: $(call def-help,ghcid-test-TESTPATTERN, start ghcid autobuilding a
 	ghcid -c 'make ghci' --test ':main test -- --color=always -p$*'
 
 ghcid-doctest: $(call def-help,ghcid-doctest, start ghcid autobuilding and running hledger-lib doctests)
-	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctest' --test ':main' --reload hledger-lib
 
 # keep synced with Shake.hs header
 SHAKEDEPS= \
@@ -366,7 +366,7 @@ ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib
 # 		hledger-web/app/main.hs \
 
 ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib doctests)
-	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
+	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctest
 
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghci Shake.hs
@@ -417,9 +417,9 @@ pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 
 # doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
 # Or, could run it with ghc 8.2: 
-#	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
+#	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 doctest: $(call def-help,doctest, run the doctests in hledger-lib module/function docs )
-	@($(STACKTEST) hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
+	@($(STACKTEST) hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 unittest: $(call def-help,unittest, run the unit tests in hledger-lib )
 	@($(STACKTEST) hledger-lib:test:unittests && echo $@ PASSED) || (echo $@ FAILED; false)
