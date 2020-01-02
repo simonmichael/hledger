@@ -575,7 +575,7 @@ $  ./hledger-csv --separator 'TAB'
 
 >=0
 
-## 25. A single unbalanced posting with number other than 1 also should not generate a balancing posting.
+## 28. A single unbalanced posting with number other than 1 also should not generate a balancing posting.
 #<
 #2019-01-01,1
 #
@@ -589,7 +589,7 @@ $  ./hledger-csv --separator 'TAB'
 #
 #>=0
 #
-## 26. A single posting that's zero also should not generate a balancing posting.
+## 29. A single posting that's zero also should not generate a balancing posting.
 #<
 #2019-01-01,0
 #
@@ -603,7 +603,7 @@ $  ./hledger-csv --separator 'TAB'
 #
 #>=0
 
-## 27. With a bracketed account name, the auto-generated second posting should also be bracketed.
+## 30. With a bracketed account name, the auto-generated second posting should also be bracketed.
 #<
 #2019-01-01,1
 #
