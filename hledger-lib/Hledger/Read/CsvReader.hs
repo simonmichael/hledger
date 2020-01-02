@@ -131,7 +131,7 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
     then do
       dbg1IO "using conversion rules file" rulesfile
       readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
-    else 
+    else
       return $ defaultRulesText rulesfile
   rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
   dbg2IO "rules" rules
