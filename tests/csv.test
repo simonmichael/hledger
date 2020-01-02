@@ -527,7 +527,7 @@ $  ./hledger-csv
 
 >=0
 
-# 25. specify alternative delimiter in rules
+# 25. specify alternative whitespace delimiter in rules
 <
 2009/10/01	Flubber Co	50	123
 
@@ -539,7 +539,40 @@ separator TAB
 
 $  ./hledger-csv
 2009/10/01 Flubber Co
-   (assets:myacct)                $50 = $123
+    (assets:myacct)             $50 = $123
+
+>=0
+
+# 26. specify char delimiter in rules
+<
+2009/10/01;Flubber Co;50;123
+
+RULES
+fields date, description, amount, balance
+currency $
+account1 (assets:myacct)
+separator ;
+
+$  ./hledger-csv
+2009/10/01 Flubber Co
+    (assets:myacct)             $50 = $123
+
+>=0
+
+# 27. command line delimiter overrides configuration file
+<
+2009/10/01	Flubber Co	50	123
+
+RULES
+fields date, description, amount, balance
+currency $
+account1 (assets:myacct)
+separator ;
+
+$  ./hledger-csv --separator 'TAB'
+2009/10/01 Flubber Co
+    (assets:myacct)             $50 = $123
+
 >=0
 
 ## 25. A single unbalanced posting with number other than 1 also should not generate a balancing posting.

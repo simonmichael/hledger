@@ -71,7 +71,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, finaliseJournal)
+import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, getSpecialSeparators, finaliseJournal)
 
 type CSV = [Record]
 
@@ -104,13 +104,13 @@ parse iopts f t = do
                 -- better preemptively reverse them once more. XXX inefficient
                 pj' = journalReverse pj
 
-getSeparatorFromRules :: Char -> CsvRules -> Char
-getSeparatorFromRules defaultSeparator rules =
-  maybe defaultSeparator id (getSeparator <$> getDirective "separator" rules)
-  where getSeparator :: String -> Char
-        getSeparator "SPACE" = ' '
-        getSeparator "TAB" = '\t'
-        getSeparator x = head x
+-- | Decide which separator to get.
+-- If the external separator is provided, take it. Otherwise, look at the rules. Finally, return ','.
+getSeparator :: Maybe Char -> CsvRules -> Char
+getSeparator externalSeparator rules = head $
+  catMaybes [ externalSeparator
+            , getDirective "separator" rules >>= getSpecialSeparators
+            , Just ',']
 
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
@@ -123,9 +123,9 @@ getSeparatorFromRules defaultSeparator rules =
 -- 4. if the rules file didn't exist, create it with the default rules and filename
 -- 5. return the transactions as a Journal
 -- @
-readJournalFromCsv :: Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
+readJournalFromCsv :: Maybe Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
 readJournalFromCsv _ Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv separator mrulesfile csvfile csvdata =
+readJournalFromCsv commandLineSeparator mrulesfile csvfile csvdata =
  handle (\(e::IOException) -> return $ Left $ show e) $ do
 
   -- make and throw an IO exception.. which we catch and convert to an Either above ?
@@ -156,7 +156,7 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv rules skiplines .
               dbg2 "parseCsv")
-             `fmap` parseCsv (getSeparatorFromRules separator rules) parsecfilename csvdata
+             `fmap` parseCsv (getSeparator commandLineSeparator rules) parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
