@@ -512,6 +512,7 @@ directivep = (do
 directives :: [String]
 directives =
   ["date-format"
+  ,"separator"
   -- ,"default-account1"
   -- ,"default-currency"
   -- ,"skip-lines" -- old
