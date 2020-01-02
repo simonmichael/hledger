@@ -104,6 +104,14 @@ parse iopts f t = do
                 -- better preemptively reverse them once more. XXX inefficient
                 pj' = journalReverse pj
 
+getSeparatorFromRules :: Char -> CsvRules -> Char
+getSeparatorFromRules defaultSeparator rules =
+  maybe defaultSeparator id (getSeparator <$> getDirective "separator" rules)
+  where getSeparator :: String -> Char
+        getSeparator "SPACE" = ' '
+        getSeparator "TAB" = '\t'
+        getSeparator x = head x
+
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
 -- @
@@ -148,7 +156,7 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv rules skiplines .
               dbg2 "parseCsv")
-             `fmap` parseCsv separator parsecfilename csvdata
+             `fmap` parseCsv (getSeparatorFromRules separator rules) parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
