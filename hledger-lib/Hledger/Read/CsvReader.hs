@@ -474,7 +474,7 @@ validateRules rules = do
 
 rulesp :: CsvRulesParser CsvRules
 rulesp = do
-  many $ choiceInState
+  _ <- many $ choiceInState
     [blankorcommentlinep                                                <?> "blank or comment line"
     ,(directivep        >>= modify' . addDirective)                     <?> "directive"
     ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList) <?> "field name list"
