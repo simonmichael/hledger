@@ -509,6 +509,7 @@ directivep = (do
   return (d, v)
   ) <?> "directive"
 
+directives :: [String]
 directives =
   ["date-format"
   -- ,"default-account1"
