@@ -527,6 +527,21 @@ $  ./hledger-csv
 
 >=0
 
+# 25. specify alternative delimiter in rules
+<
+2009/10/01	Flubber Co	50	123
+
+RULES
+fields date, description, amount, balance
+currency $
+account1 (assets:myacct)
+separator TAB
+
+$  ./hledger-csv
+2009/10/01 Flubber Co
+   (assets:myacct)                $50 = $123
+>=0
+
 ## 25. A single unbalanced posting with number other than 1 also should not generate a balancing posting.
 #<
 #2019-01-01,1
