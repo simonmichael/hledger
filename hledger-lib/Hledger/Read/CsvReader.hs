@@ -453,8 +453,8 @@ parseAndValidateCsvRules rulesfile s =
     Right rules -> first makeFancyParseError $ validateRules rules
   where
     makeFancyParseError :: String -> String
-    makeFancyParseError s = 
-      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail s) :: ParseError Text String)
+    makeFancyParseError errorString =
+      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail errorString) :: ParseError Text String)
 
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
 parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
