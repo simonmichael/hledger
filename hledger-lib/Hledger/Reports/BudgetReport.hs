@@ -80,17 +80,17 @@ budgetReport ropts' assrt reportspan d j =
       concatMap expandAccountName $
       accountNamesFromPostings $
       concatMap tpostings $
-      concatMap (flip runPeriodicTransaction reportspan) $
+      concatMap (`runPeriodicTransaction` reportspan) $
       jperiodictxns j
     actualj = dbg1With (("actualj"++).show.jtxns)  $ budgetRollUp budgetedaccts showunbudgeted j
     budgetj = dbg1With (("budgetj"++).show.jtxns)  $ budgetJournal assrt ropts reportspan j
-    actualreport@(MultiBalanceReport (actualspans, _, _)) = dbg1 "actualreport" $ multiBalanceReport ropts  q actualj
-    budgetgoalreport@(MultiBalanceReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
+    actualreport@(PeriodicReport (actualspans, _, _)) = dbg1 "actualreport" $ multiBalanceReport ropts  q actualj
+    budgetgoalreport@(PeriodicReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
       -- it should be safe to replace it with the latter, so they combine well.
-      | interval_ ropts == NoInterval = MultiBalanceReport (actualspans, budgetgoalitems, budgetgoaltotals)
+      | interval_ ropts == NoInterval = PeriodicReport (actualspans, budgetgoalitems, budgetgoaltotals)
       | otherwise = budgetgoalreport
     budgetreport = combineBudgetAndActual budgetgoalreport' actualreport
     sortedbudgetreport = sortBudgetReport ropts j budgetreport
@@ -200,10 +200,11 @@ budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
 --
 combineBudgetAndActual :: MultiBalanceReport -> MultiBalanceReport -> BudgetReport
 combineBudgetAndActual
-  (MultiBalanceReport (budgetperiods, budgetrows, (budgettots, budgetgrandtot, budgetgrandavg)))
-  (MultiBalanceReport (actualperiods, actualrows, (actualtots, actualgrandtot, actualgrandavg))) =
-  let
-    periods = nubSort $ filter (/= nulldatespan) $ budgetperiods ++ actualperiods
+      (PeriodicReport (budgetperiods, budgetrows, (_, _, _, budgettots, budgetgrandtot, budgetgrandavg)))
+      (PeriodicReport (actualperiods, actualrows, (_, _, _, actualtots, actualgrandtot, actualgrandavg))) =
+    PeriodicReport (periods, rows, totalrow)
+  where
+    periods = nubSort . filter (/= nulldatespan) $ budgetperiods ++ actualperiods
 
     -- first, combine any corresponding budget goals with actual changes
     rows1 =
@@ -211,8 +212,8 @@ combineBudgetAndActual
       | (acct, treeacct, treeindent, actualamts, actualtot, actualavg) <- actualrows
       , let mbudgetgoals       = Map.lookup acct budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
       , let budgetmamts        = maybe (replicate (length periods) Nothing) (map Just . first3) mbudgetgoals :: [Maybe BudgetGoal]
-      , let mbudgettot         = maybe Nothing (Just . second3) mbudgetgoals :: Maybe BudgetTotal
-      , let mbudgetavg         = maybe Nothing (Just . third3)  mbudgetgoals :: Maybe BudgetAverage
+      , let mbudgettot         = second3 <$> mbudgetgoals :: Maybe BudgetTotal
+      , let mbudgetavg         = third3 <$> mbudgetgoals  :: Maybe BudgetAverage
       , let acctBudgetByPeriod = Map.fromList [ (p,budgetamt) | (p, Just budgetamt) <- zip budgetperiods budgetmamts ] :: Map DateSpan BudgetGoal
       , let acctActualByPeriod = Map.fromList [ (p,actualamt) | (p, Just actualamt) <- zip actualperiods (map Just actualamts) ] :: Map DateSpan Change
       , let amtandgoals        = [ (Map.lookup p acctActualByPeriod, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [(Maybe Change, Maybe BudgetGoal)]
@@ -227,7 +228,7 @@ combineBudgetAndActual
     rows2 =
       [ (acct, treeacct, treeindent, amtandgoals, totamtandgoal, avgamtandgoal)
       | (acct, treeacct, treeindent, budgetgoals, budgettot, budgetavg) <- budgetrows
-      , not $ acct `elem` acctsdone
+      , acct `notElem` acctsdone
       , let acctBudgetByPeriod = Map.fromList $ zip budgetperiods budgetgoals :: Map DateSpan BudgetGoal
       , let amtandgoals        = [ (Nothing, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [(Maybe Change, Maybe BudgetGoal)]
       , let totamtandgoal      = (Nothing, Just budgettot)
@@ -240,8 +241,8 @@ combineBudgetAndActual
     -- TODO: use MBR code
     -- TODO: respect --sort-amount
     -- TODO: add --sort-budget to sort by budget goal amount
-    rows :: [PeriodicReportRow (Maybe Change, Maybe BudgetGoal)] =
-      sortBy (comparing first6) $ rows1 ++ rows2
+    rows :: [BudgetReportRow] =
+      sortOn first6 $ rows1 ++ rows2
 
     -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
     totalrow =
@@ -256,18 +257,6 @@ combineBudgetAndActual
         totBudgetByPeriod = Map.fromList $ zip budgetperiods budgettots :: Map DateSpan BudgetTotal
         totActualByPeriod = Map.fromList $ zip actualperiods actualtots :: Map DateSpan Change
 
-  in
-    PeriodicReport
-      ( periods
-      , rows
-      , totalrow
-      )
-
--- | Figure out the overall period of a BudgetReport.
-budgetReportSpan :: BudgetReport -> DateSpan
-budgetReportSpan (PeriodicReport ([], _, _))    = DateSpan Nothing Nothing
-budgetReportSpan (PeriodicReport (spans, _, _)) = DateSpan (spanStart $ head spans) (spanEnd $ last spans)
-
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
 budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
@@ -276,7 +265,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
   where
     multiperiod = interval_ /= NoInterval
     title = printf "Budget performance in %s%s:"
-      (showDateSpan $ budgetReportSpan budgetr)
+      (showDateSpan $ periodicReportSpan budgetr)
       (case value_ of
         Just (AtCost _mc)   -> ", valued at cost"
         Just (AtEnd _mc)    -> ", valued at period ends"
@@ -340,11 +329,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table String String (Maybe MixedAmount, Maybe MixedAmount)
 budgetReportAsTable
   ropts
-  (PeriodicReport
-    ( periods
-    , rows
-    , (_, _, _, coltots, grandtot, grandavg)
-    )) =
+  (PeriodicReport (periods, rows, (_, _, _, coltots, grandtot, grandavg))) =
     addtotalrow $
     Table
       (T.Group NoLine $ map Header accts)
