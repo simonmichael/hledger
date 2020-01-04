@@ -106,7 +106,7 @@ m4_define({{_inputoptions_}}, {{
 : use some other field or tag for the account name
 
 `-I --ignore-assertions`
-: ignore any failing balance assertions
+: disable balance assertion checks (note: does not disable balance assignments)
 
 }} )m4_dnl
 m4_dnl

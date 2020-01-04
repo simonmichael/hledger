@@ -404,6 +404,7 @@ can protect you from, eg, inadvertently disrupting reconciled balances
 while cleaning up old entries. You can disable them temporarily with
 the `-I/--ignore-assertions` flag, which can be useful for
 troubleshooting or for reading Ledger files.
+(Note: this flag currently does not disable balance assignments, below).
 
 ### Assertions and ordering
 
