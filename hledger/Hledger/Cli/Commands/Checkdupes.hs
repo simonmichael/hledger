@@ -8,6 +8,7 @@ where
 
 import Data.Function
 import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Text as T
 import Hledger
 import Hledger.Cli.CliOptions
@@ -28,7 +29,7 @@ accountsNames :: Journal -> [(String, AccountName)]
 accountsNames j = map leafAndAccountName as
   where leafAndAccountName a = (T.unpack $ accountLeafName a, a)
         ps = journalPostings j
-        as = nub $ sort $ map paccount ps
+        as = nubSort $ map paccount ps
 
 checkdupes' :: (Ord k, Eq k) => [(k, v)] -> [(k, [v])]
 checkdupes' l = zip dupLeafs dupAccountNames

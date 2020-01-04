@@ -24,6 +24,7 @@ where
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Ord
@@ -235,7 +236,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
           (if tree_ ropts then expandAccountNames else id) $
           nub $ map (clipOrEllipsifyAccountName depth) $
           if empty_ || balancetype_ == HistoricalBalance
-          then nub $ sort $ startaccts ++ allpostedaccts
+          then nubSort $ startaccts ++ allpostedaccts
           else allpostedaccts
         where
           allpostedaccts :: [AccountName] =

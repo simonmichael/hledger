@@ -112,6 +112,7 @@ library:
   - data-default
   - Decimal
   - directory
+  - extra >=1.6.3
   - filepath
   - hjsmin
   - http-conduit

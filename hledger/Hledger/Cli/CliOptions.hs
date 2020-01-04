@@ -75,6 +75,7 @@ import Data.Char
 import Data.Default
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
+import Data.List.Extra (nubSort)
 import Data.List.Split (splitOneOf)
 import Data.Ord
 import Data.Maybe
@@ -661,7 +662,7 @@ likelyExecutablesInPath :: IO [String]
 likelyExecutablesInPath = do
   pathdirs <- splitOneOf "[:;]" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  return $ nub $ sort pathfiles
+  return $ nubSort pathfiles
   -- exclude directories and files without execute permission.
   -- These will do a stat for each hledger-*, probably ok.
   -- But they need paths, not just filenames

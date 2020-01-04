@@ -95,7 +95,7 @@ import Data.Function ((&))
 import Data.Functor.Identity (Identity(..))
 import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List
-import Data.List.Extra (groupSort)
+import Data.List.Extra (groupSort, nubSort)
 import qualified Data.Map as M
 import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
@@ -258,7 +258,7 @@ journalPrevTransaction j t = journalTransactionAt j (tindex t - 1)
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [Text]
-journalDescriptions = nub . sort . map tdescription . jtxns
+journalDescriptions = nubSort . map tdescription . jtxns
 
 -- | All postings from this journal's transactions, in order.
 journalPostings :: Journal -> [Posting]
@@ -275,17 +275,17 @@ journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
 
 -- | Sorted unique account names declared by account directives in this journal.
 journalAccountNamesDeclared :: Journal -> [AccountName]
-journalAccountNamesDeclared = nub . sort . map fst . jdeclaredaccounts
+journalAccountNamesDeclared = nubSort . map fst . jdeclaredaccounts
 
 -- | Sorted unique account names declared by account directives or posted to
 -- by transactions in this journal.
 journalAccountNamesDeclaredOrUsed :: Journal -> [AccountName]
-journalAccountNamesDeclaredOrUsed j = nub $ sort $ journalAccountNamesDeclared j ++ journalAccountNamesUsed j
+journalAccountNamesDeclaredOrUsed j = nubSort $ journalAccountNamesDeclared j ++ journalAccountNamesUsed j
 
 -- | Sorted unique account names declared by account directives, or posted to
 -- or implied as parents by transactions in this journal.
 journalAccountNamesDeclaredOrImplied :: Journal -> [AccountName]
-journalAccountNamesDeclaredOrImplied j = nub $ sort $ journalAccountNamesDeclared j ++ journalAccountNamesImplied j
+journalAccountNamesDeclaredOrImplied j = nubSort $ journalAccountNamesDeclared j ++ journalAccountNamesImplied j
 
 -- | Convenience/compatibility alias for journalAccountNamesDeclaredOrImplied.
 journalAccountNames :: Journal -> [AccountName]

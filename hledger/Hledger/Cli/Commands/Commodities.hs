@@ -13,7 +13,7 @@ module Hledger.Cli.Commands.Commodities (
 ) where
 
 import Control.Monad
-import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Map as M
 import qualified Data.Text.IO as T
 
@@ -32,5 +32,5 @@ commoditiesmode = hledgerCommandMode
 commodities :: CliOpts -> Journal -> IO ()
 commodities _copts j = do
   let cs = filter (/= "AUTO") $
-           nub $ sort $ M.keys (jcommodities j) ++ M.keys (jinferredcommodities j)
+           nubSort $ M.keys (jcommodities j) ++ M.keys (jinferredcommodities j)
   forM_ cs T.putStrLn

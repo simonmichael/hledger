@@ -15,7 +15,7 @@ module Hledger.Cli.Commands.Notes (
  ,notes
 ) where
 
-import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -36,6 +36,6 @@ notes CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      notes = nub $ sort $ map transactionNote ts
+      notes = nubSort $ map transactionNote ts
 
   mapM_ T.putStrLn notes
