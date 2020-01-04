@@ -60,8 +60,8 @@ import Hledger.Reports.BalanceReport
 -- 3. the column totals, and the overall grand total (or zero for
 -- cumulative/historical reports) and grand average.
 
-type MultiBalanceReport    = PeriodicReport MixedAmount
-type MultiBalanceReportRow = PeriodicReportRow MixedAmount
+type MultiBalanceReport    = PeriodicReport AccountLeaf MixedAmount
+type MultiBalanceReportRow = PeriodicReportRow AccountLeaf MixedAmount
 
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
@@ -233,7 +233,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- One row per account, with account name info, row amounts, row total and row average.
       rows :: [MultiBalanceReportRow] =
           dbg1 "rows" $
-          [ PeriodicReportRow a (accountLeafName a)
+          [ PeriodicReportRow (AccountLeaf a $ accountLeafName a)
               (accountNameLevel a) valuedrowbals rowtot rowavg
            | (a,changes) <- dbg1 "acctchanges" acctchanges
              -- The row amounts to be displayed: per-period changes,
@@ -287,9 +287,9 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
               sortTreeMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
               sortTreeMBRByAmount rows = sortedrows
                 where
-                  anamesandrows = [(prrName r, r) | r <- rows]
+                  anamesandrows = [(prrFullName r, r) | r <- rows]
                   anames = map fst anamesandrows
-                  atotals = [(a,tot) | PeriodicReportRow a _ _ _ tot _ <- rows]
+                  atotals = [(prrFullName r, prrTotal r) | r <- rows]
                   accounttree = accountTree "root" anames
                   accounttreewithbals = mapAccounts setibalance accounttree
                     where
@@ -307,7 +307,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
               -- Sort the report rows by account declaration order then account name.
               sortMBRByAccountDeclaration rows = sortedrows
                 where
-                  anamesandrows = [(prrName r, r) | r <- rows]
+                  anamesandrows = [(prrFullName r, r) | r <- rows]
                   anames = map fst anamesandrows
                   sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
                   sortedrows = sortAccountItemsLike sortedanames anamesandrows
@@ -318,7 +318,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- Calculate the column totals. These are always the sum of column amounts.
       highestlevelaccts = [a | a <- displayaccts, not $ any (`elem` displayaccts) $ init $ expandAccountName a]
       colamts = transpose . map prrAmounts $ filter isHighest rows
-        where isHighest row = not (tree_ ropts) || prrName row `elem` highestlevelaccts
+        where isHighest row = not (tree_ ropts) || prrFullName row `elem` highestlevelaccts
       coltotals :: [MixedAmount] =
         dbg1 "coltotals" $ map sum colamts
       -- Calculate the grand total and average. These are always the sum/average
@@ -330,8 +330,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
               ]
         in amts
       -- Totals row.
-      totalsrow :: PeriodicReportRow MixedAmount =
-        dbg1 "totalsrow" $ PeriodicReportRow "" "" 0 coltotals grandtotal grandaverage
+      totalsrow :: PeriodicReportRow () MixedAmount =
+        dbg1 "totalsrow" $ PeriodicReportRow () 0 coltotals grandtotal grandaverage
 
       ----------------------------------------------------------------------
       -- 9. Map the report rows to percentages if needed
@@ -341,14 +341,14 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       mappedsortedrows :: [MultiBalanceReportRow] =
         if not percent_ then sortedrows
         else dbg1 "mappedsortedrows"
-          [ PeriodicReportRow aname alname alevel
+          [ PeriodicReportRow aname alevel
               (zipWith perdivide rowvals coltotals)
               (rowtotal `perdivide` grandtotal)
               (rowavg `perdivide` grandaverage)
-           | PeriodicReportRow aname alname alevel rowvals rowtotal rowavg <- sortedrows
+           | PeriodicReportRow aname alevel rowvals rowtotal rowavg <- sortedrows
           ]
-      mappedtotalsrow :: PeriodicReportRow MixedAmount
-        | percent_  = dbg1 "mappedtotalsrow" $ PeriodicReportRow "" "" 0
+      mappedtotalsrow :: PeriodicReportRow () MixedAmount
+        | percent_  = dbg1 "mappedtotalsrow" $ PeriodicReportRow () 0
              (map (\t -> perdivide t t) coltotals)
              (perdivide grandtotal grandtotal)
              (perdivide grandaverage grandaverage)
@@ -361,12 +361,12 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReportFromMultiBalanceReport opts q j = (rows', total)
   where
-    PeriodicReport _ rows (PeriodicReportRow _ _ _ totals _ _) = multiBalanceReport opts q j
+    PeriodicReport _ rows (PeriodicReportRow _ _ totals _ _) = multiBalanceReport opts q j
     rows' = [( a
              , if flat_ opts then a else a'   -- BalanceReport expects full account name here with --flat
              , if tree_ opts then d-1 else 0  -- BalanceReport uses 0-based account depths
              , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
-             ) | PeriodicReportRow a a' d amts _ _ <- rows]
+             ) | PeriodicReportRow (AccountLeaf a a') d amts _ _ <- rows]
     total = headDef nullmixedamt totals
 
 
@@ -395,7 +395,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
     (opts,journal) `gives` r = do
       let (eitems, etotal) = r
           (PeriodicReport _ aitems atotal) = multiBalanceReport opts (queryFromOpts nulldate opts) journal
-          showw (PeriodicReportRow acct acct' indent lAmt amt amt')
+          showw (PeriodicReportRow (AccountLeaf acct acct') indent lAmt amt amt')
               = (acct, acct', indent, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
       (map showw aitems) @?= (map showw eitems)
       showMixedAmountDebug (prrTotal atotal) @?= showMixedAmountDebug etotal -- we only check the sum of the totals
@@ -407,8 +407,8 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
      ,test "with -H on a populated period"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (
-        [ PeriodicReportRow "assets:bank:checking" "checking" 3 [mamountp' "$1.00"]  (Mixed [nullamt]) (Mixed [amt0 {aquantity=1}])
-        , PeriodicReportRow "income:salary"        "salary"   2 [mamountp' "$-1.00"] (Mixed [nullamt]) (Mixed [amt0 {aquantity=(-1)}])
+        [ PeriodicReportRow (AccountLeaf "assets:bank:checking" "checking") 3 [mamountp' "$1.00"]  (Mixed [nullamt]) (Mixed [amt0 {aquantity=1}])
+        , PeriodicReportRow (AccountLeaf "income:salary"        "salary")   2 [mamountp' "$-1.00"] (Mixed [nullamt]) (Mixed [amt0 {aquantity=(-1)}])
         ],
         Mixed [nullamt])
 
