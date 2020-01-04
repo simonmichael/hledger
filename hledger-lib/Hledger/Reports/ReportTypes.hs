@@ -4,7 +4,7 @@ New common report types, used by the BudgetReport for now, perhaps all reports l
 
 module Hledger.Reports.ReportTypes
 ( PeriodicReport(..)
-, PeriodicReportRow
+, PeriodicReportRow(..)
 
 , Percentage
 , Change
@@ -58,27 +58,30 @@ type Average = MixedAmount  -- ^ The average of 'Change's or 'Balance's in a rep
 
 data PeriodicReport a =
   PeriodicReport
-    ( [DateSpan]            -- The subperiods formed by splitting the overall report period by the report interval.
-                            -- For ending-balance reports, only the end date is significant.
-                            -- Usually displayed as report columns.
-    , [PeriodicReportRow a] -- One row per account in the report.
-    , PeriodicReportRow a   -- The grand totals row. The account name in this row is always empty.
-    )
-   deriving (Show)
+  { prDates  :: [DateSpan]             -- The subperiods formed by splitting the overall
+                                       -- report period by the report interval. For
+                                       -- ending-balance reports, only the end date is
+                                       -- significant. Usually displayed as report columns.
+  , prRows   :: [PeriodicReportRow a]  -- One row per account in the report.
+  , prTotals :: PeriodicReportRow a    -- The grand totals row. The account name in this row is always empty.
+  } deriving (Show)
 
-type PeriodicReportRow a =
-  ( AccountName  -- A full account name.
-  , AccountName  -- Shortened form of the account name to display in tree mode. Usually the leaf name, possibly with parent accounts prefixed.
-  , Int          -- Indent level for displaying this account name in tree mode. 0, 1, 2...
-  , [a]          -- The data value for each subperiod.
-  , a            -- The total of this row's values.
-  , a            -- The average of this row's values.
-  )
+data PeriodicReportRow a =
+  PeriodicReportRow
+  { prrName    :: AccountName  -- A full account name.
+  , prrLeaf    :: AccountName  -- Shortened form of the account name to display
+                               -- in tree mode. Usually the leaf name, possibly
+                               -- with parent accounts prefixed.
+  , prrDepth   :: Int          -- Indent level for displaying this account name in tree mode. 0, 1, 2...
+  , prrAmounts :: [a]          -- The data value for each subperiod.
+  , prrTotal   :: a            -- The total of this row's values.
+  , prrAverage :: a            -- The average of this row's values.
+  } deriving (Show)
 
 -- | Figure out the overall date span of a PeridicReport
 periodicReportSpan :: PeriodicReport a -> DateSpan
-periodicReportSpan (PeriodicReport ([], _, _))       = DateSpan Nothing Nothing
-periodicReportSpan (PeriodicReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
+periodicReportSpan (PeriodicReport [] _ _)       = DateSpan Nothing Nothing
+periodicReportSpan (PeriodicReport colspans _ _) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
 
 -- | Given a PeriodicReport and its normal balance sign,
 -- if it is known to be normally negative, convert it to normally positive.
@@ -88,8 +91,8 @@ prNormaliseSign _ = id
 
 -- | Flip the sign of all amounts in a PeriodicReport.
 prNegate :: Num a => PeriodicReport a -> PeriodicReport a
-prNegate (PeriodicReport (colspans, rows, totalsrow)) =
-    PeriodicReport (colspans, map rowNegate rows, rowNegate totalsrow)
+prNegate (PeriodicReport colspans rows totalsrow) =
+    PeriodicReport colspans (map rowNegate rows) (rowNegate totalsrow)
   where
-    rowNegate (acct, acct', indent, amts, tot, avg) =
-        (acct, acct', indent, map negate amts, -tot, -avg)
+    rowNegate (PeriodicReportRow name leaf indent amts tot avg) =
+        PeriodicReportRow name leaf indent (map negate amts) (-tot) (-avg)
