@@ -41,6 +41,7 @@ module Hledger.Data.AccountName (
 where
 
 import Data.List
+import Data.List.Extra (nubSort)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
@@ -110,7 +111,7 @@ accountNameDrop n a
 -- ie these plus all their parent accounts up to the root.
 -- Eg: ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
-expandAccountNames as = nub $ sort $ concatMap expandAccountName as
+expandAccountNames as = nubSort $ concatMap expandAccountName as
 
 -- | "a:b:c" -> ["a","a:b","a:b:c"]
 expandAccountName :: AccountName -> [AccountName]

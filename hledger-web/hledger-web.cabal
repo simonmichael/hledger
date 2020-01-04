@@ -166,6 +166,7 @@ library
     , containers
     , data-default
     , directory
+    , extra >=1.6.3
     , filepath
     , hjsmin
     , hledger >=1.16.1 && <1.17

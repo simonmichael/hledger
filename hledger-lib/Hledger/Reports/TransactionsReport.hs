@@ -22,6 +22,7 @@ module Hledger.Reports.TransactionsReport (
 where
 
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Ord
 
 import Hledger.Data
@@ -79,7 +80,7 @@ transactionsReportByCommodity tr =
   [(c, filterTransactionsReportByCommodity c tr) | c <- transactionsReportCommodities tr]
   where
     transactionsReportCommodities (_,items) =
-      nub $ sort $ map acommodity $ concatMap (amounts . triAmount) items
+      nubSort . map acommodity $ concatMap (amounts . triAmount) items
 
 -- Remove transaction report items and item amount (and running
 -- balance amount) components that don't involve the specified

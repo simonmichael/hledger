@@ -69,7 +69,7 @@ module Hledger.Data.Posting (
 where
 
 import Data.Foldable (asum)
-import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.MemoUgly (memo)
@@ -190,7 +190,7 @@ hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
 
 -- | Sorted unique account names referenced by these postings.
 accountNamesFromPostings :: [Posting] -> [AccountName]
-accountNamesFromPostings = nub . sort . map paccount
+accountNamesFromPostings = nubSort . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = sumStrict . map pamount

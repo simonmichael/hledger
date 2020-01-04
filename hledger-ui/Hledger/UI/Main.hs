@@ -21,6 +21,7 @@ import Data.Default (def)
 #endif
 -- import Data.Monoid              --
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
@@ -205,7 +206,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       withManager $ \mgr -> do
         dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
         files <- mapM (canonicalizePath . fst) $ jfiles j
-        let directories = nub $ sort $ map takeDirectory files
+        let directories = nubSort $ map takeDirectory files
         dbg1IO "files" files
         dbg1IO "directories to watch" directories
 

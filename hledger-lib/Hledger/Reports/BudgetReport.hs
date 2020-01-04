@@ -11,6 +11,7 @@ where
 
 import Data.Decimal
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
@@ -202,7 +203,7 @@ combineBudgetAndActual
   (MultiBalanceReport (budgetperiods, budgetrows, (budgettots, budgetgrandtot, budgetgrandavg)))
   (MultiBalanceReport (actualperiods, actualrows, (actualtots, actualgrandtot, actualgrandavg))) =
   let
-    periods = nub $ sort $ filter (/= nulldatespan) $ budgetperiods ++ actualperiods
+    periods = nubSort $ filter (/= nulldatespan) $ budgetperiods ++ actualperiods
 
     -- first, combine any corresponding budget goals with actual changes
     rows1 =

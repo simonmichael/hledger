@@ -15,7 +15,7 @@ module Hledger.Cli.Commands.Payees (
  ,payees
 ) where
 
-import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -36,6 +36,6 @@ payees CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      payees = nub $ sort $ map transactionPayee ts
+      payees = nubSort $ map transactionPayee ts
 
   mapM_ T.putStrLn payees
