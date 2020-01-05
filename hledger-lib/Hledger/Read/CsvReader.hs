@@ -115,9 +115,7 @@ parseSeparator = specials . map toLower
 -- | Decide which separator to get.
 -- If the external separator is provided, take it. Otherwise, look at the rules. Finally, return ','.
 getSeparator :: CsvRules -> Char
-getSeparator rules = head $
-  catMaybes [ getDirective "separator" rules >>= parseSeparator
-            , Just ',']
+getSeparator rules = maybe ',' id (getDirective "separator" rules >>= parseSeparator)
 
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
