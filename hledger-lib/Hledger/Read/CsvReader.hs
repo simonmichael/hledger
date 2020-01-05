@@ -71,7 +71,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, getSpecialSeparators, finaliseJournal)
+import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, finaliseJournal)
 
 type CSV = [Record]
 
@@ -93,8 +93,7 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f t = do
   let rulesfile = mrules_file_ iopts
-  let separator = separator_ iopts
-  r <- liftIO $ readJournalFromCsv separator rulesfile f t
+  r <- liftIO $ readJournalFromCsv rulesfile f t
   case r of Left e   -> throwError e
             Right pj -> finaliseJournal iopts{ignore_assertions_=True} f t pj'
               where
@@ -104,12 +103,19 @@ parse iopts f t = do
                 -- better preemptively reverse them once more. XXX inefficient
                 pj' = journalReverse pj
 
+-- | Parse special separator names TAB and SPACE, or return the first
+-- character. Return Nothing on empty string
+getSpecialSeparators :: String -> Maybe Char
+getSpecialSeparators "SPACE" = Just ' '
+getSpecialSeparators "TAB" = Just '\t'
+getSpecialSeparators (x:_) = Just x
+getSpecialSeparators [] = Nothing
+
 -- | Decide which separator to get.
 -- If the external separator is provided, take it. Otherwise, look at the rules. Finally, return ','.
-getSeparator :: Maybe Char -> CsvRules -> Char
-getSeparator externalSeparator rules = head $
-  catMaybes [ externalSeparator
-            , getDirective "separator" rules >>= getSpecialSeparators
+getSeparator :: CsvRules -> Char
+getSeparator rules = head $
+  catMaybes [ getDirective "separator" rules >>= getSpecialSeparators
             , Just ',']
 
 -- | Read a Journal from the given CSV data (and filename, used for error
@@ -123,9 +129,9 @@ getSeparator externalSeparator rules = head $
 -- 4. if the rules file didn't exist, create it with the default rules and filename
 -- 5. return the transactions as a Journal
 -- @
-readJournalFromCsv :: Maybe Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
-readJournalFromCsv _ Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv commandLineSeparator mrulesfile csvfile csvdata =
+readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
+readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv mrulesfile csvfile csvdata =
  handle (\(e::IOException) -> return $ Left $ show e) $ do
 
   -- make and throw an IO exception.. which we catch and convert to an Either above ?
@@ -156,7 +162,7 @@ readJournalFromCsv commandLineSeparator mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv rules skiplines .
               dbg2 "parseCsv")
-             `fmap` parseCsv (getSeparator commandLineSeparator rules) parsecfilename csvdata
+             `fmap` parseCsv (getSeparator rules) parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
