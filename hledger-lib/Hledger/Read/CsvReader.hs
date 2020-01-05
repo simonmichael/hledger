@@ -112,11 +112,6 @@ parseSeparator = specials . map toLower
         specials (x:_)   = Just x
         specials []      = Nothing
 
--- | Decide which separator to get.
--- If the external separator is provided, take it. Otherwise, look at the rules. Finally, return ','.
-getSeparator :: CsvRules -> Char
-getSeparator rules = maybe ',' id (getDirective "separator" rules >>= parseSeparator)
-
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
 -- @
@@ -158,10 +153,12 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- parse csv
   -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
+  let separator = fromMaybe ',' (getDirective "separator" rules >>= parseSeparator)
+  dbg2IO "separator" separator
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv rules skiplines .
               dbg2 "parseCsv")
-             `fmap` parseCsv (getSeparator rules) parsecfilename csvdata
+             `fmap` parseCsv separator parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
