@@ -34,10 +34,37 @@ which are often a [query](#queries), filtering the data in some way.
 
 ## Argument files
 
-You can save a set of command line options/arguments in a file, one per line,
-and then reuse them by writing `@FILENAME` in a command line.
-To prevent this expansion of `@`-arguments, precede them with a `--` argument.
-For more, see [Save frequently used options](save-frequently-used-options.html).
+You can save a set of command line options/arguments in a file,
+and then reuse them by writing `@FILENAME` as a command line argument.
+Eg: `hledger bal @foo.args`.
+(To prevent this, eg if you have an argument that begins with a literal `@`,
+precede it with `--`, eg: `hledger bal -- @ARG`).
+
+Inside the argument file, each line should contain just one option or argument.
+Avoid the use of spaces, except inside quotes (or you'll see a confusing error).
+Between a flag and its argument, use = (or nothing).
+Bad:
+
+    assets depth:2
+    -X USD
+
+Good:
+
+    assets
+    depth:2
+    -X=USD
+
+For special characters (see below), use one less level of quoting than
+you would at the command prompt. 
+Bad:
+
+    -X"$"
+
+Good:
+
+    -X$
+
+See also: [Save frequently used options](save-frequently-used-options.html).
 
 ## Special characters in arguments and queries
 
