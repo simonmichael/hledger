@@ -6,7 +6,7 @@ contain receivable or A/R in their name. Note this report shows all
 account balances with normal positive sign (like conventional financial
 statements, unlike balance/print/register) (experimental).
 
-_FLAGS_
+$FLAGS$
 
 Example:
 

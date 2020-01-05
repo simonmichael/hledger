@@ -1,7 +1,7 @@
 accounts, a
 Show account names.
 
-_FLAGS_
+$FLAGS$
 
 This command lists account names, either declared with account
 directives (--declared), posted to (--used), or both (the default). With

@@ -58,12 +58,12 @@ Here are more special features/conventions of command doc files (see
   markdown formatting though, eg to define a list.
 
 - After the short help, there should be a paragraph containing just
-  _FLAGS_. This marks the end of the short help, and it will be
+  $FLAGS$. This marks the end of the short help, and it will be
   replaced in command line help by the flags list. (Without it, the
   flags list appears at the end of command line help.) The flags list
   will not appear in the hledger manual.
 
-- Long help (as many paragraphs as needed) follows the _FLAGS_ marker.
+- Long help (as many paragraphs as needed) follows the $FLAGS$ marker.
   This often ends with one or more examples.
 
 

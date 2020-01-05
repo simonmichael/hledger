@@ -1,7 +1,7 @@
 help\
 Show any of the hledger manuals.
 
-_FLAGS_
+$FLAGS$
 
 The `help` command displays any of the main [hledger manuals](/docs.html), in one of several ways.
 Run it with no argument to list the manuals, or provide a full or partial manual name to select one.
