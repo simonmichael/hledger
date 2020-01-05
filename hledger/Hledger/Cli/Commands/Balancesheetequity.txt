@@ -2,7 +2,7 @@ balancesheetequity, bse
 Just like balancesheet, but also reports Equity (which it assumes is
 under a top-level equity account).
 
-$FLAGS$
+_FLAGS
 
 Example:
 

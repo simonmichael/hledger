@@ -1173,8 +1173,6 @@ COMMANDS
        accounts, a
        Show account names.
 
-       $FLAGS$
-
        This command lists account names, either declared with  account  direc-
        tives  (--declared),  posted  to (--used), or both (the default).  With
        query arguments, only matched account names and  account  names  refer-
@@ -1200,8 +1198,6 @@ COMMANDS
        activity
        Show an ascii barchart of posting counts per interval.
 
-       $FLAGS$
-
        The  activity  command  displays an ascii histogram showing transaction
        counts by day, week, month or other reporting interval (by day  is  the
        default).  With query arguments, it counts only matched transactions.
@@ -1217,8 +1213,6 @@ COMMANDS
    add
        add
        Prompt for transactions and add them to the journal.
-
-       $FLAGS$
 
        Many  hledger users edit their journals directly with a text editor, or
        generate them from CSV.  For more interactive data entry, there is  the
@@ -1292,8 +1286,6 @@ COMMANDS
    balance
        balance, bal, b
        Show accounts and their balances.
-
-       $FLAGS$
 
        The balance command is hledger's most versatile command.  Note, despite
        the name, it is not always used for  showing  real-world  account  bal-
@@ -1805,8 +1797,6 @@ COMMANDS
        (like conventional financial statements, unlike balance/print/register)
        (experimental).
 
-       $FLAGS$
-
        Example:
 
               $ hledger balancesheet
@@ -1845,8 +1835,6 @@ COMMANDS
        Just  like  balancesheet,  but also reports Equity (which it assumes is
        under a top-level equity account).
 
-       $FLAGS$
-
        Example:
 
               $ hledger balancesheetequity
@@ -1882,8 +1870,6 @@ COMMANDS
        account balances with normal positive sign (like conventional financial
        statements, unlike balance/print/register) (experimental).
 
-       $FLAGS$
-
        Example:
 
               $ hledger cashflow
@@ -1916,15 +1902,11 @@ COMMANDS
        unique.  With a query, only matched transactions'  dates  are  checked.
        Reads the default journal file, or another specified with -f.
 
-       $FLAGS$
-
    check-dupes
        check-dupes
        Reports  account names having the same leaf but different prefixes.  In
        other words, two or  more  leaves  that  are  categorized  differently.
        Reads the default journal file, or another specified as an argument.
-
-       $FLAGS$
 
        An example: http://stefanorodighiero.net/software/hledger-dupes.html
 
@@ -1935,8 +1917,6 @@ COMMANDS
        Useful for bringing asset/liability balances forward into a new journal
        file, or for closing out revenues/expenses to retained earnings at  the
        end of a period.
-
-       $FLAGS$
 
        The  closing  transaction  transfers  balances  to "equity:closing bal-
        ances", and  the  opening  transaction  transfers  balances  from  "eq-
@@ -2018,12 +1998,8 @@ COMMANDS
        commodities
        List all commodity/currency symbols used or declared in the journal.
 
-       $FLAGS$
-
    descriptions
        descriptions Show descriptions.
-
-       $FLAGS$
 
        This command lists all descriptions that appear in transactions.
 
@@ -2051,8 +2027,6 @@ COMMANDS
        the account balance, you can compare the bank data with your journal to
        find out the cause.
 
-       $FLAGS$
-
        Examples:
 
               $ hledger diff -f $LEDGER_FILE -f bank.csv assets:bank:giro
@@ -2070,13 +2044,9 @@ COMMANDS
        List  all  files  included in the journal.  With a REGEX argument, only
        file names matching the regular expression (case sensitive) are shown.
 
-       $FLAGS$
-
    help
        help
        Show any of the hledger manuals.
-
-       $FLAGS$
 
        The help command displays any of the main hledger manuals,  in  one  of
        several  ways.  Run it with no argument to list the manuals, or provide
@@ -2116,8 +2086,6 @@ COMMANDS
        tions  that  would  be  added.  Or with --catchup, just mark all of the
        FILEs' transactions as imported, without actually importing any.
 
-       $FLAGS$
-
        The input files are specified as arguments - no need to write -f before
        each one.  So eg to add new transactions from all CSV files to the main
        journal, it's just: hledger import *.csv
@@ -2153,8 +2121,6 @@ COMMANDS
        ral  forms  also allowed).  Note this report shows all account balances
        with normal positive sign (like conventional financial statements,  un-
        like balance/print/register) (experimental).
-
-       $FLAGS$
 
        This  command displays a simple income statement.  It currently assumes
        that you have top-level accounts named income (or revenue) and  expense
@@ -2193,8 +2159,6 @@ COMMANDS
    notes
        notes Show notes.
 
-       $FLAGS$
-
        This command lists all notes that appear in transactions.
 
        Examples:
@@ -2205,8 +2169,6 @@ COMMANDS
 
    payees
        payees Show payee names.
-
-       $FLAGS$
 
        This command lists all payee names that appear in transactions.
 
@@ -2225,13 +2187,9 @@ COMMANDS
        Prices  (and  postings  providing  prices)  can be filtered by a query.
        Price amounts are always displayed with their full precision.
 
-       $FLAGS$
-
    print
        print, txns, p
        Show transaction journal entries, sorted by date.
-
-       $FLAGS$
 
        The print command displays full journal entries (transactions) from the
        journal  file  in date order, tidily formatted.  With --date2, transac-
@@ -2333,8 +2291,6 @@ COMMANDS
        print-unique
        Print transactions which do not reuse an already-seen description.
 
-       $FLAGS$
-
        Example:
 
               $ cat unique.journal
@@ -2350,8 +2306,6 @@ COMMANDS
    register
        register, reg, r
        Show postings and their running total.
-
-       $FLAGS$
 
        The register command displays postings in date order, one per line, and
        their  running  total.  This is typically used with a query selecting a
@@ -2463,15 +2417,11 @@ COMMANDS
        arguments)  can be used to restrict the search space.  Helps ledger-au-
        tosync detect already-seen transactions when importing.
 
-       $FLAGS$
-
    rewrite
        rewrite
        Print all transactions, rewriting the postings of matched transactions.
        For  now  the only rewrite available is adding new postings, like print
        --auto.
-
-       $FLAGS$
 
        This is a start at a generic rewriter of transaction entries.  It reads
        the  default  journal and prints the transactions, like print, but adds
@@ -2597,8 +2547,6 @@ COMMANDS
        Shows  the  time-weighted (TWR) and money-weighted (IRR) rate of return
        on your investments.
 
-       $FLAGS$
-
        This command assumes that you have account(s)  that  hold  nothing  but
        your investments and whenever you record current appraisal/valuation of
        these investments you offset unrealized profit and loss into account(s)
@@ -2620,8 +2568,6 @@ COMMANDS
    stats
        stats
        Show some journal statistics.
-
-       $FLAGS$
 
        The stats command displays summary information for the  whole  journal,
        or  a matched part of it.  With a reporting interval, it shows a report
@@ -2653,13 +2599,9 @@ COMMANDS
        considered.  With --values flag, the tags' unique values are listed in-
        stead.
 
-       $FLAGS$
-
    test
        test
        Run built-in unit tests.
-
-       $FLAGS$
 
        This  command  runs the unit tests built in to hledger and hledger-lib,
        printing the results on stdout.  If any test fails, the exit code  will

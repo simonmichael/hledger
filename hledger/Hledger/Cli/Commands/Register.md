@@ -1,7 +1,7 @@
 register, reg, r\
 Show postings and their running total.
 
-$FLAGS$
+_FLAGS
 
 The register command displays postings in date order, one per line,
 and their running total.  This is typically used with a

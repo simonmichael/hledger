@@ -1,7 +1,7 @@
 payees
 Show payee names.
 
-$FLAGS$
+_FLAGS
 
 This command lists all payee names that appear in transactions.
 

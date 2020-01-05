@@ -7,7 +7,7 @@ Note this report shows all account balances with normal positive sign
 (like conventional financial statements, unlike balance/print/register)
 (experimental).
 
-$FLAGS$
+_FLAGS
 
 Example:
 ```shell

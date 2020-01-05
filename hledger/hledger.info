@@ -1348,8 +1348,6 @@ File: hledger.info,  Node: accounts,  Next: activity,  Up: COMMANDS
 accounts, a
 Show account names.
 
-   $FLAGS$
-
    This command lists account names, either declared with account
 directives (-declared), posted to (-used), or both (the default).  With
 query arguments, only matched account names and account names referenced
@@ -1380,8 +1378,6 @@ File: hledger.info,  Node: activity,  Next: add,  Prev: accounts,  Up: COMMANDS
 activity
 Show an ascii barchart of posting counts per interval.
 
-   $FLAGS$
-
    The activity command displays an ascii histogram showing transaction
 counts by day, week, month or other reporting interval (by day is the
 default).  With query arguments, it counts only matched transactions.
@@ -1402,8 +1398,6 @@ File: hledger.info,  Node: add,  Next: balance,  Prev: activity,  Up: COMMANDS
 
 add
 Prompt for transactions and add them to the journal.
-
-   $FLAGS$
 
    Many hledger users edit their journals directly with a text editor,
 or generate them from CSV. For more interactive data entry, there is the
@@ -1475,8 +1469,6 @@ File: hledger.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMMAN
 
 balance, bal, b
 Show accounts and their balances.
-
-   $FLAGS$
 
    The balance command is hledger's most versatile command.  Note,
 despite the name, it is not always used for showing real-world account
@@ -2049,8 +2041,6 @@ date).  It assumes that these accounts are under a top-level 'asset' or
 (like conventional financial statements, unlike balance/print/register)
 (experimental).
 
-   $FLAGS$
-
    Example:
 
 $ hledger balancesheet
@@ -2094,8 +2084,6 @@ balancesheetequity, bse
 Just like balancesheet, but also reports Equity (which it assumes is
 under a top-level 'equity' account).
 
-   $FLAGS$
-
    Example:
 
 $ hledger balancesheetequity
@@ -2136,8 +2124,6 @@ contain 'receivable' or 'A/R' in their name.  Note this report shows all
 account balances with normal positive sign (like conventional financial
 statements, unlike balance/print/register) (experimental).
 
-   $FLAGS$
-
    Example:
 
 $ hledger cashflow
@@ -2175,8 +2161,6 @@ checks secondary dates instead.  With -strict, dates must also be
 unique.  With a query, only matched transactions' dates are checked.
 Reads the default journal file, or another specified with -f.
 
-   $FLAGS$
-
 
 File: hledger.info,  Node: check-dupes,  Next: close,  Prev: check-dates,  Up: COMMANDS
 
@@ -2187,8 +2171,6 @@ check-dupes
 Reports account names having the same leaf but different prefixes.  In
 other words, two or more leaves that are categorized differently.  Reads
 the default journal file, or another specified as an argument.
-
-   $FLAGS$
 
    An example: http://stefanorodighiero.net/software/hledger-dupes.html
 
@@ -2204,8 +2186,6 @@ transaction that bring account balances to and from zero, respectively.
 Useful for bringing asset/liability balances forward into a new journal
 file, or for closing out revenues/expenses to retained earnings at the
 end of a period.
-
-   $FLAGS$
 
    The closing transaction transfers balances to "equity:closing
 balances", and the opening transaction transfers balances from
@@ -2293,8 +2273,6 @@ File: hledger.info,  Node: commodities,  Next: descriptions,  Prev: close,  Up: 
 commodities
 List all commodity/currency symbols used or declared in the journal.
 
-   $FLAGS$
-
 
 File: hledger.info,  Node: descriptions,  Next: diff,  Prev: commodities,  Up: COMMANDS
 
@@ -2302,8 +2280,6 @@ File: hledger.info,  Node: descriptions,  Next: diff,  Prev: commodities,  Up: C
 =================
 
 descriptions Show descriptions.
-
-   $FLAGS$
 
    This command lists all descriptions that appear in transactions.
 
@@ -2337,8 +2313,6 @@ from your bank (eg as CSV data).  When hledger and your bank disagree
 about the account balance, you can compare the bank data with your
 journal to find out the cause.
 
-   $FLAGS$
-
    Examples:
 
 $ hledger diff -f $LEDGER_FILE -f bank.csv assets:bank:giro 
@@ -2361,8 +2335,6 @@ files
 List all files included in the journal.  With a REGEX argument, only
 file names matching the regular expression (case sensitive) are shown.
 
-   $FLAGS$
-
 
 File: hledger.info,  Node: help,  Next: import,  Prev: files,  Up: COMMANDS
 
@@ -2371,8 +2343,6 @@ File: hledger.info,  Node: help,  Next: import,  Prev: files,  Up: COMMANDS
 
 help
 Show any of the hledger manuals.
-
-   $FLAGS$
 
    The 'help' command displays any of the main hledger manuals, in one
 of several ways.  Run it with no argument to list the manuals, or
@@ -2416,8 +2386,6 @@ Read new transactions added to each FILE since last run, and add them to
 the main journal file.  Or with -dry-run, just print the transactions
 that would be added.  Or with -catchup, just mark all of the FILEs'
 transactions as imported, without actually importing any.
-
-   $FLAGS$
 
    The input files are specified as arguments - no need to write -f
 before each one.  So eg to add new transactions from all CSV files to
@@ -2469,8 +2437,6 @@ plural forms also allowed).  Note this report shows all account balances
 with normal positive sign (like conventional financial statements,
 unlike balance/print/register) (experimental).
 
-   $FLAGS$
-
    This command displays a simple income statement.  It currently
 assumes that you have top-level accounts named 'income' (or 'revenue')
 and 'expense' (plural forms also allowed.)
@@ -2513,8 +2479,6 @@ File: hledger.info,  Node: notes,  Next: payees,  Prev: incomestatement,  Up: CO
 
 notes Show notes.
 
-   $FLAGS$
-
    This command lists all notes that appear in transactions.
 
    Examples:
@@ -2530,8 +2494,6 @@ File: hledger.info,  Node: payees,  Next: prices,  Prev: notes,  Up: COMMANDS
 ===========
 
 payees Show payee names.
-
-   $FLAGS$
 
    This command lists all payee names that appear in transactions.
 
@@ -2555,8 +2517,6 @@ synthetic market prices based on transaction prices.  With
 Prices (and postings providing prices) can be filtered by a query.
 Price amounts are always displayed with their full precision.
 
-   $FLAGS$
-
 
 File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
 
@@ -2565,8 +2525,6 @@ File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMA
 
 print, txns, p
 Show transaction journal entries, sorted by date.
-
-   $FLAGS$
 
    The print command displays full journal entries (transactions) from
 the journal file in date order, tidily formatted.  With -date2,
@@ -2669,8 +2627,6 @@ File: hledger.info,  Node: print-unique,  Next: register,  Prev: print,  Up: COM
 print-unique
 Print transactions which do not reuse an already-seen description.
 
-   $FLAGS$
-
    Example:
 
 $ cat unique.journal
@@ -2691,8 +2647,6 @@ File: hledger.info,  Node: register,  Next: register-match,  Prev: print-unique,
 
 register, reg, r
 Show postings and their running total.
-
-   $FLAGS$
 
    The register command displays postings in date order, one per line,
 and their running total.  This is typically used with a query selecting
@@ -2819,8 +2773,6 @@ good matches, it shows the most recent.  Query options (options, not
 arguments) can be used to restrict the search space.  Helps
 ledger-autosync detect already-seen transactions when importing.
 
-   $FLAGS$
-
 
 File: hledger.info,  Node: rewrite,  Next: roi,  Prev: register-match,  Up: COMMANDS
 
@@ -2831,8 +2783,6 @@ rewrite
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print
 -auto.
-
-   $FLAGS$
 
    This is a start at a generic rewriter of transaction entries.  It
 reads the default journal and prints the transactions, like print, but
@@ -2989,8 +2939,6 @@ roi
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return on
 your investments.
 
-   $FLAGS$
-
    This command assumes that you have account(s) that hold nothing but
 your investments and whenever you record current appraisal/valuation of
 these investments you offset unrealized profit and loss into account(s)
@@ -3017,8 +2965,6 @@ File: hledger.info,  Node: stats,  Next: tags,  Prev: roi,  Up: COMMANDS
 
 stats
 Show some journal statistics.
-
-   $FLAGS$
 
    The stats command displays summary information for the whole journal,
 or a matched part of it.  With a reporting interval, it shows a report
@@ -3055,8 +3001,6 @@ shown.  With QUERY arguments, only transactions matching the query are
 considered.  With -values flag, the tags' unique values are listed
 instead.
 
-   $FLAGS$
-
 
 File: hledger.info,  Node: test,  Prev: tags,  Up: COMMANDS
 
@@ -3065,8 +3009,6 @@ File: hledger.info,  Node: test,  Prev: tags,  Up: COMMANDS
 
 test
 Run built-in unit tests.
-
-   $FLAGS$
 
    This command runs the unit tests built in to hledger and hledger-lib,
 printing the results on stdout.  If any test fails, the exit code will
@@ -3287,111 +3229,111 @@ Node: COMMANDS43892
 Ref: #commands44004
 Node: accounts45068
 Ref: #accounts45166
-Node: activity45877
-Ref: #activity45987
-Node: add46382
-Ref: #add46481
-Node: balance49232
-Ref: #balance49343
-Node: Classic balance report50813
-Ref: #classic-balance-report50986
-Node: Customising the classic balance report52355
-Ref: #customising-the-classic-balance-report52583
-Node: Colour support54659
-Ref: #colour-support54826
-Node: Flat mode54999
-Ref: #flat-mode55147
-Node: Depth limited balance reports55560
-Ref: #depth-limited-balance-reports55745
-Node: Percentages56201
-Ref: #percentages56367
-Node: Multicolumn balance report57504
-Ref: #multicolumn-balance-report57684
-Node: Budget report62998
-Ref: #budget-report63141
-Node: Nested budgets68343
-Ref: #nested-budgets68455
-Ref: #output-format-171936
-Node: balancesheet72014
-Ref: #balancesheet72150
-Node: balancesheetequity73545
-Ref: #balancesheetequity73694
-Node: cashflow74267
-Ref: #cashflow74395
-Node: check-dates75503
-Ref: #check-dates75630
-Node: check-dupes75921
-Ref: #check-dupes76045
-Node: close76350
-Ref: #close76464
-Node: commodities80142
-Ref: #commodities80269
-Node: descriptions80363
-Ref: #descriptions80491
-Node: diff80684
-Ref: #diff80790
-Node: files81849
-Ref: #files81949
-Node: help82108
-Ref: #help82208
-Node: import83301
-Ref: #import83415
-Node: Importing balance assignments84320
-Ref: #importing-balance-assignments84468
-Node: incomestatement85117
-Ref: #incomestatement85250
-Node: notes86666
-Ref: #notes86779
-Node: payees86917
-Ref: #payees87023
-Node: prices87193
-Ref: #prices87299
-Node: print87652
-Ref: #print87762
-Node: print-unique92267
-Ref: #print-unique92393
-Node: register92690
-Ref: #register92817
-Node: Custom register output97001
-Ref: #custom-register-output97130
-Node: register-match98392
-Ref: #register-match98526
-Node: rewrite98889
-Ref: #rewrite99004
-Node: Re-write rules in a file100871
-Ref: #re-write-rules-in-a-file101005
-Node: Diff output format102215
-Ref: #diff-output-format102384
-Node: rewrite vs print --auto103476
-Ref: #rewrite-vs.-print---auto103655
-Node: roi104211
-Ref: #roi104309
-Node: stats105333
-Ref: #stats105432
-Node: tags106232
-Ref: #tags106330
-Node: test106636
-Ref: #test106720
-Node: ADD-ON COMMANDS107479
-Ref: #add-on-commands107589
-Node: Official add-ons108877
-Ref: #official-add-ons109017
-Node: ui109097
-Ref: #ui109184
-Node: web109238
-Ref: #web109327
-Node: Third party add-ons109373
-Ref: #third-party-add-ons109548
-Node: iadd109667
-Ref: #iadd109768
-Node: interest109850
-Ref: #interest109959
-Node: Experimental add-ons110054
-Ref: #experimental-add-ons110206
-Node: autosync110444
-Ref: #autosync110555
-Node: chart110794
-Ref: #chart110899
+Node: activity45865
+Ref: #activity45975
+Node: add46358
+Ref: #add46457
+Node: balance49196
+Ref: #balance49307
+Node: Classic balance report50765
+Ref: #classic-balance-report50938
+Node: Customising the classic balance report52307
+Ref: #customising-the-classic-balance-report52535
+Node: Colour support54611
+Ref: #colour-support54778
+Node: Flat mode54951
+Ref: #flat-mode55099
+Node: Depth limited balance reports55512
+Ref: #depth-limited-balance-reports55697
+Node: Percentages56153
+Ref: #percentages56319
+Node: Multicolumn balance report57456
+Ref: #multicolumn-balance-report57636
+Node: Budget report62950
+Ref: #budget-report63093
+Node: Nested budgets68295
+Ref: #nested-budgets68407
+Ref: #output-format-171888
+Node: balancesheet71966
+Ref: #balancesheet72102
+Node: balancesheetequity73485
+Ref: #balancesheetequity73634
+Node: cashflow74195
+Ref: #cashflow74323
+Node: check-dates75419
+Ref: #check-dates75546
+Node: check-dupes75825
+Ref: #check-dupes75949
+Node: close76242
+Ref: #close76356
+Node: commodities80022
+Ref: #commodities80149
+Node: descriptions80231
+Ref: #descriptions80359
+Node: diff80540
+Ref: #diff80646
+Node: files81693
+Ref: #files81793
+Node: help81940
+Ref: #help82040
+Node: import83121
+Ref: #import83235
+Node: Importing balance assignments84128
+Ref: #importing-balance-assignments84276
+Node: incomestatement84925
+Ref: #incomestatement85058
+Node: notes86462
+Ref: #notes86575
+Node: payees86701
+Ref: #payees86807
+Node: prices86965
+Ref: #prices87071
+Node: print87412
+Ref: #print87522
+Node: print-unique92015
+Ref: #print-unique92141
+Node: register92426
+Ref: #register92553
+Node: Custom register output96725
+Ref: #custom-register-output96854
+Node: register-match98116
+Ref: #register-match98250
+Node: rewrite98601
+Ref: #rewrite98716
+Node: Re-write rules in a file100571
+Ref: #re-write-rules-in-a-file100705
+Node: Diff output format101915
+Ref: #diff-output-format102084
+Node: rewrite vs print --auto103176
+Ref: #rewrite-vs.-print---auto103355
+Node: roi103911
+Ref: #roi104009
+Node: stats105021
+Ref: #stats105120
+Node: tags105908
+Ref: #tags106006
+Node: test106300
+Ref: #test106384
+Node: ADD-ON COMMANDS107131
+Ref: #add-on-commands107241
+Node: Official add-ons108529
+Ref: #official-add-ons108669
+Node: ui108749
+Ref: #ui108836
+Node: web108890
+Ref: #web108979
+Node: Third party add-ons109025
+Ref: #third-party-add-ons109200
+Node: iadd109319
+Ref: #iadd109420
+Node: interest109502
+Ref: #interest109611
+Node: Experimental add-ons109706
+Ref: #experimental-add-ons109858
+Node: autosync110096
+Ref: #autosync110207
+Node: chart110446
+Ref: #chart110551
 
 End Tag Table
 
