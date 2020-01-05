@@ -4,8 +4,8 @@ stdin.
 
 File: hledger_timeclock.info,  Node: Top,  Up: (dir)
 
-hledger_timeclock(5) hledger 1.16.1
-***********************************
+hledger_timeclock(5) hledger 1.16.99
+************************************
 
 hledger can read timeclock files.  As with Ledger, these are (a subset
 of) timeclock.el's format, containing clock-in and clock-out entries as
