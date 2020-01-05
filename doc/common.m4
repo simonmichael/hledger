@@ -25,8 +25,8 @@ m4_dnl The actual links are inserted dynamically by site.js, static generation w
 m4_dnl There should be a " (dev)" suffix here except when generating release docs.
 m4_define({{_docversionlinks_}},m4_dnl
 This doc is for version **_version_**
-m4_dnl (dev) suffix should be commented for releases, uncommented in between releases:
-m4_dnl (dev)
+m4_dnl (dev) suffix below should be commented for releases, uncommented in between releases:
+(dev)
 .
 m4_dnl <span class="docversions">m4_dnl
 m4_dnl </span>
