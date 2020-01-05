@@ -263,6 +263,20 @@ main = do
       ,webmanuals
       ]
 
+    -- Generate plain text manuals suitable for embedding in
+    -- executables and viewing with a pager.
+    phony "txtmanuals" $ need txtmanuals
+    txtmanuals |%> \out -> do  -- hledger/hledger.txt
+      let src = manualNameToManpageName $ dropExtension out
+      need [src]
+      -- cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -b >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
+      -- Workaround: groff 1.22.4 always calls grotty in a way that adds ANSI/SGR escape codes.
+      -- (groff -c is supposed to switch those to backspaces, which we could
+      -- remove with col -b, but it doesn't as can be seen with groff -V.)
+      -- To get plain text, we run groff's lower-level commands (from -V) and add -cbuo.
+      -- -Wall silences most troff warnings, remove to see them
+      cmd Shell "tbl" src "| eqn -Tascii | troff -Wall -mandoc -Tascii | grotty -cbuo >" out
+
     -- Generate nroff man pages suitable for man output.
     phony "nroffmanuals" $ need nroffmanuals
     nroffmanuals |%> \out -> do -- hledger/hledger.1
@@ -282,20 +296,6 @@ main = do
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
         "-o" out
-
-    -- Generate plain text manuals suitable for embedding in
-    -- executables and viewing with a pager.
-    phony "txtmanuals" $ need txtmanuals
-    txtmanuals |%> \out -> do  -- hledger/hledger.txt
-      let src = manualNameToManpageName $ dropExtension out
-      need [src]
-      -- cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -b >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
-      -- Workaround: groff 1.22.4 always calls grotty in a way that adds ANSI/SGR escape codes.
-      -- (groff -c is supposed to switch those to backspaces, which we could
-      -- remove with col -b, but it doesn't as can be seen with groff -V.)
-      -- To get plain text, we run groff's lower-level commands (from -V) and add -cbuo.
-      -- -Wall silences most troff warnings, remove to see them
-      cmd Shell "tbl" src "| eqn -Tascii | troff -Wall -mandoc -Tascii | grotty -cbuo >" out
 
     -- Generate Info manuals suitable for viewing with info.
     phony "infomanuals" $ need infomanuals
