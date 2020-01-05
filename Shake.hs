@@ -88,7 +88,7 @@ usage = unlines
   -- ,"./Shake mainpages                   build the web pages from the main repo"
   -- ,"./Shake site/index.md               update wiki links on the website home page"
   ,"./Shake FILE                        build any individual file"
-  ,"./Shake setversion                  update all packages from PKG/.version"
+  ,"./Shake setversion                  update package version strings from PKG/.version (and manual dates from today)"
   ,"./Shake changelogs                  update the changelogs with any new commits"
   ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
   ,"./Shake [PKG/]CHANGES.md-finalise   set final release heading in this changelog"
@@ -592,7 +592,13 @@ main = do
       let versionfile = takeDirectory out </> ".version"
       need [versionfile]
       version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-      cmd_ Shell sed "-i -e" ("'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/'") out
+      date    <- liftIO getCurrentDay
+      let manualdate = formatTime defaultTimeLocale "%B %Y" date
+      cmd_ Shell sed "-i -e" (
+          "'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/;"
+        ++" s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++manualdate++"/;"
+        ++"'")
+        out
 
     -- PKG/package.yaml <- PKG/.version
     "hledger*/package.yaml" %> \out -> do
