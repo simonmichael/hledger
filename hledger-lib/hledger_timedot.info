@@ -1,4 +1,4 @@
-This is hledger_timedot.info, produced by makeinfo version 6.5 from
+This is hledger_timedot.info, produced by makeinfo version 6.7 from
 stdin.
 
 
@@ -115,3 +115,8 @@ Node: FILE FORMAT812
 Ref: #file-format913
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

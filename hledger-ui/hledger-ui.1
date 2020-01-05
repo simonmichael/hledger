@@ -47,113 +47,114 @@ before options as shown above.
 Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
 .TP
-.B \f[C]--watch\f[R]
+\f[B]\f[CB]--watch\f[B]\f[R]
 watch for data and date changes and reload automatically
 .TP
-.B \f[C]--theme=default|terminal|greenterm\f[R]
+\f[B]\f[CB]--theme=default|terminal|greenterm\f[B]\f[R]
 use this custom display theme
 .TP
-.B \f[C]--register=ACCTREGEX\f[R]
+\f[B]\f[CB]--register=ACCTREGEX\f[B]\f[R]
 start in the (first) matched account\[aq]s register screen
 .TP
-.B \f[C]--change\f[R]
+\f[B]\f[CB]--change\f[B]\f[R]
 show period balances (changes) at startup instead of historical balances
 .TP
-.B \f[C]-F --flat\f[R]
+\f[B]\f[CB]-F --flat\f[B]\f[R]
 show accounts as a list (default)
 .TP
-.B \f[C]-T --tree\f[R]
+\f[B]\f[CB]-T --tree\f[B]\f[R]
 show accounts as a tree
 .TP
-.B \f[C]--future\f[R]
+\f[B]\f[CB]--future\f[B]\f[R]
 show transactions dated later than today (normally hidden)
 .PP
 hledger input options:
 .TP
-.B \f[C]-f FILE --file=FILE\f[R]
+\f[B]\f[CB]-f FILE --file=FILE\f[B]\f[R]
 use a different input file.
 For stdin, use - (default: \f[C]$LEDGER_FILE\f[R] or
 \f[C]$HOME/.hledger.journal\f[R])
 .TP
-.B \f[C]--rules-file=RULESFILE\f[R]
+\f[B]\f[CB]--rules-file=RULESFILE\f[B]\f[R]
 Conversion rules file to use when reading CSV (default: FILE.rules)
 .TP
-.B \f[C]--separator=CHAR\f[R]
+\f[B]\f[CB]--separator=CHAR\f[B]\f[R]
 Field separator to expect when reading CSV (default: \[aq],\[aq])
 .TP
-.B \f[C]--alias=OLD=NEW\f[R]
+\f[B]\f[CB]--alias=OLD=NEW\f[B]\f[R]
 rename accounts named OLD to NEW
 .TP
-.B \f[C]--anon\f[R]
+\f[B]\f[CB]--anon\f[B]\f[R]
 anonymize accounts and payees
 .TP
-.B \f[C]--pivot FIELDNAME\f[R]
+\f[B]\f[CB]--pivot FIELDNAME\f[B]\f[R]
 use some other field or tag for the account name
 .TP
-.B \f[C]-I --ignore-assertions\f[R]
-ignore any failing balance assertions
+\f[B]\f[CB]-I --ignore-assertions\f[B]\f[R]
+disable balance assertion checks (note: does not disable balance
+assignments)
 .PP
 hledger reporting options:
 .TP
-.B \f[C]-b --begin=DATE\f[R]
+\f[B]\f[CB]-b --begin=DATE\f[B]\f[R]
 include postings/txns on or after this date
 .TP
-.B \f[C]-e --end=DATE\f[R]
+\f[B]\f[CB]-e --end=DATE\f[B]\f[R]
 include postings/txns before this date
 .TP
-.B \f[C]-D --daily\f[R]
+\f[B]\f[CB]-D --daily\f[B]\f[R]
 multiperiod/multicolumn report by day
 .TP
-.B \f[C]-W --weekly\f[R]
+\f[B]\f[CB]-W --weekly\f[B]\f[R]
 multiperiod/multicolumn report by week
 .TP
-.B \f[C]-M --monthly\f[R]
+\f[B]\f[CB]-M --monthly\f[B]\f[R]
 multiperiod/multicolumn report by month
 .TP
-.B \f[C]-Q --quarterly\f[R]
+\f[B]\f[CB]-Q --quarterly\f[B]\f[R]
 multiperiod/multicolumn report by quarter
 .TP
-.B \f[C]-Y --yearly\f[R]
+\f[B]\f[CB]-Y --yearly\f[B]\f[R]
 multiperiod/multicolumn report by year
 .TP
-.B \f[C]-p --period=PERIODEXP\f[R]
+\f[B]\f[CB]-p --period=PERIODEXP\f[B]\f[R]
 set start date, end date, and/or reporting interval all at once using
 period expressions syntax
 .TP
-.B \f[C]--date2\f[R]
+\f[B]\f[CB]--date2\f[B]\f[R]
 match the secondary date instead (see command help for other effects)
 .TP
-.B \f[C]-U --unmarked\f[R]
+\f[B]\f[CB]-U --unmarked\f[B]\f[R]
 include only unmarked postings/txns (can combine with -P or -C)
 .TP
-.B \f[C]-P --pending\f[R]
+\f[B]\f[CB]-P --pending\f[B]\f[R]
 include only pending postings/txns
 .TP
-.B \f[C]-C --cleared\f[R]
+\f[B]\f[CB]-C --cleared\f[B]\f[R]
 include only cleared postings/txns
 .TP
-.B \f[C]-R --real\f[R]
+\f[B]\f[CB]-R --real\f[B]\f[R]
 include only non-virtual postings
 .TP
-.B \f[C]-NUM --depth=NUM\f[R]
+\f[B]\f[CB]-NUM --depth=NUM\f[B]\f[R]
 hide/aggregate accounts or postings more than NUM levels deep
 .TP
-.B \f[C]-E --empty\f[R]
+\f[B]\f[CB]-E --empty\f[B]\f[R]
 show items with zero amount, normally hidden (and vice-versa in
 hledger-ui/hledger-web)
 .TP
-.B \f[C]-B --cost\f[R]
+\f[B]\f[CB]-B --cost\f[B]\f[R]
 convert amounts to their cost at transaction time (using the transaction
 price, if any)
 .TP
-.B \f[C]-V --value\f[R]
+\f[B]\f[CB]-V --value\f[B]\f[R]
 convert amounts to their market value on the report end date (using the
 most recent applicable market price, if any)
 .TP
-.B \f[C]--auto\f[R]
+\f[B]\f[CB]--auto\f[B]\f[R]
 apply automated posting rules to modify transactions.
 .TP
-.B \f[C]--forecast\f[R]
+\f[B]\f[CB]--forecast\f[B]\f[R]
 apply periodic transaction rules to generate future transactions, to 6
 months from now or report end date.
 .PP
@@ -164,13 +165,13 @@ Some reporting options can also be written as query arguments.
 .PP
 hledger help options:
 .TP
-.B \f[C]-h --help\f[R]
+\f[B]\f[CB]-h --help\f[B]\f[R]
 show general usage (or after COMMAND, command usage)
 .TP
-.B \f[C]--version\f[R]
+\f[B]\f[CB]--version\f[B]\f[R]
 show version
 .TP
-.B \f[C]--debug[=N]\f[R]
+\f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
 .PP
 A \[at]FILE argument will be expanded to the contents of FILE, which

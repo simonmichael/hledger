@@ -51,123 +51,124 @@ in addition to any search query entered there.
 Note: if invoking hledger-web as a hledger subcommand, write
 \f[C]--\f[R] before options, as shown in the synopsis above.
 .TP
-.B \f[C]--serve\f[R]
+\f[B]\f[CB]--serve\f[B]\f[R]
 serve and log requests, don\[aq]t browse or auto-exit
 .TP
-.B \f[C]--serve-api\f[R]
+\f[B]\f[CB]--serve-api\f[B]\f[R]
 like --serve, but serve only the JSON web API, without the server-side
 web UI
 .TP
-.B \f[C]--host=IPADDR\f[R]
+\f[B]\f[CB]--host=IPADDR\f[B]\f[R]
 listen on this IP address (default: 127.0.0.1)
 .TP
-.B \f[C]--port=PORT\f[R]
+\f[B]\f[CB]--port=PORT\f[B]\f[R]
 listen on this TCP port (default: 5000)
 .TP
-.B \f[C]--base-url=URL\f[R]
+\f[B]\f[CB]--base-url=URL\f[B]\f[R]
 set the base url (default: http://IPADDR:PORT).
 You would change this when sharing over the network, or integrating
 within a larger website.
 .TP
-.B \f[C]--file-url=URL\f[R]
+\f[B]\f[CB]--file-url=URL\f[B]\f[R]
 set the static files url (default: BASEURL/static).
 hledger-web normally serves static files itself, but if you wanted to
 serve them from another server for efficiency, you would set the url
 with this.
 .TP
-.B \f[C]--capabilities=CAP[,CAP..]\f[R]
+\f[B]\f[CB]--capabilities=CAP[,CAP..]\f[B]\f[R]
 enable the view, add, and/or manage capabilities (default: view,add)
 .TP
-.B \f[C]--capabilities-header=HTTPHEADER\f[R]
+\f[B]\f[CB]--capabilities-header=HTTPHEADER\f[B]\f[R]
 read capabilities to enable from a HTTP header, like
 X-Sandstorm-Permissions (default: disabled)
 .PP
 hledger input options:
 .TP
-.B \f[C]-f FILE --file=FILE\f[R]
+\f[B]\f[CB]-f FILE --file=FILE\f[B]\f[R]
 use a different input file.
 For stdin, use - (default: \f[C]$LEDGER_FILE\f[R] or
 \f[C]$HOME/.hledger.journal\f[R])
 .TP
-.B \f[C]--rules-file=RULESFILE\f[R]
+\f[B]\f[CB]--rules-file=RULESFILE\f[B]\f[R]
 Conversion rules file to use when reading CSV (default: FILE.rules)
 .TP
-.B \f[C]--separator=CHAR\f[R]
+\f[B]\f[CB]--separator=CHAR\f[B]\f[R]
 Field separator to expect when reading CSV (default: \[aq],\[aq])
 .TP
-.B \f[C]--alias=OLD=NEW\f[R]
+\f[B]\f[CB]--alias=OLD=NEW\f[B]\f[R]
 rename accounts named OLD to NEW
 .TP
-.B \f[C]--anon\f[R]
+\f[B]\f[CB]--anon\f[B]\f[R]
 anonymize accounts and payees
 .TP
-.B \f[C]--pivot FIELDNAME\f[R]
+\f[B]\f[CB]--pivot FIELDNAME\f[B]\f[R]
 use some other field or tag for the account name
 .TP
-.B \f[C]-I --ignore-assertions\f[R]
-ignore any failing balance assertions
+\f[B]\f[CB]-I --ignore-assertions\f[B]\f[R]
+disable balance assertion checks (note: does not disable balance
+assignments)
 .PP
 hledger reporting options:
 .TP
-.B \f[C]-b --begin=DATE\f[R]
+\f[B]\f[CB]-b --begin=DATE\f[B]\f[R]
 include postings/txns on or after this date
 .TP
-.B \f[C]-e --end=DATE\f[R]
+\f[B]\f[CB]-e --end=DATE\f[B]\f[R]
 include postings/txns before this date
 .TP
-.B \f[C]-D --daily\f[R]
+\f[B]\f[CB]-D --daily\f[B]\f[R]
 multiperiod/multicolumn report by day
 .TP
-.B \f[C]-W --weekly\f[R]
+\f[B]\f[CB]-W --weekly\f[B]\f[R]
 multiperiod/multicolumn report by week
 .TP
-.B \f[C]-M --monthly\f[R]
+\f[B]\f[CB]-M --monthly\f[B]\f[R]
 multiperiod/multicolumn report by month
 .TP
-.B \f[C]-Q --quarterly\f[R]
+\f[B]\f[CB]-Q --quarterly\f[B]\f[R]
 multiperiod/multicolumn report by quarter
 .TP
-.B \f[C]-Y --yearly\f[R]
+\f[B]\f[CB]-Y --yearly\f[B]\f[R]
 multiperiod/multicolumn report by year
 .TP
-.B \f[C]-p --period=PERIODEXP\f[R]
+\f[B]\f[CB]-p --period=PERIODEXP\f[B]\f[R]
 set start date, end date, and/or reporting interval all at once using
 period expressions syntax
 .TP
-.B \f[C]--date2\f[R]
+\f[B]\f[CB]--date2\f[B]\f[R]
 match the secondary date instead (see command help for other effects)
 .TP
-.B \f[C]-U --unmarked\f[R]
+\f[B]\f[CB]-U --unmarked\f[B]\f[R]
 include only unmarked postings/txns (can combine with -P or -C)
 .TP
-.B \f[C]-P --pending\f[R]
+\f[B]\f[CB]-P --pending\f[B]\f[R]
 include only pending postings/txns
 .TP
-.B \f[C]-C --cleared\f[R]
+\f[B]\f[CB]-C --cleared\f[B]\f[R]
 include only cleared postings/txns
 .TP
-.B \f[C]-R --real\f[R]
+\f[B]\f[CB]-R --real\f[B]\f[R]
 include only non-virtual postings
 .TP
-.B \f[C]-NUM --depth=NUM\f[R]
+\f[B]\f[CB]-NUM --depth=NUM\f[B]\f[R]
 hide/aggregate accounts or postings more than NUM levels deep
 .TP
-.B \f[C]-E --empty\f[R]
+\f[B]\f[CB]-E --empty\f[B]\f[R]
 show items with zero amount, normally hidden (and vice-versa in
 hledger-ui/hledger-web)
 .TP
-.B \f[C]-B --cost\f[R]
+\f[B]\f[CB]-B --cost\f[B]\f[R]
 convert amounts to their cost at transaction time (using the transaction
 price, if any)
 .TP
-.B \f[C]-V --value\f[R]
+\f[B]\f[CB]-V --value\f[B]\f[R]
 convert amounts to their market value on the report end date (using the
 most recent applicable market price, if any)
 .TP
-.B \f[C]--auto\f[R]
+\f[B]\f[CB]--auto\f[B]\f[R]
 apply automated posting rules to modify transactions.
 .TP
-.B \f[C]--forecast\f[R]
+\f[B]\f[CB]--forecast\f[B]\f[R]
 apply periodic transaction rules to generate future transactions, to 6
 months from now or report end date.
 .PP
@@ -178,13 +179,13 @@ Some reporting options can also be written as query arguments.
 .PP
 hledger help options:
 .TP
-.B \f[C]-h --help\f[R]
+\f[B]\f[CB]-h --help\f[B]\f[R]
 show general usage (or after COMMAND, command usage)
 .TP
-.B \f[C]--version\f[R]
+\f[B]\f[CB]--version\f[B]\f[R]
 show version
 .TP
-.B \f[C]--debug[=N]\f[R]
+\f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
 .PP
 A \[at]FILE argument will be expanded to the contents of FILE, which

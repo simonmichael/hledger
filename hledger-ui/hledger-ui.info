@@ -1,4 +1,4 @@
-This is hledger-ui.info, produced by makeinfo version 6.5 from stdin.
+This is hledger-ui.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
@@ -89,7 +89,8 @@ the data.
      use some other field or tag for the account name
 '-I --ignore-assertions'
 
-     ignore any failing balance assertions
+     disable balance assertion checks (note: does not disable balance
+     assignments)
 
    hledger reporting options:
 
@@ -425,17 +426,22 @@ Tag Table:
 Node: Top71
 Node: OPTIONS1101
 Ref: #options1198
-Node: KEYS4589
-Ref: #keys4684
-Node: SCREENS8991
-Ref: #screens9076
-Node: Accounts screen9166
-Ref: #accounts-screen9294
-Node: Register screen11510
-Ref: #register-screen11665
-Node: Transaction screen13661
-Ref: #transaction-screen13819
-Node: Error screen14689
-Ref: #error-screen14811
+Node: KEYS4634
+Ref: #keys4729
+Node: SCREENS9036
+Ref: #screens9121
+Node: Accounts screen9211
+Ref: #accounts-screen9339
+Node: Register screen11555
+Ref: #register-screen11710
+Node: Transaction screen13706
+Ref: #transaction-screen13864
+Node: Error screen14734
+Ref: #error-screen14856
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

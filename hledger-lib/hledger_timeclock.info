@@ -1,4 +1,4 @@
-This is hledger_timeclock.info, produced by makeinfo version 6.5 from
+This is hledger_timeclock.info, produced by makeinfo version 6.7 from
 stdin.
 
 
@@ -59,3 +59,8 @@ Tag Table:
 Node: Top78
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:
