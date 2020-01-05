@@ -280,12 +280,57 @@ Most hledger commands accept arguments after the command name, which are
 often a query, filtering the data in some way.
 .SS Argument files
 .PP
-You can save a set of command line options/arguments in a file, one per
-line, and then reuse them by writing \f[C]\[at]FILENAME\f[R] in a
-command line.
-To prevent this expansion of \f[C]\[at]\f[R]-arguments, precede them
-with a \f[C]--\f[R] argument.
-For more, see Save frequently used options.
+You can save a set of command line options/arguments in a file, and then
+reuse them by writing \f[C]\[at]FILENAME\f[R] as a command line
+argument.
+Eg: \f[C]hledger bal \[at]foo.args\f[R].
+(To prevent this, eg if you have an argument that begins with a literal
+\f[C]\[at]\f[R], precede it with \f[C]--\f[R], eg:
+\f[C]hledger bal -- \[at]ARG\f[R]).
+.PP
+Inside the argument file, each line should contain just one option or
+argument.
+Avoid the use of spaces, except inside quotes (or you\[aq]ll see a
+confusing error).
+Between a flag and its argument, use = (or nothing).
+Bad:
+.IP
+.nf
+\f[C]
+assets depth:2
+-X USD
+\f[R]
+.fi
+.PP
+Good:
+.IP
+.nf
+\f[C]
+assets
+depth:2
+-X=USD
+\f[R]
+.fi
+.PP
+For special characters (see below), use one less level of quoting than
+you would at the command prompt.
+Bad:
+.IP
+.nf
+\f[C]
+-X\[dq]$\[dq]
+\f[R]
+.fi
+.PP
+Good:
+.IP
+.nf
+\f[C]
+-X$
+\f[R]
+.fi
+.PP
+See also: Save frequently used options.
 .SS Special characters in arguments and queries
 .PP
 In shell command lines, option and argument values which contain
