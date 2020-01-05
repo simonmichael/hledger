@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 {- stack exec
    --verbosity=info
+   --stack-yaml=stack-ghc8.6.yaml
    --package base-prelude
    --package directory
    --package extra
@@ -10,7 +11,9 @@
    --package time
    ghc
 -}
--- uses the project's default resolver & extra deps (see stack.yaml)
+-- Normally uses the project's default resolver & extra deps (stack.yaml).
+-- Currently using stack-ghc8.6.yaml (& building two sets of deps) because of
+-- https://github.com/iconnect/regex/issues/173#issuecomment-570836346
 {-
 
 One of two project scripts files (Makefile, Shake.hs). This one
