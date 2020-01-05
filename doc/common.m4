@@ -209,6 +209,7 @@ The journal file path when not specified with `-f`.
 Default: `~/.hledger.journal` (on windows, perhaps `C:/Users/USER/.hledger.journal`).
 }} )m4_dnl
 m4_dnl
-m4_dnl Dummy macro to strip _FLAGS_ marker in command docs.
-m4_define({{_FLAGS_}}, {{}})m4_dnl
+m4_dnl Dummy macro to strip $FLAGS$ marker in command docs.
+m4_dnl Not using underscore here, because latest pandoc strips those.
+m4_define({{$FLAGS$}}, {{}})m4_dnl
 m4_dnl

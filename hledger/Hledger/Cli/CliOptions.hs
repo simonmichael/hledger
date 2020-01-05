@@ -303,9 +303,9 @@ hledgerCommandMode doc unnamedflaggroup namedflaggroups hiddenflaggroup argsdesc
 --
 -- - First line: the command name then any aliases, as one or more space or comma-separated words
 --
--- - Second line to a line containing just _FLAGS_, or the end: the short help
+-- - Second line to a line containing just $FLAGS$, or the end: the short help
 --
--- - Any lines after _FLAGS_: the long help (split into lines for cmdargs)
+-- - Any lines after $FLAGS$: the long help (split into lines for cmdargs)
 --
 -- The CLI help displays the short help, then the cmdargs-generated
 -- flags list, then the long help (which some day we might make
@@ -319,7 +319,7 @@ parseCommandDoc t =
     (l:ls) -> Just (names, shorthelp, longhelplines)
       where
         names = words $ map (\c -> if c `elem` [',','\\'] then ' ' else c) l
-        (shorthelpls, longhelpls) = break (== "_FLAGS_") ls
+        (shorthelpls, longhelpls) = break (== "$FLAGS$") ls
         shorthelp = unlines $ reverse $ dropWhile null $ reverse shorthelpls
         longhelplines = dropWhile null $ drop 1 longhelpls
 

@@ -1,7 +1,7 @@
 add\
 Prompt for transactions and add them to the journal.
 
-_FLAGS_
+$FLAGS$
 
 Many hledger users edit their journals directly with a text editor, or generate them from CSV.
 For more interactive data entry, there is the `add` command, 
