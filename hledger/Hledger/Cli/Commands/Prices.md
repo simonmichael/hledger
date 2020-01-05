@@ -5,4 +5,4 @@ With --inverted-costs, also print inverse prices based on transaction prices.
 Prices (and postings providing prices) can be filtered by a query.
 Price amounts are always displayed with their full precision.
 
-$FLAGS$
+_FLAGS

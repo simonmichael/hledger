@@ -1,7 +1,7 @@
 descriptions
 Show descriptions.
 
-$FLAGS$
+_FLAGS
 
 This command lists all descriptions that appear in transactions.
 

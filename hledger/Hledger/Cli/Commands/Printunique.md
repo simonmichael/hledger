@@ -1,7 +1,7 @@
 print-unique\
 Print transactions which do not reuse an already-seen description.
 
-$FLAGS$
+_FLAGS
 
 Example:
 

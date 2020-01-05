@@ -5,7 +5,7 @@ Useful for bringing asset/liability balances forward into a new journal
 file, or for closing out revenues/expenses to retained earnings at the
 end of a period.
 
-$FLAGS$
+_FLAGS
 
 The closing transaction transfers balances to "equity:closing balances",
 and the opening transaction transfers balances from "equity:opening

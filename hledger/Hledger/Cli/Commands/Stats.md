@@ -1,7 +1,7 @@
 stats\
 Show some journal statistics.
 
-$FLAGS$
+_FLAGS
 
 The stats command displays summary information for the whole journal, or
 a matched part of it. With a [reporting interval](#reporting-interval),

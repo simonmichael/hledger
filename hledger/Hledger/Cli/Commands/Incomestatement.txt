@@ -6,7 +6,7 @@ forms also allowed). Note this report shows all account balances with
 normal positive sign (like conventional financial statements, unlike
 balance/print/register) (experimental).
 
-$FLAGS$
+_FLAGS
 
 This command displays a simple income statement. It currently assumes
 that you have top-level accounts named income (or revenue) and expense
