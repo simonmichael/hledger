@@ -465,7 +465,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["Total"   | row_total_]
    ++ ["Average" | average_]
   ) :
-  [T.unpack (maybeAccountNameDrop opts $ acctFull a) :
+  [T.unpack (maybeAccountNameDrop opts a) :
    map showMixedAmountOneLineWithoutPrice
    (amts
     ++ [rowtot | row_total_]
@@ -606,7 +606,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
      (T.Group NoLine $ map Header colheadings)
      (map rowvals items)
   where
-    totalscolumn = row_total_ && not (balancetype_ `elem` [CumulativeChange, HistoricalBalance])
+    totalscolumn = row_total_ && balancetype_ `notElem` [CumulativeChange, HistoricalBalance]
     mkDate = case balancetype_ of
        PeriodChange -> showDateSpanMonthAbbrev
        _            -> maybe "" (showDate . prevday) . spanEnd
@@ -614,8 +614,8 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items
-    renderacct (PeriodicReportRow (AccountLeaf a a') i _ _ _)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
+    renderacct (PeriodicReportRow a i _ _ _)
+      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack (accountLeafName a)
       | otherwise  = T.unpack $ maybeAccountNameDrop opts a
     rowvals (PeriodicReportRow _ _ as rowtot rowavg) = as
                              ++ [rowtot | totalscolumn]

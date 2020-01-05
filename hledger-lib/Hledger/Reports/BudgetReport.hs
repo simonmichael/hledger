@@ -47,8 +47,8 @@ type BudgetAverage = Average
 
 -- | A budget report tracks expected and actual changes per account and subperiod.
 type BudgetCell = (Maybe Change, Maybe BudgetGoal)
-type BudgetReport = PeriodicReport AccountLeaf BudgetCell
-type BudgetReportRow = PeriodicReportRow AccountLeaf BudgetCell
+type BudgetReport = PeriodicReport AccountName BudgetCell
+type BudgetReportRow = PeriodicReportRow AccountName BudgetCell
 
 -- | Calculate budget goals from all periodic transactions,
 -- actual balance changes from the regular transactions,
@@ -100,9 +100,9 @@ sortBudgetReport ropts j (PeriodicReport ps rows trow) = PeriodicReport ps sorte
     sortTreeBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
     sortTreeBURByActualAmount rows = sortedrows
       where
-        anamesandrows = [(prrFullName r, r) | r <- rows]
+        anamesandrows = [(prrName r, r) | r <- rows]
         anames = map fst anamesandrows
-        atotals = [(acctFull a, tot) | PeriodicReportRow a _ _ (tot,_) _ <- rows]
+        atotals = [(a, tot) | PeriodicReportRow a _ _ (tot,_) _ <- rows]
         accounttree = accountTree "root" anames
         accounttreewithbals = mapAccounts setibalance accounttree
           where
@@ -125,8 +125,8 @@ sortBudgetReport ropts j (PeriodicReport ps rows trow) = PeriodicReport ps sorte
     -- <unbudgeted> remains at the top.
     sortByAccountDeclaration rows = sortedrows
       where
-        (unbudgetedrow,rows') = partition ((=="<unbudgeted>") . prrFullName) rows
-        anamesandrows = [(prrFullName r, r) | r <- rows']
+        (unbudgetedrow,rows') = partition ((=="<unbudgeted>") . prrName) rows
+        anamesandrows = [(prrName r, r) | r <- rows']
         anames = map fst anamesandrows
         sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
         sortedrows = unbudgetedrow ++ sortAccountItemsLike sortedanames anamesandrows
@@ -200,7 +200,7 @@ combineBudgetAndActual
     rows1 =
       [ PeriodicReportRow acct treeindent amtandgoals totamtandgoal avgamtandgoal
       | PeriodicReportRow acct treeindent actualamts actualtot actualavg <- actualrows
-      , let mbudgetgoals       = Map.lookup (acctFull acct) budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
+      , let mbudgetgoals       = Map.lookup acct budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
       , let budgetmamts        = maybe (replicate (length periods) Nothing) (map Just . first3) mbudgetgoals :: [Maybe BudgetGoal]
       , let mbudgettot         = second3 <$> mbudgetgoals :: Maybe BudgetTotal
       , let mbudgetavg         = third3 <$> mbudgetgoals  :: Maybe BudgetAverage
@@ -212,28 +212,26 @@ combineBudgetAndActual
       ]
       where
         budgetGoalsByAcct :: Map AccountName ([BudgetGoal], BudgetTotal, BudgetAverage) =
-          Map.fromList [ (acctFull acct, (amts, tot, avg))
+          Map.fromList [ (acct, (amts, tot, avg))
                          | PeriodicReportRow acct _ amts tot avg <- budgetrows ]
 
     -- next, make rows for budget goals with no actual changes
     rows2 =
       [ PeriodicReportRow acct treeindent amtandgoals totamtandgoal avgamtandgoal
       | PeriodicReportRow acct treeindent budgetgoals budgettot budgetavg <- budgetrows
-      , acctFull acct `notElem` acctsdone
+      , acct `notElem` map prrName rows1
       , let acctBudgetByPeriod = Map.fromList $ zip budgetperiods budgetgoals :: Map DateSpan BudgetGoal
       , let amtandgoals        = [ (Nothing, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [BudgetCell]
       , let totamtandgoal      = (Nothing, Just budgettot)
       , let avgamtandgoal      = (Nothing, Just budgetavg)
       ]
-      where
-        acctsdone = map prrFullName rows1
 
     -- combine and re-sort rows
     -- TODO: use MBR code
     -- TODO: respect --sort-amount
     -- TODO: add --sort-budget to sort by budget goal amount
     rows :: [BudgetReportRow] =
-      sortOn prrFullName $ rows1 ++ rows2
+      sortOn prrName $ rows1 ++ rows2
 
     -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
     totalrow = PeriodicReportRow () 0
@@ -324,8 +322,8 @@ budgetReportAsTable
                   ++ ["  Total" | row_total_ ropts]
                   ++ ["Average" | average_ ropts]
     accts = map renderacct rows
-    renderacct (PeriodicReportRow (AccountLeaf a a') i _ _ _)
-      | tree_ ropts = replicate ((i-1)*2) ' ' ++ T.unpack a'
+    renderacct (PeriodicReportRow a i _ _ _)
+      | tree_ ropts = replicate ((i-1)*2) ' ' ++ T.unpack (accountLeafName a)
       | otherwise   = T.unpack $ maybeAccountNameDrop ropts a
     rowvals (PeriodicReportRow _ _ as rowtot rowavg) =
         as ++ [rowtot | row_total_ ropts] ++ [rowavg | average_ ropts]

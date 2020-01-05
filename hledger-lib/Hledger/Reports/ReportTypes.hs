@@ -5,7 +5,6 @@ New common report types, used by the BudgetReport for now, perhaps all reports l
 module Hledger.Reports.ReportTypes
 ( PeriodicReport(..)
 , PeriodicReportRow(..)
-, AccountLeaf(..)
 
 , Percentage
 , Change
@@ -16,9 +15,6 @@ module Hledger.Reports.ReportTypes
 , periodicReportSpan
 , prNegate
 , prNormaliseSign
-
-, prrFullName
-, prrLeaf
 ) where
 
 import Data.Decimal
@@ -78,16 +74,6 @@ data PeriodicReportRow a b =
   , prrAverage :: b    -- The average of this row's values.
   } deriving (Show)
 
--- | A combination of a full account name and a shortened form, used for display
--- purposes.
-data AccountLeaf = AccountLeaf
-  { acctFull :: AccountName  -- A full account name.
-  , acctLeaf :: AccountName  -- Shortened form of the account name to display
-                             -- in tree mode. Usually the leaf name, possibly
-                             -- with parent accounts prefixed.
-  }
-  deriving (Show)
-
 -- | Figure out the overall date span of a PeridicReport
 periodicReportSpan :: PeriodicReport a b -> DateSpan
 periodicReportSpan (PeriodicReport [] _ _)       = DateSpan Nothing Nothing
@@ -106,11 +92,3 @@ prNegate (PeriodicReport colspans rows totalsrow) =
   where
     rowNegate (PeriodicReportRow name indent amts tot avg) =
         PeriodicReportRow name indent (map negate amts) (-tot) (-avg)
-
--- | Get the full account name for a `PeriodicReport AccountLeaf`>
-prrFullName :: PeriodicReportRow AccountLeaf b -> AccountName
-prrFullName = acctFull . prrName
-
--- | Get the shortened form of the account name for a `PeriodicReport AccountLeaf`>
-prrLeaf :: PeriodicReportRow AccountLeaf b -> AccountName
-prrLeaf = acctLeaf . prrName
