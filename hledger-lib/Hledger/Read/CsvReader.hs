@@ -105,17 +105,18 @@ parse iopts f t = do
 
 -- | Parse special separator names TAB and SPACE, or return the first
 -- character. Return Nothing on empty string
-getSpecialSeparators :: String -> Maybe Char
-getSpecialSeparators "SPACE" = Just ' '
-getSpecialSeparators "TAB" = Just '\t'
-getSpecialSeparators (x:_) = Just x
-getSpecialSeparators [] = Nothing
+parseSeparator :: String -> Maybe Char
+parseSeparator = specials . map toLower
+  where specials "space" = Just ' '
+        specials "tab"   = Just '\t'
+        specials (x:_)   = Just x
+        specials []      = Nothing
 
 -- | Decide which separator to get.
 -- If the external separator is provided, take it. Otherwise, look at the rules. Finally, return ','.
 getSeparator :: CsvRules -> Char
 getSeparator rules = head $
-  catMaybes [ getDirective "separator" rules >>= getSpecialSeparators
+  catMaybes [ getDirective "separator" rules >>= parseSeparator
             , Just ',']
 
 -- | Read a Journal from the given CSV data (and filename, used for error
