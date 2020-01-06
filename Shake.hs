@@ -104,7 +104,7 @@ usage = unlines
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
 makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
-pandoc   = "pandoc"
+pandoc   = "pandoc --strip-comments"
 
 -- Must support both BSD sed and GNU sed. Tips:
 -- BSD:
