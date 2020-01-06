@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 {- stack exec
    --verbosity=info
+   --stack-yaml=stack-ghc8.6.yaml
    --package base-prelude
    --package directory
    --package extra
@@ -10,7 +11,9 @@
    --package time
    ghc
 -}
--- uses the project's default resolver & extra deps (see stack.yaml)
+-- Normally uses the project's default resolver & extra deps (stack.yaml).
+-- Currently using stack-ghc8.6.yaml (& building two sets of deps) because of
+-- https://github.com/iconnect/regex/issues/173#issuecomment-570836346
 {-
 
 One of two project scripts files (Makefile, Shake.hs). This one
@@ -85,7 +88,7 @@ usage = unlines
   -- ,"./Shake mainpages                   build the web pages from the main repo"
   -- ,"./Shake site/index.md               update wiki links on the website home page"
   ,"./Shake FILE                        build any individual file"
-  ,"./Shake setversion                  update all packages from PKG/.version"
+  ,"./Shake setversion                  update package version strings from PKG/.version (and manual dates from today)"
   ,"./Shake changelogs                  update the changelogs with any new commits"
   ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
   ,"./Shake [PKG/]CHANGES.md-finalise   set final release heading in this changelog"
@@ -260,6 +263,20 @@ main = do
       ,webmanuals
       ]
 
+    -- Generate plain text manuals suitable for embedding in
+    -- executables and viewing with a pager.
+    phony "txtmanuals" $ need txtmanuals
+    txtmanuals |%> \out -> do  -- hledger/hledger.txt
+      let src = manualNameToManpageName $ dropExtension out
+      need [src]
+      -- cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -b >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
+      -- Workaround: groff 1.22.4 always calls grotty in a way that adds ANSI/SGR escape codes.
+      -- (groff -c is supposed to switch those to backspaces, which we could
+      -- remove with col -b, but it doesn't as can be seen with groff -V.)
+      -- To get plain text, we run groff's lower-level commands (from -V) and add -cbuo.
+      -- -Wall silences most troff warnings, remove to see them
+      cmd Shell "tbl" src "| eqn -Tascii | troff -Wall -mandoc -Tascii | grotty -cbuo >" out
+
     -- Generate nroff man pages suitable for man output.
     phony "nroffmanuals" $ need nroffmanuals
     nroffmanuals |%> \out -> do -- hledger/hledger.1
@@ -279,20 +296,6 @@ main = do
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
         "-o" out
-
-    -- Generate plain text manuals suitable for embedding in
-    -- executables and viewing with a pager.
-    phony "txtmanuals" $ need txtmanuals
-    txtmanuals |%> \out -> do  -- hledger/hledger.txt
-      let src = manualNameToManpageName $ dropExtension out
-      need [src]
-      -- cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -b >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
-      -- Workaround: groff 1.22.4 always calls grotty in a way that adds ANSI/SGR escape codes.
-      -- (groff -c is supposed to switch those to backspaces, which we could
-      -- remove with col -b, but it doesn't as can be seen with groff -V.)
-      -- To get plain text, we run groff's lower-level commands (from -V) and add -cbuo.
-      -- -Wall silences most troff warnings, remove to see them
-      cmd Shell "tbl" src "| eqn -Tascii | troff -Wall -mandoc -Tascii | grotty -cbuo >" out
 
     -- Generate Info manuals suitable for viewing with info.
     phony "infomanuals" $ need infomanuals
@@ -589,7 +592,13 @@ main = do
       let versionfile = takeDirectory out </> ".version"
       need [versionfile]
       version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-      cmd_ Shell sed "-i -e" ("'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/'") out
+      date    <- liftIO getCurrentDay
+      let manualdate = formatTime defaultTimeLocale "%B %Y" date
+      cmd_ Shell sed "-i -e" (
+          "'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/;"
+        ++" s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++manualdate++"/;"
+        ++"'")
+        out
 
     -- PKG/package.yaml <- PKG/.version
     "hledger*/package.yaml" %> \out -> do

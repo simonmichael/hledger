@@ -1,7 +1,7 @@
 balance, bal, b\
 Show accounts and their balances.
 
-_FLAGS_
+_FLAGS
 
 The balance command is hledger's most versatile command.
 Note, despite the name, it is not always used for showing real-world account balances;

@@ -328,7 +328,7 @@ ghcid-test-%: $(call def-help,ghcid-test-TESTPATTERN, start ghcid autobuilding a
 	ghcid -c 'make ghci' --test ':main test -- --color=always -p$*'
 
 ghcid-doctest: $(call def-help,ghcid-doctest, start ghcid autobuilding and running hledger-lib doctests)
-	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctest' --test ':main' --reload hledger-lib
 
 # keep synced with Shake.hs header
 SHAKEDEPS= \
@@ -366,7 +366,7 @@ ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib
 # 		hledger-web/app/main.hs \
 
 ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib doctests)
-	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
+	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctest
 
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghci Shake.hs
@@ -381,6 +381,9 @@ test: pkgtest functest \
 # For quieter tests add --silent. It may hide troubleshooting info.
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
 STACKTEST=$(STACK) test
+# When doing build testing, save a little time and output noise by not
+# running tests & benchmarks. Comment this out if you want to run them.
+SKIPTESTSBENCHS=--no-run-tests --no-run-benchmarks
 
 buildplantest: $(call def-help,buildplantest, stack build --dry-run all hledger packages ensuring an install plan with default snapshot) \
 	buildplantest-stack.yaml
@@ -398,7 +401,7 @@ buildtest-all: $(call def-help,buildtest-all, force-rebuild all hledger packages
 	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildtest-$$F; done
 
 buildtest-%: $(call def-help,buildtest-STACKFILE, force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
-	$(STACK) build --test --bench --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
+	$(STACK) build --test --bench $(SKIPTESTSBENCHS) --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
 
 incr-buildtest: $(call def-help,incr-buildtest, build any outdated hledger packages/modules quickly ensuring no warnings with default snapshot. Wont detect warnings in up-to-date modules.) \
 	incr-buildtest-stack.yaml
@@ -407,16 +410,16 @@ incr-buildtest-all: $(call def-help,incr-buildtest-all, build any outdated hledg
 	for F in stack-*.yaml stack.yaml; do make --no-print-directory incr-buildtest-$$F; done
 
 incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml. Wont detect warnings in up-to-date modules. )
-	$(STACK) build --test --bench --fast --ghc-options=-Werror --stack-yaml=$*
+	$(STACK) build --test --bench $(SKIPTESTSBENCHS) --fast --ghc-options=-Werror --stack-yaml=$*
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
 # Or, could run it with ghc 8.2: 
-#	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
+#	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 doctest: $(call def-help,doctest, run the doctests in hledger-lib module/function docs )
-	@($(STACKTEST) hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
+	@($(STACKTEST) hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 unittest: $(call def-help,unittest, run the unit tests in hledger-lib )
 	@($(STACKTEST) hledger-lib:test:unittests && echo $@ PASSED) || (echo $@ FAILED; false)

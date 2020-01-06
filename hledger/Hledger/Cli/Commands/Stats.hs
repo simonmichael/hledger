@@ -14,6 +14,7 @@ module Hledger.Cli.Commands.Stats (
 where
 
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Maybe
 import Data.Ord
 import Data.HashSet (size, fromList)
@@ -108,4 +109,4 @@ showLedgerStats l today span =
              acctdepth | null as = 0
                        | otherwise = maximum $ map accountNameLevel as
              mktprices = jpricedirectives j
-             mktpricecommodities = nub $ sort $ map pdcommodity mktprices
+             mktpricecommodities = nubSort $ map pdcommodity mktprices

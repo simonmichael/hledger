@@ -1,7 +1,7 @@
 test\
 Run built-in unit tests.
 
-_FLAGS_
+_FLAGS
 
 This command runs the unit tests built in to hledger and hledger-lib,
 printing the results on stdout. If any test fails, the exit code will

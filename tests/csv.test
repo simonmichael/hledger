@@ -152,13 +152,14 @@ $  ./hledger-csv
 RULES
 account1 Assets:MyAccount
 date %1
+separator ;
 date-format %d/%Y/%m
 description %2
 amount-in %3
 amount-out %4
 currency $
 
-$  ./hledger-csv --separator ';'
+$  ./hledger-csv
 2009-09-10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
@@ -527,7 +528,23 @@ $  ./hledger-csv
 
 >=0
 
-## 25. A single unbalanced posting with number other than 1 also should not generate a balancing posting.
+# 25. specify reserved word whitespace separator in rules
+<
+2009/10/01	Flubber Co	50	123
+
+RULES
+fields date, description, amount, balance
+currency $
+account1 (assets:myacct)
+separator TAB
+
+$  ./hledger-csv
+2009/10/01 Flubber Co
+    (assets:myacct)             $50 = $123
+
+>=0
+
+## 26. A single unbalanced posting with number other than 1 also should not generate a balancing posting.
 #<
 #2019-01-01,1
 #
@@ -541,7 +558,7 @@ $  ./hledger-csv
 #
 #>=0
 #
-## 26. A single posting that's zero also should not generate a balancing posting.
+## 27. A single posting that's zero also should not generate a balancing posting.
 #<
 #2019-01-01,0
 #
@@ -555,7 +572,7 @@ $  ./hledger-csv
 #
 #>=0
 
-## 27. With a bracketed account name, the auto-generated second posting should also be bracketed.
+## 28. With a bracketed account name, the auto-generated second posting should also be bracketed.
 #<
 #2019-01-01,1
 #

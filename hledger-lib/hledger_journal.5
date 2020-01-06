@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "December 2019" "hledger 1.16.1" "hledger User Manuals"
+.TH "hledger_journal" "5" "January 2020" "hledger 1.16.99" "hledger User Manuals"
 
 
 
@@ -533,6 +533,7 @@ reconciled balances while cleaning up old entries.
 You can disable them temporarily with the
 \f[C]-I/--ignore-assertions\f[R] flag, which can be useful for
 troubleshooting or for reading Ledger files.
+(Note: this flag currently does not disable balance assignments, below).
 .SS Assertions and ordering
 .PP
 hledger sorts an account\[aq]s postings and assertions first by date and

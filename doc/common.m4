@@ -25,8 +25,8 @@ m4_dnl The actual links are inserted dynamically by site.js, static generation w
 m4_dnl There should be a " (dev)" suffix here except when generating release docs.
 m4_define({{_docversionlinks_}},m4_dnl
 This doc is for version **_version_**
-m4_dnl (dev) suffix should be commented for releases, uncommented in between releases:
-m4_dnl (dev)
+m4_dnl (dev) suffix below should be commented for releases, uncommented in between releases:
+(dev)
 .
 m4_dnl <span class="docversions">m4_dnl
 m4_dnl </span>
@@ -106,7 +106,7 @@ m4_define({{_inputoptions_}}, {{
 : use some other field or tag for the account name
 
 `-I --ignore-assertions`
-: ignore any failing balance assertions
+: disable balance assertion checks (note: does not disable balance assignments)
 
 }} )m4_dnl
 m4_dnl
@@ -209,6 +209,9 @@ The journal file path when not specified with `-f`.
 Default: `~/.hledger.journal` (on windows, perhaps `C:/Users/USER/.hledger.journal`).
 }} )m4_dnl
 m4_dnl
-m4_dnl Dummy macro to strip _FLAGS_ marker in command docs.
-m4_define({{_FLAGS_}}, {{}})m4_dnl
+m4_dnl The _FLAGS marker is used in generating command help (see
+m4_dnl CliOptions.parseCommandDoc), but should be removed when generating manuals.
+m4_dnl Just one underscore here, so pandoc doesn't strip them
+m4_dnl ($FLAGS$ and =FLAGS= didn't work, not sure why).
+m4_define({{_FLAGS}}, {{}})m4_dnl
 m4_dnl

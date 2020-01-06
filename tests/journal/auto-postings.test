@@ -293,13 +293,13 @@ $ hledger print -f- --forecast -b 2016-01 -e 2016-03
     [budget:groceries]                           *-1
     [assets:bank:checking]                        *1
 
-10/7 * MARKET
+2020/10/7 * MARKET
     expenses:groceries:food
     assets:bank:checking                         $-20
 
 # 15.
 $ hledger -f- register --auto
-2019-10-07 MARKET               ex:groceries:food              $20           $20
+2020-10-07 MARKET               ex:groceries:food              $20           $20
                                 [budget:groceries]            $-20             0
                                 [as:bank:checking]             $20           $20
                                 assets:bank:checking          $-20             0

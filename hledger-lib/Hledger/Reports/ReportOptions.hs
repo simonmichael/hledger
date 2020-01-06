@@ -46,7 +46,7 @@ where
 
 import Control.Applicative ((<|>))
 import Data.Data (Data)
-import Data.List
+import Data.List.Extra (nubSort)
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
@@ -337,7 +337,7 @@ simplifyStatuses l
   | length l' >= numstatuses = []
   | otherwise                = l'
   where
-    l' = nub $ sort l
+    l' = nubSort l
     numstatuses = length [minBound .. maxBound :: Status]
 
 -- | Add/remove this status from the status list. Used by hledger-ui.

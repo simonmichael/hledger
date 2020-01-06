@@ -6,14 +6,12 @@ Multi-column balance reports, used by the balance command.
 -}
 
 module Hledger.Reports.MultiBalanceReport (
-  MultiBalanceReport(..),
+  MultiBalanceReport,
   MultiBalanceReportRow,
+
   multiBalanceReport,
   multiBalanceReportWith,
   balanceReportFromMultiBalanceReport,
-  mbrNegate,
-  mbrNormaliseSign,
-  multiBalanceReportSpan,
   tableAsText,
 
   -- -- * Tests
@@ -21,9 +19,9 @@ module Hledger.Reports.MultiBalanceReport (
 )
 where
 
-import GHC.Generics (Generic)
-import Control.DeepSeq (NFData)
 import Data.List
+import Data.List.Extra (nubSort)
+import qualified Data.Map as M
 import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
@@ -36,12 +34,12 @@ import Hledger.Query
 import Hledger.Utils
 import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
+import Hledger.Reports.ReportTypes
 import Hledger.Reports.BalanceReport
 
 
--- | A multi balance report is a balance report with multiple columns,
--- corresponding to consecutive subperiods within the overall report
--- period. It has:
+-- | A multi balance report is a kind of periodic report, where the amounts
+-- correspond to balance changes or ending balances in a given period. It has:
 --
 -- 1. a list of each column's period (date span)
 --
@@ -49,42 +47,19 @@ import Hledger.Reports.BalanceReport
 --
 --   * the full account name
 --
---   * the leaf account name
---
 --   * the account's depth
 --
---   * A list of amounts, one for each column. The meaning of the
---     amounts depends on the type of multi balance report, of which
---     there are three: periodic, cumulative and historical (see
---     'BalanceType' and "Hledger.Cli.Commands.Balance").
+--   * A list of amounts, one for each column.
 --
---   * the total of the row's amounts for a periodic report,
---     or zero for cumulative/historical reports (since summing
---     end balances generally doesn't make sense).
+--   * the total of the row's amounts for a periodic report
 --
 --   * the average of the row's amounts
 --
 -- 3. the column totals, and the overall grand total (or zero for
 -- cumulative/historical reports) and grand average.
---
-newtype MultiBalanceReport =
-  MultiBalanceReport ([DateSpan]
-                     ,[MultiBalanceReportRow]
-                     ,MultiBalanceReportTotals
-                     )
-  deriving (Generic)
 
-type MultiBalanceReportRow    = (AccountName, AccountName, Int, [MixedAmount], MixedAmount, MixedAmount)
-type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount) -- (Totals list, sum of totals, average of totals)
-
-instance NFData MultiBalanceReport
-
-instance Show MultiBalanceReport where
-    -- use pshow (pretty-show's ppShow) to break long lists onto multiple lines
-    -- we add some bogus extra shows here to help it parse the output
-    -- and wrap tuples and lists properly
-    show (MultiBalanceReport (spans, items, totals)) =
-        "MultiBalanceReport (ignore extra quotes):\n" ++ pshow (show spans, map show items, totals)
+type MultiBalanceReport    = PeriodicReport AccountName MixedAmount
+type MultiBalanceReportRow = PeriodicReportRow AccountName MixedAmount
 
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
@@ -105,8 +80,8 @@ multiBalanceReport ropts q j = multiBalanceReportWith ropts q j (journalPriceOra
 -- for efficiency, passing it to each report by calling this function directly.
 multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> MultiBalanceReport
 multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
-  (if invert_ then mbrNegate else id) $
-  MultiBalanceReport (colspans, mappedsortedrows, mappedtotalsrow)
+  (if invert_ then prNegate else id) $
+  PeriodicReport colspans mappedsortedrows mappedtotalsrow
     where
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
       -- dbg1 = const id  -- exclude this function from debug output
@@ -150,7 +125,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
           displayspan
             | empty_    = dbg1 "displayspan (-E)" reportspan                              -- all the requested intervals
             | otherwise = dbg1 "displayspan" $ requestedspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
-          matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts ropts) ps
+          matchedspan = dbg1 "matchedspan" . daysSpan $ map snd ps
 
       -- If doing cost valuation, convert amounts to cost.
       j' = journalSelectingAmountFromOpts ropts j
@@ -187,17 +162,26 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- 3. Gather postings for each column.
 
       -- Postings matching the query within the report period.
-      ps :: [Posting] =
+      ps :: [(Posting, Day)] =
           dbg1 "ps" $
+          map postingWithDate $
           journalPostings $
           filterJournalAmounts symq $      -- remove amount parts excluded by cur:
           filterJournalPostings reportq $  -- remove postings not matched by (adjusted) query
           j'
+        where
+          postingWithDate p = case whichDateFromOpts ropts of
+              PrimaryDate   -> (p, postingDate p)
+              SecondaryDate -> (p, postingDate2 p)
 
       -- Group postings into their columns, with the column end dates.
       colps :: [([Posting], Maybe Day)] =
           dbg1 "colps"
-          [(filter (isPostingInDateSpan' (whichDateFromOpts ropts) s) ps, spanEnd s) | s <- colspans]
+          [ (posts, end) | (DateSpan _ end, posts) <- M.toList colMap ]
+        where
+          colMap = foldr addPosting emptyMap ps
+          addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
+          emptyMap = M.fromList . zip colspans $ repeat []
 
       ----------------------------------------------------------------------
       -- 4. Calculate account balance changes in each column.
@@ -225,16 +209,16 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
           (if tree_ ropts then expandAccountNames else id) $
           nub $ map (clipOrEllipsifyAccountName depth) $
           if empty_ || balancetype_ == HistoricalBalance
-          then nub $ sort $ startaccts ++ allpostedaccts
+          then nubSort $ startaccts ++ allpostedaccts
           else allpostedaccts
         where
-          allpostedaccts :: [AccountName] = dbg1 "allpostedaccts" $ sort $ accountNamesFromPostings ps
+          allpostedaccts :: [AccountName] =
+            dbg1 "allpostedaccts" . sort . accountNamesFromPostings $ map fst ps
       -- Each column's balance changes for each account, adding zeroes where needed.
       colallacctchanges :: [[(ClippedAccountName, MixedAmount)]] =
           dbg1 "colallacctchanges"
-          [sortBy (comparing fst) $
-           unionBy (\(a,_) (a',_) -> a == a') postedacctchanges zeroes
-           | postedacctchanges <- colacctchanges]
+          [ sortOn fst $ unionBy (\(a,_) (a',_) -> a == a') postedacctchanges zeroes
+             | postedacctchanges <- colacctchanges ]
           where zeroes = [(a, nullmixedamt) | a <- displayaccts]
       -- Transpose to get each account's balance changes across all columns.
       acctchanges :: [(ClippedAccountName, [MixedAmount])] =
@@ -247,7 +231,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- One row per account, with account name info, row amounts, row total and row average.
       rows :: [MultiBalanceReportRow] =
           dbg1 "rows" $
-          [(a, accountLeafName a, accountNameLevel a, valuedrowbals, rowtot, rowavg)
+          [ PeriodicReportRow a (accountNameLevel a) valuedrowbals rowtot rowavg
            | (a,changes) <- dbg1 "acctchanges" acctchanges
              -- The row amounts to be displayed: per-period changes,
              -- zero-based cumulative totals, or
@@ -297,11 +281,12 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
             where
               -- Sort the report rows, representing a tree of accounts, by row total at each level.
               -- Similar to sortMBRByAccountDeclaration/sortAccountNamesByDeclaration.
+              sortTreeMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
               sortTreeMBRByAmount rows = sortedrows
                 where
-                  anamesandrows = [(first6 r, r) | r <- rows]
+                  anamesandrows = [(prrName r, r) | r <- rows]
                   anames = map fst anamesandrows
-                  atotals = [(a,tot) | (a,_,_,_,tot,_) <- rows]
+                  atotals = [(prrName r, prrTotal r) | r <- rows]
                   accounttree = accountTree "root" anames
                   accounttreewithbals = mapAccounts setibalance accounttree
                     where
@@ -312,14 +297,14 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
                   sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
               -- Sort the report rows, representing a flat account list, by row total.
-              sortFlatMBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . fifth6))
+              sortFlatMBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . prrTotal))
                 where
                   maybeflip = if normalbalance_ == Just NormallyNegative then id else flip
 
               -- Sort the report rows by account declaration order then account name.
               sortMBRByAccountDeclaration rows = sortedrows
                 where
-                  anamesandrows = [(first6 r, r) | r <- rows]
+                  anamesandrows = [(prrName r, r) | r <- rows]
                   anames = map fst anamesandrows
                   sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
                   sortedrows = sortAccountItemsLike sortedanames anamesandrows
@@ -329,7 +314,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 
       -- Calculate the column totals. These are always the sum of column amounts.
       highestlevelaccts = [a | a <- displayaccts, not $ any (`elem` displayaccts) $ init $ expandAccountName a]
-      colamts           = transpose [bs | (a,_,_,bs,_,_) <- rows, not (tree_ ropts) || a `elem` highestlevelaccts]
+      colamts = transpose . map prrAmounts $ filter isHighest rows
+        where isHighest row = not (tree_ ropts) || prrName row `elem` highestlevelaccts
       coltotals :: [MixedAmount] =
         dbg1 "coltotals" $ map sum colamts
       -- Calculate the grand total and average. These are always the sum/average
@@ -341,45 +327,29 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
               ]
         in amts
       -- Totals row.
-      totalsrow :: MultiBalanceReportTotals =
-        dbg1 "totalsrow" (coltotals, grandtotal, grandaverage)
+      totalsrow :: PeriodicReportRow () MixedAmount =
+        dbg1 "totalsrow" $ PeriodicReportRow () 0 coltotals grandtotal grandaverage
 
       ----------------------------------------------------------------------
       -- 9. Map the report rows to percentages if needed
       -- It is not correct to do this before step 6 due to the total and average columns.
       -- This is not done in step 6, since the report totals are calculated in 8.
-      
       -- Perform the divisions to obtain percentages
       mappedsortedrows :: [MultiBalanceReportRow] =
         if not percent_ then sortedrows
         else dbg1 "mappedsortedrows"
-          [(aname, alname, alevel, zipWith perdivide rowvals coltotals, rowtotal `perdivide` grandtotal, rowavg `perdivide` grandaverage)
-           | (aname, alname, alevel, rowvals, rowtotal, rowavg) <- sortedrows
+          [ PeriodicReportRow aname alevel
+              (zipWith perdivide rowvals coltotals)
+              (rowtotal `perdivide` grandtotal)
+              (rowavg `perdivide` grandaverage)
+           | PeriodicReportRow aname alevel rowvals rowtotal rowavg <- sortedrows
           ]
-      mappedtotalsrow :: MultiBalanceReportTotals =
-        if not percent_ then totalsrow
-        else dbg1 "mappedtotalsrow" (
-          map (\t -> perdivide t t) coltotals,
-          perdivide grandtotal grandtotal,
-          perdivide grandaverage grandaverage)
-
--- | Given a MultiBalanceReport and its normal balance sign,
--- if it is known to be normally negative, convert it to normally positive.
-mbrNormaliseSign :: NormalSign -> MultiBalanceReport -> MultiBalanceReport
-mbrNormaliseSign NormallyNegative = mbrNegate
-mbrNormaliseSign _ = id
-
--- | Flip the sign of all amounts in a MultiBalanceReport.
-mbrNegate (MultiBalanceReport (colspans, rows, totalsrow)) =
-  MultiBalanceReport (colspans, map mbrRowNegate rows, mbrTotalsRowNegate totalsrow)
-  where
-    mbrRowNegate (acct,shortacct,indent,amts,tot,avg) = (acct,shortacct,indent,map negate amts,-tot,-avg)
-    mbrTotalsRowNegate (amts,tot,avg) = (map negate amts,-tot,-avg)
-
--- | Figure out the overall date span of a multicolumn balance report.
-multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
-multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
-multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
+      mappedtotalsrow :: PeriodicReportRow () MixedAmount
+        | percent_  = dbg1 "mappedtotalsrow" $ PeriodicReportRow () 0
+             (map (\t -> perdivide t t) coltotals)
+             (perdivide grandtotal grandtotal)
+             (perdivide grandaverage grandaverage)
+        | otherwise = totalsrow
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
 -- in order to support --historical. Does not support tree-mode boring parent eliding.
@@ -388,12 +358,12 @@ multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanSta
 balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReportFromMultiBalanceReport opts q j = (rows', total)
   where
-    MultiBalanceReport (_, rows, (totals, _, _)) = multiBalanceReport opts q j
-    rows' = [(a
-             ,if flat_ opts then a else a'   -- BalanceReport expects full account name here with --flat
-             ,if tree_ opts then d-1 else 0  -- BalanceReport uses 0-based account depths
+    PeriodicReport _ rows (PeriodicReportRow _ _ totals _ _) = multiBalanceReport opts q j
+    rows' = [( a
+             , if flat_ opts then a else accountLeafName a   -- BalanceReport expects full account name here with --flat
+             , if tree_ opts then d-1 else 0  -- BalanceReport uses 0-based account depths
              , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
-             ) | (a,a',d, amts, _, _) <- rows]
+             ) | PeriodicReportRow a d amts _ _ <- rows]
     total = headDef nullmixedamt totals
 
 
@@ -421,10 +391,11 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
     amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, aismultiplier=False}
     (opts,journal) `gives` r = do
       let (eitems, etotal) = r
-          (MultiBalanceReport (_, aitems, atotal)) = multiBalanceReport opts (queryFromOpts nulldate opts) journal
-          showw (acct,acct',indent,lAmt,amt,amt') = (acct, acct', indent, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
+          (PeriodicReport _ aitems atotal) = multiBalanceReport opts (queryFromOpts nulldate opts) journal
+          showw (PeriodicReportRow acct indent lAmt amt amt')
+              = (acct, accountLeafName acct, indent, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
       (map showw aitems) @?= (map showw eitems)
-      ((\(_, b, _) -> showMixedAmountDebug b) atotal) @?= (showMixedAmountDebug etotal) -- we only check the sum of the totals
+      showMixedAmountDebug (prrTotal atotal) @?= showMixedAmountDebug etotal -- we only check the sum of the totals
   in
    tests "multiBalanceReport" [
       test "null journal"  $
@@ -433,9 +404,8 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
      ,test "with -H on a populated period"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (
-        [
-         ("assets:bank:checking", "checking", 3, [mamountp' "$1.00"] , Mixed [nullamt], Mixed [amt0 {aquantity=1}])
-        ,("income:salary"       ,"salary"   , 2, [mamountp' "$-1.00"], Mixed [nullamt], Mixed [amt0 {aquantity=(-1)}])
+        [ PeriodicReportRow "assets:bank:checking" 3 [mamountp' "$1.00"]  (Mixed [nullamt]) (Mixed [amt0 {aquantity=1}])
+        , PeriodicReportRow "income:salary"        2 [mamountp' "$-1.00"] (Mixed [nullamt]) (Mixed [amt0 {aquantity=(-1)}])
         ],
         Mixed [nullamt])
 

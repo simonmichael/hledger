@@ -40,6 +40,7 @@ these are described more fully below, after the examples:
 [**`skip`**](#skip)                         skip one or more header lines or matched CSV records
 [**`fields`**](#fields)                     name CSV fields, assign them to hledger fields
 [**field assignment**](#field-assignment)    assign a value to one hledger field, with interpolation
+[**`separator`**](#separator)               a custom field separator
 [**`if`**](#if)                             apply some rules to matched CSV records
 [**`end`**](#end)                           skip the remaining CSV records
 [**`date-format`**](#date-format)           describe the format of CSV dates
@@ -405,7 +406,7 @@ Fields you don't care about can be left unnamed.
 Currently there must be least two items (there must be at least one comma).
 
 Note, always use comma in the fields list, even if your CSV uses
-[another separator character](#other-separator-characters).
+[another separator character](#separator).
 
 Here are the standard hledger field/pseudo-field names. 
 For more about the transaction parts they refer to, see the manual for hledger's journal format.
@@ -473,6 +474,21 @@ Interpolation strips outer whitespace (so a CSV value like `" 1 "`
 becomes `1` when interpolated)
 ([#1051](https://github.com/simonmichael/hledger/issues/1051)).
 See TIPS below for more about referencing other fields.
+
+## `separator`
+
+You can use the `separator` directive to read other kinds of
+character-separated data. Eg to read SSV (Semicolon Separated Values), use:
+```
+separator ;
+```
+
+The separator directive accepts exactly one single byte character as a
+separator. To specify whitespace characters, you may use the special
+words `TAB` or `SPACE`. Eg to read TSV (Tab Separated Values), use:
+```
+separator TAB
+```
 
 
 ## `if`
@@ -660,23 +676,6 @@ When CSV values are enclosed in quotes, note:
 
 - they must be double quotes (not single quotes)
 - spaces outside the quotes are [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field)
-
-## Other separator characters
-
-You can use the `--separator 'CHAR'` command line option
-(experimental) to read other kinds of character-separated data. 
-Eg to read SSV (Semicolon Separated Values), use:
-```shell
-$ hledger -f foo.tsv --separator ';' print
-```
-Note the semicolon is quoted because it's a 
-[special shell character](hledger.html#special-characters-in-arguments-and-queries).
-
-To read TSV (Tab Separated Values), use:
-```shell
-$ hledger -f foo.tsv --separator '	' print
-```
-Note, that's a real tab character in quotes, not `\t`.
 
 ## Reading multiple CSV files
 

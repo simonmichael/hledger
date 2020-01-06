@@ -2,7 +2,7 @@ rewrite\
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print --auto.
 
-_FLAGS_
+_FLAGS
 
 This is a start at a generic rewriter of transaction entries.
 It reads the default journal and prints the transactions, like print,

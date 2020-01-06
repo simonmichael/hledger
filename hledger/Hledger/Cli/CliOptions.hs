@@ -75,6 +75,7 @@ import Data.Char
 import Data.Default
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
+import Data.List.Extra (nubSort)
 import Data.List.Split (splitOneOf)
 import Data.Ord
 import Data.Maybe
@@ -121,7 +122,6 @@ inputflags :: [Flag RawOpts]
 inputflags = [
   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use - (default: $LEDGER_FILE or $HOME/.hledger.journal)"
  ,flagReq  ["rules-file"]    (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
- ,flagReq  ["separator"]     (\s opts -> Right $ setopt "separator" s opts) "SEP" "CSV separator (default: ,)"
  ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "rename accounts named OLD to NEW"
  ,flagNone ["anon"]          (setboolopt "anon") "anonymize accounts and payees"
  ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use some other field/tag for account names"
@@ -302,9 +302,9 @@ hledgerCommandMode doc unnamedflaggroup namedflaggroups hiddenflaggroup argsdesc
 --
 -- - First line: the command name then any aliases, as one or more space or comma-separated words
 --
--- - Second line to a line containing just _FLAGS_, or the end: the short help
+-- - Second line to a line containing just _FLAGS, or the end: the short help
 --
--- - Any lines after _FLAGS_: the long help (split into lines for cmdargs)
+-- - Any lines after _FLAGS: the long help (split into lines for cmdargs)
 --
 -- The CLI help displays the short help, then the cmdargs-generated
 -- flags list, then the long help (which some day we might make
@@ -318,7 +318,7 @@ parseCommandDoc t =
     (l:ls) -> Just (names, shorthelp, longhelplines)
       where
         names = words $ map (\c -> if c `elem` [',','\\'] then ' ' else c) l
-        (shorthelpls, longhelpls) = break (== "_FLAGS_") ls
+        (shorthelpls, longhelpls) = break (== "_FLAGS") ls
         shorthelp = unlines $ reverse $ dropWhile null $ reverse shorthelpls
         longhelplines = dropWhile null $ drop 1 longhelpls
 
@@ -661,7 +661,7 @@ likelyExecutablesInPath :: IO [String]
 likelyExecutablesInPath = do
   pathdirs <- splitOneOf "[:;]" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  return $ nub $ sort pathfiles
+  return $ nubSort pathfiles
   -- exclude directories and files without execute permission.
   -- These will do a stat for each hledger-*, probably ok.
   -- But they need paths, not just filenames

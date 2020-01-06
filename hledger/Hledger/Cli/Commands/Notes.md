@@ -1,7 +1,7 @@
 notes
 Show notes.
 
-_FLAGS_
+_FLAGS
 
 This command lists all notes that appear in transactions.
 

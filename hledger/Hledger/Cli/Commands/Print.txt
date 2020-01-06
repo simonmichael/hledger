@@ -1,7 +1,7 @@
 print, txns, p
 Show transaction journal entries, sorted by date.
 
-_FLAGS_
+_FLAGS
 
 The print command displays full journal entries (transactions) from the
 journal file in date order, tidily formatted. With --date2, transactions

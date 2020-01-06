@@ -1,10 +1,10 @@
-This is hledger-web.info, produced by makeinfo version 6.5 from stdin.
+This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.16.1
-*********************************
+hledger-web(1) hledger-web 1.16.99
+**********************************
 
 hledger-web is hledger's web interface.  It starts a simple web
 application for browsing and adding transactions, and optionally opens
@@ -103,7 +103,8 @@ before options, as shown in the synopsis above.
      use some other field or tag for the account name
 '-I --ignore-assertions'
 
-     ignore any failing balance assertions
+     disable balance assertion checks (note: does not disable balance
+     assignments)
 
    hledger reporting options:
 
@@ -340,15 +341,20 @@ to serve the API.
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1359
-Ref: #options1464
-Node: PERMISSIONS6743
-Ref: #permissions6882
-Node: EDITING UPLOADING DOWNLOADING8094
-Ref: #editing-uploading-downloading8275
-Node: RELOADING9109
-Ref: #reloading9243
-Node: JSON API9676
-Ref: #json-api9770
+Node: OPTIONS1361
+Ref: #options1466
+Node: PERMISSIONS6790
+Ref: #permissions6929
+Node: EDITING UPLOADING DOWNLOADING8141
+Ref: #editing-uploading-downloading8322
+Node: RELOADING9156
+Ref: #reloading9290
+Node: JSON API9723
+Ref: #json-api9817
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

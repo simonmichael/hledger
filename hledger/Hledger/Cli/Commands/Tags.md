@@ -4,4 +4,4 @@ only tag names matching the regular expression (case insensitive) are shown.
 With QUERY arguments, only transactions matching the query are considered.
 With --values flag, the tags' unique values are listed instead.
 
-_FLAGS_
+_FLAGS

@@ -458,7 +458,8 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
 -- The CSV will always include the initial headings row,
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
-multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
+    (PeriodicReport colspans items (PeriodicReportRow _ _ coltotals tot avg)) =
   maybetranspose $
   ("Account" : map showDateSpan colspans
    ++ ["Total"   | row_total_]
@@ -469,7 +470,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_} (MultiBalanceRepor
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
-  | (a, _, _, amts, rowtot, rowavg) <- items]
+  | PeriodicReportRow a _ amts rowtot rowavg <- items]
   ++
   if no_total_ opts
   then []
@@ -583,7 +584,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
         PeriodChange       -> "Balance changes"
         CumulativeChange   -> "Ending balances (cumulative)"
         HistoricalBalance  -> "Ending balances (historical)")
-      (showDateSpan $ multiBalanceReportSpan r)
+      (showDateSpan $ periodicReportSpan r)
       (case value_ of
         Just (AtCost _mc)   -> ", valued at cost"
         Just (AtEnd _mc)    -> ", valued at period ends"
@@ -596,7 +597,8 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
-balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_} (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
+    (PeriodicReport colspans items (PeriodicReportRow _ _ coltotals tot avg)) =
    maybetranspose $
    addtotalrow $
    Table
@@ -604,7 +606,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_} (MultiB
      (T.Group NoLine $ map Header colheadings)
      (map rowvals items)
   where
-    totalscolumn = row_total_ && not (balancetype_ `elem` [CumulativeChange, HistoricalBalance])
+    totalscolumn = row_total_ && balancetype_ `notElem` [CumulativeChange, HistoricalBalance]
     mkDate = case balancetype_ of
        PeriodChange -> showDateSpanMonthAbbrev
        _            -> maybe "" (showDate . prevday) . spanEnd
@@ -612,10 +614,10 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_} (MultiB
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items
-    renderacct (a,a',i,_,_,_)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
+    renderacct (PeriodicReportRow a i _ _ _)
+      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack (accountLeafName a)
       | otherwise  = T.unpack $ maybeAccountNameDrop opts a
-    rowvals (_,_,_,as,rowtot,rowavg) = as
+    rowvals (PeriodicReportRow _ _ as rowtot rowavg) = as
                              ++ [rowtot | totalscolumn]
                              ++ [rowavg | average_]
     addtotalrow | no_total_ opts = id

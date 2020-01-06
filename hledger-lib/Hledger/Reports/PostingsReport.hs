@@ -23,8 +23,8 @@ module Hledger.Reports.PostingsReport (
 where
 
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Maybe
-import Data.Ord (comparing)
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -166,7 +166,7 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
   where
     beforestartq = dbg1 "beforestartq" $ dateqtype $ DateSpan Nothing mstart
     beforeandduringps =
-      dbg1 "ps5" $ sortBy (comparing sortdate) $                               -- sort postings by date or date2
+      dbg1 "ps5" $ sortOn sortdate $                                           -- sort postings by date or date2
       dbg1 "ps4" $ (if invert_ opts then map negatePostingAmount else id) $    -- with --invert, invert amounts
       dbg1 "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
       dbg1 "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
@@ -254,7 +254,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
       summaryps | depth > 0 = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
                 | otherwise = [summaryp{paccount="...",pamount=sum $ map pamount ps}]
       summarypes = map (, e') $ (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
-      anames = sort $ nub $ map paccount ps
+      anames = nubSort $ map paccount ps
       -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
       accts = accountsFromPostings ps
       balance a = maybe nullmixedamt bal $ lookupAccount a accts

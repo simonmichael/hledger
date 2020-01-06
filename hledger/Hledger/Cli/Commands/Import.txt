@@ -4,7 +4,7 @@ the main journal file. Or with --dry-run, just print the transactions
 that would be added. Or with --catchup, just mark all of the FILEs'
 transactions as imported, without actually importing any.
 
-_FLAGS_
+_FLAGS
 
 The input files are specified as arguments - no need to write -f before
 each one. So eg to add new transactions from all CSV files to the main

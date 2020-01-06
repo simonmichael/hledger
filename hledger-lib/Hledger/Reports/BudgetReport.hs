@@ -11,6 +11,7 @@ where
 
 import Data.Decimal
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
@@ -40,26 +41,14 @@ import Hledger.Reports.BalanceReport (sortAccountItemsLike)
 import Hledger.Reports.MultiBalanceReport
 
 
--- for reference:
---
---type MultiBalanceReportRow    = (AccountName, AccountName, Int, [MixedAmount], MixedAmount, MixedAmount)
---type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount) -- (Totals list, sum of totals, average of totals)
---
---type PeriodicReportRow a =
---  ( AccountName  -- ^ A full account name.
---  , [a]          -- ^ The data value for each subperiod.
---  , a            -- ^ The total of this row's values.
---  , a            -- ^ The average of this row's values.
---  )
-
 type BudgetGoal    = Change
 type BudgetTotal   = Total
 type BudgetAverage = Average
 
 -- | A budget report tracks expected and actual changes per account and subperiod.
 type BudgetCell = (Maybe Change, Maybe BudgetGoal)
-type BudgetReport = PeriodicReport BudgetCell
-type BudgetReportRow = PeriodicReportRow BudgetCell
+type BudgetReport = PeriodicReport AccountName BudgetCell
+type BudgetReportRow = PeriodicReportRow AccountName BudgetCell
 
 -- | Calculate budget goals from all periodic transactions,
 -- actual balance changes from the regular transactions,
@@ -79,17 +68,19 @@ budgetReport ropts' assrt reportspan d j =
       concatMap expandAccountName $
       accountNamesFromPostings $
       concatMap tpostings $
-      concatMap (flip runPeriodicTransaction reportspan) $
+      concatMap (`runPeriodicTransaction` reportspan) $
       jperiodictxns j
     actualj = dbg1With (("actualj"++).show.jtxns)  $ budgetRollUp budgetedaccts showunbudgeted j
     budgetj = dbg1With (("budgetj"++).show.jtxns)  $ budgetJournal assrt ropts reportspan j
-    actualreport@(MultiBalanceReport (actualspans, _, _)) = dbg1 "actualreport" $ multiBalanceReport ropts  q actualj
-    budgetgoalreport@(MultiBalanceReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
+    actualreport@(PeriodicReport actualspans _ _) =
+        dbg1 "actualreport" $ multiBalanceReport ropts q actualj
+    budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
+        dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
       -- it should be safe to replace it with the latter, so they combine well.
-      | interval_ ropts == NoInterval = MultiBalanceReport (actualspans, budgetgoalitems, budgetgoaltotals)
+      | interval_ ropts == NoInterval = PeriodicReport actualspans budgetgoalitems budgetgoaltotals
       | otherwise = budgetgoalreport
     budgetreport = combineBudgetAndActual budgetgoalreport' actualreport
     sortedbudgetreport = sortBudgetReport ropts j budgetreport
@@ -98,7 +89,7 @@ budgetReport ropts' assrt reportspan d j =
 
 -- | Sort a budget report's rows according to options.
 sortBudgetReport :: ReportOpts -> Journal -> BudgetReport -> BudgetReport
-sortBudgetReport ropts j (PeriodicReport (ps, rows, trow)) = PeriodicReport (ps, sortedrows, trow)
+sortBudgetReport ropts j (PeriodicReport ps rows trow) = PeriodicReport ps sortedrows trow
   where
     sortedrows
       | sort_amount_ ropts && tree_ ropts = sortTreeBURByActualAmount rows
@@ -109,9 +100,9 @@ sortBudgetReport ropts j (PeriodicReport (ps, rows, trow)) = PeriodicReport (ps,
     sortTreeBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
     sortTreeBURByActualAmount rows = sortedrows
       where
-        anamesandrows = [(first6 r, r) | r <- rows]
+        anamesandrows = [(prrName r, r) | r <- rows]
         anames = map fst anamesandrows
-        atotals = [(a,tot) | (a,_,_,_,(tot,_),_) <- rows]
+        atotals = [(a, tot) | PeriodicReportRow a _ _ (tot,_) _ <- rows]
         accounttree = accountTree "root" anames
         accounttreewithbals = mapAccounts setibalance accounttree
           where
@@ -126,16 +117,16 @@ sortBudgetReport ropts j (PeriodicReport (ps, rows, trow)) = PeriodicReport (ps,
 
     -- Sort a flat-mode budget report's rows by total actual amount.
     sortFlatBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
-    sortFlatBURByActualAmount = sortBy (maybeflip $ comparing (fst . fifth6))
-      where
-        maybeflip = if normalbalance_ ropts == Just NormallyNegative then id else flip
+    sortFlatBURByActualAmount = case normalbalance_ ropts of
+        Just NormallyNegative -> sortOn (fst . prrTotal)
+        _                     -> sortOn (Down . fst . prrTotal)
 
     -- Sort the report rows by account declaration order then account name.
     -- <unbudgeted> remains at the top.
     sortByAccountDeclaration rows = sortedrows
       where
-        (unbudgetedrow,rows') = partition ((=="<unbudgeted>").first6) rows
-        anamesandrows = [(first6 r, r) | r <- rows']
+        (unbudgetedrow,rows') = partition ((=="<unbudgeted>") . prrName) rows
+        anamesandrows = [(prrName r, r) | r <- rows']
         anames = map fst anamesandrows
         sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
         sortedrows = unbudgetedrow ++ sortAccountItemsLike sortedanames anamesandrows
@@ -199,83 +190,67 @@ budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
 --
 combineBudgetAndActual :: MultiBalanceReport -> MultiBalanceReport -> BudgetReport
 combineBudgetAndActual
-  (MultiBalanceReport (budgetperiods, budgetrows, (budgettots, budgetgrandtot, budgetgrandavg)))
-  (MultiBalanceReport (actualperiods, actualrows, (actualtots, actualgrandtot, actualgrandavg))) =
-  let
-    periods = nub $ sort $ filter (/= nulldatespan) $ budgetperiods ++ actualperiods
+      (PeriodicReport budgetperiods budgetrows (PeriodicReportRow _ _ budgettots budgetgrandtot budgetgrandavg))
+      (PeriodicReport actualperiods actualrows (PeriodicReportRow _ _ actualtots actualgrandtot actualgrandavg)) =
+    PeriodicReport periods rows totalrow
+  where
+    periods = nubSort . filter (/= nulldatespan) $ budgetperiods ++ actualperiods
 
     -- first, combine any corresponding budget goals with actual changes
     rows1 =
-      [ (acct, treeacct, treeindent, amtandgoals, totamtandgoal, avgamtandgoal)
-      | (acct, treeacct, treeindent, actualamts, actualtot, actualavg) <- actualrows
+      [ PeriodicReportRow acct treeindent amtandgoals totamtandgoal avgamtandgoal
+      | PeriodicReportRow acct treeindent actualamts actualtot actualavg <- actualrows
       , let mbudgetgoals       = Map.lookup acct budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
       , let budgetmamts        = maybe (replicate (length periods) Nothing) (map Just . first3) mbudgetgoals :: [Maybe BudgetGoal]
-      , let mbudgettot         = maybe Nothing (Just . second3) mbudgetgoals :: Maybe BudgetTotal
-      , let mbudgetavg         = maybe Nothing (Just . third3)  mbudgetgoals :: Maybe BudgetAverage
+      , let mbudgettot         = second3 <$> mbudgetgoals :: Maybe BudgetTotal
+      , let mbudgetavg         = third3 <$> mbudgetgoals  :: Maybe BudgetAverage
       , let acctBudgetByPeriod = Map.fromList [ (p,budgetamt) | (p, Just budgetamt) <- zip budgetperiods budgetmamts ] :: Map DateSpan BudgetGoal
       , let acctActualByPeriod = Map.fromList [ (p,actualamt) | (p, Just actualamt) <- zip actualperiods (map Just actualamts) ] :: Map DateSpan Change
-      , let amtandgoals        = [ (Map.lookup p acctActualByPeriod, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [(Maybe Change, Maybe BudgetGoal)]
+      , let amtandgoals        = [ (Map.lookup p acctActualByPeriod, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [BudgetCell]
       , let totamtandgoal      = (Just actualtot, mbudgettot)
       , let avgamtandgoal      = (Just actualavg, mbudgetavg)
       ]
       where
         budgetGoalsByAcct :: Map AccountName ([BudgetGoal], BudgetTotal, BudgetAverage) =
-          Map.fromList [ (acct, (amts, tot, avg)) | (acct, _, _, amts, tot, avg) <- budgetrows ]
+          Map.fromList [ (acct, (amts, tot, avg))
+                         | PeriodicReportRow acct _ amts tot avg <- budgetrows ]
 
     -- next, make rows for budget goals with no actual changes
     rows2 =
-      [ (acct, treeacct, treeindent, amtandgoals, totamtandgoal, avgamtandgoal)
-      | (acct, treeacct, treeindent, budgetgoals, budgettot, budgetavg) <- budgetrows
-      , not $ acct `elem` acctsdone
+      [ PeriodicReportRow acct treeindent amtandgoals totamtandgoal avgamtandgoal
+      | PeriodicReportRow acct treeindent budgetgoals budgettot budgetavg <- budgetrows
+      , acct `notElem` map prrName rows1
       , let acctBudgetByPeriod = Map.fromList $ zip budgetperiods budgetgoals :: Map DateSpan BudgetGoal
-      , let amtandgoals        = [ (Nothing, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [(Maybe Change, Maybe BudgetGoal)]
+      , let amtandgoals        = [ (Nothing, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [BudgetCell]
       , let totamtandgoal      = (Nothing, Just budgettot)
       , let avgamtandgoal      = (Nothing, Just budgetavg)
       ]
-      where
-        acctsdone = map first6 rows1
 
     -- combine and re-sort rows
     -- TODO: use MBR code
     -- TODO: respect --sort-amount
     -- TODO: add --sort-budget to sort by budget goal amount
-    rows :: [PeriodicReportRow (Maybe Change, Maybe BudgetGoal)] =
-      sortBy (comparing first6) $ rows1 ++ rows2
+    rows :: [BudgetReportRow] =
+      sortOn prrName $ rows1 ++ rows2
 
     -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
-    totalrow =
-      ( ""
-      , ""
-      , 0
-      , [ (Map.lookup p totActualByPeriod, Map.lookup p totBudgetByPeriod) | p <- periods ] :: [(Maybe Total, Maybe BudgetTotal)]
-      , ( Just actualgrandtot, Just budgetgrandtot ) :: (Maybe Total, Maybe BudgetTotal)
-      , ( Just actualgrandavg, Just budgetgrandavg ) :: (Maybe Total, Maybe BudgetTotal)
-      )
+    totalrow = PeriodicReportRow () 0
+        [ (Map.lookup p totActualByPeriod, Map.lookup p totBudgetByPeriod) | p <- periods ]
+        ( Just actualgrandtot, Just budgetgrandtot )
+        ( Just actualgrandavg, Just budgetgrandavg )
       where
         totBudgetByPeriod = Map.fromList $ zip budgetperiods budgettots :: Map DateSpan BudgetTotal
         totActualByPeriod = Map.fromList $ zip actualperiods actualtots :: Map DateSpan Change
 
-  in
-    PeriodicReport
-      ( periods
-      , rows
-      , totalrow
-      )
-
--- | Figure out the overall period of a BudgetReport.
-budgetReportSpan :: BudgetReport -> DateSpan
-budgetReportSpan (PeriodicReport ([], _, _))    = DateSpan Nothing Nothing
-budgetReportSpan (PeriodicReport (spans, _, _)) = DateSpan (spanStart $ head spans) (spanEnd $ last spans)
-
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
-budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
+budgetReportAsText ropts@ReportOpts{..} budgetr =
   title ++ "\n\n" ++
   tableAsText ropts showcell (maybetranspose $ budgetReportAsTable ropts budgetr)
   where
     multiperiod = interval_ /= NoInterval
     title = printf "Budget performance in %s%s:"
-      (showDateSpan $ budgetReportSpan budgetr)
+      (showDateSpan $ periodicReportSpan budgetr)
       (case value_ of
         Just (AtCost _mc)   -> ", valued at cost"
         Just (AtEnd _mc)    -> ", valued at period ends"
@@ -285,16 +260,13 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
         Just (AtDefault _mc)  -> ", current value"
         Just (AtDate d _mc) -> ", valued at "++showDate d
         Nothing             -> "")
-    actualwidth =
-      maximum' [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) amt
-      | (_, _, _, amtandgoals, _, _) <- rows
-      , (amt, _) <- amtandgoals ]
-    budgetwidth =
-      maximum' [ maybe 0 (length . showMixedAmountOneLineWithoutPrice) goal
-      | (_, _, _, amtandgoals, _, _) <- rows
-      , (_, goal) <- amtandgoals ]
+    actualwidth = maximum' $ map fst amountsAndGoals
+    budgetwidth = maximum' $ map snd amountsAndGoals
+    amountsAndGoals = map (\(a,g) -> (amountLength a, amountLength g))
+                    . concatMap prrAmounts $ prRows budgetr
+      where amountLength = maybe 0 (length . showMixedAmountOneLineWithoutPrice)
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
-    showcell :: (Maybe Change, Maybe BudgetGoal) -> String
+    showcell :: BudgetCell -> String
     showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
       where
         percentwidth = 4
@@ -339,11 +311,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr@(PeriodicReport ( _, rows, _)) =
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table String String (Maybe MixedAmount, Maybe MixedAmount)
 budgetReportAsTable
   ropts
-  (PeriodicReport
-    ( periods
-    , rows
-    , (_, _, _, coltots, grandtot, grandavg)
-    )) =
+  (PeriodicReport periods rows (PeriodicReportRow _ _ coltots grandtot grandavg)) =
     addtotalrow $
     Table
       (T.Group NoLine $ map Header accts)
@@ -351,21 +319,20 @@ budgetReportAsTable
       (map rowvals rows)
   where
     colheadings = map showDateSpanMonthAbbrev periods
-                  ++ (if row_total_ ropts then ["  Total"] else [])
-                  ++ (if average_   ropts then ["Average"] else [])
+                  ++ ["  Total" | row_total_ ropts]
+                  ++ ["Average" | average_ ropts]
     accts = map renderacct rows
-    renderacct (a,a',i,_,_,_)
-      | tree_ ropts = replicate ((i-1)*2) ' ' ++ T.unpack a'
+    renderacct (PeriodicReportRow a i _ _ _)
+      | tree_ ropts = replicate ((i-1)*2) ' ' ++ T.unpack (accountLeafName a)
       | otherwise   = T.unpack $ maybeAccountNameDrop ropts a
-    rowvals (_,_,_,as,rowtot,rowavg) = as
-                                       ++ (if row_total_ ropts then [rowtot] else [])
-                                       ++ (if average_   ropts then [rowavg] else [])
-    addtotalrow | no_total_ ropts = id
-                | otherwise       = (+----+ (row "" $
-                                     coltots
-                                     ++ (if row_total_ ropts && not (null coltots) then [grandtot] else [])
-                                     ++ (if average_   ropts && not (null coltots) then [grandavg] else [])
-                                     ))
+    rowvals (PeriodicReportRow _ _ as rowtot rowavg) =
+        as ++ [rowtot | row_total_ ropts] ++ [rowavg | average_ ropts]
+    addtotalrow
+      | no_total_ ropts = id
+      | otherwise = (+----+ (row "" $
+                       coltots ++ [grandtot | row_total_ ropts && not (null coltots)]
+                               ++ [grandavg | average_ ropts && not (null coltots)]
+                    ))
 
 -- XXX here for now
 -- TODO: does not work for flat-by-default reports with --flat not specified explicitly

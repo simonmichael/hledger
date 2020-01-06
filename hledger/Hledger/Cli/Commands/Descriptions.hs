@@ -14,7 +14,7 @@ module Hledger.Cli.Commands.Descriptions (
  ,descriptions
 ) where
 
-import Data.List
+import Data.List.Extra (nubSort)
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -35,6 +35,6 @@ descriptions CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      descriptions = nub $ sort $ map tdescription ts
+      descriptions = nubSort $ map tdescription ts
 
   mapM_ T.putStrLn descriptions

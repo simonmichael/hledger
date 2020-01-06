@@ -6,7 +6,7 @@ module Hledger.Cli.Commands.Printunique (
 )
 where
 
-import Data.List
+import Data.List.Extra (nubSortOn)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
@@ -21,6 +21,6 @@ printuniquemode = hledgerCommandMode
 printunique opts j@Journal{jtxns=ts} = do
   print' opts j{jtxns=uniquify ts}
   where
-    uniquify = nubBy (\t1 t2 -> thingToCompare t1 == thingToCompare t2) . sortOn thingToCompare
+    uniquify = nubSortOn thingToCompare
     thingToCompare = tdescription
     -- thingToCompare = tdate

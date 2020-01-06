@@ -151,15 +151,15 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
       subreports =
         map (\CBCSubreportSpec{..} ->
                 (cbcsubreporttitle
-                ,mbrNormaliseSign cbcsubreportnormalsign $ -- <- convert normal-negative to normal-positive
+                ,prNormaliseSign cbcsubreportnormalsign $ -- <- convert normal-negative to normal-positive
                   compoundBalanceSubreport ropts' userq j priceoracle cbcsubreportquery cbcsubreportnormalsign
                 ,cbcsubreportincreasestotal
                 ))
             cbcqueries
 
       subtotalrows =
-        [(coltotals, increasesoveralltotal)
-        | (_, MultiBalanceReport (_,_,(coltotals,_,_)), increasesoveralltotal) <- subreports
+        [(prrAmounts $ prTotals report, increasesoveralltotal)
+        | (_, report, increasesoveralltotal) <- subreports
         ]
 
       -- Sum the subreport totals by column. Handle these cases:
@@ -186,7 +186,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
 
       colspans =
         case subreports of
-          (_, MultiBalanceReport (ds,_,_), _):_ -> ds
+          (_, PeriodicReport ds _ _, _):_ -> ds
           [] -> []
 
       title =
@@ -261,20 +261,20 @@ compoundBalanceSubreport ropts@ReportOpts{..} userq j priceoracle subreportqfn s
     ropts' = ropts { empty_=True, normalbalance_=Just subreportnormalsign }
     -- run the report
     q = And [subreportqfn j, userq]
-    r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReportWith ropts' q j priceoracle
+    r@(PeriodicReport dates rows totals) = multiBalanceReportWith ropts' q j priceoracle
     -- if user didn't specify --empty, now remove the all-zero rows, unless they have non-zero subaccounts
     -- in this report
     r' | empty_    = r
-       | otherwise = MultiBalanceReport (dates, rows', totals)
+       | otherwise = PeriodicReport dates rows' totals
           where
             nonzeroaccounts =
               dbg1 "nonzeroaccounts" $
-              catMaybes $ map (\(act,_,_,amts,_,_) ->
+              mapMaybe (\(PeriodicReportRow act _ amts _ _) ->
                             if not (all isZeroMixedAmount amts) then Just act else Nothing) rows
             rows' = filter (not . emptyRow) rows
               where
-                emptyRow (act,_,_,amts,_,_) =
-                  all isZeroMixedAmount amts && all (not . (act `isAccountNamePrefixOf`)) nonzeroaccounts
+                emptyRow (PeriodicReportRow act _ amts _ _) =
+                  all isZeroMixedAmount amts && not (any (act `isAccountNamePrefixOf`) nonzeroaccounts)
 
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:
@@ -367,8 +367,7 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
             (if row_total_ ropts then (1+) else id) $
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
-            map (\(MultiBalanceReport (amtcolheadings, _, _)) -> length amtcolheadings) $
-            map second3 subreports
+            map (length . prDates . second3) subreports
     addtotals
       | no_total_ ropts || length subreports == 1 = id
       | otherwise = (++

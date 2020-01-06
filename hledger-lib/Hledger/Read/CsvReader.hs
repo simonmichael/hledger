@@ -93,8 +93,7 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f t = do
   let rulesfile = mrules_file_ iopts
-  let separator = separator_ iopts
-  r <- liftIO $ readJournalFromCsv separator rulesfile f t
+  r <- liftIO $ readJournalFromCsv rulesfile f t
   case r of Left e   -> throwError e
             Right pj -> finaliseJournal iopts{ignore_assertions_=True} f t pj'
               where
@@ -103,6 +102,15 @@ parse iopts f t = do
                 -- But here they are already properly ordered. So we'd
                 -- better preemptively reverse them once more. XXX inefficient
                 pj' = journalReverse pj
+
+-- | Parse special separator names TAB and SPACE, or return the first
+-- character. Return Nothing on empty string
+parseSeparator :: String -> Maybe Char
+parseSeparator = specials . map toLower
+  where specials "space" = Just ' '
+        specials "tab"   = Just '\t'
+        specials (x:_)   = Just x
+        specials []      = Nothing
 
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
@@ -115,9 +123,9 @@ parse iopts f t = do
 -- 4. if the rules file didn't exist, create it with the default rules and filename
 -- 5. return the transactions as a Journal
 -- @
-readJournalFromCsv :: Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
-readJournalFromCsv _ Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv separator mrulesfile csvfile csvdata =
+readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
+readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv mrulesfile csvfile csvdata =
  handle (\(e::IOException) -> return $ Left $ show e) $ do
 
   -- make and throw an IO exception.. which we catch and convert to an Either above ?
@@ -131,7 +139,7 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
     then do
       dbg1IO "using conversion rules file" rulesfile
       readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
-    else 
+    else
       return $ defaultRulesText rulesfile
   rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
   dbg2IO "rules" rules
@@ -145,6 +153,8 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
   -- parse csv
   -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
+  let separator = fromMaybe ',' (getDirective "separator" rules >>= parseSeparator)
+  dbg2IO "separator" separator
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv rules skiplines .
               dbg2 "parseCsv")
@@ -453,8 +463,8 @@ parseAndValidateCsvRules rulesfile s =
     Right rules -> first makeFancyParseError $ validateRules rules
   where
     makeFancyParseError :: String -> String
-    makeFancyParseError s = 
-      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail s) :: ParseError Text String)
+    makeFancyParseError errorString =
+      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail errorString) :: ParseError Text String)
 
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
 parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
@@ -474,7 +484,7 @@ validateRules rules = do
 
 rulesp :: CsvRulesParser CsvRules
 rulesp = do
-  many $ choiceInState
+  _ <- many $ choiceInState
     [blankorcommentlinep                                                <?> "blank or comment line"
     ,(directivep        >>= modify' . addDirective)                     <?> "directive"
     ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList) <?> "field name list"
@@ -509,8 +519,10 @@ directivep = (do
   return (d, v)
   ) <?> "directive"
 
+directives :: [String]
 directives =
   ["date-format"
+  ,"separator"
   -- ,"default-account1"
   -- ,"default-currency"
   -- ,"skip-lines" -- old

@@ -1,10 +1,10 @@
-This is hledger-ui.info, produced by makeinfo version 6.5 from stdin.
+This is hledger-ui.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.16.1
-*******************************
+hledger-ui(1) hledger-ui 1.16.99
+********************************
 
 hledger-ui is hledger's terminal interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
@@ -89,7 +89,8 @@ the data.
      use some other field or tag for the account name
 '-I --ignore-assertions'
 
-     ignore any failing balance assertions
+     disable balance assertion checks (note: does not disable balance
+     assignments)
 
    hledger reporting options:
 
@@ -423,19 +424,24 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top71
-Node: OPTIONS1101
-Ref: #options1198
-Node: KEYS4589
-Ref: #keys4684
-Node: SCREENS8991
-Ref: #screens9076
-Node: Accounts screen9166
-Ref: #accounts-screen9294
-Node: Register screen11510
-Ref: #register-screen11665
-Node: Transaction screen13661
-Ref: #transaction-screen13819
-Node: Error screen14689
-Ref: #error-screen14811
+Node: OPTIONS1103
+Ref: #options1200
+Node: KEYS4636
+Ref: #keys4731
+Node: SCREENS9038
+Ref: #screens9123
+Node: Accounts screen9213
+Ref: #accounts-screen9341
+Node: Register screen11557
+Ref: #register-screen11712
+Node: Transaction screen13708
+Ref: #transaction-screen13866
+Node: Error screen14736
+Ref: #error-screen14858
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

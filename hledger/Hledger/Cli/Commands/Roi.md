@@ -2,7 +2,7 @@ roi\
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return
 on your investments.
 
-_FLAGS_
+_FLAGS
 
 This command assumes that you have account(s) that hold nothing but
 your investments and whenever you record current appraisal/valuation

@@ -42,8 +42,6 @@ module Hledger.Data.Posting (
   postingDate2,
   isPostingInDateSpan,
   isPostingInDateSpan',
-  postingsDateSpan,
-  postingsDateSpan',
   -- * account name operations
   accountNamesFromPostings,
   accountNamePostingType,
@@ -69,7 +67,9 @@ module Hledger.Data.Posting (
   tests_Posting
 )
 where
-import Data.List
+
+import Data.Foldable (asum)
+import Data.List.Extra (nubSort)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.MemoUgly (memo)
@@ -190,7 +190,7 @@ hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
 
 -- | Sorted unique account names referenced by these postings.
 accountNamesFromPostings :: [Posting] -> [AccountName]
-accountNamesFromPostings = nub . sort . map paccount
+accountNamesFromPostings = nubSort . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = sumStrict . map pamount
@@ -204,20 +204,19 @@ removePrices p = p{ pamount = Mixed $ remove <$> amounts (pamount p) }
 -- otherwise the parent transaction's primary date, or the null date if
 -- there is no parent transaction.
 postingDate :: Posting -> Day
-postingDate p = fromMaybe txndate $ pdate p
-    where
-      txndate = maybe nulldate tdate $ ptransaction p
+postingDate p = fromMaybe nulldate $ asum dates
+    where dates = [ pdate p, tdate <$> ptransaction p ]
 
 -- | Get a posting's secondary (secondary) date, which is the first of:
 -- posting's secondary date, transaction's secondary date, posting's
 -- primary date, transaction's primary date, or the null date if there is
 -- no parent transaction.
 postingDate2 :: Posting -> Day
-postingDate2 p = headDef nulldate $ catMaybes dates
-  where dates = [pdate2 p
-                ,maybe Nothing tdate2 $ ptransaction p
-                ,pdate p
-                ,fmap tdate (ptransaction p)
+postingDate2 p = fromMaybe nulldate $ asum dates
+  where dates = [ pdate2 p
+                , tdate2 =<< ptransaction p
+                , pdate p
+                , tdate <$> ptransaction p
                 ]
 
 -- | Get a posting's status. This is cleared or pending if those are
@@ -246,7 +245,7 @@ relatedPostings _ = []
 
 -- | Does this posting fall within the given date span ?
 isPostingInDateSpan :: DateSpan -> Posting -> Bool
-isPostingInDateSpan s = spanContainsDate s . postingDate
+isPostingInDateSpan = isPostingInDateSpan' PrimaryDate
 
 -- --date2-sensitive version, separate for now to avoid disturbing multiBalanceReport.
 isPostingInDateSpan' :: WhichDate -> DateSpan -> Posting -> Bool
@@ -255,21 +254,6 @@ isPostingInDateSpan' SecondaryDate s = spanContainsDate s . postingDate2
 
 isEmptyPosting :: Posting -> Bool
 isEmptyPosting = isZeroMixedAmount . pamount
-
--- | Get the minimal date span which contains all the postings, or the
--- null date span if there are none.
-postingsDateSpan :: [Posting] -> DateSpan
-postingsDateSpan [] = DateSpan Nothing Nothing
-postingsDateSpan ps = DateSpan (Just $ postingDate $ head ps') (Just $ addDays 1 $ postingDate $ last ps')
-    where ps' = sortOn postingDate ps
-
--- --date2-sensitive version, as above.
-postingsDateSpan' :: WhichDate -> [Posting] -> DateSpan
-postingsDateSpan' _  [] = DateSpan Nothing Nothing
-postingsDateSpan' wd ps = DateSpan (Just $ postingdate $ head ps') (Just $ addDays 1 $ postingdate $ last ps')
-    where
-      ps' = sortOn postingdate ps
-      postingdate = if wd == PrimaryDate then postingDate else postingDate2
 
 -- AccountName stuff that depends on PostingType
 

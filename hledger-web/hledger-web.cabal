@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 009db76878af9603a492a0f3a9fdd46e3a4fd5795cccef390e80325ec94c8808
+-- hash: 194a16a30440803cd2bef5d5df0b6115ad66076c44407ed31efea9c4602e5e95
 
 name:           hledger-web
-version:        1.16.1
+version:        1.16.99
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -150,7 +150,7 @@ library
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
-  cpp-options: -DVERSION="1.16.1"
+  cpp-options: -DVERSION="1.16.99"
   build-depends:
       Decimal
     , aeson
@@ -166,10 +166,11 @@ library
     , containers
     , data-default
     , directory
+    , extra >=1.6.3
     , filepath
     , hjsmin
-    , hledger >=1.16.1 && <1.17
-    , hledger-lib >=1.16.1 && <1.17
+    , hledger >=1.16.99 && <1.17
+    , hledger-lib >=1.16.99 && <1.17
     , http-client
     , http-conduit
     , http-types
@@ -205,7 +206,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
-  cpp-options: -DVERSION="1.16.1"
+  cpp-options: -DVERSION="1.16.99"
   build-depends:
       base
     , hledger-web

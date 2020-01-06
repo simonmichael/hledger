@@ -2,7 +2,7 @@ $if(has-tables)$
 .\"t
 $endif$
 
-.TH "$title$" "$section$" "$date$" "$footer$" "hledger User Manuals"
+.TH "$title/nowrap$" "$section/nowrap$" "$date/nowrap$" "$footer/nowrap$" "hledger User Manuals"
 
 $for(header-includes)$
 $header-includes$
