@@ -13,52 +13,52 @@
 # If this one fails, we got a wrong regex and the inverted regex tests below
 # are also wrong.
 $ hledger -f- register
-> /2019\/01\/01/
+> /2019-01-01/
 
 # Show only February
 $ hledger -f- register -p 2019-02
-> !/2019\/01\/01/
+> !/2019-01-01/
 
 # The last -b overrides the first -b
 # -> show only February
 $ hledger -f- register -b 2019 -b 2019-02
-> !/2019\/01\/01/
+> !/2019-01-01/
 
 # The last -e overrides the first -e
 # Note that -e means: include posting/txns BEFORE this date.
 # -> show only January
 $ hledger -f- register -e 2020 -e 2019-02-01
-> !/2019\/02\/01/
+> !/2019-02-01/
 
 # -p's begin overrides -b because it comes last
 # -> show only February
 $ hledger -f- register -b 2019-01-01 -p 2019-02
-> !/2019\/01\/01/
+> !/2019-01-01/
 
 # -e overrides -p's end because it come last
 # -> show only first part of January
 $ hledger -f- register -p 2019 -e 2019-01-20
-> !/2019\/02\/01/
+> !/2019-02-01/
 
 # Date options and queries are AND'ed and produce the intersection independent
 # of their order
 $ hledger -f- register date:2019-02 -p 2019
-> !/2019\/01\/01/
+> !/2019-01-01/
 $ hledger -f- register -p 2019 date:2019-02
-> !/2019\/01\/01/
+> !/2019-01-01/
 
 # Date queries are AND'ed and produce the intersection independent of their
 # order
 $ hledger -f- register date:2019 date:2019-02
-> !/2019\/01\/01/
+> !/2019-01-01/
 $ hledger -f- register date:2019-02 date:2019
-> !/2019\/01\/01/
+> !/2019-01-01/
 $ hledger -f- register date:2019-02 date:2019-01-01-
-> !/2019\/01\/01/
+> !/2019-01-01/
 
 ## Date options override date queries
 #$ hledger -f- register date:2019-02 -p 2019
-#> /2019\/01\/01/
+#> /2019-01-01/
 
 # Smart dates https://github.com/simonmichael/hledger/issues/1079
 $ hledger -f- activity -b 2019-02-01 -e 'next year'
