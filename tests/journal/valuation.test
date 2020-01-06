@@ -413,7 +413,7 @@ Balance changes in 2000q1, valued at period ends:
 # February adds 1 A costing 7 B, making 13 B.
 # March adds 1 A costing 8 B, making 21 B.
 $ hledger -f- bal -M -H -b 200002 --value=cost
-Ending balances (historical) in 2000/02/01-2000/03/31, valued at cost:
+Ending balances (historical) in 2000-02-01-2000-03-31, valued at cost:
 
    || 2000-02-29  2000-03-31 
 ===++========================
@@ -426,7 +426,7 @@ Ending balances (historical) in 2000/02/01-2000/03/31, valued at cost:
 # February adds 1 A making 2 A, which is valued at 2000/02/29 as 4 B.
 # March adds 1 A making 3 A, which is valued at 2000/03/31 as 9 B.
 $ hledger -f- bal -MA -H -b 200002 --value=end
-Ending balances (historical) in 2000/02/01-2000/03/31, valued at period ends:
+Ending balances (historical) in 2000-02-01-2000-03-31, valued at period ends:
 
    || 2000-02-29  2000-03-31  Average 
 ===++=================================
@@ -437,7 +437,7 @@ Ending balances (historical) in 2000/02/01-2000/03/31, valued at period ends:
 # 40. multicolumn balance report with -H valued at other date.
 # The starting balance is 5 B (1 A valued at 2000/1/15).
 $ hledger -f- bal -M -H -b 200002 --value=2000-01-15
-Ending balances (historical) in 2000/02/01-2000/03/31, valued at 2000-01-15:
+Ending balances (historical) in 2000-02-01-2000-03-31, valued at 2000-01-15:
 
    || 2000-02-29  2000-03-31 
 ===++========================
