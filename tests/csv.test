@@ -539,7 +539,7 @@ account1 (assets:myacct)
 separator TAB
 
 $  ./hledger-csv
-2009/10/01 Flubber Co
+2009-10-01 Flubber Co
     (assets:myacct)             $50 = $123
 
 >=0
