@@ -132,7 +132,7 @@ hledger -f- --pivot payee reg -D ^expense
     assets:bank account
     expense:grocery                    30 EUR
 >>>
-2016/02/16              Auchan                              22 EUR        22 EUR
+2016-02-16              Auchan                              22 EUR        22 EUR
                         StarBars                             5 EUR        27 EUR
-2016/02/17              Auchan                              30 EUR        57 EUR
+2016-02-17              Auchan                              30 EUR        57 EUR
 >>>=0

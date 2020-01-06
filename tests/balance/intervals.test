@@ -253,7 +253,7 @@ hledger -f- balance -p 'monthly 2014/1/10-2014/2/20'
  (after)  1
 
 >>>
-Balance changes in 2014/01/01-2014/02/28:
+Balance changes in 2014-01-01-2014-02-28:
 
         || Jan  Feb 
 ========++==========

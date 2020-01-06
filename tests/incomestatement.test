@@ -5,9 +5,9 @@ hledger -f - incomestatement
   income  1
   b
 >>>
-Income Statement 2016/01/01
+Income Statement 2016-01-01
 
-          || 2016/01/01 
+          || 2016-01-01 
 ==========++============
  Revenues ||            
 ----------++------------
@@ -90,9 +90,9 @@ hledger -f - incomestatement -b 2015 -e 2017
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Income Statement 2015/01/01-2016/12/31
+Income Statement 2015-01-01-2016-12-31
 
-                   || 2015/01/01-2016/12/31 
+                   || 2015-01-01-2016-12-31 
 ===================++=======================
  Revenues          ||                       
 -------------------++-----------------------

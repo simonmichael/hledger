@@ -5,9 +5,9 @@ hledger -f - cashflow
   assets  1
   b
 >>>
-Cashflow Statement 2016/01/01
+Cashflow Statement 2016-01-01
 
-            || 2016/01/01 
+            || 2016-01-01 
 ============++============
  Cash flows ||            
 ------------++------------
@@ -75,9 +75,9 @@ hledger -f - cashflow -b 2015 -e 2017
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement 2015/01/01-2016/12/31
+Cashflow Statement 2015-01-01-2016-12-31
 
-                 || 2015/01/01-2016/12/31 
+                 || 2015-01-01-2016-12-31 
 =================++=======================
  Cash flows      ||                       
 -----------------++-----------------------
@@ -229,9 +229,9 @@ hledger -f - cashflow
   assets:fixed assets:equipment  1
   b
 >>>
-Cashflow Statement 2016/01/01
+Cashflow Statement 2016-01-01
 
-            || 2016/01/01 
+            || 2016-01-01 
 ============++============
  Cash flows ||            
 ------------++------------
