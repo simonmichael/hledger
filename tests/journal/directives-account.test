@@ -25,9 +25,9 @@ account b      L
   (b:bb)     3
 
 $ hledger -f - bs -N --flat
-Balance Sheet 2018/01/01
+Balance Sheet 2018-01-01
 
-             || 2018/01/01 
+             || 2018-01-01 
 =============++============
  Assets      ||            
 -------------++------------
@@ -46,9 +46,9 @@ Balance Sheet 2018/01/01
 # It must be shown above bb, but since not an asset, its balance is excluded there.
 # It is shown again in the liabilities section, this time with balance.
 $ hledger -f - bs -N
-Balance Sheet 2018/01/01
+Balance Sheet 2018-01-01
 
-             || 2018/01/01 
+             || 2018-01-01 
 =============++============
  Assets      ||            
 -------------++------------

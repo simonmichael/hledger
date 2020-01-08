@@ -12,9 +12,9 @@ hledger -f sample.journal balance expenses -%
 # 2. Multi column percent
 hledger -f sample.journal balance expenses -% -p daily
 >>>
-Balance changes in 2008/06/03:
+Balance changes in 2008-06-03:
 
-                   || 2008/06/03 
+                   || 2008-06-03 
 ===================++============
  expenses:food     ||     50.0 % 
  expenses:supplies ||     50.0 % 

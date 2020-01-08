@@ -18,7 +18,6 @@ import Data.Maybe
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import Data.Time.Calendar
-import Data.Time.Format
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvReader (CSV, printCSV)
 import Lucid as L hiding (value_)
@@ -250,7 +249,7 @@ showEndDates es = case es of
   [e]     -> showdate e
   []      -> ""
   where
-    showdate = formatTime defaultTimeLocale "%0C%y/%m/%d" 
+    showdate = show
 
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.

@@ -61,12 +61,12 @@ alias /A (.)/=\1
     c
 
 $ hledger -f- print
-2011/01/01
+2011-01-01
     b b               1
     b b               2
     c
 
-2011/01/01
+2011-01-01
     b               1
     b               2
     c
@@ -85,7 +85,7 @@ $ hledger -f- print
     c
 
 $ hledger -f- print --alias '/A (.)/=a' --alias /a/=b
-2011/01/01
+2011-01-01
     b               1
     b               2
     c
@@ -104,7 +104,7 @@ alias E=F
     [x:a:x]
 
 $ hledger -f- print --alias /a/=A --alias /B/=C --alias /B/=D --alias /C/=D
-2011/01/01
+2011-01-01
     [E:x]                 1
     [x:A:x]
 
@@ -144,7 +144,7 @@ alias a = b
     a  1
     b  -1
 $ hledger -f- reg '^a$' '^b$'
-2017/01/01                      b                                1             1
+2017-01-01                      b                                1             1
                                 b                               -1             0
 
 # recursive aliases https://github.com/simonmichael/hledger/issues/1055
@@ -155,7 +155,7 @@ $ hledger -f- reg '^a$' '^b$'
   (one)  1
 
 $ hledger -f- --alias "one=two" --alias "two=three" print
-2000/01/01
+2000-01-01
     (three)               1
 
 >=0
@@ -169,7 +169,7 @@ alias one = two
   (one)  1
 
 $ hledger -f- print
-2000/01/01
+2000-01-01
     (three)               1
 
 >=0
@@ -182,7 +182,7 @@ alias one = two
   (one)  1
 
 $ hledger -f- print
-2000/01/01
+2000-01-01
     (two)               1
 
 >=0
@@ -193,7 +193,7 @@ $ hledger -f- print
   (one)  1
 
 $ hledger -f- --alias "/one/=two" --alias "/two/=three" print
-2000/01/01
+2000-01-01
     (three)               1
 
 >=0
@@ -207,7 +207,7 @@ alias /one/ = two
   (one)  1
 
 $ hledger -f- print
-2000/01/01
+2000-01-01
     (three)               1
 
 >=0
@@ -220,7 +220,7 @@ alias /one/ = two
   (one)  1
 
 $ hledger -f- print
-2000/01/01
+2000-01-01
     (two)               1
 
 >=0

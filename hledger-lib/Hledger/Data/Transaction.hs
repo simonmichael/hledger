@@ -638,7 +638,7 @@ tests_Transaction =
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
          
     , tests "showTransaction" [
-          test "null transaction" $ showTransaction nulltransaction @?= "0000/01/01\n\n"
+          test "null transaction" $ showTransaction nulltransaction @?= "0000-01-01\n\n"
         , test "non-null transaction" $ showTransaction
             nulltransaction
               { tdate = parsedate "2012/05/14"
@@ -660,7 +660,7 @@ tests_Transaction =
                   ]
               } @?=
           unlines
-            [ "2012/05/14=2012/05/15 (code) desc  ; tcomment1"
+            [ "2012-05-14=2012-05-15 (code) desc  ; tcomment1"
             , "    ; tcomment2"
             , "    * a         $1.00"
             , "    ; pcomment2"
@@ -686,7 +686,7 @@ tests_Transaction =
                    ]
             in showTransaction t) @?=
           (unlines
-             [ "2007/01/28 coopportunity"
+             [ "2007-01-28 coopportunity"
              , "    expenses:food:groceries          $47.18"
              , "    assets:checking                 $-47.18"
              , ""
@@ -709,7 +709,7 @@ tests_Transaction =
                 , posting {paccount = "assets:checking", pamount = Mixed [usd (-47.19)]}
                 ])) @?=
           (unlines
-             [ "2007/01/28 coopportunity"
+             [ "2007-01-28 coopportunity"
              , "    expenses:food:groceries          $47.18"
              , "    assets:checking                 $-47.19"
              , ""
@@ -729,7 +729,7 @@ tests_Transaction =
                 ""
                 []
                 [posting {paccount = "expenses:food:groceries", pamount = missingmixedamt}])) @?=
-          (unlines ["2007/01/28 coopportunity", "    expenses:food:groceries", ""])
+          (unlines ["2007-01-28 coopportunity", "    expenses:food:groceries", ""])
         , test "show a transaction with a priced commodityless amount" $
           (showTransaction
              (txnTieKnot $
@@ -747,7 +747,7 @@ tests_Transaction =
                 [ posting {paccount = "a", pamount = Mixed [num 1 `at` (usd 2 `withPrecision` 0)]}
                 , posting {paccount = "b", pamount = missingmixedamt}
                 ])) @?=
-          (unlines ["2010/01/01 x", "    a          1 @ $2", "    b", ""])
+          (unlines ["2010-01-01 x", "    a          1 @ $2", "    b", ""])
         ]
     , tests "balanceTransaction" [
          test "detect unbalanced entry, sign error" $

@@ -16,7 +16,7 @@ hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
     expenses:grocery  $30
     assets:cash
 >>>
-Balance changes in 2016/12/01-2017/01/31:
+Balance changes in 2016-12-01-2017-01-31:
 
                   ||   Dec     Jan 
 ==================++===============
@@ -46,11 +46,11 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     expenses:grocery  $30
     assets:cash
 >>>
-2016/12/31
+2016-12-31
     expenses:housing            $600
     assets:cash
 
-2017/01/01 * marked cleared, and with a description
+2017-01-01 * marked cleared, and with a description
     ; generated-transaction: ~ monthly from 2016/1
     income                    $-1000
     expenses:food                $20
@@ -76,7 +76,7 @@ hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
     expenses:grocery  $30
     assets:cash
 >>>
-2017/01/01                      income                      $-1000        $-1000
+2017-01-01                      income                      $-1000        $-1000
                                 expenses:food                  $20         $-980
                                 expenses:leisure               $15         $-965
                                 expenses:grocery               $30         $-935
@@ -99,9 +99,9 @@ hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
     income  $-10000 ; bonus
     assets:cash
 >>>
-2016/01/01                      assets:cash                   $-10          $-10
-2016/12/02                      assets:cash                  $-600         $-610
-2017/01/01                      assets:cash                 $10000         $9390
+2016-01-01                      assets:cash                   $-10          $-10
+2016-12-02                      assets:cash                  $-600         $-610
+2017-01-01                      assets:cash                 $10000         $9390
 >>>2
 >>>=0
 
@@ -117,7 +117,7 @@ Y 2000
 2000/1/1 real
 
 >>>
-2000/02/01 forecast
+2000-02-01 forecast
     ; generated-transaction: ~ 2/1
 
 >>>2
@@ -134,7 +134,7 @@ Y 2000
 2000/1/1 real
 
 >>>
-2000/01/15 forecast
+2000-01-15 forecast
     ; generated-transaction: ~ 15
 
 >>>2
@@ -151,7 +151,7 @@ Y 2000
 2000/1/1 real
 
 >>>
-2000/02/01 forecast
+2000-02-01 forecast
     ; generated-transaction: ~ next month
 
 >>>2

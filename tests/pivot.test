@@ -8,7 +8,7 @@ hledger -f- --pivot TAG print
     Account2                                  -2 EUR
     ; TAG: value
 >>>
-2016/02/16 Test Transaction
+2016-02-16 Test Transaction
                     2 EUR
     value          -2 EUR
     ; TAG: value
@@ -50,7 +50,7 @@ hledger -f- --pivot TAG reg '^Account2$' '^fun$' not:hidden
     Account2                                  -1 EUR
     ; TAG: hidden
 >>>
-2016/02/16 Test Transaction     fun                          2 EUR         2 EUR
+2016-02-16 Test Transaction     fun                          2 EUR         2 EUR
                                 value                       -1 EUR         1 EUR
 >>>=0
 
@@ -63,7 +63,7 @@ hledger -f- --pivot expenses reg not:liabilities
     assets              $5  ; expenses:c
     liabilities     $-1605
 >>>
-2017/01/01 prepay               a                            $1500         $1500
+2017-01-01 prepay               a                            $1500         $1500
                                 b                             $100         $1600
                                 c                               $5         $1605
 >>>=0
@@ -97,7 +97,7 @@ hledger -f- --pivot code reg ^income
     assets:bank account                                   2 EUR
     income:donations                                  -2 EUR
 >>>
-2016/02/16 Donation Freifunk    Freifunk                    -2 EUR        -2 EUR
+2016-02-16 Donation Freifunk    Freifunk                    -2 EUR        -2 EUR
 >>>=0
 
 # get expenses balance by description/payee
@@ -132,7 +132,7 @@ hledger -f- --pivot payee reg -D ^expense
     assets:bank account
     expense:grocery                    30 EUR
 >>>
-2016/02/16              Auchan                              22 EUR        22 EUR
+2016-02-16              Auchan                              22 EUR        22 EUR
                         StarBars                             5 EUR        27 EUR
-2016/02/17              Auchan                              30 EUR        57 EUR
+2016-02-17              Auchan                              30 EUR        57 EUR
 >>>=0

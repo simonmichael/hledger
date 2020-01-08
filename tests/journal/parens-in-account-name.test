@@ -5,7 +5,7 @@ hledger -f - print
   b (b) b  -1
   c
 >>>
-2009/01/01 x
+2009-01-01 x
     a                     2
     b (b) b              -1
     c

@@ -154,16 +154,16 @@ isStandardPeriod = isStandardPeriod' . simplifyPeriod
 -- | Render a period as a compact display string suitable for user output.
 --
 -- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
--- "2016/07/25w30"
-showPeriod (DayPeriod b)       = formatTime defaultTimeLocale "%0C%y/%m/%d" b     -- DATE
-showPeriod (WeekPeriod b)      = formatTime defaultTimeLocale "%0C%y/%m/%dw%V" b  -- STARTDATEwYEARWEEK
+-- "2016-07-25w30"
+showPeriod (DayPeriod b)       = formatTime defaultTimeLocale "%F" b              -- DATE
+showPeriod (WeekPeriod b)      = formatTime defaultTimeLocale "%Fw%V" b           -- STARTDATEwYEARWEEK
 showPeriod (MonthPeriod y m)   = printf "%04d/%02d" y m                           -- YYYY/MM
 showPeriod (QuarterPeriod y q) = printf "%04dq%d" y q                             -- YYYYqN
 showPeriod (YearPeriod y)      = printf "%04d" y                                  -- YYYY
-showPeriod (PeriodBetween b e) = formatTime defaultTimeLocale "%0C%y/%m/%d" b
-                                 ++ formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e) -- STARTDATE-INCLUSIVEENDDATE
-showPeriod (PeriodFrom b)      = formatTime defaultTimeLocale "%0C%y/%m/%d-" b                   -- STARTDATE-
-showPeriod (PeriodTo e)        = formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e)    -- -INCLUSIVEENDDATE
+showPeriod (PeriodBetween b e) = formatTime defaultTimeLocale "%F" b
+                                 ++ formatTime defaultTimeLocale "-%F" (addDays (-1) e) -- STARTDATE-INCLUSIVEENDDATE
+showPeriod (PeriodFrom b)      = formatTime defaultTimeLocale "%F-" b                   -- STARTDATE-
+showPeriod (PeriodTo e)        = formatTime defaultTimeLocale "-%F" (addDays (-1) e)    -- -INCLUSIVEENDDATE
 showPeriod PeriodAll           = "-"
 
 -- | Like showPeriod, but if it's a month period show just
