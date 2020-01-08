@@ -52,6 +52,11 @@ T}@T{
 assign a value to one hledger field, with interpolation
 T}
 T{
+\f[B]\f[CB]separator\f[B]\f[R]
+T}@T{
+a custom field separator
+T}
+T{
 \f[B]\f[CB]if\f[B]\f[R]
 T}@T{
 apply some rules to matched CSV records
@@ -547,6 +552,29 @@ comment note: %somefield - %anotherfield, date: %1
 Interpolation strips outer whitespace (so a CSV value like
 \f[C]\[dq] 1 \[dq]\f[R] becomes \f[C]1\f[R] when interpolated) (#1051).
 See TIPS below for more about referencing other fields.
+.SS \f[C]separator\f[R]
+.PP
+You can use the \f[C]separator\f[R] directive to read other kinds of
+character-separated data.
+Eg to read SSV (Semicolon Separated Values), use:
+.IP
+.nf
+\f[C]
+separator ;
+\f[R]
+.fi
+.PP
+The separator directive accepts exactly one single byte character as a
+separator.
+To specify whitespace characters, you may use the special words
+\f[C]TAB\f[R] or \f[C]SPACE\f[R].
+Eg to read TSV (Tab Separated Values), use:
+.IP
+.nf
+\f[C]
+separator TAB
+\f[R]
+.fi
 .SS \f[C]if\f[R]
 .IP
 .nf
@@ -791,29 +819,6 @@ When CSV values are enclosed in quotes, note:
 they must be double quotes (not single quotes)
 .IP \[bu] 2
 spaces outside the quotes are not allowed
-.SS Other separator characters
-.PP
-You can use the \f[C]--separator \[aq]CHAR\[aq]\f[R] command line option
-(experimental) to read other kinds of character-separated data.
-Eg to read SSV (Semicolon Separated Values), use:
-.IP
-.nf
-\f[C]
-$ hledger -f foo.tsv --separator \[aq];\[aq] print
-\f[R]
-.fi
-.PP
-Note the semicolon is quoted because it\[aq]s a special shell character.
-.PP
-To read TSV (Tab Separated Values), use:
-.IP
-.nf
-\f[C]
-$ hledger -f foo.tsv --separator \[aq]  \[aq] print
-\f[R]
-.fi
-.PP
-Note, that\[aq]s a real tab character in quotes, not \f[C]\[rs]t\f[R].
 .SS Reading multiple CSV files
 .PP
 If you use multiple \f[C]-f\f[R] options to read multiple CSV files at
