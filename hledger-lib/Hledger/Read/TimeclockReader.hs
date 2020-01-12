@@ -99,7 +99,7 @@ timeclockfilep = do many timeclockitemp
       timeclockitemp = choice [
                             void (lift emptyorcommentlinep)
                           , timeclockentryp >>= \e -> modify' (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
-                          ] <?> "timeclock entry, or default year or historical price directive"
+                          ] <?> "timeclock entry, comment line, or empty line"
 
 -- | Parse a timeclock entry.
 timeclockentryp :: JournalParser m TimeclockEntry
