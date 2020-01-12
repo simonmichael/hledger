@@ -57,6 +57,7 @@ instance Read TimeclockCode where
 timeclockEntriesToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
 timeclockEntriesToTransactions _ [] = []
 timeclockEntriesToTransactions now [i]
+    | tlcode i /= In = errorExpectedCodeButGot In i
     | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now [i',o]
     | otherwise = [entryFromTimeclockInOut i o]
     where
@@ -67,6 +68,8 @@ timeclockEntriesToTransactions now [i]
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 timeclockEntriesToTransactions now (i:o:rest)
+    | tlcode i /= In = errorExpectedCodeButGot In i
+    | tlcode o /= Out =errorExpectedCodeButGot Out o
     | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now (i':o:rest)
     | otherwise = entryFromTimeclockInOut i o : timeclockEntriesToTransactions now rest
     where
@@ -75,6 +78,14 @@ timeclockEntriesToTransactions now (i:o:rest)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 {- HLINT ignore timeclockEntriesToTransactions -}
+
+errorExpectedCodeButGot expected actual = errorWithSourceLine line $ "expected timeclock code " ++ (show expected) ++ " but got " ++ show (tlcode actual)
+    where
+        line = case tlsourcepos actual of
+                  GenericSourcePos _ l _ -> l
+                  JournalSourcePos _ (l, _) -> l
+
+errorWithSourceLine line msg = error $ "line " ++ show line ++ ": " ++ msg
 
 -- | Convert a timeclock clockin and clockout entry to an equivalent journal
 -- transaction, representing the time expenditure. Note this entry is  not balanced,
