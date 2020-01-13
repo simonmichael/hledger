@@ -16,7 +16,7 @@ $ hledger entry laundry 20
     assets:personal:cash:wallet                              $-20
 
 $ hledger entry date 5/3 23.24
-2015/05/03 date  ; date:$23.24
+2015-05-03 date  ; date:$23.24
     expenses:personal:food:dining                  $11.62
     expenses:personal:gifts:eleonore               $11.62
     assets:personal:bank:wf:checking:food         $-11.62
@@ -32,7 +32,7 @@ $ cat t.j
 2015/04/29 * trader joes personal  0 1 18 2.07 50
 
 $ hledger expand < t.j
-2015/04/29 * trader joes
+2015-04-29 * trader joes
     expenses:personal:food:snacks                      $1.00
     expenses:personal:gifts:eleonore                  $18.00
     expenses:personal:spiritual:lodge                  $2.07
@@ -59,7 +59,7 @@ entry trader joes personal  GROCERIES SNACKS ELEONORE LODGE CASH
 2015/04/29 * trader joes personal  0 1 18 2.07 50
 
 $ hledger print -f t.j
-2015/04/29 * trader joes personal
+2015-04-29 * trader joes personal
     expenses:personal:gifts:eleonore                  $18.00
     expenses:personal:spiritual:lodge                  $2.07
     expenses:personal:food:snacks                      $1.00

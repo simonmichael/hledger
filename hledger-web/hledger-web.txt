@@ -19,9 +19,9 @@ DESCRIPTION
        hledger-web is hledger's web interface.  It starts a simple web  appli-
        cation for browsing and adding transactions, and optionally opens it in
        a web browser window if possible.  It provides a more user-friendly  UI
-       than the hledger CLI or hledger-ui interface, showing more at once (ac-
-       counts, the current account register, balance charts) and allowing his-
-       tory-aware data entry, interactive searching, and bookmarking.
+       than  the  hledger  CLI  or  hledger-ui interface, showing more at once
+       (accounts, the current account register, balance charts)  and  allowing
+       history-aware data entry, interactive searching, and bookmarking.
 
        hledger-web  also  lets you share a ledger with multiple users, or even
        the public web.  There is no access control, so if you  need  that  you
@@ -128,8 +128,8 @@ OPTIONS
               using period expressions syntax
 
        --date2
-              match the secondary date instead (see command help for other ef-
-              fects)
+              match the secondary date instead (see  command  help  for  other
+              effects)
 
        -U --unmarked
               include only unmarked postings/txns (can combine with -P or -C)
@@ -215,8 +215,8 @@ PERMISSIONS
        You can restrict who can reach it by
 
        o setting  the IP address it listens on (see --host above).  By default
-         it listens on 127.0.0.1, accessible to all users  on  the  local  ma-
-         chine.
+         it listens on  127.0.0.1,  accessible  to  all  users  on  the  local
+         machine.
 
        o putting it behind an authenticating proxy, using eg apache or nginx
 
@@ -232,8 +232,8 @@ PERMISSIONS
 
          o add - allows adding new transactions to the main journal file
 
-         o manage  -  allows editing, uploading or downloading the main or in-
-           cluded files
+         o manage  -  allows  editing,  uploading  or  downloading the main or
+           included files
 
        o using the --capabilities-header=HTTPHEADER flag  to  specify  a  HTTP
          header  from  which it will read capabilities to enable.  hledger-web
@@ -243,8 +243,8 @@ PERMISSIONS
 EDITING, UPLOADING, DOWNLOADING
        If  you  enable the manage capability mentioned above, you'll see a new
        "spanner" button to the right of the search form.  Clicking  this  will
-       let  you edit, upload, or download the journal file or any files it in-
-       cludes.
+       let  you  edit,  upload,  or  download the journal file or any files it
+       includes.
 
        Note, unlike any other hledger command, in this mode you (or any  visi-
        tor) can alter or wipe the data files.
@@ -263,8 +263,8 @@ RELOADING
        hledger-web detects changes made to the files by other means (eg if you
        edit it directly, outside of hledger-web), and it  will  show  the  new
        data  when  you reload the page or navigate to a new page.  If a change
-       makes a file unparseable, hledger-web will display an error message un-
-       til the file has been fixed.
+       makes a file unparseable, hledger-web will  display  an  error  message
+       until the file has been fixed.
 
        (Note: if you are viewing files mounted from another machine, make sure
        that both machine clocks are roughly in step.)
