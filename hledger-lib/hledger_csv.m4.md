@@ -72,7 +72,7 @@ date-format  %d/%m/%Y
 ```
 ```shell
 $ hledger print -f basic.csv
-2019/11/12 Foo
+2019-11-12 Foo
     expenses:unknown           10.23
     income:unknown            -10.23
 
@@ -119,11 +119,11 @@ account1  assets:bank:boi:checking
 ```
 ```shell
 $ hledger -f bankofireland-checking.csv print
-2012/12/07 LODGMENT       529898
+2012-12-07 LODGMENT       529898
     assets:bank:boi:checking         EUR10.0 = EUR131.2
     income:unknown                  EUR-10.0
 
-2012/12/07 PAYMENT
+2012-12-07 PAYMENT
     assets:bank:boi:checking         EUR-5.0 = EUR126.0
     expenses:unknown                  EUR5.0
 
@@ -184,11 +184,11 @@ if ,\$[1-9][.0-9]+(,[^,]*){1}$
 ```
 ```shell
 $ hledger -f amazon-orders.csv print
-2012/07/29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
+2012-07-29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
     assets:amazon
     expenses:misc          $20.00
 
-2012/07/30 (17LA58JSKRD4HDGLNJPI1P9B8DKPVHL) To Adapteva, Inc.  ; status:Completed
+2012-07-30 (17LA58JSKRD4HDGLNJPI1P9B8DKPVHL) To Adapteva, Inc.  ; status:Completed
     assets:amazon
     expenses:misc          $25.00
     expenses:fees           $1.00
@@ -326,32 +326,32 @@ if Google
 
 ```shell
 $ hledger -f paypal-custom.csv  print
-2019/10/01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed
+2019-10-01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed
     assets:online:paypal          $-6.99 = $-6.99
     expenses:online:apps           $6.99
 
-2019/10/01 (0TU1544T080463733) Bank Deposit to PP Account for 60P57143A8206782E  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:46:20, type:Bank Deposit to PP Account, status:Pending
+2019-10-01 (0TU1544T080463733) Bank Deposit to PP Account for 60P57143A8206782E  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:46:20, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $6.99 = $0.00
     assets:bank:wf:pchecking          $-6.99
 
-2019/10/01 (2722394R5F586712G) Patreon Patreon* Membership  ; itemid:, fromemail:simon@joyful.com, toemail:support@patreon.com, time:08:57:01, type:PreApproved Payment Bill User Payment, status:Completed
+2019-10-01 (2722394R5F586712G) Patreon Patreon* Membership  ; itemid:, fromemail:simon@joyful.com, toemail:support@patreon.com, time:08:57:01, type:PreApproved Payment Bill User Payment, status:Completed
     assets:online:paypal          $-7.00 = $-7.00
     expenses:dues                  $7.00
 
-2019/10/01 (71854087RG994194F) Bank Deposit to PP Account for 2722394R5F586712G Patreon* Membership  ; itemid:, fromemail:, toemail:simon@joyful.com, time:08:57:01, type:Bank Deposit to PP Account, status:Pending
+2019-10-01 (71854087RG994194F) Bank Deposit to PP Account for 2722394R5F586712G Patreon* Membership  ; itemid:, fromemail:, toemail:simon@joyful.com, time:08:57:01, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $7.00 = $0.00
     assets:bank:wf:pchecking          $-7.00
 
-2019/10/19 (K9U43044RY432050M) Wikimedia Foundation, Inc. Monthly donation to the Wikimedia Foundation  ; itemid:, fromemail:simon@joyful.com, toemail:tle@wikimedia.org, time:03:02:12, type:Subscription Payment, status:Completed
+2019-10-19 (K9U43044RY432050M) Wikimedia Foundation, Inc. Monthly donation to the Wikimedia Foundation  ; itemid:, fromemail:simon@joyful.com, toemail:tle@wikimedia.org, time:03:02:12, type:Subscription Payment, status:Completed
     assets:online:paypal             $-2.00 = $-2.00
     expenses:dues                     $2.00
     expenses:banking:paypal      ; business:
 
-2019/10/19 (3XJ107139A851061F) Bank Deposit to PP Account for K9U43044RY432050M  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:02:12, type:Bank Deposit to PP Account, status:Pending
+2019-10-19 (3XJ107139A851061F) Bank Deposit to PP Account for K9U43044RY432050M  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:02:12, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $2.00 = $0.00
     assets:bank:wf:pchecking          $-2.00
 
-2019/10/22 (6L8L1662YP1334033) Noble Benefactor Joyful Systems  ; itemid:, fromemail:noble@bene.fac.tor, toemail:simon@joyful.com, time:05:07:06, type:Subscription Payment, status:Completed
+2019-10-22 (6L8L1662YP1334033) Noble Benefactor Joyful Systems  ; itemid:, fromemail:noble@bene.fac.tor, toemail:simon@joyful.com, time:05:07:06, type:Subscription Payment, status:Completed
     assets:online:paypal                       $9.41 = $9.41
     revenues:foss donations:darcshub         $-10.00  ; business:
     expenses:banking:paypal                    $0.59  ; business:
