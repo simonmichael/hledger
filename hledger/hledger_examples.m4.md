@@ -20,11 +20,11 @@ Some basic reports:
 
 ```shell
 $ hledger print
-2015/09/30 gift received
+2015-09-30 gift received
     assets:cash            $20
     income:gifts          $-20
 
-2015/10/16 farmers market
+2015-10-16 farmers market
     expenses:food           $10
     assets:cash            $-10
 ```
@@ -50,8 +50,8 @@ $ hledger balance
 
 ```shell
 $ hledger register cash
-2015/09/30 gift received   assets:cash               $20           $20
-2015/10/16 farmers market  assets:cash              $-10           $10
+2015-09-30 gift received   assets:cash               $20           $20
+2015-10-16 farmers market  assets:cash              $-10           $10
 ```
 
 More commands:

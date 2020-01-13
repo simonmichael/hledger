@@ -137,12 +137,12 @@ primary date if unspecified.
 
 ```shell
 $ hledger register checking
-2010/02/23 movie ticket         assets:checking                $-10         $-10
+2010-02-23 movie ticket         assets:checking                $-10         $-10
 ```
 
 ```shell
 $ hledger register checking --date2
-2010/02/19 movie ticket         assets:checking                $-10         $-10
+2010-02-19 movie ticket         assets:checking                $-10         $-10
 ```
 
 Secondary dates require some effort; you must use them consistently in
@@ -168,12 +168,12 @@ be reported on 6/1 for easy bank reconciliation:
 
 ```shell
 $ hledger -f t.j register food
-2015/05/30                      expenses:food                  $10           $10
+2015-05-30                      expenses:food                  $10           $10
 ```
 
 ```shell
 $ hledger -f t.j register checking
-2015/06/01                      assets:checking               $-10          $-10
+2015-06-01                      assets:checking               $-10          $-10
 ```
 
 DATE should be a [simple date](#simple-dates); if the year is not
@@ -567,7 +567,7 @@ will cause the calculated amount to have that price attached:
 ```
 ```
 $ hledger print --explicit
-2019/01/01
+2019-01-01
     (a)         $1 @ €2 = $1 @ €2
 ```
 
@@ -1389,12 +1389,12 @@ Some examples:
 ```
 ```shell
 $ hledger print --auto
-2017/12/01
+2017-12-01
     expenses:food              $10
     assets:checking
     (liabilities:charity)      $-1
 
-2017/12/14
+2017-12-14
     expenses:gifts             $20
     assets:checking
     assets:checking:gifts     -$20

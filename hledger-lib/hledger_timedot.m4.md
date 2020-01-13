@@ -76,17 +76,17 @@ Reporting:
 
 ```shell
 $ hledger -f t.timedot print date:2016/2/2
-2016/02/02 *
+2016-02-02 *
     (inc:client1)          2.00
 
-2016/02/02 *
+2016-02-02 *
     (biz:research)          0.25
 ```
 ```shell
 $ hledger -f t.timedot bal --daily --tree
-Balance changes in 2016/02/01-2016/02/03:
+Balance changes in 2016-02-01-2016-02-03:
 
-            ||  2016/02/01d  2016/02/02d  2016/02/03d 
+            ||  2016-02-01d  2016-02-02d  2016-02-03d 
 ============++========================================
  biz        ||         0.25         0.25         1.00 
    research ||         0.25         0.25         1.00 

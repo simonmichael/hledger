@@ -606,13 +606,13 @@ P 2000-04-01 A  4 B
 Show the cost of each posting:
 ```shell
 $ hledger -f- print --value=cost
-2000/01/01
+2000-01-01
     (a)             5 B
 
-2000/02/01
+2000-02-01
     (a)             6 B
 
-2000/03/01
+2000-03-01
     (a)             7 B
 
 ```
@@ -631,13 +631,13 @@ $ hledger -f- print --value=end date:2000/01-2000/03
 With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
 ```shell
 $ hledger -f- print --value=end
-2000/01/01
+2000-01-01
     (a)             3 B
 
-2000/02/01
+2000-02-01
     (a)             3 B
 
-2000/03/01
+2000-03-01
     (a)             3 B
 
 ```
@@ -659,13 +659,13 @@ $ hledger -f- print --value=now
 Show the value on 2000/01/15:
 ```shell
 $ hledger -f- print --value=2000-01-15
-2000/01/01
+2000-01-01
     (a)             1 B
 
-2000/02/01
+2000-02-01
     (a)             1 B
 
-2000/03/01
+2000-03-01
     (a)             1 B
 
 ```
@@ -681,7 +681,7 @@ P 2000-01-01 A 2B
 ```
 ```
 $ hledger print -x -X A
-2000/01/01
+2000-01-01
     a               0
     b               0
 
@@ -700,7 +700,7 @@ commodity 0.00A
 ```
 ```
 $ hledger print -X A
-2000/01/01
+2000-01-01
     a           0.50A
     b          -0.50A
 
