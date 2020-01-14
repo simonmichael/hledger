@@ -1,10 +1,10 @@
-This is hledger_timeclock.info, produced by makeinfo version 6.5 from
+This is hledger_timeclock.info, produced by makeinfo version 6.7 from
 stdin.
 
 
 File: hledger_timeclock.info,  Node: Top,  Up: (dir)
 
-hledger_timeclock(5) hledger 1.16.1
+hledger_timeclock(5) hledger 1.16.2
 ***********************************
 
 hledger can read timeclock files.  As with Ledger, these are (a subset
@@ -59,3 +59,8 @@ Tag Table:
 Node: Top78
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

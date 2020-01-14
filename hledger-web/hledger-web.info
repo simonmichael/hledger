@@ -1,9 +1,9 @@
-This is hledger-web.info, produced by makeinfo version 6.5 from stdin.
+This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.16.1
+hledger-web(1) hledger-web 1.16.2
 *********************************
 
 hledger-web is hledger's web interface.  It starts a simple web
@@ -352,3 +352,8 @@ Node: JSON API9676
 Ref: #json-api9770
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

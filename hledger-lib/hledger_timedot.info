@@ -1,10 +1,10 @@
-This is hledger_timedot.info, produced by makeinfo version 6.5 from
+This is hledger_timedot.info, produced by makeinfo version 6.7 from
 stdin.
 
 
 File: hledger_timedot.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_timedot(5) hledger 1.16.1
+hledger_timedot(5) hledger 1.16.2
 *********************************
 
 Timedot is a plain text format for logging dated, categorised quantities
@@ -115,3 +115,8 @@ Node: FILE FORMAT812
 Ref: #file-format913
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

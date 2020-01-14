@@ -1,10 +1,10 @@
-This is hledger_journal.info, produced by makeinfo version 6.5 from
+This is hledger_journal.info, produced by makeinfo version 6.7 from
 stdin.
 
 
 File: hledger_journal.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_journal(5) hledger 1.16.1
+hledger_journal(5) hledger 1.16.2
 *********************************
 
 hledger's usual data source is a plain text file containing journal
@@ -1863,3 +1863,8 @@ Node: EDITOR SUPPORT63216
 Ref: #editor-support63334
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

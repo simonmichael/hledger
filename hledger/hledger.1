@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "December 2019" "hledger 1.16.1" "hledger User Manuals"
+.TH "hledger" "1" "January 2020" "hledger 1.16.2" "hledger User Manuals"
 
 
 
@@ -159,101 +159,101 @@ by most hledger commands, run \f[C]hledger -h\f[R].
 .PP
 General help options:
 .TP
-.B \f[C]-h --help\f[R]
+\f[B]\f[CB]-h --help\f[B]\f[R]
 show general usage (or after COMMAND, command usage)
 .TP
-.B \f[C]--version\f[R]
+\f[B]\f[CB]--version\f[B]\f[R]
 show version
 .TP
-.B \f[C]--debug[=N]\f[R]
+\f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
 .PP
 General input options:
 .TP
-.B \f[C]-f FILE --file=FILE\f[R]
+\f[B]\f[CB]-f FILE --file=FILE\f[B]\f[R]
 use a different input file.
 For stdin, use - (default: \f[C]$LEDGER_FILE\f[R] or
 \f[C]$HOME/.hledger.journal\f[R])
 .TP
-.B \f[C]--rules-file=RULESFILE\f[R]
+\f[B]\f[CB]--rules-file=RULESFILE\f[B]\f[R]
 Conversion rules file to use when reading CSV (default: FILE.rules)
 .TP
-.B \f[C]--separator=CHAR\f[R]
+\f[B]\f[CB]--separator=CHAR\f[B]\f[R]
 Field separator to expect when reading CSV (default: \[aq],\[aq])
 .TP
-.B \f[C]--alias=OLD=NEW\f[R]
+\f[B]\f[CB]--alias=OLD=NEW\f[B]\f[R]
 rename accounts named OLD to NEW
 .TP
-.B \f[C]--anon\f[R]
+\f[B]\f[CB]--anon\f[B]\f[R]
 anonymize accounts and payees
 .TP
-.B \f[C]--pivot FIELDNAME\f[R]
+\f[B]\f[CB]--pivot FIELDNAME\f[B]\f[R]
 use some other field or tag for the account name
 .TP
-.B \f[C]-I --ignore-assertions\f[R]
+\f[B]\f[CB]-I --ignore-assertions\f[B]\f[R]
 ignore any failing balance assertions
 .PP
 General reporting options:
 .TP
-.B \f[C]-b --begin=DATE\f[R]
+\f[B]\f[CB]-b --begin=DATE\f[B]\f[R]
 include postings/txns on or after this date
 .TP
-.B \f[C]-e --end=DATE\f[R]
+\f[B]\f[CB]-e --end=DATE\f[B]\f[R]
 include postings/txns before this date
 .TP
-.B \f[C]-D --daily\f[R]
+\f[B]\f[CB]-D --daily\f[B]\f[R]
 multiperiod/multicolumn report by day
 .TP
-.B \f[C]-W --weekly\f[R]
+\f[B]\f[CB]-W --weekly\f[B]\f[R]
 multiperiod/multicolumn report by week
 .TP
-.B \f[C]-M --monthly\f[R]
+\f[B]\f[CB]-M --monthly\f[B]\f[R]
 multiperiod/multicolumn report by month
 .TP
-.B \f[C]-Q --quarterly\f[R]
+\f[B]\f[CB]-Q --quarterly\f[B]\f[R]
 multiperiod/multicolumn report by quarter
 .TP
-.B \f[C]-Y --yearly\f[R]
+\f[B]\f[CB]-Y --yearly\f[B]\f[R]
 multiperiod/multicolumn report by year
 .TP
-.B \f[C]-p --period=PERIODEXP\f[R]
+\f[B]\f[CB]-p --period=PERIODEXP\f[B]\f[R]
 set start date, end date, and/or reporting interval all at once using
 period expressions syntax
 .TP
-.B \f[C]--date2\f[R]
+\f[B]\f[CB]--date2\f[B]\f[R]
 match the secondary date instead (see command help for other effects)
 .TP
-.B \f[C]-U --unmarked\f[R]
+\f[B]\f[CB]-U --unmarked\f[B]\f[R]
 include only unmarked postings/txns (can combine with -P or -C)
 .TP
-.B \f[C]-P --pending\f[R]
+\f[B]\f[CB]-P --pending\f[B]\f[R]
 include only pending postings/txns
 .TP
-.B \f[C]-C --cleared\f[R]
+\f[B]\f[CB]-C --cleared\f[B]\f[R]
 include only cleared postings/txns
 .TP
-.B \f[C]-R --real\f[R]
+\f[B]\f[CB]-R --real\f[B]\f[R]
 include only non-virtual postings
 .TP
-.B \f[C]-NUM --depth=NUM\f[R]
+\f[B]\f[CB]-NUM --depth=NUM\f[B]\f[R]
 hide/aggregate accounts or postings more than NUM levels deep
 .TP
-.B \f[C]-E --empty\f[R]
+\f[B]\f[CB]-E --empty\f[B]\f[R]
 show items with zero amount, normally hidden (and vice-versa in
 hledger-ui/hledger-web)
 .TP
-.B \f[C]-B --cost\f[R]
+\f[B]\f[CB]-B --cost\f[B]\f[R]
 convert amounts to their cost at transaction time (using the transaction
 price, if any)
 .TP
-.B \f[C]-V --value\f[R]
+\f[B]\f[CB]-V --value\f[B]\f[R]
 convert amounts to their market value on the report end date (using the
 most recent applicable market price, if any)
 .TP
-.B \f[C]--auto\f[R]
+\f[B]\f[CB]--auto\f[B]\f[R]
 apply automated posting rules to modify transactions.
 .TP
-.B \f[C]--forecast\f[R]
+\f[B]\f[CB]--forecast\f[B]\f[R]
 apply periodic transaction rules to generate future transactions, to 6
 months from now or report end date.
 .PP
@@ -773,7 +773,7 @@ start and end date like so:
 .PP
 .TS
 tab(@);
-l l.
+l r.
 T{
 \f[C]-p \[dq]2009\[dq]\f[R]
 T}@T{
@@ -1101,20 +1101,20 @@ more general \f[C]--value\f[R] option:
 The TYPE part basically selects either \[dq]cost\[dq], or \[dq]market
 value\[dq] plus a valuation date:
 .TP
-.B \f[C]--value=cost\f[R]
+\f[B]\f[CB]--value=cost\f[B]\f[R]
 Convert amounts to cost, using the prices recorded in transactions.
 .TP
-.B \f[C]--value=end\f[R]
+\f[B]\f[CB]--value=end\f[B]\f[R]
 Convert amounts to their value in a default valuation commodity, using
 market prices on the last day of the report period (or if unspecified,
 the journal\[aq]s end date); or in multiperiod reports, market prices on
 the last day of each subperiod.
 .TP
-.B \f[C]--value=now\f[R]
+\f[B]\f[CB]--value=now\f[B]\f[R]
 Convert amounts to their value in default valuation commodity using
 current market prices (as of when report is generated).
 .TP
-.B \f[C]--value=YYYY-MM-DD\f[R]
+\f[B]\f[CB]--value=YYYY-MM-DD\f[B]\f[R]
 Convert amounts to their value in default valuation commodity using
 market prices on this date.
 .PP
@@ -1509,30 +1509,30 @@ T}
 .PP
 \f[B]Additional notes\f[R]
 .TP
-.B \f[I]cost\f[R]
+\f[I]cost\f[R]
 calculated using price(s) recorded in the transaction(s).
 .TP
-.B \f[I]value\f[R]
+\f[I]value\f[R]
 market value using available market price declarations, or the unchanged
 amount if no conversion rate can be found.
 .TP
-.B \f[I]report start\f[R]
+\f[I]report start\f[R]
 the first day of the report period specified with -b or -p or date:,
 otherwise today.
 .TP
-.B \f[I]report or journal start\f[R]
+\f[I]report or journal start\f[R]
 the first day of the report period specified with -b or -p or date:,
 otherwise the earliest transaction date in the journal, otherwise today.
 .TP
-.B \f[I]report end\f[R]
+\f[I]report end\f[R]
 the last day of the report period specified with -e or -p or date:,
 otherwise today.
 .TP
-.B \f[I]report or journal end\f[R]
+\f[I]report or journal end\f[R]
 the last day of the report period specified with -e or -p or date:,
 otherwise the latest transaction date in the journal, otherwise today.
 .TP
-.B \f[I]report interval\f[R]
+\f[I]report interval\f[R]
 a flag (-D/-W/-M/-Q/-Y) or period expression that activates the
 report\[aq]s multi-period mode (whether showing one or many subperiods).
 .SS Combining -B, -V, -X, --value
@@ -1646,12 +1646,12 @@ The following kinds of search terms can be used.
 Remember these can also be prefixed with \f[B]\f[CB]not:\f[B]\f[R], eg
 to exclude a particular subaccount.
 .TP
-.B \f[B]\f[CB]REGEX\f[B], \f[CB]acct:REGEX\f[B]\f[R]
+\f[B]\f[R]\f[C]REGEX\f[R]\f[B], \f[R]\f[C]acct:REGEX\f[R]\f[B]\f[R]
 match account names by this regular expression.
 (With no prefix, \f[C]acct:\f[R] is assumed.)
 same as above
 .TP
-.B \f[B]\f[CB]amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N\f[B]\f[R]
+\f[B]\f[R]\f[C]amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N\f[R]\f[B]\f[R]
 match postings with a single-commodity amount that is equal to, less
 than, or greater than N.
 (Multi-commodity amounts are not tested, and will always match.) The
@@ -1659,10 +1659,10 @@ comparison has two modes: if N is preceded by a + or - sign (or is 0),
 the two signed numbers are compared.
 Otherwise, the absolute magnitudes are compared, ignoring sign.
 .TP
-.B \f[B]\f[CB]code:REGEX\f[B]\f[R]
+\f[B]\f[R]\f[C]code:REGEX\f[R]\f[B]\f[R]
 match by transaction code (eg check number)
 .TP
-.B \f[B]\f[CB]cur:REGEX\f[B]\f[R]
+\f[B]\f[R]\f[C]cur:REGEX\f[R]\f[B]\f[R]
 match postings or transactions including any amounts whose
 currency/commodity symbol is fully matched by REGEX.
 (For a partial match, use \f[C].*REGEX.*\f[R]).
@@ -1673,10 +1673,10 @@ quoting to hide it from the shell, so eg do:
 \f[C]hledger print cur:\[aq]\[rs]$\[aq]\f[R] or
 \f[C]hledger print cur:\[rs]\[rs]$\f[R].
 .TP
-.B \f[B]\f[CB]desc:REGEX\f[B]\f[R]
+\f[B]\f[R]\f[C]desc:REGEX\f[R]\f[B]\f[R]
 match transaction descriptions.
 .TP
-.B \f[B]\f[CB]date:PERIODEXPR\f[B]\f[R]
+\f[B]\f[R]\f[C]date:PERIODEXPR\f[R]\f[B]\f[R]
 match dates within the specified period.
 PERIODEXPR is a period expression (with no report interval).
 Examples: \f[C]date:2016\f[R], \f[C]date:thismonth\f[R],
@@ -1684,27 +1684,27 @@ Examples: \f[C]date:2016\f[R], \f[C]date:thismonth\f[R],
 If the \f[C]--date2\f[R] command line flag is present, this matches
 secondary dates instead.
 .TP
-.B \f[B]\f[CB]date2:PERIODEXPR\f[B]\f[R]
+\f[B]\f[R]\f[C]date2:PERIODEXPR\f[R]\f[B]\f[R]
 match secondary dates within the specified period.
 .TP
-.B \f[B]\f[CB]depth:N\f[B]\f[R]
+\f[B]\f[R]\f[C]depth:N\f[R]\f[B]\f[R]
 match (or display, depending on command) accounts at or above this depth
 .TP
-.B \f[B]\f[CB]note:REGEX\f[B]\f[R]
+\f[B]\f[R]\f[C]note:REGEX\f[R]\f[B]\f[R]
 match transaction notes (part of description right of \f[C]|\f[R], or
 whole description when there\[aq]s no \f[C]|\f[R])
 .TP
-.B \f[B]\f[CB]payee:REGEX\f[B]\f[R]
+\f[B]\f[R]\f[C]payee:REGEX\f[R]\f[B]\f[R]
 match transaction payee/payer names (part of description left of
 \f[C]|\f[R], or whole description when there\[aq]s no \f[C]|\f[R])
 .TP
-.B \f[B]\f[CB]real:, real:0\f[B]\f[R]
+\f[B]\f[R]\f[C]real:, real:0\f[R]\f[B]\f[R]
 match real or virtual postings respectively
 .TP
-.B \f[B]\f[CB]status:, status:!, status:*\f[B]\f[R]
+\f[B]\f[R]\f[C]status:, status:!, status:*\f[R]\f[B]\f[R]
 match unmarked, pending, or cleared transactions respectively
 .TP
-.B \f[B]\f[CB]tag:REGEX[=REGEX]\f[B]\f[R]
+\f[B]\f[R]\f[C]tag:REGEX[=REGEX]\f[R]\f[B]\f[R]
 match by tag name, and optionally also by tag value.
 Note a tag: query is considered to match a transaction if it matches any
 of the postings.
@@ -1714,7 +1714,7 @@ transaction.
 The following special search term is used automatically in hledger-web,
 only:
 .TP
-.B \f[B]\f[CB]inacct:ACCTNAME\f[B]\f[R]
+\f[B]\f[R]\f[C]inacct:ACCTNAME\f[R]\f[B]\f[R]
 tells hledger-web to show the transaction register for this account.
 Can be filtered further with \f[C]acct\f[R] etc.
 .PP

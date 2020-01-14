@@ -1,9 +1,9 @@
-This is hledger-ui.info, produced by makeinfo version 6.5 from stdin.
+This is hledger-ui.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.16.1
+hledger-ui(1) hledger-ui 1.16.2
 *******************************
 
 hledger-ui is hledger's terminal interface, providing an efficient
@@ -439,3 +439,8 @@ Node: Error screen14689
 Ref: #error-screen14811
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:

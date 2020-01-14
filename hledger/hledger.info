@@ -1,9 +1,9 @@
-This is hledger.info, produced by makeinfo version 6.5 from stdin.
+This is hledger.info, produced by makeinfo version 6.7 from stdin.
 
 
 File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger(1) hledger 1.16.1
+hledger(1) hledger 1.16.2
 *************************
 
 This is hledger's command-line interface (there are also terminal and
@@ -3366,3 +3366,8 @@ Node: check110995
 Ref: #check111097
 
 End Tag Table
+
+
+Local Variables:
+coding: utf-8
+End:
