@@ -118,7 +118,7 @@ dependencies:
 - extra >=1.6.3
 - filepath
 - haskeline >=0.6
-- megaparsec >=7.0.0 && <8
+- megaparsec >=7.0.0 && <8.1
 - mtl >=2.2.1
 - old-time
 - parsec >=3

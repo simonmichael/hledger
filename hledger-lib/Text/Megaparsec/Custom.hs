@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-} -- new
 {-# LANGUAGE LambdaCase #-}
@@ -176,7 +177,12 @@ reparseExcerpt (SourceExcerpt offset txt) p = do
     Left errBundle -> customFailure $ ErrorReparsing $ bundleErrors errBundle
 
   where
-    offsetInitialState :: Int -> s -> State s
+    offsetInitialState :: Int -> s ->
+#if MIN_VERSION_megaparsec(8,0,0)
+      State s e
+#else
+      State s
+#endif
     offsetInitialState initialOffset s = State
       { stateInput  = s
       , stateOffset = initialOffset
@@ -187,6 +193,9 @@ reparseExcerpt (SourceExcerpt offset txt) p = do
         , pstateTabWidth = defaultTabWidth
         , pstateLinePrefix = ""
         }
+#if MIN_VERSION_megaparsec(8,0,0)
+      , stateParseErrors = []
+#endif
       }
 
 --- * Pretty-printing custom parse errors
