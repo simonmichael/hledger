@@ -3,42 +3,57 @@ User-visible changes in the hledger command line tool and library.
 
 # 445e8aa3
 
-- add support for megaparsec 8 (#1175)
+- Fix timeclock format parsing (Jakob Schöttl)
+  Fix presumably copy-paste errors
 
-- Change "showEndDates" formatting to yyyy-mm-dd in CompoundBalanceCommand (Brian Wignall)
+  timeclock format has only timeclock lines or empty/comment lines
 
-- Make "stack test" pass again (Brian Wignall)
+  Update test format to v3, add new tests
+
+  Throw error on unexpected clock codes in timeclock format
+
+  Fix missing case in pattern matching
+
+- Parse CSV rule keywords case insensitively (Aleksandar Dimitrov)
+
+- Correct finding latest date in queryEndDate Or queries and simplify
+  date comparison code. (Stephen Morgan)
+
+- Fix issue 457 (Jacek Generowicz)
+  Issue #457 pointed out that commands such as
+
+      hledger ui 'amt:>200'
+
+  failed. This was becasue the process of dispatching from `hledger ui`
+  to `hledger-ui` (note addition of `-`) lost the quotes around
+  `amt:>20` and the `>` character was interpreted as a shell redirection
+  operator, rather than as part of the argument.
+
+  The machinery for quoting or escaping arguements which cointain
+  characters which require quoting or escaping (thus far whitespace and
+  quotes) already existed. This solution simply adds shell stdio
+  redirection characters to this set.
+
+  Fixes #457
 
 - Change Date output to yyyy-mm-dd (Brian Wignall)
 
-- Remove --separator command line argument (Aleksandar Dimitrov)
-
-- Don't store leaf name in PeriodReport. (Stephen Morgan)
-  Calculate at the point of consumption instead.
-
-- cli: Use PeriodicReport. (Stephen Morgan)
-
-- Use nubSort instead of nub . sort. (Stephen Morgan)
-
-- Fix typos (Brian Wignall)
-
-- Update the instructions for the add command (Gaith Hallak)
+- Drop the --separator command line argument, add the `separator` CSV rule instead (Aleksandar Dimitrov)
 
 - Remember the previously entered values when stepping forward (Gaith Hallak)
 
 - Show the previous input in the input area after the back command (Gaith Hallak)
 
-- Change the '<' command to go back one step during addition (Gaith Hallak)
+- Change the '<' command to go back one step (Gaith Hallak)
 
-- move JSON instances from hledger-web to hledger-lib
 
-- lib: drop "assertion" alias for nullassertion
-  Perhaps we'll stick with the null* convention. Fixes a warning in Transaction.hs.
 
-- close: doc: mention --close-to/--open-from in the manual
+# 1.16.2 2020-01-14
 
-- lib, cli, web: bump version to 1.16.1
-
+- add support for megaparsec 8 (#1175)
+ 
+- close: mention --close-to/--open-from in docs
+ 
 # 1.16.1 2019-12-03
 
 - Drop unnecessary mtl-compat dependency

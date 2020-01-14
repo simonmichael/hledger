@@ -3,50 +3,7 @@ For user-visible changes, see the hledger package changelog.
 
 # 445e8aa3
 
-- add support for megaparsec 8 (#1175)
-
-- Fix timeclock format parsing (Jakob Schöttl)
-  Fix presumably copy-paste errors
-
-  timeclock format has only timeclock lines or empty/comment lines
-
-  Update test format to v3, add new tests
-
-  Throw error on unexpected clock codes in timeclock format
-
-  Fix missing case in pattern matching
-
-- Update "showPeriod" to use yyyy-mm-dd formatting (Brian Wignall)
-
-- Make "stack test" pass again (Brian Wignall)
-
 - Change Date output to yyyy-mm-dd (Brian Wignall)
-
-- Update documentation on separators (Aleksandar Dimitrov)
-
-- Inline function, add debug statement (Aleksandar Dimitrov)
-
-- Refactor getSeparator (Aleksandar Dimitrov)
-
-- Parse reserved words case insensitively (Aleksandar Dimitrov)
-
-- Remove --separator command line argument (Aleksandar Dimitrov)
-
-- Allow separator to be overridden from command line (Aleksandar Dimitrov)
-  This also fixes that parsing separators on the command line and the
-  rules file was not handled the same way.
-
-- Implement getting separator from rules (Aleksandar Dimitrov)
-
-- Add directive (Aleksandar Dimitrov)
-
-- Add missing type signature (Aleksandar Dimitrov)
-
-- Explictly discard result (Aleksandar Dimitrov)
-
-- Refactor: rename variable (Aleksandar Dimitrov)
-
-- Whitespace (Aleksandar Dimitrov)
 
 - Don't store leaf name in PeriodReport. (Stephen Morgan)
   Calculate at the point of consumption instead.
@@ -63,10 +20,6 @@ For user-visible changes, see the hledger package changelog.
   Only calculate posting date once for each posting, and calculate their
   columns instead of checking each DateSpan separately.
 
-- Correct finding latest date in queryEndDate Or queries and simplify date comparison code. (Stephen Morgan)
-
-- Fix typos (Brian Wignall)
-
 - ToJSON instances for all (?) remaining data types, up to Ledger
 
 - move JSON instances from hledger-web to hledger-lib
@@ -74,28 +27,13 @@ For user-visible changes, see the hledger package changelog.
 - lib: drop "assertion" alias for nullassertion
   Perhaps we'll stick with the null* convention. Fixes a warning in Transaction.hs.
 
-- Fix issue 457 (Jacek Generowicz)
-  Issue #457 pointed out that commands such as
 
-      hledger ui 'amt:>200'
 
-  failed. This was becasue the process of dispatching from `hledger ui`
-  to `hledger-ui` (note addition of `-`) lost the quotes around
-  `amt:>20` and the `>` character was interpreted as a shell redirection
-  operator, rather than as part of the argument.
+# 1.16.2 2020-01-14
 
-  The machinery for quoting or escaping arguements which cointain
-  characters which require quoting or escaping (thus far whitespace and
-  quotes) already existed. This solution simply adds shell stdio
-  redirection characters to this set.
-
-  Fixes #457
-
-- lib, cli, web: bump version to 1.16.1
+- add support for megaparsec 8 (#1175)
 
 # 1.16.1 2019-12-03
-
-
 
 - Drop unnecessary mtl-compat dependency
 

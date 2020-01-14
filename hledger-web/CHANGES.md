@@ -3,8 +3,6 @@ See also the hledger changelog.
 
 # 445e8aa3
 
-- add support for megaparsec 8 (#1175)
-
 - web: Add option --socket to use UNIX socket file (Carl Richard Theodor Schneider)
   This commit adds the --socket option to use hledger-web over an AF_UNIX socket
   file.
@@ -23,20 +21,15 @@ See also the hledger changelog.
 
 - Improve font display on different OS (David Zhang)
 
-- Use nubSort instead of nub . sort. (Stephen Morgan)
-
-- web: fix add form completions (fixes #1156)
-  It seems like show (toJSON "a") used to give "\"a\"" instead of
-  "String \"a\"". I haven't found the root cause, it's possible
-  that this fix won't work if built with older libs.
-
-- Fix typos (Brian Wignall)
-
 - move JSON instances from hledger-web to hledger-lib
 
-- lib, cli, web: bump version to 1.16.1
 
-- web: drop old dependency on json (#1190)
+
+# 1.16.2 2020-01-14
+
+- add support for megaparsec 8 (#1175)
+
+- fix add form completions (#1156)
 
 # 1.16.1 2019-12-03
 

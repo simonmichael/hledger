@@ -3,13 +3,11 @@ See also the hledger changelog.
 
 # 445e8aa3
 
+
+
+# 1.16.2 2020-01-14
+
 - add support for megaparsec 8 (#1175)
-
-- Use nubSort instead of nub . sort. (Stephen Morgan)
-
-- fix help
-
-- ui: bump to 1.16.1 also, requiring hledger 1.16.1
 
 # 1.16.1 2019-12-03
 
