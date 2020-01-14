@@ -158,11 +158,7 @@ rawOptsToWebOpts rawopts =
     stripTrailingSlash = reverse . dropWhile (== '/') . reverse -- yesod don't like it
 
 checkWebOpts :: WebOpts -> WebOpts
-checkWebOpts wopts = do
-  let h = host_ wopts
-  if any (`notElem` (".0123456789" :: String)) h
-    then usageError $ "--host requires an IP address, not " ++ show h
-    else wopts
+checkWebOpts = id
 
 getHledgerWebOpts :: IO WebOpts
 getHledgerWebOpts = do

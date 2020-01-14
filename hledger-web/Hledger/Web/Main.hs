@@ -16,7 +16,7 @@ import qualified Data.Text as T
 import Network.Socket
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (runSettings, runSettingsSocket, defaultSettings, setHost, setPort)
-import Network.Wai.Handler.Launch (runHostPortUrl)
+import Network.Wai.Handler.Launch (runHostPortFullUrl)
 import Prelude hiding (putStrLn)
 import System.Directory (removeFile)
 import System.Exit (exitSuccess, exitFailure)
@@ -106,5 +106,5 @@ web opts j = do
       putStrLn "Opening web browser..."
       hFlush stdout
       -- exits after 2m of inactivity (hardcoded)
-      Network.Wai.Handler.Launch.runHostPortUrl h p "" app
+      Network.Wai.Handler.Launch.runHostPortFullUrl h p u app
 

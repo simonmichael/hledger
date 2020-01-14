@@ -18,3 +18,4 @@ extra-deps:
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
+- wai-handler-launch-3.0.3
