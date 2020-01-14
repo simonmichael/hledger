@@ -131,7 +131,7 @@ library:
   - utf8-string
   - wai
   - wai-extra
-  - wai-handler-launch >=1.3
+  - wai-handler-launch >=3.0.3
   - wai-cors
   - warp
   - yaml

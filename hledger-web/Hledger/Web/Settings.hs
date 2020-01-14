@@ -45,7 +45,10 @@ defport = 5000
 
 defbaseurl :: String -> Int -> String
 defbaseurl host port =
-  "http://" ++ host ++ if port /= 80 then ":" ++ show port else ""
+  if ':' `elem` host then
+    "http://[" ++ host ++ "]" ++ if port /= 80 then ":" ++ show port else ""
+  else
+    "http://" ++ host ++ if port /= 80 then ":" ++ show port else ""
 
 -- Static setting below. Changing these requires a recompile
 
