@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.32.0.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a9a6dea39ea5c963970cda9f595e7c4251332954aacd137fb6638a1e7640ee59
+-- hash: cbf332de4147396a82198ccf5173db10b775ed99f9830e89aea475bfd4da5a7f
 
 name:           hledger-web
 version:        1.16.99
@@ -174,7 +174,7 @@ library
     , http-client
     , http-conduit
     , http-types
-    , megaparsec >=7.0.0 && <8
+    , megaparsec >=7.0.0 && <8.1
     , mtl >=2.2.1
     , network
     , semigroups

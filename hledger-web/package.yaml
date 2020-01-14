@@ -118,7 +118,7 @@ library:
   - http-conduit
   - http-client
   - http-types
-  - megaparsec >=7.0.0 && <8
+  - megaparsec >=7.0.0 && <8.1
   - mtl >=2.2.1
   - network
   - semigroups
