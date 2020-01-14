@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1.16.2 2020-01-14
+
+- add support for megaparsec 8 (#1175)
+
 # 1.16.1 2019-12-03
 
 - use hledger 1.16.1, fixing GHC 8.0/8.2 build

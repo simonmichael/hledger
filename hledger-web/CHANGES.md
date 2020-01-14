@@ -1,6 +1,12 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.16.2 2020-01-14
+
+- add support for megaparsec 8 (#1175)
+
+- fix add form completions (#1156)
+
 # 1.16.1 2019-12-03
 
 - Drop old json dependency (#1190)

@@ -1,9 +1,11 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.16.2 2020-01-14
+
+- add support for megaparsec 8 (#1175)
+
 # 1.16.1 2019-12-03
-
-
 
 - Drop unnecessary mtl-compat dependency
 

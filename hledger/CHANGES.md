@@ -1,8 +1,13 @@
 User-visible changes in the hledger command line tool and library.
 
+# 1.16.2 2020-01-14
+
+- add support for megaparsec 8 (#1175)
+
+- close: mention --close-to/--open-from in docs
+
+
 # 1.16.1 2019-12-03
-
-
 
 - Drop unnecessary mtl-compat dependency
 
