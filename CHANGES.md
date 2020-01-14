@@ -1,6 +1,33 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# 04ea95cb
+
+- Fix dead pointer in contributing (Aleksandar Dimitrov)
+  Fix link in contributing
+
+- stack: ghc8.10: update extra-deps
+
+- Fix typos (Brian Wignall)
+
+- Add a basic example of rule parsing for the output of csb2format. (Evilham)
+  csb2format deals with the CSB43/AEB43 format, which all banks operating in
+  Spain must support.
+  Having these example rules enables easens bootstraping for users with a
+  Spanish bank account.
+
+- install: re-enable hledger-iadd & hledger-interest
+  hledger-iadd has been revised on hackage, and hledger-interest has no upper bound.
+
+- install: always do stack update, to help ensure we get the latest
+  https://github.com/commercialhaskell/stack/issues/5112
+
+- install: update hledger-install for 1.16.1, disable addons for now
+
+- lib, cli, web: bump version to 1.16.1
+
+- Fix build badges for Travis and AppVeyor (Rui Chen)
+
 # 1.16 2019-12-01
 
 - add support for GHC 8.8, base-compat 0.11 (#1090)
