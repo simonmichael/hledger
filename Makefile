@@ -754,6 +754,10 @@ site: \
 			make -C site html; \
 		) 2>&1 | tee -a site.log
 
+# update all changelogs. TODO move to Shake.hs
+changelogs:
+	for p in -lib "" -ui -web; do ./Shake hledger$p/CHANGES.md; done
+
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
 
