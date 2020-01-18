@@ -237,3 +237,33 @@ $ hledger -f- close -p 2016 assets liabilities
 
 >=0
 
+# 9. With --interleaved, balanced posting pairs are adjacent.
+# (And balances with the same cost are not necessarily combined into
+# a single posting. Eg the 5734 EUR above is 5733 EUR and 1 EUR below.)
+$ hledger -f- close -p 2016 assets liabilities --interleaved
+2016-12-31 closing balances
+    assets:bank                        -5,733.00 EUR = 0.00 EUR
+    equity:closing balances             5,733.00 EUR
+    liabilities:employer                 $-10,000.00
+    equity:closing balances               $10,000.00
+    liabilities:employer        $5,000.00 @ 0.93 EUR
+    equity:closing balances    $-5,000.00 @ 0.93 EUR
+    liabilities:employer        $5,000.00 @ 0.95 EUR = $0.00
+    equity:closing balances    $-5,000.00 @ 0.95 EUR
+    liabilities:employer                   -1.00 EUR = 0.00 EUR
+    equity:closing balances                 1.00 EUR
+
+2017-01-01 opening balances
+    assets:bank                         5,733.00 EUR = 5,733.00 EUR
+    equity:opening balances            -5,733.00 EUR
+    liabilities:employer                  $10,000.00
+    equity:opening balances              $-10,000.00
+    liabilities:employer       $-5,000.00 @ 0.93 EUR
+    equity:opening balances     $5,000.00 @ 0.93 EUR
+    liabilities:employer       $-5,000.00 @ 0.95 EUR = $0.00
+    equity:opening balances     $5,000.00 @ 0.95 EUR
+    liabilities:employer                    1.00 EUR = 1.00 EUR
+    equity:opening balances                -1.00 EUR
+
+>=0
+
