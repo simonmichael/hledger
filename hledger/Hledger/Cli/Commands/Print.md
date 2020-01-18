@@ -36,13 +36,16 @@ $ hledger print
 ```
 
 Normally, the journal entry's explicit or implicit amount style is preserved.
-Ie when an amount is omitted in the journal, it will be omitted in the output.
-You can use the `-x`/`--explicit` flag to make all amounts explicit, which can be
-useful for troubleshooting or for making your journal more readable and
+For example, when an amount is omitted in the journal, it will not appear in the output.
+Similarly, when a transaction price is implied but not written, it will not appear in the output.
+You can use the `-x`/`--explicit` flag to make all amounts and transaction prices explicit, 
+which can be useful for troubleshooting or for making your journal more readable and
 robust against data entry errors.
-Note, `-x` will cause postings with a multi-commodity amount
+
+Note, `-x`/`--explicit` will cause postings with a multi-commodity amount
 (these can arise when a multi-commodity transaction has an implicit amount)
-will be split into multiple single-commodity postings, for valid journal output.
+to be split into multiple single-commodity postings, 
+keeping the output parseable.
 
 With `-B`/`--cost`, amounts with [transaction prices](/journal.html#transaction-prices)
 are converted to cost using that price. This can be used for troubleshooting.
