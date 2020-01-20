@@ -1,6 +1,6 @@
 ---
 name:  A wish
-about: A request for something new to improve hledger software, documentation, etc.
+about: A request or proposal for improving hledger's software, documentation, marketing, usability...
 labels: A WISH
 ---
 
@@ -13,7 +13,12 @@ Some things to check before requesting:
   Often it's best to discuss and attract interest on chat or the mail list first;
   use your best judgement. https://hledger.org#help-feedback
 
-- Have you looked for a related feature in (the right version of) the manual ? 
+- Have you looked for related features in (the right version of) the reference manual ? 
   Use `hledger help [--help]` to view the built-in manuals,
   or view the hledger.org -> REFERENCE MANUALS and choose the proper version
   at the top of the page.
+
+Things that will move your request along faster:
+
+- A small example or mockup of your intended UI/output
+- A rough draft of intended command line help/reference documentation
