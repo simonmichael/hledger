@@ -4,12 +4,16 @@ about: A request for something new to improve hledger software, documentation, e
 labels: A WISH
 ---
 
-Thank you for your input!
+Thank you for helping to make hledger better!
 
-Note, we try to not clutter the bug tracker with wishlist items and ideas.
-Often it's best to raise these first on the #hledger IRC chat room or the mail list:
+We try to not clutter the bug tracker with too many wishlist items.
+Often it's best to discuss and attract interest on chat or the mail list first;
+use your best judgement.
+https://hledger.org#help-feedback
 
-http://irc.hledger.org   (quickest; no chat client needed)
-http://list.hledger.org  (most eyeballs)
+Things to check before requesting:
 
-to discuss solutions and attract interest. Use your best judgement.
+- Have you looked for the feature in (the right version of) the manual ? 
+  Use `hledger help [--help]` to view the built-in manuals,
+  or view the hledger.org -> REFERENCE MANUALS and choose the proper version at the top of the page.
+
