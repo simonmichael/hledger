@@ -17,3 +17,4 @@ Things to check before requesting:
   Use `hledger help [--help]` to view the built-in manuals,
   or view the hledger.org -> REFERENCE MANUALS and choose the proper version at the top of the page.
 
+You can delete this template text before submitting.

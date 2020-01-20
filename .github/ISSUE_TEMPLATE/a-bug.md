@@ -7,7 +7,7 @@ labels: A BUG
 Thank you for helping to make hledger better!
 
 If you're not sure it's a bug, or if some discussion would help,
-contact us first on chat (quickest) or the mail list:
+contact us first on chat or the mail list:
 https://hledger.org#help-feedback
 
 Things to check before reporting:
@@ -23,3 +23,4 @@ Details that may be useful to include when reporting:
 - The output of hledger --version
 - What platform you're on
 
+You can delete this template text before submitting.
