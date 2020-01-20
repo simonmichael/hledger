@@ -2,9 +2,10 @@
 
 blank_issues_enabled: true
 contact_links:
-  - name: hledger chat or mail list
+  - name: Questions, Support
     url: https://hledger.org/#help-feedback
-    about: Please send questions and support requests here.
-  - name: hledger project security issues
-    url: mailto:simon@joyful.com
-    about: Please report security vulnerabilities here.
+    about: For questions and support, please use our Chat or Mail list.
+  # doesn't show, mailto: probably not supported
+  # - name: hledger project security issues
+  #   url: mailto:simon@joyful.com
+  #   about: Please report security vulnerabilities here.
