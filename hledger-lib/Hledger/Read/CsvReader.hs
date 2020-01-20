@@ -82,7 +82,7 @@ type Field = String
 reader :: Reader
 reader = Reader
   {rFormat     = "csv"
-  ,rExtensions = ["csv"]
+  ,rExtensions = ["csv","tsv","ssv"]
   ,rParser     = parse
   ,rExperimental = False
   }

@@ -17,7 +17,7 @@ CSV - how hledger reads CSV data, and the CSV rules file format
 
 hledger can read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values)
-(comma-separated value, or character-separated value) files as if they were journal files,
+(Comma Separated Value/Character Separated Value) files as if they were journal files,
 automatically converting each CSV record into a transaction.  (To
 learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
 
@@ -48,7 +48,10 @@ these are described more fully below, after the examples:
 [**`include`**](#include)                   inline another CSV rules file
 ------------------------------------------- ---------------------------------------------------
 
-There's also a [Convert CSV files](convert-csv-files.html) tutorial on hledger.org.
+Note, for best error messages when reading CSV files, use a `.csv`, `.tsv` or `.ssv` 
+file extension or file prefix - see [File Extension](#file-extension) below.
+
+There's an introductory [Convert CSV files](convert-csv-files.html) tutorial on hledger.org.
 
 # EXAMPLES
 
@@ -490,6 +493,7 @@ words `TAB` or `SPACE`. Eg to read TSV (Tab Separated Values), use:
 separator TAB
 ```
 
+See also: [File Extension](#file-extension).
 
 ## `if`
 
@@ -677,11 +681,28 @@ When CSV values are enclosed in quotes, note:
 - they must be double quotes (not single quotes)
 - spaces outside the quotes are [not allowed](https://stackoverflow.com/questions/4863852/space-before-quote-in-csv-field)
 
+## File Extension
+
+CSV ("Character Separated Values") files
+should be named with one of these filename extensions: `.csv`, `.ssv`, `.tsv`.
+Or, the file path should be prefixed with one of `csv:`, `ssv:`, `tsv:`.
+This helps hledger identify the format and show the right error messages.
+For example:
+```shell
+$ hledger -f foo.ssv print
+```
+or:
+```
+$ cat foo | hledger -f ssv:- foo
+```
+More about this: [Input files](hledger.html#input-files) in the hledger manual.
+
 ## Reading multiple CSV files
 
 If you use multiple `-f` options to read multiple CSV files at once,
-hledger will look for a correspondingly-named rules file for each CSV file.
-But if you use the `--rules-file` option, that rules file will be used for all the CSV files.
+hledger will look for a correspondingly-named rules file for each CSV
+file. But if you use the `--rules-file` option, that rules file will
+be used for all the CSV files.
 
 ## Valid transactions
 
