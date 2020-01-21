@@ -94,11 +94,11 @@ Some basic reports:
 .nf
 \f[C]
 $ hledger print
-2015/09/30 gift received
+2015-09-30 gift received
     assets:cash            $20
     income:gifts          $-20
 
-2015/10/16 farmers market
+2015-10-16 farmers market
     expenses:food           $10
     assets:cash            $-10
 \f[R]
@@ -130,8 +130,8 @@ $ hledger balance
 .nf
 \f[C]
 $ hledger register cash
-2015/09/30 gift received   assets:cash               $20           $20
-2015/10/16 farmers market  assets:cash              $-10           $10
+2015-09-30 gift received   assets:cash               $20           $20
+2015-10-16 farmers market  assets:cash              $-10           $10
 \f[R]
 .fi
 .PP
@@ -1210,13 +1210,13 @@ Show the cost of each posting:
 .nf
 \f[C]
 $ hledger -f- print --value=cost
-2000/01/01
+2000-01-01
     (a)             5 B
 
-2000/02/01
+2000-02-01
     (a)             6 B
 
-2000/03/01
+2000-03-01
     (a)             7 B
 \f[R]
 .fi
@@ -1240,13 +1240,13 @@ of the journal (2000-03-01):
 .nf
 \f[C]
 $ hledger -f- print --value=end
-2000/01/01
+2000-01-01
     (a)             3 B
 
-2000/02/01
+2000-02-01
     (a)             3 B
 
-2000/03/01
+2000-03-01
     (a)             3 B
 \f[R]
 .fi
@@ -1272,13 +1272,13 @@ Show the value on 2000/01/15:
 .nf
 \f[C]
 $ hledger -f- print --value=2000-01-15
-2000/01/01
+2000-01-01
     (a)             1 B
 
-2000/02/01
+2000-02-01
     (a)             1 B
 
-2000/03/01
+2000-03-01
     (a)             1 B
 \f[R]
 .fi
@@ -1300,7 +1300,7 @@ P 2000-01-01 A 2B
 .nf
 \f[C]
 $ hledger print -x -X A
-2000/01/01
+2000-01-01
     a               0
     b               0
 \f[R]
@@ -1327,7 +1327,7 @@ commodity 0.00A
 .nf
 \f[C]
 $ hledger print -X A
-2000/01/01
+2000-01-01
     a           0.50A
     b          -0.50A
 \f[R]
@@ -2721,6 +2721,10 @@ balances\[dq], and the opening transaction transfers balances from
 You can choose to print just one of the transactions by using the
 \f[C]--opening\f[R] or \f[C]--closing\f[R] flag.
 .PP
+The equity postings appear at the end of the transaction by default;
+with \f[C]--interleaved\f[R], they appear beside their corresponding
+closing postings.
+.PP
 If you split your journal files by time (eg yearly), you will typically
 run this command at the end of the year, and save the closing
 transaction as last entry of the old file, and the opening transaction
@@ -3123,15 +3127,19 @@ $ hledger print
 .PP
 Normally, the journal entry\[aq]s explicit or implicit amount style is
 preserved.
-Ie when an amount is omitted in the journal, it will be omitted in the
-output.
+For example, when an amount is omitted in the journal, it will not
+appear in the output.
+Similarly, when a transaction price is implied but not written, it will
+not appear in the output.
 You can use the \f[C]-x\f[R]/\f[C]--explicit\f[R] flag to make all
-amounts explicit, which can be useful for troubleshooting or for making
-your journal more readable and robust against data entry errors.
-Note, \f[C]-x\f[R] will cause postings with a multi-commodity amount
-(these can arise when a multi-commodity transaction has an implicit
-amount) will be split into multiple single-commodity postings, for valid
-journal output.
+amounts and transaction prices explicit, which can be useful for
+troubleshooting or for making your journal more readable and robust
+against data entry errors.
+.PP
+Note, \f[C]-x\f[R]/\f[C]--explicit\f[R] will cause postings with a
+multi-commodity amount (these can arise when a multi-commodity
+transaction has an implicit amount) to be split into multiple
+single-commodity postings, keeping the output parseable.
 .PP
 With \f[C]-B\f[R]/\f[C]--cost\f[R], amounts with transaction prices are
 converted to cost using that price.

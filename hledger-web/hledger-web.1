@@ -64,6 +64,13 @@ listen on this IP address (default: 127.0.0.1)
 \f[B]\f[CB]--port=PORT\f[B]\f[R]
 listen on this TCP port (default: 5000)
 .TP
+\f[B]\f[CB]--socket=SOCKETFILE\f[B]\f[R]
+use a unix domain socket file to listen for requests instead of a TCP
+socket.
+Implies \f[C]--serve\f[R].
+It can only be used if the operating system can provide this type of
+socket.
+.TP
 \f[B]\f[CB]--base-url=URL\f[B]\f[R]
 set the base url (default: http://IPADDR:PORT).
 You would change this when sharing over the network, or integrating
@@ -209,6 +216,26 @@ to listen on all configured addresses.
 .PP
 Similarly, use \f[C]--port\f[R] to set a TCP port other than 5000, eg if
 you are running multiple hledger-web instances.
+.PP
+Both of these options are ignored when \f[C]--socket\f[R] is used.
+In this case, it creates an \f[C]AF_UNIX\f[R] socket file at the
+supplied path and uses that for communication.
+This is an alternative way of running multiple hledger-web instances
+behind a reverse proxy that handles authentication for different users.
+The path can be derived in a predictable way, eg by using the username
+within the path.
+As an example, \f[C]nginx\f[R] as reverse proxy can use the variabel
+\f[C]$remote_user\f[R] to derive a path from the username used in a HTTP
+basic authentication.
+The following \f[C]proxy_pass\f[R] directive allows access to all
+\f[C]hledger-web\f[R] instances that created a socket in
+\f[C]/tmp/hledger/\f[R]:
+.IP
+.nf
+\f[C]
+  proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
+\f[R]
+.fi
 .PP
 You can use \f[C]--base-url\f[R] to change the protocol, hostname, port
 and path that appear in hyperlinks, useful eg for integrating

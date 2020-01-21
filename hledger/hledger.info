@@ -68,11 +68,11 @@ Two simple transactions in hledger journal format:
    Some basic reports:
 
 $ hledger print
-2015/09/30 gift received
+2015-09-30 gift received
     assets:cash            $20
     income:gifts          $-20
 
-2015/10/16 farmers market
+2015-10-16 farmers market
     expenses:food           $10
     assets:cash            $-10
 
@@ -92,8 +92,8 @@ $ hledger balance
                    0
 
 $ hledger register cash
-2015/09/30 gift received   assets:cash               $20           $20
-2015/10/16 farmers market  assets:cash              $-10           $10
+2015-09-30 gift received   assets:cash               $20           $20
+2015-10-16 farmers market  assets:cash              $-10           $10
 
    More commands:
 
@@ -932,13 +932,13 @@ P 2000-04-01 A  4 B
    Show the cost of each posting:
 
 $ hledger -f- print --value=cost
-2000/01/01
+2000-01-01
     (a)             5 B
 
-2000/02/01
+2000-02-01
     (a)             6 B
 
-2000/03/01
+2000-03-01
     (a)             7 B
 
    Show the value as of the last day of the report period (2000-02-29):
@@ -954,13 +954,13 @@ $ hledger -f- print --value=end date:2000/01-2000/03
 day of the journal (2000-03-01):
 
 $ hledger -f- print --value=end
-2000/01/01
+2000-01-01
     (a)             3 B
 
-2000/02/01
+2000-02-01
     (a)             3 B
 
-2000/03/01
+2000-03-01
     (a)             3 B
 
    Show the current value (the 2000-04-01 price is still in effect
@@ -979,13 +979,13 @@ $ hledger -f- print --value=now
    Show the value on 2000/01/15:
 
 $ hledger -f- print --value=2000-01-15
-2000/01/01
+2000-01-01
     (a)             1 B
 
-2000/02/01
+2000-02-01
     (a)             1 B
 
-2000/03/01
+2000-03-01
     (a)             1 B
 
    You may need to explicitly set a commodity's display style, when
@@ -998,7 +998,7 @@ P 2000-01-01 A 2B
   b
 
 $ hledger print -x -X A
-2000/01/01
+2000-01-01
     a               0
     b               0
 
@@ -1016,7 +1016,7 @@ commodity 0.00A
   b
 
 $ hledger print -X A
-2000/01/01
+2000-01-01
     a           0.50A
     b          -0.50A
 
@@ -2219,6 +2219,10 @@ balances", and the opening transaction transfers balances from
 '--close-to' and '--open-from' options.  You can choose to print just
 one of the transactions by using the '--opening' or '--closing' flag.
 
+   The equity postings appear at the end of the transaction by default;
+with '--interleaved', they appear beside their corresponding closing
+postings.
+
    If you split your journal files by time (eg yearly), you will
 typically run this command at the end of the year, and save the closing
 transaction as last entry of the old file, and the opening transaction
@@ -2583,13 +2587,17 @@ $ hledger print
     assets:bank:checking           $-1
 
    Normally, the journal entry's explicit or implicit amount style is
-preserved.  Ie when an amount is omitted in the journal, it will be
-omitted in the output.  You can use the '-x'/'--explicit' flag to make
-all amounts explicit, which can be useful for troubleshooting or for
-making your journal more readable and robust against data entry errors.
-Note, '-x' will cause postings with a multi-commodity amount (these can
-arise when a multi-commodity transaction has an implicit amount) will be
-split into multiple single-commodity postings, for valid journal output.
+preserved.  For example, when an amount is omitted in the journal, it
+will not appear in the output.  Similarly, when a transaction price is
+implied but not written, it will not appear in the output.  You can use
+the '-x'/'--explicit' flag to make all amounts and transaction prices
+explicit, which can be useful for troubleshooting or for making your
+journal more readable and robust against data entry errors.
+
+   Note, '-x'/'--explicit' will cause postings with a multi-commodity
+amount (these can arise when a multi-commodity transaction has an
+implicit amount) to be split into multiple single-commodity postings,
+keeping the output parseable.
 
    With '-B'/'--cost', amounts with transaction prices are converted to
 cost using that price.  This can be used for troubleshooting.
@@ -3292,74 +3300,74 @@ Node: check-dupes76317
 Ref: #check-dupes76441
 Node: close76734
 Ref: #close76848
-Node: commodities80514
-Ref: #commodities80641
-Node: descriptions80723
-Ref: #descriptions80851
-Node: diff81032
-Ref: #diff81138
-Node: files82185
-Ref: #files82285
-Node: help82432
-Ref: #help82532
-Node: import83613
-Ref: #import83727
-Node: Importing balance assignments84620
-Ref: #importing-balance-assignments84768
-Node: incomestatement85417
-Ref: #incomestatement85550
-Node: notes86954
-Ref: #notes87067
-Node: payees87193
-Ref: #payees87299
-Node: prices87457
-Ref: #prices87563
-Node: print87904
-Ref: #print88014
-Node: print-unique92507
-Ref: #print-unique92633
-Node: register92918
-Ref: #register93045
-Node: Custom register output97217
-Ref: #custom-register-output97346
-Node: register-match98608
-Ref: #register-match98742
-Node: rewrite99093
-Ref: #rewrite99208
-Node: Re-write rules in a file101063
-Ref: #re-write-rules-in-a-file101197
-Node: Diff output format102407
-Ref: #diff-output-format102576
-Node: rewrite vs print --auto103668
-Ref: #rewrite-vs.-print---auto103847
-Node: roi104403
-Ref: #roi104501
-Node: stats105513
-Ref: #stats105612
-Node: tags106400
-Ref: #tags106498
-Node: test106792
-Ref: #test106876
-Node: ADD-ON COMMANDS107623
-Ref: #add-on-commands107733
-Node: Official add-ons109021
-Ref: #official-add-ons109161
-Node: ui109241
-Ref: #ui109328
-Node: web109382
-Ref: #web109471
-Node: Third party add-ons109517
-Ref: #third-party-add-ons109692
-Node: iadd109811
-Ref: #iadd109912
-Node: interest109994
-Ref: #interest110103
-Node: Experimental add-ons110198
-Ref: #experimental-add-ons110350
-Node: autosync110588
-Ref: #autosync110699
-Node: chart110938
-Ref: #chart111043
+Node: commodities80666
+Ref: #commodities80793
+Node: descriptions80875
+Ref: #descriptions81003
+Node: diff81184
+Ref: #diff81290
+Node: files82337
+Ref: #files82437
+Node: help82584
+Ref: #help82684
+Node: import83765
+Ref: #import83879
+Node: Importing balance assignments84772
+Ref: #importing-balance-assignments84920
+Node: incomestatement85569
+Ref: #incomestatement85702
+Node: notes87106
+Ref: #notes87219
+Node: payees87345
+Ref: #payees87451
+Node: prices87609
+Ref: #prices87715
+Node: print88056
+Ref: #print88166
+Node: print-unique92810
+Ref: #print-unique92936
+Node: register93221
+Ref: #register93348
+Node: Custom register output97520
+Ref: #custom-register-output97649
+Node: register-match98911
+Ref: #register-match99045
+Node: rewrite99396
+Ref: #rewrite99511
+Node: Re-write rules in a file101366
+Ref: #re-write-rules-in-a-file101500
+Node: Diff output format102710
+Ref: #diff-output-format102879
+Node: rewrite vs print --auto103971
+Ref: #rewrite-vs.-print---auto104150
+Node: roi104706
+Ref: #roi104804
+Node: stats105816
+Ref: #stats105915
+Node: tags106703
+Ref: #tags106801
+Node: test107095
+Ref: #test107179
+Node: ADD-ON COMMANDS107926
+Ref: #add-on-commands108036
+Node: Official add-ons109324
+Ref: #official-add-ons109464
+Node: ui109544
+Ref: #ui109631
+Node: web109685
+Ref: #web109774
+Node: Third party add-ons109820
+Ref: #third-party-add-ons109995
+Node: iadd110114
+Ref: #iadd110215
+Node: interest110297
+Ref: #interest110406
+Node: Experimental add-ons110501
+Ref: #experimental-add-ons110653
+Node: autosync110891
+Ref: #autosync111002
+Node: chart111241
+Ref: #chart111346
 
 End Tag Table
 

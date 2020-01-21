@@ -189,10 +189,10 @@ the primary date if unspecified.
   assets:checking
 
 $ hledger register checking
-2010/02/23 movie ticket         assets:checking                $-10         $-10
+2010-02-23 movie ticket         assets:checking                $-10         $-10
 
 $ hledger register checking --date2
-2010/02/19 movie ticket         assets:checking                $-10         $-10
+2010-02-19 movie ticket         assets:checking                $-10         $-10
 
    Secondary dates require some effort; you must use them consistently
 in your journal entries and remember whether to use or not use the
@@ -218,10 +218,10 @@ easy bank reconciliation:
     assets:checking        ; bank cleared it on monday, date:6/1
 
 $ hledger -f t.j register food
-2015/05/30                      expenses:food                  $10           $10
+2015-05-30                      expenses:food                  $10           $10
 
 $ hledger -f t.j register checking
-2015/06/01                      assets:checking               $-10          $-10
+2015-06-01                      assets:checking               $-10          $-10
 
    DATE should be a simple date; if the year is not specified it will
 use the year of the transaction's date.  You can set the secondary date
@@ -709,7 +709,7 @@ amount to have that price attached:
   (a)             = $1 @ €2
 
 $ hledger print --explicit
-2019/01/01
+2019-01-01
     (a)         $1 @ €2 = $1 @ €2
 
 
@@ -1667,12 +1667,12 @@ recorded above it or in another file.
   assets:checking
 
 $ hledger print --auto
-2017/12/01
+2017-12-01
     expenses:food              $10
     assets:checking
     (liabilities:charity)      $-1
 
-2017/12/14
+2017-12-14
     expenses:gifts             $20
     assets:checking
     assets:checking:gifts     -$20

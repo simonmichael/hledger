@@ -6,10 +6,10 @@ File: hledger_csv.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 hledger_csv(5) hledger 1.16.99
 ******************************
 
-hledger can read CSV (comma-separated value, or character-separated
-value) files as if they were journal files, automatically converting
-each CSV record into a transaction.  (To learn about _writing_ CSV, see
-CSV output.)
+hledger can read CSV (Comma Separated Value/Character Separated Value)
+files as if they were journal files, automatically converting each CSV
+record into a transaction.  (To learn about _writing_ CSV, see CSV
+output.)
 
    We describe each CSV file's format with a corresponding _rules file_.
 By default this is named like the CSV file with a '.rules' extension
@@ -37,7 +37,11 @@ assignment*
 *'newest-first'*   disambiguate record order when there's only one date
 *'include'*        inline another CSV rules file
 
-   There's also a Convert CSV files tutorial on hledger.org.
+   Note, for best error messages when reading CSV files, use a '.csv',
+'.tsv' or '.ssv' file extension or file prefix - see File Extension
+below.
+
+   There's an introductory Convert CSV files tutorial on hledger.org.
 
 * Menu:
 
@@ -81,7 +85,7 @@ fields       date, description, _, amount
 date-format  %d/%m/%Y
 
 $ hledger print -f basic.csv
-2019/11/12 Foo
+2019-11-12 Foo
     expenses:unknown           10.23
     income:unknown            -10.23
 
@@ -128,11 +132,11 @@ currency  EUR
 account1  assets:bank:boi:checking
 
 $ hledger -f bankofireland-checking.csv print
-2012/12/07 LODGMENT       529898
+2012-12-07 LODGMENT       529898
     assets:bank:boi:checking         EUR10.0 = EUR131.2
     income:unknown                  EUR-10.0
 
-2012/12/07 PAYMENT
+2012-12-07 PAYMENT
     assets:bank:boi:checking         EUR-5.0 = EUR126.0
     expenses:unknown                  EUR5.0
 
@@ -192,11 +196,11 @@ if ,\$[1-9][.0-9]+(,[^,]*){1}$
  amount3     %fees
 
 $ hledger -f amazon-orders.csv print
-2012/07/29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
+2012-07-29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
     assets:amazon
     expenses:misc          $20.00
 
-2012/07/30 (17LA58JSKRD4HDGLNJPI1P9B8DKPVHL) To Adapteva, Inc.  ; status:Completed
+2012-07-30 (17LA58JSKRD4HDGLNJPI1P9B8DKPVHL) To Adapteva, Inc.  ; status:Completed
     assets:amazon
     expenses:misc          $25.00
     expenses:fees           $1.00
@@ -328,32 +332,32 @@ if Google
  description google | music
 
 $ hledger -f paypal-custom.csv  print
-2019/10/01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed
+2019-10-01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed
     assets:online:paypal          $-6.99 = $-6.99
     expenses:online:apps           $6.99
 
-2019/10/01 (0TU1544T080463733) Bank Deposit to PP Account for 60P57143A8206782E  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:46:20, type:Bank Deposit to PP Account, status:Pending
+2019-10-01 (0TU1544T080463733) Bank Deposit to PP Account for 60P57143A8206782E  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:46:20, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $6.99 = $0.00
     assets:bank:wf:pchecking          $-6.99
 
-2019/10/01 (2722394R5F586712G) Patreon Patreon* Membership  ; itemid:, fromemail:simon@joyful.com, toemail:support@patreon.com, time:08:57:01, type:PreApproved Payment Bill User Payment, status:Completed
+2019-10-01 (2722394R5F586712G) Patreon Patreon* Membership  ; itemid:, fromemail:simon@joyful.com, toemail:support@patreon.com, time:08:57:01, type:PreApproved Payment Bill User Payment, status:Completed
     assets:online:paypal          $-7.00 = $-7.00
     expenses:dues                  $7.00
 
-2019/10/01 (71854087RG994194F) Bank Deposit to PP Account for 2722394R5F586712G Patreon* Membership  ; itemid:, fromemail:, toemail:simon@joyful.com, time:08:57:01, type:Bank Deposit to PP Account, status:Pending
+2019-10-01 (71854087RG994194F) Bank Deposit to PP Account for 2722394R5F586712G Patreon* Membership  ; itemid:, fromemail:, toemail:simon@joyful.com, time:08:57:01, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $7.00 = $0.00
     assets:bank:wf:pchecking          $-7.00
 
-2019/10/19 (K9U43044RY432050M) Wikimedia Foundation, Inc. Monthly donation to the Wikimedia Foundation  ; itemid:, fromemail:simon@joyful.com, toemail:tle@wikimedia.org, time:03:02:12, type:Subscription Payment, status:Completed
+2019-10-19 (K9U43044RY432050M) Wikimedia Foundation, Inc. Monthly donation to the Wikimedia Foundation  ; itemid:, fromemail:simon@joyful.com, toemail:tle@wikimedia.org, time:03:02:12, type:Subscription Payment, status:Completed
     assets:online:paypal             $-2.00 = $-2.00
     expenses:dues                     $2.00
     expenses:banking:paypal      ; business:
 
-2019/10/19 (3XJ107139A851061F) Bank Deposit to PP Account for K9U43044RY432050M  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:02:12, type:Bank Deposit to PP Account, status:Pending
+2019-10-19 (3XJ107139A851061F) Bank Deposit to PP Account for K9U43044RY432050M  ; itemid:, fromemail:, toemail:simon@joyful.com, time:03:02:12, type:Bank Deposit to PP Account, status:Pending
     assets:online:paypal               $2.00 = $0.00
     assets:bank:wf:pchecking          $-2.00
 
-2019/10/22 (6L8L1662YP1334033) Noble Benefactor Joyful Systems  ; itemid:, fromemail:noble@bene.fac.tor, toemail:simon@joyful.com, time:05:07:06, type:Subscription Payment, status:Completed
+2019-10-22 (6L8L1662YP1334033) Noble Benefactor Joyful Systems  ; itemid:, fromemail:noble@bene.fac.tor, toemail:simon@joyful.com, time:05:07:06, type:Subscription Payment, status:Completed
     assets:online:paypal                       $9.41 = $9.41
     revenues:foss donations:darcshub         $-10.00  ; business:
     expenses:banking:paypal                    $0.59  ; business:
@@ -522,6 +526,8 @@ a separator.  To specify whitespace characters, you may use the special
 words 'TAB' or 'SPACE'.  Eg to read TSV (Tab Separated Values), use:
 
 separator TAB
+
+   See also: File Extension.
 
 
 File: hledger_csv.info,  Node: if,  Next: end,  Prev: separator,  Up: CSV RULES
@@ -705,6 +711,7 @@ File: hledger_csv.info,  Node: TIPS,  Prev: CSV RULES,  Up: Top
 
 * Rapid feedback::
 * Valid CSV::
+* File Extension::
 * Reading multiple CSV files::
 * Valid transactions::
 * Deduplicating importing::
@@ -731,7 +738,7 @@ a separator each time the command re-runs, making it easier to read the
 output.
 
 
-File: hledger_csv.info,  Node: Valid CSV,  Next: Reading multiple CSV files,  Prev: Rapid feedback,  Up: TIPS
+File: hledger_csv.info,  Node: Valid CSV,  Next: File Extension,  Prev: Rapid feedback,  Up: TIPS
 
 3.2 Valid CSV
 =============
@@ -743,9 +750,29 @@ enclosed in quotes, note:
    * spaces outside the quotes are not allowed
 
 
-File: hledger_csv.info,  Node: Reading multiple CSV files,  Next: Valid transactions,  Prev: Valid CSV,  Up: TIPS
+File: hledger_csv.info,  Node: File Extension,  Next: Reading multiple CSV files,  Prev: Valid CSV,  Up: TIPS
 
-3.3 Reading multiple CSV files
+3.3 File Extension
+==================
+
+CSV ("Character Separated Values") files should be named with one of
+these filename extensions: '.csv', '.ssv', '.tsv'.  Or, the file path
+should be prefixed with one of 'csv:', 'ssv:', 'tsv:'.  This helps
+hledger identify the format and show the right error messages.  For
+example:
+
+$ hledger -f foo.ssv print
+
+   or:
+
+$ cat foo | hledger -f ssv:- foo
+
+   More about this: Input files in the hledger manual.
+
+
+File: hledger_csv.info,  Node: Reading multiple CSV files,  Next: Valid transactions,  Prev: File Extension,  Up: TIPS
+
+3.4 Reading multiple CSV files
 ==============================
 
 If you use multiple '-f' options to read multiple CSV files at once,
@@ -756,7 +783,7 @@ used for all the CSV files.
 
 File: hledger_csv.info,  Node: Valid transactions,  Next: Deduplicating importing,  Prev: Reading multiple CSV files,  Up: TIPS
 
-3.4 Valid transactions
+3.5 Valid transactions
 ======================
 
 After reading a CSV file, hledger post-processes and validates the
@@ -775,7 +802,7 @@ $ hledger -f file.csv print | hledger -f- print
 
 File: hledger_csv.info,  Node: Deduplicating importing,  Next: Setting amounts,  Prev: Valid transactions,  Up: TIPS
 
-3.5 Deduplicating, importing
+3.6 Deduplicating, importing
 ============================
 
 When you download a CSV file periodically, eg to get your latest bank
@@ -805,7 +832,7 @@ CSV data.  See:
 
 File: hledger_csv.info,  Node: Setting amounts,  Next: Setting currency/commodity,  Prev: Deduplicating importing,  Up: TIPS
 
-3.6 Setting amounts
+3.7 Setting amounts
 ===================
 
 A posting amount can be set in one of these ways:
@@ -834,7 +861,7 @@ A posting amount can be set in one of these ways:
 
 File: hledger_csv.info,  Node: Setting currency/commodity,  Next: Referencing other fields,  Prev: Setting amounts,  Up: TIPS
 
-3.7 Setting currency/commodity
+3.8 Setting currency/commodity
 ==============================
 
 If the currency/commodity symbol is included in the CSV's amount
@@ -861,7 +888,7 @@ field(s), you don't have to do anything special.
 
 File: hledger_csv.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Setting currency/commodity,  Up: TIPS
 
-3.8 Referencing other fields
+3.9 Referencing other fields
 ============================
 
 In field assignments, you can interpolate only CSV fields, not hledger
@@ -898,8 +925,8 @@ if something
 
 File: hledger_csv.info,  Node: How CSV rules are evaluated,  Prev: Referencing other fields,  Up: TIPS
 
-3.9 How CSV rules are evaluated
-===============================
+3.10 How CSV rules are evaluated
+================================
 
 Here's how to think of CSV rules being evaluated (if you really need
 to).  First,
@@ -939,62 +966,64 @@ command the user specified.
 
 Tag Table:
 Node: Top72
-Node: EXAMPLES1879
-Ref: #examples1985
-Node: Basic2193
-Ref: #basic2293
-Node: Bank of Ireland2835
-Ref: #bank-of-ireland2970
-Node: Amazon4433
-Ref: #amazon4551
-Node: Paypal6484
-Ref: #paypal6578
-Node: CSV RULES14461
-Ref: #csv-rules14570
-Node: skip14846
-Ref: #skip14939
-Node: fields15314
-Ref: #fields15436
-Node: Transaction field names16601
-Ref: #transaction-field-names16761
-Node: Posting field names16872
-Ref: #posting-field-names17024
-Node: field assignment18315
-Ref: #field-assignment18458
-Node: separator19276
-Ref: #separator19405
-Node: if19786
-Ref: #if19888
-Node: end21604
-Ref: #end21710
-Node: date-format21934
-Ref: #date-format22066
-Node: newest-first22815
-Ref: #newest-first22953
-Node: include23636
-Ref: #include23765
-Node: balance-type24209
-Ref: #balance-type24329
-Node: TIPS25029
-Ref: #tips25111
-Node: Rapid feedback25348
-Ref: #rapid-feedback25465
-Node: Valid CSV25925
-Ref: #valid-csv26067
-Node: Reading multiple CSV files26259
-Ref: #reading-multiple-csv-files26439
-Node: Valid transactions26680
-Ref: #valid-transactions26858
-Node: Deduplicating importing27486
-Ref: #deduplicating-importing27665
-Node: Setting amounts28698
-Ref: #setting-amounts28867
-Node: Setting currency/commodity29853
-Ref: #setting-currencycommodity30045
-Node: Referencing other fields30848
-Ref: #referencing-other-fields31048
-Node: How CSV rules are evaluated31945
-Ref: #how-csv-rules-are-evaluated32116
+Node: EXAMPLES2031
+Ref: #examples2137
+Node: Basic2345
+Ref: #basic2445
+Node: Bank of Ireland2987
+Ref: #bank-of-ireland3122
+Node: Amazon4585
+Ref: #amazon4703
+Node: Paypal6636
+Ref: #paypal6730
+Node: CSV RULES14613
+Ref: #csv-rules14722
+Node: skip14998
+Ref: #skip15091
+Node: fields15466
+Ref: #fields15588
+Node: Transaction field names16753
+Ref: #transaction-field-names16913
+Node: Posting field names17024
+Ref: #posting-field-names17176
+Node: field assignment18467
+Ref: #field-assignment18610
+Node: separator19428
+Ref: #separator19557
+Node: if19968
+Ref: #if20070
+Node: end21786
+Ref: #end21892
+Node: date-format22116
+Ref: #date-format22248
+Node: newest-first22997
+Ref: #newest-first23135
+Node: include23818
+Ref: #include23947
+Node: balance-type24391
+Ref: #balance-type24511
+Node: TIPS25211
+Ref: #tips25293
+Node: Rapid feedback25549
+Ref: #rapid-feedback25666
+Node: Valid CSV26126
+Ref: #valid-csv26256
+Node: File Extension26448
+Ref: #file-extension26600
+Node: Reading multiple CSV files27010
+Ref: #reading-multiple-csv-files27195
+Node: Valid transactions27436
+Ref: #valid-transactions27614
+Node: Deduplicating importing28242
+Ref: #deduplicating-importing28421
+Node: Setting amounts29454
+Ref: #setting-amounts29623
+Node: Setting currency/commodity30609
+Ref: #setting-currencycommodity30801
+Node: Referencing other fields31604
+Ref: #referencing-other-fields31804
+Node: How CSV rules are evaluated32701
+Ref: #how-csv-rules-are-evaluated32874
 
 End Tag Table
 

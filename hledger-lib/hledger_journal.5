@@ -156,14 +156,14 @@ unspecified.
 .nf
 \f[C]
 $ hledger register checking
-2010/02/23 movie ticket         assets:checking                $-10         $-10
+2010-02-23 movie ticket         assets:checking                $-10         $-10
 \f[R]
 .fi
 .IP
 .nf
 \f[C]
 $ hledger register checking --date2
-2010/02/19 movie ticket         assets:checking                $-10         $-10
+2010-02-19 movie ticket         assets:checking                $-10         $-10
 \f[R]
 .fi
 .PP
@@ -193,14 +193,14 @@ reconciliation:
 .nf
 \f[C]
 $ hledger -f t.j register food
-2015/05/30                      expenses:food                  $10           $10
+2015-05-30                      expenses:food                  $10           $10
 \f[R]
 .fi
 .IP
 .nf
 \f[C]
 $ hledger -f t.j register checking
-2015/06/01                      assets:checking               $-10          $-10
+2015-06-01                      assets:checking               $-10          $-10
 \f[R]
 .fi
 .PP
@@ -718,7 +718,7 @@ amount to have that price attached:
 .nf
 \f[C]
 $ hledger print --explicit
-2019/01/01
+2019-01-01
     (a)         $1 \[at] \[Eu]2 = $1 \[at] \[Eu]2
 \f[R]
 .fi
@@ -1825,12 +1825,12 @@ Some examples:
 .nf
 \f[C]
 $ hledger print --auto
-2017/12/01
+2017-12-01
     expenses:food              $10
     assets:checking
     (liabilities:charity)      $-1
 
-2017/12/14
+2017-12-14
     expenses:gifts             $20
     assets:checking
     assets:checking:gifts     -$20

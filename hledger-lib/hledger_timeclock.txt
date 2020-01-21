@@ -25,13 +25,13 @@ DESCRIPTION
        the above time log, hledger print generates these journal entries:
 
               $ hledger -f t.timeclock print
-              2015/03/30 * optional description after two spaces
+              2015-03-30 * optional description after two spaces
                   (some:account name)         0.33h
 
-              2015/03/31 * 22:21-23:59
+              2015-03-31 * 22:21-23:59
                   (another account)         1.64h
 
-              2015/04/01 * 00:00-02:00
+              2015-04-01 * 00:00-02:00
                   (another account)         2.01h
 
        Here is a sample.timeclock to download and some queries to try:
