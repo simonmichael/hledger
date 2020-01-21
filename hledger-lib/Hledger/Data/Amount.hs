@@ -96,6 +96,7 @@ module Hledger.Data.Amount (
   amounts,
   filterMixedAmount,
   filterMixedAmountByCommodity,
+  mapMixedAmount,
   normaliseMixedAmountSquashPricesForDisplay,
   normaliseMixedAmount,
   -- ** arithmetic
@@ -295,9 +296,9 @@ setAmountPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 setFullPrecision :: Amount -> Amount
 setFullPrecision a = setAmountPrecision p a
   where
-    p                = max displayprecision normalprecision
+    p                = max displayprecision naturalprecision
     displayprecision = asprecision $ astyle a
-    normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
+    naturalprecision = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
 
 -- | Set an amount's display precision to just enough decimal places
 -- to show it exactly (possibly less than the number specified by
