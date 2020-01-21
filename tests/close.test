@@ -267,3 +267,36 @@ $ hledger -f- close -p 2016 assets liabilities --interleaved
 
 >=0
 
+# 10. A tricky case where a closing posting was rounded and failed to balance (#1164)
+<
+commodity $0.00
+commodity AAA 0.00000000
+
+2019-01-01 opening balance
+    (assets:usd)                                 $49.50
+
+2019-01-02 buy some AAA
+    assets:usd                                  -$49.2619200
+    assets:aaa                               AAA 510
+    assets:usd                                   -$0.1280810
+    expenses:banking                              $0.1280810
+
+$ hledger -f- close -p 2019 assets
+2019-12-31 closing balances
+    assets:aaa                              AAA -510.00000000 = AAA 0.00000000
+    assets:usd                                        $-49.50
+    assets:usd                 $49.390001 @ AAA 10.3528242505 = $0.00
+    equity:closing balances                            $49.50
+    equity:closing balances    $-49.390001 @ AAA 10.3528242505
+    equity:closing balances                  AAA 510.00000000
+
+2020-01-01 opening balances
+    assets:aaa                                AAA 510.00000000 = AAA 510.00000000
+    assets:usd                                          $49.50
+    assets:usd                 $-49.390001 @ AAA 10.3528242505 = $0.109999
+    equity:opening balances                            $-49.50
+    equity:opening balances     $49.390001 @ AAA 10.3528242505
+    equity:opening balances                  AAA -510.00000000
+
+>=0
+

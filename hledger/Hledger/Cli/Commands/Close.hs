@@ -50,7 +50,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       openingdate = fromMaybe today $ queryEndDate False q
       closingdate = addDays (-1) openingdate
       (acctbals,_) = balanceReportFromMultiBalanceReport ropts_ q j
-      balancingamt = sum $ map (\(_,_,_,b) -> normaliseMixedAmount b) acctbals
+      totalbalancingamt = sum $ map (\(_,_,_,b) -> normaliseMixedAmount b) acctbals
 
       -- since balance assertion amounts are required to be exact, the
       -- amounts in opening/closing transactions should be too (#941, #1137)
@@ -69,7 +69,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                    if interleaved then
                    -- a corresponding posting transferring the above balance to equity
                    [posting{paccount = closingacct
-                           ,pamount  = Mixed [b]
+                           ,pamount  = Mixed [setprec b]
                            }
                    ]
                    else []
@@ -87,7 +87,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                   -- a final posting transferring all the balances to equity
                   -- (print will show it as multiple single-commodity postings)
                   [posting{paccount = closingacct
-                          ,pamount  = balancingamt
+                          ,pamount  = mapMixedAmount setprec totalbalancingamt
                           }
                   ]
 
@@ -102,7 +102,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                    if interleaved then
                    -- a corresponding posting transferring the above balance from equity
                    [posting{paccount = openingacct
-                           ,pamount  = Mixed [negate b]
+                           ,pamount  = Mixed [setprec $ negate b]
                            }
                    ]
                    else []
@@ -121,7 +121,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                   -- a final posting transferring all the balances from equity
                   -- (print will show it as multiple single-commodity postings)
                   [posting{paccount = openingacct
-                          ,pamount  = negate balancingamt
+                          ,pamount  = mapMixedAmount setprec $ negate totalbalancingamt
                           }
                   ]
 
