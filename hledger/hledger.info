@@ -2209,29 +2209,30 @@ File: hledger.info,  Node: close,  Next: commodities,  Prev: check-dupes,  Up: C
 close, equity
 Prints a "closing balances" transaction and an "opening balances"
 transaction that bring account balances to and from zero, respectively.
-Useful for bringing asset/liability balances forward into a new journal
-file, or for closing out revenues/expenses to retained earnings at the
-end of a period.
+These can be added to your journal file(s), eg to bring asset/liability
+balances forward into a new journal file, or to close out
+revenues/expenses to retained earnings at the end of a period.
 
-   You can choose to print just one of the transactions by using the
+   You can choose to print just one of these transactions by using the
 '--opening' or '--closing' flag.
 
-   The closing transaction transfers balances to 'equity:closing
-balances', and the opening transaction transfers balances from
-'equity:opening balances', by default.  You can choose different account
-names with the '--close-to' and '--open-from' options.  If you specify
-only one of these, it is used for both.
+   One posting to 'equity:opening/closing balances', with an implicit
+amount, is added to balance the transactions, by default.
 
-   By default, a single balancing equity posting is added at the end of
-these journal entries, with the amount left implicit.
+   You can customise this account name with the '--close-to' and
+'--open-from' options.  (If you specify only one, it is used in both
+transactions.)
 
-   With '--x/--explicit', the balancing amount is shown, and if multiple
-commodities are involved, multiple single-commodity equity postings are
-shown (like the print command).
+   Similarly, you can customise the transaction descriptions with
+'--close-desc' and '--open-desc'.
 
-   With '--interleaved', the equity postings are shown next to each
-posting they balance, which can be better for troubleshooting (and can
-generate more postings).
+   With '--x/--explicit', the equity posting's amount will be shown.  If
+it involves multiple commodities, a posting for each commodity will be
+shown (as with the print command).
+
+   With '--interleaved', the equity postings are shown next to the
+postings they balance, which makes troubleshooting easier.  (It can also
+generate more postings.)
 
    By default, transaction prices in the journal are ignored when
 generating the closing/opening transactions.  With '--show-costs', this
@@ -3323,76 +3324,76 @@ Node: check-dupes76317
 Ref: #check-dupes76441
 Node: close76734
 Ref: #close76848
-Node: close usage78492
-Ref: #close-usage78585
-Node: commodities81430
-Ref: #commodities81557
-Node: descriptions81639
-Ref: #descriptions81767
-Node: diff81948
-Ref: #diff82054
-Node: files83101
-Ref: #files83201
-Node: help83348
-Ref: #help83448
-Node: import84529
-Ref: #import84643
-Node: Importing balance assignments85536
-Ref: #importing-balance-assignments85684
-Node: incomestatement86333
-Ref: #incomestatement86466
-Node: notes87870
-Ref: #notes87983
-Node: payees88109
-Ref: #payees88215
-Node: prices88373
-Ref: #prices88479
-Node: print88820
-Ref: #print88930
-Node: print-unique93574
-Ref: #print-unique93700
-Node: register93985
-Ref: #register94112
-Node: Custom register output98284
-Ref: #custom-register-output98413
-Node: register-match99675
-Ref: #register-match99809
-Node: rewrite100160
-Ref: #rewrite100275
-Node: Re-write rules in a file102130
-Ref: #re-write-rules-in-a-file102264
-Node: Diff output format103474
-Ref: #diff-output-format103643
-Node: rewrite vs print --auto104735
-Ref: #rewrite-vs.-print---auto104914
-Node: roi105470
-Ref: #roi105568
-Node: stats106580
-Ref: #stats106679
-Node: tags107467
-Ref: #tags107565
-Node: test107859
-Ref: #test107943
-Node: ADD-ON COMMANDS108690
-Ref: #add-on-commands108800
-Node: Official add-ons110088
-Ref: #official-add-ons110228
-Node: ui110308
-Ref: #ui110395
-Node: web110449
-Ref: #web110538
-Node: Third party add-ons110584
-Ref: #third-party-add-ons110759
-Node: iadd110878
-Ref: #iadd110979
-Node: interest111061
-Ref: #interest111170
-Node: Experimental add-ons111265
-Ref: #experimental-add-ons111417
-Node: autosync111655
-Ref: #autosync111766
-Node: chart112005
-Ref: #chart112110
+Node: close usage78470
+Ref: #close-usage78563
+Node: commodities81408
+Ref: #commodities81535
+Node: descriptions81617
+Ref: #descriptions81745
+Node: diff81926
+Ref: #diff82032
+Node: files83079
+Ref: #files83179
+Node: help83326
+Ref: #help83426
+Node: import84507
+Ref: #import84621
+Node: Importing balance assignments85514
+Ref: #importing-balance-assignments85662
+Node: incomestatement86311
+Ref: #incomestatement86444
+Node: notes87848
+Ref: #notes87961
+Node: payees88087
+Ref: #payees88193
+Node: prices88351
+Ref: #prices88457
+Node: print88798
+Ref: #print88908
+Node: print-unique93552
+Ref: #print-unique93678
+Node: register93963
+Ref: #register94090
+Node: Custom register output98262
+Ref: #custom-register-output98391
+Node: register-match99653
+Ref: #register-match99787
+Node: rewrite100138
+Ref: #rewrite100253
+Node: Re-write rules in a file102108
+Ref: #re-write-rules-in-a-file102242
+Node: Diff output format103452
+Ref: #diff-output-format103621
+Node: rewrite vs print --auto104713
+Ref: #rewrite-vs.-print---auto104892
+Node: roi105448
+Ref: #roi105546
+Node: stats106558
+Ref: #stats106657
+Node: tags107445
+Ref: #tags107543
+Node: test107837
+Ref: #test107921
+Node: ADD-ON COMMANDS108668
+Ref: #add-on-commands108778
+Node: Official add-ons110066
+Ref: #official-add-ons110206
+Node: ui110286
+Ref: #ui110373
+Node: web110427
+Ref: #web110516
+Node: Third party add-ons110562
+Ref: #third-party-add-ons110737
+Node: iadd110856
+Ref: #iadd110957
+Node: interest111039
+Ref: #interest111148
+Node: Experimental add-ons111243
+Ref: #experimental-add-ons111395
+Node: autosync111633
+Ref: #autosync111744
+Node: chart111983
+Ref: #chart112088
 
 End Tag Table
 
