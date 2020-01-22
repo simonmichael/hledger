@@ -7,15 +7,34 @@ end of a period.
 
 _FLAGS
 
-The closing transaction transfers balances to "equity:closing balances",
-and the opening transaction transfers balances from "equity:opening
-balances", or you can customise these with the --close-to and
---open-from options. You can choose to print just one of the
-transactions by using the --opening or --closing flag.
+You can choose to print just one of the transactions by using the
+--opening or --closing flag.
 
-The equity postings appear at the end of the transaction by default;
-with --interleaved, they appear beside their corresponding closing
-postings.
+The closing transaction transfers balances to equity:closing balances,
+and the opening transaction transfers balances from
+equity:opening balances, by default. You can choose different account
+names with the --close-to and --open-from options. If you specify only
+one of these, it is used for both.
+
+By default, a single balancing equity posting is added at the end of
+these journal entries, with the amount left implicit.
+
+With --x/--explicit, the balancing amount is shown, and if multiple
+commodities are involved, multiple single-commodity equity postings are
+shown (like the print command).
+
+With --interleaved, the equity postings are shown next to each posting
+they balance, which can be better for troubleshooting (and can generate
+more postings).
+
+By default, transaction prices in the journal are ignored when
+generating the closing/opening transactions. With --show-costs, this
+cost information is preserved, so that balance -B reports will be
+unchanged after the transition. Separate postings are generated for each
+cost in each commodity. Note this can generate very large journal
+entries, if you have many foreign currency or investment transactions.
+
+close usage
 
 If you split your journal files by time (eg yearly), you will typically
 run this command at the end of the year, and save the closing
@@ -45,10 +64,6 @@ filters (like -C or -R or status:) with this command, or the generated
 balance assertions will depend on these flags. Likewise, if you run this
 command with --auto, the balance assertions will probably always require
 --auto.
-
-When account balances have cost information (transaction prices), the
-closing/opening transactions will preserve it, so that eg balance -B
-reports will not be affected.
 
 Examples:
 

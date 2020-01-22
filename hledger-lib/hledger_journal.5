@@ -1275,21 +1275,24 @@ account assets:bank:checking
 .fi
 .SS Account comments
 .PP
-Comments, beginning with a semicolon, optionally including tags, can be
-written after the account name, and/or on following lines.
-Eg:
+Comments, beginning with a semicolon, can be added:
+.IP \[bu] 2
+on the same line, \f[B]after two or more spaces\f[R] (because ; is
+allowed in account names)
+.IP \[bu] 2
+on the next lines, indented
+.PP
+An example of both:
 .IP
 .nf
 \f[C]
-account assets:bank:checking  ; a comment
-  ; another comment
-  ; acctno:12345, a tag
+account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
+  ; next-line comment
+  ; another with tag, acctno:12345 (not used yet)
 \f[R]
 .fi
 .PP
-Tip: comments on the same line require hledger 1.12+.
-If you need your journal to be compatible with older hledger versions,
-write comments on the next line instead.
+Same-line comments are not supported by Ledger, or hledger <1.13.
 .SS Account subdirectives
 .PP
 We also allow (and ignore) Ledger-style indented subdirectives, just for

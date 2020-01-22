@@ -1162,16 +1162,19 @@ File: hledger_journal.info,  Node: Account comments,  Next: Account subdirective
 1.14.7.1 Account comments
 .........................
 
-Comments, beginning with a semicolon, optionally including tags, can be
-written after the account name, and/or on following lines.  Eg:
+Comments, beginning with a semicolon, can be added:
 
-account assets:bank:checking  ; a comment
-  ; another comment
-  ; acctno:12345, a tag
+   * on the same line, *after two or more spaces* (because ; is allowed
+     in account names)
+   * on the next lines, indented
 
-   Tip: comments on the same line require hledger 1.12+.  If you need
-your journal to be compatible with older hledger versions, write
-comments on the next line instead.
+   An example of both:
+
+account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
+  ; next-line comment
+  ; another with tag, acctno:12345 (not used yet)
+
+   Same-line comments are not supported by Ledger, or hledger <1.13.
 
 
 File: hledger_journal.info,  Node: Account subdirectives,  Next: Account types,  Prev: Account comments,  Up: Declaring accounts
@@ -1825,44 +1828,44 @@ Node: Declaring accounts41126
 Ref: #declaring-accounts41302
 Node: Account comments42227
 Ref: #account-comments42390
-Node: Account subdirectives42785
-Ref: #account-subdirectives42980
-Node: Account types43293
-Ref: #account-types43477
-Node: Account display order45119
-Ref: #account-display-order45289
-Node: Rewriting accounts46418
-Ref: #rewriting-accounts46603
-Node: Basic aliases47329
-Ref: #basic-aliases47475
-Node: Regex aliases48179
-Ref: #regex-aliases48351
-Node: Combining aliases49069
-Ref: #combining-aliases49247
-Node: end aliases50523
-Ref: #end-aliases50671
-Node: Default parent account50772
-Ref: #default-parent-account50938
-Node: Periodic transactions51822
-Ref: #periodic-transactions52020
-Node: Periodic rule syntax53892
-Ref: #periodic-rule-syntax54098
-Node: Two spaces between period expression and description!54802
-Ref: #two-spaces-between-period-expression-and-description55121
-Node: Forecasting with periodic transactions55805
-Ref: #forecasting-with-periodic-transactions56110
-Node: Budgeting with periodic transactions58136
-Ref: #budgeting-with-periodic-transactions58375
-Node: Auto postings / transaction modifiers58824
-Ref: #auto-postings-transaction-modifiers59035
-Node: Auto postings and dates61264
-Ref: #auto-postings-and-dates61521
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions61696
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions62071
-Node: Auto posting tags62449
-Ref: #auto-posting-tags62688
-Node: EDITOR SUPPORT63353
-Ref: #editor-support63471
+Node: Account subdirectives42814
+Ref: #account-subdirectives43009
+Node: Account types43322
+Ref: #account-types43506
+Node: Account display order45148
+Ref: #account-display-order45318
+Node: Rewriting accounts46447
+Ref: #rewriting-accounts46632
+Node: Basic aliases47358
+Ref: #basic-aliases47504
+Node: Regex aliases48208
+Ref: #regex-aliases48380
+Node: Combining aliases49098
+Ref: #combining-aliases49276
+Node: end aliases50552
+Ref: #end-aliases50700
+Node: Default parent account50801
+Ref: #default-parent-account50967
+Node: Periodic transactions51851
+Ref: #periodic-transactions52049
+Node: Periodic rule syntax53921
+Ref: #periodic-rule-syntax54127
+Node: Two spaces between period expression and description!54831
+Ref: #two-spaces-between-period-expression-and-description55150
+Node: Forecasting with periodic transactions55834
+Ref: #forecasting-with-periodic-transactions56139
+Node: Budgeting with periodic transactions58165
+Ref: #budgeting-with-periodic-transactions58404
+Node: Auto postings / transaction modifiers58853
+Ref: #auto-postings-transaction-modifiers59064
+Node: Auto postings and dates61293
+Ref: #auto-postings-and-dates61550
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions61725
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions62100
+Node: Auto posting tags62478
+Ref: #auto-posting-tags62717
+Node: EDITOR SUPPORT63382
+Ref: #editor-support63500
 
 End Tag Table
 

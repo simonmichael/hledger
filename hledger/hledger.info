@@ -2213,18 +2213,45 @@ Useful for bringing asset/liability balances forward into a new journal
 file, or for closing out revenues/expenses to retained earnings at the
 end of a period.
 
-   The closing transaction transfers balances to "equity:closing
-balances", and the opening transaction transfers balances from
-"equity:opening balances", or you can customise these with the
-'--close-to' and '--open-from' options.  You can choose to print just
-one of the transactions by using the '--opening' or '--closing' flag.
+   You can choose to print just one of the transactions by using the
+'--opening' or '--closing' flag.
 
-   The equity postings appear at the end of the transaction by default;
-with '--interleaved', they appear beside their corresponding closing
-postings.
+   The closing transaction transfers balances to 'equity:closing
+balances', and the opening transaction transfers balances from
+'equity:opening balances', by default.  You can choose different account
+names with the '--close-to' and '--open-from' options.  If you specify
+only one of these, it is used for both.
 
-   If you split your journal files by time (eg yearly), you will
-typically run this command at the end of the year, and save the closing
+   By default, a single balancing equity posting is added at the end of
+these journal entries, with the amount left implicit.
+
+   With '--x/--explicit', the balancing amount is shown, and if multiple
+commodities are involved, multiple single-commodity equity postings are
+shown (like the print command).
+
+   With '--interleaved', the equity postings are shown next to each
+posting they balance, which can be better for troubleshooting (and can
+generate more postings).
+
+   By default, transaction prices in the journal are ignored when
+generating the closing/opening transactions.  With '--show-costs', this
+cost information is preserved, so that 'balance -B' reports will be
+unchanged after the transition.  Separate postings are generated for
+each cost in each commodity.  Note this can generate very large journal
+entries, if you have many foreign currency or investment transactions.
+
+* Menu:
+
+* close usage::
+
+
+File: hledger.info,  Node: close usage,  Up: close
+
+4.10.1 close usage
+------------------
+
+If you split your journal files by time (eg yearly), you will typically
+run this command at the end of the year, and save the closing
 transaction as last entry of the old file, and the opening transaction
 as the first entry of the new file.  This makes the files self
 contained, so that correct balances are reported no matter which of them
@@ -2253,10 +2280,6 @@ filters (like -C or -R or 'status:') with this command, or the generated
 balance assertions will depend on these flags.  Likewise, if you run
 this command with -auto, the balance assertions will probably always
 require -auto.
-
-   When account balances have cost information (transaction prices), the
-closing/opening transactions will preserve it, so that eg balance -B
-reports will not be affected.
 
    Examples:
 
@@ -3300,74 +3323,76 @@ Node: check-dupes76317
 Ref: #check-dupes76441
 Node: close76734
 Ref: #close76848
-Node: commodities80666
-Ref: #commodities80793
-Node: descriptions80875
-Ref: #descriptions81003
-Node: diff81184
-Ref: #diff81290
-Node: files82337
-Ref: #files82437
-Node: help82584
-Ref: #help82684
-Node: import83765
-Ref: #import83879
-Node: Importing balance assignments84772
-Ref: #importing-balance-assignments84920
-Node: incomestatement85569
-Ref: #incomestatement85702
-Node: notes87106
-Ref: #notes87219
-Node: payees87345
-Ref: #payees87451
-Node: prices87609
-Ref: #prices87715
-Node: print88056
-Ref: #print88166
-Node: print-unique92810
-Ref: #print-unique92936
-Node: register93221
-Ref: #register93348
-Node: Custom register output97520
-Ref: #custom-register-output97649
-Node: register-match98911
-Ref: #register-match99045
-Node: rewrite99396
-Ref: #rewrite99511
-Node: Re-write rules in a file101366
-Ref: #re-write-rules-in-a-file101500
-Node: Diff output format102710
-Ref: #diff-output-format102879
-Node: rewrite vs print --auto103971
-Ref: #rewrite-vs.-print---auto104150
-Node: roi104706
-Ref: #roi104804
-Node: stats105816
-Ref: #stats105915
-Node: tags106703
-Ref: #tags106801
-Node: test107095
-Ref: #test107179
-Node: ADD-ON COMMANDS107926
-Ref: #add-on-commands108036
-Node: Official add-ons109324
-Ref: #official-add-ons109464
-Node: ui109544
-Ref: #ui109631
-Node: web109685
-Ref: #web109774
-Node: Third party add-ons109820
-Ref: #third-party-add-ons109995
-Node: iadd110114
-Ref: #iadd110215
-Node: interest110297
-Ref: #interest110406
-Node: Experimental add-ons110501
-Ref: #experimental-add-ons110653
-Node: autosync110891
-Ref: #autosync111002
-Node: chart111241
-Ref: #chart111346
+Node: close usage78492
+Ref: #close-usage78585
+Node: commodities81430
+Ref: #commodities81557
+Node: descriptions81639
+Ref: #descriptions81767
+Node: diff81948
+Ref: #diff82054
+Node: files83101
+Ref: #files83201
+Node: help83348
+Ref: #help83448
+Node: import84529
+Ref: #import84643
+Node: Importing balance assignments85536
+Ref: #importing-balance-assignments85684
+Node: incomestatement86333
+Ref: #incomestatement86466
+Node: notes87870
+Ref: #notes87983
+Node: payees88109
+Ref: #payees88215
+Node: prices88373
+Ref: #prices88479
+Node: print88820
+Ref: #print88930
+Node: print-unique93574
+Ref: #print-unique93700
+Node: register93985
+Ref: #register94112
+Node: Custom register output98284
+Ref: #custom-register-output98413
+Node: register-match99675
+Ref: #register-match99809
+Node: rewrite100160
+Ref: #rewrite100275
+Node: Re-write rules in a file102130
+Ref: #re-write-rules-in-a-file102264
+Node: Diff output format103474
+Ref: #diff-output-format103643
+Node: rewrite vs print --auto104735
+Ref: #rewrite-vs.-print---auto104914
+Node: roi105470
+Ref: #roi105568
+Node: stats106580
+Ref: #stats106679
+Node: tags107467
+Ref: #tags107565
+Node: test107859
+Ref: #test107943
+Node: ADD-ON COMMANDS108690
+Ref: #add-on-commands108800
+Node: Official add-ons110088
+Ref: #official-add-ons110228
+Node: ui110308
+Ref: #ui110395
+Node: web110449
+Ref: #web110538
+Node: Third party add-ons110584
+Ref: #third-party-add-ons110759
+Node: iadd110878
+Ref: #iadd110979
+Node: interest111061
+Ref: #interest111170
+Node: Experimental add-ons111265
+Ref: #experimental-add-ons111417
+Node: autosync111655
+Ref: #autosync111766
+Node: chart112005
+Ref: #chart112110
 
 End Tag Table
 

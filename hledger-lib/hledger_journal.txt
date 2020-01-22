@@ -900,16 +900,20 @@ FILE FORMAT
               account assets:bank:checking
 
    Account comments
-       Comments, beginning with a semicolon, optionally including tags, can be
-       written after the account name, and/or on following lines.  Eg:
+       Comments, beginning with a semicolon, can be added:
 
-              account assets:bank:checking  ; a comment
-                ; another comment
-                ; acctno:12345, a tag
+       o on  the  same line, after two or more spaces (because ; is allowed in
+         account names)
 
-       Tip: comments on the same line require hledger 1.12+.  If you need your
-       journal to be compatible with older hledger versions, write comments on
-       the next line instead.
+       o on the next lines, indented
+
+       An example of both:
+
+              account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
+                ; next-line comment
+                ; another with tag, acctno:12345 (not used yet)
+
+       Same-line comments are not supported by Ledger, or hledger <1.13.
 
    Account subdirectives
        We also allow (and ignore) Ledger-style  indented  subdirectives,  just
