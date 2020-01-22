@@ -38,94 +38,88 @@ closemode = hledgerCommandMode
 close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   today <- getCurrentDay
   let
-    -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
-    interleaved = boolopt "interleaved" rawopts
+    -- show opening entry, closing entry, or (default) both ?
     (opening, closing) =
       case (boolopt "opening" rawopts, boolopt "closing" rawopts) of
-        (False, False) -> (True, True) -- by default show both opening and closing
+        (False, False) -> (True, True)
         (o, c) -> (o, c)
+
+    -- accounts to close to and open from
     closingacct = T.pack $ fromMaybe defclosingacct $ maybestringopt "close-to" rawopts
     openingacct = T.pack $ fromMaybe defopeningacct $ maybestringopt "open-from" rawopts
+
+    -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
+    interleaved = boolopt "interleaved" rawopts
+
+    -- since balance assertion amounts are required to be exact, the
+    -- amounts in opening/closing transactions should be too (#941, #1137)
+    precise = setFullPrecision
+
+    -- dates of the closing and opening transactions
     ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
     q = queryFromOpts today ropts_
     openingdate = fromMaybe today $ queryEndDate False q
     closingdate = addDays (-1) openingdate
+
+    -- the balances to close
     (acctbals,_) = balanceReportFromMultiBalanceReport ropts_ q j
-    totalbalancingamt = sum $ map (\(_,_,_,b) -> normaliseMixedAmount b) acctbals
+    totalamt = sum $ map (\(_,_,_,b) -> normaliseMixedAmount b) acctbals
 
-    -- since balance assertion amounts are required to be exact, the
-    -- amounts in opening/closing transactions should be too (#941, #1137)
-    setprec = setFullPrecision
-    closingps = concat
-                [[posting{paccount          = a
-                         ,pamount           = mixed [setprec $ negate b]
-                         -- after each commodity's last posting, assert 0 balance (#1035)
-                         -- balance assertion amounts are unpriced (#824)
-                         ,pbalanceassertion =
-                             if islast
-                             then Just nullassertion{baamount=setprec b{aquantity=0, aprice=Nothing}}
-                             else Nothing
-                         }
-                 ] ++
-                 if interleaved then
-                 -- a corresponding posting transferring the above balance to equity
-                 [posting{paccount = closingacct
-                         ,pamount  = Mixed [setprec b]
-                         }
-                 ]
-                 else []
-                 | (a,_,_,mb) <- acctbals
-                   -- the balances in each commodity, and for each transaction price
-                 , let bs = amounts $ normaliseMixedAmount mb
-                   -- mark the last balance in each commodity
-                 , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
-                                    | bs <- groupBy ((==) `on` acommodity) bs]
-                 , (b, islast) <- bs'
-                ]
-                ++
-                if interleaved then []
-                else
-                -- a final posting transferring all the balances to equity
-                -- (print will show it as multiple single-commodity postings)
-                [posting{paccount = closingacct
-                        ,pamount  = mapMixedAmount setprec totalbalancingamt
-                        }
-                ]
+    -- the closing transaction
+    closingtxn = nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps}
+    closingps =
+      concat [
+        [posting{paccount          = a
+                ,pamount           = mixed [precise $ negate b]
+                -- after each commodity's last posting, assert 0 balance (#1035)
+                -- balance assertion amounts are unpriced (#824)
+                ,pbalanceassertion =
+                    if islast
+                    then Just nullassertion{baamount=precise b{aquantity=0, aprice=Nothing}}
+                    else Nothing
+                }
+        ]
+        -- maybe an interleaved posting transferring this balance to equity
+        ++ [posting{paccount=closingacct, pamount=Mixed [precise b]} | interleaved]
 
-    openingps = concat
-                [[posting{paccount         = a
-                        ,pamount           = mixed [setprec b]
-                        ,pbalanceassertion = case mcommoditysum of
-                                               Just s  -> Just nullassertion{baamount=setprec s{aprice=Nothing}}
-                                               Nothing -> Nothing
-                        }
-                 ] ++
-                 if interleaved then
-                 -- a corresponding posting transferring the above balance from equity
-                 [posting{paccount = openingacct
-                         ,pamount  = Mixed [setprec $ negate b]
-                         }
-                 ]
-                 else []
-                 | (a,_,_,mb) <- acctbals
-                   -- the balances in each commodity, and for each transaction price
-                 , let bs = amounts $ normaliseMixedAmount mb
-                   -- mark the last balance in each commodity, with the unpriced sum in that commodity
-                 , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
-                                    | bs <- groupBy ((==) `on` acommodity) bs
-                                    , let commoditysum = (sum bs)]
-                 , (b, mcommoditysum) <- bs'
-                ]
-                ++
-                if interleaved then []
-                else
-                -- a final posting transferring all the balances from equity
-                -- (print will show it as multiple single-commodity postings)
-                [posting{paccount = openingacct
-                        ,pamount  = mapMixedAmount setprec $ negate totalbalancingamt
-                        }
-                ]
+        | -- get the balances for each commodity and transaction price
+          (a,_,_,mb) <- acctbals
+        , let bs = amounts $ normaliseMixedAmount mb
+          -- mark the last balance in each commodity with True
+        , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
+                           | bs <- groupBy ((==) `on` acommodity) bs]
+        , (b, islast) <- bs'
+        ]
+      
+      -- or a final multicommodity posting transferring all balances to equity
+      -- (print will show this as multiple single-commodity postings)
+      ++ [posting{paccount=closingacct, pamount=mapMixedAmount precise totalamt} | not interleaved]
 
-  when closing $ putStr $ showTransaction (nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps})
-  when opening $ putStr $ showTransaction (nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps})
+    -- the opening transaction
+    openingtxn = nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps}
+    openingps =
+      concat [
+        [posting{paccount          = a
+                ,pamount           = mixed [precise b]
+                ,pbalanceassertion =
+                    case mcommoditysum of
+                      Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
+                      Nothing -> Nothing
+                }
+        ]
+        ++ [posting{paccount=openingacct, pamount=Mixed [precise $ negate b]} | interleaved]
+
+        | (a,_,_,mb) <- acctbals
+        , let bs = amounts $ normaliseMixedAmount mb
+          -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
+        , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
+                           | bs <- groupBy ((==) `on` acommodity) bs
+                           , let commoditysum = (sum bs)]
+        , (b, mcommoditysum) <- bs'
+        ]
+      ++ [posting{paccount=openingacct, pamount=mapMixedAmount precise $ negate totalamt} | not interleaved]
+
+  -- print them
+  when closing $ putStr $ showTransaction closingtxn
+  when opening $ putStr $ showTransaction openingtxn
 
