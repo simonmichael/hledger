@@ -18,18 +18,20 @@ import System.Console.CmdArgs.Explicit as C
 import Hledger
 import Hledger.Cli.CliOptions
 
-defclosingacct = "equity:closing balances"
-defopeningacct = "equity:opening balances"
+defclosingdesc = "closing balances"
+defopeningdesc = "opening balances"
+defclosingacct = "equity:opening/closing balances"
+defopeningacct = defclosingacct
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["closing"] (setboolopt "closing") "show just closing transaction"
-  ,flagNone ["opening"] (setboolopt "opening") "show just opening transaction"
-  ,flagReq  ["close-to"] (\s opts -> Right $ setopt "close-to" s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
-  ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-from" s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
+  [flagNone ["closing"]      (setboolopt "closing") "show just closing transaction"
+  ,flagNone ["opening"]      (setboolopt "opening") "show just opening transaction"
+  ,flagReq  ["close-to"]     (\s opts -> Right $ setopt "close-to"   s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
+  ,flagReq  ["open-from"]    (\s opts -> Right $ setopt "open-from"  s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
-  ,flagNone ["interleaved"] (setboolopt "interleaved") "keep equity and non-equity postings adjacent"
-  ,flagNone ["show-costs"] (setboolopt "show-costs") "keep balances with different costs separate"
+  ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep equity and non-equity postings adjacent"
+  ,flagNone ["show-costs"]   (setboolopt "show-costs") "keep balances with different costs separate"
   ]
   [generalflagsgroup1]
   hiddenflags
@@ -82,7 +84,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
     interleaved = boolopt "interleaved" rawopts
 
     -- the closing transaction
-    closingtxn = nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps}
+    closingtxn = nulltransaction{tdate=closingdate, tdescription=defclosingdesc, tpostings=closingps}
     closingps =
       concat [
         [posting{paccount          = a
@@ -112,7 +114,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       ++ [posting{paccount=closingacct, pamount=if explicit then mapMixedAmount precise totalamt else missingmixedamt} | not interleaved]
 
     -- the opening transaction
-    openingtxn = nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps}
+    openingtxn = nulltransaction{tdate=openingdate, tdescription=defopeningdesc, tpostings=openingps}
     openingps =
       concat [
         [posting{paccount          = a

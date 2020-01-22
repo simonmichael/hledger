@@ -1,31 +1,29 @@
 close, equity\
 Prints a "closing balances" transaction and an "opening balances" transaction
 that bring account balances to and from zero, respectively.
-Useful for bringing asset/liability balances forward into a new journal file,
-or for closing out revenues/expenses to retained earnings at the end of a
-period.
+These can be added to your journal file(s), eg to bring
+asset/liability balances forward into a new journal file, or to
+close out revenues/expenses to retained earnings at the end of a period.
 
 _FLAGS
 
-You can choose to print just one of the transactions by using the
+You can choose to print just one of these transactions by using the
 `--opening` or `--closing` flag.
 
-The closing transaction transfers balances to `equity:closing balances`,
-and the opening transaction transfers balances from `equity:opening balances`,
-by default. You can choose different account names with the
-`--close-to` and `--open-from` options. If you specify only one of
-these, it is used for both.
+One posting to `equity:opening/closing balances`,
+with an implicit amount, is added to balance these transactions,
+by default.
+You can choose different closing/opening account names with the
+`--close-to` and `--open-from` options. 
+If you specify only one, it is used for both.
 
-By default, a single balancing equity posting is added at the end of
-these journal entries, with the amount left implicit. 
+With `--x/--explicit`, the equity posting's amount will be shown.
+If it involves multiple commodities, a posting for each commodity 
+will be shown (like the print command).
 
-With `--x/--explicit`, the balancing amount is shown, and if
-multiple commodities are involved, multiple single-commodity equity
-postings are shown (like the print command).
-
-With `--interleaved`, the equity postings are shown next to each
-posting they balance, which can be better for troubleshooting (and can
-generate more postings).
+With `--interleaved`, the equity postings are shown next to the
+postings they balance, which makes troubleshooting easier.
+(It can also generate more postings.)
 
 By default, transaction prices in the journal are ignored when
 generating the closing/opening transactions.
