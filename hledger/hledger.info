@@ -2217,12 +2217,10 @@ revenues/expenses to retained earnings at the end of a period.
 or '--closing' flag.
 
    One amountless posting to 'equity:opening/closing balances' is added
-to balance the transactions, by default.
-
-   You can customise this account name with the '--close-to' and
-'--open-from' options.  If you specify only one, it is used for both.
-Similarly, you can customise the transaction descriptions with
-'--close-desc' and '--open-desc'.
+to balance the transactions, by default.  You can customise this account
+name with the '--close-to' and '--open-from' options.  (If you specify
+only one, it is used for both.)  Similarly, you can customise the
+transaction descriptions with '--close-desc' and '--open-desc'.
 
    With '--x/--explicit', the equity posting's amount will be shown.
 And if it involves multiple commodities, a posting for each commodity
