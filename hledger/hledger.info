@@ -2213,22 +2213,21 @@ These can be added to your journal file(s), eg to bring asset/liability
 balances forward into a new journal file, or to close out
 revenues/expenses to retained earnings at the end of a period.
 
-   You can print just one of these transactions by using the '--opening'
-or '--closing' flag.
+   You can print just one of these transactions by using the '--close'
+or '--open' flag.  You can customise their descriptions with the
+'--close-desc' and '--open-desc' options.
 
-   One amountless posting to 'equity:opening/closing balances' is added
+   One amountless posting to "equity:opening/closing balances" is added
 to balance the transactions, by default.  You can customise this account
-name with the '--close-to' and '--open-from' options.  (If you specify
-only one, it is used for both.)  Similarly, you can customise the
-transaction descriptions with '--close-desc' and '--open-desc'.
+name with '--close-acct' and '--open-acct'; if you specify only one of
+these, it will be used for both.
 
    With '--x/--explicit', the equity posting's amount will be shown.
 And if it involves multiple commodities, a posting for each commodity
-will be shown (as with the print command).
+will be shown, as with the print command.
 
    With '--interleaved', the equity postings are shown next to the
-postings they balance, which makes troubleshooting easier.  (It can also
-generate more postings.)
+postings they balance, which makes troubleshooting easier.
 
    By default, transaction prices in the journal are ignored when
 generating the closing/opening transactions.  With '--show-costs', this
@@ -2286,8 +2285,8 @@ command line:
    _Warning: we use '>>' here to append; be careful not to type a single
 '>' which would wipe your journal!_
 
-$ hledger close -f 2018.journal -e 2019 assets liabilities --opening >>2019.journal
-$ hledger close -f 2018.journal -e 2019 assets liabilities --closing >>2018.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --open >>2019.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --close >>2018.journal
 
    Now:
 
@@ -3320,76 +3319,76 @@ Node: check-dupes76317
 Ref: #check-dupes76441
 Node: close76734
 Ref: #close76848
-Node: close usage78430
-Ref: #close-usage78523
-Node: commodities81368
-Ref: #commodities81495
-Node: descriptions81577
-Ref: #descriptions81705
-Node: diff81886
-Ref: #diff81992
-Node: files83039
-Ref: #files83139
-Node: help83286
-Ref: #help83386
-Node: import84467
-Ref: #import84581
-Node: Importing balance assignments85474
-Ref: #importing-balance-assignments85622
-Node: incomestatement86271
-Ref: #incomestatement86404
-Node: notes87808
-Ref: #notes87921
-Node: payees88047
-Ref: #payees88153
-Node: prices88311
-Ref: #prices88417
-Node: print88758
-Ref: #print88868
-Node: print-unique93512
-Ref: #print-unique93638
-Node: register93923
-Ref: #register94050
-Node: Custom register output98222
-Ref: #custom-register-output98351
-Node: register-match99613
-Ref: #register-match99747
-Node: rewrite100098
-Ref: #rewrite100213
-Node: Re-write rules in a file102068
-Ref: #re-write-rules-in-a-file102202
-Node: Diff output format103412
-Ref: #diff-output-format103581
-Node: rewrite vs print --auto104673
-Ref: #rewrite-vs.-print---auto104852
-Node: roi105408
-Ref: #roi105506
-Node: stats106518
-Ref: #stats106617
-Node: tags107405
-Ref: #tags107503
-Node: test107797
-Ref: #test107881
-Node: ADD-ON COMMANDS108628
-Ref: #add-on-commands108738
-Node: Official add-ons110026
-Ref: #official-add-ons110166
-Node: ui110246
-Ref: #ui110333
-Node: web110387
-Ref: #web110476
-Node: Third party add-ons110522
-Ref: #third-party-add-ons110697
-Node: iadd110816
-Ref: #iadd110917
-Node: interest110999
-Ref: #interest111108
-Node: Experimental add-ons111203
-Ref: #experimental-add-ons111355
-Node: autosync111593
-Ref: #autosync111704
-Node: chart111943
-Ref: #chart112048
+Node: close usage78377
+Ref: #close-usage78470
+Node: commodities81310
+Ref: #commodities81437
+Node: descriptions81519
+Ref: #descriptions81647
+Node: diff81828
+Ref: #diff81934
+Node: files82981
+Ref: #files83081
+Node: help83228
+Ref: #help83328
+Node: import84409
+Ref: #import84523
+Node: Importing balance assignments85416
+Ref: #importing-balance-assignments85564
+Node: incomestatement86213
+Ref: #incomestatement86346
+Node: notes87750
+Ref: #notes87863
+Node: payees87989
+Ref: #payees88095
+Node: prices88253
+Ref: #prices88359
+Node: print88700
+Ref: #print88810
+Node: print-unique93454
+Ref: #print-unique93580
+Node: register93865
+Ref: #register93992
+Node: Custom register output98164
+Ref: #custom-register-output98293
+Node: register-match99555
+Ref: #register-match99689
+Node: rewrite100040
+Ref: #rewrite100155
+Node: Re-write rules in a file102010
+Ref: #re-write-rules-in-a-file102144
+Node: Diff output format103354
+Ref: #diff-output-format103523
+Node: rewrite vs print --auto104615
+Ref: #rewrite-vs.-print---auto104794
+Node: roi105350
+Ref: #roi105448
+Node: stats106460
+Ref: #stats106559
+Node: tags107347
+Ref: #tags107445
+Node: test107739
+Ref: #test107823
+Node: ADD-ON COMMANDS108570
+Ref: #add-on-commands108680
+Node: Official add-ons109968
+Ref: #official-add-ons110108
+Node: ui110188
+Ref: #ui110275
+Node: web110329
+Ref: #web110418
+Node: Third party add-ons110464
+Ref: #third-party-add-ons110639
+Node: iadd110758
+Ref: #iadd110859
+Node: interest110941
+Ref: #interest111050
+Node: Experimental add-ons111145
+Ref: #experimental-add-ons111297
+Node: autosync111535
+Ref: #autosync111646
+Node: chart111885
+Ref: #chart111990
 
 End Tag Table
 
