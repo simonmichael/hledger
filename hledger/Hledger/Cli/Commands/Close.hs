@@ -25,18 +25,24 @@ defopeningacct = defclosingacct
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["closing"]      (setboolopt "closing") "show just closing transaction"
-  ,flagNone ["opening"]      (setboolopt "opening") "show just opening transaction"
+  [flagNone ["close"]        (setboolopt "close") "show just closing transaction"
+  ,flagNone ["open"]         (setboolopt "open") "show just opening transaction"
   ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" ("description for closing transaction (default: "++defclosingdesc++")")
   ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" ("description for opening transaction (default: "++defopeningdesc++")")
-  ,flagReq  ["close-to"]     (\s opts -> Right $ setopt "close-to"   s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
-  ,flagReq  ["open-from"]    (\s opts -> Right $ setopt "open-from"  s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
+  ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
+  ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep equity and non-equity postings adjacent"
   ,flagNone ["show-costs"]   (setboolopt "show-costs") "keep balances with different costs separate"
   ]
   [generalflagsgroup1]
-  hiddenflags
+  (hiddenflags ++
+    -- old close flags for compatibility, hidden
+    [flagNone ["closing"] (setboolopt "close") "old spelling of --close"
+    ,flagNone ["opening"] (setboolopt "open") "old spelling of --open"
+    ,flagReq  ["close-to"]  (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" ("old spelling of --close-acct")
+    ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-acct" s opts) "ACCT" ("old spelling of --open-acct")
+    ])
   ([], Just $ argsFlag "[QUERY]")
 
 -- debugger, beware: close is incredibly devious. simple rules combine to make a horrid maze.
@@ -46,7 +52,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   let
     -- show opening entry, closing entry, or (default) both ?
     (opening, closing) =
-      case (boolopt "opening" rawopts, boolopt "closing" rawopts) of
+      case (boolopt "open" rawopts, boolopt "close" rawopts) of
         (False, False) -> (True, True)
         (o, c)         -> (o, c)
 
@@ -58,7 +64,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
     -- if only one is specified, it is used for both
     (closingacct, openingacct) =
       let (mc, mo) =
-            (T.pack <$> maybestringopt "close-to" rawopts, T.pack <$> maybestringopt "open-from" rawopts)
+            (T.pack <$> maybestringopt "close-acct" rawopts, T.pack <$> maybestringopt "open-acct" rawopts)
       in case (mc, mo) of
         (Just c, Just o)   -> (c, o)
         (Just c, Nothing)  -> (c, c)

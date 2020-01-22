@@ -7,14 +7,12 @@ close out revenues/expenses to retained earnings at the end of a period.
 
 _FLAGS
 
-You can print just one of these transactions by using the
-`--closing` or `--opening` flag.
-You can customise their descriptions with the
-`--close-desc` and `--open-desc` options.
+You can print just one of these transactions by using the `--close` or `--open` flag.
+You can customise their descriptions with the `--close-desc` and `--open-desc` options.
 
 One amountless posting to "equity:opening/closing balances" is added
 to balance the transactions, by default.
-You can customise this account name with `--close-to` and `--open-from`;
+You can customise this account name with `--close-acct` and `--open-acct`;
 if you specify only one of these, it will be used for both.
 
 With `--x/--explicit`, the equity posting's amount will be shown.
@@ -71,8 +69,8 @@ Carrying asset/liability balances into a new file for 2019, all from command lin
 *Warning: we use `>>` here to append; be careful not to type a single `>` which would wipe your journal!*
 
 ```shell
-$ hledger close -f 2018.journal -e 2019 assets liabilities --opening >>2019.journal
-$ hledger close -f 2018.journal -e 2019 assets liabilities --closing >>2018.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --open >>2019.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --close >>2018.journal
 ```
 
 Now:
