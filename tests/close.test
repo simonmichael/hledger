@@ -18,7 +18,7 @@
     liabilities         $25
     assets:cash
 
-$ hledger close -f- -p 2016 assets liabilities
+$ hledger close -f- -e 2017-01-01 assets liabilities
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
     assets:cash                                $-10 = $0
@@ -34,17 +34,17 @@ $ hledger close -f- -p 2016 assets liabilities
 >=0
 
 # 2. A begin date should be ignored
-<
-2017/1/1
-    (a)   1
-
-$ hledger close -f- -b2017/6/1 -e2018
-2017-12-31 closing balances
-    a                                            -1 = 0
+$ hledger close -f- -e 2017-01-01 assets liabilities -b 2016-12-01
+2016-12-31 closing balances
+    assets:bank                                $-80 = $0
+    assets:cash                                $-10 = $0
+    liabilities                                $-25 = $0
     equity:opening/closing balances
 
-2018-01-01 opening balances
-    a                                             1 = 1
+2017-01-01 opening balances
+    assets:bank                                 $80 = $80
+    assets:cash                                 $10 = $10
+    liabilities                                 $25 = $25
     equity:opening/closing balances
 
 >=0
@@ -78,24 +78,6 @@ $ hledger close -f- -p 2016 assets liabilities --opening
 >=0
 
 # 4. Print just the closing transaction. 
-<
-2016/1/1 open
-    assets:bank         $100
-    assets:cash         $20
-    equity:opening
-
-2016/1/15 spend
-    expenses:sweets     $5
-    assets:cash
-
-2016/1/19 withdraw
-    assets:cash         $20
-    assets:bank
-
-2016/1/20 lend
-    liabilities         $25
-    assets:cash
-
 $ hledger close -f- -p 2016 assets liabilities --closing
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
@@ -107,24 +89,6 @@ $ hledger close -f- -p 2016 assets liabilities --closing
 
 # 5. Supplying --opening --closing is the same as just "close"
 # Also -x makes it show the equity amounts.
-<
-2016/1/1 open
-    assets:bank         $100
-    assets:cash         $20
-    equity:opening
-
-2016/1/15 spend
-    expenses:sweets     $5
-    assets:cash
-
-2016/1/19 withdraw
-    assets:cash         $20
-    assets:bank
-
-2016/1/20 lend
-    liabilities         $25
-    assets:cash
-
 $ hledger close -f- -p 2016 assets liabilities --opening --closing -x
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
@@ -197,13 +161,6 @@ $ hledger -f- close assets -p 2019 -x
 >=0
 
 # 9. The same, with costs.
-<
-2019/01/01
-    (assets)                        1A @ 1B
-
-2019/01/02
-    (assets)                        1A @ 2B
-
 $ hledger -f- close assets -p 2019 --show-costs -x
 2019-12-31 closing balances
     assets                                 -1A @ 1B
