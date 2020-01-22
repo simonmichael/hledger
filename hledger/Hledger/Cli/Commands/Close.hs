@@ -42,11 +42,17 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
     (opening, closing) =
       case (boolopt "opening" rawopts, boolopt "closing" rawopts) of
         (False, False) -> (True, True)
-        (o, c) -> (o, c)
+        (o, c)         -> (o, c)
 
     -- accounts to close to and open from
-    closingacct = T.pack $ fromMaybe defclosingacct $ maybestringopt "close-to" rawopts
-    openingacct = T.pack $ fromMaybe defopeningacct $ maybestringopt "open-from" rawopts
+    -- if a name is specified for only one, it is used for both
+    (closingacct, openingacct) =
+      let (mc, mo) = (T.pack <$> maybestringopt "close-to" rawopts, T.pack <$> maybestringopt "open-from" rawopts)
+      in case (mc, mo) of
+        (Just c, Just o)   -> (c, o)
+        (Just c, Nothing)  -> (c, c)
+        (Nothing, Just o)  -> (o, o)
+        (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
 
     -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
     interleaved = boolopt "interleaved" rawopts

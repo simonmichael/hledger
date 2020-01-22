@@ -7,14 +7,21 @@ period.
 
 _FLAGS
 
-The closing transaction transfers balances to "equity:closing balances",
-and the opening transaction transfers balances from "equity:opening balances",
-or you can customise these with the `--close-to` and `--open-from` options.
 You can choose to print just one of the transactions by using the
 `--opening` or `--closing` flag.
 
-The equity postings appear at the end of the transaction by default; 
-with `--interleaved`, they appear beside their corresponding closing postings.
+The closing transaction transfers balances to `equity:closing balances`,
+and the opening transaction transfers balances from `equity:opening balances`,
+by default. You can choose different account names with the
+`--close-to` and `--open-from` options. If you specify only one of
+these, it is used for both.
+
+The "equity" postings are shown at the end of the transaction
+by default (and are combined when possible).
+With `--interleaved`, they are shown next to each posting they
+balance, instead (better for troubleshooting).
+
+### close usage
 
 If you split your journal files by time (eg yearly), you will
 typically run this command at the end of the year, and save the
