@@ -792,17 +792,9 @@ gencabal-with-hpack-%:
 # 	git commit -m "update cabal files" $(shell ls */*.cabal)
 
 # we call in shake for this job; so dependencies aren't checked here
-genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (might need -B) )
+genmanuals: Shake $(call def-help,genmanuals, regenerate CLI help files and manuals (might need -B) )
 	./Shake manuals
-
-# we call in shake for this job; so dependencies aren't checked here
-gencommandhelp: Shake
-	./Shake commandhelp
-
-updateembeddeddocs: genmanuals gencommandhelp $(call def-help,updatemanuals, regenerate embedded docs and commit (might need -B) )
-	@read -p "please review changes then press enter to commit $(shell ls hledger*/hledger*.{1,5,info,txt})"
-	git commit -m "update embedded docs" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
-
+	git commit -m ";doc: regen manuals" -m "[ci skip]" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
 
 # hackageupload-dry: \
 # 	$(call def-help,hackageupload-dry,\
