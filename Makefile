@@ -754,6 +754,7 @@ site: \
 		&& echo 'Please run "make Shake" first (manual compilation of Shake.hs is required)' \
 		|| ( \
 			echo; \
+			./Shake -V webmanuals; \
 			make -C site html; \
 		) 2>&1 | tee -a site.log
 
