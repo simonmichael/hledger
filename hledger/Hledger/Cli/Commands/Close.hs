@@ -27,10 +27,10 @@ closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
   [flagNone ["closing"]      (setboolopt "closing") "show just closing transaction"
   ,flagNone ["opening"]      (setboolopt "opening") "show just opening transaction"
-  ,flagReq  ["close-to"]     (\s opts -> Right $ setopt "close-to"   s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
-  ,flagReq  ["open-from"]    (\s opts -> Right $ setopt "open-from"  s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
   ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" ("description for closing transaction (default: "++defclosingdesc++")")
   ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" ("description for opening transaction (default: "++defopeningdesc++")")
+  ,flagReq  ["close-to"]     (\s opts -> Right $ setopt "close-to"   s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
+  ,flagReq  ["open-from"]    (\s opts -> Right $ setopt "open-from"  s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["interleaved"]  (setboolopt "interleaved") "keep equity and non-equity postings adjacent"
   ,flagNone ["show-costs"]   (setboolopt "show-costs") "keep balances with different costs separate"
@@ -50,6 +50,10 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
         (False, False) -> (True, True)
         (o, c)         -> (o, c)
 
+    -- descriptions to use for the closing/opening transactions
+    closingdesc = fromMaybe (T.pack defclosingdesc) $ T.pack <$> maybestringopt "close-desc" rawopts
+    openingdesc = fromMaybe (T.pack defopeningdesc) $ T.pack <$> maybestringopt "open-desc" rawopts
+
     -- accounts to close to and open from
     -- if only one is specified, it is used for both
     (closingacct, openingacct) =
@@ -60,17 +64,6 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
         (Just c, Nothing)  -> (c, c)
         (Nothing, Just o)  -> (o, o)
         (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
-
-    -- descriptions to use for the closing/opening transactions
-    -- if only one is specified, it is used for both
-    (closingdesc, openingdesc) =
-      let (mc, mo) =
-            (T.pack <$> maybestringopt "close-desc" rawopts, T.pack <$> maybestringopt "open-desc" rawopts)
-      in case (mc, mo) of
-        (Just c, Just o)   -> (c, o)
-        (Just c, Nothing)  -> (c, c)
-        (Nothing, Just o)  -> (o, o)
-        (Nothing, Nothing) -> (T.pack defclosingdesc, T.pack defopeningdesc)
 
     -- dates of the closing and opening transactions
     ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
