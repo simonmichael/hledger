@@ -12,9 +12,8 @@ You can print just one of these transactions by using the
 
 One amountless posting to `equity:opening/closing balances` is added
 to balance the transactions, by default.
-
 You can customise this account name with the `--close-to` and
-`--open-from` options. If you specify only one, it is used for both.
+`--open-from` options. (If you specify only one, it is used for both.)
 Similarly, you can customise the transaction descriptions with
 `--close-desc` and `--open-desc`.
 
