@@ -27,6 +27,7 @@ closemode = hledgerCommandMode
   ,flagNone ["opening"] (setboolopt "opening") "show just opening transaction"
   ,flagReq  ["close-to"] (\s opts -> Right $ setopt "close-to" s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
   ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-from" s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
+  ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["interleaved"] (setboolopt "interleaved") "keep equity and non-equity postings adjacent"
   ,flagNone ["show-costs"] (setboolopt "show-costs") "keep balances with different costs separate"
   ]
@@ -60,6 +61,9 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
     q = queryFromOpts today ropts_
     openingdate = fromMaybe today $ queryEndDate False q
     closingdate = addDays (-1) openingdate
+
+    -- should we show the amount(s) on the equity posting(s) ?
+    explicit = boolopt "explicit" rawopts
 
     -- should we preserve cost information ?
     normalise = case boolopt "show-costs" rawopts of
@@ -105,7 +109,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       
       -- or a final multicommodity posting transferring all balances to equity
       -- (print will show this as multiple single-commodity postings)
-      ++ [posting{paccount=closingacct, pamount=mapMixedAmount precise totalamt} | not interleaved]
+      ++ [posting{paccount=closingacct, pamount=if explicit then mapMixedAmount precise totalamt else missingmixedamt} | not interleaved]
 
     -- the opening transaction
     openingtxn = nulltransaction{tdate=openingdate, tdescription="opening balances", tpostings=openingps}
@@ -129,7 +133,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                            , let commoditysum = (sum bs)]
         , (b, mcommoditysum) <- bs'
         ]
-      ++ [posting{paccount=openingacct, pamount=mapMixedAmount precise $ negate totalamt} | not interleaved]
+      ++ [posting{paccount=openingacct, pamount=if explicit then mapMixedAmount precise (negate totalamt) else missingmixedamt} | not interleaved]
 
   -- print them
   when closing $ putStr $ showTransaction closingtxn

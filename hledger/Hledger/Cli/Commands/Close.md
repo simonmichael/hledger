@@ -16,18 +16,24 @@ by default. You can choose different account names with the
 `--close-to` and `--open-from` options. If you specify only one of
 these, it is used for both.
 
-The "equity" postings are shown at the end of the transaction
-by default (and are combined when possible).
-With `--interleaved`, they are shown next to each posting they
-balance, which is better for troubleshooting (and may generate more postings).
+By default, a single balancing equity posting is added at the end of
+these journal entries, with the amount left implicit. 
 
-When the balances being closed have cost information (because
-transaction prices were recorded), `--show-costs` will preserve it.
-Balances with different costs are closed/reopened separately,
-and balance -B reports will be unchanged after the transition.
-Note this can generate many postings, 
-if you have a lot of foreign currency or investment transactions.
-By default, transaction prices are ignored.
+With `--x/--explicit`, the balancing amount is shown, and if
+multiple commodities are involved, multiple single-commodity equity
+postings are shown (like the print command).
+
+With `--interleaved`, the equity postings are shown next to each
+posting they balance, which can be better for troubleshooting (and can
+generate more postings).
+
+By default, transaction prices in the journal are ignored when
+generating the closing/opening transactions.
+With `--show-costs`, this cost information is preserved,
+so that `balance -B` reports will be unchanged after the transition.
+Separate postings are generated for each cost in each commodity.
+Note this can generate very large journal entries, if you have many
+foreign currency or investment transactions.
 
 ### close usage
 

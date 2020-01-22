@@ -23,13 +23,13 @@ $ hledger close -f- -p 2016 assets liabilities
     assets:bank                        $-80 = $0
     assets:cash                        $-10 = $0
     liabilities                        $-25 = $0
-    equity:closing balances            $115
+    equity:closing balances
 
 2017-01-01 opening balances
     assets:bank                         $80 = $80
     assets:cash                         $10 = $10
     liabilities                         $25 = $25
-    equity:opening balances           $-115
+    equity:opening balances
 
 >=0
 
@@ -41,11 +41,11 @@ $ hledger close -f- -p 2016 assets liabilities
 $ hledger close -f- -b2017/6/1 -e2018
 2017-12-31 closing balances
     a                                    -1 = 0
-    equity:closing balances               1
+    equity:closing balances
 
 2018-01-01 opening balances
     a                                     1 = 1
-    equity:opening balances              -1
+    equity:opening balances
 
 >=0
 
@@ -73,11 +73,11 @@ $ hledger close -f- -p 2016 assets liabilities --opening
     assets:bank                         $80 = $80
     assets:cash                         $10 = $10
     liabilities                         $25 = $25
-    equity:opening balances           $-115
+    equity:opening balances
 
 >=0
 
-# 4. Print just the closing transaction
+# 4. Print just the closing transaction. 
 <
 2016/1/1 open
     assets:bank         $100
@@ -101,11 +101,12 @@ $ hledger close -f- -p 2016 assets liabilities --closing
     assets:bank                        $-80 = $0
     assets:cash                        $-10 = $0
     liabilities                        $-25 = $0
-    equity:closing balances            $115
+    equity:closing balances
 
 >=0
 
 # 5. Supplying --opening --closing is the same as just "close"
+# Also -x makes it show the equity amounts.
 <
 2016/1/1 open
     assets:bank         $100
@@ -124,7 +125,7 @@ $ hledger close -f- -p 2016 assets liabilities --closing
     liabilities         $25
     assets:cash
 
-$ hledger close -f- -p 2016 assets liabilities --opening --closing
+$ hledger close -f- -p 2016 assets liabilities --opening --closing -x
 2016-12-31 closing balances
     assets:bank                        $-80 = $0
     assets:cash                        $-10 = $0
@@ -146,7 +147,7 @@ $ hledger close -f- -p 2016 assets liabilities --opening --closing
     assets                          1A @ 1C
     equity
 
-$ hledger -f- close assets -p 2019
+$ hledger -f- close assets -p 2019 -x
 2019-12-31 closing balances
     assets                              -2A = 0A
     equity:closing balances              2A
@@ -160,7 +161,7 @@ $ hledger -f- close assets -p 2019
 # 7. With --show-costs, the transaction prices are preserved.
 # Only the last posting in each commodity gets a balance assertion (#1035).
 # Balance assertion amounts do not have a price.
-$ hledger -f- close assets -p 2019 --show-costs
+$ hledger -f- close assets -p 2019 --show-costs -x
 2019-12-31 closing balances
     assets                         -1A @ 1B
     assets                         -1A @ 1C = 0A
@@ -184,7 +185,7 @@ $ hledger -f- close assets -p 2019 --show-costs
 2019/01/02
     (assets)                        1A @ 2B
 
-$ hledger -f- close assets -p 2019
+$ hledger -f- close assets -p 2019 -x
 2019-12-31 closing balances
     assets                              -2A = 0A
     equity:closing balances              2A
@@ -203,7 +204,7 @@ $ hledger -f- close assets -p 2019
 2019/01/02
     (assets)                        1A @ 2B
 
-$ hledger -f- close assets -p 2019 --show-costs
+$ hledger -f- close assets -p 2019 --show-costs -x
 2019-12-31 closing balances
     assets                         -1A @ 1B
     assets                         -1A @ 2B = 0A
@@ -242,7 +243,7 @@ $ hledger -f- close assets -p 2019 --show-costs
     assets:bank                                2,836.00 EUR
     liabilities:employer
 
-$ hledger -f- close -p 2016 assets liabilities --show-costs
+$ hledger -f- close -p 2016 assets liabilities --show-costs -x
 2016-12-31 closing balances
     assets:bank                       -5,733.00 EUR = 0.00 EUR
     liabilities:employer                $-10,000.00
@@ -270,7 +271,7 @@ $ hledger -f- close -p 2016 assets liabilities --show-costs
 # 11. With --interleaved, each transfer's postings are adjacent.
 # (And balances with the same cost are not necessarily combined into
 # a single posting. Eg the 5734 EUR above is 5733 EUR and 1 EUR below.)
-$ hledger -f- close -p 2016 assets liabilities --interleaved --show-costs
+$ hledger -f- close -p 2016 assets liabilities --interleaved --show-costs -x
 2016-12-31 closing balances
     assets:bank                        -5,733.00 EUR = 0.00 EUR
     equity:closing balances             5,733.00 EUR
@@ -311,7 +312,7 @@ commodity AAA 0.00000000
     assets:usd                                   -$0.1280810
     expenses:banking                              $0.1280810
 
-$ hledger -f- close -p 2019 assets --show-costs
+$ hledger -f- close -p 2019 assets --show-costs -x
 2019-12-31 closing balances
     assets:aaa                              AAA -510.00000000 = AAA 0.00000000
     assets:usd                                        $-49.50
@@ -331,7 +332,7 @@ $ hledger -f- close -p 2019 assets --show-costs
 >=0
 
 # 13. The same, without costs and with --interleaved.
-$ hledger -f- close -p 2019 assets --interleaved
+$ hledger -f- close -p 2019 assets --interleaved -x
 2019-12-31 closing balances
     assets:aaa                 AAA -510.00000000 = AAA 0.00000000
     equity:closing balances     AAA 510.00000000
