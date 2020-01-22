@@ -2714,23 +2714,22 @@ These can be added to your journal file(s), eg to bring asset/liability
 balances forward into a new journal file, or to close out
 revenues/expenses to retained earnings at the end of a period.
 .PP
-You can choose to print just one of these transactions by using the
+You can print just one of these transactions by using the
 \f[C]--opening\f[R] or \f[C]--closing\f[R] flag.
 .PP
-One posting to \f[C]equity:opening/closing balances\f[R], with an
-implicit amount, is added to balance the transactions, by default.
+One amountless posting to \f[C]equity:opening/closing balances\f[R] is
+added to balance the transactions, by default.
 .PP
 You can customise this account name with the \f[C]--close-to\f[R] and
 \f[C]--open-from\f[R] options.
-(If you specify only one, it is used in both transactions.)
-.PP
+If you specify only one, it is used for both.
 Similarly, you can customise the transaction descriptions with
 \f[C]--close-desc\f[R] and \f[C]--open-desc\f[R].
 .PP
 With \f[C]--x/--explicit\f[R], the equity posting\[aq]s amount will be
 shown.
-If it involves multiple commodities, a posting for each commodity will
-be shown (as with the print command).
+And if it involves multiple commodities, a posting for each commodity
+will be shown (as with the print command).
 .PP
 With \f[C]--interleaved\f[R], the equity postings are shown next to the
 postings they balance, which makes troubleshooting easier.
