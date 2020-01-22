@@ -20,16 +20,16 @@
 
 $ hledger close -f- -p 2016 assets liabilities
 2016-12-31 closing balances
-    assets:bank                        $-80 = $0
-    assets:cash                        $-10 = $0
-    liabilities                        $-25 = $0
-    equity:closing balances
+    assets:bank                                $-80 = $0
+    assets:cash                                $-10 = $0
+    liabilities                                $-25 = $0
+    equity:opening/closing balances
 
 2017-01-01 opening balances
-    assets:bank                         $80 = $80
-    assets:cash                         $10 = $10
-    liabilities                         $25 = $25
-    equity:opening balances
+    assets:bank                                 $80 = $80
+    assets:cash                                 $10 = $10
+    liabilities                                 $25 = $25
+    equity:opening/closing balances
 
 >=0
 
@@ -40,12 +40,12 @@ $ hledger close -f- -p 2016 assets liabilities
 
 $ hledger close -f- -b2017/6/1 -e2018
 2017-12-31 closing balances
-    a                                    -1 = 0
-    equity:closing balances
+    a                                            -1 = 0
+    equity:opening/closing balances
 
 2018-01-01 opening balances
-    a                                     1 = 1
-    equity:opening balances
+    a                                             1 = 1
+    equity:opening/closing balances
 
 >=0
 
@@ -70,10 +70,10 @@ $ hledger close -f- -b2017/6/1 -e2018
 
 $ hledger close -f- -p 2016 assets liabilities --opening
 2017-01-01 opening balances
-    assets:bank                         $80 = $80
-    assets:cash                         $10 = $10
-    liabilities                         $25 = $25
-    equity:opening balances
+    assets:bank                                 $80 = $80
+    assets:cash                                 $10 = $10
+    liabilities                                 $25 = $25
+    equity:opening/closing balances
 
 >=0
 
@@ -98,10 +98,10 @@ $ hledger close -f- -p 2016 assets liabilities --opening
 
 $ hledger close -f- -p 2016 assets liabilities --closing
 2016-12-31 closing balances
-    assets:bank                        $-80 = $0
-    assets:cash                        $-10 = $0
-    liabilities                        $-25 = $0
-    equity:closing balances
+    assets:bank                                $-80 = $0
+    assets:cash                                $-10 = $0
+    liabilities                                $-25 = $0
+    equity:opening/closing balances
 
 >=0
 
@@ -127,16 +127,16 @@ $ hledger close -f- -p 2016 assets liabilities --closing
 
 $ hledger close -f- -p 2016 assets liabilities --opening --closing -x
 2016-12-31 closing balances
-    assets:bank                        $-80 = $0
-    assets:cash                        $-10 = $0
-    liabilities                        $-25 = $0
-    equity:closing balances            $115
+    assets:bank                                $-80 = $0
+    assets:cash                                $-10 = $0
+    liabilities                                $-25 = $0
+    equity:opening/closing balances            $115
 
 2017-01-01 opening balances
-    assets:bank                         $80 = $80
-    assets:cash                         $10 = $10
-    liabilities                         $25 = $25
-    equity:opening balances           $-115
+    assets:bank                                 $80 = $80
+    assets:cash                                 $10 = $10
+    liabilities                                 $25 = $25
+    equity:opening/closing balances           $-115
 
 >=0
 
@@ -149,12 +149,12 @@ $ hledger close -f- -p 2016 assets liabilities --opening --closing -x
 
 $ hledger -f- close assets -p 2019 -x
 2019-12-31 closing balances
-    assets                              -2A = 0A
-    equity:closing balances              2A
+    assets                                      -2A = 0A
+    equity:opening/closing balances              2A
 
 2020-01-01 opening balances
-    assets                               2A = 2A
-    equity:opening balances             -2A
+    assets                                       2A = 2A
+    equity:opening/closing balances             -2A
 
 >=0
 
@@ -163,16 +163,16 @@ $ hledger -f- close assets -p 2019 -x
 # Balance assertion amounts do not have a price.
 $ hledger -f- close assets -p 2019 --show-costs -x
 2019-12-31 closing balances
-    assets                         -1A @ 1B
-    assets                         -1A @ 1C = 0A
-    equity:closing balances         1A @ 1B
-    equity:closing balances         1A @ 1C
+    assets                                 -1A @ 1B
+    assets                                 -1A @ 1C = 0A
+    equity:opening/closing balances         1A @ 1B
+    equity:opening/closing balances         1A @ 1C
 
 2020-01-01 opening balances
-    assets                          1A @ 1B
-    assets                          1A @ 1C = 2A
-    equity:opening balances        -1A @ 1B
-    equity:opening balances        -1A @ 1C
+    assets                                  1A @ 1B
+    assets                                  1A @ 1C = 2A
+    equity:opening/closing balances        -1A @ 1B
+    equity:opening/closing balances        -1A @ 1C
 
 >=0
 
@@ -187,12 +187,12 @@ $ hledger -f- close assets -p 2019 --show-costs -x
 
 $ hledger -f- close assets -p 2019 -x
 2019-12-31 closing balances
-    assets                              -2A = 0A
-    equity:closing balances              2A
+    assets                                      -2A = 0A
+    equity:opening/closing balances              2A
 
 2020-01-01 opening balances
-    assets                               2A = 2A
-    equity:opening balances             -2A
+    assets                                       2A = 2A
+    equity:opening/closing balances             -2A
 
 >=0
 
@@ -206,16 +206,16 @@ $ hledger -f- close assets -p 2019 -x
 
 $ hledger -f- close assets -p 2019 --show-costs -x
 2019-12-31 closing balances
-    assets                         -1A @ 1B
-    assets                         -1A @ 2B = 0A
-    equity:closing balances         1A @ 1B
-    equity:closing balances         1A @ 2B
+    assets                                 -1A @ 1B
+    assets                                 -1A @ 2B = 0A
+    equity:opening/closing balances         1A @ 1B
+    equity:opening/closing balances         1A @ 2B
 
 2020-01-01 opening balances
-    assets                          1A @ 1B
-    assets                          1A @ 2B = 2A
-    equity:opening balances        -1A @ 1B
-    equity:opening balances        -1A @ 2B
+    assets                                  1A @ 1B
+    assets                                  1A @ 2B = 2A
+    equity:opening/closing balances        -1A @ 1B
+    equity:opening/closing balances        -1A @ 2B
 
 >=0
 
@@ -245,26 +245,26 @@ $ hledger -f- close assets -p 2019 --show-costs -x
 
 $ hledger -f- close -p 2016 assets liabilities --show-costs -x
 2016-12-31 closing balances
-    assets:bank                       -5,733.00 EUR = 0.00 EUR
-    liabilities:employer                $-10,000.00
-    liabilities:employer       $5,000.00 @ 0.93 EUR
-    liabilities:employer       $5,000.00 @ 0.95 EUR = $0.00
-    liabilities:employer                  -1.00 EUR = 0.00 EUR
-    equity:closing balances              $10,000.00
-    equity:closing balances    $-5,000.00 @ 0.93 EUR
-    equity:closing balances    $-5,000.00 @ 0.95 EUR
-    equity:closing balances            5,734.00 EUR
+    assets:bank                               -5,733.00 EUR = 0.00 EUR
+    liabilities:employer                        $-10,000.00
+    liabilities:employer               $5,000.00 @ 0.93 EUR
+    liabilities:employer               $5,000.00 @ 0.95 EUR = $0.00
+    liabilities:employer                          -1.00 EUR = 0.00 EUR
+    equity:opening/closing balances              $10,000.00
+    equity:opening/closing balances    $-5,000.00 @ 0.93 EUR
+    equity:opening/closing balances    $-5,000.00 @ 0.95 EUR
+    equity:opening/closing balances            5,734.00 EUR
 
 2017-01-01 opening balances
-    assets:bank                         5,733.00 EUR = 5,733.00 EUR
-    liabilities:employer                  $10,000.00
-    liabilities:employer       $-5,000.00 @ 0.93 EUR
-    liabilities:employer       $-5,000.00 @ 0.95 EUR = $0.00
-    liabilities:employer                    1.00 EUR = 1.00 EUR
-    equity:opening balances              $-10,000.00
-    equity:opening balances     $5,000.00 @ 0.93 EUR
-    equity:opening balances     $5,000.00 @ 0.95 EUR
-    equity:opening balances            -5,734.00 EUR
+    assets:bank                                 5,733.00 EUR = 5,733.00 EUR
+    liabilities:employer                          $10,000.00
+    liabilities:employer               $-5,000.00 @ 0.93 EUR
+    liabilities:employer               $-5,000.00 @ 0.95 EUR = $0.00
+    liabilities:employer                            1.00 EUR = 1.00 EUR
+    equity:opening/closing balances              $-10,000.00
+    equity:opening/closing balances     $5,000.00 @ 0.93 EUR
+    equity:opening/closing balances     $5,000.00 @ 0.95 EUR
+    equity:opening/closing balances            -5,734.00 EUR
 
 >=0
 
@@ -273,28 +273,28 @@ $ hledger -f- close -p 2016 assets liabilities --show-costs -x
 # a single posting. Eg the 5734 EUR above is 5733 EUR and 1 EUR below.)
 $ hledger -f- close -p 2016 assets liabilities --interleaved --show-costs -x
 2016-12-31 closing balances
-    assets:bank                        -5,733.00 EUR = 0.00 EUR
-    equity:closing balances             5,733.00 EUR
-    liabilities:employer                 $-10,000.00
-    equity:closing balances               $10,000.00
-    liabilities:employer        $5,000.00 @ 0.93 EUR
-    equity:closing balances    $-5,000.00 @ 0.93 EUR
-    liabilities:employer        $5,000.00 @ 0.95 EUR = $0.00
-    equity:closing balances    $-5,000.00 @ 0.95 EUR
-    liabilities:employer                   -1.00 EUR = 0.00 EUR
-    equity:closing balances                 1.00 EUR
+    assets:bank                                -5,733.00 EUR = 0.00 EUR
+    equity:opening/closing balances             5,733.00 EUR
+    liabilities:employer                         $-10,000.00
+    equity:opening/closing balances               $10,000.00
+    liabilities:employer                $5,000.00 @ 0.93 EUR
+    equity:opening/closing balances    $-5,000.00 @ 0.93 EUR
+    liabilities:employer                $5,000.00 @ 0.95 EUR = $0.00
+    equity:opening/closing balances    $-5,000.00 @ 0.95 EUR
+    liabilities:employer                           -1.00 EUR = 0.00 EUR
+    equity:opening/closing balances                 1.00 EUR
 
 2017-01-01 opening balances
-    assets:bank                         5,733.00 EUR = 5,733.00 EUR
-    equity:opening balances            -5,733.00 EUR
-    liabilities:employer                  $10,000.00
-    equity:opening balances              $-10,000.00
-    liabilities:employer       $-5,000.00 @ 0.93 EUR
-    equity:opening balances     $5,000.00 @ 0.93 EUR
-    liabilities:employer       $-5,000.00 @ 0.95 EUR = $0.00
-    equity:opening balances     $5,000.00 @ 0.95 EUR
-    liabilities:employer                    1.00 EUR = 1.00 EUR
-    equity:opening balances                -1.00 EUR
+    assets:bank                                 5,733.00 EUR = 5,733.00 EUR
+    equity:opening/closing balances            -5,733.00 EUR
+    liabilities:employer                          $10,000.00
+    equity:opening/closing balances              $-10,000.00
+    liabilities:employer               $-5,000.00 @ 0.93 EUR
+    equity:opening/closing balances     $5,000.00 @ 0.93 EUR
+    liabilities:employer               $-5,000.00 @ 0.95 EUR = $0.00
+    equity:opening/closing balances     $5,000.00 @ 0.95 EUR
+    liabilities:employer                            1.00 EUR = 1.00 EUR
+    equity:opening/closing balances                -1.00 EUR
 
 >=0
 
@@ -314,35 +314,35 @@ commodity AAA 0.00000000
 
 $ hledger -f- close -p 2019 assets --show-costs -x
 2019-12-31 closing balances
-    assets:aaa                              AAA -510.00000000 = AAA 0.00000000
-    assets:usd                                        $-49.50
-    assets:usd                 $49.390001 @ AAA 10.3528242505 = $0.00
-    equity:closing balances                            $49.50
-    equity:closing balances    $-49.390001 @ AAA 10.3528242505
-    equity:closing balances                  AAA 510.00000000
+    assets:aaa                                      AAA -510.00000000 = AAA 0.00000000
+    assets:usd                                                $-49.50
+    assets:usd                         $49.390001 @ AAA 10.3528242505 = $0.00
+    equity:opening/closing balances                            $49.50
+    equity:opening/closing balances    $-49.390001 @ AAA 10.3528242505
+    equity:opening/closing balances                  AAA 510.00000000
 
 2020-01-01 opening balances
-    assets:aaa                                AAA 510.00000000 = AAA 510.00000000
-    assets:usd                                          $49.50
-    assets:usd                 $-49.390001 @ AAA 10.3528242505 = $0.109999
-    equity:opening balances                            $-49.50
-    equity:opening balances     $49.390001 @ AAA 10.3528242505
-    equity:opening balances                  AAA -510.00000000
+    assets:aaa                                        AAA 510.00000000 = AAA 510.00000000
+    assets:usd                                                  $49.50
+    assets:usd                         $-49.390001 @ AAA 10.3528242505 = $0.109999
+    equity:opening/closing balances                            $-49.50
+    equity:opening/closing balances     $49.390001 @ AAA 10.3528242505
+    equity:opening/closing balances                  AAA -510.00000000
 
 >=0
 
 # 13. The same, without costs and with --interleaved.
 $ hledger -f- close -p 2019 assets --interleaved -x
 2019-12-31 closing balances
-    assets:aaa                 AAA -510.00000000 = AAA 0.00000000
-    equity:closing balances     AAA 510.00000000
-    assets:usd                        $-0.109999 = $0.00
-    equity:closing balances            $0.109999
+    assets:aaa                         AAA -510.00000000 = AAA 0.00000000
+    equity:opening/closing balances     AAA 510.00000000
+    assets:usd                                $-0.109999 = $0.00
+    equity:opening/closing balances            $0.109999
 
 2020-01-01 opening balances
-    assets:aaa                  AAA 510.00000000 = AAA 510.00000000
-    equity:opening balances    AAA -510.00000000
-    assets:usd                         $0.109999 = $0.109999
-    equity:opening balances           $-0.109999
+    assets:aaa                          AAA 510.00000000 = AAA 510.00000000
+    equity:opening/closing balances    AAA -510.00000000
+    assets:usd                                 $0.109999 = $0.109999
+    equity:opening/closing balances           $-0.109999
 
 >=0
