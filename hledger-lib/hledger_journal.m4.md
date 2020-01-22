@@ -959,17 +959,22 @@ account assets:bank:checking
 
 #### Account comments
 
-[Comments](#comments), beginning with a semicolon, optionally including [tags](journal.html#tags), 
-can be written after the account name, and/or on following lines. Eg:
+[Comments](#comments), beginning with a semicolon, can be added:
+
+- on the same line, **after two or more spaces**
+  (because ; is allowed in account names)
+- on the next lines, indented
+
+An example of both:
 ```journal
-account assets:bank:checking  ; a comment
-  ; another comment
-  ; acctno:12345, a tag
+account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
+  ; next-line comment
+  ; another with tag, acctno:12345 (not used yet)
 ``` 
 
-Tip: comments on the same line require hledger 1.12+. 
-If you need your journal to be compatible with older hledger versions,
-write comments on the next line instead.
+Same-line comments are not supported by Ledger, or hledger <1.13.
+
+<!-- Account comments may include [tags](journal.html#tags), though we don't yet use them for anything. -->
 
 #### Account subdirectives
 
