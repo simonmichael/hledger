@@ -99,6 +99,7 @@ module Hledger.Data.Amount (
   mapMixedAmount,
   normaliseMixedAmountSquashPricesForDisplay,
   normaliseMixedAmount,
+  mixedAmountStripPrices,
   -- ** arithmetic
   costOfMixedAmount,
   mixedAmountToCost,
