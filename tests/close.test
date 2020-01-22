@@ -237,7 +237,7 @@ $ hledger -f- close -p 2016 assets liabilities
 
 >=0
 
-# 9. With --interleaved, balanced posting pairs are adjacent.
+# 9. With --interleaved, each transfer's postings are adjacent.
 # (And balances with the same cost are not necessarily combined into
 # a single posting. Eg the 5734 EUR above is 5733 EUR and 1 EUR below.)
 $ hledger -f- close -p 2016 assets liabilities --interleaved

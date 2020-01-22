@@ -34,6 +34,7 @@ closemode = hledgerCommandMode
   ([], Just $ argsFlag "[QUERY]")
 
 -- debugger, beware: close is incredibly devious. simple rules combine to make a horrid maze.
+-- tests are in tests/close.test.
 close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   today <- getCurrentDay
   let
