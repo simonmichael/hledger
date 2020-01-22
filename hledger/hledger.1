@@ -2735,8 +2735,8 @@ postings they balance, which makes troubleshooting easier.
 .PP
 By default, transaction prices in the journal are ignored when
 generating the closing/opening transactions.
-With \f[C]--show-costs\f[R], this cost information is preserved, so that
-\f[C]balance -B\f[R] reports will be unchanged after the transition.
+With \f[C]--show-costs\f[R], this cost information is preserved
+(\f[C]balance -B\f[R] reports will be unchanged after the transition).
 Separate postings are generated for each cost in each commodity.
 Note this can generate very large journal entries, if you have many
 foreign currency or investment transactions.
@@ -2780,16 +2780,14 @@ will probably always require --auto.
 .PP
 Examples:
 .PP
-Carrying asset/liability balances into a new file for 2019, all from
-command line:
-.PP
-\f[I]Warning: we use \f[CI]>>\f[I] here to append; be careful not to
-type a single \f[CI]>\f[I] which would wipe your journal!\f[R]
+Carrying asset/liability balances into a new file for 2019:
 .IP
 .nf
 \f[C]
-$ hledger close -f 2018.journal -e 2019 assets liabilities --open >>2019.journal
-$ hledger close -f 2018.journal -e 2019 assets liabilities --close >>2018.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --open
+    # (copy/paste the output to the start of your 2019 journal file)
+$ hledger close -f 2018.journal -e 2019 assets liabilities --close
+    # (copy/paste the output to the end of your 2018 journal file)
 \f[R]
 .fi
 .PP

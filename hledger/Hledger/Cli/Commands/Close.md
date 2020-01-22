@@ -24,8 +24,8 @@ postings they balance, which makes troubleshooting easier.
 
 By default, transaction prices in the journal are ignored when
 generating the closing/opening transactions.
-With `--show-costs`, this cost information is preserved,
-so that `balance -B` reports will be unchanged after the transition.
+With `--show-costs`, this cost information is preserved
+(`balance -B` reports will be unchanged after the transition).
 Separate postings are generated for each cost in each commodity.
 Note this can generate very large journal entries, if you have many
 foreign currency or investment transactions.
@@ -64,13 +64,13 @@ will probably always require --auto.
 
 Examples:
 
-Carrying asset/liability balances into a new file for 2019, all from command line:
-
-*Warning: we use `>>` here to append; be careful not to type a single `>` which would wipe your journal!*
+Carrying asset/liability balances into a new file for 2019:
 
 ```shell
-$ hledger close -f 2018.journal -e 2019 assets liabilities --open >>2019.journal
-$ hledger close -f 2018.journal -e 2019 assets liabilities --close >>2018.journal
+$ hledger close -f 2018.journal -e 2019 assets liabilities --open
+    # (copy/paste the output to the start of your 2019 journal file)
+$ hledger close -f 2018.journal -e 2019 assets liabilities --close
+    # (copy/paste the output to the end of your 2018 journal file)
 ```
 
 Now:
