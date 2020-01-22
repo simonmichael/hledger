@@ -68,7 +68,7 @@ $ hledger close -f- -e 2017-01-01 assets liabilities -b 2016-12-01
     liabilities         $25
     assets:cash
 
-$ hledger close -f- -p 2016 assets liabilities --opening
+$ hledger close -f- -p 2016 assets liabilities --open
 2017-01-01 opening balances
     assets:bank                                 $80 = $80
     assets:cash                                 $10 = $10
@@ -78,7 +78,7 @@ $ hledger close -f- -p 2016 assets liabilities --opening
 >=0
 
 # 4. Print just the closing transaction. 
-$ hledger close -f- -p 2016 assets liabilities --closing
+$ hledger close -f- -p 2016 assets liabilities --close
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
     assets:cash                                $-10 = $0
@@ -87,9 +87,9 @@ $ hledger close -f- -p 2016 assets liabilities --closing
 
 >=0
 
-# 5. Supplying --opening --closing is the same as just "close"
+# 5. Supplying --open --close is the same as just "close"
 # Also -x makes it show the equity amounts.
-$ hledger close -f- -p 2016 assets liabilities --opening --closing -x
+$ hledger close -f- -p 2016 assets liabilities --open --close -x
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
     assets:cash                                $-10 = $0
