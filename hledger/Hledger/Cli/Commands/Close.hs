@@ -28,6 +28,7 @@ closemode = hledgerCommandMode
   ,flagReq  ["close-to"] (\s opts -> Right $ setopt "close-to" s opts) "ACCT" ("account to transfer closing balances to (default: "++defclosingacct++")")
   ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-from" s opts) "ACCT" ("account to transfer opening balances from (default: "++defopeningacct++")")
   ,flagNone ["interleaved"] (setboolopt "interleaved") "keep equity and non-equity postings adjacent"
+  ,flagNone ["show-costs"] (setboolopt "show-costs") "keep balances with different costs separate"
   ]
   [generalflagsgroup1]
   hiddenflags
@@ -54,22 +55,27 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
         (Nothing, Just o)  -> (o, o)
         (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
 
-    -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
-    interleaved = boolopt "interleaved" rawopts
-
-    -- since balance assertion amounts are required to be exact, the
-    -- amounts in opening/closing transactions should be too (#941, #1137)
-    precise = setFullPrecision
-
     -- dates of the closing and opening transactions
     ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
     q = queryFromOpts today ropts_
     openingdate = fromMaybe today $ queryEndDate False q
     closingdate = addDays (-1) openingdate
 
+    -- should we preserve cost information ?
+    normalise = case boolopt "show-costs" rawopts of
+                  True  -> normaliseMixedAmount
+                  False -> normaliseMixedAmount . mixedAmountStripPrices
+
     -- the balances to close
     (acctbals,_) = balanceReportFromMultiBalanceReport ropts_ q j
-    totalamt = sum $ map (\(_,_,_,b) -> normaliseMixedAmount b) acctbals
+    totalamt = sum $ map (\(_,_,_,b) -> normalise b) acctbals
+
+    -- since balance assertion amounts are required to be exact, the
+    -- amounts in opening/closing transactions should be too (#941, #1137)
+    precise = setFullPrecision
+
+    -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
+    interleaved = boolopt "interleaved" rawopts
 
     -- the closing transaction
     closingtxn = nulltransaction{tdate=closingdate, tdescription="closing balances", tpostings=closingps}
@@ -90,7 +96,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
 
         | -- get the balances for each commodity and transaction price
           (a,_,_,mb) <- acctbals
-        , let bs = amounts $ normaliseMixedAmount mb
+        , let bs = amounts $ normalise mb
           -- mark the last balance in each commodity with True
         , let bs' = concat [reverse $ zip (reverse bs) (True : repeat False)
                            | bs <- groupBy ((==) `on` acommodity) bs]
@@ -116,7 +122,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
         ++ [posting{paccount=openingacct, pamount=Mixed [precise $ negate b]} | interleaved]
 
         | (a,_,_,mb) <- acctbals
-        , let bs = amounts $ normaliseMixedAmount mb
+        , let bs = amounts $ normalise mb
           -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
         , let bs' = concat [reverse $ zip (reverse bs) (Just commoditysum : repeat Nothing)
                            | bs <- groupBy ((==) `on` acommodity) bs

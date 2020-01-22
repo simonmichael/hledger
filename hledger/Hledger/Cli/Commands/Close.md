@@ -19,7 +19,15 @@ these, it is used for both.
 The "equity" postings are shown at the end of the transaction
 by default (and are combined when possible).
 With `--interleaved`, they are shown next to each posting they
-balance, instead (better for troubleshooting).
+balance, which is better for troubleshooting (and may generate more postings).
+
+When the balances being closed have cost information (because
+transaction prices were recorded), `--show-costs` will preserve it.
+Balances with different costs are closed/reopened separately,
+and balance -B reports will be unchanged after the transition.
+Note this can generate many postings, 
+if you have a lot of foreign currency or investment transactions.
+By default, transaction prices are ignored.
 
 ### close usage
 
@@ -52,10 +60,6 @@ realness filters (like -C or -R or `status:`) with this command, or
 the generated balance assertions will depend on these flags.
 Likewise, if you run this command with --auto, the balance assertions
 will probably always require --auto.
-
-When account balances have cost information (transaction prices), the 
-closing/opening transactions will preserve it, so that eg balance -B reports
-will not be affected.
 
 Examples:
 
