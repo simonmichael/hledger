@@ -7,21 +7,19 @@ close out revenues/expenses to retained earnings at the end of a period.
 
 _FLAGS
 
-You can choose to print just one of these transactions by using the
+You can print just one of these transactions by using the
 `--opening` or `--closing` flag.
 
-One posting to `equity:opening/closing balances`, with an implicit
-amount, is added to balance the transactions, by default.
+One amountless posting to `equity:opening/closing balances` is added
+to balance the transactions, by default.
 
 You can customise this account name with the `--close-to` and
-`--open-from` options. (If you specify only one, it is used in both
-transactions.)
-
+`--open-from` options. If you specify only one, it is used for both.
 Similarly, you can customise the transaction descriptions with
 `--close-desc` and `--open-desc`.
 
 With `--x/--explicit`, the equity posting's amount will be shown.
-If it involves multiple commodities, a posting for each commodity 
+And if it involves multiple commodities, a posting for each commodity 
 will be shown (as with the print command).
 
 With `--interleaved`, the equity postings are shown next to the
