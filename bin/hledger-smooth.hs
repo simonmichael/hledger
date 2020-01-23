@@ -8,6 +8,7 @@
 -}
 --   --package hledger-lib
 -- Experimental; not guaranteed to work or be useful.
+-- This is an unfinished prototype, see https://github.com/simonmichael/hledger/issues/1171
 -- Requires a contemporaneous version of the hledger package.
 -- Requires journal entries to be sorted by date.
 -- Run it inside an up to date hledger source tree, eg: bin/hledger-smooth.hs ACCT
