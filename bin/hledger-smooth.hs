@@ -7,6 +7,7 @@
    --package time
 -}
 --   --package hledger-lib
+-- Experimental; not guaranteed to work or be useful.
 -- Requires latest hledger/hledger-lib from master.
 -- Run it inside an up to date hledger source tree, eg: bin/hledger-smooth.hs ACCT
 -- Or add bin/ to $PATH and [stack ghc bin/hledger-smooth;] hledger smooth ACCT
@@ -132,7 +133,4 @@ postingSetDate md p@Posting{ptags,pcomment} = p{pdate=md, ptags=ptags'', pcommen
 
     pcomment' = case md of
                   Nothing -> pcomment
-                  Just d  -> pcomment `add` T.pack ("date:"++show d)
-      where
-        c1 `add` c2 | T.head c1 == '\n' = c2 <> c1
-        c1 `add` c2                     = c1 <> c2
+                  Just d  -> commentAddTag pcomment ("date:", T.pack $ show d)
