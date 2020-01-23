@@ -59,7 +59,7 @@ main = do
   let copts' = copts{
         -- One of our postings will probably have a missing amount; this ensures it's
         -- explicit on all the others.
-        rawopts_=("explicit",""):rawopts_
+        rawopts_=setboolopt "explicit" rawopts_
         -- Don't let our ACCT argument be interpreted as a query by print
         ,reportopts_=ropts{query_=""}
         }
