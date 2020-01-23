@@ -2,10 +2,10 @@
 {- stack runghc --verbosity info
    --package hledger-lib
    --package hledger
-   --package here
+   --package safe
+   --package string-qq
    --package text
    --package time
-   --package safe
 -}
 -- Requires latest hledger/hledger-lib from master.
 -- Run it inside an up to date hledger source tree, eg: bin/hledger-smooth.hs ACCT
@@ -18,7 +18,7 @@
 
 import Data.List
 import Data.Maybe
-import Data.String.Here
+import Data.String.QQ (s)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
@@ -27,7 +27,7 @@ import Hledger.Cli
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
-  [here| smooth
+  [s| smooth
 Like the print command, but splits any posting to ACCT (a full account name)
 into multiple daily postings having a similar overall effect.
 
