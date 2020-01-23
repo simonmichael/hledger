@@ -1,12 +1,12 @@
 #!/usr/bin/env stack
 {- stack runghc --verbosity info
-   --package hledger-lib
    --package hledger
    --package safe
    --package string-qq
    --package text
    --package time
 -}
+--   --package hledger-lib
 -- Requires latest hledger/hledger-lib from master.
 -- Run it inside an up to date hledger source tree, eg: bin/hledger-smooth.hs ACCT
 -- Or add bin/ to $PATH and [stack ghc bin/hledger-smooth;] hledger smooth ACCT
@@ -14,7 +14,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wall -Wno-missing-signatures -Wno-name-shadowing #-}
 
 import Data.List
 import Data.Maybe
@@ -22,7 +22,7 @@ import Data.String.QQ (s)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
-import Hledger
+-- import Hledger
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
