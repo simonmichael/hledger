@@ -8,7 +8,8 @@
 -}
 --   --package hledger-lib
 -- Experimental; not guaranteed to work or be useful.
--- Requires latest hledger/hledger-lib from master.
+-- Requires a contemporaneous version of the hledger package.
+-- Requires journal entries to be sorted by date.
 -- Run it inside an up to date hledger source tree, eg: bin/hledger-smooth.hs ACCT
 -- Or add bin/ to $PATH and [stack ghc bin/hledger-smooth;] hledger smooth ACCT
 
@@ -105,9 +106,10 @@ splitPosting acct dates p@Posting{paccount,pamount}
     start = dbg4 "start" $ postingDate p
     (end, dates') =
       case dbg4 "dates" dates of
-        (d1:d2:ds) -> if d1==start then (d2, d2:ds) else error' "splitPosting got wrong date, should not happen"
+        -- XXX fragile, breaks if transactions are not date-ordered
+        (d1:d2:ds) -> if d1==start then (d2, d2:ds) else error' "splitPosting got wrong date, should not happen (maybe sort your transactions by date)"
         [d]        -> (d, [])
-        []         -> error' "splitPosting ran out of dates, should not happen"
+        []         -> error' "splitPosting ran out of dates, should not happen (maybe sort your transactions by date)"
     days = initSafe [start..end]
     amt  = (fromIntegral $ length days) `divideMixedAmount` pamount
     -- give one of the postings an exact balancing amount to ensure the transaction is balanced
