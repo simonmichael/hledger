@@ -211,14 +211,14 @@ main = do
       infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
 
       -- manuals as web-ready markdown, written into the website for Sphinx (site/hledger.md)
-      webmanuals = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
+      webmanuals = ["site" </> manpageNameToWebManualName m <.> "md" | m <- manpageNames]
 
       -- -- latest version of the manuals rendered to html (site/_site/hledger.html)
-      -- htmlmanuals = ["site/_site" </> manpageNameToUri m <.> "html" | m <- manpageNames]
+      -- htmlmanuals = ["site/_site" </> manpageNameToWebManualName m <.> "html" | m <- manpageNames]
 
       -- -- old versions of the manuals rendered to html (site/_site/doc/1.14/hledger.html)
       -- oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
-      --   [ v </> manpageNameToUri p | v <- docversions, v>="1.0", p <- manpageNames ++ ["manual"] ] ++
+      --   [ v </> manpageNameToWebManualName p | v <- docversions, v>="1.0", p <- manpageNames ++ ["manual"] ] ++
       --   [ v </> "manual"           | v <- docversions, v <"1.0" ]  -- before 1.0 there was only the combined manual
 
       -- the html for website pages kept in the main repo
@@ -241,15 +241,15 @@ main = do
         | '_' `elem` m = "hledger-lib"
         | otherwise    = m
 
-      -- The URI corresponding to this man page.
+      -- The web manual name (& URI "slug") corresponding to this man page.
       -- hledger.1 -> hledger, hledger_journal.5 -> journal
-      manpageNameToUri m | "hledger_" `isPrefixOf` m = dropExtension $ drop 8 m
-                         | otherwise                 = dropExtension m
+      manpageNameToWebManualName m | "hledger_" `isPrefixOf` m = dropExtension $ drop 8 m
+                                   | otherwise                 = dropExtension m
 
-      -- The man page corresponding to this URI.
+      -- The man page corresponding to this web manual name.
       -- hledger -> hledger.1, journal -> hledger_journal.5
-      manpageUriToName u | "hledger" `isPrefixOf` u = u <.> "1"
-                         | otherwise                = "hledger_" ++ u <.> "5"
+      webManualNameToManpageName u | "hledger" `isPrefixOf` u = u <.> "1"
+                                   | otherwise                = "hledger_" ++ u <.> "5"
 
     -- MANUALS
 
