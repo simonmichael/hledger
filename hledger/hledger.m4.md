@@ -30,8 +30,6 @@ hledger - a command-line accounting tool
 # DESCRIPTION
 
 _hledgerdescription_
-Tested on unix, mac, windows, hledger aims to be a reliable, practical
-tool for daily use.
 }})
 
 This is hledger’s command-line interface (there are also terminal and web

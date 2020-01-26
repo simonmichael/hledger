@@ -192,7 +192,7 @@ _optionnotes_
 m4_dnl
 m4_dnl A standard description of hledger.
 m4_define({{_hledgerdescription_}}, {{
-hledger is a cross-platform program for tracking money, time, or any other commodity,
+hledger is a reliable, cross-platform set of programs for tracking money, time, or any other commodity,
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1). }} )m4_dnl
 m4_dnl
