@@ -735,7 +735,7 @@ haddock: \
 
 site-watch: Shake
 		$(call def-help,site-watch, open a browser on the website (in ./site) and rerender/reload when manuals or site content changes  )
-	(ls $(DOCSOURCEFILES) | entr ./Shake manuals) &
+	(ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals) &
 	make -C site html-watch
 
 # This rule, for updating the live hledger.org site, gets called by:
