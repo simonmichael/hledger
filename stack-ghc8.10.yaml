@@ -1,49 +1,61 @@
-# stack build plan using GHC 8.10.1 alpha
+# stack build plan using GHC 8.10
 
-# https://gist.github.com/DanBurton/277f5fd807711816a3422f03a9fa2723
+###############################################################################
+# from https://github.com/DanBurton/stack-setup-info-gen/tree/master/output:
 setup-info:
   ghc:
     linux-aarch64:
-        8.10.0.20191210:
-            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-aarch64-deb9-linux.tar.xz"
-            content-length: 309712944
-            sha1: 6ef4b668b88420a7a6f8fae5e7cd9006433430b5
-            sha256: 62202ef25ffd119ab0b7581ed69ddefb2b63dd31fae692a794224d6caba2d3f7
+        8.10.0.20200123:
+            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-aarch64-deb9-linux.tar.xz"
+            content-length: 313129184
+            sha1: d7f049bfc0a56b794bb854b82a929ec6c46fd638
+            sha256: 8fae7fc2ef938b8db362d593ccc73518c61aff05d7ed7bfca26bae46b8b09daf
     linux32:
-        8.10.0.20191210:
-            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-i386-deb9-linux.tar.xz"
-            content-length: 213198656
-            sha1: 1b1634a8f49edce38b52dbd2456078b272054c43
-            sha256: c9238f1cfb387cca9dbf9bb1c8d1b4b7fe95a35032f7a6bc9f843e9fa7d0b6d3
+        8.10.0.20200123:
+            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-i386-deb9-linux.tar.xz"
+            content-length: 215831016
+            sha1: 8cb0e46bffb0f688d7aa3fd66548ee466545ae25
+            sha256: a9bdcc1db4968a6a48ff9aa5387536a1241dcb1dd72cc5e958c2a3b54aed07bf
     macosx:
-        8.10.0.20191210:
-            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-apple-darwin.tar.xz"
-            content-length: 190941304
-            sha1: b52a936eef8ec530168b7c6d8a742b22a0547a58
-            sha256: 1afbb13e81bf1bd36135f5440058bd62d3544d4d8376426a0976f38e30e21185
+        8.10.0.20200123:
+            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-apple-darwin.tar.xz"
+            content-length: 193201644
+            sha1: dd7a767d5a4af03884ac8f8c9f953485a77fd285
+            sha256: cc90bfc5d070fdce747e0914f10ad1eb4155e396ad20772ccaacb4db8eed33f9
     linux64-gmp4:
-        8.10.0.20191210:
-            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-centos7-linux.tar.xz"
-            content-length: 198483272
-            sha1: 3257fe41aa8e80321df5227d9b9798428d31f798
-            sha256: f66059adad117a6147f6e5e8004fa06340afc5386dec3d8e333d44359a97b77d
+        8.10.0.20200123:
+            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-centos7-linux.tar.xz"
+            content-length: 200871736
+            sha1: 4e86ed77cfae5d21d1c338ff724242f6a6d93fb3
+            sha256: dba5ffccdbc9a1d02c1d5bda45fb213b7f6f064ca95997b517d00564e42a8fa3
+    linux64:
+        8.10.0.20200123:
+            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-deb9-linux.tar.xz"
+            content-length: 212518484
+            sha1: ce8654b08c846e462b33ed82c75ece13751aed0b
+            sha256: 86482e2325e8b9b53acfa2a362aac3d5e058b22be94707bce77acfc7802ed1bd
     linux64-tinfo6:
-        8.10.0.20191210:
-            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-fedora27-linux.tar.xz"
-            content-length: 212211832
-            sha1: e17a202c6ac88827ad0ddb513cdf310c0d7f2cd2
-            sha256: 99ca9d12c7a1205d7cbc619901d8e5ff8a19c0a0365ff5475ab18d67b30879bf
+        8.10.0.20200123:
+            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-fedora27-linux.tar.xz"
+            content-length: 214915000
+            sha1: 8f964bfecfb3158b4ffe5d425ee3435837993f3c
+            sha256: 6d071fc7deaeffd1c5af42c5537cf5f0a69fb0b50bb6529c76fd15834d712fd6
     windows64:
-        8.10.0.20191210:
-            url: "https://downloads.haskell.org/ghc/8.10.1-alpha2/ghc-8.10.0.20191210-x86_64-unknown-mingw32.tar.xz"
-            content-length: 425305856
-            sha1: d6d5a0ab35f4f1cc67e05bddd66083d27e9a0b63
-            sha256: 69632fa8928e513d71b857e96551f5ff7af74ca590ea990944fe0a2063a68a71
+        8.10.0.20200123:
+            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-unknown-mingw32.tar.xz"
+            content-length: 427515084
+            sha1: 3f3f4a9b6f0c406a959c0c0ac8077991583330eb
+            sha256: 025ffced9915464433bccfd5e8e5074508376d8e0897e765d4174233c149f796
 
-compiler: ghc-8.10.0.20191210
+resolver: ghc-8.10.0.20200123
+compiler: ghc-8.10.0.20200123
+compiler-check: match-exact
+###############################################################################
+
+
 allow-newer: true
 
-resolver: nightly-2019-11-28
+resolver: nightly-2020-01-25
 
 packages:
 - hledger-lib
@@ -57,7 +69,6 @@ nix:
 
 extra-deps:
 # for hledger-lib:
-- file-embed-0.0.11.1
 # for hledger:
 # 2.0.23 + ghc 8.10. Updates: http://hackage.haskell.org/package/shakespeare/changelog
 - git: https://github.com/simonmichael/shakespeare.git
@@ -71,8 +82,3 @@ extra-deps:
   commit: 91a47ffb76c6244bb2ec9cf10f742dd75c0ad92d
   subdirs:
     - yesod-core
-# 2.10.5 + ghc 8.10. Updates: http://hackage.haskell.org/package/persistent-sqlite/changelog
-- git: https://github.com/simonmichael/persistent.git
-  commit: b35c287904647ec889340c5c7fdbd62c6ad4dc31
-  subdirs:
-    - persistent-sqlite
