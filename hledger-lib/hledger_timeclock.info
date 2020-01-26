@@ -7,12 +7,14 @@ File: hledger_timeclock.info,  Node: Top,  Up: (dir)
 hledger_timeclock(5) hledger 1.16.99
 ************************************
 
-hledger can read timeclock files.  As with Ledger, these are (a subset
-of) timeclock.el's format, containing clock-in and clock-out entries as
-in the example below.  The date is a simple date.  The time format is
-HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.  The timezone, if
-present, must be four digits and is ignored (currently the time is
-always interpreted as a local time).
+Timeclock - the time logging format of timeclock.el, as read by hledger
+
+   hledger can read timeclock files.  As with Ledger, these are (a
+subset of) timeclock.el's format, containing clock-in and clock-out
+entries as in the example below.  The date is a simple date.  The time
+format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.  The
+timezone, if present, must be four digits and is ignored (currently the
+time is always interpreted as a local time).
 
 i 2015/03/30 09:00:00 some:account name  optional description after two spaces
 o 2015/03/30 09:20:00

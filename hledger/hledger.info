@@ -6,7 +6,18 @@ File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 hledger(1) hledger 1.16.99
 **************************
 
-This is hledger's command-line interface (there are also terminal and
+hledger - a command-line accounting tool
+
+   'hledger [-f FILE] COMMAND [OPTIONS] [ARGS]'
+'hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]'
+'hledger'
+
+   hledger is a reliable, cross-platform set of programs for tracking
+money, time, or any other commodity, using double-entry accounting and a
+simple, editable file format.  hledger is inspired by and largely
+compatible with ledger(1).
+
+   This is hledger's command-line interface (there are also terminal and
 web interfaces).  Its basic function is to read a plain text file
 describing financial transactions (in accounting terms, a general
 journal) and print useful reports on standard output, or export them as
@@ -48,6 +59,10 @@ try some commands like 'hledger print' or 'hledger balance'.  Run
 * QUERIES::
 * COMMANDS::
 * ADD-ON COMMANDS::
+* ENVIRONMENT::
+* FILES::
+* LIMITATIONS::
+* TROUBLESHOOTING::
 
 
 File: hledger.info,  Node: EXAMPLES,  Next: OPTIONS,  Prev: Top,  Up: Top
@@ -3080,7 +3095,7 @@ $ hledger test -- -pData.Amount --color=never
 ('-- --help' currently doesn't show them).
 
 
-File: hledger.info,  Node: ADD-ON COMMANDS,  Prev: COMMANDS,  Up: Top
+File: hledger.info,  Node: ADD-ON COMMANDS,  Next: ENVIRONMENT,  Prev: COMMANDS,  Up: Top
 
 5 ADD-ON COMMANDS
 *****************
@@ -3214,179 +3229,302 @@ File: hledger.info,  Node: chart,  Prev: autosync,  Up: Experimental add-ons
 hledger-chart.hs is an old very basic pie chart generator.
 
 
+File: hledger.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: ADD-ON COMMANDS,  Up: Top
+
+6 ENVIRONMENT
+*************
+
+*COLUMNS* The screen width used by the register command.  Default: the
+full terminal width.
+
+   *LEDGER_FILE* The journal file path when not specified with '-f'.
+Default: '~/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').
+
+
+File: hledger.info,  Node: FILES,  Next: LIMITATIONS,  Prev: ENVIRONMENT,  Up: Top
+
+7 FILES
+*******
+
+Reads data from one or more files in hledger journal, timeclock,
+timedot, or CSV format specified with '-f', or '$LEDGER_FILE', or
+'$HOME/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').
+
+
+File: hledger.info,  Node: LIMITATIONS,  Next: TROUBLESHOOTING,  Prev: FILES,  Up: Top
+
+8 LIMITATIONS
+*************
+
+The need to precede addon command options with '--' when invoked from
+hledger is awkward.
+
+   When input data contains non-ascii characters, a suitable system
+locale must be configured (or there will be an unhelpful error).  Eg on
+POSIX, set LANG to something other than C.
+
+   In a Microsoft Windows CMD window, non-ascii characters and colours
+are not supported.
+
+   On Windows, non-ascii characters may not display correctly when
+running a hledger built in CMD in MSYS/CYGWIN, or vice-versa.
+
+   In a Cygwin/MSYS/Mintty window, the tab key is not supported in
+hledger add.
+
+   Not all of Ledger's journal file syntax is supported.  See file
+format differences.
+
+   On large data files, hledger is slower and uses more memory than
+Ledger.
+
+
+File: hledger.info,  Node: TROUBLESHOOTING,  Prev: LIMITATIONS,  Up: Top
+
+9 TROUBLESHOOTING
+*****************
+
+Here are some issues you might encounter when you run hledger (and
+remember you can also seek help from the IRC channel, mail list or bug
+tracker):
+
+   *Successfully installed, but "No command 'hledger' found"*
+stack and cabal install binaries into a special directory, which should
+be added to your PATH environment variable.  Eg on unix-like systems,
+that is ~/.local/bin and ~/.cabal/bin respectively.
+
+   *I set a custom LEDGER_FILE, but hledger is still using the default
+file*
+'LEDGER_FILE' should be a real environment variable, not just a shell
+variable.  The command 'env | grep LEDGER_FILE' should show it.  You may
+need to use 'export'.  Here's an explanation.
+
+   *"Illegal byte sequence" or "Invalid or incomplete multibyte or wide
+character" errors*
+In order to handle non-ascii letters and symbols (like £), hledger needs
+an appropriate locale.  This is usually configured system-wide; you can
+also configure it temporarily.  The locale may need to be one that
+supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
+I'm not sure yet).
+
+   Here's an example of setting the locale temporarily, on ubuntu
+gnu/linux:
+
+$ file my.journal
+my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
+$ locale -a
+C
+en_US.utf8                             # <- a UTF8-aware locale is available
+POSIX
+$ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+
+   Here's one way to set it permanently, there are probably better ways:
+
+$ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+$ bash --login
+
+   If we preferred to use eg 'fr_FR.utf8', we might have to install that
+first:
+
+$ apt-get install language-pack-fr
+$ locale -a
+C
+en_US.utf8
+fr_BE.utf8
+fr_CA.utf8
+fr_CH.utf8
+fr_FR.utf8
+fr_LU.utf8
+POSIX
+$ LANG=fr_FR.utf8 hledger -f my.journal print
+
+   Note some platforms allow variant locale spellings, but not all
+(ubuntu accepts 'fr_FR.UTF8', mac osx requires exactly 'fr_FR.UTF-8').
+
+
 Tag Table:
 Node: Top68
-Node: EXAMPLES1893
-Ref: #examples1993
-Node: OPTIONS3639
-Ref: #options3741
-Node: General options4140
-Ref: #general-options4265
-Node: Command options6964
-Ref: #command-options7115
-Node: Command arguments7513
-Ref: #command-arguments7667
-Node: Argument files7788
-Ref: #argument-files7964
-Node: Special characters in arguments and queries8720
-Ref: #special-characters-in-arguments-and-queries8954
-Node: More escaping9405
-Ref: #more-escaping9567
-Node: Even more escaping9863
-Ref: #even-more-escaping10057
-Node: Less escaping10728
-Ref: #less-escaping10890
-Node: Command line tips11135
-Ref: #command-line-tips11321
-Node: Unicode characters11698
-Ref: #unicode-characters11854
-Node: Input files13266
-Ref: #input-files13402
-Node: Smart dates15331
-Ref: #smart-dates15472
-Node: Report start & end date16878
-Ref: #report-start-end-date17050
-Node: Report intervals18474
-Ref: #report-intervals18639
-Node: Period expressions19029
-Ref: #period-expressions19189
-Node: Depth limiting23144
-Ref: #depth-limiting23288
-Node: Pivoting23630
-Ref: #pivoting23753
-Node: Valuation25429
-Ref: #valuation25558
-Node: -B Cost25738
-Ref: #b-cost25849
-Node: -V Market value26047
-Ref: #v-market-value26221
-Node: -X Market value in specified commodity27653
-Ref: #x-market-value-in-specified-commodity27892
-Node: --value Flexible valuation28068
-Ref: #value-flexible-valuation28294
-Node: Effect of --value on reports32484
-Ref: #effect-of---value-on-reports32700
-Node: Combining -B -V -X --value37631
-Ref: #combining--b--v--x---value37814
-Node: Output destination37850
-Ref: #output-destination38002
-Node: Output format38285
-Ref: #output-format38437
-Node: Regular expressions38822
-Ref: #regular-expressions38959
-Node: QUERIES40320
-Ref: #queries40422
-Node: COMMANDS44384
-Ref: #commands44496
-Node: accounts45560
-Ref: #accounts45658
-Node: activity46357
-Ref: #activity46467
-Node: add46850
-Ref: #add46949
-Node: balance49688
-Ref: #balance49799
-Node: Classic balance report51257
-Ref: #classic-balance-report51430
-Node: Customising the classic balance report52799
-Ref: #customising-the-classic-balance-report53027
-Node: Colour support55103
-Ref: #colour-support55270
-Node: Flat mode55443
-Ref: #flat-mode55591
-Node: Depth limited balance reports56004
-Ref: #depth-limited-balance-reports56189
-Node: Percentages56645
-Ref: #percentages56811
-Node: Multicolumn balance report57948
-Ref: #multicolumn-balance-report58128
-Node: Budget report63442
-Ref: #budget-report63585
-Node: Nested budgets68787
-Ref: #nested-budgets68899
-Ref: #output-format-172380
-Node: balancesheet72458
-Ref: #balancesheet72594
-Node: balancesheetequity73977
-Ref: #balancesheetequity74126
-Node: cashflow74687
-Ref: #cashflow74815
-Node: check-dates75911
-Ref: #check-dates76038
-Node: check-dupes76317
-Ref: #check-dupes76441
-Node: close76734
-Ref: #close76848
-Node: close usage78370
-Ref: #close-usage78463
-Node: commodities81276
-Ref: #commodities81403
-Node: descriptions81485
-Ref: #descriptions81613
-Node: diff81794
-Ref: #diff81900
-Node: files82947
-Ref: #files83047
-Node: help83194
-Ref: #help83294
-Node: import84375
-Ref: #import84489
-Node: Importing balance assignments85382
-Ref: #importing-balance-assignments85530
-Node: incomestatement86179
-Ref: #incomestatement86312
-Node: notes87716
-Ref: #notes87829
-Node: payees87955
-Ref: #payees88061
-Node: prices88219
-Ref: #prices88325
-Node: print88666
-Ref: #print88776
-Node: print-unique93420
-Ref: #print-unique93546
-Node: register93831
-Ref: #register93958
-Node: Custom register output98130
-Ref: #custom-register-output98259
-Node: register-match99521
-Ref: #register-match99655
-Node: rewrite100006
-Ref: #rewrite100121
-Node: Re-write rules in a file101976
-Ref: #re-write-rules-in-a-file102110
-Node: Diff output format103320
-Ref: #diff-output-format103489
-Node: rewrite vs print --auto104581
-Ref: #rewrite-vs.-print---auto104760
-Node: roi105316
-Ref: #roi105414
-Node: stats106426
-Ref: #stats106525
-Node: tags107313
-Ref: #tags107411
-Node: test107705
-Ref: #test107789
-Node: ADD-ON COMMANDS108536
-Ref: #add-on-commands108646
-Node: Official add-ons109934
-Ref: #official-add-ons110074
-Node: ui110154
-Ref: #ui110241
-Node: web110295
-Ref: #web110384
-Node: Third party add-ons110430
-Ref: #third-party-add-ons110605
-Node: iadd110724
-Ref: #iadd110825
-Node: interest110907
-Ref: #interest111016
-Node: Experimental add-ons111111
-Ref: #experimental-add-ons111263
-Node: autosync111501
-Ref: #autosync111612
-Node: chart111851
-Ref: #chart111956
+Node: EXAMPLES2345
+Ref: #examples2445
+Node: OPTIONS4091
+Ref: #options4193
+Node: General options4592
+Ref: #general-options4717
+Node: Command options7416
+Ref: #command-options7567
+Node: Command arguments7965
+Ref: #command-arguments8119
+Node: Argument files8240
+Ref: #argument-files8416
+Node: Special characters in arguments and queries9172
+Ref: #special-characters-in-arguments-and-queries9406
+Node: More escaping9857
+Ref: #more-escaping10019
+Node: Even more escaping10315
+Ref: #even-more-escaping10509
+Node: Less escaping11180
+Ref: #less-escaping11342
+Node: Command line tips11587
+Ref: #command-line-tips11773
+Node: Unicode characters12150
+Ref: #unicode-characters12306
+Node: Input files13718
+Ref: #input-files13854
+Node: Smart dates15783
+Ref: #smart-dates15924
+Node: Report start & end date17330
+Ref: #report-start-end-date17502
+Node: Report intervals18926
+Ref: #report-intervals19091
+Node: Period expressions19481
+Ref: #period-expressions19641
+Node: Depth limiting23596
+Ref: #depth-limiting23740
+Node: Pivoting24082
+Ref: #pivoting24205
+Node: Valuation25881
+Ref: #valuation26010
+Node: -B Cost26190
+Ref: #b-cost26301
+Node: -V Market value26499
+Ref: #v-market-value26673
+Node: -X Market value in specified commodity28105
+Ref: #x-market-value-in-specified-commodity28344
+Node: --value Flexible valuation28520
+Ref: #value-flexible-valuation28746
+Node: Effect of --value on reports32936
+Ref: #effect-of---value-on-reports33152
+Node: Combining -B -V -X --value38083
+Ref: #combining--b--v--x---value38266
+Node: Output destination38302
+Ref: #output-destination38454
+Node: Output format38737
+Ref: #output-format38889
+Node: Regular expressions39274
+Ref: #regular-expressions39411
+Node: QUERIES40772
+Ref: #queries40874
+Node: COMMANDS44836
+Ref: #commands44948
+Node: accounts46012
+Ref: #accounts46110
+Node: activity46809
+Ref: #activity46919
+Node: add47302
+Ref: #add47401
+Node: balance50140
+Ref: #balance50251
+Node: Classic balance report51709
+Ref: #classic-balance-report51882
+Node: Customising the classic balance report53251
+Ref: #customising-the-classic-balance-report53479
+Node: Colour support55555
+Ref: #colour-support55722
+Node: Flat mode55895
+Ref: #flat-mode56043
+Node: Depth limited balance reports56456
+Ref: #depth-limited-balance-reports56641
+Node: Percentages57097
+Ref: #percentages57263
+Node: Multicolumn balance report58400
+Ref: #multicolumn-balance-report58580
+Node: Budget report63894
+Ref: #budget-report64037
+Node: Nested budgets69239
+Ref: #nested-budgets69351
+Ref: #output-format-172832
+Node: balancesheet72910
+Ref: #balancesheet73046
+Node: balancesheetequity74429
+Ref: #balancesheetequity74578
+Node: cashflow75139
+Ref: #cashflow75267
+Node: check-dates76363
+Ref: #check-dates76490
+Node: check-dupes76769
+Ref: #check-dupes76893
+Node: close77186
+Ref: #close77300
+Node: close usage78822
+Ref: #close-usage78915
+Node: commodities81728
+Ref: #commodities81855
+Node: descriptions81937
+Ref: #descriptions82065
+Node: diff82246
+Ref: #diff82352
+Node: files83399
+Ref: #files83499
+Node: help83646
+Ref: #help83746
+Node: import84827
+Ref: #import84941
+Node: Importing balance assignments85834
+Ref: #importing-balance-assignments85982
+Node: incomestatement86631
+Ref: #incomestatement86764
+Node: notes88168
+Ref: #notes88281
+Node: payees88407
+Ref: #payees88513
+Node: prices88671
+Ref: #prices88777
+Node: print89118
+Ref: #print89228
+Node: print-unique93872
+Ref: #print-unique93998
+Node: register94283
+Ref: #register94410
+Node: Custom register output98582
+Ref: #custom-register-output98711
+Node: register-match99973
+Ref: #register-match100107
+Node: rewrite100458
+Ref: #rewrite100573
+Node: Re-write rules in a file102428
+Ref: #re-write-rules-in-a-file102562
+Node: Diff output format103772
+Ref: #diff-output-format103941
+Node: rewrite vs print --auto105033
+Ref: #rewrite-vs.-print---auto105212
+Node: roi105768
+Ref: #roi105866
+Node: stats106878
+Ref: #stats106977
+Node: tags107765
+Ref: #tags107863
+Node: test108157
+Ref: #test108241
+Node: ADD-ON COMMANDS108988
+Ref: #add-on-commands109118
+Node: Official add-ons110406
+Ref: #official-add-ons110546
+Node: ui110626
+Ref: #ui110713
+Node: web110767
+Ref: #web110856
+Node: Third party add-ons110902
+Ref: #third-party-add-ons111077
+Node: iadd111196
+Ref: #iadd111297
+Node: interest111379
+Ref: #interest111488
+Node: Experimental add-ons111583
+Ref: #experimental-add-ons111735
+Node: autosync111973
+Ref: #autosync112084
+Node: chart112323
+Ref: #chart112428
+Node: ENVIRONMENT112488
+Ref: #environment112607
+Node: FILES112856
+Ref: #files-1112959
+Node: LIMITATIONS113172
+Ref: #limitations113291
+Node: TROUBLESHOOTING114033
+Ref: #troubleshooting114146
 
 End Tag Table
 

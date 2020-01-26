@@ -11,10 +11,10 @@ SYNOPSIS
        hledger web -- [OPTIONS]
 
 DESCRIPTION
-       hledger  is  a  cross-platform program for tracking money, time, or any
-       other commodity, using double-entry accounting and a  simple,  editable
-       file  format.   hledger  is  inspired  by  and  largely compatible with
-       ledger(1).
+       hledger  is  a  reliable,  cross-platform  set of programs for tracking
+       money, time, or any other commodity, using double-entry accounting  and
+       a  simple,  editable  file  format.  hledger is inspired by and largely
+       compatible with ledger(1).
 
        hledger-web is hledger's web interface.  It starts a simple web  appli-
        cation for browsing and adding transactions, and optionally opens it in

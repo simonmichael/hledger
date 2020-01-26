@@ -6,7 +6,17 @@ File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-ui(1) hledger-ui 1.16.99
 ********************************
 
-hledger-ui is hledger's terminal interface, providing an efficient
+hledger-ui - terminal interface for the hledger accounting tool
+
+   'hledger-ui [OPTIONS] [QUERYARGS]'
+'hledger ui -- [OPTIONS] [QUERYARGS]'
+
+   hledger is a reliable, cross-platform set of programs for tracking
+money, time, or any other commodity, using double-entry accounting and a
+simple, editable file format.  hledger is inspired by and largely
+compatible with ledger(1).
+
+   hledger-ui is hledger's terminal interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
 limited data entry capability.  It is easier than hledger's command-line
 interface, and sometimes quicker and more convenient than the web
@@ -30,6 +40,9 @@ hledger_journal(5) etc.
 * OPTIONS::
 * KEYS::
 * SCREENS::
+* ENVIRONMENT::
+* FILES::
+* BUGS::
 
 
 File: hledger-ui.info,  Node: OPTIONS,  Next: KEYS,  Prev: Top,  Up: Top
@@ -278,7 +291,7 @@ exit the transaction screen.
    Additional screen-specific keys are described below.
 
 
-File: hledger-ui.info,  Node: SCREENS,  Prev: KEYS,  Up: Top
+File: hledger-ui.info,  Node: SCREENS,  Next: ENVIRONMENT,  Prev: KEYS,  Up: Top
 
 3 SCREENS
 *********
@@ -422,22 +435,79 @@ again to reload and resume normal operation.  (Or, you can press escape
 to cancel the reload attempt.)
 
 
+File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: SCREENS,  Up: Top
+
+4 ENVIRONMENT
+*************
+
+*COLUMNS* The screen width to use.  Default: the full terminal width.
+
+   *LEDGER_FILE* The journal file path when not specified with '-f'.
+Default: '~/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').
+
+
+File: hledger-ui.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
+
+5 FILES
+*******
+
+Reads data from one or more files in hledger journal, timeclock,
+timedot, or CSV format specified with '-f', or '$LEDGER_FILE', or
+'$HOME/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').
+
+
+File: hledger-ui.info,  Node: BUGS,  Prev: FILES,  Up: Top
+
+6 BUGS
+******
+
+The need to precede options with '--' when invoked from hledger is
+awkward.
+
+   '-f-' doesn't work (hledger-ui can't read from stdin).
+
+   '-V' affects only the accounts screen.
+
+   When you press 'g', the current and all previous screens are
+regenerated, which may cause a noticeable pause with large files.  Also
+there is no visual indication that this is in progress.
+
+   '--watch' is not yet fully robust.  It works well for normal usage,
+but many file changes in a short time (eg saving the file thousands of
+times with an editor macro) can cause problems at least on OSX. Symptoms
+include: unresponsive UI, periodic resetting of the cursor position,
+momentary display of parse errors, high CPU usage eventually subsiding,
+and possibly a small but persistent build-up of CPU usage until the
+program is restarted.
+
+   Also, if you are viewing files mounted from another machine,
+'--watch' requires that both machine clocks are roughly in step.
+
+
 Tag Table:
 Node: Top71
-Node: OPTIONS1103
-Ref: #options1200
-Node: KEYS4636
-Ref: #keys4731
-Node: SCREENS9038
-Ref: #screens9123
-Node: Accounts screen9213
-Ref: #accounts-screen9341
-Node: Register screen11557
-Ref: #register-screen11712
-Node: Transaction screen13708
-Ref: #transaction-screen13866
-Node: Error screen14736
-Ref: #error-screen14858
+Node: OPTIONS1520
+Ref: #options1617
+Node: KEYS5053
+Ref: #keys5148
+Node: SCREENS9455
+Ref: #screens9560
+Node: Accounts screen9650
+Ref: #accounts-screen9778
+Node: Register screen11994
+Ref: #register-screen12149
+Node: Transaction screen14145
+Ref: #transaction-screen14303
+Node: Error screen15173
+Ref: #error-screen15295
+Node: ENVIRONMENT15539
+Ref: #environment15653
+Node: FILES15880
+Ref: #files15979
+Node: BUGS16192
+Ref: #bugs16269
 
 End Tag Table
 

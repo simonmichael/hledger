@@ -11,10 +11,10 @@ SYNOPSIS
        hledger ui -- [OPTIONS] [QUERYARGS]
 
 DESCRIPTION
-       hledger  is  a  cross-platform program for tracking money, time, or any
-       other commodity, using double-entry accounting and a  simple,  editable
-       file  format.   hledger  is  inspired  by  and  largely compatible with
-       ledger(1).
+       hledger  is  a  reliable,  cross-platform  set of programs for tracking
+       money, time, or any other commodity, using double-entry accounting  and
+       a  simple,  editable  file  format.  hledger is inspired by and largely
+       compatible with ledger(1).
 
        hledger-ui is hledger's  terminal  interface,  providing  an  efficient
        full-window  text  UI  for  viewing accounts and transactions, and some

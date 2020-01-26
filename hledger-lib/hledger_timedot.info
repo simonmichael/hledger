@@ -2,14 +2,16 @@ This is hledger_timedot.info, produced by makeinfo version 6.7 from
 stdin.
 
 
-File: hledger_timedot.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
+File: hledger_timedot.info,  Node: Top,  Up: (dir)
 
 hledger_timedot(5) hledger 1.16.99
 **********************************
 
-Timedot is a plain text format for logging dated, categorised quantities
-(of time, usually), supported by hledger.  It is convenient for
-approximate and retroactive time logging, eg when the real-time
+Timedot - hledger's human-friendly time logging format
+
+   Timedot is a plain text format for logging dated, categorised
+quantities (of time, usually), supported by hledger.  It is convenient
+for approximate and retroactive time logging, eg when the real-time
 clock-in/out required with a timeclock file is too precise or too
 interruptive.  It can be formatted like a bar chart, making clear at a
 glance where time was spent.
@@ -18,17 +20,7 @@ glance where time was spent.
 commodityless quantities, so it could be used to represent dated
 quantities other than time.  In the docs below we'll assume it's time.
 
-* Menu:
-
-* FILE FORMAT::
-
-
-File: hledger_timedot.info,  Node: FILE FORMAT,  Prev: Top,  Up: Top
-
-1 FILE FORMAT
-*************
-
-A timedot file contains a series of day entries.  A day entry begins
+   A timedot file contains a series of day entries.  A day entry begins
 with a date, and is followed by category/quantity pairs, one per line.
 Dates are hledger-style simple dates (see hledger_journal(5)).
 Categories are hledger-style account names, optionally indented.  As in
@@ -111,8 +103,6 @@ $ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
 
 Tag Table:
 Node: Top76
-Node: FILE FORMAT814
-Ref: #file-format915
 
 End Tag Table
 

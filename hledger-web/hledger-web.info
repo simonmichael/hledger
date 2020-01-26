@@ -6,7 +6,17 @@ File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-web(1) hledger-web 1.16.99
 **********************************
 
-hledger-web is hledger's web interface.  It starts a simple web
+hledger-web - web interface for the hledger accounting tool
+
+   'hledger-web [OPTIONS]'
+'hledger web -- [OPTIONS]'
+
+   hledger is a reliable, cross-platform set of programs for tracking
+money, time, or any other commodity, using double-entry accounting and a
+simple, editable file format.  hledger is inspired by and largely
+compatible with ledger(1).
+
+   hledger-web is hledger's web interface.  It starts a simple web
 application for browsing and adding transactions, and optionally opens
 it in a web browser window if possible.  It provides a more
 user-friendly UI than the hledger CLI or hledger-ui interface, showing
@@ -33,6 +43,9 @@ hledger_journal(5) etc.
 * EDITING UPLOADING DOWNLOADING::
 * RELOADING::
 * JSON API::
+* ENVIRONMENT::
+* FILES::
+* BUGS::
 
 
 File: hledger-web.info,  Node: OPTIONS,  Next: PERMISSIONS,  Prev: Top,  Up: Top
@@ -311,7 +324,7 @@ file has been fixed.
 sure that both machine clocks are roughly in step.)
 
 
-File: hledger-web.info,  Node: JSON API,  Prev: RELOADING,  Up: Top
+File: hledger-web.info,  Node: JSON API,  Next: ENVIRONMENT,  Prev: RELOADING,  Up: Top
 
 5 JSON API
 **********
@@ -357,18 +370,62 @@ Running with '--serve-api' disables the former, useful if you only want
 to serve the API.
 
 
+File: hledger-web.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: JSON API,  Up: Top
+
+6 ENVIRONMENT
+*************
+
+*LEDGER_FILE* The journal file path when not specified with '-f'.
+Default: '~/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').
+
+
+File: hledger-web.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
+
+7 FILES
+*******
+
+Reads data from one or more files in hledger journal, timeclock,
+timedot, or CSV format specified with '-f', or '$LEDGER_FILE', or
+'$HOME/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').
+
+
+File: hledger-web.info,  Node: BUGS,  Prev: FILES,  Up: Top
+
+8 BUGS
+******
+
+The need to precede options with '--' when invoked from hledger is
+awkward.
+
+   '-f-' doesn't work (hledger-web can't read from stdin).
+
+   Query arguments and some hledger options are ignored.
+
+   Does not work in text-mode browsers.
+
+   Does not work well on small screens.
+
+
 Tag Table:
 Node: Top72
-Node: OPTIONS1361
-Ref: #options1466
-Node: PERMISSIONS7739
-Ref: #permissions7878
-Node: EDITING UPLOADING DOWNLOADING9090
-Ref: #editing-uploading-downloading9271
-Node: RELOADING10105
-Ref: #reloading10239
-Node: JSON API10672
-Ref: #json-api10766
+Node: OPTIONS1752
+Ref: #options1857
+Node: PERMISSIONS8130
+Ref: #permissions8269
+Node: EDITING UPLOADING DOWNLOADING9481
+Ref: #editing-uploading-downloading9662
+Node: RELOADING10496
+Ref: #reloading10630
+Node: JSON API11063
+Ref: #json-api11177
+Node: ENVIRONMENT12618
+Ref: #environment12734
+Node: FILES12887
+Ref: #files12987
+Node: BUGS13200
+Ref: #bugs13278
 
 End Tag Table
 
