@@ -8,18 +8,22 @@ _docversionlinks_({{hledger-ui}})
 
 _man_({{
 # NAME
+}})
 
 hledger-ui - terminal interface for the hledger accounting tool
 
+_man_({{
 # SYNOPSIS
+}})
 
 `hledger-ui [OPTIONS] [QUERYARGS]`\
 `hledger ui -- [OPTIONS] [QUERYARGS]`
 
+_man_({{
 # DESCRIPTION
+}})
 
 _hledgerdescription_
-}})
 
 _web_({{
 <style>
@@ -296,7 +300,7 @@ when you press g to reload. Once you have fixed the problem,
 press g again to reload and resume normal operation.
 (Or, you can press escape to cancel the reload attempt.)
 
-_man_({{
+
 # ENVIRONMENT
 
 **COLUMNS**
@@ -331,6 +335,3 @@ until the program is restarted.
 
 Also, if you are viewing files mounted from another machine, `--watch`
 requires that both machine clocks are roughly in step.
-
-
-}})

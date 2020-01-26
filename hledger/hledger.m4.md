@@ -16,21 +16,24 @@ _docversionlinks_({{hledger}})
 }})
 
 _man_({{
-
 # NAME
+}})
 
 hledger - a command-line accounting tool
 
+_man_({{
 # SYNOPSIS
+}})
 
 `hledger [-f FILE] COMMAND [OPTIONS] [ARGS]`\
 `hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`\
 `hledger`
 
+_man_({{
 # DESCRIPTION
+}})
 
 _hledgerdescription_
-}})
 
 This is hledger’s command-line interface (there are also terminal and web
 interfaces). Its basic function is to read a plain text file describing
@@ -70,7 +73,6 @@ _include_(hledger_examples.m4.md)
 _include_(hledger_options.m4.md)
 _include_(hledger_queries.m4.md)
 _include_(hledger_commands.m4.md)
-_man_({{
 
 # ENVIRONMENT
 
@@ -103,5 +105,3 @@ Not all of Ledger's journal file syntax is supported. See [file format differenc
 On large data files, hledger is slower and uses more memory than Ledger.
 
 _include_(hledger_troubleshooting.m4.md)
-
-}})

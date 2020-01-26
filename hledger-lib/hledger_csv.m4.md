@@ -5,14 +5,15 @@
 _web_({{
 _docversionlinks_({{csv}})
 }})
-_man_({{
 
+_man_({{
 # NAME
+}})
 
 CSV - how hledger reads CSV data, and the CSV rules file format
 
+_man_({{
 # DESCRIPTION
-
 }})
 
 hledger can read
@@ -861,5 +862,3 @@ This is all part of the CSV reader, one of several readers hledger can
 use to parse input files. When all files have been read successfully,
 the transactions are passed as input to whichever hledger command the
 user specified.
-
-

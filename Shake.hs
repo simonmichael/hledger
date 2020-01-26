@@ -351,7 +351,7 @@ main = do
         ,""
         ]
       cmd Shell
-        "m4 -P -DMAN -DWEB -I" dir commonm4 packagem4 src "|"
+        "m4 -P -DWEB -I" dir commonm4 packagem4 src "|"
         pandoc fromsrcmd towebmd
         "--lua-filter tools/pandoc-demote-headers.lua"
         ">>" out

@@ -8,18 +8,22 @@ _docversionlinks_({{hledger-web}})
 
 _man_({{
 # NAME
+}})
 
 hledger-web - web interface for the hledger accounting tool
 
+_man_({{
 # SYNOPSIS
+}})
 
 `hledger-web [OPTIONS]`\
 `hledger web -- [OPTIONS]`
 
+_man_({{
 # DESCRIPTION
+}})
 
 _hledgerdescription_
-}})
 
 _web_({{
 <style>
@@ -241,8 +245,6 @@ $ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' -
 By default, both the server-side HTML UI and the JSON API are served.
 Running with `--serve-api` disables the former, useful if you only want to serve the API.
 
-_man_({{
-
 # ENVIRONMENT
 
 _LEDGER_FILE_
@@ -262,5 +264,3 @@ Query arguments and some hledger options are ignored.
 Does not work in text-mode browsers.
 
 Does not work well on small screens.
-
-}})

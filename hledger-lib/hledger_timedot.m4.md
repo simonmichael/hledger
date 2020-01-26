@@ -5,14 +5,15 @@
 _web_({{
 _docversionlinks_({{timedot}})
 }})
-_man_({{
 
+_man_({{
 # NAME
+}})
 
 Timedot - hledger's human-friendly time logging format
 
+_man_({{
 # DESCRIPTION
-
 }})
 
 Timedot is a plain text format for logging dated, categorised quantities (of time, usually), supported by hledger.

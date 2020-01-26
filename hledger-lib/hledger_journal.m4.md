@@ -5,14 +5,15 @@
 _web_({{
 _docversionlinks_({{journal}})
 }})
-_man_({{
 
+_man_({{
 # NAME
+}})
 
 Journal - hledger's default file format, representing a General Journal
 
+_man_({{
 # DESCRIPTION
-
 }})
 
 hledger's usual data source is a plain text file containing journal entries in hledger journal format.

@@ -5,14 +5,15 @@
 _web_({{
 _docversionlinks_({{timeclock}})
 }})
-_man_({{
 
+_man_({{
 # NAME
+}})
 
 Timeclock - the time logging format of timeclock.el, as read by hledger
 
+_man_({{
 # DESCRIPTION
-
 }})
 
 hledger can read timeclock files.
