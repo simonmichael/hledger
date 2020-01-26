@@ -25,8 +25,6 @@ Though called "timedot", this format is read by hledger as commodityless quantit
 so it could be used to represent dated quantities other than time.
 In the docs below we'll assume it's time.
 
-# FILE FORMAT
-
 A timedot file contains a series of day entries.
 A day entry begins with a date, and is followed by category/quantity pairs, one per line.
 Dates are hledger-style [simple dates](journal.html#simple-dates) (see hledger_journal(5)).
