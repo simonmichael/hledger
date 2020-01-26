@@ -99,7 +99,7 @@ library:
   - hledger-lib >=1.16.99 && <1.17
   - hledger >=1.16.99 && <1.17
   - aeson
-  - base >=4.9 && <4.14
+  - base >=4.9 && <4.15
   - blaze-html
   - blaze-markup
   - bytestring

@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.32.0.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0376acf91d14e3868fa58b399419538104d2187ad41552aa62bd24ca675274b3
+-- hash: dd4bb49b5cd4a8ee266157471b2bb79610dca13664cd3e4f2358c139d81227d3
 
 name:           hledger-web
 version:        1.16.99
@@ -154,7 +154,7 @@ library
   build-depends:
       Decimal
     , aeson
-    , base >=4.9 && <4.14
+    , base >=4.9 && <4.15
     , blaze-html
     , blaze-markup
     , bytestring

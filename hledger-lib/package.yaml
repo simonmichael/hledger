@@ -41,7 +41,7 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.9 && <4.14
+- base >=4.9 && <4.15
 - base-compat-batteries >=0.10.1 && <0.12
 - aeson
 - ansi-terminal >=0.6.2.3
