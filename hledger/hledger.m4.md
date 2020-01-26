@@ -11,10 +11,6 @@ m4_dnl  hledger_queries.m4.md
 m4_dnl  hledger_commands.m4.md
 m4_dnl  hledger_troubleshooting.m4.md
 
-_web_({{
-_docversionlinks_({{hledger}})
-}})
-
 _man_({{
 # NAME
 }})

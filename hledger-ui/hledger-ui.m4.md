@@ -2,10 +2,6 @@
 % _author_
 % _monthyear_
 
-_web_({{
-_docversionlinks_({{hledger-ui}})
-}})
-
 _man_({{
 # NAME
 }})
