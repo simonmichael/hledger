@@ -210,8 +210,8 @@ main = do
       -- manuals as info, ready for info (hledger/hledger.info)
       infomanuals = [manualDir m </> m <.> "info" | m <- manualNames]
 
-      -- manuals as web-ready markdown, written into the website for Sphinx (site/hledger.md)
-      webmanuals = ["site" </> manpageNameToWebManualName m <.> "md" | m <- manpageNames]
+      -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.webmanual.md)
+      webmanuals = [manualDir m </> m <.> "webmanual.md" | m <- manualNames]
 
       -- -- latest version of the manuals rendered to html (site/_site/hledger.html)
       -- htmlmanuals = ["site/_site" </> manpageNameToWebManualName m <.> "html" | m <- manpageNames]
@@ -323,10 +323,11 @@ main = do
     -- Generate the individual web manuals' markdown source, using m4
     -- and pandoc to tweak content.
     phony "webmanuals" $ need webmanuals
-    webmanuals |%> \out -> do -- site/hledger.md
-      let manpage   = manpageUriToName $ dropExtension $ takeFileName out -- hledger
-          manual    = manpageNameToManualName manpage
-          dir       = manpageDir manpage
+    webmanuals |%> \out -> do -- hledger/hledger.webmanual.md, hledger-lib/journal.webmanual.md
+      let 
+          dir       = takeDirectory out -- hledger, hledger-lib
+          manpage   = webManualNameToManpageName $ dropExtension $ dropExtension $ takeFileName out -- hledger, journal
+          manual    = manpageNameToManualName manpage -- hledger, hledger_journal
           src       = dir </> manual <.> "m4.md"
           commonm4  = "doc/common.m4"
           packagem4 = dir </> "defs.m4"
