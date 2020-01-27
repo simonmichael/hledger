@@ -1,7 +1,7 @@
 #!/usr/bin/env stack
 {- stack exec
    --verbosity=info
-   --stack-yaml=stack-ghc8.6.yaml
+   --stack-yaml=stack-8.6.yaml
    --package base-prelude
    --package directory
    --package extra
@@ -12,7 +12,7 @@
    ghc
 -}
 -- Normally uses the project's default resolver & extra deps (stack.yaml).
--- Currently using stack-ghc8.6.yaml (& building two sets of deps) because of
+-- Currently using stack-8.6.yaml (& building two sets of deps) because of
 -- https://github.com/iconnect/regex/issues/173#issuecomment-570836346
 {-
 

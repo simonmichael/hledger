@@ -1378,9 +1378,9 @@ This can take a while! To save time, you can build individual packages, eg just 
 Note stack does not fetch C libraries such as curses or terminfo, which you might need to install yourself, using your system's package manager.
 In case of trouble, see [download](/download.html#link-errors).
 
-If you want to use an older snapshot/GHC for some reason, specify one of the older stack-ghc*.yaml files:
+If you want to use an older snapshot/GHC for some reason, specify one of the older stack-*.yaml files:
 
-    stack --stack-yaml stack-ghc8.2.yaml build
+    stack --stack-yaml stack-8.2.yaml build
     
 ### Run in place
 
