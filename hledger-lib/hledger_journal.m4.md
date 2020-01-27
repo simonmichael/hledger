@@ -1075,6 +1075,7 @@ account other:zoo
 ``` 
 would influence the position of `zoo` among `other`'s subaccounts, but not the position of `other` among the top-level accounts.
 This means:
+
 - you will sometimes declare parent accounts (eg `account other` above) that you don't intend to post to, just to customize their display order
 - sibling accounts stay together (you couldn't display `x:y` in between `a:b` and `a:c`). 
 
