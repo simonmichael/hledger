@@ -70,15 +70,9 @@ nix:
 extra-deps:
 # for hledger-lib:
 # for hledger:
-# 2.0.23 + ghc 8.10. Updates: http://hackage.haskell.org/package/shakespeare/changelog
-- git: https://github.com/simonmichael/shakespeare.git
-  commit: f96f00c6fd2f1335e74ac62d16c9beebcb1cefff
+- shakespeare-2.0.24
 # for hledger-ui:
 - brick-0.50.1
 - vty-5.26
 # for hledger-web:
-# 1.6.17 + ghc 8.10. Updates: http://hackage.haskell.org/package/yesod-core/changelog
-- git: https://github.com/simonmichael/yesod.git
-  commit: 91a47ffb76c6244bb2ec9cf10f742dd75c0ad92d
-  subdirs:
-    - yesod-core
+- yesod-core-1.6.17.2
