@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.8.1
 
-resolver: nightly-2020-01-06
+resolver: nightly-2020-01-25
 # allow-newer: true
 
 packages:
@@ -18,6 +18,5 @@ extra-deps:
 # for hledger:
 # for hledger-ui:
 # for hledger-web:
-- wai-handler-launch-3.0.3
 # for Shake.hs:
 - regex-1.1.0.0
