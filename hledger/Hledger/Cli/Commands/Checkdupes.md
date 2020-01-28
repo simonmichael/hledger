@@ -5,4 +5,4 @@ Reads the default journal file, or another specified as an argument.
 
 _FLAGS
 
-An example: http://stefanorodighiero.net/software/hledger-dupes.html
+An example: <http://stefanorodighiero.net/software/hledger-dupes.html>
