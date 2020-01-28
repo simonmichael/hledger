@@ -19,3 +19,5 @@ extra-deps:
 # for hledger-ui:
 # for hledger-web:
 - wai-handler-launch-3.0.3
+# for Shake.hs:
+- regex-1.1.0.0
