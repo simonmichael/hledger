@@ -86,7 +86,7 @@ This can be followed by any of the following, separated by spaces:
 
 Then comes zero or more (but usually at least 2) indented lines representing...
 
-##  Postings
+## Postings
  
 A posting is an addition of some amount to, or removal of some amount from, an account. 
 Each posting line begins with at least one space or tab (2 or 4 spaces is common), followed by:
@@ -359,31 +359,39 @@ commodity directive to set the display format.
 
 ## Virtual Postings
 
-When you parenthesise the account name in a posting, we call that a *virtual posting*, which
-means:
+A posting with a parenthesised account name is called a *virtual posting*
+or *unbalanced posting*, which means it is exempt from the usual rule
+that a transaction's postings must balance (add up to zero).
 
-- it is ignored when checking that the transaction is balanced
-- it is excluded from reports when the `--real/-R` flag is used, or the `real:1` query.
-
-You could use this, eg, to set an account's opening balance without needing to use the
-`equity:opening balances` account:
+This is not part of double entry accounting, so you might choose to
+avoid this feature. Or you can use it sparingly for certain special
+cases where it can be convenient. Eg, you could set opening balances
+without using a balancing equity account:
 
 ```journal
-1/1 special unbalanced posting to set initial balance
+1/1 opening balances
   (assets:checking)   $1000
+  (assets:savings)    $2000
 ```
 
-When the account name is bracketed, we call it a *balanced virtual posting*. This is like an ordinary virtual posting except the balanced virtual postings in a transaction must balance to 0, like the real postings (but separately from them). Balanced virtual postings are also excluded by `--real/-R` or `real:1`.
+A posting with a bracketed account name is called a *balanced virtual
+posting*. The balanced virtual postings in a transaction must add up
+to zero (separately from other postings). Eg:
 
 ```journal
-1/1 buy food with cash, and update some budget-tracking subaccounts elsewhere
-  expenses:food                   $10
-  assets:cash                    $-10
-  [assets:checking:available]     $10
-  [assets:checking:budget:food]  $-10
+1/1 buy food with cash, update budget envelope subaccounts, & something else
+  assets:cash                    $-10 ; <- these balance
+  expenses:food                    $7 ; <-
+  expenses:food                    $3 ; <-
+  [assets:checking:budget:food]  $-10    ; <- and these balance 
+  [assets:checking:available]     $10    ; <-
+  (something:else)                 $5       ; <- not required to balance
 ```
 
-Virtual postings have some legitimate uses, but those are few. You can usually find an equivalent journal entry using real postings, which is more correct and provides better error checking.
+Ordinary non-parenthesised, non-bracketed postings are called *real postings*.
+You can exclude virtual postings from reports with the `-R/--real`
+flag or `real:1` query.
+
 
 ## Balance Assertions
 
