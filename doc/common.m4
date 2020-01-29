@@ -15,8 +15,14 @@ m4_define({{_author_}}, {{}})m4_dnl
 m4_dnl
 m4_dnl Macros for conditionally including format-specific content
 m4_dnl $1 is the manual's web slug: hledger, hledger-ui, journal, csv etc.
+m4_dnl include in man pages only
 m4_define({{_man_}},         m4_ifdef({{MAN}},{{$1}})             )m4_dnl
+m4_dnl include in web manuals only
 m4_define({{_web_}},         m4_ifdef({{WEB}},{{$1}})             )m4_dnl
+m4_dnl include in info manuals only
+m4_define({{_info_}},         m4_ifdef({{INFO}},{{$1}})             )m4_dnl
+m4_dnl include in text manuals only - not implemented
+m4_dnl m4_define({{_txt_}},         m4_ifdef({{TXT}},{{$1}})             )m4_dnl
 m4_dnl
 m4_dnl Links to dev and recent release versions of a manual.
 m4_dnl The actual links are inserted dynamically by site.js, static generation was much too painful.
