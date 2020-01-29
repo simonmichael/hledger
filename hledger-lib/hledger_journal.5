@@ -30,120 +30,91 @@ the add or web commands to create and update it.
 Many users, though, also edit the journal file directly with a text
 editor, perhaps assisted by the helper modes for emacs or vim.
 .PP
-Here\[aq]s an example:
+Helper modes exist for popular text editors, which make working with
+journal files easier.
+They add colour, formatting, tab completion, and helpful commands, and
+are quite recommended if you edit your journal with a text editor.
+They include ledger-mode or hledger-mode for Emacs, vim-ledger for Vim,
+hledger-vscode for Visual Studio Code, and others.
+See the Editor configuration at hledger.org for the latest information.
+.SH FILE FORMAT
+.PP
+Here\[aq]s a description of each part of the file format (and
+hledger\[aq]s data model).
+These are mostly in the order you\[aq]ll use them, but in some cases
+related concepts have been grouped together for easy reference, or
+linked before they are introduced, so feel free to skip over anything
+that looks unnecessary right now.
+.SS Transactions
+.PP
+Transactions are the main unit of information in a journal file.
+They represent events, typically a movement of some quantity of
+commodities between two or more named accounts.
+.PP
+Each transaction is recorded as a journal entry, beginning with a simple
+date in column 0.
+This can be followed by any of the following optional fields, separated
+by spaces:
+.IP \[bu] 2
+a status character (empty, \f[C]!\f[R], or \f[C]*\f[R])
+.IP \[bu] 2
+a code (any short number or text, enclosed in parentheses)
+.IP \[bu] 2
+a description (any remaining text until end of line or a semicolon)
+.IP \[bu] 2
+a comment (any remaining text following a semicolon until end of line,
+and any following indented lines beginning with a semicolon)
+.IP \[bu] 2
+0 or more indented \f[I]posting\f[R] lines, describing what was
+transferred and the accounts involved.
+.PP
+Here\[aq]s a simple journal file containing one transaction:
 .IP
 .nf
 \f[C]
-; A sample journal file. This is a comment.
-
-2008/01/01 income             ; <- transaction\[aq]s first line starts in column 0, contains date and description
-    assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
-    income:salary        $-1  ;    followed by at least two spaces and an amount
-
-2008/06/01 gift
-    assets:bank:checking  $1  ; <- at least two postings in a transaction
-    income:gifts         $-1  ; <- their amounts must balance to 0
-
-2008/06/02 save
-    assets:bank:saving    $1
-    assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
-
-2008/06/03 eat & shop         ; <- description can be anything
-    expenses:food         $1
-    expenses:supplies     $1  ; <- this transaction debits two expense accounts
-    assets:cash               ; <- $-2 inferred
-
-2008/10/01 take a loan
-    assets:bank:checking  $1
-    liabilities:debts    $-1
-
-2008/12/31 * pay off          ; <- an optional * or ! after the date means \[dq]cleared\[dq] (or anything you want)
-    liabilities:debts     $1
-    assets:bank:checking
+2008/01/01 income
+  assets:bank:checking   $1
+  income:salary         $-1
 \f[R]
 .fi
-.SH FILE FORMAT
-.SS Transactions
-.PP
-Transactions are movements of some quantity of commodities between named
-accounts.
-Each transaction is represented by a journal entry beginning with a
-simple date in column 0.
-This can be followed by any of the following, separated by spaces:
-.IP \[bu] 2
-(optional) a status character (empty, \f[C]!\f[R], or \f[C]*\f[R])
-.IP \[bu] 2
-(optional) a transaction code (any short number or text, enclosed in
-parentheses)
-.IP \[bu] 2
-(optional) a transaction description (any remaining text until end of
-line or a semicolon)
-.IP \[bu] 2
-(optional) a transaction comment (any remaining text following a
-semicolon until end of line)
-.PP
-Then comes zero or more (but usually at least 2) indented lines
-representing...
-.SS Postings
-.PP
-A posting is an addition of some amount to, or removal of some amount
-from, an account.
-Each posting line begins with at least one space or tab (2 or 4 spaces
-is common), followed by:
-.IP \[bu] 2
-(optional) a status character (empty, \f[C]!\f[R], or \f[C]*\f[R]),
-followed by a space
-.IP \[bu] 2
-(required) an account name (any text, optionally containing \f[B]single
-spaces\f[R], until end of line or a double space)
-.IP \[bu] 2
-(optional) \f[B]two or more spaces\f[R] or tabs followed by an amount.
-.PP
-Positive amounts are being added to the account, negative amounts are
-being removed.
-.PP
-The amounts within a transaction must always sum up to zero.
-As a convenience, one amount may be left blank; it will be inferred so
-as to balance the transaction.
-.PP
-Be sure to note the unusual two-space delimiter between account name and
-amount.
-This makes it easy to write account names containing spaces.
-But if you accidentally leave only one space (or tab) before the amount,
-the amount will be considered part of the account name.
 .SS Dates
 .SS Simple dates
 .PP
-Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
-Leading zeros are optional.
+Dates in the journal file use \f[I]simple dates\f[R] format:
+\f[C]YYYY-MM-DD\f[R] or \f[C]YYYY/MM/DD\f[R] or \f[C]YYYY.MM.DD\f[R],
+with leading zeros optional.
 The year may be omitted, in which case it will be inferred from the
-context - the current transaction, the default year set with a default
+context: the current transaction, the default year set with a default
 year directive, or the current date when the command is run.
-Some examples: \f[C]2010/01/31\f[R], \f[C]1/31\f[R],
-\f[C]2010-01-31\f[R], \f[C]2010.1.31\f[R].
+Some examples: \f[C]2010-01-31\f[R], \f[C]2010/01/31\f[R],
+\f[C]2010.1.31\f[R], \f[C]1/31\f[R].
+.PP
+(The UI also accepts simple dates, as well as the more flexible smart
+dates documented in the hledger manual.)
 .SS Secondary dates
 .PP
 Real-life transactions sometimes involve more than one date - eg the
 date you write a cheque, and the date it clears in your bank.
 When you want to model this, eg for more accurate balances, you can
-specify individual posting dates, which I recommend.
-Or, you can use the secondary dates (aka auxiliary/effective dates)
-feature, supported for compatibility with Ledger.
+specify individual posting dates.
 .PP
-A secondary date can be written after the primary date, separated by an
-equals sign.
-The primary date, on the left, is used by default; the secondary date,
-on the right, is used when the \f[C]--date2\f[R] flag is specified
-(\f[C]--aux-date\f[R] or \f[C]--effective\f[R] also work).
+Or, you can use the older \f[I]secondary date\f[R] feature.
+(Ledger calls it auxiliary date or effective date.) But I would
+recommend avoiding this feature; posting dates are almost always clearer
+and simpler.
+We support it mainly for compatibility.
+.PP
+A secondary date is written after the primary date, following an equals
+sign.
+The primary date\[aq]s year will be used if the year is omitted.
+When running reports, the primary (left) date is used by default, but
+with the \f[C]--date2\f[R] flag (or \f[C]--aux-date\f[R] or
+\f[C]--effective\f[R]), the secondary (right) date will be used instead.
 .PP
 The meaning of secondary dates is up to you, but it\[aq]s best to follow
 a consistent rule.
-Eg write the bank\[aq]s clearing date as primary, and when needed, the
-date the transaction was initiated as secondary.
-.PP
-Here\[aq]s an example.
-Note that a secondary date will use the year of the primary date if
-unspecified.
+Eg \[dq]primary = the bank\[aq]s clearing date, secondary = date the
+transaction was initiated, if different\[dq], as shown here:
 .IP
 .nf
 \f[C]
@@ -166,12 +137,6 @@ $ hledger register checking --date2
 2010-02-19 movie ticket         assets:checking                $-10         $-10
 \f[R]
 .fi
-.PP
-Secondary dates require some effort; you must use them consistently in
-your journal entries and remember whether to use or not use the
-\f[C]--date2\f[R] flag for your reports.
-They are included in hledger for Ledger compatibility, but posting dates
-are a more powerful and less confusing alternative.
 .SS Posting dates
 .PP
 You can give individual postings a different date from their parent
@@ -320,6 +285,178 @@ payee/payer name on the left (up to the first \f[C]|\f[R]) and an
 additional note field on the right (after the first \f[C]|\f[R]).
 This may be worthwhile if you need to do more precise querying and
 pivoting by payee or by note.
+.SS Comments
+.PP
+Lines in the journal beginning with a semicolon (\f[C];\f[R]) or hash
+(\f[C]#\f[R]) or star (\f[C]*\f[R]) are comments, and will be ignored.
+(Star comments cause org-mode nodes to be ignored, allowing emacs users
+to fold and navigate their journals with org-mode or orgstruct-mode.)
+.PP
+You can attach comments to a transaction by writing them after the
+description and/or indented on the following lines (before the
+postings).
+Similarly, you can attach comments to an individual posting by writing
+them after the amount and/or indented on the following lines.
+Transaction and posting comments must begin with a semicolon
+(\f[C];\f[R]).
+.PP
+Some examples:
+.IP
+.nf
+\f[C]
+# a file comment
+
+; also a file comment
+
+comment
+This is a multiline file comment,
+which continues until a line
+where the \[dq]end comment\[dq] string
+appears on its own (or end of file).
+end comment
+
+2012/5/14 something  ; a transaction comment
+    ; the transaction comment, continued
+    posting1  1  ; a comment for posting 1
+    posting2
+    ; a comment for posting 2
+    ; another comment line for posting 2
+; a file comment (because not indented)
+\f[R]
+.fi
+.PP
+You can also comment larger regions of a file using \f[C]comment\f[R]
+and \f[C]end comment\f[R] directives.
+.SS Tags
+.PP
+Tags are a way to add extra labels or labelled data to postings and
+transactions, which you can then search or pivot on.
+.PP
+A simple tag is a word (which may contain hyphens) followed by a full
+colon, written inside a transaction or posting comment line:
+.IP
+.nf
+\f[C]
+2017/1/16 bought groceries  ; sometag:
+\f[R]
+.fi
+.PP
+Tags can have a value, which is the text after the colon, up to the next
+comma or end of line, with leading/trailing whitespace removed:
+.IP
+.nf
+\f[C]
+    expenses:food    $10 ; a-posting-tag: the tag value
+\f[R]
+.fi
+.PP
+Note this means hledger\[aq]s tag values can not contain commas or
+newlines.
+Ending at commas means you can write multiple short tags on one line,
+comma separated:
+.IP
+.nf
+\f[C]
+    assets:checking  ; a comment containing tag1:, tag2: some value ...
+\f[R]
+.fi
+.PP
+Here,
+.IP \[bu] 2
+\[dq]\f[C]a comment containing\f[R]\[dq] is just comment text, not a tag
+.IP \[bu] 2
+\[dq]\f[C]tag1\f[R]\[dq] is a tag with no value
+.IP \[bu] 2
+\[dq]\f[C]tag2\f[R]\[dq] is another tag, whose value is
+\[dq]\f[C]some value ...\f[R]\[dq]
+.PP
+Tags in a transaction comment affect the transaction and all of its
+postings, while tags in a posting comment affect only that posting.
+For example, the following transaction has three tags (\f[C]A\f[R],
+\f[C]TAG2\f[R], \f[C]third-tag\f[R]) and the posting has four (those
+plus \f[C]posting-tag\f[R]):
+.IP
+.nf
+\f[C]
+1/1 a transaction  ; A:, TAG2:
+    ; third-tag: a third transaction tag, <- with a value
+    (a)  $1  ; posting-tag:
+\f[R]
+.fi
+.PP
+Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
+values are simple strings.
+.SS Postings
+.PP
+A posting is an addition of some amount to, or removal of some amount
+from, an account.
+Each posting line begins with at least one space or tab (2 or 4 spaces
+is common), followed by:
+.IP \[bu] 2
+(optional) a status character (empty, \f[C]!\f[R], or \f[C]*\f[R]),
+followed by a space
+.IP \[bu] 2
+(required) an account name (any text, optionally containing \f[B]single
+spaces\f[R], until end of line or a double space)
+.IP \[bu] 2
+(optional) \f[B]two or more spaces\f[R] or tabs followed by an amount.
+.PP
+Positive amounts are being added to the account, negative amounts are
+being removed.
+.PP
+The amounts within a transaction must always sum up to zero.
+As a convenience, one amount may be left blank; it will be inferred so
+as to balance the transaction.
+.PP
+Be sure to note the unusual two-space delimiter between account name and
+amount.
+This makes it easy to write account names containing spaces.
+But if you accidentally leave only one space (or tab) before the amount,
+the amount will be considered part of the account name.
+.SS Virtual Postings
+.PP
+A posting with a parenthesised account name is called a \f[I]virtual
+posting\f[R] or \f[I]unbalanced posting\f[R], which means it is exempt
+from the usual rule that a transaction\[aq]s postings must balance add
+up to zero.
+.PP
+This is not part of double entry accounting, so you might choose to
+avoid this feature.
+Or you can use it sparingly for certain special cases where it can be
+convenient.
+Eg, you could set opening balances without using a balancing equity
+account:
+.IP
+.nf
+\f[C]
+1/1 opening balances
+  (assets:checking)   $1000
+  (assets:savings)    $2000
+\f[R]
+.fi
+.PP
+A posting with a bracketed account name is called a \f[I]balanced
+virtual posting\f[R].
+The balanced virtual postings in a transaction must add up to zero
+(separately from other postings).
+Eg:
+.IP
+.nf
+\f[C]
+1/1 buy food with cash, update budget envelope subaccounts, & something else
+  assets:cash                    $-10 ; <- these balance
+  expenses:food                    $7 ; <-
+  expenses:food                    $3 ; <-
+  [assets:checking:budget:food]  $-10    ; <- and these balance 
+  [assets:checking:available]     $10    ; <-
+  (something:else)                 $5       ; <- not required to balance
+\f[R]
+.fi
+.PP
+Ordinary non-parenthesised, non-bracketed postings are called \f[I]real
+postings\f[R].
+You can exclude virtual postings from reports with the
+\f[C]-R/--real\f[R] flag or \f[C]real:1\f[R] query.
 .SS Account names
 .PP
 Account names typically have several parts separated by a full colon,
@@ -465,47 +602,99 @@ indirectly.
 amount, or when an amountless posting is balanced using a price\[aq]s
 commodity, or when -V is used.) If you find this causing problems, use a
 commodity directive to set the display format.
-.SS Virtual Postings
+.SS Transaction prices
 .PP
-When you parenthesise the account name in a posting, we call that a
-\f[I]virtual posting\f[R], which means:
-.IP \[bu] 2
-it is ignored when checking that the transaction is balanced
-.IP \[bu] 2
-it is excluded from reports when the \f[C]--real/-R\f[R] flag is used,
-or the \f[C]real:1\f[R] query.
+Within a transaction, you can note an amount\[aq]s price in another
+commodity.
+This can be used to document the cost (in a purchase) or selling price
+(in a sale).
+For example, transaction prices are useful to record purchases of a
+foreign currency.
+Note transaction prices are fixed at the time of the transaction, and do
+not change over time.
+See also market prices, which represent prevailing exchange rates on a
+certain date.
 .PP
-You could use this, eg, to set an account\[aq]s opening balance without
-needing to use the \f[C]equity:opening balances\f[R] account:
+There are several ways to record a transaction price:
+.IP "1." 3
+Write the price per unit, as \f[C]\[at] UNITPRICE\f[R] after the amount:
+.RS 4
 .IP
 .nf
 \f[C]
-1/1 special unbalanced posting to set initial balance
-  (assets:checking)   $1000
+2009/1/1
+  assets:euros     \[Eu]100 \[at] $1.35  ; one hundred euros purchased at $1.35 each
+  assets:dollars                 ; balancing amount is -$135.00
 \f[R]
 .fi
-.PP
-When the account name is bracketed, we call it a \f[I]balanced virtual
-posting\f[R].
-This is like an ordinary virtual posting except the balanced virtual
-postings in a transaction must balance to 0, like the real postings (but
-separately from them).
-Balanced virtual postings are also excluded by \f[C]--real/-R\f[R] or
-\f[C]real:1\f[R].
+.RE
+.IP "2." 3
+Write the total price, as \f[C]\[at]\[at] TOTALPRICE\f[R] after the
+amount:
+.RS 4
 .IP
 .nf
 \f[C]
-1/1 buy food with cash, and update some budget-tracking subaccounts elsewhere
-  expenses:food                   $10
-  assets:cash                    $-10
-  [assets:checking:available]     $10
-  [assets:checking:budget:food]  $-10
+2009/1/1
+  assets:euros     \[Eu]100 \[at]\[at] $135  ; one hundred euros purchased at $135 for the lot
+  assets:dollars
+\f[R]
+.fi
+.RE
+.IP "3." 3
+Specify amounts for all postings, using exactly two commodities, and let
+hledger infer the price that balances the transaction:
+.RS 4
+.IP
+.nf
+\f[C]
+2009/1/1
+  assets:euros     \[Eu]100          ; one hundred euros purchased
+  assets:dollars  $-135          ; for $135
+\f[R]
+.fi
+.RE
+.PP
+(Ledger users: Ledger uses a different syntax for fixed prices,
+\f[C]{=UNITPRICE}\f[R], which hledger currently ignores).
+.PP
+Use the \f[C]-B/--cost\f[R] flag to convert amounts to their transaction
+price\[aq]s commodity, if any.
+(mnemonic: \[dq]B\[dq] is from \[dq]cost Basis\[dq], as in Ledger).
+Eg here is how -B affects the balance report for the example above:
+.IP
+.nf
+\f[C]
+$ hledger bal -N --flat
+               $-135  assets:dollars
+                \[Eu]100  assets:euros
+$ hledger bal -N --flat -B
+               $-135  assets:dollars
+                $135  assets:euros    # <- the euros\[aq] cost
 \f[R]
 .fi
 .PP
-Virtual postings have some legitimate uses, but those are few.
-You can usually find an equivalent journal entry using real postings,
-which is more correct and provides better error checking.
+Note -B is sensitive to the order of postings when a transaction price
+is inferred: the inferred price will be in the commodity of the last
+amount.
+So if example 3\[aq]s postings are reversed, while the transaction is
+equivalent, -B shows something different:
+.IP
+.nf
+\f[C]
+2009/1/1
+  assets:dollars  $-135              ; 135 dollars sold
+  assets:euros     \[Eu]100              ; for 100 euros
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger bal -N --flat -B
+               \[Eu]-100  assets:dollars  # <- the dollars\[aq] selling price
+                \[Eu]100  assets:euros
+\f[R]
+.fi
 .SS Balance Assertions
 .PP
 hledger supports Ledger-style balance assertions in journal files.
@@ -722,200 +911,6 @@ $ hledger print --explicit
     (a)         $1 \[at] \[Eu]2 = $1 \[at] \[Eu]2
 \f[R]
 .fi
-.SS Transaction prices
-.PP
-Within a transaction, you can note an amount\[aq]s price in another
-commodity.
-This can be used to document the cost (in a purchase) or selling price
-(in a sale).
-For example, transaction prices are useful to record purchases of a
-foreign currency.
-Note transaction prices are fixed at the time of the transaction, and do
-not change over time.
-See also market prices, which represent prevailing exchange rates on a
-certain date.
-.PP
-There are several ways to record a transaction price:
-.IP "1." 3
-Write the price per unit, as \f[C]\[at] UNITPRICE\f[R] after the amount:
-.RS 4
-.IP
-.nf
-\f[C]
-2009/1/1
-  assets:euros     \[Eu]100 \[at] $1.35  ; one hundred euros purchased at $1.35 each
-  assets:dollars                 ; balancing amount is -$135.00
-\f[R]
-.fi
-.RE
-.IP "2." 3
-Write the total price, as \f[C]\[at]\[at] TOTALPRICE\f[R] after the
-amount:
-.RS 4
-.IP
-.nf
-\f[C]
-2009/1/1
-  assets:euros     \[Eu]100 \[at]\[at] $135  ; one hundred euros purchased at $135 for the lot
-  assets:dollars
-\f[R]
-.fi
-.RE
-.IP "3." 3
-Specify amounts for all postings, using exactly two commodities, and let
-hledger infer the price that balances the transaction:
-.RS 4
-.IP
-.nf
-\f[C]
-2009/1/1
-  assets:euros     \[Eu]100          ; one hundred euros purchased
-  assets:dollars  $-135          ; for $135
-\f[R]
-.fi
-.RE
-.PP
-(Ledger users: Ledger uses a different syntax for fixed prices,
-\f[C]{=UNITPRICE}\f[R], which hledger currently ignores).
-.PP
-Use the \f[C]-B/--cost\f[R] flag to convert amounts to their transaction
-price\[aq]s commodity, if any.
-(mnemonic: \[dq]B\[dq] is from \[dq]cost Basis\[dq], as in Ledger).
-Eg here is how -B affects the balance report for the example above:
-.IP
-.nf
-\f[C]
-$ hledger bal -N --flat
-               $-135  assets:dollars
-                \[Eu]100  assets:euros
-$ hledger bal -N --flat -B
-               $-135  assets:dollars
-                $135  assets:euros    # <- the euros\[aq] cost
-\f[R]
-.fi
-.PP
-Note -B is sensitive to the order of postings when a transaction price
-is inferred: the inferred price will be in the commodity of the last
-amount.
-So if example 3\[aq]s postings are reversed, while the transaction is
-equivalent, -B shows something different:
-.IP
-.nf
-\f[C]
-2009/1/1
-  assets:dollars  $-135              ; 135 dollars sold
-  assets:euros     \[Eu]100              ; for 100 euros
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger bal -N --flat -B
-               \[Eu]-100  assets:dollars  # <- the dollars\[aq] selling price
-                \[Eu]100  assets:euros
-\f[R]
-.fi
-.SS Comments
-.PP
-Lines in the journal beginning with a semicolon (\f[C];\f[R]) or hash
-(\f[C]#\f[R]) or star (\f[C]*\f[R]) are comments, and will be ignored.
-(Star comments cause org-mode nodes to be ignored, allowing emacs users
-to fold and navigate their journals with org-mode or orgstruct-mode.)
-.PP
-You can attach comments to a transaction by writing them after the
-description and/or indented on the following lines (before the
-postings).
-Similarly, you can attach comments to an individual posting by writing
-them after the amount and/or indented on the following lines.
-Transaction and posting comments must begin with a semicolon
-(\f[C];\f[R]).
-.PP
-Some examples:
-.IP
-.nf
-\f[C]
-# a file comment
-
-; also a file comment
-
-comment
-This is a multiline file comment,
-which continues until a line
-where the \[dq]end comment\[dq] string
-appears on its own (or end of file).
-end comment
-
-2012/5/14 something  ; a transaction comment
-    ; the transaction comment, continued
-    posting1  1  ; a comment for posting 1
-    posting2
-    ; a comment for posting 2
-    ; another comment line for posting 2
-; a file comment (because not indented)
-\f[R]
-.fi
-.PP
-You can also comment larger regions of a file using \f[C]comment\f[R]
-and \f[C]end comment\f[R] directives.
-.SS Tags
-.PP
-Tags are a way to add extra labels or labelled data to postings and
-transactions, which you can then search or pivot on.
-.PP
-A simple tag is a word (which may contain hyphens) followed by a full
-colon, written inside a transaction or posting comment line:
-.IP
-.nf
-\f[C]
-2017/1/16 bought groceries  ; sometag:
-\f[R]
-.fi
-.PP
-Tags can have a value, which is the text after the colon, up to the next
-comma or end of line, with leading/trailing whitespace removed:
-.IP
-.nf
-\f[C]
-    expenses:food    $10 ; a-posting-tag: the tag value
-\f[R]
-.fi
-.PP
-Note this means hledger\[aq]s tag values can not contain commas or
-newlines.
-Ending at commas means you can write multiple short tags on one line,
-comma separated:
-.IP
-.nf
-\f[C]
-    assets:checking  ; a comment containing tag1:, tag2: some value ...
-\f[R]
-.fi
-.PP
-Here,
-.IP \[bu] 2
-\[dq]\f[C]a comment containing\f[R]\[dq] is just comment text, not a tag
-.IP \[bu] 2
-\[dq]\f[C]tag1\f[R]\[dq] is a tag with no value
-.IP \[bu] 2
-\[dq]\f[C]tag2\f[R]\[dq] is another tag, whose value is
-\[dq]\f[C]some value ...\f[R]\[dq]
-.PP
-Tags in a transaction comment affect the transaction and all of its
-postings, while tags in a posting comment affect only that posting.
-For example, the following transaction has three tags (\f[C]A\f[R],
-\f[C]TAG2\f[R], \f[C]third-tag\f[R]) and the posting has four (those
-plus \f[C]posting-tag\f[R]):
-.IP
-.nf
-\f[C]
-1/1 a transaction  ; A:, TAG2:
-    ; third-tag: a third transaction tag, <- with a value
-    (a)  $1  ; posting-tag:
-\f[R]
-.fi
-.PP
-Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
-values are simple strings.
 .SS Directives
 .PP
 A directive is a line in the journal beginning with a special keyword,
@@ -1421,11 +1416,14 @@ account other:zoo
 would influence the position of \f[C]zoo\f[R] among
 \f[C]other\f[R]\[aq]s subaccounts, but not the position of
 \f[C]other\f[R] among the top-level accounts.
-This means: - you will sometimes declare parent accounts (eg
-\f[C]account other\f[R] above) that you don\[aq]t intend to post to,
-just to customize their display order - sibling accounts stay together
-(you couldn\[aq]t display \f[C]x:y\f[R] in between \f[C]a:b\f[R] and
-\f[C]a:c\f[R]).
+This means:
+.IP \[bu] 2
+you will sometimes declare parent accounts (eg \f[C]account other\f[R]
+above) that you don\[aq]t intend to post to, just to customize their
+display order
+.IP \[bu] 2
+sibling accounts stay together (you couldn\[aq]t display \f[C]x:y\f[R]
+in between \f[C]a:b\f[R] and \f[C]a:c\f[R]).
 .SS Rewriting accounts
 .PP
 You can define account alias rules which rewrite your account names, or
@@ -1876,15 +1874,6 @@ rules will have these tags added:
 .IP \[bu] 2
 \f[C]_modified:\f[R] - a hidden tag not appearing in the comment; this
 transaction was modified \[dq]just now\[dq].
-.SH EDITOR SUPPORT
-.PP
-Helper modes exist for popular text editors, which make working with
-journal files easier.
-They add colour, formatting, tab completion, and helpful commands, and
-are quite recommended if you edit your journal with a text editor.
-They include ledger-mode or hledger-mode for Emacs, vim-ledger for Vim,
-hledger-vscode for Visual Studio Code, and others.
-See the Editor configuration at hledger.org for the latest information.
 
 
 .SH "REPORTING BUGS"
