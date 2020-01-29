@@ -61,8 +61,17 @@ Here's an example:
     assets:bank:checking
 ```
 
+Helper modes exist for popular text editors, which make working with
+journal files easier. They add colour, formatting, tab completion, and
+helpful commands, and are quite recommended if you edit your journal
+with a text editor. They include ledger-mode or hledger-mode for
+Emacs, vim-ledger for Vim, hledger-vscode for Visual Studio Code, and
+others. See the [Editor configuration](editors.html) at hledger.org
+for the latest information.
+
+_man_({{
 # FILE FORMAT
-<!-- Now let's explore the available journal file syntax in detail. -->
+}})
 
 ## Transactions
 
@@ -1436,14 +1445,3 @@ Also, any transaction that has been changed by transaction modifier rules will h
 - `modified:` - this transaction was modified
 - `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
 
-
-
-# EDITOR SUPPORT
-
-Helper modes exist for popular text editors, which make working with
-journal files easier. They add colour, formatting, tab completion, and
-helpful commands, and are quite recommended if you edit your journal
-with a text editor. They include ledger-mode or hledger-mode for
-Emacs, vim-ledger for Vim, hledger-vscode for Visual Studio Code, and
-others. See the [Editor configuration](editors.html) at hledger.org
-for the latest information.
