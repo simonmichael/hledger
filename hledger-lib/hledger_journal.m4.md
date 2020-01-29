@@ -27,9 +27,17 @@ hledger and ledger on the same journal file, eg to validate the results
 you're getting.
 
 You can use hledger without learning any more about this file; just
-use the [add](#add) or [web](#web) commands to create and update it.
-Many users, though, also edit the journal file directly with a text
-editor, perhaps assisted by the helper modes for emacs or vim.
+use the [add](#add) or [web](#web) or [import](#import) commands to
+create and update it.
+
+Many users, though, edit the journal file with a text editor,
+and track changes with a version control system such as git.
+Editor addons such as
+ledger-mode or hledger-mode for Emacs, 
+vim-ledger for Vim, 
+and hledger-vscode for Visual Studio Code,
+make this easier, adding colour, formatting, tab completion, and useful commands.
+See [Editor configuration](editors.html) at hledger.org for the full list.
 
 <!--
 Here's an example:
@@ -63,14 +71,6 @@ Here's an example:
     assets:bank:checking
 ```
 -->
-
-Helper modes exist for popular text editors, which make working with
-journal files easier. They add colour, formatting, tab completion, and
-helpful commands, and are quite recommended if you edit your journal
-with a text editor. They include ledger-mode or hledger-mode for
-Emacs, vim-ledger for Vim, hledger-vscode for Visual Studio Code, and
-others. See the [Editor configuration](editors.html) at hledger.org
-for the latest information.
 
 _man_({{
 # FILE FORMAT
@@ -127,19 +127,20 @@ dates](hledger.html#smart-dates) documented in the hledger manual.)
 
 Real-life transactions sometimes involve more than one date - eg the date
 you write a cheque, and the date it clears in your bank.  When you want to
-model this, eg for more accurate balances, you can specify individual
+model this, for more accurate daily balances, you can specify individual
 [posting dates](#posting-dates).
 
-Or, you can use the older *secondary date* feature. 
-(Ledger calls it auxiliary date or effective date.)
-But I would recommend avoiding this feature; posting dates are almost
-always clearer and simpler. We support it mainly for compatibility.
+Or, you can use the older *secondary date* feature
+(Ledger calls it auxiliary date or effective date).
+Note: we support this for compatibility, but I usually recommend
+avoiding this feature; posting dates are almost always clearer and
+simpler.
 <!-- (Secondary dates require you to remember to use them consistently in -->
 <!-- your journal, and to choose them or not for each report.) -->
 
 A secondary date is written after the primary date, following an
-equals sign. The primary date's year will be used if the year is
-omitted. When running reports, the primary (left) date is used by
+equals sign. If the year is omitted, the primary date's year is
+assumed. When running reports, the primary (left) date is used by
 default, but with the `--date2` flag (or `--aux-date` or
 `--effective`), the secondary (right) date will be used instead.
 
