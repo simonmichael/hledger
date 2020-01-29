@@ -26,10 +26,12 @@ ledger journal files as well.  It's safe, and encouraged, to run both
 hledger and ledger on the same journal file, eg to validate the results
 you're getting.
 
-You can use hledger without learning any more about this file;
-just use the [add](#add) or [web](#web) commands to create and update it.
-Many users, though, also edit the journal file directly with a text editor, perhaps assisted by the helper modes for emacs or vim.
+You can use hledger without learning any more about this file; just
+use the [add](#add) or [web](#web) commands to create and update it.
+Many users, though, also edit the journal file directly with a text
+editor, perhaps assisted by the helper modes for emacs or vim.
 
+<!--
 Here's an example:
 
 ```journal
@@ -60,6 +62,7 @@ Here's an example:
     liabilities:debts     $1
     assets:bank:checking
 ```
+-->
 
 Helper modes exist for popular text editors, which make working with
 journal files easier. They add colour, formatting, tab completion, and
@@ -73,89 +76,89 @@ _man_({{
 # FILE FORMAT
 }})
 
+Here's a description of each part of the file format
+(and hledger's data model).
+These are mostly in the order you'll use them, but in some cases
+related concepts have been grouped together for easy reference,
+or linked before they are introduced,
+so feel free to skip over anything that looks unnecessary right now.
+
 ## Transactions
 
-Transactions are movements of some quantity of commodities between named accounts.
-Each transaction is represented by a journal entry beginning with a [simple date](#simple-dates) in column 0. 
-This can be followed by any of the following, separated by spaces:
+Transactions are the main unit of information in a journal file.
+They represent events, typically a movement of some quantity of
+commodities between two or more named accounts.
 
-- (optional) a [status](#status) character (empty, `!`, or `*`) 
-- (optional) a transaction code (any short number or text, enclosed in parentheses)
-- (optional) a transaction description (any remaining text until end of line or a semicolon)
-- (optional) a transaction comment (any remaining text following a semicolon until end of line)
+Each transaction is recorded as a journal entry, beginning with a
+[simple date](#simple-dates) in column 0. This can be followed by any
+of the following optional fields, separated by spaces:
 
-Then comes zero or more (but usually at least 2) indented lines representing...
+- a [status](#status) character (empty, `!`, or `*`) 
+- a code (any short number or text, enclosed in parentheses)
+- a description (any remaining text until end of line or a semicolon)
+- a comment (any remaining text following a semicolon until end of line,
+             and any following indented lines beginning with a semicolon)
+- 0 or more indented *posting* lines, describing what was transferred
+  and the accounts involved.
 
-## Postings
- 
-A posting is an addition of some amount to, or removal of some amount from, an account. 
-Each posting line begins with at least one space or tab (2 or 4 spaces is common), followed by:
+Here's a simple journal file containing one transaction:
+```journal
+2008/01/01 income
+  assets:bank:checking   $1
+  income:salary         $-1
+```
 
-- (optional) a [status](#status) character (empty, `!`, or `*`), followed by a space
-- (required) an [account name](#account-names) (any text, optionally containing **single spaces**, until end of line or a double space)
-- (optional) **two or more spaces** or tabs followed by an [amount](#amounts). 
-
-Positive amounts are being added to the account, negative amounts are being removed. 
-
-The amounts within a transaction must always sum up to zero.
-As a convenience, one amount may be left blank; it will be inferred so as to balance the transaction.
-
-Be sure to note the unusual two-space delimiter between account name and amount.
-This makes it easy to write account names containing spaces.
-But if you accidentally leave only one space (or tab) before the amount, the amount will be considered part of the account name.
 
 ## Dates
 
 ### Simple dates
 
-Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
-Leading zeros are optional.
-The year may be omitted, in which case it will be inferred from the context - the current transaction, the default year set with a
-[default year directive](#default-year), or the current date when the command is run.
-Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`.
+Dates in the journal file use *simple dates* format:
+`YYYY-MM-DD` or `YYYY/MM/DD` or `YYYY.MM.DD`, with leading zeros optional.
+The year may be omitted, in which case it will be inferred from the context:
+the current transaction, the default year set with a [default year directive](#default-year), 
+or the current date when the command is run.
+Some examples: `2010-01-31`, `2010/01/31`, `2010.1.31`, `1/31`.
+
+(The UI also accepts simple dates, as well as the more flexible [smart
+dates](hledger.html#smart-dates) documented in the hledger manual.)
 
 ### Secondary dates
 
 Real-life transactions sometimes involve more than one date - eg the date
 you write a cheque, and the date it clears in your bank.  When you want to
 model this, eg for more accurate balances, you can specify individual
-[posting dates](#posting-dates), which I recommend. Or, you can use the
-secondary dates (aka auxiliary/effective dates) feature, supported for compatibility
-with Ledger.
+[posting dates](#posting-dates).
 
-A secondary date can be written after the primary date, separated by
-an equals sign. The primary date, on the left, is used by default; the
-secondary date, on the right, is used when the `--date2` flag is
-specified (`--aux-date` or `--effective` also work).
+Or, you can use the older *secondary date* feature. 
+(Ledger calls it auxiliary date or effective date.)
+But I would recommend avoiding this feature; posting dates are almost
+always clearer and simpler. We support it mainly for compatibility.
+<!-- (Secondary dates require you to remember to use them consistently in -->
+<!-- your journal, and to choose them or not for each report.) -->
+
+A secondary date is written after the primary date, following an
+equals sign. The primary date's year will be used if the year is
+omitted. When running reports, the primary (left) date is used by
+default, but with the `--date2` flag (or `--aux-date` or
+`--effective`), the secondary (right) date will be used instead.
 
 The meaning of secondary dates is up to you, but it's best to follow a
-consistent rule.  Eg write the bank's clearing date as primary, and
-when needed, the date the transaction was initiated as secondary.
-
-Here's an example. Note that a secondary date will use the year of the
-primary date if unspecified.
-
+consistent rule.  Eg "primary = the bank's clearing date, secondary = 
+date the transaction was initiated, if different", as shown here:
 ```journal
 2010/2/23=2/19 movie ticket
   expenses:cinema                   $10
   assets:checking
 ```
-
 ```shell
 $ hledger register checking
 2010-02-23 movie ticket         assets:checking                $-10         $-10
 ```
-
 ```shell
 $ hledger register checking --date2
 2010-02-19 movie ticket         assets:checking                $-10         $-10
 ```
-
-Secondary dates require some effort; you must use them consistently in
-your journal entries and remember whether to use or not use the
-`--date2` flag for your reports. They are included in hledger for
-Ledger compatibility, but posting dates are a more powerful and less
-confusing alternative.
 
 ### Posting dates
 
@@ -247,6 +250,141 @@ You can optionally include a `|` (pipe) character in descriptions to subdivide t
 into separate fields for payee/payer name on the left (up to the first `|`) and an additional note
 field on the right (after the first `|`). This may be worthwhile if you need to do more precise
 [querying](hledger.html#queries) and [pivoting](hledger.html#pivoting) by payee or by note.
+
+## Comments
+
+Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
+star (`*`) are comments, and will be ignored. (Star comments cause
+org-mode nodes to be ignored, allowing emacs users to fold and navigate
+their journals with org-mode or orgstruct-mode.)
+
+You can attach comments to a transaction by writing them after the
+description and/or indented on the following lines (before the
+postings).  Similarly, you can attach comments to an individual
+posting by writing them after the amount and/or indented on the
+following lines. 
+Transaction and posting comments must begin with a semicolon (`;`).
+
+Some examples:
+
+```journal
+# a file comment
+
+; also a file comment
+
+comment
+This is a multiline file comment,
+which continues until a line
+where the "end comment" string
+appears on its own (or end of file).
+end comment
+
+2012/5/14 something  ; a transaction comment
+    ; the transaction comment, continued
+    posting1  1  ; a comment for posting 1
+    posting2
+    ; a comment for posting 2
+    ; another comment line for posting 2
+; a file comment (because not indented)
+```
+
+You can also comment larger regions of a file using [`comment` and `end comment` directives](#comment-blocks).
+
+
+## Tags
+
+Tags are a way to add extra labels or labelled data to postings and transactions,
+which you can then [search](hledger.html#queries) or [pivot](hledger.html#pivoting) on.
+
+A simple tag is a word (which may contain hyphens) followed by a full colon,
+written inside a transaction or posting [comment](#comments) line:
+```journal
+2017/1/16 bought groceries  ; sometag:
+```
+
+Tags can have a value, which is the text after the colon, up to the next comma or end of line, with leading/trailing whitespace removed:
+```journal
+    expenses:food    $10 ; a-posting-tag: the tag value
+```
+
+Note this means hledger's tag values can not contain commas or newlines.
+Ending at commas means you can write multiple short tags on one line, comma separated:
+```journal
+    assets:checking  ; a comment containing tag1:, tag2: some value ...
+```
+Here,
+
+- "`a comment containing `" is just comment text, not a tag
+- "`tag1`" is a tag with no value
+- "`tag2`" is another tag, whose value is "`some value ...`"
+
+Tags in a transaction comment affect the transaction and all of its postings,
+while tags in a posting comment affect only that posting.
+For example, the following transaction has three tags (`A`, `TAG2`, `third-tag`)
+and the posting has four (those plus `posting-tag`):
+
+```journal
+1/1 a transaction  ; A:, TAG2:
+    ; third-tag: a third transaction tag, <- with a value
+    (a)  $1  ; posting-tag:
+```
+
+Tags are like Ledger's
+[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
+feature, except hledger's tag values are simple strings.
+
+## Postings
+ 
+A posting is an addition of some amount to, or removal of some amount from, an account. 
+Each posting line begins with at least one space or tab (2 or 4 spaces is common), followed by:
+
+- (optional) a [status](#status) character (empty, `!`, or `*`), followed by a space
+- (required) an [account name](#account-names) (any text, optionally containing **single spaces**, until end of line or a double space)
+- (optional) **two or more spaces** or tabs followed by an [amount](#amounts). 
+
+Positive amounts are being added to the account, negative amounts are being removed. 
+
+The amounts within a transaction must always sum up to zero.
+As a convenience, one amount may be left blank; it will be inferred so as to balance the transaction.
+
+Be sure to note the unusual two-space delimiter between account name and amount.
+This makes it easy to write account names containing spaces.
+But if you accidentally leave only one space (or tab) before the amount, the amount will be considered part of the account name.
+
+### Virtual Postings
+
+A posting with a parenthesised account name is called a *virtual posting*
+or *unbalanced posting*, which means it is exempt from the usual rule
+that a transaction's postings must balance add up to zero.
+
+This is not part of double entry accounting, so you might choose to
+avoid this feature. Or you can use it sparingly for certain special
+cases where it can be convenient. Eg, you could set opening balances
+without using a balancing equity account:
+
+```journal
+1/1 opening balances
+  (assets:checking)   $1000
+  (assets:savings)    $2000
+```
+
+A posting with a bracketed account name is called a *balanced virtual
+posting*. The balanced virtual postings in a transaction must add up
+to zero (separately from other postings). Eg:
+
+```journal
+1/1 buy food with cash, update budget envelope subaccounts, & something else
+  assets:cash                    $-10 ; <- these balance
+  expenses:food                    $7 ; <-
+  expenses:food                    $3 ; <-
+  [assets:checking:budget:food]  $-10    ; <- and these balance 
+  [assets:checking:available]     $10    ; <-
+  (something:else)                 $5       ; <- not required to balance
+```
+
+Ordinary non-parenthesised, non-bracketed postings are called *real postings*.
+You can exclude virtual postings from reports with the `-R/--real`
+flag or `real:1` query.
 
 ## Account names
 
@@ -357,41 +495,73 @@ or when an amountless posting is balanced using a price's commodity,
 or when -V is used.) If you find this causing problems, use a
 commodity directive to set the display format.
 
-## Virtual Postings
+## Transaction prices
 
-A posting with a parenthesised account name is called a *virtual posting*
-or *unbalanced posting*, which means it is exempt from the usual rule
-that a transaction's postings must balance (add up to zero).
+Within a transaction, you can note an amount's price in another commodity.
+This can be used to document the cost (in a purchase) or selling price (in a sale).
+For example, transaction prices are useful to record purchases of a foreign currency.
+Note transaction prices are fixed at the time of the transaction, and do not change over time.
+See also [market prices](#market-prices), which represent prevailing exchange rates on a certain date.
 
-This is not part of double entry accounting, so you might choose to
-avoid this feature. Or you can use it sparingly for certain special
-cases where it can be convenient. Eg, you could set opening balances
-without using a balancing equity account:
+There are several ways to record a transaction price:
 
-```journal
-1/1 opening balances
-  (assets:checking)   $1000
-  (assets:savings)    $2000
+1. Write the price per unit, as `@ UNITPRICE` after the amount:
+
+    ```journal
+    2009/1/1
+      assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
+      assets:dollars                 ; balancing amount is -$135.00
+    ```
+
+2. Write the total price, as `@@ TOTALPRICE` after the amount:
+
+    ```journal
+    2009/1/1
+      assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
+      assets:dollars
+    ```
+
+3. Specify amounts for all postings, using exactly two commodities,
+   and let hledger infer the price that balances the transaction:
+
+    ```journal
+    2009/1/1
+      assets:euros     €100          ; one hundred euros purchased
+      assets:dollars  $-135          ; for $135
+    ```
+
+(Ledger users: Ledger uses a different [syntax](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
+for fixed prices, `{=UNITPRICE}`, which hledger currently ignores).
+
+Use the [`-B/--cost`](hledger.html#reporting-options) flag to convert 
+amounts to their transaction price's commodity, if any.
+(mnemonic: "B" is from "cost Basis", as in Ledger).
+Eg here is how -B affects the balance report for the example above:
+
+```shell
+$ hledger bal -N --flat
+               $-135  assets:dollars
+                €100  assets:euros
+$ hledger bal -N --flat -B
+               $-135  assets:dollars
+                $135  assets:euros    # <- the euros' cost
 ```
 
-A posting with a bracketed account name is called a *balanced virtual
-posting*. The balanced virtual postings in a transaction must add up
-to zero (separately from other postings). Eg:
+Note -B is sensitive to the order of postings when a transaction price is inferred:
+the inferred price will be in the commodity of the last amount. 
+So if example 3's postings are reversed, while the transaction
+is equivalent, -B shows something different:
 
 ```journal
-1/1 buy food with cash, update budget envelope subaccounts, & something else
-  assets:cash                    $-10 ; <- these balance
-  expenses:food                    $7 ; <-
-  expenses:food                    $3 ; <-
-  [assets:checking:budget:food]  $-10    ; <- and these balance 
-  [assets:checking:available]     $10    ; <-
-  (something:else)                 $5       ; <- not required to balance
+2009/1/1
+  assets:dollars  $-135              ; 135 dollars sold
+  assets:euros     €100              ; for 100 euros
 ```
-
-Ordinary non-parenthesised, non-bracketed postings are called *real postings*.
-You can exclude virtual postings from reports with the `-R/--real`
-flag or `real:1` query.
-
+```shell
+$ hledger bal -N --flat -B
+               €-100  assets:dollars  # <- the dollars' selling price
+                €100  assets:euros
+```
 
 ## Balance Assertions
 
@@ -584,156 +754,6 @@ $ hledger print --explicit
 2019-01-01
     (a)         $1 @ €2 = $1 @ €2
 ```
-
-## Transaction prices
-
-Within a transaction, you can note an amount's price in another commodity.
-This can be used to document the cost (in a purchase) or selling price (in a sale).
-For example, transaction prices are useful to record purchases of a foreign currency.
-Note transaction prices are fixed at the time of the transaction, and do not change over time.
-See also [market prices](#market-prices), which represent prevailing exchange rates on a certain date.
-
-There are several ways to record a transaction price:
-
-1. Write the price per unit, as `@ UNITPRICE` after the amount:
-
-    ```journal
-    2009/1/1
-      assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
-      assets:dollars                 ; balancing amount is -$135.00
-    ```
-
-2. Write the total price, as `@@ TOTALPRICE` after the amount:
-
-    ```journal
-    2009/1/1
-      assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
-      assets:dollars
-    ```
-
-3. Specify amounts for all postings, using exactly two commodities,
-   and let hledger infer the price that balances the transaction:
-
-    ```journal
-    2009/1/1
-      assets:euros     €100          ; one hundred euros purchased
-      assets:dollars  $-135          ; for $135
-    ```
-
-(Ledger users: Ledger uses a different [syntax](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
-for fixed prices, `{=UNITPRICE}`, which hledger currently ignores).
-
-Use the [`-B/--cost`](hledger.html#reporting-options) flag to convert 
-amounts to their transaction price's commodity, if any.
-(mnemonic: "B" is from "cost Basis", as in Ledger).
-Eg here is how -B affects the balance report for the example above:
-
-```shell
-$ hledger bal -N --flat
-               $-135  assets:dollars
-                €100  assets:euros
-$ hledger bal -N --flat -B
-               $-135  assets:dollars
-                $135  assets:euros    # <- the euros' cost
-```
-
-Note -B is sensitive to the order of postings when a transaction price is inferred:
-the inferred price will be in the commodity of the last amount. 
-So if example 3's postings are reversed, while the transaction
-is equivalent, -B shows something different:
-
-```journal
-2009/1/1
-  assets:dollars  $-135              ; 135 dollars sold
-  assets:euros     €100              ; for 100 euros
-```
-```shell
-$ hledger bal -N --flat -B
-               €-100  assets:dollars  # <- the dollars' selling price
-                €100  assets:euros
-```
-
-## Comments
-
-Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
-star (`*`) are comments, and will be ignored. (Star comments cause
-org-mode nodes to be ignored, allowing emacs users to fold and navigate
-their journals with org-mode or orgstruct-mode.)
-
-You can attach comments to a transaction by writing them after the
-description and/or indented on the following lines (before the
-postings).  Similarly, you can attach comments to an individual
-posting by writing them after the amount and/or indented on the
-following lines. 
-Transaction and posting comments must begin with a semicolon (`;`).
-
-Some examples:
-
-```journal
-# a file comment
-
-; also a file comment
-
-comment
-This is a multiline file comment,
-which continues until a line
-where the "end comment" string
-appears on its own (or end of file).
-end comment
-
-2012/5/14 something  ; a transaction comment
-    ; the transaction comment, continued
-    posting1  1  ; a comment for posting 1
-    posting2
-    ; a comment for posting 2
-    ; another comment line for posting 2
-; a file comment (because not indented)
-```
-
-You can also comment larger regions of a file using [`comment` and `end comment` directives](#comment-blocks).
-
-
-## Tags
-
-Tags are a way to add extra labels or labelled data to postings and transactions,
-which you can then [search](hledger.html#queries) or [pivot](hledger.html#pivoting) on.
-
-A simple tag is a word (which may contain hyphens) followed by a full colon,
-written inside a transaction or posting [comment](#comments) line:
-```journal
-2017/1/16 bought groceries  ; sometag:
-```
-
-Tags can have a value, which is the text after the colon, up to the next comma or end of line, with leading/trailing whitespace removed:
-```journal
-    expenses:food    $10 ; a-posting-tag: the tag value
-```
-
-Note this means hledger's tag values can not contain commas or newlines.
-Ending at commas means you can write multiple short tags on one line, comma separated:
-```journal
-    assets:checking  ; a comment containing tag1:, tag2: some value ...
-```
-Here,
-
-- "`a comment containing `" is just comment text, not a tag
-- "`tag1`" is a tag with no value
-- "`tag2`" is another tag, whose value is "`some value ...`"
-
-Tags in a transaction comment affect the transaction and all of its postings,
-while tags in a posting comment affect only that posting.
-For example, the following transaction has three tags (`A`, `TAG2`, `third-tag`)
-and the posting has four (those plus `posting-tag`):
-
-```journal
-1/1 a transaction  ; A:, TAG2:
-    ; third-tag: a third transaction tag, <- with a value
-    (a)  $1  ; posting-tag:
-```
-
-Tags are like Ledger's
-[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
-feature, except hledger's tag values are simple strings.
 
 ## Directives
 
