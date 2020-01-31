@@ -110,6 +110,7 @@ import Data.Char
 import Data.Data
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Default
+import Data.Function ((&))
 import Data.Functor.Identity
 import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
@@ -278,43 +279,25 @@ finaliseJournal iopts f txt pj = do
   -- transactions before they get reversesd to normal order.
   case journalApplyCommodityStyles pj of
     Left e    -> throwError e
-    Right pj' -> 
-      -- Finalise the parsed journal.
-      let fj =
-            if auto_ iopts && (not . null . jtxnmodifiers) pj
-            then
-              -- When automatic postings are active, we finalise twice:
-              -- once before and once after. However, if we are running it
-              -- twice, we don't check assertions the first time (they might
-              -- be false pending modifiers) and we don't reorder the second
-              -- time. If we are only running once, we reorder and follow
-              -- the options for checking assertions.
-              --
-              -- first pass, doing most of the work
-              (
-               (journalModifyTransactions <$>) $  -- add auto postings after balancing ? #893b fails
-               journalBalanceTransactions False $ -- balance transactions without checking assertions
-               -- journalModifyTransactions <$>   -- add auto postings before balancing ? probably #893a, #928, #938 fail
-               journalReverse $
-               journalSetLastReadTime t $
-               journalAddFile (f, txt) $
-               pj')
-              -- balance transactions a second time, now just checking balance assertions
-              >>= (\j ->
-                 journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-                 j)
-
-            else
-              -- automatic postings are not active
-              journalBalanceTransactions (not $ ignore_assertions_ iopts) $
-              journalReverse $
-              journalSetLastReadTime t $
-              journalAddFile (f, txt) $
-              pj'
-      in
-        case fj of
-          Left e  -> throwError e
-          Right j -> return j
+    Right pj' -> either throwError return $
+      pj'
+      & journalAddFile (f, txt)  -- save the file path and content
+      & journalSetLastReadTime t -- save the last read time
+      & journalReverse           -- convert all lists to parse order
+      & if not (auto_ iopts) || null (jtxnmodifiers pj)
+        then
+          -- Auto postings are not active.
+          -- Balance all transactions and maybe check balance assertions.
+          journalBalanceTransactions (not $ ignore_assertions_ iopts)
+        else \j -> do  -- Either monad
+          -- Auto postings are active.
+          -- Balance all transactions without checking balance assertions,
+          -- then add the auto postings, then check balance assertions.
+          -- (Note adding auto postings after balancing means #893b fails;
+          -- adding them before balancing probably means #893a, #928, #938 fail.)
+          j' <- journalBalanceTransactions False j
+          let j'' = journalModifyTransactions j'
+          journalBalanceTransactions (not $ ignore_assertions_ iopts) j''
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
