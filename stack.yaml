@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.8.1
 
-resolver: nightly-2020-01-25
+resolver: nightly-2020-01-31
 # allow-newer: true
 
 packages:
@@ -19,4 +19,8 @@ extra-deps:
 # for hledger-ui:
 # for hledger-web:
 # for Shake.hs:
-- regex-1.1.0.0
+
+# for precise profiling, per https://www.tweag.io/posts/2020-01-30-haskell-profiling.html:
+# apply-ghc-options: everything
+# rebuild-ghc-options: true
+# stack build --profile --ghc-options="-fno-prof-auto"
