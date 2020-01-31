@@ -1,5 +1,3 @@
-# Transaction modifier adding (unbalanced) tax postings.
-# print. Auto-generated postings are inserted below the matched one.
 <
 = ^income
   (liabilities:tax)  *.33  ; income tax
@@ -13,7 +11,7 @@
     assets:cash             $20
     assets:bank
 
-# 1. print
+# 1. print. Auto-generated postings are inserted below the matched one.
 $ hledger print -f- --auto
 2016-01-01 paycheck  ; modified:
     income:remuneration           $-100
@@ -327,3 +325,20 @@ $ hledger -f- register --auto
 $ hledger -f- print -x --auto
 >2 /could not balance/
 >=1
+
+# 17. Commodity display styles are applied to auto posting amounts.
+<
+2020-01-20
+  (a)    1 A
+; add an auto posting with decimal places
+=
+  (b)   *1.5 B
+; show B amounts with no decimal places
+commodity 0. B
+
+$ hledger -f- print --auto
+2020-01-20  ; modified:
+    (a)             1 A
+    (b)             2 B  ; generated-posting: =
+
+>=0

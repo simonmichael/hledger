@@ -274,9 +274,10 @@ finaliseJournal :: InputOpts -> FilePath -> Text -> Journal -> ExceptT String IO
 finaliseJournal iopts f txt pj = do
   t <- liftIO getClockTime
   -- Infer and apply canonical styles for each commodity (or fail).
-  -- TODO: since #903's refactoring for hledger 1.12,
+  -- This affects transaction balancing/assertions/assignments, so needs to be done early.
+  -- (TODO: since #903's refactoring for hledger 1.12,
   -- journalApplyCommodityStyles here is seeing the
-  -- transactions before they get reversesd to normal order.
+  -- transactions before they get reversesd to normal order.)
   case journalApplyCommodityStyles pj of
     Left e    -> throwError e
     Right pj' -> either throwError return $
@@ -292,12 +293,15 @@ finaliseJournal iopts f txt pj = do
         else \j -> do  -- Either monad
           -- Auto postings are active.
           -- Balance all transactions without checking balance assertions,
-          -- then add the auto postings, then check balance assertions.
+          j' <- journalBalanceTransactions False j
+          -- then add the auto postings
           -- (Note adding auto postings after balancing means #893b fails;
           -- adding them before balancing probably means #893a, #928, #938 fail.)
-          j' <- journalBalanceTransactions False j
           let j'' = journalModifyTransactions j'
-          journalBalanceTransactions (not $ ignore_assertions_ iopts) j''
+          -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
+          j''' <- journalApplyCommodityStyles j''
+          -- then check balance assertions.
+          journalBalanceTransactions (not $ ignore_assertions_ iopts) j'''
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
