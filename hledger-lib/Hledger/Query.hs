@@ -171,6 +171,12 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- 2. multiple description patterns are OR'd together
 -- 3. multiple status patterns are OR'd together
 -- 4. then all terms are AND'd together
+--
+-- >>> parseQuery nulldate "expenses:dining out"
+-- (Or ([Acct "expenses:dining",Acct "out"]),[])
+-- >>> parseQuery nulldate "\"expenses:dining out\""
+-- (Acct "expenses:dining out",[])
+--
 parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
 parseQuery d s = (q, opts)
   where
