@@ -1407,6 +1407,13 @@ These posting-generating rules look like normal postings, except the amount can 
 - a numeric multiplier, eg `*2` (a star followed by a number N).  The matched posting's amount (and total price, if any) will be multiplied by N.
 - a multiplier with a commodity symbol, eg `*$2` (a star, number N, and symbol S). The matched posting's amount will be multiplied by N, and its commodity symbol will be replaced with S.
 
+A query term containing spaces must be enclosed in single or double
+quotes, as on the command line. Eg, note the quotes around the second query term below:
+```journal
+= expenses:groceries 'expenses:dining out'
+    (budget:funds:dining out)                 *-1 
+```
+
 These rules have global effect - a rule appearing anywhere in your data can potentially affect any transaction, including transactions recorded above it or in another file.
 
 Some examples:
