@@ -170,8 +170,7 @@ instance FromJSON (DecimalRaw Integer)
 -- Utilities
 
 -- | Read a json from a file and decode/parse it as the target type, if we can.
--- Example:
--- >>> readJsonFile "in.json" :: IO MixedAmount
+-- Example: >>> readJsonFile "in.json" :: IO MixedAmount
 readJsonFile :: FromJSON a => FilePath -> IO a
 readJsonFile f = do
   bs <- BL.readFile f
@@ -181,7 +180,6 @@ readJsonFile f = do
     Success t -> return t
 
 -- | Write some to-JSON-convertible haskell value to a json file, if we can.
--- Example:
--- >>> writeJsonFile "out.json" nullmixedamt
+-- Example: >>> writeJsonFile "out.json" nullmixedamt
 writeJsonFile :: ToJSON a => FilePath -> a -> IO ()
 writeJsonFile f v = BL.writeFile f (encode v)

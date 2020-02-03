@@ -55,16 +55,16 @@ modifyTransactions tmods = map applymods
 -- way (ie, 'txnTieKnot' is called).
 --
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
--- 0000/01/01
+-- 0000-01-01
 --     ping           $1.00
 --     pong           $2.00  ; generated-posting: =
 -- <BLANKLINE>
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
--- 0000/01/01
+-- 0000-01-01
 --     ping           $1.00
 -- <BLANKLINE>
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{aismultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
--- 0000/01/01
+-- 0000-01-01
 --     ping           $2.00
 --     pong           $6.00  ; generated-posting: = ping
 -- <BLANKLINE>
@@ -88,7 +88,9 @@ transactionModifierToFunction mt =
 -- >>> tmParseQuery (TransactionModifier "date:2016" []) undefined
 -- Date (DateSpan 2016)
 -- >>> tmParseQuery (TransactionModifier "date:today" []) (read "2017-01-01")
--- Date (DateSpan 2017/01/01)
+-- Date (DateSpan 2017-01-01)
+-- >>> tmParseQuery (TransactionModifier "date:today" []) (read "2017-01-01")
+-- Date (DateSpan 2017-01-01)
 tmParseQuery :: TransactionModifier -> (Day -> Query)
 tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
 

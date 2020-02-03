@@ -176,21 +176,21 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 -- >>> t (Months 1) "2008/01/01" "2008/04/01"
 -- [DateSpan 2008/01,DateSpan 2008/02,DateSpan 2008/03]
 -- >>> t (Months 2) "2008/01/01" "2008/04/01"
--- [DateSpan 2008/01/01-2008/02/29,DateSpan 2008/03/01-2008/04/30]
+-- [DateSpan 2008-01-01-2008-02-29,DateSpan 2008-03-01-2008-04-30]
 -- >>> t (Weeks 1) "2008/01/01" "2008/01/15"
--- [DateSpan 2007/12/31w01,DateSpan 2008/01/07w02,DateSpan 2008/01/14w03]
+-- [DateSpan 2007-12-31w01,DateSpan 2008-01-07w02,DateSpan 2008-01-14w03]
 -- >>> t (Weeks 2) "2008/01/01" "2008/01/15"
--- [DateSpan 2007/12/31-2008/01/13,DateSpan 2008/01/14-2008/01/27]
+-- [DateSpan 2007-12-31-2008-01-13,DateSpan 2008-01-14-2008-01-27]
 -- >>> t (DayOfMonth 2) "2008/01/01" "2008/04/01"
--- [DateSpan 2007/12/02-2008/01/01,DateSpan 2008/01/02-2008/02/01,DateSpan 2008/02/02-2008/03/01,DateSpan 2008/03/02-2008/04/01]
+-- [DateSpan 2007-12-02-2008-01-01,DateSpan 2008-01-02-2008-02-01,DateSpan 2008-02-02-2008-03-01,DateSpan 2008-03-02-2008-04-01]
 -- >>> t (WeekdayOfMonth 2 4) "2011/01/01" "2011/02/15"
--- [DateSpan 2010/12/09-2011/01/12,DateSpan 2011/01/13-2011/02/09,DateSpan 2011/02/10-2011/03/09]
+-- [DateSpan 2010-12-09-2011-01-12,DateSpan 2011-01-13-2011-02-09,DateSpan 2011-02-10-2011-03-09]
 -- >>> t (DayOfWeek 2) "2011/01/01" "2011/01/15"
--- [DateSpan 2010/12/28-2011/01/03,DateSpan 2011/01/04-2011/01/10,DateSpan 2011/01/11-2011/01/17]
+-- [DateSpan 2010-12-28-2011-01-03,DateSpan 2011-01-04-2011-01-10,DateSpan 2011-01-11-2011-01-17]
 -- >>> t (DayOfYear 11 29) "2011/10/01" "2011/10/15"
--- [DateSpan 2010/11/29-2011/11/28]
+-- [DateSpan 2010-11-29-2011-11-28]
 -- >>> t (DayOfYear 11 29) "2011/12/01" "2012/12/15"
--- [DateSpan 2011/11/29-2012/11/28,DateSpan 2012/11/29-2013/11/28]
+-- [DateSpan 2011-11-29-2012-11-28,DateSpan 2012-11-29-2013-11-28]
 --
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
@@ -258,7 +258,7 @@ spansIntersect (d:ds) = d `spanIntersect` (spansIntersect ds)
 --
 -- For non-intersecting spans, gives an empty span beginning on the second's start date:
 -- >>> mkdatespan "2018-01-01" "2018-01-03" `spanIntersect` mkdatespan "2018-01-03" "2018-01-05"
--- DateSpan 2018/01/03-2018/01/02
+-- DateSpan 2018-01-03-2018-01-02
 spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
     where
       b = latest b1 b2
@@ -405,72 +405,72 @@ fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
 -- >>> :set -XOverloadedStrings
 -- >>> let t = fixSmartDateStr (parsedate "2008/11/26")
 -- >>> t "0000-01-01"
--- "0000/01/01"
+-- "0000-01-01"
 -- >>> t "1999-12-02"
--- "1999/12/02"
+-- "1999-12-02"
 -- >>> t "1999.12.02"
--- "1999/12/02"
+-- "1999-12-02"
 -- >>> t "1999/3/2"
--- "1999/03/02"
+-- "1999-03-02"
 -- >>> t "19990302"
--- "1999/03/02"
+-- "1999-03-02"
 -- >>> t "2008/2"
--- "2008/02/01"
+-- "2008-02-01"
 -- >>> t "0020/2"
--- "0020/02/01"
+-- "0020-02-01"
 -- >>> t "1000"
--- "1000/01/01"
+-- "1000-01-01"
 -- >>> t "4/2"
--- "2008/04/02"
+-- "2008-04-02"
 -- >>> t "2"
--- "2008/11/02"
+-- "2008-11-02"
 -- >>> t "January"
--- "2008/01/01"
+-- "2008-01-01"
 -- >>> t "feb"
--- "2008/02/01"
+-- "2008-02-01"
 -- >>> t "today"
--- "2008/11/26"
+-- "2008-11-26"
 -- >>> t "yesterday"
--- "2008/11/25"
+-- "2008-11-25"
 -- >>> t "tomorrow"
--- "2008/11/27"
+-- "2008-11-27"
 -- >>> t "this day"
--- "2008/11/26"
+-- "2008-11-26"
 -- >>> t "last day"
--- "2008/11/25"
+-- "2008-11-25"
 -- >>> t "next day"
--- "2008/11/27"
+-- "2008-11-27"
 -- >>> t "this week"  -- last monday
--- "2008/11/24"
+-- "2008-11-24"
 -- >>> t "last week"  -- previous monday
--- "2008/11/17"
+-- "2008-11-17"
 -- >>> t "next week"  -- next monday
--- "2008/12/01"
+-- "2008-12-01"
 -- >>> t "this month"
--- "2008/11/01"
+-- "2008-11-01"
 -- >>> t "last month"
--- "2008/10/01"
+-- "2008-10-01"
 -- >>> t "next month"
--- "2008/12/01"
+-- "2008-12-01"
 -- >>> t "this quarter"
--- "2008/10/01"
+-- "2008-10-01"
 -- >>> t "last quarter"
--- "2008/07/01"
+-- "2008-07-01"
 -- >>> t "next quarter"
--- "2009/01/01"
+-- "2009-01-01"
 -- >>> t "this year"
--- "2008/01/01"
+-- "2008-01-01"
 -- >>> t "last year"
--- "2007/01/01"
+-- "2007-01-01"
 -- >>> t "next year"
--- "2009/01/01"
+-- "2009-01-01"
 --
 -- t "last wed"
--- "2008/11/19"
+-- "2008-11-19"
 -- t "next friday"
--- "2008/11/28"
+-- "2008-11-28"
 -- t "next january"
--- "2009/01/01"
+-- "2009-01-01"
 --
 fixSmartDate :: Day -> SmartDate -> Day
 fixSmartDate refdate = fix
@@ -910,35 +910,35 @@ lastthisnextthing = do
 --
 -- >>> let p = parsePeriodExpr (parsedate "2008/11/26")
 -- >>> p "from Aug to Oct"
--- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
+-- Right (NoInterval,DateSpan 2008-08-01-2008-09-30)
 -- >>> p "aug to oct"
--- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
+-- Right (NoInterval,DateSpan 2008-08-01-2008-09-30)
 -- >>> p "every 3 days in Aug"
 -- Right (Days 3,DateSpan 2008/08)
 -- >>> p "daily from aug"
--- Right (Days 1,DateSpan 2008/08/01-)
+-- Right (Days 1,DateSpan 2008-08-01-)
 -- >>> p "every week to 2009"
--- Right (Weeks 1,DateSpan -2008/12/31)
+-- Right (Weeks 1,DateSpan -2008-12-31)
 -- >>> p "every 2nd day of month"
 -- Right (DayOfMonth 2,DateSpan -)
 -- >>> p "every 2nd day"
 -- Right (DayOfMonth 2,DateSpan -)
 -- >>> p "every 2nd day 2009-"
--- Right (DayOfMonth 2,DateSpan 2009/01/01-)
+-- Right (DayOfMonth 2,DateSpan 2009-01-01-)
 -- >>> p "every 29th Nov"
 -- Right (DayOfYear 11 29,DateSpan -)
 -- >>> p "every 29th nov -2009"
--- Right (DayOfYear 11 29,DateSpan -2008/12/31)
+-- Right (DayOfYear 11 29,DateSpan -2008-12-31)
 -- >>> p "every nov 29th"
 -- Right (DayOfYear 11 29,DateSpan -)
 -- >>> p "every Nov 29th 2009-"
--- Right (DayOfYear 11 29,DateSpan 2009/01/01-)
+-- Right (DayOfYear 11 29,DateSpan 2009-01-01-)
 -- >>> p "every 11/29 from 2009"
--- Right (DayOfYear 11 29,DateSpan 2009/01/01-)
+-- Right (DayOfYear 11 29,DateSpan 2009-01-01-)
 -- >>> p "every 2nd Thursday of month to 2009"
--- Right (WeekdayOfMonth 2 4,DateSpan -2008/12/31)
+-- Right (WeekdayOfMonth 2 4,DateSpan -2008-12-31)
 -- >>> p "every 1st monday of month to 2009"
--- Right (WeekdayOfMonth 1 1,DateSpan -2008/12/31)
+-- Right (WeekdayOfMonth 1 1,DateSpan -2008-12-31)
 -- >>> p "every tue"
 -- Right (DayOfWeek 2,DateSpan -)
 -- >>> p "every 2nd day of week"
@@ -948,9 +948,9 @@ lastthisnextthing = do
 -- >>> p "every 2nd day"
 -- Right (DayOfMonth 2,DateSpan -)
 -- >>> p "every 2nd day 2009-"
--- Right (DayOfMonth 2,DateSpan 2009/01/01-)
+-- Right (DayOfMonth 2,DateSpan 2009-01-01-)
 -- >>> p "every 2nd day of month 2009-"
--- Right (DayOfMonth 2,DateSpan 2009/01/01-)
+-- Right (DayOfMonth 2,DateSpan 2009-01-01-)
 periodexprp :: Day -> TextParser m (Interval, DateSpan)
 periodexprp rdate = do
   skipMany spacenonewline
@@ -1062,7 +1062,7 @@ periodexprdatespanp rdate = choice $ map try [
 
 -- |
 -- -- >>> parsewith (doubledatespan (parsedate "2018/01/01") <* eof) "20180101-201804"
--- Right DateSpan 2018/01/01-2018/04/01
+-- Right DateSpan 2018-01-01-2018-04-01
 doubledatespanp :: Day -> TextParser m DateSpan
 doubledatespanp rdate = do
   optional (string' "from" >> skipMany spacenonewline)
