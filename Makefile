@@ -727,10 +727,15 @@ haddock: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
+# flaky
 site-watch: Shake
 		$(call def-help,site-watch, open a browser on the website (in ./site) and rerender/reload when manuals or site content changes  )
 	(ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals) &
 	make -C site html-watch
+
+manuals-watch: Shake
+		$(call def-help,manuals-watch, rerender manuals when their source files change  )
+	ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals
 
 # This rule, for updating the live hledger.org site, gets called by:
 # 1. github-post-receive (github webhook handler), when something is pushed
