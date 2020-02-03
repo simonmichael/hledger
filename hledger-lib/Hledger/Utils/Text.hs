@@ -14,7 +14,7 @@ module Hledger.Utils.Text
   textUnbracket,
  -- -- quoting
   quoteIfSpaced,
- -- quoteIfNeeded,
+  textQuoteIfNeeded,
  -- singleQuoteIfNeeded,
  -- -- quotechars,
  -- -- whitespacechars,
@@ -127,7 +127,7 @@ textElideRight width t =
 quoteIfSpaced :: T.Text -> T.Text
 quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
                 | not $ any (`elem` (T.unpack s)) whitespacechars = s
-                | otherwise = quoteIfNeeded s
+                | otherwise = textQuoteIfNeeded s
 
 -- -- | Wrap a string in double quotes, and \-prefix any embedded single
 -- -- quotes, if it contains whitespace and is not already single- or
@@ -139,9 +139,9 @@ quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
 
 -- -- | Double-quote this string if it contains whitespace, single quotes
 -- -- or double-quotes, escaping the quotes as needed.
-quoteIfNeeded :: T.Text -> T.Text
-quoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
-                | otherwise = s
+textQuoteIfNeeded :: T.Text -> T.Text
+textQuoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
+                    | otherwise = s
 
 -- -- | Single-quote this string if it contains whitespace or double-quotes.
 -- -- No good for strings containing single quotes.
