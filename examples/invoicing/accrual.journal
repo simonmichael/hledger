@@ -1,0 +1,9 @@
+; https://hledger.org/invoicing.html
+
+2020-02-01 * (201602ab) AB Inc. | invoice
+    revenues:consulting:ab     $-1000
+    assets:receivable:ab        $1000
+
+2020-02-15 * AB Inc. | payment for 201602ab
+    assets:receivable:ab       $-1000  ; = $0  ; assert this if fully paid (optional)
+    assets:checking             $1000

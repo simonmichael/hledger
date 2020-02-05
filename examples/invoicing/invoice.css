@@ -1,0 +1,117 @@
+/* invoice.css */
+
+@charset "utf-8";
+
+body {
+/* font-size: 10.5pt; */
+/* font-family:  */
+/*     "Avenir Next", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", */
+/*     "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; */
+hyphens: auto;
+height: 250mm; /* 280 - 10 (top) - 20 (bottom) */
+line-height: 140%;
+margin: 0;
+padding: 0;
+}
+
+code {
+font-family: "Source Sans Code", Courier New, Courier, monospace;
+margin-left: 1pt;
+/* font-size:12pt; */
+}
+
+a {
+color: black;
+margin-left: 1pt;
+}
+
+h1 {
+font-size: 20pt;
+margin-top: 10mm;
+padding-top:0;
+/* margin-top: 6pt; */
+/* margin-bottom: 0; */
+}
+
+h2 {
+font-size: 16pt;
+/* margin-top: 20pt; */
+margin-top: 10mm;
+/* font-weight: normal; */
+/* margin-top: 0; */
+/* margin-bottom: 20pt; */
+}
+
+p {
+width: 100%;
+}
+
+p:first-of-type {
+text-align: center;
+font-size: 9pt;
+word-spacing: 1pt;
+}
+
+p:nth-of-type(2) {
+margin-top: 10mm;
+}
+
+p:nth-of-type(3) {
+text-align: center;
+font-weight:bold;
+font-size:12pt;
+
+}
+
+/* p:nth-last-of-type(3) { */
+/* margin-top: 10mm; */
+/* } */
+
+/* p:last-of-type { */
+/* text-align: center; */
+/* font-size: 9pt; */
+/* position: absolute; */
+/* bottom: 2mm; */
+/* margin-bottom: 0; */
+/* padding-bottom: 0; */
+/* color: #444; */
+/* } */
+
+table {
+width: 100%;
+}
+
+table:nth-of-type(1) {
+border: 1px solid black;
+padding: 5pt;
+}
+
+table:nth-of-type(1) td {
+border-top: 1px solid #eee;
+}
+
+table:nth-of-type(1) tr:nth-last-of-type(1) {
+font-weight: bold;
+}
+table:nth-of-type(1) tr:nth-last-of-type(1) td {
+/* border-top: 1px solid black; */
+padding-top: 1em;
+}
+
+/* table:nth-of-type(1) td:nth-of-type(2) { */
+/* text-align: center; */
+/* } */
+
+hr {
+border: 1px solid #eee;
+}
+
+hr:last-of-type {
+position: absolute;
+bottom: 14mm;
+width: 100%;
+}
+
+figure {
+margin: 0;
+}
