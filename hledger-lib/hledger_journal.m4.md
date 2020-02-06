@@ -270,14 +270,13 @@ Some examples:
 
 ```journal
 # a file comment
-
-; also a file comment
+; another file comment
+* also a file comment, useful in org/orgstruct mode
 
 comment
-This is a multiline file comment,
-which continues until a line
-where the "end comment" string
-appears on its own (or end of file).
+A multiline file comment, which continues
+until a line containing just "end comment"
+(or end of file).
 end comment
 
 2012/5/14 something  ; a transaction comment
