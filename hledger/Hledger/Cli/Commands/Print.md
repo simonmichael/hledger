@@ -63,7 +63,7 @@ Eg:
 
 ```shell
 $ hledger -f bank1.csv print --new
-# shows transactions added since last print --new on this file
+(shows transactions added since last print --new on this file)
 ```
 
 This assumes that transactions added to FILE always have same or increasing dates, 

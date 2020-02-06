@@ -305,8 +305,7 @@ Balance changes in 2008:
 ------------++---------------------------------------------------
             ||     $-1      $1       0       0        0        0 
 
-# Average is rounded to the dollar here since all journal amounts are
-
+(Average is rounded to the dollar here since all journal amounts are)
 ```
 
 Limitations:
