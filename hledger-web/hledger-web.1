@@ -375,6 +375,27 @@ only want to serve the API.
 \f[C]-f\f[R].
 Default: \f[C]\[ti]/.hledger.journal\f[R] (on windows, perhaps
 \f[C]C:/Users/USER/.hledger.journal\f[R]).
+.PP
+A typical value is \f[C]\[ti]/DIR/YYYY.journal\f[R], where DIR is a
+version-controlled finance directory and YYYY is the current year.
+Or \f[C]\[ti]/DIR/current.journal\f[R], where current.journal is a
+symbolic link to YYYY.journal.
+.PP
+On Mac computers, you can set this and other environment variables in a
+more thorough way that also affects applications started from the GUI
+(say, an Emacs dock icon).
+Eg on MacOS Catalina I have a \f[C]\[ti]/.MacOSX/environment.plist\f[R]
+file containing
+.IP
+.nf
+\f[C]
+{
+  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/current.journal\[dq]
+}
+\f[R]
+.fi
+.PP
+To see the effect you may need to \f[C]killall Dock\f[R], or reboot.
 .SH FILES
 .PP
 Reads data from one or more files in hledger journal, timeclock,

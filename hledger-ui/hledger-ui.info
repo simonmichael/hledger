@@ -446,6 +446,22 @@ File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: SCREENS,  Up: To
 Default: '~/.hledger.journal' (on windows, perhaps
 'C:/Users/USER/.hledger.journal').
 
+   A typical value is '~/DIR/YYYY.journal', where DIR is a
+version-controlled finance directory and YYYY is the current year.  Or
+'~/DIR/current.journal', where current.journal is a symbolic link to
+YYYY.journal.
+
+   On Mac computers, you can set this and other environment variables in
+a more thorough way that also affects applications started from the GUI
+(say, an Emacs dock icon).  Eg on MacOS Catalina I have a
+'~/.MacOSX/environment.plist' file containing
+
+{
+  "LEDGER_FILE" : "~/finance/current.journal"
+}
+
+   To see the effect you may need to 'killall Dock', or reboot.
+
 
 File: hledger-ui.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
 
@@ -504,10 +520,10 @@ Node: Error screen15173
 Ref: #error-screen15295
 Node: ENVIRONMENT15539
 Ref: #environment15653
-Node: FILES15880
-Ref: #files15979
-Node: BUGS16192
-Ref: #bugs16269
+Node: FILES16460
+Ref: #files16559
+Node: BUGS16772
+Ref: #bugs16849
 
 End Tag Table
 

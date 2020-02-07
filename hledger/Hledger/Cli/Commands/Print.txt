@@ -63,7 +63,7 @@ ignoring already-seen entries in import data, such as downloaded CSV
 files. Eg:
 
 $ hledger -f bank1.csv print --new
-# shows transactions added since last print --new on this file
+(shows transactions added since last print --new on this file)
 
 This assumes that transactions added to FILE always have same or
 increasing dates, and that transactions on the same day do not get

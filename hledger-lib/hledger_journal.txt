@@ -211,14 +211,13 @@ FILE FORMAT
        Some examples:
 
               # a file comment
-
-              ; also a file comment
+              ; another file comment
+              * also a file comment, useful in org/orgstruct mode
 
               comment
-              This is a multiline file comment,
-              which continues until a line
-              where the "end comment" string
-              appears on its own (or end of file).
+              A multiline file comment, which continues
+              until a line containing just "end comment"
+              (or end of file).
               end comment
 
               2012/5/14 something  ; a transaction comment
@@ -661,9 +660,6 @@ FILE FORMAT
        tive       rective     rec-                                     2018/06)
                               tives
        ------------------------------------------------------------------------------------
-
-
-
        account                any       document account names,  de-   all entries in  all
                               text      clare  account  types & dis-   files,   before  or
                                         play order                     after
@@ -1303,6 +1299,13 @@ FILE FORMAT
        o a multiplier with a commodity symbol, eg *$2 (a star, number  N,  and
          symbol S).  The matched posting's amount will be multiplied by N, and
          its commodity symbol will be replaced with S.
+
+       A query term containing spaces must be enclosed  in  single  or  double
+       quotes,  as on the command line.  Eg, note the quotes around the second
+       query term below:
+
+              = expenses:groceries 'expenses:dining out'
+                  (budget:funds:dining out)                 *-1
 
        These rules have global effect - a rule appearing anywhere in your data
        can potentially affect any transaction, including transactions recorded
