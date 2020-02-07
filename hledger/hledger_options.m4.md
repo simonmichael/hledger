@@ -223,17 +223,6 @@ Eg:
 
 `ghci> :main balance cur:\$`
 
-## Command line tips
-
-If in doubt, keep things simple:
-
-- write options after the command (`hledger CMD -OPTIONS ARGS`)
-- run add-on executables directly (`hledger-ui -OPTIONS ARGS`)
-- enclose problematic args in single quotes
-- if needed, also add a backslash to escape regexp metacharacters
-
-To find out exactly how a command line is being parsed, add `--debug=2` to troubleshoot.
-
 ## Unicode characters
 
 hledger is expected to handle non-ascii characters correctly:
@@ -315,6 +304,61 @@ There are some limitations with this:
 
 If you need those, either use the [include directive](journal.html#including-other-files),
 or concatenate the files, eg: `cat a.journal b.journal | hledger -f- CMD`.
+
+## Output destination
+
+Some commands (print, register, stats, the balance commands) 
+can write their output to a destination other than the console. 
+This is controlled by the `-o/--output-file` option.
+
+```shell
+$ hledger balance -o -     # write to stdout (the default)
+$ hledger balance -o FILE  # write to FILE
+```
+
+## Output format
+
+Some commands can write their output in other formats.
+Eg print and register can output CSV, and the balance commands can output CSV or HTML.
+This is controlled by the `-O/--output-format` option, or by specifying a `.csv` or `.html` file extension with `-o/--output-file`.
+
+```shell
+$ hledger balance -O csv       # write CSV to stdout
+$ hledger balance -o FILE.csv  # write CSV to FILE.csv
+```
+
+## Regular expressions
+
+hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
+
+- [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
+- [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
+- [account alias](#rewriting-accounts) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
+
+hledger's regular expressions come from the
+[regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
+library. In general they:
+
+- are case insensitive
+- are infix matching (do not need to match the entire thing being matched)
+- are [POSIX extended regular expressions](http://www.regular-expressions.info/posix.html#ere)
+- also support [GNU word boundaries](http://www.regular-expressions.info/wordboundaries.html) (\\<, \\>, \\b, \\B)
+- and parenthesised [capturing groups](http://www.regular-expressions.info/refcapture.html) and numeric backreferences in replacement strings
+- do not support [mode modifiers](http://www.regular-expressions.info/modifiers.html) like (?s)
+
+Some things to note:
+
+- In the `alias` directive and `--alias` option, regular expressions
+must be enclosed in forward slashes (`/REGEX/`). Elsewhere in hledger,
+these are not required.
+
+- In queries, to match a regular expression metacharacter like `$` 
+as a literal character, prepend a backslash. Eg to search for amounts with the
+dollar sign in hledger-web, write `cur:\$`.
+
+- On the command line, some metacharacters like `$` have a special
+meaning to the shell and so must be escaped at least once more.
+See [Special characters](#special-characters). 
 
 ## Smart dates
 
@@ -863,61 +907,4 @@ Related:
 ### Combining -B, -V, -X, --value
 
 The rightmost of these flags wins.
-
-## Output destination
-
-Some commands (print, register, stats, the balance commands) 
-can write their output to a destination other than the console. 
-This is controlled by the `-o/--output-file` option.
-
-```shell
-$ hledger balance -o -     # write to stdout (the default)
-$ hledger balance -o FILE  # write to FILE
-```
-
-## Output format
-
-Some commands can write their output in other formats.
-Eg print and register can output CSV, and the balance commands can output CSV or HTML.
-This is controlled by the `-O/--output-format` option, or by specifying a `.csv` or `.html` file extension with `-o/--output-file`.
-
-```shell
-$ hledger balance -O csv       # write CSV to stdout
-$ hledger balance -o FILE.csv  # write CSV to FILE.csv
-```
-
-## Regular expressions
-
-hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
-
-- [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
-- [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
-- [account alias](#rewriting-accounts) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
-
-hledger's regular expressions come from the
-[regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
-library. In general they:
-
-- are case insensitive
-- are infix matching (do not need to match the entire thing being matched)
-- are [POSIX extended regular expressions](http://www.regular-expressions.info/posix.html#ere)
-- also support [GNU word boundaries](http://www.regular-expressions.info/wordboundaries.html) (\\<, \\>, \\b, \\B)
-- and parenthesised [capturing groups](http://www.regular-expressions.info/refcapture.html) and numeric backreferences in replacement strings
-- do not support [mode modifiers](http://www.regular-expressions.info/modifiers.html) like (?s)
-
-Some things to note:
-
-- In the `alias` directive and `--alias` option, regular expressions
-must be enclosed in forward slashes (`/REGEX/`). Elsewhere in hledger,
-these are not required.
-
-- In queries, to match a regular expression metacharacter like `$` 
-as a literal character, prepend a backslash. Eg to search for amounts with the
-dollar sign in hledger-web, write `cur:\$`.
-
-- On the command line, some metacharacters like `$` have a special
-meaning to the shell and so must be escaped at least once more.
-See [Special characters](#special-characters). 
-
-
 

@@ -8,7 +8,7 @@ Here are some quick examples of how to do some basic tasks with hledger.
 For more details, see the reference section below, the hledger_journal(5) manual,
 or the more extensive docs at <https://hledger.org>.
 
-## Get help
+## Getting help
 
 ```shell
 $ hledger                 # show available commands
@@ -22,6 +22,19 @@ $ hledger help --help     # show more detailed help for the help command
 
 Find more docs, chat, mail list, reddit, issue tracker:
 <https://hledger.org#help-feedback>
+
+## Constructing a command line
+
+hledger has an extensive and powerful command line interface. We
+strive to keep it simple and ergonomic, but you may run into one of
+the confusing real world details described in OPTIONS, below. 
+If that happens, here are some tips that may help:
+
+- command-specific options must go after the command (it's fine to put all options there) (`hledger CMD OPTS ARGS`)
+- running add-on executables directly simplifies command line parsing (`hledger-ui OPTS ARGS`)
+- enclose "problematic" args in single quotes
+- if needed, also add a backslash to hide regular expression metacharacters from the shell
+- to see how a misbehaving command is being parsed, add `--debug=2`.
 
 ## Starting a Journal
 
