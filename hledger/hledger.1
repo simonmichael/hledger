@@ -74,7 +74,7 @@ Here are some quick examples of how to do some basic tasks with hledger.
 For more details, see the reference section below, the
 hledger_journal(5) manual, or the more extensive docs at
 https://hledger.org.
-.SS Get help
+.SS Getting help
 .IP
 .nf
 \f[C]
@@ -90,6 +90,26 @@ $ hledger help --help     # show more detailed help for the help command
 .PP
 Find more docs, chat, mail list, reddit, issue tracker:
 https://hledger.org#help-feedback
+.SS Constructing a command line
+.PP
+hledger has an extensive and powerful command line interface.
+We strive to keep it simple and ergonomic, but you may run into one of
+the confusing real world details described in OPTIONS, below.
+If that happens, here are some tips that may help:
+.IP \[bu] 2
+command-specific options must go after the command (it\[aq]s fine to put
+all options there) (\f[C]hledger CMD OPTS ARGS\f[R])
+.IP \[bu] 2
+running add-on executables directly simplifies command line parsing
+(\f[C]hledger-ui OPTS ARGS\f[R])
+.IP \[bu] 2
+enclose \[dq]problematic\[dq] args in single quotes
+.IP \[bu] 2
+if needed, also add a backslash to hide regular expression
+metacharacters from the shell
+.IP \[bu] 2
+to see how a misbehaving command is being parsed, add
+\f[C]--debug=2\f[R].
 .SS Starting a Journal
 .PP
 hledger looks for your accounting data in a journal file,
@@ -873,20 +893,6 @@ And backslashes may work better than quotes.
 Eg:
 .PP
 \f[C]ghci> :main balance cur:\[rs]$\f[R]
-.SS Command line tips
-.PP
-If in doubt, keep things simple:
-.IP \[bu] 2
-write options after the command (\f[C]hledger CMD -OPTIONS ARGS\f[R])
-.IP \[bu] 2
-run add-on executables directly (\f[C]hledger-ui -OPTIONS ARGS\f[R])
-.IP \[bu] 2
-enclose problematic args in single quotes
-.IP \[bu] 2
-if needed, also add a backslash to escape regexp metacharacters
-.PP
-To find out exactly how a command line is being parsed, add
-\f[C]--debug=2\f[R] to troubleshoot.
 .SS Unicode characters
 .PP
 hledger is expected to handle non-ascii characters correctly:
@@ -1025,6 +1031,77 @@ balance assertions will not see any account balances from previous files
 .PP
 If you need those, either use the include directive, or concatenate the
 files, eg: \f[C]cat a.journal b.journal | hledger -f- CMD\f[R].
+.SS Output destination
+.PP
+Some commands (print, register, stats, the balance commands) can write
+their output to a destination other than the console.
+This is controlled by the \f[C]-o/--output-file\f[R] option.
+.IP
+.nf
+\f[C]
+$ hledger balance -o -     # write to stdout (the default)
+$ hledger balance -o FILE  # write to FILE
+\f[R]
+.fi
+.SS Output format
+.PP
+Some commands can write their output in other formats.
+Eg print and register can output CSV, and the balance commands can
+output CSV or HTML.
+This is controlled by the \f[C]-O/--output-format\f[R] option, or by
+specifying a \f[C].csv\f[R] or \f[C].html\f[R] file extension with
+\f[C]-o/--output-file\f[R].
+.IP
+.nf
+\f[C]
+$ hledger balance -O csv       # write CSV to stdout
+$ hledger balance -o FILE.csv  # write CSV to FILE.csv
+\f[R]
+.fi
+.SS Regular expressions
+.PP
+hledger uses regular expressions in a number of places:
+.IP \[bu] 2
+query terms, on the command line and in the hledger-web search form:
+\f[C]REGEX\f[R], \f[C]desc:REGEX\f[R], \f[C]cur:REGEX\f[R],
+\f[C]tag:...=REGEX\f[R]
+.IP \[bu] 2
+CSV rules conditional blocks: \f[C]if REGEX ...\f[R]
+.IP \[bu] 2
+account alias directives and options:
+\f[C]alias /REGEX/ = REPLACEMENT\f[R],
+\f[C]--alias /REGEX/=REPLACEMENT\f[R]
+.PP
+hledger\[aq]s regular expressions come from the regex-tdfa library.
+In general they:
+.IP \[bu] 2
+are case insensitive
+.IP \[bu] 2
+are infix matching (do not need to match the entire thing being matched)
+.IP \[bu] 2
+are POSIX extended regular expressions
+.IP \[bu] 2
+also support GNU word boundaries (\[rs]<, \[rs]>, \[rs]b, \[rs]B)
+.IP \[bu] 2
+and parenthesised capturing groups and numeric backreferences in
+replacement strings
+.IP \[bu] 2
+do not support mode modifiers like (?s)
+.PP
+Some things to note:
+.IP \[bu] 2
+In the \f[C]alias\f[R] directive and \f[C]--alias\f[R] option, regular
+expressions must be enclosed in forward slashes (\f[C]/REGEX/\f[R]).
+Elsewhere in hledger, these are not required.
+.IP \[bu] 2
+In queries, to match a regular expression metacharacter like \f[C]$\f[R]
+as a literal character, prepend a backslash.
+Eg to search for amounts with the dollar sign in hledger-web, write
+\f[C]cur:\[rs]$\f[R].
+.IP \[bu] 2
+On the command line, some metacharacters like \f[C]$\f[R] have a special
+meaning to the shell and so must be escaped at least once more.
+See Special characters.
 .SS Smart dates
 .PP
 hledger\[aq]s user interfaces accept a flexible \[dq]smart date\[dq]
@@ -2047,77 +2124,6 @@ report\[aq]s multi-period mode (whether showing one or many subperiods).
 .SS Combining -B, -V, -X, --value
 .PP
 The rightmost of these flags wins.
-.SS Output destination
-.PP
-Some commands (print, register, stats, the balance commands) can write
-their output to a destination other than the console.
-This is controlled by the \f[C]-o/--output-file\f[R] option.
-.IP
-.nf
-\f[C]
-$ hledger balance -o -     # write to stdout (the default)
-$ hledger balance -o FILE  # write to FILE
-\f[R]
-.fi
-.SS Output format
-.PP
-Some commands can write their output in other formats.
-Eg print and register can output CSV, and the balance commands can
-output CSV or HTML.
-This is controlled by the \f[C]-O/--output-format\f[R] option, or by
-specifying a \f[C].csv\f[R] or \f[C].html\f[R] file extension with
-\f[C]-o/--output-file\f[R].
-.IP
-.nf
-\f[C]
-$ hledger balance -O csv       # write CSV to stdout
-$ hledger balance -o FILE.csv  # write CSV to FILE.csv
-\f[R]
-.fi
-.SS Regular expressions
-.PP
-hledger uses regular expressions in a number of places:
-.IP \[bu] 2
-query terms, on the command line and in the hledger-web search form:
-\f[C]REGEX\f[R], \f[C]desc:REGEX\f[R], \f[C]cur:REGEX\f[R],
-\f[C]tag:...=REGEX\f[R]
-.IP \[bu] 2
-CSV rules conditional blocks: \f[C]if REGEX ...\f[R]
-.IP \[bu] 2
-account alias directives and options:
-\f[C]alias /REGEX/ = REPLACEMENT\f[R],
-\f[C]--alias /REGEX/=REPLACEMENT\f[R]
-.PP
-hledger\[aq]s regular expressions come from the regex-tdfa library.
-In general they:
-.IP \[bu] 2
-are case insensitive
-.IP \[bu] 2
-are infix matching (do not need to match the entire thing being matched)
-.IP \[bu] 2
-are POSIX extended regular expressions
-.IP \[bu] 2
-also support GNU word boundaries (\[rs]<, \[rs]>, \[rs]b, \[rs]B)
-.IP \[bu] 2
-and parenthesised capturing groups and numeric backreferences in
-replacement strings
-.IP \[bu] 2
-do not support mode modifiers like (?s)
-.PP
-Some things to note:
-.IP \[bu] 2
-In the \f[C]alias\f[R] directive and \f[C]--alias\f[R] option, regular
-expressions must be enclosed in forward slashes (\f[C]/REGEX/\f[R]).
-Elsewhere in hledger, these are not required.
-.IP \[bu] 2
-In queries, to match a regular expression metacharacter like \f[C]$\f[R]
-as a literal character, prepend a backslash.
-Eg to search for amounts with the dollar sign in hledger-web, write
-\f[C]cur:\[rs]$\f[R].
-.IP \[bu] 2
-On the command line, some metacharacters like \f[C]$\f[R] have a special
-meaning to the shell and so must be escaped at least once more.
-See Special characters.
 .SH COMMANDS
 .PP
 hledger provides a number of subcommands; \f[C]hledger\f[R] with no
