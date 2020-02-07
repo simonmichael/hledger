@@ -1,6 +1,13 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+- documentation updates
+
+  - streamlined hledger.org sidebar & manuals structure
+  - hledger manual: new Common Tasks section in 
+
+- a new invoicing how-to: https://hledger.org/invoicing.html
+
 # 04ea95cb
 
 - Fix dead pointer in contributing (Aleksandar Dimitrov)
