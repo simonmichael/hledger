@@ -7,7 +7,6 @@ m4_dnl
 m4_dnl hledger.1.m4.md
 m4_dnl  hledger_examples.m4.md
 m4_dnl  hledger_options.m4.md
-m4_dnl  hledger_queries.m4.md
 m4_dnl  hledger_commands.m4.md
 m4_dnl  hledger_troubleshooting.m4.md
 
@@ -66,8 +65,9 @@ try some commands like `hledger print` or `hledger balance`.
 Run `hledger` with no arguments for a list of commands.
  
 _include_(hledger_examples.m4.md)
+
 _include_(hledger_options.m4.md)
-_include_(hledger_queries.m4.md)
+
 _include_(hledger_commands.m4.md)
 
 # ENVIRONMENT

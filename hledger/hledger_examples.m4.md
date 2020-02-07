@@ -2,7 +2,17 @@ m4_dnl Quick examples included early in the manual
 m4_dnl TODO make these and all the command examples pasteable/doctestable ?
 m4_dnl   eg include -f FILE or $LEDGER_FILE details
 
-# EXAMPLES
+# COMMON TASKS
+
+Here are some quick examples of how to do some basic tasks with hledger.
+For more background, see the reference section below, and the journal format manual.
+For a more gentle introduction and additional how-tos, see the hledger.org website.
+
+## Starting a Journal
+
+## Setting Opening Balances
+
+## Recording Transactions
 
 Two simple transactions in hledger journal format:
 
@@ -16,7 +26,9 @@ Two simple transactions in hledger journal format:
   assets:cash
 ```
 
-Some basic reports:
+## Reconciling
+
+## Some basic reports
 
 ```shell
 $ hledger print
@@ -54,7 +66,7 @@ $ hledger register cash
 2015-10-16 farmers market  assets:cash              $-10           $10
 ```
 
-More commands:
+## More commands
 
 ```shell
 $ hledger                                 # show available commands
