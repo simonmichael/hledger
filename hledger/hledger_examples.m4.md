@@ -144,7 +144,7 @@ balances on this date. Here are two ways to do it:
 
 If you're using version control, this could be a good time to commit the journal. Eg:
 ```shell
-$ git commit -am 'initial balances' 2020.journal
+$ git commit -m 'initial balances' 2020.journal
 ```
 
 ## Recording Transactions
@@ -220,7 +220,7 @@ Eg in the paycheck transaction above, insert `*` between `2020-01-15` and `paych
 
 If you're using version control, this can be another good time to commit:
 ```shell
-$ git commit -am 'txns' 2020.journal
+$ git commit -m 'txns' 2020.journal
 ```
 
 ## Reporting
