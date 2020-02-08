@@ -775,7 +775,7 @@ datesepchar :: TextParser m Char
 datesepchar = satisfy isDateSepChar
 
 isDateSepChar :: Char -> Bool
-isDateSepChar c = c == '/' || c == '-' || c == '.'
+isDateSepChar c = c == '-' || c == '/' || c == '.'
 
 validYear, validMonth, validDay :: String -> Bool
 validYear s = length s >= 4 && isJust (readMay s :: Maybe Year)

@@ -403,8 +403,8 @@ descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
 
 --- ** dates
 
--- | Parse a date in YYYY/MM/DD format.
--- Hyphen (-) and period (.) are also allowed as separators.
+-- | Parse a date in YYYY-MM-DD format.
+-- Slash (/) and period (.) are also allowed as separators.
 -- The year may be omitted if a default year has been set.
 -- Leading zeroes may be omitted.
 datep :: JournalParser m Day
@@ -456,8 +456,8 @@ datep' mYear = do
 
 {-# INLINABLE datep' #-}
 
--- | Parse a date and time in YYYY/MM/DD HH:MM[:SS][+-ZZZZ] format.
--- Hyphen (-) and period (.) are also allowed as date separators.
+-- | Parse a date and time in YYYY-MM-DD HH:MM[:SS][+-ZZZZ] format.
+-- Slash (/) and period (.) are also allowed as date separators.
 -- The year may be omitted if a default year has been set.
 -- Seconds are optional.
 -- The timezone is optional and ignored (the time is always interpreted as a local time).

@@ -127,12 +127,12 @@ payeeAndNoteFromDescription t
     (p, n) = T.span (/= '|') t
 
 {-|
-Render a journal transaction as text in the style of Ledger's print command.
+Render a journal transaction as text similar to the style of Ledger's print command.
 
-Ledger 2.x's standard format looks like this:
+Adapted from Ledger 2.x and 3.x standard format:
 
 @
-yyyy/mm/dd[ *][ CODE] description.........          [  ; comment...............]
+yyyy-mm-dd[ *][ CODE] description.........          [  ; comment...............]
     account name 1.....................  ...$amount1[  ; comment...............]
     account name 2.....................  ..$-amount1[  ; comment...............]
 
