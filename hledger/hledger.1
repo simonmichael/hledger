@@ -90,7 +90,7 @@ $ hledger help --help     # show more detailed help for the help command
 .PP
 Find more docs, chat, mail list, reddit, issue tracker:
 https://hledger.org#help-feedback
-.SS Constructing a command line
+.SS Constructing command lines
 .PP
 hledger has an extensive and powerful command line interface.
 We strive to keep it simple and ergonomic, but you may run into one of
@@ -110,7 +110,7 @@ metacharacters from the shell
 .IP \[bu] 2
 to see how a misbehaving command is being parsed, add
 \f[C]--debug=2\f[R].
-.SS Starting a Journal
+.SS Starting a journal file
 .PP
 hledger looks for your accounting data in a journal file,
 \f[C]$HOME/.hledger.journal\f[R] by default:
@@ -153,7 +153,7 @@ Commodities              : 0 ()
 Market prices            : 0 ()
 \f[R]
 .fi
-.SS Setting Opening Balances
+.SS Setting opening balances
 .PP
 Pick a starting date for which you can look up the balances of some
 real-world assets (bank accounts, wallet..) and liabilities (credit
@@ -249,7 +249,7 @@ Eg:
 $ git commit -m \[aq]initial balances\[aq] 2020.journal
 \f[R]
 .fi
-.SS Recording Transactions
+.SS Recording transactions
 .PP
 As you spend or receive money, you can record these transactions using
 one of the methods above (text editor, hledger add) or by using the
@@ -515,12 +515,15 @@ $ hledger activity -W
 2020-01-13 ****
 \f[R]
 .fi
-.SS Starting a New File
+.SS Migrating to a new file
 .PP
 At the end of the year, you may want to continue your journal in a new
 file, so that old transactions don\[aq]t slow down or clutter your
 reports, and to help ensure the integrity of your accounting history.
 See the close command.
+.PP
+If using version control, don\[aq]t forget to \f[C]git add\f[R] the new
+file.
 .SH OPTIONS
 .SS General options
 .PP

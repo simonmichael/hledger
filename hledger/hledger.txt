@@ -70,7 +70,7 @@ COMMON TASKS
        Find   more   docs,   chat,   mail   list,   reddit,   issue   tracker:
        https://hledger.org#help-feedback
 
-   Constructing a command line
+   Constructing command lines
        hledger  has  an  extensive  and  powerful  command line interface.  We
        strive to keep it simple and ergonomic, but you may run into one of the
        confusing real world details described in OPTIONS, below.  If that hap-
@@ -89,7 +89,7 @@ COMMON TASKS
 
        o to see how a misbehaving command is being parsed, add --debug=2.
 
-   Starting a Journal
+   Starting a journal file
        hledger   looks   for   your   accounting   data  in  a  journal  file,
        $HOME/.hledger.journal by default:
 
@@ -123,7 +123,7 @@ COMMON TASKS
               Commodities              : 0 ()
               Market prices            : 0 ()
 
-   Setting Opening Balances
+   Setting opening balances
        Pick  a  starting  date  for which you can look up the balances of some
        real-world assets (bank accounts,  wallet..)  and  liabilities  (credit
        cards..).
@@ -201,7 +201,7 @@ COMMON TASKS
 
               $ git commit -m 'initial balances' 2020.journal
 
-   Recording Transactions
+   Recording transactions
        As  you spend or receive money, you can record these transactions using
        one of the methods above (text editor, hledger add)  or  by  using  the
        hledger-iadd  or hledger-web add-ons, or by using the import command to
@@ -415,11 +415,13 @@ COMMON TASKS
               2020-01-06 ****
               2020-01-13 ****
 
-   Starting a New File
+   Migrating to a new file
        At  the end of the year, you may want to continue your journal in a new
        file, so that old transactions don't slow down or clutter your reports,
        and  to  help ensure the integrity of your accounting history.  See the
        close command.
+
+       If using version control, don't forget to git add the new file.
 
 OPTIONS
    General options
@@ -804,8 +806,6 @@ OPTIONS
        clock      logging)
        timedot    timedot files (approximate time   .timedot
                   logging)
-
-
        csv        comma-separated  values   (data   .csv
                   interchange)
 
@@ -995,6 +995,7 @@ OPTIONS
        "-".  These are equivalent to the above:
 
        -p "2009/1/1 2009/4/1"
+
        -p2009/1/1to2009/4/1
        -p2009/1/1-2009/4/1
 
@@ -1087,8 +1088,6 @@ OPTIONS
        -p "every Tue" -- same
        -p "every 15th day"  --  period  bound-
        aries will be on 15th of each month
-
-
        -p  "every 2nd Monday" -- period bound-
        aries will be on second Monday of  each
        month
@@ -1404,6 +1403,9 @@ OPTIONS
        ance (with -H)                    before   report   before   report    DATE/today
                                          or      journal   or      journal
                                          start             start
+
+
+
        posting          cost             value at report   value at report    value      at
        amounts    (no                    end or today      or journal end     DATE/today
        report  inter-
@@ -1441,9 +1443,6 @@ OPTIONS
        val)
        column totals    sums  of  dis-   sums  of   dis-   sums   of  dis-    sums of  dis-
                         played values    played values     played values      played values
-
-
-
        grand      to-   sum/average of   sum/average  of   sum/average  of    sum/average
        tal/average      column totals    column totals     column totals      of column to-
                                                                               tals
