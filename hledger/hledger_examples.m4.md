@@ -1,7 +1,3 @@
-m4_dnl Quick examples included early in the manual
-m4_dnl TODO make these and all the command examples pasteable/doctestable ?
-m4_dnl   eg include -f FILE or $LEDGER_FILE details
-
 # COMMON TASKS
 
 Here are some quick examples of how to do some basic tasks with hledger.
@@ -23,7 +19,7 @@ $ hledger help --help     # show more detailed help for the help command
 Find more docs, chat, mail list, reddit, issue tracker:
 <https://hledger.org#help-feedback>
 
-## Constructing a command line
+## Constructing command lines
 
 hledger has an extensive and powerful command line interface. We
 strive to keep it simple and ergonomic, but you may run into one of
@@ -36,7 +32,7 @@ If that happens, here are some tips that may help:
 - if needed, also add a backslash to hide regular expression metacharacters from the shell
 - to see how a misbehaving command is being parsed, add `--debug=2`.
 
-## Starting a Journal
+## Starting a journal file
 
 hledger looks for your accounting data in a journal file, `$HOME/.hledger.journal` by default:
 ```shell
@@ -71,7 +67,7 @@ Commodities              : 0 ()
 Market prices            : 0 ()
 ```
 
-## Setting Opening Balances
+## Setting opening balances
 
 Pick a starting date for which you can look up the balances of some
 real-world assets (bank accounts, wallet..) and liabilities (credit cards..).
@@ -147,7 +143,7 @@ If you're using version control, this could be a good time to commit the journal
 $ git commit -m 'initial balances' 2020.journal
 ```
 
-## Recording Transactions
+## Recording transactions
 
 As you spend or receive money, you can record these transactions
 using one of the methods above (text editor, hledger add)
@@ -371,9 +367,11 @@ $ hledger activity -W
 2020-01-06 ****
 2020-01-13 ****
 ```
-## Starting a New File
+## Migrating to a new file
 
 At the end of the year, you may want to continue your journal in a new file,
 so that old transactions don't slow down or clutter your reports,
 and to help ensure the integrity of your accounting history.
 See the [close command](#close).
+
+If using version control, don't forget to `git add` the new file.
