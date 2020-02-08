@@ -1403,4 +1403,4 @@ SEE ALSO
 
 
 
-hledger 1.16.99                  January 2020               hledger_journal(5)
+hledger 1.16.99                  February 2020              hledger_journal(5)
