@@ -2,12 +2,13 @@
 % _author_
 % _monthyear_
 
-m4_dnl Quick hledger m4 intro:
+m4_dnl Quick hledger docs editing intro:
 m4_dnl  .m4.md are hledger docs source, processed with m4 to generate markdown.
 m4_dnl  Lines beginning with m4_dnl are comments.
 m4_dnl  Words enclosed in underscores are macros, defined in doc/common.m4.
 m4_dnl  Macro arguments are enclosed in (). Text literals are enclosed in {{}}.
 m4_dnl  Macros may depend on command line flags, configured in Shake.hs.
+m4_dnl  In Emacs markdown-mode S-TAB cycles visibility, TAB toggles one section.
 
 m4_dnl Show these first headings only in man pages:
 _man_({{
