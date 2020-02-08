@@ -205,11 +205,11 @@ can have a status mark, which is a single character before
 the transaction description or posting account name, 
 separated from it by a space, indicating one of three statuses:
 
-mark &nbsp; | status
-:-----------|:-------------------
-&nbsp;      | unmarked
-`!`         | pending
-`*`         | cleared
+| mark   | status   |
+|--------|----------|
+|        | unmarked |
+| `!`    | pending  |
+| `*`    | cleared  |
 
 When reporting, you can filter by status with
 the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags;
@@ -228,11 +228,11 @@ Eg in Emacs ledger-mode, you can toggle transaction status with C-c C-e, or post
 What "uncleared", "pending", and "cleared" actually mean is up to you.
 Here's one suggestion:
 
-status    | meaning
-:---------|:------------------------------------------------------------
-uncleared | recorded but not yet reconciled; needs review
-pending   | tentatively reconciled (if needed, eg during a big reconciliation)
-cleared   | complete, reconciled as far as possible, and considered correct
+| status    | meaning                                                            |
+|-----------|--------------------------------------------------------------------|
+| uncleared | recorded but not yet reconciled; needs review                      |
+| pending   | tentatively reconciled (if needed, eg during a big reconciliation) |
+| cleared   | complete, reconciled as far as possible, and considered correct    |
 
 With this scheme, you would use
 `-PC` to see the current balance at your bank,
@@ -771,7 +771,7 @@ so here is a table summarising the directives and their effects, with links to m
 <!-- </style> -->
 
 | directive         | end directive       | subdirectives   | purpose                                                            | can affect (as of 2018/06)
-|:------------------|:--------------------|:----------------|:-------------------------------------------------------------------|:---------------------------------------------
+|-------------------|---------------------|-----------------|--------------------------------------------------------------------|----------------------------------------------
 | [`account`]       |                     | any text        | document account names, declare account types & display order      | all entries in all files, before or after
 | [`alias`]         | `end aliases`       |                 | rewrite account names                                              | following inline/included entries until end of current file or end directive
 | [`apply account`] | `end apply account` |                 | prepend a common parent to account names                           | following inline/included entries until end of current file or end directive
@@ -794,12 +794,12 @@ so here is a table summarising the directives and their effects, with links to m
 
 And some definitions:
 
-|||
-|:----------------|:--------------------------------------------------------------------------------------------------------------------
-| subdirective    | optional indented directive line immediately following a parent directive
-| number notation | how to interpret numbers when parsing journal entries (the identity of the decimal separator character). (Currently each commodity can have its own notation, even in the same file.)
-| display style   | how to display amounts of a commodity in reports (symbol side and spacing, digit groups, decimal separator, decimal places)
-| directive scope | which entries and (when there are multiple files) which files are affected by a directive
+|                 |                                                                                                                                                                                       |
+|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| subdirective    | optional indented directive line immediately following a parent directive                                                                                                             |
+| number notation | how to interpret numbers when parsing journal entries (the identity of the decimal separator character). (Currently each commodity can have its own notation, even in the same file.) |
+| display style   | how to display amounts of a commodity in reports (symbol side and spacing, digit groups, decimal separator, decimal places)                                                           |
+| directive scope | which entries and (when there are multiple files) which files are affected by a directive                                                                                             |
 
 <!-- | **entries affected:**  | -->
 <!-- | following     | subsequent entries in the file/parse stream -->

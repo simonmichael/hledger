@@ -33,17 +33,17 @@ conditional rules for categorising transactions based on their
 descriptions. Here's an overview of the CSV rules;
 these are described more fully below, after the examples:
 
-------------------------------------------- ---------------------------------------------------
-[**`skip`**](#skip)                         skip one or more header lines or matched CSV records
-[**`fields`**](#fields)                     name CSV fields, assign them to hledger fields
-[**field assignment**](#field-assignment)    assign a value to one hledger field, with interpolation
-[**`separator`**](#separator)               a custom field separator
-[**`if`**](#if)                             apply some rules to matched CSV records
-[**`end`**](#end)                           skip the remaining CSV records
-[**`date-format`**](#date-format)           describe the format of CSV dates
-[**`newest-first`**](#newest-first)         disambiguate record order when there's only one date
-[**`include`**](#include)                   inline another CSV rules file
-------------------------------------------- ---------------------------------------------------
+|                                           |                                                         |
+|-------------------------------------------|---------------------------------------------------------|
+| [**`skip`**](#skip)                       | skip one or more header lines or matched CSV records    |
+| [**`fields`**](#fields)                   | name CSV fields, assign them to hledger fields          |
+| [**field assignment**](#field-assignment) | assign a value to one hledger field, with interpolation |
+| [**`separator`**](#separator)             | a custom field separator                                |
+| [**`if`**](#if)                           | apply some rules to matched CSV records                 |
+| [**`end`**](#end)                         | skip the remaining CSV records                          |
+| [**`date-format`**](#date-format)         | describe the format of CSV dates                        |
+| [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date    |
+| [**`include`**](#include)                 | inline another CSV rules file                           |
 
 Note, for best error messages when reading CSV files, use a `.csv`, `.tsv` or `.ssv` 
 file extension or file prefix - see [File Extension](#file-extension) below.

@@ -646,12 +646,12 @@ or:
 
 If you asked why *four* slashes above, this may help:
 
------------------ --------
-unescaped:        `$`
-escaped:          `\$`
-double-escaped:   `\\$`
-triple-escaped:   `\\\\$`
------------------ --------
+|                 |         |
+|-----------------|---------|
+| unescaped:      | `$`     |
+| escaped:        | `\$`    |
+| double-escaped: | `\\$`   |
+| triple-escaped: | `\\\\$` |
 
 (The number of backslashes in fish shell is left as an exercise for the reader.)
 
@@ -815,27 +815,27 @@ and can have less-significant date parts omitted (defaulting to 1).
 
 Examples:
 
---------------------------------------------- -----------------------------------------------------------------------------
-`2004/10/1`, `2004-01-01`, `2004.9.1`         exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31
-`2004`                                        start of year 
-`2004/10`                                     start of month 
-`10/1`                                        month and day in current year
-`21`                                          day in current month
-`october, oct`                                start of month in current year
-`yesterday, today, tomorrow`                  -1, 0, 1 days from today
-`last/this/next day/week/month/quarter/year`  -1, 0, 1 periods from the current period
-`20181201`                                    8 digit YYYYMMDD with valid year month and day
-`201812`                                      6 digit YYYYMM with valid year and month
---------------------------------------------- -----------------------------------------------------------------------------
+|                                              |                                                                                       |
+|----------------------------------------------|---------------------------------------------------------------------------------------|
+| `2004/10/1`, `2004-01-01`, `2004.9.1`        | exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31 |
+| `2004`                                       | start of year                                                                         |
+| `2004/10`                                    | start of month                                                                        |
+| `10/1`                                       | month and day in current year                                                         |
+| `21`                                         | day in current month                                                                  |
+| `october, oct`                               | start of month in current year                                                        |
+| `yesterday, today, tomorrow`                 | -1, 0, 1 days from today                                                              |
+| `last/this/next day/week/month/quarter/year` | -1, 0, 1 periods from the current period                                              |
+| `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
+| `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
 
 Counterexamples - malformed digit sequences might give surprising results:
 
---------------------------------------------- -----------------------------------------------------------------------------
-`201813`                                      6 digits with an invalid month is parsed as start of 6-digit year
-`20181301`                                    8 digits with an invalid month is parsed as start of 8-digit year
-`20181232`                                    8 digits with an invalid day gives an error
-`201801012`                                   9+ digits beginning with a valid YYYYMMDD gives an error
---------------------------------------------- -----------------------------------------------------------------------------
+|             |                                                                   |
+|-------------|-------------------------------------------------------------------|
+| `201813`    | 6 digits with an invalid month is parsed as start of 6-digit year |
+| `20181301`  | 8 digits with an invalid month is parsed as start of 8-digit year |
+| `20181232`  | 8 digits with an invalid day gives an error                       |
+| `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
 
 ## Report start & end date
 
@@ -864,16 +864,16 @@ Some notes:
 
 Examples:
 
------------------------------------  -------------------------------------------------------------------------------------------
-`-b 2016/3/17`                       begin on St. Patrick's day 2016
-`-e 12/1`                            end at the start of december 1st of the current year (11/30 will be the last date included)
-`-b thismonth`                       all transactions on or after the 1st of the current month
-`-p thismonth`                       all transactions in the current month  
-`date:2016/3/17-`                    the above written as queries instead
-`date:-12/1`   
-`date:thismonth-`
-`date:thismonth`
----
+|                   |                                                                                             |
+|-------------------|---------------------------------------------------------------------------------------------|
+| `-b 2016/3/17`    | begin on St. Patrick’s day 2016                                                             |
+| `-e 12/1`         | end at the start of december 1st of the current year (11/30 will be the last date included) |
+| `-b thismonth`    | all transactions on or after the 1st of the current month                                   |
+| `-p thismonth`    | all transactions in the current month                                                       |
+| `date:2016/3/17-` | the above written as queries instead                                                        |
+| `date:-12/1`      |                                                                                             |
+| `date:thismonth-` |                                                                                             |
+| `date:thismonth`  |                                                                                             |
 
 ##  Report intervals
 
@@ -900,39 +900,39 @@ Keywords like "from" and "to" are optional, and so are the spaces, as long
 as you don't run two dates together. "to" can also be written as "-".
 These are equivalent to the above:
 
-------------------------------
-`-p "2009/1/1 2009/4/1"`
-`-p2009/1/1to2009/4/1`
-`-p2009/1/1-2009/4/1`
-------------------------------
+|                          |
+|--------------------------|
+| `-p "2009/1/1 2009/4/1"` |
+| `-p2009/1/1to2009/4/1`   |
+| `-p2009/1/1-2009/4/1`    |
 
 Dates are [smart dates](#smart-dates), so if the current year is 2009, the
 above can also be written as:
 
-------------------------------
-`-p "1/1 4/1"`
-`-p "january-apr"`
-`-p "this year to 4/1"`
-------------------------------
+|                         |
+|-------------------------|
+| `-p "1/1 4/1"`          |
+| `-p "january-apr"`      |
+| `-p "this year to 4/1"` |
 
 If you specify only one date, the missing start or end date will be the
 earliest or latest transaction in your journal:
 
----------------------------- ---------------------------------
-`-p "from 2009/1/1"`         everything after january 1, 2009
-`-p "from 2009/1"`           the same
-`-p "from 2009"`             the same
-`-p "to 2009"`               everything before january 1, 2009
----------------------------- ---------------------------------
+|                      |                                   |
+|----------------------|-----------------------------------|
+| `-p "from 2009/1/1"` | everything after january 1, 2009  |
+| `-p "from 2009/1"`   | the same                          |
+| `-p "from 2009"`     | the same                          |
+| `-p "to 2009"`       | everything before january 1, 2009 |
 
 A single date with no "from" or "to" defines both the start and end date
 like so:
 
---------------------- ------------------------------------------------------
-`-p "2009"`           the year 2009;    equivalent to "2009/1/1 to 2010/1/1"
-`-p "2009/1"`         the month of jan; equivalent to "2009/1/1 to 2009/2/1"
-`-p "2009/1/1"`       just that day;    equivalent to "2009/1/1 to 2009/1/2"
---------------------- ------------------------------------------------------
+|                 |                                                        |
+|-----------------|--------------------------------------------------------|
+| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”    |
+| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1” |
+| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”    |
 
 The argument of `-p` can also begin with, or be, a [report interval](#report-intervals) expression.
 The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`, 
@@ -940,11 +940,11 @@ which have the same effect as the `-D`,`-W`,`-M`,`-Q`, or `-Y` flags.
 Between report interval and start/end dates (if any), the word `in` is optional.
 Examples: 
 
-------------------------------------------
-`-p "weekly from 2009/1/1 to 2009/4/1"`
-`-p "monthly in 2008"`                          
-`-p "quarterly"`
-------------------------------------------
+|                                         |
+|-----------------------------------------|
+| `-p "weekly from 2009/1/1 to 2009/4/1"` |
+| `-p "monthly in 2008"`                  |
+| `-p "quarterly"`                        |
 
 Note that `weekly`, `monthly`, `quarterly` and `yearly` intervals will
 always start on the first day on week, month, quarter or year
@@ -953,12 +953,12 @@ associated period expression specifies different explicit start and end date.
 
 For example:
 
-------------------------------------------
-`-p "weekly from 2009/1/1 to 2009/4/1"` -- starts on 2008/12/29, closest preceding Monday
-`-p "monthly in 2008/11/25"` -- starts on 2018/11/01                  
-`-p "quarterly from 2009-05-05 to 2009-06-01"` - starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 
-`-p "yearly from 2009-12-29"` - starts on 2009/01/01, first day of 2009
-------------------------------------------
+|                                                |                                                                                    |
+|------------------------------------------------|------------------------------------------------------------------------------------|
+| `-p "weekly from 2009/1/1 to 2009/4/1"`        | starts on 2008/12/29, closest preceding Monday                                     |
+| `-p "monthly in 2008/11/25"`                   | starts on 2018/11/01                                                               |
+| `-p "quarterly from 2009-05-05 to 2009-06-01"` | starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 |
+| `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
 
 The following more complex report intervals are also supported:
 `biweekly`, 
@@ -971,11 +971,11 @@ All of these will start on the first day of the requested period and end on the 
 
 Examples:
 
-------------------------------------------
-`-p "bimonthly from 2008"` -- periods will have boundaries on 2008/01/01, 2008/03/01, ...
-`-p "every 2 weeks"`  -- starts on closest preceding Monday
-`-p "every 5 month from 2009/03"` -- periods will have boundaries on 2009/03/01, 2009/08/01, ...
-------------------------------------------
+|                                   |                                                             |
+|-----------------------------------|-------------------------------------------------------------|
+| `-p "bimonthly from 2008"`        | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
+| `-p "every 2 weeks"`              | starts on closest preceding Monday                          |
+| `-p "every 5 month from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
 
 If you want intervals that start on arbitrary day of your choosing and span a week, month or year, you need to use any of the following:
 
@@ -989,16 +989,15 @@ If you want intervals that start on arbitrary day of your choosing and span a we
 
 Examples:
 
-------------------------------------------
-`-p "every 2nd day of week"` -- periods will go from Tue to Tue
-`-p "every Tue"` -- same
-`-p "every 15th day"` -- period boundaries will be on 15th of each month
-`-p "every 2nd Monday"` -- period boundaries will be on second Monday of each month
-`-p "every 11/05"` -- yearly periods with boundaries on 5th of Nov
-`-p "every 5th Nov"` -- same
-`-p "every Nov 5th"` -- same
-------------------------------------------
-
+|                              |                                                          |
+|------------------------------|----------------------------------------------------------|
+| `-p "every 2nd day of week"` | periods will go from Tue to Tue                          |
+| `-p "every Tue"`             | same                                                     |
+| `-p "every 15th day"`        | period boundaries will be on 15th of each month          |
+| `-p "every 2nd Monday"`      | period boundaries will be on second Monday of each month |
+| `-p "every 11/05"`           | yearly periods with boundaries on 5th of Nov             |
+| `-p "every 5th Nov"`         | same                                                     |
+| `-p "every Nov 5th"`         | same                                                     |
 
 Show historical balances at end of 15th each month (N is exclusive end date):
 
@@ -1305,7 +1304,7 @@ Related:
 [#1083](https://github.com/simonmichael/hledger/issues/1083).
 
 | Report type                                     | `-B`, `--value=cost`                          | `-V`, `-X`                                       | `--value=end`                                      | `--value=DATE`, `--value=now`           |
-|:------------------------------------------------|:----------------------------------------------|:-------------------------------------------------|:---------------------------------------------------|:----------------------------------------|
+|-------------------------------------------------|-----------------------------------------------|--------------------------------------------------|----------------------------------------------------|-----------------------------------------|
 | **print**                                       |                                               |                                                  |                                                    |                                         |
 | posting amounts                                 | cost                                          | value at report end or today                     | value at report or journal end                     | value at DATE/today                     |
 | balance assertions / assignments                | unchanged                                     | unchanged                                        | unchanged                                          | unchanged                               |
