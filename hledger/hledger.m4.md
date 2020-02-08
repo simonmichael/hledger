@@ -37,11 +37,11 @@ interfaces). Its basic function is to read a plain text file describing
 financial transactions (in accounting terms, a general journal) and
 print useful reports on standard output, or export them as CSV. hledger
 can also read some other file formats such as CSV files, translating
-them to journal format. Additionally, hledger lists other hledger-\* 
+them to journal format. Additionally, hledger lists other hledger-\*
 executables found in the user’s \$PATH and can invoke them as subcommands.
 
-hledger reads _files_ 
-If using `$LEDGER_FILE`, note this must be a real environment variable, 
+hledger reads _files_
+If using `$LEDGER_FILE`, note this must be a real environment variable,
 not a shell variable.
 You can specify standard input with `-f-`.
 
@@ -66,7 +66,7 @@ To get started, you can either save some entries like the above in
 `~/.hledger.journal`, or run `hledger add` and follow the prompts. Then
 try some commands like `hledger print` or `hledger balance`.
 Run `hledger` with no arguments for a list of commands.
- 
+
 # COMMON TASKS
 
 Here are some quick examples of how to do some basic tasks with hledger.
@@ -92,7 +92,7 @@ Find more docs, chat, mail list, reddit, issue tracker:
 
 hledger has an extensive and powerful command line interface. We
 strive to keep it simple and ergonomic, but you may run into one of
-the confusing real world details described in OPTIONS, below. 
+the confusing real world details described in OPTIONS, below.
 If that happens, here are some tips that may help:
 
 - command-specific options must go after the command (it's fine to put all options there) (`hledger CMD OPTS ARGS`)
@@ -248,10 +248,10 @@ If you let it pile up, expect it to take longer as you hunt down errors and disc
 
 A typical workflow:
 
-1. Reconcile cash. 
-   Count what's in your wallet. 
+1. Reconcile cash.
+   Count what's in your wallet.
    Compare with what hledger reports (`hledger bal cash`).
-   If they are different, try to remember the missing transaction, 
+   If they are different, try to remember the missing transaction,
    or look for the error in the already-recorded transactions.
    A register report can be helpful (`hledger reg cash`).
    If you can't find the error, add an adjustment transaction.
@@ -269,7 +269,7 @@ A typical workflow:
    or add an adjustment transaction, similar to the above.
    Unlike the cash case, you can usually compare the transaction history and running balance from your bank
    with the one reported by `hledger reg checking -C`.
-   This will be easier if you generally record transaction dates 
+   This will be easier if you generally record transaction dates
    quite similar to your bank's clearing dates.
 
 3. Repeat for other asset/liability accounts.
@@ -449,7 +449,7 @@ If using version control, don't forget to `git add` the new file.
 
 ## General options
 
-To see general usage help, including general options 
+To see general usage help, including general options
 which are supported by most hledger commands, run `hledger -h`.
 
 General help options:
@@ -470,14 +470,14 @@ To see options for a particular command, including command-specific options, run
 
 Command-specific options must be written after the command name, eg: `hledger print -x`.
 
-Additionally, if the command is an [addon](#commands), 
+Additionally, if the command is an [addon](#commands),
 you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
 Or, you can run the addon executable directly: `hledger-ui --watch`.
 
 ## Command arguments
 
-Most hledger commands accept arguments after the command name, 
-which are often a [query](#queries), filtering the data in some way. 
+Most hledger commands accept arguments after the command name,
+which are often a [query](#queries), filtering the data in some way.
 
 You can save a set of command line options/arguments in a file,
 and then reuse them by writing `@FILENAME` as a command line argument.
@@ -500,7 +500,7 @@ Good:
     -X=USD
 
 For special characters (see below), use one less level of quoting than
-you would at the command prompt. 
+you would at the command prompt.
 Bad:
 
     -X"$"
@@ -537,7 +537,7 @@ The [print](hledger.html#print) command instead shows transactions which:
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-The following kinds of search terms can be used. 
+The following kinds of search terms can be used.
 Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
 
 **`REGEX`, `acct:REGEX`**
@@ -613,7 +613,7 @@ Generally you can mix options and query arguments, and the resulting query will 
 ## Special characters in arguments and queries
 
 In shell command lines, option and argument values which contain "problematic" characters,
-ie spaces, 
+ie spaces,
 and also characters significant to your shell such as `<`, `>`, `(`, `)`, `|` and `$`,
 should be escaped by enclosing them in quotes or by writing backslashes before the characters.
 Eg:
@@ -622,7 +622,7 @@ Eg:
 
 ### More escaping
 
-Characters significant both to the shell and in [regular expressions](#regular-expressions) 
+Characters significant both to the shell and in [regular expressions](#regular-expressions)
 may need one extra level of escaping. These include parentheses, the pipe symbol and the dollar sign.
 Eg, to match the dollar symbol, bash users should do:
 
@@ -634,9 +634,9 @@ or:
 
 ### Even more escaping
 
-When hledger runs an addon executable (eg you type `hledger ui`, hledger runs `hledger-ui`), 
+When hledger runs an addon executable (eg you type `hledger ui`, hledger runs `hledger-ui`),
 it de-escapes command-line options and arguments once, so you might need to *triple*-escape.
-Eg in bash, running the ui command and matching the dollar sign, it's: 
+Eg in bash, running the ui command and matching the dollar sign, it's:
 
 `hledger ui cur:'\\$'`
 
@@ -662,10 +662,10 @@ You can always avoid the extra escaping for addons by running the addon directly
 ### Less escaping
 
 Inside an [argument file](#argument-expansion),
-or in the search field of hledger-ui or hledger-web, 
-or at a GHCI prompt, 
+or in the search field of hledger-ui or hledger-web,
+or at a GHCI prompt,
 you need one less level of escaping than at the command line.
-And backslashes may work better than quotes. 
+And backslashes may work better than quotes.
 Eg:
 
 `ghci> :main balance cur:\$`
@@ -684,8 +684,8 @@ forms, etc.)
 This requires a well-configured environment. Here are some tips:
 
 - A system locale must be configured, and it must be one that can
-  decode the characters being used. 
-  In bash, you can set a locale like this: `export LANG=en_US.UTF-8`. 
+  decode the characters being used.
+  In bash, you can set a locale like this: `export LANG=en_US.UTF-8`.
   There are some more details in [Troubleshooting](#troubleshooting).
   This step is essential - without it, hledger will quit on encountering
   a non-ascii character (as with all GHC-compiled programs).
@@ -706,7 +706,7 @@ This requires a well-configured environment. Here are some tips:
 ## Input files
 
 hledger reads transactions from a data file (and the add command writes to it).
-By default this file is `$HOME/.hledger.journal` 
+By default this file is `$HOME/.hledger.journal`
 (or on Windows, something like `C:/Users/USER/.hledger.journal`).
 You can override this with the `$LEDGER_FILE` environment variable:
 ```shell
@@ -723,7 +723,7 @@ The file name `-` (hyphen) means standard input:
 $ cat some.journal | hledger -f-
 ```
 
-Usually the data file is in hledger's journal format, 
+Usually the data file is in hledger's journal format,
 but it can also be one of several other formats, listed below.
 hledger detects the format automatically based on the file extension,
 or if that is not recognised, by trying each built-in "reader" in turn:
@@ -735,8 +735,8 @@ or if that is not recognised, by trying each built-in "reader" in turn:
 | `timedot`   | timedot files (approximate time logging)            | `.timedot`                                          |
 | `csv`       | comma-separated values (data interchange)           | `.csv`                                              |
 
-If needed (eg to ensure correct error messages when a file has the "wrong" extension), 
-you can force a specific reader/format by prepending it to the file path with a colon. 
+If needed (eg to ensure correct error messages when a file has the "wrong" extension),
+you can force a specific reader/format by prepending it to the file path with a colon.
 Examples:
 ```shell
 $ hledger -f csv:/some/csv-file.dat stats
@@ -754,8 +754,8 @@ or concatenate the files, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Output destination
 
-Some commands (print, register, stats, the balance commands) 
-can write their output to a destination other than the console. 
+Some commands (print, register, stats, the balance commands)
+can write their output to a destination other than the console.
 This is controlled by the `-o/--output-file` option.
 
 ```shell
@@ -799,18 +799,18 @@ Some things to note:
 must be enclosed in forward slashes (`/REGEX/`). Elsewhere in hledger,
 these are not required.
 
-- In queries, to match a regular expression metacharacter like `$` 
+- In queries, to match a regular expression metacharacter like `$`
 as a literal character, prepend a backslash. Eg to search for amounts with the
 dollar sign in hledger-web, write `cur:\$`.
 
 - On the command line, some metacharacters like `$` have a special
 meaning to the shell and so must be escaped at least once more.
-See [Special characters](#special-characters). 
+See [Special characters](#special-characters).
 
 ## Smart dates
 
-hledger's user interfaces accept a flexible "smart date" syntax (unlike dates in the journal file). 
-Smart dates allow some english words, can be relative to today's date, 
+hledger's user interfaces accept a flexible "smart date" syntax (unlike dates in the journal file).
+Smart dates allow some english words, can be relative to today's date,
 and can have less-significant date parts omitted (defaulting to 1).
 
 Examples:
@@ -843,10 +843,10 @@ Most hledger reports show the full span of time represented by the journal data,
 So, the effective report start and end dates will be the earliest and latest transaction or posting dates found in the journal.
 
 Often you will want to see a shorter time span, such as the current month.
-You can specify a start and/or end date using 
-[`-b/--begin`](#reporting-options), 
-[`-e/--end`](#reporting-options), 
-[`-p/--period`](#period-expressions) 
+You can specify a start and/or end date using
+[`-b/--begin`](#reporting-options),
+[`-e/--end`](#reporting-options),
+[`-p/--period`](#period-expressions)
 or a [`date:` query](#queries) (described below).
 All of these accept the [smart date](#smart-dates) syntax.
 
@@ -882,7 +882,7 @@ A report interval can be specified so that commands like
 reports into multiple subperiods.  The basic intervals can be
 selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
 `-Q/--quarterly`, or `-Y/--yearly`.  More complex intervals may be
-specified with a [period expression](#period-expressions). 
+specified with a [period expression](#period-expressions).
 Report intervals can not be specified with a [query](#queries).
 
 ## Period expressions
@@ -935,10 +935,10 @@ like so:
 | `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”    |
 
 The argument of `-p` can also begin with, or be, a [report interval](#report-intervals) expression.
-The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`, 
+The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`,
 which have the same effect as the `-D`,`-W`,`-M`,`-Q`, or `-Y` flags.
 Between report interval and start/end dates (if any), the word `in` is optional.
-Examples: 
+Examples:
 
 |                                         |
 |-----------------------------------------|
@@ -961,7 +961,7 @@ For example:
 | `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
 
 The following more complex report intervals are also supported:
-`biweekly`, 
+`biweekly`,
 `bimonthly`,
 `every day|week|month|quarter|year`,
 `every N days|weeks|months|quarters|years`.
@@ -1005,7 +1005,7 @@ Show historical balances at end of 15th each month (N is exclusive end date):
 
 Group postings from start of wednesday to end of next tuesday (N is start date and exclusive end date):
 
-`hledger register checking -p "every 3rd day of week"`   
+`hledger register checking -p "every 3rd day of week"`
 
 ## Depth limiting
 
@@ -1013,20 +1013,20 @@ With the `--depth N` option (short form: `-N`), commands like [account](#account
 and [register](#register) will show only the uppermost accounts in the account
 tree, down to level N. Use this when you want a summary with less detail.
 This flag has the same effect as a `depth:` query argument
-(so `-2`, `--depth=2` or `depth:2` are basically equivalent).   
+(so `-2`, `--depth=2` or `depth:2` are basically equivalent).
 
 ## Pivoting
 
 Normally hledger sums amounts, and organizes them in a hierarchy, based on account name.
 The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
 FIELD can be:
-`code`, `description`, `payee`, `note`, 
+`code`, `description`, `payee`, `note`,
 or the full name (case insensitive) of any [tag](journal.html#tags).
 As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
 
-`--pivot` is a general option affecting all reports; you can think of hledger transforming 
-the journal before any other processing, replacing every posting's account name with 
-the value of the specified field on that posting, inheriting it from the transaction 
+`--pivot` is a general option affecting all reports; you can think of hledger transforming
+the journal before any other processing, replacing every posting's account name with
+the value of the specified field on that posting, inheriting it from the transaction
 or using a blank value if it's not present.
 
 An example:
@@ -1071,7 +1071,7 @@ $ hledger balance --pivot member acct:.
 
 ### -B: Cost
 
-The `-B/--cost` flag converts amounts to their cost (or selling price) at transaction time, 
+The `-B/--cost` flag converts amounts to their cost (or selling price) at transaction time,
 if they have a [transaction price](journal.html#transaction-prices) specified.
 This flag is equivalent to `--value=cost`, described below.
 
@@ -1150,11 +1150,11 @@ The TYPE part basically selects either "cost", or "market value" plus a valuatio
   or in multiperiod reports, market prices on the last day of each subperiod.
 
 `--value=now`
-: Convert amounts to their value in default valuation commodity using current market prices 
+: Convert amounts to their value in default valuation commodity using current market prices
   (as of when report is generated).
 
 `--value=YYYY-MM-DD`
-: Convert amounts to their value in default valuation commodity using market prices 
+: Convert amounts to their value in default valuation commodity using market prices
   on this date.
 
 The default valuation commodity is the commodity mentioned in the most
@@ -1170,7 +1170,7 @@ hledger will do its best to convert amounts to this commodity, using:
 - reverse prices (declared prices from valuation to source commodity, inverted)
 - indirect prices (prices calculated from the shortest chain of declared or reverse prices from source to valuation commodity)
 
-in that order. 
+in that order.
 
 Here are some examples showing the effect of `--value` as seen with `print`:
 
@@ -1299,7 +1299,7 @@ Here is a reference for how `--value` currently affects each part of hledger's r
 It's work in progress, but may be useful for troubleshooting or reporting bugs.
 See also the definitions and notes below.
 If you find problems, please report them, ideally with a reproducible example.
-Related: 
+Related:
 [#329](https://github.com/simonmichael/hledger/issues/329),
 [#1083](https://github.com/simonmichael/hledger/issues/1083).
 
@@ -1366,11 +1366,11 @@ listed as subcommands.
 Run a subcommand by writing its name as first argument (eg `hledger
 incomestatement`). You can also write one of the standard short aliases
 displayed in parentheses in the command list (`hledger b`), or any
-any unambiguous prefix of a command name (`hledger inc`). 
+any unambiguous prefix of a command name (`hledger inc`).
 
 Here are all the builtin commands in alphabetical order.
 See also `hledger` for a more organised command list,
-and `hledger CMD -h` for detailed command help.  
+and `hledger CMD -h` for detailed command help.
 
 ## accounts
 
@@ -1493,14 +1493,14 @@ _include_({{Hledger/Cli/Commands/Test.md}})
 
 hledger also searches for external add-on commands, and will include these in the commands list.
 These are programs or scripts in your PATH whose name starts with `hledger-`
-and ends with a recognised file extension 
+and ends with a recognised file extension
 (currently: no extension, `bat`,`com`,`exe`, `hs`,`lhs`,`pl`,`py`,`rb`,`rkt`,`sh`).
 
 Add-ons can be invoked like any hledger command, but there are a few things to be aware of.
 Eg if the `hledger-web` add-on is installed,
 
 - `hledger -h web` shows hledger's help, while `hledger web -h` shows hledger-web's help.
-  
+
 - Flags specific to the add-on must have a preceding `--` to hide them from hledger.
   So `hledger web --serve --port 9000` will be rejected; you must use `hledger web -- --serve --port 9000`.
 
@@ -1515,7 +1515,7 @@ Two important add-ons are the hledger-ui and hledger-web user interfaces.
 These are maintained and released along with hledger:
 
 ### ui
-[hledger-ui](hledger-ui.html) provides an efficient terminal interface. 
+[hledger-ui](hledger-ui.html) provides an efficient terminal interface.
 
 ### web
 [hledger-web](hledger-web.html) provides a simple web interface.
@@ -1525,12 +1525,12 @@ Third party add-ons, maintained separately from hledger, include:
 ### iadd
 
 [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
-is a more interactive, terminal UI replacement for the [add command](hledger.html#add). 
+is a more interactive, terminal UI replacement for the [add command](hledger.html#add).
 
 ### interest
 
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-generates interest transactions for an account according to various schemes. 
+generates interest transactions for an account according to various schemes.
 
 <!-- ### autosync -->
 
@@ -1547,7 +1547,7 @@ directory. These are typically prototypes and not guaranteed to work.
 # ENVIRONMENT
 
 **COLUMNS**
-The screen width used by the register command. 
+The screen width used by the register command.
 Default: the full terminal width.
 
 m4_dnl Standard LEDGER_FILE description:
@@ -1584,17 +1584,17 @@ Here are some issues you might encounter when you run hledger
 [mail list](http://list.hledger.org) or
 [bug tracker](http://bugs.hledger.org)):
 
-**Successfully installed, but "No command 'hledger' found"**  
+**Successfully installed, but "No command 'hledger' found"**\
 stack and cabal install binaries into a special directory, which
 should be added to your PATH environment variable.  Eg on unix-like
 systems, that is ~/.local/bin and ~/.cabal/bin respectively.
 
-**I set a custom LEDGER_FILE, but hledger is still using the default file**  
+**I set a custom LEDGER_FILE, but hledger is still using the default file**\
 `LEDGER_FILE` should be a real environment variable, not just a shell variable.
 The command `env | grep LEDGER_FILE` should show it.
 You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
 
-**"Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
+**"Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**\
 In order to handle non-ascii letters and symbols (like £), hledger needs
 an appropriate locale. This is usually configured system-wide; you can
 also configure it temporarily.  The locale may need to be one that
@@ -1638,4 +1638,3 @@ $ LANG=fr_FR.utf8 hledger -f my.journal print
 
 Note some platforms allow variant locale spellings, but not all (ubuntu
 accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
-

@@ -45,7 +45,7 @@ these are described more fully below, after the examples:
 | [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date    |
 | [**`include`**](#include)                 | inline another CSV rules file                           |
 
-Note, for best error messages when reading CSV files, use a `.csv`, `.tsv` or `.ssv` 
+Note, for best error messages when reading CSV files, use a `.csv`, `.tsv` or `.ssv`
 file extension or file prefix - see [File Extension](#file-extension) below.
 
 There's an introductory [Convert CSV files](convert-csv-files.html) tutorial on hledger.org.
@@ -102,7 +102,7 @@ fields  date, description, amount-out, amount-in, balance
 # We generate balance assertions by assigning to "balance"
 # above, but you may sometimes need to remove these because:
 #
-# - the CSV balance differs from the true balance, 
+# - the CSV balance differs from the true balance,
 #   by up to 0.0000000000005 in my experience
 #
 # - it is sometimes calculated based on non-chronological ordering,
@@ -176,7 +176,7 @@ amount2     %amzamount
 
 # add a third posting for fees, but only if they are non-zero.
 # Commas in the data makes counting fields hard, so count from the right instead.
-# (Regex translation: "a field containing a non-zero dollar amount, 
+# (Regex translation: "a field containing a non-zero dollar amount,
 # immediately before the 1 right-most fields")
 if ,\$[1-9][.0-9]+(,[^,]*){1}$
  account3    expenses:fees
@@ -232,11 +232,11 @@ date-format  %-m/%-d/%Y
 if
 In Progress
 Temporary Hold
-Update to 
+Update to
  skip
 
 # add more fields to the description
-description %description_ %itemtitle 
+description %description_ %itemtitle
 
 # save some other fields as tags
 comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
@@ -284,9 +284,9 @@ include common.rules
 
 # apply some overrides specific to this csv
 
-# Transfers from/to bank. These are usually marked Pending, 
+# Transfers from/to bank. These are usually marked Pending,
 # which can be disregarded in this case.
-if 
+if
 Bank Account
 Bank Deposit to PP Account
  description %type for %referencetxnid %itemtitle
@@ -388,27 +388,27 @@ A fields list (the word "fields" followed by comma-separated field
 names) is the quick way to assign CSV field values to hledger fields.
 It does two things:
 
-1. it names the CSV fields. 
+1. it names the CSV fields.
    This is optional, but can be convenient later for interpolating them.
 
 2. when you use a standard hledger field name,
    it assigns the CSV value to that part of the hledger transaction.
 
-Here's an example that says 
+Here's an example that says
 "use the 1st, 2nd and 4th fields as the transaction's date, description and amount;
 name the last two fields for later reference; and ignore the others":
 ```rules
 fields date, description, , amount, , , somefield, anotherfield
 ```
 
-Field names may not contain whitespace. 
+Field names may not contain whitespace.
 Fields you don't care about can be left unnamed.
 Currently there must be least two items (there must be at least one comma).
 
 Note, always use comma in the fields list, even if your CSV uses
 [another separator character](#separator).
 
-Here are the standard hledger field/pseudo-field names. 
+Here are the standard hledger field/pseudo-field names.
 For more about the transaction parts they refer to, see the manual for hledger's journal format.
 
 ### Transaction field names
@@ -421,7 +421,7 @@ For more about the transaction parts they refer to, see the manual for hledger's
 `accountN`, where N is 1 to 9, generates a
 [posting](journal.html#postings), with that account name.
 Most often there are two postings, so you'll want to set `account1` and `account2`.
-If a posting's account name is left unset but its amount is set, 
+If a posting's account name is left unset but its amount is set,
 a default account name will be chosen (like expenses:unknown or income:unknown).
 
 `amountN` sets posting N's amount. Or, `amount` with no N sets posting
@@ -432,18 +432,18 @@ a default account name will be chosen (like expenses:unknown or income:unknown).
 For convenience and backwards compatibility, if you set the amount of
 posting 1 only, a second posting with the negative amount will be
 generated automatically.
-(Unless the account name is parenthesised indicating an 
+(Unless the account name is parenthesised indicating an
 [unbalanced posting](journal.html#virtual-postings).)
 
 If the CSV has the currency symbol in a separate field, you can use
 `currencyN` to prepend it to posting N's amount. `currency` with no N
 affects ALL postings.
 
-`balanceN` sets a [balance assertion](journal.html#balance-assertions) amount 
+`balanceN` sets a [balance assertion](journal.html#balance-assertions) amount
 (or if the posting amount is left empty, a [balance assignment](journal.html#balance-assignments)).
 You may need to adjust this with the [`balance-type` rule](#balance-type).
 
-Finally, `commentN` sets a [comment](journal.html#comments) on the Nth posting. 
+Finally, `commentN` sets a [comment](journal.html#comments) on the Nth posting.
 Comments can also contain [tags](journal.html#tags), as usual.
 
 See TIPS below for more about setting amounts and currency.
@@ -459,7 +459,7 @@ Instead of or in addition to a [fields list](#fields), you can use a
 "field assignment" rule to set the value of a single hledger field, by
 writing its name (any of the standard hledger field names above)
 followed by a text value.
-The value may contain interpolated CSV fields, 
+The value may contain interpolated CSV fields,
 referenced by their 1-based position in the CSV record (`%N`),
 or by the name they were given in the fields list (`%CSVFIELDNAME`).
 Some examples:
@@ -554,7 +554,7 @@ banking thru software
 ## `end`
 
 This rule can be used inside [if blocks](#if) (only), to make hledger stop
-reading this CSV file and move on to the next input file, or to command execution. 
+reading this CSV file and move on to the next input file, or to command execution.
 Eg:
 ```rules
 # ignore everything following the first empty record
@@ -641,7 +641,7 @@ Balance assertions generated by [assigning to balanceN](#posting-field-names)
 are of the simple `=` type by default,
 which is a [single-commodity](https://hledger.org/journal.html#assertions-and-commodities),
 [subaccount-excluding](https://hledger.org/journal.html#assertions-and-subaccounts) assertion.
-You may find the subaccount-including variants more useful, 
+You may find the subaccount-including variants more useful,
 eg if you have created some virtual subaccounts of checking to help with budgeting.
 You can select a different type of assertion with the `balance-type` rule:
 ```rules
@@ -752,11 +752,11 @@ A posting amount can be set in one of these ways:
   `amountN` (posting N's amount) or `amount` (posting 1's amount)
 
 - by assigning to `amountN-in` and `amountN-out` (or `amount-in` and `amount-out`).
-  For each CSV record, whichever of these has a non-zero value will be used, with appropriate sign. 
+  For each CSV record, whichever of these has a non-zero value will be used, with appropriate sign.
   If both contain a non-zero value, this may not work.
 
 - by assigning to `balanceN` (or `balance`) instead of the above,
-  setting the amount indirectly via a 
+  setting the amount indirectly via a
   [balance assignment](journal.html#balance-assignments).
   If you do this the default account name may be wrong, so you should set that explicitly.
 

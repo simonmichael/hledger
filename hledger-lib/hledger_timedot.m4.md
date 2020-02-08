@@ -17,7 +17,7 @@ It is convenient for approximate and retroactive time logging,
 eg when the real-time clock-in/out required with a timeclock file is too precise or too interruptive.
 It can be formatted like a bar chart, making clear at a glance where time was spent.
 
-Though called "timedot", this format is read by hledger as commodityless quantities, 
+Though called "timedot", this format is read by hledger as commodityless quantities,
 so it could be used to represent dated quantities other than time.
 In the docs below we'll assume it's time.
 
@@ -31,16 +31,16 @@ Quantities can be written as:
 
 - a sequence of dots (.) representing quarter hours.
   Spaces may optionally be used for grouping and readability.
-  Eg: .... .. 
+  Eg: .... ..
 
 - an integral or decimal number, representing hours.
   Eg: 1.5
-  
-- an integral or decimal number immediately followed by a unit symbol 
+
+- an integral or decimal number immediately followed by a unit symbol
   `s`, `m`, `h`, `d`, `w`, `mo`, or `y`, representing seconds, minutes, hours, days
-  weeks, months or years respectively. 
+  weeks, months or years respectively.
   Eg: 90m.
-  The following equivalencies are assumed, currently: 
+  The following equivalencies are assumed, currently:
   1m = 60s, 1h = 60m, 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
 
 Blank lines and lines beginning with #, ; or * are ignored.
@@ -50,7 +50,7 @@ An example:
 # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
 2016/2/1
 inc:client1   .... .... .... .... .... ....
-fos:haskell   .... .. 
+fos:haskell   .... ..
 biz:research  .
 
 2016/2/2

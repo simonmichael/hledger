@@ -54,10 +54,10 @@ For more about this see hledger(1), hledger_journal(5) etc.
 # OPTIONS
 
 Command-line options and arguments may be used to set an initial
-filter on the data. These filter options are not shown in the web UI, 
+filter on the data. These filter options are not shown in the web UI,
 but it will be applied in addition to any search query entered there.
 
-Note: if invoking hledger-web as a hledger subcommand, write `--` before options, 
+Note: if invoking hledger-web as a hledger subcommand, write `--` before options,
 as shown in the synopsis above.
 
 `--serve`
@@ -114,7 +114,7 @@ browser window, and will exit after two minutes of inactivity (no
 requests and no browser windows viewing it).
 With `--serve`, it just runs the web app without exiting, and logs
 requests to the console.
-With `--serve-api`, only the JSON web api (see below) is served, 
+With `--serve-api`, only the JSON web api (see below) is served,
 with the usual HTML server-side web UI disabled.
 
 By default the server listens on IP address 127.0.0.1, accessible only to local requests.
@@ -123,14 +123,14 @@ You can use `--host` to change this, eg `--host 0.0.0.0` to listen on all config
 Similarly, use `--port` to set a TCP port other than 5000, eg if you are
 running multiple hledger-web instances.
 
-Both of these options are ignored when `--socket` is used. In this case, it 
+Both of these options are ignored when `--socket` is used. In this case, it
 creates an `AF_UNIX` socket file at the supplied path and uses that for communication.
-This is an alternative way of running multiple hledger-web instances behind 
+This is an alternative way of running multiple hledger-web instances behind
 a reverse proxy that handles authentication for different users.
 The path can be derived in a predictable way, eg by using the username within the path.
-As an example, `nginx` as reverse proxy can use the variabel `$remote_user` to 
-derive a path from the username used in a [HTTP basic authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/). 
-The following `proxy_pass` directive allows access to all `hledger-web` 
+As an example, `nginx` as reverse proxy can use the variabel `$remote_user` to
+derive a path from the username used in a [HTTP basic authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
+The following `proxy_pass` directive allows access to all `hledger-web`
 instances that created a socket in `/tmp/hledger/`:
 
 ```
@@ -147,27 +147,27 @@ eg for better caching or cookie-less serving on high performance websites.
 
 # PERMISSIONS
 
-By default, hledger-web allows anyone who can reach it to view the journal 
+By default, hledger-web allows anyone who can reach it to view the journal
 and to add new transactions, but not to change existing data.
 
 You can restrict who can reach it by
 
-- setting the IP address it listens on (see `--host` above). 
-  By default it listens on 127.0.0.1, accessible to all users on the local machine. 
+- setting the IP address it listens on (see `--host` above).
+  By default it listens on 127.0.0.1, accessible to all users on the local machine.
 - putting it behind an authenticating proxy, using eg apache or nginx
 - custom firewall rules
 
 You can restrict what the users who reach it can do, by
 
-- using the `--capabilities=CAP[,CAP..]` flag when you start it, 
+- using the `--capabilities=CAP[,CAP..]` flag when you start it,
   enabling one or more of the following capabilities. The default value is `view,add`:
   - `view`   - allows viewing the journal file and all included files
-  - `add`    - allows adding new transactions to the main journal file 
-  - `manage` - allows editing, uploading or downloading the main or included files 
+  - `add`    - allows adding new transactions to the main journal file
+  - `manage` - allows editing, uploading or downloading the main or included files
 
 - using the `--capabilities-header=HTTPHEADER` flag to specify a HTTP header
   from which it will read capabilities to enable. hledger-web on Sandstorm
-  uses the X-Sandstorm-Permissions header to integrate with Sandstorm's permissions. 
+  uses the X-Sandstorm-Permissions header to integrate with Sandstorm's permissions.
   This is disabled by default.
 
 # EDITING, UPLOADING, DOWNLOADING
@@ -175,10 +175,10 @@ You can restrict what the users who reach it can do, by
 If you enable the `manage` capability mentioned above,
 you'll see a new "spanner" button to the right of the search form.
 Clicking this will let you edit, upload, or download the journal
-file or any files it includes. 
+file or any files it includes.
 
 Note, unlike any other hledger command, in this mode you (or any visitor)
-can alter or wipe the data files. 
+can alter or wipe the data files.
 
 Normally whenever a file is changed in this way, hledger-web saves a numbered backup
 (assuming file permissions allow it, the disk is not full, etc.)
@@ -186,7 +186,7 @@ hledger-web is not aware of version control systems, currently; if you use one,
 you'll have to arrange to commit the changes yourself (eg with a cron job
 or a file watcher like entr).
 
-Changes which would leave the journal file(s) unparseable or non-valid 
+Changes which would leave the journal file(s) unparseable or non-valid
 (eg with failing balance assertions) are prevented.
 (Probably. This needs re-testing.)
 
@@ -194,7 +194,7 @@ Changes which would leave the journal file(s) unparseable or non-valid
 
 hledger-web detects changes made to the files by other means (eg if you edit
 it directly, outside of hledger-web), and it will show the new data
-when you reload the page or navigate to a new page. 
+when you reload the page or navigate to a new page.
 If a change makes a file unparseable,
 hledger-web will display an error message until the file has been fixed.
 
