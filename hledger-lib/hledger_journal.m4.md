@@ -1051,7 +1051,7 @@ account assets       ; type:Asset
 account liabilities  ; type:Liability
 account equity       ; type:Equity
 account revenues     ; type:Revenue
-account expenses     ; type:Expenses
+account expenses     ; type:Expense
 ```
 
 ##### Account types declared with account type codes
