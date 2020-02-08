@@ -1051,25 +1051,31 @@ omitted (defaulting to 1).
 
    Examples:
 
-'2004/10/1', '2004-01-01', '2004.9.1'   exact date, several separators allowed.  Year is 4+ digits, month is 1-12, day is 1-31
-'2004'                                  start of year
-'2004/10'                               start of month
-'10/1'                                  month and day in current year
-'21'                                    day in current month
-'october, oct'                          start of month in current year
-'yesterday, today, tomorrow'            -1, 0, 1 days from today
-'last/this/next                         -1, 0, 1 periods from the current period
+'2004/10/1',              exact date, several separators allowed.  Year
+'2004-01-01',             is 4+ digits, month is 1-12, day is 1-31
+'2004.9.1'
+'2004'                    start of year
+'2004/10'                 start of month
+'10/1'                    month and day in current year
+'21'                      day in current month
+'october, oct'            start of month in current year
+'yesterday, today,        -1, 0, 1 days from today
+tomorrow'
+'last/this/next           -1, 0, 1 periods from the current period
 day/week/month/quarter/year'
-'20181201'                              8 digit YYYYMMDD with valid year month and day
-'201812'                                6 digit YYYYMM with valid year and month
+'20181201'                8 digit YYYYMMDD with valid year month and
+                          day
+'201812'                  6 digit YYYYMM with valid year and month
 
    Counterexamples - malformed digit sequences might give surprising
 results:
 
-'201813'      6 digits with an invalid month is parsed as start of 6-digit year
-'20181301'    8 digits with an invalid month is parsed as start of 8-digit year
-'20181232'    8 digits with an invalid day gives an error
-'201801012'   9+ digits beginning with a valid YYYYMMDD gives an error
+'201813'     6 digits with an invalid month is parsed as start of
+             6-digit year
+'20181301'   8 digits with an invalid month is parsed as start of
+             8-digit year
+'20181232'   8 digits with an invalid day gives an error
+'201801012'  9+ digits beginning with a valid YYYYMMDD gives an error
 
 
 File: hledger.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
@@ -1100,11 +1106,15 @@ these accept the smart date syntax.
 
    Examples:
 
-'-b 2016/3/17'      begin on St.  Patrick's day 2016
-'-e 12/1'           end at the start of december 1st of the current year (11/30 will be the last date included)
-'-b thismonth'      all transactions on or after the 1st of the current month
-'-p thismonth'      all transactions in the current month
-'date:2016/3/17-'   the above written as queries instead
+'-b          begin on St. Patrick's day 2016
+2016/3/17'
+'-e 12/1'    end at the start of december 1st of the current year
+             (11/30 will be the last date included)
+'-b          all transactions on or after the 1st of the current month
+thismonth'
+'-p          all transactions in the current month
+thismonth'
+'date:2016/3/17-'the above written as queries instead
 'date:-12/1'
 'date:thismonth-'
 'date:thismonth'
@@ -1163,9 +1173,9 @@ the earliest or latest transaction in your journal:
    A single date with no "from" or "to" defines both the start and end
 date like so:
 
-'-p "2009"'       the year 2009; equivalent to "2009/1/1 to 2010/1/1"
-'-p "2009/1"'     the month of jan; equivalent to "2009/1/1 to 2009/2/1"
-'-p "2009/1/1"'   just that day; equivalent to "2009/1/1 to 2009/1/2"
+'-p "2009"'       the year 2009; equivalent to “2009/1/1 to 2010/1/1”
+'-p "2009/1"'     the month of jan; equivalent to “2009/1/1 to 2009/2/1”
+'-p "2009/1/1"'   just that day; equivalent to “2009/1/1 to 2009/1/2”
 
    The argument of '-p' can also begin with, or be, a report interval
 expression.  The basic report intervals are 'daily', 'weekly',
@@ -1185,10 +1195,15 @@ date.
 
    For example:
 
-'-p "weekly from 2009/1/1 to 2009/4/1"' - starts on 2008/12/29, closest preceding Monday
-'-p "monthly in 2008/11/25"' - starts on 2018/11/01
-'-p "quarterly from 2009-05-05 to 2009-06-01"' - starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009
-'-p "yearly from 2009-12-29"' - starts on 2009/01/01, first day of 2009
+'-p "weekly from           starts on 2008/12/29, closest preceding
+2009/1/1 to 2009/4/1"'     Monday
+'-p "monthly in            starts on 2018/11/01
+2008/11/25"'
+'-p "quarterly from        starts on 2009/04/01, ends on 2009/06/30,
+2009-05-05 to              which are first and last days of Q2 2009
+2009-06-01"'
+'-p "yearly from           starts on 2009/01/01, first day of 2009
+2009-12-29"'
 
    The following more complex report intervals are also supported:
 'biweekly', 'bimonthly', 'every day|week|month|quarter|year', 'every N
@@ -1199,9 +1214,11 @@ end on the last one, as described above.
 
    Examples:
 
-'-p "bimonthly from 2008"' - periods will have boundaries on 2008/01/01, 2008/03/01, ...
-'-p "every 2 weeks"' - starts on closest preceding Monday
-'-p "every 5 month from 2009/03"' - periods will have boundaries on 2009/03/01, 2009/08/01, ...
+'-p "bimonthly from        periods will have boundaries on 2008/01/01,
+2008"'                     2008/03/01, ...
+'-p "every 2 weeks"'       starts on closest preceding Monday
+'-p "every 5 month from    periods will have boundaries on 2009/03/01,
+2009/03"'                  2009/08/01, ...
 
    If you want intervals that start on arbitrary day of your choosing
 and span a week, month or year, you need to use any of the following:
@@ -1212,13 +1229,16 @@ Nth MMM [of year]', 'every MMM Nth [of year]'.
 
    Examples:
 
-'-p "every 2nd day of week"' - periods will go from Tue to Tue
-'-p "every Tue"' - same
-'-p "every 15th day"' - period boundaries will be on 15th of each month
-'-p "every 2nd Monday"' - period boundaries will be on second Monday of each month
-'-p "every 11/05"' - yearly periods with boundaries on 5th of Nov
-'-p "every 5th Nov"' - same
-'-p "every Nov 5th"' - same
+'-p "every 2nd day of    periods will go from Tue to Tue
+week"'
+'-p "every Tue"'         same
+'-p "every 15th day"'    period boundaries will be on 15th of each
+                         month
+'-p "every 2nd           period boundaries will be on second Monday of
+Monday"'                 each month
+'-p "every 11/05"'       yearly periods with boundaries on 5th of Nov
+'-p "every 5th Nov"'     same
+'-p "every Nov 5th"'     same
 
    Show historical balances at end of 15th each month (N is exclusive
 end date):
@@ -3696,139 +3716,139 @@ Node: Regular expressions32899
 Ref: #regular-expressions33056
 Node: Smart dates34417
 Ref: #smart-dates34568
-Node: Report start & end date35974
-Ref: #report-start-end-date36146
-Node: Report intervals37570
-Ref: #report-intervals37735
-Node: Period expressions38125
-Ref: #period-expressions38285
-Node: Depth limiting42240
-Ref: #depth-limiting42384
-Node: Pivoting42726
-Ref: #pivoting42849
-Node: Valuation44525
-Ref: #valuation44627
-Node: -B Cost44807
-Ref: #b-cost44918
-Node: -V Market value45116
-Ref: #v-market-value45290
-Node: -X Market value in specified commodity46722
-Ref: #x-market-value-in-specified-commodity46961
-Node: --value Flexible valuation47137
-Ref: #value-flexible-valuation47363
-Node: Effect of --value on reports51553
-Ref: #effect-of---value-on-reports51769
-Node: Combining -B -V -X --value56700
-Ref: #combining--b--v--x---value56883
-Node: COMMANDS56919
-Ref: #commands57027
-Node: accounts58111
-Ref: #accounts58209
-Node: activity58908
-Ref: #activity59018
-Node: add59401
-Ref: #add59500
-Node: balance62239
-Ref: #balance62350
-Node: Classic balance report63808
-Ref: #classic-balance-report63981
-Node: Customising the classic balance report65350
-Ref: #customising-the-classic-balance-report65578
-Node: Colour support67654
-Ref: #colour-support67821
-Node: Flat mode67994
-Ref: #flat-mode68142
-Node: Depth limited balance reports68555
-Ref: #depth-limited-balance-reports68740
-Node: Percentages69196
-Ref: #percentages69362
-Node: Multicolumn balance report70499
-Ref: #multicolumn-balance-report70679
-Node: Budget report75993
-Ref: #budget-report76136
-Node: Nested budgets81338
-Ref: #nested-budgets81450
-Ref: #output-format-184931
-Node: balancesheet85009
-Ref: #balancesheet85145
-Node: balancesheetequity86528
-Ref: #balancesheetequity86677
-Node: cashflow87238
-Ref: #cashflow87366
-Node: check-dates88462
-Ref: #check-dates88589
-Node: check-dupes88868
-Ref: #check-dupes88992
-Node: close89285
-Ref: #close89399
-Node: close usage90921
-Ref: #close-usage91014
-Node: commodities93827
-Ref: #commodities93954
-Node: descriptions94036
-Ref: #descriptions94164
-Node: diff94345
-Ref: #diff94451
-Node: files95498
-Ref: #files95598
-Node: help95745
-Ref: #help95845
-Node: import96926
-Ref: #import97040
-Node: Importing balance assignments97933
-Ref: #importing-balance-assignments98081
-Node: incomestatement98730
-Ref: #incomestatement98863
-Node: notes100267
-Ref: #notes100380
-Node: payees100506
-Ref: #payees100612
-Node: prices100770
-Ref: #prices100876
-Node: print101217
-Ref: #print101327
-Node: print-unique105971
-Ref: #print-unique106097
-Node: register106382
-Ref: #register106509
-Node: Custom register output110681
-Ref: #custom-register-output110810
-Node: register-match112072
-Ref: #register-match112206
-Node: rewrite112557
-Ref: #rewrite112672
-Node: Re-write rules in a file114527
-Ref: #re-write-rules-in-a-file114661
-Node: Diff output format115871
-Ref: #diff-output-format116040
-Node: rewrite vs print --auto117132
-Ref: #rewrite-vs.-print---auto117311
-Node: roi117867
-Ref: #roi117965
-Node: stats118977
-Ref: #stats119076
-Node: tags119864
-Ref: #tags119962
-Node: test120256
-Ref: #test120364
-Node: Add-on Commands121111
-Ref: #add-on-commands121228
-Node: ui122571
-Ref: #ui122659
-Node: web122713
-Ref: #web122816
-Node: iadd122932
-Ref: #iadd123043
-Node: interest123125
-Ref: #interest123232
-Node: ENVIRONMENT123472
-Ref: #environment123584
-Node: FILES124413
-Ref: #files-1124516
-Node: LIMITATIONS124729
-Ref: #limitations124848
-Node: TROUBLESHOOTING125590
-Ref: #troubleshooting125703
+Node: Report start & end date35929
+Ref: #report-start-end-date36101
+Node: Report intervals37539
+Ref: #report-intervals37704
+Node: Period expressions38094
+Ref: #period-expressions38254
+Node: Depth limiting42380
+Ref: #depth-limiting42524
+Node: Pivoting42866
+Ref: #pivoting42989
+Node: Valuation44665
+Ref: #valuation44767
+Node: -B Cost44947
+Ref: #b-cost45058
+Node: -V Market value45256
+Ref: #v-market-value45430
+Node: -X Market value in specified commodity46862
+Ref: #x-market-value-in-specified-commodity47101
+Node: --value Flexible valuation47277
+Ref: #value-flexible-valuation47503
+Node: Effect of --value on reports51693
+Ref: #effect-of---value-on-reports51909
+Node: Combining -B -V -X --value56840
+Ref: #combining--b--v--x---value57023
+Node: COMMANDS57059
+Ref: #commands57167
+Node: accounts58251
+Ref: #accounts58349
+Node: activity59048
+Ref: #activity59158
+Node: add59541
+Ref: #add59640
+Node: balance62379
+Ref: #balance62490
+Node: Classic balance report63948
+Ref: #classic-balance-report64121
+Node: Customising the classic balance report65490
+Ref: #customising-the-classic-balance-report65718
+Node: Colour support67794
+Ref: #colour-support67961
+Node: Flat mode68134
+Ref: #flat-mode68282
+Node: Depth limited balance reports68695
+Ref: #depth-limited-balance-reports68880
+Node: Percentages69336
+Ref: #percentages69502
+Node: Multicolumn balance report70639
+Ref: #multicolumn-balance-report70819
+Node: Budget report76133
+Ref: #budget-report76276
+Node: Nested budgets81478
+Ref: #nested-budgets81590
+Ref: #output-format-185071
+Node: balancesheet85149
+Ref: #balancesheet85285
+Node: balancesheetequity86668
+Ref: #balancesheetequity86817
+Node: cashflow87378
+Ref: #cashflow87506
+Node: check-dates88602
+Ref: #check-dates88729
+Node: check-dupes89008
+Ref: #check-dupes89132
+Node: close89425
+Ref: #close89539
+Node: close usage91061
+Ref: #close-usage91154
+Node: commodities93967
+Ref: #commodities94094
+Node: descriptions94176
+Ref: #descriptions94304
+Node: diff94485
+Ref: #diff94591
+Node: files95638
+Ref: #files95738
+Node: help95885
+Ref: #help95985
+Node: import97066
+Ref: #import97180
+Node: Importing balance assignments98073
+Ref: #importing-balance-assignments98221
+Node: incomestatement98870
+Ref: #incomestatement99003
+Node: notes100407
+Ref: #notes100520
+Node: payees100646
+Ref: #payees100752
+Node: prices100910
+Ref: #prices101016
+Node: print101357
+Ref: #print101467
+Node: print-unique106111
+Ref: #print-unique106237
+Node: register106522
+Ref: #register106649
+Node: Custom register output110821
+Ref: #custom-register-output110950
+Node: register-match112212
+Ref: #register-match112346
+Node: rewrite112697
+Ref: #rewrite112812
+Node: Re-write rules in a file114667
+Ref: #re-write-rules-in-a-file114801
+Node: Diff output format116011
+Ref: #diff-output-format116180
+Node: rewrite vs print --auto117272
+Ref: #rewrite-vs.-print---auto117451
+Node: roi118007
+Ref: #roi118105
+Node: stats119117
+Ref: #stats119216
+Node: tags120004
+Ref: #tags120102
+Node: test120396
+Ref: #test120504
+Node: Add-on Commands121251
+Ref: #add-on-commands121368
+Node: ui122711
+Ref: #ui122799
+Node: web122853
+Ref: #web122956
+Node: iadd123072
+Ref: #iadd123183
+Node: interest123265
+Ref: #interest123372
+Node: ENVIRONMENT123612
+Ref: #environment123724
+Node: FILES124553
+Ref: #files-1124656
+Node: LIMITATIONS124869
+Ref: #limitations124988
+Node: TROUBLESHOOTING125730
+Ref: #troubleshooting125843
 
 End Tag Table
 

@@ -913,16 +913,15 @@ account' apply             account names                 inline/included
 
    And some definitions:
 
-subdirectiveoptional indented directive line immediately following a
-          parent directive
-number    how to interpret numbers when parsing journal entries (the
-notation  identity of the decimal separator character).  (Currently
-          each commodity can have its own notation, even in the same
-          file.)
-display   how to display amounts of a commodity in reports (symbol side
-style     and spacing, digit groups, decimal separator, decimal places)
-directive which entries and (when there are multiple files) which files
-scope     are affected by a directive
+subdirectiveoptional indented directive line immediately following a parent
+       directive
+number how to interpret numbers when parsing journal entries (the
+notationidentity of the decimal separator character).  (Currently each
+       commodity can have its own notation, even in the same file.)
+displayhow to display amounts of a commodity in reports (symbol side
+style  and spacing, digit groups, decimal separator, decimal places)
+directivewhich entries and (when there are multiple files) which files
+scope  are affected by a directive
 
    As you can see, directives vary in which journal entries and files
 they affect, and whether they are focussed on input (parsing) or output
@@ -1789,58 +1788,58 @@ Node: Balance assignments and prices29327
 Ref: #balance-assignments-and-prices29499
 Node: Directives29723
 Ref: #directives29882
-Node: Comment blocks35561
-Ref: #comment-blocks35706
-Node: Including other files35882
-Ref: #including-other-files36062
-Node: Default year36470
-Ref: #default-year36639
-Node: Declaring commodities37046
-Ref: #declaring-commodities37229
-Node: Default commodity38890
-Ref: #default-commodity39066
-Node: Market prices39700
-Ref: #market-prices39865
-Node: Declaring accounts40706
-Ref: #declaring-accounts40882
-Node: Account comments41807
-Ref: #account-comments41970
-Node: Account subdirectives42394
-Ref: #account-subdirectives42589
-Node: Account types42902
-Ref: #account-types43086
-Node: Account display order44728
-Ref: #account-display-order44898
-Node: Rewriting accounts46049
-Ref: #rewriting-accounts46234
-Node: Basic aliases46960
-Ref: #basic-aliases47106
-Node: Regex aliases47810
-Ref: #regex-aliases47982
-Node: Combining aliases48700
-Ref: #combining-aliases48878
-Node: end aliases50154
-Ref: #end-aliases50302
-Node: Default parent account50403
-Ref: #default-parent-account50569
-Node: Periodic transactions51453
-Ref: #periodic-transactions51652
-Node: Periodic rule syntax53524
-Ref: #periodic-rule-syntax53730
-Node: Two spaces between period expression and description!54434
-Ref: #two-spaces-between-period-expression-and-description54753
-Node: Forecasting with periodic transactions55437
-Ref: #forecasting-with-periodic-transactions55742
-Node: Budgeting with periodic transactions57768
-Ref: #budgeting-with-periodic-transactions58007
-Node: Auto postings / transaction modifiers58456
-Ref: #auto-postings-transaction-modifiers58668
-Node: Auto postings and dates61153
-Ref: #auto-postings-and-dates61410
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions61585
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions61960
-Node: Auto posting tags62338
-Ref: #auto-posting-tags62577
+Node: Comment blocks35530
+Ref: #comment-blocks35675
+Node: Including other files35851
+Ref: #including-other-files36031
+Node: Default year36439
+Ref: #default-year36608
+Node: Declaring commodities37015
+Ref: #declaring-commodities37198
+Node: Default commodity38859
+Ref: #default-commodity39035
+Node: Market prices39669
+Ref: #market-prices39834
+Node: Declaring accounts40675
+Ref: #declaring-accounts40851
+Node: Account comments41776
+Ref: #account-comments41939
+Node: Account subdirectives42363
+Ref: #account-subdirectives42558
+Node: Account types42871
+Ref: #account-types43055
+Node: Account display order44697
+Ref: #account-display-order44867
+Node: Rewriting accounts46018
+Ref: #rewriting-accounts46203
+Node: Basic aliases46929
+Ref: #basic-aliases47075
+Node: Regex aliases47779
+Ref: #regex-aliases47951
+Node: Combining aliases48669
+Ref: #combining-aliases48847
+Node: end aliases50123
+Ref: #end-aliases50271
+Node: Default parent account50372
+Ref: #default-parent-account50538
+Node: Periodic transactions51422
+Ref: #periodic-transactions51621
+Node: Periodic rule syntax53493
+Ref: #periodic-rule-syntax53699
+Node: Two spaces between period expression and description!54403
+Ref: #two-spaces-between-period-expression-and-description54722
+Node: Forecasting with periodic transactions55406
+Ref: #forecasting-with-periodic-transactions55711
+Node: Budgeting with periodic transactions57737
+Ref: #budgeting-with-periodic-transactions57976
+Node: Auto postings / transaction modifiers58425
+Ref: #auto-postings-transaction-modifiers58637
+Node: Auto postings and dates61122
+Ref: #auto-postings-and-dates61379
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions61554
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions61929
+Node: Auto posting tags62307
+Ref: #auto-posting-tags62546
 
 End Tag Table
 

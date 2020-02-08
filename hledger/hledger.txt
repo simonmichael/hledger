@@ -894,112 +894,94 @@ OPTIONS
 
        Examples:
 
-       2004/10/1,     2004-01-01,   exact date, several  sepa-
-       2004.9.1                     rators  allowed.   Year is
-                                    4+ digits, month is  1-12,
-                                    day is 1-31
-       2004                         start of year
-       2004/10                      start of month
-       10/1                         month  and  day in current
-                                    year
-       21                           day in current month
-       october, oct                 start of month in  current
-                                    year
-       yesterday, today, tomorrow   -1, 0, 1 days from today
-       last/this/next               -1,  0, 1 periods from the
-       day/week/month/quar-         current period
+       2004/10/1,   2004-01-01,   exact date, several separators allowed.   Year
+       2004.9.1                   is 4+ digits, month is 1-12, day is 1-31
+       2004                       start of year
+       2004/10                    start of month
+       10/1                       month and day in current year
+       21                         day in current month
+       october, oct               start of month in current year
+       yesterday, today, tomor-   -1, 0, 1 days from today
+       row
+       last/this/next             -1, 0, 1 periods from the current period
+       day/week/month/quar-
        ter/year
-       20181201                     8  digit   YYYYMMDD   with
-                                    valid year month and day
-       201812                       6  digit YYYYMM with valid
-                                    year and month
+       20181201                   8 digit YYYYMMDD with valid year month and day
+       201812                     6 digit YYYYMM with valid year and month
 
        Counterexamples - malformed digit sequences might give  surprising  re-
        sults:
 
-       201813      6  digits  with an invalid
-                   month is parsed  as  start
-                   of 6-digit year
-       20181301    8  digits  with an invalid
-                   month is parsed  as  start
-                   of 8-digit year
-       20181232    8  digits  with an invalid
-                   day gives an error
-       201801012   9+ digits beginning with a
-                   valid  YYYYMMDD  gives  an
-                   error
+       201813        6  digits  with  an  invalid  month  is  parsed as start of
+                     6-digit year
+       20181301      8 digits with an  invalid  month  is  parsed  as  start  of
+                     8-digit year
+       20181232      8 digits with an invalid day gives an error
+       201801012     9+ digits beginning with a valid YYYYMMDD gives an error
 
    Report start & end date
-       Most hledger reports show the full span  of  time  represented  by  the
+       Most  hledger  reports  show  the  full span of time represented by the
        journal data, by default.  So, the effective report start and end dates
-       will be the earliest and latest transaction or posting dates  found  in
+       will  be  the earliest and latest transaction or posting dates found in
        the journal.
 
-       Often  you  will  want  to see a shorter time span, such as the current
-       month.  You can specify a  start  and/or  end  date  using  -b/--begin,
+       Often you will want to see a shorter time span,  such  as  the  current
+       month.   You  can  specify  a  start  and/or end date using -b/--begin,
        -e/--end, -p/--period or a date: query (described below).  All of these
        accept the smart date syntax.
 
        Some notes:
 
-       o As in Ledger, end dates are exclusive, so you need to write the  date
+       o As  in Ledger, end dates are exclusive, so you need to write the date
          after the last day you want to include.
 
-       o As  noted  in reporting options: among start/end dates specified with
+       o As noted in reporting options: among start/end dates  specified  with
          options, the last (i.e.  right-most) option takes precedence.
 
-       o The effective report start and end dates are the intersection of  the
-         start/end  dates  from options and that from date: queries.  That is,
-         date:2019-01 date:2019 -p'2000 to  2030'  yields  January  2019,  the
+       o The  effective report start and end dates are the intersection of the
+         start/end dates from options and that from date: queries.   That  is,
+         date:2019-01  date:2019  -p'2000  to  2030'  yields January 2019, the
          smallest common time span.
 
        Examples:
 
-       -b 2016/3/17      begin  on  St.   Patrick's
-                         day 2016
-       -e 12/1           end at the start of decem-
-                         ber  1st  of  the  current
-                         year (11/30  will  be  the
-                         last date included)
-       -b thismonth      all transactions on or af-
-                         ter the 1st of the current
-                         month
-       -p thismonth      all  transactions  in  the
-                         current month
-       date:2016/3/17-   the   above   written   as
-                         queries instead
+       -b 2016/3/17      begin on St. Patrick's day 2016
+       -e 12/1           end at the start of  december  1st  of  the  current  year
+                         (11/30 will be the last date included)
+       -b thismonth      all transactions on or after the 1st of the current month
+       -p thismonth      all transactions in the current month
+       date:2016/3/17-   the above written as queries instead
        date:-12/1
        date:thismonth-
        date:thismonth
 
    Report intervals
        A report interval can be specified so that commands like register, bal-
-       ance and activity will divide their reports into  multiple  subperiods.
-       The   basic   intervals   can  be  selected  with  one  of  -D/--daily,
-       -W/--weekly, -M/--monthly, -Q/--quarterly, or -Y/--yearly.   More  com-
-       plex  intervals  may be specified with a period expression.  Report in-
+       ance  and  activity will divide their reports into multiple subperiods.
+       The  basic  intervals  can  be  selected  with   one   of   -D/--daily,
+       -W/--weekly,  -M/--monthly,  -Q/--quarterly, or -Y/--yearly.  More com-
+       plex intervals may be specified with a period expression.   Report  in-
        tervals can not be specified with a query.
 
    Period expressions
-       The -p/--period option accepts period expressions, a shorthand  way  of
+       The  -p/--period  option accepts period expressions, a shorthand way of
        expressing a start date, end date, and/or report interval all at once.
 
-       Here's  a basic period expression specifying the first quarter of 2009.
-       Note, hledger always treats start dates as inclusive and end  dates  as
+       Here's a basic period expression specifying the first quarter of  2009.
+       Note,  hledger  always treats start dates as inclusive and end dates as
        exclusive:
 
        -p "from 2009/1/1 to 2009/4/1"
 
-       Keywords  like  "from" and "to" are optional, and so are the spaces, as
-       long as you don't run two dates together.  "to" can also be written  as
+       Keywords like "from" and "to" are optional, and so are the  spaces,  as
+       long  as you don't run two dates together.  "to" can also be written as
        "-".  These are equivalent to the above:
 
        -p "2009/1/1 2009/4/1"
-
        -p2009/1/1to2009/4/1
        -p2009/1/1-2009/4/1
 
-       Dates  are  smart  dates, so if the current year is 2009, the above can
+       Dates are smart dates, so if the current year is 2009,  the  above  can
        also be written as:
 
        -p "1/1 4/1"
@@ -1013,48 +995,46 @@ OPTIONS
                             1, 2009
        -p "from 2009/1"     the same
        -p "from 2009"       the same
-       -p "to 2009"         everything before  january
+
+       -p "to 2009"         everything  before january
                             1, 2009
 
-       A  single  date  with  no "from" or "to" defines both the start and end
+       A single date with no "from" or "to" defines both  the  start  and  end
        date like so:
 
-       -p "2009"       the year 2009;  equivalent
+       -p "2009"       the  year 2009; equivalent
                        to "2009/1/1 to 2010/1/1"
-       -p "2009/1"     the  month of jan; equiva-
+       -p "2009/1"     the month of jan;  equiva-
                        lent   to   "2009/1/1   to
                        2009/2/1"
-       -p "2009/1/1"   just  that day; equivalent
+       -p "2009/1/1"   just that day;  equivalent
                        to "2009/1/1 to 2009/1/2"
 
-       The argument of -p can also begin with, or be, a  report  interval  ex-
+       The  argument  of  -p can also begin with, or be, a report interval ex-
        pression.  The basic report intervals are daily, weekly, monthly, quar-
-       terly, or yearly, which have the same effect as the -D,-W,-M,-Q, or  -Y
-       flags.   Between report interval and start/end dates (if any), the word
+       terly,  or yearly, which have the same effect as the -D,-W,-M,-Q, or -Y
+       flags.  Between report interval and start/end dates (if any), the  word
        in is optional.  Examples:
 
        -p "weekly from 2009/1/1 to 2009/4/1"
        -p "monthly in 2008"
        -p "quarterly"
 
-       Note that weekly, monthly, quarterly and yearly intervals  will  always
+       Note  that  weekly, monthly, quarterly and yearly intervals will always
        start on the first day on week, month, quarter or year accordingly, and
-       will end on the last day of same period, even if associated period  ex-
+       will  end on the last day of same period, even if associated period ex-
        pression specifies different explicit start and end date.
 
        For example:
 
-       -p  "weekly  from 2009/1/1 to 2009/4/1"
-       -- starts on 2008/12/29,  closest  pre-
-       ceding Monday
-       -p "monthly in 2008/11/25" -- starts on
-       2018/11/01
-       -p  "quarterly   from   2009-05-05   to
-       2009-06-01"  -  starts  on  2009/04/01,
-       ends on 2009/06/30, which are first and
-       last days of Q2 2009
-       -p "yearly from 2009-12-29" - starts on
-       2009/01/01, first day of 2009
+       -p "weekly from  2009/1/1   starts on 2008/12/29, closest preceding Mon-
+       to 2009/4/1"                day
+       -p      "monthly       in   starts on 2018/11/01
+       2008/11/25"
+       -p     "quarterly    from   starts on 2009/04/01,  ends  on  2009/06/30,
+       2009-05-05 to 2009-06-01"   which are first and last days of Q2 2009
+       -p      "yearly      from   starts on 2009/01/01, first day of 2009
+       2009-12-29"
 
        The following more complex report intervals  are  also  supported:  bi-
        weekly,   bimonthly,   every   day|week|month|quarter|year,   every   N
@@ -1065,14 +1045,11 @@ OPTIONS
 
        Examples:
 
-       -p  "bimonthly  from  2008"  -- periods
-       will  have  boundaries  on  2008/01/01,
-       2008/03/01, ...
-       -p "every 2 weeks" -- starts on closest
-       preceding Monday
-       -p "every 5 month from 2009/03" --  pe-
-       riods    will    have   boundaries   on
-       2009/03/01, 2009/08/01, ...
+       -p "bimonthly from 2008"    periods  will have boundaries on 2008/01/01,
+                                   2008/03/01, ...
+       -p "every 2 weeks"          starts on closest preceding Monday
+       -p "every  5  month  from   periods  will have boundaries on 2009/03/01,
+       2009/03"                    2009/08/01, ...
 
        If you want intervals that start on arbitrary day of your choosing  and
        span a week, month or year, you need to use any of the following:
@@ -1083,18 +1060,17 @@ OPTIONS
 
        Examples:
 
-       -p  "every  2nd day of week" -- periods
-       will go from Tue to Tue
-       -p "every Tue" -- same
-       -p "every 15th day"  --  period  bound-
-       aries will be on 15th of each month
-       -p  "every 2nd Monday" -- period bound-
-       aries will be on second Monday of  each
-       month
-       -p "every 11/05" -- yearly periods with
-       boundaries on 5th of Nov
-       -p "every 5th Nov" -- same
-       -p "every Nov 5th" -- same
+       -p  "every  2nd  day  of   periods will go from Tue to Tue
+       week"
+
+       -p "every Tue"             same
+       -p "every 15th day"        period boundaries will  be  on  15th  of  each
+                                  month
+       -p "every 2nd Monday"      period  boundaries will be on second Monday of
+                                  each month
+       -p "every 11/05"           yearly periods with boundaries on 5th of Nov
+       -p "every 5th Nov"         same
+       -p "every Nov 5th"         same
 
        Show historical balances at end of 15th each month (N is exclusive  end
        date):
@@ -1403,9 +1379,6 @@ OPTIONS
        ance (with -H)                    before   report   before   report    DATE/today
                                          or      journal   or      journal
                                          start             start
-
-
-
        posting          cost             value at report   value at report    value      at
        amounts    (no                    end or today      or journal end     DATE/today
        report  inter-
@@ -1424,6 +1397,7 @@ OPTIONS
        report  inter-                    end or today of   or  journal end    DATE/today of
        val)                              sums  of  post-   of   sums    of    sums of post-
                                          ings              postings           ings
+
        balances (with   sums of costs    value at period   value at period    value      at
        report  inter-                    ends of sums of   ends of sums of    DATE/today of
        val)                              postings          postings           sums of post-

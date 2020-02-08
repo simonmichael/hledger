@@ -1117,7 +1117,7 @@ Examples:
 .PP
 .TS
 tab(@);
-l l.
+lw(24.2n) lw(45.8n).
 T{
 \f[C]2004/10/1\f[R], \f[C]2004-01-01\f[R], \f[C]2004.9.1\f[R]
 T}@T{
@@ -1176,7 +1176,7 @@ results:
 .PP
 .TS
 tab(@);
-l l.
+lw(11.4n) lw(58.6n).
 T{
 \f[C]201813\f[R]
 T}@T{
@@ -1230,12 +1230,11 @@ Examples:
 .PP
 .TS
 tab(@);
-l l.
+lw(11.9n) lw(58.1n).
 T{
 \f[C]-b 2016/3/17\f[R]
 T}@T{
-begin on St.
-Patrick\[aq]s day 2016
+begin on St.\ Patrick\[cq]s day 2016
 T}
 T{
 \f[C]-e 12/1\f[R]
@@ -1362,21 +1361,21 @@ start and end date like so:
 .PP
 .TS
 tab(@);
-l r.
+l l.
 T{
 \f[C]-p \[dq]2009\[dq]\f[R]
 T}@T{
-the year 2009; equivalent to \[dq]2009/1/1 to 2010/1/1\[dq]
+the year 2009; equivalent to \[lq]2009/1/1 to 2010/1/1\[rq]
 T}
 T{
 \f[C]-p \[dq]2009/1\[dq]\f[R]
 T}@T{
-the month of jan; equivalent to \[dq]2009/1/1 to 2009/2/1\[dq]
+the month of jan; equivalent to \[lq]2009/1/1 to 2009/2/1\[rq]
 T}
 T{
 \f[C]-p \[dq]2009/1/1\[dq]\f[R]
 T}@T{
-just that day; equivalent to \[dq]2009/1/1 to 2009/1/2\[dq]
+just that day; equivalent to \[lq]2009/1/1 to 2009/1/2\[rq]
 T}
 .TE
 .PP
@@ -1415,22 +1414,27 @@ For example:
 .PP
 .TS
 tab(@);
-l.
+lw(25.5n) lw(44.5n).
 T{
-\f[C]-p \[dq]weekly from 2009/1/1 to 2009/4/1\[dq]\f[R] -- starts on
-2008/12/29, closest preceding Monday
+\f[C]-p \[dq]weekly from 2009/1/1 to 2009/4/1\[dq]\f[R]
+T}@T{
+starts on 2008/12/29, closest preceding Monday
 T}
 T{
-\f[C]-p \[dq]monthly in 2008/11/25\[dq]\f[R] -- starts on 2018/11/01
+\f[C]-p \[dq]monthly in 2008/11/25\[dq]\f[R]
+T}@T{
+starts on 2018/11/01
 T}
 T{
-\f[C]-p \[dq]quarterly from 2009-05-05 to 2009-06-01\[dq]\f[R] - starts
-on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2
-2009
+\f[C]-p \[dq]quarterly from 2009-05-05 to 2009-06-01\[dq]\f[R]
+T}@T{
+starts on 2009/04/01, ends on 2009/06/30, which are first and last days
+of Q2 2009
 T}
 T{
-\f[C]-p \[dq]yearly from 2009-12-29\[dq]\f[R] - starts on 2009/01/01,
-first day of 2009
+\f[C]-p \[dq]yearly from 2009-12-29\[dq]\f[R]
+T}@T{
+starts on 2009/01/01, first day of 2009
 T}
 .TE
 .PP
@@ -1446,18 +1450,21 @@ Examples:
 .PP
 .TS
 tab(@);
-l.
+lw(25.5n) lw(44.5n).
 T{
-\f[C]-p \[dq]bimonthly from 2008\[dq]\f[R] -- periods will have
-boundaries on 2008/01/01, 2008/03/01, ...
+\f[C]-p \[dq]bimonthly from 2008\[dq]\f[R]
+T}@T{
+periods will have boundaries on 2008/01/01, 2008/03/01, ...
 T}
 T{
-\f[C]-p \[dq]every 2 weeks\[dq]\f[R] -- starts on closest preceding
-Monday
+\f[C]-p \[dq]every 2 weeks\[dq]\f[R]
+T}@T{
+starts on closest preceding Monday
 T}
 T{
-\f[C]-p \[dq]every 5 month from 2009/03\[dq]\f[R] -- periods will have
-boundaries on 2009/03/01, 2009/08/01, ...
+\f[C]-p \[dq]every 5 month from 2009/03\[dq]\f[R]
+T}@T{
+periods will have boundaries on 2009/03/01, 2009/08/01, ...
 T}
 .TE
 .PP
@@ -1473,31 +1480,41 @@ Examples:
 .PP
 .TS
 tab(@);
-l.
+lw(23.9n) lw(46.1n).
 T{
-\f[C]-p \[dq]every 2nd day of week\[dq]\f[R] -- periods will go from Tue
-to Tue
+\f[C]-p \[dq]every 2nd day of week\[dq]\f[R]
+T}@T{
+periods will go from Tue to Tue
 T}
 T{
-\f[C]-p \[dq]every Tue\[dq]\f[R] -- same
+\f[C]-p \[dq]every Tue\[dq]\f[R]
+T}@T{
+same
 T}
 T{
-\f[C]-p \[dq]every 15th day\[dq]\f[R] -- period boundaries will be on
-15th of each month
+\f[C]-p \[dq]every 15th day\[dq]\f[R]
+T}@T{
+period boundaries will be on 15th of each month
 T}
 T{
-\f[C]-p \[dq]every 2nd Monday\[dq]\f[R] -- period boundaries will be on
-second Monday of each month
+\f[C]-p \[dq]every 2nd Monday\[dq]\f[R]
+T}@T{
+period boundaries will be on second Monday of each month
 T}
 T{
-\f[C]-p \[dq]every 11/05\[dq]\f[R] -- yearly periods with boundaries on
-5th of Nov
+\f[C]-p \[dq]every 11/05\[dq]\f[R]
+T}@T{
+yearly periods with boundaries on 5th of Nov
 T}
 T{
-\f[C]-p \[dq]every 5th Nov\[dq]\f[R] -- same
+\f[C]-p \[dq]every 5th Nov\[dq]\f[R]
+T}@T{
+same
 T}
 T{
-\f[C]-p \[dq]every Nov 5th\[dq]\f[R] -- same
+\f[C]-p \[dq]every Nov 5th\[dq]\f[R]
+T}@T{
+same
 T}
 .TE
 .PP
