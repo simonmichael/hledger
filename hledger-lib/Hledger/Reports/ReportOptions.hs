@@ -365,7 +365,7 @@ valuationTypeFromRawOpts = lastMay . collectopts valuationfromrawopt
       | otherwise =
           case parsedateM t of
             Just d  -> AtDate d mc
-            Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: cost|end|now|c|e|n|YYYY-MM-DD"
+            Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: cost|then|end|now|c|t|e|n|YYYY-MM-DD"
       where
         -- parse --value's value: TYPE[,COMM]
         (t,c') = break (==',') v
