@@ -41,6 +41,7 @@ Similarly, when a transaction price is implied but not written, it will not appe
 You can use the `-x`/`--explicit` flag to make all amounts and transaction prices explicit, 
 which can be useful for troubleshooting or for making your journal more readable and
 robust against data entry errors.
+`-x` is also implied by using any of `-B`,`-V`,`-X`,`--value`.
 
 Note, `-x`/`--explicit` will cause postings with a multi-commodity amount
 (these can arise when a multi-commodity transaction has an implicit amount)

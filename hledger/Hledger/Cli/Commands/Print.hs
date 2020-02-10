@@ -15,6 +15,7 @@ module Hledger.Cli.Commands.Print (
 )
 where
 
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
@@ -59,14 +60,18 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
   writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransaction . gettxn)
+entriesReportAsText opts = concatMap (showTransaction . whichtxn)
   where
-    gettxn | useexplicittxn = id                   -- use fully inferred amounts & txn prices
-           | otherwise      = originalTransaction  -- use original as-written amounts/txn prices
-    -- Original vs inferred transactions/postings were causing problems here, disabling -B (#551).
-    -- Use the explicit one if -B or -x are active.
-    -- This passes tests; does it also mean -B sometimes shows missing amounts unnecessarily ?
-    useexplicittxn = boolopt "explicit" (rawopts_ opts) || (valuationTypeIsCost $ reportopts_ opts)
+    whichtxn
+      -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
+      | boolopt "explicit" (rawopts_ opts)
+        -- Or also, if any of -B/-V/-X/--value are active.
+        -- Because of #551, and because of print -V valuing only one
+        -- posting when there's an implicit txn price.
+        -- So -B/-V/-X/--value implies -x. Is this ok ?
+        || (isJust $ value_ $ reportopts_ opts) = id
+      -- By default, use the original as-written-in-the-journal txn.
+      | otherwise = originalTransaction
 
 -- Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names.

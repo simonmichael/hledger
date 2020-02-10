@@ -566,3 +566,68 @@ Budget performance in 2000q1, valued at 2000-01-15:
  a || 5 B [  50% of 10 B]  5 B [  50% of 10 B]  5 B [  50% of 10 B]  15 B [  50% of 30 B]  5 B [  50% of 10 B] 
 ---++----------------------------------------------------------------------------------------------------------
    || 5 B [  50% of 10 B]  5 B [  50% of 10 B]  5 B [  50% of 10 B]  15 B [  50% of 30 B]  5 B [  50% of 10 B] 
+
+# 50. --value=then with --historical. How is the starting total valued ?
+# Currently not supported.
+<
+P 2020-01-01 A 1 B
+P 2020-02-01 A 2 B
+P 2020-03-01 A 3 B
+P 2020-04-01 A 4 B
+
+2020-01-01
+   (a)  1 A
+
+2020-02-01
+   (a)  1 A
+
+2020-03-01
+   (a)  1 A
+
+2020-04-01
+   (a)  1 A
+
+$ hledger -f- reg --value=then -b 2020-03 -H
+>2 /not yet implemented/
+>=1
+
+# 51. --value=then with a report interval. How are the summary amounts valued ?
+# Currently each interval's unvalued sum is valued on its first day.
+<
+P 2020-01-01 A 1 B
+P 2020-02-01 A 2 B
+P 2020-03-01 A 3 B
+P 2020-04-01 A 4 B
+
+2020-01-01
+   (a)  1 A
+
+2020-02-01
+   (a)  1 A
+
+2020-03-01
+   (a)  1 A
+
+2020-04-01
+   (a)  1 A
+
+$ hledger -f- reg --value=then -Q
+2020q1                  a                                      3 B           3 B
+2020q2                  a                                      4 B           7 B
+>=0
+
+# 52. print --value should affect all postings, including when there's an implicit transaction price
+<
+P 2020-01-01 A 1 C
+P 2020-01-01 B 1 C
+
+2020-01-01
+   a   1 A
+   b  -1 B
+
+$ hledger -f- print -V
+2020-01-01
+    a             1 C
+    b            -1 C
+
+>=0
