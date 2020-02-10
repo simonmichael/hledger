@@ -158,7 +158,7 @@ balances on this date. Here are two ways to do it:
       assets:bank:checking                $1000   = $1000
       assets:bank:savings                 $2000   = $2000
       assets:cash                          $100   = $100
-      liabilities:creditcard               $-50   = $-$50
+      liabilities:creditcard               $-50   = $-50
       equity:opening/closing balances
   ```
   These are start-of-day balances, ie whatever was in the account at the
