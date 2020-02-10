@@ -322,6 +322,7 @@ postingApplyValuation priceoracle styles periodlast mreportlast today ismultiper
   case v of
     AtCost    Nothing            -> postingToCost styles p
     AtCost    mc                 -> postingValueAtDate priceoracle styles mc periodlast $ postingToCost styles p
+    AtThen    mc                 -> postingValueAtDate priceoracle styles mc (postingDate p) p
     AtEnd     mc                 -> postingValueAtDate priceoracle styles mc periodlast p
     AtNow     mc                 -> postingValueAtDate priceoracle styles mc today p
     AtDefault mc | ismultiperiod -> postingValueAtDate priceoracle styles mc periodlast p

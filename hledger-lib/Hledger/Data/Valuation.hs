@@ -79,12 +79,13 @@ instance NFData PriceGraph
 type PriceOracle = (Day, CommoditySymbol, Maybe CommoditySymbol) -> Maybe (CommoditySymbol, Quantity)
 
 -- | What kind of value conversion should be done on amounts ?
--- UI: --value=cost|end|now|DATE[,COMM]
+-- CLI: --value=cost|then|end|now|DATE[,COMM]
 data ValuationType =
     AtCost     (Maybe CommoditySymbol)  -- ^ convert to cost commodity using transaction prices, then optionally to given commodity using market prices at posting date
-  | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices at period end(s)
-  | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using current market prices
-  | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default valuation commodity or given commodity, using market prices on some date
+  | AtThen     (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices at each posting's date
+  | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices at period end(s)
+  | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using current market prices
+  | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices on some date
   | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
   deriving (Show,Data,Eq) -- Typeable
 
@@ -124,6 +125,9 @@ mixedAmountApplyValuation priceoracle styles periodlast mreportlast today ismult
 -- - the provided "today" date - (--value=now, or -V/X with no report
 --   end date).
 -- 
+-- Note --value=then is not supported by this function, and will cause an error;
+-- use postingApplyValuation for that.
+-- 
 -- This is all a bit complicated. See the reference doc at
 -- https://hledger.org/hledger.html#effect-of-value-on-reports
 -- (hledger_options.m4.md "Effect of --value on reports"), and #1083.
@@ -133,6 +137,8 @@ amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperi
   case v of
     AtCost    Nothing            -> amountToCost styles a
     AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodlast $ amountToCost styles a
+    AtThen    _mc                -> error' "Sorry, --value=then is not yet implemented for this kind of report."  -- TODO
+                                 -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
     AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodlast a
     AtNow     mc                 -> amountValueAtDate priceoracle styles mc today a
     AtDefault mc | ismultiperiod -> amountValueAtDate priceoracle styles mc periodlast a

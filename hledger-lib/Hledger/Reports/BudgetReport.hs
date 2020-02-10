@@ -253,6 +253,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
       (showDateSpan $ periodicReportSpan budgetr)
       (case value_ of
         Just (AtCost _mc)   -> ", valued at cost"
+        Just (AtThen _mc)   -> error' "Sorry, --value=then is not yet implemented for this kind of report."  -- TODO
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
         -- XXX duplicates the above

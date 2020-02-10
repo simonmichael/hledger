@@ -358,9 +358,10 @@ valuationTypeFromRawOpts = lastMay . collectopts valuationfromrawopt
       | n == "value" = Just $ valuation v
       | otherwise    = Nothing
     valuation v
-      | t `elem` ["cost","c"] = AtCost mc
-      | t `elem` ["end" ,"e"] = AtEnd  mc
-      | t `elem` ["now" ,"n"] = AtNow  mc
+      | t `elem` ["cost","c"]  = AtCost mc
+      | t `elem` ["then" ,"t"] = AtThen  mc
+      | t `elem` ["end" ,"e"]  = AtEnd  mc
+      | t `elem` ["now" ,"n"]  = AtNow  mc
       | otherwise =
           case parsedateM t of
             Just d  -> AtDate d mc
