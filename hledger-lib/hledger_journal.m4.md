@@ -880,7 +880,7 @@ The `commodity` directive has several functions:
 1. It declares commodities which may be used in the journal.
    This is currently not enforced, but can serve as documentation.
 
-2. It declares what decimal mark character to expect when parsing
+2. It declares what decimal mark character (period or comma) to expect when parsing
    input - useful to disambiguate international number formats in your
    data. (Without this, hledger will parse both `1,000` and `1.000`
    as 1).
@@ -929,9 +929,10 @@ The `D` directive sets a default commodity, to be used for amounts without a com
 This commodity will be applied to all subsequent commodity-less amounts, or until the next `D` directive.
 (Note, this is different from Ledger's `D`.)
 
-`D` also sets that commodity's display format, as a `commodity` directive would (for compatibility/historical reasons).
-If both directives are used, `commodity`'s format takes precedence.
-As with `commodity`, the amount must always be written with a decimal mark.
+For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#declaring-commodities),
+setting the commodity's [display style](#amount-display-format) (for output) and decimal mark (for parsing input).
+As with `commodity`, the amount must always be written with a decimal mark (period or comma).
+If both directives are used, `commodity`'s style takes precedence.
 
 The syntax is `D AMOUNT`. Eg:
 ```journal
@@ -943,8 +944,6 @@ D $1,000.00
   a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
   b
 ```
-
-
 
 ### Market prices
 
