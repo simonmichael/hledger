@@ -1037,39 +1037,43 @@ journalToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
 --               Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
 --               Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
 
--- | Get an ordered list of the amounts in this journal which will
--- influence amount style canonicalisation. These are:
+-- | Get an ordered list of the amounts in this journal which influence
+-- the canonical amount display styles. See traverseJournalAmounts.
 --
--- * amounts in market price directives (in parse order)
--- * amounts in postings (in parse order)
---
--- Amounts in default commodity directives also influence
--- canonicalisation, but earlier, as amounts are parsed.
--- Amounts in posting prices are not used for canonicalisation.
+-- Notes: amounts in default commodity (D) directives also influence
+-- canonicalisation, but earlier, during parsing.
+-- Amounts in transaction prices are not used for canonicalisation.
 --
 journalAmounts :: Journal -> [Amount]
 journalAmounts = getConst . traverseJournalAmounts (Const . (:[]))
 
--- | Maps over all of the amounts in the journal
+-- | Apply a transformation to the journal amounts traversed by traverseJournalAmounts.
 overJournalAmounts :: (Amount -> Amount) -> Journal -> Journal
 overJournalAmounts f = runIdentity . traverseJournalAmounts (Identity . f)
 
--- | Traverses over all of the amounts in the journal, in the order
--- indicated by 'journalAmounts'.
-traverseJournalAmounts
-    :: Applicative f
-    => (Amount -> f Amount)
-    -> Journal -> f Journal
+-- | A helper that traverses over most amounts in the journal,
+-- in particular the ones which influence canonical amount display styles,
+-- processing them with the given applicative function.
+--
+-- These include, in the following order:
+--
+-- * amounts in market price directives (in parse order)
+-- * posting amounts in transactions (in parse order)
+--
+-- Transaction price amounts, which may be embedded in posting amounts
+-- (the aprice field), are left intact but not traversed/processed.
+--
+traverseJournalAmounts :: Applicative f => (Amount -> f Amount) -> Journal -> f Journal
 traverseJournalAmounts f j =
-    recombine <$> (traverse . mpa) f (jpricedirectives j)
-              <*> (traverse . tp . traverse . pamt . maa . traverse) f (jtxns j)
+  recombine <$> (traverse . pdamt) f (jpricedirectives j)
+            <*> (traverse . tps . traverse . pamt . amts . traverse) f (jtxns j)
   where
-    recombine mps txns = j { jpricedirectives = mps, jtxns = txns }
+    recombine pds txns = j { jpricedirectives = pds, jtxns = txns }
     -- a bunch of traversals
-    mpa  g pd = (\amt -> pd { pdamount  = amt }) <$> g (pdamount pd)
-    tp   g t  = (\ps  -> t  { tpostings = ps  }) <$> g (tpostings t)
-    pamt g p  = (\amt -> p  { pamount   = amt }) <$> g (pamount p)
-    maa  g (Mixed as) = Mixed <$> g as
+    pdamt g pd         = (\amt -> pd{pdamount =amt}) <$> g (pdamount pd)
+    tps   g t          = (\ps  -> t {tpostings=ps }) <$> g (tpostings t)
+    pamt  g p          = (\amt -> p {pamount  =amt}) <$> g (pamount p)
+    amts  g (Mixed as) = Mixed <$> g as
 
 -- | The fully specified date span enclosing the dates (primary or secondary)
 -- of all this journal's transactions and postings, or DateSpan Nothing Nothing
