@@ -940,7 +940,7 @@ The syntax is `D AMOUNT`. Eg:
 D $1,000.00
 
 1/1
-  a     5  ; <- commodity-less amount, becomes $1
+  a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
   b
 ```
 
