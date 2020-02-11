@@ -56,19 +56,16 @@ $ hledger -f- print
 
 >=0
 
-# 5. commodity and display style applied to the second posting amount..
-# which ends up setting the digit group style, since it's the first amount
-# with digit groups. The great precision is used.
+# 5. A D directive affects all aspects of display style, 
+# including limiting the display precision, like a commodity directive (#1187).
 <
-D $1,000.0
-2010/1/1
-  (a)  $1000000.00
-  (b)   1000000
+D 1,000.0 A
+1/1
+  (a)  1000.123
 
 $ hledger -f- print
-2010-01-01
-    (a)    $1,000,000.00
-    (b)    $1,000,000.00
+2020-01-01
+    (a)       1,000.1 A
 
 >=0
 

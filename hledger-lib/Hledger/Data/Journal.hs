@@ -921,15 +921,20 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
         fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
         fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
 
--- | Get all the amount styles defined in this journal, either declared by
--- a commodity directive or inferred from amounts, as a map from symbol to style.
--- Styles declared by commodity directives take precedence, and these also are
--- guaranteed to know their decimal point character.
+-- | Get the canonical amount styles for this journal, whether
+-- declared by commodity directives, by the last default commodity (D)
+-- directive, or inferred from posting amounts, as a map from symbol
+-- to style. Styles declared by directives take precedence (and
+-- commodity takes precedence over D). Styles from directives are
+-- guaranteed to specify the decimal mark character.
 journalCommodityStyles :: Journal -> M.Map CommoditySymbol AmountStyle
-journalCommodityStyles j = declaredstyles <> inferredstyles
+journalCommodityStyles j =
+  -- XXX could be some redundancy here, cf journalStyleInfluencingAmounts
+  commoditystyles <> defaultcommoditystyle <> inferredstyles
   where
-    declaredstyles = M.mapMaybe cformat $ jcommodities j
-    inferredstyles = jinferredcommodities j
+    commoditystyles       = M.mapMaybe cformat $ jcommodities j
+    defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
+    inferredstyles        = jinferredcommodities j
 
 -- | Collect and save inferred amount styles for each commodity based on
 -- the posting amounts in that commodity (excluding price amounts), ie:
