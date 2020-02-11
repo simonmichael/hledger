@@ -80,7 +80,7 @@ hledger -f - balance --cost
 #--------------------
 #                   0
 
-## 6. with a default commodity.. XXX should observe it
+## 6. with a default commodity..
 hledger -f - balance --cost
 <<<
 D $1000.0
@@ -88,8 +88,8 @@ D $1000.0
            assets:investment:ACME     203.890 ACME @ $16.02
            equity:opening balances
 >>>
-            $3266.32  assets:investment:ACME
-           $-3266.32  equity:opening balances
+             $3266.3  assets:investment:ACME
+            $-3266.3  equity:opening balances
 --------------------
                    0
 >>>=0

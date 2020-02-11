@@ -47,9 +47,9 @@ module Hledger.Data.Journal (
   journalAccountNamesDeclaredOrImplied,
   journalAccountNames,
   -- journalAmountAndPriceCommodities,
-  journalAmounts,
-  overJournalAmounts,
-  traverseJournalAmounts,
+  -- journalAmountStyles,
+  -- overJournalAmounts,
+  -- traverseJournalAmounts,
   -- journalCanonicalCommodities,
   journalDateSpan,
   journalStartDate,
@@ -84,7 +84,6 @@ module Hledger.Data.Journal (
   tests_Journal,
 )
 where
-import Control.Applicative (Const(..))
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Extra
@@ -92,7 +91,6 @@ import Control.Monad.Reader as R
 import Control.Monad.ST
 import Data.Array.ST
 import Data.Function ((&))
-import Data.Functor.Identity (Identity(..))
 import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List
 import Data.List.Extra (groupSort, nubSort)
@@ -942,15 +940,15 @@ journalInferCommodityStyles j =
   case
     commodityStylesFromAmounts $
     dbg8 "journalInferCommodityStyles using amounts" $
-    journalAmounts j
+    journalStyleInfluencingAmounts j
   of
     Left e   -> Left e
     Right cs -> Right j{jinferredcommodities = cs}
 
--- | Given a list of parsed amounts, in parse order, build a map from
--- their commodity names to standard commodity display formats. Can
--- return an error message eg if inconsistent number formats are
--- found.
+-- | Given a list of amounts, in parse order (roughly speaking; see journalStyleInfluencingAmounts),
+-- build a map from their commodity names to standard commodity
+-- display formats. Can return an error message eg if inconsistent
+-- number formats are found.
 --
 -- Though, these amounts may have come from multiple files, so we
 -- shouldn't assume they use consistent number formats.
@@ -1037,43 +1035,69 @@ journalToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
 --               Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
 --               Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
 
--- | Get an ordered list of the amounts in this journal which influence
--- the canonical amount display styles. See traverseJournalAmounts.
+-- | Get an ordered list of amounts in this journal which can
+-- influence canonical amount display styles. Those amounts are, in
+-- the following order:
 --
--- Notes: amounts in default commodity (D) directives also influence
--- canonicalisation, but earlier, during parsing.
--- Amounts in transaction prices are not used for canonicalisation.
+-- * amounts in market price (P) directives (in parse order)
+-- * posting amounts in transactions (in parse order)
+-- * the amount in the final default commodity (D) directive
 --
-journalAmounts :: Journal -> [Amount]
-journalAmounts = getConst . traverseJournalAmounts (Const . (:[]))
+-- Transaction price amounts (posting amounts' aprice field) are not included.
+--
+journalStyleInfluencingAmounts :: Journal -> [Amount]
+journalStyleInfluencingAmounts j = catMaybes $ concat [
+   [mdefaultcommodityamt]
+  ,map (Just . pdamount) $ jpricedirectives j
+  ,map Just $ concatMap amounts $ map pamount $ journalPostings j
+  ]
+  where
+    -- D's amount style isn't actually stored as an amount, make it into one
+    mdefaultcommodityamt =
+      case jparsedefaultcommodity j of
+        Just (symbol,style) -> Just nullamt{acommodity=symbol,astyle=style}
+        Nothing -> Nothing
 
+-- overcomplicated/unused amount traversal stuff
+--
+-- | Get an ordered list of 'AmountStyle's from the amounts in this
+-- journal which influence canonical amount display styles. See
+-- traverseJournalAmounts.
+-- journalAmounts :: Journal -> [Amount]
+-- journalAmounts = getConst . traverseJournalAmounts (Const . (:[]))
+--
 -- | Apply a transformation to the journal amounts traversed by traverseJournalAmounts.
-overJournalAmounts :: (Amount -> Amount) -> Journal -> Journal
-overJournalAmounts f = runIdentity . traverseJournalAmounts (Identity . f)
-
+-- overJournalAmounts :: (Amount -> Amount) -> Journal -> Journal
+-- overJournalAmounts f = runIdentity . traverseJournalAmounts (Identity . f)
+--
 -- | A helper that traverses over most amounts in the journal,
 -- in particular the ones which influence canonical amount display styles,
 -- processing them with the given applicative function.
 --
 -- These include, in the following order:
 --
--- * amounts in market price directives (in parse order)
+-- * the amount in the final default commodity (D) directive
+-- * amounts in market price (P) directives (in parse order)
 -- * posting amounts in transactions (in parse order)
 --
 -- Transaction price amounts, which may be embedded in posting amounts
 -- (the aprice field), are left intact but not traversed/processed.
 --
-traverseJournalAmounts :: Applicative f => (Amount -> f Amount) -> Journal -> f Journal
-traverseJournalAmounts f j =
-  recombine <$> (traverse . pdamt) f (jpricedirectives j)
-            <*> (traverse . tps . traverse . pamt . amts . traverse) f (jtxns j)
-  where
-    recombine pds txns = j { jpricedirectives = pds, jtxns = txns }
-    -- a bunch of traversals
-    pdamt g pd         = (\amt -> pd{pdamount =amt}) <$> g (pdamount pd)
-    tps   g t          = (\ps  -> t {tpostings=ps }) <$> g (tpostings t)
-    pamt  g p          = (\amt -> p {pamount  =amt}) <$> g (pamount p)
-    amts  g (Mixed as) = Mixed <$> g as
+-- traverseJournalAmounts :: Applicative f => (Amount -> f Amount) -> Journal -> f Journal
+-- traverseJournalAmounts f j =
+--   recombine <$> (traverse . dcamt) f (jparsedefaultcommodity j)
+--             <*> (traverse . pdamt) f (jpricedirectives j)
+--             <*> (traverse . tps . traverse . pamt . amts . traverse) f (jtxns j)
+--   where
+--     recombine pds txns = j { jpricedirectives = pds, jtxns = txns }
+--     -- a bunch of traversals
+--     dcamt g pd         = (\mdc -> case mdc of Nothing -> Nothing
+--                                               Just ((c,stpd{pdamount =amt}
+--                          ) <$> g (pdamount pd)
+--     pdamt g pd         = (\amt -> pd{pdamount =amt}) <$> g (pdamount pd)
+--     tps   g t          = (\ps  -> t {tpostings=ps }) <$> g (tpostings t)
+--     pamt  g p          = (\amt -> p {pamount  =amt}) <$> g (pamount p)
+--     amts  g (Mixed as) = Mixed <$> g as
 
 -- | The fully specified date span enclosing the dates (primary or secondary)
 -- of all this journal's transactions and postings, or DateSpan Nothing Nothing
