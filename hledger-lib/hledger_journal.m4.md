@@ -471,11 +471,11 @@ commodity INR 9,99,99,999.00
 commodity       1 000 000.9455
 ```
 
-### Amount display format
+### Amount display style
 
 For each commodity, hledger chooses a consistent format to use when
 displaying amounts. (Except [price amounts](#prices), which are always
-displayed as written). The display format is chosen as follows:
+displayed as written). The display style is chosen as follows:
 
 - If there is a [commodity directive](#declaring-commodities) for the commodity,
   that format is used (see examples above).
@@ -488,12 +488,11 @@ displayed as written). The display format is chosen as follows:
 - Or if there are no such amounts in the journal, a default format is
   used (like `$1000.00`).
 
-Price amounts, and amounts in `D` directives don't affect the amount
-display format directly, but occasionally they can do so indirectly.
-(Eg when D's default commodity is applied to a commodity-less amount,
-or when an amountless posting is balanced using a price's commodity,
-or when -V is used.) If you find this causing problems, use a
-commodity directive to set the display format.
+Transaction price amounts don't affect the amount display style
+directly, but occasionally they can do so indirectly (eg when an
+posting's amount is inferred using a transaction price). If you find
+this causing problems, use a commodity directive to fix the display
+style.
 
 ## Transaction prices
 
@@ -885,7 +884,7 @@ The `commodity` directive has several functions:
    data. (Without this, hledger will parse both `1,000` and `1.000`
    as 1).
 
-3. It declares the [amount display format](#amount-display-format) to
+3. It declares the [amount display style](#amount-display-style) to
    use in output - decimal and digit group marks, number of decimal
    places, symbol placement etc.
 

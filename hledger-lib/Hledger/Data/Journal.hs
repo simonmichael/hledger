@@ -900,11 +900,11 @@ checkBalanceAssignmentUnassignableAccountB p = do
 
 --
 
--- | Choose and apply a consistent display format to the posting
--- amounts in each commodity. Each commodity's format is specified by
--- a commodity format directive, or otherwise inferred from posting
--- amounts as in hledger < 0.28. Can return an error message
--- eg if inconsistent number formats are found.
+-- | Choose and apply a consistent display style to the posting
+-- amounts in each commodity. Each commodity's style is specified by a
+-- commodity (or D) directive, or otherwise inferred from posting
+-- amounts. Can return an error message eg if inconsistent number
+-- formats are found.
 journalApplyCommodityStyles :: Journal -> Either String Journal
 journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
   case journalInferCommodityStyles j of
