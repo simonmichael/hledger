@@ -925,13 +925,18 @@ or a comma, followed by 0 or more decimal digits.
 
 ### Default commodity
 
-The `D` directive sets a default commodity (and display format), to be used for amounts without a commodity symbol (ie, plain numbers).
-(Note this differs from Ledger's default commodity directive.)
-The commodity and display format will be applied to all subsequent commodity-less amounts, or until the next `D` directive.
+The `D` directive sets a default commodity, to be used for amounts without a commodity symbol (ie, plain numbers).
+This commodity will be applied to all subsequent commodity-less amounts, or until the next `D` directive.
+(Note, this is different from Ledger's `D`.)
 
+`D` also sets that commodity's display format, as a `commodity` directive would (for compatibility/historical reasons).
+If both directives are used, `commodity`'s format takes precedence.
+As with `commodity`, the amount must always be written with a decimal mark.
+
+The syntax is `D AMOUNT`. Eg:
 ```journal
 ; commodity-less amounts should be treated as dollars
-; (and displayed with symbol on the left, thousands separators and two decimal places)
+; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
 D $1,000.00
 
 1/1
@@ -939,7 +944,7 @@ D $1,000.00
   b
 ```
 
-As with the `commodity` directive, the amount must always be written with a decimal point.
+
 
 ### Market prices
 
@@ -1394,8 +1399,8 @@ And each "posting" is actually a posting-generating rule:
 
 ```journal
 = QUERY
-    ACCT  AMT
-    ACCT  [AMT]
+    ACCOUNT  AMOUNT
+    ACCOUNT  [AMOUNT]
     ...
 ```
 
