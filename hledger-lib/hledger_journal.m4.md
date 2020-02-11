@@ -477,8 +477,9 @@ For each commodity, hledger chooses a consistent format to use when
 displaying amounts. (Except [price amounts](#prices), which are always
 displayed as written). The display style is chosen as follows:
 
-- If there is a [commodity directive](#declaring-commodities) for the commodity,
-  that format is used (see examples above).
+- If there is a [commodity directive](#declaring-commodities) (or
+  [default commodity directive](#default-commodity)) for the
+  commodity, that format is used (see examples above).
 
 - Otherwise the format of the first posting amount in that commodity
   seen in the journal is used.
@@ -488,11 +489,15 @@ displayed as written). The display style is chosen as follows:
 - Or if there are no such amounts in the journal, a default format is
   used (like `$1000.00`).
 
-Transaction price amounts don't affect the amount display style
-directly, but occasionally they can do so indirectly (eg when an
-posting's amount is inferred using a transaction price). If you find
-this causing problems, use a commodity directive to fix the display
-style.
+Transaction prices don't affect the amount display style directly, but
+occasionally they can do so indirectly (eg when an posting's amount is
+inferred using a transaction price). If you find this causing
+problems, use a commodity directive to fix the display style.
+
+In summary: amounts will be displayed much as they appear in your
+journal, with the max observed number of decimal places. If you want
+to see fewer decimal places in reports, use a commodity directive to
+override that.
 
 ## Transaction prices
 
