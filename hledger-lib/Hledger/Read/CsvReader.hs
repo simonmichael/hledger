@@ -12,6 +12,7 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Read.CsvReader (
   -- * Reader
@@ -390,7 +391,17 @@ type CsvFieldName     = String
 type CsvFieldIndex    = Int
 type JournalFieldName = String
 type FieldTemplate    = String
-type ConditionalBlock = ([RecordMatcher], [(JournalFieldName, FieldTemplate)]) -- block matches if all RecordMatchers match
+
+-- | A conditional block: a CSV record matcher, and a sequence of zero
+-- or more rules which will be enabled only for matched records. Three
+-- types of rule are allowed inside conditional blocks: field
+-- assignments, skip, end. (A skip or end rule is stored as if it was
+-- a field assignment, and executed in validateCsv. XXX)
+data ConditionalBlock = CB {
+   cbMatcher     :: [RecordMatcher]
+  ,cbAssignments :: [(JournalFieldName, FieldTemplate)]
+  } deriving (Show, Eq)
+
 type RecordMatcher    = [RegexpPattern] -- match if any regexps match any of the csv fields
 -- type FieldMatcher     = (CsvFieldName, [RegexpPattern]) -- match if any regexps match this csv field
 type DateFormat       = String
@@ -626,7 +637,7 @@ conditionalblockp = do
   as <- many (try $ lift (skipSome spacenonewline) >> fieldassignmentp)
   when (null as) $
     Fail.fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
-  return (ms, as)
+  return $ CB{cbMatcher=ms, cbAssignments=as}
   <?> "conditional block"
 
 recordmatcherp :: CsvRulesParser [String]
@@ -957,11 +968,11 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
     assignmentsFor f = map snd $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
       where
         toplevelassignments    = rassignments rules
-        conditionalassignments = concatMap snd $ filter blockMatches $ blocksAssigning f
+        conditionalassignments = concatMap cbAssignments $ filter blockMatches $ blocksAssigning f
           where
-            blocksAssigning f = filter (any ((==f).fst) . snd) $ rconditionalblocks rules
+            blocksAssigning f = filter (any ((==f).fst) . cbAssignments) $ rconditionalblocks rules
             blockMatches :: ConditionalBlock -> Bool
-            blockMatches (matchers,_) = all matcherMatches matchers
+            blockMatches CB{..} = all matcherMatches cbMatcher
               where
                 matcherMatches :: RecordMatcher -> Bool
                 -- matcherMatches pats = any patternMatches pats
@@ -1028,11 +1039,11 @@ tests_CsvReader = tests "CsvReader" [
 
     ,test"assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
-        (Right defrules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
+        (Right defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatcher=[["foo"]],cbAssignments=[("account2","foo")]}]})
   ]
   ,tests "conditionalblockp" [
     test"space after conditional" $ -- #1120
       parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
-        (Right ([["a"]],[("account2","b")]))
+        (Right $ CB{cbMatcher=[["a"]],cbAssignments=[("account2","b")]})
   ]
   ]
