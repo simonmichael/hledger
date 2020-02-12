@@ -50,7 +50,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20200114
+HLEDGER_INSTALL_VERSION=20200212
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
@@ -94,7 +94,7 @@ EXTRA_DEPS="\
 # megaparsec-7.0.4 \
 
 # the oldest version of stack that might work:
-STACK_MIN_VERSION=1.7.1
+STACK_MIN_VERSION=1.9.1
 
 
 
