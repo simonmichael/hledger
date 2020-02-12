@@ -391,21 +391,26 @@ type CsvFieldName     = String
 type CsvFieldIndex    = Int
 type JournalFieldName = String
 type FieldTemplate    = String
+type DateFormat       = String
+type RegexpPattern    = String
 
--- | A conditional block: a CSV record matcher, and a sequence of zero
--- or more rules which will be enabled only for matched records. Three
--- types of rule are allowed inside conditional blocks: field
+-- | A single test for matching a CSV record, in one way or another.
+data Matcher =
+    RecordMatcher RegexpPattern              -- ^ match if this regexp matches the overall CSV record
+  -- | FieldMatcher CsvFieldName RegexpPattern  -- ^ match if this regexp matches the named CSV field
+  deriving (Show, Eq)
+
+-- | A conditional block: a set of CSV record matchers, and a sequence
+-- of zero or more rules which will be enabled only when one or of the
+-- matchers succeeds.
+--
+-- Three types of rule are allowed inside conditional blocks: field
 -- assignments, skip, end. (A skip or end rule is stored as if it was
 -- a field assignment, and executed in validateCsv. XXX)
 data ConditionalBlock = CB {
-   cbMatcher     :: [RecordMatcher]
+   cbMatchers    :: [Matcher]
   ,cbAssignments :: [(JournalFieldName, FieldTemplate)]
   } deriving (Show, Eq)
-
-type RecordMatcher    = [RegexpPattern] -- match if any regexps match any of the csv fields
--- type FieldMatcher     = (CsvFieldName, [RegexpPattern]) -- match if any regexps match this csv field
-type DateFormat       = String
-type RegexpPattern           = String
 
 defrules = CsvRules {
   rdirectives=[],
@@ -633,24 +638,28 @@ conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
   lift $ dbgparse 3 "trying conditionalblockp"
   string "if" >> lift (skipMany spacenonewline) >> optional newline
-  ms <- some recordmatcherp
+  ms <- some matcherp
   as <- many (try $ lift (skipSome spacenonewline) >> fieldassignmentp)
   when (null as) $
     Fail.fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
-  return $ CB{cbMatcher=ms, cbAssignments=as}
+  return $ CB{cbMatchers=ms, cbAssignments=as}
   <?> "conditional block"
 
-recordmatcherp :: CsvRulesParser [String]
-recordmatcherp = do
-  lift $ dbgparse 2 "trying recordmatcherp"
+-- A single matcher, on one line
+-- XXX Currently only parses a RecordMatcher
+matcherp :: CsvRulesParser Matcher
+matcherp = do
+  lift $ dbgparse 2 "trying matcherp"
   -- pos <- currentPos
   _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
-  ps <- patternsp
-  when (null ps) $
-    Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
-  return ps
+  r <- regexp
+  -- when (null ps) $
+  --   Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
+  return $ RecordMatcher r
   <?> "record matcher"
 
+-- An operator indicating the type of match
+-- XXX currently only ~ (regex), unused
 matchoperatorp :: CsvRulesParser String
 matchoperatorp = fmap T.unpack $ choiceInState $ map string
   ["~"
@@ -659,13 +668,8 @@ matchoperatorp = fmap T.unpack $ choiceInState $ map string
   -- ,"!="
   ]
 
-patternsp :: CsvRulesParser [String]
-patternsp = do
-  lift $ dbgparse 3 "trying patternsp"
-  ps <- many regexp
-  return ps
-
-regexp :: CsvRulesParser String
+-- A single regular expression
+regexp :: CsvRulesParser RegexpPattern
 regexp = do
   lift $ dbgparse 3 "trying regexp"
   notFollowedBy matchoperatorp
@@ -972,16 +976,13 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
           where
             blocksAssigning f = filter (any ((==f).fst) . cbAssignments) $ rconditionalblocks rules
             blockMatches :: ConditionalBlock -> Bool
-            blockMatches CB{..} = all matcherMatches cbMatcher
+            blockMatches CB{..} = any matcherMatches cbMatchers
               where
-                matcherMatches :: RecordMatcher -> Bool
-                -- matcherMatches pats = any patternMatches pats
-                matcherMatches pats = patternMatches $  "(" ++ intercalate "|" pats ++ ")"
+                matcherMatches :: Matcher -> Bool
+                matcherMatches (RecordMatcher pat) = regexMatchesCI pat csvline
                   where
-                    patternMatches :: RegexpPattern -> Bool
-                    patternMatches pat = regexMatchesCI pat csvline
-                      where
-                        csvline = intercalate "," record
+                    csvline = intercalate "," record
+                -- matcherMatches (FieldMatcher field pat) = undefined
 
 -- | Render a field assigment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.
@@ -1039,11 +1040,11 @@ tests_CsvReader = tests "CsvReader" [
 
     ,test"assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
-        (Right defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatcher=[["foo"]],cbAssignments=[("account2","foo")]}]})
+        (Right defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher "foo"],cbAssignments=[("account2","foo")]}]})
   ]
   ,tests "conditionalblockp" [
     test"space after conditional" $ -- #1120
       parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
-        (Right $ CB{cbMatcher=[["a"]],cbAssignments=[("account2","b")]})
+        (Right $ CB{cbMatchers=[RecordMatcher "a"],cbAssignments=[("account2","b")]})
   ]
   ]
