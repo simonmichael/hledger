@@ -363,7 +363,7 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
         numcols
           | null subreports = 1
           | otherwise =
-            (3 +) $ -- account name & indent columns
+            (1 +) $ -- account name column
             (if row_total_ ropts then (1+) else id) $
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
