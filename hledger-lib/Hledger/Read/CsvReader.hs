@@ -739,6 +739,14 @@ transactionFromCsvRecord sourcepos rules record = t
       ,"the parse error is:      "++customErrorBundlePretty err
       ]
 
+    -- Default account names to use when one is not set.
+    unknownExpenseAccount = "expenses:unknown"
+    unknownIncomeAccount  = "income:unknown"
+    -- A temporary placeholder for the unknown account name, which
+    -- gets replaced by one of the above based on the amount's sign.
+    -- This is a value hopefully never chosen by users (cf #1192). XXX
+    unknownPlaceholderAccount = "_unknown_"
+
     parsePosting' number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
       let currency = maybe (fromMaybe "" mdefaultcurrency) render $
                       (mfieldtemplate ("currency"++number) `or `mfieldtemplate "currency")
@@ -749,18 +757,20 @@ transactionFromCsvRecord sourcepos rules record = t
           comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
           account =
             case account' of
-              -- If account is explicitly "unassigned", suppress posting
-              -- Otherwise, generate posting with "expenses:unknown" account if we have amount/balance information
+              -- account is set to "" - suppress posting
               Just "" -> Nothing
+              -- account is set
               Just account -> Just account
               Nothing ->
-                -- If we have amount or balance assertion (which implies potential amount change),
-                -- but no account name, lets generate "expenses:unknown" account name.
                 case (amount, balance) of
-                  (Just _, _ ) -> Just "expenses:unknown"
-                  (_, Just _)  -> Just "expenses:unknown"
+                  -- account is not set, but an amount is set (or implied by
+                  -- balance assignment) - use "unknown" account.
+                  (Just _, _ ) -> Just unknownPlaceholderAccount
+                  (_, Just _)  -> Just unknownPlaceholderAccount
+                  -- no account, no amount
                   (Nothing, Nothing) -> Nothing
-          in
+      in
+        -- if there's an account N, make a posting N
         case account of
           Nothing -> Nothing
           Just account -> 
@@ -800,29 +810,31 @@ transactionFromCsvRecord sourcepos rules record = t
 
     postings' = catMaybes $ posting1:[ parsePosting i | x<-[2..9], let i = show x]
 
-    improveUnknownAccountName p =
-      if paccount p /="expenses:unknown"
-      then p
-      else case isNegativeMixedAmount (pamount p) of
-        Just True -> p{paccount = "income:unknown"}
-        Just False -> p{paccount = "expenses:unknown"}
-        _ -> p
-        
     postings =
       case postings' of
         -- To be compatible with the behavior of the old code which allowed two postings only, we enforce
         -- second posting when rules generated just first of them, and posting is of type that should be balanced.
-        -- When we have strictly first and second posting, but second posting does not have amount, we fill it in.
         [("1",posting1)] ->
           case ptype posting1 of
             VirtualPosting -> [posting1]
             _ ->
-              [posting1,improveUnknownAccountName (posting{paccount="expenses:unknown", pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t})]
+              [posting1,improveUnknownAccountName (posting{paccount=unknownPlaceholderAccount, pamount=costOfMixedAmount(-(pamount posting1)), ptransaction=Just t})]
+        -- When we have strictly first and second posting, but second posting does not have amount, we fill it in.
         [("1",posting1),("2",posting2)] ->
           case (pamount posting1 == missingmixedamt , pamount posting2 == missingmixedamt) of
             (False, True) -> [posting1, improveUnknownAccountName (posting2{pamount=costOfMixedAmount(-(pamount posting1))})]
             _  -> [posting1, posting2]
-        _ -> map snd postings'
+
+        _ -> map (improveUnknownAccountName . snd) postings'
+      where
+        improveUnknownAccountName p =
+          if paccount p == unknownPlaceholderAccount
+          then case isNegativeMixedAmount (pamount p) of
+            Just True  -> p{paccount = unknownIncomeAccount}
+            Just False -> p{paccount = unknownExpenseAccount}
+            _ -> p
+          else p
+        
         
     -- build the transaction
     t = nulltransaction{

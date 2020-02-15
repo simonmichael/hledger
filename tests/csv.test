@@ -544,6 +544,23 @@ $  ./hledger-csv
 
 >=0
 
+# 26. manually setting hledger's default "expenses:unknown"/"income:unknown" names works (#1192)
+<
+2020-01-01,5
+
+RULES
+fields date, amount
+account1 a
+account2 expenses:unknown
+
+$  ./hledger-csv
+2020-01-01
+    a                              5
+    expenses:unknown              -5
+
+>=0
+
+
 ## 26. A single unbalanced posting with number other than 1 also should not generate a balancing posting.
 #<
 #2019-01-01,1
