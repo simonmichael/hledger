@@ -744,7 +744,7 @@ transactionFromCsvRecord sourcepos rules record = t
     unknownIncomeAccount  = "income:unknown"
     -- A temporary placeholder for the unknown account name, which
     -- gets replaced by one of the above based on the amount's sign.
-    -- This is a value hopefully never chosen by users (cf #1192). XXX
+    -- This is a value hopefully never chosen by users (cf #1192).
     unknownPlaceholderAccount = "_unknown_"
 
     parsePosting' number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
@@ -830,9 +830,11 @@ transactionFromCsvRecord sourcepos rules record = t
         improveUnknownAccountName p =
           if paccount p == unknownPlaceholderAccount
           then case isNegativeMixedAmount (pamount p) of
+            -- amount is negative, call it an income
             Just True  -> p{paccount = unknownIncomeAccount}
-            Just False -> p{paccount = unknownExpenseAccount}
-            _ -> p
+            -- amount is positive, or in multiple commodities so we
+            -- can't tell, call it an expense
+            _          -> p{paccount = unknownExpenseAccount}
           else p
         
         
