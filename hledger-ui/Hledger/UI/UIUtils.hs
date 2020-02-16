@@ -19,6 +19,7 @@ module Hledger.UI.UIUtils (
   ,moveUpEvents
   ,normaliseMovementKeys
   ,renderToggle
+  ,renderToggle1
   ,replaceHiddenAccountsNameWith
   ,scrollSelectionToMiddle
   ,suspend
@@ -122,7 +123,7 @@ helpDialog _copts =
                    withAttr ("help" <> "heading") $ str "Filtering"
                   ,renderKey ("/   ", "set a filter query")
                   ,renderKey ("UPC ", "show unmarked/pending/cleared")
-                  ,renderKey ("F   ", "show future/present txns")
+                  ,renderKey ("F   ", "show future & periodic txns")
                   ,renderKey ("R   ", "show real/all postings")
                   ,renderKey ("Z   ", "show nonzero/all amounts")
                   ,renderKey ("DEL ", "remove filters")
@@ -210,13 +211,21 @@ borderKeysStr' keydescs =
     -- sep = str " | "
     sep = str " "
 
--- | Render the two states of a toggle, highlighting the active one.
+-- | Show both states of a toggle ("aaa/bbb"), highlighting the active one.
 renderToggle :: Bool -> String -> String -> Widget Name
 renderToggle isright l r =
   let bold = withAttr ("border" <> "selected") in
   if isright
   then str (l++"/") <+> bold (str r)
   else bold (str l) <+> str ("/"++r)
+
+-- | Show a toggle's label, highlighted (bold) when the toggle is active.
+renderToggle1 :: Bool -> String -> Widget Name
+renderToggle1 isactive l =
+  let bold = withAttr ("border" <> "selected") in
+  if isactive
+  then bold (str l)
+  else str l
 
 -- temporary shenanigans:
 

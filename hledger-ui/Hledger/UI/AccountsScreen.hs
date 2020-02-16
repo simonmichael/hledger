@@ -83,12 +83,13 @@ asInit d reset ui@UIState{
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts{accountlistmode_=if tree_ ropts then ALTree else ALFlat}
 
-    -- Add a date:-tomorrow to the query to exclude future txns, by default.
-    -- XXX this necessitates special handling in multiBalanceReport, at least
-    pfq | presentorfuture_ uopts == PFFuture = Any
-        | otherwise                          = Date $ DateSpan Nothing (Just $ addDays 1 d)
-    q = And [queryFromOpts d ropts, pfq]
-
+    q = And [queryFromOpts d ropts
+            -- Exclude future transactions except in forecast mode
+            -- XXX this necessitates special handling in multiBalanceReport, at least
+            ,if forecast_ ropts
+             then Any
+             else Date $ DateSpan Nothing (Just $ addDays 1 d)
+            ]
 
     -- run the report
     (items,_total) = report ropts' q j
@@ -123,7 +124,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,ajournal=j
               ,aScreen=s@AccountsScreen{}
               ,aMode=mode
@@ -215,7 +216,7 @@ asDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,("-+", str "depth")
               ,("T", renderToggle (tree_ ropts) "flat" "tree")
               ,("H", renderToggle (not ishistorical) "end-bals" "changes")
-              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future")
+              ,("F", renderToggle1 (forecast_ ropts) "forecast")
               --,("/", "filter")
               --,("DEL", "unfilter")
               --,("ESC", "cancel/top")
@@ -336,7 +337,9 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> asCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
-        VtyEvent (EvKey (KChar 'F') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleFuture ui
+        VtyEvent (EvKey (KChar 'F') []) ->
+          let ui'@UIState{aopts=UIOpts{cliopts_=copts'}} = toggleForecast ui
+          in liftIO (uiReloadJournal copts' d ui') >>= continue
 
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui
