@@ -63,14 +63,8 @@ writeChan = BC.writeBChan
 main :: IO ()
 main = do
   opts <- getHledgerUIOpts
-  let copts = cliopts_ opts
-      copts' = copts
-        { inputopts_ = (inputopts_ copts) { auto_ = True }
-        , reportopts_ = (reportopts_ copts) { forecast_ = True }
-        }
-
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-  run $ opts { cliopts_ = copts' }
+  run opts
     where
       run opts
         | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage uimode) >> exitSuccess

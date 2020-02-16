@@ -59,7 +59,7 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
@@ -69,9 +69,7 @@ rsInit d reset ui@UIState{aopts=uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts}
     ropts' = ropts{
                depth_=Nothing
               }
-    pfq | presentorfuture_ uopts == PFFuture = Any
-        | otherwise                          = Date $ DateSpan Nothing (Just $ addDays 1 d)
-    q = And [queryFromOpts d ropts', pfq]
+    q = And [queryFromOpts d ropts']
 --    reportq = filterQuery (not . queryIsDepth) q
 
     (_label,items) = accountTransactionsReport ropts' j q thisacctq
@@ -133,7 +131,7 @@ rsInit d reset ui@UIState{aopts=uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts}
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,aScreen=RegisterScreen{..}
               ,aMode=mode
               } =
@@ -232,7 +230,7 @@ rsDraw UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 --              ,("RIGHT", str "transaction")
               ,("T", renderToggle (tree_ ropts) "flat(-subs)" "tree(+subs)") -- rsForceInclusive may override, but use tree_ to ensure a visible toggle effect
               ,("H", renderToggle (not ishistorical) "historical" "period")
-              ,("F", renderToggle (presentorfuture_ uopts == PFFuture) "present" "future")
+              ,("F", renderToggle1 (forecast_ ropts) "forecast")
 --               ,("a", "add")
 --               ,("g", "reload")
 --               ,("q", "quit")
@@ -331,7 +329,9 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> rsCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
-        VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleFuture ui
+        VtyEvent (EvKey (KChar 'F') []) ->
+          let ui'@UIState{aopts=UIOpts{cliopts_=copts'}} = toggleForecast ui
+          in liftIO (uiReloadJournal copts' d ui') >>= rsCenterAndContinue
 
         VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui

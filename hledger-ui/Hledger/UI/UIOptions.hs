@@ -7,11 +7,8 @@
 
 module Hledger.UI.UIOptions
 where
-import Data.Data (Data)
 import Data.Default
-import Data.Typeable (Typeable)
 import Data.List (intercalate)
-import Data.Maybe (fromMaybe)
 import System.Environment
 
 import Hledger.Cli hiding (progname,version,prognameandversion)
@@ -41,7 +38,6 @@ uiflags = [
   ,flagNone ["flat","F"] (setboolopt "flat") "show accounts as a list (default)"
   ,flagNone ["tree","T"] (setboolopt "tree") "show accounts as a tree"
 --  ,flagNone ["present"] (setboolopt "present") "exclude transactions dated later than today (default)"
-  ,flagNone ["future"] (setboolopt "future") "show transactions dated later than today (normally hidden)"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
   -- ,flagNone ["no-elide"] (setboolopt "no-elide") "don't compress empty parent accounts on one line"
@@ -54,6 +50,7 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
               modeGroupFlags = Group {
                                 groupUnnamed = uiflags
                                ,groupHidden = hiddenflags
+                                 ++ [flagNone ["future"] (setboolopt "forecast") "compatibility alias, use --forecast instead"]
                                ,groupNamed = [(generalflagsgroup1)]
                                }
              ,modeHelpSuffix=[
@@ -65,12 +62,10 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
 data UIOpts = UIOpts {
      watch_   :: Bool
     ,change_  :: Bool
-    ,presentorfuture_  :: PresentOrFutureOpt
     ,cliopts_ :: CliOpts
  } deriving (Show)
 
 defuiopts = UIOpts
-    def
     def
     def
     def
@@ -83,22 +78,8 @@ rawOptsToUIOpts rawopts = checkUIOpts <$> do
   return defuiopts {
               watch_   = boolopt "watch" rawopts
              ,change_  = boolopt "change" rawopts
-             ,presentorfuture_ = presentorfutureopt rawopts
              ,cliopts_ = cliopts
              }
-
--- | Should transactions dated later than today be included ?
--- Like flat/tree mode, there are three states, and the meaning of default can vary by command.
-data PresentOrFutureOpt = PFDefault | PFPresent | PFFuture deriving (Eq, Show, Data, Typeable)
-instance Default PresentOrFutureOpt where def = PFDefault
-
-presentorfutureopt :: RawOpts -> PresentOrFutureOpt
-presentorfutureopt =
-  fromMaybe PFDefault . choiceopt parse where
-    parse = \case
-      "present" -> Just PFPresent
-      "future"  -> Just PFFuture
-      _         -> Nothing
 
 checkUIOpts :: UIOpts -> UIOpts
 checkUIOpts opts =
