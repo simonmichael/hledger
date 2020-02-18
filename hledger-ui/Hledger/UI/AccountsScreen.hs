@@ -23,7 +23,7 @@ import Data.Maybe
 import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar (Day, addDays)
 import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Lens.Micro.Platform
@@ -83,8 +83,13 @@ asInit d reset ui@UIState{
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts{accountlistmode_=if tree_ ropts then ALTree else ALFlat}
 
-    q = And [queryFromOpts d ropts]
-
+    q = And [queryFromOpts d ropts
+            -- Exclude future transactions except in forecast mode
+            -- XXX this necessitates special handling in multiBalanceReport, at least
+            ,if forecast_ ropts
+             then Any
+             else Date $ DateSpan Nothing (Just $ addDays 1 d)
+            ]
 
     -- run the report
     (items,_total) = report ropts' q j

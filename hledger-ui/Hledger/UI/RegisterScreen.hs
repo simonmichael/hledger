@@ -69,7 +69,13 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
     ropts' = ropts{
                depth_=Nothing
               }
-    q = And [queryFromOpts d ropts']
+    q = And [queryFromOpts d ropts'
+            -- Exclude future transactions except in forecast mode
+            -- XXX this necessitates special handling in multiBalanceReport, at least
+            ,if forecast_ ropts
+             then Any
+             else Date $ DateSpan Nothing (Just $ addDays 1 d)
+            ]
 --    reportq = filterQuery (not . queryIsDepth) q
 
     (_label,items) = accountTransactionsReport ropts' j q thisacctq
