@@ -62,15 +62,18 @@ writeChan = BC.writeBChan
 
 main :: IO ()
 main = do
-  opts <- getHledgerUIOpts
+  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=ropts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-  run opts
-    where
-      run opts
-        | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage uimode) >> exitSuccess
-        | "version"         `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
-        | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-        | otherwise                                                = withJournalDo (cliopts_ opts) (runBrickUi opts)
+
+  -- always include forecasted periodic transactions when loading data;
+  -- they will be toggled on and off in the UI.
+  let copts' = copts{reportopts_=ropts{forecast_=True}}
+
+  case True of
+    _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode) >> exitSuccess
+    _ | "version"         `inRawOpts` rawopts -> putStrLn prognameandversion >> exitSuccess
+    _ | "binary-filename" `inRawOpts` rawopts -> putStrLn (binaryfilename progname)
+    _                                         -> withJournalDo copts' (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=ropts}} j = do

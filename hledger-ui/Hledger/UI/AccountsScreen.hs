@@ -83,13 +83,15 @@ asInit d reset ui@UIState{
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts{accountlistmode_=if tree_ ropts then ALTree else ALFlat}
 
-    q = And [queryFromOpts d ropts
-            -- Exclude future transactions except in forecast mode
-            -- XXX this necessitates special handling in multiBalanceReport, at least
-            ,if forecast_ ropts
-             then Any
-             else Date $ DateSpan Nothing (Just $ addDays 1 d)
-            ]
+    q = And [queryFromOpts d ropts, excludeforecastq (forecast_ ropts)]
+      where
+        -- Except in forecast mode, exclude future/forecast transactions.
+        excludeforecastq True = Any
+        excludeforecastq False =  -- not:date:tomorrow- not:tag:generated-transaction
+          And [
+             Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
+            ,Not (Tag "generated-transaction" Nothing)
+          ]
 
     -- run the report
     (items,_total) = report ropts' q j
@@ -337,9 +339,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> asCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
-        VtyEvent (EvKey (KChar 'F') []) ->
-          let ui'@UIState{aopts=UIOpts{cliopts_=copts'}} = toggleForecast ui
-          in liftIO (uiReloadJournal copts' d ui') >>= continue
+        VtyEvent (EvKey (KChar 'F') []) -> continue $ regenerateScreens j d $ toggleForecast ui
 
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui

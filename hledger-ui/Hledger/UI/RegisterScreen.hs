@@ -69,14 +69,15 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
     ropts' = ropts{
                depth_=Nothing
               }
-    q = And [queryFromOpts d ropts'
-            -- Exclude future transactions except in forecast mode
-            -- XXX this necessitates special handling in multiBalanceReport, at least
-            ,if forecast_ ropts
-             then Any
-             else Date $ DateSpan Nothing (Just $ addDays 1 d)
-            ]
---    reportq = filterQuery (not . queryIsDepth) q
+    q = And [queryFromOpts d ropts, excludeforecastq (forecast_ ropts)]
+      where
+        -- Except in forecast mode, exclude future/forecast transactions.
+        excludeforecastq True = Any
+        excludeforecastq False =  -- not:date:tomorrow- not:tag:generated-transaction
+          And [
+             Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
+            ,Not (Tag "generated-transaction" Nothing)
+          ]
 
     (_label,items) = accountTransactionsReport ropts' j q thisacctq
     items' = (if empty_ ropts' then id else filter (not . isZeroMixedAmount . fifth6)) $  -- without --empty, exclude no-change txns
@@ -335,9 +336,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> rsCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
-        VtyEvent (EvKey (KChar 'F') []) ->
-          let ui'@UIState{aopts=UIOpts{cliopts_=copts'}} = toggleForecast ui
-          in liftIO (uiReloadJournal copts' d ui') >>= rsCenterAndContinue
+        VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleForecast ui
 
         VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
