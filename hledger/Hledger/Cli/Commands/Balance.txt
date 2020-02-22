@@ -291,14 +291,12 @@ Balance changes in 2008:
 
 (Average is rounded to the dollar here since all journal amounts are)
 
-Limitations:
+A limitation of multicolumn balance reports: eliding of boring parent
+accounts in tree mode, as in the classic balance report, is not yet
+supported.
 
-In multicolumn reports the -V/--value flag uses the market price on the
-report end date, for all columns (not the price on each column's end
-date).
-
-Eliding of boring parent accounts in tree mode, as in the classic
-balance report, is not yet supported in multicolumn reports.
+The --transpose flag can be used to exchange the rows and columns of a
+multicolumn report.
 
 Budget report
 

@@ -118,7 +118,7 @@ fields  date, description, amount-out, amount-in, balance
 # We generate balance assertions by assigning to "balance"
 # above, but you may sometimes need to remove these because:
 #
-# - the CSV balance differs from the true balance, 
+# - the CSV balance differs from the true balance,
 #   by up to 0.0000000000005 in my experience
 #
 # - it is sometimes calculated based on non-chronological ordering,
@@ -191,7 +191,7 @@ amount2     %amzamount
 
 # add a third posting for fees, but only if they are non-zero.
 # Commas in the data makes counting fields hard, so count from the right instead.
-# (Regex translation: "a field containing a non-zero dollar amount, 
+# (Regex translation: "a field containing a non-zero dollar amount,
 # immediately before the 1 right-most fields")
 if ,\$[1-9][.0-9]+(,[^,]*){1}$
  account3    expenses:fees
@@ -245,11 +245,11 @@ date-format  %-m/%-d/%Y
 if
 In Progress
 Temporary Hold
-Update to 
+Update to
  skip
 
 # add more fields to the description
-description %description_ %itemtitle 
+description %description_ %itemtitle
 
 # save some other fields as tags
 comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
@@ -297,9 +297,9 @@ include common.rules
 
 # apply some overrides specific to this csv
 
-# Transfers from/to bank. These are usually marked Pending, 
+# Transfers from/to bank. These are usually marked Pending,
 # which can be disregarded in this case.
-if 
+if
 Bank Account
 Bank Deposit to PP Account
  description %type for %referencetxnid %itemtitle
@@ -974,58 +974,58 @@ Node: Basic2413
 Ref: #basic2513
 Node: Bank of Ireland3055
 Ref: #bank-of-ireland3190
-Node: Amazon4653
-Ref: #amazon4771
-Node: Paypal6704
-Ref: #paypal6798
-Node: CSV RULES14681
-Ref: #csv-rules14790
-Node: skip15066
-Ref: #skip15159
-Node: fields15534
-Ref: #fields15656
-Node: Transaction field names16821
-Ref: #transaction-field-names16981
-Node: Posting field names17092
-Ref: #posting-field-names17244
-Node: field assignment18535
-Ref: #field-assignment18678
-Node: separator19496
-Ref: #separator19625
-Node: if20036
-Ref: #if20138
-Node: end21854
-Ref: #end21960
-Node: date-format22184
-Ref: #date-format22316
-Node: newest-first23065
-Ref: #newest-first23203
-Node: include23886
-Ref: #include24015
-Node: balance-type24459
-Ref: #balance-type24579
-Node: TIPS25279
-Ref: #tips25361
-Node: Rapid feedback25617
-Ref: #rapid-feedback25734
-Node: Valid CSV26194
-Ref: #valid-csv26324
-Node: File Extension26516
-Ref: #file-extension26668
-Node: Reading multiple CSV files27078
-Ref: #reading-multiple-csv-files27263
-Node: Valid transactions27504
-Ref: #valid-transactions27682
-Node: Deduplicating importing28310
-Ref: #deduplicating-importing28489
-Node: Setting amounts29522
-Ref: #setting-amounts29691
-Node: Setting currency/commodity30677
-Ref: #setting-currencycommodity30869
-Node: Referencing other fields31672
-Ref: #referencing-other-fields31872
-Node: How CSV rules are evaluated32769
-Ref: #how-csv-rules-are-evaluated32942
+Node: Amazon4652
+Ref: #amazon4770
+Node: Paypal6702
+Ref: #paypal6796
+Node: CSV RULES14675
+Ref: #csv-rules14784
+Node: skip15060
+Ref: #skip15153
+Node: fields15528
+Ref: #fields15650
+Node: Transaction field names16815
+Ref: #transaction-field-names16975
+Node: Posting field names17086
+Ref: #posting-field-names17238
+Node: field assignment18529
+Ref: #field-assignment18672
+Node: separator19490
+Ref: #separator19619
+Node: if20030
+Ref: #if20132
+Node: end21848
+Ref: #end21954
+Node: date-format22178
+Ref: #date-format22310
+Node: newest-first23059
+Ref: #newest-first23197
+Node: include23880
+Ref: #include24009
+Node: balance-type24453
+Ref: #balance-type24573
+Node: TIPS25273
+Ref: #tips25355
+Node: Rapid feedback25611
+Ref: #rapid-feedback25728
+Node: Valid CSV26188
+Ref: #valid-csv26318
+Node: File Extension26510
+Ref: #file-extension26662
+Node: Reading multiple CSV files27072
+Ref: #reading-multiple-csv-files27257
+Node: Valid transactions27498
+Ref: #valid-transactions27676
+Node: Deduplicating importing28304
+Ref: #deduplicating-importing28483
+Node: Setting amounts29516
+Ref: #setting-amounts29685
+Node: Setting currency/commodity30671
+Ref: #setting-currencycommodity30863
+Node: Referencing other fields31666
+Ref: #referencing-other-fields31866
+Node: How CSV rules are evaluated32763
+Ref: #how-csv-rules-are-evaluated32936
 
 End Tag Table
 

@@ -443,7 +443,7 @@ Eg:
   assets:cash                    $-10 ; <- these balance
   expenses:food                    $7 ; <-
   expenses:food                    $3 ; <-
-  [assets:checking:budget:food]  $-10    ; <- and these balance 
+  [assets:checking:budget:food]  $-10    ; <- and these balance
   [assets:checking:available]     $10    ; <-
   (something:else)                 $5       ; <- not required to balance
 \f[R]
@@ -573,15 +573,15 @@ commodity INR 9,99,99,999.00
 commodity       1 000 000.9455
 \f[R]
 .fi
-.SS Amount display format
+.SS Amount display style
 .PP
 For each commodity, hledger chooses a consistent format to use when
 displaying amounts.
 (Except price amounts, which are always displayed as written).
-The display format is chosen as follows:
+The display style is chosen as follows:
 .IP \[bu] 2
-If there is a commodity directive for the commodity, that format is used
-(see examples above).
+If there is a commodity directive (or default commodity directive) for
+the commodity, that format is used (see examples above).
 .IP \[bu] 2
 Otherwise the format of the first posting amount in that commodity seen
 in the journal is used.
@@ -591,13 +591,16 @@ maximum from all posting amounts in that commmodity.
 Or if there are no such amounts in the journal, a default format is used
 (like \f[C]$1000.00\f[R]).
 .PP
-Price amounts, and amounts in \f[C]D\f[R] directives don\[aq]t affect
-the amount display format directly, but occasionally they can do so
-indirectly.
-(Eg when D\[aq]s default commodity is applied to a commodity-less
-amount, or when an amountless posting is balanced using a price\[aq]s
-commodity, or when -V is used.) If you find this causing problems, use a
-commodity directive to set the display format.
+Transaction prices don\[aq]t affect the amount display style directly,
+but occasionally they can do so indirectly (eg when an posting\[aq]s
+amount is inferred using a transaction price).
+If you find this causing problems, use a commodity directive to fix the
+display style.
+.PP
+In summary: amounts will be displayed much as they appear in your
+journal, with the max observed number of decimal places.
+If you want to see fewer decimal places in reports, use a commodity
+directive to override that.
 .SS Transaction prices
 .PP
 Within a transaction, you can note an amount\[aq]s price in another
@@ -753,9 +756,6 @@ Use include or concatenate the files instead.
 The asserted balance must be a simple single-commodity amount, and in
 fact the assertion checks only this commodity\[aq]s balance within the
 (possibly multi-commodity) account balance.
-.PD 0
-.P
-.PD
 This is how assertions work in Ledger also.
 We could call this a \[dq]partial\[dq] balance assertion.
 .PP
@@ -861,7 +861,7 @@ balances:
 .IP
 .nf
 \f[C]
-; starting a new journal, set asset account balances 
+; starting a new journal, set asset account balances
 2016/1/1 opening balances
   assets:checking            = $409.32
   assets:savings             = $735.24
@@ -1130,12 +1130,13 @@ The \f[C]commodity\f[R] directive has several functions:
 It declares commodities which may be used in the journal.
 This is currently not enforced, but can serve as documentation.
 .IP "2." 3
-It declares what decimal mark character to expect when parsing input -
-useful to disambiguate international number formats in your data.
+It declares what decimal mark character (period or comma) to expect when
+parsing input - useful to disambiguate international number formats in
+your data.
 (Without this, hledger will parse both \f[C]1,000\f[R] and
 \f[C]1.000\f[R] as 1).
 .IP "3." 3
-It declares the amount display format to use in output - decimal and
+It declares the amount display style to use in output - decimal and
 digit group marks, number of decimal places, symbol placement etc.
 .PP
 You are likely to run into one of the problems solved by commodity
@@ -1180,26 +1181,34 @@ The number must include a decimal mark: either a period or a comma,
 followed by 0 or more decimal digits.
 .SS Default commodity
 .PP
-The \f[C]D\f[R] directive sets a default commodity (and display format),
-to be used for amounts without a commodity symbol (ie, plain numbers).
-(Note this differs from Ledger\[aq]s default commodity directive.) The
-commodity and display format will be applied to all subsequent
-commodity-less amounts, or until the next \f[C]D\f[R] directive.
+The \f[C]D\f[R] directive sets a default commodity, to be used for
+amounts without a commodity symbol (ie, plain numbers).
+This commodity will be applied to all subsequent commodity-less amounts,
+or until the next \f[C]D\f[R] directive.
+(Note, this is different from Ledger\[aq]s \f[C]D\f[R].)
+.PP
+For compatibility/historical reasons, \f[C]D\f[R] also acts like a
+\f[C]commodity\f[R] directive, setting the commodity\[aq]s display style
+(for output) and decimal mark (for parsing input).
+As with \f[C]commodity\f[R], the amount must always be written with a
+decimal mark (period or comma).
+If both directives are used, \f[C]commodity\f[R]\[aq]s style takes
+precedence.
+.PP
+The syntax is \f[C]D AMOUNT\f[R].
+Eg:
 .IP
 .nf
 \f[C]
 ; commodity-less amounts should be treated as dollars
-; (and displayed with symbol on the left, thousands separators and two decimal places)
+; (and displayed with the dollar sign on the left, thousands separators and two decimal places)
 D $1,000.00
 
 1/1
-  a     5  ; <- commodity-less amount, becomes $1
+  a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
   b
 \f[R]
 .fi
-.PP
-As with the \f[C]commodity\f[R] directive, the amount must always be
-written with a decimal point.
 .SS Market prices
 .PP
 The \f[C]P\f[R] directive declares a market price, which is an exchange
@@ -1331,7 +1340,7 @@ account assets       ; type:Asset
 account liabilities  ; type:Liability
 account equity       ; type:Equity
 account revenues     ; type:Revenue
-account expenses     ; type:Expenses
+account expenses     ; type:Expense
 \f[R]
 .fi
 .SS Account types declared with account type codes
@@ -1360,8 +1369,8 @@ Eg:
 ; make \[dq]liabilities\[dq] not have the liability type - who knows why
 account liabilities  ; type:E
 
-; we need to ensure some other account has the liability type, 
-; otherwise balancesheet would still show \[dq]liabilities\[dq] under Liabilities 
+; we need to ensure some other account has the liability type,
+; otherwise balancesheet would still show \[dq]liabilities\[dq] under Liabilities
 account -            ; type:L
 \f[R]
 .fi
@@ -1767,8 +1776,8 @@ And each \[dq]posting\[dq] is actually a posting-generating rule:
 .nf
 \f[C]
 = QUERY
-    ACCT  AMT
-    ACCT  [AMT]
+    ACCOUNT  AMOUNT
+    ACCOUNT  [AMOUNT]
     ...
 \f[R]
 .fi
@@ -1799,7 +1808,7 @@ Eg, note the quotes around the second query term below:
 .nf
 \f[C]
 = expenses:groceries \[aq]expenses:dining out\[aq]
-    (budget:funds:dining out)                 *-1 
+    (budget:funds:dining out)                 *-1
 \f[R]
 .fi
 .PP

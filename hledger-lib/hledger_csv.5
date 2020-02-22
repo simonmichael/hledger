@@ -156,7 +156,7 @@ fields  date, description, amount-out, amount-in, balance
 # We generate balance assertions by assigning to \[dq]balance\[dq]
 # above, but you may sometimes need to remove these because:
 #
-# - the CSV balance differs from the true balance, 
+# - the CSV balance differs from the true balance,
 #   by up to 0.0000000000005 in my experience
 #
 # - it is sometimes calculated based on non-chronological ordering,
@@ -237,7 +237,7 @@ amount2     %amzamount
 
 # add a third posting for fees, but only if they are non-zero.
 # Commas in the data makes counting fields hard, so count from the right instead.
-# (Regex translation: \[dq]a field containing a non-zero dollar amount, 
+# (Regex translation: \[dq]a field containing a non-zero dollar amount,
 # immediately before the 1 right-most fields\[dq])
 if ,\[rs]$[1-9][.0-9]+(,[\[ha],]*){1}$
  account3    expenses:fees
@@ -298,11 +298,11 @@ date-format  %-m/%-d/%Y
 if
 In Progress
 Temporary Hold
-Update to 
+Update to
  skip
 
 # add more fields to the description
-description %description_ %itemtitle 
+description %description_ %itemtitle
 
 # save some other fields as tags
 comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
@@ -350,9 +350,9 @@ include common.rules
 
 # apply some overrides specific to this csv
 
-# Transfers from/to bank. These are usually marked Pending, 
+# Transfers from/to bank. These are usually marked Pending,
 # which can be disregarded in this case.
-if 
+if
 Bank Account
 Bank Deposit to PP Account
  description %type for %referencetxnid %itemtitle

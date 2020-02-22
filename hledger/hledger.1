@@ -179,7 +179,7 @@ like this:
     assets:bank:checking                $1000   = $1000
     assets:bank:savings                 $2000   = $2000
     assets:cash                          $100   = $100
-    liabilities:creditcard               $-50   = $-$50
+    liabilities:creditcard               $-50   = $-50
     equity:opening/closing balances
 \f[R]
 .fi
@@ -628,8 +628,9 @@ most recent applicable market price, if any)
 apply automated posting rules to modify transactions.
 .TP
 \f[B]\f[CB]--forecast\f[B]\f[R]
-apply periodic transaction rules to generate future transactions, to 6
-months from now or report end date.
+generate future transactions from periodic transaction rules, for the
+next 6 months or till report end date.
+In hledger-ui, also make ordinary future transactions visible.
 .PP
 When a reporting option appears more than once in the command line, the
 last one takes precedence.
@@ -1694,10 +1695,11 @@ more general \f[C]--value\f[R] option:
 .IP
 .nf
 \f[C]
- --value=TYPE[,COMM]  TYPE is cost, end, now or YYYY-MM-DD.
+ --value=TYPE[,COMM]  TYPE is cost, then, end, now or YYYY-MM-DD.
                       COMM is an optional commodity symbol.
                       Shows amounts converted to:
                       - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
+                      - default valuation commodity (or COMM) using market prices at posting dates
                       - default valuation commodity (or COMM) using market prices at period end(s)
                       - default valuation commodity (or COMM) using current market prices
                       - default valuation commodity (or COMM) using market prices at some date
@@ -1709,6 +1711,11 @@ value\[dq] plus a valuation date:
 .TP
 \f[B]\f[CB]--value=cost\f[B]\f[R]
 Convert amounts to cost, using the prices recorded in transactions.
+.TP
+\f[B]\f[CB]--value=then\f[B]\f[R]
+Convert amounts to their value in a default valuation commodity, using
+market prices on each posting\[aq]s date.
+This is currently supported only by the print and register commands.
 .TP
 \f[B]\f[CB]--value=end\f[B]\f[R]
 Convert amounts to their value in a default valuation commodity, using
@@ -1905,13 +1912,15 @@ Related: #329, #1083.
 .PP
 .TS
 tab(@);
-lw(14.4n) lw(13.8n) lw(14.6n) lw(15.2n) lw(12.0n).
+lw(11.7n) lw(11.2n) lw(11.9n) lw(13.1n) lw(12.4n) lw(9.8n).
 T{
 Report type
 T}@T{
 \f[C]-B\f[R], \f[C]--value=cost\f[R]
 T}@T{
 \f[C]-V\f[R], \f[C]-X\f[R]
+T}@T{
+\f[C]--value=then\f[R]
 T}@T{
 \f[C]--value=end\f[R]
 T}@T{
@@ -1924,6 +1933,7 @@ T}@T{
 T}@T{
 T}@T{
 T}@T{
+T}@T{
 T}
 T{
 posting amounts
@@ -1931,6 +1941,8 @@ T}@T{
 cost
 T}@T{
 value at report end or today
+T}@T{
+value at posting date
 T}@T{
 value at report or journal end
 T}@T{
@@ -1946,8 +1958,11 @@ T}@T{
 unchanged
 T}@T{
 unchanged
+T}@T{
+unchanged
 T}
 T{
+T}@T{
 T}@T{
 T}@T{
 T}@T{
@@ -1955,6 +1970,7 @@ T}@T{
 T}
 T{
 \f[B]register\f[R]
+T}@T{
 T}@T{
 T}@T{
 T}@T{
@@ -1967,6 +1983,8 @@ cost
 T}@T{
 value at day before report or journal start
 T}@T{
+not supported
+T}@T{
 value at day before report or journal start
 T}@T{
 value at DATE/today
@@ -1978,6 +1996,8 @@ cost
 T}@T{
 value at report end or today
 T}@T{
+value at posting date
+T}@T{
 value at report or journal end
 T}@T{
 value at DATE/today
@@ -1988,6 +2008,8 @@ T}@T{
 summarised cost
 T}@T{
 value at period ends
+T}@T{
+sum of postings in interval, valued at interval start
 T}@T{
 value at period ends
 T}@T{
@@ -2003,8 +2025,11 @@ T}@T{
 sum/average of displayed values
 T}@T{
 sum/average of displayed values
+T}@T{
+sum/average of displayed values
 T}
 T{
+T}@T{
 T}@T{
 T}@T{
 T}@T{
@@ -2012,6 +2037,7 @@ T}@T{
 T}
 T{
 \f[B]balance (bs, bse, cf, is..)\f[R]
+T}@T{
 T}@T{
 T}@T{
 T}@T{
@@ -2024,6 +2050,8 @@ sums of costs
 T}@T{
 value at report end or today of sums of postings
 T}@T{
+not supported
+T}@T{
 value at report or journal end of sums of postings
 T}@T{
 value at DATE/today of sums of postings
@@ -2034,6 +2062,8 @@ T}@T{
 sums of costs
 T}@T{
 value at period ends of sums of postings
+T}@T{
+not supported
 T}@T{
 value at period ends of sums of postings
 T}@T{
@@ -2046,6 +2076,8 @@ sums of costs of postings before report start
 T}@T{
 sums of postings before report start
 T}@T{
+not supported
+T}@T{
 sums of postings before report start
 T}@T{
 sums of postings before report start
@@ -2056,6 +2088,8 @@ T}@T{
 like balances
 T}@T{
 like balances
+T}@T{
+not supported
 T}@T{
 like balances
 T}@T{
@@ -2068,6 +2102,8 @@ sum of displayed values
 T}@T{
 sum of displayed values
 T}@T{
+not supported
+T}@T{
 sum of displayed values
 T}@T{
 sum of displayed values
@@ -2078,6 +2114,8 @@ T}@T{
 sums/averages of displayed values
 T}@T{
 sums/averages of displayed values
+T}@T{
+not supported
 T}@T{
 sums/averages of displayed values
 T}@T{
@@ -2090,6 +2128,8 @@ sums of displayed values
 T}@T{
 sums of displayed values
 T}@T{
+not supported
+T}@T{
 sums of displayed values
 T}@T{
 sums of displayed values
@@ -2101,11 +2141,14 @@ sum/average of column totals
 T}@T{
 sum/average of column totals
 T}@T{
+not supported
+T}@T{
 sum/average of column totals
 T}@T{
 sum/average of column totals
 T}
 T{
+T}@T{
 T}@T{
 T}@T{
 T}@T{
@@ -2668,14 +2711,12 @@ Balance changes in 2008:
 \f[R]
 .fi
 .PP
-Limitations:
+A limitation of multicolumn balance reports: eliding of boring parent
+accounts in tree mode, as in the classic balance report, is not yet
+supported.
 .PP
-In multicolumn reports the \f[C]-V/--value\f[R] flag uses the market
-price on the report end date, for all columns (not the price on each
-column\[aq]s end date).
-.PP
-Eliding of boring parent accounts in tree mode, as in the classic
-balance report, is not yet supported in multicolumn reports.
+The \f[C]--transpose\f[R] flag can be used to exchange the rows and
+columns of a multicolumn report.
 .SS Budget report
 .PP
 With \f[C]--budget\f[R], extra columns are displayed showing budget
@@ -3521,6 +3562,8 @@ You can use the \f[C]-x\f[R]/\f[C]--explicit\f[R] flag to make all
 amounts and transaction prices explicit, which can be useful for
 troubleshooting or for making your journal more readable and robust
 against data entry errors.
+\f[C]-x\f[R] is also implied by using any of
+\f[C]-B\f[R],\f[C]-V\f[R],\f[C]-X\f[R],\f[C]--value\f[R].
 .PP
 Note, \f[C]-x\f[R]/\f[C]--explicit\f[R] will cause postings with a
 multi-commodity amount (these can arise when a multi-commodity
