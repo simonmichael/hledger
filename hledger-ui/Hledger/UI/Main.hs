@@ -28,7 +28,6 @@ import qualified Data.Text as T
 -- import Data.Time.Calendar
 import Graphics.Vty (mkVty)
 import Safe
-import System.Exit
 import System.Directory
 import System.FilePath
 import System.FSNotify
@@ -70,8 +69,8 @@ main = do
   let copts' = copts{reportopts_=ropts{forecast_=True}}
 
   case True of
-    _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode) >> exitSuccess
-    _ | "version"         `inRawOpts` rawopts -> putStrLn prognameandversion >> exitSuccess
+    _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode)
+    _ | "version"         `inRawOpts` rawopts -> putStrLn prognameandversion
     _ | "binary-filename" `inRawOpts` rawopts -> putStrLn (binaryfilename progname)
     _                                         -> withJournalDo copts' (runBrickUi opts)
 
