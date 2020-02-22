@@ -179,7 +179,7 @@ reportflags = [
 
   -- generated postings/transactions
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"
- ,flagNone ["forecast"]      (setboolopt "forecast") "apply periodic transaction rules to generate future transactions, to 6 months from now or report end date"
+ ,flagNone ["forecast"]      (setboolopt "forecast") "generate future transactions from periodic transaction rules, for the next 6 months or till report end date. In hledger-ui, also make ordinary future transactions visible."
 
  ]
 

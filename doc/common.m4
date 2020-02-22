@@ -173,8 +173,8 @@ m4_define({{_reportingoptions_}}, {{
 : apply [automated posting rules](journal.html#auto-postings-transaction-modifiers) to modify transactions.
 
 `--forecast`
-: apply [periodic transaction](journal.html#periodic-transactions) rules to generate future transactions, to 6 months from now or report end date.
-
+: generate future transactions from [periodic transaction](journal.html#periodic-transactions) rules, for the next 6 months or till report end date.
+In hledger-ui, also make ordinary future transactions visible.
 
 When a reporting option appears more than once in the command line, the last one takes precedence.
 
