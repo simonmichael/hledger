@@ -12,7 +12,7 @@ module Hledger.Web.Widget.Common
   , helplink
   , mixedAmountAsHtml
   , fromFormSuccess
-  , writeValidJournal
+  , writeJournalTextIfValidAndChanged
   , journalFile404
   ) where
 
@@ -50,14 +50,28 @@ fromFormSuccess h FormMissing = h
 fromFormSuccess h (FormFailure _) = h
 fromFormSuccess _ (FormSuccess a) = pure a
 
-writeValidJournal :: MonadHandler m => FilePath -> Text -> m (Either String ())
-writeValidJournal f txt =
-  liftIO (readJournal def (Just f) txt) >>= \case
+-- | A helper for postEditR/postUploadR: check that the given text
+-- parses as a Journal, and if so, write it to the given file, if the
+-- text has changed. Or, return any error message encountered.
+--
+-- As a convenience for data received from web forms, which does not
+-- have normalised line endings, line endings will be normalised (to \n)
+-- before parsing.
+--
+-- The file will be written (if changed) with the current system's native
+-- line endings (see writeFileWithBackupIfChanged).
+--
+writeJournalTextIfValidAndChanged :: MonadHandler m => FilePath -> Text -> m (Either String ())
+writeJournalTextIfValidAndChanged f t = do
+  -- Ensure unix line endings, since both readJournal (cf
+  -- formatdirectivep, #1194) writeFileWithBackupIfChanged require them.
+  -- XXX klunky. Any equivalent of "hSetNewlineMode h universalNewlineMode" for form posts ?
+  let t' = T.pack $ regexReplace "\r" "" $ T.unpack t
+  liftIO (readJournal def (Just f) t') >>= \case
     Left e -> return (Left e)
     Right _ -> do
-      _ <- liftIO (writeFileWithBackupIfChanged f txt)
+      _ <- liftIO (writeFileWithBackupIfChanged f t')
       return (Right ())
-
 
 -- | Link to a topic in the manual.
 helplink :: Text -> Text -> HtmlUrl r

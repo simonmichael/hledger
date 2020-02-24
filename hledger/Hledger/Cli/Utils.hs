@@ -230,6 +230,14 @@ openBrowserOn u = trybrowsers browsers u
 -- overwrite it with this new text, or give an error, but only if the text
 -- is different from the current file contents, and return a flag
 -- indicating whether we did anything.
+--
+-- The given text should have unix line endings (\n); the existing
+-- file content will be normalised to unix line endings before
+-- comparing the two. If the file is overwritten, the new file will
+-- have the current system's native line endings (\n on unix, \r\n on
+-- windows). This could be different from the file's previous line
+-- endings, if working with a DOS file on unix or vice-versa.
+--
 writeFileWithBackupIfChanged :: FilePath -> T.Text -> IO Bool
 writeFileWithBackupIfChanged f t = do
   s <- readFilePortably f

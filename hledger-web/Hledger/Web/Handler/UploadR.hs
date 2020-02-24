@@ -15,7 +15,7 @@ import Data.Conduit.Binary (sinkLbs)
 import qualified Data.Text.Encoding as TE
 
 import Hledger.Web.Import
-import Hledger.Web.Widget.Common (fromFormSuccess, journalFile404, writeValidJournal)
+import Hledger.Web.Widget.Common (fromFormSuccess, journalFile404, writeJournalTextIfValidAndChanged)
 
 uploadForm :: FilePath -> Markup -> MForm Handler (FormResult FileInfo, Widget)
 uploadForm f =
@@ -44,15 +44,15 @@ postUploadR f = do
 
   -- Try to parse as UTF-8
   -- XXX Unfortunate - how to parse as system locale?
-  text <- case TE.decodeUtf8' lbs of
+  newtxt <- case TE.decodeUtf8' lbs of
     Left e -> do
       setMessage $
         "Encoding error: '" <> toHtml (show e) <> "'. " <>
         "If your file is not UTF-8 encoded, try the 'edit form', " <>
         "where the transcoding should be handled by the browser."
       showForm view enctype
-    Right text -> return text
-  writeValidJournal f text >>= \case
+    Right newtxt -> return newtxt
+  writeJournalTextIfValidAndChanged f newtxt >>= \case
     Left e -> do
       setMessage $ "Failed to load journal: " <> toHtml e
       showForm view enctype

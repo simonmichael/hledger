@@ -443,6 +443,11 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
 -- | Append a string, typically one or more transactions, to a journal
 -- file, or if the file is "-", dump it to stdout.  Tries to avoid
 -- excess whitespace.
+--
+-- XXX This writes unix line endings (\n), some at least,
+-- even if the file uses dos line endings (\r\n), which could leave
+-- mixed line endings in the file. See also writeFileWithBackupIfChanged.
+--
 appendToJournalFileOrStdout :: FilePath -> String -> IO ()
 appendToJournalFileOrStdout f s
   | f == "-"  = putStr s'

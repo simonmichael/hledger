@@ -12,7 +12,7 @@ module Hledger.Web.Handler.EditR
 
 import Hledger.Web.Import
 import Hledger.Web.Widget.Common
-       (fromFormSuccess, helplink, journalFile404, writeValidJournal)
+       (fromFormSuccess, helplink, journalFile404, writeJournalTextIfValidAndChanged)
 
 editForm :: FilePath -> Text -> Markup -> MForm Handler (FormResult Text, Widget)
 editForm f txt =
@@ -35,8 +35,8 @@ postEditR f = do
 
   (f', txt) <- journalFile404 f j
   ((res, view), enctype) <- runFormPost (editForm f' txt)
-  text <- fromFormSuccess (showForm view enctype) res
-  writeValidJournal f text >>= \case
+  newtxt <- fromFormSuccess (showForm view enctype) res
+  writeJournalTextIfValidAndChanged f newtxt >>= \case
     Left e -> do
       setMessage $ "Failed to load journal: " <> toHtml e
       showForm view enctype

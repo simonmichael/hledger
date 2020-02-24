@@ -1053,7 +1053,7 @@ followingcommentp' contentp = do
 --
 followingcommentp :: TextParser m Text
 followingcommentp =
-  fst <$> followingcommentp' (void $ takeWhileP Nothing (/= '\n'))
+  fst <$> followingcommentp' (void $ takeWhileP Nothing (/= '\n'))  -- XXX support \r\n ?
 {-# INLINABLE followingcommentp #-}
 
 

@@ -183,7 +183,7 @@ firstJust ms = case dropWhile (==Nothing) ms of
     (md:_) -> md
 
 -- | Read text from a file,
--- handling any of the usual line ending conventions,
+-- converting any \r\n line endings to \n,,
 -- using the system locale's text encoding,
 -- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
 readFilePortably :: FilePath -> IO Text

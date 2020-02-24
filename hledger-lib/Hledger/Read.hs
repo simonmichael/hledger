@@ -215,6 +215,7 @@ readJournalFile iopts prefixedfile = do
     iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
   requireJournalFileExists f
   t <- readFileOrStdinPortably f
+    -- <- T.readFile f  -- or without line ending translation, for testing
   ej <- readJournal iopts' (Just f) t
   case ej of
     Left e  -> return $ Left e

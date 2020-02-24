@@ -54,5 +54,8 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
             newts | catchup -> do
               printf "marked %s as caught up, skipping %d unimported transactions\n\n" inputstr (length newts)
             newts -> do
+              -- XXX This writes unix line endings (\n), some at least,
+              -- even if the file uses dos line endings (\r\n), which could leave
+              -- mixed line endings in the file. See also writeFileWithBackupIfChanged.
               foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
               printf "imported %d new transactions from %s\n" (length newts) inputstr

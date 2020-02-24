@@ -120,6 +120,8 @@ nonspace = satisfy (not . isSpace)
 
 isNonNewlineSpace :: Char -> Bool
 isNonNewlineSpace c = c /= '\n' && isSpace c
+-- XXX support \r\n ?
+-- isNonNewlineSpace c = c /= '\n' && c /= '\r' && isSpace c
 
 spacenonewline :: (Stream s, Char ~ Token s) => ParsecT CustomErr s m Char
 spacenonewline = satisfy isNonNewlineSpace
