@@ -343,22 +343,27 @@ SHAKEDEPS= \
 ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghcid Shake.hs
 
+# run default GHCI
+#STACKGHCI=$(STACK)
+# run latest GHCI for modern features
+STACKGHCI=stack --stack-yaml=stack-8.10.yaml
+
 # multi-package GHCI prompts
 ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
 ghci-prof: $(call def-help,ghci-prof, start ghci REPL on hledger-lib + hledger with profiling/call stack information)
 	stack build --profile hledger --only-dependencies
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
 
 ghci-dev: $(call def-help,ghci-dev, start ghci REPL on hledger-lib + hledger + dev.hs script)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hledger-ui)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
 ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
+	$(STACKGHCI) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
 # ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
 # 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) \
@@ -366,7 +371,7 @@ ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib
 # 		hledger-web/app/main.hs \
 
 ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib doctests)
-	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctest
+	cd hledger-lib; $(STACKGHCI) ghci hledger-lib:test:doctest
 
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghci Shake.hs
