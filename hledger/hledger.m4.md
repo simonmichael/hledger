@@ -806,14 +806,16 @@ Some notes about JSON output:
   instead of FOO's full details. This should never happen in hledger's
   JSON output; if you see otherwise, please report as a bug.
 
-- Quantities are represented in hledger as Decimal values storing up
-  to 255 significant digits, eg for repeating decimals. This is too
-  many digits and too much hassle for most JSON users, so in JSON we
-  show simple Numbers with up to 10 decimal places. The number of
-  significant digits is still unbounded, but that part is under your
-  control. We hope this approach will not cause problems in practice;
-  if you find otherwise, please let us know. (Cf
-  [#1195](https://github.com/simonmichael/hledger/issues/1195))
+- hledger represents quantities as Decimal values storing up to 255
+  significant digits, eg for repeating decimals. Such numbers can
+  arise in practice (from automatically-calculated transaction
+  prices), and would break most JSON consumers. So in JSON, we show
+  quantities as simple Numbers with at most 10 decimal places. We
+  don't limit the number of integer digits, but that part is under
+  your control.
+  We hope this approach will not cause problems in practice; if you
+  find otherwise, please let us know. 
+  (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
 
 ## Regular expressions
 
