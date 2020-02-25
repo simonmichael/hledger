@@ -46,7 +46,34 @@ import           Hledger.Data.Types
 
 instance ToJSON Status
 instance ToJSON GenericSourcePos
+
+-- https://github.com/simonmichael/hledger/issues/1195
+-- The default JSON output for Decimal is not very practical for JSON consumers.
+-- With repeating decimals, which can occur with implicit transaction prices,
+-- decimalMantissa will use Decimal's maximum allowance of 255 digits.
+-- (And secondly, it sometimes uses scientific notation, and that sometimes
+-- looks wrong, eg e254 instead of e-1 ?)
+-- JSON output is intended to be consumed by diverse apps and
+-- programming languages, which can't necessarily handle numbers with
+-- more than 15 or so significant digits. Eg, from #1195:
+--
+-- > - JavaScript uses 64-bit IEEE754 numbers which can only accurately
+-- >   represent integers up to 9007199254740991 (i.e. a maximum of 15 digits).
+-- > - Java’s largest integers are limited to 18 digits.
+-- > - Python 3 integers are unbounded.
+-- > - Python 2 integers are limited to 18 digits like Java.
+-- > - C and C++ number limits depend on platform — most platforms should
+-- >   be able to represent unsigned integers up to 64 bits, i.e. 19 digits.
+--
+-- It's not yet clear what is a good compromise.
+-- For now, we make Decimals look like floating point numbers with
+-- up to 10 decimal places (and an unbounded number of integer digits).
+-- This still allows unparseable numbers to be generated in theory,
+-- but hopefully this won't happen in practice.
 instance ToJSON Decimal
+  where
+    toJSON d = Number $ fromRational $ toRational $ roundTo 10 d
+
 instance ToJSON Amount
 instance ToJSON AmountStyle
 instance ToJSON Side
