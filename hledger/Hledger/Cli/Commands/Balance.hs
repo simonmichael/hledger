@@ -309,26 +309,26 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
     Right _ -> do
       let budget      = boolopt "budget" rawopts
           multiperiod = interval_ /= NoInterval
-          format      = outputFormatFromOpts opts
+          fmt         = outputFormatFromOpts opts
 
       if budget then do  -- single or multi period budget report
         reportspan <- reportSpan j ropts
         let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt reportspan d j
               where
                 assrt          = not $ ignore_assertions_ $ inputopts_ opts
-            render = case format of
-              "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
-              "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
-              _      -> budgetReportAsText ropts
+            render = case fmt of
+              "txt"  -> budgetReportAsText ropts
+              _      -> const $ error' $ unsupportedOutputFormatError fmt
         writeOutput opts $ render budgetreport
 
       else
         if multiperiod then do  -- multi period balance report
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
-              render = case format of
+              render = case fmt of
+                "txt"  -> multiBalanceReportAsText ropts
                 "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
-                "html" ->  (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
-                _      -> multiBalanceReportAsText ropts
+                "html" -> (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
+                _      -> const $ error' $ unsupportedOutputFormatError fmt
           writeOutput opts $ render report
 
         else do  -- single period simple balance report
@@ -339,10 +339,10 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
                     in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j
                           -- for historical balances we must use balanceReportFromMultiBalanceReport (also forces --no-elide)
                 | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
-              render = case format of
+              render = case fmt of
+                "txt"  -> balanceReportAsText
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
-                "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
-                _      -> balanceReportAsText
+                _      -> const $ error' $ unsupportedOutputFormatError fmt
           writeOutput opts $ render ropts report
 
 -- rendering single-column balance reports

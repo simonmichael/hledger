@@ -26,7 +26,7 @@ import Text.Tabular as T
 import Hledger
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (writeOutput)
+import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutput)
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
@@ -142,7 +142,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
         no_total_=if percent_ && length cbcqueries > 1 then True else no_total_
       }
       userq = queryFromOpts d ropts'
-      format = outputFormatFromOpts opts
+      fmt = outputFormatFromOpts opts
 
       -- make a CompoundBalanceReport.
       -- For efficiency, generate a price oracle here and reuse it with each subreport.
@@ -235,10 +235,11 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
 
     -- render appropriately
     writeOutput opts $
-      case format of
+      case fmt of
+        "txt"  -> compoundBalanceReportAsText ropts' cbr
         "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
         "html" -> (++ "\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
-        _      -> compoundBalanceReportAsText ropts' cbr
+        _      -> error' $ unsupportedOutputFormatError fmt
 
 -- | Summarise one or more (inclusive) end dates, in a way that's
 -- visually different from showDateSpan, suggesting discrete end dates
