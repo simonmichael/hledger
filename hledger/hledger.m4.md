@@ -801,11 +801,19 @@ Some notes about JSON output:
 - The JSON output from hledger commands is essentially the same as the
   JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
   but pretty printed, using line breaks and indentation.
-
-- Our pretty printer has the ability to elide data in certain cases -
+  Our pretty printer has the ability to elide data in certain cases -
   rendering non-strings as if they were strings, or displaying "FOO.."
   instead of FOO's full details. This should never happen in hledger's
   JSON output; if you see otherwise, please report as a bug.
+
+- Quantities are represented in hledger as Decimal values storing up
+  to 255 significant digits, eg for repeating decimals. This is too
+  many digits and too much hassle for most JSON users, so in JSON we
+  show simple Numbers with up to 10 decimal places. The number of
+  significant digits is still unbounded, but that part is under your
+  control. We hope this approach will not cause problems in practice;
+  if you find otherwise, please let us know. (Cf
+  [#1195](https://github.com/simonmichael/hledger/issues/1195))
 
 ## Regular expressions
 
