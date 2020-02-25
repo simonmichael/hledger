@@ -1,6 +1,8 @@
 {- |
 New common report types, used by the BudgetReport for now, perhaps all reports later.
 -}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Hledger.Reports.ReportTypes
 ( PeriodicReport(..)
@@ -17,7 +19,9 @@ module Hledger.Reports.ReportTypes
 , prNormaliseSign
 ) where
 
+import Data.Aeson
 import Data.Decimal
+import GHC.Generics (Generic)
 import Hledger.Data
 
 type Percentage = Decimal
@@ -63,7 +67,7 @@ data PeriodicReport a b =
                                          -- significant. Usually displayed as report columns.
   , prRows   :: [PeriodicReportRow a b]  -- One row per account in the report.
   , prTotals :: PeriodicReportRow () b   -- The grand totals row.
-  } deriving (Show)
+  } deriving (Show, Generic, ToJSON)
 
 data PeriodicReportRow a b =
   PeriodicReportRow
@@ -72,7 +76,7 @@ data PeriodicReportRow a b =
   , prrAmounts :: [b]  -- The data value for each subperiod.
   , prrTotal   :: b    -- The total of this row's values.
   , prrAverage :: b    -- The average of this row's values.
-  } deriving (Show)
+  } deriving (Show, Generic, ToJSON)
 
 -- | Figure out the overall date span of a PeridicReport
 periodicReportSpan :: PeriodicReport a b -> DateSpan

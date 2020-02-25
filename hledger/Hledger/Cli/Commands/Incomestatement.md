@@ -45,6 +45,8 @@ you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 Instead of absolute values [percentages](#percentages) can be displayed
 with `-%`.
 
-This command also supports
+This command also supports the
 [output destination](hledger.html#output-destination) and
-[output format](hledger.html#output-format) selection.
+[output format](hledger.html#output-format) options
+The output formats supported are
+`txt`, `csv`, `html`, and (experimental) `json`.

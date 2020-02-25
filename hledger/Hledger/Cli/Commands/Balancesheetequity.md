@@ -30,3 +30,10 @@ Total:
 --------------------
                    0
 ```
+
+
+This command also supports the
+[output destination](hledger.html#output-destination) and
+[output format](hledger.html#output-format) options
+The output formats supported are
+`txt`, `csv`, `html`, and (experimental) `json`.

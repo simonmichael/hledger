@@ -117,7 +117,9 @@ $ hledger reg -w 100,40           # set overall width 100, description width 40
 $ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 ```
 
-This command also supports
+This command also supports the
 [output destination](hledger.html#output-destination) and
-[output format](hledger.html#output-format) selection.
+[output format](hledger.html#output-format) options
+The output formats supported are
+`txt`, `csv`, and (experimental) `json`.
 

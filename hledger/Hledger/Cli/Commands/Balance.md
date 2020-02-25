@@ -511,5 +511,8 @@ Budget performance in 2019/01:
 
 ### Output format
 
-The balance command supports [output destination](hledger.html#output-destination) and [output format](hledger.html#output-format) selection.
-
+This command also supports the
+[output destination](hledger.html#output-destination) and
+[output format](hledger.html#output-format) options
+The output formats supported are
+`txt`, `csv`, (multicolumn non-budget reports only) `html`, and (experimental) `json`.
