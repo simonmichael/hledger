@@ -53,11 +53,11 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
       fmt = outputFormatFromOpts opts
-      (render, ropts') = case fmt of
-        "txt"  -> (entriesReportAsText opts,                 ropts)
-        "csv"  -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
-        _      -> (const $ error' $ unsupportedOutputFormatError fmt, ropts)
-  writeOutput opts $ render $ entriesReport ropts' q j
+      render = case fmt of
+        "txt"  -> entriesReportAsText opts
+        "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
+        _      -> const $ error' $ unsupportedOutputFormatError fmt
+  writeOutput opts $ render $ entriesReport ropts q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
 entriesReportAsText opts = concatMap (showTransaction . whichtxn)
