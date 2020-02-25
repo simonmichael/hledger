@@ -221,8 +221,8 @@ As with the web UI's add form, hledger-web must be started with the `add` capabi
 The payload should be a valid hledger transaction as JSON, similar to what you get from `/transactions` or `/accounttransactions`.
 
 Another way to generate test data is with the `readJsonFile`/`writeJsonFile` helpers in Hledger.Web.Json,
-which read or write any of hledger's [JSON-capable types](https://github.com/simonmichael/hledger/blob/master/hledger-web/Hledger/Web/Json.hs#L45)
-from or to a file.
+which can write or read most of hledger's [data types](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs)
+to or from a file.
 Eg here we write the first transaction of a sample journal:
 ```shell
 $ make ghci-web

@@ -756,25 +756,56 @@ or concatenate the files, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Output destination
 
-Some commands (print, register, stats, the balance commands)
-can write their output to a destination other than the console.
-This is controlled by the `-o/--output-file` option.
-
+hledger commands send their output to the terminal by default.
+You can of course redirect this, eg into a file, using standard shell syntax:
 ```shell
-$ hledger balance -o -     # write to stdout (the default)
-$ hledger balance -o FILE  # write to FILE
+$ hledger print > foo.txt
+```
+
+Some commands (print, register, stats, the balance commands) also
+provide the `-o/--output-file` option, which does the same thing
+without needing the shell. Eg:
+```shell
+$ hledger print -o foo.txt
+$ hledger print -o -        # write to stdout (the default)
 ```
 
 ## Output format
 
-Some commands can write their output in other formats.
-Eg print and register can output CSV, and the balance commands can output CSV or HTML.
-This is controlled by the `-O/--output-format` option, or by specifying a `.csv` or `.html` file extension with `-o/--output-file`.
-
+Some commands (print, register, the balance commands) offer a choice of output format. 
+In addition to the usual plain text format (`txt`), there are
+CSV (`csv`), HTML (`html`) and JSON (`json`).
+This is controlled by the `-O/--output-format` option:
 ```shell
-$ hledger balance -O csv       # write CSV to stdout
-$ hledger balance -o FILE.csv  # write CSV to FILE.csv
+$ hledger print -O csv
 ```
+or, by a file extension specified with `-o/--output-file`:
+```shell
+$ hledger balancesheet -o foo.html   # write HTML to foo.html
+```
+The `-O` option can be used to override the file extension if needed:
+```shell
+$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
+```
+
+Some notes about JSON output:
+
+- This feature is marked experimental, and not yet much used; you
+  should expect our JSON to evolve. Real-world feedback is welcome.
+
+- Our JSON is rather large and verbose, as it is quite a faithful
+  representation of hledger's internal data types. To understand the
+  JSON, read the Haskell type definitions, which are mostly in
+  https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
+
+- The JSON output from hledger commands is essentially the same as the
+  JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
+  but pretty printed, using line breaks and indentation.
+
+- Our pretty printer has the ability to elide data in certain cases -
+  rendering non-strings as if they were strings, or displaying "FOO.."
+  instead of FOO's full details. This should never happen in hledger's
+  JSON output; if you see otherwise, please report as a bug.
 
 ## Regular expressions
 
