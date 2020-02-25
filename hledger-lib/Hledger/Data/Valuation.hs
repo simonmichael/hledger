@@ -15,6 +15,7 @@ module Hledger.Data.Valuation (
    ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
+  ,unsupportedValueThenError
   -- ,amountApplyValuation
   -- ,amountValueAtDate
   ,mixedAmountApplyValuation
@@ -137,13 +138,17 @@ amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperi
   case v of
     AtCost    Nothing            -> amountToCost styles a
     AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodlast $ amountToCost styles a
-    AtThen    _mc                -> error' "Sorry, --value=then is not yet implemented for this kind of report."  -- TODO
+    AtThen    _mc                -> error' unsupportedValueThenError  -- TODO
                                  -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
     AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodlast a
     AtNow     mc                 -> amountValueAtDate priceoracle styles mc today a
     AtDefault mc | ismultiperiod -> amountValueAtDate priceoracle styles mc periodlast a
     AtDefault mc                 -> amountValueAtDate priceoracle styles mc (fromMaybe today mreportlast) a
     AtDate d  mc                 -> amountValueAtDate priceoracle styles mc d a
+
+-- | Standard error message for a report not supporting --value=then.
+unsupportedValueThenError :: String
+unsupportedValueThenError = "Sorry, --value=then is not yet implemented for this kind of report."
 
 -- | Find the market value of each component amount in the given
 -- commodity, or its default valuation commodity, at the given
