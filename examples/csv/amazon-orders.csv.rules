@@ -31,6 +31,6 @@ amount2     %amzamount
 # Commas in the data makes counting fields hard, so count from the right instead.
 # (Regex translation: "a field containing a non-zero dollar amount, 
 # immediately before the 1 right-most fields")
-if ,\$[1-9][.0-9]+(,[^,]*){1}$
+if %fees [1-9]
  account3    expenses:fees
  amount3     %fees
