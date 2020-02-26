@@ -420,7 +420,7 @@ type RegexpPattern    = String
 
 -- | A single test for matching a CSV record, in one way or another.
 data Matcher =
-    RecordMatcher RegexpPattern              -- ^ match if this regexp matches the overall CSV record
+    RecordMatcher RegexpPattern                   -- ^ match if this regexp matches the overall CSV record
   | FieldMatcher CsvFieldReference RegexpPattern  -- ^ match if this regexp matches the referenced CSV field's value
   deriving (Show, Eq)
 
@@ -675,22 +675,22 @@ matcherp :: CsvRulesParser Matcher
 matcherp = try fieldmatcherp <|> recordmatcherp
 
 -- A single whole-record matcher.
--- A pattern on the whole line, not containing any of the match operators (~).
+-- A pattern on the whole line, not beginning with a csv field reference.
 recordmatcherp :: CsvRulesParser Matcher
 recordmatcherp = do
   lift $ dbgparse 2 "trying matcherp"
   -- pos <- currentPos
-  _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
+  -- _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
   r <- regexp
   -- when (null ps) $
   --   Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
   return $ RecordMatcher r
   <?> "record matcher"
 
--- | A single matcher for a specific field. A csv field reference (like %date or %1),
--- a match operator (~), and a pattern on the rest of the line, optionally
--- space-separated. Eg:
--- %description ~ chez jacques
+-- | A single matcher for a specific field. A csv field reference
+-- (like %date or %1), and a pattern on the rest of the line,
+-- optionally space-separated. Eg:
+-- %description chez jacques
 fieldmatcherp :: CsvRulesParser Matcher
 fieldmatcherp = do
   lift $ dbgparse 2 "trying fieldmatcher"
@@ -701,7 +701,7 @@ fieldmatcherp = do
   --        return f')
   f <- csvfieldreferencep <* lift (skipMany spacenonewline)
   -- optional operator.. just ~ (case insensitive infix regex) for now
-  _op <- fromMaybe "~" <$> optional matchoperatorp
+  -- _op <- fromMaybe "~" <$> optional matchoperatorp
   lift (skipMany spacenonewline)
   r <- regexp
   return $ FieldMatcher f r
@@ -714,24 +714,24 @@ csvfieldreferencep = do
   f <- fieldnamep
   return $ '%' : quoteIfNeeded f
 
--- A match operator, indicating the type of match to perform.
--- Currently just ~ meaning case insensitive infix regex match.
-matchoperatorp :: CsvRulesParser String
-matchoperatorp = fmap T.unpack $ choiceInState $ map string
-  ["~"
-  -- ,"!~"
-  -- ,"="
-  -- ,"!="
-  ]
-
 -- A single regular expression
 regexp :: CsvRulesParser RegexpPattern
 regexp = do
   lift $ dbgparse 3 "trying regexp"
-  notFollowedBy matchoperatorp
+  -- notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anySingle `manyTill` lift eolof
   return $ strip $ c:cs
+
+-- -- A match operator, indicating the type of match to perform.
+-- -- Currently just ~ meaning case insensitive infix regex match.
+-- matchoperatorp :: CsvRulesParser String
+-- matchoperatorp = fmap T.unpack $ choiceInState $ map string
+--   ["~"
+--   -- ,"!~"
+--   -- ,"="
+--   -- ,"!="
+--   ]
 
 --------------------------------------------------------------------------------
 -- Converting CSV records to journal transactions
@@ -1131,8 +1131,8 @@ tests_CsvReader = tests "CsvReader" [
    ,test "fieldmatcherp" $
       parseWithState' defrules matcherp "%description A A\n" @?= (Right $ FieldMatcher "%description" "A A")
 
-   ,test "fieldmatcherp with operator" $
-      parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
+   -- ,test "fieldmatcherp with operator" $
+   --    parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
 
    ]
 

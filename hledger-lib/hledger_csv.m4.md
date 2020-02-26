@@ -239,13 +239,11 @@ description %description_ %itemtitle
 comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
 
 # convert to short currency symbols
-# Note: in conditional block regexps, the line of csv being matched is
-# a synthetic one: the unquoted field values, with commas between them.
-if ,USD,
+if %currency USD
  currency $
-if ,EUR,
+if %currency EUR
  currency E
-if ,GBP,
+if %currency GBP
  currency P
 
 # generate postings
