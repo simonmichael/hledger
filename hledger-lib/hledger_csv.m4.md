@@ -175,10 +175,7 @@ amount2     %amzamount
 #include categorisation.rules
 
 # add a third posting for fees, but only if they are non-zero.
-# Commas in the data makes counting fields hard, so count from the right instead.
-# (Regex translation: "a field containing a non-zero dollar amount,
-# immediately before the 1 right-most fields")
-if ,\$[1-9][.0-9]+(,[^,]*){1}$
+if %fees [1-9]
  account3    expenses:fees
  amount3     %fees
 ```
@@ -262,9 +259,8 @@ amount1  %netamount
 # (account2 is set below)
 amount2  -%grossamount
 
-# if there's a fee (9th field), add a third posting for the money taken by paypal.
-# TODO: This regexp fails when fields contain a comma (generates a third posting with zero amount)
-if ^([^,]+,){8}[^0]
+# if there's a fee, add a third posting for the money taken by paypal.
+if %feeamount [1-9]
  account3 expenses:banking:paypal
  amount3  -%feeamount
  comment3 business:
@@ -272,11 +268,11 @@ if ^([^,]+,){8}[^0]
 # choose an account for the second posting
 
 # override the default account names:
-# if amount (8th field) is positive, it's income (a debit)
-if ^([^,]+,){7}[0-9]
+# if the amount is positive, it's income (a debit)
+if %grossamount ^[^-]
  account2 income:unknown
 # if negative, it's an expense (a credit)
-if ^([^,]+,){7}-
+if %grossamount ^-
  account2 expenses:unknown
 
 # apply common rules for setting account2 & other tweaks
