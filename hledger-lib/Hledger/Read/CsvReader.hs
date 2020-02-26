@@ -3,6 +3,10 @@
 A reader for CSV data, using an extra rules file to help interpret the data.
 
 -}
+-- Lots of haddocks in this file are for non-exported types.
+-- Here's a command that will render them:
+-- stack haddock hledger-lib --fast --no-haddock-deps --haddock-arguments='--ignore-all-exports' --open
+
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -12,6 +16,8 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Read.CsvReader (
@@ -115,15 +121,19 @@ parseSeparator = specials . map toLower
 
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
--- @
+--
 -- 1. parse CSV conversion rules from the specified rules file, or from
 --    the default rules file for the specified CSV file, if it exists,
 --    or throw a parse error; if it doesn't exist, use built-in default rules
+--
 -- 2. parse the CSV data, or throw a parse error
+--
 -- 3. convert the CSV records to transactions using the rules
+--
 -- 4. if the rules file didn't exist, create it with the default rules and filename
+--
 -- 5. return the transactions as a Journal
--- @
+-- 
 readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
 readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
 readJournalFromCsv mrulesfile csvfile csvdata =
@@ -379,30 +389,44 @@ convert a particular CSV data file into meaningful journal transactions.
 -}
 data CsvRules = CsvRules {
   rdirectives        :: [(DirectiveName,String)],
+    -- ^ top-level rules, as (keyword, value) pairs
   rcsvfieldindexes   :: [(CsvFieldName, CsvFieldIndex)],
+    -- ^ csv field names and their column number, if declared by a fields list
   rassignments       :: [(JournalFieldName, FieldTemplate)],
+    -- ^ top-level assignments to hledger fields, as (field name, value template) pairs
   rconditionalblocks :: [ConditionalBlock]
+    -- ^ conditional blocks, which containing additional assignments/rules to apply to matched csv records
 } deriving (Show, Eq)
 
 type CsvRulesParser a = StateT CsvRules SimpleTextParser a
 
+-- | The keyword of a CSV rule - "fields", "skip", "if", etc.
 type DirectiveName    = String
+-- | CSV field name.
 type CsvFieldName     = String
+-- | 1-based CSV column number.
 type CsvFieldIndex    = Int
-type JournalFieldName = String
+-- | Percent symbol followed by a CSV field name or column number. Eg: %date, %1.
+type CsvFieldReference = String
+-- | One of the standard hledger field names that can be assigned to.
+type JournalFieldName = String  -- XXX rename to HledgerFieldName
+-- | A text value to be assigned to a hledger field, possibly
+-- containing csv field references to be interpolated.
 type FieldTemplate    = String
+-- | A strptime date parsing pattern, as supported by Data.Time.Format.
 type DateFormat       = String
+-- | A regular expression.
 type RegexpPattern    = String
 
 -- | A single test for matching a CSV record, in one way or another.
 data Matcher =
     RecordMatcher RegexpPattern              -- ^ match if this regexp matches the overall CSV record
-  -- | FieldMatcher CsvFieldName RegexpPattern  -- ^ match if this regexp matches the named CSV field
+  | FieldMatcher CsvFieldReference RegexpPattern  -- ^ match if this regexp matches the referenced CSV field's value
   deriving (Show, Eq)
 
 -- | A conditional block: a set of CSV record matchers, and a sequence
--- of zero or more rules which will be enabled only when one or of the
--- matchers succeeds.
+-- of rules which will be enabled only if one or more of the matchers
+-- succeeds.
 --
 -- Three types of rule are allowed inside conditional blocks: field
 -- assignments, skip, end. (A skip or end rule is stored as if it was
@@ -634,6 +658,7 @@ fieldvalp = do
   lift $ dbgparse 2 "trying fieldvalp"
   anySingle `manyTill` lift eolof
 
+-- A conditional block: one or more matchers, one per line, followed by one or more indented rules.
 conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
   lift $ dbgparse 3 "trying conditionalblockp"
@@ -645,10 +670,14 @@ conditionalblockp = do
   return $ CB{cbMatchers=ms, cbAssignments=as}
   <?> "conditional block"
 
--- A single matcher, on one line
--- XXX Currently only parses a RecordMatcher
+-- A single matcher, on one line.
 matcherp :: CsvRulesParser Matcher
-matcherp = do
+matcherp = try fieldmatcherp <|> recordmatcherp
+
+-- A single whole-record matcher.
+-- A pattern on the whole line, not containing any of the match operators (~).
+recordmatcherp :: CsvRulesParser Matcher
+recordmatcherp = do
   lift $ dbgparse 2 "trying matcherp"
   -- pos <- currentPos
   _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
@@ -658,8 +687,35 @@ matcherp = do
   return $ RecordMatcher r
   <?> "record matcher"
 
--- An operator indicating the type of match
--- XXX currently only ~ (regex), unused
+-- | A single matcher for a specific field. A csv field reference (like %date or %1),
+-- a match operator (~), and a pattern on the rest of the line, optionally
+-- space-separated. Eg:
+-- %description ~ chez jacques
+fieldmatcherp :: CsvRulesParser Matcher
+fieldmatcherp = do
+  lift $ dbgparse 2 "trying fieldmatcher"
+  -- An optional fieldname (default: "all")
+  -- f <- fromMaybe "all" `fmap` (optional $ do
+  --        f' <- fieldnamep
+  --        lift (skipMany spacenonewline)
+  --        return f')
+  f <- csvfieldreferencep <* lift (skipMany spacenonewline)
+  -- optional operator.. just ~ (case insensitive infix regex) for now
+  _op <- fromMaybe "~" <$> optional matchoperatorp
+  lift (skipMany spacenonewline)
+  r <- regexp
+  return $ FieldMatcher f r
+  <?> "field matcher"
+
+csvfieldreferencep :: CsvRulesParser CsvFieldReference
+csvfieldreferencep = do
+  lift $ dbgparse 3 "trying csvfieldreferencep"
+  char '%'
+  f <- fieldnamep
+  return $ '%' : quoteIfNeeded f
+
+-- A match operator, indicating the type of match to perform.
+-- Currently just ~ meaning case insensitive infix regex match.
 matchoperatorp :: CsvRulesParser String
 matchoperatorp = fmap T.unpack $ choiceInState $ map string
   ["~"
@@ -676,19 +732,6 @@ regexp = do
   c <- lift nonspace
   cs <- anySingle `manyTill` lift eolof
   return $ strip $ c:cs
-
--- fieldmatcher = do
---   dbgparse 2 "trying fieldmatcher"
---   f <- fromMaybe "all" `fmap` (optional $ do
---          f' <- fieldname
---          lift (skipMany spacenonewline)
---          return f')
---   char '~'
---   lift (skipMany spacenonewline)
---   ps <- patterns
---   let r = "(" ++ intercalate "|" ps ++ ")"
---   return (f,r)
---   <?> "field matcher"
 
 --------------------------------------------------------------------------------
 -- Converting CSV records to journal transactions
@@ -962,40 +1005,64 @@ showRecord :: CsvRecord -> String
 showRecord r = "the CSV record is:       "++intercalate "," (map show r)
 
 -- | Given the conversion rules, a CSV record and a journal entry field name, find
--- the template value ultimately assigned to this field, either at top
--- level or in a matching conditional block.  Conditional blocks'
--- patterns are matched against an approximation of the original CSV
--- record: all the field values with commas intercalated.
+-- the template value ultimately assigned to this field, if any,
+-- by a field assignment at top level or in a conditional block matching this record.
+--
+-- Note conditional blocks' patterns are matched against an approximation of the
+-- CSV record: all the field values, without enclosing quotes, comma-separated.
+--
 getEffectiveAssignment :: CsvRules -> CsvRecord -> JournalFieldName -> Maybe FieldTemplate
-getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
+getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
   where
-    assignmentsFor f = map snd $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
+    -- all active assignments to field f, in order
+    assignments = dbg2 "assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
       where
+        -- all top level field assignments
         toplevelassignments    = rassignments rules
-        conditionalassignments = concatMap cbAssignments $ filter blockMatches $ blocksAssigning f
+        -- all field assignments in conditional blocks assigning to field f and active for the current csv record
+        conditionalassignments = concatMap cbAssignments $ filter isBlockActive $ blocksAssigning f
           where
+            -- all conditional blocks which can potentially assign field f
             blocksAssigning f = filter (any ((==f).fst) . cbAssignments) $ rconditionalblocks rules
-            blockMatches :: ConditionalBlock -> Bool
-            blockMatches CB{..} = any matcherMatches cbMatchers
+            -- does this conditional block match the current csv record ?
+            isBlockActive :: ConditionalBlock -> Bool
+            isBlockActive CB{..} = any matcherMatches cbMatchers
               where
+                -- does this individual matcher match the current csv record ?
                 matcherMatches :: Matcher -> Bool
-                matcherMatches (RecordMatcher pat) = regexMatchesCI pat csvline
+                matcherMatches (RecordMatcher pat) = regexMatchesCI pat wholecsvline
                   where
-                    csvline = intercalate "," record
-                -- matcherMatches (FieldMatcher field pat) = undefined
+                    -- a synthetic whole CSV record to match against; note, it has
+                    -- no quotes enclosing fields, and is always comma-separated,
+                    -- so may differ from the actual record, and may not be valid CSV.
+                    wholecsvline = dbg3 "wholecsvline" $ intercalate "," record
+                matcherMatches (FieldMatcher csvfieldref pat) = regexMatchesCI pat csvfieldvalue
+                  where
+                    -- the value of the referenced CSV field to match against.
+                    csvfieldvalue = dbg3 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
 
 -- | Render a field assigment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.
 renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> String
-renderTemplate rules record t = regexReplaceBy "%[A-z0-9_-]+" replace t
-  where
-    replace ('%':pat) = maybe pat (\i -> strip $ atDef "" record (i-1)) mindex
-      where
-        mindex | all isDigit pat = readMay pat
-               | otherwise       = lookup (map toLower pat) $ rcsvfieldindexes rules
-    replace pat       = pat
+renderTemplate rules record t = regexReplaceBy "%[A-z0-9_-]+" (replaceCsvFieldReference rules record) t
 
--- Parse the date string using the specified date-format, or if unspecified try these default formats:
+-- | Replace something that looks like a reference to a csv field ("%date" or "%1)
+-- with that field's value. If it doesn't look like a field reference, or if we
+-- can't find such a field, leave it unchanged.
+replaceCsvFieldReference :: CsvRules -> CsvRecord -> CsvFieldReference -> String
+replaceCsvFieldReference rules record s@('%':fieldname) = fromMaybe s $ csvFieldValue rules record fieldname
+replaceCsvFieldReference _ _ s = s
+
+-- | Get the (whitespace-stripped) value of a CSV field, identified by its name or
+-- column number, ("date" or "1"), from the given CSV record, if such a field exists.
+csvFieldValue :: CsvRules -> CsvRecord -> CsvFieldName -> Maybe String
+csvFieldValue rules record fieldname = do
+  fieldindex <- if | all isDigit fieldname -> readMay fieldname
+                   | otherwise             -> lookup (map toLower fieldname) $ rcsvfieldindexes rules
+  fieldvalue <- strip <$> atMay record (fieldindex-1)
+  return fieldvalue
+
+-- | Parse the date string using the specified date-format, or if unspecified try these default formats:
 -- YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, MM/DD/YYYY (month and day can be 1 or 2 digits, year must be 4).
 parseDateWithFormatOrDefaultFormats :: Maybe DateFormat -> String -> Maybe Day
 parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith formats
@@ -1025,26 +1092,60 @@ parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith format
 
 tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [
-     test"empty file" $
+     test "empty file" $
       parseCsvRules "unknown" "" @?= Right defrules
-    ]
+   ]
   ,tests "rulesp" [
-     test"trailing comments" $
+     test "trailing comments" $
       parseWithState' defrules rulesp "skip\n# \n#\n" @?= Right defrules{rdirectives = [("skip","")]}
 
-    ,test"trailing blank lines" $
+    ,test "trailing blank lines" $
       parseWithState' defrules rulesp "skip\n\n  \n" @?= (Right defrules{rdirectives = [("skip","")]})
 
-    ,test"no final newline" $
+    ,test "no final newline" $
       parseWithState' defrules rulesp "skip" @?= (Right defrules{rdirectives=[("skip","")]})
 
-    ,test"assignment with empty value" $
+    ,test "assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
         (Right defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher "foo"],cbAssignments=[("account2","foo")]}]})
-  ]
+   ]
   ,tests "conditionalblockp" [
-    test"space after conditional" $ -- #1120
+    test "space after conditional" $ -- #1120
       parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
         (Right $ CB{cbMatchers=[RecordMatcher "a"],cbAssignments=[("account2","b")]})
+
+  ,tests "csvfieldreferencep" [
+    test "number" $ parseWithState' defrules csvfieldreferencep "%1" @?= (Right "%1")
+   ,test "name" $ parseWithState' defrules csvfieldreferencep "%date" @?= (Right "%date")
+   ,test "quoted name" $ parseWithState' defrules csvfieldreferencep "%\"csv date\"" @?= (Right "%\"csv date\"")
+   ]
+
+  ,tests "matcherp" [
+
+    test "recordmatcherp" $
+      parseWithState' defrules matcherp "A A\n" @?= (Right $ RecordMatcher "A A")
+
+   ,test "fieldmatcherp.starts-with-%" $
+      parseWithState' defrules matcherp "description A A\n" @?= (Right $ RecordMatcher "description A A")
+
+   ,test "fieldmatcherp" $
+      parseWithState' defrules matcherp "%description A A\n" @?= (Right $ FieldMatcher "%description" "A A")
+
+   ,test "fieldmatcherp with operator" $
+      parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
+
+   ]
+
+  ,tests "getEffectiveAssignment" [
+    let rules = defrules{rcsvfieldindexes=[("csvdate",1)],rassignments=[("date","%csvdate")]}
+    
+    in test "toplevel" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+
+   ,let rules = defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher "%csvdate" "a"] [("date","%csvdate")]]}
+    in test "conditional" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+       
+   ]
+
   ]
-  ]
+
+ ]

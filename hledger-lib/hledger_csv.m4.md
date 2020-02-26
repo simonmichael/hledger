@@ -495,13 +495,13 @@ See also: [File Extension](#file-extension).
 ## `if`
 
 ```rules
-if PATTERN
+if MATCHER
  RULE
 
 if
-PATTERN
-PATTERN
-PATTERN
+MATCHER
+MATCHER
+MATCHER
  RULE
  RULE
 ```
@@ -510,21 +510,28 @@ Conditional blocks ("if blocks") are a block of rules that are applied
 only to CSV records which match certain patterns. They are often used
 for customising account names based on transaction descriptions.
 
-A single pattern can be written on the same line as the "if";
-or multiple patterns can be written on the following lines, non-indented.
-Multiple patterns are OR'd (any one of them can match).
-Patterns are case-insensitive regular expressions
-which try to match anywhere within the whole CSV record
-(POSIX extended regular expressions with some additions, see https://hledger.org/hledger.html#regular-expressions).
-Note the CSV record they see is close to, but not identical to, the one in the CSV file;
-enclosing double quotes will be removed, and the separator character is always comma.
-
-It's not yet easy to match within a specific field.
-If the data does not contain commas, you can hack it with a regular expression like:
+Each MATCHER can be a record matcher, which looks like this:
 ```rules
-# match "foo" in the fourth field
-if ^([^,]*,){3}foo
+REGEX
 ```
+
+REGEX is a case-insensitive regular expression which tries to match anywhere within the CSV record.
+It is a POSIX extended regular expressions with some additions (see 
+[Regular expressions](https://hledger.org/hledger.html#regular-expressions) in the hledger manual).
+Note: the "CSV record" it is matched against is not the original record, but a synthetic one,
+with enclosing double quotes or whitespace removed, and always comma-separated.
+(Eg, an SSV record `2020-01-01; "Acme, Inc."; 1,000` appears to REGEX as `2020-01-01,Acme, Inc.,1,000`).
+
+Or, MATCHER can be a field matcher, like this:
+```rules
+%CSVFIELD REGEX
+```
+which matches just the content of a particular CSV field.
+CSVFIELD is a percent sign followed by the field's name or column number, like `%date` or `%1`.
+
+A single matcher can be written on the same line as the "if";
+or multiple matchers can be written on the following lines, non-indented.
+Multiple matchers are OR'd (any one of them can match).
 
 After the patterns there should be one or more rules to apply, all
 indented by at least one space. Three kinds of rule are allowed in

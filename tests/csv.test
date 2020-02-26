@@ -560,8 +560,26 @@ $  ./hledger-csv
 
 >=0
 
+# 27. match a specific field
+<
+2020-01-01, 1
+2020-01-01, 2
+RULES
+fields date, desc
+if %desc 1
+ description one
 
-## 26. A single unbalanced posting with number other than 1 also should not generate a balancing posting.
+$  ./hledger-csv desc:one
+2020-01-01 one
+
+>=0
+
+## . 
+#<
+#$  ./hledger-csv
+#>=0
+
+## . A single unbalanced posting with number other than 1 also should not generate a balancing posting.
 #<
 #2019-01-01,1
 #
@@ -575,7 +593,7 @@ $  ./hledger-csv
 #
 #>=0
 #
-## 27. A single posting that's zero also should not generate a balancing posting.
+## . A single posting that's zero also should not generate a balancing posting.
 #<
 #2019-01-01,0
 #
@@ -589,7 +607,7 @@ $  ./hledger-csv
 #
 #>=0
 
-## 28. With a bracketed account name, the auto-generated second posting should also be bracketed.
+## . With a bracketed account name, the auto-generated second posting should also be bracketed.
 #<
 #2019-01-01,1
 #
@@ -603,8 +621,6 @@ $  ./hledger-csv
 #    [income:unknown]            -1
 #
 #>=0
-
-
 
 # . TODO: without --separator gives obscure error
 #   |
