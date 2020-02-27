@@ -769,40 +769,40 @@ s `withDefault` def = if null s then def else s
 transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord sourcepos rules record = t
   where
+    ----------------------------------------------------------------------
+    -- 1. Define some helpers:
+
     rule     = csvRule           rules        :: DirectiveName    -> Maybe FieldTemplate
     -- ruleval  = csvRuleValue      rules record :: DirectiveName    -> Maybe String
     field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
-
-    ----------------------------------------------------------------------
-    -- 1. Gather the values needed for the transaction itself, by evaluating
-    -- the field assignment rules using the CSV record's data, and parsing a
-    -- bit more where needed (dates, status).
-
-    mdateformat = rule "date-format"
-    date        = fromMaybe "" $ fieldval "date"
-    date'       = fromMaybe (error' $ dateerror "date" date mdateformat) $ parsedate' date
-    mdate2      = fieldval "date2"
-    mdate2'     = maybe Nothing (maybe (error' $ dateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate') mdate2
-    -- Parse a date, trying the "simple date" formats and any custom format
-    -- configured with date-format.
-    parsedate' :: String -> Maybe Day
-    parsedate' = parseDateWithFormatOrDefaultFormats (rule "date-format")
-    -- Make an informative date parse error message.
-    dateerror datefield value mdateformat = unlines
-      ["error: could not parse \""++value++"\" as a date using date format "++maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" show mdateformat
-      , showRecord record
+    parsedate' = parseDateWithCustomOrDefaultFormats (rule "date-format")
+    mkdateerror datefield datevalue mdateformat = unlines
+      ["error: could not parse \""++datevalue++"\" as a date using date format "
+        ++maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" show mdateformat
+      ,showRecord record
       ,"the "++datefield++" rule is:   "++(fromMaybe "required, but missing" $ field datefield)
       ,"the date-format is: "++fromMaybe "unspecified" mdateformat
       ,"you may need to "
-       ++"change your "++datefield++" rule, "
-       ++maybe "add a" (const "change your") mdateformat++" date-format rule, "
-       ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
+        ++"change your "++datefield++" rule, "
+        ++maybe "add a" (const "change your") mdateformat++" date-format rule, "
+        ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
       ,"for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y"
       ]
       where
         mskip = rule "skip"
-    status =
+
+    ----------------------------------------------------------------------
+    -- 2. Gather values needed for the transaction itself, by evaluating the
+    -- field assignment rules using the CSV record's data, and parsing a bit
+    -- more where needed (dates, status).
+
+    mdateformat = rule "date-format"
+    date        = fromMaybe "" $ fieldval "date"
+    date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parsedate' date
+    mdate2      = fieldval "date2"
+    mdate2'     = maybe Nothing (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate') mdate2
+    status      =
       case fieldval "status" of
         Nothing -> Unmarked
         Just s  -> either statuserror id $ runParser (statusp <* eof) "" $ T.pack s
@@ -817,9 +817,9 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" singleline $ fieldval "precomment"
 
     ----------------------------------------------------------------------
-    -- 2. Generate the postings
+    -- 3. Generate the postings
 
-    -- Make posting 1 if possible, with special support for old syntax, to
+    -- Make posting 1 if possible, with special support for old syntax to
     -- support pre-1.16 rules.
     posting1 = mkPosting rules record "1"
                ("account1" `withAlias` "account")
@@ -850,9 +850,9 @@ transactionFromCsvRecord sourcepos rules record = t
                            ("amount"++n++"-out") ("balance"++n) ("comment"++n) t
   
     -- Adjust the postings to mimic some pre-1.16 behaviour, for compatibility.
-    -- And also, wherever default "unknown" accounts were used,
-    -- refine these based on the sign of the posting amount if it's
-    -- known or inferred.
+    -- And also, wherever default "unknown" accounts were used, refine these
+    -- based on the sign of the posting amount if it's known.
+    -- XXX split
     postings' =
       case postings of
         -- when rules generate just one posting, and it's a type that needs to
@@ -880,7 +880,7 @@ transactionFromCsvRecord sourcepos rules record = t
         improveUnless final = if final then id else improveUnknownAccountName
 
     ----------------------------------------------------------------------
-    -- 3. Build the transaction (and name it, so the postings can reference it).
+    -- 4. Build the transaction (and name it, so the postings can reference it).
 
     t = nulltransaction{
            tsourcepos        = genericSourcePos sourcepos  -- the CSV line number
@@ -1139,10 +1139,11 @@ csvFieldValue rules record fieldname = do
   fieldvalue <- strip <$> atMay record (fieldindex-1)
   return fieldvalue
 
--- | Parse the date string using the specified date-format, or if unspecified try these default formats:
--- YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, MM/DD/YYYY (month and day can be 1 or 2 digits, year must be 4).
-parseDateWithFormatOrDefaultFormats :: Maybe DateFormat -> String -> Maybe Day
-parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith formats
+-- | Parse the date string using the specified date-format, or if unspecified
+-- the "simple date" formats (YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, leading
+-- zeroes optional).
+parseDateWithCustomOrDefaultFormats :: Maybe DateFormat -> String -> Maybe Day
+parseDateWithCustomOrDefaultFormats mformat s = firstJust $ map parsewith formats
   where
     parsetime =
 #if MIN_VERSION_time(1,5,0)
