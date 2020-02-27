@@ -741,6 +741,7 @@ type CsvRecord = [String]
 showRules rules record =
   unlines $ catMaybes [ (("the "++fld++" rule is: ")++) <$> getEffectiveAssignment rules record fld | fld <- journalfieldnames]
 
+-- warning: 200 line beast ahead. How to simplify ?
 transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord sourcepos rules record = t
   where
@@ -803,7 +804,7 @@ transactionFromCsvRecord sourcepos rules record = t
     unknownExpenseAccount = "expenses:unknown"
     unknownIncomeAccount  = "income:unknown"
 
-    parsePosting' :: String -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> Maybe (String, Posting)
+    parsePosting' :: String -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> Maybe (Posting, Bool)
     parsePosting' number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
       let currency = maybe (fromMaybe "" mdefaultcurrency) render $
                       (mfieldtemplate ("currency"++number) `or `mfieldtemplate "currency")
@@ -812,32 +813,39 @@ transactionFromCsvRecord sourcepos rules record = t
                         (mfieldtemplate accountFld `or` mdirective ("default-account" ++ number)))
           mbalance = (parsebalance currency number.render) =<< mfieldtemplate balanceFld
           comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
-          maccount :: Maybe AccountName =
+
+          -- figure out the account name to use for this posting, if any, and
+          -- whether it is the unknown account which may be improved later,
+          -- when we know the posting's final amount.
+          maccountAndIsFinal :: Maybe (AccountName, Bool) =
             case maccount' of
-              -- accountN is set to the empty string - this posting will be suppressed
+              -- accountN is set to the empty string - no posting will be generated
               Just "" -> Nothing
-              -- accountN is set
-              Just a  -> Just a
+              -- accountN is set (possibly to "expenses:unknown" ! #1192) -
+              -- don't let it be changed.
+              Just a  -> Just (a, True)
               -- accountN is unset
               Nothing ->
                 case (mamount, mbalance) of
-                  -- amountN is set, or implied by balanceN - accountN will be
-                  -- set to the unknown account (expenses:unknown, for now)
-                  (Just _, _) -> Just unknownExpenseAccount
-                  (_, Just _) -> Just unknownExpenseAccount
-                  -- amountN is also unset, this posting will be suppressed
+                  -- amountN is set, or implied by balanceN - set accountN to
+                  -- set to the default unknown account (expenses:unknown)
+                  -- and allow it to be improved later
+                  (Just _, _) -> Just (unknownExpenseAccount, False)
+                  (_, Just _) -> Just (unknownExpenseAccount, False)
+                  -- amountN is also unset - no posting will be generated
                   (Nothing, Nothing) -> Nothing
       in
         -- if there's an account N, make a posting N
-        case maccount of
-          Nothing   -> Nothing
-          Just acct ->
-            Just (number, posting{paccount          = accountNameWithoutPostingType acct
-                                 ,pamount           = fromMaybe missingmixedamt mamount
-                                 ,ptransaction      = Just t
-                                 ,pbalanceassertion = toAssertion <$> mbalance
-                                 ,pcomment          = comment
-                                 ,ptype             = accountNamePostingType acct})
+        case maccountAndIsFinal of
+          Nothing            -> Nothing
+          Just (acct, final) ->
+            Just (posting{paccount          = accountNameWithoutPostingType acct
+                         ,pamount           = fromMaybe missingmixedamt mamount
+                         ,ptransaction      = Just t
+                         ,pbalanceassertion = toAssertion <$> mbalance
+                         ,pcomment          = comment
+                         ,ptype             = accountNamePostingType acct}
+                 ,final)
 
     parsePosting number =              
       parsePosting' number
@@ -866,33 +874,40 @@ transactionFromCsvRecord sourcepos rules record = t
                ("balance1" `withAlias` "balance")
                "comment1" -- comment1 does not have legacy alias
 
-    postings' = catMaybes $ posting1:[ parsePosting i | x<-[2..9], let i = show x]
+    postings' = catMaybes $ posting1 : [parsePosting i | x<-[2..9], let i = show x]
 
+    -- Handle some special cases to mimic pre-1.16 behaviour, for
+    -- compatibility; and also, wherever default "unknown" accounts were used,
+    -- refine these based on the sign of the final posting amount.
     postings =
       case postings' of
-        -- pre-1.16 compatibility: when rules generate just one posting, and
-        -- it's a type that needs to be balanced, generate the second posting
-        -- to balance it, with appropriate unknown account name
-        [("1",p1)] ->
+        -- when rules generate just one posting, and it's a type that needs to
+        -- be balanced, generate the second posting to balance it.
+        [(p1,final)] ->
           if ptype p1 == VirtualPosting
-          then [p1]
-          else [p1, p2]
+          then [p1']
+          else [p1', p2]
             where
-              p2 = improveUnknownAccountName $
+              p1' = (if final then id else improveUnknownAccountName) p1
+              p2 = improveUnknownAccountName
                    nullposting{paccount=unknownExpenseAccount
                               ,pamount=costOfMixedAmount (-pamount p1)
                               ,ptransaction=Just t}
 
         -- pre-1.16 compatibility: when rules generate exactly two postings,
-        -- and the second has no amount, give it the balancing amount, and
-        -- refine the account name if it's unknown
-        [("1",p1), ("2",p2)] ->
-          case (pamount p1 == missingmixedamt , pamount p2 == missingmixedamt) of
-            (False, True) -> [p1, improveUnknownAccountName $ p2{pamount=costOfMixedAmount(-(pamount p1))}]
-            _  -> [p1, p2]
+        -- and only the second has no amount, give it the balancing amount.
+        [(p1,final1), (p2,final2)] ->
+          case (pamount p1 == missingmixedamt, pamount p2 == missingmixedamt) of
+            (False, True) -> [p1',p2']
+              where p2' = (if final2 then id else improveUnknownAccountName)
+                          p2{pamount=costOfMixedAmount(-(pamount p1))}
+            _  -> [p1', p2']
+              where p2' = (if final2 then id else improveUnknownAccountName) p2
+            where
+              p1' = (if final1 then id else improveUnknownAccountName) p1
 
-        -- otherwise, refine any unknown account names in all postings
-        _ -> map (improveUnknownAccountName . snd) postings'
+        -- otherwise, refine an unknown account name in all postings.
+        ps -> [(if final then id else improveUnknownAccountName) p | (p,final) <- ps]
       where
         -- If this posting has the "expenses:unknown" account name, maybe
         -- replace that with "income:unknown" now that we know the amount's sign.

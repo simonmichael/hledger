@@ -608,8 +608,8 @@ fields date, amount, account1
 account2 expenses:unknown
 $  ./hledger-csv
 2020-01-01
-    a                             1
-    expenses:unknown             -1
+    a                              1
+    expenses:unknown              -1
 
 >=0
 
