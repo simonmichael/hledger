@@ -741,19 +741,25 @@ type CsvRecord = [String]
 showRules rules record =
   unlines $ catMaybes [ (("the "++fld++" rule is: ")++) <$> getEffectiveAssignment rules record fld | fld <- journalfieldnames]
 
--- warning: 200 line beast ahead. How to simplify ?
+-- warning: 200 line beast ahead
 transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord sourcepos rules record = t
   where
+    ----------------------------------------------------------------------
+    -- 1. Some helpers
+
+    s `or` def       = if null s then def else s
     mdirective       = (`getDirective` rules)
     mfieldtemplate   = getEffectiveAssignment rules record
     render           = renderTemplate rules record
-    mskip            = mdirective "skip"
-    mdefaultcurrency = mdirective "default-currency"
     mparsedate       = parseDateWithFormatOrDefaultFormats (mdirective "date-format")
 
-    -- render each field using its template and the csv record, and
-    -- in some cases parse the rendered string (eg dates and amounts)
+    ----------------------------------------------------------------------
+    -- 2. Gather the values needed for the transaction itself, by evaluating
+    -- the field assignment rules using the CSV record's data, and parsing a
+    -- bit more where needed, into dates, amounts, status..
+
+    mdefaultcurrency = mdirective "default-currency"
     mdateformat = mdirective "date-format"
     date        = render $ fromMaybe "" $ mfieldtemplate "date"
     date'       = fromMaybe (error' $ dateerror "date" date mdateformat) $ mparsedate date
@@ -770,7 +776,9 @@ transactionFromCsvRecord sourcepos rules record = t
        ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
       ,"for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y"
       ]
-    status      =
+      where
+        mskip = mdirective "skip"
+    status =
       case mfieldtemplate "status" of
         Nothing  -> Unmarked
         Just str -> either statuserror id .
@@ -786,34 +794,43 @@ transactionFromCsvRecord sourcepos rules record = t
     comment     = singleline $ maybe "" render $ mfieldtemplate "comment"
     precomment  = singleline $ maybe "" render $ mfieldtemplate "precomment"
 
-    s `or` def  = if null s then def else s
-    parsebalance currency n str
-      | all isSpace str  = Nothing
-      | otherwise = Just $ (either (balanceerror n str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str, nullsourcepos)
-    balanceerror n str err = error' $ unlines
-      ["error: could not parse \""++str++"\" as balance"++n++" amount"
-      ,showRecord record
-      ,showRules rules record
-      ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
-      ,"the parse error is:      "++customErrorBundlePretty err
-      ]
+    ----------------------------------------------------------------------
+    -- 3. Generate the postings
 
-    -- Default account names to use when one is not set.
-    -- The first one is chosen by default, and sometimes gets replaced later
-    -- by the other when appropriate.
-    unknownExpenseAccount = "expenses:unknown"
-    unknownIncomeAccount  = "income:unknown"
-
-    parsePosting' :: String -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> JournalFieldName -> Maybe (Posting, Bool)
-    parsePosting' number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
+    -- Helper to generate posting N, if sufficient fields have been assigned
+    -- for it. N is provided as a string.
+    mkPosting ::
+      String -> JournalFieldName -> JournalFieldName -> JournalFieldName ->
+      JournalFieldName -> JournalFieldName -> JournalFieldName ->
+      Maybe (Posting, Bool)
+    mkPosting number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
       let currency = maybe (fromMaybe "" mdefaultcurrency) render $
                       (mfieldtemplate ("currency"++number) `or `mfieldtemplate "currency")
           mamount = chooseAmount rules record currency amountFld amountInFld amountOutFld
+          mbalance :: Maybe (Amount, GenericSourcePos) =
+            (parsebalance currency number.render) =<< mfieldtemplate balanceFld
+            where
+              parsebalance currency n str
+                | all isSpace str = Nothing
+                | otherwise = Just
+                    (either (balanceerror n str) id $
+                      runParser (evalStateT (amountp <* eof) mempty) "" $
+                      T.pack $ (currency++) $ simplifySign str
+                    ,nullsourcepos)  -- XXX parse position to show when assertion fails.
+                                     -- We don't know the posting's line number, but we
+                                     -- could show the csv record's line number, probably
+                                     -- more useful, though perhaps confusing.
+                where
+                  balanceerror n str err = error' $ unlines
+                    ["error: could not parse \""++str++"\" as balance"++n++" amount"
+                    ,showRecord record
+                    ,showRules rules record
+                    ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
+                    ,"the parse error is:      "++customErrorBundlePretty err
+                    ]
+          comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
           maccount' = ((T.pack . render) <$>
                         (mfieldtemplate accountFld `or` mdirective ("default-account" ++ number)))
-          mbalance = (parsebalance currency number.render) =<< mfieldtemplate balanceFld
-          comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
-
           -- figure out the account name to use for this posting, if any, and
           -- whether it is the unknown account which may be improved later,
           -- when we know the posting's final amount.
@@ -842,45 +859,44 @@ transactionFromCsvRecord sourcepos rules record = t
             Just (posting{paccount          = accountNameWithoutPostingType acct
                          ,pamount           = fromMaybe missingmixedamt mamount
                          ,ptransaction      = Just t
-                         ,pbalanceassertion = toAssertion <$> mbalance
+                         ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
                          ,pcomment          = comment
                          ,ptype             = accountNamePostingType acct}
                  ,final)
 
-    parsePosting number =              
-      parsePosting' number
-      ("account"++number)
-      ("amount"++number)
-      ("amount"++number++"-in")
-      ("amount"++number++"-out")
-      ("balance"++number)
-      ("comment" ++ number)
-      
-    withAlias fld alias =
-      case (mfieldtemplate fld, mfieldtemplate alias) of
-        (Just fld, Just alias) -> error' $ unlines
-          [ "error: both \"" ++ fld ++ "\" and \"" ++ alias ++ "\" have values."
-          , showRecord record
-          , showRules rules record
-          ]
-        (Nothing, Just _) -> alias
-        (_, Nothing)      -> fld
-
-    posting1 = parsePosting' "1"
+    -- Make posting 1 if possible, with special support for old syntax, to
+    -- support pre-1.16 rules.
+    posting1 = mkPosting "1"
                ("account1" `withAlias` "account")
                ("amount1" `withAlias` "amount")
                ("amount1-in" `withAlias` "amount-in")
                ("amount1-out" `withAlias` "amount-out")
                ("balance1" `withAlias` "balance")
                "comment1" -- comment1 does not have legacy alias
+      where
+        withAlias fld alias =
+          case (mfieldtemplate fld, mfieldtemplate alias) of
+            (Just fld, Just alias) -> error' $ unlines
+              [ "error: both \"" ++ fld ++ "\" and \"" ++ alias ++ "\" have values."
+              , showRecord record
+              , showRules rules record
+              ]
+            (Nothing, Just _) -> alias
+            (_, Nothing)      -> fld
 
-    postings' = catMaybes $ posting1 : [parsePosting i | x<-[2..9], let i = show x]
+    -- Make other postings where possible, and gather all that were generated.
+    postings = catMaybes $ posting1 : otherpostings
+      where
+        otherpostings = [mkPostingN i | x<-[2..9], let i = show x]
+        mkPostingN n = mkPosting n
+                         ("account"++n) ("amount"++n) ("amount"++n++"-in")
+                         ("amount"++n++"-out") ("balance"++n) ("comment"++n)
 
-    -- Handle some special cases to mimic pre-1.16 behaviour, for
-    -- compatibility; and also, wherever default "unknown" accounts were used,
+    -- Adjust the postings to mimic some pre-1.16 behaviour, for compatibility.
+    -- And also, wherever default "unknown" accounts were used,
     -- refine these based on the sign of the final posting amount.
-    postings =
-      case postings' of
+    postings' =
+      case postings of
         -- when rules generate just one posting, and it's a type that needs to
         -- be balanced, generate the second posting to balance it.
         [(p1,final)] ->
@@ -894,8 +910,8 @@ transactionFromCsvRecord sourcepos rules record = t
                               ,pamount=costOfMixedAmount (-pamount p1)
                               ,ptransaction=Just t}
 
-        -- pre-1.16 compatibility: when rules generate exactly two postings,
-        -- and only the second has no amount, give it the balancing amount.
+        -- when rules generate exactly two postings, and only the second has
+        -- no amount, give it the balancing amount.
         [(p1,final1), (p2,final2)] ->
           case (pamount p1 == missingmixedamt, pamount p2 == missingmixedamt) of
             (False, True) -> [p1',p2']
@@ -906,46 +922,56 @@ transactionFromCsvRecord sourcepos rules record = t
             where
               p1' = (if final1 then id else improveUnknownAccountName) p1
 
-        -- otherwise, refine an unknown account name in all postings.
+        -- otherwise, just refine any unknown account names.
         ps -> [(if final then id else improveUnknownAccountName) p | (p,final) <- ps]
-      where
-        -- If this posting has the "expenses:unknown" account name, maybe
-        -- replace that with "income:unknown" now that we know the amount's sign.
-        improveUnknownAccountName p@Posting{..}
-          | paccount == unknownExpenseAccount
-            && fromMaybe False (isNegativeMixedAmount pamount) = p{paccount=unknownIncomeAccount}
-          | otherwise = p
-        
-    -- build the transaction
-    t = nulltransaction{
-      tsourcepos               = genericSourcePos sourcepos,
-      tdate                    = date',
-      tdate2                   = mdate2',
-      tstatus                  = status,
-      tcode                    = T.pack code,
-      tdescription             = T.pack description,
-      tcomment                 = T.pack comment,
-      tprecedingcomment        = T.pack precomment,
-      tpostings                = postings
-      }
 
-    defaultAssertion =
-      case mdirective "balance-type" of
-        Nothing -> nullassertion
-        Just "=" -> nullassertion
-        Just "==" -> nullassertion{batotal=True}
-        Just "=*" -> nullassertion{bainclusive=True}
+    ----------------------------------------------------------------------
+    -- 4. Build the transaction (and name it, so postings can reference it).
+
+    t = nulltransaction{
+           tsourcepos        = genericSourcePos sourcepos  -- the CSV line number
+          ,tdate             = date'
+          ,tdate2            = mdate2'
+          ,tstatus           = status
+          ,tcode             = T.pack code
+          ,tdescription      = T.pack description
+          ,tcomment          = T.pack comment
+          ,tprecedingcomment = T.pack precomment
+          ,tpostings         = postings'
+          }  
+
+-- | Default account names to use when needed.
+unknownExpenseAccount = "expenses:unknown"
+unknownIncomeAccount  = "income:unknown"
+
+-- | If this posting has the "expenses:unknown" account name,
+-- replace that with "income:unknown" if the amount is negative.
+-- The posting's amount should be explicit.
+improveUnknownAccountName p@Posting{..}
+  | paccount == unknownExpenseAccount
+    && fromMaybe False (isNegativeMixedAmount pamount) = p{paccount=unknownIncomeAccount}
+  | otherwise = p
+
+-- | Make a balance assertion for the given amount, with the given parse
+-- position (to be shown in assertion failures), with the assertion type
+-- possibly set by a balance-type rule.
+-- The CSV rules and current record are also provided, to be shown in case
+-- balance-type's argument is bad (XXX refactor).
+mkBalanceAssertion :: CsvRules -> Record -> (Amount, GenericSourcePos) -> BalanceAssertion
+mkBalanceAssertion rules record (amt, pos) = assrt{baamount=amt, baposition=pos}
+  where
+    assrt =
+      case getDirective "balance-type" rules of
+        Nothing    -> nullassertion
+        Just "="   -> nullassertion
+        Just "=="  -> nullassertion{batotal=True}
+        Just "=*"  -> nullassertion{bainclusive=True}
         Just "==*" -> nullassertion{batotal=True, bainclusive=True}
-        Just x -> error' $ unlines
-          [ "balance-type \"" ++ x ++"\" is invalid. Use =, ==, =* or ==*." 
+        Just x     -> error' $ unlines
+          [ "balance-type \"" ++ x ++"\" is invalid. Use =, ==, =* or ==*."
           , showRecord record
           , showRules rules record
           ]
-        
-    toAssertion (a, b) = defaultAssertion{
-      baamount   = a,
-      baposition = b
-      }
 
 chooseAmount :: CsvRules -> CsvRecord -> String -> String -> String -> String -> Maybe MixedAmount
 chooseAmount rules record currency amountFld amountInFld amountOutFld =
