@@ -900,29 +900,25 @@ transactionFromCsvRecord sourcepos rules record = t
         -- be balanced, generate the second posting to balance it.
         [(p1,final)] ->
           if ptype p1 == VirtualPosting
-          then [p1']
-          else [p1', p2]
+          then [improveUnless final p1]
+          else [improveUnless final p1, improveUnknownAccountName p2]
             where
-              p1' = (if final then id else improveUnknownAccountName) p1
-              p2 = improveUnknownAccountName
-                   nullposting{paccount=unknownExpenseAccount
+              p2 = nullposting{paccount=unknownExpenseAccount
                               ,pamount=costOfMixedAmount (-pamount p1)
                               ,ptransaction=Just t}
 
         -- when rules generate exactly two postings, and only the second has
         -- no amount, give it the balancing amount.
         [(p1,final1), (p2,final2)] ->
-          case (pamount p1 == missingmixedamt, pamount p2 == missingmixedamt) of
-            (False, True) -> [p1',p2']
-              where p2' = (if final2 then id else improveUnknownAccountName)
-                          p2{pamount=costOfMixedAmount(-(pamount p1))}
-            _  -> [p1', p2']
-              where p2' = (if final2 then id else improveUnknownAccountName) p2
-            where
-              p1' = (if final1 then id else improveUnknownAccountName) p1
+          if hasAmount p1 && not (hasAmount p2)
+          then [improveUnless final1 p1, improveUnless final2 p2{pamount=costOfMixedAmount(-(pamount p1))}]
+          else [improveUnless final1 p1, improveUnless final2 p2]
 
         -- otherwise, just refine any unknown account names.
-        ps -> [(if final then id else improveUnknownAccountName) p | (p,final) <- ps]
+        ps -> [improveUnless final p | (p,final) <- ps]
+
+      where
+        improveUnless final = if final then id else improveUnknownAccountName
 
     ----------------------------------------------------------------------
     -- 4. Build the transaction (and name it, so postings can reference it).
