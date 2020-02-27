@@ -749,27 +749,48 @@ transactionFromCsvRecord sourcepos rules record = t
     ----------------------------------------------------------------------
     -- 1. Some helpers
 
-    s `or` def       = if null s then def else s
-    mdirective       = (`getDirective` rules)
-    mfieldtemplate   = getEffectiveAssignment rules record
-    render           = renderTemplate rules record
-    mparsedate       = parseDateWithFormatOrDefaultFormats (mdirective "date-format")
+    -- Look up the value (template) of a csv rule by rule keyword.
+    rule :: DirectiveName -> Maybe FieldTemplate
+    rule = (`getDirective` rules)
+
+    -- Look up the final value assigned to a csv rule by rule keyword.
+    -- Generally rules with keywords don't have interpolated values,
+    -- but for now it's possible. Cf default-account below.
+    ruleval :: DirectiveName -> Maybe String
+    ruleval = fmap (renderTemplate rules record) . field
+
+    -- Look up the value template assigned to a hledger field by field
+    -- list/field assignment rules, taking into account the current record and
+    -- conditional rules.
+    field :: HledgerFieldName -> Maybe FieldTemplate
+    field = getEffectiveAssignment rules record
+
+    -- Look up the final value assigned to a hledger field, with csv field
+    -- references interpolated.
+    fieldval :: HledgerFieldName -> Maybe String
+    fieldval = fmap (renderTemplate rules record) . field
+
+    s `or` def = if null s then def else s
 
     ----------------------------------------------------------------------
     -- 2. Gather the values needed for the transaction itself, by evaluating
     -- the field assignment rules using the CSV record's data, and parsing a
     -- bit more where needed, into dates, amounts, status..
 
-    mdefaultcurrency = mdirective "default-currency"
-    mdateformat = mdirective "date-format"
-    date        = render $ fromMaybe "" $ mfieldtemplate "date"
-    date'       = fromMaybe (error' $ dateerror "date" date mdateformat) $ mparsedate date
-    mdate2      = render <$> mfieldtemplate "date2"
-    mdate2'     = maybe Nothing (maybe (error' $ dateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . mparsedate) mdate2
+    mdateformat = rule "date-format"
+    date        = fromMaybe "" $ fieldval "date"
+    date'       = fromMaybe (error' $ dateerror "date" date mdateformat) $ parsedate' date
+    mdate2      = fieldval "date2"
+    mdate2'     = maybe Nothing (maybe (error' $ dateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate') mdate2
+    -- Parse a date, trying the "simple date" formats and any custom format
+    -- configured with date-format.
+    parsedate' :: String -> Maybe Day
+    parsedate' = parseDateWithFormatOrDefaultFormats (rule "date-format")
+    -- Make an informative date parse error message.
     dateerror datefield value mdateformat = unlines
       ["error: could not parse \""++value++"\" as a date using date format "++maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" show mdateformat
       , showRecord record
-      ,"the "++datefield++" rule is:   "++(fromMaybe "required, but missing" $ mfieldtemplate datefield)
+      ,"the "++datefield++" rule is:   "++(fromMaybe "required, but missing" $ field datefield)
       ,"the date-format is: "++fromMaybe "unspecified" mdateformat
       ,"you may need to "
        ++"change your "++datefield++" rule, "
@@ -778,22 +799,20 @@ transactionFromCsvRecord sourcepos rules record = t
       ,"for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y"
       ]
       where
-        mskip = mdirective "skip"
+        mskip = rule "skip"
     status =
-      case mfieldtemplate "status" of
-        Nothing  -> Unmarked
-        Just str -> either statuserror id .
-                    runParser (statusp <* eof) "" .
-                    T.pack $ render str
+      case fieldval "status" of
+        Nothing -> Unmarked
+        Just s  -> either statuserror id $ runParser (statusp <* eof) "" $ T.pack s
           where
             statuserror err = error' $ unlines
-              ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
+              ["error: could not parse \""++s++"\" as a cleared status (should be *, ! or empty)"
               ,"the parse error is:      "++customErrorBundlePretty err
               ]
-    code        = singleline $ maybe "" render $ mfieldtemplate "code"
-    description = singleline $ maybe "" render $ mfieldtemplate "description"
-    comment     = singleline $ maybe "" render $ mfieldtemplate "comment"
-    precomment  = singleline $ maybe "" render $ mfieldtemplate "precomment"
+    code        = maybe "" singleline $ fieldval "code"
+    description = maybe "" singleline $ fieldval "description"
+    comment     = maybe "" singleline $ fieldval "comment"
+    precomment  = maybe "" singleline $ fieldval "precomment"
 
     ----------------------------------------------------------------------
     -- 3. Generate the postings
@@ -805,11 +824,12 @@ transactionFromCsvRecord sourcepos rules record = t
       HledgerFieldName -> HledgerFieldName -> HledgerFieldName ->
       Maybe (Posting, Bool)
     mkPosting number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
-      let currency = maybe (fromMaybe "" mdefaultcurrency) render $
-                      (mfieldtemplate ("currency"++number) `or `mfieldtemplate "currency")
+      let mdefaultcurrency = rule "default-currency"
+          currency = fromMaybe (fromMaybe "" mdefaultcurrency) $
+                     fieldval ("currency"++number) `or` fieldval "currency"
           mamount = chooseAmount rules record currency amountFld amountInFld amountOutFld
           mbalance :: Maybe (Amount, GenericSourcePos) =
-            (parsebalance currency number.render) =<< mfieldtemplate balanceFld
+            fieldval balanceFld >>= parsebalance currency number
             where
               parsebalance currency n str
                 | all isSpace str = Nothing
@@ -827,9 +847,11 @@ transactionFromCsvRecord sourcepos rules record = t
                     ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
                     ,"the parse error is:      "++customErrorBundlePretty err
                     ]
-          comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
-          maccount = ((T.pack . render) <$>
-                       (mfieldtemplate accountFld `or` mdirective ("default-account" ++ number)))
+          comment = T.pack $ fromMaybe "" $ fieldval commentFld
+          maccount = T.pack <$> (fieldval accountFld
+                                -- XXX what's this needed for ? Test & document, or drop.
+                                -- Also, this the only place we interpolate in a keyword rule, I think.
+                                  `or` ruleval ("default-account" ++ number))
           -- figure out the account name to use for this posting, if any, and
           -- whether it is the default unknown account, which may be improved
           -- later, or an explicitly set account, which may not.
@@ -874,7 +896,7 @@ transactionFromCsvRecord sourcepos rules record = t
                "comment1" -- comment1 does not have legacy alias
       where
         withAlias fld alias =
-          case (mfieldtemplate fld, mfieldtemplate alias) of
+          case (field fld, field alias) of
             (Just fld, Just alias) -> error' $ unlines
               [ "error: both \"" ++ fld ++ "\" and \"" ++ alias ++ "\" have values."
               , showRecord record
@@ -893,7 +915,8 @@ transactionFromCsvRecord sourcepos rules record = t
 
     -- Adjust the postings to mimic some pre-1.16 behaviour, for compatibility.
     -- And also, wherever default "unknown" accounts were used,
-    -- refine these based on the sign of the final posting amount.
+    -- refine these based on the sign of the posting amount if it's
+    -- known or inferred.
     postings' =
       case postings of
         -- when rules generate just one posting, and it's a type that needs to
@@ -1046,7 +1069,7 @@ showRecord :: CsvRecord -> String
 showRecord r = "the CSV record is:       "++intercalate "," (map show r)
 
 -- | Given the conversion rules, a CSV record and a hledger field name, find
--- the template value ultimately assigned to this field, if any, by a field
+-- the value template ultimately assigned to this field, if any, by a field
 -- assignment at top level or in a conditional block matching this record.
 --
 -- Note conditional blocks' patterns are matched against an approximation of the
