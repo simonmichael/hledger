@@ -668,11 +668,14 @@ parsetime =
 #endif
 
 
--- | Parse a couple of date string formats to a time type.
+-- | Try to parse a couple of date string formats:
+-- `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`, with leading zeros required.
+-- For internal use, not quite the same as the journal's "simple dates".
 parsedateM :: String -> Maybe Day
 parsedateM s = firstJust [
      parsetime defaultTimeLocale "%Y/%m/%d" s,
-     parsetime defaultTimeLocale "%Y-%m-%d" s
+     parsetime defaultTimeLocale "%Y-%m-%d" s,
+     parsetime defaultTimeLocale "%Y.%m.%d" s
      ]
 
 
@@ -681,7 +684,7 @@ parsedateM s = firstJust [
 -- parsedatetime s = fromMaybe (error' $ "could not parse timestamp \"" ++ s ++ "\"")
 --                             (parsedatetimeM s)
 
--- | Parse a YYYY-MM-DD or YYYY/MM/DD date string to a Day, or raise an error. For testing/debugging.
+-- | Like parsedateM, raising an error on parse failure.
 --
 -- >>> parsedate "2008/02/03"
 -- 2008-02-03
