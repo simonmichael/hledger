@@ -849,35 +849,32 @@ transactionFromCsvRecord sourcepos rules record = t
                            ("account"++n) ("amount"++n) ("amount"++n++"-in")
                            ("amount"++n++"-out") ("balance"++n) ("comment"++n) t
   
-    -- Adjust the postings to mimic some pre-1.16 behaviour, for compatibility.
-    -- And also, wherever default "unknown" accounts were used, refine these
-    -- based on the sign of the posting amount if it's known.
-    -- XXX split
+    -- Auto-generate a second posting or second posting amount,
+    -- for compatibility with pre-1.16 rules.
     postings' =
       case postings of
-        -- when rules generate just one posting, and it's a type that needs to
-        -- be balanced, generate the second posting to balance it.
-        [(p1,final)] ->
-          if ptype p1 == VirtualPosting
-          then [improveUnless final p1]
-          else [improveUnless final p1, improveUnknownAccountName p2]
+        -- when rules generate just one posting, of a kind that needs to be
+        -- balanced, generate the second posting to balance it.
+        [p1@(p1',_)] ->
+          if ptype p1' == VirtualPosting then [p1] else [p1, p2]
             where
-              p2 = nullposting{paccount=unknownExpenseAccount
-                              ,pamount=costOfMixedAmount (-pamount p1)
-                              ,ptransaction=Just t}
-
+              p2 = (nullposting{paccount=unknownExpenseAccount
+                               ,pamount=costOfMixedAmount (-pamount p1')
+                               ,ptransaction=Just t}, False)
         -- when rules generate exactly two postings, and only the second has
         -- no amount, give it the balancing amount.
-        [(p1,final1), (p2,final2)] ->
-          if hasAmount p1 && not (hasAmount p2)
-          then [improveUnless final1 p1, improveUnless final2 p2{pamount=costOfMixedAmount(-(pamount p1))}]
-          else [improveUnless final1 p1, improveUnless final2 p2]
+        [p1@(p1',_), p2@(p2',final2)] ->
+          if hasAmount p1' && not (hasAmount p2')
+          then [p1, (p2'{pamount=costOfMixedAmount(-(pamount p1'))}, final2)]
+          else [p1, p2]
+        --
+        ps -> ps
 
-        -- otherwise, just refine any unknown account names.
-        ps -> [improveUnless final p | (p,final) <- ps]
-
+    -- Finally, wherever default "unknown" accounts were used, refine them
+    -- based on the sign of the posting amount if it's now known.
+    postings'' = map maybeImprove postings'
       where
-        improveUnless final = if final then id else improveUnknownAccountName
+        maybeImprove (p,final) = if final then p else improveUnknownAccountName p
 
     ----------------------------------------------------------------------
     -- 4. Build the transaction (and name it, so the postings can reference it).
@@ -891,7 +888,7 @@ transactionFromCsvRecord sourcepos rules record = t
           ,tdescription      = T.pack description
           ,tcomment          = T.pack comment
           ,tprecedingcomment = T.pack precomment
-          ,tpostings         = postings'
+          ,tpostings         = postings''
           }  
 
 -- | Given CSV rules and a CSV record, generate the corresponding transaction's
