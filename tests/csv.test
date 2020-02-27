@@ -574,6 +574,45 @@ $  ./hledger-csv desc:one
 
 >=0
 
+# 28. choose unknown account names correctly when no account name is set
+# and backwards-compatibly generating two postings.
+<
+2020-01-01, 1,
+RULES
+fields date, amount, 
+$  ./hledger-csv
+2020-01-01
+    expenses:unknown               1
+    income:unknown                -1
+
+>=0
+
+# 29. choose unknown account name correctly when only account1 is set
+# and backwards-compatibly generating second posting.
+<
+2020-01-01, 1, a
+RULES
+fields date, amount, account1
+$  ./hledger-csv
+2020-01-01
+    a                            1
+    income:unknown              -1
+
+>=0
+
+# 30. leave unknown account name as-is when explicitly set by user (#1192).
+<
+2020-01-01, 1, a
+RULES
+fields date, amount, account1
+account2 expenses:unknown
+$  ./hledger-csv
+2020-01-01
+    a                             1
+    expenses:unknown             -1
+
+>=0
+
 ## . 
 #<
 #$  ./hledger-csv
