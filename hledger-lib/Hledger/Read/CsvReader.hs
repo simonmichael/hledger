@@ -742,35 +742,40 @@ type CsvRecord = [String]
 showRules rules record =
   unlines $ catMaybes [ (("the "++fld++" rule is: ")++) <$> getEffectiveAssignment rules record fld | fld <- journalfieldnames]
 
+-- | Look up the value (template) of a csv rule by rule keyword.
+csvRule :: CsvRules -> DirectiveName -> Maybe FieldTemplate
+csvRule rules = (`getDirective` rules)
+
+-- | Look up the final value assigned to a csv rule by rule keyword, taking
+-- into account the current record and conditional rules.
+-- Generally rules with keywords ("directives") don't have interpolated
+-- values, but for now it's possible.
+csvRuleValue :: CsvRules -> CsvRecord -> DirectiveName -> Maybe String
+csvRuleValue rules record = fmap (renderTemplate rules record) . csvRule rules
+
+-- | Look up the value template assigned to a hledger field by field
+-- list/field assignment rules, taking into account the current record and
+-- conditional rules.
+hledgerField :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe FieldTemplate
+hledgerField = getEffectiveAssignment
+
+-- | Look up the final value assigned to a hledger field, with csv field
+-- references interpolated.
+hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe String
+hledgerFieldValue rules record = fmap (renderTemplate rules record) . hledgerField rules record
+
+s `withDefault` def = if null s then def else s
+
 -- warning: 200 line beast ahead
 transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord sourcepos rules record = t
   where
     ----------------------------------------------------------------------
     -- 1. Some helpers
-
-    -- Look up the value (template) of a csv rule by rule keyword.
-    rule :: DirectiveName -> Maybe FieldTemplate
-    rule = (`getDirective` rules)
-
-    -- Look up the final value assigned to a csv rule by rule keyword.
-    -- Generally rules with keywords don't have interpolated values,
-    -- but for now it's possible. Cf default-account below.
-    ruleval :: DirectiveName -> Maybe String
-    ruleval = fmap (renderTemplate rules record) . field
-
-    -- Look up the value template assigned to a hledger field by field
-    -- list/field assignment rules, taking into account the current record and
-    -- conditional rules.
-    field :: HledgerFieldName -> Maybe FieldTemplate
-    field = getEffectiveAssignment rules record
-
-    -- Look up the final value assigned to a hledger field, with csv field
-    -- references interpolated.
-    fieldval :: HledgerFieldName -> Maybe String
-    fieldval = fmap (renderTemplate rules record) . field
-
-    s `or` def = if null s then def else s
+    rule     = csvRule           rules        :: DirectiveName    -> Maybe FieldTemplate
+    ruleval  = csvRuleValue      rules record :: DirectiveName    -> Maybe String
+    field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
+    fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
 
     ----------------------------------------------------------------------
     -- 2. Gather the values needed for the transaction itself, by evaluating
@@ -826,7 +831,7 @@ transactionFromCsvRecord sourcepos rules record = t
     mkPosting number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
       let mdefaultcurrency = rule "default-currency"
           currency = fromMaybe (fromMaybe "" mdefaultcurrency) $
-                     fieldval ("currency"++number) `or` fieldval "currency"
+                     fieldval ("currency"++number) `withDefault` fieldval "currency"
           mamount = chooseAmount rules record currency amountFld amountInFld amountOutFld
           mbalance :: Maybe (Amount, GenericSourcePos) =
             fieldval balanceFld >>= parsebalance currency number
@@ -851,7 +856,7 @@ transactionFromCsvRecord sourcepos rules record = t
           maccount = T.pack <$> (fieldval accountFld
                                 -- XXX what's this needed for ? Test & document, or drop.
                                 -- Also, this the only place we interpolate in a keyword rule, I think.
-                                  `or` ruleval ("default-account" ++ number))
+                                  `withDefault` ruleval ("default-account" ++ number))
           -- figure out the account name to use for this posting, if any, and
           -- whether it is the default unknown account, which may be improved
           -- later, or an explicitly set account, which may not.
