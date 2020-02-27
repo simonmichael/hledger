@@ -83,29 +83,18 @@ renderHLine _ _ _ NoLine = []
 renderHLine pretty w h SingleLine = [renderHLine' pretty SingleLine w (horizontalBar pretty) h]
 renderHLine pretty w h DoubleLine = [renderHLine' pretty DoubleLine w (doubleHorizontalBar pretty) h]
 
-doubleCross :: Bool -> String
-doubleCross pretty = if pretty then "╬" else "++"
-
-doubleVerticalCross :: Bool -> String
-doubleVerticalCross pretty = if pretty then "╫" else "++"
-
-cross :: Bool -> Char
-cross pretty = if pretty then '┼' else '+'
-
 renderHLine' :: Bool -> Properties -> [Int] -> Char -> Header String -> String
-renderHLine' pretty prop is sep h = [ cross pretty, sep ] ++ coreLine ++ [sep, cross pretty]
+renderHLine' pretty prop is sep h = edge ++ sep : coreLine ++ sep : edge
  where
+  edge            = cross SingleLine prop
   coreLine        = concatMap helper $ flattenHeader $ zipHeader 0 is h
   helper          = either vsep dashes
   dashes (i,_)    = replicate i sep
-  vsep NoLine     = replicate 2 sep  -- match the double space sep in renderColumns
-  vsep SingleLine = sep : cross pretty : [sep]
-  vsep DoubleLine = sep : cross' ++ [sep]
-  cross' = case prop of
-     DoubleLine -> doubleCross pretty
-     _ -> doubleVerticalCross pretty
+  vsep v          = sep : cross v prop ++ [sep]
 
--- padLeft :: Int -> String -> String
--- padLeft l s = padding ++ s
---  where padding = replicate (l - length s) ' '
-
+  --    vertical   horizontal
+  cross SingleLine SingleLine = if pretty then "┼" else "+"
+  cross SingleLine DoubleLine = if pretty then "╪" else "+"
+  cross DoubleLine SingleLine = if pretty then "╫" else "++"
+  cross DoubleLine DoubleLine = if pretty then "╬" else "++"
+  cross _          _          = ""
