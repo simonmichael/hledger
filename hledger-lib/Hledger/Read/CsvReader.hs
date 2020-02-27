@@ -816,10 +816,8 @@ transactionFromCsvRecord sourcepos rules record = t
                     (either (balanceerror n str) id $
                       runParser (evalStateT (amountp <* eof) mempty) "" $
                       T.pack $ (currency++) $ simplifySign str
-                    ,nullsourcepos)  -- XXX parse position to show when assertion fails.
-                                     -- We don't know the posting's line number, but we
-                                     -- could show the csv record's line number, probably
-                                     -- more useful, though perhaps confusing.
+                    ,nullsourcepos)  -- XXX parse position to show when assertion fails,
+                                     -- the csv record's line number would be good
                 where
                   balanceerror n str err = error' $ unlines
                     ["error: could not parse \""++str++"\" as balance"++n++" amount"
@@ -829,24 +827,24 @@ transactionFromCsvRecord sourcepos rules record = t
                     ,"the parse error is:      "++customErrorBundlePretty err
                     ]
           comment = T.pack $ maybe "" render $ mfieldtemplate commentFld
-          maccount' = ((T.pack . render) <$>
-                        (mfieldtemplate accountFld `or` mdirective ("default-account" ++ number)))
+          maccount = ((T.pack . render) <$>
+                       (mfieldtemplate accountFld `or` mdirective ("default-account" ++ number)))
           -- figure out the account name to use for this posting, if any, and
-          -- whether it is the unknown account which may be improved later,
-          -- when we know the posting's final amount.
+          -- whether it is the default unknown account, which may be improved
+          -- later, or an explicitly set account, which may not.
           maccountAndIsFinal :: Maybe (AccountName, Bool) =
-            case maccount' of
+            case maccount of
               -- accountN is set to the empty string - no posting will be generated
               Just "" -> Nothing
-              -- accountN is set (possibly to "expenses:unknown" ! #1192) -
-              -- don't let it be changed.
+              -- accountN is set (possibly to "expenses:unknown"! cf #1192) -
+              -- mark it final
               Just a  -> Just (a, True)
               -- accountN is unset
               Nothing ->
                 case (mamount, mbalance) of
                   -- amountN is set, or implied by balanceN - set accountN to
-                  -- set to the default unknown account (expenses:unknown)
-                  -- and allow it to be improved later
+                  -- the default unknown account ("expenses:unknown") and
+                  -- allow it to be improved later
                   (Just _, _) -> Just (unknownExpenseAccount, False)
                   (_, Just _) -> Just (unknownExpenseAccount, False)
                   -- amountN is also unset - no posting will be generated
