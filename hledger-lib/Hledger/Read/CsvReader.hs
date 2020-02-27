@@ -392,7 +392,7 @@ data CsvRules = CsvRules {
     -- ^ top-level rules, as (keyword, value) pairs
   rcsvfieldindexes   :: [(CsvFieldName, CsvFieldIndex)],
     -- ^ csv field names and their column number, if declared by a fields list
-  rassignments       :: [(JournalFieldName, FieldTemplate)],
+  rassignments       :: [(HledgerFieldName, FieldTemplate)],
     -- ^ top-level assignments to hledger fields, as (field name, value template) pairs
   rconditionalblocks :: [ConditionalBlock]
     -- ^ conditional blocks, which containing additional assignments/rules to apply to matched csv records
@@ -408,8 +408,9 @@ type CsvFieldName     = String
 type CsvFieldIndex    = Int
 -- | Percent symbol followed by a CSV field name or column number. Eg: %date, %1.
 type CsvFieldReference = String
--- | One of the standard hledger field names that can be assigned to.
-type JournalFieldName = String  -- XXX rename to HledgerFieldName
+-- | One of the standard hledger fields or pseudo-fields that can be assigned to.
+-- Eg date, account1, amount, amount1-in, date-format.
+type HledgerFieldName = String
 -- | A text value to be assigned to a hledger field, possibly
 -- containing csv field references to be interpolated.
 type FieldTemplate    = String
@@ -433,7 +434,7 @@ data Matcher =
 -- a field assignment, and executed in validateCsv. XXX)
 data ConditionalBlock = CB {
    cbMatchers    :: [Matcher]
-  ,cbAssignments :: [(JournalFieldName, FieldTemplate)]
+  ,cbAssignments :: [(HledgerFieldName, FieldTemplate)]
   } deriving (Show, Eq)
 
 defrules = CsvRules {
@@ -446,7 +447,7 @@ defrules = CsvRules {
 addDirective :: (DirectiveName, String) -> CsvRules -> CsvRules
 addDirective d r = r{rdirectives=d:rdirectives r}
 
-addAssignment :: (JournalFieldName, FieldTemplate) -> CsvRules -> CsvRules
+addAssignment :: (HledgerFieldName, FieldTemplate) -> CsvRules -> CsvRules
 addAssignment a r = r{rassignments=a:rassignments r}
 
 setIndexesAndAssignmentsFromList :: [CsvFieldName] -> CsvRules -> CsvRules
@@ -602,7 +603,7 @@ quotedfieldnamep = do
 barefieldnamep :: CsvRulesParser String
 barefieldnamep = some $ noneOf (" \t\n,;#~" :: [Char])
 
-fieldassignmentp :: CsvRulesParser (JournalFieldName, FieldTemplate)
+fieldassignmentp :: CsvRulesParser (HledgerFieldName, FieldTemplate)
 fieldassignmentp = do
   lift $ dbgparse 3 "trying fieldassignmentp"
   f <- journalfieldnamep
@@ -800,8 +801,8 @@ transactionFromCsvRecord sourcepos rules record = t
     -- Helper to generate posting N, if sufficient fields have been assigned
     -- for it. N is provided as a string.
     mkPosting ::
-      String -> JournalFieldName -> JournalFieldName -> JournalFieldName ->
-      JournalFieldName -> JournalFieldName -> JournalFieldName ->
+      String -> HledgerFieldName -> HledgerFieldName -> HledgerFieldName ->
+      HledgerFieldName -> HledgerFieldName -> HledgerFieldName ->
       Maybe (Posting, Bool)
     mkPosting number accountFld amountFld amountInFld amountOutFld balanceFld commentFld =
       let currency = maybe (fromMaybe "" mdefaultcurrency) render $
@@ -1048,14 +1049,14 @@ negateStr s       = '-':s
 showRecord :: CsvRecord -> String
 showRecord r = "the CSV record is:       "++intercalate "," (map show r)
 
--- | Given the conversion rules, a CSV record and a journal entry field name, find
--- the template value ultimately assigned to this field, if any,
--- by a field assignment at top level or in a conditional block matching this record.
+-- | Given the conversion rules, a CSV record and a hledger field name, find
+-- the template value ultimately assigned to this field, if any, by a field
+-- assignment at top level or in a conditional block matching this record.
 --
 -- Note conditional blocks' patterns are matched against an approximation of the
 -- CSV record: all the field values, without enclosing quotes, comma-separated.
 --
-getEffectiveAssignment :: CsvRules -> CsvRecord -> JournalFieldName -> Maybe FieldTemplate
+getEffectiveAssignment :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe FieldTemplate
 getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
   where
     -- all active assignments to field f, in order
