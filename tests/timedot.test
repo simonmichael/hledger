@@ -1,0 +1,18 @@
+# 1. basic timedot entry
+<
+# comment
+
+; another comment
+2020-01-01
+ a:aa  1
+ b:bb  2
+
+$ hledger -f- print
+2020-01-01 *
+    (a:aa)            1.00
+
+2020-01-01 *
+    (b:bb)            2.00
+
+>=0
+
