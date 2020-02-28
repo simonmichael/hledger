@@ -84,6 +84,7 @@ import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
 import "base-compat-batteries" Data.List.Compat
 import Data.Default
+import Data.Foldable (asum)
 import Data.Maybe
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -654,7 +655,7 @@ advancetonthweekday n wd s =
 
 -- -- | Parse a couple of date-time string formats to a time type.
 -- parsedatetimeM :: String -> Maybe LocalTime
--- parsedatetimeM s = firstJust [
+-- parsedatetimeM s = asum [
 --     parseTime defaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
 --     parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
 --     ]
@@ -672,9 +673,9 @@ parsetime =
 -- `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`, with leading zeros required.
 -- For internal use, not quite the same as the journal's "simple dates".
 parsedateM :: String -> Maybe Day
-parsedateM s = firstJust [
-     parsetime defaultTimeLocale "%Y/%m/%d" s,
+parsedateM s = asum [
      parsetime defaultTimeLocale "%Y-%m-%d" s,
+     parsetime defaultTimeLocale "%Y/%m/%d" s,
      parsetime defaultTimeLocale "%Y.%m.%d" s
      ]
 

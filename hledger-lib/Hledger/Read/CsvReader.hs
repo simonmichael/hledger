@@ -1152,7 +1152,7 @@ csvFieldValue rules record fieldname = do
 -- the "simple date" formats (YYYY/MM/DD, YYYY-MM-DD, YYYY.MM.DD, leading
 -- zeroes optional).
 parseDateWithCustomOrDefaultFormats :: Maybe DateFormat -> String -> Maybe Day
-parseDateWithCustomOrDefaultFormats mformat s = firstJust $ map parsewith formats
+parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith formats
   where
     parsetime =
 #if MIN_VERSION_time(1,5,0)

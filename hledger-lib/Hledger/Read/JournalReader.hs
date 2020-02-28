@@ -86,6 +86,7 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (get,modify',put)
 import Control.Monad.Trans.Class (lift)
+import Data.Either (isRight)
 import qualified Data.Map.Strict as M
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
