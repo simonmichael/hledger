@@ -46,13 +46,12 @@ import Text.Megaparsec.Char
 
 import Hledger.Data
 import Hledger.Read.Common
-import Hledger.Utils hiding (traceParse)
+import Hledger.Utils
 
--- easier to toggle this here sometimes
--- import qualified Hledger.Utils (parsertrace)
--- parsertrace = Hledger.Utils.parsertrace
-traceParse :: Monad m => a -> m a
-traceParse = return
+-- traceparse :: Monad m => a -> m a
+-- traceparse = return
+traceparse :: String -> JournalParser m ()
+traceparse = lift.traceParse
 
 reader :: Reader
 reader = Reader
@@ -73,7 +72,7 @@ timedotfilep = do many timedotfileitemp
     where
       timedotfileitemp :: JournalParser m ()
       timedotfileitemp = do
-        traceParse "timedotfileitemp"
+        traceparse "timedotfileitemp"
         choice [
           void $ lift emptyorcommentlinep
          ,timedotdayp >>= \ts -> modify' (addTransactions ts)
@@ -91,7 +90,7 @@ addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 -- @
 timedotdayp :: JournalParser m [Transaction]
 timedotdayp = do
-  traceParse " timedotdayp"
+  traceparse " timedotdayp"
   d <- datep <* lift eolof
   es <- catMaybes <$> many (const Nothing <$> try (lift emptyorcommentlinep) <|>
                             Just <$> (notFollowedBy datep >> timedotentryp))
@@ -103,7 +102,7 @@ timedotdayp = do
 -- @
 timedotentryp :: JournalParser m Transaction
 timedotentryp = do
-  traceParse "  timedotentryp"
+  traceparse "  timedotentryp"
   pos <- genericSourcePos <$> getSourcePos
   lift (skipMany spacenonewline)
   a <- modifiedaccountnamep
