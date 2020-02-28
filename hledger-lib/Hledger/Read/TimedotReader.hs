@@ -1,3 +1,6 @@
+-- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
+-- ** doc
+-- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
 A reader for the "timedot" file format.
@@ -23,8 +26,15 @@ inc.client1   .... .... ..
 
 -}
 
-{-# LANGUAGE OverloadedStrings, PackageImports #-}
+-- ** language
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 
+-- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+-- ** exports
 module Hledger.Read.TimedotReader (
   -- * Reader
   reader,
@@ -32,6 +42,8 @@ module Hledger.Read.TimedotReader (
   timedotfilep,
 )
 where
+
+-- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import Control.Monad
@@ -48,10 +60,7 @@ import Hledger.Data
 import Hledger.Read.Common
 import Hledger.Utils
 
--- traceparse :: Monad m => a -> m a
--- traceparse = return
-traceparse :: String -> JournalParser m ()
-traceparse = lift.traceParse
+-- ** reader
 
 reader :: Reader
 reader = Reader
@@ -64,6 +73,15 @@ reader = Reader
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse = parseAndFinaliseJournal' timedotfilep
+
+-- ** utilities
+
+-- traceparse :: Monad m => a -> m a
+-- traceparse = return
+traceparse :: String -> JournalParser m ()
+traceparse = lift.traceParse
+
+-- ** parsers
 
 timedotfilep :: JournalParser m ParsedJournal
 timedotfilep = do many timedotfileitemp
