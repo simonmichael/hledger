@@ -1,23 +1,36 @@
---- * doc
--- Lines beginning "--- *" are collapsible orgstruct nodes. Emacs users,
--- (add-hook 'haskell-mode-hook
---   (lambda () (set-variable 'orgstruct-heading-prefix-regexp "--- " t))
---   'orgstruct-mode)
--- and press TAB on nodes to expand/collapse.
-
+-- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
+-- ** doc
+-- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
-Some common parsers and helpers used by several readers.
+File reading/parsing utilities used by multiple readers, and a good
+amount of the parsers for journal format, to avoid import cycles
+when JournalReader imports other readers.
+
 Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 
 -}
 
---- * module
-{-# LANGUAGE CPP, BangPatterns, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies #-}
+-- ** language
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NoMonoLocalBinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeFamilies #-}
 
+-- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+-- ** exports
 module Hledger.Read.Common (
   Reader (..),
   InputOpts (..),
@@ -99,7 +112,8 @@ module Hledger.Read.Common (
   tests_Common,
 )
 where
---- * imports
+
+-- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
@@ -130,8 +144,9 @@ import Text.Megaparsec.Custom
 import Hledger.Data
 import Hledger.Utils
 
--- $setup
--- >>> :set -XOverloadedStrings
+-- ** types
+
+-- main types; a few more below
 
 -- | A hledger journal reader is a triple of storage format name, a
 -- detector of that format, and a parser from that format to Journal.
@@ -191,7 +206,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,auto_              = boolopt "auto" rawopts
   }
 
---- * parsing utilities
+-- ** parsing utilities
 
 -- | Run a text parser in the identity monad. See also: parseWithState.
 runTextParser, rtp
@@ -226,9 +241,9 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ 
             | (unPos $ sourceColumn p') == 1 = unPos (sourceLine p') - 1
             | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
 
-
--- | Given a megaparsec ParsedJournal parser, input options, file
--- path and file content: parse and finalise a Journal, or give an error.
+-- | Given a parser to ParsedJournal, input options, file path and
+-- content: run the parser on the content, and finalise the result to
+-- get a Journal; or throw an error.
 parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser iopts f txt = do
@@ -376,9 +391,14 @@ journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
   -- append, unlike the other fields, even though we do a final reverse,
   -- to compensate for additional reversal due to including/monoid-concatting
 
---- * parsers
+-- A version of `match` that is strict in the returned text
+match' :: TextParser m a -> TextParser m (Text, a)
+match' p = do
+  (!txt, p) <- match p
+  pure (txt, p)
 
---- ** transaction bits
+-- ** parsers
+-- *** transaction bits
 
 statusp :: TextParser m Status
 statusp =
@@ -401,7 +421,7 @@ descriptionp :: TextParser m Text
 descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
   where semicolonOrNewline c = c == ';' || c == '\n'
 
---- ** dates
+-- *** dates
 
 -- | Parse a date in YYYY-MM-DD format.
 -- Slash (/) and period (.) are also allowed as separators.
@@ -519,7 +539,7 @@ secondarydatep :: Day -> TextParser m Day
 secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
   where primaryYear = first3 $ toGregorian primaryDate
 
---- ** account names
+-- *** account names
 
 -- | Parse an account name (plus one following space if present),
 -- then apply any parent account prefix and/or account aliases currently in effect,
@@ -567,7 +587,7 @@ singlespacedtextsatisfyingp pred = do
 singlespacep :: TextParser m ()
 singlespacep = void spacenonewline *> notFollowedBy spacenonewline
 
---- ** amounts
+-- *** amounts
 
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
@@ -970,7 +990,7 @@ digitgroupp = label "digits"
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
     step (!l, !a) c = (l+1, a*10 + fromIntegral (digitToInt c))
 
---- ** comments
+-- *** comments
 
 multilinecommentp :: TextParser m ()
 multilinecommentp = startComment *> anyLine `skipManyTill` endComment
@@ -1224,9 +1244,6 @@ commenttagsanddatesp mYear = do
 
 {-# INLINABLE commenttagsanddatesp #-}
 
-
---- ** bracketed dates
-
 -- | Parse Ledger-style bracketed posting dates ([DATE=DATE2]), as
 -- "date" and/or "date2" tags. Anything that looks like an attempt at
 -- this (a square-bracketed sequence of 0123456789/-.= containing at
@@ -1279,16 +1296,7 @@ bracketeddatetagsp mYear1 = do
 
 {-# INLINABLE bracketeddatetagsp #-}
 
-
---- ** helper parsers
-
--- A version of `match` that is strict in the returned text
-match' :: TextParser m a -> TextParser m (Text, a)
-match' p = do
-  (!txt, p) <- match p
-  pure (txt, p)
-
---- * tests
+-- ** tests
 
 tests_Common = tests "Common" [
 
