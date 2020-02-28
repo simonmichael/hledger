@@ -49,6 +49,7 @@ import qualified Control.Exception as C
 import Control.Monad (when)
 import "mtl" Control.Monad.Except (runExceptT)
 import Data.Default
+import Data.Foldable (asum)
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -170,7 +171,7 @@ readJournalFile :: InputOpts -> PrefixedFilePath -> IO (Either String Journal)
 readJournalFile iopts prefixedfile = do
   let
     (mfmt, f) = splitReaderPrefix prefixedfile
-    iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
+    iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
   requireJournalFileExists f
   t <- readFileOrStdinPortably f
     -- <- T.readFile f  -- or without line ending translation, for testing

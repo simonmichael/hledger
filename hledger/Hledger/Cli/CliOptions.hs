@@ -73,6 +73,7 @@ import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.Char
 import Data.Default
+import Data.Either (isRight)
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.Extra (nubSort)

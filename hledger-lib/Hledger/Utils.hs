@@ -146,13 +146,6 @@ getCurrentZonedTime = do
 
 instance Default Bool where def = False
 
-isLeft :: Either a b -> Bool
-isLeft (Left _) = True
-isLeft _        = False
-
-isRight :: Either a b -> Bool
-isRight = not . isLeft
-
 -- | Apply a function the specified number of times,
 -- which should be > 0 (otherwise does nothing).
 -- Possibly uses O(n) stack ?
@@ -177,10 +170,6 @@ expandHomePath = \case
     ('~':'\\':p) -> (</> p) <$> getHomeDirectory
     ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
     p            -> return p
-
-firstJust ms = case dropWhile (==Nothing) ms of
-    [] -> Nothing
-    (md:_) -> md
 
 -- | Read text from a file,
 -- converting any \r\n line endings to \n,,

@@ -23,6 +23,7 @@ import Control.Monad.Trans.Class
 import Control.Monad.State.Strict (evalState, evalStateT)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
+import Data.Either (isRight)
 import Data.Functor.Identity (Identity(..))
 import "base-compat-batteries" Data.List.Compat
 import qualified Data.Set as S
