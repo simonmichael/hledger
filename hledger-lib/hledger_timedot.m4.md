@@ -22,11 +22,14 @@ so it could be used to represent dated quantities other than time.
 In the docs below we'll assume it's time.
 
 A timedot file contains a series of day entries.
-A day entry begins with a non-indented hledger-style [simple date](journal.html#simple-dates) (see hledger_journal(5)).
+A day entry begins with a non-indented hledger-style
+[simple date](journal.html#simple-dates) (Y-M-D, Y/M/D, Y.M.D..)
+Any additional text on the same line is used as a transaction description for this day.
 
 This is followed by optionally-indented timelog items for that day, one per line.
 Each timelog item is a note, usually a hledger:style:account:name representing a time category,
 followed by two or more spaces, and a quantity.
+Each timelog item generates a hledger transaction.
 
 Quantities can be written as:
 

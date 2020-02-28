@@ -53,6 +53,7 @@ import Data.Char (isSpace)
 import Data.List (foldl')
 import Data.Maybe
 import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 
@@ -115,10 +116,11 @@ timedotdayp :: JournalParser m [Transaction]
 timedotdayp = do
   traceparse " timedotdayp"
   lift $ optional orgheadingprefixp
-  d <- datep <* lift eolof
+  d <- datep
+  daydesc <- strip <$> lift restofline
   es <- catMaybes <$> many (const Nothing <$> try (lift emptyorcommentlinep') <|>
                             Just <$> (notFollowedBy datep >> timedotentryp))
-  return $ map (\t -> t{tdate=d}) es -- <$> many timedotentryp
+  return $ map (\t -> t{tdate=d, tdescription=T.pack daydesc}) es -- <$> many timedotentryp
 
 -- | Parse a single timedot entry to one (dateless) transaction.
 -- @
