@@ -127,7 +127,7 @@ spacenonewline :: (Stream s, Char ~ Token s) => ParsecT CustomErr s m Char
 spacenonewline = satisfy isNonNewlineSpace
 
 restofline :: TextParser m String
-restofline = anySingle `manyTill` newline
+restofline = anySingle `manyTill` eolof
 
 eolof :: TextParser m ()
 eolof = (newline >> return ()) <|> eof
