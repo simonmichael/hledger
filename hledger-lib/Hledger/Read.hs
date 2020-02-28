@@ -1,14 +1,25 @@
+-- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
+-- ** doc
+-- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
 This is the entry point to hledger's reading system, which can read
 Journals from various data formats. Use this module if you want to parse
 journal data or read journal files. Generally it should not be necessary
 to import modules below this one.
+
 -}
 
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
+-- ** language
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
+-- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+-- ** exports
 module Hledger.Read (
 
   -- * Journal files
@@ -35,6 +46,7 @@ module Hledger.Read (
 
 ) where
 
+-- ** imports
 import Control.Arrow (right)
 import qualified Control.Exception as C
 import Control.Monad (when)
@@ -59,17 +71,19 @@ import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
 import Hledger.Data.Types
 import Hledger.Read.Common
 import Hledger.Read.JournalReader   as JournalReader
--- import qualified Hledger.Read.LedgerReader    as LedgerReader
 import qualified Hledger.Read.TimedotReader   as TimedotReader
 import qualified Hledger.Read.TimeclockReader as TimeclockReader
 import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
 
+-- ** environment
 
 journalEnvVar           = "LEDGER_FILE"
 journalEnvVar2          = "LEDGER"
 journalDefaultFilename  = ".hledger.journal"
+
+-- ** journal reading
 
 -- The available journal readers, each one handling a particular data format.
 readers :: [Reader]
@@ -84,9 +98,49 @@ readers = [
 readerNames :: [String]
 readerNames = map rFormat readers
 
--- | A file path optionally prefixed by a reader name and colon
--- (journal:, csv:, timedot:, etc.).
-type PrefixedFilePath = FilePath
+-- | Read a Journal from the given text trying all readers in turn, or throw an error.
+readJournal' :: Text -> IO Journal
+readJournal' t = readJournal def Nothing t >>= either error' return
+
+-- | @readJournal iopts mfile txt@
+--
+-- Read a Journal from some text, or return an error message.
+--
+-- The reader (data format) is chosen based on a recognised file name extension in @mfile@ (if provided).
+-- If it does not identify a known reader, all built-in readers are tried in turn
+-- (returning the first one's error message if none of them succeed).
+--
+-- Input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
+-- enable or disable balance assertion checking and automated posting generation.
+--
+readJournal :: InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
+readJournal iopts mfile txt =
+  tryReaders iopts mfile specifiedorallreaders txt
+  where
+    specifiedorallreaders = maybe stablereaders (:[]) $ findReader (mformat_ iopts) mfile
+    stablereaders = filter (not.rExperimental) readers
+
+-- | Try to parse the given text to a Journal using each reader in turn,
+-- returning the first success, or if all of them fail, the first error message.
+--
+-- Input options specify CSV conversion rules file to help convert CSV data,
+-- enable or disable balance assertion checking and automated posting generation.
+--
+tryReaders :: InputOpts -> Maybe FilePath -> [Reader] -> Text -> IO (Either String Journal)
+tryReaders iopts mpath readers txt = firstSuccessOrFirstError [] readers
+  where
+    -- TODO: #1087 when parsing csv with -f -, if the csv (rules) parser fails, 
+    -- we would rather see that error, not the one from the journal parser
+    firstSuccessOrFirstError :: [String] -> [Reader] -> IO (Either String Journal)
+    firstSuccessOrFirstError [] []        = return $ Left "no readers found"
+    firstSuccessOrFirstError errs (r:rs) = do
+      dbg1IO "trying reader" (rFormat r)
+      result <- (runExceptT . (rParser r) iopts path) txt
+      dbg1IO "reader result" $ either id show result
+      case result of Right j -> return $ Right j                        -- success!
+                     Left e  -> firstSuccessOrFirstError (errs++[e]) rs -- keep trying
+    firstSuccessOrFirstError (e:_) []    = return $ Left e              -- none left, return first error
+    path = fromMaybe "(string)" mpath
 
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
@@ -111,6 +165,57 @@ defaultJournalPath = do
       defaultJournalPath = do
                   home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
                   return $ home </> journalDefaultFilename
+
+-- | A file path optionally prefixed by a reader name and colon
+-- (journal:, csv:, timedot:, etc.).
+type PrefixedFilePath = FilePath
+
+-- | Read a Journal from each specified file path and combine them into one.
+-- Or, return the first error message.
+--
+-- Combining Journals means concatenating them, basically.
+-- The parse state resets at the start of each file, which means that
+-- directives & aliases do not affect subsequent sibling or parent files.
+-- They do affect included child files though.
+-- Also the final parse state saved in the Journal does span all files.
+readJournalFiles :: InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
+readJournalFiles iopts =
+  (right mconcat1 . sequence <$>) . mapM (readJournalFile iopts)
+  where
+    mconcat1 :: Monoid t => [t] -> t
+    mconcat1 [] = mempty
+    mconcat1 x  = foldr1 mappend x
+
+-- | Read a Journal from this file, or from stdin if the file path is -,
+-- or return an error message. The file path can have a READER: prefix.
+--
+-- The reader (data format) to use is determined from (in priority order):
+-- the @mformat_@ specified in the input options, if any;
+-- the file path's READER: prefix, if any;
+-- a recognised file name extension.
+-- if none of these identify a known reader, all built-in readers are tried in turn.
+--
+-- The input options can also configure balance assertion checking, automated posting
+-- generation, a rules file for converting CSV data, etc.
+readJournalFile :: InputOpts -> PrefixedFilePath -> IO (Either String Journal)
+readJournalFile iopts prefixedfile = do
+  let
+    (mfmt, f) = splitReaderPrefix prefixedfile
+    iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
+  requireJournalFileExists f
+  t <- readFileOrStdinPortably f
+    -- <- T.readFile f  -- or without line ending translation, for testing
+  ej <- readJournal iopts' (Just f) t
+  case ej of
+    Left e  -> return $ Left e
+    Right j | new_ iopts -> do
+      ds <- previousLatestDates f
+      let (newj, newds) = journalFilterSinceLatestDates ds j
+      when (new_save_ iopts && not (null newds)) $ saveLatestDates newds f
+      return $ Right newj
+    Right j -> return $ Right j
+
+-- ** utilities
 
 -- | If a filepath is prefixed by one of the reader names and a colon,
 -- split that off. Eg "csv:-" -> (Just "csv", "-").
@@ -161,10 +266,6 @@ newJournalContent = do
   d <- getCurrentDay
   return $ printf "; journal created %s by hledger\n" (show d)
 
--- | Read a Journal from the given text trying all readers in turn, or throw an error.
-readJournal' :: Text -> IO Journal
-readJournal' t = readJournal def Nothing t >>= either error' return
-
 -- | @findReader mformat mpath@
 --
 -- Find the reader named by @mformat@, if provided.
@@ -180,51 +281,6 @@ findReader Nothing (Just path) =
   where
     (prefix,path') = splitReaderPrefix path
     ext            = drop 1 $ takeExtension path'
-
--- | Read a Journal from each specified file path and combine them into one.
--- Or, return the first error message.
---
--- Combining Journals means concatenating them, basically.
--- The parse state resets at the start of each file, which means that
--- directives & aliases do not affect subsequent sibling or parent files.
--- They do affect included child files though.
--- Also the final parse state saved in the Journal does span all files.
-readJournalFiles :: InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
-readJournalFiles iopts =
-  (right mconcat1 . sequence <$>) . mapM (readJournalFile iopts)
-  where
-    mconcat1 :: Monoid t => [t] -> t
-    mconcat1 [] = mempty
-    mconcat1 x  = foldr1 mappend x
-
--- | Read a Journal from this file, or from stdin if the file path is -,
--- or return an error message. The file path can have a READER: prefix.
---
--- The reader (data format) to use is determined from (in priority order):
--- the @mformat_@ specified in the input options, if any;
--- the file path's READER: prefix, if any;
--- a recognised file name extension.
--- if none of these identify a known reader, all built-in readers are tried in turn.
---
--- The input options can also configure balance assertion checking, automated posting
--- generation, a rules file for converting CSV data, etc.
-readJournalFile :: InputOpts -> PrefixedFilePath -> IO (Either String Journal)
-readJournalFile iopts prefixedfile = do
-  let
-    (mfmt, f) = splitReaderPrefix prefixedfile
-    iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
-  requireJournalFileExists f
-  t <- readFileOrStdinPortably f
-    -- <- T.readFile f  -- or without line ending translation, for testing
-  ej <- readJournal iopts' (Just f) t
-  case ej of
-    Left e  -> return $ Left e
-    Right j | new_ iopts -> do
-      ds <- previousLatestDates f
-      let (newj, newds) = journalFilterSinceLatestDates ds j
-      when (new_save_ iopts && not (null newds)) $ saveLatestDates newds f
-      return $ Right newj
-    Right j -> return $ Right j
 
 -- A "LatestDates" is zero or more copies of the same date,
 -- representing the latest transaction date read from a file,
@@ -281,84 +337,10 @@ journalFilterSinceLatestDates ds@(d:_) j = (j', ds')
     j'                    = j{jtxns=newsamedatets++laterts}
     ds'                   = latestDates $ map tdate $ samedatets++laterts
 
--- | @readJournal iopts mfile txt@
---
--- Read a Journal from some text, or return an error message.
---
--- The reader (data format) is chosen based on a recognised file name extension in @mfile@ (if provided).
--- If it does not identify a known reader, all built-in readers are tried in turn
--- (returning the first one's error message if none of them succeed).
---
--- Input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
--- enable or disable balance assertion checking and automated posting generation.
---
-readJournal :: InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
-readJournal iopts mfile txt =
-  tryReaders iopts mfile specifiedorallreaders txt
-  where
-    specifiedorallreaders = maybe stablereaders (:[]) $ findReader (mformat_ iopts) mfile
-    stablereaders = filter (not.rExperimental) readers
-
--- | @tryReaders iopts readers path t@
---
--- Try to parse the given text to a Journal using each reader in turn,
--- returning the first success, or if all of them fail, the first error message.
---
--- Input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
--- enable or disable balance assertion checking and automated posting generation.
---
-tryReaders :: InputOpts -> Maybe FilePath -> [Reader] -> Text -> IO (Either String Journal)
-tryReaders iopts mpath readers txt = firstSuccessOrFirstError [] readers
-  where
-    -- TODO: #1087 when parsing csv with -f -, if the csv (rules) parser fails, 
-    -- we would rather see that error, not the one from the journal parser
-    firstSuccessOrFirstError :: [String] -> [Reader] -> IO (Either String Journal)
-    firstSuccessOrFirstError [] []        = return $ Left "no readers found"
-    firstSuccessOrFirstError errs (r:rs) = do
-      dbg1IO "trying reader" (rFormat r)
-      result <- (runExceptT . (rParser r) iopts path) txt
-      dbg1IO "reader result" $ either id show result
-      case result of Right j -> return $ Right j                        -- success!
-                     Left e  -> firstSuccessOrFirstError (errs++[e]) rs -- keep trying
-    firstSuccessOrFirstError (e:_) []    = return $ Left e              -- none left, return first error
-    path = fromMaybe "(string)" mpath
-
----
-
-
--- tests
+-- ** tests
 
 tests_Read = tests "Read" [
    tests_Common
   ,tests_CsvReader
   ,tests_JournalReader
   ]
-
---samplejournal = readJournal' $ T.unlines
--- ["2008/01/01 income"
--- ,"    assets:bank:checking  $1"
--- ,"    income:salary"
--- ,""
--- ,"comment"
--- ,"multi line comment here"
--- ,"for testing purposes"
--- ,"end comment"
--- ,""
--- ,"2008/06/01 gift"
--- ,"    assets:bank:checking  $1"
--- ,"    income:gifts"
--- ,""
--- ,"2008/06/02 save"
--- ,"    assets:bank:saving  $1"
--- ,"    assets:bank:checking"
--- ,""
--- ,"2008/06/03 * eat & shop"
--- ,"    expenses:food      $1"
--- ,"    expenses:supplies  $1"
--- ,"    assets:cash"
--- ,""
--- ,"2008/12/31 * pay off"
--- ,"    liabilities:debts  $1"
--- ,"    assets:bank:checking"
--- ]
-
