@@ -16,3 +16,14 @@ $ hledger -f- print
 
 >=0
 
+# 2. Org mode headline prefixes are ignored.
+<
+* 2020-01-01
+** a:aa  1
+
+$ hledger -f- print
+2020-01-01 *
+    (a:aa)            1.00
+
+>=0
+

@@ -22,15 +22,16 @@ so it could be used to represent dated quantities other than time.
 In the docs below we'll assume it's time.
 
 A timedot file contains a series of day entries.
-A day entry begins with a date, and is followed by category/quantity pairs, one per line.
-Dates are hledger-style [simple dates](journal.html#simple-dates) (see hledger_journal(5)).
-Categories are hledger-style account names, optionally indented.
-As in a hledger journal, there must be at least two spaces between the category (account name) and the quantity.
+A day entry begins with a non-indented hledger-style [simple date](journal.html#simple-dates) (see hledger_journal(5)).
+
+This is followed by optionally-indented timelog items for that day, one per line.
+Each timelog item is a note, usually a hledger:style:account:name representing a time category,
+followed by two or more spaces, and a quantity.
 
 Quantities can be written as:
 
-- a sequence of dots (.) representing quarter hours.
-  Spaces may optionally be used for grouping and readability.
+- time dots: a sequence of dots (.) representing quarter hours.
+  Spaces may optionally be used for grouping.
   Eg: .... ..
 
 - an integral or decimal number, representing hours.
@@ -43,8 +44,21 @@ Quantities can be written as:
   The following equivalencies are assumed, currently:
   1m = 60s, 1h = 60m, 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
 
-Blank lines and lines beginning with #, ; or * are ignored.
-An example:
+There is some flexibility allowing notes and todo lists to be kept
+right in the time log, if needed:
+
+- Blank lines and lines beginning with `#` or `;` are ignored.
+
+- Lines not ending with a double-space and quantity are parsed as
+  items taking no time, which will not appear in balance reports by
+  default. (Add -E to see them.)
+
+- Org headline prefixes (stars followed by at least one space, at the
+  start of a line) are ignored, so a timedot file can also be an org
+  outline. Emacs org mode users can use these to add structure and
+  control which parts of the file are visible.
+
+Examples:
 
 ```timedot
 # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
@@ -58,13 +72,35 @@ inc:client1   .... ....
 biz:research  .
 ```
 
-Or with numbers:
-
 ```timedot
 2016/2/3
 inc:client1   4
 fos:hledger   3
 biz:research  1
+```
+
+```timedot
+* Time log
+** 2020-01-01
+*** adm:time  .
+*** adm:finance  .
+```
+
+```timedot
+** 2020-02-29
+*** DONE
+0700 yoga
+*** UNPLANNED
+*** BEGUN
+hom:chores
+ cleaning  ...
+ water plants
+  outdoor - one full watering can
+  indoor - light watering
+*** TODO
+adm:planning: trip
+*** LATER
+
 ```
 
 Reporting:
