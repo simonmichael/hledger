@@ -1,3 +1,6 @@
+-- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
+-- ** doc
+-- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
 A reader for CSV data, using an extra rules file to help interpret the data.
@@ -7,36 +10,40 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 -- Here's a command that will render them:
 -- stack haddock hledger-lib --fast --no-haddock-deps --haddock-arguments='--ignore-all-exports' --open
 
+-- ** language
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 
+-- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+-- ** exports
 module Hledger.Read.CsvReader (
   -- * Reader
   reader,
   -- * Misc.
-  CsvRecord,
-  CSV, Record, Field,
-  -- rules,
+  CSV, CsvRecord, CsvValue,
+  csvFileFor,
   rulesFileFor,
   parseRulesFile,
-  parseAndValidateCsvRules,
-  expandIncludes,
-  transactionFromCsvRecord,
   printCSV,
   -- * Tests
   tests_CsvReader,
 )
 where
+
+-- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
@@ -80,11 +87,13 @@ import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, finaliseJournal)
 
-type CSV = [Record]
+-- ** some types
 
-type Record = [Field]
+type CSV       = [CsvRecord]
+type CsvRecord = [CsvValue]
+type CsvValue  = String
 
-type Field = String
+-- ** reader
 
 reader :: Reader
 reader = Reader
@@ -110,185 +119,23 @@ parse iopts f t = do
                 -- better preemptively reverse them once more. XXX inefficient
                 pj' = journalReverse pj
 
--- | Parse special separator names TAB and SPACE, or return the first
--- character. Return Nothing on empty string
-parseSeparator :: String -> Maybe Char
-parseSeparator = specials . map toLower
-  where specials "space" = Just ' '
-        specials "tab"   = Just '\t'
-        specials (x:_)   = Just x
-        specials []      = Nothing
+-- ** reading rules files
+-- *** rules utilities
 
--- | Read a Journal from the given CSV data (and filename, used for error
--- messages), or return an error. Proceed as follows:
---
--- 1. parse CSV conversion rules from the specified rules file, or from
---    the default rules file for the specified CSV file, if it exists,
---    or throw a parse error; if it doesn't exist, use built-in default rules
---
--- 2. parse the CSV data, or throw a parse error
---
--- 3. convert the CSV records to transactions using the rules
---
--- 4. if the rules file didn't exist, create it with the default rules and filename
---
--- 5. return the transactions as a Journal
--- 
-readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
-readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv mrulesfile csvfile csvdata =
- handle (\(e::IOException) -> return $ Left $ show e) $ do
+-- Not used by hledger; just for lib users, 
+-- | An pure-exception-throwing IO action that parses this file's content
+-- as CSV conversion rules, interpolating any included files first,
+-- and runs some extra validation checks.
+parseRulesFile :: FilePath -> ExceptT String IO CsvRules
+parseRulesFile f =
+  liftIO (readFilePortably f >>= expandIncludes (takeDirectory f))
+    >>= either throwError return . parseAndValidateCsvRules f
 
-  -- make and throw an IO exception.. which we catch and convert to an Either above ?
-  let throwerr = throw . userError
-
-  -- parse the csv rules
-  let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
-  rulesfileexists <- doesFileExist rulesfile
-  rulestext <-
-    if rulesfileexists
-    then do
-      dbg1IO "using conversion rules file" rulesfile
-      readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
-    else
-      return $ defaultRulesText rulesfile
-  rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
-  dbg2IO "rules" rules
-
-  -- parse the skip directive's value, if any
-  let skiplines = case getDirective "skip" rules of
-                    Nothing -> 0
-                    Just "" -> 1
-                    Just s  -> readDef (throwerr $ "could not parse skip value: " ++ show s) s
-
-  -- parse csv
-  -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
-  let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
-  let separator = fromMaybe ',' (getDirective "separator" rules >>= parseSeparator)
-  dbg2IO "separator" separator
-  records <- (either throwerr id .
-              dbg2 "validateCsv" . validateCsv rules skiplines .
-              dbg2 "parseCsv")
-             `fmap` parseCsv separator parsecfilename csvdata
-  dbg1IO "first 3 csv records" $ take 3 records
-
-  -- identify header lines
-  -- let (headerlines, datalines) = identifyHeaderLines records
-  --     mfieldnames = lastMay headerlines
-
-  let
-    -- convert CSV records to transactions
-    txns = snd $ mapAccumL
-                   (\pos r ->
-                      let
-                        SourcePos name line col = pos
-                        line' = (mkPos . (+1) . unPos) line
-                        pos' = SourcePos name line' col
-                      in
-                        (pos, transactionFromCsvRecord pos' rules r)
-                   )
-                   (initialPos parsecfilename) records
-
-    -- Ensure transactions are ordered chronologically.
-    -- First, if the CSV records seem to be most-recent-first (because
-    -- there's an explicit "newest-first" directive, or there's more
-    -- than one date and the first date is more recent than the last):
-    -- reverse them to get same-date transactions ordered chronologically.
-    txns' =
-      (if newestfirst || mseemsnewestfirst == Just True then reverse else id) txns
-      where
-        newestfirst = dbg3 "newestfirst" $ isJust $ getDirective "newest-first" rules
-        mseemsnewestfirst = dbg3 "mseemsnewestfirst" $
-          case nub $ map tdate txns of
-            ds | length ds > 1 -> Just $ head ds > last ds
-            _                  -> Nothing
-    -- Second, sort by date.
-    txns'' = sortBy (comparing tdate) txns'
-
-  when (not rulesfileexists) $ do
-    dbg1IO "creating conversion rules file" rulesfile
-    writeFile rulesfile $ T.unpack rulestext
-
-  return $ Right nulljournal{jtxns=txns''}
-
-parseCsv :: Char -> FilePath -> Text -> IO (Either String CSV)
-parseCsv separator filePath csvdata =
-  case filePath of
-    "-" -> liftM (parseCassava separator "(stdin)") T.getContents
-    _   -> return $ parseCassava separator filePath csvdata
-
-parseCassava :: Char -> FilePath -> Text -> Either String CSV
-parseCassava separator path content =
-  either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
-  CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path $
-  BL.fromStrict $ T.encodeUtf8 content
-
-decodeOptions :: Char -> Cassava.DecodeOptions
-decodeOptions separator = Cassava.defaultDecodeOptions {
-                      Cassava.decDelimiter = fromIntegral (ord separator)
-                    }
-
-parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
-parseResultToCsv = toListList . unpackFields
-    where
-        toListList = toList . fmap toList
-        unpackFields  = (fmap . fmap) (T.unpack . T.decodeUtf8)
-
-printCSV :: CSV -> String
-printCSV records = unlined (printRecord `map` records)
-    where printRecord = concat . intersperse "," . map printField
-          printField f = "\"" ++ concatMap escape f ++ "\""
-          escape '"' = "\"\""
-          escape x = [x]
-          unlined = concat . intersperse "\n"
-
--- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]
-validateCsv _ _           (Left err) = Left err
-validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ drop numhdrlines $ filternulls rs
-  where
-    filternulls = filter (/=[""])
-    skipCount r =
-      case (getEffectiveAssignment rules r "end", getEffectiveAssignment rules r "skip") of
-        (Nothing, Nothing) -> Nothing
-        (Just _, _) -> Just maxBound
-        (Nothing, Just "") -> Just 1
-        (Nothing, Just x) -> Just (read x)
-    applyConditionalSkips [] = []
-    applyConditionalSkips (r:rest) =
-      case skipCount r of
-        Nothing -> r:(applyConditionalSkips rest)
-        Just cnt -> applyConditionalSkips (drop (cnt-1) rest)
-    validate [] = Right []
-    validate rs@(_first:_)
-      | isJust lessthan2 = let r = fromJust lessthan2 in
-          Left $ printf "CSV record %s has less than two fields" (show r)
-      | otherwise        = Right rs
-      where
-        lessthan2 = headMay $ filter ((<2).length) rs
-
--- -- | The highest (0-based) field index referenced in the field
--- -- definitions, or -1 if no fields are defined.
--- maxFieldIndex :: CsvRules -> Int
--- maxFieldIndex r = maximumDef (-1) $ catMaybes [
---                    dateField r
---                   ,statusField r
---                   ,codeField r
---                   ,amountField r
---                   ,amountInField r
---                   ,amountOutField r
---                   ,currencyField r
---                   ,accountField r
---                   ,account2Field r
---                   ,date2Field r
---                   ]
-
--- rulesFileFor :: CliOpts -> FilePath -> FilePath
--- rulesFileFor CliOpts{rules_file_=Just f} _ = f
--- rulesFileFor CliOpts{rules_file_=Nothing} csvfile = replaceExtension csvfile ".rules"
+-- | Given a CSV file path, what would normally be the corresponding rules file ?
 rulesFileFor :: FilePath -> FilePath
 rulesFileFor = (++ ".rules")
 
+-- | Given a CSV rules file path, what would normally be the corresponding CSV file ?
 csvFileFor :: FilePath -> FilePath
 csvFileFor = reverse . drop 6 . reverse
 
@@ -317,8 +164,143 @@ defaultRulesText csvfile = T.pack $ unlines
   ," account2 assets:bank:savings\n"
   ]
 
---------------------------------------------------------------------------------
--- Conversion rules parsing
+addDirective :: (DirectiveName, String) -> CsvRules -> CsvRules
+addDirective d r = r{rdirectives=d:rdirectives r}
+
+addAssignment :: (HledgerFieldName, FieldTemplate) -> CsvRules -> CsvRules
+addAssignment a r = r{rassignments=a:rassignments r}
+
+setIndexesAndAssignmentsFromList :: [CsvFieldName] -> CsvRules -> CsvRules
+setIndexesAndAssignmentsFromList fs r = addAssignmentsFromList fs . setCsvFieldIndexesFromList fs $ r
+
+setCsvFieldIndexesFromList :: [CsvFieldName] -> CsvRules -> CsvRules
+setCsvFieldIndexesFromList fs r = r{rcsvfieldindexes=zip fs [1..]}
+
+addAssignmentsFromList :: [CsvFieldName] -> CsvRules -> CsvRules
+addAssignmentsFromList fs r = foldl' maybeAddAssignment r journalfieldnames
+  where
+    maybeAddAssignment rules f = (maybe id addAssignmentFromIndex $ elemIndex f fs) rules
+      where
+        addAssignmentFromIndex i = addAssignment (f, "%"++show (i+1))
+
+addConditionalBlock :: ConditionalBlock -> CsvRules -> CsvRules
+addConditionalBlock b r = r{rconditionalblocks=b:rconditionalblocks r}
+
+getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
+getDirective directivename = lookup directivename . rdirectives
+
+instance ShowErrorComponent String where
+  showErrorComponent = id
+
+-- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
+-- Included file paths may be relative to the directory of the provided file path.
+-- This is done as a pre-parse step to simplify the CSV rules parser.
+expandIncludes :: FilePath -> Text -> IO Text
+expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return . T.unlines
+  where
+    expandLine dir line =
+      case line of
+        (T.stripPrefix "include " -> Just f) -> expandIncludes dir' =<< T.readFile f'
+          where
+            f' = dir </> dropWhile isSpace (T.unpack f)
+            dir' = takeDirectory f'
+        _ -> return line
+
+-- | An error-throwing IO action that parses this text as CSV conversion rules
+-- and runs some extra validation checks. The file path is used in error messages.
+parseAndValidateCsvRules :: FilePath -> T.Text -> Either String CsvRules
+parseAndValidateCsvRules rulesfile s =
+  case parseCsvRules rulesfile s of
+    Left err    -> Left $ customErrorBundlePretty err
+    Right rules -> first makeFancyParseError $ validateRules rules
+  where
+    makeFancyParseError :: String -> String
+    makeFancyParseError errorString =
+      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail errorString) :: ParseError Text String)
+
+-- | Parse this text as CSV conversion rules. The file path is for error messages.
+parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
+-- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
+parseCsvRules rulesfile s =
+  runParser (evalStateT rulesp defrules) rulesfile s
+
+-- | Return the validated rules, or an error.
+validateRules :: CsvRules -> Either String CsvRules
+validateRules rules = do
+  unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1\n"
+  Right rules
+  where
+    isAssigned f = isJust $ getEffectiveAssignment rules [] f
+
+-- *** rules types
+
+-- | A set of data definitions and account-matching patterns sufficient to
+-- convert a particular CSV data file into meaningful journal transactions.
+data CsvRules = CsvRules {
+  rdirectives        :: [(DirectiveName,String)],
+    -- ^ top-level rules, as (keyword, value) pairs
+  rcsvfieldindexes   :: [(CsvFieldName, CsvFieldIndex)],
+    -- ^ csv field names and their column number, if declared by a fields list
+  rassignments       :: [(HledgerFieldName, FieldTemplate)],
+    -- ^ top-level assignments to hledger fields, as (field name, value template) pairs
+  rconditionalblocks :: [ConditionalBlock]
+    -- ^ conditional blocks, which containing additional assignments/rules to apply to matched csv records
+} deriving (Show, Eq)
+
+type CsvRulesParser a = StateT CsvRules SimpleTextParser a
+
+-- | The keyword of a CSV rule - "fields", "skip", "if", etc.
+type DirectiveName    = String
+
+-- | CSV field name.
+type CsvFieldName     = String
+
+-- | 1-based CSV column number.
+type CsvFieldIndex    = Int
+
+-- | Percent symbol followed by a CSV field name or column number. Eg: %date, %1.
+type CsvFieldReference = String
+
+-- | One of the standard hledger fields or pseudo-fields that can be assigned to.
+-- Eg date, account1, amount, amount1-in, date-format.
+type HledgerFieldName = String
+
+-- | A text value to be assigned to a hledger field, possibly
+-- containing csv field references to be interpolated.
+type FieldTemplate    = String
+
+-- | A strptime date parsing pattern, as supported by Data.Time.Format.
+type DateFormat       = String
+
+-- | A regular expression.
+type RegexpPattern    = String
+
+-- | A single test for matching a CSV record, in one way or another.
+data Matcher =
+    RecordMatcher RegexpPattern                   -- ^ match if this regexp matches the overall CSV record
+  | FieldMatcher CsvFieldReference RegexpPattern  -- ^ match if this regexp matches the referenced CSV field's value
+  deriving (Show, Eq)
+
+-- | A conditional block: a set of CSV record matchers, and a sequence
+-- of rules which will be enabled only if one or more of the matchers
+-- succeeds.
+--
+-- Three types of rule are allowed inside conditional blocks: field
+-- assignments, skip, end. (A skip or end rule is stored as if it was
+-- a field assignment, and executed in validateCsv. XXX)
+data ConditionalBlock = CB {
+   cbMatchers    :: [Matcher]
+  ,cbAssignments :: [(HledgerFieldName, FieldTemplate)]
+  } deriving (Show, Eq)
+
+defrules = CsvRules {
+  rdirectives=[],
+  rcsvfieldindexes=[],
+  rassignments=[],
+  rconditionalblocks=[]
+}
+
+-- *** rules parsers
 
 {-
 Grammar for the CSV conversion rules, more or less:
@@ -383,146 +365,6 @@ DIGIT: 0-9
 
 -}
 
-{- |
-A set of data definitions and account-matching patterns sufficient to
-convert a particular CSV data file into meaningful journal transactions.
--}
-data CsvRules = CsvRules {
-  rdirectives        :: [(DirectiveName,String)],
-    -- ^ top-level rules, as (keyword, value) pairs
-  rcsvfieldindexes   :: [(CsvFieldName, CsvFieldIndex)],
-    -- ^ csv field names and their column number, if declared by a fields list
-  rassignments       :: [(HledgerFieldName, FieldTemplate)],
-    -- ^ top-level assignments to hledger fields, as (field name, value template) pairs
-  rconditionalblocks :: [ConditionalBlock]
-    -- ^ conditional blocks, which containing additional assignments/rules to apply to matched csv records
-} deriving (Show, Eq)
-
-type CsvRulesParser a = StateT CsvRules SimpleTextParser a
-
--- | The keyword of a CSV rule - "fields", "skip", "if", etc.
-type DirectiveName    = String
--- | CSV field name.
-type CsvFieldName     = String
--- | 1-based CSV column number.
-type CsvFieldIndex    = Int
--- | Percent symbol followed by a CSV field name or column number. Eg: %date, %1.
-type CsvFieldReference = String
--- | One of the standard hledger fields or pseudo-fields that can be assigned to.
--- Eg date, account1, amount, amount1-in, date-format.
-type HledgerFieldName = String
--- | A text value to be assigned to a hledger field, possibly
--- containing csv field references to be interpolated.
-type FieldTemplate    = String
--- | A strptime date parsing pattern, as supported by Data.Time.Format.
-type DateFormat       = String
--- | A regular expression.
-type RegexpPattern    = String
-
--- | A single test for matching a CSV record, in one way or another.
-data Matcher =
-    RecordMatcher RegexpPattern                   -- ^ match if this regexp matches the overall CSV record
-  | FieldMatcher CsvFieldReference RegexpPattern  -- ^ match if this regexp matches the referenced CSV field's value
-  deriving (Show, Eq)
-
--- | A conditional block: a set of CSV record matchers, and a sequence
--- of rules which will be enabled only if one or more of the matchers
--- succeeds.
---
--- Three types of rule are allowed inside conditional blocks: field
--- assignments, skip, end. (A skip or end rule is stored as if it was
--- a field assignment, and executed in validateCsv. XXX)
-data ConditionalBlock = CB {
-   cbMatchers    :: [Matcher]
-  ,cbAssignments :: [(HledgerFieldName, FieldTemplate)]
-  } deriving (Show, Eq)
-
-defrules = CsvRules {
-  rdirectives=[],
-  rcsvfieldindexes=[],
-  rassignments=[],
-  rconditionalblocks=[]
-}
-
-addDirective :: (DirectiveName, String) -> CsvRules -> CsvRules
-addDirective d r = r{rdirectives=d:rdirectives r}
-
-addAssignment :: (HledgerFieldName, FieldTemplate) -> CsvRules -> CsvRules
-addAssignment a r = r{rassignments=a:rassignments r}
-
-setIndexesAndAssignmentsFromList :: [CsvFieldName] -> CsvRules -> CsvRules
-setIndexesAndAssignmentsFromList fs r = addAssignmentsFromList fs . setCsvFieldIndexesFromList fs $ r
-
-setCsvFieldIndexesFromList :: [CsvFieldName] -> CsvRules -> CsvRules
-setCsvFieldIndexesFromList fs r = r{rcsvfieldindexes=zip fs [1..]}
-
-addAssignmentsFromList :: [CsvFieldName] -> CsvRules -> CsvRules
-addAssignmentsFromList fs r = foldl' maybeAddAssignment r journalfieldnames
-  where
-    maybeAddAssignment rules f = (maybe id addAssignmentFromIndex $ elemIndex f fs) rules
-      where
-        addAssignmentFromIndex i = addAssignment (f, "%"++show (i+1))
-
-addConditionalBlock :: ConditionalBlock -> CsvRules -> CsvRules
-addConditionalBlock b r = r{rconditionalblocks=b:rconditionalblocks r}
-
-getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
-getDirective directivename = lookup directivename . rdirectives
-
-instance ShowErrorComponent String where
-  showErrorComponent = id
-
--- Not used by hledger; just for lib users, 
--- | An pure-exception-throwing IO action that parses this file's content
--- as CSV conversion rules, interpolating any included files first,
--- and runs some extra validation checks.
-parseRulesFile :: FilePath -> ExceptT String IO CsvRules
-parseRulesFile f =
-  liftIO (readFilePortably f >>= expandIncludes (takeDirectory f))
-    >>= either throwError return . parseAndValidateCsvRules f
-
--- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
--- Included file paths may be relative to the directory of the provided file path.
--- This is done as a pre-parse step to simplify the CSV rules parser.
-expandIncludes :: FilePath -> Text -> IO Text
-expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return . T.unlines
-  where
-    expandLine dir line =
-      case line of
-        (T.stripPrefix "include " -> Just f) -> expandIncludes dir' =<< T.readFile f'
-          where
-            f' = dir </> dropWhile isSpace (T.unpack f)
-            dir' = takeDirectory f'
-        _ -> return line
-
--- | An error-throwing IO action that parses this text as CSV conversion rules
--- and runs some extra validation checks. The file path is used in error messages.
-parseAndValidateCsvRules :: FilePath -> T.Text -> Either String CsvRules
-parseAndValidateCsvRules rulesfile s =
-  case parseCsvRules rulesfile s of
-    Left err    -> Left $ customErrorBundlePretty err
-    Right rules -> first makeFancyParseError $ validateRules rules
-  where
-    makeFancyParseError :: String -> String
-    makeFancyParseError errorString =
-      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail errorString) :: ParseError Text String)
-
--- | Parse this text as CSV conversion rules. The file path is for error messages.
-parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text CustomErr) CsvRules
--- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
-parseCsvRules rulesfile s =
-  runParser (evalStateT rulesp defrules) rulesfile s
-
--- | Return the validated rules, or an error.
-validateRules :: CsvRules -> Either String CsvRules
-validateRules rules = do
-  unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1\n"
-  Right rules
-  where
-    isAssigned f = isJust $ getEffectiveAssignment rules [] f
-
--- parsers
-
 rulesp :: CsvRulesParser CsvRules
 rulesp = do
   _ <- many $ choiceInState
@@ -564,13 +406,10 @@ directives :: [String]
 directives =
   ["date-format"
   ,"separator"
-  -- ,"default-account1"
+  -- ,"default-account"
   -- ,"default-currency"
-  -- ,"skip-lines" -- old
   ,"skip"
   ,"newest-first"
-   -- ,"base-account"
-   -- ,"base-currency"
   , "balance-type"
   ]
 
@@ -734,10 +573,182 @@ regexp = do
 --   -- ,"!="
 --   ]
 
---------------------------------------------------------------------------------
--- Converting CSV records to journal transactions
+-- ** reading csv files
 
-type CsvRecord = [String]
+-- | Read a Journal from the given CSV data (and filename, used for error
+-- messages), or return an error. Proceed as follows:
+--
+-- 1. parse CSV conversion rules from the specified rules file, or from
+--    the default rules file for the specified CSV file, if it exists,
+--    or throw a parse error; if it doesn't exist, use built-in default rules
+--
+-- 2. parse the CSV data, or throw a parse error
+--
+-- 3. convert the CSV records to transactions using the rules
+--
+-- 4. if the rules file didn't exist, create it with the default rules and filename
+--
+-- 5. return the transactions as a Journal
+-- 
+readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
+readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv mrulesfile csvfile csvdata =
+ handle (\(e::IOException) -> return $ Left $ show e) $ do
+
+  -- make and throw an IO exception.. which we catch and convert to an Either above ?
+  let throwerr = throw . userError
+
+  -- parse the csv rules
+  let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
+  rulesfileexists <- doesFileExist rulesfile
+  rulestext <-
+    if rulesfileexists
+    then do
+      dbg1IO "using conversion rules file" rulesfile
+      readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
+    else
+      return $ defaultRulesText rulesfile
+  rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
+  dbg2IO "rules" rules
+
+  -- parse the skip directive's value, if any
+  let skiplines = case getDirective "skip" rules of
+                    Nothing -> 0
+                    Just "" -> 1
+                    Just s  -> readDef (throwerr $ "could not parse skip value: " ++ show s) s
+
+  -- parse csv
+  -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
+  let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
+  let separator = fromMaybe ',' (getDirective "separator" rules >>= parseSeparator)
+  dbg2IO "separator" separator
+  records <- (either throwerr id .
+              dbg2 "validateCsv" . validateCsv rules skiplines .
+              dbg2 "parseCsv")
+             `fmap` parseCsv separator parsecfilename csvdata
+  dbg1IO "first 3 csv records" $ take 3 records
+
+  -- identify header lines
+  -- let (headerlines, datalines) = identifyHeaderLines records
+  --     mfieldnames = lastMay headerlines
+
+  let
+    -- convert CSV records to transactions
+    txns = snd $ mapAccumL
+                   (\pos r ->
+                      let
+                        SourcePos name line col = pos
+                        line' = (mkPos . (+1) . unPos) line
+                        pos' = SourcePos name line' col
+                      in
+                        (pos, transactionFromCsvRecord pos' rules r)
+                   )
+                   (initialPos parsecfilename) records
+
+    -- Ensure transactions are ordered chronologically.
+    -- First, if the CSV records seem to be most-recent-first (because
+    -- there's an explicit "newest-first" directive, or there's more
+    -- than one date and the first date is more recent than the last):
+    -- reverse them to get same-date transactions ordered chronologically.
+    txns' =
+      (if newestfirst || mseemsnewestfirst == Just True then reverse else id) txns
+      where
+        newestfirst = dbg3 "newestfirst" $ isJust $ getDirective "newest-first" rules
+        mseemsnewestfirst = dbg3 "mseemsnewestfirst" $
+          case nub $ map tdate txns of
+            ds | length ds > 1 -> Just $ head ds > last ds
+            _                  -> Nothing
+    -- Second, sort by date.
+    txns'' = sortBy (comparing tdate) txns'
+
+  when (not rulesfileexists) $ do
+    dbg1IO "creating conversion rules file" rulesfile
+    writeFile rulesfile $ T.unpack rulestext
+
+  return $ Right nulljournal{jtxns=txns''}
+
+-- | Parse special separator names TAB and SPACE, or return the first
+-- character. Return Nothing on empty string
+parseSeparator :: String -> Maybe Char
+parseSeparator = specials . map toLower
+  where specials "space" = Just ' '
+        specials "tab"   = Just '\t'
+        specials (x:_)   = Just x
+        specials []      = Nothing
+
+parseCsv :: Char -> FilePath -> Text -> IO (Either String CSV)
+parseCsv separator filePath csvdata =
+  case filePath of
+    "-" -> liftM (parseCassava separator "(stdin)") T.getContents
+    _   -> return $ parseCassava separator filePath csvdata
+
+parseCassava :: Char -> FilePath -> Text -> Either String CSV
+parseCassava separator path content =
+  either (Left . errorBundlePretty) (Right . parseResultToCsv) <$>
+  CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path $
+  BL.fromStrict $ T.encodeUtf8 content
+
+decodeOptions :: Char -> Cassava.DecodeOptions
+decodeOptions separator = Cassava.defaultDecodeOptions {
+                      Cassava.decDelimiter = fromIntegral (ord separator)
+                    }
+
+parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
+parseResultToCsv = toListList . unpackFields
+    where
+        toListList = toList . fmap toList
+        unpackFields  = (fmap . fmap) (T.unpack . T.decodeUtf8)
+
+printCSV :: CSV -> String
+printCSV records = unlined (printRecord `map` records)
+    where printRecord = concat . intersperse "," . map printField
+          printField f = "\"" ++ concatMap escape f ++ "\""
+          escape '"' = "\"\""
+          escape x = [x]
+          unlined = concat . intersperse "\n"
+
+-- | Return the cleaned up and validated CSV data (can be empty), or an error.
+validateCsv :: CsvRules -> Int -> Either String CSV -> Either String [CsvRecord]
+validateCsv _ _           (Left err) = Left err
+validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ drop numhdrlines $ filternulls rs
+  where
+    filternulls = filter (/=[""])
+    skipCount r =
+      case (getEffectiveAssignment rules r "end", getEffectiveAssignment rules r "skip") of
+        (Nothing, Nothing) -> Nothing
+        (Just _, _) -> Just maxBound
+        (Nothing, Just "") -> Just 1
+        (Nothing, Just x) -> Just (read x)
+    applyConditionalSkips [] = []
+    applyConditionalSkips (r:rest) =
+      case skipCount r of
+        Nothing -> r:(applyConditionalSkips rest)
+        Just cnt -> applyConditionalSkips (drop (cnt-1) rest)
+    validate [] = Right []
+    validate rs@(_first:_)
+      | isJust lessthan2 = let r = fromJust lessthan2 in
+          Left $ printf "CSV record %s has less than two fields" (show r)
+      | otherwise        = Right rs
+      where
+        lessthan2 = headMay $ filter ((<2).length) rs
+
+-- -- | The highest (0-based) field index referenced in the field
+-- -- definitions, or -1 if no fields are defined.
+-- maxFieldIndex :: CsvRules -> Int
+-- maxFieldIndex r = maximumDef (-1) $ catMaybes [
+--                    dateField r
+--                   ,statusField r
+--                   ,codeField r
+--                   ,amountField r
+--                   ,amountInField r
+--                   ,amountOutField r
+--                   ,currencyField r
+--                   ,accountField r
+--                   ,account2Field r
+--                   ,date2Field r
+--                   ]
+
+-- ** converting csv records to transactions
 
 showRules rules record =
   unlines $ catMaybes [ (("the "++fld++" rule is: ")++) <$> getEffectiveAssignment rules record fld | fld <- journalfieldnames]
@@ -940,6 +951,7 @@ mkPosting rules record number accountFld amountFld amountInFld amountOutFld bala
                               -- XXX what's this needed for ? Test & document, or drop.
                               -- Also, this the only place we interpolate in a keyword rule, I think.
                                `withDefault` ruleval ("default-account" ++ number))
+    -- XXX what's this needed for ? Test & document, or drop.
     mdefaultcurrency = rule "default-currency"
     currency = fromMaybe (fromMaybe "" mdefaultcurrency) $
                fieldval ("currency"++number) `withDefault` fieldval "currency"
@@ -985,7 +997,7 @@ improveUnknownAccountName p@Posting{..}
 -- possibly set by a balance-type rule.
 -- The CSV rules and current record are also provided, to be shown in case
 -- balance-type's argument is bad (XXX refactor).
-mkBalanceAssertion :: CsvRules -> Record -> (Amount, GenericSourcePos) -> BalanceAssertion
+mkBalanceAssertion :: CsvRules -> CsvRecord -> (Amount, GenericSourcePos) -> BalanceAssertion
 mkBalanceAssertion rules record (amt, pos) = assrt{baamount=amt, baposition=pos}
   where
     assrt =
@@ -1162,8 +1174,7 @@ parseDateWithCustomOrDefaultFormats mformat s = firstJust $ map parsewith format
                (:[])
                 mformat
 
---------------------------------------------------------------------------------
--- tests
+-- ** tests
 
 tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [

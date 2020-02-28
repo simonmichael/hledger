@@ -24,7 +24,7 @@ import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
-import Hledger.Read.CsvReader (CSV, Record, printCSV)
+import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -71,7 +71,7 @@ postingsReportAsCsv (_,is) =
   :
   map postingsReportItemAsCsvRecord is
 
-postingsReportItemAsCsvRecord :: PostingsReportItem -> Record
+postingsReportItemAsCsvRecord :: PostingsReportItem -> CsvRecord
 postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal]
   where
     idx  = show $ maybe 0 tindex $ ptransaction p
