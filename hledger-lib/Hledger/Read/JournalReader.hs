@@ -1,10 +1,6 @@
---- * doc
--- Lines beginning "--- *" are collapsible orgstruct nodes. Emacs users,
--- (add-hook 'haskell-mode-hook
---   (lambda () (set-variable 'orgstruct-heading-prefix-regexp "--- " t))
---   'orgstruct-mode)
--- and press TAB on nodes to expand/collapse.
-
+-- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
+-- ** doc
+-- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
 A reader for hledger's journal file format
@@ -21,18 +17,31 @@ reader should handle many ledger files as well. Example:
 
 Journal format supports the include directive which can read files in
 other formats, so the other file format readers need to be importable
-here.  Some low-level journal syntax parsers which those readers also
-use are therefore defined separately in Hledger.Read.Common, avoiding
-import cycles.
+and invocable here.
+
+Some important parts of journal parsing are therefore kept in
+Hledger.Read.Common, to avoid import cycles.
 
 -}
 
---- * module
+-- ** language
 
-{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings, PackageImports #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NoMonoLocalBinds #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
+-- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+-- ** exports
 module Hledger.Read.JournalReader (
---- * exports
 
   -- * Reader
   reader,
@@ -62,7 +71,8 @@ module Hledger.Read.JournalReader (
   ,tests_JournalReader
 )
 where
---- * imports
+
+-- ** imports
 -- import qualified Prelude (fail)
 -- import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
@@ -96,10 +106,7 @@ import Hledger.Read.TimeclockReader (timeclockfilep)
 import Hledger.Read.TimedotReader (timedotfilep)
 import Hledger.Utils
 
--- $setup
--- >>> :set -XOverloadedStrings
-
---- * reader
+-- ** reader
 
 reader :: Reader
 reader = Reader
@@ -124,8 +131,8 @@ aliasesFromOpts :: InputOpts -> [AccountAlias]
 aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
                   . aliases_
 
---- * parsers
---- ** journal
+-- ** parsers
+-- *** journal
 
 -- | A journal parser. Accumulates and returns a "ParsedJournal",
 -- which should be finalised/validated before use.
@@ -155,7 +162,7 @@ addJournalItemP =
     , void (lift multilinecommentp)
     ] <?> "transaction or directive"
 
---- ** directives
+-- *** directives
 
 -- | Parse any journal directive and update the parse state accordingly.
 -- Cf http://hledger.org/manual.html#directives,
@@ -525,8 +532,9 @@ commodityconversiondirectivep = do
   lift restofline
   return ()
 
---- ** transactions
+-- *** transactions
 
+-- | Parse a transaction modifier (auto postings) rule.
 transactionmodifierp :: JournalParser m TransactionModifier
 transactionmodifierp = do
   char '=' <?> "modifier transaction"
@@ -536,7 +544,7 @@ transactionmodifierp = do
   postings <- postingsp Nothing
   return $ TransactionModifier querytxt postings
 
--- | Parse a periodic transaction
+-- | Parse a periodic transaction rule.
 --
 -- This reuses periodexprp which parses period expressions on the command line.
 -- This is awkward because periodexprp supports relative and partial dates,
@@ -621,7 +629,7 @@ transactionp = do
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postings
 
---- ** postings
+-- *** postings
 
 -- Parse the following whitespace-beginning lines as postings, posting
 -- tags, and/or comments (inferring year, if needed, from the given date).
@@ -664,7 +672,7 @@ postingp mTransactionYear = do
    , pbalanceassertion=massertion
    }
 
---- * tests
+-- ** tests
 
 tests_JournalReader = tests "JournalReader" [
 
