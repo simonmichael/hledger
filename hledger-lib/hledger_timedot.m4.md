@@ -33,7 +33,7 @@ Each timelog item generates a hledger transaction.
 
 Quantities can be written as:
 
-- time dots: a sequence of dots (.) representing quarter hours.
+- dots: a sequence of dots (.) representing quarter hours.
   Spaces may optionally be used for grouping.
   Eg: .... ..
 
@@ -56,10 +56,13 @@ right in the time log, if needed:
   items taking no time, which will not appear in balance reports by
   default. (Add -E to see them.)
 
-- Org headline prefixes (stars followed by at least one space, at the
-  start of a line) are ignored, so a timedot file can also be an org
-  outline. Emacs org mode users can use these to add structure and
-  control which parts of the file are visible.
+- Org mode headlines (lines beginning with one or more `*` followed by
+  a space) can be used as date lines or timelog items (the stars are
+  ignored). Also all org headlines before the first date line are
+  ignored. This means org users can manage their timelog as an org
+  outline (eg using org-mode/orgstruct-mode in Emacs), for
+  organisation, faster navigation, controlling visibility etc.
+
 
 Examples:
 
@@ -90,17 +93,19 @@ biz:research  1
 ```
 
 ```timedot
-** 2020-02-29
-*** DONE
+* 2020 Work Diary
+** Q1
+*** 2020-02-29
+**** DONE
 0700 yoga
-*** UNPLANNED
-*** BEGUN
+**** UNPLANNED
+**** BEGUN
 hom:chores
  cleaning  ...
  water plants
   outdoor - one full watering can
   indoor - light watering
-*** TODO
+**** TODO
 adm:planning: trip
 *** LATER
 
