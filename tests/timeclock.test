@@ -1,4 +1,5 @@
-# 1. a timeclock session is parsed as a similarly-named transaction with one virtual posting
+# 1. a timeclock session is parsed as a similarly-named transaction with one virtual posting.
+# Note since 1.17 we need to specify stdin's format explicitly.
 <
 i 2009/1/1 08:00:00
 o 2009/1/1 09:00:00 stuff on checkout record  is ignored
@@ -7,7 +8,7 @@ i 2009/1/2 08:00:00 account name
 o 2009/1/2 09:00:00
 i 2009/1/3 08:00:00 some:account name  and a description
 o 2009/1/3 09:00:00
-$ hledger -f - print
+$ hledger -f timeclock:- print
 >
 2009-01-01 * 08:00-09:00
     ()           1.00h
@@ -24,14 +25,14 @@ $ hledger -f - print
 # For a missing clock-out, now is implied
 <
 i 2020/1/1 08:00
-$ hledger -f - balance
+$ hledger -f timeclock:- balance
 > /./
 >= 0
 
 # For a log not starting with clock-out, print error
 <
 o 2020/1/1 08:00
-$ hledger -f - balance
+$ hledger -f timeclock:- balance
 >2 /line 1: expected timeclock code i/
 >= !0
 
@@ -39,7 +40,7 @@ $ hledger -f - balance
 <
 o 2020/1/1 08:00
 o 2020/1/1 09:00
-$ hledger -f - balance
+$ hledger -f timeclock:- balance
 >2 /line 1: expected timeclock code i/
 >= !0
 
@@ -47,13 +48,13 @@ $ hledger -f - balance
 <
 i 2020/1/1 08:00
 i 2020/1/1 09:00
-$ hledger -f - balance
+$ hledger -f timeclock:- balance
 >2 /line 2: expected timeclock code o/
 >= !0
 
 ## TODO
 ## multi-day sessions get a new transaction for each day
-#hledger -f- print
+#hledger -ftimeclock:- print
 #<<<
 #i 2017/04/20 09:00:00 A
 #o 2017/04/20 17:00:00
@@ -67,7 +68,7 @@ $ hledger -f - balance
 #
 ## unclosed sessions are automatically closed at report time
 ## TODO this output looks wrong
-#hledger -f- print
+#hledger -ftimeclock:- print
 #<<<
 #i 2017/04/20 09:00:00 A
 #o 2017/04/20 17:00:00
