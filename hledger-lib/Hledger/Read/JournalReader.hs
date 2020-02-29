@@ -85,7 +85,7 @@ import Control.Monad.Trans.Class (lift)
 import Data.Either (isRight)
 import qualified Data.Map.Strict as M
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
+import Data.Semigroup ((<>))
 #endif
 import Data.Text (Text)
 import Data.String
@@ -298,7 +298,7 @@ includedirectivep = do
       put $ updatedChildj <> parentj
 
     newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
-    newJournalWithParseStateFrom filepath j = mempty{
+    newJournalWithParseStateFrom filepath j = nulljournal{
       jparsedefaultyear      = jparsedefaultyear j
       ,jparsedefaultcommodity = jparsedefaultcommodity j
       ,jparseparentaccounts   = jparseparentaccounts j
@@ -747,7 +747,7 @@ tests_JournalReader = tests "JournalReader" [
     ,test "yearless date with no default year" $ assertParseError datep "1/1" "current year is unknown"
     ,test "yearless date with default year" $ do
       let s = "1/1"
-      ep <- parseWithState mempty{jparsedefaultyear=Just 2018} datep s
+      ep <- parseWithState nulljournal{jparsedefaultyear=Just 2018} datep s
       either (assertFailure . ("parse error at "++) . customErrorBundlePretty) (const $ return ()) ep
     ,test "no leading zero" $ assertParse datep "2018/1/1"
     ]

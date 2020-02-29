@@ -90,6 +90,7 @@ import Control.Monad.Extra
 import Control.Monad.Reader as R
 import Control.Monad.ST
 import Data.Array.ST
+import Data.Default (Default(..))
 import Data.Function ((&))
 import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List
@@ -97,9 +98,8 @@ import Data.List.Extra (groupSort, nubSort)
 import qualified Data.Map as M
 import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
+import Data.Semigroup (Semigroup(..))
 #endif
-import qualified Data.Semigroup as Sem
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -157,7 +157,7 @@ instance Show Journal where
 --                      ,show $ map fst $ jfiles j
 --                      ]
 
--- The monoid instance for Journal is useful for two situations.
+-- The semigroup instance for Journal is useful for two situations.
 --
 -- 1. concatenating finalised journals, eg with multiple -f options:
 -- FIRST <> SECOND. The second's list fields are appended to the
@@ -168,7 +168,9 @@ instance Show Journal where
 -- CHILD <> PARENT. A parsed journal's data is in reverse order, so
 -- this gives what we want.
 --
-instance Sem.Semigroup Journal where
+-- Note that (<>) is right-biased, so nulljournal is only a left identity.
+-- In particular, this prevents Journal from being a monoid.
+instance Semigroup Journal where
   j1 <> j2 = Journal {
      jparsedefaultyear          = jparsedefaultyear          j2
     ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
@@ -190,12 +192,8 @@ instance Sem.Semigroup Journal where
     ,jlastreadtime              = max (jlastreadtime j1) (jlastreadtime j2)
     }
 
-instance Monoid Journal where
-  mempty = nulljournal
-#if !(MIN_VERSION_base(4,11,0))
-  -- This is redundant starting with base-4.11 / GHC 8.4.
-  mappend = (Sem.<>)
-#endif
+instance Default Journal where
+  def = nulljournal
 
 nulljournal :: Journal
 nulljournal = Journal {

@@ -166,7 +166,7 @@ validatePostings acctRes amtRes = let
                           foldl (\s a -> s <> parseErrorTextPretty a) "" .
                           bundleErrors)
   checkAccount = errorToFormMsg . runParser (accountnamep <* eof) "" . T.strip
-  checkAmount = errorToFormMsg . runParser (evalStateT (amountp <* eof) mempty) "" . T.strip
+  checkAmount = errorToFormMsg . runParser (evalStateT (amountp <* eof) nulljournal) "" . T.strip
 
   -- Add errors to forms with zero or one rows if the form is not a FormMissing
   result :: [(Text, Text, Either (Maybe Text, Maybe Text) Posting)]

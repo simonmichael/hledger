@@ -963,7 +963,7 @@ mkPosting rules record number accountFld amountFld amountInFld amountOutFld bala
           | all isSpace str = Nothing
           | otherwise = Just
               (either (balanceerror n str) id $
-                runParser (evalStateT (amountp <* eof) mempty) "" $
+                runParser (evalStateT (amountp <* eof) nulljournal) "" $
                 T.pack $ (currency++) $ simplifySign str
               ,nullsourcepos)  -- XXX parse position to show when assertion fails,
                                -- the csv record's line number would be good
@@ -1039,7 +1039,7 @@ chooseAmount rules record currency amountFld amountInFld amountOutFld =
 
    parseAmount currency amountstr =
      either (amounterror amountstr) (Mixed . (:[]))
-     <$> runParser (evalStateT (amountp <* eof) mempty) ""
+     <$> runParser (evalStateT (amountp <* eof) nulljournal) ""
      <$> T.pack
      <$> (currency++)
      <$> simplifySign

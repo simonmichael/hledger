@@ -222,7 +222,7 @@ rtp = runTextParser
 runJournalParser, rjp
   :: Monad m
   => JournalParser m a -> Text -> m (Either (ParseErrorBundle Text CustomErr) a)
-runJournalParser p t = runParserT (evalStateT p mempty) "" t
+runJournalParser p t = runParserT (evalStateT p nulljournal) "" t
 rjp = runJournalParser
 
 -- | Run an erroring journal parser in some monad. See also: parseWithState.
@@ -232,7 +232,7 @@ runErroringJournalParser, rejp
   -> Text
   -> m (Either FinalParseError (Either (ParseErrorBundle Text CustomErr) a))
 runErroringJournalParser p t =
-  runExceptT $ runParserT (evalStateT p mempty) "" t
+  runExceptT $ runParserT (evalStateT p nulljournal) "" t
 rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
@@ -680,7 +680,7 @@ amountwithoutpricep = do
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
 amountp' s =
-  case runParser (evalStateT (amountp <* eof) mempty) "" (T.pack s) of
+  case runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s) of
     Right amt -> amt
     Left err  -> error' $ show err -- XXX should throwError
 
