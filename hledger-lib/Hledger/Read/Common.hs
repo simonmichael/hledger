@@ -1003,13 +1003,14 @@ multilinecommentp = startComment *> anyLine `skipManyTill` endComment
 
 {-# INLINABLE multilinecommentp #-}
 
+-- | A blank or comment line in journal format: a line that's empty or
+-- containing only whitespace or whose first non-whitespace character
+-- is semicolon, hash, or star.
 emptyorcommentlinep :: TextParser m ()
 emptyorcommentlinep = do
   skipMany spacenonewline
   skiplinecommentp <|> void newline
   where
-    -- A line (file-level) comment can start with a semicolon, hash, or star
-    -- (allowing org nodes).
     skiplinecommentp :: TextParser m ()
     skiplinecommentp = do
       satisfy $ \c -> c == ';' || c == '#' || c == '*'

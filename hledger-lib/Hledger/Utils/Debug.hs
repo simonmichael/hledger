@@ -204,8 +204,8 @@ dbg9With = ptraceAtWith 9
 dbgExit :: Show a => String -> a -> a
 dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
 
--- | Like ptraceAt, but convenient to insert in an IO monad (plus
--- convenience aliases).
+-- | Like ptraceAt, but convenient to insert in an IO monad and
+-- enforces monadic sequencing (plus convenience aliases).
 -- XXX These have a bug; they should use
 -- traceIO, not trace, otherwise GHC can occasionally over-optimise
 -- (cf lpaste a few days ago where it killed/blocked a child thread).
