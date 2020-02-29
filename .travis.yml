@@ -170,37 +170,38 @@ script:  # command output is not hidden
 #  # - hpc-coveralls count-von-count-tests --exclude-dir=tests --exclude-dir=src/Gyrid --display-report
 
 notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#hledger"
-    on_success: change # [always|never|change] default: always
-    on_failure: change # default: always
-    use_notice: true
-    skip_join: true
-    # If you enable skip_join, remember to remove the NO_EXTERNAL_MSGS flag (n) on the IRC channel(s) the bot notifies.
-    template:
-      - "%{commit}: %{message} %{build_url}"
-      # - "%{repository_name} (%{commit}) : %{message} %{build_url}"
-    # You can interpolate the following variables:
-    #     repository_slug: your GitHub repo identifier (like svenfuchs/minimal)
-    #     repository_name: the slug without the username
-    #     repository: same as repository_slug [Deprecated]
-    #     build_number: build number
-    #     build_id: build id
-    #     branch: branch build name
-    #     commit: shortened commit SHA
-    #     author: commit author name
-    #     commit_message: commit message of build
-    #     commit_subject: first line of the commit message
-    #     result: result of build
-    #     message: travis message to the build
-    #     duration: duration of the build
-    #     compare_url: commit change view URL
-    #     build_url: URL of the build detail
-    # The default template is:
-    #   - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
-    #   - "Change view : %{compare_url}"
-    #   - "Build details : %{build_url}"
+  # don't need this one, skylink webhook covers it
+  # irc:
+  #   channels:
+  #     - "chat.freenode.net#hledger-bots"
+  #   on_success: change # [always|never|change] default: always
+  #   on_failure: change # default: always
+  #   use_notice: true
+  #   skip_join: true
+  #   # If you enable skip_join, remember to remove the NO_EXTERNAL_MSGS flag (n) on the IRC channel(s) the bot notifies.
+  #   template:
+  #     - "%{commit}: %{message} %{build_url}"
+  #     # - "%{repository_name} (%{commit}) : %{message} %{build_url}"
+  #   # You can interpolate the following variables:
+  #   #     repository_slug: your GitHub repo identifier (like svenfuchs/minimal)
+  #   #     repository_name: the slug without the username
+  #   #     repository: same as repository_slug [Deprecated]
+  #   #     build_number: build number
+  #   #     build_id: build id
+  #   #     branch: branch build name
+  #   #     commit: shortened commit SHA
+  #   #     author: commit author name
+  #   #     commit_message: commit message of build
+  #   #     commit_subject: first line of the commit message
+  #   #     result: result of build
+  #   #     message: travis message to the build
+  #   #     duration: duration of the build
+  #   #     compare_url: commit change view URL
+  #   #     build_url: URL of the build detail
+  #   # The default template is:
+  #   #   - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+  #   #   - "Change view : %{compare_url}"
+  #   #   - "Build details : %{build_url}"
 
   # email: # false
   #   recipients:
