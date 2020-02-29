@@ -52,22 +52,24 @@ import Control.Arrow (right)
 import qualified Control.Exception as C
 import Control.Monad (when)
 import "mtl" Control.Monad.Except (runExceptT)
-import Data.Default
+import Data.Default (def)
 import Data.Foldable (asum)
-import Data.List
-import Data.Maybe
-import Data.Ord
+import Data.List (group, sort, sortBy)
+import Data.List.NonEmpty (nonEmpty)
+import Data.Maybe (fromMaybe)
+import Data.Ord (comparing)
+import Data.Semigroup (sconcat)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
-import Safe
+import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
-import System.FilePath
+import System.FilePath ((<.>), (</>), splitDirectories, splitFileName)
 import System.Info (os)
-import System.IO
-import Text.Printf
+import System.IO (stderr, writeFile)
+import Text.Printf (hPrintf, printf)
 
 import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
 import Hledger.Data.Types
@@ -152,11 +154,7 @@ type PrefixedFilePath = FilePath
 -- Also the final parse state saved in the Journal does span all files.
 readJournalFiles :: InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
 readJournalFiles iopts =
-  (right mconcat1 . sequence <$>) . mapM (readJournalFile iopts)
-  where
-    mconcat1 :: Monoid t => [t] -> t
-    mconcat1 [] = mempty
-    mconcat1 x  = foldr1 mappend x
+  fmap (right (maybe def sconcat . nonEmpty) . sequence) . mapM (readJournalFile iopts)
 
 -- | Read a Journal from this file, or from stdin if the file path is -,
 -- or return an error message. The file path can have a READER: prefix.
