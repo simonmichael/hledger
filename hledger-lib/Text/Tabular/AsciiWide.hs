@@ -85,7 +85,9 @@ renderHLine' vpos pretty prop is h = edge HL ++ sep ++ coreLine ++ sep ++ edge H
   helper          = either vsep dashes
   dashes (i,_)    = concat (replicate i sep)
   sep             = boxchar vpos HM NoLine prop pretty
-  vsep v          = sep ++ cross v prop ++ sep
+  vsep v          = case v of
+                      NoLine -> sep ++ sep
+                      _      -> sep ++ cross v prop ++ sep
   cross v h       = boxchar vpos HM v h pretty
 
 data VPos = VT | VM | VB -- top middle bottom
