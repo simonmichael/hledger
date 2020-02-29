@@ -1,3 +1,5 @@
+# Note since 1.17 we need to specify stdin's format explicitly.
+
 # 1. basic timedot entry
 <
 # comment
@@ -7,7 +9,7 @@
  a:aa  1
  b:bb  2
 
-$ hledger -f- print
+$ hledger -ftimedot:- print
 2020-01-01 *
     (a:aa)            1.00
 
@@ -21,7 +23,7 @@ $ hledger -f- print
 * 2020-01-01
 ** a:aa  1
 
-$ hledger -f- print
+$ hledger -ftimedot:- print
 2020-01-01 *
     (a:aa)            1.00
 

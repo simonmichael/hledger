@@ -22,15 +22,12 @@ expecting date separator or digit
 2018/1/1
   a  1
 
-# 2. When read from stdin, this example actually passes because hledger tries all readers.
-# If they all failed, it would show the error from the first (journal reader).
-# But in this case the timedot reader can parse it.
+# 2. When read from stdin with no reader prefix, the journal reader is used,
+# and fails here. (Before 1.17, all readers were tried and the timedot reader
+# would succeed.)
 $ hledger -f - print
->
-2018-01-01 *
-    (a)            1.00
-
->=
+>2 /could not balance/
+>=1
 
 # 3. So in these tests we must sometimes force the desired format, like so.
 # Now we see the error from the journal reader.
