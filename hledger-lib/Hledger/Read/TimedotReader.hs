@@ -76,10 +76,10 @@ parse = parseAndFinaliseJournal' timedotfilep
 
 -- ** utilities
 
--- traceparse :: Monad m => a -> m a
--- traceparse = return
-traceparse :: String -> JournalParser m ()
-traceparse = lift.traceParse
+traceparse :: Monad m => a -> m a
+traceparse = return
+-- traceparse :: String -> JournalParser m ()
+-- traceparse = lift.traceParse
 
 -- ** parsers
 
