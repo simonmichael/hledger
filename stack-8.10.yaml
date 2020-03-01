@@ -1,5 +1,12 @@
 # stack build plan using GHC 8.10
 
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
+
+# stack seems to enable this by default now, basically disabling bounds checks. Force it off.
+#allow-newer: false
+
 ###############################################################################
 # from https://github.com/DanBurton/stack-setup-info-gen/tree/master/output:
 setup-info:
@@ -52,9 +59,6 @@ compiler: ghc-8.10.0.20200123
 compiler-check: match-exact
 ###############################################################################
 
-
-allow-newer: true
-
 resolver: nightly-2020-01-25
 
 packages:
@@ -62,10 +66,6 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
-
-nix:
-  pure: false
-  packages: [perl gmp ncurses zlib]
 
 extra-deps:
 # for hledger-lib:
