@@ -63,12 +63,12 @@ import Hledger.Utils
 
 -- ** reader
 
-reader :: Reader
+reader :: MonadIO m => Reader m
 reader = Reader
   {rFormat     = "timedot"
   ,rExtensions = ["timedot"]
-  ,rParser     = parse
-  ,rExperimental = False
+  ,rReadFn     = parse
+  ,rParser    = timedotp
   }
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.

@@ -78,12 +78,12 @@ import           Hledger.Utils
 
 -- ** reader
 
-reader :: Reader
+reader :: MonadIO m => Reader m
 reader = Reader
   {rFormat     = "timeclock"
   ,rExtensions = ["timeclock"]
-  ,rParser     = parse
-  ,rExperimental = False
+  ,rReadFn     = parse
+  ,rParser    = timeclockfilep
   }
 
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock

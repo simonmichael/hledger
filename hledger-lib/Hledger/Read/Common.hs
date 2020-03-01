@@ -21,6 +21,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE NoMonoLocalBinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
@@ -150,7 +151,9 @@ import Hledger.Utils
 
 -- | A hledger journal reader is a triple of storage format name, a
 -- detector of that format, and a parser from that format to Journal.
-data Reader = Reader {
+-- The type variable m appears here so that rParserr can hold a
+-- journal parser, which depends on it.
+data Reader m = Reader {
 
      -- The canonical name of the format handled by this reader
      rFormat   :: StorageFormat
@@ -158,16 +161,17 @@ data Reader = Reader {
      -- The file extensions recognised as containing this format
     ,rExtensions :: [String]
 
-     -- A text parser for this format, accepting input options, file
+     -- The entry point for reading this format, accepting input options, file
      -- path for error messages and file contents, producing an exception-raising IO
-     -- action that returns a journal or error message.
-    ,rParser   :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+     -- action that produces a journal or error message.
+    ,rReadFn   :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 
-     -- Experimental readers are never tried automatically.
-    ,rExperimental :: Bool
+     -- The actual megaparsec parser called by the above, in case
+     -- another parser (includedirectivep) wants to use it directly.
+    ,rParser :: MonadIO m => ErroringJournalParser m ParsedJournal
     }
 
-instance Show Reader where show r = rFormat r ++ " reader"
+instance Show (Reader m) where show r = rFormat r ++ " reader"
 
 -- $setup
 
@@ -570,6 +574,7 @@ accountnamep = singlespacedtextp
 
 -- | Parse any text beginning with a non-whitespace character, until a
 -- double space or the end of input.
+-- TODO including characters which normally start a comment (;#) - exclude those ? 
 singlespacedtextp :: TextParser m T.Text
 singlespacedtextp = singlespacedtextsatisfyingp (const True)
 

@@ -30,7 +30,6 @@ module Hledger.Read (
   readJournalFile,
   requireJournalFileExists,
   ensureJournalFileExists,
-  splitReaderPrefix,
 
   -- * Journal parsing
   readJournal,
@@ -39,6 +38,8 @@ module Hledger.Read (
   -- * Re-exported
   JournalReader.accountaliasp,
   JournalReader.postingp,
+  findReader,
+  splitReaderPrefix,
   module Hledger.Read.Common,
 
   -- * Tests
@@ -70,10 +71,10 @@ import Text.Printf
 import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
 import Hledger.Data.Types
 import Hledger.Read.Common
-import Hledger.Read.JournalReader   as JournalReader
-import qualified Hledger.Read.TimedotReader   as TimedotReader
-import qualified Hledger.Read.TimeclockReader as TimeclockReader
-import Hledger.Read.CsvReader as CsvReader
+import Hledger.Read.JournalReader as JournalReader
+import Hledger.Read.CsvReader (tests_CsvReader)
+-- import Hledger.Read.TimedotReader (tests_TimedotReader)
+-- import Hledger.Read.TimeclockReader (tests_TimeclockReader)
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
 
@@ -84,19 +85,6 @@ journalEnvVar2          = "LEDGER"
 journalDefaultFilename  = ".hledger.journal"
 
 -- ** journal reading
-
--- The available journal readers, each one handling a particular data format.
-readers :: [Reader]
-readers = [
-  JournalReader.reader
- ,TimeclockReader.reader
- ,TimedotReader.reader
- ,CsvReader.reader
---  ,LedgerReader.reader
- ]
-
-readerNames :: [String]
-readerNames = map rFormat readers
 
 -- | Read a Journal from the given text, assuming journal format; or
 -- throw an error.
@@ -120,28 +108,10 @@ readJournal' t = readJournal def Nothing t >>= either error' return
 -- since hledger 1.17, we prefer predictability.)
 readJournal :: InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
 readJournal iopts mpath txt = do
+  let r :: Reader IO =
+        fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
   dbg1IO "trying reader" (rFormat r)
-  ej <- (runExceptT . (rParser r) iopts (fromMaybe "(string)" mpath)) txt
-  dbg1IO "reader result" (' ':show ej)
-  return ej
-  where
-    r = fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
-
--- | @findReader mformat mpath@
---
--- Find the reader named by @mformat@, if provided.
--- Or, if a file path is provided, find the first reader that handles
--- its file extension, if any.
-findReader :: Maybe StorageFormat -> Maybe FilePath -> Maybe Reader
-findReader Nothing Nothing     = Nothing
-findReader (Just fmt) _        = headMay [r | r <- readers, rFormat r == fmt]
-findReader Nothing (Just path) =
-  case prefix of
-    Just fmt -> headMay [r | r <- readers, rFormat r == fmt]
-    Nothing  -> headMay [r | r <- readers, ext `elem` rExtensions r]
-  where
-    (prefix,path') = splitReaderPrefix path
-    ext            = drop 1 $ takeExtension path'
+  (runExceptT . (rReadFn r) iopts (fromMaybe "(string)" mpath)) txt
 
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
@@ -217,13 +187,6 @@ readJournalFile iopts prefixedfile = do
     Right j -> return $ Right j
 
 -- ** utilities
-
--- | If a filepath is prefixed by one of the reader names and a colon,
--- split that off. Eg "csv:-" -> (Just "csv", "-").
-splitReaderPrefix :: PrefixedFilePath -> (Maybe String, FilePath)
-splitReaderPrefix f =
-  headDef (Nothing, f)
-  [(Just r, drop (length r + 1) f) | r <- readerNames, (r++":") `isPrefixOf` f]
 
 -- | If the specified journal file does not exist (and is not "-"),
 -- give a helpful error and quit.
