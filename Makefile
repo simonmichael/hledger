@@ -330,6 +330,13 @@ ghcid-test-%: $(call def-help,ghcid-test-TESTPATTERN, start ghcid autobuilding a
 ghcid-doctest: $(call def-help,ghcid-doctest, start ghcid autobuilding and running hledger-lib doctests)
 	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctest' --test ':main' --reload hledger-lib
 
+GHCIDRESTART=--restart Makefile --restart Makefile.local
+GHCIDRELOAD=--reload t.j --reload t.timedot
+GHCIDCMD=:main -f t.j bal date:today -S
+
+ghcid-watch watch: $(call def-help,ghcid-watch, start ghcid autobuilding and running a custom GHCI command with reload/restart on certain files - customise this)
+	ghcid -c 'make ghci' --test '$(GHCIDCMD)' $(GHCIDRELOAD) $(GHCIDRESTART)
+
 # keep synced with Shake.hs header
 SHAKEDEPS= \
 	--package base-prelude \
