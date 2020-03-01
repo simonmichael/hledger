@@ -1,5 +1,12 @@
 # stack build plan using GHC 8.2.2
 
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
+
+# stack seems to enable this by default now, basically disabling bounds checks. Force it off.
+#allow-newer: false
+
 resolver: lts-11.22
 
 packages:
@@ -34,7 +41,6 @@ extra-deps:
 - ansi-terminal-0.10.2
 - wcwidth-0.0.2
 - ansi-wl-pprint-0.6.9
-
-nix:
-  pure: false
-  packages: [perl gmp ncurses zlib]
+- wai-handler-launch-3.0.3.1
+- streaming-commons-0.2.1.2
+- network-2.7.0.0

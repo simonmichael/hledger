@@ -1,5 +1,12 @@
 # stack build plan using GHC 8.6.5
 
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
+
+# stack seems to enable this by default now, basically disabling bounds checks. Force it off.
+#allow-newer: false
+
 resolver: lts-14.16
 
 packages:
@@ -7,12 +14,6 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
-
-nix:
-  pure: false
-  packages: [perl gmp ncurses zlib]
-
-# allow-newer: true
 
 extra-deps:
 # for Shake.hs (regex doesn't support base-compat-0.11):
@@ -37,3 +38,7 @@ extra-deps:
 # (hledger-web build failure with GHC 8.6 on Windows 7)
 # Might also be fixed by using GHC 8.6.5+, mixed reports
 #- unix-time-0.4.6
+
+- wai-handler-launch-3.0.3.1
+# - streaming-commons-0.2.1.2
+# - network-2.7.0.0
