@@ -50,7 +50,7 @@ import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail
 import Control.Exception          (IOException, handle, throw)
 import Control.Monad              (liftM, unless, when)
 import Control.Monad.Except       (ExceptT, throwError)
-import Control.Monad.IO.Class     (liftIO)
+import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, ord)
@@ -95,12 +95,12 @@ type CsvValue  = String
 
 -- ** reader
 
-reader :: Reader
+reader :: MonadIO m => Reader m
 reader = Reader
   {rFormat     = "csv"
   ,rExtensions = ["csv","tsv","ssv"]
-  ,rParser     = parse
-  ,rExperimental = False
+  ,rReadFn     = parse
+  ,rParser    = error' "sorry, CSV files can't be included yet"
   }
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.

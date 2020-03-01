@@ -43,6 +43,10 @@ Hledger.Read.Common, to avoid import cycles.
 -- ** exports
 module Hledger.Read.JournalReader (
 
+  -- * Reader-finding utils
+  findReader,
+  splitReaderPrefix,
+  
   -- * Reader
   reader,
 
@@ -89,6 +93,7 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import Data.String
 import Data.List
+import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -102,18 +107,64 @@ import "Glob" System.FilePath.Glob hiding (match)
 
 import Hledger.Data
 import Hledger.Read.Common
-import Hledger.Read.TimeclockReader (timeclockfilep)
-import Hledger.Read.TimedotReader (timedotfilep)
 import Hledger.Utils
+
+import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
+import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
+import qualified Hledger.Read.CsvReader as CsvReader (reader)
+
+-- ** reader finding utilities
+-- Defined here rather than Hledger.Read so that we can use them in includedirectivep below.
+
+-- The available journal readers, each one handling a particular data format.
+readers' :: MonadIO m => [Reader m]
+readers' = [
+  reader
+ ,TimeclockReader.reader
+ ,TimedotReader.reader
+ ,CsvReader.reader
+--  ,LedgerReader.reader
+ ]
+
+readerNames :: [String]
+readerNames = map rFormat (readers'::[Reader IO])
+
+-- | @findReader mformat mpath@
+--
+-- Find the reader named by @mformat@, if provided.
+-- Or, if a file path is provided, find the first reader that handles
+-- its file extension, if any.
+findReader :: MonadIO m => Maybe StorageFormat -> Maybe FilePath -> Maybe (Reader m)
+findReader Nothing Nothing     = Nothing
+findReader (Just fmt) _        = headMay [r | r <- readers', rFormat r == fmt]
+findReader Nothing (Just path) =
+  case prefix of
+    Just fmt -> headMay [r | r <- readers', rFormat r == fmt]
+    Nothing  -> headMay [r | r <- readers', ext `elem` rExtensions r]
+  where
+    (prefix,path') = splitReaderPrefix path
+    ext            = drop 1 $ takeExtension path'
+
+-- | A file path optionally prefixed by a reader name and colon
+-- (journal:, csv:, timedot:, etc.).
+type PrefixedFilePath = FilePath
+
+-- | If a filepath is prefixed by one of the reader names and a colon,
+-- split that off. Eg "csv:-" -> (Just "csv", "-").
+splitReaderPrefix :: PrefixedFilePath -> (Maybe String, FilePath)
+splitReaderPrefix f =
+  headDef (Nothing, f)
+  [(Just r, drop (length r + 1) f) | r <- readerNames, (r++":") `isPrefixOf` f]
 
 -- ** reader
 
-reader :: Reader
+reader :: MonadIO m => Reader m
 reader = Reader
   {rFormat     = "journal"
   ,rExtensions = ["journal", "j", "hledger", "ledger"]
-  ,rParser     = parse
-  ,rExperimental = False
+  ,rReadFn     = parse
+  ,rParser    = journalp  -- no need to add command line aliases like journalp'
+                           -- when called as a subparser I think
   }
 
 -- | Parse and post-process a "Journal" from hledger's journal file
@@ -234,11 +285,11 @@ includedirectivep = do
                             `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
-      let parser = choiceInState
-            [ journalp
-            , timeclockfilep
-            , timedotfilep
-            ] -- can't include a csv file yet, that reader is special
+      -- Choose a reader/format based on the file path, or fall back
+      -- on journal. Duplicating readJournal a bit here.
+      let r = fromMaybe reader $ findReader Nothing (Just filepath)
+          parser = rParser r
+      dbg1IO "trying reader" (rFormat r)
       updatedChildj <- journalAddFile (filepath, childInput) <$>
                         parseIncludeFile parser initChildj filepath childInput
 
