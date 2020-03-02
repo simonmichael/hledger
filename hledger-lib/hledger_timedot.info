@@ -4,8 +4,8 @@ stdin.
 
 File: hledger_timedot.info,  Node: Top,  Up: (dir)
 
-hledger_timedot(5) hledger 1.16.99
-**********************************
+hledger_timedot(5) hledger 1.17
+*******************************
 
 Timedot - hledger's human-friendly time logging format
 
@@ -21,16 +21,20 @@ commodityless quantities, so it could be used to represent dated
 quantities other than time.  In the docs below we'll assume it's time.
 
    A timedot file contains a series of day entries.  A day entry begins
-with a date, and is followed by category/quantity pairs, one per line.
-Dates are hledger-style simple dates (see hledger_journal(5)).
-Categories are hledger-style account names, optionally indented.  As in
-a hledger journal, there must be at least two spaces between the
-category (account name) and the quantity.
+with a non-indented hledger-style simple date (Y-M-D, Y/M/D, Y.M.D..)
+Any additional text on the same line is used as a transaction
+description for this day.
+
+   This is followed by optionally-indented timelog items for that day,
+one per line.  Each timelog item is a note, usually a
+hledger:style:account:name representing a time category, followed by two
+or more spaces, and a quantity.  Each timelog item generates a hledger
+transaction.
 
    Quantities can be written as:
 
-   * a sequence of dots (.)  representing quarter hours.  Spaces may
-     optionally be used for grouping and readability.  Eg: ....  ..
+   * dots: a sequence of dots (.)  representing quarter hours.  Spaces
+     may optionally be used for grouping.  Eg: ....  ..
 
    * an integral or decimal number, representing hours.  Eg: 1.5
 
@@ -40,8 +44,23 @@ category (account name) and the quantity.
      The following equivalencies are assumed, currently: 1m = 60s, 1h =
      60m, 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
 
-   Blank lines and lines beginning with #, ; or * are ignored.  An
-example:
+   There is some flexibility allowing notes and todo lists to be kept
+right in the time log, if needed:
+
+   * Blank lines and lines beginning with '#' or ';' are ignored.
+
+   * Lines not ending with a double-space and quantity are parsed as
+     items taking no time, which will not appear in balance reports by
+     default.  (Add -E to see them.)
+
+   * Org mode headlines (lines beginning with one or more '*' followed
+     by a space) can be used as date lines or timelog items (the stars
+     are ignored).  Also all org headlines before the first date line
+     are ignored.  This means org users can manage their timelog as an
+     org outline (eg using org-mode/orgstruct-mode in Emacs), for
+     organisation, faster navigation, controlling visibility etc.
+
+   Examples:
 
 # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
 2016/2/1
@@ -53,12 +72,31 @@ biz:research  .
 inc:client1   .... ....
 biz:research  .
 
-   Or with numbers:
-
 2016/2/3
 inc:client1   4
 fos:hledger   3
 biz:research  1
+
+* Time log
+** 2020-01-01
+*** adm:time  .
+*** adm:finance  .
+
+* 2020 Work Diary
+** Q1
+*** 2020-02-29
+**** DONE
+0700 yoga
+**** UNPLANNED
+**** BEGUN
+hom:chores
+ cleaning  ...
+ water plants
+  outdoor - one full watering can
+  indoor - light watering
+**** TODO
+adm:planning: trip
+*** LATER
 
    Reporting:
 

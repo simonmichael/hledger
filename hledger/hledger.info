@@ -3,8 +3,8 @@ This is hledger.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger.info,  Node: Top,  Next: COMMON TASKS,  Up: (dir)
 
-hledger(1) hledger 1.16.99
-**************************
+hledger(1) hledger 1.17
+***********************
 
 hledger - a command-line accounting tool
 
@@ -978,12 +978,17 @@ File: hledger.info,  Node: Output destination,  Next: Output format,  Prev: Inpu
 2.8 Output destination
 ======================
 
-Some commands (print, register, stats, the balance commands) can write
-their output to a destination other than the console.  This is
-controlled by the '-o/--output-file' option.
+hledger commands send their output to the terminal by default.  You can
+of course redirect this, eg into a file, using standard shell syntax:
 
-$ hledger balance -o -     # write to stdout (the default)
-$ hledger balance -o FILE  # write to FILE
+$ hledger print > foo.txt
+
+   Some commands (print, register, stats, the balance commands) also
+provide the '-o/--output-file' option, which does the same thing without
+needing the shell.  Eg:
+
+$ hledger print -o foo.txt
+$ hledger print -o -        # write to stdout (the default)
 
 
 File: hledger.info,  Node: Output format,  Next: Regular expressions,  Prev: Output destination,  Up: OPTIONS
@@ -991,13 +996,47 @@ File: hledger.info,  Node: Output format,  Next: Regular expressions,  Prev: Out
 2.9 Output format
 =================
 
-Some commands can write their output in other formats.  Eg print and
-register can output CSV, and the balance commands can output CSV or
-HTML. This is controlled by the '-O/--output-format' option, or by
-specifying a '.csv' or '.html' file extension with '-o/--output-file'.
+Some commands (print, register, the balance commands) offer a choice of
+output format.  In addition to the usual plain text format ('txt'),
+there are CSV ('csv'), HTML ('html') and JSON ('json').  This is
+controlled by the '-O/--output-format' option:
 
-$ hledger balance -O csv       # write CSV to stdout
-$ hledger balance -o FILE.csv  # write CSV to FILE.csv
+$ hledger print -O csv
+
+   or, by a file extension specified with '-o/--output-file':
+
+$ hledger balancesheet -o foo.html   # write HTML to foo.html
+
+   The '-O' option can be used to override the file extension if needed:
+
+$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
+
+   Some notes about JSON output:
+
+   * This feature is marked experimental, and not yet much used; you
+     should expect our JSON to evolve.  Real-world feedback is welcome.
+
+   * Our JSON is rather large and verbose, as it is quite a faithful
+     representation of hledger's internal data types.  To understand the
+     JSON, read the Haskell type definitions, which are mostly in
+     https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
+
+   * The JSON output from hledger commands is essentially the same as
+     the JSON served by hledger-web's JSON API, but pretty printed,
+     using line breaks and indentation.  Our pretty printer has the
+     ability to elide data in certain cases - rendering non-strings as
+     if they were strings, or displaying "FOO.." instead of FOO's full
+     details.  This should never happen in hledger's JSON output; if you
+     see otherwise, please report as a bug.
+
+   * hledger represents quantities as Decimal values storing up to 255
+     significant digits, eg for repeating decimals.  Such numbers can
+     arise in practice (from automatically-calculated transaction
+     prices), and would break most JSON consumers.  So in JSON, we show
+     quantities as simple Numbers with at most 10 decimal places.  We
+     don't limit the number of integer digits, but that part is under
+     your control.  We hope this approach will not cause problems in
+     practice; if you find otherwise, please let us know.  (Cf #1195)
 
 
 File: hledger.info,  Node: Regular expressions,  Next: Smart dates,  Prev: Output format,  Up: OPTIONS
@@ -2437,8 +2476,9 @@ Budget performance in 2019/01:
 3.4.9 Output format
 -------------------
 
-The balance command supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are 'txt', 'csv', (multicolumn
+non-budget reports only) 'html', and (experimental) 'json'.
 
 
 File: hledger.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balance,  Up: COMMANDS
@@ -2486,8 +2526,9 @@ for a balance sheet; note this means it ignores report begin dates (and
 sense).  Instead of absolute values percentages can be displayed with
 '-%'.
 
-   This command also supports output destination and output format
-selection.
+   This command also supports the output destination and output format
+options The output formats supported are 'txt', 'csv', 'html', and
+(experimental) 'json'.
 
 
 File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesheet,  Up: COMMANDS
@@ -2525,6 +2566,10 @@ Total:
 --------------------
                    0
 
+   This command also supports the output destination and output format
+options The output formats supported are 'txt', 'csv', 'html', and
+(experimental) 'json'.
+
 
 File: hledger.info,  Node: cashflow,  Next: check-dates,  Prev: balancesheetequity,  Up: COMMANDS
 
@@ -2561,8 +2606,9 @@ period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.  Instead of
 absolute values percentages can be displayed with '-%'.
 
-   This command also supports output destination and output format
-selection.
+   This command also supports the output destination and output format
+options The output formats supported are 'txt', 'csv', 'html', and
+(experimental) 'json'.
 
 
 File: hledger.info,  Node: check-dates,  Next: check-dupes,  Prev: cashflow,  Up: COMMANDS
@@ -2904,8 +2950,9 @@ per period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.  Instead of
 absolute values percentages can be displayed with '-%'.
 
-   This command also supports output destination and output format
-selection.
+   This command also supports the output destination and output format
+options The output formats supported are 'txt', 'csv', 'html', and
+(experimental) 'json'.
 
 
 File: hledger.info,  Node: notes,  Next: payees,  Prev: incomestatement,  Up: COMMANDS
@@ -3029,8 +3076,11 @@ $ hledger -f bank1.csv print --new
 increasing dates, and that transactions on the same day do not get
 reordered.  See also the import command.
 
-   This command also supports output destination and output format
-selection.  Here's an example of print's CSV output:
+   This command also supports the output destination and output format
+options The output formats supported are 'txt', 'csv', and
+(experimental) 'json'.
+
+   Here's an example of print's CSV output:
 
 $ hledger print -Ocsv
 "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
@@ -3198,8 +3248,9 @@ $ export COLUMNS=100; hledger reg # set till session end (or window resize)
 $ hledger reg -w 100,40           # set overall width 100, description width 40
 $ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 
-   This command also supports output destination and output format
-selection.
+   This command also supports the output destination and output format
+options The output formats supported are 'txt', 'csv', and
+(experimental) 'json'.
 
 
 File: hledger.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
@@ -3683,187 +3734,187 @@ $ LANG=fr_FR.utf8 hledger -f my.journal print
 
 Tag Table:
 Node: Top68
-Node: COMMON TASKS2321
-Ref: #common-tasks2433
-Node: Getting help2840
-Ref: #getting-help2972
-Node: Constructing command lines3525
-Ref: #constructing-command-lines3717
-Node: Starting a journal file4414
-Ref: #starting-a-journal-file4612
-Node: Setting opening balances5800
-Ref: #setting-opening-balances5996
-Node: Recording transactions9137
-Ref: #recording-transactions9317
-Node: Reconciling9873
-Ref: #reconciling10016
-Node: Reporting12273
-Ref: #reporting12413
-Node: Migrating to a new file16412
-Ref: #migrating-to-a-new-file16560
-Node: OPTIONS16859
-Ref: #options16966
-Node: General options17336
-Ref: #general-options17461
-Node: Command options20231
-Ref: #command-options20382
-Node: Command arguments20780
-Ref: #command-arguments20927
-Node: Queries21807
-Ref: #queries21962
-Node: Special characters in arguments and queries25924
-Ref: #special-characters-in-arguments-and-queries26152
-Node: More escaping26603
-Ref: #more-escaping26765
-Node: Even more escaping27061
-Ref: #even-more-escaping27255
-Node: Less escaping27926
-Ref: #less-escaping28088
-Node: Unicode characters28333
-Ref: #unicode-characters28515
-Node: Input files29927
-Ref: #input-files30070
-Node: Output destination31999
-Ref: #output-destination32151
-Node: Output format32434
-Ref: #output-format32584
-Node: Regular expressions32969
-Ref: #regular-expressions33126
-Node: Smart dates34487
-Ref: #smart-dates34638
-Node: Report start & end date35999
-Ref: #report-start-end-date36171
-Node: Report intervals37609
-Ref: #report-intervals37774
-Node: Period expressions38164
-Ref: #period-expressions38324
-Node: Depth limiting42450
-Ref: #depth-limiting42594
-Node: Pivoting42936
-Ref: #pivoting43059
-Node: Valuation44735
-Ref: #valuation44837
-Node: -B Cost45017
-Ref: #b-cost45128
-Node: -V Market value45326
-Ref: #v-market-value45500
-Node: -X Market value in specified commodity46932
-Ref: #x-market-value-in-specified-commodity47171
-Node: --value Flexible valuation47347
-Ref: #value-flexible-valuation47573
-Node: Effect of --value on reports52078
-Ref: #effect-of---value-on-reports52294
-Node: Combining -B -V -X --value57840
-Ref: #combining--b--v--x---value58023
-Node: COMMANDS58059
-Ref: #commands58167
-Node: accounts59251
-Ref: #accounts59349
-Node: activity60048
-Ref: #activity60158
-Node: add60541
-Ref: #add60640
-Node: balance63379
-Ref: #balance63490
-Node: Classic balance report64948
-Ref: #classic-balance-report65121
-Node: Customising the classic balance report66490
-Ref: #customising-the-classic-balance-report66718
-Node: Colour support68794
-Ref: #colour-support68961
-Node: Flat mode69134
-Ref: #flat-mode69282
-Node: Depth limited balance reports69695
-Ref: #depth-limited-balance-reports69880
-Node: Percentages70336
-Ref: #percentages70502
-Node: Multicolumn balance report71639
-Ref: #multicolumn-balance-report71819
-Node: Budget report77081
-Ref: #budget-report77224
-Node: Nested budgets82426
-Ref: #nested-budgets82538
-Ref: #output-format-186019
-Node: balancesheet86097
-Ref: #balancesheet86233
-Node: balancesheetequity87616
-Ref: #balancesheetequity87765
-Node: cashflow88326
-Ref: #cashflow88454
-Node: check-dates89550
-Ref: #check-dates89677
-Node: check-dupes89956
-Ref: #check-dupes90080
-Node: close90373
-Ref: #close90487
-Node: close usage92009
-Ref: #close-usage92102
-Node: commodities94915
-Ref: #commodities95042
-Node: descriptions95124
-Ref: #descriptions95252
-Node: diff95433
-Ref: #diff95539
-Node: files96586
-Ref: #files96686
-Node: help96833
-Ref: #help96933
-Node: import98014
-Ref: #import98128
-Node: Importing balance assignments99021
-Ref: #importing-balance-assignments99169
-Node: incomestatement99818
-Ref: #incomestatement99951
-Node: notes101355
-Ref: #notes101468
-Node: payees101594
-Ref: #payees101700
-Node: prices101858
-Ref: #prices101964
-Node: print102305
-Ref: #print102415
-Node: print-unique107123
-Ref: #print-unique107249
-Node: register107534
-Ref: #register107661
-Node: Custom register output111833
-Ref: #custom-register-output111962
-Node: register-match113224
-Ref: #register-match113358
-Node: rewrite113709
-Ref: #rewrite113824
-Node: Re-write rules in a file115679
-Ref: #re-write-rules-in-a-file115813
-Node: Diff output format117023
-Ref: #diff-output-format117192
-Node: rewrite vs print --auto118284
-Ref: #rewrite-vs.-print---auto118463
-Node: roi119019
-Ref: #roi119117
-Node: stats120129
-Ref: #stats120228
-Node: tags121016
-Ref: #tags121114
-Node: test121408
-Ref: #test121516
-Node: Add-on Commands122263
-Ref: #add-on-commands122380
-Node: ui123723
-Ref: #ui123811
-Node: web123865
-Ref: #web123968
-Node: iadd124084
-Ref: #iadd124195
-Node: interest124277
-Ref: #interest124384
-Node: ENVIRONMENT124624
-Ref: #environment124736
-Node: FILES125565
-Ref: #files-1125668
-Node: LIMITATIONS125881
-Ref: #limitations126000
-Node: TROUBLESHOOTING126742
-Ref: #troubleshooting126855
+Node: COMMON TASKS2315
+Ref: #common-tasks2427
+Node: Getting help2834
+Ref: #getting-help2966
+Node: Constructing command lines3519
+Ref: #constructing-command-lines3711
+Node: Starting a journal file4408
+Ref: #starting-a-journal-file4606
+Node: Setting opening balances5794
+Ref: #setting-opening-balances5990
+Node: Recording transactions9131
+Ref: #recording-transactions9311
+Node: Reconciling9867
+Ref: #reconciling10010
+Node: Reporting12267
+Ref: #reporting12407
+Node: Migrating to a new file16406
+Ref: #migrating-to-a-new-file16554
+Node: OPTIONS16853
+Ref: #options16960
+Node: General options17330
+Ref: #general-options17455
+Node: Command options20225
+Ref: #command-options20376
+Node: Command arguments20774
+Ref: #command-arguments20921
+Node: Queries21801
+Ref: #queries21956
+Node: Special characters in arguments and queries25918
+Ref: #special-characters-in-arguments-and-queries26146
+Node: More escaping26597
+Ref: #more-escaping26759
+Node: Even more escaping27055
+Ref: #even-more-escaping27249
+Node: Less escaping27920
+Ref: #less-escaping28082
+Node: Unicode characters28327
+Ref: #unicode-characters28509
+Node: Input files29921
+Ref: #input-files30064
+Node: Output destination31993
+Ref: #output-destination32145
+Node: Output format32570
+Ref: #output-format32720
+Node: Regular expressions34768
+Ref: #regular-expressions34925
+Node: Smart dates36286
+Ref: #smart-dates36437
+Node: Report start & end date37798
+Ref: #report-start-end-date37970
+Node: Report intervals39408
+Ref: #report-intervals39573
+Node: Period expressions39963
+Ref: #period-expressions40123
+Node: Depth limiting44249
+Ref: #depth-limiting44393
+Node: Pivoting44735
+Ref: #pivoting44858
+Node: Valuation46534
+Ref: #valuation46636
+Node: -B Cost46816
+Ref: #b-cost46927
+Node: -V Market value47125
+Ref: #v-market-value47299
+Node: -X Market value in specified commodity48731
+Ref: #x-market-value-in-specified-commodity48970
+Node: --value Flexible valuation49146
+Ref: #value-flexible-valuation49372
+Node: Effect of --value on reports53877
+Ref: #effect-of---value-on-reports54093
+Node: Combining -B -V -X --value59639
+Ref: #combining--b--v--x---value59822
+Node: COMMANDS59858
+Ref: #commands59966
+Node: accounts61050
+Ref: #accounts61148
+Node: activity61847
+Ref: #activity61957
+Node: add62340
+Ref: #add62439
+Node: balance65178
+Ref: #balance65289
+Node: Classic balance report66747
+Ref: #classic-balance-report66920
+Node: Customising the classic balance report68289
+Ref: #customising-the-classic-balance-report68517
+Node: Colour support70593
+Ref: #colour-support70760
+Node: Flat mode70933
+Ref: #flat-mode71081
+Node: Depth limited balance reports71494
+Ref: #depth-limited-balance-reports71679
+Node: Percentages72135
+Ref: #percentages72301
+Node: Multicolumn balance report73438
+Ref: #multicolumn-balance-report73618
+Node: Budget report78880
+Ref: #budget-report79023
+Node: Nested budgets84225
+Ref: #nested-budgets84337
+Ref: #output-format-187818
+Node: balancesheet88015
+Ref: #balancesheet88151
+Node: balancesheetequity89617
+Ref: #balancesheetequity89766
+Node: cashflow90489
+Ref: #cashflow90617
+Node: check-dates91796
+Ref: #check-dates91923
+Node: check-dupes92202
+Ref: #check-dupes92326
+Node: close92619
+Ref: #close92733
+Node: close usage94255
+Ref: #close-usage94348
+Node: commodities97161
+Ref: #commodities97288
+Node: descriptions97370
+Ref: #descriptions97498
+Node: diff97679
+Ref: #diff97785
+Node: files98832
+Ref: #files98932
+Node: help99079
+Ref: #help99179
+Node: import100260
+Ref: #import100374
+Node: Importing balance assignments101267
+Ref: #importing-balance-assignments101415
+Node: incomestatement102064
+Ref: #incomestatement102197
+Node: notes103684
+Ref: #notes103797
+Node: payees103923
+Ref: #payees104029
+Node: prices104187
+Ref: #prices104293
+Node: print104634
+Ref: #print104744
+Node: print-unique109530
+Ref: #print-unique109656
+Node: register109941
+Ref: #register110068
+Node: Custom register output114240
+Ref: #custom-register-output114369
+Node: register-match115706
+Ref: #register-match115840
+Node: rewrite116191
+Ref: #rewrite116306
+Node: Re-write rules in a file118161
+Ref: #re-write-rules-in-a-file118295
+Node: Diff output format119505
+Ref: #diff-output-format119674
+Node: rewrite vs print --auto120766
+Ref: #rewrite-vs.-print---auto120945
+Node: roi121501
+Ref: #roi121599
+Node: stats122611
+Ref: #stats122710
+Node: tags123498
+Ref: #tags123596
+Node: test123890
+Ref: #test123998
+Node: Add-on Commands124745
+Ref: #add-on-commands124862
+Node: ui126205
+Ref: #ui126293
+Node: web126347
+Ref: #web126450
+Node: iadd126566
+Ref: #iadd126677
+Node: interest126759
+Ref: #interest126866
+Node: ENVIRONMENT127106
+Ref: #environment127218
+Node: FILES128047
+Ref: #files-1128150
+Node: LIMITATIONS128363
+Ref: #limitations128482
+Node: TROUBLESHOOTING129224
+Ref: #troubleshooting129337
 
 End Tag Table
 

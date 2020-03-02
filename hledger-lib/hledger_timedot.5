@@ -1,5 +1,5 @@
 
-.TH "hledger_timedot" "5" "February 2020" "hledger 1.16.99" "hledger User Manuals"
+.TH "hledger_timedot" "5" "March 2020" "hledger 1.17" "hledger User Manuals"
 
 
 
@@ -22,17 +22,21 @@ quantities other than time.
 In the docs below we\[aq]ll assume it\[aq]s time.
 .PP
 A timedot file contains a series of day entries.
-A day entry begins with a date, and is followed by category/quantity
-pairs, one per line.
-Dates are hledger-style simple dates (see hledger_journal(5)).
-Categories are hledger-style account names, optionally indented.
-As in a hledger journal, there must be at least two spaces between the
-category (account name) and the quantity.
+A day entry begins with a non-indented hledger-style simple date (Y-M-D,
+Y/M/D, Y.M.D..) Any additional text on the same line is used as a
+transaction description for this day.
+.PP
+This is followed by optionally-indented timelog items for that day, one
+per line.
+Each timelog item is a note, usually a hledger:style:account:name
+representing a time category, followed by two or more spaces, and a
+quantity.
+Each timelog item generates a hledger transaction.
 .PP
 Quantities can be written as:
 .IP \[bu] 2
-a sequence of dots (.) representing quarter hours.
-Spaces may optionally be used for grouping and readability.
+dots: a sequence of dots (.) representing quarter hours.
+Spaces may optionally be used for grouping.
 Eg: ....
 \&..
 .IP \[bu] 2
@@ -47,8 +51,25 @@ Eg: 90m.
 The following equivalencies are assumed, currently: 1m = 60s, 1h = 60m,
 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
 .PP
-Blank lines and lines beginning with #, ; or * are ignored.
-An example:
+There is some flexibility allowing notes and todo lists to be kept right
+in the time log, if needed:
+.IP \[bu] 2
+Blank lines and lines beginning with \f[C]#\f[R] or \f[C];\f[R] are
+ignored.
+.IP \[bu] 2
+Lines not ending with a double-space and quantity are parsed as items
+taking no time, which will not appear in balance reports by default.
+(Add -E to see them.)
+.IP \[bu] 2
+Org mode headlines (lines beginning with one or more \f[C]*\f[R]
+followed by a space) can be used as date lines or timelog items (the
+stars are ignored).
+Also all org headlines before the first date line are ignored.
+This means org users can manage their timelog as an org outline (eg
+using org-mode/orgstruct-mode in Emacs), for organisation, faster
+navigation, controlling visibility etc.
+.PP
+Examples:
 .IP
 .nf
 \f[C]
@@ -63,8 +84,6 @@ inc:client1   .... ....
 biz:research  .
 \f[R]
 .fi
-.PP
-Or with numbers:
 .IP
 .nf
 \f[C]
@@ -72,6 +91,35 @@ Or with numbers:
 inc:client1   4
 fos:hledger   3
 biz:research  1
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+* Time log
+** 2020-01-01
+*** adm:time  .
+*** adm:finance  .
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+* 2020 Work Diary
+** Q1
+*** 2020-02-29
+**** DONE
+0700 yoga
+**** UNPLANNED
+**** BEGUN
+hom:chores
+ cleaning  ...
+ water plants
+  outdoor - one full watering can
+  indoor - light watering
+**** TODO
+adm:planning: trip
+*** LATER
 \f[R]
 .fi
 .PP

@@ -30,5 +30,6 @@ though as with multicolumn balance reports you can alter the report mode
 with --change/--cumulative/--historical. Instead of absolute values
 percentages can be displayed with -%.
 
-This command also supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are txt, csv, html, and
+(experimental) json.

@@ -3,8 +3,8 @@ This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.16.99
-**********************************
+hledger-web(1) hledger-web 1.17
+*******************************
 
 hledger-web - web interface for the hledger accounting tool
 
@@ -350,8 +350,8 @@ form, hledger-web must be started with the 'add' capability for this
 what you get from '/transactions' or '/accounttransactions'.
 
    Another way to generate test data is with the
-'readJsonFile'/'writeJsonFile' helpers in Hledger.Web.Json, which read
-or write any of hledger's JSON-capable types from or to a file.  Eg here
+'readJsonFile'/'writeJsonFile' helpers in Hledger.Web.Json, which can
+write or read most of hledger's data types to or from a file.  Eg here
 we write the first transaction of a sample journal:
 
 $ make ghci-web
@@ -427,22 +427,22 @@ awkward.
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1752
-Ref: #options1857
-Node: PERMISSIONS8201
-Ref: #permissions8340
-Node: EDITING UPLOADING DOWNLOADING9552
-Ref: #editing-uploading-downloading9733
-Node: RELOADING10567
-Ref: #reloading10701
-Node: JSON API11134
-Ref: #json-api11248
-Node: ENVIRONMENT12689
-Ref: #environment12805
-Node: FILES13538
-Ref: #files13638
-Node: BUGS13851
-Ref: #bugs13929
+Node: OPTIONS1746
+Ref: #options1851
+Node: PERMISSIONS8195
+Ref: #permissions8334
+Node: EDITING UPLOADING DOWNLOADING9546
+Ref: #editing-uploading-downloading9727
+Node: RELOADING10561
+Ref: #reloading10695
+Node: JSON API11128
+Ref: #json-api11242
+Node: ENVIRONMENT12680
+Ref: #environment12796
+Node: FILES13529
+Ref: #files13629
+Node: BUGS13842
+Ref: #bugs13920
 
 End Tag Table
 

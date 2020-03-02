@@ -163,10 +163,7 @@ EXAMPLES
               #include categorisation.rules
 
               # add a third posting for fees, but only if they are non-zero.
-              # Commas in the data makes counting fields hard, so count from the right instead.
-              # (Regex translation: "a field containing a non-zero dollar amount,
-              # immediately before the 1 right-most fields")
-              if ,\$[1-9][.0-9]+(,[^,]*){1}$
+              if %fees [1-9]
                account3    expenses:fees
                amount3     %fees
 
@@ -223,13 +220,11 @@ EXAMPLES
               comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
 
               # convert to short currency symbols
-              # Note: in conditional block regexps, the line of csv being matched is
-              # a synthetic one: the unquoted field values, with commas between them.
-              if ,USD,
+              if %currency USD
                currency $
-              if ,EUR,
+              if %currency EUR
                currency E
-              if ,GBP,
+              if %currency GBP
                currency P
 
               # generate postings
@@ -243,9 +238,8 @@ EXAMPLES
               # (account2 is set below)
               amount2  -%grossamount
 
-              # if there's a fee (9th field), add a third posting for the money taken by paypal.
-              # TODO: This regexp fails when fields contain a comma (generates a third posting with zero amount)
-              if ^([^,]+,){8}[^0]
+              # if there's a fee, add a third posting for the money taken by paypal.
+              if %feeamount [1-9]
                account3 expenses:banking:paypal
                amount3  -%feeamount
                comment3 business:
@@ -253,11 +247,11 @@ EXAMPLES
               # choose an account for the second posting
 
               # override the default account names:
-              # if amount (8th field) is positive, it's income (a debit)
-              if ^([^,]+,){7}[0-9]
+              # if the amount is positive, it's income (a debit)
+              if %grossamount ^[^-]
                account2 income:unknown
               # if negative, it's an expense (a credit)
-              if ^([^,]+,){7}-
+              if %grossamount ^-
                account2 expenses:unknown
 
               # apply common rules for setting account2 & other tweaks
@@ -446,13 +440,13 @@ CSV RULES
        See also: File Extension.
 
    if
-              if PATTERN
+              if MATCHER
                RULE
 
               if
-              PATTERN
-              PATTERN
-              PATTERN
+              MATCHER
+              MATCHER
+              MATCHER
                RULE
                RULE
 
@@ -460,24 +454,32 @@ CSV RULES
        only to CSV records which match certain patterns.  They are often  used
        for customising account names based on transaction descriptions.
 
-       A single pattern can be written on the same line as the "if"; or multi-
-       ple patterns can be written on the following lines, non-indented.  Mul-
-       tiple  patterns  are  OR'd  (any  one of them can match).  Patterns are
-       case-insensitive regular expressions which try to match anywhere within
-       the  whole CSV record (POSIX extended regular expressions with some ad-
-       ditions,   see   https://hledger.org/hledger.html#regular-expressions).
-       Note the CSV record they see is close to, but not identical to, the one
-       in the CSV file; enclosing double quotes will be removed, and the sepa-
-       rator character is always comma.
+       Each MATCHER can be a record matcher, which looks like this:
 
-       It's  not  yet easy to match within a specific field.  If the data does
-       not contain commas, you can hack it with a regular expression like:
+              REGEX
 
-              # match "foo" in the fourth field
-              if ^([^,]*,){3}foo
+       REGEX  is  a  case-insensitive  regular expression which tries to match
+       anywhere within the CSV record.  It is a POSIX extended regular expres-
+       sions  with some additions (see Regular expressions in the hledger man-
+       ual).  Note: the "CSV record" it is matched against is not the original
+       record, but a synthetic one, with enclosing double quotes or whitespace
+       removed, and always comma-separated.  (Eg, an  SSV  record  2020-01-01;
+       "Acme, Inc."; 1,000 appears to REGEX as 2020-01-01,Acme, Inc.,1,000).
 
-       After the patterns there should be one or more rules to apply, all  in-
-       dented  by at least one space.  Three kinds of rule are allowed in con-
+       Or, MATCHER can be a field matcher, like this:
+
+              %CSVFIELD REGEX
+
+       which  matches just the content of a particular CSV field.  CSVFIELD is
+       a percent sign followed by the field's  name  or  column  number,  like
+       %date or %1.
+
+       A single matcher can be written on the same line as the "if"; or multi-
+       ple matchers can be written on the following lines, non-indented.  Mul-
+       tiple matchers are OR'd (any one of them can match).
+
+       After  the patterns there should be one or more rules to apply, all in-
+       dented by at least one space.  Three kinds of rule are allowed in  con-
        ditional blocks:
 
        o field assignments (to set a hledger field)
@@ -501,7 +503,7 @@ CSV RULES
                comment  XXX deductible ? check it
 
    end
-       This rule can be used inside if blocks (only),  to  make  hledger  stop
+       This  rule  can  be  used inside if blocks (only), to make hledger stop
        reading this CSV file and move on to the next input file, or to command
        execution.  Eg:
 
@@ -512,10 +514,10 @@ CSV RULES
    date-format
               date-format DATEFMT
 
-       This is a helper for the date (and date2) fields.  If  your  CSV  dates
-       are  not  formatted  like  YYYY-MM-DD, YYYY/MM/DD or YYYY.MM.DD, you'll
-       need to add a date-format rule describing them  with  a  strptime  date
-       parsing  pattern, which must parse the CSV date value completely.  Some
+       This  is  a  helper for the date (and date2) fields.  If your CSV dates
+       are not formatted like YYYY-MM-DD,  YYYY/MM/DD  or  YYYY.MM.DD,  you'll
+       need  to  add  a  date-format rule describing them with a strptime date
+       parsing pattern, which must parse the CSV date value completely.   Some
        examples:
 
               # MM/DD/YY
@@ -537,15 +539,15 @@ CSV RULES
        mat.html#v:formatTime
 
    newest-first
-       hledger  always sorts the generated transactions by date.  Transactions
-       on the same date should appear in the same order as their CSV  records,
-       as  hledger  can  usually auto-detect whether the CSV's normal order is
+       hledger always sorts the generated transactions by date.   Transactions
+       on  the same date should appear in the same order as their CSV records,
+       as hledger can usually auto-detect whether the CSV's  normal  order  is
        oldest first or newest first.  But if all of the following are true:
 
-       o the CSV might sometimes contain just one day  of  data  (all  records
+       o the  CSV  might  sometimes  contain just one day of data (all records
          having the same date)
 
-       o the  CSV  records are normally in reverse chronological order (newest
+       o the CSV records are normally in reverse chronological  order  (newest
          at the top)
 
        o and you care about preserving the order of same-day transactions
@@ -558,9 +560,9 @@ CSV RULES
    include
               include RULESFILE
 
-       This includes the contents of another CSV rules  file  at  this  point.
-       RULESFILE  is  an  absolute file path or a path relative to the current
-       file's directory.  This can be useful for sharing common rules  between
+       This  includes  the  contents  of another CSV rules file at this point.
+       RULESFILE is an absolute file path or a path relative  to  the  current
+       file's  directory.  This can be useful for sharing common rules between
        several rules files, eg:
 
               # someaccount.csv.rules
@@ -575,10 +577,10 @@ CSV RULES
 
    balance-type
        Balance assertions generated by assigning to balanceN are of the simple
-       = type by default, which is  a  single-commodity,  subaccount-excluding
+       =  type  by  default, which is a single-commodity, subaccount-excluding
        assertion.  You may find the subaccount-including variants more useful,
-       eg if you have created some virtual subaccounts  of  checking  to  help
-       with  budgeting.  You can select a different type of assertion with the
+       eg  if  you  have  created some virtual subaccounts of checking to help
+       with budgeting.  You can select a different type of assertion with  the
        balance-type rule:
 
               # balance assertions will consider all commodities and all subaccounts
@@ -593,19 +595,19 @@ CSV RULES
 
 TIPS
    Rapid feedback
-       It's a good idea to get rapid feedback  while  creating/troubleshooting
+       It's  a  good idea to get rapid feedback while creating/troubleshooting
        CSV rules.  Here's a good way, using entr from http://eradman.com/entr-
        project :
 
               $ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
 
-       A desc: query (eg) is used to select just one, or a  few,  transactions
-       of  interest.   "bash  -c"  is used to run multiple commands, so we can
-       echo a separator each time the command re-runs,  making  it  easier  to
+       A  desc:  query (eg) is used to select just one, or a few, transactions
+       of interest.  "bash -c" is used to run multiple  commands,  so  we  can
+       echo  a  separator  each  time the command re-runs, making it easier to
        read the output.
 
    Valid CSV
-       hledger  accepts  CSV  conforming to RFC 4180.  When CSV values are en-
+       hledger accepts CSV conforming to RFC 4180.  When CSV  values  are  en-
        closed in quotes, note:
 
        o they must be double quotes (not single quotes)
@@ -613,9 +615,9 @@ TIPS
        o spaces outside the quotes are not allowed
 
    File Extension
-       CSV ("Character Separated Values") files should be named  with  one  of
-       these  filename extensions: .csv, .ssv, .tsv.  Or, the file path should
-       be prefixed with one of csv:, ssv:, tsv:.  This helps hledger  identify
+       CSV  ("Character  Separated  Values") files should be named with one of
+       these filename extensions: .csv, .ssv, .tsv.  Or, the file path  should
+       be  prefixed with one of csv:, ssv:, tsv:.  This helps hledger identify
        the format and show the right error messages.  For example:
 
               $ hledger -f foo.ssv print
@@ -627,44 +629,44 @@ TIPS
        More about this: Input files in the hledger manual.
 
    Reading multiple CSV files
-       If  you  use  multiple  -f  options to read multiple CSV files at once,
-       hledger will look for a correspondingly-named rules file for  each  CSV
-       file.   But if you use the --rules-file option, that rules file will be
+       If you use multiple -f options to read  multiple  CSV  files  at  once,
+       hledger  will  look for a correspondingly-named rules file for each CSV
+       file.  But if you use the --rules-file option, that rules file will  be
        used for all the CSV files.
 
    Valid transactions
        After reading a CSV file, hledger post-processes and validates the gen-
        erated journal entries as it would for a journal file - balancing them,
-       applying balance assignments, and canonicalising  amount  styles.   Any
-       errors  at this stage will be reported in the usual way, displaying the
+       applying  balance  assignments,  and canonicalising amount styles.  Any
+       errors at this stage will be reported in the usual way, displaying  the
        problem entry.
 
        There is one exception: balance assertions, if you have generated them,
-       will  not  be checked, since normally these will work only when the CSV
-       data is part of the main journal.  If you do need to check balance  as-
+       will not be checked, since normally these will work only when  the  CSV
+       data  is part of the main journal.  If you do need to check balance as-
        sertions generated from CSV right away, pipe into another hledger:
 
               $ hledger -f file.csv print | hledger -f- print
 
    Deduplicating, importing
-       When  you  download a CSV file periodically, eg to get your latest bank
-       transactions, the new file may overlap with  the  old  one,  containing
+       When you download a CSV file periodically, eg to get your  latest  bank
+       transactions,  the  new  file  may overlap with the old one, containing
        some of the same records.
 
        The import command will (a) detect the new transactions, and (b) append
        just those transactions to your main journal.  It is idempotent, so you
-       don't  have to remember how many times you ran it or with which version
-       of the CSV.  (It keeps state in a hidden .latest.FILE.csv  file.)  This
+       don't have to remember how many times you ran it or with which  version
+       of  the  CSV.  (It keeps state in a hidden .latest.FILE.csv file.) This
        is the easiest way to import CSV data.  Eg:
 
               # download the latest CSV files, then run this command.
               # Note, no -f flags needed here.
               $ hledger import *.csv [--dry]
 
-       This  method  works  for  most CSV files.  (Where records have a stable
+       This method works for most CSV files.  (Where  records  have  a  stable
        chronological order, and new records appear only at the new end.)
 
-       A number of other tools and workflows, hledger-specific and  otherwise,
+       A  number of other tools and workflows, hledger-specific and otherwise,
        exist for converting, deduplicating, classifying and managing CSV data.
        See:
 
@@ -675,43 +677,43 @@ TIPS
    Setting amounts
        A posting amount can be set in one of these ways:
 
-       o by assigning (with a fields  list  or  field  assigment)  to  amountN
+       o by  assigning  (with  a  fields  list  or field assigment) to amountN
          (posting N's amount) or amount (posting 1's amount)
 
-       o by  assigning to amountN-in and amountN-out (or amount-in and amount-
-         out).  For each CSV record, whichever of these has a  non-zero  value
-         will  be  used,  with  appropriate  sign.  If both contain a non-zero
+       o by assigning to amountN-in and amountN-out (or amount-in and  amount-
+         out).   For  each CSV record, whichever of these has a non-zero value
+         will be used, with appropriate sign.   If  both  contain  a  non-zero
          value, this may not work.
 
-       o by assigning to balanceN (or balance) instead of the  above,  setting
-         the  amount  indirectly via a balance assignment.  If you do this the
+       o by  assigning  to balanceN (or balance) instead of the above, setting
+         the amount indirectly via a balance assignment.  If you do  this  the
          default account name may be wrong, so you should set that explicitly.
 
        There is some special handling for an amount's sign:
 
-       o If an amount value is parenthesised, it will be de-parenthesised  and
+       o If  an amount value is parenthesised, it will be de-parenthesised and
          sign-flipped.
 
-       o If  an amount value begins with a double minus sign, those cancel out
+       o If an amount value begins with a double minus sign, those cancel  out
          and are removed.
 
        o If an amount value begins with a plus sign, that will be removed
 
    Setting currency/commodity
-       If the currency/commodity  symbol  is  included  in  the  CSV's  amount
+       If  the  currency/commodity  symbol  is  included  in  the CSV's amount
        field(s), you don't have to do anything special.
 
        If the currency is provided as a separate CSV field, you can either:
 
-       o assign  that  to currency, which adds it to all posting amounts.  The
-         symbol will prepended to the amount quantity (on the left side).   If
-         you  write  a  trailing space after the symbol, there will be a space
-         between symbol and amount  (an  exception  to  the  usual  whitespace
+       o assign that to currency, which adds it to all posting  amounts.   The
+         symbol  will prepended to the amount quantity (on the left side).  If
+         you write a trailing space after the symbol, there will  be  a  space
+         between  symbol  and  amount  (an  exception  to the usual whitespace
          stripping).
 
        o or assign it to currencyN which adds it to posting N's amount only.
 
-       o or  for  more  control, construct the amount from symbol and quantity
+       o or for more control, construct the amount from  symbol  and  quantity
          using field assignment, eg:
 
                 fields date,description,currency,quantity
@@ -719,9 +721,9 @@ TIPS
                 amount %quantity %currency
 
    Referencing other fields
-       In field assignments, you can interpolate only CSV fields, not  hledger
-       fields.   In  the example below, there's both a CSV field and a hledger
-       field named amount1, but %amount1 always means the CSV field,  not  the
+       In  field assignments, you can interpolate only CSV fields, not hledger
+       fields.  In the example below, there's both a CSV field and  a  hledger
+       field  named  amount1, but %amount1 always means the CSV field, not the
        hledger field:
 
               # Name the third CSV field "amount1"
@@ -733,7 +735,7 @@ TIPS
               # Set comment to the CSV amount1 (not the amount1 assigned above)
               comment %amount1
 
-       Here,  since there's no CSV amount1 field, %amount1 will produce a lit-
+       Here, since there's no CSV amount1 field, %amount1 will produce a  lit-
        eral "amount1":
 
               fields date,description,csvamount
@@ -741,7 +743,7 @@ TIPS
               # Can't interpolate amount1 here
               comment %amount1
 
-       When there are multiple field assignments to the  same  hledger  field,
+       When  there  are  multiple field assignments to the same hledger field,
        only the last one takes effect.  Here, comment's value will be be B, or
        C if "something" is matched, but never A:
 
@@ -751,14 +753,14 @@ TIPS
                comment C
 
    How CSV rules are evaluated
-       Here's how to think of CSV rules being evaluated (if  you  really  need
+       Here's  how  to  think of CSV rules being evaluated (if you really need
        to).  First,
 
-       o include  - all includes are inlined, from top to bottom, depth first.
-         (At each include point the file is inlined and  scanned  for  further
+       o include - all includes are inlined, from top to bottom, depth  first.
+         (At  each  include  point the file is inlined and scanned for further
          includes, recursively, before proceeding.)
 
-       Then  "global"  rules  are  evaluated, top to bottom.  If a rule is re-
+       Then "global" rules are evaluated, top to bottom.  If  a  rule  is  re-
        peated, the last one wins:
 
        o skip (at top level)
@@ -772,30 +774,30 @@ TIPS
 
        Then for each CSV record in turn:
 
-       o test  all if blocks.  If any of them contain a end rule, skip all re-
-         maining CSV records.  Otherwise if any of them contain a  skip  rule,
-         skip  that  many  CSV  records.   If  there are multiple matched skip
+       o test all if blocks.  If any of them contain a end rule, skip all  re-
+         maining  CSV  records.  Otherwise if any of them contain a skip rule,
+         skip that many CSV records.   If  there  are  multiple  matched  skip
          rules, the first one wins.
 
-       o collect all field assignments at top level and in matched if  blocks.
-         When  there  are multiple assignments for a field, keep only the last
+       o collect  all field assignments at top level and in matched if blocks.
+         When there are multiple assignments for a field, keep only  the  last
          one.
 
-       o compute a value for each hledger field - either the one that was  as-
+       o compute  a value for each hledger field - either the one that was as-
          signed to it (and interpolate the %CSVFIELDNAME references), or a de-
          fault
 
        o generate a synthetic hledger transaction from these values.
 
-       This is all part of the CSV reader, one of several readers hledger  can
-       use  to parse input files.  When all files have been read successfully,
-       the transactions are passed as input to whichever hledger  command  the
+       This  is all part of the CSV reader, one of several readers hledger can
+       use to parse input files.  When all files have been read  successfully,
+       the  transactions  are passed as input to whichever hledger command the
        user specified.
 
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -809,7 +811,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -817,4 +819,4 @@ SEE ALSO
 
 
 
-hledger 1.16.99                  February 2020                  hledger_csv(5)
+hledger 1.17                      March 2020                    hledger_csv(5)

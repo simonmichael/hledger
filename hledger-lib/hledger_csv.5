@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_csv" "5" "February 2020" "hledger 1.16.99" "hledger User Manuals"
+.TH "hledger_csv" "5" "March 2020" "hledger 1.17" "hledger User Manuals"
 
 
 
@@ -236,10 +236,7 @@ amount2     %amzamount
 #include categorisation.rules
 
 # add a third posting for fees, but only if they are non-zero.
-# Commas in the data makes counting fields hard, so count from the right instead.
-# (Regex translation: \[dq]a field containing a non-zero dollar amount,
-# immediately before the 1 right-most fields\[dq])
-if ,\[rs]$[1-9][.0-9]+(,[\[ha],]*){1}$
+if %fees [1-9]
  account3    expenses:fees
  amount3     %fees
 \f[R]
@@ -308,13 +305,11 @@ description %description_ %itemtitle
 comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
 
 # convert to short currency symbols
-# Note: in conditional block regexps, the line of csv being matched is
-# a synthetic one: the unquoted field values, with commas between them.
-if ,USD,
+if %currency USD
  currency $
-if ,EUR,
+if %currency EUR
  currency E
-if ,GBP,
+if %currency GBP
  currency P
 
 # generate postings
@@ -328,9 +323,8 @@ amount1  %netamount
 # (account2 is set below)
 amount2  -%grossamount
 
-# if there\[aq]s a fee (9th field), add a third posting for the money taken by paypal.
-# TODO: This regexp fails when fields contain a comma (generates a third posting with zero amount)
-if \[ha]([\[ha],]+,){8}[\[ha]0]
+# if there\[aq]s a fee, add a third posting for the money taken by paypal.
+if %feeamount [1-9]
  account3 expenses:banking:paypal
  amount3  -%feeamount
  comment3 business:
@@ -338,11 +332,11 @@ if \[ha]([\[ha],]+,){8}[\[ha]0]
 # choose an account for the second posting
 
 # override the default account names:
-# if amount (8th field) is positive, it\[aq]s income (a debit)
-if \[ha]([\[ha],]+,){7}[0-9]
+# if the amount is positive, it\[aq]s income (a debit)
+if %grossamount \[ha][\[ha]-]
  account2 income:unknown
 # if negative, it\[aq]s an expense (a credit)
-if \[ha]([\[ha],]+,){7}-
+if %grossamount \[ha]-
  account2 expenses:unknown
 
 # apply common rules for setting account2 & other tweaks
@@ -585,13 +579,13 @@ See also: File Extension.
 .IP
 .nf
 \f[C]
-if PATTERN
+if MATCHER
  RULE
 
 if
-PATTERN
-PATTERN
-PATTERN
+MATCHER
+MATCHER
+MATCHER
  RULE
  RULE
 \f[R]
@@ -602,27 +596,39 @@ applied only to CSV records which match certain patterns.
 They are often used for customising account names based on transaction
 descriptions.
 .PP
-A single pattern can be written on the same line as the \[dq]if\[dq]; or
-multiple patterns can be written on the following lines, non-indented.
-Multiple patterns are OR\[aq]d (any one of them can match).
-Patterns are case-insensitive regular expressions which try to match
-anywhere within the whole CSV record (POSIX extended regular expressions
-with some additions, see
-https://hledger.org/hledger.html#regular-expressions).
-Note the CSV record they see is close to, but not identical to, the one
-in the CSV file; enclosing double quotes will be removed, and the
-separator character is always comma.
-.PP
-It\[aq]s not yet easy to match within a specific field.
-If the data does not contain commas, you can hack it with a regular
-expression like:
+Each MATCHER can be a record matcher, which looks like this:
 .IP
 .nf
 \f[C]
-# match \[dq]foo\[dq] in the fourth field
-if \[ha]([\[ha],]*,){3}foo
+REGEX
 \f[R]
 .fi
+.PP
+REGEX is a case-insensitive regular expression which tries to match
+anywhere within the CSV record.
+It is a POSIX extended regular expressions with some additions (see
+Regular expressions in the hledger manual).
+Note: the \[dq]CSV record\[dq] it is matched against is not the original
+record, but a synthetic one, with enclosing double quotes or whitespace
+removed, and always comma-separated.
+(Eg, an SSV record \f[C]2020-01-01; \[dq]Acme, Inc.\[dq]; 1,000\f[R]
+appears to REGEX as \f[C]2020-01-01,Acme, Inc.,1,000\f[R]).
+.PP
+Or, MATCHER can be a field matcher, like this:
+.IP
+.nf
+\f[C]
+%CSVFIELD REGEX
+\f[R]
+.fi
+.PP
+which matches just the content of a particular CSV field.
+CSVFIELD is a percent sign followed by the field\[aq]s name or column
+number, like \f[C]%date\f[R] or \f[C]%1\f[R].
+.PP
+A single matcher can be written on the same line as the \[dq]if\[dq]; or
+multiple matchers can be written on the following lines, non-indented.
+Multiple matchers are OR\[aq]d (any one of them can match).
 .PP
 After the patterns there should be one or more rules to apply, all
 indented by at least one space.

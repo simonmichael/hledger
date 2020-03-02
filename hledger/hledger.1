@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "February 2020" "hledger 1.16.99" "hledger User Manuals"
+.TH "hledger" "1" "March 2020" "hledger 1.17" "hledger User Manuals"
 
 
 
@@ -1037,31 +1037,90 @@ If you need those, either use the include directive, or concatenate the
 files, eg: \f[C]cat a.journal b.journal | hledger -f- CMD\f[R].
 .SS Output destination
 .PP
-Some commands (print, register, stats, the balance commands) can write
-their output to a destination other than the console.
-This is controlled by the \f[C]-o/--output-file\f[R] option.
+hledger commands send their output to the terminal by default.
+You can of course redirect this, eg into a file, using standard shell
+syntax:
 .IP
 .nf
 \f[C]
-$ hledger balance -o -     # write to stdout (the default)
-$ hledger balance -o FILE  # write to FILE
+$ hledger print > foo.txt
+\f[R]
+.fi
+.PP
+Some commands (print, register, stats, the balance commands) also
+provide the \f[C]-o/--output-file\f[R] option, which does the same thing
+without needing the shell.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger print -o foo.txt
+$ hledger print -o -        # write to stdout (the default)
 \f[R]
 .fi
 .SS Output format
 .PP
-Some commands can write their output in other formats.
-Eg print and register can output CSV, and the balance commands can
-output CSV or HTML.
-This is controlled by the \f[C]-O/--output-format\f[R] option, or by
-specifying a \f[C].csv\f[R] or \f[C].html\f[R] file extension with
-\f[C]-o/--output-file\f[R].
+Some commands (print, register, the balance commands) offer a choice of
+output format.
+In addition to the usual plain text format (\f[C]txt\f[R]), there are
+CSV (\f[C]csv\f[R]), HTML (\f[C]html\f[R]) and JSON (\f[C]json\f[R]).
+This is controlled by the \f[C]-O/--output-format\f[R] option:
 .IP
 .nf
 \f[C]
-$ hledger balance -O csv       # write CSV to stdout
-$ hledger balance -o FILE.csv  # write CSV to FILE.csv
+$ hledger print -O csv
 \f[R]
 .fi
+.PP
+or, by a file extension specified with \f[C]-o/--output-file\f[R]:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.html   # write HTML to foo.html
+\f[R]
+.fi
+.PP
+The \f[C]-O\f[R] option can be used to override the file extension if
+needed:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
+\f[R]
+.fi
+.PP
+Some notes about JSON output:
+.IP \[bu] 2
+This feature is marked experimental, and not yet much used; you should
+expect our JSON to evolve.
+Real-world feedback is welcome.
+.IP \[bu] 2
+Our JSON is rather large and verbose, as it is quite a faithful
+representation of hledger\[aq]s internal data types.
+To understand the JSON, read the Haskell type definitions, which are
+mostly in
+https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
+.IP \[bu] 2
+The JSON output from hledger commands is essentially the same as the
+JSON served by hledger-web\[aq]s JSON API, but pretty printed, using
+line breaks and indentation.
+Our pretty printer has the ability to elide data in certain cases -
+rendering non-strings as if they were strings, or displaying
+\[dq]FOO..\[dq] instead of FOO\[aq]s full details.
+This should never happen in hledger\[aq]s JSON output; if you see
+otherwise, please report as a bug.
+.IP \[bu] 2
+hledger represents quantities as Decimal values storing up to 255
+significant digits, eg for repeating decimals.
+Such numbers can arise in practice (from automatically-calculated
+transaction prices), and would break most JSON consumers.
+So in JSON, we show quantities as simple Numbers with at most 10 decimal
+places.
+We don\[aq]t limit the number of integer digits, but that part is under
+your control.
+We hope this approach will not cause problems in practice; if you find
+otherwise, please let us know.
+(Cf #1195)
 .SS Regular expressions
 .PP
 hledger uses regular expressions in a number of places:
@@ -2955,8 +3014,10 @@ Budget performance in 2019/01:
 .fi
 .SS Output format
 .PP
-The balance command supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+(multicolumn non-budget reports only) \f[C]html\f[R], and (experimental)
+\f[C]json\f[R].
 .SS balancesheet
 .PP
 balancesheet, bs
@@ -3010,8 +3071,9 @@ generally does not make sense).
 Instead of absolute values percentages can be displayed with
 \f[C]-%\f[R].
 .PP
-This command also supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+\f[C]html\f[R], and (experimental) \f[C]json\f[R].
 .SS balancesheetequity
 .PP
 balancesheetequity, bse
@@ -3050,6 +3112,10 @@ Total:
                    0
 \f[R]
 .fi
+.PP
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+\f[C]html\f[R], and (experimental) \f[C]json\f[R].
 .SS cashflow
 .PP
 cashflow, cf
@@ -3093,8 +3159,9 @@ multicolumn balance reports you can alter the report mode with
 Instead of absolute values percentages can be displayed with
 \f[C]-%\f[R].
 .PP
-This command also supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+\f[C]html\f[R], and (experimental) \f[C]json\f[R].
 .SS check-dates
 .PP
 check-dates
@@ -3461,8 +3528,9 @@ with multicolumn balance reports you can alter the report mode with
 Instead of absolute values percentages can be displayed with
 \f[C]-%\f[R].
 .PP
-This command also supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+\f[C]html\f[R], and (experimental) \f[C]json\f[R].
 .SS notes
 .PP
 notes Show notes.
@@ -3602,8 +3670,10 @@ increasing dates, and that transactions on the same day do not get
 reordered.
 See also the import command.
 .PP
-This command also supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+and (experimental) \f[C]json\f[R].
+.PP
 Here\[aq]s an example of print\[aq]s CSV output:
 .IP
 .nf
@@ -3812,8 +3882,9 @@ $ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 \f[R]
 .fi
 .PP
-This command also supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+and (experimental) \f[C]json\f[R].
 .SS register-match
 .PP
 register-match

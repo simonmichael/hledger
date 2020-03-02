@@ -70,8 +70,11 @@ This assumes that transactions added to FILE always have same or
 increasing dates, and that transactions on the same day do not get
 reordered. See also the import command.
 
-This command also supports output destination and output format
-selection. Here's an example of print's CSV output:
+This command also supports the output destination and output format
+options The output formats supported are txt, csv, and (experimental)
+json.
+
+Here's an example of print's CSV output:
 
 $ hledger print -Ocsv
 "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"

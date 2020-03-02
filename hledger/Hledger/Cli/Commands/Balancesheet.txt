@@ -39,5 +39,6 @@ for a balance sheet; note this means it ignores report begin dates (and
 -T/--row-total, since summing end balances generally does not make
 sense). Instead of absolute values percentages can be displayed with -%.
 
-This command also supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are txt, csv, html, and
+(experimental) json.

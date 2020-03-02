@@ -3,8 +3,8 @@ This is hledger_csv.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger_csv(5) hledger 1.16.99
-******************************
+hledger_csv(5) hledger 1.17
+***************************
 
 CSV - how hledger reads CSV data, and the CSV rules file format
 
@@ -190,10 +190,7 @@ amount2     %amzamount
 #include categorisation.rules
 
 # add a third posting for fees, but only if they are non-zero.
-# Commas in the data makes counting fields hard, so count from the right instead.
-# (Regex translation: "a field containing a non-zero dollar amount,
-# immediately before the 1 right-most fields")
-if ,\$[1-9][.0-9]+(,[^,]*){1}$
+if %fees [1-9]
  account3    expenses:fees
  amount3     %fees
 
@@ -255,13 +252,11 @@ description %description_ %itemtitle
 comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
 
 # convert to short currency symbols
-# Note: in conditional block regexps, the line of csv being matched is
-# a synthetic one: the unquoted field values, with commas between them.
-if ,USD,
+if %currency USD
  currency $
-if ,EUR,
+if %currency EUR
  currency E
-if ,GBP,
+if %currency GBP
  currency P
 
 # generate postings
@@ -275,9 +270,8 @@ amount1  %netamount
 # (account2 is set below)
 amount2  -%grossamount
 
-# if there's a fee (9th field), add a third posting for the money taken by paypal.
-# TODO: This regexp fails when fields contain a comma (generates a third posting with zero amount)
-if ^([^,]+,){8}[^0]
+# if there's a fee, add a third posting for the money taken by paypal.
+if %feeamount [1-9]
  account3 expenses:banking:paypal
  amount3  -%feeamount
  comment3 business:
@@ -285,11 +279,11 @@ if ^([^,]+,){8}[^0]
 # choose an account for the second posting
 
 # override the default account names:
-# if amount (8th field) is positive, it's income (a debit)
-if ^([^,]+,){7}[0-9]
+# if the amount is positive, it's income (a debit)
+if %grossamount ^[^-]
  account2 income:unknown
 # if negative, it's an expense (a credit)
-if ^([^,]+,){7}-
+if %grossamount ^-
  account2 expenses:unknown
 
 # apply common rules for setting account2 & other tweaks
@@ -537,13 +531,13 @@ File: hledger_csv.info,  Node: if,  Next: end,  Prev: separator,  Up: CSV RULES
 2.5 'if'
 ========
 
-if PATTERN
+if MATCHER
  RULE
 
 if
-PATTERN
-PATTERN
-PATTERN
+MATCHER
+MATCHER
+MATCHER
  RULE
  RULE
 
@@ -552,21 +546,30 @@ applied only to CSV records which match certain patterns.  They are
 often used for customising account names based on transaction
 descriptions.
 
-   A single pattern can be written on the same line as the "if"; or
-multiple patterns can be written on the following lines, non-indented.
-Multiple patterns are OR'd (any one of them can match).  Patterns are
-case-insensitive regular expressions which try to match anywhere within
-the whole CSV record (POSIX extended regular expressions with some
-additions, see https://hledger.org/hledger.html#regular-expressions).
-Note the CSV record they see is close to, but not identical to, the one
-in the CSV file; enclosing double quotes will be removed, and the
-separator character is always comma.
+   Each MATCHER can be a record matcher, which looks like this:
 
-   It's not yet easy to match within a specific field.  If the data does
-not contain commas, you can hack it with a regular expression like:
+REGEX
 
-# match "foo" in the fourth field
-if ^([^,]*,){3}foo
+   REGEX is a case-insensitive regular expression which tries to match
+anywhere within the CSV record.  It is a POSIX extended regular
+expressions with some additions (see Regular expressions in the hledger
+manual).  Note: the "CSV record" it is matched against is not the
+original record, but a synthetic one, with enclosing double quotes or
+whitespace removed, and always comma-separated.  (Eg, an SSV record
+'2020-01-01; "Acme, Inc."; 1,000' appears to REGEX as '2020-01-01,Acme,
+Inc.,1,000').
+
+   Or, MATCHER can be a field matcher, like this:
+
+%CSVFIELD REGEX
+
+   which matches just the content of a particular CSV field.  CSVFIELD
+is a percent sign followed by the field's name or column number, like
+'%date' or '%1'.
+
+   A single matcher can be written on the same line as the "if"; or
+multiple matchers can be written on the following lines, non-indented.
+Multiple matchers are OR'd (any one of them can match).
 
    After the patterns there should be one or more rules to apply, all
 indented by at least one space.  Three kinds of rule are allowed in
@@ -968,64 +971,64 @@ command the user specified.
 
 Tag Table:
 Node: Top72
-Node: EXAMPLES2099
-Ref: #examples2205
-Node: Basic2413
-Ref: #basic2513
-Node: Bank of Ireland3055
-Ref: #bank-of-ireland3190
-Node: Amazon4652
-Ref: #amazon4770
-Node: Paypal6702
-Ref: #paypal6796
-Node: CSV RULES14675
-Ref: #csv-rules14784
-Node: skip15060
-Ref: #skip15153
-Node: fields15528
-Ref: #fields15650
-Node: Transaction field names16815
-Ref: #transaction-field-names16975
-Node: Posting field names17086
-Ref: #posting-field-names17238
-Node: field assignment18529
-Ref: #field-assignment18672
-Node: separator19490
-Ref: #separator19619
-Node: if20030
-Ref: #if20132
-Node: end21848
-Ref: #end21954
-Node: date-format22178
-Ref: #date-format22310
-Node: newest-first23059
-Ref: #newest-first23197
-Node: include23880
-Ref: #include24009
-Node: balance-type24453
-Ref: #balance-type24573
-Node: TIPS25273
-Ref: #tips25355
-Node: Rapid feedback25611
-Ref: #rapid-feedback25728
-Node: Valid CSV26188
-Ref: #valid-csv26318
-Node: File Extension26510
-Ref: #file-extension26662
-Node: Reading multiple CSV files27072
-Ref: #reading-multiple-csv-files27257
-Node: Valid transactions27498
-Ref: #valid-transactions27676
-Node: Deduplicating importing28304
-Ref: #deduplicating-importing28483
-Node: Setting amounts29516
-Ref: #setting-amounts29685
-Node: Setting currency/commodity30671
-Ref: #setting-currencycommodity30863
-Node: Referencing other fields31666
-Ref: #referencing-other-fields31866
-Node: How CSV rules are evaluated32763
-Ref: #how-csv-rules-are-evaluated32936
+Node: EXAMPLES2093
+Ref: #examples2199
+Node: Basic2407
+Ref: #basic2507
+Node: Bank of Ireland3049
+Ref: #bank-of-ireland3184
+Node: Amazon4646
+Ref: #amazon4764
+Node: Paypal6483
+Ref: #paypal6577
+Node: CSV RULES14221
+Ref: #csv-rules14330
+Node: skip14606
+Ref: #skip14699
+Node: fields15074
+Ref: #fields15196
+Node: Transaction field names16361
+Ref: #transaction-field-names16521
+Node: Posting field names16632
+Ref: #posting-field-names16784
+Node: field assignment18075
+Ref: #field-assignment18218
+Node: separator19036
+Ref: #separator19165
+Node: if19576
+Ref: #if19678
+Node: end21597
+Ref: #end21703
+Node: date-format21927
+Ref: #date-format22059
+Node: newest-first22808
+Ref: #newest-first22946
+Node: include23629
+Ref: #include23758
+Node: balance-type24202
+Ref: #balance-type24322
+Node: TIPS25022
+Ref: #tips25104
+Node: Rapid feedback25360
+Ref: #rapid-feedback25477
+Node: Valid CSV25937
+Ref: #valid-csv26067
+Node: File Extension26259
+Ref: #file-extension26411
+Node: Reading multiple CSV files26821
+Ref: #reading-multiple-csv-files27006
+Node: Valid transactions27247
+Ref: #valid-transactions27425
+Node: Deduplicating importing28053
+Ref: #deduplicating-importing28232
+Node: Setting amounts29265
+Ref: #setting-amounts29434
+Node: Setting currency/commodity30420
+Ref: #setting-currencycommodity30612
+Node: Referencing other fields31415
+Ref: #referencing-other-fields31615
+Node: How CSV rules are evaluated32512
+Ref: #how-csv-rules-are-evaluated32685
 
 End Tag Table
 

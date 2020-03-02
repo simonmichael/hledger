@@ -499,5 +499,6 @@ Budget performance in 2019/01:
 
 Output format
 
-The balance command supports output destination and output format
-selection.
+This command also supports the output destination and output format
+options The output formats supported are txt, csv, (multicolumn
+non-budget reports only) html, and (experimental) json.
