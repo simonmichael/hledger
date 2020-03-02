@@ -1,5 +1,5 @@
 name: hledger-web
-version: 1.16.99
+version: 1.17
 synopsis: Web interface for the hledger accounting tool
 description: |
   This is hledger's web interface.
@@ -77,7 +77,7 @@ when:
 
 library:
   source-dirs: .
-  cpp-options: -DVERSION="1.16.99"
+  cpp-options: -DVERSION="1.17"
   exposed-modules:
   - Hledger.Web
   - Hledger.Web.Application
@@ -96,8 +96,8 @@ library:
   - Hledger.Web.Widget.AddForm
   - Hledger.Web.Widget.Common
   dependencies:
-  - hledger-lib >=1.16.99 && <1.17
-  - hledger >=1.16.99 && <1.17
+  - hledger-lib >=1.17 && <1.18
+  - hledger >=1.17 && <1.18
   - aeson
   - base >=4.9 && <4.15
   - blaze-html
@@ -144,7 +144,7 @@ executables:
   hledger-web:
     source-dirs: app
     main: main.hs
-    cpp-options: -DVERSION="1.16.99"
+    cpp-options: -DVERSION="1.17"
     dependencies:
     - base
     - hledger-web
@@ -160,7 +160,7 @@ executables:
 #     source-dirs: test
 #     main: test.hs
 #     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-#     cpp-options: -DVERSION="1.16.99"
+#     cpp-options: -DVERSION="1.17"
 #     dependencies:
 #     - base
 #     - hledger-web
