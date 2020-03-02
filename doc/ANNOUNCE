@@ -3,7 +3,7 @@ I'm pleased to announce hledger 1.17 !
 hledger is a robust, cross-platform, plain text accounting tool, with
 command-line, terminal and web UIs. It is a modern and largely
 compatible reimplementation of Ledger CLI with many improvements.
-You can use it to track time, money, investents, cryptocurrencies,
+You can use it to track time, money, investments, cryptocurrencies,
 inventory and more. See: 
 
 http://hledger.org
