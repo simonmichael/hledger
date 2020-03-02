@@ -1,6 +1,10 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# e0dde6fe
+
+- Journal is now a Semigroup, not a Monoid (since <> is right-biased). (Stephen Morgan)
+
 # 1.17.0.1 2020-03-01
 
 - fix org heading comments and doctest setup comment that were
