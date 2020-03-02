@@ -1,9 +1,19 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 445e8aa3
+# 696ec499
 
+- don't enable --auto by default
 
+- don't enable --forecast by default; drop the --future flag (#1193)
+
+  Previously, periodic transactions occurring today were always shown,
+  in both "present" and "future" modes.
+
+  Now, generation of periodic transactions and display of future
+  transactions (all kinds) are combined as "forecast mode", which can
+  be enabled with --forecast and/or the F key.  The --future flag is
+  now a hidden alias for --forecast, and deprecated.
 
 # 1.16.2 2020-01-14
 

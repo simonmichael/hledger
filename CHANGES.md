@@ -1,39 +1,33 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-- documentation updates
+# 00043408
 
-  - streamlined hledger.org sidebar & manuals structure
-  - hledger manual: new Common Tasks section in 
+- hledger-install: re-enable installation of hledger-iadd & hledger-interest.
 
-- a new invoicing how-to: https://hledger.org/invoicing.html
+- hledger-install: bump minimum stack version to 1.9.1
+  1.7.1 fails with deps using newer cabal file syntax I believe.
 
-# 04ea95cb
+- hledger-install: always do stack update, to help ensure we get the latest packages.
+  https://github.com/commercialhaskell/stack/issues/5112
 
-- Fix dead pointer in contributing (Aleksandar Dimitrov)
-  Fix link in contributing
-
-- stack: ghc8.10: update extra-deps
-
-- Fix typos (Brian Wignall)
-
-- Add a basic example of rule parsing for the output of csb2format. (Evilham)
+- examples: Add a basic example of rule parsing for the output of csb2format. (Evilham)
   csb2format deals with the CSB43/AEB43 format, which all banks operating in
   Spain must support.
   Having these example rules enables easens bootstraping for users with a
   Spanish bank account.
 
-- install: re-enable hledger-iadd & hledger-interest
-  hledger-iadd has been revised on hackage, and hledger-interest has no upper bound.
+- doc: simpler, clearer structure in the manuals and hledger.org sidebar
 
-- install: always do stack update, to help ensure we get the latest
-  https://github.com/commercialhaskell/stack/issues/5112
+- doc: a new [Quick Start](https://hledger.org/start.html) page
 
-- install: update hledger-install for 1.16.1, disable addons for now
+- doc: a new [Common Tasks](https://hledger.org/hledger.html#common-tasks) section in the hledger manual
 
-- lib, cli, web: bump version to 1.16.1
+- doc: a new invoicing how-to: https://hledger.org/invoicing.html
 
-- Fix build badges for Travis and AppVeyor (Rui Chen)
+- doc: Fix dead pointer in contributing (Aleksandar Dimitrov)
+
+- doc: Fix build badges for Travis and AppVeyor (Rui Chen)
 
 # 1.16 2019-12-01
 

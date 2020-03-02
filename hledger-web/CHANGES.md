@@ -1,28 +1,38 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 445e8aa3
+# 4c321cee
 
-- web: Add option --socket to use UNIX socket file (Carl Richard Theodor Schneider)
-  This commit adds the --socket option to use hledger-web over an AF_UNIX socket
-  file.
-  It allows running multiple instances of hledger-web on the same system without
-  having to manually choose a port for each instance, which is helpful for running
-  individual instances for multiple users. In this scenario, the socket path is
-  predictable, as it can be derived from the username.
+- Fonts have been improved on certain platforms. (David Zhang)
 
-  It also introduces the following dependencies:
+- IPv6 is supported (Amarandus) (#1145)
 
-   - network
-     - Used to create the unix domain socket
-   - unix-compat
-     - Used to identify if the socket file is still a socket, to reduce the risk
-       of deleting a file when cleaning up the socket
+- The --host option can now take a local hostname (Amarandus) (#1145)
 
-- Improve font display on different OS (David Zhang)
+- New --socket option to run hledger-web over an AF_UNIX socket file. (Carl Richard Theodor Schneider)
+  This allows running multiple instances of hledger-web on the same
+  system without having to manually choose a port for each instance,
+  which is helpful for running individual instances for multiple
+  users. In this scenario, the socket path is predictable, as it can
+  be derived from the username.
 
-- move JSON instances from hledger-web to hledger-lib
+- The edit and upload forms now normalise line endings, avoiding parse
+  errors (#1194). Summary of current behaviour:
 
+  - hledger add and import commands will append with (at least some)
+    unix line endings, possibly causing the file to have mixed line
+    endings
+
+  - hledger-web edit and upload forms will write the file with
+    the current system's native line endings, ie changing all
+    line endings if the file previously used foreign line endings.
+
+- Numbers in JSON output now provide a floating point Number
+  representation as well as our native Decimal object representation,
+  since the later can sometimes contain 255-digit integers. The
+  floating point numbers can have up to 10 decimal digits (and an
+  unbounded number of integer digits.)
+  Experimental, suggestions needed. (#1195)
 
 
 # 1.16.2 2020-01-14

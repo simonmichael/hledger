@@ -48,14 +48,12 @@ instance ToJSON Status
 instance ToJSON GenericSourcePos
 
 -- https://github.com/simonmichael/hledger/issues/1195
--- The default JSON output for Decimal is not very practical for JSON consumers.
--- With repeating decimals, which can occur with implicit transaction prices,
--- decimalMantissa will use Decimal's maximum allowance of 255 digits.
--- (And secondly, it sometimes uses scientific notation, and that sometimes
--- looks wrong, eg e254 instead of e-1 ?)
+
+-- The default JSON output for Decimal can contain 255-digit integers
+-- (for repeating decimals caused by implicit transaction prices).
 -- JSON output is intended to be consumed by diverse apps and
--- programming languages, which can't necessarily handle numbers with
--- more than 15 or so significant digits. Eg, from #1195:
+-- programming languages, which can't handle numbers like that.
+-- From #1195:
 --
 -- > - JavaScript uses 64-bit IEEE754 numbers which can only accurately
 -- >   represent integers up to 9007199254740991 (i.e. a maximum of 15 digits).
@@ -65,14 +63,21 @@ instance ToJSON GenericSourcePos
 -- > - C and C++ number limits depend on platform — most platforms should
 -- >   be able to represent unsigned integers up to 64 bits, i.e. 19 digits.
 --
--- It's not yet clear what is a good compromise.
--- For now, we make Decimals look like floating point numbers with
--- up to 10 decimal places (and an unbounded number of integer digits).
--- This still allows unparseable numbers to be generated in theory,
--- but hopefully this won't happen in practice.
-instance ToJSON Decimal
-  where
-    toJSON d = Number $ fromRational $ toRational $ roundTo 10 d
+-- What is the best compromise for both accuracy and practicality ?
+-- For now, we provide both the maximum precision representation
+-- (decimalPlaces & decimalMantissa), and a floating point representation
+-- with up to 10 decimal places (and an unbounded number of integer digits).
+-- We hope the mere presence of the large number in JSON won't break things,
+-- and that the overall number of significant digits in the floating point
+-- remains manageable in practice. (I'm not sure how to limit the number
+-- of significant digits in a Decimal right now.)
+instance ToJSON Decimal where
+  toJSON d = object
+    ["decimalPlaces"   .= toJSON decimalPlaces
+    ,"decimalMantissa" .= toJSON decimalMantissa
+    ,"floatingPoint"   .= toJSON (fromRational $ toRational d' :: Double)
+    ]
+    where d'@Decimal{..} = roundTo 10 d
 
 instance ToJSON Amount
 instance ToJSON AmountStyle

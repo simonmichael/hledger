@@ -1,32 +1,54 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 445e8aa3
+# 752e8ed4
 
-- Change Date output to yyyy-mm-dd (Brian Wignall)
+- Reader-finding utilities have moved from Hledger.Read to
+  Hledger.Read.JournalReader so the include directive can use them.
+
+- Reader changes:
+  - rExperimental flag removed
+  - old rParser renamed to rReadFn
+  - new rParser field provides the actual parser.
+    This seems to require making Reader a higher-kinded type, unfortunately.
+
+- Hledger.Tabular.AsciiWide now renders smoother outer borders in
+  pretty (unicode) mode.
+  Also, a fix for table edges always using single-width intersections
+  and support for double horizontal lines with single vertical lines. (Eric Mertens)
+
+- Hledger.Utils.Parse: restofline can go to eof also
+
+- Hledger.Read cleanup
+
+- Hledger.Read.CsvReader cleanup
+  Exports added: CsvRecord, CsvValue, csvFileFor.
+  Exports removed: expandIncludes, parseAndValidateCsvRules, transactionFromCsvRecord
+
+- more cleanup of amount canonicalisation helpers (#1187)
+  Stop exporting journalAmounts, overJournalAmounts, traverseJournalAmounts.
+  Rename journalAmounts helper to journalStyleInfluencingAmounts.
+
+- export mapMixedAmount
 
 - Don't store leaf name in PeriodReport. (Stephen Morgan)
   Calculate at the point of consumption instead.
 
-- lib: Generalise PeriodicReport to be polymorphic in the account labels. (Stephen Morgan)
+- Generalise PeriodicReport to be polymorphic in the account labels. (Stephen Morgan)
 
-- lib: Use records instead of tuples in PeriodicReport. (Stephen Morgan)
+- Use records instead of tuples in PeriodicReport. (Stephen Morgan)
 
-- lib: Use PeriodicReport in place of MultiBalanceReport. (Stephen Morgan)
-
-- Use nubSort instead of nub . sort. (Stephen Morgan)
+- Use PeriodicReport in place of MultiBalanceReport. (Stephen Morgan)
 
 - Calculate MultiReportBalance columns more efficiently. (Stephen Morgan)
   Only calculate posting date once for each posting, and calculate their
   columns instead of checking each DateSpan separately.
 
-- ToJSON instances for all (?) remaining data types, up to Ledger
+- Moved JSON instances from hledger-web to hledger-lib (Hledger.Data.Json),
+  and added ToJSON instances for all (?) remaining data types, up to Ledger.
 
-- move JSON instances from hledger-web to hledger-lib
-
-- lib: drop "assertion" alias for nullassertion
-  Perhaps we'll stick with the null* convention. Fixes a warning in Transaction.hs.
-
+- Dropped nullassertion's "assertion" alias, fixing a warning.
+  Perhaps we'll stick with the null* naming convention. 
 
 
 # 1.16.2 2020-01-14
