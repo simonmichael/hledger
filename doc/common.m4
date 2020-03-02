@@ -24,28 +24,6 @@ m4_define({{_info_}},         m4_ifdef({{INFO}},{{$1}})             )m4_dnl
 m4_dnl include in text manuals only - not implemented
 m4_dnl m4_define({{_txt_}},         m4_ifdef({{TXT}},{{$1}})             )m4_dnl
 m4_dnl
-m4_dnl Links to dev and recent release versions of a manual.
-m4_dnl The actual links are inserted dynamically by site.js, static generation was much too painful.
-m4_dnl There should be a " (dev)" suffix here except when generating release docs.
-m4_define({{_docversionlinks_}},m4_dnl
-This doc is for version **_version_**
-m4_dnl (dev) suffix below should be commented for releases, uncommented in between releases:
-(dev)
-.
-m4_dnl <span class="docversions">m4_dnl
-m4_dnl </span>
-)m4_dnl
-m4_dnl
-m4_dnl Helpers for generating table markup.
-m4_dnl _table_({{
-m4_dnl | cell1 | cell2 ...
-m4_dnl | cell1 | cell2 ...
-m4_dnl ...
-m4_dnl }})
-m4_define({{_table2_}}, {{
-|
-|-|-$1}})m4_dnl
-m4_dnl
 m4_dnl Two side-by-side columns.
 m4_define({{_col2_}},
 {{<div class="container-fluid">
