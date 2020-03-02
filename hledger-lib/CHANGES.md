@@ -1,6 +1,11 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.17.0.1 2020-03-01
+
+- fix org heading comments and doctest setup comment that were
+  breaking haddock (and in some cases, installation)
+
 # 1.17 2020-03-01
 
 - Reader-finding utilities have moved from Hledger.Read to
