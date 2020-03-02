@@ -1,5 +1,5 @@
--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
--- ** doc
+--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"--- "; -*-
+--- ** doc
 -- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
@@ -11,7 +11,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 
 -}
 
--- ** language
+--- ** language
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
@@ -27,11 +27,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeFamilies #-}
 
--- ** doctest setup
--- $setup
--- >>> :set -XOverloadedStrings
-
--- ** exports
+--- ** exports
 module Hledger.Read.Common (
   Reader (..),
   InputOpts (..),
@@ -114,7 +110,7 @@ module Hledger.Read.Common (
 )
 where
 
--- ** imports
+--- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
@@ -145,7 +141,11 @@ import Text.Megaparsec.Custom
 import Hledger.Data
 import Hledger.Utils
 
--- ** types
+--- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+--- ** types
 
 -- main types; a few more below
 
@@ -210,7 +210,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,auto_              = boolopt "auto" rawopts
   }
 
--- ** parsing utilities
+--- ** parsing utilities
 
 -- | Run a text parser in the identity monad. See also: parseWithState.
 runTextParser, rtp
@@ -401,8 +401,8 @@ match' p = do
   (!txt, p) <- match p
   pure (txt, p)
 
--- ** parsers
--- *** transaction bits
+--- ** parsers
+--- *** transaction bits
 
 statusp :: TextParser m Status
 statusp =
@@ -425,7 +425,7 @@ descriptionp :: TextParser m Text
 descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
   where semicolonOrNewline c = c == ';' || c == '\n'
 
--- *** dates
+--- *** dates
 
 -- | Parse a date in YYYY-MM-DD format.
 -- Slash (/) and period (.) are also allowed as separators.
@@ -543,7 +543,7 @@ secondarydatep :: Day -> TextParser m Day
 secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
   where primaryYear = first3 $ toGregorian primaryDate
 
--- *** account names
+--- *** account names
 
 -- | Parse an account name (plus one following space if present),
 -- then apply any parent account prefix and/or account aliases currently in effect,
@@ -592,7 +592,7 @@ singlespacedtextsatisfyingp pred = do
 singlespacep :: TextParser m ()
 singlespacep = void spacenonewline *> notFollowedBy spacenonewline
 
--- *** amounts
+--- *** amounts
 
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
@@ -995,7 +995,7 @@ digitgroupp = label "digits"
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
     step (!l, !a) c = (l+1, a*10 + fromIntegral (digitToInt c))
 
--- *** comments
+--- *** comments
 
 multilinecommentp :: TextParser m ()
 multilinecommentp = startComment *> anyLine `skipManyTill` endComment
@@ -1302,7 +1302,7 @@ bracketeddatetagsp mYear1 = do
 
 {-# INLINABLE bracketeddatetagsp #-}
 
--- ** tests
+--- ** tests
 
 tests_Common = tests "Common" [
 

@@ -1,5 +1,5 @@
--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
--- ** doc
+--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"--- "; -*-
+--- ** doc
 -- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
@@ -24,7 +24,7 @@ Hledger.Read.Common, to avoid import cycles.
 
 -}
 
--- ** language
+--- ** language
 
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -36,11 +36,7 @@ Hledger.Read.Common, to avoid import cycles.
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 
--- ** doctest setup
--- $setup
--- >>> :set -XOverloadedStrings
-
--- ** exports
+--- ** exports
 module Hledger.Read.JournalReader (
 
   -- * Reader-finding utils
@@ -76,7 +72,7 @@ module Hledger.Read.JournalReader (
 )
 where
 
--- ** imports
+--- ** imports
 -- import qualified Prelude (fail)
 -- import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
@@ -113,7 +109,11 @@ import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
 import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
 import qualified Hledger.Read.CsvReader as CsvReader (reader)
 
--- ** reader finding utilities
+--- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+--- ** reader finding utilities
 -- Defined here rather than Hledger.Read so that we can use them in includedirectivep below.
 
 -- The available journal readers, each one handling a particular data format.
@@ -156,7 +156,7 @@ splitReaderPrefix f =
   headDef (Nothing, f)
   [(Just r, drop (length r + 1) f) | r <- readerNames, (r++":") `isPrefixOf` f]
 
--- ** reader
+--- ** reader
 
 reader :: MonadIO m => Reader m
 reader = Reader
@@ -182,8 +182,8 @@ aliasesFromOpts :: InputOpts -> [AccountAlias]
 aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
                   . aliases_
 
--- ** parsers
--- *** journal
+--- ** parsers
+--- *** journal
 
 -- | A journal parser. Accumulates and returns a "ParsedJournal",
 -- which should be finalised/validated before use.
@@ -213,7 +213,7 @@ addJournalItemP =
     , void (lift multilinecommentp)
     ] <?> "transaction or directive"
 
--- *** directives
+--- *** directives
 
 -- | Parse any journal directive and update the parse state accordingly.
 -- Cf http://hledger.org/manual.html#directives,
@@ -583,7 +583,7 @@ commodityconversiondirectivep = do
   lift restofline
   return ()
 
--- *** transactions
+--- *** transactions
 
 -- | Parse a transaction modifier (auto postings) rule.
 transactionmodifierp :: JournalParser m TransactionModifier
@@ -680,7 +680,7 @@ transactionp = do
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postings
 
--- *** postings
+--- *** postings
 
 -- Parse the following whitespace-beginning lines as postings, posting
 -- tags, and/or comments (inferring year, if needed, from the given date).
@@ -723,7 +723,7 @@ postingp mTransactionYear = do
    , pbalanceassertion=massertion
    }
 
--- ** tests
+--- ** tests
 
 tests_JournalReader = tests "JournalReader" [
 

@@ -1,5 +1,5 @@
--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
--- ** doc
+--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"--- "; -*-
+--- ** doc
 -- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
@@ -10,16 +10,12 @@ to import modules below this one.
 
 -}
 
--- ** language
+--- ** language
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
--- ** doctest setup
--- $setup
--- >>> :set -XOverloadedStrings
-
--- ** exports
+--- ** exports
 module Hledger.Read (
 
   -- * Journal files
@@ -47,7 +43,7 @@ module Hledger.Read (
 
 ) where
 
--- ** imports
+--- ** imports
 import Control.Arrow (right)
 import qualified Control.Exception as C
 import Control.Monad (when)
@@ -78,13 +74,15 @@ import Hledger.Read.CsvReader (tests_CsvReader)
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
 
--- ** environment
+--- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+--- ** journal reading
 
 journalEnvVar           = "LEDGER_FILE"
 journalEnvVar2          = "LEDGER"
 journalDefaultFilename  = ".hledger.journal"
-
--- ** journal reading
 
 -- | Read a Journal from the given text, assuming journal format; or
 -- throw an error.
@@ -186,7 +184,7 @@ readJournalFile iopts prefixedfile = do
       return $ Right newj
     Right j -> return $ Right j
 
--- ** utilities
+--- ** utilities
 
 -- | If the specified journal file does not exist (and is not "-"),
 -- give a helpful error and quit.
@@ -285,7 +283,7 @@ journalFilterSinceLatestDates ds@(d:_) j = (j', ds')
     j'                    = j{jtxns=newsamedatets++laterts}
     ds'                   = latestDates $ map tdate $ samedatets++laterts
 
--- ** tests
+--- ** tests
 
 tests_Read = tests "Read" [
    tests_Common

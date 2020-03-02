@@ -1,5 +1,5 @@
--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
--- ** doc
+--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"--- "; -*-
+--- ** doc
 -- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
@@ -43,15 +43,11 @@ i, o or O.  The meanings of the codes are:
 
 -}
 
--- ** language
+--- ** language
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
 
--- ** doctest setup
--- $setup
--- >>> :set -XOverloadedStrings
-
--- ** exports
+--- ** exports
 module Hledger.Read.TimeclockReader (
   -- * Reader
   reader,
@@ -60,7 +56,7 @@ module Hledger.Read.TimeclockReader (
 )
 where
 
--- ** imports
+--- ** imports
 import           Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import           Control.Monad
@@ -76,7 +72,11 @@ import           Hledger.Data
 import           Hledger.Read.Common
 import           Hledger.Utils
 
--- ** reader
+--- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+--- ** reader
 
 reader :: MonadIO m => Reader m
 reader = Reader
@@ -92,7 +92,7 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse = parseAndFinaliseJournal' timeclockfilep
 
--- ** parsers
+--- ** parsers
 
 timeclockfilep :: MonadIO m => JournalParser m ParsedJournal
 timeclockfilep = do many timeclockitemp

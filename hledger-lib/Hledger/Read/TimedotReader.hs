@@ -1,5 +1,5 @@
--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
--- ** doc
+--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"--- "; -*-
+--- ** doc
 -- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
@@ -26,15 +26,11 @@ inc.client1   .... .... ..
 
 -}
 
--- ** language
+--- ** language
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PackageImports #-}
 
--- ** doctest setup
--- $setup
--- >>> :set -XOverloadedStrings
-
--- ** exports
+--- ** exports
 module Hledger.Read.TimedotReader (
   -- * Reader
   reader,
@@ -43,7 +39,7 @@ module Hledger.Read.TimedotReader (
 )
 where
 
--- ** imports
+--- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat
 import Control.Monad
@@ -61,7 +57,11 @@ import Hledger.Data
 import Hledger.Read.Common hiding (emptyorcommentlinep)
 import Hledger.Utils
 
--- ** reader
+--- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+--- ** reader
 
 reader :: MonadIO m => Reader m
 reader = Reader
@@ -75,7 +75,7 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse = parseAndFinaliseJournal' timedotp
 
--- ** utilities
+--- ** utilities
 
 traceparse, traceparse' :: String -> TextParser m ()
 traceparse  = const $ return ()
@@ -84,7 +84,7 @@ traceparse' = const $ return ()
 -- traceparse  s = traceParse (s++"?")
 -- traceparse' s = trace s $ return ()
 
--- ** parsers
+--- ** parsers
 {-
 Rough grammar for timedot format:
 

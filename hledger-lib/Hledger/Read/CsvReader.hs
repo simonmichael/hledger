@@ -1,5 +1,5 @@
--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"-- "; -*-
--- ** doc
+--- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"--- "; -*-
+--- ** doc
 -- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
 
@@ -10,7 +10,7 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 -- Here's a command that will render them:
 -- stack haddock hledger-lib --fast --no-haddock-deps --haddock-arguments='--ignore-all-exports' --open
 
--- ** language
+--- ** language
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -24,11 +24,7 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 
--- ** doctest setup
--- $setup
--- >>> :set -XOverloadedStrings
-
--- ** exports
+--- ** exports
 module Hledger.Read.CsvReader (
   -- * Reader
   reader,
@@ -43,7 +39,7 @@ module Hledger.Read.CsvReader (
 )
 where
 
--- ** imports
+--- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
@@ -87,13 +83,17 @@ import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, finaliseJournal)
 
--- ** some types
+--- ** doctest setup
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+--- ** some types
 
 type CSV       = [CsvRecord]
 type CsvRecord = [CsvValue]
 type CsvValue  = String
 
--- ** reader
+--- ** reader
 
 reader :: MonadIO m => Reader m
 reader = Reader
@@ -119,8 +119,8 @@ parse iopts f t = do
                 -- better preemptively reverse them once more. XXX inefficient
                 pj' = journalReverse pj
 
--- ** reading rules files
--- *** rules utilities
+--- ** reading rules files
+--- *** rules utilities
 
 -- Not used by hledger; just for lib users, 
 -- | An pure-exception-throwing IO action that parses this file's content
@@ -232,7 +232,7 @@ validateRules rules = do
   where
     isAssigned f = isJust $ getEffectiveAssignment rules [] f
 
--- *** rules types
+--- *** rules types
 
 -- | A set of data definitions and account-matching patterns sufficient to
 -- convert a particular CSV data file into meaningful journal transactions.
@@ -300,7 +300,7 @@ defrules = CsvRules {
   rconditionalblocks=[]
 }
 
--- *** rules parsers
+--- *** rules parsers
 
 {-
 Grammar for the CSV conversion rules, more or less:
@@ -573,7 +573,7 @@ regexp = do
 --   -- ,"!="
 --   ]
 
--- ** reading csv files
+--- ** reading csv files
 
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
@@ -748,7 +748,7 @@ validateCsv rules numhdrlines (Right rs) = validate $ applyConditionalSkips $ dr
 --                   ,date2Field r
 --                   ]
 
--- ** converting csv records to transactions
+--- ** converting csv records to transactions
 
 showRules rules record =
   unlines $ catMaybes [ (("the "++fld++" rule is: ")++) <$> getEffectiveAssignment rules record fld | fld <- journalfieldnames]
@@ -1174,7 +1174,7 @@ parseDateWithCustomOrDefaultFormats mformat s = firstJust $ map parsewith format
                (:[])
                 mformat
 
--- ** tests
+--- ** tests
 
 tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [
