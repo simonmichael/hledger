@@ -1,7 +1,7 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 00043408
+# 1.17 2020-03-01
 
 - hledger-install: re-enable installation of hledger-iadd & hledger-interest.
 

@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 696ec499
+# 1.17 2020-03-01
 
 - don't enable --auto by default
 

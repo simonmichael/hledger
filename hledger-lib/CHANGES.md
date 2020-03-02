@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 752e8ed4
+# 1.17 2020-03-01
 
 - Reader-finding utilities have moved from Hledger.Read to
   Hledger.Read.JournalReader so the include directive can use them.
