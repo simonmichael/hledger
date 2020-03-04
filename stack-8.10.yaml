@@ -59,7 +59,7 @@ compiler: ghc-8.10.0.20200123
 compiler-check: match-exact
 ###############################################################################
 
-resolver: nightly-2020-01-25
+resolver: lts-15.2
 
 packages:
 - hledger-lib
@@ -70,9 +70,5 @@ packages:
 extra-deps:
 # for hledger-lib:
 # for hledger:
-- shakespeare-2.0.24
 # for hledger-ui:
-- brick-0.50.1
-- vty-5.26
 # for hledger-web:
-- yesod-core-1.6.17.2
