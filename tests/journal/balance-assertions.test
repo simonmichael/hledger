@@ -2,8 +2,7 @@
 # balance assertion & balance assignment tests
 
 # 1. test some balance assertions
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1  =$1
   b        =-$1
@@ -17,13 +16,12 @@ hledger -f - stats
   b   $-1  = $-3
   (b)  $1  = $-2
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 2. same entries as 1 but different parse order, assertion should still pass based on date
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1  =$1
   b        =-$1
@@ -37,14 +35,13 @@ hledger -f - stats
   a    $1  =$2
   b   $-1  =$-2
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 3. like 1 but switch order of postings in last entry,
 # assertion should fail and exit code should be non zero
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1  =$1
   b        =-$1
@@ -58,23 +55,21 @@ hledger -f - stats
   (b)  $1  = $-2
   b   $-1  = $-3
 
->>>
->>>2 /balance assertion.*line 11, column 12/
->>>=1
+$ hledger -f - stats
+>2 /balance assertion.*line 11, column 12/
+>=1
 
 # 4. should also work without commodity symbols
-hledger -f - stats
-<<<
+<
 2013/1/1
   (a)    1  =1
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 5. should work for fractional amount with trailing zeros
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1.20  =$1.20
   b           =-$1.20
@@ -87,41 +82,40 @@ hledger -f - stats
   a    $0.7   =$2
   b           =-$2
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 6. assertions currently check only a single commodity's balance, like Ledger
-hledger -f - stats
-<<<
+<
 1/2
   (a)  A1
   (a)  B1 = A1
   (a)  0  = A1
   (a)  C0 = D0
->>> /Transactions/
->>>2
->>>=0
+
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 7. balances should accumulate (#195)
-hledger -f - stats
-<<<
+<
 1/1
     (a)   1F = 1F
     (a)   2G = 2G
 
 1/2
     (a)   3F = 4F
->>> !/assertion failed/
->>>2
->>>=0
+
+$ hledger -f - stats
+> !/assertion failed/
+>=0
 
 # 8. what should happen here ? Currently,
 # in a, 3.4 EUR @@ $5.6 and -3.4 EUR cancel out (wrong ?)
 # in b, 
 # 
-# hledger -f - stats
-# <<<
+# <
 # 2013/1/1
 #   a    $1.20
 #   a    3.4 EUR @@ $5.6
@@ -135,13 +129,12 @@ hledger -f - stats
 #   a    $0.1   =$1.30
 #   b           =-$1.30
 
-# >>> /Transactions/
-# >>>2
-# >>>=0
+# $ hledger -f - stats
+# > /Transactions/
+# >=0
 
 # 8. Using balance assignment to set balances.
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1.20
   b
@@ -154,14 +147,13 @@ hledger -f - stats
   a           $10 =$11.3
   b         =$-11.3
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 
 # 9. Multiple assertions for an account in the same transaction.
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1  =$1
   b        =-$1
@@ -175,13 +167,12 @@ hledger -f - stats
   b   $-1  = $-3
   b   $-1  = $-4
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 10. Multiple assertions and assignments for an account in the same transaction.
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1  =$1
   b        =-$1
@@ -199,13 +190,12 @@ hledger -f - stats
   a    $0 = $7
   b   $0   = $-7
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 11. Assignments and virtual postings
-hledger -f - stats
-<<<
+<
 2013/1/1
   b
   [a]    1$
@@ -218,25 +208,21 @@ hledger -f - stats
   [a]      = $5
   b        = $9
 
-
-
-
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 # 12. Having both assignments and posting dates is not supported.
-hledger -f - stats
-<<<
+<
 2013/1/1
   a    $1  =$1
   b         =$-1  ; date:2012/1/1
 
->>>2  /balance assignments may not have a custom date/
->>>=1
+$ hledger -f - stats
+>2  /balance assignments may not have a custom date/
+>=1
 
 # 13. Posting Date
-hledger -f - stats
-<<<
+<
 
 2011/5/5
   [a]        = -10
@@ -255,13 +241,12 @@ hledger -f - stats
   [d]    10
 
 
->>> /Transactions/
->>>2
->>>=0
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 14. Mix different commodities
-hledger -f - stats
-<<<
+<
 2016/1/1
     a      $1
     b      -1 zorkmids
@@ -269,13 +254,13 @@ hledger -f - stats
 2016/1/2
     a     $-1 = $0
     b
->>> /Transactions/
->>>2
->>>=0
+
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 15. Mix different commodities and assignments
-hledger -f - stats
-<<<
+<
 2016/1/1
     a      $1
     b      -1 zorkmids
@@ -290,26 +275,26 @@ hledger -f - stats
 2016/1/2
     a
     b      = 0 zorkmids
->>> /Transactions/
->>>2
->>>=0
+
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 16. Total assertions (==) parse correctly
-hledger -f - stats
-<<<
+<
 2016/1/1
     a      $1
     b
 
 2016/1/2
     a         == $1
->>> /Transactions/
->>>2
->>>=0
+
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 17. Total assertions consider entire multicommodity amount
-hledger -f - stats
-<<<
+<
 2016/1/1
     a      $1
     b
@@ -320,12 +305,13 @@ hledger -f - stats
 
 2016/1/3
     a       0 == $1
->>>2 /balance assertion.*line 10, column 15/
->>>=1
+
+$ hledger -f - stats
+>2 /balance assertion.*line 10, column 15/
+>=1
 
 # 18. Mix different commodities and total assignments
-hledger -f - stats
-<<<
+<
 2016/1/1
     a      $1
     a      -1 zorkmids
@@ -338,36 +324,37 @@ hledger -f - stats
 2016/1/3
     b       0 = $-1
     b       0 = 0 zorkmids
->>> /Transactions/
->>>2
->>>=0
+
+$ hledger -f - stats
+> /Transactions/
+>=0
 
 # 19. Balance assertions may have a price, but it's ignored
-hledger -f- print
-<<<
+<
 2019/01/01
     (a)         1A @ 1B = 1A @ 2B
->>>
+
+$ hledger -f- print
+>
 2019-01-01
     (a)         1A @ 1B = 1A @ 2B
 
->>>=0
+>=0
 
 # 20. Balance assignments may have a price, and it's used for the posting amount.
-# But not shown as part of the balance assertion in the resulting posting.
-hledger -f- print --explicit
-<<<
+<
 2019/01/01
     (a)                 = 1A @ 2B
->>>
+
+$ hledger -f- print --explicit
+>
 2019-01-01
     (a)         1A @ 2B = 1A @ 2B
 
->>>=0
+>=0
 
 # 21. The exact amounts are compared; display precision does not affect assertions.
-hledger -f- print
-<<<
+<
 commodity $1000.00
 
 2019/01/01
@@ -376,13 +363,12 @@ commodity $1000.00
 2019/01/02
     (a)             $1.00  = $1.006
 
->>> /2019/
->>>2
->>>=0
+$ hledger -f- print
+> /2019/
+>=0
 
 # 22. This fails
-hledger -f- print
-<<<
+<
 commodity $1000.00
 
 2019/01/01
@@ -391,12 +377,12 @@ commodity $1000.00
 2019/01/02
     (a)             $1.00  = $1.01
 
->>>2 /difference: 0\.004/
->>>=1
+$ hledger -f- print
+>2 /difference: 0\.004/
+>=1
 
 # 23. This fails
-hledger -f- print
-<<<
+<
 commodity $1000.00
 
 2019/01/01
@@ -405,12 +391,12 @@ commodity $1000.00
 2019/01/02
     (a)             $1.00  = $1.0061
 
->>>2 /difference: 0\.0001/
->>>=1
+$ hledger -f- print
+>2 /difference: 0\.0001/
+>=1
 
 # 24. Inclusive assertions include balances from subaccounts.
-hledger -f- print
-<<<
+<
 2019/1/1
   (a)    X1
   (a)    Y3
@@ -419,7 +405,9 @@ hledger -f- print
   (a)    0 =*  Y10
   (a:b)  0 =*  Y7
   (a:b)  0 ==*  Y7
->>>
+
+$ hledger -f- print
+>
 2019-01-01
     (a)                X1
     (a)                Y3
@@ -429,24 +417,22 @@ hledger -f- print
     (a:b)               0 =* Y7
     (a:b)               0 ==* Y7
 
->>>2
->>>=0
+>=0
 
 ## 25. Inclusive balance assignments also work (#1207).
-#hledger -f- print -x
-#<<<
+#<
 #2020-01-25
 #    (a:aa)   1
 #
 #2020-01-31
 #    (a)        ==* 1
 #
-#>>>
+#$ hledger -f- print -x
+#>
 #2020-01-25
 #    (a:aa)               1
 #
 #2020-01-31
 #    (a)               0 ==* 1
 #
-#>>>2
-#>>>=0
+#>=0
