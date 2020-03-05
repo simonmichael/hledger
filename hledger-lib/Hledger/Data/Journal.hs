@@ -92,6 +92,7 @@ import Control.Monad.ST
 import Data.Array.ST
 import Data.Default (Default(..))
 import Data.Function ((&))
+import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
 import Data.List
 import Data.List.Extra (groupSort, nubSort)
@@ -632,13 +633,13 @@ data BalancingState s = BalancingState {
 withRunningBalance :: (BalancingState s -> ST s a) -> Balancing s a
 withRunningBalance f = ask >>= lift . lift . f
 
--- | Get this account's current running balance (exclusive).
+-- | Get this account's current exclusive running balance.
 getRunningBalanceB :: AccountName -> Balancing s MixedAmount
 getRunningBalanceB acc = withRunningBalance $ \BalancingState{bsBalances} -> do
   fromMaybe 0 <$> H.lookup bsBalances acc
 
--- | Add this amount to this account's running balance,
--- and return the new running balance (exclusive).
+-- | Add this amount to this account's exclusive running balance.
+-- Returns the new running balance.
 addToRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 addToRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
   old <- fromMaybe 0 <$> H.lookup bsBalances acc
@@ -646,13 +647,27 @@ addToRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} 
   H.insert bsBalances acc new
   return new
 
--- | Set this account's running balance (exclusive) to this amount,
--- and return the difference from the previous value.
+-- | Set this account's exclusive running balance to this amount.
+-- Returns the change in exclusive running balance.
 setRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
 setRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
   old <- fromMaybe 0 <$> H.lookup bsBalances acc
   H.insert bsBalances acc amt
   return $ amt - old
+
+-- | Set this account's exclusive running balance to whatever amount
+-- makes its *inclusive* running balance (the sum of exclusive running
+-- balances of this account and any subaccounts) be the given amount.
+-- Returns the change in exclusive running balance.
+setInclusiveRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
+setInclusiveRunningBalanceB acc newibal = withRunningBalance $ \BalancingState{bsBalances} -> do
+  oldebal  <- fromMaybe 0 <$> H.lookup bsBalances acc
+  allebals <- H.toList bsBalances
+  let subsibal =  -- sum of any subaccounts' running balances
+        sum $ map snd $ filter ((acc `isAccountNamePrefixOf`).fst) allebals
+  let newebal = newibal - subsibal
+  H.insert bsBalances acc newebal
+  return $ newebal - oldebal
 
 -- | Update (overwrite) this transaction in the balancing state.
 updateTransactionB :: Transaction -> Balancing s ()
@@ -754,19 +769,19 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
 
   -- no explicit posting amount, but there is a balance assignment
   -- TODO this doesn't yet handle inclusive assignments right, #1207
-  | Just BalanceAssertion{baamount,batotal} <- mba = do
+  | Just BalanceAssertion{baamount,batotal,bainclusive} <- mba = do
       (diff,newbal) <- case batotal of
         -- a total balance assignment (==, all commodities)
         True  -> do
           let newbal = Mixed [baamount]
-          diff <- setRunningBalanceB acc newbal
+          diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
           return (diff,newbal)
         -- a partial balance assignment (=, one commodity)
         False -> do
           oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getRunningBalanceB acc
           let assignedbalthiscommodity = Mixed [baamount]
               newbal = oldbalothercommodities + assignedbalthiscommodity
-          diff <- setRunningBalanceB acc newbal
+          diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
           return (diff,newbal)
       let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' newbal

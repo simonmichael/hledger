@@ -419,20 +419,32 @@ $ hledger -f- print
 
 >=0
 
-## 25. Inclusive balance assignments also work (#1207).
-#<
-#2020-01-25
-#    (a:aa)   1
-#
-#2020-01-31
-#    (a)        ==* 1
-#
-#$ hledger -f- print -x
-#>
-#2020-01-25
-#    (a:aa)               1
-#
-#2020-01-31
-#    (a)               0 ==* 1
-#
-#>=0
+# 25. Inclusive balance assignments also work (#1207).
+<
+2020-01-25
+    (a:aa)   1
+
+2020-01-25
+    (a:bb)   1
+
+2020-01-25
+    (a)      1
+
+2020-01-31
+    (a)        ==* 1
+
+$ hledger -f- print -x
+>
+2020-01-25
+    (a:aa)               1
+
+2020-01-25
+    (a:bb)               1
+
+2020-01-25
+    (a)               1
+
+2020-01-31
+    (a)              -2 ==* 1
+
+>=0
