@@ -585,7 +585,29 @@ journalModifyTransactions j = j{ jtxns = modifyTransactions (jtxnmodifiers j) (j
 journalCheckBalanceAssertions :: Journal -> Maybe String
 journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions True
 
--- "Transaction balancing" - inferring missing amounts and checking transaction balancedness and balance assertions
+-- "Transaction balancing", including: inferring missing amounts,
+-- applying balance assignments, checking transaction balancedness,
+-- checking balance assertions, respecting posting dates. These things
+-- are all interdependent.
+-- WARN tricky algorithm and code ahead. 
+--
+-- Code overview as of 20190219, this could/should be simplified/documented more:
+--  parseAndFinaliseJournal['] (Cli/Utils.hs), journalAddForecast (Common.hs), budgetJournal (BudgetReport.hs), tests (BalanceReport.hs)
+--   journalBalanceTransactions
+--    runST
+--     runExceptT
+--      balanceTransaction (Transaction.hs)
+--       balanceTransactionHelper
+--      runReaderT
+--       balanceTransactionAndCheckAssertionsB
+--        addAmountAndCheckAssertionB
+--        addOrAssignAmountAndCheckAssertionB
+--        balanceTransactionHelper (Transaction.hs)
+--  uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j} (ErrorScreen.hs)
+--   journalCheckBalanceAssertions
+--    journalBalanceTransactions
+--  transactionWizard, postingsBalanced (Add.hs), tests (Transaction.hs)
+--   balanceTransaction (Transaction.hs)  XXX hledger add won't allow balance assignments + missing amount ?
 
 -- | Monad used for statefully balancing/amount-inferring/assertion-checking
 -- a sequence of transactions.
@@ -601,37 +623,40 @@ data BalancingState s = BalancingState {
   ,bsAssrt        :: Bool                                       -- ^ whether to check balance assertions
    -- mutable
   ,bsBalances     :: H.HashTable s AccountName MixedAmount      -- ^ running account balances, initially empty
-  ,bsTransactions :: STArray s Integer Transaction              -- ^ the transactions being balanced
+  ,bsTransactions :: STArray s Integer Transaction              -- ^ a mutable array of the transactions being balanced
+    -- (for efficiency ? journalBalanceTransactions says: not strictly necessary but avoids a sort at the end I think)
   }
 
 -- | Access the current balancing state, and possibly modify the mutable bits,
 -- lifting through the Except and Reader layers into the Balancing monad.
-withB :: (BalancingState s -> ST s a) -> Balancing s a
-withB f = ask >>= lift . lift . f
+withRunningBalance :: (BalancingState s -> ST s a) -> Balancing s a
+withRunningBalance f = ask >>= lift . lift . f
 
--- | Get an account's running balance so far.
-getAmountB :: AccountName -> Balancing s MixedAmount
-getAmountB acc = withB $ \BalancingState{bsBalances} -> do
+-- | Get this account's current running balance (exclusive).
+getRunningBalanceB :: AccountName -> Balancing s MixedAmount
+getRunningBalanceB acc = withRunningBalance $ \BalancingState{bsBalances} -> do
   fromMaybe 0 <$> H.lookup bsBalances acc
 
--- | Add an amount to an account's running balance, and return the new running balance.
-addAmountB :: AccountName -> MixedAmount -> Balancing s MixedAmount
-addAmountB acc amt = withB $ \BalancingState{bsBalances} -> do
+-- | Add this amount to this account's running balance,
+-- and return the new running balance (exclusive).
+addToRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
+addToRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
   old <- fromMaybe 0 <$> H.lookup bsBalances acc
   let new = old + amt
   H.insert bsBalances acc new
   return new
 
--- | Set an account's running balance to this amount, and return the difference from the old.
-setAmountB :: AccountName -> MixedAmount -> Balancing s MixedAmount
-setAmountB acc amt = withB $ \BalancingState{bsBalances} -> do
+-- | Set this account's running balance (exclusive) to this amount,
+-- and return the difference from the previous value.
+setRunningBalanceB :: AccountName -> MixedAmount -> Balancing s MixedAmount
+setRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} -> do
   old <- fromMaybe 0 <$> H.lookup bsBalances acc
   H.insert bsBalances acc amt
   return $ amt - old
 
--- | Update (overwrite) this transaction with a new one.
-storeTransactionB :: Transaction -> Balancing s ()
-storeTransactionB t = withB $ \BalancingState{bsTransactions}  ->
+-- | Update (overwrite) this transaction in the balancing state.
+updateTransactionB :: Transaction -> Balancing s ()
+updateTransactionB t = withRunningBalance $ \BalancingState{bsTransactions}  ->
   void $ writeArray bsTransactions (tindex t) t
 
 -- | Infer any missing amounts (to satisfy balance assignments and
@@ -639,30 +664,11 @@ storeTransactionB t = withB $ \BalancingState{bsTransactions}  ->
 -- and (optional) all balance assertions pass. Or return an error message
 -- (just the first error encountered).
 --
--- Assumes journalInferCommodityStyles has been called, since those affect transaction balancing.
+-- Assumes journalInferCommodityStyles has been called, since those
+-- affect transaction balancing.
 --
--- This does multiple things because amount inferring, balance assignments,
--- balance assertions and posting dates are interdependent.
---
--- This can be simplified further. Overview as of 20190219:
--- @
--- ****** parseAndFinaliseJournal['] (Cli/Utils.hs), journalAddForecast (Common.hs), budgetJournal (BudgetReport.hs), tests (BalanceReport.hs)
--- ******* journalBalanceTransactions
--- ******** runST
--- ********* runExceptT
--- ********** balanceTransaction (Transaction.hs)
--- *********** balanceTransactionHelper
--- ********** runReaderT
--- *********** balanceTransactionAndCheckAssertionsB
--- ************ addAmountAndCheckAssertionB
--- ************ addOrAssignAmountAndCheckAssertionB
--- ************ balanceTransactionHelper (Transaction.hs)
--- ****** uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j} (ErrorScreen.hs)
--- ******* journalCheckBalanceAssertions
--- ******** journalBalanceTransactions
--- ****** transactionWizard, postingsBalanced (Add.hs), tests (Transaction.hs)
--- ******* balanceTransaction (Transaction.hs)  XXX hledger add won't allow balance assignments + missing amount ?
--- @
+-- This does multiple things at once because amount inferring, balance
+-- assignments, balance assertions and posting dates are interdependent.
 journalBalanceTransactions :: Bool -> Journal -> Either String Journal
 journalBalanceTransactions assrt j' =
   let
@@ -714,11 +720,9 @@ journalBalanceTransactions assrt j' =
 -- Transaction prices are removed, which helps eg balance-assertions.test: 15. Mix different commodities and assignments.
 -- This stores the balanced transactions in case 2 but not in case 1.
 balanceTransactionAndCheckAssertionsB :: Either Posting Transaction -> Balancing s ()
-
 balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
   -- update the account's running balance and check the balance assertion if any
   void $ addAmountAndCheckAssertionB $ removePrices p
-
 balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- make sure we can handle the balance assignments
   mapM_ checkIllegalBalanceAssignmentB ps
@@ -731,9 +735,9 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
     Left err -> throwError err
     Right (t', inferredacctsandamts) -> do
       -- for each amount just inferred, update the running balance
-      mapM_ (uncurry addAmountB) inferredacctsandamts
+      mapM_ (uncurry addToRunningBalanceB) inferredacctsandamts
       -- and save the balanced transaction.
-      storeTransactionB t'
+      updateTransactionB t'
 
 -- | If this posting has an explicit amount, add it to the account's running balance.
 -- If it has a missing amount and a balance assignment, infer the amount from, and
@@ -742,28 +746,32 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
 -- Then test the balance assertion if any.
 addOrAssignAmountAndCheckAssertionB :: Posting -> Balancing s Posting
 addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanceassertion=mba}
+  -- an explicit posting amount
   | hasAmount p = do
-      newbal <- addAmountB acc amt
+      newbal <- addToRunningBalanceB acc amt
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p newbal
       return p
+
+  -- no explicit posting amount, but there is a balance assignment
   | Just BalanceAssertion{baamount,batotal} <- mba = do
       (diff,newbal) <- case batotal of
+        -- a total balance assignment (==, all commodities)
         True  -> do
-          -- a total balance assignment
           let newbal = Mixed [baamount]
-          diff <- setAmountB acc newbal
+          diff <- setRunningBalanceB acc newbal
           return (diff,newbal)
+        -- a partial balance assignment (=, one commodity)
         False -> do
-          -- a partial balance assignment
-          oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getAmountB acc
+          oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getRunningBalanceB acc
           let assignedbalthiscommodity = Mixed [baamount]
               newbal = oldbalothercommodities + assignedbalthiscommodity
-          diff <- setAmountB acc newbal
+          diff <- setRunningBalanceB acc newbal
           return (diff,newbal)
       let p' = p{pamount=diff, poriginal=Just $ originalPosting p}
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p' newbal
       return p'
-  -- no amount, no balance assertion (GHC 7 doesn't like Nothing <- mba here)
+
+  -- no explicit posting amount, no balance assignment
   | otherwise = return p
 
 -- | Add the posting's amount to its account's running balance, and
@@ -773,7 +781,7 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
 -- need to see the balance as it stands after each individual posting.
 addAmountAndCheckAssertionB :: Posting -> Balancing s Posting
 addAmountAndCheckAssertionB p | hasAmount p = do
-  newbal <- addAmountB (paccount p) (pamount p)
+  newbal <- addToRunningBalanceB (paccount p) (pamount p)
   whenM (R.reader bsAssrt) $ checkBalanceAssertionB p newbal
   return p
 addAmountAndCheckAssertionB p = return p
@@ -806,7 +814,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
     if isinclusive
     then
       -- sum the running balances of this account and any of its subaccounts seen so far
-      withB $ \BalancingState{bsBalances} ->
+      -- XXX something wrong here, #1207
+      withRunningBalance $ \BalancingState{bsBalances} ->
         H.foldM
           (\ibal (acc, amt) -> return $ ibal +
             if assertedacct==acc || assertedacct `isAccountNamePrefixOf` acc then amt else 0)
