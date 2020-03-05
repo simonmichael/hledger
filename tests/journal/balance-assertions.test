@@ -139,7 +139,7 @@ hledger -f - stats
 # >>>2
 # >>>=0
 
-# 8. resetting a balance
+# 8. Using balance assignment to set balances.
 hledger -f - stats
 <<<
 2013/1/1
@@ -431,3 +431,22 @@ hledger -f- print
 
 >>>2
 >>>=0
+
+## 25. Inclusive balance assignments also work (#1207).
+#hledger -f- print -x
+#<<<
+#2020-01-25
+#    (a:aa)   1
+#
+#2020-01-31
+#    (a)        ==* 1
+#
+#>>>
+#2020-01-25
+#    (a:aa)               1
+#
+#2020-01-31
+#    (a)               0 ==* 1
+#
+#>>>2
+#>>>=0

@@ -753,6 +753,7 @@ addOrAssignAmountAndCheckAssertionB p@Posting{paccount=acc, pamount=amt, pbalanc
       return p
 
   -- no explicit posting amount, but there is a balance assignment
+  -- TODO this doesn't yet handle inclusive assignments right, #1207
   | Just BalanceAssertion{baamount,batotal} <- mba = do
       (diff,newbal) <- case batotal of
         -- a total balance assignment (==, all commodities)
@@ -814,7 +815,6 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
     if isinclusive
     then
       -- sum the running balances of this account and any of its subaccounts seen so far
-      -- XXX something wrong here, #1207
       withRunningBalance $ \BalancingState{bsBalances} ->
         H.foldM
           (\ibal (acc, amt) -> return $ ibal +
