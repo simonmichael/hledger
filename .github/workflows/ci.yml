@@ -26,7 +26,8 @@ jobs:
     strategy:
       matrix:
         # os runners: https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
-        os: [ubuntu-latest, macos-latest]  # , windows-latest] # why not recognised ?? 
+        # os: [ubuntu-latest, macos-latest]  # , windows-latest] # why not recognised ?? 
+        os: [windows-latest]
         # use this to specify what resolvers and ghc to use
         plan:
         # - { build: stack, resolver: "--resolver lts-9"  }    # ghc-8.0.2
