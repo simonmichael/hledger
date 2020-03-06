@@ -16,10 +16,36 @@ name: hledger CI
 on:
   push:
     branches: [ master ]
-  # pull_request:
-  #   branches: [ master ]
+    paths:
+      - 'stack*'
+      - 'hledger-lib'
+      - 'hledger'
+      - 'hledger-ui'
+      - 'hledger-web'
+    paths-ignore:
+      - '**.md'
+      - '**.1'
+      - '**.5'
+      - '**.info'
+      - '**.txt'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'stack*'
+      - 'hledger-lib'
+      - 'hledger'
+      - 'hledger-ui'
+      - 'hledger-web'
+    paths-ignore:
+      - '**.md'
   # schedule:
   # - cron: "0 23 * * *"
+  #   paths:
+  #     - 'stack*'
+  #     - 'hledger-lib'
+  #     - 'hledger'
+  #     - 'hledger-ui'
+  #     - 'hledger-web'
 
 jobs:
   build:
@@ -84,7 +110,7 @@ jobs:
         stack --version
     - if: matrix.os == 'windows-latest'
       run: |
-        curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip stack.exe
         stack --version
 
