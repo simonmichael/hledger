@@ -11,7 +11,7 @@
 # https://github.com/sdras/awesome-actions
 # http://www.btellez.com/posts/triggering-github-actions-with-webhooks.html
 
-name: hledger default CI tests
+name: hledger CI
 
 on:
   push:
@@ -26,8 +26,7 @@ jobs:
     strategy:
       matrix:
         # os runners: https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
-        # os: [ubuntu-latest, macos-latest]  # , windows-latest] # why not recognised ?? 
-        os: [windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         # use this to specify what resolvers and ghc to use
         plan:
         # - { build: stack, resolver: "--resolver lts-9"  }    # ghc-8.0.2
@@ -81,8 +80,22 @@ jobs:
 
     - uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
 
-    - name: Setup stack
-      uses: mstksg/setup-stack@v1     # https://github.com/marketplace/actions/setup-stack
+    # install stack
+    # doesn't support windows, https://github.com/mstksg/setup-stack/issues/5
+    # - name: Setup stack
+    #   uses: mstksg/setup-stack@v1     # https://github.com/marketplace/actions/setup-stack
+    # ubuntu has stack preinstalled
+    # on mac can get it with brew:
+    - if: matrix.os == 'macos-latest'
+      run: brew install haskell-stack
+    # on windows can get it this way:
+    - if: matrix.os == 'windows-latest'
+      run: |
+        set -ex
+        curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+        7z x stack.zip stack.exe
+        stack --version
+        set +ex
 
     # - name: Setup cabal-install
     #   uses: actions/setup-haskell@v1
