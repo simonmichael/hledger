@@ -115,7 +115,8 @@ jobs:
       name: Install stack (windows)
       run: |
         curl -skL -o stack.zip https://get.haskellstack.org/stable/windows-x86_64
-        7z x stack.zip -oC:\Windows stack.exe
+        7z x stack.zip stack.exe
+        move stack.exe C:\Windows 
         stack --version
 
     - name: Install haskell deps
