@@ -95,7 +95,7 @@ jobs:
         key: ${{ runner.os }}-local-bin
 
     # check out the current branch tip
-    - name Check out
+    - name: Check out
       uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
 
     - name: Install stack (ubuntu)
