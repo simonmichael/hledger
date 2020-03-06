@@ -35,7 +35,7 @@
 #     so we can wait for then.
 # * support for cabal-install >= 3
 
-name: hledger CI using github actions
+name: hledger default CI tests
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, Windows2019]  # windows-latest
         # use this to specify what resolvers and ghc to use
         plan:
         # - { build: stack, resolver: "--resolver lts-9"  }    # ghc-8.0.2
