@@ -107,8 +107,8 @@ jobs:
         ls C:\Users\runneradmin\
         ls C:\Users\runneradmin\AppData\
         ls C:\Users\runneradmin\AppData\Local\
-        ls C:\Users\runneradmin\AppData\Local\Programs\
-        ls C:\Users\runneradmin\AppData\Local\Programs\stack
+        ls C:\Users\runneradmin\AppData\LocalLow\
+        ls C:\Users\runneradmin\AppData\Roaming\
 
     - name: Install GHC
       run: |
@@ -141,6 +141,49 @@ jobs:
     #   with:
     #     name: hledger.zip
     #     path: hledger.zip
+
+
+#     Directory: C:\Users\runneradmin
+#
+# Mode                LastWriteTime         Length Name
+# ----                -------------         ------ ----
+# d----l          3/5/2020  7:40 PM                .cargo
+# d-----          3/5/2020  7:40 PM                .config
+# d----l          3/5/2020  7:40 PM                .rustup
+# d-----          3/6/2020  7:16 PM                .stack
+# d-r---          3/5/2020  7:40 PM                3D Objects
+# d-r---          3/5/2020  7:40 PM                Contacts
+# d-r---          3/5/2020  7:40 PM                Desktop
+# d-r---          3/5/2020  7:40 PM                Documents
+# d-r---          3/5/2020  7:40 PM                Downloads
+# d-r---          3/5/2020  7:40 PM                Favorites
+# d-r---          3/5/2020  7:40 PM                Links
+# d-r---          3/5/2020  7:40 PM                Music
+# d-r---          3/5/2020  7:40 PM                Pictures
+# d-r---          3/5/2020  7:40 PM                Saved Games
+# d-r---          3/5/2020  7:40 PM                Searches
+# d-r---          3/5/2020  7:40 PM                Videos
+#
+#     Directory: C:\Users\runneradmin\AppData
+#
+# Mode                LastWriteTime         Length Name
+# ----                -------------         ------ ----
+# d-----          3/6/2020  7:16 PM                Local
+# d-----          3/5/2020  7:40 PM                LocalLow
+# d-----          3/5/2020  7:40 PM                Roaming
+#
+#     Directory: C:\Users\runneradmin\AppData\Local
+#
+# Mode                LastWriteTime         Length Name
+# ----                -------------         ------ ----
+# d-----          3/6/2020  7:16 PM                GitHub
+# d-----          3/5/2020  7:40 PM                Google
+# d-----          3/5/2020  7:42 PM                Microsoft
+# d-----          3/6/2020  7:15 PM                Packages
+# d-----          3/6/2020  7:17 PM                Temp
+#
+# ls : Cannot find path 'C:\Users\runneradmin\AppData\Local\Programs\' because it does not exist.
+
 
 
 # - name: Configure
