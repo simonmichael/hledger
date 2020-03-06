@@ -5,6 +5,7 @@
 # ref:
 # https://help.github.com/en/actions
 # https://help.github.com/en/actions/configuring-and-managing-workflows/caching-and-storing-workflow-data
+# https://github.com/marketplace/actions/cache
 # https://github.com/actions/cache
 # https://help.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows
 # https://github.com/sdras/awesome-actions
@@ -13,6 +14,8 @@
 # https://github.com/actions/setup-haskell
 # https://github.com/actions/upload-artifact
 # https://sevenzip.osdn.jp/chm/cmdline/commands/index.htm
+# https://github.com/marketplace/actions/checkout
+
 
 name: hledger CI
 
@@ -82,47 +85,51 @@ jobs:
 
     steps:
 
-    # cache these dirs
     - name: Cache ~/.stack
-      uses: actions/cache@v1           # https://github.com/marketplace/actions/cache
+      uses: actions/cache@v1
       with:
         path: ~/.stack
         key: ${{ runner.os }}-stack
         #key: ${{ runner.os }}-${{ matrix.resolver }}-stack
+
     - name: Cache ~/.local/bin
       uses: actions/cache@v1
       with:
         path: ~/.local/bin
         key: ${{ runner.os }}-local-bin
+
     - name: Cache .stack-work
       uses: actions/cache@v1
       with:
         path: .stack-work
         key: ${{ runner.os }}-stack-work
+
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-lib/.stack-work
         key: ${{ runner.os }}-hledger-lib-stack-work
+
     - name: Cache hledger/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger/.stack-work
         key: ${{ runner.os }}-hledger-stack-work
+
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-ui/.stack-work
         key: ${{ runner.os }}-hledger-ui-stack-work
+
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-web/.stack-work
         key: ${{ runner.os }}-hledger-web-stack-work
 
-    # check out the current branch tip
     - name: Check out
-      uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
+      uses: actions/checkout@v2
 
     - name: Install stack (ubuntu)
       if: matrix.os == 'ubuntu-latest'
