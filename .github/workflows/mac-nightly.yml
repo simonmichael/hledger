@@ -1,7 +1,6 @@
-# mac CI tests
-# basic build testing, run nightly
+# basic build testing on mac, run nightly
 
-name: mac CI
+name: mac nightly CI
 
 on:
   schedule:

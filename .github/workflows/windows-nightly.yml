@@ -1,7 +1,7 @@
-# windows CI tests
-# basic hledger/hledger-web build testing, and binary building, run nightly
+# basic hledger/hledger-web build testing, and binary building,
+# on windows, run nightly
 
-name: windows CI
+name: windows nightly CI
 
 on:
   schedule:
@@ -113,6 +113,7 @@ jobs:
         ls C:\Users\runneradmin\AppData\Local\
         ls C:\Users\runneradmin\AppData\Local\Programs\
         ls C:\Users\runneradmin\AppData\Local\Programs\stack
+        ls C:\Users\runneradmin\AppData\Local\Programs\stack\x86_64-windows
         ls C:\Users\runneradmin\AppData\LocalLow\
         ls C:\Users\runneradmin\AppData\Roaming\
         ls C:\Users\runneradmin\AppData\Roaming\stack\
@@ -138,6 +139,7 @@ jobs:
         ls C:\Users\runneradmin\AppData\Local\
         ls C:\Users\runneradmin\AppData\Local\Programs\
         ls C:\Users\runneradmin\AppData\Local\Programs\stack
+        ls C:\Users\runneradmin\AppData\Local\Programs\stack\x86_64-windows
         ls C:\Users\runneradmin\AppData\LocalLow\
         ls C:\Users\runneradmin\AppData\Roaming\
         ls C:\Users\runneradmin\AppData\Roaming\stack\

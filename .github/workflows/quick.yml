@@ -1,0 +1,112 @@
+# quick build and tests, on linux, for noteworthy pushes to master
+
+name: quick CI
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'stack*'
+      - 'hledger-lib'
+      - 'hledger'
+      - 'hledger-ui'
+      - 'hledger-web'
+      - '.github/workflows/linux*'
+      - '!**.md'
+      - '!**.1'
+      - '!**.5'
+      - '!**.info'
+      - '!**.txt'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    # cached things
+
+    - name: Cache ~/.stack
+      uses: actions/cache@v1
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-stack
+
+    - name: Cache ~/.local/bin
+      uses: actions/cache@v1
+      with:
+        path: ~/.local/bin
+        key: ${{ runner.os }}-local-bin
+
+    - name: Cache .stack-work
+      uses: actions/cache@v1
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work
+
+    - name: Cache hledger-lib/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-lib/.stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work
+
+    - name: Cache hledger/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger/.stack-work
+        key: ${{ runner.os }}-hledger-stack-work
+
+    - name: Cache hledger-ui/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-ui/.stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work
+
+    - name: Cache hledger-web/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-web/.stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work
+
+    # actions
+
+    - name: Check out
+      uses: actions/checkout@v2
+
+    - name: Install stack
+      # curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C $INSTALLDIR '*/stack'
+      # mkdir -p ~/.local/bin
+      # export PATH=~/.local/bin:$PATH
+      # if [[ ! -x ~/.local/bin/stack ]]; then curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+      run: |
+        stack --version
+
+    - name: Install GHC
+      run: |
+        stack --resolver=lts setup
+
+    - name: Install shelltestrunner
+      run: |
+        export PATH=~/.local/bin:$PATH
+        if [[ ! -x ~/.local/bin/shelltest ]]; then stack --resolver=lts install shelltestrunner-1.9; fi
+        shelltest --version
+
+    - name: Install haskell deps
+      run: |
+        stack --resolver=lts build --only-dependencies
+        #  --no-terminal
+
+    - name: Build hledger fast
+      run: |
+        stack --resolver=lts build --fast --ghc-options=-Werror
+        #  --no-terminal
+
+    - name: Unit & functional tests (excluding addons)
+      run: |
+        export PATH=~/.local/bin:$PATH
+        COLUMNS=80 stack --resolver=lts exec -- shelltest --execdir -j16 tests -x /bin -x /addons
+
+# - name: Configure
+#   if: startsWith(matrix.name, 'linux')
+#   run: |
+#     export PATH=/usr/local/bin:$PATH
+#     cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug ...

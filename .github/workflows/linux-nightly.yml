@@ -1,6 +1,5 @@
-# linux CI tests
-# reasonably thorough build/test/benchmark/haddock/functest testing
-# with stackage lts, run on master push/pull request
+# reasonably thorough build/test/benchmark/haddock/functest testing,
+# on linux, run nightly and also for pull requests
 
 # based on https://gist.github.com/mstksg/11f753d891cee5980326a8ea8c865233
 # docs:
@@ -17,12 +16,12 @@
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
 # https://sevenzip.osdn.jp/chm/cmdline/commands/index.htm
 
-name: linux CI
+name: linux nightly/pr CI
 
 on:
-  # schedule:
-  # - cron: "0 23 * * *"
-  push:
+  schedule:
+  - cron: "0 23 * * *"
+  pull_request:
     branches: [ master ]
     paths:
       - 'stack*'
@@ -36,7 +35,8 @@ on:
       - '!**.5'
       - '!**.info'
       - '!**.txt'
-  pull_request:
+  # uncomment when testing CI:
+  push:
     branches: [ master ]
     paths:
       - 'stack*'
