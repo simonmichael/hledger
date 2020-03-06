@@ -2,7 +2,6 @@
 # Based on https://gist.github.com/mstksg/11f753d891cee5980326a8ea8c865233
 # ("Currently not working for cabal-install >= 3")
 # Based on https://raw.githubusercontent.com/commercialhaskell/stack/stable/doc/travis-complex.yml
-
 # ref:
 # https://help.github.com/en/actions
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
@@ -98,41 +97,38 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
 
-    - name: Install stack (ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      # preinstalled
+    - if: matrix.os == 'ubuntu-latest'
+      name: Install stack (ubuntu)
       # curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C $INSTALLDIR '*/stack'
       run: |
         stack --version
 
-    - name: Install stack (mac)
-      if: matrix.os == 'macos-latest'
+    - if: matrix.os == 'macos-latest'
+      name: Install stack (mac)
       # curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C $INSTALLDIR
       run: |
         brew install haskell-stack
         stack --version
 
-    - name: Install stack (windows)
-      if: matrix.os == 'windows-latest'
-      # PowerShell.exe -Command "&{Invoke-WebRequest -OutFile %HOME%\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe }"
-
+    - if: matrix.os == 'windows-latest'
+      name: Install stack (windows)
       run: |
-        $Env:Path
-        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
-        7z x stack.zip stack.exe
-        move stack.exe C:\Windows\System32\WindowsPowerShell\v1.0
+        curl -skL -o stack.zip https://get.haskellstack.org/stable/windows-x86_64
+        7z x stack.zip -oC:\Windows stack.exe
         stack --version
 
     - name: Install haskell deps
       run: |
-        stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
+        stack --install-ghc $ARGS test --bench --only-dependencies
+      #  stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
       env:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
 
     - name: Build
       run: |
-        stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+        stack $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+      #  stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
       env:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
