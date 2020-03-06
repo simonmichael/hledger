@@ -134,9 +134,13 @@ jobs:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
 
-    - if: matrix.os == 'windows-latest'
+    - name: Zip exes (windows)
+      if: matrix.os == 'windows-latest'
       run: |
         7z a hledger.zip %HOME%/.local/bin/hledger %HOME%/.local/bin/hledger-web
+
+    - name: Upload zip file (windows)
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v1
       with:
         name: hledger.zip
