@@ -1,39 +1,7 @@
-  # build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - uses: actions/setup-haskell@v1
-  #     with:
-  #       ghc-version: '8.8.2'
-  #       cabal-version: '3.0'
-  #   - name: Install dependencies
-  #     run: |
-  #       cabal update
-  #       cabal install --only-dependencies --enable-tests
-  #   - name: Build
-  #     run: |
-  #       cabal configure --enable-tests
-  #       cabal build
-  #   - name: Run tests
-  #     run: cabal test
-
-
-# Haskell stack project Github Actions template
-# https://gist.github.com/mstksg/11f753d891cee5980326a8ea8c865233
-#
-# To use, mainly change the list in 'plans' and modify 'include' for
-# any OS package manager deps.
-#
-# Currently not working for cabal-install >= 3
-#
+# Github Actions config
+# Based on https://gist.github.com/mstksg/11f753d891cee5980326a8ea8c865233
+# ("Currently not working for cabal-install >= 3")
 # Based on https://raw.githubusercontent.com/commercialhaskell/stack/stable/doc/travis-complex.yml
-#
-# TODO:
-# * cache (https://github.com/actions/cache)
-#     but this is too small. native cacheing will come soon
-#     https://github.community/t5/GitHub-Actions/Caching-files-between-GitHub-Action-executions/m-p/30974/highlight/true#M630
-#     so we can wait for then.
-# * support for cabal-install >= 3
 
 name: hledger default CI tests
 
@@ -43,13 +11,14 @@ on:
   # pull_request:
   #   branches: [ master ]
   # schedule:
-  # - cron: "0 0 * * 1"
+  # - cron: "0 23 * * *"
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, Windows2019]  # windows-latest
+        # os runners: https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
+        os: [ubuntu-latest, macos-latest, windows-2019]
         # use this to specify what resolvers and ghc to use
         plan:
         # - { build: stack, resolver: "--resolver lts-9"  }    # ghc-8.0.2
@@ -67,13 +36,13 @@ jobs:
         # - { build: cabal, ghc: 8.8.1, cabal-install: "2.4"  }   # currently not working for >= 3.0
         # use this to include any dependencies from OS package managers
         include: []
-        # - os: macOS-latest
+        # - os: macos-latest
         #   brew: anybrewdeps
         # - os: ubuntu-latest
         #   apt-get: happy libblas-dev liblapack-dev
 
         # exclude:
-        # - os: macOS-latest
+        # - os: macos-latest
         #   plan:
         #     build: cabal
 
@@ -86,20 +55,21 @@ jobs:
       name: Cache ~/.stack-work
       with:
         path: ~/.stack-work
-        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-work
+        key: ${{ runner.os }}-stack-work
+        #key: ${{ runner.os }}-${{ matrix.resolver }}-stack-work
 
     - uses: actions/cache@v1
       name: Cache ~/.local/bin
       with:
-        path: ~/.stack-work
-        key: ${{ runner.os }}-${{ matrix.ghc }}-local-bin
+        path: ~/.local/bin
+        key: ${{ runner.os }}-local-bin
 
     - name: Install OS Packages
       uses: mstksg/get-package@v1
       with:
         apt-get: ${{ matrix.apt-get }}
         brew: ${{ matrix.brew }}
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
 
     - name: Setup stack
       uses: mstksg/setup-stack@v1
