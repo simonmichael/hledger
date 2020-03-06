@@ -114,9 +114,8 @@ jobs:
     - if: matrix.os == 'windows-latest'
       name: Install stack (windows)
       run: |
-        curl -skL -o stack.zip https://get.haskellstack.org/stable/windows-x86_64
-        7z x stack.zip stack.exe
-        move stack.exe C:\Windows 
+        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
+        7z x stack.zip -oC:\Windows stack.exe
         stack --version
 
     - name: Install haskell deps
