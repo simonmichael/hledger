@@ -4,13 +4,14 @@
 # Based on https://raw.githubusercontent.com/commercialhaskell/stack/stable/doc/travis-complex.yml
 # ref:
 # https://help.github.com/en/actions
-# https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
+# https://help.github.com/en/actions/configuring-and-managing-workflows/caching-and-storing-workflow-data
 # https://github.com/actions/cache
 # https://help.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows
 # https://github.com/sdras/awesome-actions
 # http://www.btellez.com/posts/triggering-github-actions-with-webhooks.html
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
 # https://github.com/actions/setup-haskell
+# https://github.com/actions/upload-artifact
 
 name: hledger CI
 
@@ -127,8 +128,16 @@ jobs:
 
     - name: Build
       run: |
-        stack $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+        stack $ARGS install --test --bench --no-run-benchmarks --haddock --no-haddock-deps
       #  stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
       env:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
+
+    - if: matrix.os == 'windows-latest'
+      run: |
+        7z a hledger.zip %HOME%/.local/bin/hledger %HOME%/.local/bin/hledger-web
+      uses: actions/upload-artifact@v1
+      with:
+        name: hledger.zip
+        path: hledger.zip
