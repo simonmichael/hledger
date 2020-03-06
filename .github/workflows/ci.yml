@@ -100,17 +100,22 @@ jobs:
 
     - name: Install stack (ubuntu)
       if: matrix.os == 'ubuntu-latest'
+      # preinstalled
+      # curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C $INSTALLDIR '*/stack'
       run: |
         stack --version
+
     - name: Install stack (mac)
       if: matrix.os == 'macos-latest'
+      # curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C $INSTALLDIR
       run: |
         brew install haskell-stack
         stack --version
+
     - name: Install stack (windows)
       if: matrix.os == 'windows-latest'
       run: |
-        PowerShell.exe -Command "&{Invoke-WebRequest -OutFile ${installdir}\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe ; Remove-Item ${installdir}\\stack.zip}
+        PowerShell.exe -Command "&{Invoke-WebRequest -OutFile ${installdir}\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe ; Remove-Item ${installdir}\\stack.zip}"
         # curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         # 7z x stack.zip stack.exe
         stack --version
