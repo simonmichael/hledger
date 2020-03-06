@@ -58,45 +58,38 @@ jobs:
 
     steps:
 
-    # cf https://github.com/actions/cache/blob/master/examples.md#haskell---cabal
+    # cache these directories
     - uses: actions/cache@v1
       name: Cache ~/.stack
       with:
         path: ~/.stack
         key: ${{ runner.os }}-stack
         #key: ${{ runner.os }}-${{ matrix.resolver }}-stack
-
     - uses: actions/cache@v1           # https://github.com/marketplace/actions/cache
       name: Cache ~/.local/bin
       with:
         path: ~/.local/bin
         key: ${{ runner.os }}-local-bin
 
-    # - name: Install OS Packages
-    #   uses: mstksg/get-package@v1   # https://github.com/marketplace/actions/get-package
-    #   with:
-    #     apt-get: ${{ matrix.apt-get }}
-    #     brew: ${{ matrix.brew }}
-
+    # check out the current branch tip
     - uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
 
     # install stack
-    # doesn't support windows, https://github.com/mstksg/setup-stack/issues/5
-    # - name: Setup stack
-    #   uses: mstksg/setup-stack@v1     # https://github.com/marketplace/actions/setup-stack
-    # ubuntu has stack preinstalled
-    # on mac can get it with brew:
+    - if: matrix.os == 'ubuntu-latest'
+      run: |
+        stack --version
+        cabal --version
     - if: matrix.os == 'macos-latest'
-      run: brew install haskell-stack
-    # on windows can get it this way:
+      run: |
+        brew install haskell-stack
+        stack --version
     - if: matrix.os == 'windows-latest'
       run: |
-        set -ex
         curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip stack.exe
         stack --version
-        set +ex
 
+    # install cabal
     # - name: Setup cabal-install
     #   uses: actions/setup-haskell@v1
     #   with:
@@ -104,7 +97,13 @@ jobs:
     #     cabal-version: ${{ matrix.plan.cabal-install }}
     #   if: matrix.plan.build == 'cabal'
 
-    - name: Install dependencies
+    # - name: Install OS packages
+    #   uses: mstksg/get-package@v1   # https://github.com/marketplace/actions/get-package
+    #   with:
+    #     apt-get: ${{ matrix.apt-get }}
+    #     brew: ${{ matrix.brew }}
+
+    - name: Install haskell dependencies
       run: |
         set -ex
         case "$BUILD" in
