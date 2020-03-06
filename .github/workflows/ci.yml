@@ -78,7 +78,6 @@ jobs:
     - if: matrix.os == 'ubuntu-latest'
       run: |
         stack --version
-        cabal --version
     - if: matrix.os == 'macos-latest'
       run: |
         brew install haskell-stack
