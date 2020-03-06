@@ -11,6 +11,7 @@
 # https://github.com/sdras/awesome-actions
 # http://www.btellez.com/posts/triggering-github-actions-with-webhooks.html
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
+# https://github.com/actions/setup-haskell
 
 name: hledger CI
 
@@ -94,32 +95,36 @@ jobs:
         key: ${{ runner.os }}-local-bin
 
     # check out the current branch tip
-    - uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
+    - name Check out
+      uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
 
-    # install stack
-    - if: matrix.os == 'ubuntu-latest'
+    - name: Install stack (ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         stack --version
-    - if: matrix.os == 'macos-latest'
+    - name: Install stack (mac)
+      if: matrix.os == 'macos-latest'
       run: |
         brew install haskell-stack
         stack --version
-    - if: matrix.os == 'windows-latest'
+    - name: Install stack (windows)
+      if: matrix.os == 'windows-latest'
       run: |
-        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
-        7z x stack.zip stack.exe
-        ./stack --version
+        PowerShell.exe -Command "&{Invoke-WebRequest -OutFile ${installdir}\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe ; Remove-Item ${installdir}\\stack.zip}
+        # curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
+        # 7z x stack.zip stack.exe
+        stack --version
 
-    - name: Install haskell dependencies
+    - name: Install haskell deps
       run: |
-        ./stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
+        stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
       env:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
 
     - name: Build
       run: |
-        ./stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+        stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
       env:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
