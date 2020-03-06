@@ -117,7 +117,7 @@ jobs:
       # PowerShell.exe -Command "&{Invoke-WebRequest -OutFile %HOME%\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe }"
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
-        7z x stack.zip -o/bin stack.exe
+        7z x stack.zip -o%HOME% stack.exe
         stack --version
 
     - name: Install haskell deps
