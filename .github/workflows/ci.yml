@@ -22,12 +22,11 @@ on:
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-    paths-ignore:
-      - '**.md'
-      - '**.1'
-      - '**.5'
-      - '**.info'
-      - '**.txt'
+      - '!**.md'
+      - '!**.1'
+      - '!**.5'
+      - '!**.info'
+      - '!**.txt'
   pull_request:
     branches: [ master ]
     paths:
@@ -36,16 +35,13 @@ on:
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-    paths-ignore:
-      - '**.md'
+      - '!**.md'
+      - '!**.1'
+      - '!**.5'
+      - '!**.info'
+      - '!**.txt'
   # schedule:
   # - cron: "0 23 * * *"
-  #   paths:
-  #     - 'stack*'
-  #     - 'hledger-lib'
-  #     - 'hledger'
-  #     - 'hledger-ui'
-  #     - 'hledger-web'
 
 jobs:
   build:
