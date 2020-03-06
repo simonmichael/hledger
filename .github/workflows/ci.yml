@@ -66,21 +66,22 @@ jobs:
         key: ${{ runner.os }}-stack
         #key: ${{ runner.os }}-${{ matrix.resolver }}-stack
 
-    - uses: actions/cache@v1
+    - uses: actions/cache@v1           # https://github.com/marketplace/actions/cache
       name: Cache ~/.local/bin
       with:
         path: ~/.local/bin
         key: ${{ runner.os }}-local-bin
 
-    - name: Install OS Packages
-      uses: mstksg/get-package@v1
-      with:
-        apt-get: ${{ matrix.apt-get }}
-        brew: ${{ matrix.brew }}
-    - uses: actions/checkout@v2
+    # - name: Install OS Packages
+    #   uses: mstksg/get-package@v1   # https://github.com/marketplace/actions/get-package
+    #   with:
+    #     apt-get: ${{ matrix.apt-get }}
+    #     brew: ${{ matrix.brew }}
+
+    - uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
 
     - name: Setup stack
-      uses: mstksg/setup-stack@v1
+      uses: mstksg/setup-stack@v1     # https://github.com/marketplace/actions/setup-stack
 
     # - name: Setup cabal-install
     #   uses: actions/setup-haskell@v1
