@@ -115,12 +115,11 @@ jobs:
     - name: Install stack (windows)
       if: matrix.os == 'windows-latest'
       # PowerShell.exe -Command "&{Invoke-WebRequest -OutFile %HOME%\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe }"
+
       run: |
-        Get-Command pwsh.exe
-        dir
-        dir C:\Windows\System32\WindowsPowerShell\v1.0
+        $Env:Path
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
-        7z x stack.zip -o%HOME% stack.exe
+        7z x stack.zip stack.exe
         move stack.exe C:\Windows\System32\WindowsPowerShell\v1.0
         stack --version
 
