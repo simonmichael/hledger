@@ -49,7 +49,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest] #, macOS-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         # use this to specify what resolvers and ghc to use
         plan:
         # - { build: stack, resolver: "--resolver lts-9"  }    # ghc-8.0.2
@@ -78,7 +78,22 @@ jobs:
         #     build: cabal
 
     runs-on: ${{ matrix.os }}
+
     steps:
+
+    # cf https://github.com/actions/cache/blob/master/examples.md#haskell---cabal
+    - uses: actions/cache@v1
+      name: Cache ~/.stack-work
+      with:
+        path: ~/.stack-work
+        key: ${{ runner.os }}-${{ matrix.ghc }}-stack-work
+
+    - uses: actions/cache@v1
+      name: Cache ~/.local/bin
+      with:
+        path: ~/.stack-work
+        key: ${{ runner.os }}-${{ matrix.ghc }}-local-bin
+
     - name: Install OS Packages
       uses: mstksg/get-package@v1
       with:
