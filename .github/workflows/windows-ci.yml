@@ -15,7 +15,7 @@ on:
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-      - '.github/workflows/*'
+      - '.github/workflows/windows*'
       - '!**.md'
       - '!**.1'
       - '!**.5'
@@ -29,7 +29,7 @@ on:
   #     - 'hledger'
   #     - 'hledger-ui'
   #     - 'hledger-web'
-  #     - '.github/workflows/*'
+  #     - '.github/workflows/windows*'
   #     - '!**.md'
   #     - '!**.1'
   #     - '!**.5'
@@ -49,11 +49,11 @@ jobs:
         path: ~/.stack
         key: ${{ runner.os }}-stack
 
-    - name: Cache %APPDATA%/.stack
-      uses: actions/cache@v1
-      with:
-        path: %APPDATA%/.stack
-        key: ${{ runner.os }}-stack
+    # - name: Cache %APPDATA%/.stack
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: %APPDATA%/.stack
+    #     key: ${{ runner.os }}-stack
 
     - name: Cache $APPDATA/.stack
       uses: actions/cache@v1
@@ -61,11 +61,11 @@ jobs:
         path: $APPDATA/.stack
         key: ${{ runner.os }}-stack
 
-    - name: Cache %APPDATA%/local/bin
-      uses: actions/cache@v1
-      with:
-        path: %APPDATA%/local/bin
-        key: ${{ runner.os }}-local-bin
+    # - name: Cache %APPDATA%/local/bin
+    #   uses: actions/cache@v1
+    #   with:
+    #     path: %APPDATA%/local/bin
+    #     key: ${{ runner.os }}-local-bin
 
     - name: Cache $APPDATA/local/bin
       uses: actions/cache@v1
@@ -145,3 +145,11 @@ jobs:
     #   with:
     #     name: hledger.zip
     #     path: hledger.zip
+
+
+# - name: Configure
+#   if: startsWith(matrix.name, 'windows')
+#   run: |
+#     set PATH=C:\ProgramData\scoop\shims;%PATH%
+#     call "${{ matrix.vcvarsall }}" x64 # Sets a whole bunch of environment variables used by the next call to cmake.
+#     cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug ... # Same as above (duplicated)

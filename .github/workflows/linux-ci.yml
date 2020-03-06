@@ -30,7 +30,7 @@ on:
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-      - '.github/workflows/*'
+      - '.github/workflows/linux*'
       - '!**.md'
       - '!**.1'
       - '!**.5'
@@ -44,7 +44,7 @@ on:
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-      - '.github/workflows/*'
+      - '.github/workflows/linux*'
       - '!**.md'
       - '!**.1'
       - '!**.5'
@@ -150,6 +150,7 @@ jobs:
 
     - name: Install shelltestrunner
       run: |
+        export PATH=~/.local/bin:$PATH
         if [[ ! -x ~/.local/bin/shelltest ]]; then stack $ARGS install shelltestrunner-1.9; fi
         shelltest --version
       env:
@@ -171,6 +172,13 @@ jobs:
 
     - name: Functional tests (excluding addons)
       run: |
+        export PATH=~/.local/bin:$PATH
         COLUMNS=80 stack $ARGS exec -- shelltest --execdir -j16 tests -x /bin -x /addons
       env:
         ARGS: ${{ matrix.plan.resolver }}
+
+# - name: Configure
+#   if: startsWith(matrix.name, 'linux')
+#   run: |
+#     export PATH=/usr/local/bin:$PATH
+#     cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug ...
