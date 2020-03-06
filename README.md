@@ -115,6 +115,7 @@ downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/t
 --> <!-- [![gratipay](https://img.shields.io/gratipay/hledger.svg)]()
 -->
 
+![hledger CI](https://github.com/simonmichael/hledger/workflows/hledger%20CI/badge.svg)
 [![Build Status](https://travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger/builds)
 [![Build Status](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history)
 [![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-lib)
