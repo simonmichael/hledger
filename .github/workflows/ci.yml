@@ -110,7 +110,7 @@ jobs:
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip stack.exe
-        stack --version
+        ./stack --version
 
     # install cabal
     # - name: Setup cabal-install
