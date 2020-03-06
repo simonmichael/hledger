@@ -12,6 +12,7 @@
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
 # https://github.com/actions/setup-haskell
 # https://github.com/actions/upload-artifact
+# https://sevenzip.osdn.jp/chm/cmdline/commands/index.htm
 
 name: hledger CI
 
@@ -93,26 +94,57 @@ jobs:
       with:
         path: ~/.local/bin
         key: ${{ runner.os }}-local-bin
+    - name: Cache .stack-work
+      uses: actions/cache@v1
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work
+    - name: Cache hledger-lib/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-lib/.stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work
+    - name: Cache hledger/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger/.stack-work
+        key: ${{ runner.os }}-hledger-stack-work
+    - name: Cache hledger-ui/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-ui/.stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work
+    - name: Cache hledger-web/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-web/.stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work
 
     # check out the current branch tip
     - name: Check out
       uses: actions/checkout@v2       # https://github.com/marketplace/actions/checkout
 
-    - if: matrix.os == 'ubuntu-latest'
-      name: Install stack (ubuntu)
+    - name: Install stack (ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       # curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C $INSTALLDIR '*/stack'
+      # mkdir -p ~/.local/bin
+      # export PATH=~/.local/bin:$PATH
+      # if [[ ! -x ~/.local/bin/stack ]]; then curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
       run: |
         stack --version
 
-    - if: matrix.os == 'macos-latest'
-      name: Install stack (mac)
+    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
+    # - shelltest --version
+
+    - name: Install stack (mac)
+      if: matrix.os == 'macos-latest'
       # curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C $INSTALLDIR
       run: |
         brew install haskell-stack
         stack --version
 
-    - if: matrix.os == 'windows-latest'
-      name: Install stack (windows)
+    - name: Install stack (windows)
+      if: matrix.os == 'windows-latest'
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip -oC:\Windows stack.exe
@@ -126,22 +158,26 @@ jobs:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
 
-    - name: Build
+    - name: Build hledger
       run: |
-        stack $ARGS install --test --bench --no-run-benchmarks --haddock --no-haddock-deps
+        stack $ARGS install --ghc-options=-Werror --test --bench --no-run-benchmarks --haddock --no-haddock-deps
       #  stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
       env:
         ARGS: ${{ matrix.plan.resolver }}
         # BUILD: ${{ matrix.plan.build }}
 
-    - name: Zip exes (windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        7z a hledger.zip %HOME%/.local/bin/hledger %HOME%/.local/bin/hledger-web
+    # run hledger-lib/hledger functional tests, skipping the ones for addons
+    #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
-    - name: Upload zip file (windows)
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v1
-      with:
-        name: hledger.zip
-        path: hledger.zip
+    # - name: Zip exes (windows)
+    #   if: matrix.os == 'windows-latest'
+    #   run: |
+    #     #cd `stack path --local-bin`
+    #     7z a hledger.zip %HOME%/.local/bin/hledger %HOME%/.local/bin/hledger-web
+
+    # - name: Upload zip file (windows)
+    #   if: matrix.os == 'windows-latest'
+    #   uses: actions/upload-artifact@v1
+    #   with:
+    #     name: hledger.zip
+    #     path: hledger.zip
