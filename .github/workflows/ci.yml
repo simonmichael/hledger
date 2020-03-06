@@ -115,9 +115,9 @@ jobs:
     - name: Install stack (windows)
       if: matrix.os == 'windows-latest'
       run: |
-        PowerShell.exe -Command "&{Invoke-WebRequest -OutFile ${installdir}\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe ; Remove-Item ${installdir}\\stack.zip}"
-        # curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
-        # 7z x stack.zip stack.exe
+        # PowerShell.exe -Command "&{Invoke-WebRequest -OutFile %HOME%\\stack.zip https://get.haskellstack.org/stable/windows-x86_64.zip ; 7z e ${installdir}\\stack.zip -o${installdir} stack.exe }"
+        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
+        7z x stack.zip -o ~/.local/bin stack.exe
         stack --version
 
     - name: Install haskell deps
