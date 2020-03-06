@@ -99,15 +99,23 @@ Become a sponsor and get your logo on our README on Github with a link to your s
 
 [![license](https://img.shields.io/badge/license-GPLv3+-brightgreen.svg)](http://www.gnu.org/licenses/gpl.html)
 
-[![OpenCollective](https://opencollective.com/hledger/backers/badge.svg)](#backers)
-[![OpenCollective](https://opencollective.com/hledger/sponsors/badge.svg)](#sponsors)
-[![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty)
-[![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org)
+[![hledger CI](https://github.com/simonmichael/hledger/workflows/hledger%20CI/badge.svg)](https://github.com/simonmichael/hledger/actions)
+<!-- [![Build Status](https://travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger/builds) -->
+<!-- [![Build Status](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history) -->
 
 [![on hackage](https://img.shields.io/hackage/v/hledger.svg?label=hackage&colorB=green)](http://hackage.haskell.org/package/hledger)
-[![on stackage nightly](http://stackage.org/package/hledger/badge/nightly)](http://stackage.org/nightly/package/hledger)
-[![on stackage lts](http://stackage.org/package/hledger/badge/lts)](http://stackage.org/lts/package/hledger)
-[![on stackage lts 7](http://stackage.org/package/hledger/badge/lts-7)](http://stackage.org/lts-7/package/hledger)
+<br>
+[![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-lib)
+[![](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds)](http://packdeps.haskellers.com/feed?needle=hledger)
+<br>
+[![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-ui)
+[![](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-web)
+
+[![](https://repology.org/badge/version-for-repo/stackage_lts/hledger.svg)](https://repology.org/metapackage/hledger)
+[![](https://repology.org/badge/version-for-repo/stackage_nighly/hledger.svg)](https://repology.org/metapackage/hledger)
+<!-- [![on stackage lts](http://stackage.org/package/hledger/badge/lts)](http://stackage.org/lts/package/hledger) -->
+<!-- [![on stackage nightly](http://stackage.org/package/hledger/badge/nightly)](http://stackage.org/nightly/package/hledger) -->
+
 <!-- [![github
 release](https://img.shields.io/github/release/simonmichael/hledger.svg?label=github+release)](https://github.com/simonmichael/hledger/releases)
 --> <!-- [![github latest release
@@ -115,10 +123,7 @@ downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/t
 --> <!-- [![gratipay](https://img.shields.io/gratipay/hledger.svg)]()
 -->
 
-![hledger CI](https://github.com/simonmichael/hledger/workflows/hledger%20CI/badge.svg)
-[![Build Status](https://travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger/builds)
-[![Build Status](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history)
-[![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-lib)
-[![](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds)](http://packdeps.haskellers.com/feed?needle=hledger)
-[![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-ui)
-[![](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-web)
+[![OpenCollective](https://opencollective.com/hledger/backers/badge.svg)](#backers)
+[![OpenCollective](https://opencollective.com/hledger/sponsors/badge.svg)](#sponsors)
+[![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty)
+[![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org)
