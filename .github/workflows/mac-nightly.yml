@@ -41,20 +41,32 @@ jobs:
     runs-on: macos-latest
     steps:
 
-    # cached things
+    - name: Check out
+      uses: actions/checkout@v2
 
-    - name: Cache ~/.stack
+    # declare/restore cached things
+
+    - name: Cache stack global package db
+      id:   stack-global
       uses: actions/cache@v1
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-stack
+        key:          ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-global
+          ${{ runner.os }}-stack
 
-    - name: Cache ~/.local/bin
+    - name: Cache stack-installed programs in ~/.local/bin
+      id:   stack-programs
       uses: actions/cache@v1
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-local-bin
+        key:          ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-programs
+          ${{ runner.os }}-local-bin
 
+    # stack's local package dbs for the project and each package
     - name: Cache .stack-work
       uses: actions/cache@v1
       with:
@@ -87,9 +99,6 @@ jobs:
 
     # actions
 
-    - name: Check out
-      uses: actions/checkout@v2
-
     - name: Install stack
       # curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C $INSTALLDIR
       run: |
@@ -109,10 +118,22 @@ jobs:
         stack --resolver=lts --install-ghc build --test --bench --only-dependencies
         #  --no-terminal --bench --install-ghc
 
-    - name: Build hledger
+    - name: Build hledger and test unit tests, doc tests
       run: |
         stack --resolver=lts test --only-dependencies
         #  --no-terminal --bench --install-ghc
 
-    # run hledger-lib/hledger functional tests, skipping the ones for addons
-    #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
+    - name: Install shelltestrunner
+      run: |
+        export PATH=~/.local/bin:$PATH
+        if [[ ! -x ~/.local/bin/shelltest ]]; then stack $ARGS install shelltestrunner-1.9; fi
+        shelltest --version
+      env:
+        ARGS: ${{ matrix.plan.resolver }}
+
+    - name: Test functional tests (excluding addons)
+      run: |
+        COLUMNS=80 stack $ARGS exec -- shelltest --execdir -j16 tests -x /bin -x /addons
+      env:
+        ARGS: ${{ matrix.plan.resolver }}
+
