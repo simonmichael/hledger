@@ -109,33 +109,23 @@ jobs:
 
     - name: Install GHC
       run: |
-        stack --resolver=lts setup
-
-    # - name: Install shelltestrunner
-    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
-    # - shelltest --version
+        stack setup --install-ghc
 
     - name: Install haskell deps
       run: |
-        stack --resolver=lts --install-ghc build --test --bench --only-dependencies
-        #  --no-terminal --bench --install-ghc
+        stack build --test --bench --only-dependencies
 
     - name: Build hledger and test unit tests, doc tests
       run: |
-        stack --resolver=lts test --only-dependencies
-        #  --no-terminal --bench --install-ghc
+        stack build --pedantic --test
 
     - name: Install shelltestrunner
       run: |
         export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then stack $ARGS install shelltestrunner-1.9; fi
+        if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
         shelltest --version
-      env:
-        ARGS: ${{ matrix.plan.resolver }}
 
     - name: Test functional tests (excluding addons)
       run: |
-        COLUMNS=80 stack $ARGS exec -- shelltest --execdir -j16 tests -x /bin -x /addons
-      env:
-        ARGS: ${{ matrix.plan.resolver }}
+        COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 

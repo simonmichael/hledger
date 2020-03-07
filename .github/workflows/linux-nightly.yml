@@ -159,7 +159,7 @@ jobs:
 
     - name: Install GHC
       run: |
-        stack $ARGS setup
+        stack $ARGS setup --install-ghc
       env:
         ARGS: ${{ matrix.plan.resolver }}
 
