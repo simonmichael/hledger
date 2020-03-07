@@ -122,6 +122,9 @@ jobs:
 
     # actions
 
+    - name: Add stack local bin to PATH
+      run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
+
     - name: Install stack
       if: steps.stack-local-bin-dir.outputs.cache-hit != 'true'
       run: |
@@ -139,6 +142,7 @@ jobs:
     # - shelltest --version
 
     - name: Install haskell deps
+      if: steps.stack-global-db.outputs.cache-hit != 'true'
       run: |
         stack --no-terminal build --only-dependencies
 
@@ -169,4 +173,3 @@ jobs:
 #     call "${{ matrix.vcvarsall }}" x64 # Sets a whole bunch of environment variables used by the next call to cmake.
 #     cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug ... # Same as above (duplicated)
 
-# echo "::add-path::/path/to/dir"
