@@ -67,20 +67,21 @@ jobs:
     # declare/restore cached things
 
     - name: Cache stack global db   # downloaded ghcs, package indexes, third-party haskell deps
+      id:   stack-global-db
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
-        # which files signal a change in the global stack dir ?
-        # **.yaml includes *.package.yaml and all stack.yamls (too many)
-        # and hopefully no other changing yamls
+        # which files signal a change in stack's global db ?
+        # **.yaml includes */package.yaml and stack.yaml* (too many), and hopefully no other changing yamls
         key:          ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-local-programs-stack
 
     - name: Cache stack local bin dir
+      id:   stack-local-bin-dir
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
-        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
+        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-roaming-stack
 
     # stack's local package dbs for the project and each package
@@ -88,46 +89,48 @@ jobs:
       uses: actions/cache@v1
       with:
         path: .stack-work
-        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+        key:          ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-stack-work
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
+        key:          ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
+        key:          ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-stack-work
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
+        key:          ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
+        key:          ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-web-stack-work
 
     # actions
 
     - name: Install stack
+      if: steps.stack-local-bin-dir.outputs.cache-hit != 'true'
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip -oC:\Windows stack.exe
         stack --version
 
     - name: Install GHC
+      if: steps.stack-global-db.outputs.cache-hit != 'true'
       run: |
         stack --no-terminal setup --install-ghc
 
@@ -137,13 +140,10 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack --no-terminal build --test --only-dependencies
-      #  --bench --install-ghc
+        stack --no-terminal build --only-dependencies
 
     - name: Build hledger
-      run: |
-        stack P--no-terminal install --ghc-options=-Werror --test
-      #  --bench --no-run-benchmarks --haddock --no-haddock-deps
+      run: stack --no-terminal install --ghc-options=-Werror
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
