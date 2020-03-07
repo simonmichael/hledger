@@ -45,90 +45,10 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    # declare/restore cached things
-
-    # stack's global package db, holding package indexes, our haskell deps, downloaded ghc
-    - name: Cache C:\Users\runneradmin\AppData\Local\Programs\stack\
-      uses: actions/cache@v1
-      with:
-        path: C:\Users\runneradmin\AppData\Local\Programs\stack\
-        # which files signal a change in the global stack dir ?
-        # **.yaml includes stack.yaml and */package.yaml, and hopefully no other changing yamls
-        # stack.lock should be included too, but how..
-        key:          ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-appdata-local-programs-stack-
-
-    # stack's local bin dir (like ~/.local/bin)
-    - name: Cache C:\Users\runneradmin\AppData\Roaming\stack\
-      uses: actions/cache@v1
-      with:
-        path: C:\Users\runneradmin\AppData\Roaming\stack\
-        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-appdata-roaming-stack-
-
-    # stack's local package dbs, for the project and each package
-    - name: Cache .stack-work
-      uses: actions/cache@v1
-      with:
-        path: .stack-work
-        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
-        restore-key: ${{ runner.os }}-stack-work-
-
-    - name: Cache hledger-lib/.stack-work
-      uses: actions/cache@v1
-      with:
-        path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-lib-stack-work-
-
-    - name: Cache hledger/.stack-work
-      uses: actions/cache@v1
-      with:
-        path: hledger/.stack-work
-        key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-stack-work-
-
-    - name: Cache hledger-ui/.stack-work
-      uses: actions/cache@v1
-      with:
-        path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-ui-stack-work-
-
-    - name: Cache hledger-web/.stack-work
-      uses: actions/cache@v1
-      with:
-        path: hledger-web/.stack-work
-        key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-web-stack-work-
-
-    # actions
-
-    - name: Install stack
+    - name: Show stuff
+      shell: bash
       run: |
-        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
-        7z x stack.zip -oC:\Windows stack.exe
-        stack --version
-
-    - name: Install GHC
-      run: |
-        stack --resolver=lts --no-terminal setup
-
-    # - name: Install shelltestrunner
-    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
-    # - shelltest --version
-
-    - name: Install haskell deps
-      run: |
-        stack --resolver=lts --no-terminal build --test --only-dependencies
-        #  --bench --install-ghc
-
-    - name: Build hledger
-      run: |
-        stack --resolver=lts --no-terminal install --ghc-options=-Werror --test
-        #  --bench --no-run-benchmarks --haddock --no-haddock-deps
-
-    # - name: Show stuff
+        ls -lRF /C/Users/runneradmin/AppData/Local
     #     # ls C:\Users\runneradmin\
     #     # ls C:\Users\runneradmin\AppData\
     #     # ls C:\Users\runneradmin\AppData\Local\
@@ -144,6 +64,89 @@ jobs:
     #     ls D:\a\hledger
     #     ls D:\a
     #     ls D:\
+
+    # declare/restore cached things
+
+    # stack's global package db, holding package indexes, our haskell deps, downloaded ghc
+    - name: Cache C:\Users\runneradmin\AppData\Local\Programs\stack\
+      uses: actions/cache@v1
+      with:
+        path: C:\Users\runneradmin\AppData\Local\Programs\stack\
+        # which files signal a change in the global stack dir ?
+        # **.yaml includes stack.yaml and */package.yaml, and hopefully no other changing yamls
+        # stack.lock should be included too, but how..
+        key:          ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
+        restore-keys: ${{ runner.os }}-appdata-local-programs-stack
+
+    # stack's local bin dir (like ~/.local/bin)
+    - name: Cache C:\Users\runneradmin\AppData\Roaming\stack\
+      uses: actions/cache@v1
+      with:
+        path: C:\Users\runneradmin\AppData\Roaming\stack\
+        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
+        restore-keys: ${{ runner.os }}-appdata-roaming-stack
+
+    # stack's local package dbs, for the project and each package
+    - name: Cache .stack-work
+      uses: actions/cache@v1
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+        restore-key: ${{ runner.os }}-stack-work
+
+    - name: Cache hledger-lib/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-lib/.stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
+        restore-key: ${{ runner.os }}-hledger-lib-stack-work
+
+    - name: Cache hledger/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger/.stack-work
+        key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
+        restore-key: ${{ runner.os }}-hledger-stack-work
+
+    - name: Cache hledger-ui/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-ui/.stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
+        restore-key: ${{ runner.os }}-hledger-ui-stack-work
+
+    - name: Cache hledger-web/.stack-work
+      uses: actions/cache@v1
+      with:
+        path: hledger-web/.stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
+        restore-key: ${{ runner.os }}-hledger-web-stack-work
+
+    # actions
+
+    - name: Install stack
+      run: |
+        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
+        7z x stack.zip -oC:\Windows stack.exe
+        stack --version
+
+    - name: Install GHC
+      run: |
+        stack --resolver=lts --no-terminal setup --install-ghc
+
+    # - name: Install shelltestrunner
+    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
+    # - shelltest --version
+
+    - name: Install haskell deps
+      run: |
+        stack --resolver=lts --no-terminal build --test --only-dependencies
+        #  --bench --install-ghc
+
+    - name: Build hledger
+      run: |
+        stack --resolver=lts --no-terminal install --ghc-options=-Werror --test
+        #  --bench --no-run-benchmarks --haddock --no-haddock-deps
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
@@ -210,3 +213,5 @@ jobs:
 #     set PATH=C:\ProgramData\scoop\shims;%PATH%
 #     call "${{ matrix.vcvarsall }}" x64 # Sets a whole bunch of environment variables used by the next call to cmake.
 #     cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug ... # Same as above (duplicated)
+
+# echo "::add-path::/path/to/dir"
