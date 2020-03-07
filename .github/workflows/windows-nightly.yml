@@ -136,7 +136,7 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack --no-terminal build --only-dependencies
+        stack --no-terminal build --only-dependencies --verbosity=error
 
     - name: Build hledger executables
       run: |
