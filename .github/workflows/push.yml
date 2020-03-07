@@ -7,7 +7,7 @@ on:
   push:
     branches: [ master ]
     paths:
-      - '.github/workflows/quick.yml'
+      - '.github/workflows/push.yml'
       - 'stack*'
       - 'hledger-lib'
       - 'hledger'
