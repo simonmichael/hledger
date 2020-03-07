@@ -180,22 +180,24 @@ jobs:
       env:
         ARGS: ${{ matrix.plan.resolver }}
 
-    - name: Build, unittest, doctest, haddocktest hledger
+    - name: Build hledger and test unit tests, doc tests
       run: |
-        stack $ARGS build --ghc-options=-Werror --test --bench --haddock --no-haddock-deps
+        stack $ARGS build --ghc-options=-Werror --test --bench
         #  --no-terminal  #  --no-run-benchmarks
       env:
         ARGS: ${{ matrix.plan.resolver }}
 
-    - name: Functional tests (excluding addons)
+    - name: Test functional tests (excluding addons)
       run: |
-        export PATH=~/.local/bin:$PATH
         COLUMNS=80 stack $ARGS exec -- shelltest --execdir -j16 tests -x /bin -x /addons
       env:
         ARGS: ${{ matrix.plan.resolver }}
 
-# - name: Configure
-#   if: startsWith(matrix.name, 'linux')
-#   run: |
-#     export PATH=/usr/local/bin:$PATH
-#     cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug ...
+    - name: Test haddock generation
+      shell: bash
+      run: |
+        time stack $ARGS build --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
+      # --no-haddock-hyperlink-source is 25% faster
+      # --no-print-missing-docs is 600% quieter
+      env:
+        ARGS: ${{ matrix.plan.resolver }}
