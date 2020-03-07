@@ -77,8 +77,6 @@ jobs:
     - name: showStuff
       shell: bash
       run: |
-        ls -lFRa /c/users/runneradmin/appdata/roaming/stack/local/bin
-        ls -lFRa /c/users/runneradmin/appdata/roaming/stack/local
         ls -lFRa /c/users/runneradmin/appdata/roaming/stack
 
     - name: Cache stack global db   # downloaded ghcs, package indexes, third-party haskell deps
