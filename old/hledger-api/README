@@ -1,6 +1,0 @@
-A web API server for hledger data, and some client-side app examples.
-This is an alternative to hledger-web, and for variety uses servant instead of yesod.
-
-As of 2019-09, this has been retired in favour of hledger-web.
-hledger-web 1.15+ includes hledger-api's functionality plus
-newer updates.

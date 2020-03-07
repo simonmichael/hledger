@@ -1,7 +1,0 @@
-Some example clients for hledger-api.
-
-These assume hledger-api is running at http://localhost:8001 .
-
-For the angular client, start hledger-api inside the angular/
-directory (or specify that directory with -d) and then visit
-http://localhost:8001 in your browser.
