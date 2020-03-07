@@ -50,7 +50,9 @@ jobs:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
         # key: ${{ runner.os }}-appdata-local-programs-stack
         #key: ${{ runner.os }}-appdata-local-programs-stack-${{ github.sha }}
-        key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles({'files':['stack.yaml','stack.lock','**.cabal']}) }}
+        # which files signal a change in the global stack dir ?
+        # 'stack.yaml','stack.lock' should be included, but how
+        key: ${{ runner.os }}-appdata-local-programs-stack-${{ '*/*.cabal' }}
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack-
     - name: Cache C:\Users\runneradmin\AppData\Local\Packages\
