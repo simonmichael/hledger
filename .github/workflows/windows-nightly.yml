@@ -50,7 +50,7 @@ jobs:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
         # key: ${{ runner.os }}-appdata-local-programs-stack
         #key: ${{ runner.os }}-appdata-local-programs-stack-${{ github.sha }}
-        key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles(['stack.yaml','stack.lock','**.cabal']) }}
+        key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles({'files':['stack.yaml','stack.lock','**.cabal']}) }}
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack-
     - name: Cache C:\Users\runneradmin\AppData\Local\Packages\
