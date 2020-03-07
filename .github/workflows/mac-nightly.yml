@@ -3,7 +3,7 @@
 name: mac nightly CI
 
 on:
-  # XXX not supported yet; build on push to "ci" instead
+  # XXX not supported yet; build on noteworthy push to "ci" instead
   # schedule:
   # - cron: "0 23 * * *"
   # uncomment when testing CI:

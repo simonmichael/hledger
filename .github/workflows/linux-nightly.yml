@@ -1,5 +1,5 @@
 # reasonably thorough build/test/benchmark/haddock/functest testing,
-# on linux, run nightly and also for pull requests
+# on linux, run nightly and also for noteworthy pull requests
 
 # based on https://gist.github.com/mstksg/11f753d891cee5980326a8ea8c865233
 # docs:
@@ -19,7 +19,7 @@
 name: linux nightly/pr CI
 
 on:
-  # XXX not supported yet; build on push to "ci" instead
+  # XXX not supported yet; build on noteworthy push to "ci" instead
   # schedule:
   # - cron: "0 23 * * *"
   pull_request:
@@ -163,7 +163,7 @@ jobs:
       env:
         ARGS: ${{ matrix.plan.resolver }}
 
-    - name: Build/unittest/benchmark/haddock hledger
+    - name: Build, unittest, doctest, haddocktest hledger
       run: |
         stack $ARGS build --ghc-options=-Werror --test --bench --haddock --no-haddock-deps
         #  --no-terminal  #  --no-run-benchmarks
