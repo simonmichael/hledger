@@ -4,12 +4,11 @@
 name: windows nightly CI
 
 on:
-  # XXX not supported yet; build on noteworthy push to "ci" instead
   # schedule:
   # - cron: "0 23 * * *"
-  # uncomment when testing CI:
+  # XXX not supported yet; build on noteworthy push to "ci" instead
   push:
-    branches: [ ci, master ]  # master too for testing
+    branches: [ ci, master ]  # master too while testing
     paths:
       - '.github/workflows/windows-nightly.yml'
       - 'stack*'
@@ -136,7 +135,7 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack --no-terminal build --only-dependencies --verbosity=error
+        stack --no-terminal build --only-dependencies
 
     - name: Build hledger executables
       run: |
