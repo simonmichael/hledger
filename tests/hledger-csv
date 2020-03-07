@@ -5,7 +5,7 @@
 # RULES
 # <multi-line rules>
 #
-awk -vCSV="t.$$.csv" -vRULES="t.$$.csv.rules" '
+awk -v CSV="t.$$.csv" -v RULES="t.$$.csv.rules" '
 BEGIN{output=CSV}
 /^RULES/{output=RULES}
 !/^RULES/{print $0 >output}'
