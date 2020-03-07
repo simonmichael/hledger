@@ -113,8 +113,8 @@ jobs:
     #   run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
 
     - name: Install stack
-      if: steps.stack-programs-dir.outputs.cache-hit != 'true'
-      # need this step to install stack.exe into PATH for now
+      #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
+      # this step is needed to get stack.exe into PATH, for now
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip -oC:\Windows stack.exe
@@ -122,8 +122,8 @@ jobs:
 
     - name: Install GHC
       if: steps.stack-programs-dir.outputs.cache-hit != 'true'
+      # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |
-        set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
         stack --no-terminal setup --install-ghc
 
     # - name: Install shelltestrunner
@@ -133,18 +133,16 @@ jobs:
     - name: Install haskell deps
       if: steps.stack-global-package-db.outputs.cache-hit != 'true'
       run: |
-        set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
         stack --no-terminal build --only-dependencies
 
     - name: Build hledger
       run: |
-        set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
         stack --no-terminal install --ghc-options=-Werror
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
-    - name: Zip exes
+    - name: Zip executables
       #cd `stack path --local-bin`
       run: |
         cd C:\Users\runneradmin\AppData\Roaming\local\bin\
@@ -155,13 +153,3 @@ jobs:
       with:
         name: hledger.zip
         path: hledger.zip
-
-
-
-# - name: Configure
-#   if: startsWith(matrix.name, 'windows')
-#   run: |
-#     set PATH=C:\ProgramData\scoop\shims;%PATH%
-#     call "${{ matrix.vcvarsall }}" x64 # Sets a whole bunch of environment variables used by the next call to cmake.
-#     cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug ... # Same as above (duplicated)
-
