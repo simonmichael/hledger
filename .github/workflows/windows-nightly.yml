@@ -66,6 +66,21 @@ jobs:
 
     # declare/restore cached things
 
+    - name: Cache stack local bin dir
+      id:   stack-local-bin-dir
+      uses: actions/cache@v1
+      with:
+        path: C:\Users\runneradmin\AppData\Roaming\stack\
+        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
+        restore-keys: ${{ runner.os }}-appdata-roaming-stack
+
+    - name: showStuff
+      shell: bash
+      run: |
+        ls -lFRa /c/users/runneradmin/appdata/roaming/stack/local/bin
+        ls -lFRa /c/users/runneradmin/appdata/roaming/stack/local
+        ls -lFRa /c/users/runneradmin/appdata/roaming/stack
+
     - name: Cache stack global db   # downloaded ghcs, package indexes, third-party haskell deps
       id:   stack-global-db
       uses: actions/cache@v1
@@ -75,14 +90,6 @@ jobs:
         # **.yaml includes */package.yaml and stack.yaml* (too many), and hopefully no other changing yamls
         key:          ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-local-programs-stack
-
-    - name: Cache stack local bin dir
-      id:   stack-local-bin-dir
-      uses: actions/cache@v1
-      with:
-        path: C:\Users\runneradmin\AppData\Roaming\stack\
-        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-appdata-roaming-stack
 
     # stack's local package dbs for the project and each package
     - name: Cache .stack-work
@@ -127,6 +134,7 @@ jobs:
 
     - name: Install stack
       if: steps.stack-local-bin-dir.outputs.cache-hit != 'true'
+      # need this step to install stack.exe into PATH for now
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip -oC:\Windows stack.exe
@@ -134,9 +142,9 @@ jobs:
 
     - name: Install GHC
       if: steps.stack-global-db.outputs.cache-hit != 'true'
-      # echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
       run: |
-        C:\Users\runneradmin\AppData\Roaming\stack\local\bin\stack --no-terminal setup --install-ghc
+        set PATH=C:\Users\runneradmin\AppData\Roaming\stack\local\bin;%PATH%
+        stack --no-terminal setup --install-ghc
 
     # - name: Install shelltestrunner
     # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
@@ -144,12 +152,14 @@ jobs:
 
     - name: Install haskell deps
       if: steps.stack-global-db.outputs.cache-hit != 'true'
-      #  echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
       run: |
-        C:\Users\runneradmin\AppData\Roaming\stack\local\bin\stack --no-terminal build --only-dependencies
+        set PATH=C:\Users\runneradmin\AppData\Roaming\stack\local\bin;%PATH%
+        stack --no-terminal build --only-dependencies
 
     - name: Build hledger
-      run: C:\Users\runneradmin\AppData\Roaming\stack\local\bin\stack --no-terminal install --ghc-options=-Werror
+      run: |
+        set PATH=C:\Users\runneradmin\AppData\Roaming\stack\local\bin;%PATH%
+        stack --no-terminal install --ghc-options=-Werror
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
