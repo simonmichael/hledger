@@ -135,6 +135,7 @@ jobs:
     - name: Install GHC
       if: steps.stack-global-db.outputs.cache-hit != 'true'
       run: |
+        echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
         stack --no-terminal setup --install-ghc
 
     # - name: Install shelltestrunner
@@ -144,6 +145,7 @@ jobs:
     - name: Install haskell deps
       if: steps.stack-global-db.outputs.cache-hit != 'true'
       run: |
+        echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
         stack --no-terminal build --only-dependencies
 
     - name: Build hledger
