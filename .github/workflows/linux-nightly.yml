@@ -84,6 +84,9 @@ jobs:
 
     steps:
 
+    - name: Check out
+      uses: actions/checkout@v2
+
     # declare/restore cached things
 
     - name: Cache stack global package db
@@ -147,9 +150,6 @@ jobs:
         restore-keys: ${{ runner.os }}-hledger-web-stack-work
 
     # actions
-
-    - name: Check out
-      uses: actions/checkout@v2
 
     - name: Install stack
       # curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C $INSTALLDIR '*/stack'
