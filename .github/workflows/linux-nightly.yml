@@ -31,6 +31,7 @@ on:
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
+      - 'tests'
       - '!**.md'
       - '!**.1'
       - '!**.5'
@@ -39,12 +40,13 @@ on:
   push:
     branches: [ ci, master ]  # master too for testing
     paths:
+      - '.github/workflows/linux-nightly.yml'
       - 'stack*'
       - 'hledger-lib'
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-      - '.github/workflows/linux*'
+      - 'tests'
       - '!**.md'
       - '!**.1'
       - '!**.5'
@@ -205,3 +207,9 @@ jobs:
     - name: show stuff
       run: |
         if [[ -e ~/.local/bin ]]; then ls -lFRa ~/.local/bin; fi
+
+
+
+# https://github.com/mxschmitt/action-tmate
+#     - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v1

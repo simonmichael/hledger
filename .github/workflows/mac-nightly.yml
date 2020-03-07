@@ -16,6 +16,7 @@ on:
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
+      - 'tests'
       - '!**.md'
       - '!**.1'
       - '!**.5'
@@ -24,12 +25,13 @@ on:
   # pull_request:
   #   branches: [ master ]
   #   paths:
+  #     - '.github/workflows/mac-nightly.yml'
   #     - 'stack*'
   #     - 'hledger-lib'
   #     - 'hledger'
   #     - 'hledger-ui'
   #     - 'hledger-web'
-  #     - '.github/workflows/mac*'
+  #     - 'tests'
   #     - '!**.md'
   #     - '!**.1'
   #     - '!**.5'

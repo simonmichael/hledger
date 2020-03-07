@@ -24,12 +24,12 @@ on:
   # pull_request:
   #   branches: [ master ]
   #   paths:
+  #     - '.github/workflows/windows-nightly.yml'
   #     - 'stack*'
   #     - 'hledger-lib'
   #     - 'hledger'
   #     - 'hledger-ui'
   #     - 'hledger-web'
-  #     - '.github/workflows/windows*'
   #     - '!**.md'
   #     - '!**.1'
   #     - '!**.5'
