@@ -7,7 +7,9 @@ Run the hledger package's unit tests using the tasty test runner
 -- {-# LANGUAGE PackageImports #-}
 -- import "hledger" Hledger.Cli (tests_Hledger_Cli)
 import Hledger.Cli (tests_Hledger_Cli)
-
+import System.Environment (setEnv)
 import Test.Tasty (defaultMain)
 
-main = defaultMain tests_Hledger_Cli
+main = do
+  setEnv "TASTY_HIDE_SUCCESSES" "1"
+  defaultMain tests_Hledger_Cli
