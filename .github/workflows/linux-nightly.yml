@@ -161,14 +161,6 @@ jobs:
       env:
         ARGS: ${{ matrix.plan.resolver }}
 
-    - name: Install shelltestrunner
-      run: |
-        export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then stack $ARGS install shelltestrunner-1.9; fi
-        shelltest --version
-      env:
-        ARGS: ${{ matrix.plan.resolver }}
-
     - name: Install haskell deps
       run: |
         stack $ARGS build --test --bench --only-dependencies
@@ -180,6 +172,14 @@ jobs:
       run: |
         stack $ARGS build --ghc-options=-Werror --test --bench
         #  --no-terminal  #  --no-run-benchmarks
+      env:
+        ARGS: ${{ matrix.plan.resolver }}
+
+    - name: Install shelltestrunner
+      run: |
+        export PATH=~/.local/bin:$PATH
+        if [[ ! -x ~/.local/bin/shelltest ]]; then stack $ARGS install shelltestrunner-1.9; fi
+        shelltest --version
       env:
         ARGS: ${{ matrix.plan.resolver }}
 
