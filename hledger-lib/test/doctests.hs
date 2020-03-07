@@ -27,6 +27,7 @@ import System.Environment
 import "Glob" System.FilePath.Glob
 import Test.DocTest
 
+main :: IO ()
 main = do
   args <- getArgs
   let
