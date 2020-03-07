@@ -3,11 +3,12 @@
 name: mac nightly CI
 
 on:
-  schedule:
-  - cron: "0 23 * * *"
+  # XXX not supported yet; build on push to "ci" instead
+  # schedule:
+  # - cron: "0 23 * * *"
   # uncomment when testing CI:
   push:
-    branches: [ master ]
+    branches: [ ci, master ]  # master too for testing
     paths:
       - 'stack*'
       - 'hledger-lib'
@@ -105,7 +106,7 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack --resolver=lts --install-ghc test --bench --only-dependencies
+        stack --resolver=lts --install-ghc build --test --bench --only-dependencies
         #  --no-terminal --bench --install-ghc
 
     - name: Build hledger

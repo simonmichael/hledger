@@ -4,11 +4,12 @@
 name: windows nightly CI
 
 on:
-  schedule:
-  - cron: "0 23 * * *"
+  # XXX not supported yet; build on push to "ci" instead
+  # schedule:
+  # - cron: "0 23 * * *"
   # uncomment when testing CI:
   push:
-    branches: [ master ]
+    branches: [ ci, master ]  # master too for testing
     paths:
       - 'stack*'
       - 'hledger-lib'
@@ -106,25 +107,13 @@ jobs:
       run: |
         stack --resolver=lts --no-terminal setup
 
-    - name: Show stuff
-      run: |
-        ls C:\Users\runneradmin\
-        ls C:\Users\runneradmin\AppData\
-        ls C:\Users\runneradmin\AppData\Local\
-        ls C:\Users\runneradmin\AppData\Local\Programs\
-        ls C:\Users\runneradmin\AppData\Local\Programs\stack
-        ls C:\Users\runneradmin\AppData\Local\Programs\stack\x86_64-windows
-        ls C:\Users\runneradmin\AppData\LocalLow\
-        ls C:\Users\runneradmin\AppData\Roaming\
-        ls C:\Users\runneradmin\AppData\Roaming\stack\
-
     # - name: Install shelltestrunner
     # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
     # - shelltest --version
 
     - name: Install haskell deps
       run: |
-        stack --resolver=lts --no-terminal test --only-dependencies
+        stack --resolver=lts --no-terminal build --test --only-dependencies
         #  --bench --install-ghc
 
     - name: Build hledger

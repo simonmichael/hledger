@@ -19,8 +19,9 @@
 name: linux nightly/pr CI
 
 on:
-  schedule:
-  - cron: "0 23 * * *"
+  # XXX not supported yet; build on push to "ci" instead
+  # schedule:
+  # - cron: "0 23 * * *"
   pull_request:
     branches: [ master ]
     paths:
@@ -35,9 +36,8 @@ on:
       - '!**.5'
       - '!**.info'
       - '!**.txt'
-  # uncomment when testing CI:
   push:
-    branches: [ master ]
+    branches: [ ci, master ]  # master too for testing
     paths:
       - 'stack*'
       - 'hledger-lib'
@@ -158,7 +158,7 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack $ARGS test --bench --only-dependencies
+        stack $ARGS build --test --bench --only-dependencies
         #  --no-terminal
       env:
         ARGS: ${{ matrix.plan.resolver }}
