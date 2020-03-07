@@ -11,5 +11,6 @@ import System.Environment (setEnv)
 import Test.Tasty (defaultMain)
 
 main = do
-  setEnv "TASTY_HIDE_SUCCESSES" "1"
+  setEnv "TASTY_HIDE_SUCCESSES" "true"
+  setEnv "TASTY_ANSI_TRICKS" "false"  -- helps the above
   defaultMain tests_Hledger_Cli
