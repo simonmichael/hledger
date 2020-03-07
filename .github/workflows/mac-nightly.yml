@@ -118,6 +118,7 @@ jobs:
     - name: Build hledger and test unit tests, doc tests
       run: |
         stack build --pedantic --test
+      #  --ghc-options=-Werror
 
     - name: Install shelltestrunner
       run: |

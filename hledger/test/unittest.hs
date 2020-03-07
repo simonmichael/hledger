@@ -10,6 +10,7 @@ import Hledger.Cli (tests_Hledger_Cli)
 import System.Environment (setEnv)
 import Test.Tasty (defaultMain)
 
+main :: IO ()
 main = do
   setEnv "TASTY_HIDE_SUCCESSES" "true"
   setEnv "TASTY_ANSI_TRICKS" "false"  -- helps the above
