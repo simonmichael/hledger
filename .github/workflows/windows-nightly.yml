@@ -47,16 +47,16 @@ jobs:
 
     # declare/restore cached things
 
-    - name: Cache stack local bin dir
-      id:   stack-local-bin-dir
+    - name: Cache stack global package db
+      id:   stack-global-package-db
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
         key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-roaming-stack
 
-    - name: Cache stack global db   # downloaded ghcs, package indexes, third-party haskell deps
-      id:   stack-global-db
+    - name: Cache stack local programs dir
+      id:   stack-programs-dir
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
@@ -113,7 +113,7 @@ jobs:
     #   run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
 
     - name: Install stack
-      if: steps.stack-local-bin-dir.outputs.cache-hit != 'true'
+      if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # need this step to install stack.exe into PATH for now
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
@@ -121,9 +121,9 @@ jobs:
         stack --version
 
     - name: Install GHC
-      if: steps.stack-global-db.outputs.cache-hit != 'true'
+      if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       run: |
-        set PATH=C:\Users\runneradmin\AppData\Roaming\stack\local\bin;%PATH%
+        set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
         stack --no-terminal setup --install-ghc
 
     # - name: Install shelltestrunner
@@ -131,14 +131,14 @@ jobs:
     # - shelltest --version
 
     - name: Install haskell deps
-      if: steps.stack-global-db.outputs.cache-hit != 'true'
+      if: steps.stack-global-package-db.outputs.cache-hit != 'true'
       run: |
-        set PATH=C:\Users\runneradmin\AppData\Roaming\stack\local\bin;%PATH%
+        set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
         stack --no-terminal build --only-dependencies
 
     - name: Build hledger
       run: |
-        set PATH=C:\Users\runneradmin\AppData\Roaming\stack\local\bin;%PATH%
+        set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
         stack --no-terminal install --ghc-options=-Werror
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
