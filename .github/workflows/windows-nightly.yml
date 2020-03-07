@@ -45,10 +45,10 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    - name: Show stuff
-      shell: bash
-      run: |
-        ls -lRF /C/Users/runneradmin/AppData/Local
+    # - name: Show stuff
+    #   shell: bash
+    #   run: |
+    #     ls -lRF /C/Users/runneradmin/AppData/Local
     #     # ls C:\Users\runneradmin\
     #     # ls C:\Users\runneradmin\AppData\
     #     # ls C:\Users\runneradmin\AppData\Local\
@@ -58,7 +58,6 @@ jobs:
     #     # ls C:\Users\runneradmin\AppData\LocalLow\
     #     # ls C:\Users\runneradmin\AppData\Roaming\
     #     # ls C:\Users\runneradmin\AppData\Roaming\stack\
-    #   run: |
     #     ls C:\Users\runneradmin\AppData\Roaming\local\bin\
     #     ls C:\Users\runneradmin\AppData\Roaming\local\
     #     ls D:\a\hledger
@@ -67,60 +66,59 @@ jobs:
 
     # declare/restore cached things
 
-    # stack's global package db, holding package indexes, our haskell deps, downloaded ghc
-    - name: Cache C:\Users\runneradmin\AppData\Local\Programs\stack\
+
+    - name: Cache stack global db   # downloaded ghcs, package indexes, third-party haskell deps
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
         # which files signal a change in the global stack dir ?
-        # **.yaml includes stack.yaml and */package.yaml, and hopefully no other changing yamls
-        # stack.lock should be included too, but how..
+        # **.yaml includes *.package.yaml and all stack.yamls (too many)
+        # and hopefully no other changing yamls
         key:          ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-local-programs-stack
 
-    # stack's local bin dir (like ~/.local/bin)
-    - name: Cache C:\Users\runneradmin\AppData\Roaming\stack\
+    - name: Cache stack local bin dir
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
         key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-roaming-stack
 
-    # stack's local package dbs, for the project and each package
+    # stack's local package dbs for the project and each package
     - name: Cache .stack-work
       uses: actions/cache@v1
       with:
         path: .stack-work
         key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
-        restore-key: ${{ runner.os }}-stack-work
+        restore-keys: ${{ runner.os }}-stack-work
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-lib/.stack-work
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-lib-stack-work
+        restore-keys: ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger/.stack-work
         key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-stack-work
+        restore-keys: ${{ runner.os }}-hledger-stack-work
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-ui/.stack-work
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-ui-stack-work
+        restore-keys: ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-web/.stack-work
         key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
-        restore-key: ${{ runner.os }}-hledger-web-stack-work
+        restore-keys: ${{ runner.os }}-hledger-web-stack-work
 
     # actions
 
@@ -162,48 +160,6 @@ jobs:
       with:
         name: hledger.zip
         path: hledger.zip
-
-
-#     Directory: C:\Users\runneradmin
-#
-# Mode                LastWriteTime         Length Name
-# ----                -------------         ------ ----
-# d----l          3/5/2020  7:40 PM                .cargo
-# d-----          3/5/2020  7:40 PM                .config
-# d----l          3/5/2020  7:40 PM                .rustup
-# d-----          3/6/2020  7:16 PM                .stack
-# d-r---          3/5/2020  7:40 PM                3D Objects
-# d-r---          3/5/2020  7:40 PM                Contacts
-# d-r---          3/5/2020  7:40 PM                Desktop
-# d-r---          3/5/2020  7:40 PM                Documents
-# d-r---          3/5/2020  7:40 PM                Downloads
-# d-r---          3/5/2020  7:40 PM                Favorites
-# d-r---          3/5/2020  7:40 PM                Links
-# d-r---          3/5/2020  7:40 PM                Music
-# d-r---          3/5/2020  7:40 PM                Pictures
-# d-r---          3/5/2020  7:40 PM                Saved Games
-# d-r---          3/5/2020  7:40 PM                Searches
-# d-r---          3/5/2020  7:40 PM                Videos
-#
-#     Directory: C:\Users\runneradmin\AppData
-#
-# Mode                LastWriteTime         Length Name
-# ----                -------------         ------ ----
-# d-----          3/6/2020  7:16 PM                Local
-# d-----          3/5/2020  7:40 PM                LocalLow
-# d-----          3/5/2020  7:40 PM                Roaming
-#
-#     Directory: C:\Users\runneradmin\AppData\Local
-#
-# Mode                LastWriteTime         Length Name
-# ----                -------------         ------ ----
-# d-----          3/6/2020  7:16 PM                GitHub
-# d-----          3/5/2020  7:40 PM                Google
-# d-----          3/5/2020  7:42 PM                Microsoft
-# d-----          3/6/2020  7:15 PM                Packages
-# d-----          3/6/2020  7:17 PM                Temp
-#
-# ls : Cannot find path 'C:\Users\runneradmin\AppData\Local\Programs\' because it does not exist.
 
 
 
