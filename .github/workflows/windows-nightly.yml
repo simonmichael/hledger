@@ -42,7 +42,10 @@ jobs:
     runs-on: windows-latest
     steps:
 
-    # cached things
+    - name: Check out
+      uses: actions/checkout@v2
+
+    # declare/restore cached things
 
     - name: Cache C:\Users\runneradmin\AppData\Local\Programs\stack\
       uses: actions/cache@v1
@@ -97,9 +100,6 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work
 
     # actions
-
-    - name: Check out
-      uses: actions/checkout@v2
 
     - name: Install stack
       run: |
