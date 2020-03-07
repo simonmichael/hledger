@@ -99,7 +99,7 @@ jobs:
 
     - name: show stuff
       run: |
-        ls -lFRa ~/.stack
+        if [[ -e ~/.stack ]]; then ls -lFRa ~/.stack; fi
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
@@ -111,7 +111,7 @@ jobs:
 
     - name: show stuff
       run: |
-        ls -lFRa ~/.local/bin
+        if [[ -e ~/.local/bin ]]; then ls -lFRa ~/.local/bin; fi
 
     # stack's local package dbs for the project and each package
     - name: Cache .stack-work
