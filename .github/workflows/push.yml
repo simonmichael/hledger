@@ -120,3 +120,4 @@ jobs:
     - name: Test functional tests (excluding addons)
       run: |
         COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
+

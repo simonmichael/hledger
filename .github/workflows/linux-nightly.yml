@@ -14,6 +14,7 @@
 # https://help.github.com/en/actions/configuring-and-managing-workflows/caching-and-storing-workflow-data
 # https://help.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
+# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
 # https://sevenzip.osdn.jp/chm/cmdline/commands/index.htm
 
 name: linux nightly/pr CI
@@ -213,3 +214,4 @@ jobs:
 # https://github.com/mxschmitt/action-tmate
 #     - name: Setup tmate session
 #      uses: mxschmitt/action-tmate@v1
+
