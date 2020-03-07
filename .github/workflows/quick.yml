@@ -30,43 +30,43 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.stack
-        key: quick-${{ runner.os }}-stack
+        key: ${{ runner.os }}-stack
 
     - name: Cache ~/.local/bin
       uses: actions/cache@v1
       with:
         path: ~/.local/bin
-        key: quick-${{ runner.os }}-local-bin
+        key: ${{ runner.os }}-local-bin
 
     - name: Cache .stack-work
       uses: actions/cache@v1
       with:
         path: .stack-work
-        key: quick-${{ runner.os }}-stack-work
+        key: ${{ runner.os }}-stack-work
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-lib/.stack-work
-        key: quick-${{ runner.os }}-hledger-lib-stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger/.stack-work
-        key: quick-${{ runner.os }}-hledger-stack-work
+        key: ${{ runner.os }}-hledger-stack-work
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-ui/.stack-work
-        key: quick-${{ runner.os }}-hledger-ui-stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v1
       with:
         path: hledger-web/.stack-work
-        key: quick-${{ runner.os }}-hledger-web-stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work
 
     # actions
 
