@@ -11,12 +11,12 @@ on:
   push:
     branches: [ ci, master ]  # master too for testing
     paths:
+      - '.github/workflows/windows-nightly.yml'
       - 'stack*'
       - 'hledger-lib'
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-      - '.github/workflows/windows*'
       - '!**.md'
       - '!**.1'
       - '!**.5'

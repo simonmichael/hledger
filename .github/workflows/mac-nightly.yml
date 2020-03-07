@@ -10,12 +10,12 @@ on:
   push:
     branches: [ ci, master ]  # master too for testing
     paths:
+      - '.github/workflows/mac-nightly.yml'
       - 'stack*'
       - 'hledger-lib'
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-      - '.github/workflows/mac*'
       - '!**.md'
       - '!**.1'
       - '!**.5'

@@ -25,12 +25,12 @@ on:
   pull_request:
     branches: [ master ]
     paths:
+      - '.github/workflows/linux-nightly.yml'
       - 'stack*'
       - 'hledger-lib'
       - 'hledger'
       - 'hledger-ui'
       - 'hledger-web'
-      - '.github/workflows/linux*'
       - '!**.md'
       - '!**.1'
       - '!**.5'
