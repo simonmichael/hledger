@@ -48,8 +48,11 @@ jobs:
       uses: actions/cache@v1
       with:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
-        key: ${{ runner.os }}-appdata-local-programs-stack
-
+        # key: ${{ runner.os }}-appdata-local-programs-stack
+        #key: ${{ runner.os }}-appdata-local-programs-stack-${{ github.sha }}
+        key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles(['stack.yaml','stack.lock','**.cabal']) }}
+        restore-keys: |
+             ${{ runner.os }}-appdata-local-programs-stack-
     - name: Cache C:\Users\runneradmin\AppData\Local\Packages\
       uses: actions/cache@v1
       with:
@@ -122,16 +125,21 @@ jobs:
         #  --bench --no-run-benchmarks --haddock --no-haddock-deps
 
     - name: Show stuff
+        # ls C:\Users\runneradmin\
+        # ls C:\Users\runneradmin\AppData\
+        # ls C:\Users\runneradmin\AppData\Local\
+        # ls C:\Users\runneradmin\AppData\Local\Programs\
+        # ls C:\Users\runneradmin\AppData\Local\Programs\stack
+        # ls C:\Users\runneradmin\AppData\Local\Programs\stack\x86_64-windows
+        # ls C:\Users\runneradmin\AppData\LocalLow\
+        # ls C:\Users\runneradmin\AppData\Roaming\
+        # ls C:\Users\runneradmin\AppData\Roaming\stack\
       run: |
-        ls C:\Users\runneradmin\
-        ls C:\Users\runneradmin\AppData\
-        ls C:\Users\runneradmin\AppData\Local\
-        ls C:\Users\runneradmin\AppData\Local\Programs\
-        ls C:\Users\runneradmin\AppData\Local\Programs\stack
-        ls C:\Users\runneradmin\AppData\Local\Programs\stack\x86_64-windows
-        ls C:\Users\runneradmin\AppData\LocalLow\
-        ls C:\Users\runneradmin\AppData\Roaming\
-        ls C:\Users\runneradmin\AppData\Roaming\stack\
+        ls C:\Users\runneradmin\AppData\Roaming\local\bin\
+        ls C:\Users\runneradmin\AppData\Roaming\local\
+        ls D:\a\hledger
+        ls D:\a
+        ls D:\
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
