@@ -69,7 +69,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
     ropts' = ropts{
                depth_=Nothing
               }
-    q = And [queryFromOpts d ropts, excludeforecastq (forecast_ ropts)]
+    q = And [queryFromOpts d ropts', excludeforecastq (forecast_ ropts)]
       where
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq True = Any
