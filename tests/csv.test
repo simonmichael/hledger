@@ -7,7 +7,7 @@ date-format %d/%Y/%m
 currency $
 account1 assets:myacct
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50
@@ -27,7 +27,7 @@ amount-in %3
 amount-out %4
 currency $
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
@@ -50,7 +50,7 @@ account1 assets:myacct
 if Flubber
   account2 acct
   comment cmt
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co  ; cmt
     assets:myacct             $50
     acct                     $-50
@@ -67,7 +67,7 @@ date-format %d/%Y/%m
 currency $
 account1 assets:myacct
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
@@ -85,7 +85,7 @@ date-format %d/%Y/%m
 currency $
 account1 assets:myacct
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
@@ -107,7 +107,7 @@ date-format %d/%Y/%m
 currency $
 account1 assets:myacct
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50 = $123
     income:unknown            $-50
@@ -134,7 +134,7 @@ fields date, payee, payment
 amount -%payment
 account1 liabilities:bank
 account2 expense:other
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-10-09
     liabilities:bank            $-50
     expense:other                $50
@@ -159,7 +159,7 @@ amount-in %3
 amount-out %4
 currency $
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
@@ -180,7 +180,7 @@ date-format %d/%Y/%m
 currency $
 account1 assets:myacct
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50 = $123
@@ -197,7 +197,7 @@ date-format %d/%Y/%m
 currency $
 account1 assets:myacct
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50 = $321
     income:unknown            $-50 = $123
@@ -217,7 +217,7 @@ account1 assets:myacct
 account3 expenses:tax
 account4 the:remainder
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct            $50.000 = $321.000
     expenses:unknown     = $123.000
@@ -238,7 +238,7 @@ account1 assets:myacct
 account3 expenses:tax
 account4 the:remainder
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct                $50 = $321
     expenses:unknown     = $123
@@ -260,7 +260,7 @@ amount-in %3
 amount-out %4
 currency $
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
@@ -290,7 +290,7 @@ fields date, description, amount
 date-format %d/%Y/%m
 currency $
 account1 assets:myacct
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co Co Co
     assets:myacct              $50
     income:unknown            $-50
@@ -309,7 +309,7 @@ currency $
 if Flubber
    account1  assets:%account1
    amount-in  (%amount-in)
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct               $-50
     expenses:unknown             $50
@@ -333,7 +333,7 @@ currency $
 date %1
 date-format %m/%d/%Y
 description %description for %itemtitle 
-$  ./hledger-csv
+$  ./csvtest.sh
 2018-12-22 (123456789) Someone for Joyful Systems
     sm:assets:online:paypal              $9.41 = $57.60
     sm:expenses:unknown
@@ -350,7 +350,7 @@ account1 unknown
 amount %2
 date %1
 date-format %Y/%m/%d
-$  ./hledger-csv | hledger balance -f - --no-total 
+$  ./csvtest.sh | hledger balance -f - --no-total 
           $-1,001.00  income:unknown
            $1,001.00  unknown
 >=0
@@ -382,7 +382,7 @@ END OF FILE
 if MIDDLE
   skip 3
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50
     income:unknown            $-50
@@ -406,7 +406,7 @@ date-format %Y-%m-%d
 description Assets Update
 account1 assets
 account2 income
-$  ./hledger-csv
+$  ./csvtest.sh
 2018-10-15 Assets Update
     assets     = EUR 100
     income
@@ -430,7 +430,7 @@ fields date,amount
 amount
 comment x
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2018-10-15  ; x
 
 >=0
@@ -464,7 +464,7 @@ if Conditional Empty Fee
 if ,Empty fee
   skip
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2018-12-22 (123456789) Someone for Joyful Systems
     sm:assets:online:paypal              $9.41 = $57.60
     sm:expenses:unknown
@@ -487,7 +487,7 @@ balance-type ==*
 currency $
 account1 assets:myacct
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     assets:myacct              $50 ==* $123
     income:unknown            $-50
@@ -504,7 +504,7 @@ date-format %d/%Y/%m
 currency $
 account1 (assets:myacct)
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     (assets:myacct)             $50 = $123
 
@@ -521,7 +521,7 @@ currency $
 account1 [assets:myacct]
 account2 [assets:another-acct]
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-09-10 Flubber Co
     [assets:myacct]                   $50
     [assets:another-acct]            $-50
@@ -538,7 +538,7 @@ currency $
 account1 (assets:myacct)
 separator TAB
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2009-10-01 Flubber Co
     (assets:myacct)             $50 = $123
 
@@ -553,7 +553,7 @@ fields date, amount
 account1 a
 account2 expenses:unknown
 
-$  ./hledger-csv
+$  ./csvtest.sh
 2020-01-01
     a                              5
     expenses:unknown              -5
@@ -569,7 +569,7 @@ fields date, desc
 if %desc 1
  description one
 
-$  ./hledger-csv desc:one
+$  ./csvtest.sh desc:one
 2020-01-01 one
 
 >=0
@@ -580,7 +580,7 @@ $  ./hledger-csv desc:one
 2020-01-01, 1,
 RULES
 fields date, amount, 
-$  ./hledger-csv
+$  ./csvtest.sh
 2020-01-01
     expenses:unknown               1
     income:unknown                -1
@@ -593,7 +593,7 @@ $  ./hledger-csv
 2020-01-01, 1, a
 RULES
 fields date, amount, account1
-$  ./hledger-csv
+$  ./csvtest.sh
 2020-01-01
     a                            1
     income:unknown              -1
@@ -606,7 +606,7 @@ $  ./hledger-csv
 RULES
 fields date, amount, account1
 account2 expenses:unknown
-$  ./hledger-csv
+$  ./csvtest.sh
 2020-01-01
     a                              1
     expenses:unknown              -1
@@ -615,7 +615,7 @@ $  ./hledger-csv
 
 ## . 
 #<
-#$  ./hledger-csv
+#$  ./csvtest.sh
 #>=0
 
 ## . A single unbalanced posting with number other than 1 also should not generate a balancing posting.
@@ -626,7 +626,7 @@ $  ./hledger-csv
 #fields date,amount
 #account2 (a)
 #
-#$  ./hledger-csv
+#$  ./csvtest.sh
 #2019-01-01
 #    (a)                                            1
 #
@@ -640,7 +640,7 @@ $  ./hledger-csv
 #fields date,amount
 #account1 a
 #
-#$  ./hledger-csv
+#$  ./csvtest.sh
 #2019/01/01
 #    a                 0
 #
@@ -654,7 +654,7 @@ $  ./hledger-csv
 #fields date,amount
 #account1 [a]
 #
-#$  ./hledger-csv
+#$  ./csvtest.sh
 #2019/01/01
 #    [a]                          1
 #    [income:unknown]            -1
@@ -677,7 +677,7 @@ $  ./hledger-csv
 # amount-in %3
 # amount-out %4
 # currency $
-# $  ./hledger-csv
+# $  ./csvtest.sh
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
 #     expenses:unknown              $-50
@@ -700,7 +700,7 @@ $  ./hledger-csv
 # amount-in %3
 # amount-out %4
 # currency $
-# $  ./hledger-csv
+# $  ./csvtest.sh
 # 2009/09/10 Flubber Co🎅
 #     Assets:MyAccount             $50
 #     expenses:unknown              $-50
