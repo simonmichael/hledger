@@ -487,34 +487,53 @@ hledger\[aq]s journal format.
 \f[C]description\f[R], \f[C]comment\f[R] can be used to form the
 transaction\[aq]s first line.
 .SS Posting field names
+.SS account
 .PP
-\f[C]accountN\f[R], where N is 1 to 9, generates a posting, with that
-account name.
+\f[C]accountN\f[R], where N is 1 to 9, causes a posting to be generated,
+with that account name.
+.PP
 Most often there are two postings, so you\[aq]ll want to set
 \f[C]account1\f[R] and \f[C]account2\f[R].
-If a posting\[aq]s account name is left unset but its amount is set, a
-default account name will be chosen (like expenses:unknown or
-income:unknown).
+.PP
+If a posting\[aq]s account name is left unset but its amount is set (see
+below), a default account name will be chosen (like
+\[dq]expenses:unknown\[dq] or \[dq]income:unknown\[dq]).
+.SS amount
 .PP
 \f[C]amountN\f[R] sets posting N\[aq]s amount.
-Or, \f[C]amount\f[R] with no N sets posting 1\[aq]s.
-If the CSV has debits and credits in separate fields, use
-\f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] instead.
-Or \f[C]amount-in\f[R] and \f[C]amount-out\f[R] with no N for posting 1.
 .PP
-For convenience and backwards compatibility, if you set the amount of
-posting 1 only, a second posting with the negative amount will be
-generated automatically.
+Or if the CSV has debits and credits in two separate fields, use
+\f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] instead.
+.PP
+Some aliases and special behaviour exist to support older CSV rules
+(before hledger 1.17):
+.IP \[bu] 2
+if \f[C]amount1\f[R] is the only posting amount assigned, then a second
+posting with the balancing amount will be generated automatically.
 (Unless the account name is parenthesised indicating an unbalanced
 posting.)
+.IP \[bu] 2
+\f[C]amount\f[R] is an alias for \f[C]amount1\f[R]
+.IP \[bu] 2
+\f[C]amount-in\f[R]/\f[C]amount-out\f[R] are aliases for
+\f[C]amount1-in\f[R]/\f[C]amount1-out\f[R]
 .PP
-If the CSV has the currency symbol in a separate field, you can use
-\f[C]currencyN\f[R] to prepend it to posting N\[aq]s amount.
-\f[C]currency\f[R] with no N affects ALL postings.
+This can occasionally get in the way.
+For example, currently it\[aq]s possible to generate a transaction with
+a blank amount1, but not one with a blank amount2.
+.SS currency
+.PP
+If the CSV has the currency symbol in a separate field (ie, not part of
+the amount field), you can use \f[C]currencyN\f[R] to prepend it to
+posting N\[aq]s amount.
+Or, \f[C]currency\f[R] affects all postings.
+.SS balance
 .PP
 \f[C]balanceN\f[R] sets a balance assertion amount (or if the posting
 amount is left empty, a balance assignment).
-You may need to adjust this with the \f[C]balance-type\f[R] rule.
+You may need to adjust this with the \f[C]balance-type\f[R] rule (see
+below).
+.SS comment
 .PP
 Finally, \f[C]commentN\f[R] sets a comment on the Nth posting.
 Comments can also contain tags, as usual.

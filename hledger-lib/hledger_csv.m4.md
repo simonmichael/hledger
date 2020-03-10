@@ -412,30 +412,46 @@ For more about the transaction parts they refer to, see the manual for hledger's
 
 ### Posting field names
 
-`accountN`, where N is 1 to 9, generates a
-[posting](journal.html#postings), with that account name.
+#### account
+
+`accountN`, where N is 1 to 9, causes a [posting](journal.html#postings) to be generated, 
+with that account name.
+
 Most often there are two postings, so you'll want to set `account1` and `account2`.
-If a posting's account name is left unset but its amount is set,
-a default account name will be chosen (like expenses:unknown or income:unknown).
 
-`amountN` sets posting N's amount. Or, `amount` with no N sets posting
-1's. If the CSV has debits and credits in separate fields, use
-`amountN-in` and `amountN-out` instead. Or `amount-in` and
-`amount-out` with no N for posting 1.
+If a posting's account name is left unset but its amount is set (see below),
+a default account name will be chosen (like "expenses:unknown" or "income:unknown").
 
-For convenience and backwards compatibility, if you set the amount of
-posting 1 only, a second posting with the negative amount will be
-generated automatically.
-(Unless the account name is parenthesised indicating an
-[unbalanced posting](journal.html#virtual-postings).)
+#### amount
 
-If the CSV has the currency symbol in a separate field, you can use
-`currencyN` to prepend it to posting N's amount. `currency` with no N
-affects ALL postings.
+`amountN` sets posting N's amount. 
+
+Or if the CSV has debits and credits in two separate fields, use `amountN-in` and `amountN-out` instead.
+
+Some aliases and special behaviour exist to support older CSV rules (before hledger 1.17):
+
+- if `amount1` is the only posting amount assigned, then a second posting 
+  with the balancing amount will be generated automatically.
+  (Unless the account name is parenthesised indicating an [unbalanced posting](journal.html#virtual-postings).)
+- `amount` is an alias for `amount1`
+- `amount-in`/`amount-out` are aliases for `amount1-in`/`amount1-out`
+
+This can occasionally get in the way. For example, currently it's possible to generate
+a transaction with a blank amount1, but not one with a blank amount2.
+
+#### currency
+
+If the CSV has the currency symbol in a separate field (ie, not part
+of the amount field), you can use `currencyN` to prepend it to posting
+N's amount. Or, `currency` affects all postings.
+
+#### balance
 
 `balanceN` sets a [balance assertion](journal.html#balance-assertions) amount
 (or if the posting amount is left empty, a [balance assignment](journal.html#balance-assignments)).
-You may need to adjust this with the [`balance-type` rule](#balance-type).
+You may need to adjust this with the [`balance-type` rule](#balance-type) (see below).
+
+#### comment
 
 Finally, `commentN` sets a [comment](journal.html#comments) on the Nth posting.
 Comments can also contain [tags](journal.html#tags), as usual.

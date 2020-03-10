@@ -451,31 +451,82 @@ File: hledger_csv.info,  Node: Posting field names,  Prev: Transaction field nam
 2.2.2 Posting field names
 -------------------------
 
-'accountN', where N is 1 to 9, generates a posting, with that account
-name.  Most often there are two postings, so you'll want to set
-'account1' and 'account2'.  If a posting's account name is left unset
-but its amount is set, a default account name will be chosen (like
-expenses:unknown or income:unknown).
+* Menu:
 
-   'amountN' sets posting N's amount.  Or, 'amount' with no N sets
-posting 1's.  If the CSV has debits and credits in separate fields, use
-'amountN-in' and 'amountN-out' instead.  Or 'amount-in' and 'amount-out'
-with no N for posting 1.
+* account::
+* amount::
+* currency::
+* balance::
+* comment::
 
-   For convenience and backwards compatibility, if you set the amount of
-posting 1 only, a second posting with the negative amount will be
-generated automatically.  (Unless the account name is parenthesised
-indicating an unbalanced posting.)
+
+File: hledger_csv.info,  Node: account,  Next: amount,  Up: Posting field names
 
-   If the CSV has the currency symbol in a separate field, you can use
-'currencyN' to prepend it to posting N's amount.  'currency' with no N
-affects ALL postings.
+2.2.2.1 account
+...............
 
-   'balanceN' sets a balance assertion amount (or if the posting amount
-is left empty, a balance assignment).  You may need to adjust this with
-the 'balance-type' rule.
+'accountN', where N is 1 to 9, causes a posting to be generated, with
+that account name.
 
-   Finally, 'commentN' sets a comment on the Nth posting.  Comments can
+   Most often there are two postings, so you'll want to set 'account1'
+and 'account2'.
+
+   If a posting's account name is left unset but its amount is set (see
+below), a default account name will be chosen (like "expenses:unknown"
+or "income:unknown").
+
+
+File: hledger_csv.info,  Node: amount,  Next: currency,  Prev: account,  Up: Posting field names
+
+2.2.2.2 amount
+..............
+
+'amountN' sets posting N's amount.
+
+   Or if the CSV has debits and credits in two separate fields, use
+'amountN-in' and 'amountN-out' instead.
+
+   Some aliases and special behaviour exist to support older CSV rules
+(before hledger 1.17):
+
+   * if 'amount1' is the only posting amount assigned, then a second
+     posting with the balancing amount will be generated automatically.
+     (Unless the account name is parenthesised indicating an unbalanced
+     posting.)
+   * 'amount' is an alias for 'amount1'
+   * 'amount-in'/'amount-out' are aliases for 'amount1-in'/'amount1-out'
+
+   This can occasionally get in the way.  For example, currently it's
+possible to generate a transaction with a blank amount1, but not one
+with a blank amount2.
+
+
+File: hledger_csv.info,  Node: currency,  Next: balance,  Prev: amount,  Up: Posting field names
+
+2.2.2.3 currency
+................
+
+If the CSV has the currency symbol in a separate field (ie, not part of
+the amount field), you can use 'currencyN' to prepend it to posting N's
+amount.  Or, 'currency' affects all postings.
+
+
+File: hledger_csv.info,  Node: balance,  Next: comment,  Prev: currency,  Up: Posting field names
+
+2.2.2.4 balance
+...............
+
+'balanceN' sets a balance assertion amount (or if the posting amount is
+left empty, a balance assignment).  You may need to adjust this with the
+'balance-type' rule (see below).
+
+
+File: hledger_csv.info,  Node: comment,  Prev: balance,  Up: Posting field names
+
+2.2.2.5 comment
+...............
+
+Finally, 'commentN' sets a comment on the Nth posting.  Comments can
 also contain tags, as usual.
 
    See TIPS below for more about setting amounts and currency.
@@ -991,44 +1042,54 @@ Node: Transaction field names16367
 Ref: #transaction-field-names16527
 Node: Posting field names16638
 Ref: #posting-field-names16790
-Node: field assignment18081
-Ref: #field-assignment18224
-Node: separator19042
-Ref: #separator19171
-Node: if19582
-Ref: #if19684
-Node: end21603
-Ref: #end21709
-Node: date-format21933
-Ref: #date-format22065
-Node: newest-first22814
-Ref: #newest-first22952
-Node: include23635
-Ref: #include23764
-Node: balance-type24208
-Ref: #balance-type24328
-Node: TIPS25028
-Ref: #tips25110
-Node: Rapid feedback25366
-Ref: #rapid-feedback25483
-Node: Valid CSV25943
-Ref: #valid-csv26073
-Node: File Extension26265
-Ref: #file-extension26417
-Node: Reading multiple CSV files26827
-Ref: #reading-multiple-csv-files27012
-Node: Valid transactions27253
-Ref: #valid-transactions27431
-Node: Deduplicating importing28059
-Ref: #deduplicating-importing28238
-Node: Setting amounts29271
-Ref: #setting-amounts29440
-Node: Setting currency/commodity30426
-Ref: #setting-currencycommodity30618
-Node: Referencing other fields31421
-Ref: #referencing-other-fields31621
-Node: How CSV rules are evaluated32518
-Ref: #how-csv-rules-are-evaluated32691
+Node: account16860
+Ref: #account16976
+Node: amount17320
+Ref: #amount17451
+Node: currency18195
+Ref: #currency18330
+Node: balance18521
+Ref: #balance18655
+Node: comment18834
+Ref: #comment18951
+Node: field assignment19114
+Ref: #field-assignment19257
+Node: separator20075
+Ref: #separator20204
+Node: if20615
+Ref: #if20717
+Node: end22636
+Ref: #end22742
+Node: date-format22966
+Ref: #date-format23098
+Node: newest-first23847
+Ref: #newest-first23985
+Node: include24668
+Ref: #include24797
+Node: balance-type25241
+Ref: #balance-type25361
+Node: TIPS26061
+Ref: #tips26143
+Node: Rapid feedback26399
+Ref: #rapid-feedback26516
+Node: Valid CSV26976
+Ref: #valid-csv27106
+Node: File Extension27298
+Ref: #file-extension27450
+Node: Reading multiple CSV files27860
+Ref: #reading-multiple-csv-files28045
+Node: Valid transactions28286
+Ref: #valid-transactions28464
+Node: Deduplicating importing29092
+Ref: #deduplicating-importing29271
+Node: Setting amounts30304
+Ref: #setting-amounts30473
+Node: Setting currency/commodity31459
+Ref: #setting-currencycommodity31651
+Node: Referencing other fields32454
+Ref: #referencing-other-fields32654
+Node: How CSV rules are evaluated33551
+Ref: #how-csv-rules-are-evaluated33724
 
 End Tag Table
 
