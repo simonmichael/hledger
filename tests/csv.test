@@ -613,6 +613,43 @@ $  ./csvtest.sh
 
 >=0
 
+# 31. Currently can't generate a transaction with amount on the first posting only. XXX
+<
+2020-01-01, 1
+RULES
+fields date, amount1
+$  ./csvtest.sh
+2020-01-01
+    expenses:unknown               1
+    income:unknown                -1
+
+>=0
+
+# 32. Can generate a transaction with an amount on the second posting only.
+<
+2020-01-01, 1
+RULES
+fields date, amount2
+account1 asset
+$  ./csvtest.sh
+2020-01-01
+    asset
+    expenses:unknown               1
+
+>=0
+
+# 33. If account1 is unset, the above doesn't work. Also amount2 appears to become amount1 ? XXX
+<
+2020-01-01, 1
+RULES
+fields date, amount2
+$  ./csvtest.sh
+2020-01-01
+    expenses:unknown               1
+    income:unknown                -1
+
+>=0
+
 ## . 
 #<
 #$  ./csvtest.sh
