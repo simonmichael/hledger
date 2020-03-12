@@ -11,11 +11,12 @@ on:
     branches: [ ci, master ]  # master too while testing
     paths:
       - '.github/workflows/windows-nightly.yml'
-      - 'stack*'
-      - 'hledger-lib'
-      - 'hledger'
-      - 'hledger-ui'
-      - 'hledger-web'
+      - 'stack*.yaml'
+      - 'hledger-lib/**'
+      - 'hledger/**'
+      - 'hledger-ui/**'
+      - 'hledger-web/**'
+      # - 'tests/**'
       - '!**.md'
       - '!**.1'
       - '!**.5'

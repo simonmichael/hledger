@@ -27,12 +27,12 @@ on:
     branches: [ master ]
     paths:
       - '.github/workflows/linux-nightly.yml'
-      - 'stack*'
-      - 'hledger-lib'
-      - 'hledger'
-      - 'hledger-ui'
-      - 'hledger-web'
-      - 'tests'
+      - 'stack*.yaml'
+      - 'hledger-lib/**'
+      - 'hledger/**'
+      - 'hledger-ui/**'
+      - 'hledger-web/**'
+      - 'tests/**'
       - '!**.md'
       - '!**.1'
       - '!**.5'

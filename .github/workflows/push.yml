@@ -8,12 +8,12 @@ on:
     branches: [ master ]
     paths:
       - '.github/workflows/push.yml'
-      - 'stack*'
-      - 'hledger-lib'
-      - 'hledger'
-      - 'hledger-ui'
-      - 'hledger-web'
-      - 'tests'
+      - 'stack*.yaml'
+      - 'hledger-lib/**'
+      - 'hledger/**'
+      - 'hledger-ui/**'
+      - 'hledger-web/**'
+      - 'tests/**'
       - '!**.md'
       - '!**.1'
       - '!**.5'
