@@ -418,6 +418,8 @@ For more about the transaction parts they refer to, see the manual for hledger's
 with that account name.
 
 Most often there are two postings, so you'll want to set `account1` and `account2`.
+Typically `account1` is associated with the CSV file, and is set once with a top-level assignment,
+while `account2` is set based on each transaction's description, and in conditional blocks.
 
 If a posting's account name is left unset but its amount is set (see below),
 a default account name will be chosen (like "expenses:unknown" or "income:unknown").
@@ -425,31 +427,38 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 #### amount
 
 `amountN` sets posting N's amount. 
+If the CSV uses separate fields for debit and credit amounts, you can
+use `amountN-in` and `amountN-out` instead.
 
-Or if the CSV has debits and credits in two separate fields, use `amountN-in` and `amountN-out` instead.
+Pre-1.17 compatibility: 
+`amount` (or `amount-in`/`amount-out`) with no number sets both
+posting 1's amount and (negated) posting 2's amount.
 
-Some aliases and special behaviour exist to support older CSV rules (before hledger 1.17):
-
+<!--
 - if `amount1` is the only posting amount assigned, then a second posting 
   with the balancing amount will be generated automatically.
   (Unless the account name is parenthesised indicating an [unbalanced posting](journal.html#virtual-postings).)
-- `amount` is an alias for `amount1`
-- `amount-in`/`amount-out` are aliases for `amount1-in`/`amount1-out`
 
 This can occasionally get in the way. For example, currently it's possible to generate
 a transaction with a blank amount1, but not one with a blank amount2.
+-->
 
 #### currency
 
 If the CSV has the currency symbol in a separate field (ie, not part
 of the amount field), you can use `currencyN` to prepend it to posting
-N's amount. Or, `currency` affects all postings.
+N's amount. Or, `currency` with no number affects all postings.
 
 #### balance
 
 `balanceN` sets a [balance assertion](journal.html#balance-assertions) amount
-(or if the posting amount is left empty, a [balance assignment](journal.html#balance-assignments)).
-You may need to adjust this with the [`balance-type` rule](#balance-type) (see below).
+(or if the posting amount is left empty, a [balance assignment](journal.html#balance-assignments))
+on posting N.
+
+Pre-1.17 compatibility: `balance` with no number is equivalent to `balance1`.
+
+You can adjust the type of assertion/assignment with the
+[`balance-type` rule](#balance-type) (see below).
 
 #### comment
 

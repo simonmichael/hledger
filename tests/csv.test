@@ -219,9 +219,9 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct            $50.000 = $321.000
-    expenses:unknown     = $123.000
-    expenses:tax              $0.234  ; VAT
+    assets:myacct          $50.000 = $321.000
+    income:unknown        $-50.000 = $123.000
+    expenses:tax            $0.234  ; VAT
     the:remainder
 
 >=0
@@ -240,9 +240,9 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct                $50 = $321
-    expenses:unknown     = $123
-    expenses:tax              £0.234  ; VAT
+    assets:myacct              $50 = $321
+    income:unknown            $-50 = $123
+    expenses:tax            £0.234  ; VAT
     the:remainder
 
 >=0
@@ -472,7 +472,7 @@ $  ./csvtest.sh
 
 2018-12-22 (10101010101) Someone for Joyful Systems
     sm:assets:online:paypal           $7.77 = $88.66
-    sm:expenses:unknown              $-7.77
+    sm:expenses:unknown
 
 >=0
 
@@ -613,15 +613,16 @@ $  ./csvtest.sh
 
 >=0
 
-# 31. Currently can't generate a transaction with amount on the first posting only. XXX
+# 31. Can generate a transaction with amount on the first posting only.
 <
 2020-01-01, 1
 RULES
 fields date, amount1
+account2 b
 $  ./csvtest.sh
 2020-01-01
     expenses:unknown               1
-    income:unknown                -1
+    b
 
 >=0
 
@@ -630,23 +631,11 @@ $  ./csvtest.sh
 2020-01-01, 1
 RULES
 fields date, amount2
-account1 asset
+account1 a
 $  ./csvtest.sh
 2020-01-01
-    asset
+    a
     expenses:unknown               1
-
->=0
-
-# 33. If account1 is unset, the above doesn't work. Also amount2 appears to become amount1 ? XXX
-<
-2020-01-01, 1
-RULES
-fields date, amount2
-$  ./csvtest.sh
-2020-01-01
-    expenses:unknown               1
-    income:unknown                -1
 
 >=0
 

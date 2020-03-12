@@ -494,6 +494,9 @@ with that account name.
 .PP
 Most often there are two postings, so you\[aq]ll want to set
 \f[C]account1\f[R] and \f[C]account2\f[R].
+Typically \f[C]account1\f[R] is associated with the CSV file, and is set
+once with a top-level assignment, while \f[C]account2\f[R] is set based
+on each transaction\[aq]s description, and in conditional blocks.
 .PP
 If a posting\[aq]s account name is left unset but its amount is set (see
 below), a default account name will be chosen (like
@@ -501,38 +504,28 @@ below), a default account name will be chosen (like
 .SS amount
 .PP
 \f[C]amountN\f[R] sets posting N\[aq]s amount.
+If the CSV uses separate fields for debit and credit amounts, you can
+use \f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] instead.
 .PP
-Or if the CSV has debits and credits in two separate fields, use
-\f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] instead.
-.PP
-Some aliases and special behaviour exist to support older CSV rules
-(before hledger 1.17):
-.IP \[bu] 2
-if \f[C]amount1\f[R] is the only posting amount assigned, then a second
-posting with the balancing amount will be generated automatically.
-(Unless the account name is parenthesised indicating an unbalanced
-posting.)
-.IP \[bu] 2
-\f[C]amount\f[R] is an alias for \f[C]amount1\f[R]
-.IP \[bu] 2
-\f[C]amount-in\f[R]/\f[C]amount-out\f[R] are aliases for
-\f[C]amount1-in\f[R]/\f[C]amount1-out\f[R]
-.PP
-This can occasionally get in the way.
-For example, currently it\[aq]s possible to generate a transaction with
-a blank amount1, but not one with a blank amount2.
+Pre-1.17 compatibility: \f[C]amount\f[R] (or
+\f[C]amount-in\f[R]/\f[C]amount-out\f[R]) with no number sets both
+posting 1\[aq]s amount and (negated) posting 2\[aq]s amount.
 .SS currency
 .PP
 If the CSV has the currency symbol in a separate field (ie, not part of
 the amount field), you can use \f[C]currencyN\f[R] to prepend it to
 posting N\[aq]s amount.
-Or, \f[C]currency\f[R] affects all postings.
+Or, \f[C]currency\f[R] with no number affects all postings.
 .SS balance
 .PP
 \f[C]balanceN\f[R] sets a balance assertion amount (or if the posting
-amount is left empty, a balance assignment).
-You may need to adjust this with the \f[C]balance-type\f[R] rule (see
-below).
+amount is left empty, a balance assignment) on posting N.
+.PP
+Pre-1.17 compatibility: \f[C]balance\f[R] with no number is equivalent
+to \f[C]balance1\f[R].
+.PP
+You can adjust the type of assertion/assignment with the
+\f[C]balance-type\f[R] rule (see below).
 .SS comment
 .PP
 Finally, \f[C]commentN\f[R] sets a comment on the Nth posting.
