@@ -457,6 +457,8 @@ journalfieldnamep = do
   lift (dbgparse 2 "trying journalfieldnamep")
   T.unpack <$> choiceInState (map (lift . string . T.pack) journalfieldnames)
 
+maxpostings = 9
+
 -- Transaction fields and pseudo fields for CSV conversion.
 -- Names must precede any other name they contain, for the parser
 -- (amount-in before amount; date2 before date). TODO: fix
@@ -468,7 +470,7 @@ journalfieldnames =
           ,"balance" ++ i
           ,"comment" ++ i
           ,"currency" ++ i
-          ] | x <- [1..9], let i = show x]
+          ] | x <- [1..maxpostings], let i = show x]
   ++
   ["amount-in"
   ,"amount-out"
@@ -761,8 +763,8 @@ csvRule rules = (`getDirective` rules)
 -- into account the current record and conditional rules.
 -- Generally rules with keywords ("directives") don't have interpolated
 -- values, but for now it's possible.
-csvRuleValue :: CsvRules -> CsvRecord -> DirectiveName -> Maybe String
-csvRuleValue rules record = fmap (renderTemplate rules record) . csvRule rules
+-- csvRuleValue :: CsvRules -> CsvRecord -> DirectiveName -> Maybe String
+-- csvRuleValue rules record = fmap (renderTemplate rules record) . csvRule rules
 
 -- | Look up the value template assigned to a hledger field by field
 -- list/field assignment rules, taking into account the current record and
@@ -775,7 +777,7 @@ hledgerField = getEffectiveAssignment
 hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe String
 hledgerFieldValue rules record = fmap (renderTemplate rules record) . hledgerField rules record
 
-s `withDefault` def = if null s then def else s
+-- s `orIfNull` def = if null s then def else s
 
 transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord sourcepos rules record = t
@@ -828,64 +830,27 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" singleline $ fieldval "precomment"
 
     ----------------------------------------------------------------------
-    -- 3. Generate the postings
+    -- 3. Generate the postings for which an account has been assigned
+    -- (possibly indirectly due to an amount or balance assignment)
 
-    -- Make posting 1 if possible, with special support for old syntax to
-    -- support pre-1.16 rules.
-    posting1 = mkPosting rules record "1"
-               ("account1" `withAlias` "account")
-               ("amount1" `withAlias` "amount")
-               ("amount1-in" `withAlias` "amount-in")
-               ("amount1-out" `withAlias` "amount-out")
-               ("balance1" `withAlias` "balance")
-               "comment1" -- comment1 does not have legacy alias
-               t
-      where
-        withAlias fld alias =
-          case (field fld, field alias) of
-            (Just fld, Just alias) -> error' $ unlines
-              [ "error: both \"" ++ fld ++ "\" and \"" ++ alias ++ "\" have values."
-              , showRecord record
-              , showRules rules record
-              ]
-            (Nothing, Just _) -> alias
-            (_, Nothing)      -> fld
-
-    -- Make other postings where possible, and gather all that were generated.
-    postings = catMaybes $ posting1 : otherpostings
-      where
-        otherpostings = [mkPostingN i | x<-[2..9], let i = show x]
-          where
-            mkPostingN n = mkPosting rules record n
-                           ("account"++n) ("amount"++n) ("amount"++n++"-in")
-                           ("amount"++n++"-out") ("balance"++n) ("comment"++n) t
-  
-    -- Auto-generate a second posting or second posting amount,
-    -- for compatibility with pre-1.16 rules.
-    postings' =
-      case postings of
-        -- when rules generate just one posting, of a kind that needs to be
-        -- balanced, generate the second posting to balance it.
-        [p1@(p1',_)] ->
-          if ptype p1' == VirtualPosting then [p1] else [p1, p2]
-            where
-              p2 = (nullposting{paccount=unknownExpenseAccount
-                               ,pamount=costOfMixedAmount (-pamount p1')
-                               ,ptransaction=Just t}, False)
-        -- when rules generate exactly two postings, and only the second has
-        -- no amount, give it the balancing amount.
-        [p1@(p1',_), p2@(p2',final2)] ->
-          if hasAmount p1' && not (hasAmount p2')
-          then [p1, (p2'{pamount=costOfMixedAmount(-(pamount p1'))}, final2)]
-          else [p1, p2]
-        --
-        ps -> ps
-
-    -- Finally, wherever default "unknown" accounts were used, refine them
-    -- based on the sign of the posting amount if it's now known.
-    postings'' = map maybeImprove postings'
-      where
-        maybeImprove (p,final) = if final then p else improveUnknownAccountName p
+    p1IsVirtual = (accountNamePostingType . T.pack <$> fieldval "account1") == Just VirtualPosting
+    ps = [p | n <- [1..maxpostings]
+         ,let comment  = T.pack $ fromMaybe "" $ fieldval ("comment"++show n)
+         ,let currency = fromMaybe "" (fieldval ("currency"++show n) <|> fieldval "currency")
+         ,let mamount  = getAmount rules record currency p1IsVirtual n
+         ,let mbalance = getBalance rules record currency n
+         ,Just (acct,isfinal) <- [getAccount rules record mamount mbalance n]  -- skips Nothings
+         ,let acct' | not isfinal && acct==unknownExpenseAccount &&
+                      fromMaybe False (mamount >>= isNegativeMixedAmount) = unknownIncomeAccount
+                    | otherwise = acct
+         ,let p = nullposting{paccount          = accountNameWithoutPostingType acct'
+                             ,pamount           = fromMaybe missingmixedamt mamount
+                             ,ptransaction      = Just t
+                             ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
+                             ,pcomment          = comment
+                             ,ptype             = accountNamePostingType acct
+                             }
+         ]
 
     ----------------------------------------------------------------------
     -- 4. Build the transaction (and name it, so the postings can reference it).
@@ -899,98 +864,99 @@ transactionFromCsvRecord sourcepos rules record = t
           ,tdescription      = T.pack description
           ,tcomment          = T.pack comment
           ,tprecedingcomment = T.pack precomment
-          ,tpostings         = postings''
+          ,tpostings         = ps
           }  
 
--- | Given CSV rules and a CSV record, generate the corresponding transaction's
--- Nth posting, if sufficient fields have been assigned for it.
--- N is provided as a string.
--- The names of the required fields are provided, allowing more flexibility.
--- The transaction which will contain this posting is also provided,
--- so we can build the usual transaction<->posting cyclic reference.
-mkPosting ::
-  CsvRules -> CsvRecord -> String ->
-  HledgerFieldName -> HledgerFieldName -> HledgerFieldName ->
-  HledgerFieldName -> HledgerFieldName -> HledgerFieldName ->
-  Transaction ->
-  Maybe (Posting, Bool)
-mkPosting rules record number accountFld amountFld amountInFld amountOutFld balanceFld commentFld t =
-  -- if we have figured out an account N, make a posting N
-  case maccountAndIsFinal of
-    Nothing            -> Nothing
-    Just (acct, final) ->
-      Just (posting{paccount          = accountNameWithoutPostingType acct
-                   ,pamount           = fromMaybe missingmixedamt mamount
-                   ,ptransaction      = Just t
-                   ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
-                   ,pcomment          = comment
-                   ,ptype             = accountNamePostingType acct}
-           ,final)
-  where
-    -- the account name to use for this posting, if any, and whether it is the
-    -- default unknown account, which may be improved later, or an explicitly
-    -- set account, which may not.
-    maccountAndIsFinal :: Maybe (AccountName, Bool) =
-      case maccount of
-        -- accountN is set to the empty string - no posting will be generated
-        Just "" -> Nothing
-        -- accountN is set (possibly to "expenses:unknown"! #1192) - mark it final
-        Just a  -> Just (a, True)
-        -- accountN is unset
-        Nothing ->
-          case (mamount, mbalance) of
-            -- amountN is set, or implied by balanceN - set accountN to
-            -- the default unknown account ("expenses:unknown") and
-            -- allow it to be improved later
-            (Just _, _) -> Just (unknownExpenseAccount, False)
-            (_, Just _) -> Just (unknownExpenseAccount, False)
-            -- amountN is also unset - no posting will be generated
-            (Nothing, Nothing) -> Nothing
-      where
-        maccount = T.pack <$> (fieldval accountFld
-                              -- XXX what's this needed for ? Test & document, or drop.
-                              -- Also, this the only place we interpolate in a keyword rule, I think.
-                               `withDefault` ruleval ("default-account" ++ number))
-    -- XXX what's this needed for ? Test & document, or drop.
-    mdefaultcurrency = rule "default-currency"
-    currency = fromMaybe (fromMaybe "" mdefaultcurrency) $
-               fieldval ("currency"++number) `withDefault` fieldval "currency"
-    mamount = chooseAmount rules record currency amountFld amountInFld amountOutFld
-    mbalance :: Maybe (Amount, GenericSourcePos) =
-      fieldval balanceFld >>= parsebalance currency number
-      where
-        parsebalance currency n str
-          | all isSpace str = Nothing
-          | otherwise = Just
-              (either (balanceerror n str) id $
-                runParser (evalStateT (amountp <* eof) nulljournal) "" $
-                T.pack $ (currency++) $ simplifySign str
-              ,nullsourcepos)  -- XXX parse position to show when assertion fails,
-                               -- the csv record's line number would be good
-          where
-            balanceerror n str err = error' $ unlines
-              ["error: could not parse \""++str++"\" as balance"++n++" amount"
-              ,showRecord record
-              ,showRules rules record
-              ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
-              ,"the parse error is:      "++customErrorBundlePretty err
-              ]
-    comment = T.pack $ fromMaybe "" $ fieldval commentFld
-    rule     = csvRule           rules        :: DirectiveName    -> Maybe FieldTemplate
-    ruleval  = csvRuleValue      rules record :: DirectiveName    -> Maybe String
-    -- field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
-    fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
--- | Default account names to use when needed.
-unknownExpenseAccount = "expenses:unknown"
-unknownIncomeAccount  = "income:unknown"
+-- -- | Given CSV rules and a CSV record, generate the corresponding transaction's
+-- -- Nth posting, if sufficient fields have been assigned for it.
+-- -- N is provided as a string.
+-- -- The names of the required fields are provided, allowing more flexibility.
+-- -- The transaction which will contain this posting is also provided,
+-- -- so we can build the usual transaction<->posting cyclic reference.
+-- mkPosting :: CsvRules -> CsvRecord -> String -> Transaction -> Maybe (Posting, Bool)
+-- mkPosting rules record n t =
 
--- | If this posting has the "expenses:unknown" account name,
--- replace that with "income:unknown" if the amount is negative.
--- The posting's amount should be explicit.
-improveUnknownAccountName p@Posting{..}
-  | paccount == unknownExpenseAccount
-    && fromMaybe False (isNegativeMixedAmount pamount) = p{paccount=unknownIncomeAccount}
-  | otherwise = p
+-- | Figure out the amount specified for posting N, if any.
+-- Looks for a non-zero amount assigned to one of "amountN", "amountN-in", "amountN-out".
+-- Postings 1 or 2 also look at "amount", "amount-in", "amount-out".
+-- Throws an error if more than one of these has a non-zero amount assigned.
+-- A currency symbol to prepend to the amount, if any, is provided,
+-- and whether posting 1 requires balancing or not.
+getAmount :: CsvRules -> CsvRecord -> String -> Bool -> Int -> Maybe MixedAmount
+getAmount rules record currency p1IsVirtual n =
+  let
+    unnumberedfieldnames = ["amount","amount-in","amount-out"]
+    fieldnames = map (("amount"++show n)++) ["","-in","-out"]
+                 -- For posting 1, also recognise the old amount/amount-in/amount-out names.
+                 -- For posting 2, the same but only if posting 1 needs balancing.
+                 ++ if n==1 || n==2 && not p1IsVirtual then unnumberedfieldnames else []
+    nonzeroamounts = [(f,a') | f <- fieldnames
+                     , Just v@(_:_) <- [strip . renderTemplate rules record <$> hledgerField rules record f]
+                     , let a = parseAmount rules record currency v
+                     , not $ isZeroMixedAmount a
+                       -- With amount/amount-in/amount-out, in posting 2,
+                       -- flip the sign and convert to cost, as they did before 1.17
+                     , let a' = if f `elem` unnumberedfieldnames && n==2 then costOfMixedAmount (-a) else a
+                     ]
+  in case nonzeroamounts of
+      [] -> Nothing
+      [(f,a)] | "-out" `isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
+      [(_,a)] -> Just a
+      fs      -> error' $
+           "more than one non-zero amount for this record, please ensure just one\n"
+        ++ unlines ["    " ++ padright 11 f ++ ": " ++ showMixedAmount a
+                    ++ " from rule: " ++ fromMaybe "" (hledgerField rules record f)
+                   | (f,a) <- fs]
+        ++ "    " ++ showRecord record ++ "\n"
+  where
+    -- | Given a non-empty amount string to parse, along with a possibly
+    -- non-empty currency symbol to prepend, parse as a hledger amount (as
+    -- in journal format), or raise an error.
+    -- The CSV rules and record are provided for the error message.
+    parseAmount :: CsvRules -> CsvRecord -> String -> String -> MixedAmount
+    parseAmount rules record currency amountstr =
+      either mkerror (Mixed . (:[])) $
+      runParser (evalStateT (amountp <* eof) nulljournal) "" $
+      T.pack $ (currency++) $ simplifySign amountstr
+      where
+        mkerror e = error' $ unlines
+          ["error: could not parse \""++amountstr++"\" as an amount"
+          ,showRecord record
+          ,showRules rules record
+          -- ,"the default-currency is: "++fromMaybe "unspecified" (getDirective "default-currency" rules)
+          ,"the parse error is:      "++customErrorBundlePretty e
+          ,"you may need to "
+           ++"change your amount*, balance*, or currency* rules, "
+           ++"or add or change your skip rule"
+          ]
+
+-- | Figure out the expected balance (assertion or assignment) specified for posting N,
+-- if any (and its parse position).
+getBalance :: CsvRules -> CsvRecord -> String -> Int -> Maybe (Amount, GenericSourcePos)
+getBalance rules record currency n =
+  (fieldval ("balance"++show n)
+    -- for posting 1, also recognise the old field name
+    <|> if n==1 then fieldval "balance" else Nothing)
+  >>= parsebalance currency n . strip
+  where
+    parsebalance currency n s
+      | null s    = Nothing
+      | otherwise = Just
+          (either (mkerror n s) id $
+            runParser (evalStateT (amountp <* eof) nulljournal) "" $
+            T.pack $ (currency++) $ simplifySign s
+          ,nullsourcepos)  -- XXX parse position to show when assertion fails,
+                           -- the csv record's line number would be good
+      where
+        mkerror n s e = error' $ unlines
+          ["error: could not parse \""++s++"\" as balance"++show n++" amount"
+          ,showRecord record
+          ,showRules rules record
+          -- ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
+          ,"the parse error is:      "++customErrorBundlePretty e
+          ]
+    -- mdefaultcurrency = rule "default-currency"
+    fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
 
 -- | Make a balance assertion for the given amount, with the given parse
 -- position (to be shown in assertion failures), with the assertion type
@@ -1013,48 +979,33 @@ mkBalanceAssertion rules record (amt, pos) = assrt{baamount=amt, baposition=pos}
           , showRules rules record
           ]
 
-chooseAmount :: CsvRules -> CsvRecord -> String -> String -> String -> String -> Maybe MixedAmount
-chooseAmount rules record currency amountFld amountInFld amountOutFld =
- let
-   mamount    = getEffectiveAssignment rules record amountFld
-   mamountin  = getEffectiveAssignment rules record amountInFld
-   mamountout = getEffectiveAssignment rules record amountOutFld
-   parse  amt = notZero =<< (parseAmount currency <$> notEmpty =<< (strip . renderTemplate rules record) <$> amt)
- in
-  case (parse mamount, parse mamountin, parse mamountout) of
-    (Nothing, Nothing, Nothing) -> Nothing
-    (Just a,  Nothing, Nothing) -> Just a
-    (Nothing, Just i,  Nothing) -> Just i
-    (Nothing, Nothing, Just o)  -> Just $ negate o
-    (Nothing, Just i,  Just o)  -> error' $    "both "++amountInFld++" and "++amountOutFld++" have a value\n"
-                                            ++ "    "++amountInFld++": "  ++ show i ++ "\n"
-                                            ++ "    "++amountOutFld++": " ++ show o ++ "\n"
-                                            ++ "    record: "     ++ showRecord record
-    _                           -> error' $    "found values for "++amountFld++" and for "++amountInFld++"/"++amountOutFld++"\n"
-                                            ++ "please use either "++amountFld++" or "++amountInFld++"/"++amountOutFld++"\n"
-                                            ++ "    record: " ++ showRecord record
- where
-   notZero amt = if isZeroMixedAmount amt then Nothing else Just amt
-   notEmpty str = if str=="" then Nothing else Just str
+-- | Figure out the account name specified for posting N, if any.
+-- And whether it is the default unknown account (which may be
+-- improved later) or an explicitly set account (which may not).
+getAccount :: CsvRules -> CsvRecord -> Maybe MixedAmount -> Maybe (Amount, GenericSourcePos) -> Int -> Maybe (AccountName, Bool)
+getAccount rules record mamount mbalance n =
+  let
+    fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
+    maccount = T.pack <$> fieldval ("account"++show n)
+  in case maccount of
+    -- accountN is set to the empty string - no posting will be generated
+    Just "" -> Nothing
+    -- accountN is set (possibly to "expenses:unknown"! #1192) - mark it final
+    Just a  -> Just (a, True)
+    -- accountN is unset
+    Nothing ->
+      case (mamount, mbalance) of
+        -- amountN is set, or implied by balanceN - set accountN to
+        -- the default unknown account ("expenses:unknown") and
+        -- allow it to be improved later
+        (Just _, _) -> Just (unknownExpenseAccount, False)
+        (_, Just _) -> Just (unknownExpenseAccount, False)
+        -- amountN is also unset - no posting will be generated
+        (Nothing, Nothing) -> Nothing
 
-   parseAmount currency amountstr =
-     either (amounterror amountstr) (Mixed . (:[]))
-     <$> runParser (evalStateT (amountp <* eof) nulljournal) ""
-     <$> T.pack
-     <$> (currency++)
-     <$> simplifySign
-     <$> amountstr
-
-   amounterror amountstr err = error' $ unlines
-     ["error: could not parse \""++fromJust amountstr++"\" as an amount"
-     ,showRecord record
-     ,showRules rules record
-     ,"the default-currency is: "++fromMaybe "unspecified" (getDirective "default-currency" rules)
-     ,"the parse error is:      "++customErrorBundlePretty err
-     ,"you may need to "
-      ++"change your amount or currency rules, "
-      ++"or add or change your skip rule"
-     ]
+-- | Default account names to use when needed.
+unknownExpenseAccount = "expenses:unknown"
+unknownIncomeAccount  = "income:unknown"
 
 type CsvAmountString = String
 
@@ -1088,7 +1039,7 @@ negateStr s       = '-':s
 
 -- | Show a (approximate) recreation of the original CSV record.
 showRecord :: CsvRecord -> String
-showRecord r = "the CSV record is:       "++intercalate "," (map show r)
+showRecord r = "record values: "++intercalate "," (map show r)
 
 -- | Given the conversion rules, a CSV record and a hledger field name, find
 -- the value template ultimately assigned to this field, if any, by a field
