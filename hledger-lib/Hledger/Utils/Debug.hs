@@ -12,6 +12,8 @@ module Hledger.Utils.Debug (
   ,pshow
   ,ptrace
   ,traceWith
+  ,traceAt
+  ,traceAtWith
   ,debugLevel
   ,ptraceAt
   ,ptraceAtWith
@@ -81,8 +83,9 @@ pshow = ppShow
 ptrace :: Show a => a -> a
 ptrace = traceWith pshow
 
--- | Trace (print to stderr) a showable value using a custom show function.
-traceWith :: (a -> String) -> a -> a
+-- | Like traceShowId, but uses a custom show function to render the value.
+-- traceShowIdWith was too much of a mouthful.
+traceWith :: Show a => (a -> String) -> a -> a
 traceWith f a = trace (f a) a
 
 -- | Global debug level, which controls the verbosity of debug output
@@ -107,6 +110,18 @@ debugLevel = case snd $ break (=="--debug") args of
 
     where
       args = unsafePerformIO getArgs
+
+-- | Trace (print to stderr) a string if the global debug level is at
+-- or above the specified level. At level 0, always prints. Otherwise,
+-- uses unsafePerformIO.
+traceAt :: Int -> String -> a -> a
+traceAt level
+    | level > 0 && debugLevel < level = flip const
+    | otherwise = trace
+
+-- | Trace (print to stderr) a showable value using a custom show function.
+traceAtWith :: (a -> String) -> a -> a
+traceAtWith f a = trace (f a) a
 
 -- | Pretty-print a label and a showable value to the console
 -- if the global debug level is at or above the specified level.
