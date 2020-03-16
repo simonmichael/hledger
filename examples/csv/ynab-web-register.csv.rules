@@ -1,0 +1,13 @@
+skip 1
+
+account1     assets:personal:ynab
+
+# "Account","Flag","Date","Payee","Category Group/Category","Category Group","Category","Memo","Outflow","Inflow","Cleared"
+fields account,flag,date,payee,category,mastercategory,subcategory,memo,outflow,inflow,cleared
+
+date-format  %d.%m.%Y
+description  %payee
+comment      %memo
+account2     expenses:personal:%category
+amount-out   %9
+amount-in    %10
