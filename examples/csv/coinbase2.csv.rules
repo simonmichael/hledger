@@ -1,0 +1,44 @@
+# Another coinbase example
+
+skip 1
+
+fields date,balance,amt,currency,to,desc,inst_exch,transfer_total,transfer_total_currency,transfer_fee,transfer_fee_currency,transfer_payment_method,transfer_id,order_price,order_currency,order_btc,order_tracking_code,order_custom_parameter,order_paid_out,recurring_payment_id,coinbase_id,bitcoin_hash
+
+description %desc %bitcoin_hash
+date-format %Y-%m-%d %H:%M:%S %z
+amount %amt
+account1 assets:crypto:Coinbase:%currency
+
+if
+Bought
+  amount   %amt @@ £%transfer_total
+  account2  assets:crypto:Coinbase:top-up
+
+
+# Output:
+#
+# $ hledger print -f coinbase2.csv
+# 2017-09-29 Bought 0.00314664 BTC for £10.99 GBP.
+#     assets:crypto:Coinbase:BTC       BTC0.00314664 @@ £10.00 = BTC0.00314664
+#     assets:crypto:Coinbase:top-up                    £-10.00
+# 
+# 2017-09-29 Coinbase Fee
+#     assets:crypto:Coinbase:top-up          £-0.99
+#     expenses:fees                           £0.99
+# 
+# 2017-10-04 Bought 0.0030653 BTC for £10.99 GBP.
+#     assets:crypto:Coinbase:BTC       BTC0.00306530 @@ £10.00 = BTC0.00621194
+#     assets:crypto:Coinbase:top-up                    £-10.00
+# 
+# 2017-10-04 Coinbase Fee
+#     assets:crypto:Coinbase:top-up          £-0.99
+#     expenses:fees                           £0.99
+# 
+# 2017-11-01 Bought 0.00176154 BTC for £10.00 GBP.
+#     assets:crypto:Coinbase:BTC       BTC0.00176154 @@ £9.01 = BTC0.00797348
+#     assets:crypto:Coinbase:top-up                    £-9.01
+# 
+# 2017-11-01 Coinbase Fee
+#     assets:crypto:Coinbase:top-up          £-0.99
+#     expenses:fees                           £0.99
+# 
