@@ -20,7 +20,6 @@
 name: linux nightly/pr CI
 
 on:
-  # XXX not supported yet; build on noteworthy push to "ci" instead
   schedule:
   - cron: "0 07 * * *"
   pull_request:
@@ -188,6 +187,7 @@ jobs:
 
     - name: Test functional tests (excluding addons)
       run: |
+        export PATH=~/.local/bin:$PATH
         COLUMNS=80 stack $ARGS exec -- shelltest --execdir -j16 tests -x /bin -x /addons
       env:
         ARGS: ${{ matrix.plan.resolver }}

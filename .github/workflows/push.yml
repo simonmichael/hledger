@@ -119,5 +119,6 @@ jobs:
 
     - name: Test functional tests (excluding addons)
       run: |
+        export PATH=~/.local/bin:$PATH
         COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
