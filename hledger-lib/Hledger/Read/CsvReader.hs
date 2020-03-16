@@ -44,7 +44,7 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Exception          (IOException, handle, throw)
-import Control.Monad              (liftM, unless, when)
+import Control.Monad              (liftM, unless, when, guard)
 import Control.Monad.Except       (ExceptT, throwError)
 import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
@@ -833,24 +833,51 @@ transactionFromCsvRecord sourcepos rules record = t
     -- 3. Generate the postings for which an account has been assigned
     -- (possibly indirectly due to an amount or balance assignment)
 
+    p1IsVirtual :: Bool
     p1IsVirtual = (accountNamePostingType . T.pack <$> fieldval "account1") == Just VirtualPosting
-    ps = [p | n <- [1..maxpostings]
-         ,let comment  = T.pack $ fromMaybe "" $ fieldval ("comment"++show n)
-         ,let currency = fromMaybe "" (fieldval ("currency"++show n) <|> fieldval "currency")
-         ,let mamount  = getAmount rules record currency p1IsVirtual n
-         ,let mbalance = getBalance rules record currency n
-         ,Just (acct,isfinal) <- [getAccount rules record mamount mbalance n]  -- skips Nothings
-         ,let acct' | not isfinal && acct==unknownExpenseAccount &&
-                      fromMaybe False (mamount >>= isNegativeMixedAmount) = unknownIncomeAccount
-                    | otherwise = acct
-         ,let p = nullposting{paccount          = accountNameWithoutPostingType acct'
-                             ,pamount           = fromMaybe missingmixedamt mamount
-                             ,ptransaction      = Just t
-                             ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
-                             ,pcomment          = comment
-                             ,ptype             = accountNamePostingType acct
-                             }
-         ]
+
+    makePosting :: Int -> Maybe Posting
+    makePosting n =
+      let
+        comment  :: Text
+        comment  = T.pack $ fromMaybe "" $ fieldval ("comment"++show n)
+
+        currency :: String
+        currency = fromMaybe "" (fieldval ("currency"++show n) <|> fieldval "currency")
+
+        mamount  :: Maybe MixedAmount
+        mamount  = getAmount rules record currency p1IsVirtual n
+
+        mbalance :: Maybe (Amount, GenericSourcePos)
+        mbalance = getBalance rules record currency n
+      in do
+        -- If this doesn't succeed, we can't make a posting for this n
+        (acct,isfinal) <- getAccount rules record mamount mbalance n
+        let
+          testMaybeUnknownIncomeAccount :: Maybe AccountName
+          testMaybeUnknownIncomeAccount = do
+            guard $ not isfinal
+            guard $ acct == unknownExpenseAccount
+            amount <- mamount
+            True <- isNegativeMixedAmount amount
+            -- If all these requirements were satisfied, it is the unknownIncomeAccount
+            return unknownIncomeAccount
+
+          acct' :: AccountName
+          acct' =
+            -- If it is not the unknownIncomeAccount, we can use acct
+            fromMaybe acct testMaybeUnknownIncomeAccount
+
+        return
+          nullposting{paccount          = accountNameWithoutPostingType acct'
+                     ,pamount           = fromMaybe missingmixedamt mamount
+                     ,ptransaction      = Just t
+                     ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
+                     ,pcomment          = comment
+                     ,ptype             = accountNamePostingType acct
+                     }
+
+    ps = catMaybes $ map makePosting [1..maxpostings]
 
     ----------------------------------------------------------------------
     -- 4. Build the transaction (and name it, so the postings can reference it).
