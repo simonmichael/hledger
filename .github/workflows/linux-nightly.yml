@@ -21,8 +21,8 @@ name: linux nightly/pr CI
 
 on:
   # XXX not supported yet; build on noteworthy push to "ci" instead
-  # schedule:
-  # - cron: "0 23 * * *"
+  schedule:
+  - cron: "0 07 * * *"
   pull_request:
     branches: [ master ]
     paths:
