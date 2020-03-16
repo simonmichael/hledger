@@ -819,18 +819,22 @@ As you can see, directives vary in which journal entries and files they affect,
 and whether they are focussed on input (parsing) or output (reports).
 Some directives have multiple effects.
 
-If you have a journal made up of multiple files, or pass multiple -f options on the command line,
-note that directives which affect input typically last only until the end of their defining file.
-This provides more simplicity and predictability, eg reports are not changed by writing file options in a different order.
-It can be surprising at times though.
-<!-- TODO: retest
-For example, in:
+### Directives and multiple files
 
-    hledger -f a.aliases -f b.journal
+If you use multiple `-f`/`--file` options, or the `include` directive,
+hledger will process multiple input files. But note that directives
+which affect input (see above) typically last only until the end of
+the file in which they occur. 
 
-you might expect account aliases defined in a.aliases to affect b.journal, but they will not,
-unless you `include a.aliases` in b.journal, or vice versa.
--->
+This may seem inconvenient, but it's intentional; it makes reports
+stable and deterministic, independent of the order of input. Otherwise
+you could see different numbers if you happened to write -f options in
+a different order, or if you moved includes around while cleaning up
+your files.
+
+It can be surprising though; for example, it means that 
+[`alias` directives do not affect parent or sibling files](#aliases-and-multiple-files)
+(see below).
 
 ### Comment blocks
 
@@ -1215,9 +1219,39 @@ independent of which files are being read and in which order.
 
 In case of trouble, adding `--debug=6` to the command line will show which aliases are being applied when.
 
+#### Aliases and multiple files
+
+As explained at [Directives and multiple files](#directives-and-multiple-files),
+`alias` directives do not affect parent or sibling files. Eg in this command,
+```shell
+hledger -f a.aliases -f b.journal
+```
+account aliases defined in a.aliases will not affect b.journal. 
+Including the aliases doesn't work either:
+```journal
+include a.aliases
+
+2020-01-01  ; not affected by a.aliases
+  foo  1
+  bar
+```
+This means that account aliases should usually be declared at the
+start of your top-most file, like this:
+```journal
+alias foo=Foo
+alias bar=Bar
+
+2020-01-01  ; affected by aliases above
+  foo  1
+  bar
+
+include c.journal  ; also affected
+```
+
 #### `end aliases`
 
-You can clear (forget) all currently defined aliases with the `end aliases` directive:
+You can clear (forget) all currently defined aliases with the `end
+aliases` directive:
 
 ```journal
 end aliases

@@ -1066,13 +1066,21 @@ As you can see, directives vary in which journal entries and files they
 affect, and whether they are focussed on input (parsing) or output
 (reports).
 Some directives have multiple effects.
+.SS Directives and multiple files
 .PP
-If you have a journal made up of multiple files, or pass multiple -f
-options on the command line, note that directives which affect input
-typically last only until the end of their defining file.
-This provides more simplicity and predictability, eg reports are not
-changed by writing file options in a different order.
-It can be surprising at times though.
+If you use multiple \f[C]-f\f[R]/\f[C]--file\f[R] options, or the
+\f[C]include\f[R] directive, hledger will process multiple input files.
+But note that directives which affect input (see above) typically last
+only until the end of the file in which they occur.
+.PP
+This may seem inconvenient, but it\[aq]s intentional; it makes reports
+stable and deterministic, independent of the order of input.
+Otherwise you could see different numbers if you happened to write -f
+options in a different order, or if you moved includes around while
+cleaning up your files.
+.PP
+It can be surprising though; for example, it means that \f[C]alias\f[R]
+directives do not affect parent or sibling files (see below).
 .SS Comment blocks
 .PP
 A line containing just \f[C]comment\f[R] starts a commented region of
@@ -1543,6 +1551,46 @@ independent of which files are being read and in which order.
 .PP
 In case of trouble, adding \f[C]--debug=6\f[R] to the command line will
 show which aliases are being applied when.
+.SS Aliases and multiple files
+.PP
+As explained at Directives and multiple files, \f[C]alias\f[R]
+directives do not affect parent or sibling files.
+Eg in this command,
+.IP
+.nf
+\f[C]
+hledger -f a.aliases -f b.journal
+\f[R]
+.fi
+.PP
+account aliases defined in a.aliases will not affect b.journal.
+Including the aliases doesn\[aq]t work either:
+.IP
+.nf
+\f[C]
+include a.aliases
+
+2020-01-01  ; not affected by a.aliases
+  foo  1
+  bar
+\f[R]
+.fi
+.PP
+This means that account aliases should usually be declared at the start
+of your top-most file, like this:
+.IP
+.nf
+\f[C]
+alias foo=Foo
+alias bar=Bar
+
+2020-01-01  ; affected by aliases above
+  foo  1
+  bar
+
+include c.journal  ; also affected
+\f[R]
+.fi
 .SS \f[C]end aliases\f[R]
 .PP
 You can clear (forget) all currently defined aliases with the

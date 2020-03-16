@@ -929,15 +929,9 @@ scope  are affected by a directive
 they affect, and whether they are focussed on input (parsing) or output
 (reports).  Some directives have multiple effects.
 
-   If you have a journal made up of multiple files, or pass multiple -f
-options on the command line, note that directives which affect input
-typically last only until the end of their defining file.  This provides
-more simplicity and predictability, eg reports are not changed by
-writing file options in a different order.  It can be surprising at
-times though.
-
 * Menu:
 
+* Directives and multiple files::
 * Comment blocks::
 * Including other files::
 * Default year::
@@ -949,9 +943,29 @@ times though.
 * Default parent account::
 
 
-File: hledger_journal.info,  Node: Comment blocks,  Next: Including other files,  Up: Directives
+File: hledger_journal.info,  Node: Directives and multiple files,  Next: Comment blocks,  Up: Directives
 
-1.12.1 Comment blocks
+1.12.1 Directives and multiple files
+------------------------------------
+
+If you use multiple '-f'/'--file' options, or the 'include' directive,
+hledger will process multiple input files.  But note that directives
+which affect input (see above) typically last only until the end of the
+file in which they occur.
+
+   This may seem inconvenient, but it's intentional; it makes reports
+stable and deterministic, independent of the order of input.  Otherwise
+you could see different numbers if you happened to write -f options in a
+different order, or if you moved includes around while cleaning up your
+files.
+
+   It can be surprising though; for example, it means that 'alias'
+directives do not affect parent or sibling files (see below).
+
+
+File: hledger_journal.info,  Node: Comment blocks,  Next: Including other files,  Prev: Directives and multiple files,  Up: Directives
+
+1.12.2 Comment blocks
 ---------------------
 
 A line containing just 'comment' starts a commented region of the file,
@@ -961,7 +975,7 @@ file) ends it.  See also comments.
 
 File: hledger_journal.info,  Node: Including other files,  Next: Default year,  Prev: Comment blocks,  Up: Directives
 
-1.12.2 Including other files
+1.12.3 Including other files
 ----------------------------
 
 You can pull in the content of additional files by writing an include
@@ -979,7 +993,7 @@ include journal, timeclock or timedot files, but not CSV files.
 
 File: hledger_journal.info,  Node: Default year,  Next: Declaring commodities,  Prev: Including other files,  Up: Directives
 
-1.12.3 Default year
+1.12.4 Default year
 -------------------
 
 You can set a default year to be used for subsequent dates which don't
@@ -1005,7 +1019,7 @@ Y2010  ; change default year to 2010
 
 File: hledger_journal.info,  Node: Declaring commodities,  Next: Default commodity,  Prev: Default year,  Up: Directives
 
-1.12.4 Declaring commodities
+1.12.5 Declaring commodities
 ----------------------------
 
 The 'commodity' directive has several functions:
@@ -1055,7 +1069,7 @@ a comma, followed by 0 or more decimal digits.
 
 File: hledger_journal.info,  Node: Default commodity,  Next: Market prices,  Prev: Declaring commodities,  Up: Directives
 
-1.12.5 Default commodity
+1.12.6 Default commodity
 ------------------------
 
 The 'D' directive sets a default commodity, to be used for amounts
@@ -1082,7 +1096,7 @@ D $1,000.00
 
 File: hledger_journal.info,  Node: Market prices,  Next: Declaring accounts,  Prev: Default commodity,  Up: Directives
 
-1.12.6 Market prices
+1.12.7 Market prices
 --------------------
 
 The 'P' directive declares a market price, which is an exchange rate
@@ -1112,7 +1126,7 @@ another commodity using these prices.
 
 File: hledger_journal.info,  Node: Declaring accounts,  Next: Rewriting accounts,  Prev: Market prices,  Up: Directives
 
-1.12.7 Declaring accounts
+1.12.8 Declaring accounts
 -------------------------
 
 'account' directives can be used to pre-declare accounts.  Though not
@@ -1145,7 +1159,7 @@ account assets:bank:checking
 
 File: hledger_journal.info,  Node: Account comments,  Next: Account subdirectives,  Up: Declaring accounts
 
-1.12.7.1 Account comments
+1.12.8.1 Account comments
 .........................
 
 Comments, beginning with a semicolon, can be added:
@@ -1165,7 +1179,7 @@ account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
 
 File: hledger_journal.info,  Node: Account subdirectives,  Next: Account types,  Prev: Account comments,  Up: Declaring accounts
 
-1.12.7.2 Account subdirectives
+1.12.8.2 Account subdirectives
 ..............................
 
 We also allow (and ignore) Ledger-style indented subdirectives, just for
@@ -1183,7 +1197,7 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 
 File: hledger_journal.info,  Node: Account types,  Next: Account display order,  Prev: Account subdirectives,  Up: Declaring accounts
 
-1.12.7.3 Account types
+1.12.8.3 Account types
 ......................
 
 hledger recognises five types (or classes) of account: Asset, Liability,
@@ -1228,7 +1242,7 @@ account -            ; type:L
 
 File: hledger_journal.info,  Node: Account display order,  Prev: Account types,  Up: Declaring accounts
 
-1.12.7.4 Account display order
+1.12.8.4 Account display order
 ..............................
 
 Account directives also set the order in which accounts are displayed,
@@ -1274,7 +1288,7 @@ means:
 
 File: hledger_journal.info,  Node: Rewriting accounts,  Next: Default parent account,  Prev: Declaring accounts,  Up: Directives
 
-1.12.8 Rewriting accounts
+1.12.9 Rewriting accounts
 -------------------------
 
 You can define account alias rules which rewrite your account names, or
@@ -1298,12 +1312,13 @@ hledger-web.
 * Basic aliases::
 * Regex aliases::
 * Combining aliases::
+* Aliases and multiple files::
 * end aliases::
 
 
 File: hledger_journal.info,  Node: Basic aliases,  Next: Regex aliases,  Up: Rewriting accounts
 
-1.12.8.1 Basic aliases
+1.12.9.1 Basic aliases
 ......................
 
 To set an account alias, use the 'alias' directive in your journal file.
@@ -1326,7 +1341,7 @@ alias checking = assets:bank:wells fargo:checking
 
 File: hledger_journal.info,  Node: Regex aliases,  Next: Combining aliases,  Prev: Basic aliases,  Up: Rewriting accounts
 
-1.12.8.2 Regex aliases
+1.12.9.2 Regex aliases
 ......................
 
 There is also a more powerful variant that uses a regular expression,
@@ -1349,9 +1364,9 @@ command line, to end of option argument), so it can contain trailing
 whitespace.
 
 
-File: hledger_journal.info,  Node: Combining aliases,  Next: end aliases,  Prev: Regex aliases,  Up: Rewriting accounts
+File: hledger_journal.info,  Node: Combining aliases,  Next: Aliases and multiple files,  Prev: Regex aliases,  Up: Rewriting accounts
 
-1.12.8.3 Combining aliases
+1.12.9.3 Combining aliases
 ..........................
 
 You can define as many aliases as you like, using journal directives
@@ -1386,9 +1401,41 @@ independent of which files are being read and in which order.
 which aliases are being applied when.
 
 
-File: hledger_journal.info,  Node: end aliases,  Prev: Combining aliases,  Up: Rewriting accounts
+File: hledger_journal.info,  Node: Aliases and multiple files,  Next: end aliases,  Prev: Combining aliases,  Up: Rewriting accounts
 
-1.12.8.4 'end aliases'
+1.12.9.4 Aliases and multiple files
+...................................
+
+As explained at Directives and multiple files, 'alias' directives do not
+affect parent or sibling files.  Eg in this command,
+
+hledger -f a.aliases -f b.journal
+
+   account aliases defined in a.aliases will not affect b.journal.
+Including the aliases doesn't work either:
+
+include a.aliases
+
+2020-01-01  ; not affected by a.aliases
+  foo  1
+  bar
+
+   This means that account aliases should usually be declared at the
+start of your top-most file, like this:
+
+alias foo=Foo
+alias bar=Bar
+
+2020-01-01  ; affected by aliases above
+  foo  1
+  bar
+
+include c.journal  ; also affected
+
+
+File: hledger_journal.info,  Node: end aliases,  Prev: Aliases and multiple files,  Up: Rewriting accounts
+
+1.12.9.5 'end aliases'
 ......................
 
 You can clear (forget) all currently defined aliases with the 'end
@@ -1399,8 +1446,8 @@ end aliases
 
 File: hledger_journal.info,  Node: Default parent account,  Prev: Rewriting accounts,  Up: Directives
 
-1.12.9 Default parent account
------------------------------
+1.12.10 Default parent account
+------------------------------
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal.  Use the 'apply account' and 'end apply
@@ -1793,58 +1840,62 @@ Node: Balance assignments and prices29457
 Ref: #balance-assignments-and-prices29629
 Node: Directives29853
 Ref: #directives30012
-Node: Comment blocks35660
-Ref: #comment-blocks35805
-Node: Including other files35981
-Ref: #including-other-files36161
-Node: Default year36569
-Ref: #default-year36738
-Node: Declaring commodities37145
-Ref: #declaring-commodities37328
-Node: Default commodity39001
-Ref: #default-commodity39177
-Node: Market prices40066
-Ref: #market-prices40231
-Node: Declaring accounts41072
-Ref: #declaring-accounts41248
-Node: Account comments42173
-Ref: #account-comments42336
-Node: Account subdirectives42760
-Ref: #account-subdirectives42955
-Node: Account types43268
-Ref: #account-types43452
-Node: Account display order45091
-Ref: #account-display-order45261
-Node: Rewriting accounts46412
-Ref: #rewriting-accounts46597
-Node: Basic aliases47323
-Ref: #basic-aliases47469
-Node: Regex aliases48173
-Ref: #regex-aliases48345
-Node: Combining aliases49063
-Ref: #combining-aliases49241
-Node: end aliases50517
-Ref: #end-aliases50665
-Node: Default parent account50766
-Ref: #default-parent-account50932
-Node: Periodic transactions51816
-Ref: #periodic-transactions52015
-Node: Periodic rule syntax53887
-Ref: #periodic-rule-syntax54093
-Node: Two spaces between period expression and description!54797
-Ref: #two-spaces-between-period-expression-and-description55116
-Node: Forecasting with periodic transactions55800
-Ref: #forecasting-with-periodic-transactions56105
-Node: Budgeting with periodic transactions58131
-Ref: #budgeting-with-periodic-transactions58370
-Node: Auto postings / transaction modifiers58819
-Ref: #auto-postings-transaction-modifiers59031
-Node: Auto postings and dates61527
-Ref: #auto-postings-and-dates61784
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions61959
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions62334
-Node: Auto posting tags62712
-Ref: #auto-posting-tags62951
+Node: Directives and multiple files35331
+Ref: #directives-and-multiple-files35514
+Node: Comment blocks36178
+Ref: #comment-blocks36361
+Node: Including other files36537
+Ref: #including-other-files36717
+Node: Default year37125
+Ref: #default-year37294
+Node: Declaring commodities37701
+Ref: #declaring-commodities37884
+Node: Default commodity39557
+Ref: #default-commodity39733
+Node: Market prices40622
+Ref: #market-prices40787
+Node: Declaring accounts41628
+Ref: #declaring-accounts41804
+Node: Account comments42729
+Ref: #account-comments42892
+Node: Account subdirectives43316
+Ref: #account-subdirectives43511
+Node: Account types43824
+Ref: #account-types44008
+Node: Account display order45647
+Ref: #account-display-order45817
+Node: Rewriting accounts46968
+Ref: #rewriting-accounts47153
+Node: Basic aliases47910
+Ref: #basic-aliases48056
+Node: Regex aliases48760
+Ref: #regex-aliases48932
+Node: Combining aliases49650
+Ref: #combining-aliases49843
+Node: Aliases and multiple files51119
+Ref: #aliases-and-multiple-files51328
+Node: end aliases51907
+Ref: #end-aliases52064
+Node: Default parent account52165
+Ref: #default-parent-account52333
+Node: Periodic transactions53217
+Ref: #periodic-transactions53416
+Node: Periodic rule syntax55288
+Ref: #periodic-rule-syntax55494
+Node: Two spaces between period expression and description!56198
+Ref: #two-spaces-between-period-expression-and-description56517
+Node: Forecasting with periodic transactions57201
+Ref: #forecasting-with-periodic-transactions57506
+Node: Budgeting with periodic transactions59532
+Ref: #budgeting-with-periodic-transactions59771
+Node: Auto postings / transaction modifiers60220
+Ref: #auto-postings-transaction-modifiers60432
+Node: Auto postings and dates62928
+Ref: #auto-postings-and-dates63185
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions63360
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions63735
+Node: Auto posting tags64113
+Ref: #auto-posting-tags64352
 
 End Tag Table
 
