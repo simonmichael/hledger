@@ -26,3 +26,7 @@ extra-deps:
 # apply-ghc-options: everything
 # rebuild-ghc-options: true
 # stack build --profile --ghc-options="-fno-prof-auto"
+
+# tell GHC to write hie files, eg for weeder. Rumoured to be slow.
+# ghc-options:
+#   "$locals": -fwrite-ide-info
