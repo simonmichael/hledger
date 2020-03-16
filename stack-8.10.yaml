@@ -59,7 +59,7 @@ compiler: ghc-8.10.0.20200123
 compiler-check: match-exact
 ###############################################################################
 
-resolver: lts-15.2
+resolver: lts-15.4
 
 packages:
 - hledger-lib

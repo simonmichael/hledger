@@ -1,4 +1,4 @@
-# stack build plan using GHC 8.8.1
+# stack build plan using GHC 8.8.3
 
 nix:
   pure: false
@@ -7,7 +7,7 @@ nix:
 # stack seems to enable this by default now, basically disabling bounds checks. Force it off.
 #allow-newer: false
 #resolver: nightly-2020-01-31
-resolver: lts-15.2
+resolver: lts-15.4
 
 packages:
 - hledger-lib
