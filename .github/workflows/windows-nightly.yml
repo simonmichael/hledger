@@ -55,10 +55,10 @@ jobs:
         key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-roaming-stack
 
-    - name: showStuff
-      shell: bash
-      run: |
-        ls -lFRa /c/users/runneradmin/appdata/roaming/stack
+    # - name: showStuff
+    #   shell: bash
+    #   run: |
+    #     ls -lFRa /c/users/runneradmin/appdata/roaming/stack
 
     - name: Cache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
