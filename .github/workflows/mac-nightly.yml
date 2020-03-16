@@ -3,12 +3,12 @@
 name: mac nightly CI
 
 on:
-  # XXX not supported yet; build on noteworthy push to "ci" instead
-  # schedule:
-  # - cron: "0 23 * * *"
-  # uncomment when testing CI:
+  # run nightly
+  schedule:
+  - cron: "0 07 * * *"
+  # and on pushes to ci-mac branch
   push:
-    branches: [ ci, master ]  # master too for testing
+    branches: [ ci-mac ]
     paths:
       - '.github/workflows/mac-nightly.yml'
       - 'stack*.yaml'
@@ -22,21 +22,6 @@ on:
       - '!**.5'
       - '!**.info'
       - '!**.txt'
-  # pull_request:
-  #   branches: [ master ]
-  #   paths:
-  #     - '.github/workflows/mac-nightly.yml'
-  #     - 'stack*'
-  #     - 'hledger-lib'
-  #     - 'hledger'
-  #     - 'hledger-ui'
-  #     - 'hledger-web'
-  #     - 'tests'
-  #     - '!**.md'
-  #     - '!**.1'
-  #     - '!**.5'
-  #     - '!**.info'
-  #     - '!**.txt'
 
 jobs:
   build:

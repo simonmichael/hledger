@@ -20,8 +20,10 @@
 name: linux nightly/pr CI
 
 on:
+  # run nightly
   schedule:
   - cron: "0 07 * * *"
+  # and on pull requests to master
   pull_request:
     branches: [ master ]
     paths:
@@ -37,8 +39,9 @@ on:
       - '!**.5'
       - '!**.info'
       - '!**.txt'
+  # and on pushes to ci-linux branch
   push:
-    branches: [ ci, master ]  # master too for testing
+    branches: [ ci-linux ]
     paths:
       - '.github/workflows/linux-nightly.yml'
       - 'stack*'
