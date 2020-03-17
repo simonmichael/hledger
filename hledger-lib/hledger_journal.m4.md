@@ -432,7 +432,7 @@ Scientific E notation is allowed:
     1E-6
     EUR 1E3
 
-A decimal mark (decimal point) can be written with a period or a comma:
+A decimal mark can be written as a period or a comma:
 
     1.23
     1,23456780000009

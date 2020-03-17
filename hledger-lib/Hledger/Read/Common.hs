@@ -766,12 +766,12 @@ fixedlotpricep = optional $ do
 -- attributes.
 --
 -- Some international number formats are accepted, eg either period or comma
--- may be used for the decimal point, and the other of these may be used for
+-- may be used for the decimal mark, and the other of these may be used for
 -- separating digit groups in the integer part. See
 -- http://en.wikipedia.org/wiki/Decimal_separator for more examples.
 --
 -- This returns: the parsed numeric value, the precision (number of digits
--- seen following the decimal point), the decimal point character used if any,
+-- seen following the decimal mark), the decimal mark character used if any,
 -- and the digit group style if any.
 --
 numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
