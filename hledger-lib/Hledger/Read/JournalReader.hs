@@ -425,7 +425,15 @@ commoditydirectiveonelinep = do
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 pleaseincludedecimalpoint :: String
-pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal separator in commodity directives"
+pleaseincludedecimalpoint = chomp $ unlines [
+   "Please include a decimal point or decimal comma in commodity directives,"
+  ,"to help us parse correctly. It may be followed by zero or more decimal digits."
+  ,"Examples:"
+  ,"commodity $1000.            ; no thousands mark, decimal period, no decimals"
+  ,"commodity 1.234,00 ARS      ; period at thousands, decimal comma, 2 decimals"
+  ,"commodity EUR 1 000,000     ; space at thousands, decimal comma, 3 decimals"
+  ,"commodity INR1,23,45,678.0  ; comma at thousands/lakhs/crores, decimal period, 1 decimal"
+  ]
 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
