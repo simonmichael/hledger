@@ -1,7 +1,8 @@
 # basic hledger/hledger-web build testing, and binary building,
 # on windows, run nightly
+# Using GHC 8.8.2 to avoid "access violation" error with 8.8.3
 
-name: windows nightly CI
+name: windows nightly CI with GHC 8.8.2
 
 on:
   # run nightly
@@ -115,7 +116,7 @@ jobs:
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |
-        stack --no-terminal setup --install-ghc
+        stack --resolver=lts-15.3 --no-terminal setup --install-ghc
 
     # - name: Install shelltestrunner
     ## - export PATH=~/.local/bin:$PATH
@@ -124,11 +125,11 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack --no-terminal build --only-dependencies
+        stack --resolver=lts-15.3 --no-terminal build --only-dependencies
 
     - name: Build hledger executables
       run: |
-        stack --no-terminal install --ghc-options=-Werror
+        stack --resolver=lts-15.3 --no-terminal install --ghc-options=-Werror
       # --pedantic
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
