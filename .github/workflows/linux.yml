@@ -45,12 +45,12 @@ jobs:
     strategy:
       matrix:
         plan:
-        - { key:"80", args: "--stack-yaml=stack-8.0.yaml" }
-        - { key:"82", args: "--stack-yaml=stack-8.2.yaml" }
-        - { key:"84", args: "--stack-yaml=stack-8.4.yaml" }
-        - { key:"86", args: "--stack-yaml=stack-8.6.yaml" }
-        - { key:"88", args: "--stack-yaml=stack.yaml" }
-        - { key:"810", args: "--stack-yaml=stack-8.10.yaml" }
+        - { key: "80", args: "--stack-yaml=stack-8.0.yaml" }
+        - { key: "82", args: "--stack-yaml=stack-8.2.yaml" }
+        - { key: "84", args: "--stack-yaml=stack-8.4.yaml" }
+        - { key: "86", args: "--stack-yaml=stack-8.6.yaml" }
+        - { key: "88", args: "--stack-yaml=stack.yaml" }
+        - { key: "810", args: "--stack-yaml=stack-8.10.yaml" }
     runs-on: ubuntu-latest
 
     steps:
