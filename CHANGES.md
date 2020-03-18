@@ -16,11 +16,12 @@ For package-specific changes, see the package changelogs.
   Improvements:
 
   - one CI service instead of several
+  - new shortcut url: http://ci.hledger.org
   - more closely integrated with code repo
   - tests run on the three main platforms (linux, mac, windows)
   - harmless commits are ignored automatically ([ci skip] no longer needed for doc commits)
-  - multi-GHC-version testing
-  - haddock testing
+  - scheduled and on-demand testing (push to master, push to ci-* branches, pull request, weekly)
+  - now tested: all GHC versions, doctests, haddock building
 
 # 1.17 2020-03-01
 
