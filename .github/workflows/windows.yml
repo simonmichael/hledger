@@ -1,18 +1,16 @@
-# basic hledger/hledger-web build testing, and binary building,
-# on windows, run nightly
+# windows CI tests, run "periodically", and on notable push to ci-windows
+# Periodic runs don't use caching.
 # Using GHC 8.8.2 to avoid "access violation" error with 8.8.3
 
-name: windows nightly CI with GHC 8.8.2
+name: windows CI
 
 on:
-  # run nightly
   schedule:
-  - cron: "0 07 * * *"
-  # and on pushes to ci-windows branch
+  - cron: "0 07 * * 0"  # sunday midnight pacific
   push:
     branches: [ ci-windows ]
     paths:
-      - '.github/workflows/windows-nightly.yml'
+      - '.github/workflows/windows.yml'
       - 'stack*.yaml'
       - 'hledger-lib/**'
       - 'hledger/**'
@@ -34,7 +32,7 @@ jobs:
       uses: actions/checkout@v2
 
     # declare/restore cached things
-    # caching doesn't work for nightly runs yet https://github.com/actions/cache/issues/63
+    # caching doesn't work for scheduled runs yet https://github.com/actions/cache/issues/63
 
     - name: Cache stack global package db
       id:   stack-global-package-db

@@ -1,5 +1,4 @@
-# quick build and tests (unit & func, but not doc or haddock tests),
-# on linux, for noteworthy pushes to master
+# quick CI tests, run on notable push to master
 
 name: push CI
 
