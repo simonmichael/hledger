@@ -44,6 +44,7 @@ jobs:
   build:
     strategy:
       matrix:
+        fail-fast: false
         plan:
         - { key: "80", args: "--stack-yaml=stack-8.0.yaml" }
         - { key: "82", args: "--stack-yaml=stack-8.2.yaml" }
@@ -202,6 +203,8 @@ jobs:
 # https://github.com/marketplace/actions/checkout
 # https://github.com/sdras/awesome-actions
 # https://help.github.com/en/actions
+# https://help.github.com/en/actions/reference/events-that-trigger-workflows
+# https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule
 # https://help.github.com/en/actions/configuring-and-managing-workflows/caching-and-storing-workflow-data
 # https://help.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows
 # https://help.github.com/en/actions/reference/virtual-environments-for-github-hosted-runners#supported-runners-and-hardware-resources
