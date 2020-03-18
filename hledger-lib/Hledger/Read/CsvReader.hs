@@ -759,13 +759,6 @@ showRules rules record =
 csvRule :: CsvRules -> DirectiveName -> Maybe FieldTemplate
 csvRule rules = (`getDirective` rules)
 
--- | Look up the final value assigned to a csv rule by rule keyword, taking
--- into account the current record and conditional rules.
--- Generally rules with keywords ("directives") don't have interpolated
--- values, but for now it's possible.
--- csvRuleValue :: CsvRules -> CsvRecord -> DirectiveName -> Maybe String
--- csvRuleValue rules record = fmap (renderTemplate rules record) . csvRule rules
-
 -- | Look up the value template assigned to a hledger field by field
 -- list/field assignment rules, taking into account the current record and
 -- conditional rules.
@@ -776,8 +769,6 @@ hledgerField = getEffectiveAssignment
 -- references interpolated.
 hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe String
 hledgerFieldValue rules record = fmap (renderTemplate rules record) . hledgerField rules record
-
--- s `orIfNull` def = if null s then def else s
 
 transactionFromCsvRecord :: SourcePos -> CsvRules -> CsvRecord -> Transaction
 transactionFromCsvRecord sourcepos rules record = t
@@ -866,15 +857,6 @@ transactionFromCsvRecord sourcepos rules record = t
           ,tprecedingcomment = T.pack precomment
           ,tpostings         = ps
           }  
-
--- -- | Given CSV rules and a CSV record, generate the corresponding transaction's
--- -- Nth posting, if sufficient fields have been assigned for it.
--- -- N is provided as a string.
--- -- The names of the required fields are provided, allowing more flexibility.
--- -- The transaction which will contain this posting is also provided,
--- -- so we can build the usual transaction<->posting cyclic reference.
--- mkPosting :: CsvRules -> CsvRecord -> String -> Transaction -> Maybe (Posting, Bool)
--- mkPosting rules record n t =
 
 -- | Figure out the amount specified for posting N, if any.
 -- Looks for a non-zero amount assigned to one of "amountN", "amountN-in", "amountN-out".
