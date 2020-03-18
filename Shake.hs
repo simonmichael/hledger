@@ -1,7 +1,7 @@
 #!/usr/bin/env stack
-{- stack exec
+{- stack script --compile
    --verbosity=info
-   --stack-yaml=stack.yaml
+   --resolver=lts-15.4
    --package base-prelude
    --package directory
    --package extra
@@ -9,7 +9,6 @@
    --package safe
    --package shake
    --package time
-   ghc
 -}
 {-
 
