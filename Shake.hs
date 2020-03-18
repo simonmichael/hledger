@@ -5,6 +5,7 @@
    --package base-prelude
    --package directory
    --package extra
+   --package process
    --package regex
    --package safe
    --package shake
@@ -12,36 +13,26 @@
 -}
 {-
 
-One of two project scripts files (Makefile, Shake.hs). This one
-provides a stronger programming language and more platform
-independence than Make. It requires stack and will auto-install the
-haskell packages above when needed (on first run or when a new
-resolver is configured in stack.yaml). Some rules below use additional
-tools, including:
+This is one of two collections of maintainer/developer scripts; Makefile is the other.
+This one, based on shake, provides a stronger programming language and
+more platform independence. It requires stack and will auto-install
+the haskell packages above when needed.
 
+Some of the commands below require additional command-line tools, including:
+- GNU date (on mac: brew install coreutils)
 - groff
 - m4
 - makeinfo
 - pandoc
 - sed
-- GNU date (on mac: brew install coreutils)
 
-Compiling this script is recommended, to ensure required packages are
-installed, minimise startup delay, and reduce sensitivity to the
-current git state (eg when bisecting). To compile, run "./Shake.hs".
-(Or "make Shake", or any other make rule depending on Shake).
-
-Once compiled, run ./Shake without any arguments to list commands and
-targets (see below).
-
-When developing/troubleshooting this script, these are useful:
-
-watch Shake.hs for compile errors: make ghcid-shake
-load Shake.hs in GHCI: make ghci-shake
-rebuild things when files change with entr (file watcher), eg:
- find hledger-lib hledger | entr ./Shake manuals
-view rule dependency graph:
- ./Shake --report, open report.html?mode=rule-graph&query=!name(/(doc%7Cimages%7Cjs%7Ccss%7Cfonts%7Ctime%7Capi%7Cui%7Ccsv)/)
+Some things that may be useful when working on these scripts:
+- watch Shake.hs for compile errors: make ghcid-shake
+- load Shake.hs in GHCI: make ghci-shake
+- rebuild things when files change with entr (file watcher), eg:
+   find hledger-lib hledger | entr ./Shake manuals
+- view rule dependency graph:
+   ./Shake --report, open report.html?mode=rule-graph&query=!name(/(doc%7Cimages%7Cjs%7Ccss%7Cfonts%7Ctime%7Capi%7Cui%7Ccsv)/)
 
 -}
 
@@ -66,10 +57,17 @@ import "shake"        Development.Shake.FilePath
 import "time"         Data.Time
 -- import "hledger-lib"  Hledger.Utils.Debug
 
-usage = unlines
+usage =
+  let scriptname = "Shake" in replaceRe [re|/Shake|] ('/':scriptname) $
+  unlines
     ---------------------------------------79--------------------------------------
-  ["Usage:"
-  ,"./Shake.hs               (re)compile this script"
+  ["hledger developer's helper. See also: make help"
+  ,"Usage:"
+  ,"./Shake.hs [CMD]         run this script, compiling it first if needed"
+  ,"./Shake    [CMD]         run the compiled version of this script directly"
+  ,"./Shake                  list commands"
+  ,"./Shake --help           list Shake options (--color, --rebuild, ...)"
+  ,"Commands:"
   ,"./Shake commandhelp      build help texts for the hledger CLI"
   ,"./Shake manuals          build txt/man/info/web manuals for all packages"
   ,"./Shake webmanuals       build web manuals (in site/) for all packages"
@@ -80,7 +78,6 @@ usage = unlines
   -- ,"./Shake website-all      build the website and all web manual versions"
   ,"./Shake all              build all the above"
   -- ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
-  ,""
   -- ,"./Shake mainpages                   build the web pages from the main repo"
   -- ,"./Shake site/index.md               update wiki links on the website home page"
   ,"./Shake FILE                        build any individual file"
@@ -89,13 +86,8 @@ usage = unlines
   ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
   ,"./Shake [PKG/]CHANGES.md-finalise   set final release heading in this changelog"
   -- ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
-  ,""
   ,"./Shake clean            clean help texts, manuals, staged site content"
   ,"./Shake Clean            also clean rendered site, object files, Shake's cache"
-  ,"./Shake [help]           show these commands"
-  ,"./Shake --help           show Shake options (--color, --rebuild, ...)"
-  ,""
-  ,"See also: make help"
   ]
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
@@ -755,9 +747,13 @@ pageNameToUri = (++".html") . intercalate "-" . words
 
 fileNameToPageName = unwords . splitOn "-"
 
--- | Easier regex replace helper. Replaces each occurrence of a
--- regular expression in src, by transforming each matched text with
--- the given function.
+-- | Replace each occurrence of a regular expression by this string.
+replaceRe :: RE -> String -> String -> String
+replaceRe re repl = replaceBy re (\_ _ _ -> Just repl)
+
+-- | Replace each occurrence of a regular expression, by transforming
+-- each matched text with the given function.
+replaceBy :: RE -> (Match String -> RELocation -> Capture String -> Maybe String) -> String -> String
 replaceBy re f src = replaceAllCaptures TOP f $ src *=~ re
 
 -- not powerful enough, saved for reference:
