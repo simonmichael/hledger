@@ -1,6 +1,5 @@
 #!/usr/bin/env stack
 {- stack script --compile
-   --verbosity=info
    --resolver=lts-15.4
    --package base-prelude
    --package directory
@@ -12,6 +11,8 @@
    --package time
 -}
 {-
+-- add this to see packages being installed instead of a long silence:
+   --verbosity=info
 
 This is one of two collections of maintainer/developer scripts; Makefile is the other.
 This one, based on shake, provides a stronger programming language and
@@ -26,7 +27,8 @@ Some of the commands below require additional command-line tools, including:
 - pandoc
 - sed
 
-Some things that may be useful when working on these scripts:
+Some things that may be useful when working on this:
+- https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
 - watch Shake.hs for compile errors: make ghcid-shake
 - load Shake.hs in GHCI: make ghci-shake
 - rebuild things when files change with entr (file watcher), eg:
