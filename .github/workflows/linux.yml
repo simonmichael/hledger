@@ -43,8 +43,8 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         plan:
         - { key: "80", args: "--stack-yaml=stack-8.0.yaml" }
         - { key: "82", args: "--stack-yaml=stack-8.2.yaml" }
