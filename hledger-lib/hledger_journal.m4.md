@@ -785,6 +785,7 @@ so here is a table summarising the directives and their effects, with links to m
 | [`include`]       |                     |                 | include entries/directives from another file                       | what the included directives affect
 | [`P`]             |                     |                 | declare a market price for a commodity                             | amounts of that commodity in reports, when -V is used
 | [`Y`]             |                     |                 | declare a year for yearless dates                                  | following inline/included entries until end of current file
+| [`=`]             |                     |                 | declare an auto posting rule, adding postings to other transactions | all entries in parent/current/child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212))
 
 [`account`]:       #declaring-accounts
 [`alias`]:         #rewriting-accounts
@@ -795,6 +796,7 @@ so here is a table summarising the directives and their effects, with links to m
 [`include`]:       #including-other-files
 [`P`]:             #market-prices
 [`Y`]:             #default-year
+[`=`]:             #auto-postings-transaction-modifiers
 
 And some definitions:
 
@@ -1455,8 +1457,6 @@ quotes, as on the command line. Eg, note the quotes around the second query term
     (budget:funds:dining out)                 *-1
 ```
 
-These rules have global effect - a rule appearing anywhere in your data can potentially affect any transaction, including transactions recorded above it or in another file.
-
 Some examples:
 ```journal
 ; every time I buy food, schedule a dollar donation
@@ -1489,6 +1489,13 @@ $ hledger print --auto
     assets:checking:gifts     -$20
     assets:checking            $20
 ```
+
+### Auto postings and multiple files
+
+An auto posting rule can affect any transaction in the current file,
+or in any parent file or child file. Note, currently it will not
+affect sibling files (when multiple `-f`/`--file` are used - see
+[#1212](https://github.com/simonmichael/hledger/issues/1212)).
 
 ### Auto postings and dates
 
