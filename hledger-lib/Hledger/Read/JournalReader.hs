@@ -977,7 +977,7 @@ tests_JournalReader = tests "JournalReader" [
 
   ,test "defaultcommoditydirectivep" $ do
       assertParse defaultcommoditydirectivep "D $1,000.0\n"
-      assertParseError defaultcommoditydirectivep "D $1000\n" "please include a decimal separator"
+      assertParseError defaultcommoditydirectivep "D $1000\n" "Please include a decimal point or decimal comma"
 
   ,tests "defaultyeardirectivep" [
       test "1000" $ assertParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others

@@ -115,7 +115,7 @@ $ hledger -f- bal -V -N
 
 # TODO #749
 
-# 9. Here the amount is parsed as 1. I think (hope) no country uses space 
+# 8. Here the amount is parsed as 1. I think (hope) no country uses space 
 # for decimal point, so we should parse this as 1000.
 <
 2018-01-01
@@ -123,7 +123,7 @@ $ hledger -f- bal -V -N
 
 $ hledger -f- reg amt:1
 
-# 10. This commodity directive should complain about a missing decimal separator,
+# 9. This commodity directive should complain about a missing decimal separator,
 # which we now require.
 <
 commodity 1 000  USD
@@ -132,10 +132,10 @@ commodity 1 000  USD
   (a)   USD1 000
 
 $ hledger -f- bal
->2 /decimal separator/
+>2 /decimal point or decimal comma/
 >=1
 
-# 11. After a space-grouped amount, a posting comment should parse.
+# 10. After a space-grouped amount, a posting comment should parse.
 <
 2018-01-01
   (a)   USD 1 000  ;comment
@@ -143,7 +143,7 @@ $ hledger -f- bal
 $ hledger -f- print
 > //    # any stdout, no stderr, 0 exit code
 
-# 12. After a space-grouped amount, trailing whitespace should parse.
+# 11. After a space-grouped amount, trailing whitespace should parse.
 <
 2018-01-01
   (a)   USD 1 000 
@@ -151,7 +151,7 @@ $ hledger -f- print
 $ hledger -f- print
 > //    # any stdout, no stderr, 0 exit code
 
-# 13. Example of surprising decimal mark parsing behaviour.
+# 12. Example of surprising decimal mark parsing behaviour.
 # Without a commodity declaration, these amounts are parsed as 10 and 10000.
 # <
 # 2000/1/1

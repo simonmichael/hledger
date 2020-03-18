@@ -130,7 +130,7 @@ commodity €1,000.00
 hledger bal -f -
 <<<
 commodity 1000 EUR
->>>2 /please include a decimal separator/
+>>>2 /Please include a decimal point or decimal comma/
 >>>=1
 
 # 12. Commodity directive with zero precision
