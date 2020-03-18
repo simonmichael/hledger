@@ -1,6 +1,8 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 70e85d8e
+
 # 1.17 2020-03-01
 
 - Fonts have been improved on certain platforms. (David Zhang)

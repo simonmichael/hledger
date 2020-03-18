@@ -1,6 +1,20 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 70e85d8e
+
+- csv: amount1 no longer forces a second posting or second posting amount.
+  The "special handling for pre 1.17 rules" should now be less
+  noticeable. amount1/amount2 no longer force a second posting or
+  explicit amounts on both postings. (Only amount/amount-in/amount-out
+  do that.) Error messages and handling of corner cases may be more
+  robust, also.
+
+- journal: a commodity directive without decimal mark now gives a more
+  verbose error message with examples
+
+- journal: inclusive balance assignments now work (#1207)
+
 # 1.17 2020-03-01
 
 ## General

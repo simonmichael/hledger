@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# c1488db4
+
+- ui: fix a regression, empty register of depth-limited account (fix #1208)
+
 # 1.17 2020-03-01
 
 - don't enable --auto by default

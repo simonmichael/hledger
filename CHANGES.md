@@ -1,6 +1,27 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# fe0253ed
+
+- shake: use script command, allow running without compiling first
+
+- install: bump resolver to lts-15.4
+
+- install: bump hledger-interest to 1.5.4
+
+- examples: another coinbase example, contributed
+
+- new CI (continuous integration) tests, using Github Actions.
+  Thanks to Travis and Appveyor for their service to date.
+  Improvements:
+
+  - one CI service instead of several
+  - more closely integrated with code repo
+  - tests run on the three main platforms (linux, mac, windows)
+  - harmless commits are ignored automatically ([ci skip] no longer needed for doc commits)
+  - multi-GHC-version testing
+  - haddock testing
+
 # 1.17 2020-03-01
 
 - hledger-install: re-enable installation of hledger-iadd & hledger-interest.

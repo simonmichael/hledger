@@ -1,7 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# e0dde6fe
+# abc53024
+
+- added: debug helpers traceAt, traceAtWith
 
 - Journal is now a Semigroup, not a Monoid (since <> is right-biased). (Stephen Morgan)
 
