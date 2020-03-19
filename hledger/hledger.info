@@ -2319,14 +2319,14 @@ Budget performance in 2017/11/01-2017/12/31:
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
 
-   Note this is different from a normal balance report in several ways:
+   This is different from a normal balance report in several ways:
 
    * Only accounts with budget goals during the report period are shown,
      by default.
 
-   * In each column, in square brackets after the actual amount,
-     budgeted amounts are shown, along with the percentage of budget
-     used.
+   * In each column, in square brackets after the actual amount, budget
+     goal amounts are shown, and the actual/goal percentage.  (Note:
+     budget goals should be in the same commodity as the actual amount.)
 
    * All parent accounts are always shown, even in flat mode.  Eg
      assets, assets:bank, and expenses above.
@@ -3832,89 +3832,89 @@ Node: Multicolumn balance report73444
 Ref: #multicolumn-balance-report73624
 Node: Budget report78886
 Ref: #budget-report79029
-Node: Nested budgets84231
-Ref: #nested-budgets84343
-Ref: #output-format-187824
-Node: balancesheet88021
-Ref: #balancesheet88157
-Node: balancesheetequity89623
-Ref: #balancesheetequity89772
-Node: cashflow90495
-Ref: #cashflow90623
-Node: check-dates91802
-Ref: #check-dates91929
-Node: check-dupes92208
-Ref: #check-dupes92332
-Node: close92625
-Ref: #close92739
-Node: close usage94261
-Ref: #close-usage94354
-Node: commodities97167
-Ref: #commodities97294
-Node: descriptions97376
-Ref: #descriptions97504
-Node: diff97685
-Ref: #diff97791
-Node: files98838
-Ref: #files98938
-Node: help99085
-Ref: #help99185
-Node: import100266
-Ref: #import100380
-Node: Importing balance assignments101273
-Ref: #importing-balance-assignments101421
-Node: incomestatement102070
-Ref: #incomestatement102203
-Node: notes103690
-Ref: #notes103803
-Node: payees103929
-Ref: #payees104035
-Node: prices104193
-Ref: #prices104299
-Node: print104640
-Ref: #print104750
-Node: print-unique109536
-Ref: #print-unique109662
-Node: register109947
-Ref: #register110074
-Node: Custom register output114246
-Ref: #custom-register-output114375
-Node: register-match115712
-Ref: #register-match115846
-Node: rewrite116197
-Ref: #rewrite116312
-Node: Re-write rules in a file118167
-Ref: #re-write-rules-in-a-file118301
-Node: Diff output format119511
-Ref: #diff-output-format119680
-Node: rewrite vs print --auto120772
-Ref: #rewrite-vs.-print---auto120951
-Node: roi121507
-Ref: #roi121605
-Node: stats122617
-Ref: #stats122716
-Node: tags123504
-Ref: #tags123602
-Node: test123896
-Ref: #test124004
-Node: Add-on Commands124751
-Ref: #add-on-commands124868
-Node: ui126211
-Ref: #ui126299
-Node: web126353
-Ref: #web126456
-Node: iadd126572
-Ref: #iadd126683
-Node: interest126765
-Ref: #interest126872
-Node: ENVIRONMENT127112
-Ref: #environment127224
-Node: FILES128053
-Ref: #files-1128156
-Node: LIMITATIONS128369
-Ref: #limitations128488
-Node: TROUBLESHOOTING129230
-Ref: #troubleshooting129343
+Node: Nested budgets84295
+Ref: #nested-budgets84407
+Ref: #output-format-187888
+Node: balancesheet88085
+Ref: #balancesheet88221
+Node: balancesheetequity89687
+Ref: #balancesheetequity89836
+Node: cashflow90559
+Ref: #cashflow90687
+Node: check-dates91866
+Ref: #check-dates91993
+Node: check-dupes92272
+Ref: #check-dupes92396
+Node: close92689
+Ref: #close92803
+Node: close usage94325
+Ref: #close-usage94418
+Node: commodities97231
+Ref: #commodities97358
+Node: descriptions97440
+Ref: #descriptions97568
+Node: diff97749
+Ref: #diff97855
+Node: files98902
+Ref: #files99002
+Node: help99149
+Ref: #help99249
+Node: import100330
+Ref: #import100444
+Node: Importing balance assignments101337
+Ref: #importing-balance-assignments101485
+Node: incomestatement102134
+Ref: #incomestatement102267
+Node: notes103754
+Ref: #notes103867
+Node: payees103993
+Ref: #payees104099
+Node: prices104257
+Ref: #prices104363
+Node: print104704
+Ref: #print104814
+Node: print-unique109600
+Ref: #print-unique109726
+Node: register110011
+Ref: #register110138
+Node: Custom register output114310
+Ref: #custom-register-output114439
+Node: register-match115776
+Ref: #register-match115910
+Node: rewrite116261
+Ref: #rewrite116376
+Node: Re-write rules in a file118231
+Ref: #re-write-rules-in-a-file118365
+Node: Diff output format119575
+Ref: #diff-output-format119744
+Node: rewrite vs print --auto120836
+Ref: #rewrite-vs.-print---auto121015
+Node: roi121571
+Ref: #roi121669
+Node: stats122681
+Ref: #stats122780
+Node: tags123568
+Ref: #tags123666
+Node: test123960
+Ref: #test124068
+Node: Add-on Commands124815
+Ref: #add-on-commands124932
+Node: ui126275
+Ref: #ui126363
+Node: web126417
+Ref: #web126520
+Node: iadd126636
+Ref: #iadd126747
+Node: interest126829
+Ref: #interest126936
+Node: ENVIRONMENT127176
+Ref: #environment127288
+Node: FILES128117
+Ref: #files-1128220
+Node: LIMITATIONS128433
+Ref: #limitations128552
+Node: TROUBLESHOOTING129294
+Ref: #troubleshooting129407
 
 End Tag Table
 

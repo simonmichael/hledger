@@ -601,6 +601,12 @@ In summary: amounts will be displayed much as they appear in your
 journal, with the max observed number of decimal places.
 If you want to see fewer decimal places in reports, use a commodity
 directive to override that.
+.PP
+hledger uses banker\[aq]s rounding: it rounds to the nearest even
+number, eg 0.5 displayed with zero decimal places is \[dq]0\[dq]).
+(Note, prior to hledger 1.17.1 this could vary if hledger happened to be
+built with an old version of Decimal (<0.5.1); since 1.17.1 it\[aq]s
+guaranteed.)
 .SS Transaction prices
 .PP
 Within a transaction, you can note an amount\[aq]s price in another
@@ -1197,6 +1203,10 @@ The quantity of the amount does not matter; only the format is
 significant.
 The number must include a decimal mark: either a period or a comma,
 followed by 0 or more decimal digits.
+.PP
+Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
+zero decimal digits is \[dq]0\[dq].
+(More at Amount display style.)
 .SS Default commodity
 .PP
 The \f[C]D\f[R] directive sets a default commodity, to be used for

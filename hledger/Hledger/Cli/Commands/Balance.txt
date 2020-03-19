@@ -351,13 +351,14 @@ Budget performance in 2017/11/01-2017/12/31:
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
 
-Note this is different from a normal balance report in several ways:
+This is different from a normal balance report in several ways:
 
 -   Only accounts with budget goals during the report period are shown,
     by default.
 
--   In each column, in square brackets after the actual amount, budgeted
-    amounts are shown, along with the percentage of budget used.
+-   In each column, in square brackets after the actual amount, budget
+    goal amounts are shown, and the actual/goal percentage. (Note:
+    budget goals should be in the same commodity as the actual amount.)
 
 -   All parent accounts are always shown, even in flat mode. Eg assets,
     assets:bank, and expenses above.
