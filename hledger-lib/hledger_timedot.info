@@ -4,8 +4,8 @@ stdin.
 
 File: hledger_timedot.info,  Node: Top,  Up: (dir)
 
-hledger_timedot(5) hledger 1.17.0.1
-***********************************
+hledger_timedot(5) hledger 1.17.1
+*********************************
 
 Timedot - hledger's human-friendly time logging format
 

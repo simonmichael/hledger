@@ -441,4 +441,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.17.1                 March 2020                     hledger-ui(1)
+hledger-ui 1.17.1.1               March 2020                     hledger-ui(1)

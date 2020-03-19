@@ -161,4 +161,4 @@ SEE ALSO
 
 
 
-hledger 1.17.0.1                  March 2020                hledger_timedot(5)
+hledger 1.17.1                    March 2020                hledger_timedot(5)

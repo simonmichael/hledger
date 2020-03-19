@@ -3,8 +3,8 @@ This is hledger-ui.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.17.1
-*******************************
+hledger-ui(1) hledger-ui 1.17.1.1
+*********************************
 
 hledger-ui - terminal interface for the hledger accounting tool
 
@@ -499,26 +499,26 @@ program is restarted.
 
 Tag Table:
 Node: Top71
-Node: OPTIONS1474
-Ref: #options1571
-Node: KEYS5002
-Ref: #keys5097
-Node: SCREENS9373
-Ref: #screens9478
-Node: Accounts screen9568
-Ref: #accounts-screen9696
-Node: Register screen11912
-Ref: #register-screen12067
-Node: Transaction screen14064
-Ref: #transaction-screen14222
-Node: Error screen15092
-Ref: #error-screen15214
-Node: ENVIRONMENT15458
-Ref: #environment15572
-Node: FILES16379
-Ref: #files16478
-Node: BUGS16691
-Ref: #bugs16768
+Node: OPTIONS1478
+Ref: #options1575
+Node: KEYS5006
+Ref: #keys5101
+Node: SCREENS9377
+Ref: #screens9482
+Node: Accounts screen9572
+Ref: #accounts-screen9700
+Node: Register screen11916
+Ref: #register-screen12071
+Node: Transaction screen14068
+Ref: #transaction-screen14226
+Node: Error screen15096
+Ref: #error-screen15218
+Node: ENVIRONMENT15462
+Ref: #environment15576
+Node: FILES16383
+Ref: #files16482
+Node: BUGS16695
+Ref: #bugs16772
 
 End Tag Table
 
