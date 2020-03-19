@@ -1,6 +1,8 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 4191aad0
+
 # 1.17.1 2020-03-19
 
 - require newer Decimal, math-functions libs to ensure consistent

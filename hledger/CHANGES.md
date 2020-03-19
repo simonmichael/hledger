@@ -1,6 +1,8 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 4191aad0
+
 # 1.17.1.1 2020-03-19
 
 - update bounds after some belated hledger-* version bumps
