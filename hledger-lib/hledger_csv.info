@@ -3,8 +3,8 @@ This is hledger_csv.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger_csv(5) hledger 1.17.99
-******************************
+hledger_csv(5) hledger 1.17.0.1
+*******************************
 
 CSV - how hledger reads CSV data, and the CSV rules file format
 
@@ -1019,74 +1019,74 @@ command the user specified.
 
 Tag Table:
 Node: Top72
-Node: EXAMPLES2099
-Ref: #examples2205
-Node: Basic2413
-Ref: #basic2513
-Node: Bank of Ireland3055
-Ref: #bank-of-ireland3190
-Node: Amazon4652
-Ref: #amazon4770
-Node: Paypal6489
-Ref: #paypal6583
-Node: CSV RULES14227
-Ref: #csv-rules14336
-Node: skip14612
-Ref: #skip14705
-Node: fields15080
-Ref: #fields15202
-Node: Transaction field names16367
-Ref: #transaction-field-names16527
-Node: Posting field names16638
-Ref: #posting-field-names16790
-Node: account16860
-Ref: #account16976
-Node: amount17512
-Ref: #amount17643
-Node: currency18024
-Ref: #currency18159
-Node: balance18365
-Ref: #balance18499
-Node: comment18816
-Ref: #comment18933
-Node: field assignment19096
-Ref: #field-assignment19239
-Node: separator20057
-Ref: #separator20186
-Node: if20597
-Ref: #if20699
-Node: end22618
-Ref: #end22724
-Node: date-format22948
-Ref: #date-format23080
-Node: newest-first23829
-Ref: #newest-first23967
-Node: include24650
-Ref: #include24779
-Node: balance-type25223
-Ref: #balance-type25343
-Node: TIPS26043
-Ref: #tips26125
-Node: Rapid feedback26381
-Ref: #rapid-feedback26498
-Node: Valid CSV26958
-Ref: #valid-csv27088
-Node: File Extension27280
-Ref: #file-extension27432
-Node: Reading multiple CSV files27842
-Ref: #reading-multiple-csv-files28027
-Node: Valid transactions28268
-Ref: #valid-transactions28446
-Node: Deduplicating importing29074
-Ref: #deduplicating-importing29253
-Node: Setting amounts30286
-Ref: #setting-amounts30455
-Node: Setting currency/commodity31441
-Ref: #setting-currencycommodity31633
-Node: Referencing other fields32436
-Ref: #referencing-other-fields32636
-Node: How CSV rules are evaluated33533
-Ref: #how-csv-rules-are-evaluated33706
+Node: EXAMPLES2101
+Ref: #examples2207
+Node: Basic2415
+Ref: #basic2515
+Node: Bank of Ireland3057
+Ref: #bank-of-ireland3192
+Node: Amazon4654
+Ref: #amazon4772
+Node: Paypal6491
+Ref: #paypal6585
+Node: CSV RULES14229
+Ref: #csv-rules14338
+Node: skip14614
+Ref: #skip14707
+Node: fields15082
+Ref: #fields15204
+Node: Transaction field names16369
+Ref: #transaction-field-names16529
+Node: Posting field names16640
+Ref: #posting-field-names16792
+Node: account16862
+Ref: #account16978
+Node: amount17514
+Ref: #amount17645
+Node: currency18026
+Ref: #currency18161
+Node: balance18367
+Ref: #balance18501
+Node: comment18818
+Ref: #comment18935
+Node: field assignment19098
+Ref: #field-assignment19241
+Node: separator20059
+Ref: #separator20188
+Node: if20599
+Ref: #if20701
+Node: end22620
+Ref: #end22726
+Node: date-format22950
+Ref: #date-format23082
+Node: newest-first23831
+Ref: #newest-first23969
+Node: include24652
+Ref: #include24781
+Node: balance-type25225
+Ref: #balance-type25345
+Node: TIPS26045
+Ref: #tips26127
+Node: Rapid feedback26383
+Ref: #rapid-feedback26500
+Node: Valid CSV26960
+Ref: #valid-csv27090
+Node: File Extension27282
+Ref: #file-extension27434
+Node: Reading multiple CSV files27844
+Ref: #reading-multiple-csv-files28029
+Node: Valid transactions28270
+Ref: #valid-transactions28448
+Node: Deduplicating importing29076
+Ref: #deduplicating-importing29255
+Node: Setting amounts30288
+Ref: #setting-amounts30457
+Node: Setting currency/commodity31443
+Ref: #setting-currencycommodity31635
+Node: Referencing other fields32438
+Ref: #referencing-other-fields32638
+Node: How CSV rules are evaluated33535
+Ref: #how-csv-rules-are-evaluated33708
 
 End Tag Table
 
