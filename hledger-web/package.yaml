@@ -110,7 +110,7 @@ library:
   - conduit-extra >=1.1
   - containers
   - data-default
-  - Decimal
+  - Decimal >=0.5.1
   - directory
   - extra >=1.6.3
   - filepath

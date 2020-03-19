@@ -114,7 +114,7 @@ dependencies:
 - cmdargs >=0.10
 - containers
 - data-default >=0.5
-- Decimal
+- Decimal >=0.5.1
 - directory
 - extra >=1.6.3
 - filepath
@@ -129,7 +129,7 @@ dependencies:
 - safe >=0.2
 - shakespeare >=2.0.2.2
 - split >=0.1
-- math-functions >=0.2.0.0
+- math-functions >=0.3.3.0
 - tabular >=0.2
 - tasty >=1.2.3
 - temporary
