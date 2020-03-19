@@ -496,8 +496,17 @@ problems, use a commodity directive to fix the display style.
 
 In summary: amounts will be displayed much as they appear in your
 journal, with the max observed number of decimal places. If you want
-to see fewer decimal places in reports, use a commodity directive to
-override that.
+to see fewer decimal places in reports, use a 
+[commodity directive](#declaring-commodities)
+to override that.
+
+hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding): 
+it rounds to the nearest even number, eg 0.5 displayed with zero
+decimal places is "0").
+(Note, prior to hledger 1.17.1 this could vary if hledger happened to
+be built with an old version of Decimal (<0.5.1); since 1.17.1 it's
+guaranteed.)
+
 
 ## Transaction prices
 
@@ -932,6 +941,11 @@ commodity INR
 The quantity of the amount does not matter; only the format is
 significant. The number must include a decimal mark: either a period
 or a comma, followed by 0 or more decimal digits.
+
+Note hledger normally uses 
+[banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
+so 0.5 displayed with zero decimal digits is "0". 
+(More at [Amounts](#amounts).)
 
 ### Default commodity
 
