@@ -1,6 +1,8 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 24166308
+
 # 1.17.1 2020-03-18
 
 - csv: amount1 no longer forces a second posting or second posting amount.
@@ -14,6 +16,11 @@ User-visible changes in the hledger command line tool and library.
   verbose error message with examples
 
 - journal: inclusive balance assignments now work (#1207)
+
+- require newer Decimal, math-functions libs to ensure consistent
+  rounding behaviour, even when built with old GHCs/snapshots. 
+  hledger uses banker's rounding (rounds to nearest even number, eg
+  0.5 with with zero decimal places is "0").
 
 # 1.17 2020-03-01
 

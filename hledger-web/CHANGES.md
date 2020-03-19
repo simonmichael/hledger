@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 10aaafc5
+# 24166308
 
 # 1.17 2020-03-01
 
