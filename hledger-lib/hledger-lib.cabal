@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3d3dab519880fdc9325ef53cd2811154ab38f1e15f6e59e3d0b2b1c935d40337
+-- hash: dd6aa6525f53a261fb43e72cc1919c8e29f5c512f53703befdd280b428c6775e
 
 name:           hledger-lib
 version:        1.17.0.1
@@ -106,7 +106,7 @@ library
       ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      Decimal
+      Decimal >=0.5.1
     , Glob >=0.9
     , aeson
     , ansi-terminal >=0.6.2.3
@@ -157,7 +157,7 @@ test-suite doctest
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      Decimal
+      Decimal >=0.5.1
     , Glob >=0.7
     , aeson
     , ansi-terminal >=0.6.2.3
@@ -211,7 +211,7 @@ test-suite unittest
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      Decimal
+      Decimal >=0.5.1
     , Glob >=0.9
     , aeson
     , ansi-terminal >=0.6.2.3

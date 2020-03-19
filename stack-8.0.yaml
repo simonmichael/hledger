@@ -67,3 +67,5 @@ extra-deps:
 - wcwidth-0.0.2
 - ansi-wl-pprint-0.6.9
 - optparse-applicative-0.15.1.0
+- Decimal-0.5.1
+- math-functions-0.3.3.0
