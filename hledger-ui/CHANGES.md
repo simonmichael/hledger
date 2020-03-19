@@ -1,11 +1,18 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 24166308
+# 1.17.1.1 2020-03-19
 
-# 1.17.1 2020-03-18
+- update bounds after some belated hledger-* version bumps
+
+# 1.17.1 2020-03-19
 
 - ui: fix a regression, empty register of depth-limited account (fix #1208)
+
+- require newer Decimal, math-functions libs to ensure consistent
+  rounding behaviour, even when built with old GHCs/snapshots. 
+  hledger uses banker's rounding (rounds to nearest even number, eg
+  0.5 with with zero decimal places is "0").
 
 # 1.17 2020-03-01
 

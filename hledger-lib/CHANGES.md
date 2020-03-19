@@ -1,7 +1,12 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 11ee75ec
+# 1.17.1 2020-03-19
+
+- require newer Decimal, math-functions libs to ensure consistent
+  rounding behaviour, even when built with old GHCs/snapshots. 
+  hledger uses banker's rounding (rounds to nearest even number, eg
+  0.5 with with zero decimal places is "0").
 
 - added: debug helpers traceAt, traceAtWith
 
