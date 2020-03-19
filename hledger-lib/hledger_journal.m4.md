@@ -945,7 +945,7 @@ or a comma, followed by 0 or more decimal digits.
 Note hledger normally uses 
 [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
 so 0.5 displayed with zero decimal digits is "0". 
-(More at [Amounts](#amounts).)
+(More at [Amount display style](#amount-display-style).)
 
 ### Default commodity
 
