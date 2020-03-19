@@ -5,12 +5,10 @@ See also the hledger changelog.
 
 # 1.17.1 2020-03-19
 
-- require newer Decimal, math-functions, fixing inconsistent rounding
-  Decimal 0.5.1+ changed to banker's rounding (round to nearest even
-  number), and math-functions 0.3.3.0 (used by roi) fixed various
-  precision-related issues. Now we require the latest versions of these.
-  This was causing some functional test failures when building with old
-  GHCs/snapshots.
+- require newer Decimal, math-functions libs to ensure consistent
+  rounding behaviour, even when built with old GHCs/snapshots. 
+  hledger uses banker's rounding (rounds to nearest even number, eg
+  0.5 displayed with zero decimal places is "0").
 
 # 1.17 2020-03-01
 

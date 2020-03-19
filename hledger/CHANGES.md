@@ -24,7 +24,7 @@ User-visible changes in the hledger command line tool and library.
 - require newer Decimal, math-functions libs to ensure consistent
   rounding behaviour, even when built with old GHCs/snapshots. 
   hledger uses banker's rounding (rounds to nearest even number, eg
-  0.5 with with zero decimal places is "0").
+  0.5 displayed with zero decimal places is "0").
 
 # 1.17 2020-03-01
 
