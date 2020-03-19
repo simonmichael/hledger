@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# c1488db4
+# 1.17.1 2020-03-18
 
 - ui: fix a regression, empty register of depth-limited account (fix #1208)
 

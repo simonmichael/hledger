@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 70e85d8e
+# 1.17.1 2020-03-18
 
 - csv: amount1 no longer forces a second posting or second posting amount.
   The "special handling for pre 1.17 rules" should now be less

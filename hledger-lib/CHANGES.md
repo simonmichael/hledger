@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# abc53024
+# 10aaafc5
 
 - added: debug helpers traceAt, traceAtWith
 
