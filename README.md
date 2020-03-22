@@ -1,4 +1,4 @@
-#  hledger
+# hledger README
 
 ## lightweight, portable, dependable accounting tools
 

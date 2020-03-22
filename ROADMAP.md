@@ -1,4 +1,4 @@
-# Roadmap / Wishlist
+# hledger ROADMAP
 
 Current ideas about where the hledger project should be going next.
 
