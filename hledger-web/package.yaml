@@ -24,7 +24,7 @@ tested-with: GHC==8.2.2, GHC==8.4.3, GHC==8.6.5, GHC==8.8.2, GHC==8.10
 
 extra-source-files:
 - CHANGES.md
-- README
+- README.md
 - config/favicon.ico
 - config/keter.yaml
 - config/robots.txt
