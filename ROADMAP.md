@@ -1,34 +1,8 @@
 # Roadmap / Wishlist
 
-Ideas about where the hledger project should be going next, as of 2019q4. 
-Discussion welcome.
+Current ideas about where the hledger project should be going next.
 
-## Targets
-
-Dated targets we are aiming for:
-
-- **hledger 1.17, 2020-03-01**
-  - field matching in CSV rules 
-  - reduce install hassles with terminfo C lib (?)
-  - more import/export options
-  - simple console charts
-  - refreshed home page, faq, tutorials, manuals
-
-### Archive
-
-- <s>hledger 1.16, 2019-12-01</s> -
-<s>ghc 8.8 support</s>,
-<s>more powerful CSV conversion</s>,
-updated home page, faq, manuals,
-reduce install hassles with terminfo C lib
-
-
-
-----
-
-## Priorities
-
-Current priorities for the project, grouped under four overarching themes:
+## 2020 Priorities
 
 <table>
 <tr valign="top">
@@ -40,8 +14,8 @@ Improving the docs.
 <br>
 <br>
 
-- home & faq
-- manuals (more discoverability on web)
+- <s>home</s> & faq
+- <s>manuals (more discoverable structure of web manuals)</s>
 - contrib guide (include readmes, update)
 - cookbook docs (survey, plan, update)
 
@@ -52,9 +26,9 @@ Improving the docs.
 
 Improving approachability, just-works quality, practicality, real-world usefulness.
 
-- ghc 8.8, stackage nightly
+- <s>ghc 8.8, get back in stackage nightly</s>
 - install issues (C libs..)
-- more powerful CSV conversion
+- <s>more powerful CSV conversion</s>
 - fill out holes in feature matrix
 
 </td>
@@ -92,18 +66,27 @@ Improving suitability for investment tracking.
 
 ----
 
-## Wishlist
+## Current Targets
 
-A few high-level maintainer wishes, by topic. 
-Discussing/moving any of these forward is a big help.
+- hledger 1.18, 2020-06-01\
+<s>more effective CI setup</s>,
+updated home page, quickstart, tutorials etc.,
+negative matching in CSV rules,
 
-### Docs
+### Past Targets
 
-- build the contributor/dev guide from CONTRIBUTING.md plus the READMEs; clean up
-- move general PTA docs to plaintextaccounting.org
-- clarify web manuals' structure/TOC
-- refresh/integrate home page & faq
-- new tutorial(s)
+- <s>hledger 1.17, 2020-03-01</s>\
+<s>field matching in CSV rules</s>,
+reduce install hassles with terminfo C lib (?),
+more import/export options,
+simple console charts,
+refreshed home page, faq, tutorials, manuals,
+
+- <s>hledger 1.16, 2019-12-01</s>\
+<s>ghc 8.8 support</s>,
+<s>more powerful CSV conversion</s>,
+updated home page, faq, manuals,
+reduce install hassles with terminfo C lib
 
 ----
 
