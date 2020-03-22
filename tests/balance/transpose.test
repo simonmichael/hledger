@@ -1,6 +1,6 @@
 hledger -f balance-multicol.journal balance -M -A --transpose
 >>>
-Balance changes in 2012-12-01-2013-03-31:
+Balance changes in 2012-12-01..2013-03-31:
 
          || assets  assets:cash  assets:checking |    
 =========++======================================+====
@@ -14,10 +14,10 @@ Balance changes in 2012-12-01-2013-03-31:
 hledger -f balance-multicol.journal balance -M -A -O csv --transpose
 >>>
 "Account","assets","assets:cash","assets:checking","Total:"
-"2012/12","0","0","10","10"
-"2013/01","0","0","0","0"
-"2013/02","1","1","0","2"
-"2013/03","0","0","1","1"
+"2012-12","0","0","10","10"
+"2013-01","0","0","0","0"
+"2013-02","1","1","0","2"
+"2013-03","0","0","1","1"
 "Average","0","0","3","3"
 >>>=0
 
@@ -53,7 +53,7 @@ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget
     expenses:leisure  $15
     assets:cash
 >>>
-Budget performance in 2016-12-01-2016-12-03:
+Budget performance in 2016-12-01..2016-12-03:
 
                   ||           2016-12-01            2016-12-02            2016-12-03 
 ==================++==================================================================

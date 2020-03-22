@@ -16,7 +16,7 @@ hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
     expenses:grocery  $30
     assets:cash
 >>>
-Balance changes in 2016-12-01-2017-01-31:
+Balance changes in 2016-12-01..2017-01-31:
 
                   ||   Dec     Jan 
 ==================++===============
@@ -169,7 +169,7 @@ hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-
     income  $-1000
     assets:cash
 >>>
-Balance changes in 2016-10-01-2017-01-31:
+Balance changes in 2016-10-01..2017-01-31:
 
                   ||    Oct     Nov     Dec     Jan 
 ==================++================================
