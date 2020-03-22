@@ -4,19 +4,21 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5ffe9aad9a8d42370e7c53db27c2aab90c310ea824df58e47707ba92329ac299
+-- hash: 19cc8738c48783e5870fac80991f6bf0e6477e4793cb4ae129f80ab5cbd8ae66
 
 name:           hledger-lib
 version:        1.17.99
-synopsis:       Core data types, parsers and functionality for the hledger accounting tools
-description:    This is a reusable library containing hledger's core functionality.
+synopsis:       A reusable library providing the core functionality of hledger
+description:    A reusable library containing hledger's core functionality.
+                This is used by most hledger* packages so that they support the same
+                common file formats, command line options, reports etc.
                 .
-                hledger is a cross-platform program for tracking money, time, or
-                any other commodity, using double-entry accounting and a simple,
-                editable file format. It is inspired by and largely compatible
-                with ledger(1).  hledger provides command-line, terminal and web
-                interfaces, and aims to be a reliable, practical tool for daily
-                use.
+                hledger is a robust, cross-platform set of tools for tracking money,
+                time, or any other commodity, using double-entry accounting and a
+                simple, editable file format, with command-line, terminal and web
+                interfaces. It is a Haskell rewrite of Ledger, and one of the leading
+                implementations of Plain Text Accounting. Read more at:
+                <https://hledger.org>
 category:       Finance
 stability:      stable
 homepage:       http://hledger.org
