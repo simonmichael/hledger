@@ -1,4 +1,4 @@
-# hledger README
+# hledger project README
 
 ## lightweight, portable, dependable accounting tools
 
@@ -6,8 +6,7 @@ hledger is a computer program for easily tracking money, time, or other commodit
 on unix, mac and windows (and web-capable mobile devices, to some extent).
 
 It is first a command-line tool, but there are also terminal and
-web interfaces, and a Haskell library
-(http://hackage.haskell.org/package/hledger-lib) for building your own
+web interfaces, and a Haskell library for building your own
 programs and scripts (hledger is written in Haskell).  hledger was
 inspired by and is largely compatible with Ledger.  hledger is free
 software available under the GNU General Public License v3+.
@@ -25,7 +24,7 @@ I use it every day to:
 Though limited in features, hledger is lightweight, usable and reliable.
 For some, it is a simpler, less distracting, more future-proof alternative to Quicken or GnuCash.
 
-For more, see the website: **<https://hledger.org>**
+For more, see the home page: **<https://hledger.org>**
 
 ## Sponsorship
 

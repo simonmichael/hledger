@@ -1,3 +1,5 @@
+# hledger-install
+
 A lot of specialised knowledge is still needed to be sure of 
 successfully building and installing hledger in all cases. For example:
 running stack setup if you don't have a suitable version of ghc..

@@ -2,4 +2,6 @@
 
 The command-line interface for the hledger accounting system.
 
-More at **<https://hledger.org>**.
+See also:
+the [project README](https://hledger.org/README.html)
+and [home page](https://hledger.org).
