@@ -1,17 +1,18 @@
 name        : hledger-ui
 version     : 1.17.99
-synopsis    : Terminal user interface for the hledger accounting tool
+synopsis    : Curses-style terminal interface for the hledger accounting system
 description : |
-  This is hledger's terminal interface.
-  It is simpler and more convenient for browsing data than the command-line interface,
-  but lighter and faster than hledger-web.
+  A simple curses-style terminal user interface for the hledger accounting system.
+  It can be a more convenient way to browse your accounts than the CLI.
+  This package currently does not support Microsoft Windows, except in WSL.
 
-  hledger is a cross-platform program for tracking money, time, or
-  any other commodity, using double-entry accounting and a simple,
-  editable file format. It is inspired by and largely compatible
-  with ledger(1).  hledger provides command-line, terminal and web
-  interfaces, and aims to be a reliable, practical tool for daily
-  use.
+  hledger is a robust, cross-platform set of tools for tracking money,
+  time, or any other commodity, using double-entry accounting and a
+  simple, editable file format, with command-line, terminal and web
+  interfaces. It is a Haskell rewrite of Ledger, and one of the leading
+  implementations of Plain Text Accounting. Read more at:
+  <https://hledger.org>
+
 category    : Finance, Console
 license     : GPL-3
 author      : Simon Michael <simon@joyful.com>

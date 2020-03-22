@@ -1,15 +1,18 @@
 name: hledger-lib
 version: 1.17.99
-synopsis: Core data types, parsers and functionality for the hledger accounting tools
+synopsis: A reusable library providing the core functionality of hledger
 description: |
-  This is a reusable library containing hledger's core functionality.
+  A reusable library containing hledger's core functionality.
+  This is used by most hledger* packages so that they support the same
+  common file formats, command line options, reports etc.
 
-  hledger is a cross-platform program for tracking money, time, or
-  any other commodity, using double-entry accounting and a simple,
-  editable file format. It is inspired by and largely compatible
-  with ledger(1).  hledger provides command-line, terminal and web
-  interfaces, and aims to be a reliable, practical tool for daily
-  use.
+  hledger is a robust, cross-platform set of tools for tracking money,
+  time, or any other commodity, using double-entry accounting and a
+  simple, editable file format, with command-line, terminal and web
+  interfaces. It is a Haskell rewrite of Ledger, and one of the leading
+  implementations of Plain Text Accounting. Read more at:
+  <https://hledger.org>
+
 category: Finance
 license: GPL-3
 author: Simon Michael <simon@joyful.com>
