@@ -347,7 +347,7 @@ journalRevenueAccountQuery = journalAccountTypeQuery Revenue "^(income|revenue)s
 -- | A query for accounts in this journal which have been
 -- declared as Expense by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
--- @^(income|revenue)s?(:|$)@.
+-- @^expenses?(:|$)@.
 journalExpenseAccountQuery  :: Journal -> Query
 journalExpenseAccountQuery = journalAccountTypeQuery Expense "^expenses?(:|$)"
 
