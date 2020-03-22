@@ -75,15 +75,15 @@ hledger -f - cashflow -b 2015 -e 2017
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement 2015-01-01-2016-12-31
+Cashflow Statement 2015-01-01..2016-12-31
 
-                 || 2015-01-01-2016-12-31 
-=================++=======================
- Cash flows      ||                       
------------------++-----------------------
- assets:checking ||             $9,960.00 
------------------++-----------------------
-                 ||             $9,960.00 
+                 || 2015-01-01..2016-12-31 
+=================++========================
+ Cash flows      ||                        
+-----------------++------------------------
+ assets:checking ||              $9,960.00 
+-----------------++------------------------
+                 ||              $9,960.00 
 >>>2
 >>>= 0
 
@@ -110,7 +110,7 @@ hledger -f - cashflow -b 2015/11 -e 2015/12
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement 2015/11
+Cashflow Statement 2015-11
 
                  ||        Nov 
 =================++============
@@ -145,7 +145,7 @@ hledger -f - cashflow -b 2016/10 -e 2016/11
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement 2016/10
+Cashflow Statement 2016-10
 
             || Oct 
 ============++=====

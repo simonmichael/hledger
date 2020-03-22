@@ -1,6 +1,6 @@
 hledger -f balance-multicol.journal balance --pretty-tables -M
 >>>
-Balance changes in 2012-12-01-2013-03-31:
+Balance changes in 2012-12-01..2013-03-31:
 
                  ║ Dec  Jan  Feb  Mar 
 ═════════════════╬════════════════════

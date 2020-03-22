@@ -16,7 +16,7 @@ hledger -f sample.journal balance --no-total --depth 0
 # 3. Ditto in a multi-column balance report.
 hledger -f sample.journal balance -M -e 2008/4 --depth 0
 >>>
-Balance changes in 2008/01:
+Balance changes in 2008-01:
 
      || Jan 
 =====++=====

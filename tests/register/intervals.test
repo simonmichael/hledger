@@ -4,7 +4,7 @@
   (a)  1
 
 $ hledger -f- register --period 'monthly'
-2011/02                 a                                        1             1
+2011-02                 a                                        1             1
 
 # 2. or with a query pattern, just the intervals with matched data:
 <
@@ -15,7 +15,7 @@ $ hledger -f- register --period 'monthly'
   (b)  1
 
 $ hledger -f- register --period 'monthly' b
-2011/02                 b                                        1             1
+2011-02                 b                                        1             1
 
 <
 2011/1/1
@@ -30,14 +30,14 @@ $ hledger -f- register --period 'monthly' b
 # 3. with --empty, show all intervals spanned by the journal
 # (unlike current ledger, but more useful)
 $ hledger -f- register --period 'monthly' b --empty
-2011/01                                                          0             0
-2011/02                 b                                        1             1
-2011/03                                                          0             1
+2011-01                                                          0             0
+2011-02                 b                                        1             1
+2011-03                                                          0             1
 
 # 4. any specified begin/end dates limit the intervals reported
 $ hledger -f- register --period 'monthly to 2011/3/1' b --empty
-2011/01                                                          0             0
-2011/02                 b                                        1             1
+2011-01                                                          0             0
+2011-02                 b                                        1             1
 
 # 5. --date2 should work with intervals
 <
@@ -48,7 +48,7 @@ $ hledger -f- register --period 'monthly to 2011/3/1' b --empty
   (b)  1
 
 $ hledger -f- register --monthly --date2
-2014/01                 a                                        1             1
+2014-01                 a                                        1             1
                         b                                        1             2
 
 # 6. All matched postings in the displayed intervals should be reported on.
@@ -63,7 +63,7 @@ $ hledger -f- register --monthly --date2
  (after)  1
 
 $ hledger -f- register -p 'monthly 2014/1/10-2014/2/20'
-2014/01                 before                                   1             1
-2014/02                 after                                    1             2
+2014-01                 before                                   1             1
+2014-02                 after                                    1             2
                         within                                   1             3
 

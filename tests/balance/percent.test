@@ -27,7 +27,7 @@ hledger -f sample.journal balance -% -p quarterly
 >>>
 Balance changes in 2008:
 
-                      || 2008q1  2008q2  2008q3  2008q4 
+                      || 2008Q1  2008Q2  2008Q3  2008Q4 
 ======================++================================
  assets:bank:checking ||      0       0       0       0 
  assets:bank:saving   ||      0       0       0       0 

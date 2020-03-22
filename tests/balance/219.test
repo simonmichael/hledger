@@ -2,7 +2,7 @@
 # 1. multiple flags ending with --flat, equivalent to --flat
 hledger -f balance-multicol.journal bal -MEH --no-total date:2013/1 --tree --flat
 >>>
-Ending balances (historical) in 2013/01:
+Ending balances (historical) in 2013-01:
 
                  || 2013-01-31 
 =================++============
@@ -12,7 +12,7 @@ Ending balances (historical) in 2013/01:
 # 2. multiple flags ending with --tree, equivalent to --tree
 hledger -f balance-multicol.journal bal -MEH --no-total date:2013/1 --flat --tree
 >>>
-Ending balances (historical) in 2013/01:
+Ending balances (historical) in 2013-01:
 
             || 2013-01-31 
 ============++============
