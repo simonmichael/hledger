@@ -1,27 +1,6 @@
 # hledger CREDITS
 
-(WIP)
-
-hledger is brought to you by all the
-
-Issue wranglers,
-
-Bug hunters,
-
-Code slingers,
-
-Doc poets,
-
-Package marshals,
-
-Helping hands,
-
-Good news preachers,
-
-Bank rollers,
-
-and of course innumerable benefactors not listed here.
-
+hledger is brought to you by...
 
 Committers as of 2020-03:
 
@@ -152,3 +131,22 @@ Special mention:
 
 - John Wiegley - created the original ledger program
 
+And the
+
+Issue wranglers,
+
+Bug hunters,
+
+Code slingers,
+
+Doc poets,
+
+Package marshals,
+
+Helping hands,
+
+Good news preachers,
+
+Bank rollers,
+
+and of course innumerable other benefactors not mentioned here.
