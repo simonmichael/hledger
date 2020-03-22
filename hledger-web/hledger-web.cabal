@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ec505e9faa6b33a81e754a96291ea152d9d7a26b1f2862b97617220438ac3a60
+-- hash: b2a4b5dedefec698d5d1472b7d8e136fbf5d085c8e209c8891fa728a3b74af65
 
 name:           hledger-web
 version:        1.17.99
@@ -31,7 +31,7 @@ tested-with:    GHC==8.2.2, GHC==8.4.3, GHC==8.6.5, GHC==8.8.2, GHC==8.10
 build-type:     Simple
 extra-source-files:
     CHANGES.md
-    README
+    README.md
     config/favicon.ico
     config/keter.yaml
     config/robots.txt
