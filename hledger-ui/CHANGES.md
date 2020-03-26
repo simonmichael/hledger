@@ -1,7 +1,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 4191aad0
+# d868a7e1
+
+
 
 
 # 1.17.1.1 2020-03-19

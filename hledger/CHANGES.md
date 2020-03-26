@@ -1,7 +1,13 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 4191aad0
+# d868a7e1
+
+- csv: when both `amount` and `amountN`s are assigned, instead of
+  failing, just ignore `amount` and let the `amountN`s have
+  precedence. This makes it easier to override old `amount` rules.
+
+- csv: clarified the "too many non-zero amounts" error message.
 
 # 1.17.1.1 2020-03-19
 

@@ -1,7 +1,9 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 2dcac3ed
+# d59ccb26
+
+
 
 - shake: use script command, allow running without compiling first
 

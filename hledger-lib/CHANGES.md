@@ -1,7 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 4191aad0
+# e15eabdf
+
+- Fix Documentation for journalExpenseAccountQuery (Pavan Rikhi)
 
 # 1.17.1 2020-03-19
 
