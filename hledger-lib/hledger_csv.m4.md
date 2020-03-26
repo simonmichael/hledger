@@ -434,6 +434,7 @@ Also, for compatibility with hledger <1.17:
 `amount` or `amount-in`/`amount-out` with no number sets the amount
 for postings 1 and 2. For posting 2 the amount is negated, and
 converted to cost if there's a [transaction price](journal.html#transaction-prices).
+But if any numbered `amountN`/`amountN-in`/`amountN-out` fields are present, `amount` is ignored.
 
 #### currency
 

@@ -880,16 +880,21 @@ getAmount rules record currency p1IsVirtual n =
                        -- flip the sign and convert to cost, as they did before 1.17
                      , let a' = if f `elem` unnumberedfieldnames && n==2 then costOfMixedAmount (-a) else a
                      ]
-  in case nonzeroamounts of
+    -- if there's "amount" and "amountN"s, just discard the former
+    nonzeroamounts'
+      | length nonzeroamounts > 1 = filter ((/="amount").fst) nonzeroamounts
+      | otherwise                 = nonzeroamounts
+  in case nonzeroamounts' of
       [] -> Nothing
       [(f,a)] | "-out" `isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
       [(_,a)] -> Just a
       fs      -> error' $
            "more than one non-zero amount for this record, please ensure just one\n"
-        ++ unlines ["    " ++ padright 11 f ++ ": " ++ showMixedAmount a
-                    ++ " from rule: " ++ fromMaybe "" (hledgerField rules record f)
-                   | (f,a) <- fs]
         ++ "    " ++ showRecord record ++ "\n"
+        ++ unlines ["    rule: " ++ f ++ " " ++
+                    fromMaybe "" (hledgerField rules record f) ++
+                    "    amount parsed: " ++ showMixedAmount a  -- XXX not sure this is showing all the right info
+                   | (f,a) <- fs]
   where
     -- | Given a non-empty amount string to parse, along with a possibly
     -- non-empty currency symbol to prepend, parse as a hledger amount (as
