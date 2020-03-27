@@ -1650,7 +1650,7 @@ also configure it temporarily.  The locale may need to be one that
 supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
 I'm not sure yet).
 
-Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
+Here's an example of setting the locale temporarily, on Ubuntu GNU/Linux:
 
 ```shell
 $ file my.journal
@@ -1662,10 +1662,17 @@ POSIX
 $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
 ```
 
-Here's one way to set it permanently, there are probably better ways:
+Exact spelling and capitalisation may be important. Note the difference on MacOS:
+```shell
+$ locale -a | grep -iE en_us.*utf
+en_US.UTF-8
+$ LANG=en_US.UTF-8 hledger -f my.journal print
+```
+
+Here's one way to set it permanently, if you use a bash shell:
 
 ```shell
-$ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+$ echo "export LANG=en_US.utf8" >>~/.bash_profile
 $ bash --login
 ```
 
