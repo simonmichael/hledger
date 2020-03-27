@@ -1694,3 +1694,5 @@ $ LANG=fr_FR.utf8 hledger -f my.journal print
 
 Note some platforms allow variant locale spellings, but not all (ubuntu
 accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
+
+`C.UTF-8` might be a simple choice that always works.
