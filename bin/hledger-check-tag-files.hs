@@ -2,15 +2,18 @@
 -- stack script --compile --resolver nightly-2020-03-26 --package hledger-lib --package hledger --package directory --package text
 -- Add this to see more progress: --verbosity info
 -- Change --resolver to an already-installed one if you like
+{-
+hledger-check-tag-files script (stack version)
+Read the default journal and give an error if any tag values
+containing '/' do not exist as file paths.
+Usage:
 
--- Read the default journal and give an error if any tag values
--- containing '/' do not exist as file paths. Usage:
---
--- $ hledger-check-tag-files.hs    # compiles if needed
---
--- or:
---
--- $ hledger check-tag-files       # compiles if there's no compiled version
+$ hledger-check-tag-files.hs    # compiles every time (?)
+
+or:
+
+$ hledger check-tag-files       # compiles every time (?)
+-}
 
 import Control.Monad
 import qualified Data.Text as T
