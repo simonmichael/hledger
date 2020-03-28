@@ -8,11 +8,11 @@ Read the default journal and give an error if any tag values
 containing '/' do not exist as file paths.
 Usage:
 
-$ hledger-check-tag-files.hs    # compiles every time (?)
+$ hledger-check-tag-files.hs    # compiles if needed
 
 or:
 
-$ hledger check-tag-files       # compiles every time (?)
+$ hledger check-tag-files       # compiles if there's no compiled version
 -}
 
 import Control.Monad
