@@ -1,4 +1,4 @@
---- * -*- eval: (orgstruct-mode 1); orgstruct-heading-prefix-regexp:"--- "; -*-
+--- * -*- outline-regexp:"--- \\*"; -*-
 --- ** doc
 -- In Emacs, use TAB on lines beginning with "-- *" to collapse/expand sections.
 {-|
