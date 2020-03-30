@@ -1383,7 +1383,7 @@ In case of trouble, see [download](/download.html#link-errors).
 
 If you want to use an older snapshot/GHC for some reason, specify one of the older stack-*.yaml files:
 
-    stack --stack-yaml stack-8.2.yaml build
+    stack --stack-yaml stack8.2.yaml build
     
 ### Run in place
 

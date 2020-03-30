@@ -353,7 +353,7 @@ ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 # run default GHCI
 #STACKGHCI=$(STACK)
 # run latest GHCI for modern features
-STACKGHCI=stack --stack-yaml=stack-8.10.yaml
+STACKGHCI=stack --stack-yaml=stack8.10.yaml
 
 # multi-package GHCI prompts
 ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
@@ -403,7 +403,7 @@ buildplantest: $(call def-help,buildplantest, stack build --dry-run all hledger 
 buildplantest-all: $(call def-help,buildplantest-all, stack build --dry-run all hledger packages ensuring an install plan with each ghc version/stackage snapshot )
 	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildplantest-$$F; done
 
-buildplantest-%: $(call def-help,buildplantest-STACKFILE, stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack-8.2.yaml )
+buildplantest-%: $(call def-help,buildplantest-STACKFILE, stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack8.2.yaml )
 	$(STACK) build --dry-run --test --bench --stack-yaml=$*
 
 buildtest: $(call def-help,buildtest, force-rebuild all hledger packages/modules quickly ensuring no warnings with default snapshot) \
@@ -412,7 +412,7 @@ buildtest: $(call def-help,buildtest, force-rebuild all hledger packages/modules
 buildtest-all: $(call def-help,buildtest-all, force-rebuild all hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot )
 	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildtest-$$F; done
 
-buildtest-%: $(call def-help,buildtest-STACKFILE, force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack-8.2.yaml )
+buildtest-%: $(call def-help,buildtest-STACKFILE, force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack8.2.yaml )
 	$(STACK) build --test --bench $(SKIPTESTSBENCHS) --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
 
 incr-buildtest: $(call def-help,incr-buildtest, build any outdated hledger packages/modules quickly ensuring no warnings with default snapshot. Wont detect warnings in up-to-date modules.) \
@@ -421,7 +421,7 @@ incr-buildtest: $(call def-help,incr-buildtest, build any outdated hledger packa
 incr-buildtest-all: $(call def-help,incr-buildtest-all, build any outdated hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot. Wont detect warnings in up-to-date modules. )
 	for F in stack-*.yaml stack.yaml; do make --no-print-directory incr-buildtest-$$F; done
 
-incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack-8.2.yaml. Wont detect warnings in up-to-date modules. )
+incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack8.2.yaml. Wont detect warnings in up-to-date modules. )
 	$(STACK) build --test --bench $(SKIPTESTSBENCHS) --fast --ghc-options=-Werror --stack-yaml=$*
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
@@ -429,7 +429,7 @@ pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 
 # doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
 # Or, could run it with ghc 8.2: 
-#	@($(STACKTEST) --stack-yaml stack-8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+#	@($(STACKTEST) --stack-yaml stack8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 doctest: $(call def-help,doctest, run the doctests in hledger-lib module/function docs )
 	@($(STACKTEST) hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
