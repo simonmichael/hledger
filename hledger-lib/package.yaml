@@ -176,8 +176,8 @@ tests:
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
     - Glob >=0.7
-    # Need a doctest new enough to support --fast and --verbose.
-    - doctest >=0.16
+    # Need a doctest new enough to support --fast and --verbose and ghc 8.10.
+    - doctest >=0.16.3
 
     # ghc 8.4+ on mac needs this workaround (see
     # https://github.com/sol/doctest/issues/199,
@@ -190,9 +190,8 @@ tests:
     # - condition: os(darwin) && impl(ghc >= 8.4)
     #   buildable: false
 
-    # ghc 8.10 isn't supported by doctest yet, https://github.com/sol/doctest/issues/246
     # ghc 8.0 on linux gives Hledger/Read/JournalReader.hs:126: failure in expression `rejp (journalp <* eof) "2015/1/1\n a  0\n"' ... Variable not in scope: rejp :: f0 a0 -> [Char] -> t
     # must use one conditional here, https://github.com/sol/hpack/issues/379
     when:
-    - condition: (impl(ghc < 8.2) || impl(ghc >= 8.10))
+    - condition: (impl(ghc < 8.2))
       buildable: false

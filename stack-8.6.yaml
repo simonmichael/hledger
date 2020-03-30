@@ -16,6 +16,7 @@ packages:
 - hledger-web
 
 extra-deps:
+- doctest-0.16.3
 # for Shake.hs (regex doesn't support base-compat-0.11):
 - regex-1.0.2.0@rev:1
 # for testing base-compat 0.11 compatibility (mutually exclusive with the above):
