@@ -135,16 +135,33 @@ jobs:
     ## - export PATH=~/.local/bin:$PATH
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
-    - name: Zip executables
-      #cd `stack path --local-bin`
-      run: |
-        cd C:\Users\runneradmin\AppData\Roaming\local\bin\
-        7z a D:\a\hledger\hledger\hledger.zip hledger.exe hledger-web.exe
+    # - name: Zip executables
+    #   #cd `stack path --local-bin`
+    #   run: |
+    #     cd C:\Users\runneradmin\AppData\Roaming\local\bin\
+    #     7z a D:\a\hledger\hledger\hledger.zip hledger.exe hledger-web.exe
              
-    - name: Upload zip file
+    # - name: Upload zip file
+    #   uses: actions/upload-artifact@v1
+    #   with:
+    #     name: hledger.zip
+    #     path: hledger.zip
+
+    - name: Gather executables
+      run: |
+        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger.exe .
+        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe .
+             
+    - name: Upload hledger.exe artifact
       uses: actions/upload-artifact@v1
       with:
-        name: hledger.zip
-        path: hledger.zip
+        name: hledger.exe
+        path: hledger.exe
+
+    - name: Upload hledger-web.exe artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: hledger-web.exe
+        path: hledger-web.exe
 
 
