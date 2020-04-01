@@ -243,7 +243,7 @@ sortAccountTreeByDeclaration a
   | null $ asubs a = a
   | otherwise      = a{asubs=
       sortOn accountDeclarationOrderAndName $
-      map sortAccountTreeByDeclaration $ asubs a
+      asubs a
       }
 
 accountDeclarationOrderAndName :: Account -> (Int, AccountName)
