@@ -147,21 +147,17 @@ jobs:
     #     name: hledger.zip
     #     path: hledger.zip
 
+    # github automatically zips every artifact, though it's not
+    # apparent in the displayed link text and file size
+
     - name: Gather executables
       run: |
-        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger.exe .
-        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe .
+        mkdir hledger
+        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger.exe hledger\
+        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe hledger\
              
-    - name: Upload hledger.exe artifact
+    - name: Create executables artifact
       uses: actions/upload-artifact@v1
       with:
-        name: hledger.exe
-        path: hledger.exe
-
-    - name: Upload hledger-web.exe artifact
-      uses: actions/upload-artifact@v1
-      with:
-        name: hledger-web.exe
-        path: hledger-web.exe
-
-
+        name: hledger
+        path: hledger
