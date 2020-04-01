@@ -111,6 +111,8 @@ jobs:
         7z x stack.zip -oC:\Windows stack.exe
         stack --version
 
+    # resolver lts-15.3 to avoid GHC 8.8.3 access violation, https://gitlab.haskell.org/ghc/ghc/issues/17926:
+
     - name: Install GHC
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
@@ -135,15 +137,26 @@ jobs:
     ## - export PATH=~/.local/bin:$PATH
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
-    - name: Zip executables
-      #cd `stack path --local-bin`
+    # - name: Zip executables
+    #   #cd `stack path --local-bin`
+    #   run: |
+    #     cd C:\Users\runneradmin\AppData\Roaming\local\bin\
+    #     7z a D:\a\hledger\hledger\hledger.zip hledger.exe hledger-web.exe
+
+    # github automatically zips every artifact, though it's not
+    # apparent in the displayed link text and file size
+
+    - name: Gather executables
       run: |
-        cd C:\Users\runneradmin\AppData\Roaming\local\bin\
-        7z a D:\a\hledger\hledger\hledger.zip hledger.exe hledger-web.exe
+        mkdir tmp
+        cd tmp
+        mkdir hledger
+        cd hledger
+        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger.exe .
+        copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe .
              
-    - name: Upload zip file
+    - name: Create executables artifact
       uses: actions/upload-artifact@v1
       with:
         name: hledger.zip
-        path: hledger.zip
-
+        path: tmp/hledger
