@@ -31,7 +31,7 @@ th, td  {white-space:nowrap;}
 | Nix                           | [\*hledger\*](http://hydra.nixos.org/search?query=hledger) 
 | Homebrew                      | [hledger](https://formulae.brew.sh/formula/hledger) <br> our 1-year homebrew rank: <br>2020: [#1520 of 10000 on mac](https://formulae.brew.sh/analytics/install-on-request/365d), [#762 of 8288 on linux](https://formulae.brew.sh/analytics-linux/install-on-request/365d/)
 | Sandstorm                     | [hledger web app & reviews](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20)
-| Reference                     | [GHC Can I Use](http://damianfral.github.io/ghcaniuse/) 
+| Reference                     | [fosskers GHC compatibility chart](https://www.fosskers.ca/en/blog/base) 
 
 <!-- | hledger-api demo        | [api-demo.hledger.org/api/v1/accounts](http://api-demo.hledger.org/api/v1/accounts), [api-demo.hledger.org/swagger.json](http://api-demo.hledger.org/swagger.json), [in swagger editor](http://editor2.swagger.io/#/?import=api-demo.hledger.org/swagger.json&no-proxy) <br>[unfinished angular sample app](http://api-demo.hledger.org) ([code](https://github.com/simonmichael/hledger/tree/master/hledger-api/examples/angular)) -->
 <!-- 
