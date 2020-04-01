@@ -104,7 +104,7 @@ Some project achievements to unlock, for fun:
 - <s>match ledger IRC channel size</s>
 - <s>**mentioned in "what good Haskell software exists" discussions**</s>
 - <s>among top 40 starred haskell projects on github</s>
-- multiple people providing support
+- <s>multiple people providing support</s>
 - **pretty good tutorial docs**
 - **pretty good cookbook docs**
 - 100 IRC chatters
