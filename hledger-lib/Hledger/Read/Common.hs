@@ -60,6 +60,7 @@ module Hledger.Read.Common (
   getAccountAliases,
   clearAccountAliases,
   journalAddFile,
+  getAccountTypeName,
 
   -- * parsers
   -- ** transaction bits
@@ -353,9 +354,11 @@ getAmountStyle commodity = do
     let effectiveStyle = listToMaybe $ catMaybes [specificStyle, defaultStyle]
     return effectiveStyle
 
-addDeclaredAccountType :: AccountName -> AccountType -> JournalParser m ()
-addDeclaredAccountType acct atype =
-  modify' (\j -> j{jdeclaredaccounttypes = M.insertWith (++) atype [acct] (jdeclaredaccounttypes j)})
+addDeclaredAccountType :: AccountName -> AccountType -> Maybe Text -> JournalParser m ()
+addDeclaredAccountType acct atype matname =
+  modify' (\j -> j{jdeclaredaccounttypes = M.insertWith insertacctype atype ([acct],matname) (jdeclaredaccounttypes j)})
+  where
+    insertacctype (accts,matname) (accts',matname') = (accts ++ accts',matname' <> matname)
 
 pushParentAccount :: AccountName -> JournalParser m ()
 pushParentAccount acct = modify' (\j -> j{jparseparentaccounts = acct : jparseparentaccounts j})
@@ -395,6 +398,12 @@ journalAddFile :: (FilePath,Text) -> Journal -> Journal
 journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
   -- append, unlike the other fields, even though we do a final reverse,
   -- to compensate for additional reversal due to including/monoid-concatting
+
+getAccountTypeName :: AccountType -> Text -> Journal -> Text
+getAccountTypeName actype defaultatypename j = case M.lookup actype (jdeclaredaccounttypes j) of
+    Nothing -> defaultatypename
+    Just (_,Nothing) -> defaultatypename
+    Just (_,Just atname) -> atname
 
 -- A version of `match` that is strict in the returned text
 match' :: TextParser m a -> TextParser m (Text, a)

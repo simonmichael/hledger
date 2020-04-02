@@ -24,13 +24,13 @@ incomestatementSpec j = CompoundBalanceCommandSpec {
   cbctitle    = "Income Statement",
   cbcqueries  = [
      CBCSubreportSpec{
-      cbcsubreporttitle=T.unpack $ maybe "Revenues" (Prelude.head . accountNameComponents . Prelude.head) (M.lookup Revenue (jdeclaredaccounttypes j))
+      cbcsubreporttitle=T.unpack $ getAccountTypeName Revenue "Revenues" j
      ,cbcsubreportquery=journalRevenueAccountQuery
      ,cbcsubreportnormalsign=NormallyNegative
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
-      cbcsubreporttitle=T.unpack $ maybe "Expenses" (Prelude.head . accountNameComponents . Prelude.head) (M.lookup Expense (jdeclaredaccounttypes j))
+      cbcsubreporttitle=T.unpack $ getAccountTypeName Expense "Expenses" j
      ,cbcsubreportquery=journalExpenseAccountQuery
      ,cbcsubreportnormalsign=NormallyPositive
      ,cbcsubreportincreasestotal=False

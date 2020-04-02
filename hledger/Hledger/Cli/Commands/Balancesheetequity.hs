@@ -26,19 +26,19 @@ balancesheetequitySpec j = CompoundBalanceCommandSpec {
   cbctitle    = "Balance Sheet With Equity",
   cbcqueries  = [
      CBCSubreportSpec{
-      cbcsubreporttitle=T.unpack $ maybe "Assets" (Prelude.head . accountNameComponents . Prelude.head) (M.lookup Asset (jdeclaredaccounttypes j))
+      cbcsubreporttitle=T.unpack $ getAccountTypeName Asset "Assets" j
      ,cbcsubreportquery=journalAssetAccountQuery
      ,cbcsubreportnormalsign=NormallyPositive
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
-      cbcsubreporttitle=T.unpack $ maybe "Liabilities" (Prelude.head . accountNameComponents . Prelude.head) (M.lookup Liability (jdeclaredaccounttypes j))
+      cbcsubreporttitle=T.unpack $ getAccountTypeName Liability "Liabiliies" j
      ,cbcsubreportquery=journalLiabilityAccountQuery
      ,cbcsubreportnormalsign=NormallyNegative
      ,cbcsubreportincreasestotal=False
      }
     ,CBCSubreportSpec{
-      cbcsubreporttitle=T.unpack $ maybe "Equity" (Prelude.head . accountNameComponents . Prelude.head) (M.lookup Equity (jdeclaredaccounttypes j))
+      cbcsubreporttitle=T.unpack $ getAccountTypeName Equity "Equity" j
      ,cbcsubreportquery=journalEquityAccountQuery
      ,cbcsubreportnormalsign=NormallyNegative
      ,cbcsubreportincreasestotal=False

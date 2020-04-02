@@ -26,13 +26,13 @@ balancesheetSpec j = CompoundBalanceCommandSpec {
   cbctitle    = "Balance Sheet",
   cbcqueries  = [
      CBCSubreportSpec{
-      cbcsubreporttitle=T.unpack $ maybe "Assets" (Prelude.head . accountNameComponents . Prelude.head) (M.lookup Asset (jdeclaredaccounttypes j))
+      cbcsubreporttitle=T.unpack $ getAccountTypeName Asset "Assets" j
      ,cbcsubreportquery=journalAssetAccountQuery
      ,cbcsubreportnormalsign=NormallyPositive
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
-      cbcsubreporttitle=T.unpack $ maybe "Liabilities" (Prelude.head . accountNameComponents . Prelude.head) (M.lookup Liability (jdeclaredaccounttypes j))
+      cbcsubreporttitle=T.unpack $ getAccountTypeName Liability "Liabilities" j
      ,cbcsubreportquery=journalLiabilityAccountQuery
      ,cbcsubreportnormalsign=NormallyNegative
      ,cbcsubreportincreasestotal=False

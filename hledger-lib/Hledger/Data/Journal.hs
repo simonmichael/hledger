@@ -302,7 +302,7 @@ journalAccountTypeQuery :: AccountType -> Regexp -> Journal -> Query
 journalAccountTypeQuery atype fallbackregex j =
   case M.lookup atype (jdeclaredaccounttypes j) of
     Nothing -> Acct fallbackregex
-    Just as ->
+    Just (as,_) ->
       -- XXX Query isn't able to match account type since that requires extra info from the journal.
       -- So we do a hacky search by name instead.
       And [
@@ -311,7 +311,7 @@ journalAccountTypeQuery atype fallbackregex j =
         ]
       where
         differentlytypedsubs = concat
-          [subs | (t,bs) <- M.toList (jdeclaredaccounttypes j)
+          [subs | (t,(bs, _)) <- M.toList (jdeclaredaccounttypes j)
               , t /= atype
               , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
           ]

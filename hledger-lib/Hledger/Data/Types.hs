@@ -468,7 +468,7 @@ data Journal = Journal {
   ,jincludefilestack      :: [FilePath]
   -- principal data
   ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation)
-  ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts)
+  ,jdeclaredaccounttypes  :: M.Map AccountType ([AccountName], Maybe Text) -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts)
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
   ,jpricedirectives       :: [PriceDirective]                       -- ^ All market price declarations (P directives), in parse order (after journal finalisation).
