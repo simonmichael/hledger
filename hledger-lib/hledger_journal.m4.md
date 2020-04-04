@@ -421,11 +421,17 @@ must be enclosed in double quotes:
 
     3 "no. 42 green apples"
 
-Amounts can be negative. The minus sign can be written before or after
-a left-side commodity symbol:
+Amounts can be preceded by a minus sign (or a plus sign, though plus is the default),
+The sign can be written before or after a left-side commodity symbol:
 
     -$1
     $-1
+
+One or more spaces between the sign and the number are acceptable
+when parsing (but they won't be displayed in output):
+
+    + $1
+    $-      1
 
 Scientific E notation is allowed:
 

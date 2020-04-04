@@ -688,8 +688,10 @@ amountp' s =
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
+-- | Parse a minus or plus sign followed by zero or more spaces,
+-- or nothing, returning a function that negates or does nothing.
 signp :: Num a => TextParser m (a -> a)
-signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
+signp = ((char '-' *> pure negate <|> char '+' *> pure id) <* many spacenonewline) <|> pure id
 
 multiplierp :: TextParser m Bool
 multiplierp = option False $ char '*' *> pure True
