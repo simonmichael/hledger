@@ -859,37 +859,47 @@ transactionFromCsvRecord sourcepos rules record = t
           }  
 
 -- | Figure out the amount specified for posting N, if any.
--- Looks for a non-zero amount assigned to one of "amountN", "amountN-in", "amountN-out".
--- Postings 1 or 2 also look at "amount", "amount-in", "amount-out".
--- Throws an error if more than one of these has a non-zero amount assigned.
 -- A currency symbol to prepend to the amount, if any, is provided,
 -- and whether posting 1 requires balancing or not.
+-- This looks for a non-empty amount value assigned to "amountN", "amountN-in", or "amountN-out".
+-- For postings 1 or 2 it also looks at "amount", "amount-in", "amount-out".
+-- If more than one of these has a value, it looks for one that is non-zero.
+-- If there's multiple non-zeros, or no non-zeros but multiple zeros, it throws an error.
 getAmount :: CsvRules -> CsvRecord -> String -> Bool -> Int -> Maybe MixedAmount
 getAmount rules record currency p1IsVirtual n =
+  -- The corner cases are tricky here.
   let
     unnumberedfieldnames = ["amount","amount-in","amount-out"]
     fieldnames = map (("amount"++show n)++) ["","-in","-out"]
                  -- For posting 1, also recognise the old amount/amount-in/amount-out names.
                  -- For posting 2, the same but only if posting 1 needs balancing.
                  ++ if n==1 || n==2 && not p1IsVirtual then unnumberedfieldnames else []
-    nonzeroamounts = [(f,a') | f <- fieldnames
+    nonemptyamounts = [(f,a') | f <- fieldnames
                      , Just v@(_:_) <- [strip . renderTemplate rules record <$> hledgerField rules record f]
                      , let a = parseAmount rules record currency v
-                     , not $ isZeroMixedAmount a
                        -- With amount/amount-in/amount-out, in posting 2,
                        -- flip the sign and convert to cost, as they did before 1.17
                      , let a' = if f `elem` unnumberedfieldnames && n==2 then costOfMixedAmount (-a) else a
                      ]
+    -- If there's more than one non-empty amount, ignore the zeros.
+    -- Unless they're all zeros.
+    amounts
+      | length nonemptyamounts <= 1 = nonemptyamounts
+      | otherwise =
+          if null nonzeros then zeros else nonzeros
+          where (zeros,nonzeros) = partition (isZeroMixedAmount . snd) nonemptyamounts
+
     -- if there's "amount" and "amountN"s, just discard the former
-    nonzeroamounts'
-      | length nonzeroamounts > 1 = filter ((/="amount").fst) nonzeroamounts
-      | otherwise                 = nonzeroamounts
-  in case nonzeroamounts' of
+    amounts'
+      | length amounts > 1 = filter ((/="amount").fst) amounts
+      | otherwise          = amounts
+
+  in case amounts' of
       [] -> Nothing
       [(f,a)] | "-out" `isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
       [(_,a)] -> Just a
       fs      -> error' $
-           "more than one non-zero amount for this record, please ensure just one\n"
+           "more than one non-zero amount for this record, or multiple zeros - please ensure just one\n"
         ++ "    " ++ showRecord record ++ "\n"
         ++ unlines ["    rule: " ++ f ++ " " ++
                     fromMaybe "" (hledgerField rules record f) ++
