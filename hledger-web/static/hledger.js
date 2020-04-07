@@ -33,7 +33,6 @@ $(document).ready(function() {
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'f',       function(){ $('#searchform input').focus(); return false; });
-  lastAmountBindKey();
 
   // highlight the entry from the url hash
   if (window.location.hash && $(window.location.hash)[0]) {
@@ -47,11 +46,6 @@ $(document).ready(function() {
       $('.row-offcanvas').toggleClass('active');
   });
 });
-
-// Add the add-new-row-on-keypress handler to the current last amount field.
-function lastAmountBindKey() {
-  $('.amount-input:last').keypress(addformAddPosting);
-}
 
 //----------------------------------------------------------------------
 // REGISTER CHART
@@ -139,16 +133,25 @@ function addformShow(showmsg) {
   $('#addmodal').modal('show');
 }
 
-// Make sure the add form is empty and clean for display.
+// Make sure the add form is empty and clean and has the default number of rows.
 function addformReset(showmsg) {
   showmsg = typeof showmsg !== 'undefined' ? showmsg : false;
   if ($('form#addform').length > 0) {
     if (!showmsg) $('div#message').html('');
-    $('form#addform')[0].reset();
+    $('#addform .account-group.added-row').remove();
+    addformLastAmountBindKey();
+    $('#addform')[0].reset();
     // reset typehead state (though not fetched completions)
     $('.typeahead').typeahead('val', '');
     $('.tt-dropdown-menu').hide();
   }
+}
+
+// Set the add-new-row-on-keypress handler on the add form's current last amount field, only.
+// (NB: removes all other keypress handlers from all amount fields).
+function addformLastAmountBindKey() {
+  $('.amount-input').off('keypress');
+  $('.amount-input:last').keypress(addformAddPosting);
 }
 
 // Focus the first add form field.
@@ -168,19 +171,14 @@ function addformAddPosting() {
   if (!$('#addform').is(':visible')) {
     return;
   }
-
-  // Remove the keypress handler from the old last amount field
-  $('.amount-input:last').off('keypress');
-
   // Clone the old last row to make a new last row
-  $('#addform .account-postings').append( $('#addform .account-group:last').clone() );
+  $('#addform .account-postings').append( $('#addform .account-group:last').clone().addClass('added-row') );
   // renumber and clear the new last account and amount fields
   var n = $('#addform .account-group').length;
   $('.account-input:last').prop('placeholder', 'Account '+n).val('');
   $('.amount-input:last').prop('placeholder','Amount '+n).val('');  // XXX Enable typehead on dynamically created inputs
-
-  // and add the keypress handler to the new last amount field
-  lastAmountBindKey();
+  // and move the keypress handler to the new last amount field
+  addformLastAmountBindKey();
 }
 
 // Remove the add form's last posting row, if empty, keeping at least two.
@@ -197,8 +195,8 @@ function addformDeletePosting() {
   if (focuslost) {
     focus($('.account-input:last'));
   }
-
-  lastAmountBindKey();
+  // move the keypress handler to the new last amount field
+  addformLastAmountBindKey();
 }
 
 //----------------------------------------------------------------------
