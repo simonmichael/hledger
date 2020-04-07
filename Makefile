@@ -321,6 +321,9 @@ ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hle
 ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
 	ghcid -c 'make ghci-web'
 
+ghcid-web-run: $(call def-help,ghcid-web-run, start ghcid autobuilding and running hledger-web with sample journal on port 5001 )
+	ghcid -c 'make ghci-web' --test ':main -f examples/sample.journal --port 5001 --serve'
+
 ghcid-test: $(call def-help,ghcid-test, start ghcid autobuilding and running the test command)
 	ghcid -c 'make ghci' --test ':main test -- --color=always'
 
