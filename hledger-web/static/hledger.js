@@ -33,11 +33,7 @@ $(document).ready(function() {
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'f',       function(){ $('#searchform input').focus(); return false; });
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl++',       addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
-  $('.amount-input:last').keypress(addformAddPosting);
+  addformBindKeys();
 
   // highlight the entry from the url hash
   if (window.location.hash && $(window.location.hash)[0]) {
@@ -51,6 +47,17 @@ $(document).ready(function() {
       $('.row-offcanvas').toggleClass('active');
   });
 });
+
+// Set up keybindings affecting the add form, everywhere they should be
+// (body, each add form input, and one more on the last amount input).
+// Called on page load and again each time an add form row is added.
+function addformBindKeys() {
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl++',       addformAddPosting);
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
+  $('.amount-input:last').keypress(addformAddPosting);
+}
 
 //----------------------------------------------------------------------
 // REGISTER CHART
@@ -168,27 +175,17 @@ function addformAddPosting() {
     return;
   }
 
-  var prevLastRow = $('#addform .account-group:last');
-  prevLastRow.off('keypress');
+  // Remove the add-new-row-on-keypress handler from the old last amount field
+  $('.amount-input:last').off('keypress');
 
-  // Clone the currently last row
-  $('#addform .account-postings').append(prevLastRow.clone());
-  var num = $('#addform .account-group').length;
-
-  // clear and renumber the field, add keybindings
-  // XXX Enable typehead on dynamically created inputs
-  $('.amount-input:last')
-    .val('')
-    .prop('placeholder','Amount ' + num)
-    .keypress(addformAddPosting);
-
-  $('.account-input:last')
-    .val('')
-    .prop('placeholder', 'Account ' + num)
-    .bind('keydown', 'ctrl++', addformAddPosting)
-    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
-    .bind('keydown', 'ctrl+=', addformAddPosting)
-    .bind('keydown', 'ctrl+-', addformDeletePosting);
+  // Clone the old last row to make a new last row
+  $('#addform .account-postings').append( $('#addform .account-group:last').clone() );
+  // renumber and clear the new last account and amount fields
+  var n = $('#addform .account-group').length;
+  $('.account-input:last').prop('placeholder', 'Account '+n).val('');
+  $('.amount-input:last').prop('placeholder','Amount '+n).val('');  // XXX Enable typehead on dynamically created inputs
+  // and ensure they have the proper keybindings
+  addformBindKeys();
 }
 
 // Remove the add form's last posting row, if empty, keeping at least two.
