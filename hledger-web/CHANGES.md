@@ -1,8 +1,14 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# d868a7e1
+# 23a79af1
 
+- web: add form: always start with four rows when opened
+
+- web: add form: drop unneeded C-minus/C-plus keys & related help text
+
+- web: fix a 2016 regression adding too many add form rows
+  from keypresses in the last amount field and CTRL-plus (#422, #1059)
 
 
 # 1.17.1 2020-03-19

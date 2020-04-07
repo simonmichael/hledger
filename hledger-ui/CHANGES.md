@@ -1,7 +1,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# d868a7e1
+# 293e2d81
+
+
 
 
 

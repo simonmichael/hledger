@@ -1,7 +1,14 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# d59ccb26
+# 3178a860
+
+- make ghcid-web-run
+
+- bin: hledger-check-tag-files2, a version using cabal's v2-run command
+
+- bin: hledger-check-tag-files, a script using stack's script command
+
 
 
 

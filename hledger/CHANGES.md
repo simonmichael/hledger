@@ -1,7 +1,13 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# d868a7e1
+# e7e9f1ee
+
+- csv: don't discard explicit assignments of a 0 amount
+  Eg: an `amount1  $0.00` assignment was generating a posting1 with
+  missing amount.
+
+- allow spaces between sign and number when parsing amounts
 
 - csv: when both `amount` and `amountN`s are assigned, instead of
   failing, just ignore `amount` and let the `amountN`s have
