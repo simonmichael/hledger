@@ -327,7 +327,7 @@ ghcid-web-run: $(call def-help,ghcid-web-run, start ghcid autobuilding and runni
 ghcid-test: $(call def-help,ghcid-test, start ghcid autobuilding and running the test command)
 	ghcid -c 'make ghci' --test ':main test -- --color=always'
 
-ghcid-test-%: $(call def-help,ghcid-test-TESTPATTERN, start ghcid autobuilding and running the test command with the given TESTPATTERN)
+ghcid-test-%: $(call def-help,ghcid-test-TESTPATTERN, start ghcid autobuilding and running the test command with this TESTPATTERN)
 	ghcid -c 'make ghci' --test ':main test -- --color=always -p$*'
 
 ghcid-doctest: $(call def-help,ghcid-doctest, start ghcid autobuilding and running hledger-lib doctests)
@@ -354,9 +354,9 @@ ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghcid Shake.hs
 
 # run default GHCI
-#STACKGHCI=$(STACK)
+STACKGHCI=$(STACK)
 # run latest GHCI for modern features
-STACKGHCI=stack --stack-yaml=stack8.10.yaml
+#STACKGHCI=stack --stack-yaml=stack8.10.yaml
 
 # multi-package GHCI prompts
 ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
