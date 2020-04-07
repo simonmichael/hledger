@@ -33,7 +33,7 @@ $(document).ready(function() {
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'f',       function(){ $('#searchform input').focus(); return false; });
-  addformBindKeys();
+  lastAmountBindKey();
 
   // highlight the entry from the url hash
   if (window.location.hash && $(window.location.hash)[0]) {
@@ -48,14 +48,8 @@ $(document).ready(function() {
   });
 });
 
-// Set up keybindings affecting the add form, everywhere they should be
-// (body, each add form input, and one more on the last amount input).
-// Called on page load and again each time an add form row is added.
-function addformBindKeys() {
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl++',       addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
+// Add the add-new-row-on-keypress handler to the current last amount field.
+function lastAmountBindKey() {
   $('.amount-input:last').keypress(addformAddPosting);
 }
 
@@ -175,7 +169,7 @@ function addformAddPosting() {
     return;
   }
 
-  // Remove the add-new-row-on-keypress handler from the old last amount field
+  // Remove the keypress handler from the old last amount field
   $('.amount-input:last').off('keypress');
 
   // Clone the old last row to make a new last row
@@ -184,8 +178,9 @@ function addformAddPosting() {
   var n = $('#addform .account-group').length;
   $('.account-input:last').prop('placeholder', 'Account '+n).val('');
   $('.amount-input:last').prop('placeholder','Amount '+n).val('');  // XXX Enable typehead on dynamically created inputs
-  // and ensure they have the proper keybindings
-  addformBindKeys();
+
+  // and add the keypress handler to the new last amount field
+  lastAmountBindKey();
 }
 
 // Remove the add form's last posting row, if empty, keeping at least two.
@@ -202,8 +197,8 @@ function addformDeletePosting() {
   if (focuslost) {
     focus($('.account-input:last'));
   }
-  // Rebind keypress
-  $('.amount-input:last').keypress(addformAddPosting);
+
+  lastAmountBindKey();
 }
 
 //----------------------------------------------------------------------

@@ -65,7 +65,3 @@ $if length journals > 1
       $forall p <- journals
         <option value=#{p}>#{p}
 <span .small style="padding-left:2em;">
-  Enter a value in the last field for #
-  <a href="#" onclick="addformAddPosting(); return false;">
-    more
-  \ (or ctrl +, ctrl -)
