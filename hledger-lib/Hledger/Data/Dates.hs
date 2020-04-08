@@ -1091,7 +1091,7 @@ fromdatespanp rdate = do
 
 todatespanp :: Day -> TextParser m DateSpan
 todatespanp rdate = do
-  choice [string' "to", string' "-"] >> skipMany spacenonewline
+  choice [string' "to", string' "until", string' "-"] >> skipMany spacenonewline
   DateSpan Nothing . Just . fixSmartDate rdate <$> smartdate
 
 justdatespanp :: Day -> TextParser m DateSpan
