@@ -716,8 +716,7 @@ postingp mTransactionYear = do
   lift (skipMany spacenonewline)
   amount <- option missingmixedamt $ Mixed . (:[]) <$> amountp
   lift (skipMany spacenonewline)
-  massertion <- optional $ balanceassertionp
-  _ <- fixedlotpricep
+  massertion <- optional balanceassertionp
   lift (skipMany spacenonewline)
   (comment,tags,mdate,mdate2) <- lift $ postingcommentp mTransactionYear
   return posting
@@ -856,7 +855,9 @@ tests_JournalReader = tests "JournalReader" [
 
     ,test "quoted commodity symbol with digits" $ assertParse (postingp Nothing) "  a  1 \"DE123\"\n"
 
-    ,test "balance assertion and fixed lot price" $ assertParse (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n"
+    ,test "lot price before transaction price" $ assertParse (postingp Nothing) "  a  1A {1B} @ 1B\n"
+    ,test "lot price after transaction price" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B}\n"
+    ,test "lot price after balance assertion not allowed" $ assertParseError (postingp Nothing) "  a  1A @ 1B = 1A {1B}\n" "unexpected '{'"
 
     ,test "balance assertion over entire contents of account" $ assertParse (postingp Nothing) "  a  $1 == $1\n"
     ]

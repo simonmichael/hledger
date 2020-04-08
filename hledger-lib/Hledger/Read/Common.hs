@@ -84,7 +84,7 @@ module Hledger.Read.Common (
   commoditysymbolp,
   priceamountp,
   balanceassertionp,
-  fixedlotpricep,
+  lotpricep,
   numberp,
   fromRawNumber,
   rawnumberp,
@@ -603,14 +603,27 @@ spaceandamountormissingp =
     lift $ skipSome spacenonewline
     Mixed . (:[]) <$> amountp
 
--- | Parse a single-commodity amount, with optional symbol on the left or
--- right, optional unit or total price, and optional (ignored)
--- ledger-style balance assertion or fixed lot price declaration.
+-- | Parse a single-commodity amount, with optional symbol on the left
+-- or right, followed by an optional transaction price (@ or @@), and
+-- an optional ledger-style lot price ({} or {=}). The lot price will
+-- be ignored, and may appear before or after the transaction price.
 amountp :: JournalParser m Amount
 amountp = label "amount" $ do
+  let spaces = lift $ skipMany spacenonewline
   amount <- amountwithoutpricep
-  lift $ skipMany spacenonewline
-  mprice <- priceamountp
+  spaces
+  _elotprice <- optional $ lotpricep <* spaces
+  mprice <- optional $ priceamountp <* spaces
+  _elotprice <- optional $ lotpricep
+  pure $ amount { aprice = mprice }
+
+-- XXX Just like amountp but don't allow lot prices. Needed for balanceassertionp.
+amountpnolotprices :: JournalParser m Amount
+amountpnolotprices = label "amount" $ do
+  let spaces = lift $ skipMany spacenonewline
+  amount <- amountwithoutpricep
+  spaces
+  mprice <- optional $ priceamountp <* spaces
   pure $ amount { aprice = mprice }
 
 amountwithoutpricep :: JournalParser m Amount
@@ -720,15 +733,16 @@ quotedcommoditysymbolp =
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
-priceamountp :: JournalParser m (Maybe AmountPrice)
-priceamountp = option Nothing $ do
+priceamountp :: JournalParser m AmountPrice
+priceamountp = (do
   char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountwithoutpricep <?> "unpriced amount (specifying a price)"
+  priceAmount <- amountwithoutpricep -- <?> "unpriced amount (specifying a price)"
 
-  pure $ Just $ priceConstructor priceAmount
+  pure $ priceConstructor priceAmount
+  ) <?> "price amount"
 
 balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
@@ -739,7 +753,7 @@ balanceassertionp = do
   lift (skipMany spacenonewline)
   -- this amount can have a price; balance assertions ignore it,
   -- but balance assignments will use it
-  a <- amountp <?> "amount (for a balance assertion or assignment)"
+  a <- amountpnolotprices <?> "amount (for a balance assertion or assignment)"
   return BalanceAssertion
     { baamount    = a
     , batotal     = istotal
@@ -747,22 +761,19 @@ balanceassertionp = do
     , baposition  = sourcepos
     }
 
--- Parse a Ledger-style fixed lot price: {=PRICE}
+-- Parse a Ledger-style fixed {=PRICE} or non-fixed {PRICE} lot price,
+-- as a Left or Right Amount respectively.
 -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
--- Currently we ignore these (hledger's @ PRICE is equivalent),
--- and we don't parse a Ledger-style {PRICE} (equivalent to Ledger's @ PRICE).
-fixedlotpricep :: JournalParser m (Maybe Amount)
-fixedlotpricep = optional $ do
-  try $ do
-    lift (skipMany spacenonewline)
-    char '{'
+lotpricep :: JournalParser m (Either Amount Amount)
+lotpricep = (do
+  char '{'
+  fixed <- fmap isJust $ optional $ lift (skipMany spacenonewline) >> char '='
   lift (skipMany spacenonewline)
-  char '='
-  lift (skipMany spacenonewline)
-  a <- amountwithoutpricep <?> "unpriced amount (for an ignored ledger-style fixed lot price)"
+  a <- amountwithoutpricep
   lift (skipMany spacenonewline)
   char '}'
-  return a
+  return $ (if fixed then Left else Right) a
+  ) <?> "ledger-style lot price or fixed lot price"
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.
