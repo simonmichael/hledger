@@ -21,7 +21,7 @@ learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
 We describe each CSV file's format with a corresponding *rules file*.
 By default this is named like the CSV file with a `.rules` extension
 added. Eg when reading `FILE.csv`, hledger also looks for
-`FILE.csv.rules` in the same directory. You can specify a different
+`FILE.csv.rules` in the same directory as `FILE.csv`. You can specify a different
 rules file with the `--rules-file` option. If a rules file is not
 found, hledger will create a sample rules file, which you'll need to
 adjust.
