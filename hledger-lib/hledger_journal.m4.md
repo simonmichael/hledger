@@ -589,7 +589,7 @@ $ hledger bal -N --flat -B
 
 Ledger allows another kind of price, 
 [lot price](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
-(four variants: `{UNITPRICE}`, `{{TOTALPRICE}}`, `{=FIXEDUNITPRICE}`, `{{=FIXEDTOTALPRICE}}`),
+(four variants: `{UNITPRICE}`, `{{{{TOTALPRICE}}}}`, `{=FIXEDUNITPRICE}`, `{{{{=FIXEDTOTALPRICE}}}}`),
 and/or a lot date (`[DATE]`) to be specified.
 These are normally used to select a lot when selling investments.
 hledger will parse these, for compatibility with Ledger journals, but currently ignores them.
