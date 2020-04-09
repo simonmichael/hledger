@@ -735,15 +735,17 @@ simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
 priceamountp :: JournalParser m AmountPrice
-priceamountp = (do
+priceamountp = label "transaction price" $ do
+  -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
+  parenthesised <- option False $ char '(' >> pure True
   char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
+  when parenthesised $ void $ char ')'
 
   lift (skipMany spacenonewline)
   priceAmount <- amountwithoutpricep -- <?> "unpriced amount (specifying a price)"
 
   pure $ priceConstructor priceAmount
-  ) <?> "price amount"
 
 balanceassertionp :: JournalParser m BalanceAssertion
 balanceassertionp = do
@@ -1363,7 +1365,9 @@ tests_Common = tests "Common" [
             ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
             }
         }
-    ]
+   ,test "unit price, parenthesised" $ assertParse amountp "$10 (@) €0.5"
+   ,test "total price, parenthesised" $ assertParse amountp "$10 (@@) €0.5"
+   ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
    test "numberp" $ do

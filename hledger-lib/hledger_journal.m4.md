@@ -549,6 +549,12 @@ There are several ways to record a transaction price:
       assets:dollars  $-135          ; for $135
     ```
 
+4.
+5. Like 1 and 2, but the `@` or `@@` is parenthesised; this is for
+   compatibility with Ledger journals 
+   ([Virtual posting costs](https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs)), 
+   and in hledger is equivalent to 1 and 2.
+
 Use the [`-B/--cost`](hledger.html#reporting-options) flag to convert
 amounts to their transaction price's commodity, if any.
 (mnemonic: "B" is from "cost Basis", as in Ledger).
