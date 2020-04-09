@@ -549,9 +549,6 @@ There are several ways to record a transaction price:
       assets:dollars  $-135          ; for $135
     ```
 
-(Ledger users: Ledger uses a different [syntax](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
-for fixed prices, `{=UNITPRICE}`, which hledger currently ignores).
-
 Use the [`-B/--cost`](hledger.html#reporting-options) flag to convert
 amounts to their transaction price's commodity, if any.
 (mnemonic: "B" is from "cost Basis", as in Ledger).
@@ -581,6 +578,19 @@ $ hledger bal -N --flat -B
                €-100  assets:dollars  # <- the dollars' selling price
                 €100  assets:euros
 ```
+
+## Lot Prices
+
+Ledger allows another kind of price, 
+[lot price](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices),
+to be specified in curly braces
+(three variants: `{UNITPRICE}`, `{{TOTALPRICE}}`, `{=FIXEDUNITPRICE}`).
+This is normally used to select a lot when selling investments.
+hledger will parse these, for compatibility with Ledger journals, but
+currently ignores them.
+They may appear after the posting amount, before or after the
+[transaction price](#transaction-prices) if any, and before the
+balance assertion if any.
 
 ## Balance Assertions
 

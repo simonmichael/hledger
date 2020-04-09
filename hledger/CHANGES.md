@@ -3,6 +3,13 @@ User-visible changes in the hledger command line tool and library.
 
 # e7e9f1ee
 
+- Improved parse compatibility for Ledger lot prices:
+  hledger up to 1.17.1 did not accept Ledger's lot price syntax except
+  in vary limited circumstances (`{= }` at the end of the posting line).
+  hledger now accepts all three lot price syntaxes (`{ }`, `{{ }}`, `{= }`),
+  anywhere after the posting amount but before any balance assertion.
+  All of these lot prices are ignored.
+
 - csv: don't discard explicit assignments of a 0 amount
   Eg: an `amount1  $0.00` assignment was generating a posting1 with
   missing amount.
