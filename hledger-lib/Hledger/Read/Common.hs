@@ -605,9 +605,9 @@ spaceandamountormissingp =
     Mixed . (:[]) <$> amountp
 
 -- | Parse a single-commodity amount, with optional symbol on the left
--- or right, followed by an optional transaction price (@ or @@), and
--- an optional ledger-style lot price ({} or {=}). The lot price will
--- be ignored, and may appear before or after the transaction price.
+-- or right, followed by, in any order: an optional transaction price,
+-- an optional ledger-style lot price, and/or an optional ledger-style
+-- lot date. A lot price and lot date will be ignored.
 amountp :: JournalParser m Amount
 amountp = label "amount" $ do
   let spaces = lift $ skipMany spacenonewline
