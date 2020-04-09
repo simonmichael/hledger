@@ -351,7 +351,7 @@ Be sure to note the unusual two-space delimiter between account name and amount.
 This makes it easy to write account names containing spaces.
 But if you accidentally leave only one space (or tab) before the amount, the amount will be considered part of the account name.
 
-### Virtual Postings
+### Virtual postings
 
 A posting with a parenthesised account name is called a *virtual posting*
 or *unbalanced posting*, which means it is exempt from the usual rule
@@ -585,7 +585,7 @@ $ hledger bal -N --flat -B
                 €100  assets:euros
 ```
 
-## Lot Prices and Lot Dates
+## Lot prices and lot dates
 
 Ledger allows another kind of price, 
 [lot price](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
@@ -596,7 +596,7 @@ hledger will parse these, for compatibility with Ledger journals, but currently 
 A [transaction price](#transaction-prices), lot price and/or lot date may appear in any order,
 after the posting amount and before the balance assertion if any.
 
-## Balance Assertions
+## Balance assertions
 
 hledger supports
 [Ledger-style balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
@@ -744,7 +744,7 @@ Eg a [commodity directive](http://hledger.org/journal.html#declaring-commodities
 may limit the display precision, but this will not affect balance assertions.
 Balance assertion failure messages show exact amounts.
 
-## Balance Assignments
+## Balance assignments
 
 [Ledger-style balance assignments](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assignments) are also supported.
 These are like [balance assertions](#balance-assertions), but with no posting amount on the left side of the equals sign;

@@ -918,7 +918,7 @@ Examples:
 | `date:thismonth-` |                                                                                             |
 | `date:thismonth`  |                                                                                             |
 
-##  Report intervals
+## Report intervals
 
 A report interval can be specified so that commands like
 [register](#register), [balance](#balance) and [activity](#activity) will divide their
@@ -1538,7 +1538,7 @@ _include_({{Hledger/Cli/Commands/Tags.md}})
 _include_({{Hledger/Cli/Commands/Test.md}})
 
 
-## Add-on Commands
+## Add-on commands
 
 hledger also searches for external add-on commands, and will include these in the commands list.
 These are programs or scripts in your PATH whose name starts with `hledger-`
