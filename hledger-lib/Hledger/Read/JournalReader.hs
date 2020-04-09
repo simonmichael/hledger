@@ -862,6 +862,9 @@ tests_JournalReader = tests "JournalReader" [
     ,test "lot price before transaction price" $ assertParse (postingp Nothing) "  a  1A {1B} @ 1B\n"
     ,test "lot price after transaction price" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B}\n"
     ,test "lot price after balance assertion not allowed" $ assertParseError (postingp Nothing) "  a  1A @ 1B = 1A {1B}\n" "unexpected '{'"
+    ,test "only lot date" $ assertParse (postingp Nothing) "  a  1A [2000-01-01]\n"
+    ,test "transaction price, lot price, lot date" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B} [2000-01-01]\n"
+    ,test "lot date, lot price, transaction price" $ assertParse (postingp Nothing) "  a  1A [2000-01-01] {1B} @ 1B\n"
 
     ,test "balance assertion over entire contents of account" $ assertParse (postingp Nothing) "  a  $1 == $1\n"
     ]

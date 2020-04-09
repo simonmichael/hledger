@@ -137,6 +137,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
+import Control.Applicative.Permutations
 
 import Hledger.Data
 import Hledger.Utils
@@ -610,11 +611,11 @@ spaceandamountormissingp =
 amountp :: JournalParser m Amount
 amountp = label "amount" $ do
   let spaces = lift $ skipMany spacenonewline
-  amount <- amountwithoutpricep
-  spaces
-  _elotprice <- optional $ lotpricep <* spaces
-  mprice <- optional $ priceamountp <* spaces
-  _elotprice <- optional $ lotpricep
+  amount <- amountwithoutpricep <* spaces
+  (mprice, _elotprice, _elotdate) <- runPermutation $
+    (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp <* spaces)
+         <*> toPermutationWithDefault Nothing (Just <$> lotpricep <* spaces)
+         <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
   pure $ amount { aprice = mprice }
 
 -- XXX Just like amountp but don't allow lot prices. Needed for balanceassertionp.
@@ -761,21 +762,33 @@ balanceassertionp = do
     , baposition  = sourcepos
     }
 
--- Parse a Ledger-style fixed {=PRICE} or non-fixed {PRICE} lot price,
--- as a Left or Right Amount respectively.
+-- Parse a Ledger-style fixed {=UNITPRICE} or non-fixed {UNITPRICE}
+-- or fixed {{=TOTALPRICE}} or non-fixed {{TOTALPRICE}} lot price,
+-- and ignore it.
 -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
-lotpricep :: JournalParser m (Either Amount Amount)
-lotpricep = (do
+lotpricep :: JournalParser m ()
+lotpricep = label "ledger-style lot price" $ do
   char '{'
   doublebrace <- option False $ char '{' >> pure True
-  fixed <- fmap isJust $ optional $ lift (skipMany spacenonewline) >> char '='
+  _fixed <- fmap isJust $ optional $ lift (skipMany spacenonewline) >> char '='
   lift (skipMany spacenonewline)
-  a <- amountwithoutpricep
+  _a <- amountwithoutpricep
   lift (skipMany spacenonewline)
   char '}'
   when (doublebrace) $ void $ char '}'
-  return $ (if fixed then Left else Right) a
-  ) <?> "ledger-style lot price or fixed lot price"
+  return ()
+
+-- Parse a Ledger-style lot date [DATE], and ignore it.
+-- https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices .
+lotdatep :: JournalParser m ()
+lotdatep = (do
+  char '['
+  lift (skipMany spacenonewline)
+  _d <- datep
+  lift (skipMany spacenonewline)
+  char ']'
+  return ()
+  ) <?> "ledger-style lot date"
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.

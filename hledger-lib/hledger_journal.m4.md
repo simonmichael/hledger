@@ -579,18 +579,16 @@ $ hledger bal -N --flat -B
                 €100  assets:euros
 ```
 
-## Lot Prices
+## Lot Prices and Lot Dates
 
 Ledger allows another kind of price, 
-[lot price](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices),
-to be specified in curly braces
-(three variants: `{UNITPRICE}`, `{{TOTALPRICE}}`, `{=FIXEDUNITPRICE}`).
-This is normally used to select a lot when selling investments.
-hledger will parse these, for compatibility with Ledger journals, but
-currently ignores them.
-They may appear after the posting amount, before or after the
-[transaction price](#transaction-prices) if any, and before the
-balance assertion if any.
+[lot price](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
+(four variants: `{UNITPRICE}`, `{{TOTALPRICE}}`, `{=FIXEDUNITPRICE}`, `{{=FIXEDTOTALPRICE}}`),
+and/or a lot date (`[DATE]`) to be specified.
+These are normally used to select a lot when selling investments.
+hledger will parse these, for compatibility with Ledger journals, but currently ignores them.
+A [transaction price](#transaction-prices), lot price and/or lot date may appear in any order,
+after the posting amount and before the balance assertion if any.
 
 ## Balance Assertions
 
