@@ -6,7 +6,8 @@ User-visible changes in the hledger command line tool and library.
 - Improved parse compatibility for Ledger lot prices:
   hledger up to 1.17.1 did not accept Ledger's lot price syntax except
   in vary limited circumstances (`{= }` at the end of the posting line).
-  hledger now accepts all three lot price syntaxes (`{ }`, `{{ }}`, `{= }`),
+  hledger now accepts all four of Ledger's lot price syntaxes 
+  (`{PRICE}`, `{{PRICE}}`, `{=PRICE}`, `{{=PRICE}}`),
   anywhere after the posting amount but before any balance assertion.
   All of these lot prices are ignored.
 

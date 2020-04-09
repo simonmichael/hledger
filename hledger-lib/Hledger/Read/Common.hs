@@ -767,11 +767,13 @@ balanceassertionp = do
 lotpricep :: JournalParser m (Either Amount Amount)
 lotpricep = (do
   char '{'
+  doublebrace <- option False $ char '{' >> pure True
   fixed <- fmap isJust $ optional $ lift (skipMany spacenonewline) >> char '='
   lift (skipMany spacenonewline)
   a <- amountwithoutpricep
   lift (skipMany spacenonewline)
   char '}'
+  when (doublebrace) $ void $ char '}'
   return $ (if fixed then Left else Right) a
   ) <?> "ledger-style lot price or fixed lot price"
 

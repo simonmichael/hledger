@@ -855,6 +855,10 @@ tests_JournalReader = tests "JournalReader" [
 
     ,test "quoted commodity symbol with digits" $ assertParse (postingp Nothing) "  a  1 \"DE123\"\n"
 
+    ,test "only lot price" $ assertParse (postingp Nothing) "  a  1A {1B}\n"
+    ,test "fixed lot price" $ assertParse (postingp Nothing) "  a  1A {=1B}\n"
+    ,test "total lot price" $ assertParse (postingp Nothing) "  a  1A {{1B}}\n"
+    ,test "fixed total lot price, and spaces" $ assertParse (postingp Nothing) "  a  1A {{  =  1B }}\n"
     ,test "lot price before transaction price" $ assertParse (postingp Nothing) "  a  1A {1B} @ 1B\n"
     ,test "lot price after transaction price" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B}\n"
     ,test "lot price after balance assertion not allowed" $ assertParseError (postingp Nothing) "  a  1A @ 1B = 1A {1B}\n" "unexpected '{'"
