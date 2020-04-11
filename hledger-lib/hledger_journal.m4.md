@@ -490,7 +490,7 @@ displayed as written). The display style is chosen as follows:
 - Otherwise the format of the first posting amount in that commodity
   seen in the journal is used.
   But the number of decimal places ("precision") will be the maximum
-  from all posting amounts in that commmodity.
+  from all posting amounts in that commodity.
 
 - Or if there are no such amounts in the journal, a default format is
   used (like `$1000.00`).
