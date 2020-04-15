@@ -649,8 +649,8 @@ hledgerAddons = do
 stripPrognamePrefix = drop (length progname + 1)
 
 dropRedundantSourceVersion [f,g]
-  | takeExtension f `elem` compiledExts = [f]
-  | takeExtension g `elem` compiledExts = [g]
+  | map toLower (takeExtension f) `elem` compiledExts = [f]
+  | map toLower (takeExtension g) `elem` compiledExts = [g]
 dropRedundantSourceVersion fs = fs
 
 compiledExts = ["",".com",".exe"]
