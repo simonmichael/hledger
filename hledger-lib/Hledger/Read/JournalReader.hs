@@ -82,6 +82,7 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (get,modify',put)
 import Control.Monad.Trans.Class (lift)
+import Data.Char (toLower)
 import Data.Either (isRight)
 import qualified Data.Map.Strict as M
 #if !(MIN_VERSION_base(4,11,0))
@@ -144,7 +145,7 @@ findReader Nothing (Just path) =
     Nothing  -> headMay [r | r <- readers', ext `elem` rExtensions r]
   where
     (prefix,path') = splitReaderPrefix path
-    ext            = drop 1 $ takeExtension path'
+    ext            = map toLower $ drop 1 $ takeExtension path'
 
 -- | A file path optionally prefixed by a reader name and colon
 -- (journal:, csv:, timedot:, etc.).
