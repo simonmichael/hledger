@@ -427,17 +427,28 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 #### amount
 
 `amountN` sets posting N's amount. 
-If the CSV uses separate fields for debit and credit amounts, you can
+If the CSV uses separate fields for inflows and outflows, you can
 use `amountN-in` and `amountN-out` instead.
+By assigning to `amount1`, `amount2`, ... etc. you can generate anywhere
+from 0 to 9 postings.
 
-An unnumbered form of these rules is also supported:
-`amount` or `amount-in`/`amount-out` sets the amount for both posting 1
-and (negated, and converted if there's a [transaction price](journal.html#transaction-prices))
-posting 2.
-This is for compatibility with pre-hledger-1.17 csv rules files,
-and can still be convenient for simple cases.
+There is also an older, unnumbered form of these names, suitable for
+2-posting transactions, which sets both posting 1's and (negated) posting 2's amount:
+`amount`, or `amount-in` and `amount-out`.
+This is still supported 
+because it keeps pre-hledger-1.17 csv rules files working, 
+and because it can be more succinct,
+and because it converts posting 2's amount to cost if there's a
+[transaction price](journal.html#transaction-prices), which can be useful.
 
-If any numbered `amountN`/`amountN-in`/`amountN-out` fields are present, `amount` is ignored.
+If you have an existing rules file using the unnumbered form, you
+might want to use the numbered form in certain conditional blocks,
+without having to update and retest all the old rules. 
+To facilitate this, 
+posting 1 ignores `amount`/`amount-in`/`amount-out` if any of `amount1`/`amount1-in`/`amount1-out` are assigned,
+and posting 2 ignores them if any of `amount2`/`amount2-in`/`amount2-out` are assigned,
+avoiding conflicts.
+
 
 #### currency
 

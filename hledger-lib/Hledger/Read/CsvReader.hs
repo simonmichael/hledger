@@ -867,34 +867,41 @@ transactionFromCsvRecord sourcepos rules record = t
 -- If there's multiple non-zeros, or no non-zeros but multiple zeros, it throws an error.
 getAmount :: CsvRules -> CsvRecord -> String -> Bool -> Int -> Maybe MixedAmount
 getAmount rules record currency p1IsVirtual n =
-  -- The corner cases are tricky here.
+  -- Warning, many tricky corner cases here.
+  -- docs: hledger_csv.m4.md #### amount
+  -- tests: tests/csv.test ~ 13, 31-34
   let
     unnumberedfieldnames = ["amount","amount-in","amount-out"]
+
+    -- amount field names which can affect this posting
     fieldnames = map (("amount"++show n)++) ["","-in","-out"]
                  -- For posting 1, also recognise the old amount/amount-in/amount-out names.
                  -- For posting 2, the same but only if posting 1 needs balancing.
                  ++ if n==1 || n==2 && not p1IsVirtual then unnumberedfieldnames else []
-    nonemptyamounts = [(f,a') | f <- fieldnames
-                     , Just v@(_:_) <- [strip . renderTemplate rules record <$> hledgerField rules record f]
-                     , let a = parseAmount rules record currency v
-                       -- With amount/amount-in/amount-out, in posting 2,
-                       -- flip the sign and convert to cost, as they did before 1.17
-                     , let a' = if f `elem` unnumberedfieldnames && n==2 then costOfMixedAmount (-a) else a
-                     ]
-    -- If there's more than one non-empty amount, ignore the zeros.
-    -- Unless they're all zeros.
-    amounts
-      | length nonemptyamounts <= 1 = nonemptyamounts
-      | otherwise =
-          if null nonzeros then zeros else nonzeros
-          where (zeros,nonzeros) = partition (isZeroMixedAmount . snd) nonemptyamounts
 
-    -- if there's "amount" and "amountN"s, just discard the former
-    amounts'
-      | length amounts > 1 = filter ((/="amount").fst) amounts
-      | otherwise          = amounts
+    -- assignments to any of these field names with non-empty values
+    assignments = [(f,a') | f <- fieldnames
+                          , Just v@(_:_) <- [strip . renderTemplate rules record <$> hledgerField rules record f]
+                          , let a = parseAmount rules record currency v
+                          -- With amount/amount-in/amount-out, in posting 2,
+                          -- flip the sign and convert to cost, as they did before 1.17
+                          , let a' = if f `elem` unnumberedfieldnames && n==2 then costOfMixedAmount (-a) else a
+                          ]
 
-  in case amounts' of
+    -- if any of the numbered field names are present, discard all the unnumbered ones
+    assignments' | any isnumbered assignments = filter isnumbered assignments
+                 | otherwise                  = assignments
+      where
+        isnumbered (f,_) = any (flip elem ['0'..'9']) f
+
+    -- if there's more than one value and only some are zeros, discard the zeros
+    assignments''
+      | length assignments' > 1 && not (null nonzeros) = nonzeros
+      | otherwise                                      = assignments'
+      where nonzeros = filter (not . isZeroMixedAmount . snd) assignments'
+
+  in case -- dbg0 ("amounts for posting "++show n)
+          assignments'' of
       [] -> Nothing
       [(f,a)] | "-out" `isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
       [(_,a)] -> Just a

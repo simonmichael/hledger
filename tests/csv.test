@@ -639,7 +639,7 @@ $  ./csvtest.sh
 
 >=0
 
-# 33. The old amount rules convert amount1 to cost in posting 2:
+# 33. The unnumbered amount rule converts posting 2's amount to cost.
 <
 2020-01-01, 1
 RULES
@@ -649,6 +649,19 @@ $  ./csvtest.sh
 2020-01-01
     expenses:unknown      1 @@ 1 EUR
     income:unknown            -1 EUR
+
+>=0
+
+# 34. For a given posting, any numbered amount rule disables all unnumbered amount rules.
+# Here, amount-out is used for posting 1, but ignored for posting 2. (#1226)
+<
+2020-01-01,1,1
+RULES
+fields date, amount-out, amount2
+$  ./csvtest.sh
+2020-01-01
+    income:unknown                -1
+    expenses:unknown               1
 
 >=0
 
