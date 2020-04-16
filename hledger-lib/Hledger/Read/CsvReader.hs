@@ -899,13 +899,14 @@ getAmount rules record currency p1IsVirtual n =
       [(f,a)] | "-out" `isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
       [(_,a)] -> Just a
       fs      -> error' $ unlines $ [
-         "more than one non-zero amount for this record, or multiple zeros"
-        ,"- please ensure just one. (https://hledger.org/csv.html#amount)"
+         "multiple non-zero amounts or multiple zero amounts assigned,"
+        ,"please ensure just one. (https://hledger.org/csv.html#amount)"
         ,"  " ++ showRecord record
+        ,"  for posting: " ++ show n
         ]
-        ++ ["  rule: " ++ f ++ " " ++
+        ++ ["  assignment: " ++ f ++ " " ++
              fromMaybe "" (hledgerField rules record f) ++
-             "  amount parsed: " ++ showMixedAmount a  -- XXX not sure this is showing all the right info
+             "\t=> value: " ++ showMixedAmount a -- XXX not sure this is showing all the right info
            | (f,a) <- fs]
 
   where
