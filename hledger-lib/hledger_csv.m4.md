@@ -430,11 +430,14 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 If the CSV uses separate fields for debit and credit amounts, you can
 use `amountN-in` and `amountN-out` instead.
 
-Also, for compatibility with hledger <1.17:
-`amount` or `amount-in`/`amount-out` with no number sets the amount
-for postings 1 and 2. For posting 2 the amount is negated, and
-converted to cost if there's a [transaction price](journal.html#transaction-prices).
-But if any numbered `amountN`/`amountN-in`/`amountN-out` fields are present, `amount` is ignored.
+An unnumbered form of these rules is also supported:
+`amount` or `amount-in`/`amount-out` sets the amount for both posting 1
+and (negated, and converted if there's a [transaction price](journal.html#transaction-prices))
+posting 2.
+This is for compatibility with pre-hledger-1.17 csv rules files,
+and can still be convenient for simple cases.
+
+If any numbered `amountN`/`amountN-in`/`amountN-out` fields are present, `amount` is ignored.
 
 #### currency
 
