@@ -898,13 +898,16 @@ getAmount rules record currency p1IsVirtual n =
       [] -> Nothing
       [(f,a)] | "-out" `isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
       [(_,a)] -> Just a
-      fs      -> error' $
-           "more than one non-zero amount for this record, or multiple zeros - please ensure just one\n"
-        ++ "    " ++ showRecord record ++ "\n"
-        ++ unlines ["    rule: " ++ f ++ " " ++
-                    fromMaybe "" (hledgerField rules record f) ++
-                    "    amount parsed: " ++ showMixedAmount a  -- XXX not sure this is showing all the right info
-                   | (f,a) <- fs]
+      fs      -> error' $ unlines $ [
+         "more than one non-zero amount for this record, or multiple zeros"
+        ,"- please ensure just one. (https://hledger.org/csv.html#amount)"
+        ,"  " ++ showRecord record
+        ]
+        ++ ["  rule: " ++ f ++ " " ++
+             fromMaybe "" (hledgerField rules record f) ++
+             "  amount parsed: " ++ showMixedAmount a  -- XXX not sure this is showing all the right info
+           | (f,a) <- fs]
+
   where
     -- | Given a non-empty amount string to parse, along with a possibly
     -- non-empty currency symbol to prepend, parse as a hledger amount (as
