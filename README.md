@@ -38,7 +38,7 @@ Sponsor Simon (project leader):
 [![liberapay](https://img.shields.io/badge/Sponsor_on-Liberapay-limegreen "Sponsor the project leader via Liberapay")](https://liberapay.com/simonmichael)
 [![paypal](https://www.paypal.com/en_US/i/btn/x-click-but04.gif "Give one time or recurringly via Paypal")](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY)
 
-Organisations sponsoring the hledger project on Open Collective:
+Sponsor the hledger project as an organisation:
 [![OpenCollective](https://opencollective.com/hledger/sponsors/badge.svg)][oc contributors] <!-- wrong count --> \
 [![](https://opencollective.com/hledger/sponsor/0/avatar.svg)](https://opencollective.com/hledger/sponsor/0/website)
 [![](https://opencollective.com/hledger/sponsor/1/avatar.svg)](https://opencollective.com/hledger/sponsor/1/website)
@@ -51,7 +51,7 @@ Organisations sponsoring the hledger project on Open Collective:
 [![](https://opencollective.com/hledger/sponsor/8/avatar.svg)](https://opencollective.com/hledger/sponsor/8/website)
 [![](https://opencollective.com/hledger/sponsor/9/avatar.svg)](https://opencollective.com/hledger/sponsor/9/website)
 
-Individuals backing the hledger project on Open Collective:
+Sponsor the hledger project as an individual:
 [![OpenCollective](https://opencollective.com/hledger/backers/badge.svg)][oc contributors] <!-- wrong count --> \
 [![](https://opencollective.com/hledger/backer/0/avatar.svg)](https://opencollective.com/hledger/backer/0/website)
 [![](https://opencollective.com/hledger/backer/1/avatar.svg)](https://opencollective.com/hledger/backer/1/website)
