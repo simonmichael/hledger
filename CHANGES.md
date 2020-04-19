@@ -1,7 +1,10 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 3178a860
+# cd720708
+
+- add an example of Ledger's cap gains calculation during balancing
+
 
 - make ghcid-web-run
 

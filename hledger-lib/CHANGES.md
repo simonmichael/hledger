@@ -1,7 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 3cc79a67
+# 784d882e
+
+- fixedlotpricep renamed to lotpricep, now also parses non-fixed lot prices
 
 - Fix Documentation for journalExpenseAccountQuery (Pavan Rikhi)
 

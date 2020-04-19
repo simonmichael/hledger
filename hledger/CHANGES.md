@@ -1,27 +1,37 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# e7e9f1ee
+# a016a437
 
-- Improved parse compatibility for Ledger lot prices:
-  hledger up to 1.17.1 did not accept Ledger's lot price syntax except
-  in vary limited circumstances (`{= }` at the end of the posting line).
-  hledger now accepts all four of Ledger's lot price syntaxes 
-  (`{PRICE}`, `{{PRICE}}`, `{=PRICE}`, `{{=PRICE}}`),
-  anywhere after the posting amount but before any balance assertion.
-  All of these lot prices are ignored.
+- cli: don't let an upper case file extension confuse file format
+  detection. (#1225)
 
-- csv: don't discard explicit assignments of a 0 amount
-  Eg: an `amount1  $0.00` assignment was generating a posting1 with
-  missing amount.
+- cli: in the commands list, fix hiding of redundant source scripts
+  when a corresponding .com/.exe file exists. (#1225)
+
+- cli, journal: period expressions now support "until" as a synonym
+  for "to", like Ledger.
 
 - allow spaces between sign and number when parsing amounts
 
-- csv: when both `amount` and `amountN`s are assigned, instead of
-  failing, just ignore `amount` and let the `amountN`s have
-  precedence. This makes it easier to override old `amount` rules.
+- journal: We now accept (but ignore) Ledger-style lot dates
+  (`[DATE]`) and four lot price forms (`{PRICE}`, `{{PRICE}}`,
+  `{=PRICE}`, `{{=PRICE}}`), anywhere after the posting amount but
+  before any balance assertion.
 
-- csv: clarified the "too many non-zero amounts" error message.
+- journal: we now accept Ledger-style parenthesised "virtual posting
+  costs" (`(@)`, `(@@)`). In hledger these do the same as the
+  unparenthesised form.
+
+- csv: allow generation of postings with an explicit 0 amount. (#1112)
+
+- csv: for each posting, when both numbered and unnumbered amount
+  assignments are active, ignore the unnumbered ones. This makes it
+  easier to override old `amount` rules. 
+  
+- csv: fix a 1.17.1 regression involving amount-in/amount-out. (#1226)
+
+- csv: improved the "too many non-zero amounts" error message.
 
 # 1.17.1.1 2020-03-19
 

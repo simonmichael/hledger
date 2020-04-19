@@ -1,7 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 23a79af1
+# 898cda4e
+
+
 
 - web: add form: always start with four rows when opened
 
