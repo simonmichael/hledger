@@ -997,16 +997,13 @@ cleantags: \
 	rm -f TAGS tags
 
 stackclean: \
-	$(call def-help-hide,stackclean, remove .stack-work/* in packages (but not in project) )
-	$(STACK) clean
-
-Stackclean: \
-	$(call def-help-hide,Stackclean, remove all stack working dirs )
-	$(STACK) clean
+	$(call def-help-hide,stackclean, remove .stack-work/ dirs )
+	$(STACK) purge
 
 cleanghco: \
 	$(call def-help-hide,cleanghc, remove ghc build leftovers )
 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*.dyn_o" -o -name "*.dyn_hi" -o -name "*~" | grep -vE '\.(stack-work|cabal-sandbox|virthualenv)'`
+#rm -f `fd -I '\.(hi|o|dyn_hi|dyn_o)$'`
 
 clean: cleanghco \
 	$(call def-help,clean, default cleanup (ghc build leftovers) )
