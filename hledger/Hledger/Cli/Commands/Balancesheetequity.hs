@@ -13,13 +13,11 @@ module Hledger.Cli.Commands.Balancesheetequity (
 ) where
 
 import System.Console.CmdArgs.Explicit
-import Data.Map as M
 import Data.Text as T
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.CompoundBalanceCommand
-import Hledger.Data.Types
 
 balancesheetequitySpec j = CompoundBalanceCommandSpec {
   cbcdoc      = $(embedFileRelative "Hledger/Cli/Commands/Balancesheetequity.txt"),
