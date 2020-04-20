@@ -99,9 +99,7 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
   approot = ApprootMaster $ appRoot . settings
 
-  makeSessionBackend _ =
-    let sessionexpirysecs = 120
-    in  Just <$> defaultClientSessionBackend sessionexpirysecs ".hledger-web_client_session_key.aes"
+  makeSessionBackend _ = return Nothing
 
   -- defaultLayout :: WidgetFor site () -> HandlerFor site Html
   defaultLayout widget = do
