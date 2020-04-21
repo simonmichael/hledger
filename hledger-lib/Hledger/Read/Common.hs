@@ -445,7 +445,7 @@ addAccountAlias :: MonadState Journal m => AccountAlias -> m ()
 addAccountAlias a = modify' (\(j@Journal{..}) -> j{jparsealiases=a:jparsealiases})
 
 setDefaultAccount :: MonadState Journal m => Maybe AccountName -> m ()
-setDefaultAccount a = modify' (\(j@Journal{..}) -> j{jparsedefaultaccount=a})
+setDefaultAccount a = modify' (\j -> j{jparsedefaultaccount=a})
 
 getDefaultAccount :: JournalParser m (Maybe AccountName)
 getDefaultAccount = jparsedefaultaccount `fmap` get
