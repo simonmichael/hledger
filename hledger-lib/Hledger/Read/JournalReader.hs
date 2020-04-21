@@ -264,6 +264,7 @@ directivep = (do
    ,pythondirectivep
    ,tagdirectivep
    ,valuedirectivep
+   ,bucketdirectivep
    ]
   ) <?> "directive"
 
@@ -696,6 +697,13 @@ decimalmarkdirectivep = do
   lift restofline
   return ()
 
+bucketdirectivep :: JournalParser m ()
+bucketdirectivep = do
+  keywordp "bucket" <?> "bucket directive"
+  lift (skipMany spacenonewline)
+  acct <- modifiedaccountnamep
+  setDefaultAccount (Just acct)
+
 --- *** transactions
 
 -- | Parse a transaction modifier (auto postings) rule.
@@ -788,8 +796,20 @@ transactionp = do
   let year = first3 $ toGregorian date
   postings <- postingsp (Just year)
   endpos <- getSourcePos
-  let sourcepos = (startpos, endpos)
-  return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postings
+  acc <- getDefaultAccount
+  let postingsBucketed = (
+        postings ++ [posting { pdate=Nothing
+                             , pdate2=Nothing
+                             , pstatus=Unmarked
+                             , paccount=fromJust acc
+                             , pamount=missingmixedamt
+                             , pcomment=""
+                             , ptype=RegularPosting
+                             , ptags=[]
+                             , pbalanceassertion=Nothing
+                             } | all hasAmount postings && isJust acc])
+  let sourcepos = journalSourcePos startpos endpos
+  return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postingsBucketed
 
 --- *** postings
 

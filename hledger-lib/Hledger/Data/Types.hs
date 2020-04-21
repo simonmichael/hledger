@@ -581,6 +581,7 @@ data Journal = Journal {
   ,jparsedecimalmark      :: Maybe DecimalMark                     -- ^ the character to always parse as decimal point, if set by CsvReader's decimal-mark (or a future journal directive)
   ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
   ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
+  ,jparsedefaultaccount   :: Maybe AccountName
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
   ,jparsetimeclockentries :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
   ,jincludefilestack      :: [FilePath]
