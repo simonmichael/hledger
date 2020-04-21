@@ -138,13 +138,13 @@ jobs:
         sudo rm -f /swapfile
         # 3G:
         sudo apt clean
-        # 3G:
-        docker image ls -aq
-        docker rmi $(docker image ls -aq)
+        # 3G, takes 30s:
+        # docker image ls -aq
+        # docker rmi $(docker image ls -aq)
         # 1G:
         find ~/work/_temp -name "cache.tgz" -exec rm -f {} \;
-        # 4G:
-        sudo rm -rf "/usr/local/share/boost"
+        # 4G, takes 14s:
+        # sudo rm -rf "/usr/local/share/boost"
         # 2G:
         sudo rm -rf "$AGENT_TOOLSDIRECTORY"
         df -h /
