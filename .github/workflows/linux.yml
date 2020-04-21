@@ -1,7 +1,7 @@
-# linux CI tests, run "periodically", and on notable push to ci-linux,
-# and on notable pull request to master.
-# Periodic runs don't use caching.
-# Reasonably thorough build/test/benchmark/haddock/functest testing, with all GHC versions
+# linux CI tests, run on a periodic schedule, on notable pull request
+# to master, and on notable push to ci-linux. Reasonably thorough
+# build/test/benchmark/haddock/functest testing, with all GHC
+# versions. Note periodic runs don't use cache.
 
 name: linux / pull request CI
 
@@ -23,7 +23,6 @@ on:
       - '!**.5'
       - '!**.info'
       - '!**.txt'
-  # and on pushes to ci-linux branch
   push:
     branches: [ ci-linux ]
     paths:
@@ -128,23 +127,25 @@ jobs:
           ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.key }}
           ${{ runner.os }}-hledger-web-stack-work
 
+    # For now due to
+    # https://github.com/actions/virtual-environments/issues/709
+    # there's only 4.8G free at this point, and we must free up space.
     - name: Free disk space
       run: |
         df -h /
+        # 8G:
         sudo swapoff -a
-        df -h /
-        ls -lh /swapfile
         sudo rm -f /swapfile
-        df -h /
+        # 3G:
         sudo apt clean
-        df -h /
+        # 3G:
         docker image ls -aq
         docker rmi $(docker image ls -aq)
-        df -h /
+        # 1G:
         find ~/work/_temp -name "cache.tgz" -exec rm -f {} \;
-        df -h /
+        # 4G:
         sudo rm -rf "/usr/local/share/boost"
-        df -h /
+        # 2G:
         sudo rm -rf "$AGENT_TOOLSDIRECTORY"
         df -h /
 

@@ -1,5 +1,5 @@
-# mac CI tests, run "periodically", and on notable push to ci-mac.
-# Periodic runs don't use caching.
+# mac CI tests, run on a periodic schedule, and on notable push to
+# ci-mac. Note periodic runs don't use cache.
 
 name: mac CI
 

@@ -1,4 +1,4 @@
-# quick CI tests, run on notable push to master
+# quick CI tests, run on notable push to master.
 
 name: push CI
 

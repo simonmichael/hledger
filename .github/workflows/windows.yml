@@ -1,6 +1,6 @@
-# windows CI tests, run "periodically", and on notable push to ci-windows
-# Periodic runs don't use caching.
-# Using GHC 8.8.2 to avoid "access violation" error with 8.8.3
+# windows CI tests, run on a periodic schedule, and on notable push to
+# ci-windows. Note periodic runs don't use cache. Using GHC 8.8.2 for
+# now to avoid https://gitlab.haskell.org/ghc/ghc/issues/17926.
 
 name: windows CI
 
