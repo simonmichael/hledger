@@ -351,18 +351,18 @@ accountdirectivep = do
       Just
       $ lookup accountTypeTagName tags
     metype = parseAccountTypeCode <$> mtypecode'
-    mtypename = lookup accountTypeNameTagName tags
+    mtypetitle = lookup accountTypeTitleTagName tags
 
   -- update the journal
   addAccountDeclaration (acct, cmt, tags)
   case metype of
     Nothing         -> return ()
-    Just (Right t)  -> addDeclaredAccountType acct t mtypename
+    Just (Right t)  -> addDeclaredAccountType acct t mtypetitle
     Just (Left err) -> customFailure $ parseErrorAt off err
 
 -- The special tag used for declaring account type name. Used for display in
 -- incomestatement, balancestatement, ...
-accountTypeNameTagName = "typename"
+accountTypeTitleTagName = "type-title"
 
 -- The special tag used for declaring account type. XXX change to "class" ?
 accountTypeTagName = "type"

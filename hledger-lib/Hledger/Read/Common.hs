@@ -60,7 +60,7 @@ module Hledger.Read.Common (
   getAccountAliases,
   clearAccountAliases,
   journalAddFile,
-  getAccountTypeName,
+  getAccountTypeTitle,
 
   -- * parsers
   -- ** transaction bits
@@ -399,10 +399,10 @@ journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
   -- append, unlike the other fields, even though we do a final reverse,
   -- to compensate for additional reversal due to including/monoid-concatting
 
-getAccountTypeName :: AccountType -> Text -> Journal -> Text
-getAccountTypeName actype defaultatypename j = case M.lookup actype (jdeclaredaccounttypes j) of
-    Nothing -> defaultatypename
-    Just (_,Nothing) -> defaultatypename
+getAccountTypeTitle :: AccountType -> Text -> Journal -> Text
+getAccountTypeTitle actype defaultatypetitle j = case M.lookup actype (jdeclaredaccounttypes j) of
+    Nothing -> defaultatypetitle
+    Just (_,Nothing) -> defaultatypetitle
     Just (_,Just atname) -> atname
 
 -- A version of `match` that is strict in the returned text
