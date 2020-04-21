@@ -182,13 +182,13 @@ jobs:
       env:
         ARGS: ${{ matrix.plan.args }}
 
-    - name: show stuff
-      run: |
-        if [[ -e ~/.stack ]]; then ls -lFRa ~/.stack; fi
+    # - name: show stuff
+    #   run: |
+    #     if [[ -e ~/.stack ]]; then ls -lFRa ~/.stack; fi
 
-    - name: show stuff
-      run: |
-        if [[ -e ~/.local/bin ]]; then ls -lFRa ~/.local/bin; fi
+    # - name: show stuff
+    #   run: |
+    #     if [[ -e ~/.local/bin ]]; then ls -lFRa ~/.local/bin; fi
 
 
 
