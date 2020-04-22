@@ -264,7 +264,6 @@ directivep = (do
    ,pythondirectivep
    ,tagdirectivep
    ,valuedirectivep
-   ,bucketdirectivep
    ]
   ) <?> "directive"
 
@@ -543,7 +542,7 @@ formatdirectivep expectedsym = do
 -- More Ledger directives, ignore for now:
 -- apply fixed, apply tag, assert, bucket, A, capture, check, define, expr
 applyfixeddirectivep, endapplyfixeddirectivep, applytagdirectivep, endapplytagdirectivep,
-  assertdirectivep, bucketdirectivep, capturedirectivep, checkdirectivep, 
+    assertdirectivep, capturedirectivep, checkdirectivep,
   endapplyyeardirectivep, definedirectivep, exprdirectivep, valuedirectivep,
   evaldirectivep, pythondirectivep, commandlineflagdirectivep
   :: JournalParser m ()
@@ -553,7 +552,6 @@ applytagdirectivep      = do string "apply tag" >> lift restofline >> return ()
 endapplytagdirectivep   = do string "end apply tag" >> lift restofline >> return ()
 endapplyyeardirectivep  = do string "end apply year" >> lift restofline >> return ()
 assertdirectivep        = do string "assert"  >> lift restofline >> return ()
-bucketdirectivep        = do string "A " <|> string "bucket " >> lift restofline >> return ()
 capturedirectivep       = do string "capture" >> lift restofline >> return ()
 checkdirectivep         = do string "check"   >> lift restofline >> return ()
 definedirectivep        = do string "define"  >> lift restofline >> return ()
@@ -808,7 +806,7 @@ transactionp = do
                              , ptags=[]
                              , pbalanceassertion=Nothing
                              } | all hasAmount postings && isJust acc])
-  let sourcepos = journalSourcePos startpos endpos
+  let sourcepos = (startpos, endpos)
   return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postingsBucketed
 
 --- *** postings
@@ -1100,6 +1098,39 @@ tests_JournalReader = testGroup "JournalReader" [
         (length . tpostings)
         2
 
+    ,testCase "unbalanced simple transaction within bucketed context" $ do
+      ep <- parseWithState nulljournal{jparsedefaultaccount=Just "b"} transactionp
+        (T.unlines
+          ["2009/1/1 x"
+          ," a  -1"
+          ])
+      assertRight ep
+      let (Right x) = ep
+      length (tpostings x) @?= 2
+      (tpostings x !! 1) @?= nullposting{paccount="b", pamount=missingmixedamt}
+
+    ,testCase "multi-leg transaction within bucketed context" $ do
+      ep <- parseWithState nulljournal{jparsedefaultaccount=Just "b"} transactionp
+        (T.unlines
+          ["2009/1/1 x"
+          ," a  -2"
+          ," c  1"
+          ])
+      assertRight ep
+      let (Right x) = ep
+      length (tpostings x) @?= 3
+      (tpostings x !! 2) @?= nullposting{paccount="b", pamount=missingmixedamt}
+
+    ,testCase "self-balancing transaction within bucketed context" $ do
+      ep <- parseWithState nulljournal{jparsedefaultaccount=Just "b"} transactionp
+        (T.unlines
+          ["2009/1/1 x"
+          ," a  -2"
+          ," c"
+          ])
+      assertRight ep
+      let (Right x) = ep
+      length (tpostings x) @?= 2
     ]
 
   -- directives
@@ -1169,6 +1200,12 @@ tests_JournalReader = testGroup "JournalReader" [
 
   ,testGroup "journalp" [
     testCase "empty file" $ assertParseEqE journalp "" nulljournal
+    ]
+
+  ,testGroup "bucketdirectivep" [
+    testCase "affects state"   $ assertParseStateOn bucketdirectivep "bucket a:b"
+        jparsedefaultaccount
+        (Just "a:b")
     ]
 
    -- these are defined here rather than in Common so they can use journalp
