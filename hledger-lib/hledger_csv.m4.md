@@ -414,7 +414,7 @@ For more about the transaction parts they refer to, see the manual for hledger's
 
 #### account
 
-`accountN`, where N is 1 to 9, causes a [posting](journal.html#postings) to be generated, 
+`accountN`, where N is 1 to 99, causes a [posting](journal.html#postings) to be generated, 
 with that account name.
 
 Most often there are two postings, so you'll want to set `account1` and `account2`.
@@ -430,7 +430,7 @@ a default account name will be chosen (like "expenses:unknown" or "income:unknow
 If the CSV uses separate fields for inflows and outflows, you can
 use `amountN-in` and `amountN-out` instead.
 By assigning to `amount1`, `amount2`, ... etc. you can generate anywhere
-from 0 to 9 postings.
+from 0 to 99 postings.
 
 There is also an older, unnumbered form of these names, suitable for
 2-posting transactions, which sets both posting 1's and (negated) posting 2's amount:
