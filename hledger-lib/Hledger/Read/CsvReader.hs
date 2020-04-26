@@ -457,7 +457,7 @@ journalfieldnamep = do
   lift (dbgparse 2 "trying journalfieldnamep")
   T.unpack <$> choiceInState (map (lift . string . T.pack) journalfieldnames)
 
-maxpostings = 9
+maxpostings = 99
 
 -- Transaction fields and pseudo fields for CSV conversion.
 -- Names must precede any other name they contain, for the parser
@@ -470,7 +470,7 @@ journalfieldnames =
           ,"balance" ++ i
           ,"comment" ++ i
           ,"currency" ++ i
-          ] | x <- [1..maxpostings], let i = show x]
+          ] | x <- [maxpostings, (maxpostings-1)..1], let i = show x]
   ++
   ["amount-in"
   ,"amount-out"
