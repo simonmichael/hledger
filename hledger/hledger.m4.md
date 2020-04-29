@@ -1643,7 +1643,7 @@ systems, that is ~/.local/bin and ~/.cabal/bin respectively.
 The command `env | grep LEDGER_FILE` should show it.
 You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
 
-**Getting errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid arguement (invalid character)"**\
+**Getting errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
 Programs compiled with GHC (hledger, haskell build tools, etc.) 
 need to have a UTF-8-aware locale configured in the environment, 
 otherwise they will fail with these kinds of errors when they encounter non-ascii characters.
