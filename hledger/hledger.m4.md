@@ -1643,40 +1643,30 @@ systems, that is ~/.local/bin and ~/.cabal/bin respectively.
 The command `env | grep LEDGER_FILE` should show it.
 You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
 
-**"Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**\
-In order to handle non-ascii letters and symbols (like £), hledger needs
-an appropriate locale. This is usually configured system-wide; you can
-also configure it temporarily.  The locale may need to be one that
-supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
-I'm not sure yet).
+**Getting errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid arguement (invalid character)"**\
+Programs compiled with GHC (hledger, haskell build tools, etc.) 
+need to have a UTF-8-aware locale configured in the environment, 
+otherwise they will fail with these kinds of errors when they encounter non-ascii characters.
 
-Here's an example of setting the locale temporarily, on Ubuntu GNU/Linux:
+To fix it, set the LANG environment variable to some locale which supports UTF-8.
+The locale you choose must be installed on your system.
+
+Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
 
 ```shell
 $ file my.journal
-my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
-$ locale -a
+my.journal: UTF-8 Unicode text         # the file is UTF8-encoded
+$ echo $LANG
+C                                      # LANG is set to the default locale, which does not support UTF8
+$ locale -a                            # which locales are installed ?
 C
-en_US.utf8                             # <- a UTF8-aware locale is available
+en_US.utf8                             # here's a UTF8-aware one we can use
 POSIX
-$ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+$ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
 ```
 
-Exact spelling and capitalisation may be important. Note the difference on MacOS:
-```shell
-$ locale -a | grep -iE en_us.*utf
-en_US.UTF-8
-$ LANG=en_US.UTF-8 hledger -f my.journal print
-```
-
-Here's one way to set it permanently, if you use a bash shell:
-
-```shell
-$ echo "export LANG=en_US.utf8" >>~/.bash_profile
-$ bash --login
-```
-
-If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
+If available, `C.UTF-8` will also work.
+If your preferred locale isn't listed by `locale -a`, you might need to install it. Eg on Ubuntu/Debian:
 
 ```shell
 $ apt-get install language-pack-fr
@@ -1692,7 +1682,18 @@ POSIX
 $ LANG=fr_FR.utf8 hledger -f my.journal print
 ```
 
-Note some platforms allow variant locale spellings, but not all (ubuntu
-accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
+Here's how you could set it permanently, if you use a bash shell:
 
-`C.UTF-8` might be a simple choice that always works.
+```shell
+$ echo "export LANG=en_US.utf8" >>~/.bash_profile
+$ bash --login
+```
+
+Exact spelling and capitalisation may be important. Note the difference on MacOS (`UTF-8`, not `utf8`).
+Some platforms (eg ubuntu) allow variant spellings, but others (eg macos) require it to be exact:
+
+```shell
+$ locale -a | grep -iE en_us.*utf
+en_US.UTF-8
+$ LANG=en_US.UTF-8 hledger -f my.journal print
+```
