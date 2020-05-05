@@ -98,9 +98,8 @@ of the following optional fields, separated by spaces:
 - a description (any remaining text until end of line or a semicolon)
 - a comment (any remaining text following a semicolon until end of line,
              and any following indented lines beginning with a semicolon)
-- 0 or more indented *posting* lines, describing what was transferred
-  and the accounts involved (and/or indented comment lines;
-  but not blank lines or non-indented lines).
+- 0 or more indented *posting* lines, describing what was transferred and the accounts involved
+  (indented comment lines are also allowed, but not blank lines or non-indented lines).
 
 Here's a simple journal file containing one transaction:
 ```journal
