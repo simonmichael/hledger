@@ -50,13 +50,13 @@ where
 import Data.Array
 import Data.Char
 import Data.List (foldl')
+import Data.Maybe (fromMaybe)
 import Data.MemoUgly (memo)
 import Text.Regex.TDFA (
   Regex, CompOption(..), ExecOption(..), defaultCompOpt, defaultExecOpt,
-  makeRegexOpts, AllMatches(getAllMatches), match, (=~), MatchText
+  makeRegexOptsM, AllMatches(getAllMatches), match, (=~), MatchText
   )
 
--- import Hledger.Utils.Debug
 import Hledger.Utils.UTF8IOCompat (error')
 
 
@@ -66,19 +66,20 @@ type Regexp = String
 -- | A replacement pattern. May include numeric backreferences (\N).
 type Replacement = String
 
--- | Convert our string-based regexps to real ones. Can fail if the
--- string regexp is malformed.
+-- | Convert our string-based Regexp to a real Regex.
+-- Or if it's not well formed, call error with a "malformed regexp" message.
 toRegex :: Regexp -> Regex
-toRegex = memo (makeRegexOpts compOpt execOpt)
+toRegex = memo (compileRegexOrError defaultCompOpt defaultExecOpt)
 
+-- | Like toRegex but make a case-insensitive Regex.
 toRegexCI :: Regexp -> Regex
-toRegexCI = memo (makeRegexOpts compOpt{caseSensitive=False} execOpt)
+toRegexCI = memo (compileRegexOrError defaultCompOpt{caseSensitive=False} defaultExecOpt)
 
-compOpt :: CompOption
-compOpt = defaultCompOpt
-
-execOpt :: ExecOption
-execOpt = defaultExecOpt
+compileRegexOrError :: CompOption -> ExecOption -> Regexp -> Regex
+compileRegexOrError compopt execopt r =
+  fromMaybe
+  (errorWithoutStackTrace $ "this regular expression could not be compiled: " ++ show r) $
+  makeRegexOptsM compopt execopt r
 
 -- regexMatch' :: RegexContext Regexp String a => Regexp -> String -> a
 -- regexMatch' r s = s =~ (toRegex r)
