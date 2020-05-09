@@ -827,14 +827,23 @@ hledger uses [regular expressions](http://www.regular-expressions.info) in a num
 
 hledger's regular expressions come from the
 [regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
-library. In general they:
+library. 
+If they're not doing what you expect, it's important to know exactly what they support:
 
-- are case insensitive
-- are infix matching (do not need to match the entire thing being matched)
-- are [POSIX extended regular expressions](http://www.regular-expressions.info/posix.html#ere)
-- also support [GNU word boundaries](http://www.regular-expressions.info/wordboundaries.html) (\\<, \\>, \\b, \\B)
-- and parenthesised [capturing groups](http://www.regular-expressions.info/refcapture.html) and numeric backreferences in replacement strings
-- do not support [mode modifiers](http://www.regular-expressions.info/modifiers.html) like (?s)
+#. they are case insensitive
+#. they are infix matching (they do not need to match the entire thing being matched)
+#. they are [POSIX extended regular expressions][]
+#. they also support [word boundaries][] (`\<`, `\>`, `\b`, `\B`)
+#. they do not support [mode modifiers][] (like `(?s)`)
+#. when searching, they do not support [capturing groups][] and [backreferences][] (`\1`).
+   But when used for text replacement (eg in [account aliases](journal.html#regex-aliases)),
+   they do support [capturing groups][] in the search string and [backreferences][] in the replacement string.
+
+[POSIX extended regular expressions]: http://www.regular-expressions.info/posix.html#ere
+[backreferences]: https://www.regular-expressions.info/backref.html
+[capturing groups]: http://www.regular-expressions.info/refcapture.html
+[mode modifiers]: http://www.regular-expressions.info/modifiers.html
+[word boundaries]: http://www.regular-expressions.info/wordboundaries.html
 
 Some things to note:
 
