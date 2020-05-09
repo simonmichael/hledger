@@ -892,3 +892,18 @@ This is all part of the CSV reader, one of several readers hledger can
 use to parse input files. When all files have been read successfully,
 the transactions are passed as input to whichever hledger command the
 user specified.
+
+## Regular expression tricks
+
+### Testing that two fields have the same value
+
+```csv
+2020-01-01,different,3,4,5,6,7,8,9
+2020-01-01,same     ,3,4,5,6,7,7,9
+```
+```rules
+fields date,description,_,amount,_,_
+# skip first 6 fields, then match if the next two fields are the same
+if ^([^,]*,){6}([^,]*),\7
+ comment fields 7 and 8 have the same value
+```
