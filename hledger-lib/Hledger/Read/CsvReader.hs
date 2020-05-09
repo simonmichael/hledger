@@ -1075,12 +1075,16 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
               where
                 -- does this individual matcher match the current csv record ?
                 matcherMatches :: Matcher -> Bool
-                matcherMatches (RecordMatcher pat) = regexMatchesCI pat wholecsvline
+                matcherMatches (RecordMatcher pat) = regexMatchesCI pat' wholecsvline
                   where
-                    -- a synthetic whole CSV record to match against; note, it has
-                    -- no quotes enclosing fields, and is always comma-separated,
-                    -- so may differ from the actual record, and may not be valid CSV.
-                    wholecsvline = dbg3 "wholecsvline" $ intercalate "," record
+                    pat' = dbg3 "regex" pat
+                    -- A synthetic whole CSV record to match against. Note, this can be
+                    -- different from the original CSV data:
+                    -- - any whitespace surrounding field values is preserved
+                    -- - any quotes enclosing field values are removed
+                    -- - and the field separator is always comma
+                    -- which means that a field containing a comma will look like two fields.
+                    wholecsvline = dbg3 "wholecsvline" $ intercalate "," record  -- $ map strip record  ?
                 matcherMatches (FieldMatcher csvfieldref pat) = regexMatchesCI pat csvfieldvalue
                   where
                     -- the value of the referenced CSV field to match against.

@@ -545,9 +545,12 @@ REGEX
 REGEX is a case-insensitive regular expression which tries to match anywhere within the CSV record.
 It is a POSIX extended regular expressions with some additions (see 
 [Regular expressions](https://hledger.org/hledger.html#regular-expressions) in the hledger manual).
-Note: the "CSV record" it is matched against is not the original record, but a synthetic one,
-with enclosing double quotes or whitespace removed, and always comma-separated.
-(Eg, an SSV record `2020-01-01; "Acme, Inc."; 1,000` appears to REGEX as `2020-01-01,Acme, Inc.,1,000`).
+
+Important note: the record that is matched is not the original record, but a synthetic one,
+with any enclosing double quotes (but not enclosing whitespace) removed, and always comma-separated
+(which means that a field containing a comma will appear like two fields).
+Eg, if the original record is `2020-01-01; "Acme, Inc.";  1,000`,
+the REGEX will actually see   `2020-01-01,Acme, Inc.,  1,000`).
 
 Or, MATCHER can be a field matcher, like this:
 ```rules
