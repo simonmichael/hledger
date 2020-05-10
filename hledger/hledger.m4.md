@@ -837,7 +837,7 @@ If they're not doing what you expect, it's important to know exactly what they s
 #. they do not support [backreferences][]; if you write `\1`, it will match the digit `1`.
    Except when doing text replacement, eg in [account aliases](journal.html#regex-aliases),
    where [backreferences][] can be used in the replacement string to reference [capturing groups][] in the search regexp.
-#. they do not support [mode modifiers][] (`(?s)`), character classes (`\w`, `\d`), or anything else.
+#. they do not support [mode modifiers][] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
 
 [POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
 [backreferences]: https://www.regular-expressions.info/backref.html
