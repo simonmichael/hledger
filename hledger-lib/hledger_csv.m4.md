@@ -543,8 +543,10 @@ REGEX
 ```
 
 REGEX is a case-insensitive regular expression which tries to match anywhere within the CSV record.
-It is a POSIX extended regular expressions with some additions (see 
-[Regular expressions](https://hledger.org/hledger.html#regular-expressions) in the hledger manual).
+It is a POSIX ERE (extended regular expression) 
+that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
+and nothing else.
+If you have trouble, be sure to check our https://hledger.org/hledger.html#regular-expressions doc.
 
 Important note: the record that is matched is not the original record, but a synthetic one,
 with any enclosing double quotes (but not enclosing whitespace) removed, and always comma-separated

@@ -832,18 +832,18 @@ If they're not doing what you expect, it's important to know exactly what they s
 
 #. they are case insensitive
 #. they are infix matching (they do not need to match the entire thing being matched)
-#. they are [POSIX extended regular expressions][]
-#. they also support [word boundaries][] (`\<`, `\>`, `\b`, `\B`)
+#. they are [POSIX ERE][] (extended regular expressions)
+#. they also support [GNU word boundaries][] (`\b`, `\B`, `\<`, `\>`)
 #. they do not support [mode modifiers][] (like `(?s)`)
 #. when searching, they do not support [capturing groups][] and [backreferences][] (`\1`).
    But when used for text replacement (eg in [account aliases](journal.html#regex-aliases)),
    they do support [capturing groups][] in the search string and [backreferences][] in the replacement string.
 
-[POSIX extended regular expressions]: http://www.regular-expressions.info/posix.html#ere
+[POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
 [backreferences]: https://www.regular-expressions.info/backref.html
 [capturing groups]: http://www.regular-expressions.info/refcapture.html
 [mode modifiers]: http://www.regular-expressions.info/modifiers.html
-[word boundaries]: http://www.regular-expressions.info/wordboundaries.html
+[GNU word boundaries]: http://www.regular-expressions.info/wordboundaries.html
 
 Some things to note:
 
