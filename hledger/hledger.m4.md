@@ -834,10 +834,10 @@ If they're not doing what you expect, it's important to know exactly what they s
 #. they are infix matching (they do not need to match the entire thing being matched)
 #. they are [POSIX ERE][] (extended regular expressions)
 #. they also support [GNU word boundaries][] (`\b`, `\B`, `\<`, `\>`)
-#. they do not support [mode modifiers][] (like `(?s)`)
-#. when searching, they do not support [capturing groups][] and [backreferences][] (`\1`).
-   But when used for text replacement (eg in [account aliases](journal.html#regex-aliases)),
-   they do support [capturing groups][] in the search string and [backreferences][] in the replacement string.
+#. they do not support [backreferences][] - if you write `\1`, it will match the digit `1`.
+   Except when doing text replacement, eg in [account aliases](journal.html#regex-aliases),
+   where [backreferences][] can be used the replacement string to reference [capturing groups][] in the search string.
+#. they do not support [mode modifiers][] (`(?s)`), character classes (`\w`, `\d`), or anything else.
 
 [POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
 [backreferences]: https://www.regular-expressions.info/backref.html
