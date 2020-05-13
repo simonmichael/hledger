@@ -1084,7 +1084,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                     -- - any quotes enclosing field values are removed
                     -- - and the field separator is always comma
                     -- which means that a field containing a comma will look like two fields.
-                    wholecsvline = dbg3 "wholecsvline" $ intercalate "," record  -- $ map strip record  ?
+                    wholecsvline = dbg3 "wholecsvline" $ intercalate "," record
                 matcherMatches (FieldMatcher csvfieldref pat) = regexMatchesCI pat csvfieldvalue
                   where
                     -- the value of the referenced CSV field to match against.
