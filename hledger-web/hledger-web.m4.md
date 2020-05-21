@@ -226,7 +226,7 @@ or export it using hledger-lib's `writeJsonFile` helper (there's also `readJsonF
 ```shell
 $ make ghci-web
 >>> import Hledger
->>> writeJsonFile "txn.json" (head $ jtxns samplejournal)
+>>> writeJsonFile "txn.json" (head $ jtxns samplejournal)   -- export samplejournal's first transaction
 >>> :q
 ```
 
@@ -238,9 +238,9 @@ $ mv pretty txn.json
 ```
 
 Here's how it looks as of hledger-1.17.
-(Note this corresponds to the Transaction data type - use the type definitions in
+Note, this JSON corresponds to hledger's Transaction data type - use the definitions in
 [Hledger.Data.Types](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs)
-for reference):
+as a reference to understand these fields:
 
 ```json
 {
