@@ -203,9 +203,12 @@ sure that both machine clocks are roughly in step.)
 
 # JSON API
 
-In addition to the web UI, hledger-web provides some API routes that
-serve JSON in response to GET requests. (And when started with `--serve-api`,
-it provides only these routes.):
+In addition to the web UI, hledger-web also serves a JSON API that can be 
+used to get data or add new transactions.
+If you only want the JSON API, run with the `--serve-api` flag.
+
+You can GET JSON data from these routes:
+
 ```
 /accountnames
 /transactions
@@ -215,13 +218,13 @@ it provides only these routes.):
 /accounttransactions/#AccountName
 ```
 
-Also, you can append a new transaction to the journal by sending a PUT request to `/add` (hledger-web only).
-As with the web UI's add form, hledger-web must be started with the `add` capability for this (enabled by default).
+And you can add a new transaction to the journal with a PUT request to `/add`,
+if hledger-web was started with the `add` capability (enabled by default).
 
-Note the payload must be the full exact JSON representation of a hledger transaction
-(partial JSON won't do).
-You can download some sample JSON from `/transactions` or `/accounttransactions`,
-or export it using hledger-lib's `writeJsonFile` helper (there's also `readJsonFile` for testing):
+The payload must be the full, exact JSON representation of a hledger transaction
+(partial data won't do).
+You can get sample JSON from `/transactions` or `/accounttransactions`,
+or you can export it with hledger-lib's `writeJsonFile` helper, like so:
 
 ```shell
 $ make ghci-web
@@ -338,9 +341,6 @@ And here's how to test adding it with curl. This should add a new entry to your 
 ```shell
 $ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 ```
-
-By default, both the server-side HTML UI and the JSON API are served.
-Running with `--serve-api` disables the former, useful if you only want to serve the API.
 
 # ENVIRONMENT
 
