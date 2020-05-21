@@ -218,7 +218,8 @@ it provides only these routes.):
 Also, you can append a new transaction to the journal by sending a PUT request to `/add` (hledger-web only).
 As with the web UI's add form, hledger-web must be started with the `add` capability for this (enabled by default).
 
-Note the payload must be the full exact JSON representation of a hledger transaction.
+Note the payload must be the full exact JSON representation of a hledger transaction
+(partial JSON won't do).
 You can download some sample JSON from `/transactions` or `/accounttransactions`,
 or export it using hledger-lib's `writeJsonFile` helper (there's also `readJsonFile` for testing):
 
@@ -236,7 +237,11 @@ $ python -m json.tool txn.json >pretty
 $ mv pretty txn.json
 ```
 
-Here's how it looks as of hledger-1.17:
+Here's how it looks as of hledger-1.17.
+(Note this corresponds to the Transaction data type - use its definition in
+[Hledger.Data.Types](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs)
+for reference):
+
 ```json
 {
     "tcode": "",
