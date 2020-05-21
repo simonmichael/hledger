@@ -205,9 +205,14 @@ sure that both machine clocks are roughly in step.)
 
 In addition to the web UI, hledger-web also serves a JSON API that can be 
 used to get data or add new transactions.
-If you only want the JSON API, run with the `--serve-api` flag.
+If you want the JSON API only, you can use the `--serve-api` flag. Eg:
 
-You can GET JSON data from these routes:
+```shell
+$ hledger-web -f examples/sample.journal --serve-api
+...
+```
+
+You can get JSON data from these routes:
 
 ```
 /accountnames
@@ -215,12 +220,73 @@ You can GET JSON data from these routes:
 /prices
 /commodities
 /accounts
-/accounttransactions/#AccountName
+/accounttransactions/ACCOUNTNAME
 ```
 
-And you can add a new transaction to the journal with a PUT request to `/add`,
-if hledger-web was started with the `add` capability (enabled by default).
+Eg, all account names in the journal (similar to the [accounts](hledger.html#accounts) command):
 
+```shell
+$ curl -s http://127.0.0.1:5000/accountnames | python -m json.tool
+[
+    "assets",
+    "assets:bank",
+    "assets:bank:checking",
+    "assets:bank:saving",
+    "assets:cash",
+    "expenses",
+    "expenses:food",
+    "expenses:supplies",
+    "income",
+    "income:gifts",
+    "income:salary",
+    "liabilities",
+    "liabilities:debts"
+]
+```
+
+Or all transactions:
+
+```shell
+$ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
+[
+    {
+        "tcode": "",
+        "tcomment": "",
+        "tdate": "2008-01-01",
+        "tdate2": null,
+        "tdescription": "income",
+        "tindex": 1,
+        "tpostings": [
+            {
+                "paccount": "assets:bank:checking",
+                "pamount": [
+                    {
+                        "acommodity": "$",
+                        "aismultiplier": false,
+                        "aprice": null,
+...
+```
+
+Most of the JSON corresponds to hledger's data types; for details of what the fields mean, see the
+[Hledger.Data.Json haddock docs](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
+and click on the various data types, eg 
+[Transaction](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction).
+And for a higher level understanding, see the [journal manual](journal.html).
+
+In some cases there is outer JSON corresponding to a "Report" type.
+To understand that, go to the
+[Hledger.Web.Handler.MiscR haddock](http://hackage.haskell.org/package/hledger-web-1.17.1/docs/Hledger-Web-Handler-MiscR.html)
+and look at the source for the appropriate handler to see what it returns.
+Eg for `/accounttransactions` it's
+[getAccounttransactionsR](http://hackage.haskell.org/package/hledger-web-1.17.1/docs/src/Hledger.Web.Handler.MiscR.html#getAccounttransactionsR),
+returning a "`accountTransactionsReport ...`".
+[Looking up](https://hoogle.haskell.org/?hoogle=accountTransactionsReport) the haddock for that
+we can see that /accounttransactions returns an 
+[AccountTransactionsReport](https://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Reports-AccountTransactionsReport.html#t:AccountTransactionsReport),
+which consists of a report title and a list of AccountTransactionsReportItem (etc).
+
+You can add a new transaction to the journal with a PUT request to `/add`,
+if hledger-web was started with the `add` capability (enabled by default).
 The payload must be the full, exact JSON representation of a hledger transaction
 (partial data won't do).
 You can get sample JSON from `/transactions` or `/accounttransactions`,
@@ -240,13 +306,10 @@ $ python -m json.tool txn.json >pretty
 $ mv pretty txn.json
 ```
 
-Here's how it looks as of hledger-1.17.
-Note, this JSON corresponds to hledger's Transaction data type.
-For a high level understanding of these fields, see the [journal manual](journal.html#transactions),
-and for more detail, see the 
-[Hledger.Data.Json haddock docs](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
-and click on the various data types, eg 
-[Transaction](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction):
+Here's how it looks as of hledger-1.17
+(remember, this JSON corresponds to hledger's 
+[Transaction](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction)
+and related data types):
 
 ```json
 {
