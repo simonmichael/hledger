@@ -226,7 +226,7 @@ or export it using hledger-lib's `writeJsonFile` helper (there's also `readJsonF
 ```shell
 $ make ghci-web
 >>> import Hledger
->>> writeJsonFile "txn.json" (head $ jtxns samplejournal)   -- export samplejournal's first transaction
+>>> writeJsonFile "txn.json" (head $ jtxns samplejournal)  -- export samplejournal's first txn
 >>> :q
 ```
 
