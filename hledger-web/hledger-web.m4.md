@@ -238,9 +238,10 @@ $ mv pretty txn.json
 ```
 
 Here's how it looks as of hledger-1.17.
-Note, this JSON corresponds to hledger's Transaction data type - use the definitions in
-[Hledger.Data.Types](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs)
-as a reference to understand these fields:
+Note, this JSON corresponds to hledger's Transaction data type - use 
+the [journal manual](journal.html#transactions)
+and the type definitions in [Hledger.Data.Types](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs)
+to understand these fields:
 
 ```json
 {
