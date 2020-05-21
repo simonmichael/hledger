@@ -238,7 +238,7 @@ $ mv pretty txn.json
 ```
 
 Here's how it looks as of hledger-1.17.
-(Note this corresponds to the Transaction data type - use its definition in
+(Note this corresponds to the Transaction data type - use the type definitions in
 [Hledger.Data.Types](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs)
 for reference):
 
