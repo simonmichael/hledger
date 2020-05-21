@@ -218,24 +218,117 @@ it provides only these routes.):
 Also, you can append a new transaction to the journal by sending a PUT request to `/add` (hledger-web only).
 As with the web UI's add form, hledger-web must be started with the `add` capability for this (enabled by default).
 
-The payload should be a valid hledger transaction as JSON, similar to what you get from `/transactions` or `/accounttransactions`.
+Note the payload must be the full exact JSON representation of a hledger transaction.
+You can download some sample JSON from `/transactions` or `/accounttransactions`,
+or export it using hledger-lib's `writeJsonFile` helper (there's also `readJsonFile` for testing):
 
-Another way to generate test data is with the `readJsonFile`/`writeJsonFile` helpers in Hledger.Web.Json,
-which can write or read most of hledger's [data types](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs)
-to or from a file.
-Eg here we write the first transaction of a sample journal:
 ```shell
 $ make ghci-web
->>> :m +*Hledger.Web.Json
+>>> import Hledger
 >>> writeJsonFile "txn.json" (head $ jtxns samplejournal)
 >>> :q
-$ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readable
 ```
-([sample output & discussion](https://github.com/simonmichael/hledger/issues/316#issuecomment-465858507))
 
-And here's how to test adding that with curl:
+If you like, reformat the json to make it human-readable:
+
 ```shell
-$ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
+$ python -m json.tool txn.json >pretty
+$ mv pretty txn.json
+```
+
+Here's how it looks as of hledger-1.17:
+```json
+{
+    "tcode": "",
+    "tcomment": "",
+    "tdate": "2008-01-01",
+    "tdate2": null,
+    "tdescription": "income",
+    "tindex": 1,
+    "tpostings": [
+        {
+            "paccount": "assets:bank:checking",
+            "pamount": [
+                {
+                    "acommodity": "$",
+                    "aismultiplier": false,
+                    "aprice": null,
+                    "aquantity": {
+                        "decimalMantissa": 10000000000,
+                        "decimalPlaces": 10,
+                        "floatingPoint": 1
+                    },
+                    "astyle": {
+                        "ascommodityside": "L",
+                        "ascommodityspaced": false,
+                        "asdecimalpoint": ".",
+                        "asdigitgroups": null,
+                        "asprecision": 2
+                    }
+                }
+            ],
+            "pbalanceassertion": null,
+            "pcomment": "",
+            "pdate": null,
+            "pdate2": null,
+            "poriginal": null,
+            "pstatus": "Unmarked",
+            "ptags": [],
+            "ptransaction_": "1",
+            "ptype": "RegularPosting"
+        },
+        {
+            "paccount": "income:salary",
+            "pamount": [
+                {
+                    "acommodity": "$",
+                    "aismultiplier": false,
+                    "aprice": null,
+                    "aquantity": {
+                        "decimalMantissa": -10000000000,
+                        "decimalPlaces": 10,
+                        "floatingPoint": -1
+                    },
+                    "astyle": {
+                        "ascommodityside": "L",
+                        "ascommodityspaced": false,
+                        "asdecimalpoint": ".",
+                        "asdigitgroups": null,
+                        "asprecision": 2
+                    }
+                }
+            ],
+            "pbalanceassertion": null,
+            "pcomment": "",
+            "pdate": null,
+            "pdate2": null,
+            "poriginal": null,
+            "pstatus": "Unmarked",
+            "ptags": [],
+            "ptransaction_": "1",
+            "ptype": "RegularPosting"
+        }
+    ],
+    "tprecedingcomment": "",
+    "tsourcepos": {
+        "contents": [
+            "",
+            [
+                1,
+                1
+            ]
+        ],
+        "tag": "JournalSourcePos"
+    },
+    "tstatus": "Unmarked",
+    "ttags": []
+}
+```
+
+And here's how to test adding it with curl. This should add a new entry to your journal:
+
+```shell
+$ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 ```
 
 By default, both the server-side HTML UI and the JSON API are served.
