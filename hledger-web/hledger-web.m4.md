@@ -238,9 +238,12 @@ $ mv pretty txn.json
 ```
 
 Here's how it looks as of hledger-1.17.
-Note, this JSON corresponds to hledger's Transaction data type - to understand these fields, use 
-the [journal manual](journal.html#transactions) and follow the various data type links in
-[Hledger.Data.Json's haddock](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html):
+Note, this JSON corresponds to hledger's Transaction data type.
+For a high level understanding of these fields, see the [journal manual](journal.html#transactions),
+and for more detail, see the 
+[Hledger.Data.Json haddock docs](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
+and click on the various data types, eg 
+[Transaction](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction):
 
 ```json
 {
