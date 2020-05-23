@@ -346,6 +346,7 @@ SHAKEDEPS= \
 	--package directory \
 	--package extra \
 	--package process \
+	--package regex \
 	--package safe \
 	--package shake \
 	--package time \
