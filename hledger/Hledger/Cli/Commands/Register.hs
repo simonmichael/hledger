@@ -19,10 +19,12 @@ module Hledger.Cli.Commands.Register (
 ) where
 
 import Data.Aeson (toJSON)
+import Data.Aeson.Text (encodeToLazyText)
 import Data.List
 import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
@@ -61,7 +63,7 @@ register opts@CliOpts{reportopts_=ropts} j = do
   let fmt = outputFormatFromOpts opts
       render | fmt=="txt"  = postingsReportAsText
              | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
-             | fmt=="json" = const ((++"\n") . pshow . toJSON)  -- XXX pshow for pretty output, but it may generate some junk
+             | fmt=="json" = const ((++"\n") . T.unpack . TL.toStrict . encodeToLazyText . toJSON)
              | otherwise   = const $ error' $ unsupportedOutputFormatError fmt
   writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 

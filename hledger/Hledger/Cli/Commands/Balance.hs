@@ -254,6 +254,7 @@ module Hledger.Cli.Commands.Balance (
 ) where
 
 import Data.Aeson (toJSON)
+import Data.Aeson.Text (encodeToLazyText)
 import Data.List
 import Data.Maybe
 --import qualified Data.Map as Map
@@ -319,7 +320,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
                 assrt          = not $ ignore_assertions_ $ inputopts_ opts
             render = case fmt of
               "txt"  -> budgetReportAsText ropts
-              "json" -> (++"\n") . pshow . toJSON  -- XXX pshow for pretty output, but it may generate some junk
+              "json" -> (++"\n") . T.unpack . TL.toStrict . encodeToLazyText . toJSON
               _      -> const $ error' $ unsupportedOutputFormatError fmt
         writeOutput opts $ render budgetreport
 
@@ -330,7 +331,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
                 "txt"  -> multiBalanceReportAsText ropts
                 "csv"  -> (++"\n") . printCSV . multiBalanceReportAsCsv ropts
                 "html" -> (++"\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
-                "json" -> (++"\n") . pshow . toJSON  -- XXX pshow for pretty output, but it may generate some junk
+                "json" -> (++"\n") . T.unpack . TL.toStrict . encodeToLazyText . toJSON
                 _      -> const $ error' $ unsupportedOutputFormatError fmt
           writeOutput opts $ render report
 
@@ -345,7 +346,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
               render = case fmt of
                 "txt"  -> balanceReportAsText
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
-                "json" -> const $ (++"\n") . pshow . toJSON  -- XXX pshow for pretty output, but it may generate some junk
+                "json" -> const $ (++"\n") . T.unpack . TL.toStrict . encodeToLazyText . toJSON
                 _      -> const $ error' $ unsupportedOutputFormatError fmt
           writeOutput opts $ render ropts report
 
