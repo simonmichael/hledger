@@ -108,7 +108,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode when displaying tables"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
-    ,outputFormatFlag
+    ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
     ]
     [generalflagsgroup1]

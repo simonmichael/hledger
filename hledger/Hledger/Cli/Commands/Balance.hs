@@ -295,8 +295,9 @@ balancemode = hledgerCommandMode
    ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
    ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
+   ,outputFormatFlag ["txt","html","csv","json"]
+   ,outputFileFlag
    ]
-   ++ outputflags
   )
   [generalflagsgroup1]
   hiddenflags

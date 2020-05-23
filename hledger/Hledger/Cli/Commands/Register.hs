@@ -51,7 +51,9 @@ registermode = hledgerCommandMode
 #endif
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
-  ] ++ outputflags)
+  ,outputFormatFlag ["txt","csv","json"]
+  ,outputFileFlag
+  ])
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")

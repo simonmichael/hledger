@@ -60,7 +60,7 @@ import Hledger.Utils
 
 -- | Standard error message for a bad output format specified with -O/-o.
 unsupportedOutputFormatError :: String -> String
-unsupportedOutputFormatError fmt = "Sorry, output format \""++fmt++"\" is unrecognised or not yet implemented for this report."
+unsupportedOutputFormatError fmt = "Sorry, output format \""++fmt++"\" is unrecognised or not yet implemented for this report or report mode."
 
 -- | Parse the user's specified journal file(s) as a Journal, maybe apply some
 -- transformations according to options, and run a hledger command with it.

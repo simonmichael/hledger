@@ -39,7 +39,9 @@ printmode = hledgerCommandMode
     "show all amounts explicitly"
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
-  ] ++ outputflags)
+  ,outputFormatFlag ["txt","csv","json"]
+  ,outputFileFlag
+  ])
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
