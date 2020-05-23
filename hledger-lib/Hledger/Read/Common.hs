@@ -45,7 +45,7 @@ module Hledger.Read.Common (
   journalSourcePos,
   parseAndFinaliseJournal,
   parseAndFinaliseJournal',
-  finaliseJournal,
+  journalFinalise,
   setYear,
   getYear,
   setDefaultCommodityAndStyle,
@@ -260,7 +260,7 @@ parseAndFinaliseJournal parser iopts f txt = do
     Left finalParseError -> throwError $ finalErrorBundlePretty $ attachSource f txt finalParseError
     Right ep -> case ep of
                   Left e   -> throwError $ customErrorBundlePretty e
-                  Right pj -> finaliseJournal iopts f txt pj
+                  Right pj -> journalFinalise iopts f txt pj
 
 -- | Like parseAndFinaliseJournal but takes a (non-Erroring) JournalParser.
 -- Used for timeclock/timedot.
@@ -276,7 +276,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
   -- see notes above
   case ep of
     Left e   -> throwError $ customErrorBundlePretty e
-    Right pj -> finaliseJournal iopts f txt pj
+    Right pj -> journalFinalise iopts f txt pj
 
 -- | Post-process a Journal that has just been parsed or generated, in this order:
 --
@@ -290,8 +290,8 @@ parseAndFinaliseJournal' parser iopts f txt = do
 --
 -- - check balance assertions if enabled.
 --
-finaliseJournal :: InputOpts -> FilePath -> Text -> Journal -> ExceptT String IO Journal
-finaliseJournal iopts f txt pj = do
+journalFinalise :: InputOpts -> FilePath -> Text -> Journal -> ExceptT String IO Journal
+journalFinalise iopts f txt pj = do
   t <- liftIO getClockTime
   -- Infer and apply canonical styles for each commodity (or fail).
   -- This affects transaction balancing/assertions/assignments, so needs to be done early.
