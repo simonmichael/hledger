@@ -61,7 +61,6 @@ budgetReport ropts' assrt reportspan d j =
     -- and that reports with and without --empty make sense when compared side by side
     ropts = ropts' { accountlistmode_ = ALTree }
     showunbudgeted = empty_ ropts
-    q = queryFromOpts d ropts
     budgetedaccts =
       dbg2 "budgetedacctsinperiod" $
       nub $
@@ -73,9 +72,9 @@ budgetReport ropts' assrt reportspan d j =
     actualj = dbg1With (("actualj"++).show.jtxns)  $ budgetRollUp budgetedaccts showunbudgeted j
     budgetj = dbg1With (("budgetj"++).show.jtxns)  $ budgetJournal assrt ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
-        dbg1 "actualreport" $ multiBalanceReport ropts q actualj
+        dbg1 "actualreport" $ multiBalanceReport d ropts actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
-        dbg1 "budgetgoalreport" $ multiBalanceReport (ropts{empty_=True}) q budgetj
+        dbg1 "budgetgoalreport" $ multiBalanceReport d (ropts{empty_=True}) budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;

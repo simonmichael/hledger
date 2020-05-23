@@ -326,7 +326,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
 
       else
         if multiperiod then do  -- multi period balance report
-          let report = multiBalanceReport ropts (queryFromOpts d ropts) j
+          let report = multiBalanceReport d ropts j
               render = case fmt of
                 "txt"  -> multiBalanceReportAsText ropts
                 "csv"  -> (++"\n") . printCSV . multiBalanceReportAsCsv ropts
