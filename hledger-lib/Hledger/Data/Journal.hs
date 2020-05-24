@@ -21,6 +21,7 @@ module Hledger.Data.Journal (
   addPeriodicTransaction,
   addTransaction,
   journalBalanceTransactions,
+  journalInferMarketPricesFromTransactions,
   journalApplyCommodityStyles,
   commodityStylesFromAmounts,
   journalCommodityStyles,
@@ -185,6 +186,7 @@ instance Semigroup Journal where
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
     ,jpricedirectives              = jpricedirectives              j1 <> jpricedirectives              j2
+    ,jtransactionimpliedmarketprices = jtransactionimpliedmarketprices j1 <> jtransactionimpliedmarketprices j2
     ,jtxnmodifiers              = jtxnmodifiers              j1 <> jtxnmodifiers              j2
     ,jperiodictxns              = jperiodictxns              j1 <> jperiodictxns              j2
     ,jtxns                      = jtxns                      j1 <> jtxns                      j2
@@ -210,6 +212,7 @@ nulljournal = Journal {
   ,jcommodities               = M.empty
   ,jinferredcommodities       = M.empty
   ,jpricedirectives              = []
+  ,jtransactionimpliedmarketprices = []
   ,jtxnmodifiers              = []
   ,jperiodictxns              = []
   ,jtxns                      = []
@@ -1035,6 +1038,32 @@ canonicalStyleFrom ss@(s:_) =
 --   let ps = reverse $ filter ((<= d).pddate) $ filter ((s==).hsymbol) $ sortBy (comparing pddate) $ jpricedirectives j
 --   case ps of (PriceDirective{pdamount=a}:_) -> Just a
 --              _ -> Nothing
+
+-- | Infer transaction-implied market prices from commodity-exchanging
+-- transactions, if any. It's best to call this after transactions have
+-- been balanced and posting amounts have appropriate prices attached.
+journalInferMarketPricesFromTransactions :: Journal -> Journal
+journalInferMarketPricesFromTransactions j =
+  j{jtransactionimpliedmarketprices =
+       dbg4 "jtransactionimpliedmarketprices" $
+       mapMaybe postingImpliedMarketPrice $ journalPostings j
+   }
+
+-- | Make a market price equivalent to this posting's amount's unit
+-- price, if any. If the posting amount is multicommodity, only the
+-- first commodity amount is considered.
+postingImpliedMarketPrice :: Posting -> Maybe MarketPrice
+postingImpliedMarketPrice p@Posting{pamount} =
+  -- convert any total prices to unit prices
+  case mixedAmountTotalPriceToUnitPrice pamount of
+    Mixed ( Amount{acommodity=fromcomm, aprice = Just (UnitPrice Amount{acommodity=tocomm, aquantity=rate})} : _) ->
+      Just MarketPrice {
+         mpdate = postingDate p
+        ,mpfrom = fromcomm
+        ,mpto   = tocomm
+        ,mprate = rate
+        }
+    _ -> Nothing
 
 -- | Convert all this journal's amounts to cost using the transaction prices, if any.
 -- The journal's commodity styles are applied to the resulting amounts.

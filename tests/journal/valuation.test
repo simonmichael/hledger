@@ -76,9 +76,9 @@ $ hledger -f- bal -N -V -e 3000/2
 
 D 1000.00 H                ; declare a default commodity named H
 
-P 2015/08/14 EEEE  41.66   ; default commodity H is used for these market prices
-P 2015/08/14 FFFF  74.62
-P 2015/08/14 GGGG  32.39
+P 2015/08/15 EEEE  41.66   ; default commodity H is used for these market prices
+P 2015/08/15 FFFF  74.62
+P 2015/08/15 GGGG  32.39
 
 2015/08/15
     a  2.4120 EEEE @@ 100  ; default commodity H is used for these transaction prices

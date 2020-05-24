@@ -290,6 +290,8 @@ parseAndFinaliseJournal' parser iopts f txt = do
 --
 -- - check balance assertions if enabled.
 --
+-- - infer transaction-implied market prices from transaction prices
+--
 journalFinalise :: InputOpts -> FilePath -> Text -> Journal -> ExceptT String IO Journal
 journalFinalise iopts f txt pj = do
   t <- liftIO getClockTime
@@ -305,23 +307,25 @@ journalFinalise iopts f txt pj = do
       & journalAddFile (f, txt)  -- save the file path and content
       & journalSetLastReadTime t -- save the last read time
       & journalReverse           -- convert all lists to parse order
-      & if not (auto_ iopts) || null (jtxnmodifiers pj)
-        then
-          -- Auto postings are not active.
-          -- Balance all transactions and maybe check balance assertions.
-          journalBalanceTransactions (not $ ignore_assertions_ iopts)
-        else \j -> do  -- Either monad
-          -- Auto postings are active.
-          -- Balance all transactions without checking balance assertions,
-          j' <- journalBalanceTransactions False j
-          -- then add the auto postings
-          -- (Note adding auto postings after balancing means #893b fails;
-          -- adding them before balancing probably means #893a, #928, #938 fail.)
-          let j'' = journalModifyTransactions j'
-          -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
-          j''' <- journalApplyCommodityStyles j''
-          -- then check balance assertions.
-          journalBalanceTransactions (not $ ignore_assertions_ iopts) j'''
+      & (if not (auto_ iopts) || null (jtxnmodifiers pj)
+         then
+           -- Auto postings are not active.
+           -- Balance all transactions and maybe check balance assertions.
+           journalBalanceTransactions (not $ ignore_assertions_ iopts)
+         else \j -> do  -- Either monad
+           -- Auto postings are active.
+           -- Balance all transactions without checking balance assertions,
+           j' <- journalBalanceTransactions False j
+           -- then add the auto postings
+           -- (Note adding auto postings after balancing means #893b fails;
+           -- adding them before balancing probably means #893a, #928, #938 fail.)
+           let j'' = journalModifyTransactions j'
+           -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
+           j''' <- journalApplyCommodityStyles j''
+           -- then check balance assertions.
+           journalBalanceTransactions (not $ ignore_assertions_ iopts) j'''
+        )
+     & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
