@@ -17,7 +17,8 @@ import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.Widget.Common (accountQuery, mixedAmountAsHtml)
+import Hledger.Web.Widget.Common
+             (accountQuery, mixedAmountAsHtml, transactionFrag)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
