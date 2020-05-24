@@ -15,7 +15,7 @@ $if elem CapAdd caps
       <th .amount style="text-align:right;">Amount
 
     $forall (torig, _, split, _, amt, _) <- items
-      <tr .title #transaction-#{tindex torig} title="#{showTransaction torig}">
+      <tr .title ##{transactionFrag torig} title="#{showTransaction torig}">
         <td .date nowrap>
           #{show (tdate torig)}
         <td colspan=2>

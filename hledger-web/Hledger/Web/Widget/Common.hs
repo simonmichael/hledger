@@ -14,6 +14,7 @@ module Hledger.Web.Widget.Common
   , fromFormSuccess
   , writeJournalTextIfValidAndChanged
   , journalFile404
+  , transactionFrag
   ) where
 
 import Data.Default (def)
@@ -29,6 +30,7 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (preEscapedString)
 import Text.Hamlet (hamletFile)
+import Text.Printf (printf)
 import Yesod
 
 import Hledger
@@ -103,3 +105,7 @@ mixedAmountAsHtml b _ =
     c = case isNegativeMixedAmount b of
       Just True -> "negative amount"
       _ -> "positive amount"
+
+transactionFrag :: Transaction -> String
+transactionFrag t =
+    printf "transaction-%s-%d" (sourceFilePath $ tsourcepos t) (tindex t)
