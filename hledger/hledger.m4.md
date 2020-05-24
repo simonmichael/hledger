@@ -1121,28 +1121,44 @@ $ hledger balance --pivot member acct:.
 
 ## Valuation
 
+hledger can show 
+cost reports, where amounts are converted to their cost or sale amount
+at transaction time; 
+or value reports, where amounts are converted to their market value in
+another currency/commodity at a specified date
+(using market prices inferred from your transactions, or declared with P directives).
+
+We call this "valuation", and it is controlled by the `--value=VALUATIONTYPE[,COMMODITY]` option.
+It can get a little involved, so we cover all the details below.
+But most of the time, all you need to do is use these simpler flags instead:
+
+- `-B` to convert to cost/sale amount, or
+- `-V` to convert to market value in your base currency. Or occasionally,
+- `-X COMMODITY` to convert to market value in some other currency.
+
+<!-- These flags are mutually exclusive; if you combine them in a command, the rightmost wins. -->
+
 ### -B: Cost
 
-The `-B/--cost` flag converts amounts to their cost (or selling price) at transaction time,
+The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
 if they have a [transaction price](journal.html#transaction-prices) specified.
-This flag is equivalent to `--value=cost`, described below.
+(It is equivalent to `--value=cost`.)
 
-### -V: Market value
+### -V: Value
 
-The `-V/--market` flag converts reported amounts to their market value in a default valuation commodity,
-using the [market prices](journal.html#market-prices) in effect on a default valuation date.
-For single period reports, the valuation date is today (equivalent to `--value=now`);
-for [multiperiod reports](#report-intervals), it is the last day of each subperiod (equivalent to `--value=end`).
+The `-V/--market` flag converts reported amounts to market value in
+their *default valuation commodity*, using the [market prices](#market-prices) 
+in effect on a *default valuation date*. (More on these below.)
 
 The default valuation commodity is the one referenced in the latest
 applicable market price dated on or before the valuation date.
-If most of your P declarations lead to a single home currency, this will usually be what you want.
-(To specify the commodity, see -X below.)
+Typically your P declarations or currency exchange transactions
+reference a single base currency, and -V will pick that.
 
-Note that in hledger, market prices are always declared explicitly with P directives;
-we do not infer them from [transaction prices](journal.html#transaction-prices) as Ledger does.
+The default valuation date is today for single period reports (equivalent to `--value=now`),
+or the last day of each subperiod for [multiperiod reports](#report-intervals) (equivalent to `--value=end`).
 
-Here's a quick example of -V:
+An example:
 
 ```journal
 ; one euro is worth this many dollars from nov 1
@@ -1175,7 +1191,31 @@ $ hledger -f t.j bal -N euros -V
 ### -X: Market value in specified commodity
 
 The `-X/--exchange` option is like `-V`, except it specifies the target commodity you would like to convert to.
-It is equivalent to `--value=now,COMM` or `--value=end,COMM`.
+(It is equivalent to `--value=now,COMM` or `--value=end,COMM`.)
+
+### Market prices
+
+To convert a commodity A to commodity B, hledger looks for a suitable
+market price (exchange rate) in the following ways, in this order of
+preference:
+
+1. a *declared market price* - the latest [P directive](journal.html#declaring-market-prices) 
+   specifying the exchange rate from A to B, dated on or before the valuation date.
+
+2. a *transaction-implied market price* - a market price matching the
+   [transaction price](journal.html#transaction-prices) used in the
+   latest transaction where A is converted to B,
+   dated on or before the valuation date.
+   (*since hledger 1.18; experimental*)
+
+3. a *reverse declared market price* - calculated by inverting a
+   declared market price from B to A.
+
+4. a *reverse transaction-implied market price* - calculated by
+   inverting a transaction-implied market price from B to A.
+
+5. an *indirect market price* - calculated by combining the shortest
+   chain of market prices (any of the above types) leading from A to B.
 
 ### --value: Flexible valuation
 
@@ -1408,9 +1448,7 @@ Related:
 : a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
 
 
-### Combining -B, -V, -X, --value
 
-The rightmost of these flags wins.
 
 # COMMANDS
 
