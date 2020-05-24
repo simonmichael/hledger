@@ -20,6 +20,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Accounts
   ,module Hledger.Cli.Commands.Activity
   ,module Hledger.Cli.Commands.Add
+  ,module Hledger.Cli.Commands.Aregister
   ,module Hledger.Cli.Commands.Balance
   ,module Hledger.Cli.Commands.Balancesheet
   ,module Hledger.Cli.Commands.Balancesheetequity
@@ -66,6 +67,7 @@ import Hledger.Cli.Version
 import Hledger.Cli.Commands.Accounts
 import Hledger.Cli.Commands.Activity
 import Hledger.Cli.Commands.Add
+import Hledger.Cli.Commands.Aregister
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Balancesheet
 import Hledger.Cli.Commands.Balancesheetequity
@@ -102,6 +104,7 @@ builtinCommands = [
    (accountsmode           , accounts)
   ,(activitymode           , activity)
   ,(addmode                , add)
+  ,(aregistermode          , aregister)
   ,(balancemode            , balance)
   ,(balancesheetequitymode , balancesheetequity)
   ,(balancesheetmode       , balancesheet)
@@ -172,6 +175,7 @@ commandsList = unlines [
   ," rewrite                  generate automated postings/diffs (old, use --auto)"
   ,""
   ,"Financial reports:"
+  ," aregister (areg)         show transactions in a particular account"
   ," balancesheet (bs)        show assets, liabilities and net worth"
   ," balancesheetequity (bse) show assets, liabilities and equity"
   ," cashflow (cf)            show changes in liquid assets"
@@ -291,6 +295,7 @@ tests_Hledger_Cli = tests "Hledger.Cli" [
 tests_Commands = tests "Commands" [
    tests_Balance
   ,tests_Register
+  ,tests_Aregister
 
   -- some more tests easiest to define here:
 

@@ -85,6 +85,7 @@ instance Default AccountListMode where def = ALFlat
 -- or query arguments, but not all. Some are used only by certain
 -- commands, as noted below.
 data ReportOpts = ReportOpts {
+     -- for most reports:
      today_          :: Maybe Day  -- ^ The current date. A late addition to ReportOpts.
                                    -- Optional, but when set it may affect some reports:
                                    -- Reports use it when picking a -V valuation date.
@@ -105,9 +106,11 @@ data ReportOpts = ReportOpts {
                                --   and quoted if needed (see 'quoteIfNeeded')
     --
     ,average_        :: Bool
-    -- register command only
+    -- for posting reports (register)
     ,related_        :: Bool
-    -- balance-type commands only
+    -- for account transactions reports (aregister)
+    ,txn_dates_      :: Bool
+    -- for balance reports (bal, bs, cf, is)
     ,balancetype_    :: BalanceType
     ,accountlistmode_ :: AccountListMode
     ,drop_           :: Int
@@ -163,6 +166,7 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
@@ -186,6 +190,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,query_       = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts' -- doesn't handle an arg like "" right
     ,average_     = boolopt "average" rawopts'
     ,related_     = boolopt "related" rawopts'
+    ,txn_dates_   = boolopt "txn-dates" rawopts'
     ,balancetype_ = balancetypeopt rawopts'
     ,accountlistmode_ = accountlistmodeopt rawopts'
     ,drop_        = posintopt "drop" rawopts'

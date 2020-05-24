@@ -1553,6 +1553,10 @@ _include_(Hledger/Cli/Commands/Activity.md)
 
 _include_(Hledger/Cli/Commands/Add.md)
 
+## aregister
+
+_include_(Hledger/Cli/Commands/Aregister.md)
+
 ## balance
 
 _include_({{Hledger/Cli/Commands/Balance.md}})

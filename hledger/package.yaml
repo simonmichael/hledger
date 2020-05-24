@@ -55,6 +55,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Accounts.txt
 - Hledger/Cli/Commands/Activity.txt
 - Hledger/Cli/Commands/Add.txt
+- Hledger/Cli/Commands/Aregister.txt
 - Hledger/Cli/Commands/Balance.txt
 - Hledger/Cli/Commands/Balancesheet.txt
 - Hledger/Cli/Commands/Balancesheetequity.txt
@@ -163,6 +164,7 @@ library:
   - Hledger.Cli.Commands.Accounts
   - Hledger.Cli.Commands.Activity
   - Hledger.Cli.Commands.Add
+  - Hledger.Cli.Commands.Aregister
   - Hledger.Cli.Commands.Balance
   - Hledger.Cli.Commands.Balancesheet
   - Hledger.Cli.Commands.Balancesheetequity

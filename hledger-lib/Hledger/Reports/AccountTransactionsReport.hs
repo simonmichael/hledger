@@ -136,10 +136,11 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
         mstartdate = queryStartDate (date2_ ropts) reportq'
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
 
-    -- now should we include only transactions dated inside report period ?
-    -- or all transactions with any posting inside the report period ? an option ?
-    -- filtering might apply some other query terms here too. I think we should.
-    filtertxns = True
+    -- accountTransactionsReportItem will keep transactions of any date which have any posting inside the report period.
+    -- Should we also require that transaction date is inside the report period ?
+    -- Should we be filtering by reportq here to apply other query terms (?)
+    -- Make it an option for now.
+    filtertxns = txn_dates_ ropts
 
     items = reverse $
             accountTransactionsReportItems reportq' thisacctq startbal negate $
