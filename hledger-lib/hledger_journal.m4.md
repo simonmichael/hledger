@@ -989,7 +989,7 @@ D $1,000.00
   b
 ```
 
-### Market prices
+### Declaring market prices
 
 The `P` directive declares a market price, which is
 an exchange rate between two commodities on a certain date.
@@ -1016,8 +1016,8 @@ P 2009/1/1 € $1.35
 P 2010/1/1 € $1.40
 ```
 
-The [`-V/--value`](hledger.html#v-market-value) flag can be used to convert reported amounts
-to another commodity using these prices.
+The `-V`, `-X` and `--value` flags use these market prices to show amount values
+in another commodity. See [Valuation](hledger.html#valuation).
 
 ### Declaring accounts
 
