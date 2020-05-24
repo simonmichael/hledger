@@ -91,16 +91,23 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
                reportq
 
     -- get all transactions
-    ts1 = jtxns j
+    ts1 =
+      -- ptraceAtWith 5 (("ts1:\n"++).pshowTransactions) $
+      jtxns j
 
     -- apply any cur:SYM filters in reportq'
     symq  = filterQuery queryIsSym reportq'
-    ts2 = (if queryIsNull symq then id else map (filterTransactionAmounts symq)) ts1
+    ts2 =
+      ptraceAtWith 5 (("ts2:\n"++).pshowTransactions) $
+      (if queryIsNull symq then id else map (filterTransactionAmounts symq)) ts1
 
     -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
     realq = filterQuery queryIsReal reportq'
     statusq = filterQuery queryIsStatus reportq'
-    ts3 = filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
+    ts3 =
+      traceAt 3 ("thisacctq: "++show thisacctq) $
+      ptraceAtWith 5 (("ts3:\n"++).pshowTransactions) $
+      filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
 
     -- maybe convert these transactions to cost or value
     prices = journalPriceOracle (infer_value_ ropts) j
@@ -114,19 +121,23 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
     tval = case value_ ropts of
              Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast today multiperiod t v
              Nothing -> id
-    ts4 = map tval ts3 
+    ts4 =
+      ptraceAtWith 5 (("ts4:\n"++).pshowTransactions) $
+      map tval ts3 
 
     -- sort by the transaction's register date, for accurate starting balance
     -- these are not yet filtered by tdate, we want to search them all for priorps
-    ts5 = sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
+    ts5 =
+      ptraceAtWith 5 (("ts5:\n"++).pshowTransactions) $
+      sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
 
     (startbal,label)
       | balancetype_ ropts == HistoricalBalance = (sumPostings priorps, balancelabel)
       | otherwise                               = (nullmixedamt,        totallabel)
       where
-        priorps = dbg1 "priorps" $
+        priorps = dbg5 "priorps" $
                   filter (matchesPosting
-                          (dbg1 "priorq" $
+                          (dbg5 "priorq" $
                            And [thisacctq, tostartdateq, datelessreportq]))
                          $ transactionsPostings ts5
         tostartdateq =
@@ -136,15 +147,19 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
         mstartdate = queryStartDate (date2_ ropts) reportq'
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
 
-    -- now should we include only transactions dated inside report period ?
-    -- or all transactions with any posting inside the report period ? an option ?
-    -- filtering might apply some other query terms here too. I think we should.
-    filtertxns = True
+    -- accountTransactionsReportItem will keep transactions of any date which have any posting inside the report period.
+    -- Should we also require that transaction date is inside the report period ?
+    -- Should we be filtering by reportq here to apply other query terms (?)
+    -- Make it an option for now.
+    filtertxns = txn_dates_ ropts
 
     items = reverse $
             accountTransactionsReportItems reportq' thisacctq startbal negate $
             (if filtertxns then filter (reportq' `matchesTransaction`) else id) $
             ts5
+
+pshowTransactions :: [Transaction] -> String
+pshowTransactions = pshow . map (\t -> unwords [show $ tdate t, T.unpack $ tdescription t])
 
 -- | Generate transactions report items from a list of transactions,
 -- using the provided user-specified report query, a query specifying
