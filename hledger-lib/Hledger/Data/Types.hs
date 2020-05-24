@@ -471,8 +471,8 @@ data Journal = Journal {
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts)
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
-  ,jpricedirectives       :: [PriceDirective]                       -- ^ All market price declarations (P directives), in parse order (after journal finalisation).
-                                                                    --   These will be converted to a Prices db for looking up prices by date.
+  ,jpricedirectives       :: [PriceDirective]                       -- ^ Declarations of market prices by P directives, in parse order (after journal finalisation)
+  ,jtransactionimpliedmarketprices :: [MarketPrice]                 -- ^ Market prices implied by transactions, in parse order (after journal finalisation)
   ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]

@@ -221,3 +221,32 @@ P 2002/01/01 A  2 B
 # was inclusive.
 $ hledger -f- bal -N -V -e 2002-01-01
                  1 B  a
+
+# Test market prices inferred from transactions, as in Ledger.
+
+<
+2020-01-01
+  (assets:stock)   1 TSLA @ $500
+
+2020-03-01
+  (assets:stock)   1 TSLA @ $500
+
+P 2020-03-01 TSLA  $600
+
+2020-05-01
+  (assets:stock)   1 TSLA @ $800
+
+# 22. Market price is inferred from a transaction price,
+# -V works without a P directive.
+$ hledger -f- bal -N -V -e 2020-01-02
+                $500  assets:stock
+
+# 23. A P-declared market price has precedence over a transaction price 
+# on the same date.
+$ hledger -f- bal -N -V -e 2020-03-02
+               $1200  assets:stock
+
+# 24. A transaction-implied market price has precedence 
+# over an older P-declared market price.
+$ hledger -f- bal -N -V -e 2020-05-02
+               $2400  assets:stock
