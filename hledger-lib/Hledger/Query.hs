@@ -49,6 +49,7 @@ module Hledger.Query (
   matchesCommodity,
   matchesPriceDirective,
   words'',
+  prefixes,
   -- * tests
   tests_Query
 )
