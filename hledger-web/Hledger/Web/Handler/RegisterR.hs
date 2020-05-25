@@ -18,7 +18,7 @@ import Hledger.Web.Import
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
-             (accountQuery, mixedAmountAsHtml, transactionFrag)
+             (accountQuery, mixedAmountAsHtml, transactionFragment)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -45,6 +45,7 @@ getRegisterR = do
           tail $ (", "<$xs) ++ [""]
       r@(balancelabel,items) = accountTransactionsReport ropts j m acctQuery
       balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
+      transactionFrag = transactionFragment j
   defaultLayout $ do
     setTitle "register - hledger-web"
     $(widgetFile "register")
