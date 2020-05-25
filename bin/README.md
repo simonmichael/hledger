@@ -7,6 +7,8 @@ shipped as executable stack scripts:
 - hledger-check.hs      - check more complex account balance assertions
 - hledger-smooth.hs     - an attempt at automatically splitting infrequent/irregular transactions
 - hledger-swap-dates.hs - print transactions with their date and date2 fields swapped
+- hledger-combine-balances.hs  - render two balance reports as single multi-column one
+- hledger-balance-as-budget.hs - use one balance report as the budget for the other one
 
 You can run them directly and they will install required dependencies 
 and run in interpreted mode. 
