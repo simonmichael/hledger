@@ -35,6 +35,7 @@ module Hledger.Cli.CliOptions (
   CliOpts(..),
   defcliopts,
   getHledgerCliOpts,
+  getHledgerCliOpts',
   rawOptsToCliOpts,
   checkCliOpts,
   outputFormats,
@@ -479,9 +480,8 @@ checkCliOpts opts =
 -- Empty lines in the pre/postamble are removed by cmdargs;
 -- add a space character to preserve them.
 --
-getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
-getHledgerCliOpts mode' = do
-  args' <- getArgs >>= expandArgsAt
+getHledgerCliOpts' :: Mode RawOpts -> [String] -> IO CliOpts
+getHledgerCliOpts' mode' args' = do
   let rawopts = either usageError id $ process mode' args'
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
@@ -507,6 +507,11 @@ getHledgerCliOpts mode' = do
         putStrLn $ "processed opts:\n" ++ show opts
         d <- getCurrentDay
         putStrLn $ "search query: " ++ show (queryFromOpts d $ reportopts_ opts)
+
+getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
+getHledgerCliOpts mode' = do
+  args' <- getArgs >>= expandArgsAt
+  getHledgerCliOpts' mode' args' 
 
 -- CliOpts accessors
 
