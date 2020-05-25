@@ -11,11 +11,11 @@ $forall (acct, adisplay, aindent, abal) <- items
     <td .acct :isZeroMixedAmount abal:.empty>
       <div .ff-wrapper>
         \#{indent aindent}
-        <a.acct-name href="@?{(registerR, [("q", accountQuery acct)])}"
+        <a.acct-name href="@?{(registerR, [("q", replaceInacct q $ accountQuery acct)])}"
            title="Show transactions affecting this account and subaccounts">
           #{adisplay}
         $if hasSubAccounts acct
-          <a href="@?{(registerR, [("q", accountOnlyQuery acct)])}" .only.hidden-sm.hidden-xs
+          <a href="@?{(registerR, [("q", replaceInacct q $ accountOnlyQuery acct)])}" .only.hidden-sm.hidden-xs
              title="Show transactions affecting this account but not subaccounts">only
     <td>
       ^{mixedAmountAsHtml abal}

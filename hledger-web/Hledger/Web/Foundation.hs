@@ -122,7 +122,7 @@ instance Yesod App where
         -- flip the default for items with zero amounts, show them by default
         ropts' = ropts { empty_ = not (empty_ ropts) }
         accounts =
-          balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j qopts $
+          balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j q qopts $
           balanceReport ropts' m j
 
         topShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text

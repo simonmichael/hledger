@@ -37,6 +37,7 @@ import Yesod
 import Hledger
 import Hledger.Cli.Utils (writeFileWithBackupIfChanged)
 import Hledger.Web.Settings (manualurl)
+import qualified Hledger.Query as Query
 
 #if MIN_VERSION_yesod(1,6,0)
 journalFile404 :: FilePath -> Journal -> HandlerFor m (FilePath, Text)
@@ -82,8 +83,8 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
   where u = textValue $ manualurl <> if T.null topic then "" else T.cons '#' topic
 
 -- | Render a "BalanceReport" as html.
-balanceReportAsHtml :: Eq r => (r, r) -> r -> Bool -> Journal -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml (journalR, registerR) here hideEmpty j qopts (items, total) =
+balanceReportAsHtml :: Eq r => (r, r) -> r -> Bool -> Journal -> Text -> [QueryOpt] -> BalanceReport -> HtmlUrl r
+balanceReportAsHtml (journalR, registerR) here hideEmpty j q qopts (items, total) =
   $(hamletFile "templates/balance-report.hamlet")
   where
     l = ledgerFromJournal Any j
@@ -113,3 +114,13 @@ transactionFragment j =
     in  \t ->
             printf "transaction-%d-%d"
                 (hm HashMap.! sourceFilePath (tsourcepos t)) (tindex t)
+
+removeInacct :: Text -> [Text]
+removeInacct =
+    map quoteIfSpaced .
+    filter (\term ->
+        not $ T.isPrefixOf "inacct:" term || T.isPrefixOf "inacctonly:" term) .
+    Query.words'' Query.prefixes
+
+replaceInacct :: Text -> Text -> Text
+replaceInacct q acct = T.unwords $ acct : removeInacct q
