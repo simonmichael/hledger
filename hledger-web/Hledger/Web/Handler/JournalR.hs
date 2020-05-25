@@ -13,7 +13,7 @@ import Hledger.Web.Import
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
-            (accountQuery, mixedAmountAsHtml, transactionFrag)
+            (accountQuery, mixedAmountAsHtml, transactionFragment)
 
 -- | The formatted journal view, with sidebar.
 getJournalR :: Handler Html
@@ -27,6 +27,7 @@ getJournalR = do
       title' = title <> if m /= Any then ", filtered" else ""
       acctlink a = (RegisterR, [("q", accountQuery a)])
       (_, items) = transactionsReport (reportopts_ $ cliopts_ opts) j m
+      transactionFrag = transactionFragment j
 
   defaultLayout $ do
     setTitle "journal - hledger-web"

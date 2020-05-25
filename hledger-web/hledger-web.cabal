@@ -185,6 +185,7 @@ library
     , time >=1.5
     , transformers
     , unix-compat
+    , unordered-containers
     , utf8-string
     , wai
     , wai-cors

@@ -14,7 +14,7 @@ module Hledger.Web.Widget.Common
   , fromFormSuccess
   , writeJournalTextIfValidAndChanged
   , journalFile404
-  , transactionFrag
+  , transactionFragment
   ) where
 
 import Data.Default (def)
@@ -24,6 +24,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.HashMap.Strict as HashMap
 import System.FilePath (takeFileName)
 import Text.Blaze ((!), textValue)
 import qualified Text.Blaze.Html5 as H
@@ -106,6 +107,9 @@ mixedAmountAsHtml b _ =
       Just True -> "negative amount"
       _ -> "positive amount"
 
-transactionFrag :: Transaction -> String
-transactionFrag t =
-    printf "transaction-%s-%d" (sourceFilePath $ tsourcepos t) (tindex t)
+transactionFragment :: Journal -> Transaction -> String
+transactionFragment j =
+    let hm = HashMap.fromList $ zip (map fst $ jfiles j) [(1::Integer) ..]
+    in  \t ->
+            printf "transaction-%d-%d"
+                (hm HashMap.! sourceFilePath (tsourcepos t)) (tindex t)
