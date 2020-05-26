@@ -15,6 +15,8 @@ module Hledger.Web.Widget.Common
   , writeJournalTextIfValidAndChanged
   , journalFile404
   , transactionFragment
+  , removeInacct
+  , replaceInacct
   ) where
 
 import Data.Default (def)

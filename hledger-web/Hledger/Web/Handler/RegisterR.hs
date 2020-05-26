@@ -18,13 +18,14 @@ import Hledger.Web.Import
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
-             (accountQuery, mixedAmountAsHtml, transactionFragment)
+             (accountQuery, mixedAmountAsHtml,
+              transactionFragment, removeInacct, replaceInacct)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
   checkServerSideUiEnabled
-  VD{caps, j, m, opts, qopts, today} <- getViewData
+  VD{caps, j, m, opts, q, qopts, today} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
 
   let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
@@ -34,7 +35,7 @@ getRegisterR = do
 
   let ropts = reportopts_ (cliopts_ opts)
       acctQuery = fromMaybe Any (inAccountQuery qopts)
-      acctlink acc = (RegisterR, [("q", accountQuery acc)])
+      acctlink acc = (RegisterR, [("q", replaceInacct q $ accountQuery acc)])
       otherTransAccounts =
           map (\(acct,(name,comma)) -> (acct, (T.pack name, T.pack comma))) .
           undecorateLinks . elideRightDecorated 40 . decorateLinks .
