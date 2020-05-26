@@ -1,5 +1,5 @@
 
-.TH "hledger-web" "1" "March 2020" "hledger-web 1.17.99" "hledger User Manuals"
+.TH "hledger-web" "1" "May 2020" "hledger-web 1.17.99" "hledger User Manuals"
 
 
 
@@ -316,10 +316,20 @@ message until the file has been fixed.
 that both machine clocks are roughly in step.)
 .SH JSON API
 .PP
-In addition to the web UI, hledger-web provides some API routes that
-serve JSON in response to GET requests.
-(And when started with \f[C]--serve-api\f[R], it provides only these
-routes.):
+In addition to the web UI, hledger-web also serves a JSON API that can
+be used to get data or add new transactions.
+If you want the JSON API only, you can use the \f[C]--serve-api\f[R]
+flag.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger-web -f examples/sample.journal --serve-api
+\&...
+\f[R]
+.fi
+.PP
+You can get JSON data from these routes:
 .IP
 .nf
 \f[C]
@@ -328,48 +338,201 @@ routes.):
 /prices
 /commodities
 /accounts
-/accounttransactions/#AccountName
+/accounttransactions/ACCOUNTNAME
 \f[R]
 .fi
 .PP
-Also, you can append a new transaction to the journal by sending a PUT
-request to \f[C]/add\f[R] (hledger-web only).
-As with the web UI\[aq]s add form, hledger-web must be started with the
-\f[C]add\f[R] capability for this (enabled by default).
+Eg, all account names in the journal (similar to the accounts command):
+.IP
+.nf
+\f[C]
+$ curl -s http://127.0.0.1:5000/accountnames | python -m json.tool
+[
+    \[dq]assets\[dq],
+    \[dq]assets:bank\[dq],
+    \[dq]assets:bank:checking\[dq],
+    \[dq]assets:bank:saving\[dq],
+    \[dq]assets:cash\[dq],
+    \[dq]expenses\[dq],
+    \[dq]expenses:food\[dq],
+    \[dq]expenses:supplies\[dq],
+    \[dq]income\[dq],
+    \[dq]income:gifts\[dq],
+    \[dq]income:salary\[dq],
+    \[dq]liabilities\[dq],
+    \[dq]liabilities:debts\[dq]
+]
+\f[R]
+.fi
 .PP
-The payload should be a valid hledger transaction as JSON, similar to
-what you get from \f[C]/transactions\f[R] or
-\f[C]/accounttransactions\f[R].
+Or all transactions:
+.IP
+.nf
+\f[C]
+$ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
+[
+    {
+        \[dq]tcode\[dq]: \[dq]\[dq],
+        \[dq]tcomment\[dq]: \[dq]\[dq],
+        \[dq]tdate\[dq]: \[dq]2008-01-01\[dq],
+        \[dq]tdate2\[dq]: null,
+        \[dq]tdescription\[dq]: \[dq]income\[dq],
+        \[dq]tindex\[dq]: 1,
+        \[dq]tpostings\[dq]: [
+            {
+                \[dq]paccount\[dq]: \[dq]assets:bank:checking\[dq],
+                \[dq]pamount\[dq]: [
+                    {
+                        \[dq]acommodity\[dq]: \[dq]$\[dq],
+                        \[dq]aismultiplier\[dq]: false,
+                        \[dq]aprice\[dq]: null,
+\&...
+\f[R]
+.fi
 .PP
-Another way to generate test data is with the
-\f[C]readJsonFile\f[R]/\f[C]writeJsonFile\f[R] helpers in
-Hledger.Web.Json, which can write or read most of hledger\[aq]s data
-types to or from a file.
-Eg here we write the first transaction of a sample journal:
+Most of the JSON corresponds to hledger\[aq]s data types; for details of
+what the fields mean, see the Hledger.Data.Json haddock docs and click
+on the various data types, eg Transaction.
+And for a higher level understanding, see the journal manual.
+.PP
+In some cases there is outer JSON corresponding to a \[dq]Report\[dq]
+type.
+To understand that, go to the Hledger.Web.Handler.MiscR haddock and look
+at the source for the appropriate handler to see what it returns.
+Eg for \f[C]/accounttransactions\f[R] it\[aq]s getAccounttransactionsR,
+returning a \[dq]\f[C]accountTransactionsReport ...\f[R]\[dq].
+Looking up the haddock for that we can see that /accounttransactions
+returns an AccountTransactionsReport, which consists of a report title
+and a list of AccountTransactionsReportItem (etc).
+.PP
+You can add a new transaction to the journal with a PUT request to
+\f[C]/add\f[R], if hledger-web was started with the \f[C]add\f[R]
+capability (enabled by default).
+The payload must be the full, exact JSON representation of a hledger
+transaction (partial data won\[aq]t do).
+You can get sample JSON from \f[C]/transactions\f[R] or
+\f[C]/accounttransactions\f[R], or you can export it with
+hledger-lib\[aq]s \f[C]writeJsonFile\f[R] helper, like so:
 .IP
 .nf
 \f[C]
 $ make ghci-web
->>> :m +*Hledger.Web.Json
->>> writeJsonFile \[dq]txn.json\[dq] (head $ jtxns samplejournal)
+>>> import Hledger
+>>> writeJsonFile \[dq]txn.json\[dq] (head $ jtxns samplejournal)  -- export samplejournal\[aq]s first txn
 >>> :q
-$ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readable
 \f[R]
 .fi
 .PP
-(sample output & discussion)
-.PP
-And here\[aq]s how to test adding that with curl:
+If you like, reformat the json to make it human-readable:
 .IP
 .nf
 \f[C]
-$ curl -s http://127.0.0.1:5000/add -X PUT -H \[aq]Content-Type: application/json\[aq] --data-binary \[at]txn.pretty.json; echo
+$ python -m json.tool txn.json >pretty
+$ mv pretty txn.json
 \f[R]
 .fi
 .PP
-By default, both the server-side HTML UI and the JSON API are served.
-Running with \f[C]--serve-api\f[R] disables the former, useful if you
-only want to serve the API.
+Here\[aq]s how it looks as of hledger-1.17 (remember, this JSON
+corresponds to hledger\[aq]s Transaction and related data types):
+.IP
+.nf
+\f[C]
+{
+    \[dq]tcode\[dq]: \[dq]\[dq],
+    \[dq]tcomment\[dq]: \[dq]\[dq],
+    \[dq]tdate\[dq]: \[dq]2008-01-01\[dq],
+    \[dq]tdate2\[dq]: null,
+    \[dq]tdescription\[dq]: \[dq]income\[dq],
+    \[dq]tindex\[dq]: 1,
+    \[dq]tpostings\[dq]: [
+        {
+            \[dq]paccount\[dq]: \[dq]assets:bank:checking\[dq],
+            \[dq]pamount\[dq]: [
+                {
+                    \[dq]acommodity\[dq]: \[dq]$\[dq],
+                    \[dq]aismultiplier\[dq]: false,
+                    \[dq]aprice\[dq]: null,
+                    \[dq]aquantity\[dq]: {
+                        \[dq]decimalMantissa\[dq]: 10000000000,
+                        \[dq]decimalPlaces\[dq]: 10,
+                        \[dq]floatingPoint\[dq]: 1
+                    },
+                    \[dq]astyle\[dq]: {
+                        \[dq]ascommodityside\[dq]: \[dq]L\[dq],
+                        \[dq]ascommodityspaced\[dq]: false,
+                        \[dq]asdecimalpoint\[dq]: \[dq].\[dq],
+                        \[dq]asdigitgroups\[dq]: null,
+                        \[dq]asprecision\[dq]: 2
+                    }
+                }
+            ],
+            \[dq]pbalanceassertion\[dq]: null,
+            \[dq]pcomment\[dq]: \[dq]\[dq],
+            \[dq]pdate\[dq]: null,
+            \[dq]pdate2\[dq]: null,
+            \[dq]poriginal\[dq]: null,
+            \[dq]pstatus\[dq]: \[dq]Unmarked\[dq],
+            \[dq]ptags\[dq]: [],
+            \[dq]ptransaction_\[dq]: \[dq]1\[dq],
+            \[dq]ptype\[dq]: \[dq]RegularPosting\[dq]
+        },
+        {
+            \[dq]paccount\[dq]: \[dq]income:salary\[dq],
+            \[dq]pamount\[dq]: [
+                {
+                    \[dq]acommodity\[dq]: \[dq]$\[dq],
+                    \[dq]aismultiplier\[dq]: false,
+                    \[dq]aprice\[dq]: null,
+                    \[dq]aquantity\[dq]: {
+                        \[dq]decimalMantissa\[dq]: -10000000000,
+                        \[dq]decimalPlaces\[dq]: 10,
+                        \[dq]floatingPoint\[dq]: -1
+                    },
+                    \[dq]astyle\[dq]: {
+                        \[dq]ascommodityside\[dq]: \[dq]L\[dq],
+                        \[dq]ascommodityspaced\[dq]: false,
+                        \[dq]asdecimalpoint\[dq]: \[dq].\[dq],
+                        \[dq]asdigitgroups\[dq]: null,
+                        \[dq]asprecision\[dq]: 2
+                    }
+                }
+            ],
+            \[dq]pbalanceassertion\[dq]: null,
+            \[dq]pcomment\[dq]: \[dq]\[dq],
+            \[dq]pdate\[dq]: null,
+            \[dq]pdate2\[dq]: null,
+            \[dq]poriginal\[dq]: null,
+            \[dq]pstatus\[dq]: \[dq]Unmarked\[dq],
+            \[dq]ptags\[dq]: [],
+            \[dq]ptransaction_\[dq]: \[dq]1\[dq],
+            \[dq]ptype\[dq]: \[dq]RegularPosting\[dq]
+        }
+    ],
+    \[dq]tprecedingcomment\[dq]: \[dq]\[dq],
+    \[dq]tsourcepos\[dq]: {
+        \[dq]contents\[dq]: [
+            \[dq]\[dq],
+            [
+                1,
+                1
+            ]
+        ],
+        \[dq]tag\[dq]: \[dq]JournalSourcePos\[dq]
+    },
+    \[dq]tstatus\[dq]: \[dq]Unmarked\[dq],
+    \[dq]ttags\[dq]: []
+}
+\f[R]
+.fi
+.PP
+And here\[aq]s how to test adding it with curl.
+This should add a new entry to your journal:
+.IP
+.nf
+\f[C]
+$ curl http://127.0.0.1:5000/add -X PUT -H \[aq]Content-Type: application/json\[aq] --data-binary \[at]txn.json
+\f[R]
+.fi
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[R] The journal file path when not specified with

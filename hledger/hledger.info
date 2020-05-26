@@ -1052,17 +1052,22 @@ hledger uses regular expressions in a number of places:
    * account alias directives and options: 'alias /REGEX/ =
      REPLACEMENT', '--alias /REGEX/=REPLACEMENT'
 
-   hledger's regular expressions come from the regex-tdfa library.  In
-general they:
+   hledger's regular expressions come from the regex-tdfa library.  If
+they're not doing what you expect, it's important to know exactly what
+they support:
 
-   * are case insensitive
-   * are infix matching (do not need to match the entire thing being
-     matched)
-   * are POSIX extended regular expressions
-   * also support GNU word boundaries (\<, \>, \b, \B)
-   * and parenthesised capturing groups and numeric backreferences in
-     replacement strings
-   * do not support mode modifiers like (?s)
+  1. they are case insensitive
+  2. they are infix matching (they do not need to match the entire thing
+     being matched)
+  3. they are POSIX ERE (extended regular expressions)
+  4. they also support GNU word boundaries ('\b', '\B', '\<', '\>')
+  5. they do not support backreferences; if you write '\1', it will
+     match the digit '1'.  Except when doing text replacement, eg in
+     account aliases, where backreferences can be used in the
+     replacement string to reference capturing groups in the search
+     regexp.
+  6. they do not support mode modifiers ('(?s)'), character classes
+     ('\w', '\d'), or anything else not mentioned above.
 
    Some things to note:
 
@@ -1365,47 +1370,61 @@ File: hledger.info,  Node: Valuation,  Prev: Pivoting,  Up: OPTIONS
 2.17 Valuation
 ==============
 
+hledger can show cost reports, where amounts are converted to their cost
+or sale amount at transaction time; or value reports, where amounts are
+converted to their market value in another currency/commodity at a
+specified date (using market prices inferred from your transactions, or
+declared with P directives).
+
+   We call this "valuation", and it is controlled by the
+'--value=VALUATIONTYPE[,COMMODITY]' option.  It can get a little
+involved, so we cover all the details below.  But most of the time, all
+you need to do is use these simpler flags instead:
+
+   * '-B' to convert to cost/sale amount, or
+   * '-V' to convert to market value in your base currency.  Or
+     occasionally,
+   * '-X COMMODITY' to convert to market value in some other currency.
+
 * Menu:
 
 * -B Cost::
-* -V Market value::
+* -V Value::
 * -X Market value in specified commodity::
+* Market prices::
 * --value Flexible valuation::
 * Effect of --value on reports::
-* Combining -B -V -X --value::
 
 
-File: hledger.info,  Node: -B Cost,  Next: -V Market value,  Up: Valuation
+File: hledger.info,  Node: -B Cost,  Next: -V Value,  Up: Valuation
 
 2.17.1 -B: Cost
 ---------------
 
-The '-B/--cost' flag converts amounts to their cost (or selling price)
-at transaction time, if they have a transaction price specified.  This
-flag is equivalent to '--value=cost', described below.
+The '-B/--cost' flag converts amounts to their cost or sale amount at
+transaction time, if they have a transaction price specified.  (It is
+equivalent to '--value=cost'.)
 
 
-File: hledger.info,  Node: -V Market value,  Next: -X Market value in specified commodity,  Prev: -B Cost,  Up: Valuation
+File: hledger.info,  Node: -V Value,  Next: -X Market value in specified commodity,  Prev: -B Cost,  Up: Valuation
 
-2.17.2 -V: Market value
------------------------
+2.17.2 -V: Value
+----------------
 
-The '-V/--market' flag converts reported amounts to their market value
-in a default valuation commodity, using the market prices in effect on a
-default valuation date.  For single period reports, the valuation date
-is today (equivalent to '--value=now'); for multiperiod reports, it is
-the last day of each subperiod (equivalent to '--value=end').
+The '-V/--market' flag converts reported amounts to market value in
+their _default valuation commodity_, using the market prices in effect
+on a _default valuation date_.  (More on these below.)
 
    The default valuation commodity is the one referenced in the latest
-applicable market price dated on or before the valuation date.  If most
-of your P declarations lead to a single home currency, this will usually
-be what you want.  (To specify the commodity, see -X below.)
+applicable market price dated on or before the valuation date.
+Typically your P declarations or currency exchange transactions
+reference a single base currency, and -V will pick that.
 
-   Note that in hledger, market prices are always declared explicitly
-with P directives; we do not infer them from transaction prices as
-Ledger does.
+   The default valuation date is today for single period reports
+(equivalent to '--value=now'), or the last day of each subperiod for
+multiperiod reports (equivalent to '--value=end').
 
-   Here's a quick example of -V:
+   An example:
 
 ; one euro is worth this many dollars from nov 1
 P 2016/11/01 € $1.10
@@ -1435,19 +1454,47 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 
 
-File: hledger.info,  Node: -X Market value in specified commodity,  Next: --value Flexible valuation,  Prev: -V Market value,  Up: Valuation
+File: hledger.info,  Node: -X Market value in specified commodity,  Next: Market prices,  Prev: -V Value,  Up: Valuation
 
 2.17.3 -X: Market value in specified commodity
 ----------------------------------------------
 
 The '-X/--exchange' option is like '-V', except it specifies the target
-commodity you would like to convert to.  It is equivalent to
-'--value=now,COMM' or '--value=end,COMM'.
+commodity you would like to convert to.  (It is equivalent to
+'--value=now,COMM' or '--value=end,COMM'.)
 
 
-File: hledger.info,  Node: --value Flexible valuation,  Next: Effect of --value on reports,  Prev: -X Market value in specified commodity,  Up: Valuation
+File: hledger.info,  Node: Market prices,  Next: --value Flexible valuation,  Prev: -X Market value in specified commodity,  Up: Valuation
 
-2.17.4 -value: Flexible valuation
+2.17.4 Market prices
+--------------------
+
+To convert a commodity A to commodity B, hledger looks for a suitable
+market price (exchange rate) in the following ways, in this order of
+preference:
+
+  1. a _declared market price_ - the latest P directive specifying the
+     exchange rate from A to B, dated on or before the valuation date.
+
+  2. a _transaction-implied market price_ - a market price matching the
+     transaction price used in the latest transaction where A is
+     converted to B, dated on or before the valuation date.  (_since
+     hledger 1.18; experimental_)
+
+  3. a _reverse declared market price_ - calculated by inverting a
+     declared market price from B to A.
+
+  4. a _reverse transaction-implied market price_ - calculated by
+     inverting a transaction-implied market price from B to A.
+
+  5. an _indirect market price_ - calculated by combining the shortest
+     chain of market prices (any of the above types) leading from A to
+     B.
+
+
+File: hledger.info,  Node: --value Flexible valuation,  Next: Effect of --value on reports,  Prev: Market prices,  Up: Valuation
+
+2.17.5 -value: Flexible valuation
 ---------------------------------
 
 _(experimental, added 201905)_
@@ -1617,9 +1664,9 @@ $ hledger print -X A
     b          -0.50A
 
 
-File: hledger.info,  Node: Effect of --value on reports,  Next: Combining -B -V -X --value,  Prev: --value Flexible valuation,  Up: Valuation
+File: hledger.info,  Node: Effect of --value on reports,  Prev: --value Flexible valuation,  Up: Valuation
 
-2.17.5 Effect of -value on reports
+2.17.6 Effect of -value on reports
 ----------------------------------
 
 Here is a reference for how '--value' currently affects each part of
@@ -1733,14 +1780,6 @@ _report interval_
      subperiods).
 
 
-File: hledger.info,  Node: Combining -B -V -X --value,  Prev: Effect of --value on reports,  Up: Valuation
-
-2.17.6 Combining -B, -V, -X, -value
------------------------------------
-
-The rightmost of these flags wins.
-
-
 File: hledger.info,  Node: COMMANDS,  Next: ENVIRONMENT,  Prev: OPTIONS,  Up: Top
 
 3 COMMANDS
@@ -1793,7 +1832,7 @@ detailed command help.
 * stats::
 * tags::
 * test::
-* Add-on Commands::
+* Add-on commands::
 
 
 File: hledger.info,  Node: accounts,  Next: activity,  Up: COMMANDS
@@ -3494,7 +3533,7 @@ considered.  With -values flag, the tags' unique values are listed
 instead.
 
 
-File: hledger.info,  Node: test,  Next: Add-on Commands,  Prev: tags,  Up: COMMANDS
+File: hledger.info,  Node: test,  Next: Add-on commands,  Prev: tags,  Up: COMMANDS
 
 3.29 test
 =========
@@ -3521,9 +3560,9 @@ $ hledger test -- -pData.Amount --color=never
 ('-- --help' currently doesn't show them).
 
 
-File: hledger.info,  Node: Add-on Commands,  Prev: test,  Up: COMMANDS
+File: hledger.info,  Node: Add-on commands,  Prev: test,  Up: COMMANDS
 
-3.30 Add-on Commands
+3.30 Add-on commands
 ====================
 
 hledger also searches for external add-on commands, and will include
@@ -3562,7 +3601,7 @@ interfaces.  These are maintained and released along with hledger:
 * interest::
 
 
-File: hledger.info,  Node: ui,  Next: web,  Up: Add-on Commands
+File: hledger.info,  Node: ui,  Next: web,  Up: Add-on commands
 
 3.30.1 ui
 ---------
@@ -3570,7 +3609,7 @@ File: hledger.info,  Node: ui,  Next: web,  Up: Add-on Commands
 hledger-ui provides an efficient terminal interface.
 
 
-File: hledger.info,  Node: web,  Next: iadd,  Prev: ui,  Up: Add-on Commands
+File: hledger.info,  Node: web,  Next: iadd,  Prev: ui,  Up: Add-on commands
 
 3.30.2 web
 ----------
@@ -3580,7 +3619,7 @@ hledger-web provides a simple web interface.
    Third party add-ons, maintained separately from hledger, include:
 
 
-File: hledger.info,  Node: iadd,  Next: interest,  Prev: web,  Up: Add-on Commands
+File: hledger.info,  Node: iadd,  Next: interest,  Prev: web,  Up: Add-on commands
 
 3.30.3 iadd
 -----------
@@ -3589,7 +3628,7 @@ hledger-iadd is a more interactive, terminal UI replacement for the add
 command.
 
 
-File: hledger.info,  Node: interest,  Prev: iadd,  Up: Add-on Commands
+File: hledger.info,  Node: interest,  Prev: iadd,  Up: Add-on commands
 
 3.30.4 interest
 ---------------
@@ -3689,32 +3728,32 @@ file*
 variable.  The command 'env | grep LEDGER_FILE' should show it.  You may
 need to use 'export'.  Here's an explanation.
 
-   *"Illegal byte sequence" or "Invalid or incomplete multibyte or wide
-character" errors*
-In order to handle non-ascii letters and symbols (like £), hledger needs
-an appropriate locale.  This is usually configured system-wide; you can
-also configure it temporarily.  The locale may need to be one that
-supports UTF-8, if you built hledger with GHC < 7.2 (or possibly always,
-I'm not sure yet).
+   *Getting errors like "Illegal byte sequence" or "Invalid or
+incomplete multibyte or wide character" or "commitAndReleaseBuffer:
+invalid argument (invalid character)"*
+Programs compiled with GHC (hledger, haskell build tools, etc.)  need to
+have a UTF-8-aware locale configured in the environment, otherwise they
+will fail with these kinds of errors when they encounter non-ascii
+characters.
 
-   Here's an example of setting the locale temporarily, on ubuntu
-gnu/linux:
+   To fix it, set the LANG environment variable to some locale which
+supports UTF-8.  The locale you choose must be installed on your system.
+
+   Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
 
 $ file my.journal
-my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
-$ locale -a
+my.journal: UTF-8 Unicode text         # the file is UTF8-encoded
+$ echo $LANG
+C                                      # LANG is set to the default locale, which does not support UTF8
+$ locale -a                            # which locales are installed ?
 C
-en_US.utf8                             # <- a UTF8-aware locale is available
+en_US.utf8                             # here's a UTF8-aware one we can use
 POSIX
-$ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+$ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
 
-   Here's one way to set it permanently, there are probably better ways:
-
-$ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
-$ bash --login
-
-   If we preferred to use eg 'fr_FR.utf8', we might have to install that
-first:
+   If available, 'C.UTF-8' will also work.  If your preferred locale
+isn't listed by 'locale -a', you might need to install it.  Eg on
+Ubuntu/Debian:
 
 $ apt-get install language-pack-fr
 $ locale -a
@@ -3728,8 +3767,18 @@ fr_LU.utf8
 POSIX
 $ LANG=fr_FR.utf8 hledger -f my.journal print
 
-   Note some platforms allow variant locale spellings, but not all
-(ubuntu accepts 'fr_FR.UTF8', mac osx requires exactly 'fr_FR.UTF-8').
+   Here's how you could set it permanently, if you use a bash shell:
+
+$ echo "export LANG=en_US.utf8" >>~/.bash_profile
+$ bash --login
+
+   Exact spelling and capitalisation may be important.  Note the
+difference on MacOS ('UTF-8', not 'utf8').  Some platforms (eg ubuntu)
+allow variant spellings, but others (eg macos) require it to be exact:
+
+$ locale -a | grep -iE en_us.*utf
+en_US.UTF-8
+$ LANG=en_US.UTF-8 hledger -f my.journal print
 
 
 Tag Table:
@@ -3780,141 +3829,141 @@ Node: Output format32576
 Ref: #output-format32726
 Node: Regular expressions34774
 Ref: #regular-expressions34931
-Node: Smart dates36292
-Ref: #smart-dates36443
-Node: Report start & end date37804
-Ref: #report-start-end-date37976
-Node: Report intervals39414
-Ref: #report-intervals39579
-Node: Period expressions39969
-Ref: #period-expressions40129
-Node: Depth limiting44255
-Ref: #depth-limiting44399
-Node: Pivoting44741
-Ref: #pivoting44864
-Node: Valuation46540
-Ref: #valuation46642
-Node: -B Cost46822
-Ref: #b-cost46933
-Node: -V Market value47131
-Ref: #v-market-value47305
-Node: -X Market value in specified commodity48737
-Ref: #x-market-value-in-specified-commodity48976
-Node: --value Flexible valuation49152
-Ref: #value-flexible-valuation49378
-Node: Effect of --value on reports53883
-Ref: #effect-of---value-on-reports54099
-Node: Combining -B -V -X --value59645
-Ref: #combining--b--v--x---value59828
-Node: COMMANDS59864
-Ref: #commands59972
-Node: accounts61056
-Ref: #accounts61154
-Node: activity61853
-Ref: #activity61963
-Node: add62346
-Ref: #add62445
-Node: balance65184
-Ref: #balance65295
-Node: Classic balance report66753
-Ref: #classic-balance-report66926
-Node: Customising the classic balance report68295
-Ref: #customising-the-classic-balance-report68523
-Node: Colour support70599
-Ref: #colour-support70766
-Node: Flat mode70939
-Ref: #flat-mode71087
-Node: Depth limited balance reports71500
-Ref: #depth-limited-balance-reports71685
-Node: Percentages72141
-Ref: #percentages72307
-Node: Multicolumn balance report73444
-Ref: #multicolumn-balance-report73624
-Node: Budget report78886
-Ref: #budget-report79029
-Node: Nested budgets84295
-Ref: #nested-budgets84407
-Ref: #output-format-187888
-Node: balancesheet88085
-Ref: #balancesheet88221
-Node: balancesheetequity89687
-Ref: #balancesheetequity89836
-Node: cashflow90559
-Ref: #cashflow90687
-Node: check-dates91866
-Ref: #check-dates91993
-Node: check-dupes92272
-Ref: #check-dupes92396
-Node: close92689
-Ref: #close92803
-Node: close usage94325
-Ref: #close-usage94418
-Node: commodities97231
-Ref: #commodities97358
-Node: descriptions97440
-Ref: #descriptions97568
-Node: diff97749
-Ref: #diff97855
-Node: files98902
-Ref: #files99002
-Node: help99149
-Ref: #help99249
-Node: import100330
-Ref: #import100444
-Node: Importing balance assignments101337
-Ref: #importing-balance-assignments101485
-Node: incomestatement102134
-Ref: #incomestatement102267
-Node: notes103754
-Ref: #notes103867
-Node: payees103993
-Ref: #payees104099
-Node: prices104257
-Ref: #prices104363
-Node: print104704
-Ref: #print104814
-Node: print-unique109600
-Ref: #print-unique109726
-Node: register110011
-Ref: #register110138
-Node: Custom register output114310
-Ref: #custom-register-output114439
-Node: register-match115776
-Ref: #register-match115910
-Node: rewrite116261
-Ref: #rewrite116376
-Node: Re-write rules in a file118231
-Ref: #re-write-rules-in-a-file118365
-Node: Diff output format119575
-Ref: #diff-output-format119744
-Node: rewrite vs print --auto120836
-Ref: #rewrite-vs.-print---auto121015
-Node: roi121571
-Ref: #roi121669
-Node: stats122681
-Ref: #stats122780
-Node: tags123568
-Ref: #tags123666
-Node: test123960
-Ref: #test124068
-Node: Add-on Commands124815
-Ref: #add-on-commands124932
-Node: ui126275
-Ref: #ui126363
-Node: web126417
-Ref: #web126520
-Node: iadd126636
-Ref: #iadd126747
-Node: interest126829
-Ref: #interest126936
-Node: ENVIRONMENT127176
-Ref: #environment127288
-Node: FILES128117
-Ref: #files-1128220
-Node: LIMITATIONS128433
-Ref: #limitations128552
-Node: TROUBLESHOOTING129294
-Ref: #troubleshooting129407
+Node: Smart dates36667
+Ref: #smart-dates36818
+Node: Report start & end date38179
+Ref: #report-start-end-date38351
+Node: Report intervals39789
+Ref: #report-intervals39954
+Node: Period expressions40344
+Ref: #period-expressions40504
+Node: Depth limiting44630
+Ref: #depth-limiting44774
+Node: Pivoting45116
+Ref: #pivoting45239
+Node: Valuation46915
+Ref: #valuation47017
+Node: -B Cost47937
+Ref: #b-cost48041
+Node: -V Value48213
+Ref: #v-value48366
+Node: -X Market value in specified commodity49639
+Ref: #x-market-value-in-specified-commodity49858
+Node: Market prices50036
+Ref: #market-prices50221
+Node: --value Flexible valuation51146
+Ref: #value-flexible-valuation51347
+Node: Effect of --value on reports55852
+Ref: #effect-of---value-on-reports56033
+Node: COMMANDS61579
+Ref: #commands61687
+Node: accounts62771
+Ref: #accounts62869
+Node: activity63568
+Ref: #activity63678
+Node: add64061
+Ref: #add64160
+Node: balance66899
+Ref: #balance67010
+Node: Classic balance report68468
+Ref: #classic-balance-report68641
+Node: Customising the classic balance report70010
+Ref: #customising-the-classic-balance-report70238
+Node: Colour support72314
+Ref: #colour-support72481
+Node: Flat mode72654
+Ref: #flat-mode72802
+Node: Depth limited balance reports73215
+Ref: #depth-limited-balance-reports73400
+Node: Percentages73856
+Ref: #percentages74022
+Node: Multicolumn balance report75159
+Ref: #multicolumn-balance-report75339
+Node: Budget report80601
+Ref: #budget-report80744
+Node: Nested budgets86010
+Ref: #nested-budgets86122
+Ref: #output-format-189603
+Node: balancesheet89800
+Ref: #balancesheet89936
+Node: balancesheetequity91402
+Ref: #balancesheetequity91551
+Node: cashflow92274
+Ref: #cashflow92402
+Node: check-dates93581
+Ref: #check-dates93708
+Node: check-dupes93987
+Ref: #check-dupes94111
+Node: close94404
+Ref: #close94518
+Node: close usage96040
+Ref: #close-usage96133
+Node: commodities98946
+Ref: #commodities99073
+Node: descriptions99155
+Ref: #descriptions99283
+Node: diff99464
+Ref: #diff99570
+Node: files100617
+Ref: #files100717
+Node: help100864
+Ref: #help100964
+Node: import102045
+Ref: #import102159
+Node: Importing balance assignments103052
+Ref: #importing-balance-assignments103200
+Node: incomestatement103849
+Ref: #incomestatement103982
+Node: notes105469
+Ref: #notes105582
+Node: payees105708
+Ref: #payees105814
+Node: prices105972
+Ref: #prices106078
+Node: print106419
+Ref: #print106529
+Node: print-unique111315
+Ref: #print-unique111441
+Node: register111726
+Ref: #register111853
+Node: Custom register output116025
+Ref: #custom-register-output116154
+Node: register-match117491
+Ref: #register-match117625
+Node: rewrite117976
+Ref: #rewrite118091
+Node: Re-write rules in a file119946
+Ref: #re-write-rules-in-a-file120080
+Node: Diff output format121290
+Ref: #diff-output-format121459
+Node: rewrite vs print --auto122551
+Ref: #rewrite-vs.-print---auto122730
+Node: roi123286
+Ref: #roi123384
+Node: stats124396
+Ref: #stats124495
+Node: tags125283
+Ref: #tags125381
+Node: test125675
+Ref: #test125783
+Node: Add-on commands126530
+Ref: #add-on-commands126647
+Node: ui127990
+Ref: #ui128078
+Node: web128132
+Ref: #web128235
+Node: iadd128351
+Ref: #iadd128462
+Node: interest128544
+Ref: #interest128651
+Node: ENVIRONMENT128891
+Ref: #environment129003
+Node: FILES129832
+Ref: #files-1129935
+Node: LIMITATIONS130148
+Ref: #limitations130267
+Node: TROUBLESHOOTING131009
+Ref: #troubleshooting131122
 
 End Tag Table
 

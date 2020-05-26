@@ -16,9 +16,9 @@ CSV output.)
    We describe each CSV file's format with a corresponding _rules file_.
 By default this is named like the CSV file with a '.rules' extension
 added.  Eg when reading 'FILE.csv', hledger also looks for
-'FILE.csv.rules' in the same directory.  You can specify a different
-rules file with the '--rules-file' option.  If a rules file is not
-found, hledger will create a sample rules file, which you'll need to
+'FILE.csv.rules' in the same directory as 'FILE.csv'.  You can specify a
+different rules file with the '--rules-file' option.  If a rules file is
+not found, hledger will create a sample rules file, which you'll need to
 adjust.
 
    This file contains rules describing the CSV data (header line, fields
@@ -465,7 +465,7 @@ File: hledger_csv.info,  Node: account,  Next: amount,  Up: Posting field names
 2.2.2.1 account
 ...............
 
-'accountN', where N is 1 to 9, causes a posting to be generated, with
+'accountN', where N is 1 to 99, causes a posting to be generated, with
 that account name.
 
    Most often there are two postings, so you'll want to set 'account1'
@@ -484,13 +484,25 @@ File: hledger_csv.info,  Node: amount,  Next: currency,  Prev: account,  Up: Pos
 ..............
 
 'amountN' sets posting N's amount.  If the CSV uses separate fields for
-debit and credit amounts, you can use 'amountN-in' and 'amountN-out'
-instead.
+inflows and outflows, you can use 'amountN-in' and 'amountN-out'
+instead.  By assigning to 'amount1', 'amount2', ...  etc.  you can
+generate anywhere from 0 to 99 postings.
 
-   Also, for compatibility with hledger <1.17: 'amount' or
-'amount-in'/'amount-out' with no number sets the amount for postings 1
-and 2.  For posting 2 the amount is negated, and converted to cost if
-there's a transaction price.
+   There is also an older, unnumbered form of these names, suitable for
+2-posting transactions, which sets both posting 1's and (negated)
+posting 2's amount: 'amount', or 'amount-in' and 'amount-out'.  This is
+still supported because it keeps pre-hledger-1.17 csv rules files
+working, and because it can be more succinct, and because it converts
+posting 2's amount to cost if there's a transaction price, which can be
+useful.
+
+   If you have an existing rules file using the unnumbered form, you
+might want to use the numbered form in certain conditional blocks,
+without having to update and retest all the old rules.  To facilitate
+this, posting 1 ignores 'amount'/'amount-in'/'amount-out' if any of
+'amount1'/'amount1-in'/'amount1-out' are assigned, and posting 2 ignores
+them if any of 'amount2'/'amount2-in'/'amount2-out' are assigned,
+avoiding conflicts.
 
 
 File: hledger_csv.info,  Node: currency,  Next: balance,  Prev: amount,  Up: Posting field names
@@ -599,13 +611,17 @@ descriptions.
 REGEX
 
    REGEX is a case-insensitive regular expression which tries to match
-anywhere within the CSV record.  It is a POSIX extended regular
-expressions with some additions (see Regular expressions in the hledger
-manual).  Note: the "CSV record" it is matched against is not the
-original record, but a synthetic one, with enclosing double quotes or
-whitespace removed, and always comma-separated.  (Eg, an SSV record
-'2020-01-01; "Acme, Inc."; 1,000' appears to REGEX as '2020-01-01,Acme,
-Inc.,1,000').
+anywhere within the CSV record.  It is a POSIX ERE (extended regular
+expression) that also supports GNU word boundaries ('\b', '\B', '\<',
+'\>'), and nothing else.  If you have trouble, be sure to check our
+https://hledger.org/hledger.html#regular-expressions doc.
+
+   Important note: the record that is matched is not the original
+record, but a synthetic one, with any enclosing double quotes (but not
+enclosing whitespace) removed, and always comma-separated (which means
+that a field containing a comma will appear like two fields).  Eg, if
+the original record is '2020-01-01; "Acme, Inc."; 1,000', the REGEX will
+actually see '2020-01-01,Acme, Inc., 1,000').
 
    Or, MATCHER can be a field matcher, like this:
 
@@ -1019,74 +1035,74 @@ command the user specified.
 
 Tag Table:
 Node: Top72
-Node: EXAMPLES2099
-Ref: #examples2205
-Node: Basic2413
-Ref: #basic2513
-Node: Bank of Ireland3055
-Ref: #bank-of-ireland3190
-Node: Amazon4652
-Ref: #amazon4770
-Node: Paypal6489
-Ref: #paypal6583
-Node: CSV RULES14227
-Ref: #csv-rules14336
-Node: skip14612
-Ref: #skip14705
-Node: fields15080
-Ref: #fields15202
-Node: Transaction field names16367
-Ref: #transaction-field-names16527
-Node: Posting field names16638
-Ref: #posting-field-names16790
-Node: account16860
-Ref: #account16976
-Node: amount17512
-Ref: #amount17643
-Node: currency18024
-Ref: #currency18159
-Node: balance18365
-Ref: #balance18499
-Node: comment18816
-Ref: #comment18933
-Node: field assignment19096
-Ref: #field-assignment19239
-Node: separator20057
-Ref: #separator20186
-Node: if20597
-Ref: #if20699
-Node: end22618
-Ref: #end22724
-Node: date-format22948
-Ref: #date-format23080
-Node: newest-first23829
-Ref: #newest-first23967
-Node: include24650
-Ref: #include24779
-Node: balance-type25223
-Ref: #balance-type25343
-Node: TIPS26043
-Ref: #tips26125
-Node: Rapid feedback26381
-Ref: #rapid-feedback26498
-Node: Valid CSV26958
-Ref: #valid-csv27088
-Node: File Extension27280
-Ref: #file-extension27432
-Node: Reading multiple CSV files27842
-Ref: #reading-multiple-csv-files28027
-Node: Valid transactions28268
-Ref: #valid-transactions28446
-Node: Deduplicating importing29074
-Ref: #deduplicating-importing29253
-Node: Setting amounts30286
-Ref: #setting-amounts30455
-Node: Setting currency/commodity31441
-Ref: #setting-currencycommodity31633
-Node: Referencing other fields32436
-Ref: #referencing-other-fields32636
-Node: How CSV rules are evaluated33533
-Ref: #how-csv-rules-are-evaluated33706
+Node: EXAMPLES2113
+Ref: #examples2219
+Node: Basic2427
+Ref: #basic2527
+Node: Bank of Ireland3069
+Ref: #bank-of-ireland3204
+Node: Amazon4666
+Ref: #amazon4784
+Node: Paypal6503
+Ref: #paypal6597
+Node: CSV RULES14241
+Ref: #csv-rules14350
+Node: skip14626
+Ref: #skip14719
+Node: fields15094
+Ref: #fields15216
+Node: Transaction field names16381
+Ref: #transaction-field-names16541
+Node: Posting field names16652
+Ref: #posting-field-names16804
+Node: account16874
+Ref: #account16990
+Node: amount17527
+Ref: #amount17658
+Node: currency18765
+Ref: #currency18900
+Node: balance19106
+Ref: #balance19240
+Node: comment19557
+Ref: #comment19674
+Node: field assignment19837
+Ref: #field-assignment19980
+Node: separator20798
+Ref: #separator20927
+Node: if21338
+Ref: #if21440
+Node: end23596
+Ref: #end23702
+Node: date-format23926
+Ref: #date-format24058
+Node: newest-first24807
+Ref: #newest-first24945
+Node: include25628
+Ref: #include25757
+Node: balance-type26201
+Ref: #balance-type26321
+Node: TIPS27021
+Ref: #tips27103
+Node: Rapid feedback27359
+Ref: #rapid-feedback27476
+Node: Valid CSV27936
+Ref: #valid-csv28066
+Node: File Extension28258
+Ref: #file-extension28410
+Node: Reading multiple CSV files28820
+Ref: #reading-multiple-csv-files29005
+Node: Valid transactions29246
+Ref: #valid-transactions29424
+Node: Deduplicating importing30052
+Ref: #deduplicating-importing30231
+Node: Setting amounts31264
+Ref: #setting-amounts31433
+Node: Setting currency/commodity32419
+Ref: #setting-currencycommodity32611
+Node: Referencing other fields33414
+Ref: #referencing-other-fields33614
+Node: How CSV rules are evaluated34511
+Ref: #how-csv-rules-are-evaluated34684
 
 End Tag Table
 

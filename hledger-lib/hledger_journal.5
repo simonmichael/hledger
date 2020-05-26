@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "March 2020" "hledger 1.17.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "May 2020" "hledger 1.17.99" "hledger User Manuals"
 
 
 
@@ -63,7 +63,8 @@ a comment (any remaining text following a semicolon until end of line,
 and any following indented lines beginning with a semicolon)
 .IP \[bu] 2
 0 or more indented \f[I]posting\f[R] lines, describing what was
-transferred and the accounts involved.
+transferred and the accounts involved (indented comment lines are also
+allowed, but not blank lines or non-indented lines).
 .PP
 Here\[aq]s a simple journal file containing one transaction:
 .IP
@@ -409,7 +410,7 @@ amount.
 This makes it easy to write account names containing spaces.
 But if you accidentally leave only one space (or tab) before the amount,
 the amount will be considered part of the account name.
-.SS Virtual Postings
+.SS Virtual postings
 .PP
 A posting with a parenthesised account name is called a \f[I]virtual
 posting\f[R] or \f[I]unbalanced posting\f[R], which means it is exempt
@@ -504,14 +505,24 @@ be enclosed in double quotes:
 \f[R]
 .fi
 .PP
-Amounts can be negative.
-The minus sign can be written before or after a left-side commodity
-symbol:
+Amounts can be preceded by a minus sign (or a plus sign, though plus is
+the default), The sign can be written before or after a left-side
+commodity symbol:
 .IP
 .nf
 \f[C]
 -$1
 $-1
+\f[R]
+.fi
+.PP
+One or more spaces between the sign and the number are acceptable when
+parsing (but they won\[aq]t be displayed in output):
+.IP
+.nf
+\f[C]
++ $1
+$-      1
 \f[R]
 .fi
 .PP
@@ -586,7 +597,7 @@ the commodity, that format is used (see examples above).
 Otherwise the format of the first posting amount in that commodity seen
 in the journal is used.
 But the number of decimal places (\[dq]precision\[dq]) will be the
-maximum from all posting amounts in that commmodity.
+maximum from all posting amounts in that commodity.
 .IP \[bu] 2
 Or if there are no such amounts in the journal, a default format is used
 (like \f[C]$1000.00\f[R]).
@@ -659,9 +670,10 @@ hledger infer the price that balances the transaction:
 \f[R]
 .fi
 .RE
-.PP
-(Ledger users: Ledger uses a different syntax for fixed prices,
-\f[C]{=UNITPRICE}\f[R], which hledger currently ignores).
+.IP "5." 3
+Like 1 and 2, but the \f[C]\[at]\f[R] or \f[C]\[at]\[at]\f[R] is
+parenthesised; this is for compatibility with Ledger journals (Virtual
+posting costs), and in hledger is equivalent to 1 and 2.
 .PP
 Use the \f[C]-B/--cost\f[R] flag to convert amounts to their transaction
 price\[aq]s commodity, if any.
@@ -700,7 +712,18 @@ $ hledger bal -N --flat -B
                 \[Eu]100  assets:euros
 \f[R]
 .fi
-.SS Balance Assertions
+.SS Lot prices and lot dates
+.PP
+Ledger allows another kind of price, lot price (four variants:
+\f[C]{UNITPRICE}\f[R], \f[C]{{TOTALPRICE}}\f[R],
+\f[C]{=FIXEDUNITPRICE}\f[R], \f[C]{{=FIXEDTOTALPRICE}}\f[R]), and/or a
+lot date (\f[C][DATE]\f[R]) to be specified.
+These are normally used to select a lot when selling investments.
+hledger will parse these, for compatibility with Ledger journals, but
+currently ignores them.
+A transaction price, lot price and/or lot date may appear in any order,
+after the posting amount and before the balance assertion if any.
+.SS Balance assertions
 .PP
 hledger supports Ledger-style balance assertions in journal files.
 These look like, for example, \f[C]= EXPECTEDBALANCE\f[R] following a
@@ -856,7 +879,7 @@ always what is shown by reports.
 Eg a commodity directive may limit the display precision, but this will
 not affect balance assertions.
 Balance assertion failure messages show exact amounts.
-.SS Balance Assignments
+.SS Balance assignments
 .PP
 Ledger-style balance assignments are also supported.
 These are like balance assertions, but with no posting amount on the
@@ -1237,7 +1260,7 @@ D $1,000.00
   b
 \f[R]
 .fi
-.SS Market prices
+.SS Declaring market prices
 .PP
 The \f[C]P\f[R] directive declares a market price, which is an exchange
 rate between two commodities on a certain date.
@@ -1270,8 +1293,9 @@ P 2010/1/1 \[Eu] $1.40
 \f[R]
 .fi
 .PP
-The \f[C]-V/--value\f[R] flag can be used to convert reported amounts to
-another commodity using these prices.
+The \f[C]-V\f[R], \f[C]-X\f[R] and \f[C]--value\f[R] flags use these
+market prices to show amount values in another commodity.
+See Valuation.
 .SS Declaring accounts
 .PP
 \f[C]account\f[R] directives can be used to pre-declare accounts.

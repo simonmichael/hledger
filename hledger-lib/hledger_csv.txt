@@ -15,9 +15,9 @@ DESCRIPTION
        We describe each CSV file's format with a corresponding rules file.  By
        default  this is named like the CSV file with a .rules extension added.
        Eg when reading FILE.csv, hledger also looks for FILE.csv.rules in  the
-       same  directory.   You  can  specify  a  different  rules file with the
-       --rules-file option.  If a rules file is not found, hledger will create
-       a sample rules file, which you'll need to adjust.
+       same  directory  as  FILE.csv.   You can specify a different rules file
+       with the --rules-file option.  If a rules file is  not  found,  hledger
+       will create a sample rules file, which you'll need to adjust.
 
        This  file  contains rules describing the CSV data (header line, fields
        layout, date format etc.), and how to construct hledger journal entries
@@ -377,7 +377,7 @@ CSV RULES
 
    Posting field names
    account
-       accountN, where N is 1 to 9, causes a posting  to  be  generated,  with
+       accountN, where N is 1 to 99, causes a posting to  be  generated,  with
        that account name.
 
        Most  often  there are two postings, so you'll want to set account1 and
@@ -391,27 +391,38 @@ CSV RULES
 
    amount
        amountN sets posting N's amount.  If the CSV uses separate  fields  for
-       debit  and  credit  amounts, you can use amountN-in and amountN-out in-
-       stead.
+       inflows  and  outflows, you can use amountN-in and amountN-out instead.
+       By assigning to amount1, amount2, ...  etc.  you can generate  anywhere
+       from 0 to 99 postings.
 
-       Also, for compatibility with hledger <1.17: amount or amount-in/amount-
-       out with no number sets the amount for postings 1 and 2.  For posting 2
-       the amount is negated, and converted to cost if there's  a  transaction
-       price.
+       There  is  also  an older, unnumbered form of these names, suitable for
+       2-posting transactions, which sets both posting 1's and (negated) post-
+       ing  2's  amount:  amount,  or amount-in and amount-out.  This is still
+       supported because it keeps pre-hledger-1.17 csv  rules  files  working,
+       and  because  it  can be more succinct, and because it converts posting
+       2's amount to cost if there's a transaction price, which can be useful.
+
+       If you have an existing rules file using the unnumbered form, you might
+       want  to  use  the numbered form in certain conditional blocks, without
+       having to update and retest all the old  rules.   To  facilitate  this,
+       posting    1    ignores    amount/amount-in/amount-out    if   any   of
+       amount1/amount1-in/amount1-out are assigned, and posting 2 ignores them
+       if  any  of  amount2/amount2-in/amount2-out are assigned, avoiding con-
+       flicts.
 
    currency
        If the CSV has the currency symbol in a separate field (ie, not part of
-       the amount field), you can use currencyN to prepend it to  posting  N's
+       the  amount  field), you can use currencyN to prepend it to posting N's
        amount.  Or, currency with no number affects all postings.
 
    balance
-       balanceN  sets  a balance assertion amount (or if the posting amount is
+       balanceN sets a balance assertion amount (or if the posting  amount  is
        left empty, a balance assignment) on posting N.
 
-       Also, for compatibility with hledger <1.17: balance with no  number  is
+       Also,  for  compatibility with hledger <1.17: balance with no number is
        equivalent to balance1.
 
-       You  can  adjust the type of assertion/assignment with the balance-type
+       You can adjust the type of assertion/assignment with  the  balance-type
        rule (see below).
 
    comment
@@ -423,11 +434,11 @@ CSV RULES
    field assignment
               HLEDGERFIELDNAME FIELDVALUE
 
-       Instead  of  or  in addition to a fields list, you can use a "field as-
-       signment" rule to set the value of a single hledger field,  by  writing
-       its  name (any of the standard hledger field names above) followed by a
-       text value.  The value may contain interpolated CSV fields,  referenced
-       by  their  1-based position in the CSV record (%N), or by the name they
+       Instead of or in addition to a fields list, you can use  a  "field  as-
+       signment"  rule  to set the value of a single hledger field, by writing
+       its name (any of the standard hledger field names above) followed by  a
+       text  value.  The value may contain interpolated CSV fields, referenced
+       by their 1-based position in the CSV record (%N), or by the  name  they
        were given in the fields list (%CSVFIELDNAME).  Some examples:
 
               # set the amount to the 4th CSV field, with " USD" appended
@@ -436,18 +447,18 @@ CSV RULES
               # combine three fields to make a comment, containing note: and date: tags
               comment note: %somefield - %anotherfield, date: %1
 
-       Interpolation strips outer whitespace (so a CSV value like "  1  "  be-
+       Interpolation  strips  outer  whitespace (so a CSV value like " 1 " be-
        comes 1 when interpolated) (#1051).  See TIPS below for more about ref-
        erencing other fields.
 
    separator
-       You can use the separator directive to read other kinds  of  character-
+       You  can  use the separator directive to read other kinds of character-
        separated data.  Eg to read SSV (Semicolon Separated Values), use:
 
               separator ;
 
-       The  separator directive accepts exactly one single byte character as a
-       separator.  To specify whitespace characters, you may use  the  special
+       The separator directive accepts exactly one single byte character as  a
+       separator.   To  specify whitespace characters, you may use the special
        words TAB or SPACE.  Eg to read TSV (Tab Separated Values), use:
 
               separator TAB
@@ -465,21 +476,26 @@ CSV RULES
                RULE
                RULE
 
-       Conditional  blocks ("if blocks") are a block of rules that are applied
-       only to CSV records which match certain patterns.  They are often  used
+       Conditional blocks ("if blocks") are a block of rules that are  applied
+       only  to CSV records which match certain patterns.  They are often used
        for customising account names based on transaction descriptions.
 
        Each MATCHER can be a record matcher, which looks like this:
 
               REGEX
 
-       REGEX  is  a  case-insensitive  regular expression which tries to match
-       anywhere within the CSV record.  It is a POSIX extended regular expres-
-       sions  with some additions (see Regular expressions in the hledger man-
-       ual).  Note: the "CSV record" it is matched against is not the original
-       record, but a synthetic one, with enclosing double quotes or whitespace
-       removed, and always comma-separated.  (Eg, an  SSV  record  2020-01-01;
-       "Acme, Inc."; 1,000 appears to REGEX as 2020-01-01,Acme, Inc.,1,000).
+       REGEX is a case-insensitive regular expression  which  tries  to  match
+       anywhere  within  the  CSV record.  It is a POSIX ERE (extended regular
+       expression) that also supports GNU word boundaries (\b,  \B,  \<,  \>),
+       and  nothing  else.   If  you  have  trouble,  be  sure  to  check  our
+       https://hledger.org/hledger.html#regular-expressions doc.
+
+       Important note: the record that is matched is not the original  record,
+       but  a synthetic one, with any enclosing double quotes (but not enclos-
+       ing whitespace) removed, and always comma-separated (which means that a
+       field  containing  a  comma  will  appear like two fields).  Eg, if the
+       original record is 2020-01-01; "Acme, Inc.";  1,000, the REGEX will ac-
+       tually see 2020-01-01,Acme, Inc.,  1,000).
 
        Or, MATCHER can be a field matcher, like this:
 
@@ -834,4 +850,4 @@ SEE ALSO
 
 
 
-hledger 1.17.99                   March 2020                    hledger_csv(5)
+hledger 1.17.99                    May 2020                     hledger_csv(5)

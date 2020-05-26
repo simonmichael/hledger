@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_csv" "5" "March 2020" "hledger 1.17.99" "hledger User Manuals"
+.TH "hledger_csv" "5" "May 2020" "hledger 1.17.99" "hledger User Manuals"
 
 
 
@@ -19,7 +19,7 @@ file\f[R].
 By default this is named like the CSV file with a \f[C].rules\f[R]
 extension added.
 Eg when reading \f[C]FILE.csv\f[R], hledger also looks for
-\f[C]FILE.csv.rules\f[R] in the same directory.
+\f[C]FILE.csv.rules\f[R] in the same directory as \f[C]FILE.csv\f[R].
 You can specify a different rules file with the \f[C]--rules-file\f[R]
 option.
 If a rules file is not found, hledger will create a sample rules file,
@@ -489,8 +489,8 @@ transaction\[aq]s first line.
 .SS Posting field names
 .SS account
 .PP
-\f[C]accountN\f[R], where N is 1 to 9, causes a posting to be generated,
-with that account name.
+\f[C]accountN\f[R], where N is 1 to 99, causes a posting to be
+generated, with that account name.
 .PP
 Most often there are two postings, so you\[aq]ll want to set
 \f[C]account1\f[R] and \f[C]account2\f[R].
@@ -504,14 +504,30 @@ below), a default account name will be chosen (like
 .SS amount
 .PP
 \f[C]amountN\f[R] sets posting N\[aq]s amount.
-If the CSV uses separate fields for debit and credit amounts, you can
-use \f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] instead.
+If the CSV uses separate fields for inflows and outflows, you can use
+\f[C]amountN-in\f[R] and \f[C]amountN-out\f[R] instead.
+By assigning to \f[C]amount1\f[R], \f[C]amount2\f[R], ...
+etc.
+you can generate anywhere from 0 to 99 postings.
 .PP
-Also, for compatibility with hledger <1.17: \f[C]amount\f[R] or
-\f[C]amount-in\f[R]/\f[C]amount-out\f[R] with no number sets the amount
-for postings 1 and 2.
-For posting 2 the amount is negated, and converted to cost if
-there\[aq]s a transaction price.
+There is also an older, unnumbered form of these names, suitable for
+2-posting transactions, which sets both posting 1\[aq]s and (negated)
+posting 2\[aq]s amount: \f[C]amount\f[R], or \f[C]amount-in\f[R] and
+\f[C]amount-out\f[R].
+This is still supported because it keeps pre-hledger-1.17 csv rules
+files working, and because it can be more succinct, and because it
+converts posting 2\[aq]s amount to cost if there\[aq]s a transaction
+price, which can be useful.
+.PP
+If you have an existing rules file using the unnumbered form, you might
+want to use the numbered form in certain conditional blocks, without
+having to update and retest all the old rules.
+To facilitate this, posting 1 ignores
+\f[C]amount\f[R]/\f[C]amount-in\f[R]/\f[C]amount-out\f[R] if any of
+\f[C]amount1\f[R]/\f[C]amount1-in\f[R]/\f[C]amount1-out\f[R] are
+assigned, and posting 2 ignores them if any of
+\f[C]amount2\f[R]/\f[C]amount2-in\f[R]/\f[C]amount2-out\f[R] are
+assigned, avoiding conflicts.
 .SS currency
 .PP
 If the CSV has the currency symbol in a separate field (ie, not part of
@@ -620,13 +636,19 @@ REGEX
 .PP
 REGEX is a case-insensitive regular expression which tries to match
 anywhere within the CSV record.
-It is a POSIX extended regular expressions with some additions (see
-Regular expressions in the hledger manual).
-Note: the \[dq]CSV record\[dq] it is matched against is not the original
-record, but a synthetic one, with enclosing double quotes or whitespace
-removed, and always comma-separated.
-(Eg, an SSV record \f[C]2020-01-01; \[dq]Acme, Inc.\[dq]; 1,000\f[R]
-appears to REGEX as \f[C]2020-01-01,Acme, Inc.,1,000\f[R]).
+It is a POSIX ERE (extended regular expression) that also supports GNU
+word boundaries (\f[C]\[rs]b\f[R], \f[C]\[rs]B\f[R], \f[C]\[rs]<\f[R],
+\f[C]\[rs]>\f[R]), and nothing else.
+If you have trouble, be sure to check our
+https://hledger.org/hledger.html#regular-expressions doc.
+.PP
+Important note: the record that is matched is not the original record,
+but a synthetic one, with any enclosing double quotes (but not enclosing
+whitespace) removed, and always comma-separated (which means that a
+field containing a comma will appear like two fields).
+Eg, if the original record is
+\f[C]2020-01-01; \[dq]Acme, Inc.\[dq];  1,000\f[R], the REGEX will
+actually see \f[C]2020-01-01,Acme, Inc.,  1,000\f[R]).
 .PP
 Or, MATCHER can be a field matcher, like this:
 .IP

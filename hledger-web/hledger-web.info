@@ -330,45 +330,187 @@ File: hledger-web.info,  Node: JSON API,  Next: ENVIRONMENT,  Prev: RELOADING,  
 5 JSON API
 **********
 
-In addition to the web UI, hledger-web provides some API routes that
-serve JSON in response to GET requests.  (And when started with
-'--serve-api', it provides only these routes.):
+In addition to the web UI, hledger-web also serves a JSON API that can
+be used to get data or add new transactions.  If you want the JSON API
+only, you can use the '--serve-api' flag.  Eg:
+
+$ hledger-web -f examples/sample.journal --serve-api
+...
+
+   You can get JSON data from these routes:
 
 /accountnames
 /transactions
 /prices
 /commodities
 /accounts
-/accounttransactions/#AccountName
+/accounttransactions/ACCOUNTNAME
 
-   Also, you can append a new transaction to the journal by sending a
-PUT request to '/add' (hledger-web only).  As with the web UI's add
-form, hledger-web must be started with the 'add' capability for this
-(enabled by default).
+   Eg, all account names in the journal (similar to the accounts
+command):
 
-   The payload should be a valid hledger transaction as JSON, similar to
-what you get from '/transactions' or '/accounttransactions'.
+$ curl -s http://127.0.0.1:5000/accountnames | python -m json.tool
+[
+    "assets",
+    "assets:bank",
+    "assets:bank:checking",
+    "assets:bank:saving",
+    "assets:cash",
+    "expenses",
+    "expenses:food",
+    "expenses:supplies",
+    "income",
+    "income:gifts",
+    "income:salary",
+    "liabilities",
+    "liabilities:debts"
+]
 
-   Another way to generate test data is with the
-'readJsonFile'/'writeJsonFile' helpers in Hledger.Web.Json, which can
-write or read most of hledger's data types to or from a file.  Eg here
-we write the first transaction of a sample journal:
+   Or all transactions:
+
+$ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
+[
+    {
+        "tcode": "",
+        "tcomment": "",
+        "tdate": "2008-01-01",
+        "tdate2": null,
+        "tdescription": "income",
+        "tindex": 1,
+        "tpostings": [
+            {
+                "paccount": "assets:bank:checking",
+                "pamount": [
+                    {
+                        "acommodity": "$",
+                        "aismultiplier": false,
+                        "aprice": null,
+...
+
+   Most of the JSON corresponds to hledger's data types; for details of
+what the fields mean, see the Hledger.Data.Json haddock docs and click
+on the various data types, eg Transaction.  And for a higher level
+understanding, see the journal manual.
+
+   In some cases there is outer JSON corresponding to a "Report" type.
+To understand that, go to the Hledger.Web.Handler.MiscR haddock and look
+at the source for the appropriate handler to see what it returns.  Eg
+for '/accounttransactions' it's getAccounttransactionsR, returning a
+"'accountTransactionsReport ...'".  Looking up the haddock for that we
+can see that /accounttransactions returns an AccountTransactionsReport,
+which consists of a report title and a list of
+AccountTransactionsReportItem (etc).
+
+   You can add a new transaction to the journal with a PUT request to
+'/add', if hledger-web was started with the 'add' capability (enabled by
+default).  The payload must be the full, exact JSON representation of a
+hledger transaction (partial data won't do).  You can get sample JSON
+from '/transactions' or '/accounttransactions', or you can export it
+with hledger-lib's 'writeJsonFile' helper, like so:
 
 $ make ghci-web
->>> :m +*Hledger.Web.Json
->>> writeJsonFile "txn.json" (head $ jtxns samplejournal)
+>>> import Hledger
+>>> writeJsonFile "txn.json" (head $ jtxns samplejournal)  -- export samplejournal's first txn
 >>> :q
-$ python -m json.tool <txn.json >txn.pretty.json  # optional: make human-readable
 
-   (sample output & discussion)
+   If you like, reformat the json to make it human-readable:
 
-   And here's how to test adding that with curl:
+$ python -m json.tool txn.json >pretty
+$ mv pretty txn.json
 
-$ curl -s http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.pretty.json; echo
+   Here's how it looks as of hledger-1.17 (remember, this JSON
+corresponds to hledger's Transaction and related data types):
 
-   By default, both the server-side HTML UI and the JSON API are served.
-Running with '--serve-api' disables the former, useful if you only want
-to serve the API.
+{
+    "tcode": "",
+    "tcomment": "",
+    "tdate": "2008-01-01",
+    "tdate2": null,
+    "tdescription": "income",
+    "tindex": 1,
+    "tpostings": [
+        {
+            "paccount": "assets:bank:checking",
+            "pamount": [
+                {
+                    "acommodity": "$",
+                    "aismultiplier": false,
+                    "aprice": null,
+                    "aquantity": {
+                        "decimalMantissa": 10000000000,
+                        "decimalPlaces": 10,
+                        "floatingPoint": 1
+                    },
+                    "astyle": {
+                        "ascommodityside": "L",
+                        "ascommodityspaced": false,
+                        "asdecimalpoint": ".",
+                        "asdigitgroups": null,
+                        "asprecision": 2
+                    }
+                }
+            ],
+            "pbalanceassertion": null,
+            "pcomment": "",
+            "pdate": null,
+            "pdate2": null,
+            "poriginal": null,
+            "pstatus": "Unmarked",
+            "ptags": [],
+            "ptransaction_": "1",
+            "ptype": "RegularPosting"
+        },
+        {
+            "paccount": "income:salary",
+            "pamount": [
+                {
+                    "acommodity": "$",
+                    "aismultiplier": false,
+                    "aprice": null,
+                    "aquantity": {
+                        "decimalMantissa": -10000000000,
+                        "decimalPlaces": 10,
+                        "floatingPoint": -1
+                    },
+                    "astyle": {
+                        "ascommodityside": "L",
+                        "ascommodityspaced": false,
+                        "asdecimalpoint": ".",
+                        "asdigitgroups": null,
+                        "asprecision": 2
+                    }
+                }
+            ],
+            "pbalanceassertion": null,
+            "pcomment": "",
+            "pdate": null,
+            "pdate2": null,
+            "poriginal": null,
+            "pstatus": "Unmarked",
+            "ptags": [],
+            "ptransaction_": "1",
+            "ptype": "RegularPosting"
+        }
+    ],
+    "tprecedingcomment": "",
+    "tsourcepos": {
+        "contents": [
+            "",
+            [
+                1,
+                1
+            ]
+        ],
+        "tag": "JournalSourcePos"
+    },
+    "tstatus": "Unmarked",
+    "ttags": []
+}
+
+   And here's how to test adding it with curl.  This should add a new
+entry to your journal:
+
+$ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --data-binary @txn.json
 
 
 File: hledger-web.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: JSON API,  Up: Top
@@ -437,12 +579,12 @@ Node: RELOADING10567
 Ref: #reloading10701
 Node: JSON API11134
 Ref: #json-api11248
-Node: ENVIRONMENT12686
-Ref: #environment12802
-Node: FILES13535
-Ref: #files13635
-Node: BUGS13848
-Ref: #bugs13926
+Node: ENVIRONMENT16812
+Ref: #environment16928
+Node: FILES17661
+Ref: #files17761
+Node: BUGS17974
+Ref: #bugs18052
 
 End Tag Table
 

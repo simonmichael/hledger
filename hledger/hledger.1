@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "March 2020" "hledger 1.17.99" "hledger User Manuals"
+.TH "hledger" "1" "May 2020" "hledger 1.17.99" "hledger User Manuals"
 
 
 
@@ -1136,20 +1136,28 @@ account alias directives and options:
 \f[C]--alias /REGEX/=REPLACEMENT\f[R]
 .PP
 hledger\[aq]s regular expressions come from the regex-tdfa library.
-In general they:
-.IP \[bu] 2
-are case insensitive
-.IP \[bu] 2
-are infix matching (do not need to match the entire thing being matched)
-.IP \[bu] 2
-are POSIX extended regular expressions
-.IP \[bu] 2
-also support GNU word boundaries (\[rs]<, \[rs]>, \[rs]b, \[rs]B)
-.IP \[bu] 2
-and parenthesised capturing groups and numeric backreferences in
-replacement strings
-.IP \[bu] 2
-do not support mode modifiers like (?s)
+If they\[aq]re not doing what you expect, it\[aq]s important to know
+exactly what they support:
+.IP "1." 3
+they are case insensitive
+.IP "2." 3
+they are infix matching (they do not need to match the entire thing
+being matched)
+.IP "3." 3
+they are POSIX ERE (extended regular expressions)
+.IP "4." 3
+they also support GNU word boundaries (\f[C]\[rs]b\f[R],
+\f[C]\[rs]B\f[R], \f[C]\[rs]<\f[R], \f[C]\[rs]>\f[R])
+.IP "5." 3
+they do not support backreferences; if you write \f[C]\[rs]1\f[R], it
+will match the digit \f[C]1\f[R].
+Except when doing text replacement, eg in account aliases, where
+backreferences can be used in the replacement string to reference
+capturing groups in the search regexp.
+.IP "6." 3
+they do not support mode modifiers (\f[C](?s)\f[R]), character classes
+(\f[C]\[rs]w\f[R], \f[C]\[rs]d\f[R]), or anything else not mentioned
+above.
 .PP
 Some things to note:
 .IP \[bu] 2
@@ -1671,31 +1679,48 @@ $ hledger balance --pivot member acct:.
 \f[R]
 .fi
 .SS Valuation
+.PP
+hledger can show cost reports, where amounts are converted to their cost
+or sale amount at transaction time; or value reports, where amounts are
+converted to their market value in another currency/commodity at a
+specified date (using market prices inferred from your transactions, or
+declared with P directives).
+.PP
+We call this \[dq]valuation\[dq], and it is controlled by the
+\f[C]--value=VALUATIONTYPE[,COMMODITY]\f[R] option.
+It can get a little involved, so we cover all the details below.
+But most of the time, all you need to do is use these simpler flags
+instead:
+.IP \[bu] 2
+\f[C]-B\f[R] to convert to cost/sale amount, or
+.IP \[bu] 2
+\f[C]-V\f[R] to convert to market value in your base currency.
+Or occasionally,
+.IP \[bu] 2
+\f[C]-X COMMODITY\f[R] to convert to market value in some other
+currency.
 .SS -B: Cost
 .PP
-The \f[C]-B/--cost\f[R] flag converts amounts to their cost (or selling
-price) at transaction time, if they have a transaction price specified.
-This flag is equivalent to \f[C]--value=cost\f[R], described below.
-.SS -V: Market value
+The \f[C]-B/--cost\f[R] flag converts amounts to their cost or sale
+amount at transaction time, if they have a transaction price specified.
+(It is equivalent to \f[C]--value=cost\f[R].)
+.SS -V: Value
 .PP
-The \f[C]-V/--market\f[R] flag converts reported amounts to their market
-value in a default valuation commodity, using the market prices in
-effect on a default valuation date.
-For single period reports, the valuation date is today (equivalent to
-\f[C]--value=now\f[R]); for multiperiod reports, it is the last day of
-each subperiod (equivalent to \f[C]--value=end\f[R]).
+The \f[C]-V/--market\f[R] flag converts reported amounts to market value
+in their \f[I]default valuation commodity\f[R], using the market prices
+in effect on a \f[I]default valuation date\f[R].
+(More on these below.)
 .PP
 The default valuation commodity is the one referenced in the latest
 applicable market price dated on or before the valuation date.
-If most of your P declarations lead to a single home currency, this will
-usually be what you want.
-(To specify the commodity, see -X below.)
+Typically your P declarations or currency exchange transactions
+reference a single base currency, and -V will pick that.
 .PP
-Note that in hledger, market prices are always declared explicitly with
-P directives; we do not infer them from transaction prices as Ledger
-does.
+The default valuation date is today for single period reports
+(equivalent to \f[C]--value=now\f[R]), or the last day of each subperiod
+for multiperiod reports (equivalent to \f[C]--value=end\f[R]).
 .PP
-Here\[aq]s a quick example of -V:
+An example:
 .IP
 .nf
 \f[C]
@@ -1743,8 +1768,31 @@ $ hledger -f t.j bal -N euros -V
 .PP
 The \f[C]-X/--exchange\f[R] option is like \f[C]-V\f[R], except it
 specifies the target commodity you would like to convert to.
-It is equivalent to \f[C]--value=now,COMM\f[R] or
-\f[C]--value=end,COMM\f[R].
+(It is equivalent to \f[C]--value=now,COMM\f[R] or
+\f[C]--value=end,COMM\f[R].)
+.SS Market prices
+.PP
+To convert a commodity A to commodity B, hledger looks for a suitable
+market price (exchange rate) in the following ways, in this order of
+preference:
+.IP "1." 3
+a \f[I]declared market price\f[R] - the latest P directive specifying
+the exchange rate from A to B, dated on or before the valuation date.
+.IP "2." 3
+a \f[I]transaction-implied market price\f[R] - a market price matching
+the transaction price used in the latest transaction where A is
+converted to B, dated on or before the valuation date.
+(\f[I]since hledger 1.18; experimental\f[R])
+.IP "3." 3
+a \f[I]reverse declared market price\f[R] - calculated by inverting a
+declared market price from B to A.
+.IP "4." 3
+a \f[I]reverse transaction-implied market price\f[R] - calculated by
+inverting a transaction-implied market price from B to A.
+.IP "5." 3
+an \f[I]indirect market price\f[R] - calculated by combining the
+shortest chain of market prices (any of the above types) leading from A
+to B.
 .SS --value: Flexible valuation
 .PP
 \f[I](experimental, added 201905)\f[R]
@@ -2243,9 +2291,6 @@ otherwise the latest transaction date in the journal, otherwise today.
 \f[I]report interval\f[R]
 a flag (-D/-W/-M/-Q/-Y) or period expression that activates the
 report\[aq]s multi-period mode (whether showing one or many subperiods).
-.SS Combining -B, -V, -X, --value
-.PP
-The rightmost of these flags wins.
 .SH COMMANDS
 .PP
 hledger provides a number of subcommands; \f[C]hledger\f[R] with no
@@ -4173,7 +4218,7 @@ $ hledger test -- -pData.Amount --color=never
 .PP
 For help on these, see https://github.com/feuerbach/tasty#options
 (\f[C]-- --help\f[R] currently doesn\[aq]t show them).
-.SS Add-on Commands
+.SS Add-on commands
 .PP
 hledger also searches for external add-on commands, and will include
 these in the commands list.
@@ -4312,45 +4357,42 @@ The command \f[C]env | grep LEDGER_FILE\f[R] should show it.
 You may need to use \f[C]export\f[R].
 Here\[aq]s an explanation.
 .PP
-\f[B]\[dq]Illegal byte sequence\[dq] or \[dq]Invalid or incomplete
-multibyte or wide character\[dq] errors\f[R]
+\f[B]Getting errors like \[dq]Illegal byte sequence\[dq] or \[dq]Invalid
+or incomplete multibyte or wide character\[dq] or
+\[dq]commitAndReleaseBuffer: invalid argument (invalid
+character)\[dq]\f[R]
 .PD 0
 .P
 .PD
-In order to handle non-ascii letters and symbols (like \[Po]), hledger
-needs an appropriate locale.
-This is usually configured system-wide; you can also configure it
-temporarily.
-The locale may need to be one that supports UTF-8, if you built hledger
-with GHC < 7.2 (or possibly always, I\[aq]m not sure yet).
+Programs compiled with GHC (hledger, haskell build tools, etc.) need to
+have a UTF-8-aware locale configured in the environment, otherwise they
+will fail with these kinds of errors when they encounter non-ascii
+characters.
 .PP
-Here\[aq]s an example of setting the locale temporarily, on ubuntu
-gnu/linux:
+To fix it, set the LANG environment variable to some locale which
+supports UTF-8.
+The locale you choose must be installed on your system.
+.PP
+Here\[aq]s an example of setting LANG temporarily, on Ubuntu GNU/Linux:
 .IP
 .nf
 \f[C]
 $ file my.journal
-my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
-$ locale -a
+my.journal: UTF-8 Unicode text         # the file is UTF8-encoded
+$ echo $LANG
+C                                      # LANG is set to the default locale, which does not support UTF8
+$ locale -a                            # which locales are installed ?
 C
-en_US.utf8                             # <- a UTF8-aware locale is available
+en_US.utf8                             # here\[aq]s a UTF8-aware one we can use
 POSIX
-$ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+$ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
 \f[R]
 .fi
 .PP
-Here\[aq]s one way to set it permanently, there are probably better
-ways:
-.IP
-.nf
-\f[C]
-$ echo \[dq]export LANG=en_US.UTF-8\[dq] >>\[ti]/.bash_profile
-$ bash --login
-\f[R]
-.fi
-.PP
-If we preferred to use eg \f[C]fr_FR.utf8\f[R], we might have to install
-that first:
+If available, \f[C]C.UTF-8\f[R] will also work.
+If your preferred locale isn\[aq]t listed by \f[C]locale -a\f[R], you
+might need to install it.
+Eg on Ubuntu/Debian:
 .IP
 .nf
 \f[C]
@@ -4368,9 +4410,27 @@ $ LANG=fr_FR.utf8 hledger -f my.journal print
 \f[R]
 .fi
 .PP
-Note some platforms allow variant locale spellings, but not all (ubuntu
-accepts \f[C]fr_FR.UTF8\f[R], mac osx requires exactly
-\f[C]fr_FR.UTF-8\f[R]).
+Here\[aq]s how you could set it permanently, if you use a bash shell:
+.IP
+.nf
+\f[C]
+$ echo \[dq]export LANG=en_US.utf8\[dq] >>\[ti]/.bash_profile
+$ bash --login
+\f[R]
+.fi
+.PP
+Exact spelling and capitalisation may be important.
+Note the difference on MacOS (\f[C]UTF-8\f[R], not \f[C]utf8\f[R]).
+Some platforms (eg ubuntu) allow variant spellings, but others (eg
+macos) require it to be exact:
+.IP
+.nf
+\f[C]
+$ locale -a | grep -iE en_us.*utf
+en_US.UTF-8
+$ LANG=en_US.UTF-8 hledger -f my.journal print
+\f[R]
+.fi
 
 
 .SH "REPORTING BUGS"

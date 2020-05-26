@@ -57,7 +57,8 @@ FILE FORMAT
          line, and any following indented lines beginning with a semicolon)
 
        o 0 or more indented posting lines, describing what was transferred and
-         the accounts involved.
+         the  accounts  involved (indented comment lines are also allowed, but
+         not blank lines or non-indented lines).
 
        Here's a simple journal file containing one transaction:
 
@@ -67,35 +68,35 @@ FILE FORMAT
 
    Dates
    Simple dates
-       Dates  in  the  journal  file  use  simple  dates format: YYYY-MM-DD or
+       Dates in the journal  file  use  simple  dates  format:  YYYY-MM-DD  or
        YYYY/MM/DD or YYYY.MM.DD, with leading zeros optional.  The year may be
-       omitted,  in  which case it will be inferred from the context: the cur-
-       rent transaction, the default year set with a default  year  directive,
-       or   the  current  date  when  the  command  is  run.   Some  examples:
+       omitted, in which case it will be inferred from the context:  the  cur-
+       rent  transaction,  the default year set with a default year directive,
+       or  the  current  date  when  the  command  is  run.   Some   examples:
        2010-01-31, 2010/01/31, 2010.1.31, 1/31.
 
-       (The UI also accepts simple dates, as well as the more  flexible  smart
+       (The  UI  also accepts simple dates, as well as the more flexible smart
        dates documented in the hledger manual.)
 
    Secondary dates
-       Real-life  transactions  sometimes  involve more than one date - eg the
+       Real-life transactions sometimes involve more than one date  -  eg  the
        date you write a cheque, and the date it clears in your bank.  When you
-       want  to  model this, for more accurate daily balances, you can specify
+       want to model this, for more accurate daily balances, you  can  specify
        individual posting dates.
 
-       Or, you can use the older secondary date feature (Ledger calls it  aux-
-       iliary  date or effective date).  Note: we support this for compatibil-
-       ity, but I usually recommend avoiding this feature; posting  dates  are
+       Or,  you can use the older secondary date feature (Ledger calls it aux-
+       iliary date or effective date).  Note: we support this for  compatibil-
+       ity,  but  I usually recommend avoiding this feature; posting dates are
        almost always clearer and simpler.
 
        A secondary date is written after the primary date, following an equals
-       sign.  If the year is omitted, the  primary  date's  year  is  assumed.
-       When  running  reports, the primary (left) date is used by default, but
-       with the --date2 flag (or --aux-date  or  --effective),  the  secondary
+       sign.   If  the  year  is  omitted, the primary date's year is assumed.
+       When running reports, the primary (left) date is used by  default,  but
+       with  the  --date2  flag  (or --aux-date or --effective), the secondary
        (right) date will be used instead.
 
-       The  meaning of secondary dates is up to you, but it's best to follow a
-       consistent rule.  Eg "primary = the bank's clearing date,  secondary  =
+       The meaning of secondary dates is up to you, but it's best to follow  a
+       consistent  rule.   Eg "primary = the bank's clearing date, secondary =
        date the transaction was initiated, if different", as shown here:
 
               2010/2/23=2/19 movie ticket
@@ -109,11 +110,11 @@ FILE FORMAT
               2010-02-19 movie ticket         assets:checking                $-10         $-10
 
    Posting dates
-       You  can  give  individual  postings a different date from their parent
-       transaction, by adding a posting comment containing a tag  (see  below)
+       You can give individual postings a different  date  from  their  parent
+       transaction,  by  adding a posting comment containing a tag (see below)
        like date:DATE.  This is probably the best way to control posting dates
-       precisely.  Eg in this example the expense should  appear  in  May  re-
-       ports,  and  the  deduction from checking should be reported on 6/1 for
+       precisely.   Eg  in  this  example the expense should appear in May re-
+       ports, and the deduction from checking should be reported  on  6/1  for
        easy bank reconciliation:
 
               2015/5/30
@@ -126,22 +127,22 @@ FILE FORMAT
               $ hledger -f t.j register checking
               2015-06-01                      assets:checking               $-10          $-10
 
-       DATE should be a simple date; if the year is not specified it will  use
-       the  year  of  the  transaction's date.  You can set the secondary date
-       similarly, with date2:DATE2.  The date: or  date2:  tags  must  have  a
-       valid  simple  date  value  if they are present, eg a date: tag with no
+       DATE  should be a simple date; if the year is not specified it will use
+       the year of the transaction's date.  You can  set  the  secondary  date
+       similarly,  with  date2:DATE2.   The  date:  or date2: tags must have a
+       valid simple date value if they are present, eg a  date:  tag  with  no
        value is not allowed.
 
        Ledger's earlier, more compact bracketed date syntax is also supported:
-       [DATE],  [DATE=DATE2]  or  [=DATE2].  hledger will attempt to parse any
+       [DATE], [DATE=DATE2] or [=DATE2].  hledger will attempt  to  parse  any
        square-bracketed sequence of the 0123456789/-.= characters in this way.
-       With  this  syntax, DATE infers its year from the transaction and DATE2
+       With this syntax, DATE infers its year from the transaction  and  DATE2
        infers its year from DATE.
 
    Status
-       Transactions, or individual postings within a transaction, can  have  a
-       status  mark,  which  is  a single character before the transaction de-
-       scription or posting account name, separated from it by a space,  indi-
+       Transactions,  or  individual postings within a transaction, can have a
+       status mark, which is a single character  before  the  transaction  de-
+       scription  or posting account name, separated from it by a space, indi-
        cating one of three statuses:
 
        mark     status
@@ -150,23 +151,23 @@ FILE FORMAT
        !        pending
        *        cleared
 
-       When  reporting,  you  can  filter  by  status  with the -U/--unmarked,
-       -P/--pending, and -C/--cleared flags; or  the  status:,  status:!,  and
+       When reporting, you  can  filter  by  status  with  the  -U/--unmarked,
+       -P/--pending,  and  -C/--cleared  flags;  or the status:, status:!, and
        status:* queries; or the U, P, C keys in hledger-ui.
 
-       Note,  in Ledger and in older versions of hledger, the "unmarked" state
-       is called "uncleared".  As of hledger 1.3 we have  renamed  it  to  un-
+       Note, in Ledger and in older versions of hledger, the "unmarked"  state
+       is  called  "uncleared".   As  of hledger 1.3 we have renamed it to un-
        marked for clarity.
 
-       To  replicate Ledger and old hledger's behaviour of also matching pend-
+       To replicate Ledger and old hledger's behaviour of also matching  pend-
        ing, combine -U and -P.
 
-       Status marks are optional, but can be helpful eg for  reconciling  with
+       Status  marks  are optional, but can be helpful eg for reconciling with
        real-world accounts.  Some editor modes provide highlighting and short-
-       cuts for working with status.  Eg in Emacs ledger-mode, you can  toggle
+       cuts  for working with status.  Eg in Emacs ledger-mode, you can toggle
        transaction status with C-c C-e, or posting status with C-c C-c.
 
-       What  "uncleared", "pending", and "cleared" actually mean is up to you.
+       What "uncleared", "pending", and "cleared" actually mean is up to  you.
        Here's one suggestion:
 
        status       meaning
@@ -177,34 +178,34 @@ FILE FORMAT
        cleared      complete, reconciled as far as possible, and considered cor-
                     rect
 
-       With this scheme, you would use -PC to see the current balance at  your
+       With  this scheme, you would use -PC to see the current balance at your
        bank, -U to see things which will probably hit your bank soon (like un-
-       cashed checks), and no flags to see the most up-to-date state  of  your
+       cashed  checks),  and no flags to see the most up-to-date state of your
        finances.
 
    Description
-       A  transaction's description is the rest of the line following the date
-       and status mark (or until a  comment  begins).   Sometimes  called  the
+       A transaction's description is the rest of the line following the  date
+       and  status  mark  (or  until  a comment begins).  Sometimes called the
        "narration" in traditional bookkeeping, it can be used for whatever you
-       wish, or left blank.  Transaction descriptions can be  queried,  unlike
+       wish,  or  left blank.  Transaction descriptions can be queried, unlike
        comments.
 
    Payee and note
        You can optionally include a | (pipe) character in descriptions to sub-
        divide the description into separate fields for payee/payer name on the
        left (up to the first |) and an additional note field on the right (af-
-       ter the first |).  This may be worthwhile if you need to do  more  pre-
+       ter  the  first |).  This may be worthwhile if you need to do more pre-
        cise querying and pivoting by payee or by note.
 
    Comments
        Lines in the journal beginning with a semicolon (;) or hash (#) or star
-       (*) are comments, and will be ignored.  (Star comments  cause  org-mode
-       nodes  to  be  ignored, allowing emacs users to fold and navigate their
+       (*)  are  comments, and will be ignored.  (Star comments cause org-mode
+       nodes to be ignored, allowing emacs users to fold  and  navigate  their
        journals with org-mode or orgstruct-mode.)
 
-       You can attach comments to a transaction by writing them after the  de-
+       You  can attach comments to a transaction by writing them after the de-
        scription and/or indented on the following lines (before the postings).
-       Similarly, you can attach comments to an individual posting by  writing
+       Similarly,  you can attach comments to an individual posting by writing
        them after the amount and/or indented on the following lines.  Transac-
        tion and posting comments must begin with a semicolon (;).
 
@@ -228,24 +229,24 @@ FILE FORMAT
                   ; another comment line for posting 2
               ; a file comment (because not indented)
 
-       You can also comment larger regions of a file  using  comment  and  end
+       You  can  also  comment  larger regions of a file using comment and end
        comment directives.
 
    Tags
-       Tags  are  a  way  to add extra labels or labelled data to postings and
+       Tags are a way to add extra labels or labelled  data  to  postings  and
        transactions, which you can then search or pivot on.
 
-       A simple tag is a word (which may contain hyphens) followed by  a  full
+       A  simple  tag is a word (which may contain hyphens) followed by a full
        colon, written inside a transaction or posting comment line:
 
               2017/1/16 bought groceries  ; sometag:
 
-       Tags  can  have  a  value, which is the text after the colon, up to the
+       Tags can have a value, which is the text after the  colon,  up  to  the
        next comma or end of line, with leading/trailing whitespace removed:
 
                   expenses:food    $10 ; a-posting-tag: the tag value
 
-       Note this means hledger's tag values can not  contain  commas  or  new-
+       Note  this  means  hledger's  tag values can not contain commas or new-
        lines.  Ending at commas means you can write multiple short tags on one
        line, comma separated:
 
@@ -259,57 +260,57 @@ FILE FORMAT
 
        o "tag2" is another tag, whose value is "some value ..."
 
-       Tags in a transaction comment affect the transaction  and  all  of  its
-       postings,  while  tags  in  a posting comment affect only that posting.
-       For example, the following transaction has three tags (A, TAG2,  third-
+       Tags  in  a  transaction  comment affect the transaction and all of its
+       postings, while tags in a posting comment  affect  only  that  posting.
+       For  example, the following transaction has three tags (A, TAG2, third-
        tag) and the posting has four (those plus posting-tag):
 
               1/1 a transaction  ; A:, TAG2:
                   ; third-tag: a third transaction tag, <- with a value
                   (a)  $1  ; posting-tag:
 
-       Tags  are  like  Ledger's metadata feature, except hledger's tag values
+       Tags are like Ledger's metadata feature, except  hledger's  tag  values
        are simple strings.
 
    Postings
-       A posting is an addition of some amount to, or removal of  some  amount
-       from,  an account.  Each posting line begins with at least one space or
+       A  posting  is an addition of some amount to, or removal of some amount
+       from, an account.  Each posting line begins with at least one space  or
        tab (2 or 4 spaces is common), followed by:
 
        o (optional) a status character (empty, !, or *), followed by a space
 
-       o (required) an account name (any text,  optionally  containing  single
+       o (required)  an  account  name (any text, optionally containing single
          spaces, until end of line or a double space)
 
        o (optional) two or more spaces or tabs followed by an amount.
 
-       Positive  amounts  are being added to the account, negative amounts are
+       Positive amounts are being added to the account, negative  amounts  are
        being removed.
 
        The amounts within a transaction must always sum up to zero.  As a con-
-       venience,  one  amount  may be left blank; it will be inferred so as to
+       venience, one amount may be left blank; it will be inferred  so  as  to
        balance the transaction.
 
-       Be sure to note the unusual two-space delimiter  between  account  name
-       and  amount.  This makes it easy to write account names containing spa-
-       ces.  But if you accidentally leave only one space (or tab) before  the
+       Be  sure  to  note the unusual two-space delimiter between account name
+       and amount.  This makes it easy to write account names containing  spa-
+       ces.   But if you accidentally leave only one space (or tab) before the
        amount, the amount will be considered part of the account name.
 
-   Virtual Postings
+   Virtual postings
        A posting with a parenthesised account name is called a virtual posting
-       or unbalanced posting, which means it is exempt  from  the  usual  rule
+       or  unbalanced  posting,  which  means it is exempt from the usual rule
        that a transaction's postings must balance add up to zero.
 
-       This  is  not  part  of double entry accounting, so you might choose to
-       avoid this feature.  Or you can use it sparingly  for  certain  special
-       cases  where  it can be convenient.  Eg, you could set opening balances
+       This is not part of double entry accounting, so  you  might  choose  to
+       avoid  this  feature.   Or you can use it sparingly for certain special
+       cases where it can be convenient.  Eg, you could set  opening  balances
        without using a balancing equity account:
 
               1/1 opening balances
                 (assets:checking)   $1000
                 (assets:savings)    $2000
 
-       A posting with a bracketed account name is called  a  balanced  virtual
+       A  posting  with  a bracketed account name is called a balanced virtual
        posting.  The balanced virtual postings in a transaction must add up to
        zero (separately from other postings).  Eg:
 
@@ -321,34 +322,34 @@ FILE FORMAT
                 [assets:checking:available]     $10    ; <-
                 (something:else)                 $5       ; <- not required to balance
 
-       Ordinary non-parenthesised,  non-bracketed  postings  are  called  real
-       postings.   You  can  exclude  virtual  postings  from reports with the
+       Ordinary  non-parenthesised,  non-bracketed  postings  are  called real
+       postings.  You can exclude  virtual  postings  from  reports  with  the
        -R/--real flag or real:1 query.
 
    Account names
-       Account names typically have several parts separated by a  full  colon,
-       from  which hledger derives a hierarchical chart of accounts.  They can
-       be anything you like, but in finance there are traditionally five  top-
+       Account  names  typically have several parts separated by a full colon,
+       from which hledger derives a hierarchical chart of accounts.  They  can
+       be  anything you like, but in finance there are traditionally five top-
        level accounts: assets, liabilities, income, expenses, and equity.
 
-       Account  names  may  contain single spaces, eg: assets:accounts receiv-
-       able.  Because of this, they must always be followed  by  two  or  more
+       Account names may contain single spaces,  eg:  assets:accounts  receiv-
+       able.   Because  of  this,  they must always be followed by two or more
        spaces (or newline).
 
        Account names can be aliased.
 
    Amounts
-       After  the  account  name, there is usually an amount.  (Important: be-
+       After the account name, there is usually an  amount.   (Important:  be-
        tween account name and amount, there must be two or more spaces.)
 
-       hledger's amount format is flexible, supporting  several  international
-       formats.   Here  are  some examples.  Amounts have a number (the "quan-
+       hledger's  amount  format is flexible, supporting several international
+       formats.  Here are some examples.  Amounts have a  number  (the  "quan-
        tity"):
 
               1
 
-       ..and usually a currency or commodity name (the "commodity").  This  is
-       a  symbol,  word, or phrase, to the left or right of the quantity, with
+       ..and  usually a currency or commodity name (the "commodity").  This is
+       a symbol, word, or phrase, to the left or right of the  quantity,  with
        or without a separating space:
 
               $1
@@ -359,11 +360,18 @@ FILE FORMAT
 
               3 "no. 42 green apples"
 
-       Amounts can be negative.  The minus sign can be written before or after
-       a left-side commodity symbol:
+       Amounts can be preceded by a minus sign (or a plus sign, though plus is
+       the  default), The sign can be written before or after a left-side com-
+       modity symbol:
 
               -$1
               $-1
+
+       One or more spaces between the sign and the number are acceptable  when
+       parsing (but they won't be displayed in output):
+
+              + $1
+              $-      1
 
        Scientific E notation is allowed:
 
@@ -376,8 +384,8 @@ FILE FORMAT
               1,23456780000009
 
    Digit group marks
-       In the integer part of the quantity (left of the decimal mark),  groups
-       of  digits  can  optionally  be  separated  by a "digit group mark" - a
+       In  the integer part of the quantity (left of the decimal mark), groups
+       of digits can optionally be separated by  a  "digit  group  mark"  -  a
        space, comma, or period (different from the decimal mark):
 
                    $1,000,000.00
@@ -385,7 +393,7 @@ FILE FORMAT
               INR 9,99,99,999.00
                     1 000 000.9455
 
-       Note, a number containing a single group mark and no  decimal  mark  is
+       Note,  a  number  containing a single group mark and no decimal mark is
        ambiguous.  Are these group marks or decimal marks ?
 
               1,000
@@ -393,9 +401,9 @@ FILE FORMAT
 
        hledger will treat them both as decimal marks by default (cf #793).  If
        you use digit group marks, to prevent confusion and undetected typos we
-       recommend  you write commodity directives at the top of the file to ex-
-       plicitly declare the decimal mark (and optionally a digit group  mark).
-       Note,  these  formats ("amount styles") are specific to each commodity,
+       recommend you write commodity directives at the top of the file to  ex-
+       plicitly  declare the decimal mark (and optionally a digit group mark).
+       Note, these formats ("amount styles") are specific to  each  commodity,
        so if your data uses multiple formats, hledger can handle it:
 
               commodity $1,000.00
@@ -404,41 +412,41 @@ FILE FORMAT
               commodity       1 000 000.9455
 
    Amount display style
-       For each commodity, hledger chooses a consistent  format  to  use  when
-       displaying  amounts.  (Except price amounts, which are always displayed
+       For  each  commodity,  hledger  chooses a consistent format to use when
+       displaying amounts.  (Except price amounts, which are always  displayed
        as written).  The display style is chosen as follows:
 
-       o If there is a commodity directive (or  default  commodity  directive)
+       o If  there  is  a commodity directive (or default commodity directive)
          for the commodity, that format is used (see examples above).
 
-       o Otherwise  the  format  of the first posting amount in that commodity
+       o Otherwise the format of the first posting amount  in  that  commodity
          seen in the journal is used.  But the number of decimal places ("pre-
-         cision")  will  be the maximum from all posting amounts in that comm-
-         modity.
+         cision") will be the maximum from all posting amounts in that commod-
+         ity.
 
-       o Or if there are no such amounts in the journal, a default  format  is
+       o Or  if  there are no such amounts in the journal, a default format is
          used (like $1000.00).
 
-       Transaction  prices don't affect the amount display style directly, but
-       occasionally they can do so indirectly (eg when an posting's amount  is
-       inferred  using  a  transaction price).  If you find this causing prob-
+       Transaction prices don't affect the amount display style directly,  but
+       occasionally  they can do so indirectly (eg when an posting's amount is
+       inferred using a transaction price).  If you find  this  causing  prob-
        lems, use a commodity directive to fix the display style.
 
        In summary: amounts will be displayed much as they appear in your jour-
-       nal,  with  the  max observed number of decimal places.  If you want to
+       nal, with the max observed number of decimal places.  If  you  want  to
        see fewer decimal places in reports, use a commodity directive to over-
        ride that.
 
-       hledger  uses  banker's rounding: it rounds to the nearest even number,
-       eg 0.5 displayed with zero decimal places is  "0").   (Note,  prior  to
-       hledger  1.17.1 this could vary if hledger happened to be built with an
+       hledger uses banker's rounding: it rounds to the nearest  even  number,
+       eg  0.5  displayed  with  zero decimal places is "0").  (Note, prior to
+       hledger 1.17.1 this could vary if hledger happened to be built with  an
        old version of Decimal (<0.5.1); since 1.17.1 it's guaranteed.)
 
    Transaction prices
        Within a transaction, you can note an amount's price in another commod-
-       ity.   This can be used to document the cost (in a purchase) or selling
-       price (in a sale).  For  example,  transaction  prices  are  useful  to
-       record  purchases  of  a foreign currency.  Note transaction prices are
+       ity.  This can be used to document the cost (in a purchase) or  selling
+       price  (in  a  sale).   For  example,  transaction prices are useful to
+       record purchases of a foreign currency.  Note  transaction  prices  are
        fixed at the time of the transaction, and do not change over time.  See
        also market prices, which represent prevailing exchange rates on a cer-
        tain date.
@@ -464,8 +472,9 @@ FILE FORMAT
                     assets:euros     EUR100          ; one hundred euros purchased
                     assets:dollars  $-135          ; for $135
 
-       (Ledger users: Ledger uses a different syntax for fixed prices, {=UNIT-
-       PRICE}, which hledger currently ignores).
+       5. Like 1 and 2, but the @ or @@ is parenthesised; this is for compati-
+          bility  with Ledger journals (Virtual posting costs), and in hledger
+          is equivalent to 1 and 2.
 
        Use the -B/--cost flag to convert amounts to their transaction  price's
        commodity, if any.  (mnemonic: "B" is from "cost Basis", as in Ledger).
@@ -491,7 +500,16 @@ FILE FORMAT
                              EUR-100  assets:dollars  # <- the dollars' selling price
                               EUR100  assets:euros
 
-   Balance Assertions
+   Lot prices and lot dates
+       Ledger  allows  another kind of price, lot price (four variants: {UNIT-
+       PRICE},   {{TOTALPRICE}},   {=FIXEDUNITPRICE},   {{=FIXEDTOTALPRICE}}),
+       and/or a lot date ([DATE]) to be specified.  These are normally used to
+       select a lot when selling investments.  hledger will parse  these,  for
+       compatibility  with  Ledger  journals,  but  currently ignores them.  A
+       transaction price, lot price and/or lot date may appear in  any  order,
+       after the posting amount and before the balance assertion if any.
+
+   Balance assertions
        hledger  supports  Ledger-style  balance  assertions  in journal files.
        These look like, for example, = EXPECTEDBALANCE following  a  posting's
        amount.   Eg  here  we assert the expected dollar balance in accounts a
@@ -614,7 +632,7 @@ FILE FORMAT
        limit the display precision, but this will not  affect  balance  asser-
        tions.  Balance assertion failure messages show exact amounts.
 
-   Balance Assignments
+   Balance assignments
        Ledger-style  balance  assignments  are also supported.  These are like
        balance assertions, but with no posting amount on the left side of  the
        equals  sign;  instead  it is calculated automatically so as to satisfy
@@ -710,6 +728,9 @@ FILE FORMAT
                                         commodity                      commodity  in   re-
                                                                        ports,  when  -V is
                                                                        used
+
+
+
        Y                                declare a year for  yearless   following       in-
                                         dates                          line/included   en-
                                                                        tries  until end of
@@ -863,7 +884,7 @@ FILE FORMAT
                 a     5  ; <- commodity-less amount, parsed as $5 and displayed as $5.00
                 b
 
-   Market prices
+   Declaring market prices
        The  P directive declares a market price, which is an exchange rate be-
        tween two commodities on a certain date.  (In Ledger, they  are  called
        "historical  prices".)  These are often obtained from a stock exchange,
@@ -886,8 +907,8 @@ FILE FORMAT
               P 2009/1/1 EUR $1.35
               P 2010/1/1 EUR $1.40
 
-       The -V/--value flag can be used to convert reported amounts to  another
-       commodity using these prices.
+       The -V, -X and --value flags use these market  prices  to  show  amount
+       values in another commodity.  See Valuation.
 
    Declaring accounts
        account directives can be used to pre-declare accounts.  Though not re-
@@ -1458,4 +1479,4 @@ SEE ALSO
 
 
 
-hledger 1.17.99                   March 2020                hledger_journal(5)
+hledger 1.17.99                    May 2020                 hledger_journal(5)
