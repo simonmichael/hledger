@@ -1,9 +1,11 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+
 # 898cda4e
 
-
+2020-05-25 c35d0a8b ;web: transaction fragments: use numeric identifiers for journal files This saves us from any escaping issues.
+2020-05-24 e9792bfd ;web: links from register to journal now contain journal filename in order to distinguish transactions from multiple journal files (#1041)
 
 - web: add form: always start with four rows when opened
 
