@@ -609,11 +609,17 @@ averageMixedAmounts :: [MixedAmount] -> MixedAmount
 averageMixedAmounts [] = 0
 averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` sum as
 
--- | Is this mixed amount negative, if it can be normalised to a single commodity ?
+-- | Is this mixed amount negative, if we can tell that unambiguously?
+-- Ie when normalised, are all individual commodity amounts negative ?
 isNegativeMixedAmount :: MixedAmount -> Maybe Bool
-isNegativeMixedAmount m = case as of [a] -> Just $ isNegativeAmount a
-                                     _   -> Nothing
-    where as = amounts $ normaliseMixedAmountSquashPricesForDisplay m
+isNegativeMixedAmount m =
+  case amounts $ normaliseMixedAmountSquashPricesForDisplay m of
+    []  -> Just False
+    [a] -> Just $ isNegativeAmount a
+    as | all isNegativeAmount as -> Just True
+    _ -> Nothing  -- multiple amounts with different signs
+
+-- XXX rename to mixedAmountLooksZero, mixedAmountIsZero, mixedAmountCostIsZero ?
 
 -- | Does this mixed amount appear to be zero when displayed with its given precision ?
 isZeroMixedAmount :: MixedAmount -> Bool
