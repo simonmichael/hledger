@@ -339,21 +339,35 @@ transactionPostingBalances t = (sumPostings $ realPostings t
                                ,sumPostings $ virtualPostings t
                                ,sumPostings $ balancedVirtualPostings t)
 
--- | Does this transaction appear balanced when rendered, optionally with the
--- given commodity display styles ? More precisely:
--- after converting amounts to cost using explicit transaction prices if any;
--- and summing the real postings, and summing the balanced virtual postings;
--- and applying the given display styles if any (maybe affecting decimal places);
--- do both totals appear to be zero when rendered ?
+-- | Check that this transaction appears balanced when rendered,
+-- returning an appropriate error message if it is not.
+-- In more detail: after converting amounts to cost using explicit
+-- transaction prices if any; and summing the real postings; and
+-- summing the balanced virtual postings; and applying the given
+-- display styles, if provided (maybe affecting decimal places):
+-- do both posting totals appear to be zero when rendered ?
+transactionCheckBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Maybe String
+transactionCheckBalanced mstyles t 
+  | rbalanced && bvbalanced = Nothing
+  | otherwise = Just $ printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
+  where
+    (rsum, _, bvsum)            = transactionPostingBalances t
+    (rsumcost, bvsumcost)       = (costOfMixedAmount rsum, costOfMixedAmount bvsum)
+    (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
+      where canonicalise = maybe id canonicaliseMixedAmount mstyles
+    -- for checking balanced, use the display precision
+    (rbalanced, bvbalanced)     = (isZeroMixedAmount rsumdisplay, isZeroMixedAmount bvsumdisplay)
+    -- for selecting and generating error messages, use the uncanonicalised full precision
+    -- XXX always correct ?
+    rmsg | isReallyZeroMixedAmount rsumcost = ""
+         | otherwise = "real postings are off by " ++ showMixedAmount rsumcost
+    bvmsg | isReallyZeroMixedAmount bvsumcost = ""
+          | otherwise = "balanced virtual postings are off by " ++ showMixedAmount bvsumcost
+    sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
+
+-- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
-isTransactionBalanced styles t =
-    -- isReallyZeroMixedAmountCost rsum && isReallyZeroMixedAmountCost bvsum
-    isZeroMixedAmount rsum' && isZeroMixedAmount bvsum'
-    where
-      (rsum, _, bvsum) = transactionPostingBalances t
-      rsum'  = canonicalise $ costOfMixedAmount rsum
-      bvsum' = canonicalise $ costOfMixedAmount bvsum
-      canonicalise = maybe id canonicaliseMixedAmount styles
+isTransactionBalanced mstyles = (==Nothing) . transactionCheckBalanced mstyles
 
 -- | Balance this transaction, ensuring that its postings
 -- (and its balanced virtual postings) sum to 0,
@@ -384,22 +398,9 @@ balanceTransactionHelper ::
 balanceTransactionHelper mstyles t = do
   (t', inferredamtsandaccts) <-
     inferBalancingAmount (fromMaybe M.empty mstyles) $ inferBalancingPrices t
-  if isTransactionBalanced mstyles t'
-  then Right (txnTieKnot t', inferredamtsandaccts)
-  else Left $ annotateErrorWithTransaction t' $ nonzerobalanceerror t'
-
-  where
-    nonzerobalanceerror :: Transaction -> String
-    nonzerobalanceerror tt = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
-        where
-          (rsum, _, bvsum) = transactionPostingBalances tt
-          rmsg | isReallyZeroMixedAmountCost rsum = ""
-               | otherwise = "real postings are off by "
-                 ++ showMixedAmount (costOfMixedAmount rsum)
-          bvmsg | isReallyZeroMixedAmountCost bvsum = ""
-                | otherwise = "balanced virtual postings are off by "
-                  ++ showMixedAmount (costOfMixedAmount bvsum)
-          sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
+  case transactionCheckBalanced mstyles t' of
+    Nothing  -> Right (txnTieKnot t', inferredamtsandaccts)
+    Just err -> Left $ annotateErrorWithTransaction t' err
 
 annotateErrorWithTransaction :: Transaction -> String -> String
 annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransaction t]
