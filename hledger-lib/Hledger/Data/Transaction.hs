@@ -59,6 +59,7 @@ module Hledger.Data.Transaction (
 )
 where
 import Data.List
+import Data.List.Extra (nubSort)
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -339,31 +340,55 @@ transactionPostingBalances t = (sumPostings $ realPostings t
                                ,sumPostings $ virtualPostings t
                                ,sumPostings $ balancedVirtualPostings t)
 
--- | Check that this transaction appears balanced when rendered,
--- returning an appropriate error message if it is not.
--- In more detail: after converting amounts to cost using explicit
--- transaction prices if any; and summing the real postings; and
--- summing the balanced virtual postings; and applying the given
--- display styles, if provided (maybe affecting decimal places):
--- do both posting totals appear to be zero when rendered ?
+-- | Check that this transaction would appear balanced to a human when displayed,
+-- and return an appropriate error message otherwise.
+--
+-- In more detail:
+-- For the real postings, and separately for the balanced virtual postings:
+--
+-- 1. Convert amounts to cost where possible
+--
+-- 2. When there are multiple amounts which appear non-zero when displayed
+--    (using the given display styles if provided),
+--    are they a mix of positives and negatives ?
+--    This is checked separately to give a clearer error message.
+--    (Best effort, could be confused by postings with multicommodity amounts.)
+--
+-- 3. Does the amounts' sum appear non-zero when displayed ?
+--    (using the given display styles if provided)
+--
 transactionCheckBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Maybe String
 transactionCheckBalanced mstyles t 
-  | rbalanced && bvbalanced = Nothing
-  | otherwise = Just $ printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
+  | rsignsok && bvsignsok && rzerosum && bvzerosum = Nothing
+  | otherwise = Just msg
   where
-    (rsum, _, bvsum)            = transactionPostingBalances t
+    (rps, bvps) = (realPostings t, balancedVirtualPostings t)
+    canonicalise = maybe id canonicaliseMixedAmount mstyles
+
+    -- check mixed signs, detecting nonzeros at display precision
+    nonZeros ps = filter (not.isZeroMixedAmount) $ map (canonicalise.costOfMixedAmount.pamount) ps
+    signsOk ps = 
+      case nonZeros ps of
+        nzs | length nzs > 1 -> length (nubSort $ mapMaybe isNegativeMixedAmount nzs) > 1
+        _ -> True
+    (rsignsok, bvsignsok)       = (signsOk rps, signsOk bvps)
+
+    -- check zero sum, at display precision
+    (rsum, bvsum)               = (sumPostings rps, sumPostings bvps)
     (rsumcost, bvsumcost)       = (costOfMixedAmount rsum, costOfMixedAmount bvsum)
     (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
-      where canonicalise = maybe id canonicaliseMixedAmount mstyles
-    -- for checking balanced, use the display precision
-    (rbalanced, bvbalanced)     = (isZeroMixedAmount rsumdisplay, isZeroMixedAmount bvsumdisplay)
-    -- for selecting and generating error messages, use the uncanonicalised full precision
-    -- XXX always correct ?
-    rmsg | isReallyZeroMixedAmount rsumcost = ""
-         | otherwise = "real postings are off by " ++ showMixedAmount rsumcost
-    bvmsg | isReallyZeroMixedAmount bvsumcost = ""
-          | otherwise = "balanced virtual postings are off by " ++ showMixedAmount bvsumcost
-    sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
+    (rzerosum, bvzerosum)       = (isZeroMixedAmount rsumdisplay, isZeroMixedAmount bvsumdisplay)
+
+    -- select & generate error messages, showing amounts with their original precision
+    rmsg
+      | not rsignsok  = "real postings all have the same sign"
+      | not rzerosum  = "real postings' sum should be 0 but is: " ++ showMixedAmount rsumcost
+      | otherwise     = "" 
+    bvmsg
+      | not bvsignsok = "balanced virtual postings all have the same sign"
+      | not bvzerosum = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
+      | otherwise     = "" 
+    msg = intercalate "\n" $ ["could not balance this transaction:"] ++ filter (not.null) [rmsg, bvmsg]
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
@@ -403,7 +428,7 @@ balanceTransactionHelper mstyles t = do
     Just err -> Left $ annotateErrorWithTransaction t' err
 
 annotateErrorWithTransaction :: Transaction -> String -> String
-annotateErrorWithTransaction t s = intercalate "\n" [showGenericSourcePos $ tsourcepos t, s, showTransaction t]
+annotateErrorWithTransaction t s = unlines [showGenericSourcePos $ tsourcepos t, s, showTransaction t]
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error

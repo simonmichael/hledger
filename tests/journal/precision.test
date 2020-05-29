@@ -38,7 +38,7 @@ hledger -f - balance --no-total --cost --empty
 2010/1/1
    a  1C @ $1.0049
    a  $-1.000
->>>2 /off by \$0.0049/
+>>>2 /should be 0 but is: \$0.0049/
 >>>= 1
 
 # 4. with $'s display precision at 2 or less, this txn should balance
