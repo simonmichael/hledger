@@ -340,8 +340,8 @@ transactionPostingBalances t = (sumPostings $ realPostings t
                                ,sumPostings $ virtualPostings t
                                ,sumPostings $ balancedVirtualPostings t)
 
--- | Check that this transaction would appear balanced to a human when displayed,
--- and return an appropriate error message otherwise.
+-- | Check that this transaction would appear balanced to a human when displayed.
+-- On success, returns the empty list, otherwise one or more error messages.
 --
 -- In more detail:
 -- For the real postings, and separately for the balanced virtual postings:
@@ -357,10 +357,8 @@ transactionPostingBalances t = (sumPostings $ realPostings t
 -- 3. Does the amounts' sum appear non-zero when displayed ?
 --    (using the given display styles if provided)
 --
-transactionCheckBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Maybe String
-transactionCheckBalanced mstyles t 
-  | rsignsok && bvsignsok && rzerosum && bvzerosum = Nothing
-  | otherwise = Just msg
+transactionCheckBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> [String]
+transactionCheckBalanced mstyles t = errs
   where
     (rps, bvps) = (realPostings t, balancedVirtualPostings t)
     canonicalise = maybe id canonicaliseMixedAmount mstyles
@@ -388,11 +386,11 @@ transactionCheckBalanced mstyles t
       | not bvsignsok = "balanced virtual postings all have the same sign"
       | not bvzerosum = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
       | otherwise     = "" 
-    msg = intercalate "\n" $ ["could not balance this transaction:"] ++ filter (not.null) [rmsg, bvmsg]
+    errs = filter (not.null) [rmsg, bvmsg]
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
-isTransactionBalanced mstyles = (==Nothing) . transactionCheckBalanced mstyles
+isTransactionBalanced mstyles = null . transactionCheckBalanced mstyles
 
 -- | Balance this transaction, ensuring that its postings
 -- (and its balanced virtual postings) sum to 0,
@@ -424,11 +422,19 @@ balanceTransactionHelper mstyles t = do
   (t', inferredamtsandaccts) <-
     inferBalancingAmount (fromMaybe M.empty mstyles) $ inferBalancingPrices t
   case transactionCheckBalanced mstyles t' of
-    Nothing  -> Right (txnTieKnot t', inferredamtsandaccts)
-    Just err -> Left $ annotateErrorWithTransaction t' err
+    []   -> Right (txnTieKnot t', inferredamtsandaccts)
+    errs -> Left $ transactionBalanceError t' errs
+
+-- | Generate a transaction balancing error message, given the transaction
+-- and one or more suberror messages.
+transactionBalanceError :: Transaction -> [String] -> String
+transactionBalanceError t errs =
+  annotateErrorWithTransaction t $
+  intercalate "\n" $ "could not balance this transaction:" : errs
 
 annotateErrorWithTransaction :: Transaction -> String -> String
-annotateErrorWithTransaction t s = unlines [showGenericSourcePos $ tsourcepos t, s, showTransaction t]
+annotateErrorWithTransaction t s =
+  unlines [showGenericSourcePos $ tsourcepos t, s, rstrip $ showTransaction t]
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -444,9 +450,13 @@ inferBalancingAmount ::
   -> Either String (Transaction, [(AccountName, MixedAmount)])
 inferBalancingAmount styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
-      = Left $ annotateErrorWithTransaction t "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
+      = Left $ transactionBalanceError t
+        ["can't have more than one real posting with no amount"
+        ,"(remember to put two or more spaces between account and amount)"]
   | length amountlessbvps > 1
-      = Left $ annotateErrorWithTransaction t "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
+      = Left $ transactionBalanceError t
+        ["can't have more than one balanced virtual posting with no amount"
+        ,"(remember to put two or more spaces between account and amount)"]
   | otherwise
       = let psandinferredamts = map inferamount ps
             inferredacctsandamts = [(paccount p, amt) | (p, Just amt) <- psandinferredamts]

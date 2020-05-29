@@ -56,7 +56,7 @@ $ hledger -f - print -x
   c
 
 $ hledger -f journal:- print
->2 /could not balance this transaction - can't have more than one real posting with no amount/
+>2 /can't have more than one real posting with no amount/
 >=1
 
 # 6. Two (or more) virtual postings with implicit amount cannot be balanced.
