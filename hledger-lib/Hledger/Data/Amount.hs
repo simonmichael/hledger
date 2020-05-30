@@ -63,6 +63,8 @@ module Hledger.Data.Amount (
   -- ** arithmetic
   costOfAmount,
   amountToCost,
+  amountIsZero,
+  amountLooksZero,
   divideAmount,
   multiplyAmount,
   divideAmountAndPrice,
@@ -110,11 +112,8 @@ module Hledger.Data.Amount (
   averageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
-  isZeroAmount,
-  isReallyZeroAmount,
-  isZeroMixedAmount,
-  isReallyZeroMixedAmount,
-  isReallyZeroMixedAmountCost,
+  mixedAmountIsZero,
+  mixedAmountLooksZero,
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
@@ -269,14 +268,14 @@ isNegativeAmount Amount{aquantity=q} = q < 0
 
 digits = "123456789" :: String
 
--- | Does this amount appear to be zero when displayed with its given precision ?
-isZeroAmount :: Amount -> Bool
-isZeroAmount --  a==missingamt = False
-  = not . any (`elem` digits) . showAmountWithoutPriceOrCommodity
+-- | Does mixed amount appear to be zero when rendered with its
+-- display precision ?
+amountLooksZero :: Amount -> Bool
+amountLooksZero = not . any (`elem` digits) . showAmountWithoutPriceOrCommodity
 
--- | Is this amount "really" zero, regardless of the display precision ?
-isReallyZeroAmount :: Amount -> Bool
-isReallyZeroAmount Amount{aquantity=q} = q == 0
+-- | Is this amount exactly zero, ignoring its display precision ?
+amountIsZero :: Amount -> Bool
+amountIsZero Amount{aquantity=q} = q == 0
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings except using the specified precision.
@@ -520,7 +519,7 @@ normaliseHelper squashprices (Mixed as)
     newzero = case filter (/= "") (map acommodity zeros) of
                _:_ -> last zeros
                _   -> nullamt
-    (zeros, nonzeros) = partition isReallyZeroAmount $
+    (zeros, nonzeros) = partition amountIsZero $
                         map sumSimilarAmountsUsingFirstPrice $
                         groupBy groupfn $
                         sortBy sortfn
@@ -619,26 +618,20 @@ isNegativeMixedAmount m =
     as | all isNegativeAmount as -> Just True
     _ -> Nothing  -- multiple amounts with different signs
 
--- XXX rename to mixedAmountLooksZero, mixedAmountIsZero, mixedAmountCostIsZero ?
+-- | Does this mixed amount appear to be zero when rendered with its
+-- display precision ?
+mixedAmountLooksZero :: MixedAmount -> Bool
+mixedAmountLooksZero = all amountLooksZero . amounts . normaliseMixedAmountSquashPricesForDisplay
 
--- | Does this mixed amount appear to be zero when displayed with its given precision ?
-isZeroMixedAmount :: MixedAmount -> Bool
-isZeroMixedAmount = all isZeroAmount . amounts . normaliseMixedAmountSquashPricesForDisplay
-
--- | Is this mixed amount "really" zero ? See isReallyZeroAmount.
-isReallyZeroMixedAmount :: MixedAmount -> Bool
-isReallyZeroMixedAmount = all isReallyZeroAmount . amounts . normaliseMixedAmountSquashPricesForDisplay
-
--- | Is this mixed amount "really" zero, after converting to cost
--- commodities where possible ?
-isReallyZeroMixedAmountCost :: MixedAmount -> Bool
-isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
+-- | Is this mixed amount exactly zero, ignoring display precisions ?
+mixedAmountIsZero :: MixedAmount -> Bool
+mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmountSquashPricesForDisplay
 
 -- -- | MixedAmount derived Eq instance in Types.hs doesn't know that we
 -- -- want $0 = EUR0 = 0. Yet we don't want to drag all this code over there.
 -- -- For now, use this when cross-commodity zero equality is important.
 -- mixedAmountEquals :: MixedAmount -> MixedAmount -> Bool
--- mixedAmountEquals a b = amounts a' == amounts b' || (isZeroMixedAmount a' && isZeroMixedAmount b')
+-- mixedAmountEquals a b = amounts a' == amounts b' || (mixedAmountLooksZero a' && mixedAmountLooksZero b')
 --     where a' = normaliseMixedAmountSquashPricesForDisplay a
 --           b' = normaliseMixedAmountSquashPricesForDisplay b
 
@@ -755,9 +748,9 @@ tests_Amount = tests "Amount" [
        costOfAmount (eur 1){aprice=Just $ TotalPrice $ usd 2} @?= usd 2
        costOfAmount (eur (-1)){aprice=Just $ TotalPrice $ usd 2} @?= usd (-2)
 
-    ,test "isZeroAmount" $ do
-       assertBool "" $ isZeroAmount amount
-       assertBool "" $ isZeroAmount $ usd 0
+    ,test "amountLooksZero" $ do
+       assertBool "" $ amountLooksZero amount
+       assertBool "" $ amountLooksZero $ usd 0
 
     ,test "negating amounts" $ do
        negate (usd 1) @?= (usd 1){aquantity= -1}
@@ -772,7 +765,7 @@ tests_Amount = tests "Amount" [
        asprecision (astyle $ sum [usd 1 `withPrecision` 1, usd 1 `withPrecision` 3]) @?= 3
        asprecision (astyle $ sum [usd 1 `withPrecision` 3, usd 1 `withPrecision` 1]) @?= 3
        -- adding different commodities assumes conversion rate 1
-       assertBool "" $ isZeroAmount (usd 1.23 - eur 1.23)
+       assertBool "" $ amountLooksZero (usd 1.23 - eur 1.23)
 
     ,test "showAmount" $ do
       showAmount (usd 0 + gbp 0) @?= "0"
@@ -825,7 +818,7 @@ tests_Amount = tests "Amount" [
 
     ,test "normaliseMixedAmountSquashPricesForDisplay" $ do
        normaliseMixedAmountSquashPricesForDisplay (Mixed []) @?= Mixed [nullamt]
-       assertBool "" $ isZeroMixedAmount $ normaliseMixedAmountSquashPricesForDisplay
+       assertBool "" $ mixedAmountLooksZero $ normaliseMixedAmountSquashPricesForDisplay
         (Mixed [usd 10
                ,usd 10 @@ eur 7
                ,usd (-10)

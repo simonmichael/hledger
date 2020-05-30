@@ -249,7 +249,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
              -- Total for a cumulative/historical report is always zero.
            , let rowtot = if balancetype_==PeriodChange then sum valuedrowbals else 0
            , let rowavg = averageMixedAmounts valuedrowbals
-           , empty_ || depth == 0 || any (not . isZeroMixedAmount) valuedrowbals
+           , empty_ || depth == 0 || any (not . mixedAmountLooksZero) valuedrowbals
            ]
         where
           avalue periodlast =

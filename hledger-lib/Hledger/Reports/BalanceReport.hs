@@ -110,9 +110,9 @@ balanceReport ropts@ReportOpts{..} q j =
                          clipAccounts (queryDepth q) valuedaccttree
           where
             balance     = if flat_ ropts then aebalance else aibalance
-            filterzeros = if empty_ then id else filter (not . isZeroMixedAmount . balance)
-            filterempty = filter (\a -> anumpostings a > 0 || not (isZeroMixedAmount (balance a)))
-            prunezeros  = if empty_ then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
+            filterzeros = if empty_ then id else filter (not . mixedAmountLooksZero . balance)
+            filterempty = filter (\a -> anumpostings a > 0 || not (mixedAmountLooksZero (balance a)))
+            prunezeros  = if empty_ then id else fromMaybe nullacct . pruneAccounts (mixedAmountLooksZero . balance)
             markboring  = if no_elide_ then id else markBoringParentAccounts
 
       -- Make a report row for each account.
@@ -165,7 +165,7 @@ sortAccountItemsLike sortedas items =
 markBoringParentAccounts :: Account -> Account
 markBoringParentAccounts = tieAccountParents . mapAccounts mark
   where
-    mark a | length (asubs a) == 1 && isZeroMixedAmount (aebalance a) = a{aboring=True}
+    mark a | length (asubs a) == 1 && mixedAmountLooksZero (aebalance a) = a{aboring=True}
            | otherwise = a
 
 balanceReportItem :: ReportOpts -> Query -> Account -> BalanceReportItem
@@ -204,9 +204,9 @@ unifyMixedAmount :: MixedAmount -> Amount
 unifyMixedAmount mixedAmount = foldl combine (num 0) (amounts mixedAmount)
   where
     combine amount result =
-      if isReallyZeroAmount amount
+      if amountIsZero amount
       then result
-      else if isReallyZeroAmount result
+      else if amountIsZero result
         then amount
         else if acommodity amount == acommodity result
           then amount + result
@@ -218,7 +218,7 @@ perdivide :: MixedAmount -> MixedAmount -> MixedAmount
 perdivide a b =
   let a' = unifyMixedAmount a
       b' = unifyMixedAmount b
-  in if isReallyZeroAmount a' || isReallyZeroAmount b' || acommodity a' == acommodity b'
+  in if amountIsZero a' || amountIsZero b' || acommodity a' == acommodity b'
     then mixed [per $ if aquantity b' == 0 then 0 else (aquantity a' / abs (aquantity b') * 100)]
     else error' "Cannot calculate percentages if accounts have different commodities. (Hint: Try --cost, -V or similar flags.)"
 

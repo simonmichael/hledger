@@ -357,7 +357,7 @@ transactionCheckBalanced mstyles t = errs
     -- check for mixed signs, detecting nonzeros at display precision
     canonicalise = maybe id canonicaliseMixedAmount mstyles
     signsOk ps = 
-      case filter (not.isZeroMixedAmount) $ map (canonicalise.costOfMixedAmount.pamount) ps of
+      case filter (not.mixedAmountLooksZero) $ map (canonicalise.costOfMixedAmount.pamount) ps of
         nonzeros | length nonzeros >= 2
                    -> length (nubSort $ mapMaybe isNegativeMixedAmount nonzeros) > 1
         _          -> True
@@ -367,7 +367,7 @@ transactionCheckBalanced mstyles t = errs
     (rsum, bvsum)               = (sumPostings rps, sumPostings bvps)
     (rsumcost, bvsumcost)       = (costOfMixedAmount rsum, costOfMixedAmount bvsum)
     (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
-    (rsumok, bvsumok)           = (isZeroMixedAmount rsumdisplay, isZeroMixedAmount bvsumdisplay)
+    (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
 
     -- generate error messages, showing amounts with their original precision
     errs = filter (not.null) [rmsg, bvmsg]

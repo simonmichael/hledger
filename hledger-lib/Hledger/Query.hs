@@ -606,9 +606,9 @@ matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
 -- matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
--- matchesPosting (Empty v) Posting{pamount=a} = v == isZeroMixedAmount a
+-- matchesPosting (Empty v) Posting{pamount=a} = v == mixedAmountLooksZero a
 -- matchesPosting (Empty False) Posting{pamount=a} = True
--- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
+-- matchesPosting (Empty True) Posting{pamount=a} = mixedAmountLooksZero a
 matchesPosting (Empty _) _ = True
 matchesPosting (Sym r) Posting{pamount=Mixed as} = any (matchesCommodity (Sym r)) $ map acommodity as
 matchesPosting (Tag n v) p = case (n, v) of

@@ -291,7 +291,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
     percentage :: Change -> BudgetGoal -> Maybe Percentage
     percentage actual budget =
       case (maybecost $ normaliseMixedAmount actual, maybecost $ normaliseMixedAmount budget) of
-        (Mixed [a], Mixed [b]) | (acommodity a == acommodity b || isZeroAmount a) && not (isZeroAmount b)
+        (Mixed [a], Mixed [b]) | (acommodity a == acommodity b || amountLooksZero a) && not (amountLooksZero b)
             -> Just $ 100 * aquantity a / aquantity b
         _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
                Nothing

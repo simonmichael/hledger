@@ -274,11 +274,11 @@ compoundBalanceSubreport ropts@ReportOpts{..} userq j priceoracle subreportqfn s
             nonzeroaccounts =
               dbg1 "nonzeroaccounts" $
               mapMaybe (\(PeriodicReportRow act _ amts _ _) ->
-                            if not (all isZeroMixedAmount amts) then Just act else Nothing) rows
+                            if not (all mixedAmountLooksZero amts) then Just act else Nothing) rows
             rows' = filter (not . emptyRow) rows
               where
                 emptyRow (PeriodicReportRow act _ amts _ _) =
-                  all isZeroMixedAmount amts && not (any (act `isAccountNamePrefixOf`) nonzeroaccounts)
+                  all mixedAmountLooksZero amts && not (any (act `isAccountNamePrefixOf`) nonzeroaccounts)
 
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:

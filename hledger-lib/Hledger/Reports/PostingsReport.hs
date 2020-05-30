@@ -253,7 +253,7 @@ summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
                     | otherwise = ["..."]
       summaryps | depth > 0 = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
                 | otherwise = [summaryp{paccount="...",pamount=sum $ map pamount ps}]
-      summarypes = map (, e') $ (if showempty then id else filter (not . isZeroMixedAmount . pamount)) summaryps
+      summarypes = map (, e') $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps
       anames = nubSort $ map paccount ps
       -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
       accts = accountsFromPostings ps

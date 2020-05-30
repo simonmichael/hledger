@@ -898,7 +898,7 @@ getAmount rules record currency p1IsVirtual n =
     assignments''
       | length assignments' > 1 && not (null nonzeros) = nonzeros
       | otherwise                                      = assignments'
-      where nonzeros = filter (not . isZeroMixedAmount . snd) assignments'
+      where nonzeros = filter (not . mixedAmountLooksZero . snd) assignments'
 
   in case -- dbg0 ("amounts for posting "++show n)
           assignments'' of

@@ -339,7 +339,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
       def = case (esArgs, mhistoricalp, followedhistoricalsofar) of
               (d:_,_,_)                                             -> d
               (_,Just hp,True)                                      -> showamt $ pamount hp
-              _  | pnum > 1 && not (isZeroMixedAmount balancingamt) -> showamt balancingamtfirstcommodity
+              _  | pnum > 1 && not (mixedAmountLooksZero balancingamt) -> showamt balancingamtfirstcommodity
               _                                                     -> ""
   retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
    parser parseAmountAndComment $
