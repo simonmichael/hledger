@@ -160,8 +160,10 @@ MANUALGENFILES:= \
 COMMANDHELPFILES:= \
 	hledger/Hledger/Cli/Commands/*.md \
 
-WEBCODEFILES:= \
+WEBTEMPLATEFILES:= \
 	hledger-web/templates/* \
+
+WEBCODEFILES:= \
 	hledger-web/static/*.js \
 	hledger-web/static/*.css \
 
@@ -987,6 +989,7 @@ emacstags-ctags:
 	hasktags -e $(SOURCEFILES)
 	ctags -a -e -R  
 	for f in \
+		$(WEBTEMPLATEFILES) \
 		$(DOCSOURCEFILES) \
 		$(HPACKFILES) \
 		$(CABALFILES) \
