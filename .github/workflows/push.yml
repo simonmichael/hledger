@@ -48,7 +48,7 @@ jobs:
 
     - name: Cache stack global package db
       id:   stack-global
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.stack
         key:          ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
@@ -58,7 +58,7 @@ jobs:
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.local/bin
         key:          ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
@@ -68,35 +68,35 @@ jobs:
 
     # stack's local package dbs for the project and each package
     - name: Cache .stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: .stack-work
         key:          ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-stack-work
 
     - name: Cache hledger-lib/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger-lib/.stack-work
         key:          ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Cache hledger/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger/.stack-work
         key:          ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-stack-work
 
     - name: Cache hledger-ui/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger-ui/.stack-work
         key:          ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Cache hledger-web/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger-web/.stack-work
         key:          ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}

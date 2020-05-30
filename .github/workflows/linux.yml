@@ -63,7 +63,7 @@ jobs:
 
     - name: Cache stack global package db
       id:   stack-global
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.stack
         key: ${{ runner.os }}-stack-global-${{ matrix.plan.key }}-${{ hashFiles('**.yaml') }}
@@ -73,7 +73,7 @@ jobs:
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.local/bin
         key: ${{ runner.os }}-stack-programs-${{ matrix.plan.key }}-${{ hashFiles('**.yaml') }}
@@ -83,7 +83,7 @@ jobs:
 
     # stack's local package dbs for the project and each package
     - name: Cache .stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: .stack-work
         key: ${{ runner.os }}-stack-work-${{ matrix.plan.key }}-${{ hashFiles('**.yaml') }}
@@ -92,7 +92,7 @@ jobs:
           ${{ runner.os }}-stack-work
 
     - name: Cache hledger-lib/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger-lib/.stack-work
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger-lib/package.yaml') }}
@@ -101,7 +101,7 @@ jobs:
           ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Cache hledger/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger/.stack-work
         key: ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger/package.yaml') }}
@@ -110,7 +110,7 @@ jobs:
           ${{ runner.os }}-hledger-stack-work
 
     - name: Cache hledger-ui/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger-ui/.stack-work
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger-ui/package.yaml') }}
@@ -119,7 +119,7 @@ jobs:
           ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Cache hledger-web/.stack-work
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: hledger-web/.stack-work
         key: ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger-web/package.yaml') }}
