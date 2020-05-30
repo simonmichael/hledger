@@ -7,8 +7,8 @@
 $forall (acct, adisplay, aindent, abal) <- items
   <tr
      :matchesAcctSelector acct:.inacct
-     :isZeroMixedAmount abal && hideEmpty:.hide>
-    <td .acct :isZeroMixedAmount abal:.empty>
+     :mixedAmountLooksZero abal && hideEmpty:.hide>
+    <td .acct :mixedAmountLooksZero abal:.empty>
       <div .ff-wrapper>
         \#{indent aindent}
         <a.acct-name href="@?{(registerR, [("q", replaceInacct q $ accountQuery acct)])}"

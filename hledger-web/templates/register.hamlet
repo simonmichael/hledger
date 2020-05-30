@@ -30,7 +30,7 @@
               <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
                 #{summName}</a>#{comma}
           <td .amount style="text-align:right; white-space:nowrap;">
-            $if not split || not (isZeroMixedAmount amt)
+            $if not split || not (mixedAmountLooksZero amt)
               ^{mixedAmountAsHtml amt}
           <td style="text-align:right;">
             ^{mixedAmountAsHtml bal}

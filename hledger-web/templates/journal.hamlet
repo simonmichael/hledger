@@ -21,7 +21,7 @@ $if elem CapAdd caps
         <td colspan=2>
           #{textElideRight 60 (tdescription torig)}
         <td .amount style="text-align:right;">
-          $if not split && not (isZeroMixedAmount amt)
+          $if not split && not (mixedAmountLooksZero amt)
             ^{mixedAmountAsHtml amt}
 
       $forall Posting { paccount = acc, pamount = amt } <- tpostings torig
