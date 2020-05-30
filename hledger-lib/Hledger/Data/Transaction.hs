@@ -340,11 +340,11 @@ transactionsPostings = concatMap tpostings
 --
 -- 1. Convert amounts to cost where possible
 --
--- 2. When there are multiple amounts which appear non-zero when displayed
---    (using the given display styles if provided),
+-- 2. When there are two or more non-zero amounts
+--    (appearing non-zero when displayed, using the given display styles if provided),
 --    are they a mix of positives and negatives ?
 --    This is checked separately to give a clearer error message.
---    (Best effort, could be confused by postings with multicommodity amounts.)
+--    (Best effort; could be confused by postings with multicommodity amounts.)
 --
 -- 3. Does the amounts' sum appear non-zero when displayed ?
 --    (using the given display styles if provided)
@@ -353,32 +353,33 @@ transactionCheckBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transac
 transactionCheckBalanced mstyles t = errs
   where
     (rps, bvps) = (realPostings t, balancedVirtualPostings t)
-    canonicalise = maybe id canonicaliseMixedAmount mstyles
 
-    -- check mixed signs, detecting nonzeros at display precision
-    nonZeros ps = filter (not.isZeroMixedAmount) $ map (canonicalise.costOfMixedAmount.pamount) ps
+    -- check for mixed signs, detecting nonzeros at display precision
+    canonicalise = maybe id canonicaliseMixedAmount mstyles
     signsOk ps = 
-      case nonZeros ps of
-        nzs | length nzs > 1 -> length (nubSort $ mapMaybe isNegativeMixedAmount nzs) > 1
-        _ -> True
+      case filter (not.isZeroMixedAmount) $ map (canonicalise.costOfMixedAmount.pamount) ps of
+        nonzeros | length nonzeros >= 2
+                   -> length (nubSort $ mapMaybe isNegativeMixedAmount nonzeros) > 1
+        _          -> True
     (rsignsok, bvsignsok)       = (signsOk rps, signsOk bvps)
 
-    -- check zero sum, at display precision
+    -- check for zero sum, at display precision
     (rsum, bvsum)               = (sumPostings rps, sumPostings bvps)
     (rsumcost, bvsumcost)       = (costOfMixedAmount rsum, costOfMixedAmount bvsum)
     (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
-    (rzerosum, bvzerosum)       = (isZeroMixedAmount rsumdisplay, isZeroMixedAmount bvsumdisplay)
+    (rsumok, bvsumok)           = (isZeroMixedAmount rsumdisplay, isZeroMixedAmount bvsumdisplay)
 
-    -- select & generate error messages, showing amounts with their original precision
-    rmsg
-      | not rsignsok  = "real postings all have the same sign"
-      | not rzerosum  = "real postings' sum should be 0 but is: " ++ showMixedAmount rsumcost
-      | otherwise     = "" 
-    bvmsg
-      | not bvsignsok = "balanced virtual postings all have the same sign"
-      | not bvzerosum = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
-      | otherwise     = "" 
+    -- generate error messages, showing amounts with their original precision
     errs = filter (not.null) [rmsg, bvmsg]
+      where
+        rmsg
+          | not rsignsok  = "real postings all have the same sign"
+          | not rsumok    = "real postings' sum should be 0 but is: " ++ showMixedAmount rsumcost
+          | otherwise     = ""
+        bvmsg
+          | not bvsignsok = "balanced virtual postings all have the same sign"
+          | not bvsumok   = "balanced virtual postings' sum should be 0 but is: " ++ showMixedAmount bvsumcost
+          | otherwise     = ""
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: Maybe (M.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
