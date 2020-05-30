@@ -34,7 +34,6 @@ TAGS
 ![a-z0-9][a-z0-9].*/
 # files/directories beginning with a number
 /[0-9]*
-#
 *.j
 *.sw[op]
 
@@ -54,6 +53,7 @@ dist-newstyle/
 /Shake
 /.shake.html
 .stack-work/
+/lsp/
 
 # hledger stuff
 old
