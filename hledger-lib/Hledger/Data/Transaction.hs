@@ -36,8 +36,6 @@ module Hledger.Data.Transaction (
   -- nonzerobalanceerror,
   -- * date operations
   transactionDate2,
-  -- * arithmetic
-  transactionPostingBalances,
   -- * transaction description parts
   transactionPayee,
   transactionNote,
@@ -333,12 +331,6 @@ balancedVirtualPostings = filter isBalancedVirtual . tpostings
 
 transactionsPostings :: [Transaction] -> [Posting]
 transactionsPostings = concatMap tpostings
-
--- | Get the sums of a transaction's real, virtual, and balanced virtual postings.
-transactionPostingBalances :: Transaction -> (MixedAmount,MixedAmount,MixedAmount)
-transactionPostingBalances t = (sumPostings $ realPostings t
-                               ,sumPostings $ virtualPostings t
-                               ,sumPostings $ balancedVirtualPostings t)
 
 -- | Check that this transaction would appear balanced to a human when displayed.
 -- On success, returns the empty list, otherwise one or more error messages.
