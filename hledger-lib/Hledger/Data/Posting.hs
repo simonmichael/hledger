@@ -331,7 +331,7 @@ postingApplyValuation priceoracle styles periodlast mreportlast today ismultiper
 
 -- | Convert this posting's amount to cost, and apply the appropriate amount styles.
 postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
-postingToCost styles p@Posting{pamount=a} = p{pamount=mixedAmountToCost styles a}
+postingToCost styles p@Posting{pamount=a} = p{pamount=styleMixedAmount styles $ mixedAmountCost a}
 
 -- | Convert this posting's amount to market value in the given commodity,
 -- or the default valuation commodity, at the given valuation date,

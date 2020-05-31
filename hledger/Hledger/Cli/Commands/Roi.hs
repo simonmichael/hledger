@@ -234,7 +234,7 @@ total trans query = unMix $ sumPostings $ filter (matchesPosting query) $ concat
 
 unMix :: MixedAmount -> Quantity
 unMix a =
-  case (normaliseMixedAmount $ costOfMixedAmount a) of
+  case (normaliseMixedAmount $ mixedAmountCost a) of
     (Mixed [a]) -> aquantity a
     _ -> error "MixedAmount failed to normalize"
 

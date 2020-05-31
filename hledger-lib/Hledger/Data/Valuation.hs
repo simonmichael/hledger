@@ -141,8 +141,8 @@ mixedAmountApplyValuation priceoracle styles periodlast mreportlast today ismult
 amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> ValuationType -> Amount -> Amount
 amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v a =
   case v of
-    AtCost    Nothing            -> amountToCost styles a
-    AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodlast $ amountToCost styles a
+    AtCost    Nothing            -> styleAmount styles $ amountCost a
+    AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodlast $ styleAmount styles $ amountCost a
     AtThen    _mc                -> error' unsupportedValueThenError  -- TODO
                                  -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
     AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodlast a

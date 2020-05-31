@@ -61,8 +61,7 @@ module Hledger.Data.Amount (
   (@@),
   amountWithCommodity,
   -- ** arithmetic
-  costOfAmount,
-  amountToCost,
+  amountCost,
   amountIsZero,
   amountLooksZero,
   divideAmount,
@@ -103,8 +102,7 @@ module Hledger.Data.Amount (
   normaliseMixedAmount,
   mixedAmountStripPrices,
   -- ** arithmetic
-  costOfMixedAmount,
-  mixedAmountToCost,
+  mixedAmountCost,
   divideMixedAmount,
   multiplyMixedAmount,
   divideMixedAmountAndPrice,
@@ -211,21 +209,20 @@ similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{aspre
 amountWithCommodity :: CommoditySymbol -> Amount -> Amount
 amountWithCommodity c a = a{acommodity=c, aprice=Nothing}
 
--- | Convert an amount to the commodity of its assigned price, if any.  Notes:
+-- | Convert a amount to its "cost" or "selling price" in another commodity,
+-- using its attached transaction price if it has one.  Notes:
 --
--- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error) XXX
+-- - price amounts must be MixedAmounts with exactly one component Amount
+--   (or there will be a runtime error XXX)
 --
--- - price amounts should be positive, though this is not currently enforced
-costOfAmount :: Amount -> Amount
-costOfAmount a@Amount{aquantity=q, aprice=mp} =
+-- - price amounts should be positive
+--   (though this is currently not enforced)
+amountCost :: Amount -> Amount
+amountCost a@Amount{aquantity=q, aprice=mp} =
     case mp of
       Nothing                                  -> a
       Just (UnitPrice  p@Amount{aquantity=pq}) -> p{aquantity=pq * q}
       Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq * signum q}
-
--- | Convert this amount to cost, and apply the appropriate amount style.
-amountToCost :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
-amountToCost styles = styleAmount styles . costOfAmount
 
 -- | Replace an amount's TotalPrice, if it has one, with an equivalent UnitPrice.
 -- Has no effect on amounts without one.
@@ -370,8 +367,9 @@ showAmountPriceDebug Nothing                = ""
 showAmountPriceDebug (Just (UnitPrice pa))  = " @ "  ++ showAmountDebug pa
 showAmountPriceDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
 
--- | Given a map of standard amount display styles, apply the appropriate one to this amount.
--- If there's no standard style for this amount's commodity, return the amount unchanged.
+-- | Given a map of standard commodity display styles, apply the
+-- appropriate one to this amount. If there's no standard style for
+-- this amount's commodity, return the amount unchanged.
 styleAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 styleAmount styles a =
   case M.lookup (acommodity a) styles of
@@ -576,14 +574,10 @@ filterMixedAmountByCommodity c (Mixed as) = Mixed as'
 mapMixedAmount :: (Amount -> Amount) -> MixedAmount -> MixedAmount
 mapMixedAmount f (Mixed as) = Mixed $ map f as
 
--- | Convert a mixed amount's component amounts to the commodity of their
--- assigned price, if any.
-costOfMixedAmount :: MixedAmount -> MixedAmount
-costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
-
--- | Convert all component amounts to cost, and apply the appropriate amount styles.
-mixedAmountToCost :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
-mixedAmountToCost styles (Mixed as) = Mixed $ map (amountToCost styles) as
+-- | Convert all component amounts to cost/selling price where
+-- possible (see amountCost).
+mixedAmountCost :: MixedAmount -> MixedAmount
+mixedAmountCost (Mixed as) = Mixed $ map amountCost as
 
 -- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
@@ -635,7 +629,8 @@ mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmountSquashPrice
 --     where a' = normaliseMixedAmountSquashPricesForDisplay a
 --           b' = normaliseMixedAmountSquashPricesForDisplay b
 
--- | Given a map of standard amount display styles, apply the appropriate ones to each individual amount.
+-- | Given a map of standard commodity display styles, apply the
+-- appropriate one to each individual amount.
 styleMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 styleMixedAmount styles (Mixed as) = Mixed $ map (styleAmount styles) as
 
@@ -742,11 +737,11 @@ mixedAmountTotalPriceToUnitPrice (Mixed as) = Mixed $ map amountTotalPriceToUnit
 tests_Amount = tests "Amount" [
    tests "Amount" [
 
-     test "costOfAmount" $ do
-       costOfAmount (eur 1) @?= eur 1
-       costOfAmount (eur 2){aprice=Just $ UnitPrice $ usd 2} @?= usd 4
-       costOfAmount (eur 1){aprice=Just $ TotalPrice $ usd 2} @?= usd 2
-       costOfAmount (eur (-1)){aprice=Just $ TotalPrice $ usd 2} @?= usd (-2)
+     test "amountCost" $ do
+       amountCost (eur 1) @?= eur 1
+       amountCost (eur 2){aprice=Just $ UnitPrice $ usd 2} @?= usd 4
+       amountCost (eur 1){aprice=Just $ TotalPrice $ usd 2} @?= usd 2
+       amountCost (eur (-1)){aprice=Just $ TotalPrice $ usd 2} @?= usd (-2)
 
     ,test "amountLooksZero" $ do
        assertBool "" $ amountLooksZero amount

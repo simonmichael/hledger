@@ -357,7 +357,7 @@ transactionCheckBalanced mstyles t = errs
     -- check for mixed signs, detecting nonzeros at display precision
     canonicalise = maybe id canonicaliseMixedAmount mstyles
     signsOk ps = 
-      case filter (not.mixedAmountLooksZero) $ map (canonicalise.costOfMixedAmount.pamount) ps of
+      case filter (not.mixedAmountLooksZero) $ map (canonicalise.mixedAmountCost.pamount) ps of
         nonzeros | length nonzeros >= 2
                    -> length (nubSort $ mapMaybe isNegativeMixedAmount nonzeros) > 1
         _          -> True
@@ -365,7 +365,7 @@ transactionCheckBalanced mstyles t = errs
 
     -- check for zero sum, at display precision
     (rsum, bvsum)               = (sumPostings rps, sumPostings bvps)
-    (rsumcost, bvsumcost)       = (costOfMixedAmount rsum, costOfMixedAmount bvsum)
+    (rsumcost, bvsumcost)       = (mixedAmountCost rsum, mixedAmountCost bvsum)
     (rsumdisplay, bvsumdisplay) = (canonicalise rsumcost, canonicalise bvsumcost)
     (rsumok, bvsumok)           = (mixedAmountLooksZero rsumdisplay, mixedAmountLooksZero bvsumdisplay)
 
@@ -475,7 +475,7 @@ inferBalancingAmount styles t@Transaction{tpostings=ps}
               -- Inferred amounts are converted to cost.
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
-              a' = styleMixedAmount styles $ normaliseMixedAmount $ costOfMixedAmount (-a)
+              a' = styleMixedAmount styles $ normaliseMixedAmount $ mixedAmountCost (-a)
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real

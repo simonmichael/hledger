@@ -885,7 +885,7 @@ getAmount rules record currency p1IsVirtual n =
                           , let a = parseAmount rules record currency v
                           -- With amount/amount-in/amount-out, in posting 2,
                           -- flip the sign and convert to cost, as they did before 1.17
-                          , let a' = if f `elem` unnumberedfieldnames && n==2 then costOfMixedAmount (-a) else a
+                          , let a' = if f `elem` unnumberedfieldnames && n==2 then mixedAmountCost (-a) else a
                           ]
 
     -- if any of the numbered field names are present, discard all the unnumbered ones

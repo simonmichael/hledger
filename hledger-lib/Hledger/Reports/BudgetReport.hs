@@ -296,7 +296,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
         _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
                Nothing
       where
-        maybecost = if valuationTypeIsCost ropts then costOfMixedAmount else id
+        maybecost = if valuationTypeIsCost ropts then mixedAmountCost else id
     showamt :: MixedAmount -> String
     showamt | color_    = cshowMixedAmountOneLineWithoutPrice
             | otherwise = showMixedAmountOneLineWithoutPrice
