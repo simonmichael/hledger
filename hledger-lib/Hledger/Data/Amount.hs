@@ -610,6 +610,7 @@ isNegativeMixedAmount m =
     []  -> Just False
     [a] -> Just $ isNegativeAmount a
     as | all isNegativeAmount as -> Just True
+    as | not (any isNegativeAmount as) -> Just False
     _ -> Nothing  -- multiple amounts with different signs
 
 -- | Does this mixed amount appear to be zero when rendered with its

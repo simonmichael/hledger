@@ -131,3 +131,27 @@ real postings all have the same sign
     b              1B
 
 >=1
+
+# 12. Typical "hledger equity --close" transaction does not trigger sign error.
+<
+2019-01-01 opening balances
+    assets:a1         $3
+    assets:a2         £10
+    equity:opening/closing balances
+
+2019-12-31 closing balances
+    assets:a1         $-3 = $0.00
+    assets:a2         £-10 = £0.00
+    equity:opening/closing balances
+$ hledger -f- print
+2019-01-01 opening balances
+    assets:a1                                    $3
+    assets:a2                                   £10
+    equity:opening/closing balances
+
+2019-12-31 closing balances
+    assets:a1                                   $-3 = $0
+    assets:a2                                  £-10 = £0
+    equity:opening/closing balances
+
+>=0
