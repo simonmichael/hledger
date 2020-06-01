@@ -1065,7 +1065,7 @@ With the `--depth N` option (short form: `-N`), commands like [account](#account
 and [register](#register) will show only the uppermost accounts in the account
 tree, down to level N. Use this when you want a summary with less detail.
 This flag has the same effect as a `depth:` query argument
-(so `-2`, `--depth=2` or `depth:2` are basically equivalent).
+(so `-2`, `--depth=2` or `depth:2` are equivalent).
 
 ## Pivoting
 
