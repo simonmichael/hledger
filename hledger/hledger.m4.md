@@ -798,6 +798,7 @@ Some notes about JSON output:
   JSON, read the Haskell type definitions, which are mostly in
   https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
 
+<!--
 - The JSON output from hledger commands is essentially the same as the
   JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
   but pretty printed, using line breaks and indentation.
@@ -805,6 +806,7 @@ Some notes about JSON output:
   rendering non-strings as if they were strings, or displaying "FOO.."
   instead of FOO's full details. This should never happen in hledger's
   JSON output; if you see otherwise, please report as a bug.
+-->
 
 - hledger represents quantities as Decimal values storing up to 255
   significant digits, eg for repeating decimals. Such numbers can
