@@ -181,8 +181,12 @@ reportflags = [
 
   -- generated postings/transactions
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"
- ,flagNone ["forecast"]      (setboolopt "forecast") "generate future transactions from periodic transaction rules, for the next 6 months or till report end date. In hledger-ui, also make ordinary future transactions visible."
-
+ ,flagOpt "" ["forecast"]    (\s opts -> Right $ setopt "forecast" s opts) "PERIODEXP" 
+  (unlines
+   [ "Generate periodic transactions (from periodic transaction rules). By default these begin after the latest recorded transaction, and end 6 months from today, or at the report end date."
+   , "Also, in hledger-ui, make future transactions visible."
+   , "Note that = (and not a space) is required before PERIODEXP if you wish to supply it."
+   ])
  ]
 
 -- | Common flags that are accepted but not shown in --help,

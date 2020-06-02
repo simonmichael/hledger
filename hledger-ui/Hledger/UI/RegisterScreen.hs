@@ -72,8 +72,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
     q = And [queryFromOpts d ropts', excludeforecastq (forecast_ ropts)]
       where
         -- Except in forecast mode, exclude future/forecast transactions.
-        excludeforecastq True = Any
-        excludeforecastq False =  -- not:date:tomorrow- not:tag:generated-transaction
+        excludeforecastq (Just _) = Any
+        excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
           And [
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
             ,Not (Tag "generated-transaction" Nothing)
@@ -237,7 +237,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 --              ,("RIGHT", str "transaction")
               ,("T", renderToggle (tree_ ropts) "flat(-subs)" "tree(+subs)") -- rsForceInclusive may override, but use tree_ to ensure a visible toggle effect
               ,("H", renderToggle (not ishistorical) "historical" "period")
-              ,("F", renderToggle1 (forecast_ ropts) "forecast")
+              ,("F", renderToggle1 (isJust $ forecast_ ropts) "forecast")
 --               ,("a", "add")
 --               ,("g", "reload")
 --               ,("q", "quit")
@@ -336,7 +336,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> rsCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
-        VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleForecast ui
+        VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleForecast d ui
 
         VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui

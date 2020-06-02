@@ -66,7 +66,7 @@ main = do
 
   -- always include forecasted periodic transactions when loading data;
   -- they will be toggled on and off in the UI.
-  let copts' = copts{reportopts_=ropts{forecast_=True}}
+  let copts' = copts{reportopts_=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}
 
   case True of
     _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode)
