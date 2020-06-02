@@ -22,6 +22,7 @@ module Hledger.Reports.ReportOptions (
   whichDateFromOpts,
   journalSelectingAmountFromOpts,
   intervalFromRawOpts,
+  forecastPeriodFromRawOpts,
   queryFromOpts,
   queryFromOptsOnly,
   queryOptsFromOpts,
@@ -124,7 +125,7 @@ data ReportOpts = ReportOpts {
       --   sign normalisation, converting normally negative subreports to
       --   normally positive for a more conventional display.
     ,color_          :: Bool
-    ,forecast_       :: Bool
+    ,forecast_       :: Maybe DateSpan
     ,transpose_      :: Bool
  } deriving (Show, Data, Typeable)
 
@@ -192,7 +193,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,invert_      = boolopt "invert" rawopts'
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
     ,color_       = color
-    ,forecast_    = boolopt "forecast" rawopts'
+    ,forecast_    = forecastPeriodFromRawOpts d rawopts'
     ,transpose_   = boolopt "transpose" rawopts'
     }
 
@@ -313,6 +314,18 @@ intervalFromRawOpts = lastDef NoInterval . collectopts intervalfromrawopt
       | n == "yearly"    = Just $ Years 1
       | otherwise = Nothing
 
+-- | get period expression from --forecast option
+forecastPeriodFromRawOpts :: Day -> RawOpts -> Maybe DateSpan
+forecastPeriodFromRawOpts d opts =
+  case 
+    dbg2 "forecastopt" $ maybestringopt "forecast" opts
+  of
+    Nothing -> Nothing
+    Just "" -> Just nulldatespan
+    Just str ->
+      either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e) (Just . snd) $ 
+      parsePeriodExpr d $ stripquotes $ T.pack str
+    
 -- | Extract the interval from the parsed -p/--period expression.
 -- Return Nothing if an interval is not explicitly defined.
 extractIntervalOrNothing :: (Interval, DateSpan) -> Maybe Interval

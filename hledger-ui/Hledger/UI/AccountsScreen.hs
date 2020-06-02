@@ -86,8 +86,8 @@ asInit d reset ui@UIState{
     q = And [queryFromOpts d ropts, excludeforecastq (forecast_ ropts)]
       where
         -- Except in forecast mode, exclude future/forecast transactions.
-        excludeforecastq True = Any
-        excludeforecastq False =  -- not:date:tomorrow- not:tag:generated-transaction
+        excludeforecastq (Just _) = Any
+        excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
           And [
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
             ,Not (Tag "generated-transaction" Nothing)
@@ -218,7 +218,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,("-+", str "depth")
               ,("T", renderToggle (tree_ ropts) "flat" "tree")
               ,("H", renderToggle (not ishistorical) "end-bals" "changes")
-              ,("F", renderToggle1 (forecast_ ropts) "forecast")
+              ,("F", renderToggle1 (isJust $ forecast_ ropts) "forecast")
               --,("/", "filter")
               --,("DEL", "unfilter")
               --,("ESC", "cancel/top")
@@ -339,7 +339,7 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
         VtyEvent (EvKey (KChar 'P') []) -> asCenterAndContinue $ regenerateScreens j d $ togglePending ui
         VtyEvent (EvKey (KChar 'C') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
-        VtyEvent (EvKey (KChar 'F') []) -> continue $ regenerateScreens j d $ toggleForecast ui
+        VtyEvent (EvKey (KChar 'F') []) -> continue $ regenerateScreens j d $ toggleForecast d ui
 
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui

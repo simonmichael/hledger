@@ -156,3 +156,48 @@ Y 2000
 
 >>>2
 >>>=0
+
+
+# 8. A balance report with forecast-begin enabling transaction before report end
+hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-
+<<<
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+~ monthly from 2016/1  salary
+    income  $-1000
+    assets:cash
+>>>
+Balance changes in 2016-10-01-2017-01-31:
+
+                  ||    Oct     Nov     Dec     Jan 
+==================++================================
+ assets:cash      ||  $1000   $1000    $400   $1000 
+ expenses:housing ||      0       0    $600       0 
+ income           || $-1000  $-1000  $-1000  $-1000 
+------------------++--------------------------------
+                  ||      0       0       0       0 
+>>>2
+>>>=0
+
+# 9. Parse error in malformed forecast period expression
+hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-foobar
+<<<
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+~ monthly from 2016/1  salary
+    income  $-1000
+    assets:cash
+>>>
+>>>2
+hledger: could not parse forecast period : 1:10:
+  |
+1 | 20160801-foobar
+  |          ^
+unexpected 'f'
+expecting end of input
+ (use -h to see usage)
+>>>=1

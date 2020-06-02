@@ -114,18 +114,22 @@ anonymiseByOpts opts =
 -- from today if unspecified.
 --
 journalAddForecast :: CliOpts -> Journal -> IO Journal
-journalAddForecast opts@CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
+journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
   today <- getCurrentDay
 
   -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
   let mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
-      forecaststart = dbg2 "forecaststart" $ fromMaybe today mjournalend
+      forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
 
   -- "They end on or before the specified report end date, or 180 days from today if unspecified."
   mspecifiedend <-  snd . dbg2 "specifieddates" <$> specifiedStartEndDates ropts
-  let forecastend = dbg2 "forecastend" $ fromMaybe (addDays 180 today) mspecifiedend
-
-  let forecastspan = DateSpan (Just forecaststart) (Just forecastend)
+  let forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
+      
+  let forecastspan = dbg2 "forecastspan" $
+        spanDefaultsFrom
+          (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
+          (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
+          
       forecasttxns =
         [ txnTieKnot t | pt <- jperiodictxns j
                        , t <- runPeriodicTransaction pt forecastspan
@@ -135,12 +139,12 @@ journalAddForecast opts@CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
       forecasttxns' = (if auto_ iopts then modifyTransactions (jtxnmodifiers j) else id) forecasttxns
 
   return $
-    if forecast_ ropts
-      then journalBalanceTransactions' opts j{ jtxns = concat [jtxns j, forecasttxns'] }
-      else j
+    case forecast_ ropts of
+      Just _  -> journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
+      Nothing -> j
   where
-    journalBalanceTransactions' opts j =
-      let assrt = not . ignore_assertions_ $ inputopts_ opts
+    journalBalanceTransactions' iopts j =
+      let assrt = not . ignore_assertions_ $ iopts
       in
        either error' id $ journalBalanceTransactions assrt j
 

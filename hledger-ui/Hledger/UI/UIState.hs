@@ -164,11 +164,15 @@ toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts
 -- overkill, probably we should just hide/show the periodic
 -- transactions with a query for their special tag.
 --
-toggleForecast :: UIState -> UIState
-toggleForecast ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+toggleForecast :: Day -> UIState -> UIState
+toggleForecast d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts'}}
   where
-    copts' = copts{reportopts_=ropts{forecast_=not $ forecast_ ropts}}
+    copts' = copts{reportopts_=ropts{forecast_=forecast'}}
+    forecast' =
+      case forecast_ ropts of
+        Just _  -> Nothing
+        Nothing -> forecastPeriodFromRawOpts d $ rawopts_ copts
 
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState

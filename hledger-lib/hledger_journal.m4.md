@@ -1414,7 +1414,7 @@ This can be used to match transactions generated "just now",
 rather than generated in the past and saved to the journal.
 
 Forecast transactions start on the first occurrence, and end on the last occurrence,
-of their interval within the forecast period. The forecast period:
+of their interval within the forecast period. The default forecast period:
 
 - begins on the later of
   - the report start date if specified with -b/-p/date:
@@ -1425,8 +1425,9 @@ of their interval within the forecast period. The forecast period:
   or 180 days from today.
 
 where "today" means the current date at report time.
-The "later of" rule ensures that forecast transactions do not overlap normal transactions in time;
-they will begin only after normal transactions end.
+The "later of" rule ensures that by default forecast transactions do not overlap normal transactions in time;
+they will begin only after normal transactions end. If you wish to use your own forecast period,
+you can provied it via `--forecast=PERIODICEXPR`.
 
 Forecasting can be useful for estimating balances into the future,
 and experimenting with different scenarios.
