@@ -240,19 +240,23 @@ directivep = (do
    ]
   ) <?> "directive"
 
+-- | Parse an include directive. include's argument is an optionally
+-- file-format-prefixed file path or glob pattern. In the latter case,
+-- the prefix is applied to each matched path. Examples:
+-- foo.j, foo/bar.j, timedot:foo/2020*.md
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   string "include"
   lift (skipSome spacenonewline)
-  filename <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
-
+  prefixedglob <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
   parentoff <- getOffset
   parentpos <- getSourcePos
-
-  filepaths <- getFilePaths parentoff parentpos filename
-
-  forM_ filepaths $ parseChild parentpos
-
+  let (mprefix,glob) = splitReaderPrefix prefixedglob
+  paths <- getFilePaths parentoff parentpos glob
+  let prefixedpaths = case mprefix of
+        Nothing  -> paths
+        Just fmt -> map ((fmt++":")++) paths
+  forM_ prefixedpaths $ parseChild parentpos
   void newline
 
   where
@@ -275,10 +279,11 @@ includedirectivep = do
             else customFailure $ parseErrorAt parseroff $
                    "No existing files match pattern: " ++ filename
 
-    parseChild :: MonadIO m => SourcePos -> FilePath -> ErroringJournalParser m ()
-    parseChild parentpos filepath = do
-      parentj <- get
+    parseChild :: MonadIO m => SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseChild parentpos prefixedpath = do
+      let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
+      parentj <- get
       let parentfilestack = jincludefilestack parentj
       when (filepath `elem` parentfilestack) $
         Fail.fail ("Cyclic include: " ++ filepath)
@@ -289,7 +294,7 @@ includedirectivep = do
 
       -- Choose a reader/format based on the file path, or fall back
       -- on journal. Duplicating readJournal a bit here.
-      let r = fromMaybe reader $ findReader Nothing (Just filepath)
+      let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
       dbg1IO "trying reader" (rFormat r)
       updatedChildj <- journalAddFile (filepath, childInput) <$>

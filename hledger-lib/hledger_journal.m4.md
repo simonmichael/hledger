@@ -878,16 +878,20 @@ See also [comments](#comments).
 You can pull in the content of additional files by writing an include directive, like this:
 
 ```journal
-include path/to/file.journal
+include FILEPATH
 ```
 
-If the path does not begin with a slash, it is relative to the current file.
-The include file path may contain
-[common glob patterns](https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile)
-(e.g. `*`).
+Only journal files can include, and only journal, timeclock or timedot files can be included (not CSV files, currently).
 
-The `include` directive can only be used in journal files.
-It can include journal, timeclock or timedot files, but not CSV files.
+If the file path does not begin with a slash, it is relative to the current file's folder. 
+
+It may contain [glob patterns] to match multiple files, eg: `include *.journal`.
+
+Or a tilde, meaning home directory: `include ~/main.journal`.
+
+It may also be prefixed to force a specific file format, overriding the file extension (as described in [hledger.1 -> Input files](hledger.html#input-files)): `include timedot:~/notes/2020*.md`.
+
+[glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
 
 ### Default year
 
