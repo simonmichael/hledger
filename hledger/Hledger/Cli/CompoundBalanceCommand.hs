@@ -14,7 +14,6 @@ module Hledger.Cli.CompoundBalanceCommand (
 ) where
 
 import Data.Aeson (toJSON)
-import Data.Aeson.Text (encodeToLazyText)
 import Data.List (foldl')
 import Data.Maybe
 import qualified Data.Text as TS
@@ -241,7 +240,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
         "txt"  -> compoundBalanceReportAsText ropts' cbr
         "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
         "html" -> (++"\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
-        "json" -> (++"\n") $ TS.unpack $ TL.toStrict $ encodeToLazyText $ toJSON cbr
+        "json" -> (++"\n") $ TL.unpack $ jsonPrettyText $ toJSON cbr
         _      -> error' $ unsupportedOutputFormatError fmt
 
 -- | Summarise one or more (inclusive) end dates, in a way that's

@@ -16,11 +16,10 @@ module Hledger.Cli.Commands.Print (
 where
 
 import Data.Aeson (toJSON)
-import Data.Aeson.Text (encodeToLazyText)
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as T (toStrict)
+import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit
 import Hledger.Read.CsvReader (CSV, printCSV)
 
@@ -61,7 +60,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
       render = case fmt of
         "txt"  -> entriesReportAsText opts
         "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
-        "json" -> (++"\n") . T.unpack . T.toStrict . encodeToLazyText . toJSON
+        "json" -> (++"\n") . TL.unpack . jsonPrettyText . toJSON
         _      -> const $ error' $ unsupportedOutputFormatError fmt
   writeOutput opts $ render $ entriesReport ropts q j
 
