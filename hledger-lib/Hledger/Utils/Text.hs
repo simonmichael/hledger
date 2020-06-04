@@ -26,6 +26,7 @@ module Hledger.Utils.Text
   stripquotes,
  -- isSingleQuoted,
  -- isDoubleQuoted,
+  jsonPrettyText,
  -- -- * single-line layout
   textstrip,
   textlstrip,
@@ -59,6 +60,8 @@ module Hledger.Utils.Text
   )
 where
 
+import Data.Aeson (Value)
+import Data.Aeson.Encode.Pretty (encodePrettyToTextBuilder)
 -- import Data.Char
 import Data.List
 #if !(MIN_VERSION_base(4,11,0))
@@ -66,6 +69,8 @@ import Data.Monoid
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import Data.Text.Lazy.Builder (toLazyText)
 -- import Text.Parsec
 -- import Text.Printf (printf)
 
@@ -77,6 +82,10 @@ import Hledger.Utils.Test
 -- lowercase, uppercase :: String -> String
 -- lowercase = map toLower
 -- uppercase = map toUpper
+
+-- | Pretty-print a JSON value.
+jsonPrettyText :: Value -> TL.Text
+jsonPrettyText = toLazyText . encodePrettyToTextBuilder
 
 -- | Remove leading and trailing whitespace.
 textstrip :: Text -> Text

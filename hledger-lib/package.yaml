@@ -47,6 +47,7 @@ dependencies:
 - base >=4.9 && <4.15
 - base-compat-batteries >=0.10.1 && <0.12
 - aeson
+- aeson-pretty
 - ansi-terminal >=0.6.2.3
 - array
 - blaze-markup >=0.5.1
