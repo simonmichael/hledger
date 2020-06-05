@@ -533,4 +533,4 @@ SEE ALSO
 
 
 
-hledger-web 1.17.99                May 2020                     hledger-web(1)
+hledger-web 1.17.99                June 2020                    hledger-web(1)

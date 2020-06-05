@@ -784,14 +784,22 @@ FILE FORMAT
        You  can  pull in the content of additional files by writing an include
        directive, like this:
 
-              include path/to/file.journal
+              include FILEPATH
 
-       If the path does not begin with a slash, it is relative to the  current
-       file.   The  include  file  path may contain common glob patterns (e.g.
-       *).
+       Only journal files can include, and only journal, timeclock or  timedot
+       files can be included (not CSV files, currently).
 
-       The include directive can only be used in journal files.   It  can  in-
-       clude journal, timeclock or timedot files, but not CSV files.
+       If  the  file  path  does not begin with a slash, it is relative to the
+       current file's folder.
+
+       It may contain glob patterns  to  match  multiple  files,  eg:  include
+       *.journal.
+
+       Or a tilde, meaning home directory: include ~/main.journal.
+
+       It may also be prefixed to force a specific file format, overriding the
+       file extension (as described in  hledger.1  ->  Input  files):  include
+       timedot:~/notes/2020*.md.
 
    Default year
        You  can set a default year to be used for subsequent dates which don't
@@ -1285,68 +1293,61 @@ FILE FORMAT
          pression.
 
    Forecasting with periodic transactions
-       With  the --forecast flag, each periodic transaction rule generates fu-
-       ture transactions recurring at the specified interval.  These  are  not
-       saved  in  the journal, but appear in all reports.  They will look like
-       normal transactions, but with an extra tag:
+       The  --forecast  flag  activates  any periodic transaction rules in the
+       journal.  They will generate temporary  recurring  transactions,  which
+       are  not  saved  in  the  journal,  but  will appear in all reports (eg
+       print).  This can be useful for estimating balances into the future, or
+       experimenting  with  different scenarios.  Or, it can be used as a data
+       entry aid: describe recurring transactions, and every so often copy the
+       output of print --forecast into the journal.
 
-       o generated-transaction:~ PERIODICEXPR - shows that this was  generated
-         by a periodic transaction rule, and the period
+       These  transactions  will  have  an extra tag indicating which periodic
+       rule generated them: generated-transaction:~ PERIODICEXPR.  And a simi-
+       lar,  hidden  tag  (beginning  with  an underscore) which, because it's
+       never displayed by print, can be used to match  transactions  generated
+       "just now": _generated-transaction:~ PERIODICEXPR.
 
-       There  is  also a hidden tag, with an underscore prefix, which does not
-       appear in hledger's output:
-
-       o _generated-transaction:~ PERIODICEXPR
-
-       This can be used to match transactions  generated  "just  now",  rather
-       than generated in the past and saved to the journal.
-
-       Forecast  transactions  start  on  the first occurrence, and end on the
-       last occurrence, of their interval within  the  forecast  period.   The
-       forecast period:
+       Periodic  transactions  are  generated within some forecast period.  By
+       default, this
 
        o begins on the later of
 
          o the report start date if specified with -b/-p/date:
 
-         o the  day  after the latest normal (non-periodic) transaction in the
+         o the day after the latest normal (non-periodic) transaction  in  the
            journal, or today if there are no normal transactions.
 
-       o ends on the report end date if specified  with  -e/-p/date:,  or  180
-         days from today.
+       o ends  on  the  report  end  date  if specified with -e/-p/date:, or 6
+         months (180 days) from today.
 
-       where  "today"  means  the current date at report time.  The "later of"
-       rule ensures that forecast transactions do not overlap normal  transac-
-       tions in time; they will begin only after normal transactions end.
+       This means that periodic transactions will begin only after the  latest
+       recorded  transaction.   And a recorded transaction dated in the future
+       can prevent generation of periodic transactions.  (You can  avoid  that
+       by writing the future transaction as a one-time periodic rule instead -
+       put tilde before the date, eg ~ YYYY-MM-DD ...).
 
-       Forecasting  can be useful for estimating balances into the future, and
-       experimenting with different scenarios.   Note  the  start  date  logic
-       means that forecasted transactions are automatically replaced by normal
-       transactions as you add those.
-
-       Forecasting can also help with data entry: describe most of your trans-
-       actions  with  periodic  rules,  and  every so often copy the output of
-       print --forecast to the journal.
-
-       You can generate one-time transactions too: just write a period expres-
-       sion  specifying a date with no report interval.  (You could also write
-       a normal transaction with a future date,  but  remember  this  disables
-       forecast transactions on previous dates.)
+       Or, you can set your own arbitrary "forecast period", which can overlap
+       recorded  transactions,  and need not be in the future, by providing an
+       option argument, like --forecast=PERIODEXPR.  Note the equals  sign  is
+       required, a space won't work.  PERIODEXPR is a period expression, which
+       can specify the start date, end date, or both, like in a  date:  query.
+       (See  also  hledger.1  ->  Report  start  &  end date).  Some examples:
+       --forecast=202001-202004, --forecast=jan-, --forecast=2020.
 
    Budgeting with periodic transactions
-       With  the  --budget  flag,  currently supported by the balance command,
-       each periodic transaction rule declares recurring budget goals for  the
-       specified  accounts.   Eg  the  first  example above declares a goal of
-       spending $2000 on rent (and also,  a  goal  of  depositing  $2000  into
-       checking)  every  month.  Goals and actual performance can then be com-
+       With the --budget flag, currently supported  by  the  balance  command,
+       each  periodic transaction rule declares recurring budget goals for the
+       specified accounts.  Eg the first example  above  declares  a  goal  of
+       spending  $2000  on  rent  (and  also,  a goal of depositing $2000 into
+       checking) every month.  Goals and actual performance can then  be  com-
        pared in budget reports.
 
-       For more details, see: balance: Budget report and Budgeting  and  Fore-
+       For  more  details, see: balance: Budget report and Budgeting and Fore-
        casting.
 
    Auto postings
-       "Automated  postings"  or  "auto postings" are extra postings which get
-       added automatically to transactions which match  certain  queries,  de-
+       "Automated postings" or "auto postings" are extra  postings  which  get
+       added  automatically  to  transactions which match certain queries, de-
        fined by "auto posting rules", when you use the --auto flag.
 
        An auto posting rule looks a bit like a transaction:
@@ -1356,27 +1357,27 @@ FILE FORMAT
                   ...
                   ACCOUNT  [AMOUNT]
 
-       except  the  first  line is an equals sign (mnemonic: = suggests match-
-       ing), followed by a query (which matches existing postings),  and  each
-       "posting"  line  describes  a  posting to be generated, and the posting
+       except the first line is an equals sign (mnemonic:  =  suggests  match-
+       ing),  followed  by a query (which matches existing postings), and each
+       "posting" line describes a posting to be  generated,  and  the  posting
        amounts can be:
 
-       o a normal amount with a commodity symbol, eg $2.  This  will  be  used
+       o a  normal  amount  with a commodity symbol, eg $2.  This will be used
          as-is.
 
        o a number, eg 2.  The commodity symbol (if any) from the matched post-
          ing will be added to this.
 
-       o a numeric multiplier, eg *2 (a star followed by  a  number  N).   The
+       o a  numeric  multiplier,  eg  *2 (a star followed by a number N).  The
          matched posting's amount (and total price, if any) will be multiplied
          by N.
 
-       o a multiplier with a commodity symbol, eg *$2 (a star, number  N,  and
+       o a  multiplier  with a commodity symbol, eg *$2 (a star, number N, and
          symbol S).  The matched posting's amount will be multiplied by N, and
          its commodity symbol will be replaced with S.
 
-       Any query term containing spaces must be enclosed in single  or  double
-       quotes,  as on the command line.  Eg, note the quotes around the second
+       Any  query  term containing spaces must be enclosed in single or double
+       quotes, as on the command line.  Eg, note the quotes around the  second
        query term below:
 
               = expenses:groceries 'expenses:dining out'
@@ -1415,24 +1416,24 @@ FILE FORMAT
 
    Auto postings and multiple files
        An auto posting rule can affect any transaction in the current file, or
-       in  any  parent file or child file.  Note, currently it will not affect
+       in any parent file or child file.  Note, currently it will  not  affect
        sibling files (when multiple -f/--file are used - see #1212).
 
    Auto postings and dates
-       A posting date (or secondary date) in the matched posting,  or  (taking
-       precedence)  a  posting date in the auto posting rule itself, will also
+       A  posting  date (or secondary date) in the matched posting, or (taking
+       precedence) a posting date in the auto posting rule itself,  will  also
        be used in the generated posting.
 
    Auto postings and transaction balancing / inferred amounts / balance asser-
        tions
        Currently, auto postings are added:
 
-       o after  missing amounts are inferred, and transactions are checked for
+       o after missing amounts are inferred, and transactions are checked  for
          balancedness,
 
        o but before balance assertions are checked.
 
-       Note this means that journal entries must be balanced both  before  and
+       Note  this  means that journal entries must be balanced both before and
        after auto postings are added.  This changed in hledger 1.12+; see #893
        for background.
 
@@ -1442,11 +1443,11 @@ FILE FORMAT
        o generated-posting:= QUERY - shows this was generated by an auto post-
          ing rule, and the query
 
-       o _generated-posting:=  QUERY  - a hidden tag, which does not appear in
+       o _generated-posting:= QUERY - a hidden tag, which does not  appear  in
          hledger's output.  This can be used to match postings generated "just
          now", rather than generated in the past and saved to the journal.
 
-       Also,  any transaction that has been changed by auto posting rules will
+       Also, any transaction that has been changed by auto posting rules  will
        have these tags added:
 
        o modified: - this transaction was modified
@@ -1457,7 +1458,7 @@ FILE FORMAT
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -1471,7 +1472,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -1479,4 +1480,4 @@ SEE ALSO
 
 
 
-hledger 1.17.99                    May 2020                 hledger_journal(5)
+hledger 1.17.99                    June 2020                hledger_journal(5)

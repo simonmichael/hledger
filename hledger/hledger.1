@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "May 2020" "hledger 1.17.99" "hledger User Manuals"
+.TH "hledger" "1" "June 2020" "hledger 1.17.99" "hledger User Manuals"
 
 
 
@@ -1101,15 +1101,6 @@ To understand the JSON, read the Haskell type definitions, which are
 mostly in
 https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
 .IP \[bu] 2
-The JSON output from hledger commands is essentially the same as the
-JSON served by hledger-web\[aq]s JSON API, but pretty printed, using
-line breaks and indentation.
-Our pretty printer has the ability to elide data in certain cases -
-rendering non-strings as if they were strings, or displaying
-\[dq]FOO..\[dq] instead of FOO\[aq]s full details.
-This should never happen in hledger\[aq]s JSON output; if you see
-otherwise, please report as a bug.
-.IP \[bu] 2
 hledger represents quantities as Decimal values storing up to 255
 significant digits, eg for repeating decimals.
 Such numbers can arise in practice (from automatically-calculated
@@ -1298,7 +1289,7 @@ Examples:
 .PP
 .TS
 tab(@);
-lw(11.9n) lw(58.1n).
+lw(12.4n) lw(57.6n).
 T{
 \f[C]-b 2016/3/17\f[R]
 T}@T{
@@ -1321,16 +1312,17 @@ T}@T{
 all transactions in the current month
 T}
 T{
-\f[C]date:2016/3/17-\f[R]
+\f[C]date:2016/3/17..\f[R]
 T}@T{
-the above written as queries instead
+the above written as queries instead (\f[C]..\f[R] can also be replaced
+with \f[C]-\f[R])
 T}
 T{
-\f[C]date:-12/1\f[R]
+\f[C]date:..12/1\f[R]
 T}@T{
 T}
 T{
-\f[C]date:thismonth-\f[R]
+\f[C]date:thismonth..\f[R]
 T}@T{
 T}
 T{
@@ -1362,7 +1354,7 @@ exclusive:
 .PP
 Keywords like \[dq]from\[dq] and \[dq]to\[dq] are optional, and so are
 the spaces, as long as you don\[aq]t run two dates together.
-\[dq]to\[dq] can also be written as \[dq]-\[dq].
+\[dq]to\[dq] can also be written as \[dq]..\[dq] or \[dq]-\[dq].
 These are equivalent to the above:
 .PP
 .TS
@@ -1375,7 +1367,7 @@ T{
 \f[C]-p2009/1/1to2009/4/1\f[R]
 T}
 T{
-\f[C]-p2009/1/1-2009/4/1\f[R]
+\f[C]-p2009/1/1..2009/4/1\f[R]
 T}
 .TE
 .PP
@@ -1602,8 +1594,7 @@ like account, balance and register will show only the uppermost accounts
 in the account tree, down to level N.
 Use this when you want a summary with less detail.
 This flag has the same effect as a \f[C]depth:\f[R] query argument (so
-\f[C]-2\f[R], \f[C]--depth=2\f[R] or \f[C]depth:2\f[R] are basically
-equivalent).
+\f[C]-2\f[R], \f[C]--depth=2\f[R] or \f[C]depth:2\f[R] are equivalent).
 .SS Pivoting
 .PP
 Normally hledger sums amounts, and organizes them in a hierarchy, based

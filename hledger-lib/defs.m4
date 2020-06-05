@@ -4,4 +4,4 @@ m4_dnl Program version. Updated by make setversion.
 m4_define({{_version_}}, {{1.17.99}})m4_dnl
 m4_dnl
 m4_dnl Date to show in man pages. Updated by make setdate.
-m4_define({{_monthyear_}}, {{May 2020}})m4_dnl
+m4_define({{_monthyear_}}, {{June 2020}})m4_dnl

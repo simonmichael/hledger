@@ -850,4 +850,4 @@ SEE ALSO
 
 
 
-hledger 1.17.99                    May 2020                     hledger_csv(5)
+hledger 1.17.99                    June 2020                    hledger_csv(5)
