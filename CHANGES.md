@@ -1,12 +1,15 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# cd720708
-
-- add an example of Ledger's cap gains calculation during balancing
-
+# 90b18080
 
 - make ghcid-web-run
+
+- bin:  + two example scripts (Dmitry Astapov)
+
+- bin: hledger-combine-balances.hs  - render two balance reports as single multi-column one
+
+- bin: hledger-balance-as-budget.hs - use one balance report as the budget for the other one
 
 - bin: hledger-check-tag-files2, a version using cabal's v2-run command
 

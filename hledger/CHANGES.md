@@ -1,26 +1,53 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# a016a437
+# e5a0bddb
 
-- cli: don't let an upper case file extension confuse file format
+- bal, bs: titles in multiperiod end balance reports show .. like other reports (not ,,)
+
+- --forecast now takes an optional argument (--forecast=PERIODICEXPR),
+  allowing periodic transactions to start/end on any date and to
+  overlap recorded transactions. Fixes #835, #1236 (Dmitry Astapov)
+
+- journal: we now also infer market prices from transactions, like Ledger. (#1239)
+
+- print,reg,balcmds: list output formats accurately in --help (#689)
+
+- print, reg, balcmds: fix JSON output, which wasn't JSON (#689)
+
+- don't let an upper case file extension confuse file format
   detection. (#1225)
 
-- cli: in the commands list, fix hiding of redundant source scripts
+- in the commands list, fix hiding of redundant source scripts
   when a corresponding .com/.exe file exists. (#1225)
 
-- cli, journal: period expressions now support "until" as a synonym
-  for "to", like Ledger.
+- we now use `..` instead of `-` to indicate date ranges, eg in report
+  titles, to stand out more from hyphenated dates. Period expressions
+  (used eg in -p, date:, and periodic rules) accept `to`, `until`,
+  `-`, or `..` as synonyms.
 
-- allow spaces between sign and number when parsing amounts
+- when parsing amounts, whitespace between sign and number is now allowed
 
-- journal: We now accept (but ignore) Ledger-style lot dates
+- a clearer error message is shown on encountering a malformed regular expression
+
+- journal: the include directive now accepts a file format prefix
+  This works with glob patterns too, applying the prefix to each path.
+  This can be useful when included files don't have the standard file
+  extension, eg:
+
+      include timedot:2020*.md
+
+- journal: the unbalanced transaction error message is clearer,
+  especially when postings all have the same sign, and split into
+  multiple lines for readability (at the cost of predictability/grepability).
+
+- journal: We now accept (and ignore) Ledger-style lot dates
   (`[DATE]`) and four lot price forms (`{PRICE}`, `{{PRICE}}`,
   `{=PRICE}`, `{{=PRICE}}`), anywhere after the posting amount but
   before any balance assertion.
 
 - journal: we now accept Ledger-style parenthesised "virtual posting
-  costs" (`(@)`, `(@@)`). In hledger these do the same as the
+  costs" (`(@)`, `(@@)`). In hledger these are equivalent to the
   unparenthesised form.
 
 - csv: allow generation of postings with an explicit 0 amount. (#1112)
@@ -29,6 +56,12 @@ User-visible changes in the hledger command line tool and library.
   assignments are active, ignore the unnumbered ones. This makes it
   easier to override old `amount` rules. 
   
+- csv: Increase maximum number of postings in CSV reader from 9 to 99. (Vladimir Sorokin)
+  The ordering of journalfieldnames is changed in order to comply with the requirement stated in the comment:
+  "Names must precede any other name they contain, for the parser".
+  If left unchanged, "account1" would precede "account11", "account12", and so on, which would break the parsing.
+  With the new ordering, "account11" precedes "account1".
+
 - csv: fix a 1.17.1 regression involving amount-in/amount-out. (#1226)
 
 - csv: improved the "too many non-zero amounts" error message.

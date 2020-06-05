@@ -1,7 +1,29 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 784d882e
+# e5a0bddb
+
+- added: getHledgerCliOpts' taking an explicit argument list
+
+- added jsonPrettyText helper
+
+- lib: clarify zero-checking function names
+  isZeroAmount                -> amountLooksZero
+  isReallyZeroAmount          -> amountIsZero
+  isZeroMixedAmount           -> mixedAmountLooksZero
+  isReallyZeroMixedAmount     -> mixedAmountIsZero
+  isReallyZeroMixedAmountCost dropped
+
+- lib: drop transactionPostingBalances
+
+- lib: isNegativeMixedAmount now gives an answer for multi-commodity
+  amounts which are all negative
+
+- Hledger.Cli.CliOptions no longer exports outputflags
+
+- lib: multiBalanceReport derives query from ReportOpts (Dmitry Astapov)
+
+- lib: rename finaliseJournal -> journalFinalise
 
 - fixedlotpricep renamed to lotpricep, now also parses non-fixed lot prices
 
