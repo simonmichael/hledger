@@ -249,7 +249,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
 showEndDates :: [Day] -> String
 showEndDates es = case es of
   -- cf showPeriod
-  (e:_:_) -> showdate e ++ ",," ++ showdate (last es)
+  (e:_:_) -> showdate e ++ ".." ++ showdate (last es)
   [e]     -> showdate e
   []      -> ""
   where
