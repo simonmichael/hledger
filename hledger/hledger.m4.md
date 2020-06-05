@@ -859,7 +859,7 @@ dollar sign in hledger-web, write `cur:\$`.
 
 - On the command line, some metacharacters like `$` have a special
 meaning to the shell and so must be escaped at least once more.
-See [Special characters](#special-characters).
+See [Special characters](#special-characters-in-arguments-and-queries).
 
 ## Smart dates
 
