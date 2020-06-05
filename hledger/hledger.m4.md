@@ -918,16 +918,16 @@ Some notes:
 
 Examples:
 
-|                   |                                                                                             |
-|-------------------|---------------------------------------------------------------------------------------------|
-| `-b 2016/3/17`    | begin on St. Patrick’s day 2016                                                             |
-| `-e 12/1`         | end at the start of december 1st of the current year (11/30 will be the last date included) |
-| `-b thismonth`    | all transactions on or after the 1st of the current month                                   |
-| `-p thismonth`    | all transactions in the current month                                                       |
-| `date:2016/3/17-` | the above written as queries instead                                                        |
-| `date:-12/1`      |                                                                                             |
-| `date:thismonth-` |                                                                                             |
-| `date:thismonth`  |                                                                                             |
+|                    |                                                                                             |
+|--------------------|---------------------------------------------------------------------------------------------|
+| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
+| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
+| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
+| `-p thismonth`     | all transactions in the current month                                                       |
+| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
+| `date:..12/1`      |                                                                                             |
+| `date:thismonth..` |                                                                                             |
+| `date:thismonth`   |                                                                                             |
 
 ## Report intervals
 
@@ -951,14 +951,14 @@ hledger always treats start dates as inclusive and end dates as exclusive:
 `-p "from 2009/1/1 to 2009/4/1"`
 
 Keywords like "from" and "to" are optional, and so are the spaces, as long
-as you don't run two dates together. "to" can also be written as "-".
+as you don't run two dates together. "to" can also be written as ".." or "-".
 These are equivalent to the above:
 
-|                          |
-|--------------------------|
-| `-p "2009/1/1 2009/4/1"` |
-| `-p2009/1/1to2009/4/1`   |
-| `-p2009/1/1-2009/4/1`    |
+|                           |
+|---------------------------|
+| `-p "2009/1/1 2009/4/1"`  |
+| `-p2009/1/1to2009/4/1`    |
+| `-p2009/1/1..2009/4/1`    |
 
 Dates are [smart dates](#smart-dates), so if the current year is 2009, the
 above can also be written as:

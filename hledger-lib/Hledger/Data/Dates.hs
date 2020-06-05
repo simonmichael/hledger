@@ -912,7 +912,7 @@ lastthisnextthing = do
 -- resolving any relative start/end dates (only; it is not needed for
 -- parsing the reporting interval).
 --
--- >>> let p = parsePeriodExpr (parsedate "2008/11/26")
+-- >>> let p = parsePeriodExpr (parsedate "2008-11-26")
 -- >>> p "from Aug to Oct"
 -- Right (NoInterval,DateSpan 2008-08-01..2008-09-30)
 -- >>> p "aug to oct"
@@ -927,15 +927,17 @@ lastthisnextthing = do
 -- Right (DayOfMonth 2,DateSpan ..)
 -- >>> p "every 2nd day"
 -- Right (DayOfMonth 2,DateSpan ..)
+-- >>> p "every 2nd day 2009.."
+-- Right (DayOfMonth 2,DateSpan 2009-01-01..)
 -- >>> p "every 2nd day 2009-"
 -- Right (DayOfMonth 2,DateSpan 2009-01-01..)
 -- >>> p "every 29th Nov"
 -- Right (DayOfYear 11 29,DateSpan ..)
--- >>> p "every 29th nov -2009"
+-- >>> p "every 29th nov ..2009"
 -- Right (DayOfYear 11 29,DateSpan ..2008-12-31)
 -- >>> p "every nov 29th"
 -- Right (DayOfYear 11 29,DateSpan ..)
--- >>> p "every Nov 29th 2009-"
+-- >>> p "every Nov 29th 2009.."
 -- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
 -- >>> p "every 11/29 from 2009"
 -- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
@@ -951,9 +953,9 @@ lastthisnextthing = do
 -- Right (DayOfMonth 2,DateSpan ..)
 -- >>> p "every 2nd day"
 -- Right (DayOfMonth 2,DateSpan ..)
--- >>> p "every 2nd day 2009-"
+-- >>> p "every 2nd day 2009.."
 -- Right (DayOfMonth 2,DateSpan 2009-01-01..)
--- >>> p "every 2nd day of month 2009-"
+-- >>> p "every 2nd day of month 2009.."
 -- Right (DayOfMonth 2,DateSpan 2009-01-01..)
 periodexprp :: Day -> TextParser m (Interval, DateSpan)
 periodexprp rdate = do
@@ -1072,7 +1074,7 @@ doubledatespanp rdate = do
   optional (string' "from" >> skipMany spacenonewline)
   b <- smartdate
   skipMany spacenonewline
-  optional (choice [string' "to", string' "-"] >> skipMany spacenonewline)
+  optional (choice [string' "to", string "..", string' "-"] >> skipMany spacenonewline)
   DateSpan (Just $ fixSmartDate rdate b) . Just . fixSmartDate rdate <$> smartdate
 
 fromdatespanp :: Day -> TextParser m DateSpan
@@ -1084,14 +1086,14 @@ fromdatespanp rdate = do
     ,
     do
       d <- smartdate
-      string' "-"
+      choice [string "..", string' "-"]
       return d
     ]
   return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
 todatespanp :: Day -> TextParser m DateSpan
 todatespanp rdate = do
-  choice [string' "to", string' "until", string' "-"] >> skipMany spacenonewline
+  choice [string' "to", string' "until", string "..", string' "-"] >> skipMany spacenonewline
   DateSpan Nothing . Just . fixSmartDate rdate <$> smartdate
 
 justdatespanp :: Day -> TextParser m DateSpan
