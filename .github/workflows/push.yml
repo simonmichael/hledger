@@ -2,12 +2,13 @@
 # using less compute power and emitting less carbon.
 #
 # Runs: on notable (eg, not just doc files) push to master.
+# Currently disabled in favour of linux.yml.
 
 name: push CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ ]
     paths:
       - '.github/workflows/push.yml'
       - 'stack*.yaml'

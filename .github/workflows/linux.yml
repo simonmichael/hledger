@@ -2,7 +2,7 @@
 # run functional tests, with all supported GHC versions.
 #
 # Runs: periodically, on notable pull request to master, and on
-# notable push to ci-linux.
+# notable push to master or ci-linux.
 
 name: linux / pull request CI
 
@@ -25,7 +25,7 @@ on:
       - '!**.info'
       - '!**.txt'
   push:
-    branches: [ ci-linux ]
+    branches: [ master, ci-linux ]
     paths:
       - '.github/workflows/linux.yml'
       - 'stack*'
