@@ -44,6 +44,7 @@ these are described more fully below, after the examples:
 | [**`date-format`**](#date-format)         | describe the format of CSV dates                        |
 | [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date    |
 | [**`include`**](#include)                 | inline another CSV rules file                           |
+| [**`balance-type`**](#balance-type)       | choose which type of balance assignments to use         |
 
 Note, for best error messages when reading CSV files, use a `.csv`, `.tsv` or `.ssv`
 file extension or file prefix - see [File Extension](#file-extension) below.
