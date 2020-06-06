@@ -407,7 +407,7 @@ buildplantest: $(call def-help,buildplantest, stack build --dry-run all hledger 
 	buildplantest-stack.yaml
 
 buildplantest-all: $(call def-help,buildplantest-all, stack build --dry-run all hledger packages ensuring an install plan with each ghc version/stackage snapshot )
-	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildplantest-$$F; done
+	for F in stack*.yaml; do make --no-print-directory buildplantest-$$F; done
 
 buildplantest-%: $(call def-help,buildplantest-STACKFILE, stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack8.2.yaml )
 	$(STACK) build --dry-run --test --bench --stack-yaml=$*
@@ -416,7 +416,7 @@ buildtest: $(call def-help,buildtest, force-rebuild all hledger packages/modules
 	buildtest-stack.yaml
 
 buildtest-all: $(call def-help,buildtest-all, force-rebuild all hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot )
-	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildtest-$$F; done
+	for F in stack*.yaml; do make --no-print-directory buildtest-$$F; done
 
 buildtest-%: $(call def-help,buildtest-STACKFILE, force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack8.2.yaml )
 	$(STACK) build --test --bench $(SKIPTESTSBENCHS) --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
@@ -425,7 +425,7 @@ incr-buildtest: $(call def-help,incr-buildtest, build any outdated hledger packa
 	incr-buildtest-stack.yaml
 
 incr-buildtest-all: $(call def-help,incr-buildtest-all, build any outdated hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot. Wont detect warnings in up-to-date modules. )
-	for F in stack-*.yaml stack.yaml; do make --no-print-directory incr-buildtest-$$F; done
+	for F in stack*.yaml; do make --no-print-directory incr-buildtest-$$F; done
 
 incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack8.2.yaml. Wont detect warnings in up-to-date modules. )
 	$(STACK) build --test --bench $(SKIPTESTSBENCHS) --fast --ghc-options=-Werror --stack-yaml=$*
