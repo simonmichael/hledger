@@ -4,9 +4,6 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-# stack seems to enable this by default now, basically disabling bounds checks. Force it off.
-#allow-newer: false
-
 ###############################################################################
 # from https://github.com/DanBurton/stack-setup-info-gen/tree/master/output:
 setup-info:

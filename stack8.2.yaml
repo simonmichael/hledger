@@ -4,9 +4,6 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-# stack seems to enable this by default now, basically disabling bounds checks. Force it off.
-#allow-newer: false
-
 resolver: lts-11.22
 
 packages:

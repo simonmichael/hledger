@@ -1,8 +1,5 @@
 # stack build plan using GHC 8.0.2
 
-# stack seems to enable this by default now, basically disabling bounds checks. Force it off.
-#allow-newer: false
-
 resolver: lts-9.21
 
 packages:
