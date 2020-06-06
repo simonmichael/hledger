@@ -430,6 +430,9 @@ incr-buildtest-all: $(call def-help,incr-buildtest-all, build any outdated hledg
 incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack8.2.yaml. Wont detect warnings in up-to-date modules. )
 	$(STACK) build --test --bench $(SKIPTESTSBENCHS) --fast --ghc-options=-Werror --stack-yaml=$*
 
+stack-clean-all: $(call def-help,stack-clean-all, do a stack clean --full with all ghc versions for paranoia/troubleshooting )
+	for F in stack*.yaml; do $(STACK) clean --full --stack-yaml=$$F; done
+
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
 
