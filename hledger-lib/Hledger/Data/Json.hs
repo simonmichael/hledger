@@ -4,7 +4,7 @@ JSON instances. Should they be in Types.hs ?
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
---{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE CPP                 #-}
 --{-# LANGUAGE DataKinds           #-}
 --{-# LANGUAGE DeriveAnyClass      #-}
 {-# LANGUAGE DeriveGeneric       #-}
@@ -33,6 +33,9 @@ module Hledger.Data.Json (
   ,readJsonFile
 ) where
 
+#if !(MIN_VERSION_base(4,13,0))
+import           Data.Semigroup ((<>))
+#endif
 import           Data.Aeson
 import           Data.Aeson.Encode.Pretty (encodePrettyToTextBuilder)
 --import           Data.Aeson.TH
