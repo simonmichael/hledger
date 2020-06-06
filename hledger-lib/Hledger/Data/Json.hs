@@ -28,15 +28,20 @@ JSON instances. Should they be in Types.hs ?
 module Hledger.Data.Json (
   -- * Instances
   -- * Utilities
-   readJsonFile
+   toJsonText
   ,writeJsonFile
+  ,readJsonFile
 ) where
 
 import           Data.Aeson
+import           Data.Aeson.Encode.Pretty (encodePrettyToTextBuilder)
 --import           Data.Aeson.TH
 import qualified Data.ByteString.Lazy as BL
 import           Data.Decimal
 import           Data.Maybe
+import qualified Data.Text.Lazy    as TL
+import qualified Data.Text.Lazy.IO as TL
+import           Data.Text.Lazy.Builder (toLazyText)
 import           GHC.Generics (Generic)
 import           System.Time (ClockTime)
 
@@ -201,17 +206,24 @@ instance FromJSON (DecimalRaw Integer)
 
 -- Utilities
 
--- | Read a json from a file and decode/parse it as the target type, if we can.
--- Example: >>> readJsonFile "in.json" :: IO MixedAmount
+-- | Show a JSON-convertible haskell value as pretty-printed JSON text.
+toJsonText :: ToJSON a => a -> TL.Text
+toJsonText = (<>"\n") . toLazyText . encodePrettyToTextBuilder
+
+-- | Write a JSON-convertible haskell value to a pretty-printed JSON file.
+-- Eg: writeJsonFile "a.json" nulltransaction
+writeJsonFile :: ToJSON a => FilePath -> a -> IO ()
+writeJsonFile f = TL.writeFile f . toJsonText
+-- we write with Text and read with ByteString, is that fine ?
+
+-- | Read a JSON file and decode it to the target type, or raise an error if we can't.
+-- Eg: readJsonFile "a.json" :: IO Transaction
 readJsonFile :: FromJSON a => FilePath -> IO a
 readJsonFile f = do
-  bs <- BL.readFile f
-  let v = fromMaybe (error "could not decode bytestring as json value") (decode bs :: Maybe Value)
+  bl <- BL.readFile f
+  let v = fromMaybe (error $ "could not decode JSON in "++show f++" to target value")
+          (decode bl :: Maybe Value)
   case fromJSON v :: FromJSON a => Result a of
     Error e   -> error e
     Success t -> return t
 
--- | Write some to-JSON-convertible haskell value to a json file, if we can.
--- Example: >>> writeJsonFile "out.json" nullmixedamt
-writeJsonFile :: ToJSON a => FilePath -> a -> IO ()
-writeJsonFile f v = BL.writeFile f (encode v)

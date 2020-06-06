@@ -18,7 +18,6 @@ module Hledger.Cli.Commands.Register (
  ,tests_Register
 ) where
 
-import Data.Aeson (toJSON)
 import Data.List
 import Data.Maybe
 -- import Data.Text (Text)
@@ -64,7 +63,7 @@ register opts@CliOpts{reportopts_=ropts} j = do
   let fmt = outputFormatFromOpts opts
       render | fmt=="txt"  = postingsReportAsText
              | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
-             | fmt=="json" = const ((++"\n") . TL.unpack . jsonPrettyText . toJSON)
+             | fmt=="json" = const ((++"\n") . TL.unpack . toJsonText)
              | otherwise   = const $ error' $ unsupportedOutputFormatError fmt
   writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 

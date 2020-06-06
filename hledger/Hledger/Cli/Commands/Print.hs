@@ -15,7 +15,6 @@ module Hledger.Cli.Commands.Print (
 )
 where
 
-import Data.Aeson (toJSON)
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -60,7 +59,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
       render = case fmt of
         "txt"  -> entriesReportAsText opts
         "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
-        "json" -> (++"\n") . TL.unpack . jsonPrettyText . toJSON
+        "json" -> (++"\n") . TL.unpack . toJsonText
         _      -> const $ error' $ unsupportedOutputFormatError fmt
   writeOutput opts $ render $ entriesReport ropts q j
 
