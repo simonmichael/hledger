@@ -1,7 +1,8 @@
-# linux CI tests, run on a periodic schedule, on notable pull request
-# to master, and on notable push to ci-linux. Reasonably thorough
-# build/test/benchmark/haddock/functest testing, with all GHC
-# versions. Note periodic runs don't use cache.
+# Thorough linux CI tests: build, test, benchmark, haddock &
+# run functional tests, with all supported GHC versions.
+#
+# Runs: periodically, on notable pull request to master, and on
+# notable push to ci-linux.
 
 name: linux / pull request CI
 
@@ -58,8 +59,7 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    # declare/restore cached things
-    # caching doesn't work for scheduled runs yet https://github.com/actions/cache/issues/63
+    # things to be cached/restored:
 
     - name: Cache stack global package db
       id:   stack-global
@@ -81,7 +81,6 @@ jobs:
           ${{ runner.os }}-stack-programs-${{ matrix.plan.key }}
           ${{ runner.os }}-stack-programs
 
-    # stack's local package dbs for the project and each package
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
@@ -149,7 +148,7 @@ jobs:
         sudo rm -rf "$AGENT_TOOLSDIRECTORY"
         df -h /
 
-    # actions
+    # actions:
 
     - name: Install stack
       # curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C $INSTALLDIR '*/stack'

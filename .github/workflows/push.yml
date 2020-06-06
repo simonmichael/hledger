@@ -1,4 +1,7 @@
-# quick CI tests, run on notable push to master.
+# Light CI tests: build and run functional tests with one GHC version,
+# using less compute power and emitting less carbon.
+#
+# Runs: on notable (eg, not just doc files) push to master.
 
 name: push CI
 
@@ -42,16 +45,14 @@ jobs:
           touch "${filename}" -mt "$(date --date="@$TS" "+%Y%m%d%H%M.%S")"
         done
 
-    # cached things
-
-    # declare/restore cached things
+    # things to be cached/restored:
 
     - name: Cache stack global package db
       id:   stack-global
       uses: actions/cache@v2
       with:
         path: ~/.stack
-        key:          ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
         restore-keys: |
           ${{ runner.os }}-stack-global
           ${{ runner.os }}-stack
@@ -61,12 +62,11 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.local/bin
-        key:          ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
         restore-keys: |
           ${{ runner.os }}-stack-programs
           ${{ runner.os }}-local-bin
 
-    # stack's local package dbs for the project and each package
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
@@ -102,7 +102,7 @@ jobs:
         key:          ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-web-stack-work
 
-    # actions
+    # actions:
 
     - name: Install stack
       # curl -L https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C $INSTALLDIR '*/stack'

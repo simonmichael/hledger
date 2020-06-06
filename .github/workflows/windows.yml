@@ -1,6 +1,7 @@
-# windows CI tests, run on a periodic schedule, and on notable push to
-# ci-windows. Note periodic runs don't use cache. Using GHC 8.8.2 for
-# now to avoid https://gitlab.haskell.org/ghc/ghc/issues/17926.
+# Light Mac CI tests: build and run functional tests with one GHC version.
+# GHC 8.8.2 for now to avoid https://gitlab.haskell.org/ghc/ghc/issues/17926.
+#
+# Runs: periodically, and on notable push to ci-windows.
 
 name: windows CI
 
@@ -31,8 +32,7 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    # declare/restore cached things
-    # caching doesn't work for scheduled runs yet https://github.com/actions/cache/issues/63
+    # things to be cached/restored:
 
     - name: Cache stack global package db
       id:   stack-global-package-db
@@ -41,11 +41,6 @@ jobs:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
         key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-roaming-stack
-
-    # - name: showStuff
-    #   shell: bash
-    #   run: |
-    #     ls -lFRa /c/users/runneradmin/appdata/roaming/stack
 
     - name: Cache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
@@ -57,12 +52,6 @@ jobs:
         key:          ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
         restore-keys: ${{ runner.os }}-appdata-local-programs-stack
 
-    # - name: showStuff
-    #   shell: bash
-    #   run: |
-    #     ls -lFRa /c/users/runneradmin/appdata/local/programs/stack
-
-    # stack's local package dbs for the project and each package
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
@@ -98,7 +87,13 @@ jobs:
         key:          ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: ${{ runner.os }}-hledger-web-stack-work
 
-    # actions
+    # - name: showStuff
+    #   shell: bash
+    #   run: |
+    #     ls -lFRa /c/users/runneradmin/appdata/roaming/stack
+    #     ls -lFRa /c/users/runneradmin/appdata/local/programs/stack
+
+    # actions:
 
     # - name: Add stack local bin to PATH
     #   run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"

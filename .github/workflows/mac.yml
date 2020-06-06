@@ -1,5 +1,6 @@
-# mac CI tests, run on a periodic schedule, and on notable push to
-# ci-mac. Note periodic runs don't use cache.
+# Light Mac CI tests: build and run functional tests with one GHC version.
+#
+# Runs: periodically, and on notable push to ci-mac.
 
 name: mac CI
 
@@ -30,8 +31,7 @@ jobs:
     - name: Check out
       uses: actions/checkout@v2
 
-    # declare/restore cached things
-    # caching doesn't work for scheduled runs yet https://github.com/actions/cache/issues/63
+    # things to be cached/restored:
 
     - name: Cache stack global package db
       id:   stack-global
@@ -53,7 +53,6 @@ jobs:
           ${{ runner.os }}-stack-programs
           ${{ runner.os }}-local-bin
 
-    # stack's local package dbs for the project and each package
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
@@ -84,7 +83,7 @@ jobs:
         path: hledger-web/.stack-work
         key: ${{ runner.os }}-hledger-web-stack-work
 
-    # actions
+    # actions:
 
     - name: Install stack
       # curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C $INSTALLDIR
