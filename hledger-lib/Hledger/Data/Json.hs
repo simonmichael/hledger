@@ -203,6 +203,24 @@ instance FromJSON (DecimalRaw Integer)
 --
 --And of course you can avoid `StandAloneDeriving` entirely if you’re willing to wrap `Decimal` in your own `newtype`.
 
+-- XXX these will allow reading a Journal, but currently the
+-- jdeclaredaccounttypes Map gets serialised as a JSON list, which
+-- can't be read back.
+--
+-- instance FromJSON AccountAlias
+-- instance FromJSONKey AccountType where fromJSONKey = genericFromJSONKey defaultJSONKeyOptions
+-- instance FromJSON AccountType
+-- instance FromJSON ClockTime
+-- instance FromJSON Commodity
+-- instance FromJSON DateSpan
+-- instance FromJSON Interval
+-- instance FromJSON PeriodicTransaction
+-- instance FromJSON PriceDirective
+-- instance FromJSON TimeclockCode
+-- instance FromJSON TimeclockEntry
+-- instance FromJSON TransactionModifier
+-- instance FromJSON Journal
+
 
 -- Utilities
 
