@@ -29,8 +29,7 @@ jobs:
 
     - name: Check out
       uses: actions/checkout@v2
-      # Fetch all history, rather than a shallow clone, so that we
-      # can restore timestamps (see below).
+      # deep clone so we can restore timestamps (see below)
       with:
         fetch-depth: 0
 

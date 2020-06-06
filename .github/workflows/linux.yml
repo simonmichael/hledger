@@ -58,6 +58,20 @@ jobs:
 
     - name: Check out
       uses: actions/checkout@v2
+      # deep clone so we can restore timestamps (see below)
+      with:
+        fetch-depth: 0
+
+    # Restore timestamps to help stack not rebuild unchanged files.
+    # https://stackoverflow.com/questions/60906336
+    # https://stackoverflow.com/a/36243002/84401
+    # https://www.reddit.com/r/haskell/comments/g00ldn/haskell_stack_on_github_actions/
+    - name: Restore source file timestamps
+      run: |
+        git ls-tree -r --name-only HEAD | while read filename; do
+          TS="$(git log -1 --format="%ct" -- ${filename})"
+          touch "${filename}" -mt "$(date --date="@$TS" "+%Y%m%d%H%M.%S")"
+        done
 
     # things to be cached/restored:
 
