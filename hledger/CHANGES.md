@@ -1,70 +1,87 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# e5a0bddb
+# b86ced5e
 
-- bal, bs: titles in multiperiod end balance reports show .. like other reports (not ,,)
+## General
 
-- --forecast now takes an optional argument (--forecast=PERIODICEXPR),
-  allowing periodic transactions to start/end on any date and to
-  overlap recorded transactions. Fixes #835, #1236 (Dmitry Astapov)
+- The --forecast flag now takes an optional argument
+  (--forecast=PERIODICEXPR), allowing periodic transactions to
+  start/end on any date and to overlap recorded transactions.
+  (#835, #1236) (Dmitry Astapov)
 
-- journal: we now also infer market prices from transactions, like Ledger. (#1239)
-
-- print,reg,balcmds: list output formats accurately in --help (#689)
-
-- print, reg, balcmds: fix JSON output, which wasn't JSON (#689)
-
-- don't let an upper case file extension confuse file format
+- An upper case file extension no longer confuses file format
   detection. (#1225)
 
-- in the commands list, fix hiding of redundant source scripts
-  when a corresponding .com/.exe file exists. (#1225)
+- In the commands list, redundant source scripts are now hidden
+  properly when a corresponding .com/.exe file exists. (#1225)
 
-- we now use `..` instead of `-` to indicate date ranges, eg in report
-  titles, to stand out more from hyphenated dates. Period expressions
-  (used eg in -p, date:, and periodic rules) accept `to`, `until`,
-  `-`, or `..` as synonyms.
+- We now show `..` instead of `-` to indicate date ranges, eg in
+  report titles, to stand out more from hyphenated dates. 
+  
+- Period expressions (eg in -p, date:, and periodic rules) now accept
+  `to`, `until`, `-`, or `..` as synonyms.
 
-- when parsing amounts, whitespace between sign and number is now allowed
+- When parsing amounts, whitespace between sign and number is now allowed.
 
-- a clearer error message is shown on encountering a malformed regular expression
+- A clearer error message is shown on encountering a malformed regular
+  expression.
 
-- journal: the include directive now accepts a file format prefix
-  This works with glob patterns too, applying the prefix to each path.
-  This can be useful when included files don't have the standard file
-  extension, eg:
+## commands
+
+- commands allowing different output formats now list their supported
+  formats accurately in --help (#689)
+
+- commands allowing JSON output now actually produce JSON (#689)
+
+- bal, bs: show .. (not ,,) in report titles, like other reports
+
+## journal format
+
+- We now also infer market prices from transactions, like Ledger.
+  See https://hledger.org/hledger.html#market-prices (#1239). 
+  
+  Upgrade note: this means value reports (-V, -X etc.) can give
+  different output compared to hledger 1.17. If needed, you can
+  prevent this by adding a P directive declaring the old price, on or
+  after the date of the transaction causing the issue.
+
+- The include directive now accepts a file format prefix, like the
+  -f/--file option. This works with glob patterns too, applying the
+  prefix to each path. This can be useful when included files don't
+  have the standard file extension, eg:
 
       include timedot:2020*.md
 
-- journal: the unbalanced transaction error message is clearer,
-  especially when postings all have the same sign, and split into
-  multiple lines for readability (at the cost of predictability/grepability).
-
-- journal: We now accept (and ignore) Ledger-style lot dates
+- We now accept (and ignore) Ledger-style lot dates
   (`[DATE]`) and four lot price forms (`{PRICE}`, `{{PRICE}}`,
   `{=PRICE}`, `{{=PRICE}}`), anywhere after the posting amount but
   before any balance assertion.
 
-- journal: we now accept Ledger-style parenthesised "virtual posting
+- We now accept Ledger-style parenthesised "virtual posting
   costs" (`(@)`, `(@@)`). In hledger these are equivalent to the
   unparenthesised form.
 
-- csv: allow generation of postings with an explicit 0 amount. (#1112)
+- The unbalanced transaction error message is clearer, especially when
+  postings all have the same sign, and is split into multiple lines
+  for readability.
 
-- csv: for each posting, when both numbered and unnumbered amount
-  assignments are active, ignore the unnumbered ones. This makes it
-  easier to override old `amount` rules. 
+## csv format
+
+- You can now generate up to 99 postings in a transaction. (Vladimir Sorokin)
+
+- You can now generate postings with an explicit 0 amount. (#1112)
+
+- For each posting, when both numbered and unnumbered amount
+  assignments are active (eg: both `amount` and `amount1`), we ignore
+  the unnumbered ones. This makes it easier to override old `amount`
+  rules.
   
-- csv: Increase maximum number of postings in CSV reader from 9 to 99. (Vladimir Sorokin)
-  The ordering of journalfieldnames is changed in order to comply with the requirement stated in the comment:
-  "Names must precede any other name they contain, for the parser".
-  If left unchanged, "account1" would precede "account11", "account12", and so on, which would break the parsing.
-  With the new ordering, "account11" precedes "account1".
+- Fix a 1.17.1 regression involving amount-in/amount-out. (#1226)
 
-- csv: fix a 1.17.1 regression involving amount-in/amount-out. (#1226)
+- Assigning too many non-zero or zero values to a posting amount now
+  gives a clearer error. (#1226)
 
-- csv: improved the "too many non-zero amounts" error message.
 
 # 1.17.1.1 2020-03-19
 

@@ -1,8 +1,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# e5a0bddb
+# 5757c386
 
+- builds with hledger 1.18
 
 # 1.17.1.1 2020-03-19
 
@@ -10,7 +11,7 @@ See also the hledger changelog.
 
 # 1.17.1 2020-03-19
 
-- ui: fix a regression, empty register of depth-limited account (fix #1208)
+- fix a regression, empty register of depth-limited account (fix #1208)
 
 - require newer Decimal, math-functions libs to ensure consistent
   rounding behaviour, even when built with old GHCs/snapshots. 

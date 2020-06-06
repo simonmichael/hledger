@@ -1,42 +1,26 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 90b18080
+# 1c4d7aa8
 
-- make ghcid-web-run
+- new example scripts:
 
-- bin:  + two example scripts (Dmitry Astapov)
+  - hledger-combine-balances.hs, hledger-balance-as-budget.hs  (Dmitry Astapov)
+  - hledger-check-tag-files.hs, hledger-check-tag-files2.hs
 
-- bin: hledger-combine-balances.hs  - render two balance reports as single multi-column one
+- more CSV rule examples: coinbase, waveapp
 
-- bin: hledger-balance-as-budget.hs - use one balance report as the budget for the other one
-
-- bin: hledger-check-tag-files2, a version using cabal's v2-run command
-
-- bin: hledger-check-tag-files, a script using stack's script command
-
-
-
-
-- shake: use script command, allow running without compiling first
-
-- install: bump resolver to lts-15.4
-
-- install: bump hledger-interest to 1.5.4
-
-- examples: another coinbase example, contributed
-
-- new CI (continuous integration) tests, using Github Actions.
+- new CI (continuous integration) system using Github Actions.
   Thanks to Travis and Appveyor for their service to date.
   Improvements:
 
   - one CI service instead of several
-  - new shortcut url: http://ci.hledger.org
   - more closely integrated with code repo
   - tests run on the three main platforms (linux, mac, windows)
   - harmless commits are ignored automatically ([ci skip] no longer needed for doc commits)
   - scheduled and on-demand testing (push to master, push to ci-* branches, pull request, weekly)
   - now tested: all GHC versions, doctests, haddock building
+  - new shortcut url: http://ci.hledger.org
 
 # 1.17 2020-03-01
 

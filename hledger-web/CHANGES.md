@@ -1,20 +1,19 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# a91cb903
 
-# e5a0bddb
+- Hyperlinks are now more robust when there are multiple journal
+  files, eg links from register to journal now work properly. (#1041)
 
+## add form
 
+- Fixed a 2016 regression causing too many rows to be added by
+  keypresses in the last amount field or CTRL-plus (#422, #1059).
 
-2020-05-25 c35d0a8b ;web: transaction fragments: use numeric identifiers for journal files This saves us from any escaping issues.
-2020-05-24 e9792bfd ;web: links from register to journal now contain journal filename in order to distinguish transactions from multiple journal files (#1041)
+- Always start with four rows when opened.
 
-- web: add form: always start with four rows when opened
-
-- web: add form: drop unneeded C-minus/C-plus keys & related help text
-
-- web: fix a 2016 regression adding too many add form rows
-  from keypresses in the last amount field and CTRL-plus (#422, #1059)
+- Drop unneeded C-minus/C-plus keys & related help text.
 
 
 # 1.17.1 2020-03-19
