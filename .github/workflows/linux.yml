@@ -4,7 +4,7 @@
 # Runs: periodically, on notable pull request to master, and on
 # notable push to master or ci-linux.
 
-name: linux / pull request CI
+name: linux full CI
 
 on:
   schedule:
