@@ -223,7 +223,8 @@ You can get JSON data from these routes:
 /accounttransactions/ACCOUNTNAME
 ```
 
-Eg, all account names in the journal (similar to the [accounts](hledger.html#accounts) command):
+Eg, all account names in the journal (similar to the [accounts](hledger.html#accounts) command).
+(hledger-web's JSON does not include newlines, here we use python to prettify it):
 
 ```shell
 $ curl -s http://127.0.0.1:5000/accountnames | python -m json.tool
@@ -289,21 +290,13 @@ You can add a new transaction to the journal with a PUT request to `/add`,
 if hledger-web was started with the `add` capability (enabled by default).
 The payload must be the full, exact JSON representation of a hledger transaction
 (partial data won't do).
-You can get sample JSON from `/transactions` or `/accounttransactions`,
-or you can export it with hledger-lib's `writeJsonFile` helper, like so:
+You can get sample JSON from hledger-web's `/transactions` or `/accounttransactions`,
+or you can export it with hledger-lib, eg like so:
 
 ```shell
-$ make ghci-web
->>> import Hledger
->>> writeJsonFile "txn.json" (head $ jtxns samplejournal)  -- export samplejournal's first txn
+.../hledger$ stack ghci hledger-lib
+>>> writeJsonFile "txn.json" (head $ jtxns samplejournal)
 >>> :q
-```
-
-If you like, reformat the json to make it human-readable:
-
-```shell
-$ python -m json.tool txn.json >pretty
-$ mv pretty txn.json
 ```
 
 Here's how it looks as of hledger-1.17
@@ -313,89 +306,89 @@ and related data types):
 
 ```json
 {
-    "tcode": "",
     "tcomment": "",
-    "tdate": "2008-01-01",
-    "tdate2": null,
-    "tdescription": "income",
-    "tindex": 1,
     "tpostings": [
         {
-            "paccount": "assets:bank:checking",
+            "pbalanceassertion": null,
+            "pstatus": "Unmarked",
             "pamount": [
                 {
-                    "acommodity": "$",
-                    "aismultiplier": false,
                     "aprice": null,
+                    "acommodity": "$",
                     "aquantity": {
-                        "decimalMantissa": 10000000000,
+                        "floatingPoint": 1,
                         "decimalPlaces": 10,
-                        "floatingPoint": 1
+                        "decimalMantissa": 10000000000
                     },
+                    "aismultiplier": false,
                     "astyle": {
                         "ascommodityside": "L",
-                        "ascommodityspaced": false,
-                        "asdecimalpoint": ".",
                         "asdigitgroups": null,
-                        "asprecision": 2
+                        "ascommodityspaced": false,
+                        "asprecision": 2,
+                        "asdecimalpoint": "."
                     }
                 }
             ],
-            "pbalanceassertion": null,
-            "pcomment": "",
-            "pdate": null,
-            "pdate2": null,
-            "poriginal": null,
-            "pstatus": "Unmarked",
-            "ptags": [],
             "ptransaction_": "1",
-            "ptype": "RegularPosting"
+            "paccount": "assets:bank:checking",
+            "pdate": null,
+            "ptype": "RegularPosting",
+            "pcomment": "",
+            "pdate2": null,
+            "ptags": [],
+            "poriginal": null
         },
         {
-            "paccount": "income:salary",
+            "pbalanceassertion": null,
+            "pstatus": "Unmarked",
             "pamount": [
                 {
-                    "acommodity": "$",
-                    "aismultiplier": false,
                     "aprice": null,
+                    "acommodity": "$",
                     "aquantity": {
-                        "decimalMantissa": -10000000000,
+                        "floatingPoint": -1,
                         "decimalPlaces": 10,
-                        "floatingPoint": -1
+                        "decimalMantissa": -10000000000
                     },
+                    "aismultiplier": false,
                     "astyle": {
                         "ascommodityside": "L",
-                        "ascommodityspaced": false,
-                        "asdecimalpoint": ".",
                         "asdigitgroups": null,
-                        "asprecision": 2
+                        "ascommodityspaced": false,
+                        "asprecision": 2,
+                        "asdecimalpoint": "."
                     }
                 }
             ],
-            "pbalanceassertion": null,
-            "pcomment": "",
-            "pdate": null,
-            "pdate2": null,
-            "poriginal": null,
-            "pstatus": "Unmarked",
-            "ptags": [],
             "ptransaction_": "1",
-            "ptype": "RegularPosting"
+            "paccount": "income:salary",
+            "pdate": null,
+            "ptype": "RegularPosting",
+            "pcomment": "",
+            "pdate2": null,
+            "ptags": [],
+            "poriginal": null
         }
     ],
-    "tprecedingcomment": "",
+    "ttags": [],
     "tsourcepos": {
+        "tag": "JournalSourcePos",
         "contents": [
             "",
             [
                 1,
                 1
             ]
-        ],
-        "tag": "JournalSourcePos"
+        ]
     },
-    "tstatus": "Unmarked",
-    "ttags": []
+    "tdate": "2008-01-01",
+    "tcode": "",
+    "tindex": 1,
+    "tprecedingcomment": "",
+    "tdate2": null,
+    "tdescription": "income",
+    "tstatus": "Unmarked"
 }
 ```
 
