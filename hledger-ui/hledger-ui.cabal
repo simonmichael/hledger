@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d215f0a5e69125e998f6d1f29181699edb489ee0e248a82110b6877437a0d4d6
+-- hash: 315b95d3ecfb2c8ff5debfcbcd2d1ef92989941f0cdfec48b8c39a4535a8228a
 
 name:           hledger-ui
 version:        1.18
@@ -27,7 +27,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5, GHC==8.8.3, GHC==8.10
+tested-with:    GHC==8.0.2, GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.3, GHC==8.10.0.20200123
 build-type:     Simple
 extra-source-files:
     CHANGES.md
