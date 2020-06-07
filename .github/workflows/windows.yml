@@ -1,13 +1,14 @@
-# Light Mac CI tests: build and run functional tests with one GHC version.
+# Light Windows CI tests: build and run functional tests with one GHC version.
 # GHC 8.8.2 for now to avoid https://gitlab.haskell.org/ghc/ghc/issues/17926.
 #
-# Runs: periodically, and on notable push to ci-windows.
+# Runs: periodically on master, and on notable push to ci-windows.
 
 name: windows CI
 
 on:
   schedule:
   - cron: "0 07 * * 0"  # sunday midnight pacific
+
   push:
     branches: [ ci-windows ]
     paths:

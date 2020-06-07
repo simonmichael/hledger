@@ -1,14 +1,16 @@
 # Thorough linux CI tests: build, test, benchmark, haddock &
 # run functional tests, with all supported GHC versions.
 #
-# Runs: periodically, on notable pull request to master, and on
-# notable push to master or ci-linux.
+# Runs: periodically on master, on notable pull request to master, and
+# on notable push to ci-linux or master.
 
 name: linux full CI
 
 on:
+  # Scheduled workflows run on the latest commit on the default or base branch. (master)
   schedule:
   - cron: "0 07 * * 0"  # sunday midnight pacific
+
   pull_request:
     branches: [ master ]
     paths:
@@ -24,6 +26,7 @@ on:
       - '!**.5'
       - '!**.info'
       - '!**.txt'
+
   push:
     branches: [ master, ci-linux ]
     paths:
@@ -211,7 +214,6 @@ jobs:
         ARGS: ${{ matrix.plan.args }}
 
     - name: Test haddock generation
-      shell: bash
       run: |
         time stack $ARGS build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
       # --no-haddock-hyperlink-source is 25% faster

@@ -1,12 +1,13 @@
 # Light Mac CI tests: build and run functional tests with one GHC version.
 #
-# Runs: periodically, and on notable push to ci-mac.
+# Runs: periodically on master, and on notable push to ci-mac.
 
 name: mac CI
 
 on:
   schedule:
   - cron: "0 07 * * 0"  # sunday midnight pacific
+
   push:
     branches: [ ci-mac ]
     paths:
