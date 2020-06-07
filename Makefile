@@ -798,21 +798,21 @@ iscleanwd:
 isclean-%:
 	@$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
 
-# (re)generate a cabal files with stack's built-in hpack
-gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
+# update all cabal files based on latest package.yaml files using stack's built-in hpack
+cabal: $(call def-help,cabal, regenerate cabal files from package.yaml files with stack )
 	$(STACK) build --dry-run --silent
 
-# (re)generate cabal files with hpack
-# To avoid warnings, this hpack should be the same version as stack's built-in hpack
-gencabal-with-hpack-%:
+# Update all cabal files based on latest package.yaml files using a specific hpack version.
+# To avoid warnings, this should be the same version as stack's built-in hpack.
+cabal-with-hpack-%:
 	$(STACK) build --with-hpack hpack-$* --dry-run --silent
 
 # updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
 # 	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
 # 	git commit -m "update cabal files" $(shell ls */*.cabal)
 
-# we call in shake for this job; so dependencies aren't checked here
-genmanuals: Shake $(call def-help,genmanuals, regenerate CLI help files and manuals (might need -B) )
+# we use shake for this job; so dependencies aren't checked here
+manuals: Shake $(call def-help,manuals, regenerate and commit CLI help and manuals (might need -B) )
 	./Shake manuals
 	git commit -m ";doc: regen manuals" -m "[ci skip]" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
 
