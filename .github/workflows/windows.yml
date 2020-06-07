@@ -40,6 +40,7 @@ jobs:
     # https://stackoverflow.com/a/36243002/84401
     # https://www.reddit.com/r/haskell/comments/g00ldn/haskell_stack_on_github_actions/
     - name: Restore source file timestamps
+      shell: bash
       run: |
         git ls-tree -r --name-only HEAD | while read filename; do
           TS="$(git log -1 --format="%ct" -- ${filename})"
