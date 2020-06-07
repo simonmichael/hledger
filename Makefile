@@ -433,6 +433,9 @@ incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated h
 stack-clean-all: $(call def-help,stack-clean-all, do a stack clean --full with all ghc versions for paranoia/troubleshooting )
 	for F in stack*.yaml; do $(STACK) clean --full --stack-yaml=$$F; done
 
+ghcversions: $(call def-help,ghcversions, show the ghc versions used by all stack files )
+	for F in stack*.yaml; do $(STACK) --stack-yaml=$$F --no-install-ghc exec -- ghc --version; done 2>&1 | grep -v 'To install the correct GHC'
+
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
 
