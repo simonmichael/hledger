@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# a91cb903
+# 1.18 2020-06-06
 
 - Hyperlinks are now more robust when there are multiple journal
   files, eg links from register to journal now work properly. (#1041)

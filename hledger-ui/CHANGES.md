@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 5757c386
+# 1.18 2020-06-06
 
 - builds with hledger 1.18
 
