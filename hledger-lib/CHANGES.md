@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 1.18 2020-06-06
+# 1.18 2020-06-07
 
 - added: getHledgerCliOpts', takes an explicit argument list
 

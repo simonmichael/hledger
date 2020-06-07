@@ -1,7 +1,7 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 1c4d7aa8
+# 1.18 2020-06-07
 
 - new example scripts:
 
