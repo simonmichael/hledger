@@ -78,4 +78,4 @@ SEE ALSO
 
 
 
-hledger 1.17.99                    June 2020              hledger_timeclock(5)
+hledger 1.18                       June 2020              hledger_timeclock(5)

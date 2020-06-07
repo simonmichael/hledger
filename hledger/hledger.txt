@@ -3231,4 +3231,4 @@ SEE ALSO
 
 
 
-hledger 1.17.99                    June 2020                        hledger(1)
+hledger 1.18                       June 2020                        hledger(1)
