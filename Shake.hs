@@ -150,9 +150,6 @@ main = do
     -- NAMES, FILES, URIS..
 
     let
-      -- documentation versions shown on the website
-      docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9", "1.10", "1.11", "1.12", "1.13", "1.14", "1.15", "1.16" ]
-
       -- main package names, in standard build order
       packages = [
          "hledger-lib"
