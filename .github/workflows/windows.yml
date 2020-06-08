@@ -167,7 +167,7 @@ jobs:
         copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe .
              
     - name: Create executables artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: hledger.zip
         path: tmp/hledger
