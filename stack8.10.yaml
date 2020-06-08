@@ -4,57 +4,51 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-###############################################################################
 # from https://github.com/DanBurton/stack-setup-info-gen/tree/master/output:
 setup-info:
   ghc:
     linux-aarch64:
-        8.10.0.20200123:
-            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-aarch64-deb9-linux.tar.xz"
-            content-length: 313129184
-            sha1: d7f049bfc0a56b794bb854b82a929ec6c46fd638
-            sha256: 8fae7fc2ef938b8db362d593ccc73518c61aff05d7ed7bfca26bae46b8b09daf
+        8.10.1:
+            url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-aarch64-deb9-linux.tar.xz"
+            content-length: 313033012
+            sha1: 947f53273ac37a9478739f0f60a78eb30a9fff80
+            sha256: c099011e07999db917e797fb5d89c31f075a562556ab99be8ab0accbf2a94db7
     linux32:
-        8.10.0.20200123:
-            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-i386-deb9-linux.tar.xz"
-            content-length: 215831016
-            sha1: 8cb0e46bffb0f688d7aa3fd66548ee466545ae25
-            sha256: a9bdcc1db4968a6a48ff9aa5387536a1241dcb1dd72cc5e958c2a3b54aed07bf
+        8.10.1:
+            url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-i386-deb9-linux.tar.xz"
+            content-length: 215852640
+            sha1: 30b28ec4d3b6af5eb3f25668a2567d9ba5c06de0
+            sha256: 8b53eef2c827b5f634d72920a93c0c9dd66ea288691a2bfe28def45d3c686ee2
     macosx:
-        8.10.0.20200123:
-            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-apple-darwin.tar.xz"
-            content-length: 193201644
-            sha1: dd7a767d5a4af03884ac8f8c9f953485a77fd285
-            sha256: cc90bfc5d070fdce747e0914f10ad1eb4155e396ad20772ccaacb4db8eed33f9
+        8.10.1:
+            url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-x86_64-apple-darwin.tar.xz"
+            content-length: 192889416
+            sha1: 64828a2a2f444cbb5d77d4a15b51a29f03b657f2
+            sha256: 65b1ca361093de4804a7e40b3e68178e1ef720f84f743641ec8d95e56a45b3a8
     linux64-gmp4:
-        8.10.0.20200123:
-            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-centos7-linux.tar.xz"
-            content-length: 200871736
-            sha1: 4e86ed77cfae5d21d1c338ff724242f6a6d93fb3
-            sha256: dba5ffccdbc9a1d02c1d5bda45fb213b7f6f064ca95997b517d00564e42a8fa3
+        8.10.1:
+            url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-x86_64-centos7-linux.tar.xz"
+            content-length: 200974260
+            sha1: 43f6680c0d0facf1bcdece57296f03b51119b3ee
+            sha256: 0618b94854edc6be5302489df905e627820b71be6b66c950f5e3088fe92df0a1
     linux64:
-        8.10.0.20200123:
-            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-deb9-linux.tar.xz"
-            content-length: 212518484
-            sha1: ce8654b08c846e462b33ed82c75ece13751aed0b
-            sha256: 86482e2325e8b9b53acfa2a362aac3d5e058b22be94707bce77acfc7802ed1bd
+        8.10.1:
+            url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-x86_64-deb9-linux.tar.xz"
+            content-length: 212806588
+            sha1: 4d50d074123e686eb0313c90a24959b26131f73c
+            sha256: d1cf7886f27af070f3b7dbe1975a78b43ef2d32b86362cbe953e79464fe70761
     linux64-tinfo6:
-        8.10.0.20200123:
-            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-fedora27-linux.tar.xz"
-            content-length: 214915000
-            sha1: 8f964bfecfb3158b4ffe5d425ee3435837993f3c
-            sha256: 6d071fc7deaeffd1c5af42c5537cf5f0a69fb0b50bb6529c76fd15834d712fd6
+        8.10.1:
+            url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-x86_64-fedora27-linux.tar.xz"
+            content-length: 214693280
+            sha1: 3023b3456c50a045e6431de8dbba4e3840c7ab14
+            sha256: 3c4cd72b4806045779739e8f5d1658e30e57123d88c2c8966422cdbcae448470
     windows64:
-        8.10.0.20200123:
-            url: "https://downloads.haskell.org/ghc/8.10.1-rc1/ghc-8.10.0.20200123-x86_64-unknown-mingw32.tar.xz"
-            content-length: 427515084
-            sha1: 3f3f4a9b6f0c406a959c0c0ac8077991583330eb
-            sha256: 025ffced9915464433bccfd5e8e5074508376d8e0897e765d4174233c149f796
-
-resolver: ghc-8.10.0.20200123
-compiler: ghc-8.10.0.20200123
-compiler-check: match-exact
-###############################################################################
+        8.10.1:
+            url: "https://downloads.haskell.org/ghc/8.10.1/ghc-8.10.1-x86_64-unknown-mingw32.tar.xz"
+            content-length: 427479476
+            sha1: 19867b0e4edb18aba8c62f5d44c1d7a67ee6220a
+            sha256: 38a3166ea50cccd5bae7e1680eae3aae2b4ae31b61f82a1d8168fb821f43bd67
 
 resolver: lts-15.4
 
@@ -65,8 +59,4 @@ packages:
 - hledger-web
 
 extra-deps:
-- doctest-0.16.3
-# for hledger-lib:
-# for hledger:
-# for hledger-ui:
-# for hledger-web:
+- doctest-0.17
