@@ -14,7 +14,7 @@ th, td  {white-space:nowrap;}
 | Mail list                     | [list.hledger.org](http://list.hledger.org) 
 | Twitter                       | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime). Also: [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime), <a href="https://twitter.com/ledgertips">@LedgerTips</a>, [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime) 
 | Reddit                        | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/) 
-| Stack Exchange                | [money.stackexchange.com?hledger](https://money.stackexchange.com/search?q=hledger) 
+| Stack Exchange                | [money.stackexchange.com?hledger](https://money.stackexchange.com/search?q=hledger&tab=newest) 
 | Hacker News                   | [hledger mentions](https://hn.algolia.com/?query=hledger&sort=byDate&prefix&page=0&dateRange=all&type=all) 
 | hledger-web demo&nbsp;&nbsp;  | [demo.hledger.org](http://demo.hledger.org) 
 | hledger interactive demo      | https://hledger.alhur.es  (hledger compiled to js)
