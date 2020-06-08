@@ -221,6 +221,22 @@ jobs:
       env:
         ARGS: ${{ matrix.plan.args }}
 
+    - name: Gather executables
+      run: |
+        mkdir tmp
+        cd tmp
+        mkdir hledger
+        cd hledger
+        cp `stack exec -- which hledger` .
+        cp `stack exec -- which hledger-ui` .
+        cp `stack exec -- which hledger-web` .
+
+    - name: Create executables artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: hledger-linux.zip
+        path: tmp/hledger
+
     # - name: show stuff
     #   run: |
     #     if [[ -e ~/.stack ]]; then ls -lFRa ~/.stack; fi

@@ -130,4 +130,18 @@ jobs:
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
+    - name: Gather executables
+      run: |
+        mkdir tmp
+        cd tmp
+        mkdir hledger
+        cd hledger
+        cp `stack exec -- which hledger` .
+        cp `stack exec -- which hledger-ui` .
+        cp `stack exec -- which hledger-web` .
 
+    - name: Create executables artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: hledger-mac.zip
+        path: tmp/hledger
