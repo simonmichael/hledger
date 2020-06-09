@@ -26,6 +26,6 @@ jobs:
           release_name: ${{ github.ref }}
           body: |
             
-            https://hledger.org/release-notes.html#${{ github.ref }}
+            https://hledger.org/release-notes.html
           draft: true
           prerelease: false
