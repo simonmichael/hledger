@@ -143,5 +143,5 @@ jobs:
     - name: Create executables artifact
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-mac.zip
+        name: hledger-mac
         path: tmp/hledger

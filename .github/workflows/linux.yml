@@ -234,7 +234,7 @@ jobs:
     - name: Create executables artifact
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-linux.zip
+        name: hledger-linux
         path: tmp/hledger
 
     # - name: show stuff
