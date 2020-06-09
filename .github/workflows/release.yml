@@ -1,12 +1,14 @@
 # Create a github release, when a tag starting with a digit is pushed (anywhere ?)
-
-# https://github.com/actions/create-release
+# https://github.com/actions/create-release - not ready for prime time, 20200609
 
 name: Create Release
 
 on:
   push:
     tags: [ '[0-9]*' ]
+    # disable this workflow:
+    branches-ignore:
+      - '**'
 
 jobs:
   build:

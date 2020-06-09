@@ -9,6 +9,7 @@ name: push CI
 on:
   push:
     # branches: [ master ]
+    # disable this workflow:
     branches-ignore:
       - '**'
     paths:
