@@ -18,9 +18,10 @@ User-visible changes in the hledger command line tool and library.
 
 - We now show `..` instead of `-` to indicate date ranges, eg in
   report titles, to stand out more from hyphenated dates. 
+  (Stephen Morgan)
   
 - Period expressions (eg in -p, date:, and periodic rules) now accept
-  `to`, `until`, `-`, or `..` as synonyms.
+  `to`, `until`, `-`, or `..` as synonyms. (Stephen Morgan)
 
 - When parsing amounts, whitespace between sign and number is now allowed.
 

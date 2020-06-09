@@ -3,8 +3,12 @@ See also the hledger changelog.
 
 # 1.18 2020-06-07
 
+- The filter query is now preserved when clicking a different account
+  in the sidebar. (Henning Thielemann)
+
 - Hyperlinks are now more robust when there are multiple journal
-  files, eg links from register to journal now work properly. (#1041)
+  files, eg links from register to journal now work properly.
+  (#1041) (Henning Thielemann)
 
 ## add form
 
