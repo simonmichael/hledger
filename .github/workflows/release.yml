@@ -1,4 +1,4 @@
-# Create a github release, when a "v*" tag is pushed to master.
+# Create a github release, when a tag starting with a digit is pushed (anywhere ?)
 
 # https://github.com/actions/create-release
 
@@ -6,8 +6,7 @@ name: Create Release
 
 on:
   push:
-    tags: [ 'v*' ]
-    branches: [ master ]
+    tags: [ '[0-9]*' ]
 
 jobs:
   build:
