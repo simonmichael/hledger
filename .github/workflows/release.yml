@@ -2,19 +2,20 @@
 #
 # https://github.com/actions/create-release - still pretty rough, 20200609
 
-name: Create Release
+name: release
 
 on:
   push:
     tags: [ '[0-9]*' ]
 
 jobs:
-  build:
-    name: Create Release
+  release:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v2
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -24,6 +25,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
           body: |
-            ${{ github.ref }}
+            
+            https://hledger.org/release-notes.html#${{ github.ref }}
           draft: true
           prerelease: false
