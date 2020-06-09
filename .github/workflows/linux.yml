@@ -227,9 +227,9 @@ jobs:
         cd tmp
         mkdir hledger
         cd hledger
-        cp `stack exec -- which hledger` .
-        cp `stack exec -- which hledger-ui` .
-        cp `stack exec -- which hledger-web` .
+        cp `stack $ARGS exec -- which hledger` .
+        cp `stack $ARGS exec -- which hledger-ui` .
+        cp `stack $ARGS exec -- which hledger-web` .
 
     - name: Create executables artifact
       uses: actions/upload-artifact@v2
