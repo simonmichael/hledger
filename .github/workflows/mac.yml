@@ -116,7 +116,7 @@ jobs:
 
     - name: Build hledger and test unit tests, doc tests
       run: |
-        stack build --test --ghc-options=-Werror
+        stack install --test --ghc-options=-Werror
       #  --pedantic
 
     - name: Install shelltestrunner
@@ -130,18 +130,20 @@ jobs:
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
+    # artifacts:
+
     - name: Gather executables
       run: |
         mkdir tmp
         cd tmp
         mkdir hledger
         cd hledger
-        cp `stack exec -- which hledger` .
-        cp `stack exec -- which hledger-ui` .
-        cp `stack exec -- which hledger-web` .
+        cp ~/.local/bin/hledger .
+        cp ~/.local/bin/hledger-ui .
+        cp ~/.local/bin/hledger-web .
 
-    - name: Create executables artifact
+    - name: Upload executables artifact
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-mac
+        name: hledger-macos
         path: tmp/hledger

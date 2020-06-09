@@ -148,14 +148,7 @@ jobs:
     ## - export PATH=~/.local/bin:$PATH
     #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
-    # - name: Zip executables
-    #   #cd `stack path --local-bin`
-    #   run: |
-    #     cd C:\Users\runneradmin\AppData\Roaming\local\bin\
-    #     7z a D:\a\hledger\hledger\hledger.zip hledger.exe hledger-web.exe
-
-    # github automatically zips every artifact, though it's not
-    # apparent in the displayed link text and file size
+    # artifacts:
 
     - name: Gather executables
       run: |
@@ -169,5 +162,6 @@ jobs:
     - name: Create executables artifact
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-win
+        name: hledger-windows
         path: tmp/hledger
+

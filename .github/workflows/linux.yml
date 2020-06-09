@@ -193,7 +193,7 @@ jobs:
 
     - name: Build hledger quickly warning free, run unit tests, run doc tests
       run: |
-        stack $ARGS build --test --bench --fast --ghc-options=-Werror --no-terminal
+        stack $ARGS install --test --bench --fast --ghc-options=-Werror --no-terminal
         # --pedantic --no-run-benchmarks
       env:
         ARGS: ${{ matrix.plan.args }}
@@ -221,25 +221,27 @@ jobs:
       env:
         ARGS: ${{ matrix.plan.args }}
 
+    # artifacts:
+
     - name: Gather executables
       run: |
         mkdir tmp
         cd tmp
         mkdir hledger
         cd hledger
-        cp `stack $ARGS exec -- which hledger` .
-        cp `stack $ARGS exec -- which hledger-ui` .
-        cp `stack $ARGS exec -- which hledger-web` .
+        cp ~/.local/bin/hledger .
+        cp ~/.local/bin/hledger-ui .
+        cp ~/.local/bin/hledger-web .
 
-    - name: Create executables artifact
+    - name: Upload executables artifact
       uses: actions/upload-artifact@v2
       with:
-        name: hledger-linux
+        name: hledger-ubuntu
         path: tmp/hledger
 
-    # - name: show stuff
-    #   run: |
-    #     if [[ -e ~/.stack ]]; then ls -lFRa ~/.stack; fi
+
+
+
 
     # - name: show stuff
     #   run: |
