@@ -1,14 +1,12 @@
-# Create a github release, when a tag starting with a digit is pushed (anywhere ?)
-# https://github.com/actions/create-release - not ready for prime time, 20200609
+# Create a github release, when a "[0-9]*" tag is pushed (anywhere ?)
+#
+# https://github.com/actions/create-release - still pretty rough, 20200609
 
 name: Create Release
 
 on:
   push:
     tags: [ '[0-9]*' ]
-    # disable this workflow:
-    branches-ignore:
-      - '**'
 
 jobs:
   build:
@@ -24,8 +22,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: ${{ github.ref }}
           body: |
-            Release ${{ github.ref }}
+            ${{ github.ref }}
           draft: true
           prerelease: false
