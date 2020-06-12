@@ -1,4 +1,7 @@
-{-# LANGUAGE FlexibleInstances, RecordWildCards, ScopedTypeVariables, OverloadedStrings, DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
 Multi-column balance reports, used by the balance command.
@@ -89,12 +92,6 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
   (if invert_ then prNegate else id) $
   PeriodicReport colspans mappedsortedrows mappedtotalsrow
     where
-      -- add a prefix to this function's debug output
-      dbg   s = let p = "multiBalanceReport" in Hledger.Utils.dbg3 (p++" "++s)
-      dbg'  s = let p = "multiBalanceReport" in Hledger.Utils.dbg4 (p++" "++s)
-      dbg'' s = let p = "multiBalanceReport" in Hledger.Utils.dbg5 (p++" "++s)
-      -- dbg = const id  -- exclude this function from debug output
-
       ----------------------------------------------------------------------
       -- 1. Queries, report/column dates.
 
@@ -118,7 +115,6 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- This can be the null span if there were no intervals.
       reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans)
                                                         (maybe Nothing spanEnd   $ lastMay intervalspans)
-      mreportstart = spanStart reportspan
       -- The user's query with no depth limit, and expanded to the report span
       -- if there is one (otherwise any date queries are left as-is, which
       -- handles the hledger-ui+future txns case above).
@@ -144,23 +140,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 
       -- Balances at report start date, from all earlier postings which otherwise match the query.
       -- These balances are unvalued except maybe converted to cost.
-      startbals :: [(AccountName, MixedAmount)] = dbg' "startbals" $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
-        where
-          (startbalanceitems,_) = dbg'' "starting balance report" $ balanceReport ropts''{value_=Nothing, percent_=False} startbalq j'
-            where
-              ropts' | tree_ ropts = ropts{no_elide_=True}
-                     | otherwise   = ropts{accountlistmode_=ALFlat}
-              ropts'' = ropts'{period_ = precedingperiod}
-                where
-                  precedingperiod = dateSpanAsPeriod $ spanIntersect (DateSpan Nothing mreportstart) $ periodAsDateSpan period_
-              -- q projected back before the report start date.
-              -- When there's no report start date, in case there are future txns (the hledger-ui case above),
-              -- we use emptydatespan to make sure they aren't counted as starting balance.
-              startbalq = dbg'' "startbalq" $ And [datelessq, dateqcons precedingspan]
-                where
-                  precedingspan = case mreportstart of
-                                  Just d  -> DateSpan Nothing (Just d)
-                                  Nothing -> emptydatespan
+      startbals :: [(AccountName, MixedAmount)] = dbg' "startbals" $
+          startingBalances ropts q j reportspan
       -- The matched accounts with a starting balance. All of these should appear
       -- in the report even if they have no postings during the report period.
       startaccts = dbg'' "startaccts" $ map fst startbals
@@ -360,6 +341,34 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
              (perdivide grandaverage grandaverage)
         | otherwise = totalsrow
 
+
+-- | Calculate starting balances, if needed for -H
+--
+-- Balances at report start date, from all earlier postings which otherwise match the query.
+-- These balances are unvalued except maybe converted to cost.
+startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> [(AccountName, MixedAmount)]
+startingBalances ropts q j reportspan = map (\(a,_,_,b) -> (a,b)) startbalanceitems
+  where
+    (startbalanceitems,_) = dbg'' "starting balance report" $
+        balanceReport ropts''{value_=Nothing, percent_=False} startbalq j
+
+    -- q projected back before the report start date.
+    -- When there's no report start date, in case there are future txns (the hledger-ui case above),
+    -- we use emptydatespan to make sure they aren't counted as starting balance.
+    startbalq = dbg'' "startbalq" $ And [datelessq, precedingspanq]
+    datelessq = dbg "datelessq" $ filterQuery (not . queryIsDateOrDate2) q
+
+    ropts' | tree_ ropts = ropts{no_elide_=True}
+           | otherwise   = ropts{accountlistmode_=ALFlat}
+    ropts'' = ropts'{period_ = precedingperiod}
+
+    precedingperiod = dateSpanAsPeriod . spanIntersect precedingspan .
+                         periodAsDateSpan $ period_ ropts
+    precedingspan = DateSpan Nothing $ spanStart reportspan
+    precedingspanq = (if date2_ ropts then Date2 else Date) $ case precedingspan of
+        DateSpan Nothing Nothing -> emptydatespan
+        a -> a
+
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
 -- in order to support --historical. Does not support tree-mode boring parent eliding.
 -- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts
@@ -376,6 +385,12 @@ balanceReportFromMultiBalanceReport opts q j = (rows', total)
              ) | PeriodicReportRow a d amts _ _ <- rows]
     total = headDef nullmixedamt totals
 
+-- Local debug helper
+-- add a prefix to this function's debug output
+dbg   s = let p = "multiBalanceReport" in Hledger.Utils.dbg3 (p++" "++s)
+dbg'  s = let p = "multiBalanceReport" in Hledger.Utils.dbg4 (p++" "++s)
+dbg'' s = let p = "multiBalanceReport" in Hledger.Utils.dbg5 (p++" "++s)
+-- dbg = const id  -- exclude this function from debug output
 
 -- common rendering helper, XXX here for now
 
