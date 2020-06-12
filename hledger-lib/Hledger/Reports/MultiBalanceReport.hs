@@ -115,10 +115,10 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
     acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts q startbals colps
 
     -- Process changes into normal, cumulative, or historical amounts, plus value them
-    accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts j priceoracle startbals acctchanges
+    accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts j priceoracle colspans startbals acctchanges
 
     -- All account names that will be displayed, possibly depth-clipped.
-    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts q startbals ps
+    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts q startbals accumvalued
 
     -- All the rows of the report.
     rows = dbg'' "rows" $ buildReportRows ropts reportq accumvalued
@@ -171,7 +171,7 @@ makeReportQuery ropts reportspan q
 --
 -- Balances at report start date, from all earlier postings which otherwise match the query.
 -- These balances are unvalued except maybe converted to cost.
-startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> HashMap AccountName MixedAmount
+startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> HashMap AccountName Account
 startingBalances ropts q j reportspan = acctchanges
   where
     acctchanges = acctChangesFromPostings ropts'' startbalq . map fst $
@@ -233,56 +233,62 @@ calculateColumns colspans = foldr addPosting emptyMap
 -- | Calculate account balance changes in each column.
 --
 -- In each column, gather the accounts that have postings and their change amount.
-acctChangesFromPostings :: ReportOpts -> Query -> [Posting] -> HashMap ClippedAccountName MixedAmount
-acctChangesFromPostings ropts q ps =
-    HM.fromList [(aname a, (if tree_ ropts then aibalance else aebalance) a) | a <- as]
+acctChangesFromPostings :: ReportOpts -> Query -> [Posting] -> HashMap ClippedAccountName Account
+acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
   where
-    as = depthLimit $
-         (if tree_ ropts then id else filter ((>0).anumpostings)) $
-         drop 1 $ accountsFromPostings ps
-    depthLimit
-      | tree_ ropts = filter ((depthq `matchesAccount`) . aname) -- exclude deeper balances
-      | otherwise   = clipAccountsAndAggregate $ queryDepth depthq -- aggregate deeper balances at the depth limit
+    as = filterAccounts . drop 1 $ accountsFromPostings ps
+    filterAccounts
+      | tree_ ropts = filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
+      | otherwise   = clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
+                      filter ((0<) . anumpostings)
     depthq = dbg "depthq" $ filterQuery queryIsDepth q
 
 -- | Gather the account balance changes into a regular matrix including the accounts
 -- from all columns
 calculateAccountChanges :: ReportOpts -> Query
-                        -> HashMap ClippedAccountName MixedAmount
+                        -> HashMap ClippedAccountName Account
                         -> Map DateSpan [Posting]
-                        -> HashMap ClippedAccountName (Map DateSpan MixedAmount)
+                        -> HashMap ClippedAccountName (Map DateSpan Account)
 calculateAccountChanges ropts q startbals colps = acctchanges
   where
     -- Transpose to get each account's balance changes across all columns.
-    acctchanges = transposeMap colacctchanges <> (zeros <$ startbals)
+    acctchanges = transposeMap colacctchanges <> (mempty <$ startbals)
 
-    colacctchanges :: Map DateSpan (HashMap ClippedAccountName MixedAmount) =
+    colacctchanges :: Map DateSpan (HashMap ClippedAccountName Account) =
       dbg'' "colacctchanges" $ fmap (acctChangesFromPostings ropts q) colps
 
-    zeros = nullmixedamt <$ colacctchanges
-
 -- | Accumulate and value amounts, as specified by the report options.
-accumValueAmounts :: ReportOpts -> Journal -> PriceOracle
-                  -> HashMap ClippedAccountName MixedAmount
-                  -> HashMap ClippedAccountName (Map DateSpan MixedAmount)
-                  -> HashMap ClippedAccountName [MixedAmount]
-accumValueAmounts ropts j priceoracle startbals = HM.mapWithKey processRow
+--
+-- Makes sure all report columns have an entry.
+accumValueAmounts :: ReportOpts -> Journal -> PriceOracle -> [DateSpan]
+                  -> HashMap ClippedAccountName Account
+                  -> HashMap ClippedAccountName (Map DateSpan Account)
+                  -> HashMap ClippedAccountName [Account]
+accumValueAmounts ropts j priceoracle colspans startbals = HM.mapWithKey processRow
   where
+    -- Must accumulate before valuing, since valuation can change without any
+    -- postings
     processRow name col = zipWith valueAcct spans $ rowbals name amts
-      where (spans, amts) = unzip $ M.toList col
+      where (spans, amts) = unzip . M.toList $ col <> zeros
 
     -- The row amounts to be displayed: per-period changes,
     -- zero-based cumulative totals, or
     -- starting-balance-based historical balances.
     rowbals name changes = dbg'' "rowbals" $ case balancetype_ ropts of
         PeriodChange      -> changes
-        CumulativeChange  -> drop 1 $ scanl (+) 0                         changes
-        HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor name) changes
+        CumulativeChange  -> drop 1 $ scanl sumAcct nullacct                  changes
+        HistoricalBalance -> drop 1 $ scanl sumAcct (startingBalanceFor name) changes
+
+    -- Add the values of two accounts. Should be right-biased, since it's used
+    -- in scanl, so other properties (such as anumpostings) stay in the right place
+    sumAcct Account{aibalance=i1,aebalance=e1} a@Account{aibalance=i2,aebalance=e2} =
+        a{aibalance = i1 + i2, aebalance = e1 + e2}
 
     -- We may be converting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-    valueAcct (DateSpan _ (Just end)) = avalue periodlast
-      where periodlast = addDays (-1) end
-    valueAcct _ = error' "multiBalanceReport: expected all spans to have an end date"  -- XXX should not happen
+    valueAcct (DateSpan _ (Just end)) acct =
+        acct{aibalance = value (aibalance acct), aebalance = value (aebalance acct)}
+      where value = avalue (addDays (-1) end)
+    valueAcct _ _ = error' "multiBalanceReport: expected all spans to have an end date"  -- XXX should not happen
 
     avalue periodlast = maybe id
         (mixedAmountApplyValuation priceoracle styles periodlast mreportlast today multiperiod) $
@@ -294,15 +300,20 @@ accumValueAmounts ropts j priceoracle startbals = HM.mapWithKey processRow
         today = fromMaybe (error' "multiBalanceReport: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts  -- XXX shouldn't happen
         multiperiod = interval_ ropts /= NoInterval
 
-    startingBalanceFor a = HM.lookupDefault nullmixedamt a startbals
+    startingBalanceFor a = HM.lookupDefault nullacct a startbals
+
+    zeros = M.fromList [(span, nullacct) | span <- colspans]
 
 -- | Build the report rows.
 --
 -- One row per account, with account name info, row amounts, row total and row average.
-buildReportRows :: ReportOpts -> Query -> HashMap AccountName [MixedAmount] -> [MultiBalanceReportRow]
+buildReportRows :: ReportOpts -> Query
+                -> HashMap AccountName [Account]
+                -> [MultiBalanceReportRow]
 buildReportRows ropts q acctvalues =
     [ PeriodicReportRow a (accountNameLevel a) rowbals rowtot rowavg
-    | (a,rowbals) <- HM.toList acctvalues
+    | (a,accts) <- HM.toList acctvalues
+    , let rowbals = map balance accts
     -- The total and average for the row.
     -- These are always simply the sum/average of the displayed row amounts.
     -- Total for a cumulative/historical report is always zero.
@@ -310,21 +321,24 @@ buildReportRows ropts q acctvalues =
     , let rowavg = averageMixedAmounts rowbals
     , empty_ ropts || queryDepth q == 0 || any (not . mixedAmountLooksZero) rowbals  -- TODO: Remove this eventually, to be handled elswhere
     ]
+  where
+    balance = if tree_ ropts then aibalance else aebalance
 
--- | Calculate accounts which are to be displayed in the report
+-- | Calculate accounts which are to be displayed in the report, as well as
+-- their name and depth
 displayedAccounts :: ReportOpts -> Query
-                  -> HashMap AccountName MixedAmount
-                  -> [(Posting, Day)]
-                  -> [AccountName]
-displayedAccounts ropts q startbals ps =
+                  -> HashMap AccountName Account
+                  -> HashMap AccountName [Account]
+                  -> HashMap AccountName (AccountName, Int)
+displayedAccounts ropts q startbals valuedaccts =
+    HM.fromList $ map (\a -> (a, (a, 0))) .
     (if tree_ ropts then expandAccountNames else id) $
     nub $ map (clipOrEllipsifyAccountName depth) $
     if empty_ ropts || balancetype_ ropts == HistoricalBalance
     then nubSort $ (HM.keys startbals) ++ allpostedaccts
     else allpostedaccts
   where
-    allpostedaccts :: [AccountName] =
-      dbg'' "allpostedaccts" . sort . accountNamesFromPostings $ map fst ps
+    allpostedaccts = dbg'' "allpostedaccts" $ HM.keys valuedaccts
     depth = queryDepth q
 
 -- | Sort the rows by amount or by account declaration order. This is a bit tricky.
@@ -368,15 +382,16 @@ sortRows ropts j
 -- | Build the report totals row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-calculateTotalsRow :: ReportOpts -> [ClippedAccountName]
+calculateTotalsRow :: ReportOpts -> HashMap ClippedAccountName (ClippedAccountName, Int)
                    -> [MultiBalanceReportRow] -> PeriodicReportRow () MixedAmount
 calculateTotalsRow ropts displayaccts rows =
     PeriodicReportRow () 0 coltotals grandtotal grandaverage
   where
-    highestlevelaccts = [a | a <- displayaccts, not $ any (`elem` displayaccts) $ init $ expandAccountName a]
+    highestlevelaccts = HM.filterWithKey (\a _ -> isHighest a) displayaccts
+      where isHighest = not . any (`HM.member` displayaccts) . init . expandAccountName
 
     colamts = transpose . map prrAmounts $ filter isHighest rows
-      where isHighest row = not (tree_ ropts) || prrName row `elem` highestlevelaccts
+      where isHighest row = not (tree_ ropts) || prrName row `HM.member` highestlevelaccts
 
     coltotals :: [MixedAmount] = dbg'' "coltotals" $ map sum colamts
 
@@ -418,16 +433,16 @@ balanceReportFromMultiBalanceReport opts q j = (rows', total)
 
 
 -- | Transpose a Map of HashMaps to a HashMap of Maps.
-transposeMap :: Map DateSpan (HashMap AccountName MixedAmount)
-             -> HashMap AccountName (Map DateSpan MixedAmount)
+--
+-- Makes sure that all DateSpans are present in all rows.
+transposeMap :: Map DateSpan (HashMap AccountName a)
+             -> HashMap AccountName (Map DateSpan a)
 transposeMap xs = M.foldrWithKey addSpan mempty xs
   where
     addSpan span acctmap seen = HM.foldrWithKey (addAcctSpan span) seen acctmap
 
     addAcctSpan span acct a = HM.alter f acct
-      where f = Just . M.insert span a . fromMaybe emptySpanMap
-
-    emptySpanMap = nullmixedamt <$ xs
+      where f = Just . M.insert span a . fromMaybe mempty
 
 -- | A sorting helper: sort a list of things (eg report rows) keyed by account name
 -- to match the provided ordering of those same account names.
