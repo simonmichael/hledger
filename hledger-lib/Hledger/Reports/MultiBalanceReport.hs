@@ -118,18 +118,15 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- handles the hledger-ui+future txns case above).
       reportq = dbg "reportq" $ makeReportQuery ropts reportspan q
 
-      -- If doing cost valuation, convert amounts to cost.
-      j' = journalSelectingAmountFromOpts ropts j
-
       -- The matched accounts with a starting balance. All of these shold appear
       -- in the report, even if they have no postings during the report period.
-      startbals = dbg' "startbals" $ startingBalances ropts q j' reportspan
+      startbals = dbg' "startbals" $ startingBalances ropts reportq j reportspan
       -- The matched accounts with a starting balance. All of these should appear
       -- in the report even if they have no postings during the report period.
       startaccts = dbg'' "startaccts" $ HM.keys startbals
 
       -- Postings matching the query within the report period.
-      ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts reportq j'
+      ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts reportq j
       days = map snd ps
 
       -- The date spans to be included as report columns.
@@ -160,21 +157,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
           allpostedaccts :: [AccountName] =
             dbg'' "allpostedaccts" . sort . accountNamesFromPostings $ map fst ps
 
-      ----------------------------------------------------------------------
-      -- 6. Build the report rows.
-
-      -- One row per account, with account name info, row amounts, row total and row average.
-      rows :: [MultiBalanceReportRow] =
-          dbg'' "rows" $
-          [ PeriodicReportRow a (accountNameLevel a) rowbals rowtot rowavg
-           | (a,rowbals) <- HM.toList accumvalued
-             -- The total and average for the row.
-             -- These are always simply the sum/average of the displayed row amounts.
-             -- Total for a cumulative/historical report is always zero.
-           , let rowtot = if balancetype_==PeriodChange then sum rowbals else 0
-           , let rowavg = averageMixedAmounts rowbals
-           , empty_ || depth == 0 || any (not . mixedAmountLooksZero) rowbals
-           ]
+      -- All the rows of the report.
+      rows = dbg'' "rows" $ buildReportRows ropts reportq accumvalued
 
       ----------------------------------------------------------------------
       -- 7. Sort the report rows.
@@ -313,10 +297,9 @@ getPostings ropts q =
 -- | Remove any date queries and insert queries from the report span.
 makeReportQuery :: ReportOpts -> DateSpan -> Query -> Query
 makeReportQuery ropts reportspan q
-    | reportspan == nulldatespan = depthlessq
-    | otherwise = And [dateless depthlessq, reportspandatesq]
+    | reportspan == nulldatespan = q
+    | otherwise = And [dateless q, reportspandatesq]
   where
-    depthlessq = dbg "depthless" $ filterQuery (not . queryIsDepth) q
     reportspandatesq = dbg "reportspandatesq" $ dateqcons reportspan
     dateless   = dbg "dateless" . filterQuery (not . queryIsDateOrDate2)
     dateqcons  = if date2_ ropts then Date2 else Date
@@ -403,6 +386,21 @@ accumValueAmounts ropts j priceoracle startbals = HM.mapWithKey processRow
         multiperiod = interval_ ropts /= NoInterval
 
     startingBalanceFor a = HM.lookupDefault nullmixedamt a startbals
+
+-- | Build the report rows.
+--
+-- One row per account, with account name info, row amounts, row total and row average.
+buildReportRows :: ReportOpts -> Query -> HashMap AccountName [MixedAmount] -> [MultiBalanceReportRow]
+buildReportRows ropts q acctvalues =
+    [ PeriodicReportRow a (accountNameLevel a) rowbals rowtot rowavg
+    | (a,rowbals) <- HM.toList acctvalues
+    -- The total and average for the row.
+    -- These are always simply the sum/average of the displayed row amounts.
+    -- Total for a cumulative/historical report is always zero.
+    , let rowtot = if balancetype_ ropts == PeriodChange then sum rowbals else 0
+    , let rowavg = averageMixedAmounts rowbals
+    , empty_ ropts || queryDepth q == 0 || any (not . mixedAmountLooksZero) rowbals  -- TODO: Remove this eventually, to be handled elswhere
+    ]
 
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
