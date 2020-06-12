@@ -93,36 +93,13 @@ multiBalanceReport today ropts j =
 multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> MultiBalanceReport
 multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
   where
-    ----------------------------------------------------------------------
-    -- 1. Queries, report/column dates.
+    -- Queries, report/column dates.
+    reportspan = dbg "reportspan" $ calculateReportSpan ropts q j
+    reportq    = dbg "reportq"    $ makeReportQuery ropts reportspan q
 
-    depthq     = dbg "depthq" $ filterQuery queryIsDepth q
-    depth      = queryDepth depthq
-    -- The date span specified by -b/-e/-p options and query args if any.
-    requestedspan  = dbg "requestedspan"  $ queryDateSpan date2_ q
-    -- If the requested span is open-ended, close it using the journal's end dates.
-    -- This can still be the null (open) span if the journal is empty.
-    requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan date2_ j
-    -- The list of interval spans enclosing the requested span.
-    -- This list can be empty if the journal was empty,
-    -- or if hledger-ui has added its special date:-tomorrow to the query
-    -- and all txns are in the future.
-    intervalspans  = dbg "intervalspans"  $ splitSpan interval_ requestedspan'
-    -- The requested span enlarged to enclose a whole number of intervals.
-    -- This can be the null span if there were no intervals.
-    reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans)
-                                                      (maybe Nothing spanEnd   $ lastMay intervalspans)
-    -- The user's query with no depth limit, and expanded to the report span
-    -- if there is one (otherwise any date queries are left as-is, which
-    -- handles the hledger-ui+future txns case above).
-    reportq = dbg "reportq" $ makeReportQuery ropts reportspan q
-
-    -- The matched accounts with a starting balance. All of these shold appear
+    -- The matched accounts with a starting balance. All of these should appear
     -- in the report, even if they have no postings during the report period.
     startbals = dbg' "startbals" $ startingBalances ropts reportq j reportspan
-    -- The matched accounts with a starting balance. All of these should appear
-    -- in the report even if they have no postings during the report period.
-    startaccts = dbg'' "startaccts" $ HM.keys startbals
 
     -- Postings matching the query within the report period.
     ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts reportq j
@@ -141,16 +118,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
     accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts j priceoracle startbals acctchanges
 
     -- All account names that will be displayed, possibly depth-clipped.
-    displayaccts :: [ClippedAccountName] =
-        dbg'' "displayaccts" $
-        (if tree_ ropts then expandAccountNames else id) $
-        nub $ map (clipOrEllipsifyAccountName depth) $
-        if empty_ || balancetype_ == HistoricalBalance
-        then nubSort $ startaccts ++ allpostedaccts
-        else allpostedaccts
-      where
-        allpostedaccts :: [AccountName] =
-          dbg'' "allpostedaccts" . sort . accountNamesFromPostings $ map fst ps
+    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts q startbals ps
 
     -- All the rows of the report.
     rows = dbg'' "rows" $ buildReportRows ropts reportq accumvalued
@@ -165,6 +133,39 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
     report = dbg' "report" . postprocessReport ropts $
         PeriodicReport colspans sortedrows totalsrow
 
+
+-- | Calculate the span of the report to be generated.
+calculateReportSpan :: ReportOpts -> Query -> Journal -> DateSpan
+calculateReportSpan ropts q j = reportspan
+  where
+    -- The date span specified by -b/-e/-p options and query args if any.
+    requestedspan  = dbg "requestedspan" $ queryDateSpan (date2_ ropts) q
+    -- If the requested span is open-ended, close it using the journal's end dates.
+    -- This can still be the null (open) span if the journal is empty.
+    requestedspan' = dbg "requestedspan'" $
+        requestedspan `spanDefaultsFrom` journalDateSpan (date2_ ropts) j
+    -- The list of interval spans enclosing the requested span.
+    -- This list can be empty if the journal was empty,
+    -- or if hledger-ui has added its special date:-tomorrow to the query
+    -- and all txns are in the future.
+    intervalspans  = dbg "intervalspans" $ splitSpan (interval_ ropts) requestedspan'
+    -- The requested span enlarged to enclose a whole number of intervals.
+    -- This can be the null span if there were no intervals.
+    reportspan = DateSpan (spanStart =<< headMay intervalspans)
+                          (spanEnd =<< lastMay intervalspans)
+
+-- | Remove any date queries and insert queries from the report span.
+-- The user's query expanded to the report span
+-- if there is one (otherwise any date queries are left as-is, which
+-- handles the hledger-ui+future txns case above).
+makeReportQuery :: ReportOpts -> DateSpan -> Query -> Query
+makeReportQuery ropts reportspan q
+    | reportspan == nulldatespan = q
+    | otherwise = And [dateless q, reportspandatesq]
+  where
+    reportspandatesq = dbg "reportspandatesq" $ dateqcons reportspan
+    dateless   = dbg "dateless" . filterQuery (not . queryIsDateOrDate2)
+    dateqcons  = if date2_ ropts then Date2 else Date
 
 -- | Calculate starting balances, if needed for -H
 --
@@ -211,16 +212,6 @@ getPostings ropts q =
     date = case whichDateFromOpts ropts of
         PrimaryDate   -> postingDate
         SecondaryDate -> postingDate2
-
--- | Remove any date queries and insert queries from the report span.
-makeReportQuery :: ReportOpts -> DateSpan -> Query -> Query
-makeReportQuery ropts reportspan q
-    | reportspan == nulldatespan = q
-    | otherwise = And [dateless q, reportspandatesq]
-  where
-    reportspandatesq = dbg "reportspandatesq" $ dateqcons reportspan
-    dateless   = dbg "dateless" . filterQuery (not . queryIsDateOrDate2)
-    dateqcons  = if date2_ ropts then Date2 else Date
 
 -- | Calculate the DateSpans to be used for the columns of the report.
 calculateColSpans :: ReportOpts -> DateSpan -> [Day] -> [DateSpan]
@@ -319,6 +310,22 @@ buildReportRows ropts q acctvalues =
     , let rowavg = averageMixedAmounts rowbals
     , empty_ ropts || queryDepth q == 0 || any (not . mixedAmountLooksZero) rowbals  -- TODO: Remove this eventually, to be handled elswhere
     ]
+
+-- | Calculate accounts which are to be displayed in the report
+displayedAccounts :: ReportOpts -> Query
+                  -> HashMap AccountName MixedAmount
+                  -> [(Posting, Day)]
+                  -> [AccountName]
+displayedAccounts ropts q startbals ps =
+    (if tree_ ropts then expandAccountNames else id) $
+    nub $ map (clipOrEllipsifyAccountName depth) $
+    if empty_ ropts || balancetype_ ropts == HistoricalBalance
+    then nubSort $ (HM.keys startbals) ++ allpostedaccts
+    else allpostedaccts
+  where
+    allpostedaccts :: [AccountName] =
+      dbg'' "allpostedaccts" . sort . accountNamesFromPostings $ map fst ps
+    depth = queryDepth q
 
 -- | Sort the rows by amount or by account declaration order. This is a bit tricky.
 -- TODO: is it always ok to sort report rows after report has been generated, as a separate step ?
