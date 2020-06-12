@@ -116,14 +116,6 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- handles the hledger-ui+future txns case above).
       reportq = dbg "reportq" $ makeReportQuery ropts reportspan q
 
-      -- The date spans to be included as report columns.
-      colspans :: [DateSpan] = dbg "colspans" $ splitSpan interval_ displayspan
-        where
-          displayspan
-            | empty_    = dbg "displayspan (-E)" reportspan                              -- all the requested intervals
-            | otherwise = dbg "displayspan" $ requestedspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
-          matchedspan = dbg "matchedspan" . daysSpan $ map snd ps
-
       -- If doing cost valuation, convert amounts to cost.
       j' = journalSelectingAmountFromOpts ropts j
 
@@ -141,6 +133,10 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 
       -- Postings matching the query within the report period.
       ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts reportq j'
+      days = map snd ps
+
+      -- The date spans to be included as report columns.
+      colspans = dbg "colspans" $ calculateColSpans ropts reportspan days
 
       -- Group postings into their columns, with the column end dates.
       colps :: [([Posting], Maybe Day)] =
@@ -367,7 +363,7 @@ getPostings ropts q =
         PrimaryDate   -> postingDate
         SecondaryDate -> postingDate2
 
--- | Remove any date queries and insert queries from the report span
+-- | Remove any date queries and insert queries from the report span.
 makeReportQuery :: ReportOpts -> DateSpan -> Query -> Query
 makeReportQuery ropts reportspan q
     | reportspan == nulldatespan = depthlessq
@@ -377,6 +373,17 @@ makeReportQuery ropts reportspan q
     reportspandatesq = dbg1 "reportspandatesq" $ dateqcons reportspan
     dateless   = dbg1 "dateless" . filterQuery (not . queryIsDateOrDate2)
     dateqcons  = if date2_ ropts then Date2 else Date
+
+-- | Calculate the DateSpans to be used for the columns of the report.
+calculateColSpans :: ReportOpts -> DateSpan -> [Day] -> [DateSpan]
+calculateColSpans ropts reportspan days =
+    splitSpan (interval_ ropts) displayspan
+  where
+    displayspan
+      | empty_ ropts = dbg "displayspan (-E)" reportspan                        -- all the requested intervals
+      | otherwise = dbg "displayspan" $ reportspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
+    matchedspan = dbg "matchedspan" $ daysSpan days
+
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
 -- in order to support --historical. Does not support tree-mode boring parent eliding.
