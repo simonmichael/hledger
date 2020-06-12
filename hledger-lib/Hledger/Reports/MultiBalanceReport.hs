@@ -22,8 +22,11 @@ module Hledger.Reports.MultiBalanceReport (
 )
 where
 
+import Data.Foldable (toList)
 import Data.List
 import Data.List.Extra (nubSort)
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
@@ -125,12 +128,9 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       startbals = dbg' "startbals" $ startingBalances ropts q j' reportspan
       -- The matched accounts with a starting balance. All of these should appear
       -- in the report even if they have no postings during the report period.
-      startaccts = dbg'' "startaccts" $ map fst startbals
+      startaccts = dbg'' "startaccts" $ HM.keys startbals
       -- Helpers to look up an account's starting balance.
-      startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startbals
-
-      ----------------------------------------------------------------------
-      -- 3. Gather postings for each column.
+      startingBalanceFor a = HM.lookupDefault nullmixedamt a startbals
 
       -- Postings matching the query within the report period.
       ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts reportq j'
@@ -142,21 +142,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- Group postings into their columns.
       colps = dbg'' "colps" $ calculateColumns colspans ps
 
-      ----------------------------------------------------------------------
-      -- 4. Calculate account balance changes in each column.
-
-      -- In each column, gather the accounts that have postings and their change amount.
-      acctChangesFromPostings :: [Posting] -> [(ClippedAccountName, MixedAmount)]
-      acctChangesFromPostings ps = [(aname a, (if tree_ ropts then aibalance else aebalance) a) | a <- as]
-          where
-            as = depthLimit $
-                 (if tree_ ropts then id else filter ((>0).anumpostings)) $
-                 drop 1 $ accountsFromPostings ps
-            depthLimit
-                | tree_ ropts = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
-                | otherwise   = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
-      colacctchanges :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg'' "colacctchanges" $ map (acctChangesFromPostings . snd) $ M.toList colps
+      -- Each account's balance changes across all columns.
+      acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts q startbals colps
 
       ----------------------------------------------------------------------
       -- 5. Gather the account balance changes into a regular matrix including the accounts
@@ -173,16 +160,6 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
         where
           allpostedaccts :: [AccountName] =
             dbg'' "allpostedaccts" . sort . accountNamesFromPostings $ map fst ps
-      -- Each column's balance changes for each account, adding zeroes where needed.
-      colallacctchanges :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg'' "colallacctchanges"
-          [ sortOn fst $ unionBy (\(a,_) (a',_) -> a == a') postedacctchanges zeroes
-             | postedacctchanges <- colacctchanges ]
-          where zeroes = [(a, nullmixedamt) | a <- displayaccts]
-      -- Transpose to get each account's balance changes across all columns.
-      acctchanges :: [(ClippedAccountName, [MixedAmount])] =
-          dbg'' "acctchanges"
-          [(a, map snd abs) | abs@((a,_):_) <- transpose colallacctchanges] -- never null, or used when null...
 
       ----------------------------------------------------------------------
       -- 6. Build the report rows.
@@ -191,7 +168,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       rows :: [MultiBalanceReportRow] =
           dbg'' "rows" $
           [ PeriodicReportRow a (accountNameLevel a) valuedrowbals rowtot rowavg
-           | (a,changes) <- dbg'' "acctchanges" acctchanges
+           | (a,changesMap) <- HM.toList acctchanges
+           , let changes = toList changesMap
              -- The row amounts to be displayed: per-period changes,
              -- zero-based cumulative totals, or
              -- starting-balance-based historical balances.
@@ -315,8 +293,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 --
 -- Balances at report start date, from all earlier postings which otherwise match the query.
 -- These balances are unvalued except maybe converted to cost.
-startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> [(AccountName, MixedAmount)]
-startingBalances ropts q j reportspan = map (\(a,_,_,b) -> (a,b)) startbalanceitems
+startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> HashMap AccountName MixedAmount
+startingBalances ropts q j reportspan = HM.fromList $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
   where
     (startbalanceitems,_) = dbg'' "starting balance report" $
         balanceReport ropts''{value_=Nothing, percent_=False} startbalq j
@@ -386,6 +364,37 @@ calculateColumns colspans = foldr addPosting emptyMap
     addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
     emptyMap = M.fromList . zip colspans $ repeat []
 
+-- | Calculate account balance changes in each column.
+--
+-- In each column, gather the accounts that have postings and their change amount.
+acctChangesFromPostings :: ReportOpts -> Query -> [Posting] -> HashMap ClippedAccountName MixedAmount
+acctChangesFromPostings ropts q ps =
+    HM.fromList [(aname a, (if tree_ ropts then aibalance else aebalance) a) | a <- as]
+  where
+    as = depthLimit $
+         (if tree_ ropts then id else filter ((>0).anumpostings)) $
+         drop 1 $ accountsFromPostings ps
+    depthLimit
+      | tree_ ropts = filter ((depthq `matchesAccount`) . aname) -- exclude deeper balances
+      | otherwise   = clipAccountsAndAggregate $ queryDepth depthq -- aggregate deeper balances at the depth limit
+    depthq = dbg1 "depthq" $ filterQuery queryIsDepth q
+
+-- | Gather the account balance changes into a regular matrix including the accounts
+-- from all columns
+calculateAccountChanges :: ReportOpts -> Query
+                        -> HashMap ClippedAccountName MixedAmount
+                        -> Map DateSpan [Posting]
+                        -> HashMap ClippedAccountName (Map DateSpan MixedAmount)
+calculateAccountChanges ropts q startbals colps = acctchanges
+  where
+    -- Transpose to get each account's balance changes across all columns.
+    acctchanges = transposeMap colacctchanges <> (zeros <$ startbals)
+
+    colacctchanges :: Map DateSpan (HashMap ClippedAccountName MixedAmount) =
+      dbg'' "colacctchanges" $ fmap (acctChangesFromPostings ropts q) colps
+
+    zeros = nullmixedamt <$ colacctchanges
+
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
 -- in order to support --historical. Does not support tree-mode boring parent eliding.
@@ -403,6 +412,20 @@ balanceReportFromMultiBalanceReport opts q j = (rows', total)
              ) | PeriodicReportRow a d amts _ _ <- rows]
     total = headDef nullmixedamt totals
 
+
+-- | Transpose a Map of HashMaps to a HashMap of Maps.
+transposeMap :: Map DateSpan (HashMap AccountName MixedAmount)
+             -> HashMap AccountName (Map DateSpan MixedAmount)
+transposeMap xs = M.foldrWithKey addSpan mempty xs
+  where
+    addSpan span acctmap seen = HM.foldrWithKey (addAcctSpan span) seen acctmap
+
+    addAcctSpan span acct a = HM.alter f acct
+      where f = Just . M.insert span a . fromMaybe emptySpanMap
+
+    emptySpanMap = nullmixedamt <$ xs
+
+
 -- Local debug helper
 -- add a prefix to this function's debug output
 dbg   s = let p = "multiBalanceReport" in Hledger.Utils.dbg3 (p++" "++s)
@@ -411,7 +434,6 @@ dbg'' s = let p = "multiBalanceReport" in Hledger.Utils.dbg5 (p++" "++s)
 -- dbg = const id  -- exclude this function from debug output
 
 -- common rendering helper, XXX here for now
-
 tableAsText :: ReportOpts -> (a -> String) -> Table String String a -> String
 tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
   unlines
