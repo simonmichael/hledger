@@ -95,12 +95,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       ----------------------------------------------------------------------
       -- 1. Queries, report/column dates.
 
-      symq       = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
       depthq     = dbg "depthq" $ filterQuery queryIsDepth q
       depth      = queryDepth depthq
-      depthless  = dbg "depthless" . filterQuery (not . queryIsDepth)
-      datelessq  = dbg "datelessq"  $ filterQuery (not . queryIsDateOrDate2) q
-      dateqcons  = if date2_ then Date2 else Date
       -- The date span specified by -b/-e/-p options and query args if any.
       requestedspan  = dbg "requestedspan"  $ queryDateSpan date2_ q
       -- If the requested span is open-ended, close it using the journal's end dates.
@@ -118,12 +114,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- The user's query with no depth limit, and expanded to the report span
       -- if there is one (otherwise any date queries are left as-is, which
       -- handles the hledger-ui+future txns case above).
-      reportq   = dbg "reportq" $ depthless $
-        if reportspan == nulldatespan
-        then q
-        else And [datelessq, reportspandatesq]
-          where
-            reportspandatesq = dbg "reportspandatesq" $ dateqcons reportspan
+      reportq = dbg "reportq" $ makeReportQuery ropts reportspan q
+
       -- The date spans to be included as report columns.
       colspans :: [DateSpan] = dbg "colspans" $ splitSpan interval_ displayspan
         where
@@ -135,13 +127,9 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- If doing cost valuation, convert amounts to cost.
       j' = journalSelectingAmountFromOpts ropts j
 
-      ----------------------------------------------------------------------
-      -- 2. Calculate starting balances, if needed for -H
-
-      -- Balances at report start date, from all earlier postings which otherwise match the query.
-      -- These balances are unvalued except maybe converted to cost.
-      startbals :: [(AccountName, MixedAmount)] = dbg' "startbals" $
-          startingBalances ropts q j reportspan
+      -- The matched accounts with a starting balance. All of these shold appear
+      -- in the report, even if they have no postings during the report period.
+      startbals = dbg' "startbals" $ startingBalances ropts q j' reportspan
       -- The matched accounts with a starting balance. All of these should appear
       -- in the report even if they have no postings during the report period.
       startaccts = dbg'' "startaccts" $ map fst startbals
@@ -152,17 +140,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- 3. Gather postings for each column.
 
       -- Postings matching the query within the report period.
-      ps :: [(Posting, Day)] =
-          dbg'' "ps" $
-          map postingWithDate $
-          journalPostings $
-          filterJournalAmounts symq $      -- remove amount parts excluded by cur:
-          filterJournalPostings reportq $  -- remove postings not matched by (adjusted) query
-          j'
-        where
-          postingWithDate p = case whichDateFromOpts ropts of
-              PrimaryDate   -> (p, postingDate p)
-              SecondaryDate -> (p, postingDate2 p)
+      ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts reportq j'
 
       -- Group postings into their columns, with the column end dates.
       colps :: [([Posting], Maybe Day)] =
@@ -368,6 +346,37 @@ startingBalances ropts q j reportspan = map (\(a,_,_,b) -> (a,b)) startbalanceit
     precedingspanq = (if date2_ ropts then Date2 else Date) $ case precedingspan of
         DateSpan Nothing Nothing -> emptydatespan
         a -> a
+
+
+-- | Gather postings matching the query within the report period.
+getPostings :: ReportOpts -> Query -> Journal -> [(Posting, Day)]
+getPostings ropts q =
+    map (\p -> (p, date p)) .
+    journalPostings .
+    filterJournalAmounts symq .    -- remove amount parts excluded by cur:
+    filterJournalPostings reportq  -- remove postings not matched by (adjusted) query
+  where
+    symq = dbg "symq" . filterQuery queryIsSym $ dbg1 "requested q" q
+    -- The user's query with no depth limit, and expanded to the report span
+    -- if there is one (otherwise any date queries are left as-is, which
+    -- handles the hledger-ui+future txns case above).
+    reportq = dbg "reportq" $ depthless q
+    depthless = dbg "depthless" . filterQuery (not . queryIsDepth)
+
+    date = case whichDateFromOpts ropts of
+        PrimaryDate   -> postingDate
+        SecondaryDate -> postingDate2
+
+-- | Remove any date queries and insert queries from the report span
+makeReportQuery :: ReportOpts -> DateSpan -> Query -> Query
+makeReportQuery ropts reportspan q
+    | reportspan == nulldatespan = depthlessq
+    | otherwise = And [dateless depthlessq, reportspandatesq]
+  where
+    depthlessq = dbg1 "depthless" $ filterQuery (not . queryIsDepth) q
+    reportspandatesq = dbg1 "reportspandatesq" $ dateqcons reportspan
+    dateless   = dbg1 "dateless" . filterQuery (not . queryIsDateOrDate2)
+    dateqcons  = if date2_ ropts then Date2 else Date
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
 -- in order to support --historical. Does not support tree-mode boring parent eliding.
