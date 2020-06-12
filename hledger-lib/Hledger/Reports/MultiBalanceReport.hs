@@ -24,6 +24,7 @@ where
 
 import Data.List
 import Data.List.Extra (nubSort)
+import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Ord
@@ -138,14 +139,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- The date spans to be included as report columns.
       colspans = dbg "colspans" $ calculateColSpans ropts reportspan days
 
-      -- Group postings into their columns, with the column end dates.
-      colps :: [([Posting], Maybe Day)] =
-          dbg'' "colps"
-          [ (posts, end) | (DateSpan _ end, posts) <- M.toList colMap ]
-        where
-          colMap = foldr addPosting emptyMap ps
-          addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
-          emptyMap = M.fromList . zip colspans $ repeat []
+      -- Group postings into their columns.
+      colps = dbg'' "colps" $ calculateColumns colspans ps
 
       ----------------------------------------------------------------------
       -- 4. Calculate account balance changes in each column.
@@ -161,7 +156,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
                 | tree_ ropts = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
                 | otherwise   = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
       colacctchanges :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg'' "colacctchanges" $ map (acctChangesFromPostings . fst) colps
+          dbg'' "colacctchanges" $ map (acctChangesFromPostings . snd) $ M.toList colps
 
       ----------------------------------------------------------------------
       -- 5. Gather the account balance changes into a regular matrix including the accounts
@@ -383,6 +378,13 @@ calculateColSpans ropts reportspan days =
       | empty_ ropts = dbg "displayspan (-E)" reportspan                        -- all the requested intervals
       | otherwise = dbg "displayspan" $ reportspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
     matchedspan = dbg "matchedspan" $ daysSpan days
+
+-- | Group postings into their columns.
+calculateColumns :: [DateSpan] -> [(Posting, Day)] -> Map DateSpan [Posting]
+calculateColumns colspans = foldr addPosting emptyMap
+  where
+    addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
+    emptyMap = M.fromList . zip colspans $ repeat []
 
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
