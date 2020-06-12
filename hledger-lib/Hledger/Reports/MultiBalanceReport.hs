@@ -42,7 +42,6 @@ import Hledger.Utils
 import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
-import Hledger.Reports.BalanceReport
 
 
 -- | A multi balance report is a kind of periodic report, where the amounts
@@ -294,10 +293,10 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 -- Balances at report start date, from all earlier postings which otherwise match the query.
 -- These balances are unvalued except maybe converted to cost.
 startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> HashMap AccountName MixedAmount
-startingBalances ropts q j reportspan = HM.fromList $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
+startingBalances ropts q j reportspan = acctchanges
   where
-    (startbalanceitems,_) = dbg'' "starting balance report" $
-        balanceReport ropts''{value_=Nothing, percent_=False} startbalq j
+    acctchanges = acctChangesFromPostings ropts'' startbalq . map fst $
+        getPostings ropts'' startbalq j
 
     -- q projected back before the report start date.
     -- When there's no report start date, in case there are future txns (the hledger-ui case above),
@@ -325,7 +324,7 @@ getPostings ropts q =
     filterJournalAmounts symq .    -- remove amount parts excluded by cur:
     filterJournalPostings reportq  -- remove postings not matched by (adjusted) query
   where
-    symq = dbg "symq" . filterQuery queryIsSym $ dbg1 "requested q" q
+    symq = dbg "symq" . filterQuery queryIsSym $ dbg "requested q" q
     -- The user's query with no depth limit, and expanded to the report span
     -- if there is one (otherwise any date queries are left as-is, which
     -- handles the hledger-ui+future txns case above).
@@ -342,9 +341,9 @@ makeReportQuery ropts reportspan q
     | reportspan == nulldatespan = depthlessq
     | otherwise = And [dateless depthlessq, reportspandatesq]
   where
-    depthlessq = dbg1 "depthless" $ filterQuery (not . queryIsDepth) q
-    reportspandatesq = dbg1 "reportspandatesq" $ dateqcons reportspan
-    dateless   = dbg1 "dateless" . filterQuery (not . queryIsDateOrDate2)
+    depthlessq = dbg "depthless" $ filterQuery (not . queryIsDepth) q
+    reportspandatesq = dbg "reportspandatesq" $ dateqcons reportspan
+    dateless   = dbg "dateless" . filterQuery (not . queryIsDateOrDate2)
     dateqcons  = if date2_ ropts then Date2 else Date
 
 -- | Calculate the DateSpans to be used for the columns of the report.
@@ -377,7 +376,7 @@ acctChangesFromPostings ropts q ps =
     depthLimit
       | tree_ ropts = filter ((depthq `matchesAccount`) . aname) -- exclude deeper balances
       | otherwise   = clipAccountsAndAggregate $ queryDepth depthq -- aggregate deeper balances at the depth limit
-    depthq = dbg1 "depthq" $ filterQuery queryIsDepth q
+    depthq = dbg "depthq" $ filterQuery queryIsDepth q
 
 -- | Gather the account balance changes into a regular matrix including the accounts
 -- from all columns
@@ -400,7 +399,8 @@ calculateAccountChanges ropts q startbals colps = acctchanges
 -- in order to support --historical. Does not support tree-mode boring parent eliding.
 -- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts
 -- (see ReportOpts and CompoundBalanceCommand).
-balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
+balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal
+    -> ([(AccountName, AccountName, Int, MixedAmount)], MixedAmount)
 balanceReportFromMultiBalanceReport opts q j = (rows', total)
   where
     PeriodicReport _ rows (PeriodicReportRow _ _ totals _ _) =
@@ -425,6 +425,38 @@ transposeMap xs = M.foldrWithKey addSpan mempty xs
 
     emptySpanMap = nullmixedamt <$ xs
 
+-- | A sorting helper: sort a list of things (eg report rows) keyed by account name
+-- to match the provided ordering of those same account names.
+sortAccountItemsLike :: [AccountName] -> [(AccountName, b)] -> [b]
+sortAccountItemsLike sortedas items =
+  concatMap (\a -> maybe [] (:[]) $ lookup a items) sortedas
+
+-- | Helper to unify a MixedAmount to a single commodity value.
+-- Like normaliseMixedAmount, this consolidates amounts of the same commodity
+-- and discards zero amounts; but this one insists on simplifying to
+-- a single commodity, and will throw a program-terminating error if
+-- this is not possible.
+unifyMixedAmount :: MixedAmount -> Amount
+unifyMixedAmount mixedAmount = foldl combine (num 0) (amounts mixedAmount)
+  where
+    combine amount result =
+      if amountIsZero amount
+      then result
+      else if amountIsZero result
+        then amount
+        else if acommodity amount == acommodity result
+          then amount + result
+          else error' "Cannot calculate percentages for accounts with multiple commodities. (Hint: Try --cost, -V or similar flags.)"
+
+-- | Helper to calculate the percentage from two mixed. Keeps the sign of the first argument.
+-- Uses unifyMixedAmount to unify each argument and then divides them.
+perdivide :: MixedAmount -> MixedAmount -> MixedAmount
+perdivide a b =
+  let a' = unifyMixedAmount a
+      b' = unifyMixedAmount b
+  in if amountIsZero a' || amountIsZero b' || acommodity a' == acommodity b'
+    then mixed [per $ if aquantity b' == 0 then 0 else (aquantity a' / abs (aquantity b') * 100)]
+    else error' "Cannot calculate percentages if accounts have different commodities. (Hint: Try --cost, -V or similar flags.)"
 
 -- Local debug helper
 -- add a prefix to this function's debug output
