@@ -24,7 +24,6 @@ module Hledger.Reports.MultiBalanceReport (
 where
 
 import Data.List
-import Data.List.Extra (nubSort)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
@@ -118,7 +117,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
     accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts j priceoracle colspans startbals acctchanges
 
     -- All account names that will be displayed, possibly depth-clipped.
-    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts q startbals accumvalued
+    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts q accumvalued
 
     -- All the rows of the report.
     rows = dbg'' "rows" $ buildReportRows ropts reportq accumvalued
@@ -170,12 +169,15 @@ makeReportQuery ropts reportspan q
 -- | Calculate starting balances, if needed for -H
 --
 -- Balances at report start date, from all earlier postings which otherwise match the query.
--- These balances are unvalued except maybe converted to cost.
+-- These balances are unvalued.
+-- TODO: Do we want to check whether to bother calculating these? isHistorical
+-- and startDate is not nothing, otherwise mempty? This currently gives a
+-- failure with some totals which are supposed to be 0 being blank.
 startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> HashMap AccountName Account
 startingBalances ropts q j reportspan = acctchanges
   where
-    acctchanges = acctChangesFromPostings ropts'' startbalq . map fst $
-        getPostings ropts'' startbalq j
+    acctchanges = acctChangesFromPostings ropts' startbalq . map fst $
+        getPostings ropts' startbalq j
 
     -- q projected back before the report start date.
     -- When there's no report start date, in case there are future txns (the hledger-ui case above),
@@ -183,9 +185,8 @@ startingBalances ropts q j reportspan = acctchanges
     startbalq = dbg'' "startbalq" $ And [datelessq, precedingspanq]
     datelessq = dbg "datelessq" $ filterQuery (not . queryIsDateOrDate2) q
 
-    ropts' | tree_ ropts = ropts{no_elide_=True}
-           | otherwise   = ropts{accountlistmode_=ALFlat}
-    ropts'' = ropts'{period_ = precedingperiod}
+    ropts' | tree_ ropts = ropts{no_elide_=True, period_=precedingperiod}
+           | otherwise   = ropts{accountlistmode_=ALFlat, period_=precedingperiod}
 
     precedingperiod = dateSpanAsPeriod . spanIntersect precedingspan .
                          periodAsDateSpan $ period_ ropts
@@ -327,18 +328,26 @@ buildReportRows ropts q acctvalues =
 -- | Calculate accounts which are to be displayed in the report, as well as
 -- their name and depth
 displayedAccounts :: ReportOpts -> Query
-                  -> HashMap AccountName Account
                   -> HashMap AccountName [Account]
                   -> HashMap AccountName (AccountName, Int)
-displayedAccounts ropts q startbals valuedaccts =
-    HM.fromList $ map (\a -> (a, (a, 0))) .
+displayedAccounts ropts q valuedaccts =
+    HM.fromList $ map (\a -> (a, elidedName a)) .
     (if tree_ ropts then expandAccountNames else id) $
     nub $ map (clipOrEllipsifyAccountName depth) $
-    if empty_ ropts || balancetype_ ropts == HistoricalBalance
-    then nubSort $ (HM.keys startbals) ++ allpostedaccts
-    else allpostedaccts
+    allpostedaccts
   where
     allpostedaccts = dbg'' "allpostedaccts" $ HM.keys valuedaccts
+
+    elidedName name
+        | depth == 0 = ("...", 0)
+        | otherwise = (elided, accountNameLevel name - boringParents)
+      where
+        elided = accountNameFromComponents . reverse . map accountLeafName $
+            name : takeWhile (not . isDisplayed) parents
+        boringParents = length $ filter (not . isDisplayed) parents
+        parents = parentAccountNames name
+
+    isDisplayed = const True
     depth = queryDepth q
 
 -- | Sort the rows by amount or by account declaration order. This is a bit tricky.
@@ -393,6 +402,8 @@ calculateTotalsRow ropts displayaccts rows =
     colamts = transpose . map prrAmounts $ filter isHighest rows
       where isHighest row = not (tree_ ropts) || prrName row `HM.member` highestlevelaccts
 
+    -- TODO: If colamts is null, then this is empty. Do we want it to be a full
+    -- column of zeros?
     coltotals :: [MixedAmount] = dbg'' "coltotals" $ map sum colamts
 
     -- Calculate the grand total and average. These are always the sum/average
