@@ -141,10 +141,6 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- Process changes into normal, cumulative, or historical amounts, plus value them
       accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts j priceoracle startbals acctchanges
 
-      ----------------------------------------------------------------------
-      -- 5. Gather the account balance changes into a regular matrix including the accounts
-      -- from all columns (and with -H, accounts with starting balances), adding zeroes where needed.
-
       -- All account names that will be displayed, possibly depth-clipped.
       displayaccts :: [ClippedAccountName] =
           dbg'' "displayaccts" $
@@ -160,49 +156,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- All the rows of the report.
       rows = dbg'' "rows" $ buildReportRows ropts reportq accumvalued
 
-      ----------------------------------------------------------------------
-      -- 7. Sort the report rows.
-
-      -- Sort the rows by amount or by account declaration order. This is a bit tricky.
-      -- TODO: is it always ok to sort report rows after report has been generated, as a separate step ?
-      sortedrows :: [MultiBalanceReportRow] =
-        dbg' "sortedrows" $
-        sortrows rows
-        where
-          sortrows
-            | sort_amount_ && accountlistmode_ == ALTree = sortTreeMBRByAmount
-            | sort_amount_                               = sortFlatMBRByAmount
-            | otherwise                                  = sortMBRByAccountDeclaration
-            where
-              -- Sort the report rows, representing a tree of accounts, by row total at each level.
-              -- Similar to sortMBRByAccountDeclaration/sortAccountNamesByDeclaration.
-              sortTreeMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
-              sortTreeMBRByAmount rows = sortedrows
-                where
-                  anamesandrows = [(prrName r, r) | r <- rows]
-                  anames = map fst anamesandrows
-                  atotals = [(prrName r, prrTotal r) | r <- rows]
-                  accounttree = accountTree "root" anames
-                  accounttreewithbals = mapAccounts setibalance accounttree
-                    where
-                      -- should not happen, but it's dangerous; TODO
-                      setibalance a = a{aibalance=fromMaybe (error "sortTreeMBRByAmount 1") $ lookup (aname a) atotals}
-                  sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive normalbalance_) accounttreewithbals
-                  sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
-                  sortedrows = sortAccountItemsLike sortedanames anamesandrows
-
-              -- Sort the report rows, representing a flat account list, by row total.
-              sortFlatMBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . prrTotal))
-                where
-                  maybeflip = if normalbalance_ == Just NormallyNegative then id else flip
-
-              -- Sort the report rows by account declaration order then account name.
-              sortMBRByAccountDeclaration rows = sortedrows
-                where
-                  anamesandrows = [(prrName r, r) | r <- rows]
-                  anames = map fst anamesandrows
-                  sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
-                  sortedrows = sortAccountItemsLike sortedanames anamesandrows
+      -- Sorted report rows.
+      sortedrows = dbg' "sortedrows" $ sortRows ropts j rows
 
       ----------------------------------------------------------------------
       -- 8. Build the report totals row.
@@ -401,6 +356,44 @@ buildReportRows ropts q acctvalues =
     , let rowavg = averageMixedAmounts rowbals
     , empty_ ropts || queryDepth q == 0 || any (not . mixedAmountLooksZero) rowbals  -- TODO: Remove this eventually, to be handled elswhere
     ]
+
+-- | Sort the rows by amount or by account declaration order. This is a bit tricky.
+-- TODO: is it always ok to sort report rows after report has been generated, as a separate step ?
+sortRows :: ReportOpts -> Journal -> [MultiBalanceReportRow] -> [MultiBalanceReportRow]
+sortRows ropts j
+    | sort_amount_ ropts && accountlistmode_ ropts == ALTree = sortTreeMBRByAmount
+    | sort_amount_ ropts                                     = sortFlatMBRByAmount
+    | otherwise                                              = sortMBRByAccountDeclaration
+  where
+    -- Sort the report rows, representing a tree of accounts, by row total at each level.
+    -- Similar to sortMBRByAccountDeclaration/sortAccountNamesByDeclaration.
+    sortTreeMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
+    sortTreeMBRByAmount rows = sortedrows
+      where
+        anamesandrows = [(prrName r, r) | r <- rows]
+        anames = map fst anamesandrows
+        atotals = [(prrName r, prrTotal r) | r <- rows]
+        accounttree = accountTree "root" anames
+        accounttreewithbals = mapAccounts setibalance accounttree
+          where
+            -- should not happen, but it's dangerous; TODO
+            setibalance a = a{aibalance=fromMaybe (error "sortTreeMBRByAmount 1") $ lookup (aname a) atotals}
+        sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
+        sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
+        sortedrows = sortAccountItemsLike sortedanames anamesandrows
+
+    -- Sort the report rows, representing a flat account list, by row total.
+    sortFlatMBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . prrTotal))
+      where
+        maybeflip = if normalbalance_ ropts == Just NormallyNegative then id else flip
+
+    -- Sort the report rows by account declaration order then account name.
+    sortMBRByAccountDeclaration rows = sortedrows
+      where
+        anamesandrows = [(prrName r, r) | r <- rows]
+        anames = map fst anamesandrows
+        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
+        sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
