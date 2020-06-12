@@ -22,7 +22,6 @@ module Hledger.Reports.MultiBalanceReport (
 )
 where
 
-import Data.Foldable (toList)
 import Data.List
 import Data.List.Extra (nubSort)
 import Data.HashMap.Strict (HashMap)
@@ -128,8 +127,6 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- The matched accounts with a starting balance. All of these should appear
       -- in the report even if they have no postings during the report period.
       startaccts = dbg'' "startaccts" $ HM.keys startbals
-      -- Helpers to look up an account's starting balance.
-      startingBalanceFor a = HM.lookupDefault nullmixedamt a startbals
 
       -- Postings matching the query within the report period.
       ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts reportq j'
@@ -143,6 +140,9 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 
       -- Each account's balance changes across all columns.
       acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts q startbals colps
+
+      -- Process changes into normal, cumulative, or historical amounts, plus value them
+      accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts j priceoracle startbals acctchanges
 
       ----------------------------------------------------------------------
       -- 5. Gather the account balance changes into a regular matrix including the accounts
@@ -166,40 +166,15 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
       -- One row per account, with account name info, row amounts, row total and row average.
       rows :: [MultiBalanceReportRow] =
           dbg'' "rows" $
-          [ PeriodicReportRow a (accountNameLevel a) valuedrowbals rowtot rowavg
-           | (a,changesMap) <- HM.toList acctchanges
-           , let changes = toList changesMap
-             -- The row amounts to be displayed: per-period changes,
-             -- zero-based cumulative totals, or
-             -- starting-balance-based historical balances.
-           , let rowbals = dbg'' "rowbals" $ case balancetype_ of
-                   PeriodChange      -> changes
-                   CumulativeChange  -> drop 1 $ scanl (+) 0                      changes
-                   HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
-             -- We may be converting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-           , let valuedrowbals = dbg'' "valuedrowbals" $ [avalue periodlastday amt | (amt,periodlastday) <- zip rowbals lastdays]
+          [ PeriodicReportRow a (accountNameLevel a) rowbals rowtot rowavg
+           | (a,rowbals) <- HM.toList accumvalued
              -- The total and average for the row.
              -- These are always simply the sum/average of the displayed row amounts.
              -- Total for a cumulative/historical report is always zero.
-           , let rowtot = if balancetype_==PeriodChange then sum valuedrowbals else 0
-           , let rowavg = averageMixedAmounts valuedrowbals
-           , empty_ || depth == 0 || any (not . mixedAmountLooksZero) valuedrowbals
+           , let rowtot = if balancetype_==PeriodChange then sum rowbals else 0
+           , let rowavg = averageMixedAmounts rowbals
+           , empty_ || depth == 0 || any (not . mixedAmountLooksZero) rowbals
            ]
-        where
-          avalue periodlast =
-            maybe id (mixedAmountApplyValuation priceoracle styles periodlast mreportlast today multiperiod) value_
-            where
-              -- Some things needed if doing valuation.
-              styles = journalCommodityStyles j
-              mreportlast = reportPeriodLastDay ropts
-              today = fromMaybe (error' "multiBalanceReport: could not pick a valuation date, ReportOpts today_ is unset") today_  -- XXX shouldn't happen
-              multiperiod = interval_ /= NoInterval
-          -- The last day of each column's subperiod.
-          lastdays =
-            map ((maybe
-                  (error' "multiBalanceReport: expected all spans to have an end date")  -- XXX should not happen
-                  (addDays (-1)))
-                . spanEnd) colspans
 
       ----------------------------------------------------------------------
       -- 7. Sort the report rows.
@@ -393,6 +368,41 @@ calculateAccountChanges ropts q startbals colps = acctchanges
       dbg'' "colacctchanges" $ fmap (acctChangesFromPostings ropts q) colps
 
     zeros = nullmixedamt <$ colacctchanges
+
+-- | Accumulate and value amounts, as specified by the report options.
+accumValueAmounts :: ReportOpts -> Journal -> PriceOracle
+                  -> HashMap ClippedAccountName MixedAmount
+                  -> HashMap ClippedAccountName (Map DateSpan MixedAmount)
+                  -> HashMap ClippedAccountName [MixedAmount]
+accumValueAmounts ropts j priceoracle startbals = HM.mapWithKey processRow
+  where
+    processRow name col = zipWith valueAcct spans $ rowbals name amts
+      where (spans, amts) = unzip $ M.toList col
+
+    -- The row amounts to be displayed: per-period changes,
+    -- zero-based cumulative totals, or
+    -- starting-balance-based historical balances.
+    rowbals name changes = dbg'' "rowbals" $ case balancetype_ ropts of
+        PeriodChange      -> changes
+        CumulativeChange  -> drop 1 $ scanl (+) 0                         changes
+        HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor name) changes
+
+    -- We may be converting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
+    valueAcct (DateSpan _ (Just end)) = avalue periodlast
+      where periodlast = addDays (-1) end
+    valueAcct _ = error' "multiBalanceReport: expected all spans to have an end date"  -- XXX should not happen
+
+    avalue periodlast = maybe id
+        (mixedAmountApplyValuation priceoracle styles periodlast mreportlast today multiperiod) $
+        value_ ropts
+      where
+        -- Some things needed if doing valuation.
+        styles = journalCommodityStyles j
+        mreportlast = reportPeriodLastDay ropts
+        today = fromMaybe (error' "multiBalanceReport: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts  -- XXX shouldn't happen
+        multiperiod = interval_ ropts /= NoInterval
+
+    startingBalanceFor a = HM.lookupDefault nullmixedamt a startbals
 
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
