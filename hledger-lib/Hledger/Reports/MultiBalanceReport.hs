@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -90,9 +91,7 @@ multiBalanceReport today ropts j =
 -- once for efficiency, passing it to each report by calling this
 -- function directly.
 multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> MultiBalanceReport
-multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
-    (if invert_ then prNegate else id) $
-    PeriodicReport colspans mappedsortedrows mappedtotalsrow
+multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
   where
     ----------------------------------------------------------------------
     -- 1. Queries, report/column dates.
@@ -159,47 +158,12 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
     -- Sorted report rows.
     sortedrows = dbg' "sortedrows" $ sortRows ropts j rows
 
-    ----------------------------------------------------------------------
-    -- 8. Build the report totals row.
+    -- Calculate column totals
+    totalsrow = dbg' "totalsrow" $ calculateTotalsRow ropts displayaccts sortedrows
 
-    -- Calculate the column totals. These are always the sum of column amounts.
-    highestlevelaccts = [a | a <- displayaccts, not $ any (`elem` displayaccts) $ init $ expandAccountName a]
-    colamts = transpose . map prrAmounts $ filter isHighest rows
-      where isHighest row = not (tree_ ropts) || prrName row `elem` highestlevelaccts
-    coltotals :: [MixedAmount] =
-      dbg'' "coltotals" $ map sum colamts
-    -- Calculate the grand total and average. These are always the sum/average
-    -- of the column totals.
-    [grandtotal,grandaverage] =
-      let amts = map ($ map sum colamts)
-            [if balancetype_==PeriodChange then sum else const 0
-            ,averageMixedAmounts
-            ]
-      in amts
-    -- Totals row.
-    totalsrow :: PeriodicReportRow () MixedAmount =
-      dbg' "totalsrow" $ PeriodicReportRow () 0 coltotals grandtotal grandaverage
-
-    ----------------------------------------------------------------------
-    -- 9. Map the report rows to percentages if needed
-    -- It is not correct to do this before step 6 due to the total and average columns.
-    -- This is not done in step 6, since the report totals are calculated in 8.
-    -- Perform the divisions to obtain percentages
-    mappedsortedrows :: [MultiBalanceReportRow] =
-      if not percent_ then sortedrows
-      else dbg'' "mappedsortedrows"
-        [ PeriodicReportRow aname alevel
-            (zipWith perdivide rowvals coltotals)
-            (rowtotal `perdivide` grandtotal)
-            (rowavg `perdivide` grandaverage)
-         | PeriodicReportRow aname alevel rowvals rowtotal rowavg <- sortedrows
-        ]
-    mappedtotalsrow :: PeriodicReportRow () MixedAmount
-      | percent_  = dbg'' "mappedtotalsrow" $ PeriodicReportRow () 0
-           (map (\t -> perdivide t t) coltotals)
-           (perdivide grandtotal grandtotal)
-           (perdivide grandaverage grandaverage)
-      | otherwise = totalsrow
+    -- Postprocess the report, negating balances and taking percentages if needed
+    report = dbg' "report" . postprocessReport ropts $
+        PeriodicReport colspans sortedrows totalsrow
 
 
 -- | Calculate starting balances, if needed for -H
@@ -228,7 +192,6 @@ startingBalances ropts q j reportspan = acctchanges
     precedingspanq = (if date2_ ropts then Date2 else Date) $ case precedingspan of
         DateSpan Nothing Nothing -> emptydatespan
         a -> a
-
 
 -- | Gather postings matching the query within the report period.
 getPostings :: ReportOpts -> Query -> Journal -> [(Posting, Day)]
@@ -394,6 +357,39 @@ sortRows ropts j
         anames = map fst anamesandrows
         sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
         sortedrows = sortAccountItemsLike sortedanames anamesandrows
+
+-- | Build the report totals row.
+--
+-- Calculate the column totals. These are always the sum of column amounts.
+calculateTotalsRow :: ReportOpts -> [ClippedAccountName]
+                   -> [MultiBalanceReportRow] -> PeriodicReportRow () MixedAmount
+calculateTotalsRow ropts displayaccts rows =
+    PeriodicReportRow () 0 coltotals grandtotal grandaverage
+  where
+    highestlevelaccts = [a | a <- displayaccts, not $ any (`elem` displayaccts) $ init $ expandAccountName a]
+
+    colamts = transpose . map prrAmounts $ filter isHighest rows
+      where isHighest row = not (tree_ ropts) || prrName row `elem` highestlevelaccts
+
+    coltotals :: [MixedAmount] = dbg'' "coltotals" $ map sum colamts
+
+    -- Calculate the grand total and average. These are always the sum/average
+    -- of the column totals.
+    grandtotal  = if balancetype_ ropts == PeriodChange then sum coltotals else 0
+    grandaverage = averageMixedAmounts coltotals
+
+-- | Map the report rows to percentages and negate if needed
+postprocessReport :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
+postprocessReport ropts (PeriodicReport spans rows totalrow) =
+    maybeInvert $ PeriodicReport spans (map percentage rows) (percentage totalrow)
+  where
+    maybeInvert = if invert_ ropts then prNegate else id
+    percentage  = if not (percent_ ropts) then id else \case
+        PeriodicReportRow name d rowvals rowtotal rowavg ->
+          PeriodicReportRow name d
+            (zipWith perdivide rowvals $ prrAmounts totalrow)
+            (perdivide rowtotal $ prrTotal totalrow)
+            (perdivide rowavg $ prrAverage totalrow)
 
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
