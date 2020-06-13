@@ -148,7 +148,9 @@ transactionToCSV t =
 postingToCSV :: Posting -> CSV
 postingToCSV p =
   map (\(a@(Amount {aquantity=q,acommodity=c})) ->
-    let a_ = a{acommodity=""} in
+    -- commodity goes into separate column, so we suppress it, along with digit group
+    -- separators and prices
+    let a_ = a{acommodity="",astyle=(astyle a){asdigitgroups=Nothing},aprice=Nothing} in
     let amount = showAmount a_ in
     let commodity = T.unpack c in
     let credit = if q < 0 then showAmount $ negate a_ else "" in
