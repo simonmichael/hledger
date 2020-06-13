@@ -14,6 +14,7 @@ import Brick.Widgets.Edit
 import Data.List
 import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
+import Data.Maybe (fromMaybe)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -172,7 +173,7 @@ toggleForecast d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts
     forecast' =
       case forecast_ ropts of
         Just _  -> Nothing
-        Nothing -> forecastPeriodFromRawOpts d $ rawopts_ copts
+        Nothing -> Just $ fromMaybe nulldatespan $ forecastPeriodFromRawOpts d $ rawopts_ copts
 
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
