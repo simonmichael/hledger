@@ -17,6 +17,7 @@ where
 
 import Data.Maybe (isJust)
 import Data.Text (Text)
+import Data.List (intercalate)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit
@@ -37,7 +38,7 @@ printmode = hledgerCommandMode
     "show all amounts explicitly"
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
-  ,outputFormatFlag ["txt","csv","json"]
+  ,outputFormatFlag ["txt","csv","json","sql"]
   ,outputFileFlag
   ])
   [generalflagsgroup1]
@@ -60,6 +61,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
         "txt"  -> entriesReportAsText opts
         "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
         "json" -> (++"\n") . TL.unpack . toJsonText
+        "sql"  -> entriesReportAsSql
         _      -> const $ error' $ unsupportedOutputFormatError fmt
   writeOutput opts $ render $ entriesReport ropts q j
 
@@ -124,6 +126,20 @@ originalPostingPreservingAccount p = (originalPosting p) { paccount = paccount p
 --       ,""
 --       ]
 --  ]
+
+entriesReportAsSql :: EntriesReport -> String
+entriesReportAsSql txns =
+  "create table if not exists postings(id serial,txnidx int,date1 date,date2 date,status text,code text,description text,comment text,account text,amount numeric,commodity text,credit numeric,debit numeric,posting_status text,posting_comment text);\n"++
+  "insert into postings(txnidx,date1,date2,status,code,description,comment,account,amount,commodity,credit,debit,posting_status,posting_comment) values\n"++
+  (intercalate "," (map values csv))
+  ++";\n"
+  where
+    values vs = "(" ++ (intercalate "," $ map toSql vs) ++ ")\n"
+    toSql "" = "NULL"
+    toSql s  = "'" ++ (concatMap quoteChar s) ++ "'"
+    quoteChar '\'' = "''"
+    quoteChar c = [c]
+    csv = concatMap transactionToCSV txns
 
 entriesReportAsCsv :: EntriesReport -> CSV
 entriesReportAsCsv txns =
