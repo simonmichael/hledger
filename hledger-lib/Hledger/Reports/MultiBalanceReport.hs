@@ -344,7 +344,7 @@ displayedAccounts ropts q valuedaccts
     | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
     -- Accounts which are to be displayed
-    displayedAccts = HM.filterWithKey keep (valuedaccts <> allParents)
+    displayedAccts = HM.filterWithKey keep valuedaccts
       where
         keep name amts = isInteresting name amts || isInterestingParent name
 
@@ -380,10 +380,6 @@ displayedAccounts ropts q valuedaccts
         | flat_ ropts                     = const False
         | empty_ ropts || no_elide_ ropts = const True
         | otherwise                       = (`HM.member` interestingParents)
-
-    allParents
-        | tree_ ropts = HM.fromList [(a,[]) | a <- expandAccountNames $ HM.keys interestingAccounts]
-        | otherwise   = mempty
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
     keepEmpty = empty_ ropts || depth == 0
