@@ -1163,6 +1163,21 @@ used as the valuation date; otherwise the valuation date is "today".
 For [multiperiod reports](#report-intervals), each column is valued on
 the last day of its period (displayed in the column heading).
 
+### Valuation commodity
+
+With `-X COMM`, the valuation commodity is COMM, and hledger tries to
+convert all amounts to COMM.
+
+With `-V` (and `--value` with COMM unspecified), hledger picks a
+valuation commodity automatically. Typically your P directives
+give prices in a single base currency, and -V will use that.
+More precisely: for each source commodity A, it chooses a valuation
+commodity B based on, in this order of preference:
+
+1. the latest P directive (on any date) declaring a price for A.
+
+Amounts for which no valuation commodity can be identified are not converted.
+
 ### Market prices
 
 To convert a commodity A to its market value in commodity B, hledger
@@ -1192,22 +1207,6 @@ in this order of preference:
    A to B price.
 
 Amounts for which no suitable market price is found are not converted.
-
-### Valuation commodity
-
-With `-X COMM`, the valuation commodity is COMM, and hledger tries to
-convert all amounts to COMM.
-
-With `-V` (and `--value` with COMM unspecified), hledger picks a
-valuation commodity automatically. Typically your P declarations
-reference a single base currency, and -V will use that.
-
-In more detail: for each source commodity A, it chooses a valuation
-commodity B based on, in this order of preference:
-
-1. the latest P directive (on any date) declaring a price for A.
-
-Amounts for which no valuation commodity can be identified are not converted.
 
 ### Simple valuation examples
 
@@ -1254,7 +1253,7 @@ $ hledger -f t.j bal -N euros -V
                           - default valuation commodity (or COMM) using current market prices
                           - default valuation commodity (or COMM) using market prices at some date
 
-The TYPE part basically selects either "cost", or "market value" plus a valuation date:
+The TYPE part selects cost or value and valuation date:
 
 `--value=cost`
 : Convert amounts to cost, using the prices recorded in transactions.
@@ -1372,14 +1371,14 @@ $ hledger -f- print --value=2000-01-15
 
 You may need to explicitly set a commodity's display style, when reverse prices are used.
 Eg this output might be surprising:
-```
+```journal
 P 2000-01-01 A 2B
 
 2000-01-01
   a  1B
   b
 ```
-```
+```shell
 $ hledger print -x -X A
 2000-01-01
     a               0
@@ -1390,7 +1389,7 @@ Explanation: because there's no amount or commodity directive specifying a displ
 for A, 0.5A gets the default style, which shows no decimal digits. Because the displayed
 amount looks like zero, the commodity symbol and minus sign are not displayed either.
 Adding a commodity directive sets a more useful display style for A:
-```
+```journal
 P 2000-01-01 A 2B
 commodity 0.00A
 
@@ -1398,7 +1397,7 @@ commodity 0.00A
   a  1B
   b
 ```
-```
+```shell
 $ hledger print -X A
 2000-01-01
     a           0.50A
@@ -1408,9 +1407,9 @@ $ hledger print -X A
 
 ### Effect of valuation on reports
 
-Here is a reference for how `--value` currently affects each part of hledger's reports.
-It's work in progress, but may be useful for troubleshooting or reporting bugs.
-See also the definitions and notes below.
+Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).
+(It's wide, you'll have to scroll sideways.)
+It may be useful when troubleshooting.
 If you find problems, please report them, ideally with a reproducible example.
 Related:
 [#329](https://github.com/simonmichael/hledger/issues/329),
