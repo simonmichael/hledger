@@ -314,8 +314,9 @@ pricesAtDate pricedirectives transactionimpliedmarketprices d =
   -- trace ("pricesAtDate ("++show d++")") $
   PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests}
   where
-    declaredprices = map priceDirectiveToMarketPrice $ filter ((<=d).pddate) pricedirectives
-    declaredandimpliedprices = latestPriceForEachPairOn pricedirectives transactionimpliedmarketprices d
+    -- prices in effect on date d, either declared or implied
+    declaredandimpliedprices = dbg5 "declaredandimpliedprices" $
+      latestPriceForEachPairOn pricedirectives transactionimpliedmarketprices d
 
     -- infer any additional reverse prices not already declared or implied
     reverseprices =
@@ -332,10 +333,11 @@ pricesAtDate pricedirectives transactionimpliedmarketprices d =
         prices   = declaredandimpliedprices ++ reverseprices
         allcomms = map mpfrom prices
 
-    -- save the forward prices' destinations (but only from declared
-    -- market prices) as the default valuation commodity for those
-    -- source commodities
-    defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- declaredprices]
+    -- determine a default valuation commodity D for each source commodity S:
+    -- the price commodity in the latest declared market price for S (on any date)
+    defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- alldeclaredprices]
+      where
+        alldeclaredprices = dbg5 "alldeclaredprices" $ map priceDirectiveToMarketPrice pricedirectives
 
 -- From a list of price directives in parse order, and a list of
 -- transaction-implied market prices in parse order, get the effective
