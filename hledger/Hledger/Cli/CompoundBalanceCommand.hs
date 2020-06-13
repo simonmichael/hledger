@@ -203,7 +203,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
           -- "2008/01/01-2008/12/31", not "2008").
           titledatestr
             | balancetype == HistoricalBalance = showEndDates enddates
-            | otherwise                        = showDateSpan requestedspan 
+            | otherwise                        = showDateSpan requestedspan
             where
               enddates = map (addDays (-1)) $ catMaybes $ map spanEnd colspans  -- these spans will always have a definite end date
               requestedspan = queryDateSpan date2_ userq `spanDefaultsFrom` journalDateSpan date2_ j
@@ -271,12 +271,12 @@ compoundBalanceSubreport ropts@ReportOpts{..} userq j priceoracle subreportqfn s
           where
             nonzeroaccounts =
               dbg5 "nonzeroaccounts" $
-              mapMaybe (\(PeriodicReportRow act _ amts _ _) ->
-                            if not (all mixedAmountLooksZero amts) then Just act else Nothing) rows
+              mapMaybe (\(PeriodicReportRow act amts _ _) ->
+                            if not (all mixedAmountLooksZero amts) then Just (displayFull act) else Nothing) rows
             rows' = filter (not . emptyRow) rows
               where
-                emptyRow (PeriodicReportRow act _ amts _ _) =
-                  all mixedAmountLooksZero amts && not (any (act `isAccountNamePrefixOf`) nonzeroaccounts)
+                emptyRow (PeriodicReportRow act amts _ _) =
+                  all mixedAmountLooksZero amts && not (any (displayFull act `isAccountNamePrefixOf`) nonzeroaccounts)
 
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:

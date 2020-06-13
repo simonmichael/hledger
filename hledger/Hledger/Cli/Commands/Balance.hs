@@ -463,18 +463,18 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
-    (PeriodicReport colspans items (PeriodicReportRow _ _ coltotals tot avg)) =
+    (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
   maybetranspose $
   ("Account" : map showDateSpan colspans
    ++ ["Total"   | row_total_]
    ++ ["Average" | average_]
   ) :
-  [T.unpack (maybeAccountNameDrop opts a) :
+  [T.unpack (displayFull a) :
    map showMixedAmountOneLineWithoutPrice
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
-  | PeriodicReportRow a _ amts rowtot rowavg <- items]
+  | PeriodicReportRow a amts rowtot rowavg <- items]
   ++
   if no_total_ opts
   then []
@@ -603,7 +603,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
 balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
-    (PeriodicReport colspans items (PeriodicReportRow _ _ coltotals tot avg)) =
+    (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
    maybetranspose $
    addtotalrow $
    Table
@@ -619,10 +619,9 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items
-    renderacct (PeriodicReportRow a i _ _ _)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack (accountLeafName a)
-      | otherwise  = T.unpack $ maybeAccountNameDrop opts a
-    rowvals (PeriodicReportRow _ _ as rowtot rowavg) = as
+    renderacct row =
+        replicate ((prrDepth row - 1) * 2) ' ' ++ T.unpack (prrDisplayName row)
+    rowvals (PeriodicReportRow _ as rowtot rowavg) = as
                              ++ [rowtot | totalscolumn]
                              ++ [rowavg | average_]
     addtotalrow | no_total_ opts = id

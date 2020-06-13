@@ -17,10 +17,22 @@ module Hledger.Reports.ReportTypes
 , periodicReportSpan
 , prNegate
 , prNormaliseSign
+
+, prMapName
+, prMapMaybeName
+
+, DisplayName(..)
+, flatDisplayName
+, treeDisplayName
+
+, prrFullName
+, prrDisplayName
+, prrDepth
 ) where
 
 import Data.Aeson
 import Data.Decimal
+import Data.Maybe (mapMaybe)
 import GHC.Generics (Generic)
 import Hledger.Data
 
@@ -72,7 +84,6 @@ data PeriodicReport a b =
 data PeriodicReportRow a b =
   PeriodicReportRow
   { prrName    :: a    -- An account name.
-  , prrDepth   :: Int  -- Indent level for displaying this account name in tree mode. 0, 1, 2...
   , prrAmounts :: [b]  -- The data value for each subperiod.
   , prrTotal   :: b    -- The total of this row's values.
   , prrAverage :: b    -- The average of this row's values.
@@ -94,5 +105,57 @@ prNegate :: Num b => PeriodicReport a b -> PeriodicReport a b
 prNegate (PeriodicReport colspans rows totalsrow) =
     PeriodicReport colspans (map rowNegate rows) (rowNegate totalsrow)
   where
-    rowNegate (PeriodicReportRow name indent amts tot avg) =
-        PeriodicReportRow name indent (map negate amts) (-tot) (-avg)
+    rowNegate (PeriodicReportRow name amts tot avg) =
+        PeriodicReportRow name (map negate amts) (-tot) (-avg)
+
+-- | Map a function over the row names.
+prMapName :: (a -> b) -> PeriodicReport a c -> PeriodicReport b c
+prMapName f report = report{prRows = map (prrMapName f) $ prRows report}
+
+-- | Map a function over the row names, possibly discarding some.
+prMapMaybeName :: (a -> Maybe b) -> PeriodicReport a c -> PeriodicReport b c
+prMapMaybeName f report = report{prRows = mapMaybe (prrMapMaybeName f) $ prRows report}
+
+-- | Map a function over the row names of the PeriodicReportRow.
+prrMapName :: (a -> b) -> PeriodicReportRow a c -> PeriodicReportRow b c
+prrMapName f row = row{prrName = f $ prrName row}
+
+-- | Map maybe a function over the row names of the PeriodicReportRow.
+prrMapMaybeName :: (a -> Maybe b) -> PeriodicReportRow a c -> Maybe (PeriodicReportRow b c)
+prrMapMaybeName f row = case f $ prrName row of
+    Nothing -> Nothing
+    Just a  -> Just row{prrName = a}
+
+
+-- | A full name, display name, and depth for an account.
+data DisplayName = DisplayName
+    { displayFull :: AccountName
+    , displayName :: AccountName
+    , displayDepth :: Int
+    } deriving (Show, Eq, Ord)
+
+instance ToJSON DisplayName where
+    toJSON = toJSON . displayFull
+    toEncoding = toEncoding . displayFull
+
+-- | Construct a flat display name, where the full name is also displayed at
+-- depth 0
+flatDisplayName :: AccountName -> DisplayName
+flatDisplayName a = DisplayName a a 0
+
+-- | Construct a tree display name, where only the leaf is displayed at its
+-- given depth
+treeDisplayName :: AccountName -> DisplayName
+treeDisplayName a = DisplayName a (accountLeafName a) (accountNameLevel a)
+-- | Get the full, canonical, name of a PeriodicReportRow tagged by a
+-- DisplayName.
+prrFullName :: PeriodicReportRow DisplayName a -> AccountName
+prrFullName = displayFull . prrName
+
+-- | Get the display name of a PeriodicReportRow tagged by a DisplayName.
+prrDisplayName :: PeriodicReportRow DisplayName a -> AccountName
+prrDisplayName = displayName . prrName
+
+-- | Get the display depth of a PeriodicReportRow tagged by a DisplayName.
+prrDepth :: PeriodicReportRow DisplayName a -> Int
+prrDepth = displayDepth . prrName
