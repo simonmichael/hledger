@@ -520,7 +520,7 @@ Within a transaction, you can note an amount's price in another commodity.
 This can be used to document the cost (in a purchase) or selling price (in a sale).
 For example, transaction prices are useful to record purchases of a foreign currency.
 Note transaction prices are fixed at the time of the transaction, and do not change over time.
-See also [market prices](#market-prices), which represent prevailing exchange rates on a certain date.
+See also [market prices](#declaring-market-prices), which represent prevailing exchange rates on a certain date.
 
 There are several ways to record a transaction price:
 
