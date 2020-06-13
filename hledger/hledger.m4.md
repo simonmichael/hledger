@@ -1153,9 +1153,9 @@ their *default valuation commodity*, using the [market prices](#market-prices)
 in effect on a *default valuation date*. (More on these below.)
 
 The default valuation commodity is the one referenced in the latest
-applicable market price dated on or before the valuation date.
-Typically your P declarations or currency exchange transactions
-reference a single base currency, and -V will pick that.
+applicable market price (declared by a P directive, for the source
+commodity, dated on or before the valuation date). Typically your P
+declarations reference a single base currency, and -V will pick that.
 
 The default valuation date is today for single period reports (equivalent to `--value=now`),
 or the last day of each subperiod for [multiperiod reports](#report-intervals) (equivalent to `--value=end`).
