@@ -1123,42 +1123,96 @@ $ hledger balance --pivot member acct:.
 
 ## Valuation
 
-hledger can show 
-cost reports, where amounts are converted to their cost or sale amount
-at transaction time; 
-or value reports, where amounts are converted to their market value in
-another currency/commodity at a specified date
-(using market prices inferred from your transactions, or declared with P directives).
+Instead of reporting amounts in their original commodity,
+hledger can convert them to:
 
-We call this "valuation", and it is controlled by the `--value=VALUATIONTYPE[,COMMODITY]` option.
-It can get a little involved, so we cover all the details below.
-But most of the time, all you need to do is use these simpler flags instead:
+- cost (or sale amount), using the conversion rate recorded as part of
+  the transaction
+  ([transaction price](journal.html#transaction-prices)).
 
-- `-B` to convert to cost/sale amount, or
-- `-V` to convert to market value in your base currency. Or occasionally,
-- `-X COMMODITY` to convert to market value in some other currency.
+- value, using the [market prices](#market-prices) in effect on certain date(s).
 
-<!-- These flags are mutually exclusive; if you combine them in a command, the rightmost wins. -->
+We call this "valuation", and it is controlled in full by the
+`--value=VALUATIONTYPE[,COMMODITY]` option.
+But we also provide simpler, Ledger-compatible `-B`/`-V`/`-X` flags,
+and usually one of these is all you need:
+
+- `-B` to show cost/sale amount
+- `-V` to show market value in your usual base currency
+- `-X COMMODITY` to show market value in a specified currency.
 
 ### -B: Cost
 
 The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
 if they have a [transaction price](journal.html#transaction-prices) specified.
-(It is equivalent to `--value=cost`.)
 
 ### -V: Value
 
-The `-V/--market` flag converts reported amounts to market value in
-their *default valuation commodity*, using the [market prices](#market-prices) 
-in effect on a *default valuation date*. (More on these below.)
+The `-V/--market` flag converts amounts to market value in their
+default *valuation commodity*, using the
+[market prices](#market-prices) in effect on the *valuation date(s)*,
+if any. More on those in a minute.
 
-The default valuation commodity is the one referenced in the latest
-applicable market price (declared by a P directive, for the source
-commodity, dated on or before the valuation date). Typically your P
-declarations reference a single base currency, and -V will pick that.
+### -X: Market value in specified commodity
 
-The default valuation date is today for single period reports (equivalent to `--value=now`),
-or the last day of each subperiod for [multiperiod reports](#report-intervals) (equivalent to `--value=end`).
+The `-X/--exchange` option is like `-V` except the desired valuation
+currency is specified explicitly.
+
+### Valuation date
+
+For single period reports, if an explicit
+[report end date](#report-start-end-date) is specified, that will be
+used as the valuation date; otherwise the valuation date is "today".
+
+For [multiperiod reports](#report-intervals), each column is valued on
+the last day of its period (displayed in the column heading).
+
+### Market prices
+
+To convert a commodity A to its market value in commodity B, hledger
+looks for a suitable market price (exchange rate) in these ways,
+in this order of preference:
+
+1. a *declared market price* - 
+   the latest [P directive](journal.html#declaring-market-prices)
+   on or before the valuation date that declares A's price in B.
+
+2. an *implied market price* -
+   we look for the latest transaction on or before the valuation date
+   where A is converted to B,
+   and use its [transaction price](journal.html#transaction-prices)
+   (assuming that this is probably close to the market price).
+   (*since hledger 1.18; experimental*)
+
+3. a *reverse declared market price* - 
+   calculated by inverting a declared market price from B to A.
+
+4. a *reverse implied market price* - 
+   calculated by inverting an implied market price from B to A.
+
+5. an *indirect market price* - 
+   calculated by combining the shortest chain of market prices (any of
+   the above types) leading from A to B.
+
+Amounts for which no suitable market price is found are not converted.
+
+### Valuation commodity
+
+With `-X COMM`, the valuation commodity is COMM, and hledger tries to
+convert all amounts to COMM.
+
+With `-V`, hledger picks a valuation commodity automatically.
+Typically your P declarations reference a single base currency, and -V
+will use that.
+
+In more detail: for each source commodity A, it chooses a valuation
+commodity B based on, in this order of preference:
+
+1. the latest P directive (on any date) declaring a price for A.
+
+Amounts for which no valuation commodity can be identified are not converted.
+
+### Valuation examples
 
 An example:
 
@@ -1190,38 +1244,7 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 ```
 
-### -X: Market value in specified commodity
-
-The `-X/--exchange` option is like `-V`, except it specifies the target commodity you would like to convert to.
-(It is equivalent to `--value=now,COMM` or `--value=end,COMM`.)
-
-### Market prices
-
-To convert a commodity A to commodity B, hledger looks for a suitable
-market price (exchange rate) in the following ways, in this order of
-preference:
-
-1. a *declared market price* - the latest [P directive](journal.html#declaring-market-prices) 
-   specifying the exchange rate from A to B, dated on or before the valuation date.
-
-2. a *transaction-implied market price* - a market price matching the
-   [transaction price](journal.html#transaction-prices) used in the
-   latest transaction where A is converted to B,
-   dated on or before the valuation date.
-   (*since hledger 1.18; experimental*)
-
-3. a *reverse declared market price* - calculated by inverting a
-   declared market price from B to A.
-
-4. a *reverse transaction-implied market price* - calculated by
-   inverting a transaction-implied market price from B to A.
-
-5. an *indirect market price* - calculated by combining the shortest
-   chain of market prices (any of the above types) leading from A to B.
-
 ### --value: Flexible valuation
-
-*(experimental, added 201905)*
 
 `-B`, `-V` and `-X` are special cases of the more general `--value` option:
 
