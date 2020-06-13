@@ -88,7 +88,7 @@ multiBalanceReport today ropts j =
 -- once for efficiency, passing it to each report by calling this
 -- function directly.
 multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> MultiBalanceReport
-multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
+multiBalanceReportWith ropts q j priceoracle = report
   where
     -- Queries, report/column dates.
     ropts'     = dbg "ropts'"     $ setDefaultAccountListMode ALFlat ropts
@@ -110,7 +110,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
     colps = dbg'' "colps" $ calculateColumns colspans ps
 
     -- Each account's balance changes across all columns.
-    acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts' q startbals colps
+    acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts' q colspans startbals colps
 
     -- Process changes into normal, cumulative, or historical amounts, plus value them
     accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts' j priceoracle colspans startbals acctchanges
@@ -119,7 +119,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
     displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts' q accumvalued
 
     -- All the rows of the report.
-    rows = dbg'' "rows" $ buildReportRows ropts' reportq accumvalued
+    rows = dbg'' "rows" $ buildReportRows ropts' accumvalued
 
     -- Sorted report rows.
     sortedrows = dbg' "sortedrows" $ sortRows ropts' j rows
@@ -253,17 +253,21 @@ acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
 
 -- | Gather the account balance changes into a regular matrix including the accounts
 -- from all columns
-calculateAccountChanges :: ReportOpts -> Query
+calculateAccountChanges :: ReportOpts -> Query -> [DateSpan]
                         -> HashMap ClippedAccountName Account
                         -> Map DateSpan [Posting]
                         -> HashMap ClippedAccountName (Map DateSpan Account)
-calculateAccountChanges ropts q startbals colps = acctchanges
+calculateAccountChanges ropts q colspans startbals colps
+    | queryDepth q == 0 = acctchanges <> elided
+    | otherwise         = acctchanges
   where
     -- Transpose to get each account's balance changes across all columns.
     acctchanges = transposeMap colacctchanges <> (mempty <$ startbals)
 
     colacctchanges :: Map DateSpan (HashMap ClippedAccountName Account) =
       dbg'' "colacctchanges" $ fmap (acctChangesFromPostings ropts q) colps
+
+    elided = HM.singleton "..." $ M.fromList [(span, nullacct) | span <- colspans]
 
 -- | Accumulate and value amounts, as specified by the report options.
 --
@@ -315,10 +319,8 @@ accumValueAmounts ropts j priceoracle colspans startbals = HM.mapWithKey process
 -- | Build the report rows.
 --
 -- One row per account, with account name info, row amounts, row total and row average.
-buildReportRows :: ReportOpts -> Query
-                -> HashMap AccountName [Account]
-                -> [MultiBalanceReportRow]
-buildReportRows ropts q acctvalues =
+buildReportRows :: ReportOpts -> HashMap AccountName [Account] -> [MultiBalanceReportRow]
+buildReportRows ropts acctvalues =
     [ PeriodicReportRow (flatDisplayName a) rowbals rowtot rowavg
     | (a,accts) <- HM.toList acctvalues
     , let rowbals = map balance accts
@@ -327,35 +329,62 @@ buildReportRows ropts q acctvalues =
     -- Total for a cumulative/historical report is always zero.
     , let rowtot = if balancetype_ ropts == PeriodChange then sum rowbals else 0
     , let rowavg = averageMixedAmounts rowbals
-    , empty_ ropts || queryDepth q == 0 || any (not . mixedAmountLooksZero) rowbals  -- TODO: Remove this eventually, to be handled elswhere
     ]
-  where
-    balance = if tree_ ropts then aibalance else aebalance
+  where balance = if tree_ ropts then aibalance else aebalance
 
 -- | Calculate accounts which are to be displayed in the report, as well as
 -- their name and depth
 displayedAccounts :: ReportOpts -> Query
                   -> HashMap AccountName [Account]
                   -> HashMap AccountName DisplayName
-displayedAccounts ropts q valuedaccts =
-    HM.fromList $ map (\a -> (a, displayedName a)) $
-    (if tree_ ropts then expandAccountNames else id) $
-    nub $ map (clipOrEllipsifyAccountName depth) $
-    allpostedaccts
+displayedAccounts ropts q valuedaccts
+    | depth == 0 = HM.singleton "..." $ DisplayName "..." "..." 0
+    | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
-    allpostedaccts = dbg'' "allpostedaccts" $ HM.keys valuedaccts
+    -- Accounts which are to be displayed
+    displayedAccts = HM.filterWithKey keep (valuedaccts <> allParents)
+      where
+        keep name amts = isInteresting name amts || isInterestingParent name
+
+    isDisplayed = (`HM.member` displayedAccts)
 
     displayedName name
-        | depth == 0  = DisplayName "..." "..." 0
-        | tree_ ropts = treeDisplayName name
-        | otherwise   = DisplayName name (accountNameDrop (drop_ ropts) name) 0
+        | flat_ ropts = DisplayName name (accountNameDrop (drop_ ropts) name) 0
+        | otherwise   = DisplayName name leaf d
       where
-        elided = accountNameFromComponents . reverse . map accountLeafName $
+        leaf = accountNameFromComponents . reverse . map accountLeafName $
             name : takeWhile (not . isDisplayed) parents
-        boringParents = length $ filter (not . isDisplayed) parents
+        d | no_elide_ ropts = accountNameLevel name
+          | otherwise       = accountNameLevel name - length boringParents
+        boringParents = filter (not . isDisplayed) parents
         parents = parentAccountNames name
 
-    isDisplayed = const True
+    -- Accounts interesting for their own sake
+    interestingAccounts = dbg'' "interestingAccounts" $
+        HM.filterWithKey isInteresting valuedaccts
+
+    isInteresting name amts =
+        d <= depth                                      -- Throw out anything too deep
+        && (keepEmpty || not (isZeroRow balance amts))  -- Boring because has only zero entries
+      where
+        d = accountNameLevel name
+        balance = if tree_ ropts && d == depth then aibalance else aebalance
+
+    -- Accounts interesting because they are a fork for interesting subaccounts
+    interestingParents = dbg'' "interestingParents" $
+        forkingAccounts $ HM.keys interestingAccounts
+
+    isInterestingParent
+        | flat_ ropts                     = const False
+        | empty_ ropts || no_elide_ ropts = const True
+        | otherwise                       = (`HM.member` interestingParents)
+
+    allParents
+        | tree_ ropts = HM.fromList [(a,[]) | a <- expandAccountNames $ HM.keys interestingAccounts]
+        | otherwise   = mempty
+
+    isZeroRow balance = all (mixedAmountLooksZero . balance)
+    keepEmpty = empty_ ropts || depth == 0
     depth = queryDepth q
 
 -- | Sort the rows by amount or by account declaration order. This is a bit tricky.
@@ -449,14 +478,15 @@ balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal
 balanceReportFromMultiBalanceReport ropts q j = (rows', total)
   where
     PeriodicReport _ rows (PeriodicReportRow _ totals _ _) =
-        multiBalanceReportWith ropts q j (journalPriceOracle (infer_value_ ropts) j)
+        multiBalanceReportWith ropts' q j (journalPriceOracle (infer_value_ ropts) j)
     rows' = [( displayFull a
              , leafName a
-             , if tree_ ropts then displayDepth a - 1 else 0  -- BalanceReport uses 0-based account depths
+             , if tree_ ropts' then displayDepth a - 1 else 0  -- BalanceReport uses 0-based account depths
              , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
              ) | PeriodicReportRow a amts _ _ <- rows]
     total = headDef nullmixedamt totals
-    leafName = if flat_ ropts then displayFull else displayName  -- BalanceReport expects full account name here with --flat
+    leafName = if flat_ ropts' then displayFull else displayName  -- BalanceReport expects full account name here with --flat
+    ropts' = setDefaultAccountListMode ALTree ropts
 
 
 -- | Transpose a Map of HashMaps to a HashMap of Maps.
@@ -474,8 +504,15 @@ transposeMap xs = M.foldrWithKey addSpan mempty xs
 -- | A sorting helper: sort a list of things (eg report rows) keyed by account name
 -- to match the provided ordering of those same account names.
 sortAccountItemsLike :: [AccountName] -> [(AccountName, b)] -> [b]
-sortAccountItemsLike sortedas items =
-  concatMap (\a -> maybe [] (:[]) $ lookup a items) sortedas
+sortAccountItemsLike sortedas items = mapMaybe (`lookup` items) sortedas
+
+-- | Given a list of account names, find all forking parent accounts, i.e.
+-- those which fork between different branches
+forkingAccounts :: [AccountName] -> HashMap AccountName Int
+forkingAccounts as = HM.filter (>1) $ foldr incrementParent mempty allaccts
+  where
+    allaccts = expandAccountNames as
+    incrementParent a = HM.insertWith (+) (parentAccountName a) 1
 
 -- | Helper to unify a MixedAmount to a single commodity value.
 -- Like normaliseMixedAmount, this consolidates amounts of the same commodity

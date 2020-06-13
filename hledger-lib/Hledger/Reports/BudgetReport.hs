@@ -72,9 +72,9 @@ budgetReport ropts' assrt reportspan d j =
     actualj = dbg1With (("actualj"++).show.jtxns)  $ budgetRollUp budgetedaccts showunbudgeted j
     budgetj = dbg1With (("budgetj"++).show.jtxns)  $ budgetJournal assrt ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
-        dbg1 "actualreport" $ multiBalanceReport d ropts actualj
+        dbg1 "actualreport" $ multiBalanceReport d ropts{empty_=True} actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
-        dbg1 "budgetgoalreport" $ multiBalanceReport d (ropts{empty_=True}) budgetj
+        dbg1 "budgetgoalreport" $ multiBalanceReport d ropts{empty_=True} budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
