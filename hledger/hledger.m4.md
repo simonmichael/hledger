@@ -1176,19 +1176,20 @@ in this order of preference:
 2. an *implied market price* -
    we look for the latest transaction on or before the valuation date
    where A is converted to B,
-   and use its [transaction price](journal.html#transaction-prices)
-   (assuming that this is probably close to the market price).
+   and use its [transaction price](journal.html#transaction-prices),
+   on the assumption that this is probably close to the market price.
    (*since hledger 1.18; experimental*)
 
 3. a *reverse declared market price* - 
-   calculated by inverting a declared market price from B to A.
+   if there is a declared market price from B to A, we invert it.
 
 4. a *reverse implied market price* - 
-   calculated by inverting an implied market price from B to A.
+   if there is an implied market price from B to A, we invert it.
 
 5. an *indirect market price* - 
-   calculated by combining the shortest chain of market prices (any of
-   the above types) leading from A to B.
+   we look for the shortest chain of market prices (any of the above
+   types) leading from A to B, and combine them to give an approximate
+   A to B price.
 
 Amounts for which no suitable market price is found are not converted.
 
