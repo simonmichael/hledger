@@ -135,8 +135,8 @@ mixedAmountApplyValuation priceoracle styles periodlast mreportlast today ismult
 -- use postingApplyValuation for that.
 -- 
 -- This is all a bit complicated. See the reference doc at
--- https://hledger.org/hledger.html#effect-of-value-on-reports
--- (hledger_options.m4.md "Effect of --value on reports"), and #1083.
+-- https://hledger.org/hledger.html#effect-of-valuation-on-reports
+-- (hledger_options.m4.md "Effect of valuation on reports"), and #1083.
 --
 amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> ValuationType -> Amount -> Amount
 amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v a =

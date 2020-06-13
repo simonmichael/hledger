@@ -1149,7 +1149,7 @@ default *valuation commodity*, using the
 [market prices](#market-prices) in effect on the *valuation date(s)*,
 if any. More on those in a minute.
 
-### -X: Market value in specified commodity
+### -X: Value in specified commodity
 
 The `-X/--exchange` option is like `-V` except the desired valuation
 currency is specified explicitly.
@@ -1198,9 +1198,9 @@ Amounts for which no suitable market price is found are not converted.
 With `-X COMM`, the valuation commodity is COMM, and hledger tries to
 convert all amounts to COMM.
 
-With `-V`, hledger picks a valuation commodity automatically.
-Typically your P declarations reference a single base currency, and -V
-will use that.
+With `-V` (and `--value` with COMM unspecified), hledger picks a
+valuation commodity automatically. Typically your P declarations
+reference a single base currency, and -V will use that.
 
 In more detail: for each source commodity A, it chooses a valuation
 commodity B based on, in this order of preference:
@@ -1209,9 +1209,9 @@ commodity B based on, in this order of preference:
 
 Amounts for which no valuation commodity can be identified are not converted.
 
-### Valuation examples
+### Simple valuation examples
 
-An example:
+Here are some quick examples of `-V`:
 
 ```journal
 ; one euro is worth this many dollars from nov 1
@@ -1260,39 +1260,32 @@ The TYPE part basically selects either "cost", or "market value" plus a valuatio
 : Convert amounts to cost, using the prices recorded in transactions.
 
 `--value=then`
-: Convert amounts to their value in a default valuation commodity, using market prices
-  on each posting's date. This is currently supported only by the 
-  [print](#print) and [register](#register) commands.
+: Convert amounts to their value in the [default valuation commodity](#valuation-commodity), 
+  using market prices on each posting's date. This is currently
+  supported only by the [print](#print) and [register](#register)
+  commands.
 
 `--value=end`
-: Convert amounts to their value in a default valuation commodity, using market prices
+: Convert amounts to their value in the default valuation commodity, using market prices
   on the last day of the report period (or if unspecified, the journal's end date);
   or in multiperiod reports, market prices on the last day of each subperiod.
 
 `--value=now`
-: Convert amounts to their value in default valuation commodity using current market prices
-  (as of when report is generated).
+: Convert amounts to their value in the default valuation commodity
+  using current market prices (as of when report is generated).
 
 `--value=YYYY-MM-DD`
-: Convert amounts to their value in default valuation commodity using market prices
-  on this date.
-
-The default valuation commodity is the commodity mentioned in the most
-recent applicable market price declaration. When all your price
-declarations lead to a single home currency, this will usually do what
-you want.
+: Convert amounts to their value in the default valuation commodity
+  using market prices on this date.
 
 To select a different valuation commodity, add the optional `,COMM` part:
 a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
-hledger will do its best to convert amounts to this commodity, using:
+hledger will do its best to convert amounts to this commodity, deducing
+[market prices](#market-prices) as described above.
 
-- declared prices (from source commodity to valuation commodity)
-- reverse prices (declared prices from valuation to source commodity, inverted)
-- indirect prices (prices calculated from the shortest chain of declared or reverse prices from source to valuation commodity)
+### More valuation examples
 
-in that order.
-
-Here are some examples showing the effect of `--value` as seen with `print`:
+Here are some examples showing the effect of `--value`, as seen with `print`:
 
 ```journal
 P 2000-01-01 A  1 B
@@ -1413,7 +1406,7 @@ $ hledger print -X A
 
 ```
 
-### Effect of --value on reports
+### Effect of valuation on reports
 
 Here is a reference for how `--value` currently affects each part of hledger's reports.
 It's work in progress, but may be useful for troubleshooting or reporting bugs.
@@ -1446,7 +1439,7 @@ Related:
 | grand total/average                             | sum/average of column totals                  | sum/average of column totals                     | not supported                                         | sum/average of column totals                       | sum/average of column totals            |
 | <br>                                            |                                               |                                                  |                                                       |                                                    |                                         |
 
-**Additional notes**
+**Glossary:**
 
 *cost*
 : calculated using price(s) recorded in the transaction(s).
