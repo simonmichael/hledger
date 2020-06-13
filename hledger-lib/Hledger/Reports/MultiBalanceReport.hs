@@ -128,7 +128,7 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle = report
     totalsrow = dbg' "totalsrow" $ calculateTotalsRow ropts' displayaccts sortedrows
 
     -- Postprocess the report, negating balances and taking percentages if needed
-    report = dbg' "report" . postprocessReport ropts' $
+    report = dbg' "report" . postprocessReport ropts' displayaccts $
         PeriodicReport colspans sortedrows totalsrow
 
 
@@ -319,7 +319,7 @@ buildReportRows :: ReportOpts -> Query
                 -> HashMap AccountName [Account]
                 -> [MultiBalanceReportRow]
 buildReportRows ropts q acctvalues =
-    [ PeriodicReportRow (name a) rowbals rowtot rowavg
+    [ PeriodicReportRow (flatDisplayName a) rowbals rowtot rowavg
     | (a,accts) <- HM.toList acctvalues
     , let rowbals = map balance accts
     -- The total and average for the row.
@@ -330,25 +330,25 @@ buildReportRows ropts q acctvalues =
     , empty_ ropts || queryDepth q == 0 || any (not . mixedAmountLooksZero) rowbals  -- TODO: Remove this eventually, to be handled elswhere
     ]
   where
-    name    = if tree_ ropts then treeDisplayName else flatDisplayName
     balance = if tree_ ropts then aibalance else aebalance
 
 -- | Calculate accounts which are to be displayed in the report, as well as
 -- their name and depth
 displayedAccounts :: ReportOpts -> Query
                   -> HashMap AccountName [Account]
-                  -> HashMap AccountName (AccountName, Int)
+                  -> HashMap AccountName DisplayName
 displayedAccounts ropts q valuedaccts =
-    HM.fromList $ map (\a -> (a, elidedName a)) .
+    HM.fromList $ map (\a -> (a, displayedName a)) $
     (if tree_ ropts then expandAccountNames else id) $
     nub $ map (clipOrEllipsifyAccountName depth) $
     allpostedaccts
   where
     allpostedaccts = dbg'' "allpostedaccts" $ HM.keys valuedaccts
 
-    elidedName name
-        | depth == 0 = ("...", 0)
-        | otherwise = (elided, accountNameLevel name - boringParents)
+    displayedName name
+        | depth == 0  = DisplayName "..." "..." 0
+        | tree_ ropts = treeDisplayName name
+        | otherwise   = flatDisplayName name
       where
         elided = accountNameFromComponents . reverse . map accountLeafName $
             name : takeWhile (not . isDisplayed) parents
@@ -399,7 +399,7 @@ sortRows ropts j
 -- | Build the report totals row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-calculateTotalsRow :: ReportOpts -> HashMap ClippedAccountName (ClippedAccountName, Int)
+calculateTotalsRow :: ReportOpts -> HashMap ClippedAccountName DisplayName
                    -> [MultiBalanceReportRow] -> PeriodicReportRow () MixedAmount
 calculateTotalsRow ropts displayaccts rows =
     PeriodicReportRow () coltotals grandtotal grandaverage
@@ -420,17 +420,24 @@ calculateTotalsRow ropts displayaccts rows =
     grandaverage = averageMixedAmounts coltotals
 
 -- | Map the report rows to percentages and negate if needed
-postprocessReport :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
-postprocessReport ropts (PeriodicReport spans rows totalrow) =
-    maybeInvert $ PeriodicReport spans (map percentage rows) (percentage totalrow)
+postprocessReport :: ReportOpts -> HashMap AccountName DisplayName
+                  -> MultiBalanceReport -> MultiBalanceReport
+postprocessReport ropts displaynames =
+    maybeInvert . maybePercent . setNames
   where
-    maybeInvert = if invert_ ropts then prNegate else id
-    percentage  = if not (percent_ ropts) then id else \case
-        PeriodicReportRow name rowvals rowtotal rowavg ->
-          PeriodicReportRow name
-            (zipWith perdivide rowvals $ prrAmounts totalrow)
-            (perdivide rowtotal $ prrTotal totalrow)
-            (perdivide rowavg $ prrAverage totalrow)
+    setNames = prMapMaybeName $ (`HM.lookup` displaynames) . displayFull
+
+    maybeInvert  = if invert_  ropts then prNegate  else id
+    maybePercent = if percent_ ropts then prPercent else id
+
+    prPercent (PeriodicReport spans rows totalrow) =
+        PeriodicReport spans (map percentRow rows) (percentRow totalrow)
+      where
+        percentRow (PeriodicReportRow name rowvals rowtotal rowavg) =
+            PeriodicReportRow name
+                (zipWith perdivide rowvals $ prrAmounts totalrow)
+                (perdivide rowtotal $ prrTotal totalrow)
+                (perdivide rowavg $ prrAverage totalrow)
 
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
