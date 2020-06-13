@@ -774,7 +774,7 @@ $ hledger print -o -        # write to stdout (the default)
 
 Some commands (print, register, the balance commands) offer a choice of output format. 
 In addition to the usual plain text format (`txt`), there are
-CSV (`csv`), HTML (`html`) and JSON (`json`).
+CSV (`csv`), HTML (`html`), JSON (`json`) and SQL (`sql`).
 This is controlled by the `-O/--output-format` option:
 ```shell
 $ hledger print -O csv
@@ -818,6 +818,19 @@ Some notes about JSON output:
   We hope this approach will not cause problems in practice; if you
   find otherwise, please let us know. 
   (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
+
+Notes about SQL output:
+
+- SQL output is also marked experimental, and much like JSON could use
+real-world feedback.
+
+- SQL output is expected to work with sqlite, MySQL and PostgreSQL
+
+- SQL output is structured with the expectations that statements will
+  be executed in the empty database. If you already have tables created
+  via SQL output of hledger, you would probably want to either clear tables
+  of existing data (via `delete` or `truncate` SQL statements) or drop
+  tables completely as otherwise your postings will be duped.
 
 ## Regular expressions
 
