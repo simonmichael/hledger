@@ -11,18 +11,12 @@ module Hledger.Reports.BalanceReport (
   BalanceReportItem,
   balanceReport,
   flatShowsExclusiveBalance,
-  sortAccountItemsLike,
-  unifyMixedAmount,
-  perdivide,
 
   -- * Tests
   tests_BalanceReport
 )
 where
 
-import Data.List
-import Data.Ord
-import Data.Maybe
 import Data.Time.Calendar
 
 import Hledger.Data
@@ -30,6 +24,7 @@ import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils
 import Hledger.Reports.ReportOptions
+import Hledger.Reports.MultiBalanceReport (balanceReportFromMultiBalanceReport)
 
 
 -- | A simple balance report. It has:
@@ -66,166 +61,8 @@ flatShowsExclusiveBalance    = True
 -- This is like PeriodChangeReport with a single column (but more mature,
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
-balanceReport ropts@ReportOpts{..} q j =
-  (if invert_ then brNegate  else id) $
-  (mappedsorteditems, mappedtotal)
-    where
-      -- dbg = const id -- exclude from debug output
-      dbg s = let p = "balanceReport" in Hledger.Utils.dbg4 (p++" "++s)  -- add prefix in debug output
-      dbg' s = let p = "balanceReport" in Hledger.Utils.dbg5 (p++" "++s)  -- add prefix in debug output
+balanceReport = balanceReportFromMultiBalanceReport
 
-      -- Get all the summed accounts & balances, according to the query, as an account tree.
-      -- If doing cost valuation, amounts will be converted to cost first.
-      accttree = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts ropts j
-
-      -- For other kinds of valuation, convert the summed amounts to value,
-      -- per hledger_options.m4.md "Effect of --value on reports".
-      valuedaccttree = mapAccounts avalue accttree
-        where
-          avalue a@Account{..} = a{aebalance=maybevalue aebalance, aibalance=maybevalue aibalance}
-            where
-              maybevalue = maybe id applyvaluation value_
-                where
-                  applyvaluation = mixedAmountApplyValuation priceoracle styles periodlast mreportlast today multiperiod
-                    where
-                      priceoracle = journalPriceOracle infer_value_ j
-                      styles = journalCommodityStyles j
-                      periodlast = fromMaybe
-                                   (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen
-                                   reportPeriodOrJournalLastDay ropts j
-                      mreportlast = reportPeriodLastDay ropts
-                      today = fromMaybe (error' "balanceReport: could not pick a valuation date, ReportOpts today_ is unset") today_
-                      multiperiod = interval_ /= NoInterval
-
-      -- Modify this tree for display - depth limit, boring parents, zeroes - and convert to a list.
-      displayaccts :: [Account]
-          | queryDepth q == 0 =
-                         dbg' "displayaccts" $
-                         take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts valuedaccttree
-          | flat_ ropts = dbg' "displayaccts" $
-                         filterzeros $
-                         filterempty $
-                         drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts valuedaccttree
-          | otherwise  = dbg' "displayaccts" $
-                         filter (not.aboring) $
-                         drop 1 $ flattenAccounts $
-                         markboring $
-                         prunezeros $
-                         sortAccountTreeByAmount (fromMaybe NormallyPositive normalbalance_) $
-                         clipAccounts (queryDepth q) valuedaccttree
-          where
-            balance     = if flat_ ropts then aebalance else aibalance
-            filterzeros = if empty_ then id else filter (not . mixedAmountLooksZero . balance)
-            filterempty = filter (\a -> anumpostings a > 0 || not (mixedAmountLooksZero (balance a)))
-            prunezeros  = if empty_ then id else fromMaybe nullacct . pruneAccounts (mixedAmountLooksZero . balance)
-            markboring  = if no_elide_ then id else markBoringParentAccounts
-
-      -- Make a report row for each account.
-      items = dbg "items" $ map (balanceReportItem ropts q) displayaccts
-
-      -- Sort report rows (except sorting by amount in tree mode, which was done above).
-      sorteditems
-        | sort_amount_ && tree_ ropts = items
-        | sort_amount_                = sortFlatBRByAmount items
-        | otherwise                   = sortBRByAccountDeclaration items
-        where
-          -- Sort the report rows, representing a flat account list, by row total.
-          sortFlatBRByAmount :: [BalanceReportItem] -> [BalanceReportItem]
-          sortFlatBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . fourth4))
-            where
-              maybeflip = if normalbalance_ == Just NormallyNegative then id else flip
-          -- Sort the report rows by account declaration order then account name.
-          sortBRByAccountDeclaration :: [BalanceReportItem] -> [BalanceReportItem]
-          sortBRByAccountDeclaration rows = sortedrows
-            where
-              anamesandrows = [(first4 r, r) | r <- rows]
-              anames = map fst anamesandrows
-              sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
-              sortedrows = sortAccountItemsLike sortedanames anamesandrows
-
-      -- Calculate the grand total.
-      total | not (flat_ ropts) = dbg "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
-            | otherwise         = dbg "total" $
-                                  if flatShowsExclusiveBalance
-                                  then sum $ map fourth4 items
-                                  else sum $ map aebalance $ clipAccountsAndAggregate 1 displayaccts
-      
-      -- Calculate percentages if needed.
-      mappedtotal | percent_  = dbg "mappedtotal" $ total `perdivide` total
-                  | otherwise = total
-      mappedsorteditems | percent_ =
-                            dbg "mappedsorteditems" $
-                            map (\(fname, sname, indent, amount) -> (fname, sname, indent, amount `perdivide` total)) sorteditems
-                        | otherwise = sorteditems
-
--- | A sorting helper: sort a list of things (eg report rows) keyed by account name
--- to match the provided ordering of those same account names.
-sortAccountItemsLike :: [AccountName] -> [(AccountName, b)] -> [b]
-sortAccountItemsLike sortedas items =
-  concatMap (\a -> maybe [] (:[]) $ lookup a items) sortedas
-
--- | In an account tree with zero-balance leaves removed, mark the
--- elidable parent accounts (those with one subaccount and no balance
--- of their own).
-markBoringParentAccounts :: Account -> Account
-markBoringParentAccounts = tieAccountParents . mapAccounts mark
-  where
-    mark a | length (asubs a) == 1 && mixedAmountLooksZero (aebalance a) = a{aboring=True}
-           | otherwise = a
-
-balanceReportItem :: ReportOpts -> Query -> Account -> BalanceReportItem
-balanceReportItem opts q a
-  | flat_ opts = (name, name,       0,      (if flatShowsExclusiveBalance then aebalance else aibalance) a)
-  | otherwise  = (name, elidedname, indent, aibalance a)
-  where
-    name | queryDepth q > 0 = aname a
-         | otherwise        = "..."
-    elidedname = accountNameFromComponents (adjacentboringparentnames ++ [accountLeafName name])
-    adjacentboringparentnames = reverse $ map (accountLeafName.aname) $ takeWhile aboring parents
-    indent = length $ filter (not.aboring) parents
-    -- parents exclude the tree's root node
-    parents = case parentAccounts a of [] -> []
-                                       as -> init as
-
--- -- the above using the newer multi balance report code:
--- balanceReport' opts q j = (items, total)
---   where
---     MultiBalanceReport (_,mbrrows,mbrtotals) = PeriodChangeReport opts q j
---     items = [(a,a',n, headDef 0 bs) | ((a,a',n), bs) <- mbrrows]
---     total = headDef 0 mbrtotals
-
--- | Flip the sign of all amounts in a BalanceReport.
-brNegate :: BalanceReport -> BalanceReport
-brNegate (is, tot) = (map brItemNegate is, -tot)
-  where
-    brItemNegate (a, a', d, amt) = (a, a', d, -amt)
-
--- | Helper to unify a MixedAmount to a single commodity value.
--- Like normaliseMixedAmount, this consolidates amounts of the same commodity
--- and discards zero amounts; but this one insists on simplifying to
--- a single commodity, and will throw a program-terminating error if
--- this is not possible.
-unifyMixedAmount :: MixedAmount -> Amount
-unifyMixedAmount mixedAmount = foldl combine (num 0) (amounts mixedAmount)
-  where
-    combine amount result =
-      if amountIsZero amount
-      then result
-      else if amountIsZero result
-        then amount
-        else if acommodity amount == acommodity result
-          then amount + result
-          else error' "Cannot calculate percentages for accounts with multiple commodities. (Hint: Try --cost, -V or similar flags.)"
-
--- | Helper to calculate the percentage from two mixed. Keeps the sign of the first argument.
--- Uses unifyMixedAmount to unify each argument and then divides them.
-perdivide :: MixedAmount -> MixedAmount -> MixedAmount
-perdivide a b =
-  let a' = unifyMixedAmount a
-      b' = unifyMixedAmount b
-  in if amountIsZero a' || amountIsZero b' || acommodity a' == acommodity b'
-    then mixed [per $ if aquantity b' == 0 then 0 else (aquantity a' / abs (aquantity b') * 100)]
-    else error' "Cannot calculate percentages if accounts have different commodities. (Hint: Try --cost, -V or similar flags.)"
 
 -- tests
 
@@ -259,13 +96,13 @@ tests_BalanceReport = tests "BalanceReport" [
       let (eitems, etotal) = r
           (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
           showw (acct,acct',indent,amt) = (acct, acct', indent, showMixedAmountDebug amt)
-      (map showw eitems) @?= (map showw aitems)
+      (map showw aitems) @?= (map showw eitems)
       (showMixedAmountDebug etotal) @?= (showMixedAmountDebug atotal)
   in
     tests "balanceReport" [
 
      test "no args, null journal" $
-     (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
+     (defreportopts, nulljournal) `gives` ([], Mixed [])
 
     ,test "no args, sample journal" $
      (defreportopts, samplejournal) `gives`
@@ -303,7 +140,7 @@ tests_BalanceReport = tests "BalanceReport" [
     ,test "with date:" $
      (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
       ([],
-       Mixed [nullamt])
+       Mixed [])
 
     ,test "with date2:" $
      (defreportopts{query_="date2:'in 2009'"}, samplejournal2) `gives`
@@ -345,7 +182,7 @@ tests_BalanceReport = tests "BalanceReport" [
 
      ,test "with period on an unpopulated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}, samplejournal) `gives`
-       ([],Mixed [nullamt])
+       ([],Mixed [])
 
 
 

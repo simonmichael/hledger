@@ -18,6 +18,8 @@ module Hledger.Reports.MultiBalanceReport (
   balanceReportFromMultiBalanceReport,
   tableAsText,
 
+  sortAccountItemsLike,
+
   -- -- * Tests
   tests_MultiBalanceReport
 )
@@ -480,12 +482,11 @@ balanceReportFromMultiBalanceReport ropts q j = (rows', total)
     PeriodicReport _ rows (PeriodicReportRow _ totals _ _) =
         multiBalanceReportWith ropts' q j (journalPriceOracle (infer_value_ ropts) j)
     rows' = [( displayFull a
-             , leafName a
+             , displayName a
              , if tree_ ropts' then displayDepth a - 1 else 0  -- BalanceReport uses 0-based account depths
              , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
              ) | PeriodicReportRow a amts _ _ <- rows]
     total = headDef nullmixedamt totals
-    leafName = if flat_ ropts' then displayFull else displayName  -- BalanceReport expects full account name here with --flat
     ropts' = setDefaultAccountListMode ALTree ropts
 
 

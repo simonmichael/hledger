@@ -32,7 +32,7 @@ Balance changes in 2018:
 >=
 
 # 2. Tree mode. Missing parent accounts are added (b).
-$ hledger -f- bal -NY --tree
+$ hledger -f- bal -NY --tree --no-elide
 Balance changes in 2018:
 
      || 2018 
@@ -90,7 +90,7 @@ Balance changes in 2018:
 
 # 4. With account directives, tree mode.
 # Missing parent accounts are added (b).
-$ hledger -f- bal -NY --tree
+$ hledger -f- bal -NY --tree --no-elide
 Balance changes in 2018:
 
      || 2018 
@@ -141,7 +141,7 @@ Balance changes in 2018:
 2018/1/1
   (a:k)  1
 
-$ hledger -f- bal -NY --sort-amount --tree
+$ hledger -f- bal -NY --sort-amount --tree --no-elide
 Balance changes in 2018:
 
      || 2018 

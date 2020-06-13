@@ -355,7 +355,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[T.unpack (maybeAccountNameDrop opts a), showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
+  [[T.unpack a, showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
@@ -404,7 +404,7 @@ This implementation turned out to be a bit convoluted but implements the followi
 balanceReportItemAsText :: ReportOpts -> StringFormat -> BalanceReportItem -> [String]
 balanceReportItemAsText opts fmt (_, accountName, depth, amt) =
   renderBalanceReportItem opts fmt (
-    maybeAccountNameDrop opts accountName,
+    accountName,
     depth,
     normaliseMixedAmountSquashPricesForDisplay amt
     )

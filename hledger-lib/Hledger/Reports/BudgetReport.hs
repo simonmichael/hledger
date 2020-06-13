@@ -37,7 +37,6 @@ import Hledger.Utils
 --import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
-import Hledger.Reports.BalanceReport (sortAccountItemsLike)
 import Hledger.Reports.MultiBalanceReport
 
 
