@@ -348,7 +348,7 @@ displayedAccounts ropts q valuedaccts =
     displayedName name
         | depth == 0  = DisplayName "..." "..." 0
         | tree_ ropts = treeDisplayName name
-        | otherwise   = flatDisplayName name
+        | otherwise   = DisplayName name (accountNameDrop (drop_ ropts) name) 0
       where
         elided = accountNameFromComponents . reverse . map accountLeafName $
             name : takeWhile (not . isDisplayed) parents
