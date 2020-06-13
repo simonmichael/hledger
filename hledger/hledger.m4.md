@@ -1137,10 +1137,6 @@ We call this "valuation", and it is controlled in full by the
 But we also provide simpler, Ledger-compatible `-B`/`-V`/`-X` flags,
 and usually one of these is all you need:
 
-- `-B` to show cost/sale amount
-- `-V` to show market value in your usual base currency
-- `-X COMMODITY` to show market value in a specified currency.
-
 ### -B: Cost
 
 The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
