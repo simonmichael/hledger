@@ -179,18 +179,18 @@ instance Semigroup Journal where
     ,jparseparentaccounts       = jparseparentaccounts       j2
     ,jparsealiases              = jparsealiases              j2
     -- ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
-    ,jparsetimeclockentries     = jparsetimeclockentries j1 <> jparsetimeclockentries j2
-    ,jincludefilestack          = jincludefilestack          j2
+    ,jparsetimeclockentries     = jparsetimeclockentries     j1 <> jparsetimeclockentries     j2
+    ,jincludefilestack          = jincludefilestack j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
     ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
-    ,jpricedirectives              = jpricedirectives              j1 <> jpricedirectives              j2
-    ,jtransactionimpliedmarketprices = jtransactionimpliedmarketprices j1 <> jtransactionimpliedmarketprices j2
+    ,jpricedirectives           = jpricedirectives           j1 <> jpricedirectives           j2
+    ,jimpliedmarketprices       = jimpliedmarketprices       j1 <> jimpliedmarketprices       j2
     ,jtxnmodifiers              = jtxnmodifiers              j1 <> jtxnmodifiers              j2
     ,jperiodictxns              = jperiodictxns              j1 <> jperiodictxns              j2
     ,jtxns                      = jtxns                      j1 <> jtxns                      j2
-    ,jfinalcommentlines         = jfinalcommentlines         j2  -- XXX discards j1's ?
+    ,jfinalcommentlines         = jfinalcommentlines j2  -- XXX discards j1's ?
     ,jfiles                     = jfiles                     j1 <> jfiles                     j2
     ,jlastreadtime              = max (jlastreadtime j1) (jlastreadtime j2)
     }
@@ -211,8 +211,8 @@ nulljournal = Journal {
   ,jdeclaredaccounttypes      = M.empty
   ,jcommodities               = M.empty
   ,jinferredcommodities       = M.empty
-  ,jpricedirectives              = []
-  ,jtransactionimpliedmarketprices = []
+  ,jpricedirectives           = []
+  ,jimpliedmarketprices       = []
   ,jtxnmodifiers              = []
   ,jperiodictxns              = []
   ,jtxns                      = []
@@ -1044,8 +1044,8 @@ canonicalStyleFrom ss@(s:_) =
 -- been balanced and posting amounts have appropriate prices attached.
 journalInferMarketPricesFromTransactions :: Journal -> Journal
 journalInferMarketPricesFromTransactions j =
-  j{jtransactionimpliedmarketprices =
-       dbg4 "jtransactionimpliedmarketprices" $
+  j{jimpliedmarketprices =
+       dbg4 "jimpliedmarketprices" $
        mapMaybe postingImpliedMarketPrice $ journalPostings j
    }
 

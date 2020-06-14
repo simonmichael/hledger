@@ -472,7 +472,7 @@ data Journal = Journal {
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  TODO misnamed - jusedstyles
   ,jpricedirectives       :: [PriceDirective]                       -- ^ Declarations of market prices by P directives, in parse order (after journal finalisation)
-  ,jtransactionimpliedmarketprices :: [MarketPrice]                 -- ^ Market prices implied by transactions, in parse order (after journal finalisation)
+  ,jimpliedmarketprices   :: [MarketPrice]                          -- ^ Market prices implied by transactions, in parse order (after journal finalisation)
   ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]

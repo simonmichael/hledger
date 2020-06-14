@@ -195,12 +195,12 @@ amountValueAtDate priceoracle styles mto d a =
 -- you should generate this only once per journal, reusing it across
 -- reports if there are more than one (as in compoundBalanceCommand).
 journalPriceOracle :: Journal -> PriceOracle
-journalPriceOracle Journal{jpricedirectives, jtransactionimpliedmarketprices} =
+journalPriceOracle Journal{jpricedirectives, jimpliedmarketprices} =
   -- traceStack "journalPriceOracle" $
   let
     pricesatdate =
       memo $
-      pricesAtDate jpricedirectives jtransactionimpliedmarketprices
+      pricesAtDate jpricedirectives jimpliedmarketprices
   in
     memo $
     uncurry3 $
@@ -310,13 +310,13 @@ tests_priceLookup =
 -- graph of the effective exchange rates between commodity pairs on
 -- the given day.
 pricesAtDate :: [PriceDirective] -> [MarketPrice] -> Day -> PriceGraph
-pricesAtDate pricedirectives transactionimpliedmarketprices d =
+pricesAtDate pricedirectives impliedmarketprices d =
   -- trace ("pricesAtDate ("++show d++")") $
   PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests}
   where
     -- prices in effect on date d, either declared or implied
     declaredandimpliedprices = dbg5 "declaredandimpliedprices" $
-      latestPriceForEachPairOn pricedirectives transactionimpliedmarketprices d
+      latestPriceForEachPairOn pricedirectives impliedmarketprices d
 
     -- infer any additional reverse prices not already declared or implied
     reverseprices =
@@ -345,18 +345,18 @@ pricesAtDate pricedirectives transactionimpliedmarketprices d =
 -- latest declared or transaction-implied price dated on or before
 -- that day, with declared prices taking precedence.
 latestPriceForEachPairOn :: [PriceDirective] -> [MarketPrice] -> Day -> [MarketPrice]
-latestPriceForEachPairOn pricedirectives transactionimpliedmarketprices d =
+latestPriceForEachPairOn pricedirectives impliedmarketprices d =
   dbg5 "latestPriceForEachPairOn" $
   let
     -- consider only declarations/transactions before the valuation date
     declaredprices = map priceDirectiveToMarketPrice $ filter ((<=d).pddate) pricedirectives
-    transactionimpliedmarketprices' = filter ((<=d).mpdate) transactionimpliedmarketprices
+    impliedmarketprices' = filter ((<=d).mpdate) impliedmarketprices
     -- label the items with their precedence and then their parse order
     declaredprices'                  = [(1, i, p) | (i,p) <- zip [1..] declaredprices]
-    transactionimpliedmarketprices'' = [(0, i, p) | (i,p) <- zip [1..] transactionimpliedmarketprices']
+    impliedmarketprices'' = [(0, i, p) | (i,p) <- zip [1..] impliedmarketprices']
   in
     -- combine
-    declaredprices' ++ transactionimpliedmarketprices''
+    declaredprices' ++ impliedmarketprices''
     -- sort by newest date then highest precedence then latest parse order
     & sortBy (flip compare `on` (\(precedence,parseorder,mp)->(mpdate mp,precedence,parseorder)))
     -- discard the sorting labels
