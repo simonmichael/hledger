@@ -1146,8 +1146,8 @@ if they have a [transaction price](journal.html#transaction-prices) specified.
 
 The `-V/--market` flag converts amounts to market value in their
 default *valuation commodity*, using the
-[market prices](#market-prices) in effect on the *valuation date(s)*,
-if any. More on those in a minute.
+[market prices](#market-prices) in effect on the *valuation date(s)*, if any. 
+More on these in a minute.
 
 ### -X: Value in specified commodity
 
@@ -1162,21 +1162,6 @@ used as the valuation date; otherwise the valuation date is "today".
 
 For [multiperiod reports](#report-intervals), each column is valued on
 the last day of its period (displayed in the column heading).
-
-### Valuation commodity
-
-With `-X COMM`, the valuation commodity is COMM, and hledger tries to
-convert all amounts to COMM.
-
-With `-V` (and `--value` with COMM unspecified), hledger picks a
-valuation commodity automatically. Typically your P directives
-give prices in a single base currency, and -V will use that.
-More precisely: for each source commodity A, it chooses a valuation
-commodity B based on, in this order of preference:
-
-1. the latest P directive (on any date) declaring a price for A.
-
-Amounts for which no valuation commodity can be identified are not converted.
 
 ### Market prices
 
@@ -1207,6 +1192,27 @@ in this order of preference:
    A to B price.
 
 Amounts for which no suitable market price is found are not converted.
+
+### Valuation commodity
+
+With `-X COMM`, the valuation commodity is COMM, and hledger tries to
+convert all amounts to COMM.
+
+With `-V` (or `--value` with COMM unspecified), hledger tries to pick
+a valuation commodity - or possibly more than one - automatically.
+Currently, for each source commodity A, it chooses the commodity of
+the latest-dated declared market price (P directive) for A.
+(*hledger 1.18; previously, it was the latest-dated on or before valuation date. experimental*)
+If hledger can't identify a valuation commodity for an amount, it will not be converted.
+
+How does this work in practice ? Typically you will have P directives,
+all declaring prices in a single base currency, and -V will convert to
+that currency. This makes it slightly more convenient than -X. But if
+you don't have any P directives, you will need to use -X instead, for now. 
+
+(Choosing valuation commodity based on transaction-implied market
+prices can be confusing, so currently 
+[we don't do it](https://github.com/simonmichael/hledger/issues/1239).)
 
 ### Simple valuation examples
 
