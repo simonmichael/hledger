@@ -351,15 +351,16 @@ displayedAccounts ropts q valuedaccts
     isDisplayed = (`HM.member` displayedAccts)
 
     displayedName name
-        | flat_ ropts = DisplayName name (accountNameDrop (drop_ ropts) name) 0
+        | flat_ ropts = DisplayName name droppedName 0
         | otherwise   = DisplayName name leaf d
       where
         leaf = accountNameFromComponents . reverse . map accountLeafName $
-            name : takeWhile (not . isDisplayed) parents
-        d | no_elide_ ropts = accountNameLevel name
-          | otherwise       = accountNameLevel name - length boringParents
+            droppedName : takeWhile (not . isDisplayed) parents
+        d | no_elide_ ropts = accountNameLevel droppedName
+          | otherwise       = accountNameLevel droppedName - length boringParents
         boringParents = filter (not . isDisplayed) parents
-        parents = parentAccountNames name
+        parents = parentAccountNames droppedName
+        droppedName = accountNameDrop (drop_ ropts) name
 
     -- Accounts interesting for their own sake
     interestingAccounts = dbg'' "interestingAccounts" $
@@ -374,7 +375,8 @@ displayedAccounts ropts q valuedaccts
 
     -- Accounts interesting because they are a fork for interesting subaccounts
     interestingParents = dbg'' "interestingParents" $
-        forkingAccounts $ HM.keys interestingAccounts
+        HM.filterWithKey (\name i -> i > 1 && accountNameLevel name > drop_ ropts) .
+        subaccountTallies $ HM.keys interestingAccounts
 
     isInterestingParent
         | flat_ ropts                     = const False
@@ -505,8 +507,8 @@ sortAccountItemsLike sortedas items = mapMaybe (`lookup` items) sortedas
 
 -- | Given a list of account names, find all forking parent accounts, i.e.
 -- those which fork between different branches
-forkingAccounts :: [AccountName] -> HashMap AccountName Int
-forkingAccounts as = HM.filter (>1) $ foldr incrementParent mempty allaccts
+subaccountTallies :: [AccountName] -> HashMap AccountName Int
+subaccountTallies as = foldr incrementParent mempty allaccts
   where
     allaccts = expandAccountNames as
     incrementParent a = HM.insertWith (+) (parentAccountName a) 1
