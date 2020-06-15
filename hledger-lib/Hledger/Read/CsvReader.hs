@@ -382,7 +382,7 @@ rulesp = do
           }
 
 blankorcommentlinep :: CsvRulesParser ()
-blankorcommentlinep = lift (dbgparse 3 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
+blankorcommentlinep = lift (dbgparse 8 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
 
 blanklinep :: CsvRulesParser ()
 blanklinep = lift (skipMany spacenonewline) >> newline >> return () <?> "blank line"
@@ -395,7 +395,7 @@ commentcharp = oneOf (";#*" :: [Char])
 
 directivep :: CsvRulesParser (DirectiveName, String)
 directivep = (do
-  lift $ dbgparse 3 "trying directive"
+  lift $ dbgparse 8 "trying directive"
   d <- fmap T.unpack $ choiceInState $ map (lift . string . T.pack) directives
   v <- (((char ':' >> lift (many spacenonewline)) <|> lift (some spacenonewline)) >> directivevalp)
        <|> (optional (char ':') >> lift (skipMany spacenonewline) >> lift eolof >> return "")
@@ -418,7 +418,7 @@ directivevalp = anySingle `manyTill` lift eolof
 
 fieldnamelistp :: CsvRulesParser [CsvFieldName]
 fieldnamelistp = (do
-  lift $ dbgparse 3 "trying fieldnamelist"
+  lift $ dbgparse 8 "trying fieldnamelist"
   string "fields"
   optional $ char ':'
   lift (skipSome spacenonewline)
@@ -444,7 +444,7 @@ barefieldnamep = some $ noneOf (" \t\n,;#~" :: [Char])
 
 fieldassignmentp :: CsvRulesParser (HledgerFieldName, FieldTemplate)
 fieldassignmentp = do
-  lift $ dbgparse 3 "trying fieldassignmentp"
+  lift $ dbgparse 8 "trying fieldassignmentp"
   f <- journalfieldnamep
   v <- choiceInState [ assignmentseparatorp >> fieldvalp
                      , lift eolof >> return ""
@@ -454,7 +454,7 @@ fieldassignmentp = do
 
 journalfieldnamep :: CsvRulesParser String
 journalfieldnamep = do
-  lift (dbgparse 2 "trying journalfieldnamep")
+  lift (dbgparse 8 "trying journalfieldnamep")
   T.unpack <$> choiceInState (map (lift . string . T.pack) journalfieldnames)
 
 maxpostings = 99
@@ -489,7 +489,7 @@ journalfieldnames =
 
 assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
-  lift $ dbgparse 3 "trying assignmentseparatorp"
+  lift $ dbgparse 8 "trying assignmentseparatorp"
   _ <- choiceInState [ lift (skipMany spacenonewline) >> char ':' >> lift (skipMany spacenonewline)
                      , lift (skipSome spacenonewline)
                      ]
@@ -497,13 +497,13 @@ assignmentseparatorp = do
 
 fieldvalp :: CsvRulesParser String
 fieldvalp = do
-  lift $ dbgparse 2 "trying fieldvalp"
+  lift $ dbgparse 8 "trying fieldvalp"
   anySingle `manyTill` lift eolof
 
 -- A conditional block: one or more matchers, one per line, followed by one or more indented rules.
 conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
-  lift $ dbgparse 3 "trying conditionalblockp"
+  lift $ dbgparse 8 "trying conditionalblockp"
   string "if" >> lift (skipMany spacenonewline) >> optional newline
   ms <- some matcherp
   as <- many (try $ lift (skipSome spacenonewline) >> fieldassignmentp)
@@ -520,7 +520,7 @@ matcherp = try fieldmatcherp <|> recordmatcherp
 -- A pattern on the whole line, not beginning with a csv field reference.
 recordmatcherp :: CsvRulesParser Matcher
 recordmatcherp = do
-  lift $ dbgparse 2 "trying matcherp"
+  lift $ dbgparse 8 "trying matcherp"
   -- pos <- currentPos
   -- _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
   r <- regexp
@@ -535,7 +535,7 @@ recordmatcherp = do
 -- %description chez jacques
 fieldmatcherp :: CsvRulesParser Matcher
 fieldmatcherp = do
-  lift $ dbgparse 2 "trying fieldmatcher"
+  lift $ dbgparse 8 "trying fieldmatcher"
   -- An optional fieldname (default: "all")
   -- f <- fromMaybe "all" `fmap` (optional $ do
   --        f' <- fieldnamep
@@ -551,7 +551,7 @@ fieldmatcherp = do
 
 csvfieldreferencep :: CsvRulesParser CsvFieldReference
 csvfieldreferencep = do
-  lift $ dbgparse 3 "trying csvfieldreferencep"
+  lift $ dbgparse 8 "trying csvfieldreferencep"
   char '%'
   f <- fieldnamep
   return $ '%' : quoteIfNeeded f
@@ -559,7 +559,7 @@ csvfieldreferencep = do
 -- A single regular expression
 regexp :: CsvRulesParser RegexpPattern
 regexp = do
-  lift $ dbgparse 3 "trying regexp"
+  lift $ dbgparse 8 "trying regexp"
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anySingle `manyTill` lift eolof
@@ -606,12 +606,12 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   rulestext <-
     if rulesfileexists
     then do
-      dbg1IO "using conversion rules file" rulesfile
+      dbg7IO "using conversion rules file" rulesfile
       readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
     else
       return $ defaultRulesText rulesfile
   rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
-  dbg2IO "rules" rules
+  dbg7IO "rules" rules
 
   -- parse the skip directive's value, if any
   let skiplines = case getDirective "skip" rules of
@@ -623,12 +623,12 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
   let separator = fromMaybe ',' (getDirective "separator" rules >>= parseSeparator)
-  dbg2IO "separator" separator
+  dbg7IO "separator" separator
   records <- (either throwerr id .
-              dbg2 "validateCsv" . validateCsv rules skiplines .
-              dbg2 "parseCsv")
+              dbg8 "validateCsv" . validateCsv rules skiplines .
+              dbg8 "parseCsv")
              `fmap` parseCsv separator parsecfilename csvdata
-  dbg1IO "first 3 csv records" $ take 3 records
+  dbg7IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
   -- let (headerlines, datalines) = identifyHeaderLines records
@@ -653,10 +653,10 @@ readJournalFromCsv mrulesfile csvfile csvdata =
     -- than one date and the first date is more recent than the last):
     -- reverse them to get same-date transactions ordered chronologically.
     txns' =
-      (if newestfirst || mseemsnewestfirst == Just True then reverse else id) txns
+      (if newestfirst || mdataseemsnewestfirst == Just True then reverse else id) txns
       where
-        newestfirst = dbg3 "newestfirst" $ isJust $ getDirective "newest-first" rules
-        mseemsnewestfirst = dbg3 "mseemsnewestfirst" $
+        newestfirst = dbg7 "newestfirst" $ isJust $ getDirective "newest-first" rules
+        mdataseemsnewestfirst = dbg7 "mdataseemsnewestfirst" $
           case nub $ map tdate txns of
             ds | length ds > 1 -> Just $ head ds > last ds
             _                  -> Nothing
@@ -1060,7 +1060,7 @@ getEffectiveAssignment :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Fie
 getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
   where
     -- all active assignments to field f, in order
-    assignments = dbg2 "assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
+    assignments = dbg8 "assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
       where
         -- all top level field assignments
         toplevelassignments    = rassignments rules
@@ -1077,18 +1077,18 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                 matcherMatches :: Matcher -> Bool
                 matcherMatches (RecordMatcher pat) = regexMatchesCI pat' wholecsvline
                   where
-                    pat' = dbg3 "regex" pat
+                    pat' = dbg8 "regex" pat
                     -- A synthetic whole CSV record to match against. Note, this can be
                     -- different from the original CSV data:
                     -- - any whitespace surrounding field values is preserved
                     -- - any quotes enclosing field values are removed
                     -- - and the field separator is always comma
                     -- which means that a field containing a comma will look like two fields.
-                    wholecsvline = dbg3 "wholecsvline" $ intercalate "," record
+                    wholecsvline = dbg8 "wholecsvline" $ intercalate "," record
                 matcherMatches (FieldMatcher csvfieldref pat) = regexMatchesCI pat csvfieldvalue
                   where
                     -- the value of the referenced CSV field to match against.
-                    csvfieldvalue = dbg3 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
+                    csvfieldvalue = dbg8 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
 
 -- | Render a field assigment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.

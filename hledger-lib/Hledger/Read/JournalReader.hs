@@ -296,7 +296,7 @@ includedirectivep = do
       -- on journal. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
-      dbg1IO "trying reader" (rFormat r)
+      dbg7IO "trying reader" (rFormat r)
       updatedChildj <- journalAddFile (filepath, childInput) <$>
                         parseIncludeFile parser initChildj filepath childInput
 
@@ -425,7 +425,7 @@ commoditydirectiveonelinep = do
     pure $ (off, amount)
   lift (skipMany spacenonewline)
   _ <- lift followingcommentp
-  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
@@ -469,7 +469,7 @@ formatdirectivep expectedsym = do
     then
       if asdecimalpoint astyle == Nothing
       then customFailure $ parseErrorAt off pleaseincludedecimalpoint
-      else return $ dbg2 "style from format subdirective" astyle
+      else return $ dbg7 "style from format subdirective" astyle
     else customFailure $ parseErrorAt off $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 

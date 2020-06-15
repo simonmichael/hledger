@@ -70,8 +70,9 @@ balanceReport ropts@ReportOpts{..} q j =
   (if invert_ then brNegate  else id) $
   (mappedsorteditems, mappedtotal)
     where
-      -- dbg1 = const id -- exclude from debug output
-      dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
+      -- dbg = const id -- exclude from debug output
+      dbg s = let p = "balanceReport" in Hledger.Utils.dbg4 (p++" "++s)  -- add prefix in debug output
+      dbg' s = let p = "balanceReport" in Hledger.Utils.dbg5 (p++" "++s)  -- add prefix in debug output
 
       -- Get all the summed accounts & balances, according to the query, as an account tree.
       -- If doing cost valuation, amounts will be converted to cost first.
@@ -95,13 +96,13 @@ balanceReport ropts@ReportOpts{..} q j =
       -- Modify this tree for display - depth limit, boring parents, zeroes - and convert to a list.
       displayaccts :: [Account]
           | queryDepth q == 0 =
-                         dbg1 "displayaccts" $
+                         dbg' "displayaccts" $
                          take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts valuedaccttree
-          | flat_ ropts = dbg1 "displayaccts" $
+          | flat_ ropts = dbg' "displayaccts" $
                          filterzeros $
                          filterempty $
                          drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts valuedaccttree
-          | otherwise  = dbg1 "displayaccts" $
+          | otherwise  = dbg' "displayaccts" $
                          filter (not.aboring) $
                          drop 1 $ flattenAccounts $
                          markboring $
@@ -116,7 +117,7 @@ balanceReport ropts@ReportOpts{..} q j =
             markboring  = if no_elide_ then id else markBoringParentAccounts
 
       -- Make a report row for each account.
-      items = dbg1 "items" $ map (balanceReportItem ropts q) displayaccts
+      items = dbg "items" $ map (balanceReportItem ropts q) displayaccts
 
       -- Sort report rows (except sorting by amount in tree mode, which was done above).
       sorteditems
@@ -139,17 +140,17 @@ balanceReport ropts@ReportOpts{..} q j =
               sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
       -- Calculate the grand total.
-      total | not (flat_ ropts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
-            | otherwise         = dbg1 "total" $
+      total | not (flat_ ropts) = dbg "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
+            | otherwise         = dbg "total" $
                                   if flatShowsExclusiveBalance
                                   then sum $ map fourth4 items
                                   else sum $ map aebalance $ clipAccountsAndAggregate 1 displayaccts
       
       -- Calculate percentages if needed.
-      mappedtotal | percent_  = dbg1 "mappedtotal" $ total `perdivide` total
+      mappedtotal | percent_  = dbg "mappedtotal" $ total `perdivide` total
                   | otherwise = total
       mappedsorteditems | percent_ =
-                            dbg1 "mappedsorteditems" $
+                            dbg "mappedsorteditems" $
                             map (\(fname, sname, indent, amount) -> (fname, sname, indent, amount `perdivide` total)) sorteditems
                         | otherwise = sorteditems
 

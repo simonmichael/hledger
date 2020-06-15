@@ -1,5 +1,28 @@
 {-# LANGUAGE FlexibleContexts, TypeFamilies #-}
--- | Debugging helpers
+{- | Debugging helpers.
+
+You can enable increasingly verbose debug output by adding --debug [1-9]
+to a hledger command line. --debug with no argument means --debug 1.
+This is implemented by calling dbgN or similar helpers, defined below.
+These calls can be found throughout hledger code; they have been added
+organically where it seemed likely they would be needed again.
+The choice of debug level has not been very systematic.
+202006 Here's a start at some guidelines, not yet applied project-wide:
+
+Debug level:  What to show:
+------------  ---------------------------------------------------------
+0             normal command output only (no warnings, eg)
+1 (--debug)   basic/useful warnings & most common troubleshooting info, eg for valuation
+2             troubleshooting info, more detail
+3             report options selection
+4             report generation
+5             report generation, more detail
+6             command line parsing
+7             input file reading
+8             input file reading, more detail
+9             any other rarely needed / more in-depth info
+
+-}
 
 -- more:
 -- http://hackage.haskell.org/packages/archive/TraceUtils/0.1.0.2/doc/html/Debug-TraceUtils.html

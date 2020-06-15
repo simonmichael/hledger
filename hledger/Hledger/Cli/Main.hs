@@ -115,7 +115,7 @@ main = do
     (argsbeforecmd, argsaftercmd') = break (==rawcmd) args
     argsaftercmd         = drop 1 argsaftercmd'
     dbgIO :: Show a => String -> a -> IO ()
-    dbgIO = ptraceAtIO 2
+    dbgIO = ptraceAtIO 6
 
   dbgIO "running" prognameandversion
   dbgIO "raw args" args

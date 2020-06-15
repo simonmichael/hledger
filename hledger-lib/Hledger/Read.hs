@@ -111,7 +111,7 @@ readJournal :: InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
 readJournal iopts mpath txt = do
   let r :: Reader IO =
         fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
-  dbg1IO "trying reader" (rFormat r)
+  dbg7IO "trying reader" (rFormat r)
   (runExceptT . (rReadFn r) iopts (fromMaybe "(string)" mpath)) txt
 
 -- | Read the default journal file specified by the environment, or raise an error.

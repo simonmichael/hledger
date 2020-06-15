@@ -317,8 +317,7 @@ intervalFromRawOpts = lastDef NoInterval . collectopts intervalfromrawopt
 -- | get period expression from --forecast option
 forecastPeriodFromRawOpts :: Day -> RawOpts -> Maybe DateSpan
 forecastPeriodFromRawOpts d opts =
-  case 
-    dbg2 "forecastopt" $ maybestringopt "forecast" opts
+  case maybestringopt "forecast" opts
   of
     Nothing -> Nothing
     Just "" -> Just nulldatespan
@@ -478,13 +477,13 @@ queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
 reportSpan :: Journal -> ReportOpts -> IO DateSpan
 reportSpan j ropts = do
   (mspecifiedstartdate, mspecifiedenddate) <-
-    dbg2 "specifieddates" <$> specifiedStartEndDates ropts
+    dbg3 "specifieddates" <$> specifiedStartEndDates ropts
   let
     DateSpan mjournalstartdate mjournalenddate =
-      dbg2 "journalspan" $ journalDateSpan False j  -- ignore secondary dates
+      dbg3 "journalspan" $ journalDateSpan False j  -- ignore secondary dates
     mstartdate = mspecifiedstartdate <|> mjournalstartdate
     menddate   = mspecifiedenddate   <|> mjournalenddate
-  return $ dbg1 "reportspan" $ DateSpan mstartdate menddate
+  return $ dbg3 "reportspan" $ DateSpan mstartdate menddate
 
 reportStartDate :: Journal -> ReportOpts -> IO (Maybe Day)
 reportStartDate j ropts = spanStart <$> reportSpan j ropts

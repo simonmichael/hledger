@@ -258,7 +258,7 @@ priceLookup pricesatdate d from mto =
     fromnode = node m from
     mto' = mto <|> mdefaultto
       where
-        mdefaultto = dbg4 ("default valuation commodity for "++T.unpack from) $
+        mdefaultto = dbg1 ("default valuation commodity for "++T.unpack from) $
                      M.lookup from defaultdests
   in
     case mto' of
@@ -276,12 +276,12 @@ priceLookup pricesatdate d from mto =
             case sp fromnode tonode g :: Maybe [Node] of
               Nothing    -> Nothing
               Just nodes ->
-                dbg ("market price "++intercalate "->" (map T.unpack comms)) $
+                dbg ("market price for "++intercalate " -> " (map T.unpack comms)) $
                 Just $ product $ pathEdgeLabels g nodes  -- convert to a single exchange rate
                 where comms = catMaybes $ map (lab g) nodes
 
           -- log a message and a Maybe Quantity, hiding Just/Nothing and limiting decimal places
-          dbg msg = dbg4With (((msg++": ")++) . maybe "" (show . roundTo 8))
+          dbg msg = dbg1With (((msg++": ")++) . maybe "" (show . roundTo 8))
 
 tests_priceLookup =
   let
@@ -311,33 +311,32 @@ tests_priceLookup =
 -- the given day.
 pricesAtDate :: [PriceDirective] -> [MarketPrice] -> Day -> PriceGraph
 pricesAtDate pricedirectives impliedmarketprices d =
-  -- trace ("pricesAtDate ("++show d++")") $
+  dbg9 ("pricesAtDate "++show d) $
   PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests}
   where
     -- prices in effect on date d, either declared or implied
-    declaredandimpliedprices = dbg5 "declaredandimpliedprices" $
+    currentdeclaredandimpliedprices = dbg2 "currentdeclaredandimpliedprices" $
       latestPriceForEachPairOn pricedirectives impliedmarketprices d
 
     -- infer any additional reverse prices not already declared or implied
-    reverseprices =
-      dbg5 "reverseprices" $
-      map marketPriceReverse declaredandimpliedprices \\ declaredandimpliedprices
+    reverseprices = dbg2 "reverseprices" $
+      map marketPriceReverse currentdeclaredandimpliedprices \\ currentdeclaredandimpliedprices
 
     -- build the graph and associated node map
     (g, m) =
       mkMapGraph
-      (dbg5 "g nodelabels" $ sort allcomms) -- this must include all nodes mentioned in edges
-      (dbg5 "g edges"      $ [(mpfrom, mpto, mprate) | MarketPrice{..} <- prices])
+      (dbg9 "price graph labels" $ sort allcomms) -- this must include all nodes mentioned in edges
+      (dbg9 "price graph edges" $ [(mpfrom, mpto, mprate) | MarketPrice{..} <- prices])
       :: (Gr CommoditySymbol Quantity, NodeMap CommoditySymbol)
       where
-        prices   = declaredandimpliedprices ++ reverseprices
+        prices   = currentdeclaredandimpliedprices ++ reverseprices
         allcomms = map mpfrom prices
 
     -- determine a default valuation commodity D for each source commodity S:
     -- the price commodity in the latest declared market price for S (on any date)
     defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- alldeclaredprices]
       where
-        alldeclaredprices = dbg5 "alldeclaredprices" $ map priceDirectiveToMarketPrice pricedirectives
+        alldeclaredprices = dbg2 "alldeclaredprices" $ map priceDirectiveToMarketPrice pricedirectives
 
 -- From a list of price directives in parse order, and a list of
 -- transaction-implied market prices in parse order, get the effective
@@ -346,7 +345,6 @@ pricesAtDate pricedirectives impliedmarketprices d =
 -- that day, with declared prices taking precedence.
 latestPriceForEachPairOn :: [PriceDirective] -> [MarketPrice] -> Day -> [MarketPrice]
 latestPriceForEachPairOn pricedirectives impliedmarketprices d =
-  dbg5 "latestPriceForEachPairOn" $
   let
     -- consider only declarations/transactions before the valuation date
     declaredprices = map priceDirectiveToMarketPrice $ filter ((<=d).pddate) pricedirectives
