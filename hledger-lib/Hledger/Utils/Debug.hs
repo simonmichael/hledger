@@ -22,6 +22,11 @@ Debug level:  What to show:
 8             input file reading, more detail
 9             any other rarely needed / more in-depth info
 
+Tip: when debugging with GHCI, the first run after loading Debug.hs sets the
+debug level. If you need to change it, you must touch Debug.hs, :reload in GHCI,
+then run the command with a new --debug value. Or, often it's more convenient
+to add a temporary dbg0 and :reload (dbg0 always prints).
+
 -}
 
 -- more:
