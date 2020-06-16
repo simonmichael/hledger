@@ -303,13 +303,12 @@ compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, gra
   title ++ "\n\n" ++
   balanceReportTableAsText ropts bigtable'
   where
-    singlesubreport = length subreports == 1
     bigtable =
-      case map (subreportAsTable ropts singlesubreport) subreports of
+      case map (subreportAsTable ropts) subreports of
         []   -> T.empty
         r:rs -> foldl' concatTables r rs
     bigtable'
-      | no_total_ ropts || singlesubreport =
+      | no_total_ ropts || length subreports == 1 =
           bigtable
       | otherwise =
           bigtable
@@ -322,13 +321,10 @@ compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, gra
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
-    subreportAsTable ropts singlesubreport (title, r, _) = t
+    subreportAsTable ropts (title, r, _) = t
       where
-        -- unless there's only one section, always show the subtotal row
-        ropts' | singlesubreport = ropts
-               | otherwise       = ropts{ no_total_=False }
         -- convert to table
-        Table lefthdrs tophdrs cells = balanceReportAsTable ropts' r
+        Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
         t = Table (T.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
 
@@ -349,17 +345,12 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
    ++ (if row_total_ ropts then ["Total"] else [])
    ++ (if average_ ropts then ["Average"] else [])
    ) :
-  concatMap (subreportAsCsv ropts singlesubreport) subreports
+  concatMap (subreportAsCsv ropts) subreports
   where
-    singlesubreport = length subreports == 1
     -- | Add a subreport title row and drop the heading row.
-    subreportAsCsv ropts singlesubreport (subreporttitle, multibalreport, _) =
+    subreportAsCsv ropts (subreporttitle, multibalreport, _) =
       padRow subreporttitle :
-      tail (multiBalanceReportAsCsv ropts' multibalreport)
-      where
-        -- unless there's only one section, always show the subtotal row
-        ropts' | singlesubreport = ropts
-               | otherwise       = ropts{ no_total_=False }
+      tail (multiBalanceReportAsCsv ropts multibalreport)
     padRow s = take numcols $ s : repeat ""
       where
         numcols

@@ -32,15 +32,11 @@ Balance Sheet 2018-01-01
  Assets      ||            
 -------------++------------
  b:bb        ||          3 
--------------++------------
-             ||          3 
 =============++============
  Liabilities ||            
 -------------++------------
  asset:a     ||         -1 
  b           ||         -2 
--------------++------------
-             ||         -3 
 
 # 3. Tree mode. A little weird, b appears twice.
 # It must be shown above bb, but since not an asset, its balance is excluded there.
@@ -54,16 +50,12 @@ Balance Sheet 2018-01-01
 -------------++------------
  b           ||          3 
    bb        ||          3 
--------------++------------
-             ||          3 
 =============++============
  Liabilities ||            
 -------------++------------
  asset       ||         -1 
    a         ||         -1 
  b           ||         -2 
--------------++------------
-             ||         -3 
 
 # TODO
 # a trailing : should give a clear error
