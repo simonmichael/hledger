@@ -314,9 +314,9 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
 
       if budget then do  -- single or multi period budget report
         reportspan <- reportSpan j ropts
-        let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt reportspan d j
+        let budgetreport = dbg4 "budgetreport" $ budgetReport ropts assrt reportspan d j
               where
-                assrt          = not $ ignore_assertions_ $ inputopts_ opts
+                assrt = not $ ignore_assertions_ $ inputopts_ opts
             render = case fmt of
               "txt"  -> budgetReportAsText ropts
               "json" -> (++"\n") . TL.unpack . toJsonText
@@ -335,13 +335,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
           writeOutput opts $ render report
 
         else do  -- single period simple balance report
-          let report
-                | balancetype_ `elem` [HistoricalBalance, CumulativeChange]
-                  = let ropts' | flat_ ropts = ropts
-                               | otherwise   = ropts{accountlistmode_=ALTree}
-                    in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j
-                          -- for historical balances we must use balanceReportFromMultiBalanceReport (also forces --no-elide)
-                | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
+          let report = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
               render = case fmt of
                 "txt"  -> balanceReportAsText
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
