@@ -1090,7 +1090,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                     -- the value of the referenced CSV field to match against.
                     csvfieldvalue = dbg8 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
 
--- | Render a field assigment's template, possibly interpolating referenced
+-- | Render a field assignment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.
 renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> String
 renderTemplate rules record t = regexReplaceBy "%[A-z0-9_-]+" (replaceCsvFieldReference rules record) t
