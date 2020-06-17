@@ -665,6 +665,174 @@ $  ./csvtest.sh
 
 >=0
 
+# 35. tabular rules assigning multiple fields
+<
+10/2009/09,Flubber Co,50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if,account2,comment
+Flubber,acct,cmt
+$  ./csvtest.sh
+2009-09-10 Flubber Co  ; cmt
+    assets:myacct             $50
+    acct                     $-50
+
+>=0
+
+# 36. tabular rules assigning multiple fields followed by regular rules
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,150
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if,account2,comment
+Flubber,acct,cmt
+
+if
+Blubber
+  account2   acct2
+  comment     cmt2
+$  ./csvtest.sh
+2009-09-10 Flubber Co  ; cmt
+    assets:myacct             $50
+    acct                     $-50
+
+2009-09-10 Blubber Co  ; cmt2
+    assets:myacct            $150
+    acct2                   $-150
+
+>=0
+
+# 37. tabular rules with empty values
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,150
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if,account2,comment
+Flubber,acct,
+Blubber,acct2,
+$  ./csvtest.sh
+2009-09-10 Flubber Co
+    assets:myacct             $50
+    acct                     $-50
+
+2009-09-10 Blubber Co
+    assets:myacct            $150
+    acct2                   $-150
+
+>=0
+
+# 38. tabular rules with field matchers and '|' separator
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,150
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if|account2|comment
+%description Flubber|acct|
+%amount 150|acct2|cmt2
+$  ./csvtest.sh
+2009-09-10 Flubber Co
+    assets:myacct             $50
+    acct                     $-50
+
+2009-09-10 Blubber Co  ; cmt2
+    assets:myacct            $150
+    acct2                   $-150
+
+>=0
+
+# 39. Insfficient number of values in tabular rules error
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,150
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if|account2|comment
+%amount 150|acct2
+%description Flubber|acct|
+$  ./csvtest.sh
+>2
+hledger: user error (input.rules:6:1:
+  |
+6 | %amount 150|acct2
+  | ^
+line of conditional table should have 2 values, but this one has only 1
+
+)
+>=1
+
+# 40. unindented condition block error
+<
+10/2009/09,Flubber Co,50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if Flubber
+account2 acct
+comment cmt
+$  ./csvtest.sh
+>2
+hledger: user error (input.rules:5:1:
+  |
+5 | if Flubber
+  | ^
+start of conditional block found, but no assignment rules afterward
+(assignment rules in a conditional block should be indented)
+
+)
+>=1
+
+# 41. Assignment to custom field (#1264) + spaces after the if (#1120)
+<
+10/2009/09,Flubber Co,50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if Flubber
+  myaccount2 acct
+  comment cmt
+
+
+account2 %myaccount2
+$  ./csvtest.sh
+>2
+hledger: user error (input.rules:6:3:
+  |
+6 |   myaccount2 acct
+  |   ^^^^^^^^^^^^
+unexpected "myaccount2 a"
+expecting end of input, field assignment, or newline
+)
+>=1
+
 ## . 
 #<
 #$  ./csvtest.sh

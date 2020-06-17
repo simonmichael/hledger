@@ -42,16 +42,16 @@ where
 --- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
-import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Exception          (IOException, handle, throw)
 import Control.Monad              (liftM, unless, when)
 import Control.Monad.Except       (ExceptT, throwError)
 import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
-import Data.Char                  (toLower, isDigit, isSpace, ord)
+import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
 import "base-compat-batteries" Data.List.Compat
+import qualified Data.List.Split as LS (splitOn)
 import Data.Maybe
 import Data.Ord
 import qualified Data.Set as S
@@ -185,6 +185,9 @@ addAssignmentsFromList fs r = foldl' maybeAddAssignment r journalfieldnames
 
 addConditionalBlock :: ConditionalBlock -> CsvRules -> CsvRules
 addConditionalBlock b r = r{rconditionalblocks=b:rconditionalblocks r}
+
+addConditionalBlocks :: [ConditionalBlock] -> CsvRules -> CsvRules
+addConditionalBlocks bs r = r{rconditionalblocks=bs++rconditionalblocks r}
 
 getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
 getDirective directivename = lookup directivename . rdirectives
@@ -367,12 +370,15 @@ DIGIT: 0-9
 
 rulesp :: CsvRulesParser CsvRules
 rulesp = do
-  _ <- many $ choiceInState
-    [blankorcommentlinep                                                <?> "blank or comment line"
-    ,(directivep        >>= modify' . addDirective)                     <?> "directive"
-    ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList) <?> "field name list"
-    ,(fieldassignmentp  >>= modify' . addAssignment)                    <?> "field assignment"
-    ,(conditionalblockp >>= modify' . addConditionalBlock)              <?> "conditional block"
+  _ <- many $ choice
+    [blankorcommentlinep                                                  <?> "blank or comment line"
+    ,(directivep        >>= modify' . addDirective)                       <?> "directive"
+    ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList)   <?> "field name list"
+    ,(fieldassignmentp  >>= modify' . addAssignment)                      <?> "field assignment"
+    -- conditionaltablep backtracks because it shares "if" prefix with conditionalblockp and the
+    -- reverse is there to ensure that conditions are added in the order they listed in the file
+    ,try (conditionaltablep >>= modify' . addConditionalBlocks . reverse) <?> "conditional table"
+    ,(conditionalblockp >>= modify' . addConditionalBlock)                <?> "conditional block"
     ]
   eof
   r <- get
@@ -504,26 +510,60 @@ fieldvalp = do
 conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
   lift $ dbgparse 8 "trying conditionalblockp"
-  string "if" >> lift (skipMany spacenonewline) >> optional newline
+  -- "if\nMATCHER" or "if    \nMATCHER" or "if MATCHER"
+  start <- getOffset
+  string "if" >> ( (newline >> return Nothing)
+                  <|> (lift (skipSome spacenonewline) >> optional newline))
   ms <- some matcherp
-  as <- many (try $ lift (skipSome spacenonewline) >> fieldassignmentp)
+  as <- catMaybes <$>
+    many (lift (skipSome spacenonewline) >>
+          choice [ lift eolof >> return Nothing
+                 , fmap Just fieldassignmentp
+                 ])
   when (null as) $
-    Fail.fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
+    customFailure $ parseErrorAt start $  "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
   return $ CB{cbMatchers=ms, cbAssignments=as}
   <?> "conditional block"
 
+-- A conditional table: "if" followed by separator, followed by some field names,
+-- followed by many lines, each of which has:
+-- one matchers, followed by field assignments (as many as there were fields)
+conditionaltablep :: CsvRulesParser [ConditionalBlock]
+conditionaltablep = do
+  lift $ dbgparse 8 "trying conditionaltablep"
+  start <- getOffset
+  string "if" 
+  sep <- lift $ satisfy (not.isAlphaNum)
+  fields <- journalfieldnamep `sepBy1` (char sep)
+  newline
+  body <- flip manyTill (lift eolof) $ do
+    off <- getOffset
+    m <- matcherp' (char sep >> return ())
+    vs <- LS.splitOn [sep] <$> lift restofline
+    if (length vs /= length fields)
+      then customFailure $ parseErrorAt off $ ((printf "line of conditional table should have %d values, but this one has only %d\n" (length fields) (length vs)) :: String)
+      else return (m,vs)
+  when (null body) $
+    customFailure $ parseErrorAt start $ "start of conditional table found, but no assignment rules afterward\n"
+  return $ flip map body $ \(m,vs) ->
+    CB{cbMatchers=[m], cbAssignments=zip fields vs}
+  <?> "conditional table"
+
 -- A single matcher, on one line.
+matcherp' :: CsvRulesParser () -> CsvRulesParser Matcher
+matcherp' end = try (fieldmatcherp end) <|> recordmatcherp end
+
 matcherp :: CsvRulesParser Matcher
-matcherp = try fieldmatcherp <|> recordmatcherp
+matcherp = matcherp' (lift eolof)
 
 -- A single whole-record matcher.
 -- A pattern on the whole line, not beginning with a csv field reference.
-recordmatcherp :: CsvRulesParser Matcher
-recordmatcherp = do
-  lift $ dbgparse 8 "trying matcherp"
+recordmatcherp :: CsvRulesParser () -> CsvRulesParser Matcher
+recordmatcherp end = do
+  lift $ dbgparse 8 "trying recordmatcherp"
   -- pos <- currentPos
   -- _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
-  r <- regexp
+  r <- regexp end
   -- when (null ps) $
   --   Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
   return $ RecordMatcher r
@@ -533,8 +573,8 @@ recordmatcherp = do
 -- (like %date or %1), and a pattern on the rest of the line,
 -- optionally space-separated. Eg:
 -- %description chez jacques
-fieldmatcherp :: CsvRulesParser Matcher
-fieldmatcherp = do
+fieldmatcherp :: CsvRulesParser () -> CsvRulesParser Matcher
+fieldmatcherp end = do
   lift $ dbgparse 8 "trying fieldmatcher"
   -- An optional fieldname (default: "all")
   -- f <- fromMaybe "all" `fmap` (optional $ do
@@ -545,7 +585,7 @@ fieldmatcherp = do
   -- optional operator.. just ~ (case insensitive infix regex) for now
   -- _op <- fromMaybe "~" <$> optional matchoperatorp
   lift (skipMany spacenonewline)
-  r <- regexp
+  r <- regexp end
   return $ FieldMatcher f r
   <?> "field matcher"
 
@@ -557,12 +597,12 @@ csvfieldreferencep = do
   return $ '%' : quoteIfNeeded f
 
 -- A single regular expression
-regexp :: CsvRulesParser RegexpPattern
-regexp = do
+regexp :: CsvRulesParser () -> CsvRulesParser RegexpPattern
+regexp end = do
   lift $ dbgparse 8 "trying regexp"
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
-  cs <- anySingle `manyTill` lift eolof
+  cs <- anySingle `manyTill` end
   return $ strip $ c:cs
 
 -- -- A match operator, indicating the type of match to perform.

@@ -12,4 +12,6 @@ BEGIN{output=CSV}
 
 trap "rm -f t.$$.csv t.$$.csv.rules" EXIT ERR
 
-hledger -f csv:t.$$.csv --rules-file t.$$.csv.rules print "$@"
+# Remove variable file name from error messages
+:; ( hledger -f csv:t.$$.csv --rules-file t.$$.csv.rules print "$@" ) \
+       2> >( sed -re "s/t.*.csv/input/" >&2 )
