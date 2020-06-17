@@ -907,7 +907,7 @@ File: hledger_csv.info,  Node: Setting amounts,  Next: Setting currency/commodit
 
 A posting amount can be set in one of these ways:
 
-   * by assigning (with a fields list or field assigment) to 'amountN'
+   * by assigning (with a fields list or field assignment) to 'amountN'
      (posting N's amount) or 'amount' (posting 1's amount)
 
    * by assigning to 'amountN-in' and 'amountN-out' (or 'amount-in' and
@@ -1098,12 +1098,12 @@ Node: Deduplicating importing30113
 Ref: #deduplicating-importing30292
 Node: Setting amounts31325
 Ref: #setting-amounts31494
-Node: Setting currency/commodity32480
-Ref: #setting-currencycommodity32672
-Node: Referencing other fields33475
-Ref: #referencing-other-fields33675
-Node: How CSV rules are evaluated34572
-Ref: #how-csv-rules-are-evaluated34745
+Node: Setting currency/commodity32481
+Ref: #setting-currencycommodity32673
+Node: Referencing other fields33476
+Ref: #referencing-other-fields33676
+Node: How CSV rules are evaluated34573
+Ref: #how-csv-rules-are-evaluated34746
 
 End Tag Table
 
