@@ -128,7 +128,7 @@ creates an `AF_UNIX` socket file at the supplied path and uses that for communic
 This is an alternative way of running multiple hledger-web instances behind
 a reverse proxy that handles authentication for different users.
 The path can be derived in a predictable way, eg by using the username within the path.
-As an example, `nginx` as reverse proxy can use the variabel `$remote_user` to
+As an example, `nginx` as reverse proxy can use the variable `$remote_user` to
 derive a path from the username used in a [HTTP basic authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
 The following `proxy_pass` directive allows access to all `hledger-web`
 instances that created a socket in `/tmp/hledger/`:

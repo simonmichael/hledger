@@ -154,12 +154,12 @@ User-visible changes in the hledger command line tool and library.
 
       hledger ui 'amt:>200'
 
-  failed. This was becasue the process of dispatching from `hledger ui`
+  failed. This was because the process of dispatching from `hledger ui`
   to `hledger-ui` (note addition of `-`) lost the quotes around
   `amt:>20` and the `>` character was interpreted as a shell redirection
   operator, rather than as part of the argument.
 
-  The machinery for quoting or escaping arguements which contain
+  The machinery for quoting or escaping arguments which contain
   characters which require quoting or escaping (thus far whitespace and
   quotes) already existed. This solution simply adds shell stdio
   redirection characters to this set.
