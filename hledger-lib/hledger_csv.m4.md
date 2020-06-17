@@ -520,7 +520,7 @@ separator TAB
 
 See also: [File Extension](#file-extension).
 
-## `if`
+## `if` block
 
 ```rules
 if MATCHER
@@ -590,6 +590,57 @@ banking thru software
  comment  XXX deductible ? check it
 ```
 
+## `if` table
+
+```rules
+if,CSVFIELDNAME1,CSVFIELDNAME2,...,CSVFIELDNAMEn
+MATCHER1,VALUE11,VALUE12,...,VALUE1n
+MATCHER2,VALUE21,VALUE22,...,VALUE2n
+MATCHER3,VALUE31,VALUE32,...,VALUE3n
+<empty line>
+```
+
+Conditional tables ("if tables") are a different syntax to specify
+field assignments that will be applied only to CSV records which match certain patterns.
+
+MATCHER could be either field or record matcher, as described above. When MATCHER matches,
+values from that row would be assigned to the CSV fields named on the `if` line, in the same order.
+
+Therefore `if` table is exactly equivalent to a sequence of of `if` blocks:
+```rules
+if MATCHER1
+  CSVFIELDNAME1 VALUE11
+  CSVFIELDNAME2 VALUE12
+  ...
+  CSVFIELDNAMEn VALUE1n
+
+if MATCHER2
+  CSVFIELDNAME1 VALUE21
+  CSVFIELDNAME2 VALUE22
+  ...
+  CSVFIELDNAMEn VALUE2n
+
+if MATCHER3
+  CSVFIELDNAME1 VALUE31
+  CSVFIELDNAME2 VALUE32
+  ...
+  CSVFIELDNAMEn VALUE3n
+```
+
+Each line starting with MATCHER should contain enough (possibly empty) values for all the listed fields.
+
+Rules would be checked and applied in the order they are listed in the table and, like with `if` blocks, later rules (in the same or another table) or `if` blocks could override the effect of any rule.
+
+Instead of ',' you can use a variety of other non-alphanumeric characters as a separator. First character after `if` is taken to be the separator for the rest of the table. It is the responsibility of the user to ensure that separator does not occur inside MATCHERs and values - there is no way to escape separator.
+
+
+Example:
+```rules
+if,account2,comment
+atm transaction fee,expenses:business:banking,deductible? check it
+%description groceries,expenses:groceries,
+2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
+```
 
 ## `end`
 
