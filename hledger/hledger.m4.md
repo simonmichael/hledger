@@ -1029,6 +1029,7 @@ For example:
 
 The following more complex report intervals are also supported:
 `biweekly`,
+`fortnightly`,
 `bimonthly`,
 `every day|week|month|quarter|year`,
 `every N days|weeks|months|quarters|years`.

@@ -984,6 +984,8 @@ reportingintervalp = choice' [
                        tryinterval "year"    "yearly"    Years,
                        do string' "biweekly"
                           return $ Weeks 2,
+                       do string' "fortnightly"
+                          return $ Weeks 2,
                        do string' "bimonthly"
                           return $ Months 2,
                        do string' "every"
