@@ -12,8 +12,8 @@ The choice of debug level has not been very systematic.
 Debug level:  What to show:
 ------------  ---------------------------------------------------------
 0             normal command output only (no warnings, eg)
-1 (--debug)   basic/useful warnings & most common troubleshooting info, eg for valuation
-2             troubleshooting info, more detail
+1 (--debug)   useful warnings, most common troubleshooting info, eg valuation
+2             common troubleshooting info, more detail
 3             report options selection
 4             report generation
 5             report generation, more detail
