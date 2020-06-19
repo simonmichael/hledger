@@ -40,7 +40,7 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
       where
         pvalue p = maybe p
-          (postingApplyValuation (journalPriceOracle j) (journalCommodityStyles j) periodlast mreportlast today False p)
+          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast mreportlast today False p)
           value_
           where
             periodlast  = fromMaybe today $ reportPeriodOrJournalLastDay ropts j

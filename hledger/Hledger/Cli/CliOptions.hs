@@ -155,7 +155,7 @@ reportflags = [
 
   -- valuation
  ,flagNone ["B","cost"]      (setboolopt "B")
-   "show amounts converted to their cost, using the transaction price. Equivalent to --value=cost."
+   "show amounts converted to their cost/selling amount, using the transaction price. Equivalent to --value=cost."
  ,flagNone ["V","market"]    (setboolopt "V")
    (unwords
      ["show amounts converted to current market value (single period reports)"
@@ -178,6 +178,7 @@ reportflags = [
      ,"- current market value, in default valuation commodity or COMM"
      ,"- market value on the given date, in default valuation commodity or COMM"
      ])
+ ,flagNone ["infer-value"]   (setboolopt "infer-value") "with -V/-X/--value, also infer market prices from transactions"
 
   -- generated postings/transactions
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"

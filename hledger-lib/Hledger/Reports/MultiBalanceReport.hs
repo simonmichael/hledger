@@ -72,7 +72,11 @@ type ClippedAccountName = AccountName
 -- hledger's most powerful and useful report, used by the balance
 -- command (in multiperiod mode) and (via multiBalanceReport') by the bs/cf/is commands.
 multiBalanceReport :: Day -> ReportOpts -> Journal -> MultiBalanceReport
-multiBalanceReport today ropts j = multiBalanceReportWith ropts (queryFromOpts today ropts) j (journalPriceOracle j)
+multiBalanceReport today ropts j =
+  multiBalanceReportWith ropts q j (journalPriceOracle infer j)
+  where
+    q = queryFromOpts today ropts
+    infer = infer_value_ ropts
 
 -- | A helper for multiBalanceReport. This one takes an explicit Query
 -- instead of deriving one from ReportOpts, and an extra argument, a
@@ -363,7 +367,8 @@ multiBalanceReportWith ropts@ReportOpts{..} q j priceoracle =
 balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReportFromMultiBalanceReport opts q j = (rows', total)
   where
-    PeriodicReport _ rows (PeriodicReportRow _ _ totals _ _) = multiBalanceReportWith opts q j (journalPriceOracle j)
+    PeriodicReport _ rows (PeriodicReportRow _ _ totals _ _) =
+      multiBalanceReportWith opts q j (journalPriceOracle (infer_value_ opts) j)
     rows' = [( a
              , if flat_ opts then a else accountLeafName a   -- BalanceReport expects full account name here with --flat
              , if tree_ opts then d-1 else 0  -- BalanceReport uses 0-based account depths

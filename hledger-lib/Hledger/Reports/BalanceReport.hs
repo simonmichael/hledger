@@ -82,16 +82,20 @@ balanceReport ropts@ReportOpts{..} q j =
       -- per hledger_options.m4.md "Effect of --value on reports".
       valuedaccttree = mapAccounts avalue accttree
         where
-          avalue a@Account{..} = a{aebalance=bvalue aebalance, aibalance=bvalue aibalance}
+          avalue a@Account{..} = a{aebalance=maybevalue aebalance, aibalance=maybevalue aibalance}
             where
-              bvalue = maybe id (mixedAmountApplyValuation (journalPriceOracle j) (journalCommodityStyles j) periodlast mreportlast today multiperiod) value_
+              maybevalue = maybe id applyvaluation value_
                 where
-                  periodlast =
-                    fromMaybe (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen
-                    reportPeriodOrJournalLastDay ropts j
-                  mreportlast = reportPeriodLastDay ropts
-                  today = fromMaybe (error' "balanceReport: could not pick a valuation date, ReportOpts today_ is unset") today_
-                  multiperiod = interval_ /= NoInterval
+                  applyvaluation = mixedAmountApplyValuation priceoracle styles periodlast mreportlast today multiperiod
+                    where
+                      priceoracle = journalPriceOracle infer_value_ j
+                      styles = journalCommodityStyles j
+                      periodlast = fromMaybe
+                                   (error' "balanceReport: expected a non-empty journal") $ -- XXX shouldn't happen
+                                   reportPeriodOrJournalLastDay ropts j
+                      mreportlast = reportPeriodLastDay ropts
+                      today = fromMaybe (error' "balanceReport: could not pick a valuation date, ReportOpts today_ is unset") today_
+                      multiperiod = interval_ /= NoInterval
 
       -- Modify this tree for display - depth limit, boring parents, zeroes - and convert to a list.
       displayaccts :: [Account]

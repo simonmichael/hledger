@@ -74,7 +74,7 @@ postingsReport ropts@ReportOpts{..} q j =
       whichdate   = whichDateFromOpts ropts
       depth       = queryDepth q
       styles      = journalCommodityStyles j
-      priceoracle = journalPriceOracle j
+      priceoracle = journalPriceOracle infer_value_ j
       multiperiod = interval_ /= NoInterval
       today       = fromMaybe (error' "postingsReport: could not pick a valuation date, ReportOpts today_ is unset") today_
 

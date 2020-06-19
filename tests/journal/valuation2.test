@@ -222,31 +222,59 @@ P 2002/01/01 A  2 B
 $ hledger -f- bal -N -V -e 2002-01-01
                  1 B  a
 
-# Test market prices inferred from transactions, as in Ledger.
+# Test market prices inferred from transactions.
 
+# 22. Market price is not inferred from transactions by default.
 <
 2020-01-01
-  (assets:stock)   1 TSLA @ $500
+  (a)   1 A @ 2 B
 
-2020-03-01
-  (assets:stock)   1 TSLA @ $500
+$ hledger -f- bal -N -V
+                 1 A  a
 
-P 2020-03-01 TSLA  $600
+# 23. Market price is inferred from transactions with --infer-value,
+# and -V can work with no P directives.
+$ hledger -f- bal -N -V --infer-value
+                  B2  a
 
-2020-05-01
-  (assets:stock)   1 TSLA @ $800
+# 24. A P-declared market price on the same date as a transaction price has precedence.
+<
+P 2020-01-01 A  1 B
 
-# 22. Market price is inferred from a transaction price,
-# -V works without a P directive.
-$ hledger -f- bal -N -V -e 2020-01-02
-                $500  assets:stock
+2020-01-01
+  (a)   1 A @ 2 B
 
-# 23. A P-declared market price has precedence over a transaction price 
-# on the same date.
-$ hledger -f- bal -N -V -e 2020-03-02
-               $1200  assets:stock
+$ hledger -f- bal -N -V --infer-value
+                 1 B  a
 
-# 24. A transaction-implied market price has precedence 
-# over an older P-declared market price.
-$ hledger -f- bal -N -V -e 2020-05-02
-               $2400  assets:stock
+# 25. A transaction-inferred price newer than a P-declared price has precedence.
+<
+P 2020-01-01 A  1 B
+
+2020-01-02
+  (a)   1 A @ 2 B
+
+$ hledger -f- bal -N -V --infer-value
+                 2 B  a
+
+# 26. A later-dated P directive sets the valuation commodity even if parsed out of order.
+<
+P 2020-02-01 A  1 C
+P 2020-01-01 A  1 B
+
+2020-02-01
+  (a)   1 A @ 2 B
+
+$ hledger -f- bal -N -V
+                 1 C  a
+
+# 27. A later-dated transaction price sets the valuation commodity even if parsed out of order.
+<
+2020-01-01
+  (a)   1 A @ 1 C  ; date: 2020-01-02
+  (a)   1 A @ 1 D  ; date: 2020-01-02
+  (a)   1 A @ 1 B
+
+$ hledger -f- bal -N -V --infer-value
+                  D3  a
+

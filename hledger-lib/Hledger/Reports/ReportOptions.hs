@@ -93,6 +93,7 @@ data ReportOpts = ReportOpts {
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
+    ,infer_value_    :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
@@ -161,6 +162,7 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
@@ -173,6 +175,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,interval_    = intervalFromRawOpts rawopts'
     ,statuses_    = statusesFromRawOpts rawopts'
     ,value_       = valuationTypeFromRawOpts rawopts'
+    ,infer_value_ = boolopt "infer-value" rawopts'
     ,depth_       = maybeintopt "depth" rawopts'
     ,display_     = maybedisplayopt d rawopts'
     ,date2_       = boolopt "date2" rawopts'

@@ -101,11 +101,14 @@ type PriceOracle = (Day, CommoditySymbol, Maybe CommoditySymbol) -> Maybe (Commo
 -- prices. For best performance, generate this only once per journal,
 -- reusing it across reports if there are more than one, as
 -- compoundBalanceCommand does.
-journalPriceOracle :: Journal -> PriceOracle
-journalPriceOracle Journal{jpricedirectives, jinferredmarketprices} =
+-- The boolean argument is whether to infer market prices from
+-- transactions or not.
+journalPriceOracle :: Bool -> Journal -> PriceOracle
+journalPriceOracle infer Journal{jpricedirectives, jinferredmarketprices} =
   let
     declaredprices = map priceDirectiveToMarketPrice jpricedirectives
-    makepricegraph = memo $ makePriceGraph declaredprices jinferredmarketprices
+    inferredprices = if infer then jinferredmarketprices else []
+    makepricegraph = memo $ makePriceGraph declaredprices inferredprices
   in
     memo $ uncurry3 $ priceLookup makepricegraph
 
@@ -231,7 +234,8 @@ priceLookup makepricegraph d from mto =
   let
     -- build a graph of the commodity exchange rates in effect on this day
     -- XXX should hide these fgl details better
-    PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests} = makepricegraph d
+    PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests} =
+      traceAt 1 ("valuation date: "++show d) $ makepricegraph d
     fromnode = node m from
     mto' = mto <|> mdefaultto
       where
@@ -290,7 +294,7 @@ tests_priceLookup =
 --
 -- 1. A *declared market price* or *inferred market price*:
 --    A's latest market price in B on or before the valuation date
---    as declared by a P directive, or (with the `--value-infer` flag)
+--    as declared by a P directive, or (with the `--infer-value` flag)
 --    inferred from transaction prices.
 --   
 -- 2. A *reverse market price*:
@@ -305,15 +309,18 @@ tests_priceLookup =
 --
 -- We also identify each commodity's default valuation commodity, if
 -- any. For each commodity A, hledger picks a default valuation
--- commodity as follows:
+-- commodity as follows, in this order of preference:
 --
--- 1. The price commodity from the latest (on or before valuation
---    date) declared market price for A.
+-- 1. The price commodity from the latest declared market price for A
+--    on or before valuation date.
 --
--- 2. If there are no P directives at all (any commodity, any date),
---    and the `--value-infer` flag is used, then the price commodity
---    from the latest (on or before valuation date) transaction price
---    for A.
+-- 2. The price commodity from the latest declared market price for A
+--    on any date. (Allows conversion to proceed if there are inferred
+--    prices before the valuation date.)
+--
+-- 3. If there are no P directives at all (any commodity or date), and
+--    the `--infer-value` flag is used, then the price commodity from
+--    the latest transaction price for A on or before valuation date.
 --
 makePriceGraph :: [MarketPrice] -> [MarketPrice] -> Day -> PriceGraph
 makePriceGraph alldeclaredprices allinferredprices d =
@@ -321,8 +328,10 @@ makePriceGraph alldeclaredprices allinferredprices d =
   PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests}
   where
     -- prices in effect on date d, either declared or inferred
+    visibledeclaredprices = filter ((<=d).mpdate) alldeclaredprices
+    visibleinferredprices = filter ((<=d).mpdate) allinferredprices
     declaredandinferredprices = dbg2 "declaredandinferredprices" $
-      declaredOrInferredPricesOn alldeclaredprices allinferredprices d
+      effectiveMarketPrices visibledeclaredprices visibleinferredprices
 
     -- infer any additional reverse prices not already declared or inferred
     reverseprices = dbg2 "reverseprices" $
@@ -338,33 +347,40 @@ makePriceGraph alldeclaredprices allinferredprices d =
         prices   = declaredandinferredprices ++ reverseprices
         allcomms = map mpfrom prices
 
-    -- determine a default valuation commodity D for each source commodity S:
-    -- the price commodity in the latest declared market price for S (on any date)
-    defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- alldeclaredprices]
+    -- determine a default valuation commodity for each source commodity
+    -- somewhat but not quite like effectiveMarketPrices
+    defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- pricesfordefaultcomms]
+      where
+        pricesfordefaultcomms = dbg2 "prices for choosing default valuation commodities, by date then parse order" $
+          ps
+          & zip [1..]  -- label items with their parse order
+          & sortBy (compare `on` (\(parseorder,MarketPrice{..})->(mpdate,parseorder)))  -- sort by increasing date then increasing parse order
+          & map snd    -- discard labels
+          where
+            ps | not $ null visibledeclaredprices = visibledeclaredprices
+               | not $ null alldeclaredprices     = alldeclaredprices
+               | otherwise                        = visibleinferredprices  -- will be null without --infer-value
 
--- | From a list of directive-declared market prices in parse order,
--- and a list of transaction-inferred market prices in parse order,
--- get the effective price on the given date for each commodity pair.
--- That is, the latest (by date then parse order) declared price or
--- inferred price, on or before that date, If there is both a declared
--- and inferred price on the same day, declared takes precedence.
-declaredOrInferredPricesOn :: [MarketPrice] -> [MarketPrice] -> Day -> [MarketPrice]
-declaredOrInferredPricesOn declaredprices inferredprices d =
+-- | Given a list of P-declared market prices in parse order and a
+-- list of transaction-inferred market prices in parse order, select
+-- just the latest prices that are in effect for each commodity pair.
+-- That is, for each commodity pair, the latest price by date then
+-- parse order, with declared prices having precedence over inferred
+-- prices on the same day.
+effectiveMarketPrices :: [MarketPrice] -> [MarketPrice] -> [MarketPrice]
+effectiveMarketPrices declaredprices inferredprices =
   let
-    -- keeping only prices on or before the valuation date, label each
-    -- item with its same-day precedence (declared above inferred) and
-    -- then parse order
-    declaredprices' = [(1, i, p) | (i,p@MarketPrice{mpdate}) <- zip [1..] declaredprices, mpdate<=d]
-    inferredprices' = [(0, i, p) | (i,p@MarketPrice{mpdate}) <- zip [1..] inferredprices, mpdate<=d]
+    -- label each item with its same-day precedence, then parse order
+    declaredprices' = [(1, i, p) | (i,p) <- zip [1..] declaredprices]
+    inferredprices' = [(0, i, p) | (i,p) <- zip [1..] inferredprices]
   in
     -- combine
     declaredprices' ++ inferredprices'
-    -- sort by newest date then highest precedence then latest parse order
+    -- sort by decreasing date then decreasing precedence then decreasing parse order
     & sortBy (flip compare `on` (\(precedence,parseorder,mp)->(mpdate mp,precedence,parseorder)))
     -- discard the sorting labels
     & map third3
     -- keep only the first (ie the newest, highest precedence, latest parsed) price for each pair
-    -- XXX or use a Map ?
     & nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto)))
 
 marketPriceReverse :: MarketPrice -> MarketPrice

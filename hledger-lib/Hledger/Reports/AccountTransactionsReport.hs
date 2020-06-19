@@ -102,7 +102,7 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
     ts3 = filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
 
     -- maybe convert these transactions to cost or value
-    prices = journalPriceOracle j
+    prices = journalPriceOracle (infer_value_ ropts) j
     styles = journalCommodityStyles j
     periodlast =
       fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen

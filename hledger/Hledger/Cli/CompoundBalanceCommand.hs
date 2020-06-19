@@ -146,7 +146,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
 
       -- make a CompoundBalanceReport.
       -- For efficiency, generate a price oracle here and reuse it with each subreport.
-      priceoracle = journalPriceOracle j
+      priceoracle = journalPriceOracle infer_value_ j
       subreports =
         map (\CBCSubreportSpec{..} ->
                 (cbcsubreporttitle
