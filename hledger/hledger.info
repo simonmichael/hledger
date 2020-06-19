@@ -610,12 +610,21 @@ by most hledger commands, run 'hledger -h'.
      hledger-ui/hledger-web)
 '-B --cost'
 
-     convert amounts to their cost at transaction time (using the
-     transaction price, if any)
-'-V --value'
+     convert amounts to their cost/selling amount at transaction time
+'-V --market'
 
-     convert amounts to their market value on the report end date (using
-     the most recent applicable market price, if any)
+     convert amounts to their market value in default valuation
+     commodities
+'-X --exchange=COMM'
+
+     convert amounts to their market value in commodity COMM
+'--value'
+
+     convert amounts to cost or market value, more flexibly than
+     -B/-V/-X
+'--infer-value'
+
+     with -V/-X/-value, also infer market prices from transactions
 '--auto'
 
      apply automated posting rules to modify transactions.
@@ -1363,30 +1372,32 @@ File: hledger.info,  Node: Valuation,  Prev: Pivoting,  Up: OPTIONS
 2.17 Valuation
 ==============
 
-hledger can show cost reports, where amounts are converted to their cost
-or sale amount at transaction time; or value reports, where amounts are
-converted to their market value in another currency/commodity at a
-specified date (using market prices inferred from your transactions, or
-declared with P directives).
+Instead of reporting amounts in their original commodity, hledger can
+convert them to:
 
-   We call this "valuation", and it is controlled by the
-'--value=VALUATIONTYPE[,COMMODITY]' option.  It can get a little
-involved, so we cover all the details below.  But most of the time, all
-you need to do is use these simpler flags instead:
+   * cost (or sale amount), using the conversion rate recorded as part
+     of the transaction (transaction price).
 
-   * '-B' to convert to cost/sale amount, or
-   * '-V' to convert to market value in your base currency.  Or
-     occasionally,
-   * '-X COMMODITY' to convert to market value in some other currency.
+   * value, using the market prices in effect on certain date(s).
+
+   We call this "valuation", and it is controlled in full by the
+'--value=VALUATIONTYPE[,COMMODITY]' option.  But we also provide
+simpler, Ledger-compatible '-B'/'-V'/'-X' flags, and usually one of
+these is all you need:
 
 * Menu:
 
 * -B Cost::
 * -V Value::
-* -X Market value in specified commodity::
+* -X Value in specified commodity::
+* Valuation date::
 * Market prices::
+* --infer-value market prices from transactions::
+* Valuation commodity::
+* Simple valuation examples::
 * --value Flexible valuation::
-* Effect of --value on reports::
+* More valuation examples::
+* Effect of valuation on reports::
 
 
 File: hledger.info,  Node: -B Cost,  Next: -V Value,  Up: Valuation
@@ -1395,29 +1406,151 @@ File: hledger.info,  Node: -B Cost,  Next: -V Value,  Up: Valuation
 ---------------
 
 The '-B/--cost' flag converts amounts to their cost or sale amount at
-transaction time, if they have a transaction price specified.  (It is
-equivalent to '--value=cost'.)
+transaction time, if they have a transaction price specified.
 
 
-File: hledger.info,  Node: -V Value,  Next: -X Market value in specified commodity,  Prev: -B Cost,  Up: Valuation
+File: hledger.info,  Node: -V Value,  Next: -X Value in specified commodity,  Prev: -B Cost,  Up: Valuation
 
 2.17.2 -V: Value
 ----------------
 
-The '-V/--market' flag converts reported amounts to market value in
-their _default valuation commodity_, using the market prices in effect
-on a _default valuation date_.  (More on these below.)
+The '-V/--market' flag converts amounts to market value in their default
+_valuation commodity_, using the market prices in effect on the
+_valuation date(s)_, if any.  More on these things in a minute.
 
-   The default valuation commodity is the one referenced in the latest
-applicable market price dated on or before the valuation date.
-Typically your P declarations or currency exchange transactions
-reference a single base currency, and -V will pick that.
+
+File: hledger.info,  Node: -X Value in specified commodity,  Next: Valuation date,  Prev: -V Value,  Up: Valuation
 
-   The default valuation date is today for single period reports
-(equivalent to '--value=now'), or the last day of each subperiod for
-multiperiod reports (equivalent to '--value=end').
+2.17.3 -X: Value in specified commodity
+---------------------------------------
 
-   An example:
+The '-X/--exchange' option is like '-V' except the desired valuation
+currency is specified explicitly.
+
+
+File: hledger.info,  Node: Valuation date,  Next: Market prices,  Prev: -X Value in specified commodity,  Up: Valuation
+
+2.17.4 Valuation date
+---------------------
+
+For single period reports, if an explicit report end date is specified,
+that will be used as the valuation date; otherwise the valuation date is
+"today".
+
+   For multiperiod reports, each column/period is valued on the last day
+of the period.
+
+
+File: hledger.info,  Node: Market prices,  Next: --infer-value market prices from transactions,  Prev: Valuation date,  Up: Valuation
+
+2.17.5 Market prices
+--------------------
+
+_(experimental)_
+
+   To convert a commodity A to its market value in another commodity B,
+hledger looks for a suitable market price (exchange rate) as follows, in
+this order of preference :
+
+  1. A _declared market price_ or _inferred market price_: A's latest
+     market price in B on or before the valuation date as declared by a
+     P directive, or (if the '--infer-value' flag is used) inferred from
+     transaction prices.
+
+  2. A _reverse market price_: the inverse of a declared or inferred
+     market price from B to A.
+
+  3. A _chained market price_: a synthetic price formed by combining the
+     shortest chain of market prices (any of the above types) leading
+     from A to B.
+
+   Amounts for which no applicable market price can be found, are not
+converted.
+
+
+File: hledger.info,  Node: --infer-value market prices from transactions,  Next: Valuation commodity,  Prev: Market prices,  Up: Valuation
+
+2.17.6 -infer-value: market prices from transactions
+----------------------------------------------------
+
+_(experimental)_
+
+   Normally, market value in hledger is fully controlled by, and
+requires, P directives in your journal.  Since adding and updating those
+can be a chore, and since transactions usually take place at close to
+market value, why not use the recorded transaction prices as additional
+market prices (as Ledger does) ?  We could produce value reports without
+needing P directives at all.
+
+   Adding the '--infer-value' flag to '-V', '-X' or '--value' enables
+this.  So for example, 'hledger bs -V --infer-value' will get market
+prices both from P directives and from transactions.
+
+   There is a downside to this: value reports can be affected in
+confusing/undesired ways by your journal entries.  If this happens to
+you, read all of this Valuation section carefully, and try adding
+'--debug' or '--debug=2' to troubleshoot the reason.
+
+   '--infer-value' can infer market prices from:
+
+   * multicommodity transactions with explicit prices ('@'/'@@')
+
+   * multicommodity transactions with implicit prices (no '@', two
+     commodities, unbalanced).  (With these, the order of postings
+     matters.  'hledger print -x' can be useful for troubleshooting.)
+
+   * but not, currently, from "more correct" multicommodity transactions
+     (no '@', multiple commodities, balanced).
+
+
+File: hledger.info,  Node: Valuation commodity,  Next: Simple valuation examples,  Prev: --infer-value market prices from transactions,  Up: Valuation
+
+2.17.7 Valuation commodity
+--------------------------
+
+_(experimental)_
+
+   *When you specify a valuation commodity ('-X COMM' or '--value
+TYPE,COMM'):*
+hledger will convert all amounts to COMM, wherever it can find a
+suitable market price (including by reversing or chaining prices).
+
+   *When you leave the valuation commodity unspecified ('-V' or '--value
+TYPE'):*
+For each commodity A, hledger picks a default valuation commodity as
+follows, in this order of preference:
+
+  1. The price commodity from the latest P-declared market price for A
+     on or before valuation date.
+
+  2. The price commodity from the latest P-declared market price for A
+     on any date.  (Allows conversion to proceed when there are inferred
+     prices before the valuation date.)
+
+  3. If there are no P directives at all (any commodity or date) and the
+     '--infer-value' flag is used: the price commodity from the latest
+     transaction-inferred price for A on or before valuation date.
+
+   Amounts for which no valuation commodity can be found are not
+converted.
+
+   This means:
+
+   * If you have any P directives, they alone determine which
+     commodities '-V' will convert, and to what.
+
+   * If you have no P directives, and you add the '--infer-value' flag,
+     transaction prices determine what '-V' converts.
+
+   * '-X' tries harder to convert everything to just one commodity.
+
+
+File: hledger.info,  Node: Simple valuation examples,  Next: --value Flexible valuation,  Prev: Valuation commodity,  Up: Valuation
+
+2.17.8 Simple valuation examples
+--------------------------------
+
+Here are some quick examples of '-V':
 
 ; one euro is worth this many dollars from nov 1
 P 2016/11/01 € $1.10
@@ -1447,52 +1580,12 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 
 
-File: hledger.info,  Node: -X Market value in specified commodity,  Next: Market prices,  Prev: -V Value,  Up: Valuation
+File: hledger.info,  Node: --value Flexible valuation,  Next: More valuation examples,  Prev: Simple valuation examples,  Up: Valuation
 
-2.17.3 -X: Market value in specified commodity
-----------------------------------------------
-
-The '-X/--exchange' option is like '-V', except it specifies the target
-commodity you would like to convert to.  (It is equivalent to
-'--value=now,COMM' or '--value=end,COMM'.)
-
-
-File: hledger.info,  Node: Market prices,  Next: --value Flexible valuation,  Prev: -X Market value in specified commodity,  Up: Valuation
-
-2.17.4 Market prices
---------------------
-
-To convert a commodity A to commodity B, hledger looks for a suitable
-market price (exchange rate) in the following ways, in this order of
-preference:
-
-  1. a _declared market price_ - the latest P directive specifying the
-     exchange rate from A to B, dated on or before the valuation date.
-
-  2. a _transaction-implied market price_ - a market price matching the
-     transaction price used in the latest transaction where A is
-     converted to B, dated on or before the valuation date.  (_since
-     hledger 1.18; experimental_)
-
-  3. a _reverse declared market price_ - calculated by inverting a
-     declared market price from B to A.
-
-  4. a _reverse transaction-implied market price_ - calculated by
-     inverting a transaction-implied market price from B to A.
-
-  5. an _indirect market price_ - calculated by combining the shortest
-     chain of market prices (any of the above types) leading from A to
-     B.
-
-
-File: hledger.info,  Node: --value Flexible valuation,  Next: Effect of --value on reports,  Prev: Market prices,  Up: Valuation
-
-2.17.5 -value: Flexible valuation
+2.17.9 -value: Flexible valuation
 ---------------------------------
 
-_(experimental, added 201905)_
-
-   '-B', '-V' and '-X' are special cases of the more general '--value'
+'-B', '-V' and '-X' are special cases of the more general '--value'
 option:
 
  --value=TYPE[,COMM]  TYPE is cost, then, end, now or YYYY-MM-DD.
@@ -1504,51 +1597,43 @@ option:
                       - default valuation commodity (or COMM) using current market prices
                       - default valuation commodity (or COMM) using market prices at some date
 
-   The TYPE part basically selects either "cost", or "market value" plus
-a valuation date:
+   The TYPE part selects cost or value and valuation date:
 
 '--value=cost'
 
      Convert amounts to cost, using the prices recorded in transactions.
 '--value=then'
 
-     Convert amounts to their value in a default valuation commodity,
+     Convert amounts to their value in the default valuation commodity,
      using market prices on each posting's date.  This is currently
      supported only by the print and register commands.
 '--value=end'
 
-     Convert amounts to their value in a default valuation commodity,
+     Convert amounts to their value in the default valuation commodity,
      using market prices on the last day of the report period (or if
      unspecified, the journal's end date); or in multiperiod reports,
      market prices on the last day of each subperiod.
 '--value=now'
 
-     Convert amounts to their value in default valuation commodity using
-     current market prices (as of when report is generated).
+     Convert amounts to their value in the default valuation commodity
+     using current market prices (as of when report is generated).
 '--value=YYYY-MM-DD'
 
-     Convert amounts to their value in default valuation commodity using
-     market prices on this date.
-
-   The default valuation commodity is the commodity mentioned in the
-most recent applicable market price declaration.  When all your price
-declarations lead to a single home currency, this will usually do what
-you want.
+     Convert amounts to their value in the default valuation commodity
+     using market prices on this date.
 
    To select a different valuation commodity, add the optional ',COMM'
 part: a comma, then the target commodity's symbol.  Eg:
 *'--value=now,EUR'*.  hledger will do its best to convert amounts to
-this commodity, using:
+this commodity, deducing market prices as described above.
 
-   * declared prices (from source commodity to valuation commodity)
-   * reverse prices (declared prices from valuation to source commodity,
-     inverted)
-   * indirect prices (prices calculated from the shortest chain of
-     declared or reverse prices from source to valuation commodity)
+
+File: hledger.info,  Node: More valuation examples,  Next: Effect of valuation on reports,  Prev: --value Flexible valuation,  Up: Valuation
 
-   in that order.
+2.17.10 More valuation examples
+-------------------------------
 
-   Here are some examples showing the effect of '--value' as seen with
+Here are some examples showing the effect of '--value', as seen with
 'print':
 
 P 2000-01-01 A  1 B
@@ -1657,16 +1742,16 @@ $ hledger print -X A
     b          -0.50A
 
 
-File: hledger.info,  Node: Effect of --value on reports,  Prev: --value Flexible valuation,  Up: Valuation
+File: hledger.info,  Node: Effect of valuation on reports,  Prev: More valuation examples,  Up: Valuation
 
-2.17.6 Effect of -value on reports
-----------------------------------
+2.17.11 Effect of valuation on reports
+--------------------------------------
 
-Here is a reference for how '--value' currently affects each part of
-hledger's reports.  It's work in progress, but may be useful for
-troubleshooting or reporting bugs.  See also the definitions and notes
-below.  If you find problems, please report them, ideally with a
-reproducible example.  Related: #329, #1083.
+Here is a reference for how valuation is supposed to affect each part of
+hledger's reports (and a glossary).  (It's wide, you'll have to scroll
+sideways.)  It may be useful when troubleshooting.  If you find
+problems, please report them, ideally with a reproducible example.
+Related: #329, #1083.
 
 Report       '-B',        '-V', '-X'   '--value=then' '--value=end' '--value=DATE',
 type         '--value=cost'                                         '--value=now'
@@ -1739,7 +1824,7 @@ total/averageof column    of column    supported      of column     of
              totals       totals                      totals        column
                                                                     totals
 
-   *Additional notes*
+   *Glossary:*
 
 _cost_
 
@@ -3798,165 +3883,175 @@ Node: OPTIONS16853
 Ref: #options16960
 Node: General options17330
 Ref: #general-options17455
-Node: Command options20225
-Ref: #command-options20376
-Node: Command arguments20774
-Ref: #command-arguments20921
-Node: Queries21801
-Ref: #queries21956
-Node: Special characters in arguments and queries25918
-Ref: #special-characters-in-arguments-and-queries26146
-Node: More escaping26597
-Ref: #more-escaping26759
-Node: Even more escaping27055
-Ref: #even-more-escaping27249
-Node: Less escaping27920
-Ref: #less-escaping28082
-Node: Unicode characters28327
-Ref: #unicode-characters28509
-Node: Input files29921
-Ref: #input-files30064
-Node: Output destination31993
-Ref: #output-destination32145
-Node: Output format32570
-Ref: #output-format32720
-Node: Regular expressions34302
-Ref: #regular-expressions34459
-Node: Smart dates36195
-Ref: #smart-dates36346
-Node: Report start & end date37707
-Ref: #report-start-end-date37879
-Node: Report intervals39376
-Ref: #report-intervals39541
-Node: Period expressions39931
-Ref: #period-expressions40091
-Node: Depth limiting44227
-Ref: #depth-limiting44371
-Node: Pivoting44703
-Ref: #pivoting44826
-Node: Valuation46502
-Ref: #valuation46604
-Node: -B Cost47524
-Ref: #b-cost47628
-Node: -V Value47800
-Ref: #v-value47953
-Node: -X Market value in specified commodity49226
-Ref: #x-market-value-in-specified-commodity49445
-Node: Market prices49623
-Ref: #market-prices49808
-Node: --value Flexible valuation50733
-Ref: #value-flexible-valuation50934
-Node: Effect of --value on reports55439
-Ref: #effect-of---value-on-reports55620
-Node: COMMANDS61166
-Ref: #commands61274
-Node: accounts62358
-Ref: #accounts62456
-Node: activity63155
-Ref: #activity63265
-Node: add63648
-Ref: #add63747
-Node: balance66486
-Ref: #balance66597
-Node: Classic balance report68055
-Ref: #classic-balance-report68228
-Node: Customising the classic balance report69597
-Ref: #customising-the-classic-balance-report69825
-Node: Colour support71901
-Ref: #colour-support72068
-Node: Flat mode72241
-Ref: #flat-mode72389
-Node: Depth limited balance reports72802
-Ref: #depth-limited-balance-reports72987
-Node: Percentages73443
-Ref: #percentages73609
-Node: Multicolumn balance report74746
-Ref: #multicolumn-balance-report74926
-Node: Budget report80188
-Ref: #budget-report80331
-Node: Nested budgets85597
-Ref: #nested-budgets85709
-Ref: #output-format-189190
-Node: balancesheet89387
-Ref: #balancesheet89523
-Node: balancesheetequity90989
-Ref: #balancesheetequity91138
-Node: cashflow91861
-Ref: #cashflow91989
-Node: check-dates93168
-Ref: #check-dates93295
-Node: check-dupes93574
-Ref: #check-dupes93698
-Node: close93991
-Ref: #close94105
-Node: close usage95627
-Ref: #close-usage95720
-Node: commodities98533
-Ref: #commodities98660
-Node: descriptions98742
-Ref: #descriptions98870
-Node: diff99051
-Ref: #diff99157
-Node: files100204
-Ref: #files100304
-Node: help100451
-Ref: #help100551
-Node: import101632
-Ref: #import101746
-Node: Importing balance assignments102639
-Ref: #importing-balance-assignments102787
-Node: incomestatement103436
-Ref: #incomestatement103569
-Node: notes105056
-Ref: #notes105169
-Node: payees105295
-Ref: #payees105401
-Node: prices105559
-Ref: #prices105665
-Node: print106006
-Ref: #print106116
-Node: print-unique110902
-Ref: #print-unique111028
-Node: register111313
-Ref: #register111440
-Node: Custom register output115612
-Ref: #custom-register-output115741
-Node: register-match117078
-Ref: #register-match117212
-Node: rewrite117563
-Ref: #rewrite117678
-Node: Re-write rules in a file119533
-Ref: #re-write-rules-in-a-file119667
-Node: Diff output format120877
-Ref: #diff-output-format121046
-Node: rewrite vs print --auto122138
-Ref: #rewrite-vs.-print---auto122317
-Node: roi122873
-Ref: #roi122971
-Node: stats123983
-Ref: #stats124082
-Node: tags124870
-Ref: #tags124968
-Node: test125262
-Ref: #test125370
-Node: Add-on commands126117
-Ref: #add-on-commands126234
-Node: ui127577
-Ref: #ui127665
-Node: web127719
-Ref: #web127822
-Node: iadd127938
-Ref: #iadd128049
-Node: interest128131
-Ref: #interest128238
-Node: ENVIRONMENT128478
-Ref: #environment128590
-Node: FILES129419
-Ref: #files-1129522
-Node: LIMITATIONS129735
-Ref: #limitations129854
-Node: TROUBLESHOOTING130596
-Ref: #troubleshooting130709
+Node: Command options20409
+Ref: #command-options20560
+Node: Command arguments20958
+Ref: #command-arguments21105
+Node: Queries21985
+Ref: #queries22140
+Node: Special characters in arguments and queries26102
+Ref: #special-characters-in-arguments-and-queries26330
+Node: More escaping26781
+Ref: #more-escaping26943
+Node: Even more escaping27239
+Ref: #even-more-escaping27433
+Node: Less escaping28104
+Ref: #less-escaping28266
+Node: Unicode characters28511
+Ref: #unicode-characters28693
+Node: Input files30105
+Ref: #input-files30248
+Node: Output destination32177
+Ref: #output-destination32329
+Node: Output format32754
+Ref: #output-format32904
+Node: Regular expressions34486
+Ref: #regular-expressions34643
+Node: Smart dates36379
+Ref: #smart-dates36530
+Node: Report start & end date37891
+Ref: #report-start-end-date38063
+Node: Report intervals39560
+Ref: #report-intervals39725
+Node: Period expressions40115
+Ref: #period-expressions40275
+Node: Depth limiting44411
+Ref: #depth-limiting44555
+Node: Pivoting44887
+Ref: #pivoting45010
+Node: Valuation46686
+Ref: #valuation46788
+Node: -B Cost47588
+Ref: #b-cost47692
+Node: -V Value47825
+Ref: #v-value47971
+Node: -X Value in specified commodity48173
+Ref: #x-value-in-specified-commodity48372
+Node: Valuation date48476
+Ref: #valuation-date48644
+Node: Market prices48888
+Ref: #market-prices49068
+Node: --infer-value market prices from transactions49845
+Ref: #infer-value-market-prices-from-transactions50094
+Node: Valuation commodity51385
+Ref: #valuation-commodity51594
+Node: Simple valuation examples52919
+Ref: #simple-valuation-examples53121
+Node: --value Flexible valuation53780
+Ref: #value-flexible-valuation53988
+Node: More valuation examples55935
+Ref: #more-valuation-examples56144
+Node: Effect of valuation on reports58149
+Ref: #effect-of-valuation-on-reports58337
+Node: COMMANDS63858
+Ref: #commands63966
+Node: accounts65050
+Ref: #accounts65148
+Node: activity65847
+Ref: #activity65957
+Node: add66340
+Ref: #add66439
+Node: balance69178
+Ref: #balance69289
+Node: Classic balance report70747
+Ref: #classic-balance-report70920
+Node: Customising the classic balance report72289
+Ref: #customising-the-classic-balance-report72517
+Node: Colour support74593
+Ref: #colour-support74760
+Node: Flat mode74933
+Ref: #flat-mode75081
+Node: Depth limited balance reports75494
+Ref: #depth-limited-balance-reports75679
+Node: Percentages76135
+Ref: #percentages76301
+Node: Multicolumn balance report77438
+Ref: #multicolumn-balance-report77618
+Node: Budget report82880
+Ref: #budget-report83023
+Node: Nested budgets88289
+Ref: #nested-budgets88401
+Ref: #output-format-191882
+Node: balancesheet92079
+Ref: #balancesheet92215
+Node: balancesheetequity93681
+Ref: #balancesheetequity93830
+Node: cashflow94553
+Ref: #cashflow94681
+Node: check-dates95860
+Ref: #check-dates95987
+Node: check-dupes96266
+Ref: #check-dupes96390
+Node: close96683
+Ref: #close96797
+Node: close usage98319
+Ref: #close-usage98412
+Node: commodities101225
+Ref: #commodities101352
+Node: descriptions101434
+Ref: #descriptions101562
+Node: diff101743
+Ref: #diff101849
+Node: files102896
+Ref: #files102996
+Node: help103143
+Ref: #help103243
+Node: import104324
+Ref: #import104438
+Node: Importing balance assignments105331
+Ref: #importing-balance-assignments105479
+Node: incomestatement106128
+Ref: #incomestatement106261
+Node: notes107748
+Ref: #notes107861
+Node: payees107987
+Ref: #payees108093
+Node: prices108251
+Ref: #prices108357
+Node: print108698
+Ref: #print108808
+Node: print-unique113594
+Ref: #print-unique113720
+Node: register114005
+Ref: #register114132
+Node: Custom register output118304
+Ref: #custom-register-output118433
+Node: register-match119770
+Ref: #register-match119904
+Node: rewrite120255
+Ref: #rewrite120370
+Node: Re-write rules in a file122225
+Ref: #re-write-rules-in-a-file122359
+Node: Diff output format123569
+Ref: #diff-output-format123738
+Node: rewrite vs print --auto124830
+Ref: #rewrite-vs.-print---auto125009
+Node: roi125565
+Ref: #roi125663
+Node: stats126675
+Ref: #stats126774
+Node: tags127562
+Ref: #tags127660
+Node: test127954
+Ref: #test128062
+Node: Add-on commands128809
+Ref: #add-on-commands128926
+Node: ui130269
+Ref: #ui130357
+Node: web130411
+Ref: #web130514
+Node: iadd130630
+Ref: #iadd130741
+Node: interest130823
+Ref: #interest130930
+Node: ENVIRONMENT131170
+Ref: #environment131282
+Node: FILES132111
+Ref: #files-1132214
+Node: LIMITATIONS132427
+Ref: #limitations132546
+Node: TROUBLESHOOTING133288
+Ref: #troubleshooting133401
 
 End Tag Table
 

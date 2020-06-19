@@ -176,12 +176,21 @@ before options, as shown in the synopsis above.
      hledger-ui/hledger-web)
 '-B --cost'
 
-     convert amounts to their cost at transaction time (using the
-     transaction price, if any)
-'-V --value'
+     convert amounts to their cost/selling amount at transaction time
+'-V --market'
 
-     convert amounts to their market value on the report end date (using
-     the most recent applicable market price, if any)
+     convert amounts to their market value in default valuation
+     commodities
+'-X --exchange=COMM'
+
+     convert amounts to their market value in commodity COMM
+'--value'
+
+     convert amounts to cost or market value, more flexibly than
+     -B/-V/-X
+'--infer-value'
+
+     with -V/-X/-value, also infer market prices from transactions
 '--auto'
 
      apply automated posting rules to modify transactions.
@@ -566,20 +575,20 @@ Tag Table:
 Node: Top72
 Node: OPTIONS1746
 Ref: #options1851
-Node: PERMISSIONS8195
-Ref: #permissions8334
-Node: EDITING UPLOADING DOWNLOADING9546
-Ref: #editing-uploading-downloading9727
-Node: RELOADING10561
-Ref: #reloading10695
-Node: JSON API11128
-Ref: #json-api11242
-Node: ENVIRONMENT16723
-Ref: #environment16839
-Node: FILES17572
-Ref: #files17672
-Node: BUGS17885
-Ref: #bugs17963
+Node: PERMISSIONS8379
+Ref: #permissions8518
+Node: EDITING UPLOADING DOWNLOADING9730
+Ref: #editing-uploading-downloading9911
+Node: RELOADING10745
+Ref: #reloading10879
+Node: JSON API11312
+Ref: #json-api11426
+Node: ENVIRONMENT16907
+Ref: #environment17023
+Node: FILES17756
+Ref: #files17856
+Node: BUGS18069
+Ref: #bugs18147
 
 End Tag Table
 

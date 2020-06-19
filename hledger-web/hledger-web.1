@@ -165,12 +165,19 @@ show items with zero amount, normally hidden (and vice-versa in
 hledger-ui/hledger-web)
 .TP
 \f[B]\f[CB]-B --cost\f[B]\f[R]
-convert amounts to their cost at transaction time (using the transaction
-price, if any)
+convert amounts to their cost/selling amount at transaction time
 .TP
-\f[B]\f[CB]-V --value\f[B]\f[R]
-convert amounts to their market value on the report end date (using the
-most recent applicable market price, if any)
+\f[B]\f[CB]-V --market\f[B]\f[R]
+convert amounts to their market value in default valuation commodities
+.TP
+\f[B]\f[CB]-X --exchange=COMM\f[B]\f[R]
+convert amounts to their market value in commodity COMM
+.TP
+\f[B]\f[CB]--value\f[B]\f[R]
+convert amounts to cost or market value, more flexibly than -B/-V/-X
+.TP
+\f[B]\f[CB]--infer-value\f[B]\f[R]
+with -V/-X/--value, also infer market prices from transactions
 .TP
 \f[B]\f[CB]--auto\f[B]\f[R]
 apply automated posting rules to modify transactions.

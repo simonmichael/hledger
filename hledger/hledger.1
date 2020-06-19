@@ -617,12 +617,19 @@ show items with zero amount, normally hidden (and vice-versa in
 hledger-ui/hledger-web)
 .TP
 \f[B]\f[CB]-B --cost\f[B]\f[R]
-convert amounts to their cost at transaction time (using the transaction
-price, if any)
+convert amounts to their cost/selling amount at transaction time
 .TP
-\f[B]\f[CB]-V --value\f[B]\f[R]
-convert amounts to their market value on the report end date (using the
-most recent applicable market price, if any)
+\f[B]\f[CB]-V --market\f[B]\f[R]
+convert amounts to their market value in default valuation commodities
+.TP
+\f[B]\f[CB]-X --exchange=COMM\f[B]\f[R]
+convert amounts to their market value in commodity COMM
+.TP
+\f[B]\f[CB]--value\f[B]\f[R]
+convert amounts to cost or market value, more flexibly than -B/-V/-X
+.TP
+\f[B]\f[CB]--infer-value\f[B]\f[R]
+with -V/-X/--value, also infer market prices from transactions
 .TP
 \f[B]\f[CB]--auto\f[B]\f[R]
 apply automated posting rules to modify transactions.
@@ -1671,47 +1678,143 @@ $ hledger balance --pivot member acct:.
 .fi
 .SS Valuation
 .PP
-hledger can show cost reports, where amounts are converted to their cost
-or sale amount at transaction time; or value reports, where amounts are
-converted to their market value in another currency/commodity at a
-specified date (using market prices inferred from your transactions, or
-declared with P directives).
+Instead of reporting amounts in their original commodity, hledger can
+convert them to:
+.IP \[bu] 2
+cost (or sale amount), using the conversion rate recorded as part of the
+transaction (transaction price).
+.IP \[bu] 2
+value, using the market prices in effect on certain date(s).
 .PP
-We call this \[dq]valuation\[dq], and it is controlled by the
+We call this \[dq]valuation\[dq], and it is controlled in full by the
 \f[C]--value=VALUATIONTYPE[,COMMODITY]\f[R] option.
-It can get a little involved, so we cover all the details below.
-But most of the time, all you need to do is use these simpler flags
-instead:
-.IP \[bu] 2
-\f[C]-B\f[R] to convert to cost/sale amount, or
-.IP \[bu] 2
-\f[C]-V\f[R] to convert to market value in your base currency.
-Or occasionally,
-.IP \[bu] 2
-\f[C]-X COMMODITY\f[R] to convert to market value in some other
-currency.
+But we also provide simpler, Ledger-compatible
+\f[C]-B\f[R]/\f[C]-V\f[R]/\f[C]-X\f[R] flags, and usually one of these
+is all you need:
 .SS -B: Cost
 .PP
 The \f[C]-B/--cost\f[R] flag converts amounts to their cost or sale
 amount at transaction time, if they have a transaction price specified.
-(It is equivalent to \f[C]--value=cost\f[R].)
 .SS -V: Value
 .PP
-The \f[C]-V/--market\f[R] flag converts reported amounts to market value
-in their \f[I]default valuation commodity\f[R], using the market prices
-in effect on a \f[I]default valuation date\f[R].
-(More on these below.)
+The \f[C]-V/--market\f[R] flag converts amounts to market value in their
+default \f[I]valuation commodity\f[R], using the market prices in effect
+on the \f[I]valuation date(s)\f[R], if any.
+More on these things in a minute.
+.SS -X: Value in specified commodity
 .PP
-The default valuation commodity is the one referenced in the latest
-applicable market price dated on or before the valuation date.
-Typically your P declarations or currency exchange transactions
-reference a single base currency, and -V will pick that.
+The \f[C]-X/--exchange\f[R] option is like \f[C]-V\f[R] except the
+desired valuation currency is specified explicitly.
+.SS Valuation date
 .PP
-The default valuation date is today for single period reports
-(equivalent to \f[C]--value=now\f[R]), or the last day of each subperiod
-for multiperiod reports (equivalent to \f[C]--value=end\f[R]).
+For single period reports, if an explicit report end date is specified,
+that will be used as the valuation date; otherwise the valuation date is
+\[dq]today\[dq].
 .PP
-An example:
+For multiperiod reports, each column/period is valued on the last day of
+the period.
+.SS Market prices
+.PP
+\f[I](experimental)\f[R]
+.PP
+To convert a commodity A to its market value in another commodity B,
+hledger looks for a suitable market price (exchange rate) as follows, in
+this order of preference :
+.IP "1." 3
+A \f[I]declared market price\f[R] or \f[I]inferred market price\f[R]:
+A\[aq]s latest market price in B on or before the valuation date as
+declared by a P directive, or (if the \f[C]--infer-value\f[R] flag is
+used) inferred from transaction prices.
+.IP "2." 3
+A \f[I]reverse market price\f[R]: the inverse of a declared or inferred
+market price from B to A.
+.IP "3." 3
+A \f[I]chained market price\f[R]: a synthetic price formed by combining
+the shortest chain of market prices (any of the above types) leading
+from A to B.
+.PP
+Amounts for which no applicable market price can be found, are not
+converted.
+.SS --infer-value: market prices from transactions
+.PP
+\f[I](experimental)\f[R]
+.PP
+Normally, market value in hledger is fully controlled by, and requires,
+P directives in your journal.
+Since adding and updating those can be a chore, and since transactions
+usually take place at close to market value, why not use the recorded
+transaction prices as additional market prices (as Ledger does) ?
+We could produce value reports without needing P directives at all.
+.PP
+Adding the \f[C]--infer-value\f[R] flag to \f[C]-V\f[R], \f[C]-X\f[R] or
+\f[C]--value\f[R] enables this.
+So for example, \f[C]hledger bs -V --infer-value\f[R] will get market
+prices both from P directives and from transactions.
+.PP
+There is a downside to this: value reports can be affected in
+confusing/undesired ways by your journal entries.
+If this happens to you, read all of this Valuation section carefully,
+and try adding \f[C]--debug\f[R] or \f[C]--debug=2\f[R] to troubleshoot
+the reason.
+.PP
+\f[C]--infer-value\f[R] can infer market prices from:
+.IP \[bu] 2
+multicommodity transactions with explicit prices
+(\f[C]\[at]\f[R]/\f[C]\[at]\[at]\f[R])
+.IP \[bu] 2
+multicommodity transactions with implicit prices (no \f[C]\[at]\f[R],
+two commodities, unbalanced).
+(With these, the order of postings matters.
+\f[C]hledger print -x\f[R] can be useful for troubleshooting.)
+.IP \[bu] 2
+but not, currently, from \[dq]more correct\[dq] multicommodity
+transactions (no \f[C]\[at]\f[R], multiple commodities, balanced).
+.SS Valuation commodity
+.PP
+\f[I](experimental)\f[R]
+.PP
+\f[B]When you specify a valuation commodity (\f[CB]-X COMM\f[B] or
+\f[CB]--value TYPE,COMM\f[B]):\f[R]
+.PD 0
+.P
+.PD
+hledger will convert all amounts to COMM, wherever it can find a
+suitable market price (including by reversing or chaining prices).
+.PP
+\f[B]When you leave the valuation commodity unspecified (\f[CB]-V\f[B]
+or \f[CB]--value TYPE\f[B]):\f[R]
+.PD 0
+.P
+.PD
+For each commodity A, hledger picks a default valuation commodity as
+follows, in this order of preference:
+.IP "1." 3
+The price commodity from the latest P-declared market price for A on or
+before valuation date.
+.IP "2." 3
+The price commodity from the latest P-declared market price for A on any
+date.
+(Allows conversion to proceed when there are inferred prices before the
+valuation date.)
+.IP "3." 3
+If there are no P directives at all (any commodity or date) and the
+\f[C]--infer-value\f[R] flag is used: the price commodity from the
+latest transaction-inferred price for A on or before valuation date.
+.PP
+Amounts for which no valuation commodity can be found are not converted.
+.PP
+This means:
+.IP \[bu] 2
+If you have any P directives, they alone determine which commodities
+\f[C]-V\f[R] will convert, and to what.
+.IP \[bu] 2
+If you have no P directives, and you add the \f[C]--infer-value\f[R]
+flag, transaction prices determine what \f[C]-V\f[R] converts.
+.IP \[bu] 2
+\f[C]-X\f[R] tries harder to convert everything to just one commodity.
+.SS Simple valuation examples
+.PP
+Here are some quick examples of \f[C]-V\f[R]:
 .IP
 .nf
 \f[C]
@@ -1755,38 +1858,7 @@ $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 \f[R]
 .fi
-.SS -X: Market value in specified commodity
-.PP
-The \f[C]-X/--exchange\f[R] option is like \f[C]-V\f[R], except it
-specifies the target commodity you would like to convert to.
-(It is equivalent to \f[C]--value=now,COMM\f[R] or
-\f[C]--value=end,COMM\f[R].)
-.SS Market prices
-.PP
-To convert a commodity A to commodity B, hledger looks for a suitable
-market price (exchange rate) in the following ways, in this order of
-preference:
-.IP "1." 3
-a \f[I]declared market price\f[R] - the latest P directive specifying
-the exchange rate from A to B, dated on or before the valuation date.
-.IP "2." 3
-a \f[I]transaction-implied market price\f[R] - a market price matching
-the transaction price used in the latest transaction where A is
-converted to B, dated on or before the valuation date.
-(\f[I]since hledger 1.18; experimental\f[R])
-.IP "3." 3
-a \f[I]reverse declared market price\f[R] - calculated by inverting a
-declared market price from B to A.
-.IP "4." 3
-a \f[I]reverse transaction-implied market price\f[R] - calculated by
-inverting a transaction-implied market price from B to A.
-.IP "5." 3
-an \f[I]indirect market price\f[R] - calculated by combining the
-shortest chain of market prices (any of the above types) leading from A
-to B.
 .SS --value: Flexible valuation
-.PP
-\f[I](experimental, added 201905)\f[R]
 .PP
 \f[C]-B\f[R], \f[C]-V\f[R] and \f[C]-X\f[R] are special cases of the
 more general \f[C]--value\f[R] option:
@@ -1804,52 +1876,38 @@ more general \f[C]--value\f[R] option:
 \f[R]
 .fi
 .PP
-The TYPE part basically selects either \[dq]cost\[dq], or \[dq]market
-value\[dq] plus a valuation date:
+The TYPE part selects cost or value and valuation date:
 .TP
 \f[B]\f[CB]--value=cost\f[B]\f[R]
 Convert amounts to cost, using the prices recorded in transactions.
 .TP
 \f[B]\f[CB]--value=then\f[B]\f[R]
-Convert amounts to their value in a default valuation commodity, using
+Convert amounts to their value in the default valuation commodity, using
 market prices on each posting\[aq]s date.
 This is currently supported only by the print and register commands.
 .TP
 \f[B]\f[CB]--value=end\f[B]\f[R]
-Convert amounts to their value in a default valuation commodity, using
+Convert amounts to their value in the default valuation commodity, using
 market prices on the last day of the report period (or if unspecified,
 the journal\[aq]s end date); or in multiperiod reports, market prices on
 the last day of each subperiod.
 .TP
 \f[B]\f[CB]--value=now\f[B]\f[R]
-Convert amounts to their value in default valuation commodity using
+Convert amounts to their value in the default valuation commodity using
 current market prices (as of when report is generated).
 .TP
 \f[B]\f[CB]--value=YYYY-MM-DD\f[B]\f[R]
-Convert amounts to their value in default valuation commodity using
+Convert amounts to their value in the default valuation commodity using
 market prices on this date.
-.PP
-The default valuation commodity is the commodity mentioned in the most
-recent applicable market price declaration.
-When all your price declarations lead to a single home currency, this
-will usually do what you want.
 .PP
 To select a different valuation commodity, add the optional
 \f[C],COMM\f[R] part: a comma, then the target commodity\[aq]s symbol.
 Eg: \f[B]\f[CB]--value=now,EUR\f[B]\f[R].
-hledger will do its best to convert amounts to this commodity, using:
-.IP \[bu] 2
-declared prices (from source commodity to valuation commodity)
-.IP \[bu] 2
-reverse prices (declared prices from valuation to source commodity,
-inverted)
-.IP \[bu] 2
-indirect prices (prices calculated from the shortest chain of declared
-or reverse prices from source to valuation commodity)
+hledger will do its best to convert amounts to this commodity, deducing
+market prices as described above.
+.SS More valuation examples
 .PP
-in that order.
-.PP
-Here are some examples showing the effect of \f[C]--value\f[R] as seen
+Here are some examples showing the effect of \f[C]--value\f[R], as seen
 with \f[C]print\f[R]:
 .IP
 .nf
@@ -1997,13 +2055,12 @@ $ hledger print -X A
     b          -0.50A
 \f[R]
 .fi
-.SS Effect of --value on reports
+.SS Effect of valuation on reports
 .PP
-Here is a reference for how \f[C]--value\f[R] currently affects each
-part of hledger\[aq]s reports.
-It\[aq]s work in progress, but may be useful for troubleshooting or
-reporting bugs.
-See also the definitions and notes below.
+Here is a reference for how valuation is supposed to affect each part of
+hledger\[aq]s reports (and a glossary).
+(It\[aq]s wide, you\[aq]ll have to scroll sideways.) It may be useful
+when troubleshooting.
 If you find problems, please report them, ideally with a reproducible
 example.
 Related: #329, #1083.
@@ -2254,7 +2311,7 @@ T}@T{
 T}
 .TE
 .PP
-\f[B]Additional notes\f[R]
+\f[B]Glossary:\f[R]
 .TP
 \f[I]cost\f[R]
 calculated using price(s) recorded in the transaction(s).
