@@ -186,7 +186,7 @@ instance Semigroup Journal where
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
     ,jpricedirectives           = jpricedirectives           j1 <> jpricedirectives           j2
-    ,jimpliedmarketprices       = jimpliedmarketprices       j1 <> jimpliedmarketprices       j2
+    ,jinferredmarketprices      = jinferredmarketprices      j1 <> jinferredmarketprices      j2
     ,jtxnmodifiers              = jtxnmodifiers              j1 <> jtxnmodifiers              j2
     ,jperiodictxns              = jperiodictxns              j1 <> jperiodictxns              j2
     ,jtxns                      = jtxns                      j1 <> jtxns                      j2
@@ -212,7 +212,7 @@ nulljournal = Journal {
   ,jcommodities               = M.empty
   ,jinferredcommodities       = M.empty
   ,jpricedirectives           = []
-  ,jimpliedmarketprices       = []
+  ,jinferredmarketprices      = []
   ,jtxnmodifiers              = []
   ,jperiodictxns              = []
   ,jtxns                      = []
@@ -1044,16 +1044,16 @@ canonicalStyleFrom ss@(s:_) =
 -- been balanced and posting amounts have appropriate prices attached.
 journalInferMarketPricesFromTransactions :: Journal -> Journal
 journalInferMarketPricesFromTransactions j =
-  j{jimpliedmarketprices =
-       dbg4 "jimpliedmarketprices" $
-       mapMaybe postingImpliedMarketPrice $ journalPostings j
+  j{jinferredmarketprices =
+       dbg4 "jinferredmarketprices" $
+       mapMaybe postingInferredmarketPrice $ journalPostings j
    }
 
 -- | Make a market price equivalent to this posting's amount's unit
 -- price, if any. If the posting amount is multicommodity, only the
 -- first commodity amount is considered.
-postingImpliedMarketPrice :: Posting -> Maybe MarketPrice
-postingImpliedMarketPrice p@Posting{pamount} =
+postingInferredmarketPrice :: Posting -> Maybe MarketPrice
+postingInferredmarketPrice p@Posting{pamount} =
   -- convert any total prices to unit prices
   case mixedAmountTotalPriceToUnitPrice pamount of
     Mixed ( Amount{acommodity=fromcomm, aprice = Just (UnitPrice Amount{acommodity=tocomm, aquantity=rate})} : _) ->

@@ -52,38 +52,6 @@ import Hledger.Data.Dates (parsedate)
 ------------------------------------------------------------------------------
 -- Types
 
--- | A snapshot of the known exchange rates between commodity pairs at a given date,
--- as a graph allowing fast lookup and path finding, along with some helper data.
-data PriceGraph = PriceGraph {
-   prGraph   :: Gr CommoditySymbol Quantity
-    -- ^ A directed graph of exchange rates between commodity pairs.
-    -- Node labels are commodities and edge labels are exchange rates,
-    -- which were either:
-    -- declared by P directives,
-    -- implied by transaction prices,
-    -- inferred by reversing a declared rate,
-    -- or inferred by reversing a transaction-implied rate.
-    -- There will be at most one edge between each directed pair of commodities,
-    -- eg there can be one USD->EUR and one EUR->USD.
-  ,prNodemap :: NodeMap CommoditySymbol
-    -- ^ Mapping of graph node ids to commodity symbols.
-  ,prDefaultValuationCommodities :: M.Map CommoditySymbol CommoditySymbol
-    -- ^ The default valuation commodity for each source commodity.
-    --   These are used when a valuation commodity is not specified
-    --   (-V). They are the destination commodity of the latest
-    --   (declared or transaction-implied, but not reverse) each
-    --   source commodity's latest market price (on the date of this
-    --   graph).
-  }
-  deriving (Show,Generic)
-
-instance NFData PriceGraph
-
--- | A price oracle is a magic function that looks up market prices
--- (exchange rates) from one commodity to another (or if unspecified,
--- to a default valuation commodity) on a given date, somewhat efficiently.
-type PriceOracle = (Day, CommoditySymbol, Maybe CommoditySymbol) -> Maybe (CommoditySymbol, Quantity)
-
 -- | What kind of value conversion should be done on amounts ?
 -- CLI: --value=cost|then|end|now|DATE[,COMM]
 data ValuationType =
@@ -95,9 +63,62 @@ data ValuationType =
   | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
   deriving (Show,Data,Eq) -- Typeable
 
+-- | A snapshot of the known exchange rates between commodity pairs at a given date,
+-- as a graph allowing fast lookup and path finding, along with some helper data.
+data PriceGraph = PriceGraph {
+   prGraph   :: Gr CommoditySymbol Quantity
+    -- ^ A directed graph of exchange rates between commodity pairs.
+    -- Node labels are commodities and edge labels are exchange rates,
+    -- which were either:
+    -- declared by P directives,
+    -- inferred from transaction prices,
+    -- inferred by reversing a declared rate,
+    -- or inferred by reversing a transaction-inferred rate.
+    -- There will be at most one edge between each directed pair of commodities,
+    -- eg there can be one USD->EUR and one EUR->USD.
+  ,prNodemap :: NodeMap CommoditySymbol
+    -- ^ Mapping of graph node ids to commodity symbols.
+  ,prDefaultValuationCommodities :: M.Map CommoditySymbol CommoditySymbol
+    -- ^ The default valuation commodity for each source commodity.
+    --   These are used when a valuation commodity is not specified
+    --   (-V). They are the destination commodity of the latest
+    --   (declared or inferred, but not reverse) each
+    --   source commodity's latest market price (on the date of this
+    --   graph).
+  }
+  deriving (Show,Generic)
+
+instance NFData PriceGraph
+
+-- | A price oracle is a magic memoising function that efficiently
+-- looks up market prices (exchange rates) from one commodity to
+-- another (or if unspecified, to a default valuation commodity) on a
+-- given date.
+type PriceOracle = (Day, CommoditySymbol, Maybe CommoditySymbol) -> Maybe (CommoditySymbol, Quantity)
+
+-- | Generate a price oracle (memoising price lookup function) from a
+-- journal's directive-declared and transaction-inferred market
+-- prices. For best performance, generate this only once per journal,
+-- reusing it across reports if there are more than one, as
+-- compoundBalanceCommand does.
+journalPriceOracle :: Journal -> PriceOracle
+journalPriceOracle Journal{jpricedirectives, jinferredmarketprices} =
+  let
+    declaredprices = map priceDirectiveToMarketPrice jpricedirectives
+    makepricegraph = memo $ makePriceGraph declaredprices jinferredmarketprices
+  in
+    memo $ uncurry3 $ priceLookup makepricegraph
+
+priceDirectiveToMarketPrice :: PriceDirective -> MarketPrice
+priceDirectiveToMarketPrice PriceDirective{..} =
+  MarketPrice{ mpdate = pddate
+             , mpfrom = pdcommodity
+             , mpto   = acommodity pdamount
+             , mprate = aquantity pdamount
+             }
 
 ------------------------------------------------------------------------------
--- Valuation
+-- Converting things to value
 
 -- | Apply a specified valuation to this mixed amount, using the
 -- provided price oracle, commodity styles, reference dates, and
@@ -189,72 +210,28 @@ amountValueAtDate priceoracle styles mto d a =
 ------------------------------------------------------------------------------
 -- Market price lookup
 
--- From a journal's directive-declared and transaction-implied market
--- prices, generate a memoising function that efficiently looks up
--- exchange rates between commodities on any date. For best performance,
--- you should generate this only once per journal, reusing it across
--- reports if there are more than one (as in compoundBalanceCommand).
-journalPriceOracle :: Journal -> PriceOracle
-journalPriceOracle Journal{jpricedirectives, jimpliedmarketprices} =
-  -- traceStack "journalPriceOracle" $
-  let
-    pricesatdate =
-      memo $
-      pricesAtDate jpricedirectives jimpliedmarketprices
-  in
-    memo $
-    uncurry3 $
-    priceLookup pricesatdate
-
--- | Given a list of price directives in parse order, find the market
--- value at the given date of one unit of a given source commodity, in
--- a different specified valuation commodity, or a default valuation
--- commodity.
+-- | Given a memoising price graph generator, a valuation date, a
+-- source commodity and an optional valuation commodity, find the
+-- value on that date of one unit of the source commodity in the
+-- valuation commodity, or in a default valuation commodity. Returns
+-- the valuation commodity that was specified or chosen, and the
+-- quantity of it that one unit of the source commodity is worth. Or
+-- if no applicable market price can be found or calculated, or if the
+-- source commodity and the valuation commodity are the same, returns
+-- Nothing.
 --
--- When the valuation commodity is specified, this looks for an
--- exchange rate (market price) calculated in any of the following
--- ways, in order of preference:
---
--- 1. a declared market price (DMP) - a P directive giving the
---    exchange rate from source commodity to valuation commodity
---
--- 2. a transaction-implied market price (TMP) - a market price
---    equivalent to the transaction price used in the latest
---    transaction from source commodity to valuation commodity
---    (on or before the valuation date)
---
--- 3. a reverse declared market price (RDMP) - calculated by inverting
---    a DMP
---
--- 4. a reverse transaction-implied market price (RTMP) - calculated
---    by inverting a TMP
---
--- 5. an indirect market price (IMP) - calculated by combining the
---    shortest chain of market prices (any of the above types) leading
---    from source commodity to valuation commodity.
---
--- When the valuation commodity is not specified, this looks for the
--- latest applicable declared or transaction-implied price, and
--- converts to the commodity mentioned in that price (the default
--- valuation commodity).
---
--- Note this default valuation commodity can vary across successive
--- calls for different dates, since it depends on the price
--- declarations in each period.
---
--- This returns the valuation commodity that was specified or
--- inferred, and the quantity of it that one unit of the source
--- commodity is worth. Or if no applicable market price or chain of
--- prices can be found, or the source commodity and the valuation
--- commodity are the same, returns Nothing.
+-- See makePriceGraph for how prices are determined.
+-- Note that both market prices and default valuation commodities can
+-- vary with valuation date, since that determines which market prices
+-- are visible.
 --
 priceLookup :: (Day -> PriceGraph) -> Day -> CommoditySymbol -> Maybe CommoditySymbol -> Maybe (CommoditySymbol, Quantity)
-priceLookup pricesatdate d from mto =
+priceLookup makepricegraph d from mto =
   -- trace ("priceLookup ("++show d++", "++show from++", "++show mto++")") $
   let
     -- build a graph of the commodity exchange rates in effect on this day
     -- XXX should hide these fgl details better
-    PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests} = pricesatdate d
+    PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests} = makepricegraph d
     fromnode = node m from
     mto' = mto <|> mdefaultto
       where
@@ -286,8 +263,7 @@ priceLookup pricesatdate d from mto =
 tests_priceLookup =
   let
     d = parsedate
-    a q c = amount{acommodity=c, aquantity=q}
-    p date from q to = PriceDirective{pddate=d date, pdcommodity=from, pdamount=a q to}
+    p date from q to = MarketPrice{mpdate=d date, mpfrom=from, mpto=to, mprate=q}
     ps1 = [
        p "2000/01/01" "A" 10 "B"
       ,p "2000/01/01" "B" 10 "C"
@@ -295,32 +271,62 @@ tests_priceLookup =
       ,p "2000/01/01" "E"  2 "D"
       ,p "2001/01/01" "A" 11 "B"
       ]
-    pricesatdate = pricesAtDate ps1 []
+    makepricegraph = makePriceGraph ps1 []
   in test "priceLookup" $ do
-    priceLookup pricesatdate (d "1999/01/01") "A" Nothing    @?= Nothing
-    priceLookup pricesatdate (d "2000/01/01") "A" Nothing    @?= Just ("B",10)
-    priceLookup pricesatdate (d "2000/01/01") "B" (Just "A") @?= Just ("A",0.1)
-    priceLookup pricesatdate (d "2000/01/01") "A" (Just "E") @?= Just ("E",500)
+    priceLookup makepricegraph (d "1999/01/01") "A" Nothing    @?= Nothing
+    priceLookup makepricegraph (d "2000/01/01") "A" Nothing    @?= Just ("B",10)
+    priceLookup makepricegraph (d "2000/01/01") "B" (Just "A") @?= Just ("A",0.1)
+    priceLookup makepricegraph (d "2000/01/01") "A" (Just "E") @?= Just ("E",500)
 
-------------------------------------------------------------------------------
--- Building the price graph (network of commodity conversions) on a given day.
-
--- | Convert a list of market price directives in parse order, and a
--- list of transaction-implied market prices in parse order, to a
--- graph of the effective exchange rates between commodity pairs on
--- the given day.
-pricesAtDate :: [PriceDirective] -> [MarketPrice] -> Day -> PriceGraph
-pricesAtDate pricedirectives impliedmarketprices d =
-  dbg9 ("pricesAtDate "++show d) $
+-- | Build the graph of commodity conversion prices for a given day.
+-- Converts a list of declared market prices in parse order, and a
+-- list of transaction-inferred market prices in parse order, to a
+-- graph of all known exchange rates between commodity pairs in effect
+-- on that day. Cf hledger.m4.md -> Valuation:
+--
+-- hledger looks for a market price (exchange rate) from commodity A
+-- to commodity B in one or more of these ways, in this order of
+-- preference:
+--
+-- 1. A *declared market price* or *inferred market price*:
+--    A's latest market price in B on or before the valuation date
+--    as declared by a P directive, or (with the `--value-infer` flag)
+--    inferred from transaction prices.
+--   
+-- 2. A *reverse market price*:
+--    the inverse of a declared or inferred market price from B to A.
+-- 
+-- 3. A *chained market price*:
+--    a synthetic price formed by combining the shortest chain of market
+--    prices (any of the above types) leading from A to B.
+--
+-- 1 and 2 form the edges of the price graph, and we can query it for
+-- 3 (which is the reason we use a graph).
+--
+-- We also identify each commodity's default valuation commodity, if
+-- any. For each commodity A, hledger picks a default valuation
+-- commodity as follows:
+--
+-- 1. The price commodity from the latest (on or before valuation
+--    date) declared market price for A.
+--
+-- 2. If there are no P directives at all (any commodity, any date),
+--    and the `--value-infer` flag is used, then the price commodity
+--    from the latest (on or before valuation date) transaction price
+--    for A.
+--
+makePriceGraph :: [MarketPrice] -> [MarketPrice] -> Day -> PriceGraph
+makePriceGraph alldeclaredprices allinferredprices d =
+  dbg9 ("makePriceGraph "++show d) $
   PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests}
   where
-    -- prices in effect on date d, either declared or implied
-    currentdeclaredandimpliedprices = dbg2 "currentdeclaredandimpliedprices" $
-      latestPriceForEachPairOn pricedirectives impliedmarketprices d
+    -- prices in effect on date d, either declared or inferred
+    declaredandinferredprices = dbg2 "declaredandinferredprices" $
+      declaredOrInferredPricesOn alldeclaredprices allinferredprices d
 
-    -- infer any additional reverse prices not already declared or implied
+    -- infer any additional reverse prices not already declared or inferred
     reverseprices = dbg2 "reverseprices" $
-      map marketPriceReverse currentdeclaredandimpliedprices \\ currentdeclaredandimpliedprices
+      map marketPriceReverse declaredandinferredprices \\ declaredandinferredprices
 
     -- build the graph and associated node map
     (g, m) =
@@ -329,46 +335,37 @@ pricesAtDate pricedirectives impliedmarketprices d =
       (dbg9 "price graph edges" $ [(mpfrom, mpto, mprate) | MarketPrice{..} <- prices])
       :: (Gr CommoditySymbol Quantity, NodeMap CommoditySymbol)
       where
-        prices   = currentdeclaredandimpliedprices ++ reverseprices
+        prices   = declaredandinferredprices ++ reverseprices
         allcomms = map mpfrom prices
 
     -- determine a default valuation commodity D for each source commodity S:
     -- the price commodity in the latest declared market price for S (on any date)
     defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- alldeclaredprices]
-      where
-        alldeclaredprices = dbg2 "alldeclaredprices" $ map priceDirectiveToMarketPrice pricedirectives
 
--- From a list of price directives in parse order, and a list of
--- transaction-implied market prices in parse order, get the effective
--- price on the given date for each commodity pair. That is, the
--- latest declared or transaction-implied price dated on or before
--- that day, with declared prices taking precedence.
-latestPriceForEachPairOn :: [PriceDirective] -> [MarketPrice] -> Day -> [MarketPrice]
-latestPriceForEachPairOn pricedirectives impliedmarketprices d =
+-- | From a list of directive-declared market prices in parse order,
+-- and a list of transaction-inferred market prices in parse order,
+-- get the effective price on the given date for each commodity pair.
+-- That is, the latest (by date then parse order) declared price or
+-- inferred price, on or before that date, If there is both a declared
+-- and inferred price on the same day, declared takes precedence.
+declaredOrInferredPricesOn :: [MarketPrice] -> [MarketPrice] -> Day -> [MarketPrice]
+declaredOrInferredPricesOn declaredprices inferredprices d =
   let
-    -- consider only declarations/transactions before the valuation date
-    declaredprices = map priceDirectiveToMarketPrice $ filter ((<=d).pddate) pricedirectives
-    impliedmarketprices' = filter ((<=d).mpdate) impliedmarketprices
-    -- label the items with their precedence and then their parse order
-    declaredprices'                  = [(1, i, p) | (i,p) <- zip [1..] declaredprices]
-    impliedmarketprices'' = [(0, i, p) | (i,p) <- zip [1..] impliedmarketprices']
+    -- keeping only prices on or before the valuation date, label each
+    -- item with its same-day precedence (declared above inferred) and
+    -- then parse order
+    declaredprices' = [(1, i, p) | (i,p@MarketPrice{mpdate}) <- zip [1..] declaredprices, mpdate<=d]
+    inferredprices' = [(0, i, p) | (i,p@MarketPrice{mpdate}) <- zip [1..] inferredprices, mpdate<=d]
   in
     -- combine
-    declaredprices' ++ impliedmarketprices''
+    declaredprices' ++ inferredprices'
     -- sort by newest date then highest precedence then latest parse order
     & sortBy (flip compare `on` (\(precedence,parseorder,mp)->(mpdate mp,precedence,parseorder)))
     -- discard the sorting labels
     & map third3
-    -- keep only the first (ie the newest, highest precedence and latest parsed) price for each pair
+    -- keep only the first (ie the newest, highest precedence, latest parsed) price for each pair
+    -- XXX or use a Map ?
     & nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto)))
-
-priceDirectiveToMarketPrice :: PriceDirective -> MarketPrice
-priceDirectiveToMarketPrice PriceDirective{..} =
-  MarketPrice{ mpdate = pddate
-             , mpfrom = pdcommodity
-             , mpto   = acommodity pdamount
-             , mprate = aquantity pdamount
-             }
 
 marketPriceReverse :: MarketPrice -> MarketPrice
 marketPriceReverse mp@MarketPrice{..} = mp{mpfrom=mpto, mpto=mpfrom, mprate=1/mprate}
