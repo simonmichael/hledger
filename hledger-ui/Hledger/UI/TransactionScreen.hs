@@ -73,7 +73,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
   where
     maincontent = Widget Greedy Greedy $ do
       let
-        prices = journalPriceOracle j
+        prices = journalPriceOracle (infer_value_ ropts) j
         styles = journalCommodityStyles j
         periodlast =
           fromMaybe (error' "TransactionScreen: expected a non-empty journal") $ -- XXX shouldn't happen
