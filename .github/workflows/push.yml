@@ -1,17 +1,12 @@
-# Light CI tests: build and run functional tests with one GHC version,
-# using less compute power and emitting less carbon.
-#
-# Runs: on notable (eg, not just doc files) push to master.
-# Currently disabled in favour of linux.yml.
+# Quick tests for notable pushes to master,
+# minimising compute power and carbon emissions.
+# Builds incrementally and runs functional tests with one GHC version.
 
 name: push CI
 
 on:
   push:
-    # branches: [ master ]
-    # disable this workflow:
-    branches-ignore:
-      - '**'
+    branches: [ master ]
     paths:
       - '.github/workflows/push.yml'
       - 'stack*.yaml'
