@@ -1,6 +1,7 @@
-# Light Mac CI tests: build and run functional tests with one GHC version.
-#
-# Runs: periodically on master, and on notable push to ci-mac.
+# Fairly thorough tests on mac.
+# Runs on notable pushes to ci-mac, and weekly on master.
+# Builds all modules optimised, runs unit, doc, functional tests,
+# and uploads binaries artifact.
 
 name: mac CI
 
@@ -31,20 +32,6 @@ jobs:
 
     - name: Check out
       uses: actions/checkout@v2
-      # deep clone so we can restore timestamps (see below)
-      with:
-        fetch-depth: 0
-
-    # Restore timestamps to help stack not rebuild unchanged files.
-    # https://stackoverflow.com/questions/60906336
-    # https://stackoverflow.com/a/36243002/84401
-    # https://www.reddit.com/r/haskell/comments/g00ldn/haskell_stack_on_github_actions/
-    - name: Restore source file timestamps
-      run: |
-        git ls-tree -r --name-only HEAD | while read filename; do
-          TS="$(git log -1 --format="%ct" -- ${filename})"
-          touch "${filename}" -mt "$(date -r "$TS" "+%Y%m%d%H%M.%S")"
-        done
 
     # things to be cached/restored:
 
@@ -112,11 +99,11 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack build --test --bench --only-dependencies
+        stack build --test --only-dependencies
 
     - name: Build hledger and test unit tests, doc tests
       run: |
-        stack install --test --ghc-options=-Werror
+        stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       #  --pedantic
 
     - name: Install shelltestrunner
