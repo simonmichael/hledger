@@ -3,8 +3,8 @@ This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.18
-*******************************
+hledger-web(1) hledger-web 1.18.1
+*********************************
 
 hledger-web - web interface for the hledger accounting tool
 
@@ -573,22 +573,22 @@ awkward.
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1746
-Ref: #options1851
-Node: PERMISSIONS8379
-Ref: #permissions8518
-Node: EDITING UPLOADING DOWNLOADING9730
-Ref: #editing-uploading-downloading9911
-Node: RELOADING10745
-Ref: #reloading10879
-Node: JSON API11312
-Ref: #json-api11426
-Node: ENVIRONMENT16907
-Ref: #environment17023
-Node: FILES17756
-Ref: #files17856
-Node: BUGS18069
-Ref: #bugs18147
+Node: OPTIONS1750
+Ref: #options1855
+Node: PERMISSIONS8383
+Ref: #permissions8522
+Node: EDITING UPLOADING DOWNLOADING9734
+Ref: #editing-uploading-downloading9915
+Node: RELOADING10749
+Ref: #reloading10883
+Node: JSON API11316
+Ref: #json-api11430
+Node: ENVIRONMENT16911
+Ref: #environment17027
+Node: FILES17760
+Ref: #files17860
+Node: BUGS18073
+Ref: #bugs18151
 
 End Tag Table
 

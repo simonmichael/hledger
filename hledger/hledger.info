@@ -3,8 +3,8 @@ This is hledger.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger.info,  Node: Top,  Next: COMMON TASKS,  Up: (dir)
 
-hledger(1) hledger 1.18
-***********************
+hledger(1) hledger 1.18.1
+*************************
 
 hledger - a command-line accounting tool
 
@@ -1373,17 +1373,11 @@ File: hledger.info,  Node: Valuation,  Prev: Pivoting,  Up: OPTIONS
 ==============
 
 Instead of reporting amounts in their original commodity, hledger can
-convert them to:
-
-   * cost (or sale amount), using the conversion rate recorded as part
-     of the transaction (transaction price).
-
-   * value, using the market prices in effect on certain date(s).
-
-   We call this "valuation", and it is controlled in full by the
-'--value=VALUATIONTYPE[,COMMODITY]' option.  But we also provide
-simpler, Ledger-compatible '-B'/'-V'/'-X' flags, and usually one of
-these is all you need:
+convert them to cost/sale amount (using the conversion rate recorded in
+the transaction), or to market value (using some market price on a
+certain date).  This is controlled by the '--value=TYPE[,COMMODITY]'
+option, but we also provide the simpler '-B'/'-V'/'-X' flags, and
+usually one of those is all you need.
 
 * Menu:
 
@@ -1416,7 +1410,7 @@ File: hledger.info,  Node: -V Value,  Next: -X Value in specified commodity,  Pr
 
 The '-V/--market' flag converts amounts to market value in their default
 _valuation commodity_, using the market prices in effect on the
-_valuation date(s)_, if any.  More on these things in a minute.
+_valuation date(s)_, if any.  More on these in a minute.
 
 
 File: hledger.info,  Node: -X Value in specified commodity,  Next: Valuation date,  Prev: -V Value,  Up: Valuation
@@ -1424,8 +1418,9 @@ File: hledger.info,  Node: -X Value in specified commodity,  Next: Valuation dat
 2.17.3 -X: Value in specified commodity
 ---------------------------------------
 
-The '-X/--exchange' option is like '-V' except the desired valuation
-currency is specified explicitly.
+The '-X/--exchange=COMM' option is like '-V', except you tell it which
+currency you want to convert to, and it tries to convert everything to
+that.
 
 
 File: hledger.info,  Node: Valuation date,  Next: Market prices,  Prev: -X Value in specified commodity,  Up: Valuation
@@ -1433,9 +1428,13 @@ File: hledger.info,  Node: Valuation date,  Next: Market prices,  Prev: -X Value
 2.17.4 Valuation date
 ---------------------
 
-For single period reports, if an explicit report end date is specified,
-that will be used as the valuation date; otherwise the valuation date is
-"today".
+Since market prices can change from day to day, market value reports
+have a valuation date (or more than one), which determines which market
+prices will be used.
+
+   For single period reports, if an explicit report end date is
+specified, that will be used as the valuation date; otherwise the
+valuation date is "today".
 
    For multiperiod reports, each column/period is valued on the last day
 of the period.
@@ -1486,10 +1485,10 @@ needing P directives at all.
 this.  So for example, 'hledger bs -V --infer-value' will get market
 prices both from P directives and from transactions.
 
-   There is a downside to this: value reports can be affected in
+   There is a downside: value reports can sometimes be affected in
 confusing/undesired ways by your journal entries.  If this happens to
 you, read all of this Valuation section carefully, and try adding
-'--debug' or '--debug=2' to troubleshoot the reason.
+'--debug' or '--debug=2' to troubleshoot.
 
    '--infer-value' can infer market prices from:
 
@@ -1531,18 +1530,16 @@ follows, in this order of preference:
      '--infer-value' flag is used: the price commodity from the latest
      transaction-inferred price for A on or before valuation date.
 
-   Amounts for which no valuation commodity can be found are not
-converted.
-
    This means:
 
-   * If you have any P directives, they alone determine which
-     commodities '-V' will convert, and to what.
+   * If you have P directives, they determine which commodities '-V'
+     will convert, and to what.
 
-   * If you have no P directives, and you add the '--infer-value' flag,
-     transaction prices determine what '-V' converts.
+   * If you have no P directives, and use the '--infer-value' flag,
+     transaction prices determine it.
 
-   * '-X' tries harder to convert everything to just one commodity.
+   Amounts for which no valuation commodity can be found are not
+converted.
 
 
 File: hledger.info,  Node: Simple valuation examples,  Next: --value Flexible valuation,  Prev: Valuation commodity,  Up: Valuation
@@ -3861,197 +3858,197 @@ $ LANG=en_US.UTF-8 hledger -f my.journal print
 
 Tag Table:
 Node: Top68
-Node: COMMON TASKS2315
-Ref: #common-tasks2427
-Node: Getting help2834
-Ref: #getting-help2966
-Node: Constructing command lines3519
-Ref: #constructing-command-lines3711
-Node: Starting a journal file4408
-Ref: #starting-a-journal-file4606
-Node: Setting opening balances5794
-Ref: #setting-opening-balances5990
-Node: Recording transactions9131
-Ref: #recording-transactions9311
-Node: Reconciling9867
-Ref: #reconciling10010
-Node: Reporting12267
-Ref: #reporting12407
-Node: Migrating to a new file16406
-Ref: #migrating-to-a-new-file16554
-Node: OPTIONS16853
-Ref: #options16960
-Node: General options17330
-Ref: #general-options17455
-Node: Command options20409
-Ref: #command-options20560
-Node: Command arguments20958
-Ref: #command-arguments21105
-Node: Queries21985
-Ref: #queries22140
-Node: Special characters in arguments and queries26102
-Ref: #special-characters-in-arguments-and-queries26330
-Node: More escaping26781
-Ref: #more-escaping26943
-Node: Even more escaping27239
-Ref: #even-more-escaping27433
-Node: Less escaping28104
-Ref: #less-escaping28266
-Node: Unicode characters28511
-Ref: #unicode-characters28693
-Node: Input files30105
-Ref: #input-files30248
-Node: Output destination32177
-Ref: #output-destination32329
-Node: Output format32754
-Ref: #output-format32904
-Node: Regular expressions34486
-Ref: #regular-expressions34643
-Node: Smart dates36379
-Ref: #smart-dates36530
-Node: Report start & end date37891
-Ref: #report-start-end-date38063
-Node: Report intervals39560
-Ref: #report-intervals39725
-Node: Period expressions40115
-Ref: #period-expressions40275
-Node: Depth limiting44411
-Ref: #depth-limiting44555
-Node: Pivoting44887
-Ref: #pivoting45010
-Node: Valuation46686
-Ref: #valuation46788
-Node: -B Cost47588
-Ref: #b-cost47692
-Node: -V Value47825
-Ref: #v-value47971
-Node: -X Value in specified commodity48173
-Ref: #x-value-in-specified-commodity48372
-Node: Valuation date48476
-Ref: #valuation-date48644
-Node: Market prices48888
-Ref: #market-prices49068
-Node: --infer-value market prices from transactions49845
-Ref: #infer-value-market-prices-from-transactions50094
-Node: Valuation commodity51385
-Ref: #valuation-commodity51594
-Node: Simple valuation examples52919
-Ref: #simple-valuation-examples53121
-Node: --value Flexible valuation53780
-Ref: #value-flexible-valuation53988
-Node: More valuation examples55935
-Ref: #more-valuation-examples56144
-Node: Effect of valuation on reports58149
-Ref: #effect-of-valuation-on-reports58337
-Node: COMMANDS63858
-Ref: #commands63966
-Node: accounts65050
-Ref: #accounts65148
-Node: activity65847
-Ref: #activity65957
-Node: add66340
-Ref: #add66439
-Node: balance69178
-Ref: #balance69289
-Node: Classic balance report70747
-Ref: #classic-balance-report70920
-Node: Customising the classic balance report72289
-Ref: #customising-the-classic-balance-report72517
-Node: Colour support74593
-Ref: #colour-support74760
-Node: Flat mode74933
-Ref: #flat-mode75081
-Node: Depth limited balance reports75494
-Ref: #depth-limited-balance-reports75679
-Node: Percentages76135
-Ref: #percentages76301
-Node: Multicolumn balance report77438
-Ref: #multicolumn-balance-report77618
-Node: Budget report82880
-Ref: #budget-report83023
-Node: Nested budgets88289
-Ref: #nested-budgets88401
-Ref: #output-format-191882
-Node: balancesheet92079
-Ref: #balancesheet92215
-Node: balancesheetequity93681
-Ref: #balancesheetequity93830
-Node: cashflow94553
-Ref: #cashflow94681
-Node: check-dates95860
-Ref: #check-dates95987
-Node: check-dupes96266
-Ref: #check-dupes96390
-Node: close96683
-Ref: #close96797
-Node: close usage98319
-Ref: #close-usage98412
-Node: commodities101225
-Ref: #commodities101352
-Node: descriptions101434
-Ref: #descriptions101562
-Node: diff101743
-Ref: #diff101849
-Node: files102896
-Ref: #files102996
-Node: help103143
-Ref: #help103243
-Node: import104324
-Ref: #import104438
-Node: Importing balance assignments105331
-Ref: #importing-balance-assignments105479
-Node: incomestatement106128
-Ref: #incomestatement106261
-Node: notes107748
-Ref: #notes107861
-Node: payees107987
-Ref: #payees108093
-Node: prices108251
-Ref: #prices108357
-Node: print108698
-Ref: #print108808
-Node: print-unique113594
-Ref: #print-unique113720
-Node: register114005
-Ref: #register114132
-Node: Custom register output118304
-Ref: #custom-register-output118433
-Node: register-match119770
-Ref: #register-match119904
-Node: rewrite120255
-Ref: #rewrite120370
-Node: Re-write rules in a file122225
-Ref: #re-write-rules-in-a-file122359
-Node: Diff output format123569
-Ref: #diff-output-format123738
-Node: rewrite vs print --auto124830
-Ref: #rewrite-vs.-print---auto125009
-Node: roi125565
-Ref: #roi125663
-Node: stats126675
-Ref: #stats126774
-Node: tags127562
-Ref: #tags127660
-Node: test127954
-Ref: #test128062
-Node: Add-on commands128809
-Ref: #add-on-commands128926
-Node: ui130269
-Ref: #ui130357
-Node: web130411
-Ref: #web130514
-Node: iadd130630
-Ref: #iadd130741
-Node: interest130823
-Ref: #interest130930
-Node: ENVIRONMENT131170
-Ref: #environment131282
-Node: FILES132111
-Ref: #files-1132214
-Node: LIMITATIONS132427
-Ref: #limitations132546
-Node: TROUBLESHOOTING133288
-Ref: #troubleshooting133401
+Node: COMMON TASKS2319
+Ref: #common-tasks2431
+Node: Getting help2838
+Ref: #getting-help2970
+Node: Constructing command lines3523
+Ref: #constructing-command-lines3715
+Node: Starting a journal file4412
+Ref: #starting-a-journal-file4610
+Node: Setting opening balances5798
+Ref: #setting-opening-balances5994
+Node: Recording transactions9135
+Ref: #recording-transactions9315
+Node: Reconciling9871
+Ref: #reconciling10014
+Node: Reporting12271
+Ref: #reporting12411
+Node: Migrating to a new file16410
+Ref: #migrating-to-a-new-file16558
+Node: OPTIONS16857
+Ref: #options16964
+Node: General options17334
+Ref: #general-options17459
+Node: Command options20413
+Ref: #command-options20564
+Node: Command arguments20962
+Ref: #command-arguments21109
+Node: Queries21989
+Ref: #queries22144
+Node: Special characters in arguments and queries26106
+Ref: #special-characters-in-arguments-and-queries26334
+Node: More escaping26785
+Ref: #more-escaping26947
+Node: Even more escaping27243
+Ref: #even-more-escaping27437
+Node: Less escaping28108
+Ref: #less-escaping28270
+Node: Unicode characters28515
+Ref: #unicode-characters28697
+Node: Input files30109
+Ref: #input-files30252
+Node: Output destination32181
+Ref: #output-destination32333
+Node: Output format32758
+Ref: #output-format32908
+Node: Regular expressions34490
+Ref: #regular-expressions34647
+Node: Smart dates36383
+Ref: #smart-dates36534
+Node: Report start & end date37895
+Ref: #report-start-end-date38067
+Node: Report intervals39564
+Ref: #report-intervals39729
+Node: Period expressions40119
+Ref: #period-expressions40279
+Node: Depth limiting44415
+Ref: #depth-limiting44559
+Node: Pivoting44891
+Ref: #pivoting45014
+Node: Valuation46690
+Ref: #valuation46792
+Node: -B Cost47481
+Ref: #b-cost47585
+Node: -V Value47718
+Ref: #v-value47864
+Node: -X Value in specified commodity48059
+Ref: #x-value-in-specified-commodity48258
+Node: Valuation date48407
+Ref: #valuation-date48575
+Node: Market prices48985
+Ref: #market-prices49165
+Node: --infer-value market prices from transactions49942
+Ref: #infer-value-market-prices-from-transactions50191
+Node: Valuation commodity51473
+Ref: #valuation-commodity51682
+Node: Simple valuation examples52908
+Ref: #simple-valuation-examples53110
+Node: --value Flexible valuation53769
+Ref: #value-flexible-valuation53977
+Node: More valuation examples55924
+Ref: #more-valuation-examples56133
+Node: Effect of valuation on reports58138
+Ref: #effect-of-valuation-on-reports58326
+Node: COMMANDS63847
+Ref: #commands63955
+Node: accounts65039
+Ref: #accounts65137
+Node: activity65836
+Ref: #activity65946
+Node: add66329
+Ref: #add66428
+Node: balance69167
+Ref: #balance69278
+Node: Classic balance report70736
+Ref: #classic-balance-report70909
+Node: Customising the classic balance report72278
+Ref: #customising-the-classic-balance-report72506
+Node: Colour support74582
+Ref: #colour-support74749
+Node: Flat mode74922
+Ref: #flat-mode75070
+Node: Depth limited balance reports75483
+Ref: #depth-limited-balance-reports75668
+Node: Percentages76124
+Ref: #percentages76290
+Node: Multicolumn balance report77427
+Ref: #multicolumn-balance-report77607
+Node: Budget report82869
+Ref: #budget-report83012
+Node: Nested budgets88278
+Ref: #nested-budgets88390
+Ref: #output-format-191871
+Node: balancesheet92068
+Ref: #balancesheet92204
+Node: balancesheetequity93670
+Ref: #balancesheetequity93819
+Node: cashflow94542
+Ref: #cashflow94670
+Node: check-dates95849
+Ref: #check-dates95976
+Node: check-dupes96255
+Ref: #check-dupes96379
+Node: close96672
+Ref: #close96786
+Node: close usage98308
+Ref: #close-usage98401
+Node: commodities101214
+Ref: #commodities101341
+Node: descriptions101423
+Ref: #descriptions101551
+Node: diff101732
+Ref: #diff101838
+Node: files102885
+Ref: #files102985
+Node: help103132
+Ref: #help103232
+Node: import104313
+Ref: #import104427
+Node: Importing balance assignments105320
+Ref: #importing-balance-assignments105468
+Node: incomestatement106117
+Ref: #incomestatement106250
+Node: notes107737
+Ref: #notes107850
+Node: payees107976
+Ref: #payees108082
+Node: prices108240
+Ref: #prices108346
+Node: print108687
+Ref: #print108797
+Node: print-unique113583
+Ref: #print-unique113709
+Node: register113994
+Ref: #register114121
+Node: Custom register output118293
+Ref: #custom-register-output118422
+Node: register-match119759
+Ref: #register-match119893
+Node: rewrite120244
+Ref: #rewrite120359
+Node: Re-write rules in a file122214
+Ref: #re-write-rules-in-a-file122348
+Node: Diff output format123558
+Ref: #diff-output-format123727
+Node: rewrite vs print --auto124819
+Ref: #rewrite-vs.-print---auto124998
+Node: roi125554
+Ref: #roi125652
+Node: stats126664
+Ref: #stats126763
+Node: tags127551
+Ref: #tags127649
+Node: test127943
+Ref: #test128051
+Node: Add-on commands128798
+Ref: #add-on-commands128915
+Node: ui130258
+Ref: #ui130346
+Node: web130400
+Ref: #web130503
+Node: iadd130619
+Ref: #iadd130730
+Node: interest130812
+Ref: #interest130919
+Node: ENVIRONMENT131159
+Ref: #environment131271
+Node: FILES132100
+Ref: #files-1132203
+Node: LIMITATIONS132416
+Ref: #limitations132535
+Node: TROUBLESHOOTING133277
+Ref: #troubleshooting133390
 
 End Tag Table
 

@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "June 2020" "hledger 1.18" "hledger User Manuals"
+.TH "hledger" "1" "June 2020" "hledger 1.18.1" "hledger User Manuals"
 
 
 
@@ -1679,18 +1679,12 @@ $ hledger balance --pivot member acct:.
 .SS Valuation
 .PP
 Instead of reporting amounts in their original commodity, hledger can
-convert them to:
-.IP \[bu] 2
-cost (or sale amount), using the conversion rate recorded as part of the
-transaction (transaction price).
-.IP \[bu] 2
-value, using the market prices in effect on certain date(s).
-.PP
-We call this \[dq]valuation\[dq], and it is controlled in full by the
-\f[C]--value=VALUATIONTYPE[,COMMODITY]\f[R] option.
-But we also provide simpler, Ledger-compatible
-\f[C]-B\f[R]/\f[C]-V\f[R]/\f[C]-X\f[R] flags, and usually one of these
-is all you need:
+convert them to cost/sale amount (using the conversion rate recorded in
+the transaction), or to market value (using some market price on a
+certain date).
+This is controlled by the \f[C]--value=TYPE[,COMMODITY]\f[R] option, but
+we also provide the simpler \f[C]-B\f[R]/\f[C]-V\f[R]/\f[C]-X\f[R]
+flags, and usually one of those is all you need.
 .SS -B: Cost
 .PP
 The \f[C]-B/--cost\f[R] flag converts amounts to their cost or sale
@@ -1700,12 +1694,17 @@ amount at transaction time, if they have a transaction price specified.
 The \f[C]-V/--market\f[R] flag converts amounts to market value in their
 default \f[I]valuation commodity\f[R], using the market prices in effect
 on the \f[I]valuation date(s)\f[R], if any.
-More on these things in a minute.
+More on these in a minute.
 .SS -X: Value in specified commodity
 .PP
-The \f[C]-X/--exchange\f[R] option is like \f[C]-V\f[R] except the
-desired valuation currency is specified explicitly.
+The \f[C]-X/--exchange=COMM\f[R] option is like \f[C]-V\f[R], except you
+tell it which currency you want to convert to, and it tries to convert
+everything to that.
 .SS Valuation date
+.PP
+Since market prices can change from day to day, market value reports
+have a valuation date (or more than one), which determines which market
+prices will be used.
 .PP
 For single period reports, if an explicit report end date is specified,
 that will be used as the valuation date; otherwise the valuation date is
@@ -1751,11 +1750,10 @@ Adding the \f[C]--infer-value\f[R] flag to \f[C]-V\f[R], \f[C]-X\f[R] or
 So for example, \f[C]hledger bs -V --infer-value\f[R] will get market
 prices both from P directives and from transactions.
 .PP
-There is a downside to this: value reports can be affected in
+There is a downside: value reports can sometimes be affected in
 confusing/undesired ways by your journal entries.
 If this happens to you, read all of this Valuation section carefully,
-and try adding \f[C]--debug\f[R] or \f[C]--debug=2\f[R] to troubleshoot
-the reason.
+and try adding \f[C]--debug\f[R] or \f[C]--debug=2\f[R] to troubleshoot.
 .PP
 \f[C]--infer-value\f[R] can infer market prices from:
 .IP \[bu] 2
@@ -1801,17 +1799,15 @@ If there are no P directives at all (any commodity or date) and the
 \f[C]--infer-value\f[R] flag is used: the price commodity from the
 latest transaction-inferred price for A on or before valuation date.
 .PP
-Amounts for which no valuation commodity can be found are not converted.
-.PP
 This means:
 .IP \[bu] 2
-If you have any P directives, they alone determine which commodities
-\f[C]-V\f[R] will convert, and to what.
+If you have P directives, they determine which commodities \f[C]-V\f[R]
+will convert, and to what.
 .IP \[bu] 2
-If you have no P directives, and you add the \f[C]--infer-value\f[R]
-flag, transaction prices determine what \f[C]-V\f[R] converts.
-.IP \[bu] 2
-\f[C]-X\f[R] tries harder to convert everything to just one commodity.
+If you have no P directives, and use the \f[C]--infer-value\f[R] flag,
+transaction prices determine it.
+.PP
+Amounts for which no valuation commodity can be found are not converted.
 .SS Simple valuation examples
 .PP
 Here are some quick examples of \f[C]-V\f[R]:
