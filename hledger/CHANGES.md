@@ -10,7 +10,9 @@ User-visible changes in the hledger command line tool and library.
 
 - organise debug output better
 
-- print: fixes for "hledger print -O csv" output (Dmitry Astapov)
+- print: amounts in csv output now have commodity symbol, digit group
+  separators and prices removed (Dmitry Astapov)
+
 
 # 1.18 2020-06-07
 
