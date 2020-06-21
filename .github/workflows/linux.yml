@@ -1,10 +1,11 @@
-# Thorough linux CI tests: build, test, benchmark, haddock &
-# run functional tests, with all supported GHC versions.
-#
-# Runs: periodically on master, on notable pull request to master, and
-# on notable push to ci-linux or master.
+# Thorough tests on linux.
+# Runs on notable pushes to ci-linux, on notable pull requests against
+# master, and weekly on master.
+# Builds all modules optimised, runs unit, benchmark, doc, functional,
+# haddock tests, with all supported GHC versions,
+# and uploads binaries artifact.
 
-name: linux full CI
+name: linux CI
 
 on:
   # Scheduled workflows run on the latest commit on the default or base branch. (master)
@@ -28,7 +29,7 @@ on:
       - '!**.txt'
 
   push:
-    branches: [ master, ci-linux ]
+    branches: [ ci-linux ]
     paths:
       - '.github/workflows/linux.yml'
       - 'stack*'
@@ -49,7 +50,8 @@ jobs:
       fail-fast: false
       matrix:
         plan:
-        - { key: "80", args: "--stack-yaml=stack8.0.yaml" }
+        # GHC 8.0 is still supported but we don't have a build plan for hledger-web, let it go
+        # - { key: "80", args: "--stack-yaml=stack8.0.yaml" }
         - { key: "82", args: "--stack-yaml=stack8.2.yaml" }
         - { key: "84", args: "--stack-yaml=stack8.4.yaml" }
         - { key: "86", args: "--stack-yaml=stack8.6.yaml" }
@@ -61,20 +63,6 @@ jobs:
 
     - name: Check out
       uses: actions/checkout@v2
-      # deep clone so we can restore timestamps (see below)
-      with:
-        fetch-depth: 0
-
-    # Restore timestamps to help stack not rebuild unchanged files.
-    # https://stackoverflow.com/questions/60906336
-    # https://stackoverflow.com/a/36243002/84401
-    # https://www.reddit.com/r/haskell/comments/g00ldn/haskell_stack_on_github_actions/
-    - name: Restore source file timestamps
-      run: |
-        git ls-tree -r --name-only HEAD | while read filename; do
-          TS="$(git log -1 --format="%ct" -- ${filename})"
-          touch "${filename}" -mt "$(date --date="@$TS" "+%Y%m%d%H%M.%S")"
-        done
 
     # things to be cached/restored:
 
@@ -191,9 +179,9 @@ jobs:
       env:
         ARGS: ${{ matrix.plan.args }}
 
-    - name: Build hledger quickly warning free, run unit tests, run doc tests
+    - name: Build all hledger modules optimised and warning free, run unit/doc/bench tests
       run: |
-        stack $ARGS install --test --bench --fast --ghc-options=-Werror --no-terminal
+        stack $ARGS install --test --bench --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --no-terminal
         # --pedantic --no-run-benchmarks
       env:
         ARGS: ${{ matrix.plan.args }}
@@ -215,7 +203,7 @@ jobs:
 
     - name: Test haddock generation
       run: |
-        time stack $ARGS build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
+        time stack $ARGS build --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
       # --no-haddock-hyperlink-source is 25% faster
       # --no-print-missing-docs is 600% quieter
       env:

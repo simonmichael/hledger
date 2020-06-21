@@ -1,5 +1,5 @@
-# Quick tests for notable pushes to master,
-# minimising compute power and carbon emissions.
+# Quick tests on linux, minimising compute power and carbon emissions.
+# Runs on notable pushes to master.
 # Builds incrementally and runs functional tests with one GHC version.
 
 name: push CI
