@@ -819,6 +819,13 @@ manuals: Shake $(call def-help,manuals, regenerate and commit CLI help and manua
 	./Shake manuals
 	git commit -m ";doc: regen manuals" -m "[ci skip]" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
 
+tag-all: $(call def-help,tag-all, make git release tags and for the project and all packages )
+	for p in $(PACKAGES); do make -s tag-$$p; done
+	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/release-notes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
+
+tag-%: $(call def-help,tag-PKG, make a git release tag for PKG )
+	git tag -fs $*-`cat $*/.version` -m "Release $*-`cat $*/.version`"
+
 # hackageupload-dry: \
 # 	$(call def-help,hackageupload-dry,\
 # 	upload all packages to hackage; dry run\
@@ -975,12 +982,9 @@ cabalusage: \
 	$(call def-help,cabalusage, show size of cabal working dirs if any )
 	-du -shc */dist* 2>/dev/null
 
-tag: emacstags-ctags \
-	$(call def-help,tag, generate tag files for source code navigation (for emacs) )
-
 # Tag haskell files with hasktags and just list the other main source files
 # so they will be traversed by tags-search/tags-query-replace.
-# emacstags:
+# etags:
 # 	rm -f TAGS
 # 	hasktags -e $(SOURCEFILES)
 # 	for f in Makefile $(WEBCODEFILES) $(HPACKFILES) $(CABALFILES) $(DOCSOURCEFILES); do \
@@ -991,7 +995,7 @@ tag: emacstags-ctags \
 # - haskell files, with hasktags
 # - everything else not excluded by .ctags, with (exuberant) ctags
 # - files currently missed by the above, just their names (docs, hpack, cabal..)
-emacstags-ctags:
+etags:$(call def-help,etags, generate emacs tag files for source code navigation )
 	hasktags -e $(SOURCEFILES)
 	ctags -a -e -R  
 	for f in \
