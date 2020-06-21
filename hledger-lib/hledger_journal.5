@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "June 2020" "hledger 1.18" "hledger User Manuals"
+.TH "hledger_journal" "5" "June 2020" "hledger 1.18.99" "hledger User Manuals"
 
 
 
@@ -1143,15 +1143,20 @@ files can be included (not CSV files, currently).
 If the file path does not begin with a slash, it is relative to the
 current file\[aq]s folder.
 .PP
-It may contain glob patterns to match multiple files, eg:
+A tilde means home directory, eg: \f[C]include \[ti]/main.journal\f[R].
+.PP
+The path may contain glob patterns to match multiple files, eg:
 \f[C]include *.journal\f[R].
 .PP
-Or a tilde, meaning home directory:
-\f[C]include \[ti]/main.journal\f[R].
+There is limited support for recursive wildcards: \f[C]**/\f[R] (the
+slash is required) matches 0 or more subdirectories.
+It\[aq]s not super convenient since you have to avoid include cycles and
+including directories, but this can be done, eg:
+\f[C]include */**/*.journal\f[R].
 .PP
-It may also be prefixed to force a specific file format, overriding the
-file extension (as described in hledger.1 -> Input files):
-\f[C]include timedot:\[ti]/notes/2020*.md\f[R].
+The path may also be prefixed to force a specific file format,
+overriding the file extension (as described in hledger.1 -> Input
+files): \f[C]include timedot:\[ti]/notes/2020*.md\f[R].
 .SS Default year
 .PP
 You can set a default year to be used for subsequent dates which

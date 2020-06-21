@@ -538,4 +538,4 @@ SEE ALSO
 
 
 
-hledger-web 1.18                   June 2020                    hledger-web(1)
+hledger-web 1.18.99                June 2020                    hledger-web(1)

@@ -450,4 +450,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.18                    June 2020                     hledger-ui(1)
+hledger-ui 1.18.99                 June 2020                     hledger-ui(1)
