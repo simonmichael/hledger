@@ -1,7 +1,7 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# ec1a8c72
+# 1.18.1 2020-06-21
 
 - provide CI binaries for windows, mac & gnu/linux
 

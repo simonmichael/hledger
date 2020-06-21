@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 06c174b2
+# 1.18.1 2020-06-21
 
 - journal: document recursive wildcards
 
