@@ -1,6 +1,10 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# fae1cc26
+
+- fix some doc typos (Martin Michlmayr)
+
 # 1.18 2020-06-07
 
 - The filter query is now preserved when clicking a different account

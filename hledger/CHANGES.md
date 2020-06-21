@@ -1,6 +1,17 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 06c174b2
+
+- journal: document recursive wildcards
+
+- by default, value reports work as in 1.17; to infer market prices from
+  transactions, add the new --infer-value flag. (#1239, #1253)
+
+- organise debug output better
+
+- print: fixes for "hledger print -O csv" output (Dmitry Astapov)
+
 # 1.18 2020-06-07
 
 ## General
