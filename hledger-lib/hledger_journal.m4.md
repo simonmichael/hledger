@@ -885,11 +885,19 @@ Only journal files can include, and only journal, timeclock or timedot files can
 
 If the file path does not begin with a slash, it is relative to the current file's folder. 
 
-It may contain [glob patterns] to match multiple files, eg: `include *.journal`.
+A tilde means home directory, eg: `include ~/main.journal`.
 
-Or a tilde, meaning home directory: `include ~/main.journal`.
+The path may contain [glob patterns] to match multiple files, eg: `include *.journal`.
 
-It may also be prefixed to force a specific file format, overriding the file extension (as described in [hledger.1 -> Input files](hledger.html#input-files)): `include timedot:~/notes/2020*.md`.
+There is limited support for recursive wildcards: `**/` (the slash is required)
+matches 0 or more subdirectories. It's not super convenient since you have to 
+avoid include cycles and including directories, but this can be done, eg:
+`include */**/*.journal`.
+
+The path may also be prefixed to force a specific file format,
+overriding the file extension (as described in
+[hledger.1 -> Input files](hledger.html#input-files)):
+`include timedot:~/notes/2020*.md`.
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
 
