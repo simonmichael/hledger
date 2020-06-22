@@ -1,5 +1,5 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -32,6 +32,9 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Ord
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import Data.Time.Calendar
 import Safe
 import Text.Tabular as T
