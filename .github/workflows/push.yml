@@ -119,9 +119,10 @@ jobs:
       run: |
         stack build --only-dependencies
 
-    - name: Build hledger fast (all modules, troubleshooting CI failure XXX)
+    - name: Build hledger fast
       run: |
-        stack build --fast --ghc-options=-Werror --ghc-options=-fforce-recomp 
+        stack build --fast --ghc-options=-Werror 
+      # --ghc-options=-fforce-recomp   # needed occasionally to clear out stale compiled modules
       #  --pedantic
 
     - name: Install shelltestrunner
