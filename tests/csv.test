@@ -833,6 +833,31 @@ expecting end of input, field assignment, or newline
 )
 >=1
 
+# 42. Rules override each other in the order listed in the file
+<
+10/2009/09,Flubber Co,50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if Flubber
+  account2 foo
+  comment bar
+
+if 10/2009/09.*Flubber
+  account2 acct
+  comment cmt
+
+$  ./csvtest.sh
+2009-09-10 Flubber Co  ; cmt
+    assets:myacct             $50
+    acct                     $-50
+
+>=0
+
+
 ## . 
 #<
 #$  ./csvtest.sh
