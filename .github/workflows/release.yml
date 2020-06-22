@@ -1,4 +1,4 @@
-# Create a github release, when a "[0-9]*" tag is pushed (anywhere ?)
+# Create a github release, when a "[0-9]*" tag is pushed
 #
 # https://github.com/actions/create-release - still pretty rough, 20200609
 
@@ -7,7 +7,7 @@ name: release
 on:
   push:
     tags: [ '[0-9]*', 'r[0-9]*' ]
-    branches: [ 'master', '[0-9]*-branch' ]
+    # branches: [ 'master', '[0-9]*-branch' ]
 
 jobs:
   release:
