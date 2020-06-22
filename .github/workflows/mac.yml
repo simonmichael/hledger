@@ -104,6 +104,7 @@ jobs:
     - name: Build hledger and test unit tests, doc tests
       run: |
         stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+      # --ghc-options=-split-sections doesn't work on mac
       #  --pedantic
 
     - name: Install shelltestrunner

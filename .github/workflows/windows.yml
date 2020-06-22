@@ -129,9 +129,10 @@ jobs:
       run: |
         stack --resolver=lts-15.3 --no-terminal build --only-dependencies
 
-    - name: Build hledger executables
+    - name: Build all hledger modules warning free, optimised and minimised
       run: |
         stack --resolver=lts-15.3 --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+      # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
