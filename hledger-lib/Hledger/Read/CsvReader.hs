@@ -333,15 +333,17 @@ defrules = CsvRules' {
 -- | Create CsvRules from the content parsed out of the rules file
 mkrules :: CsvRulesParsed -> CsvRules
 mkrules rules =
-  let conditionalblocks = reverse $ rconditionalblocks rules in
+  let conditionalblocks = reverse $ rconditionalblocks rules
+      maybeMemo = if length conditionalblocks >= 15 then memo else id
+  in
     CsvRules' {
     rdirectives=reverse $ rdirectives rules,
     rcsvfieldindexes=rcsvfieldindexes rules,
     rassignments=reverse $ rassignments rules,
     rconditionalblocks=conditionalblocks,
-    rblocksassigning = memo (\f -> filter (any ((==f).fst) . cbAssignments) conditionalblocks)
+    rblocksassigning = maybeMemo (\f -> filter (any ((==f).fst) . cbAssignments) conditionalblocks)
     }
-  
+
 --- *** rules parsers
 
 {-
