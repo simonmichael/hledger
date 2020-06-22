@@ -53,6 +53,7 @@ import Data.Bifunctor             (first)
 import "base-compat-batteries" Data.List.Compat
 import qualified Data.List.Split as LS (splitOn)
 import Data.Maybe
+import Data.MemoUgly (memo)
 import Data.Ord
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -164,29 +165,29 @@ defaultRulesText csvfile = T.pack $ unlines
   ," account2 assets:bank:savings\n"
   ]
 
-addDirective :: (DirectiveName, String) -> CsvRules -> CsvRules
+addDirective :: (DirectiveName, String) -> CsvRulesParsed -> CsvRulesParsed
 addDirective d r = r{rdirectives=d:rdirectives r}
 
-addAssignment :: (HledgerFieldName, FieldTemplate) -> CsvRules -> CsvRules
+addAssignment :: (HledgerFieldName, FieldTemplate) -> CsvRulesParsed -> CsvRulesParsed
 addAssignment a r = r{rassignments=a:rassignments r}
 
-setIndexesAndAssignmentsFromList :: [CsvFieldName] -> CsvRules -> CsvRules
+setIndexesAndAssignmentsFromList :: [CsvFieldName] -> CsvRulesParsed -> CsvRulesParsed
 setIndexesAndAssignmentsFromList fs r = addAssignmentsFromList fs . setCsvFieldIndexesFromList fs $ r
 
-setCsvFieldIndexesFromList :: [CsvFieldName] -> CsvRules -> CsvRules
+setCsvFieldIndexesFromList :: [CsvFieldName] -> CsvRulesParsed -> CsvRulesParsed
 setCsvFieldIndexesFromList fs r = r{rcsvfieldindexes=zip fs [1..]}
 
-addAssignmentsFromList :: [CsvFieldName] -> CsvRules -> CsvRules
+addAssignmentsFromList :: [CsvFieldName] -> CsvRulesParsed -> CsvRulesParsed
 addAssignmentsFromList fs r = foldl' maybeAddAssignment r journalfieldnames
   where
     maybeAddAssignment rules f = (maybe id addAssignmentFromIndex $ elemIndex f fs) rules
       where
         addAssignmentFromIndex i = addAssignment (f, "%"++show (i+1))
 
-addConditionalBlock :: ConditionalBlock -> CsvRules -> CsvRules
+addConditionalBlock :: ConditionalBlock -> CsvRulesParsed -> CsvRulesParsed
 addConditionalBlock b r = r{rconditionalblocks=b:rconditionalblocks r}
 
-addConditionalBlocks :: [ConditionalBlock] -> CsvRules -> CsvRules
+addConditionalBlocks :: [ConditionalBlock] -> CsvRulesParsed -> CsvRulesParsed
 addConditionalBlocks bs r = r{rconditionalblocks=bs++rconditionalblocks r}
 
 getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
@@ -239,18 +240,42 @@ validateRules rules = do
 
 -- | A set of data definitions and account-matching patterns sufficient to
 -- convert a particular CSV data file into meaningful journal transactions.
-data CsvRules = CsvRules {
+data CsvRules' a = CsvRules' {
   rdirectives        :: [(DirectiveName,String)],
     -- ^ top-level rules, as (keyword, value) pairs
   rcsvfieldindexes   :: [(CsvFieldName, CsvFieldIndex)],
     -- ^ csv field names and their column number, if declared by a fields list
   rassignments       :: [(HledgerFieldName, FieldTemplate)],
     -- ^ top-level assignments to hledger fields, as (field name, value template) pairs
-  rconditionalblocks :: [ConditionalBlock]
+  rconditionalblocks :: [ConditionalBlock],
     -- ^ conditional blocks, which containing additional assignments/rules to apply to matched csv records
-} deriving (Show, Eq)
+  rblocksassigning :: a -- (String -> [ConditionalBlock])
+    -- ^ all conditional blocks which can potentially assign field with a given name (memoized)
+}
 
-type CsvRulesParser a = StateT CsvRules SimpleTextParser a
+-- | Type used by parsers. Directives, assignments and conditional blocks
+-- are in the reverse order compared to what is in the file and rblocksassigning is non-functional,
+-- could not be used for processing CSV records yet
+type CsvRulesParsed = CsvRules' ()
+
+-- | Type used after parsing is done. Directives, assignments and conditional blocks
+-- are in the same order as they were in the unput file and rblocksassigning is functional.
+-- Ready to be used for CSV record processing
+type CsvRules = CsvRules' (String -> [ConditionalBlock])
+
+instance Eq CsvRules where
+  r1 == r2 = (rdirectives r1, rcsvfieldindexes r1, rassignments r1) ==
+             (rdirectives r2, rcsvfieldindexes r2, rassignments r2) 
+
+-- It is used for debug output only
+instance Show CsvRules where
+  show r = "CsvRules { rdirectives=" ++ show (rdirectives r) ++
+           ", rcsvfieldindexes=" ++ show (rcsvfieldindexes r) ++
+           ", rassignments=" ++ show (rassignments r) ++
+           ", rconditionalblocks="++ show (rconditionalblocks r) ++
+           " }"
+
+type CsvRulesParser a = StateT CsvRulesParsed SimpleTextParser a
 
 -- | The keyword of a CSV rule - "fields", "skip", "if", etc.
 type DirectiveName    = String
@@ -296,13 +321,27 @@ data ConditionalBlock = CB {
   ,cbAssignments :: [(HledgerFieldName, FieldTemplate)]
   } deriving (Show, Eq)
 
-defrules = CsvRules {
+defrules :: CsvRulesParsed
+defrules = CsvRules' {
   rdirectives=[],
   rcsvfieldindexes=[],
   rassignments=[],
-  rconditionalblocks=[]
-}
+  rconditionalblocks=[],
+  rblocksassigning = ()
+  }
 
+-- | Create CsvRules from the content parsed out of the rules file
+mkrules :: CsvRulesParsed -> CsvRules
+mkrules rules =
+  let conditionalblocks = reverse $ rconditionalblocks rules in
+    CsvRules' {
+    rdirectives=reverse $ rdirectives rules,
+    rcsvfieldindexes=rcsvfieldindexes rules,
+    rassignments=reverse $ rassignments rules,
+    rconditionalblocks=conditionalblocks,
+    rblocksassigning = memo (\f -> filter (any ((==f).fst) . cbAssignments) conditionalblocks)
+    }
+  
 --- *** rules parsers
 
 {-
@@ -382,10 +421,7 @@ rulesp = do
     ]
   eof
   r <- get
-  return r{rdirectives=reverse $ rdirectives r
-          ,rassignments=reverse $ rassignments r
-          ,rconditionalblocks=reverse $ rconditionalblocks r
-          }
+  return $ mkrules r
 
 blankorcommentlinep :: CsvRulesParser ()
 blankorcommentlinep = lift (dbgparse 8 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
@@ -1105,10 +1141,8 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
         -- all top level field assignments
         toplevelassignments    = rassignments rules
         -- all field assignments in conditional blocks assigning to field f and active for the current csv record
-        conditionalassignments = concatMap cbAssignments $ filter isBlockActive $ blocksAssigning f
+        conditionalassignments = concatMap cbAssignments $ filter isBlockActive $ rblocksassigning rules f
           where
-            -- all conditional blocks which can potentially assign field f
-            blocksAssigning f = filter (any ((==f).fst) . cbAssignments) $ rconditionalblocks rules
             -- does this conditional block match the current csv record ?
             isBlockActive :: ConditionalBlock -> Bool
             isBlockActive CB{..} = any matcherMatches cbMatchers
@@ -1182,21 +1216,21 @@ parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith formats
 tests_CsvReader = tests "CsvReader" [
    tests "parseCsvRules" [
      test "empty file" $
-      parseCsvRules "unknown" "" @?= Right defrules
+      parseCsvRules "unknown" "" @?= Right (mkrules defrules)
    ]
   ,tests "rulesp" [
      test "trailing comments" $
-      parseWithState' defrules rulesp "skip\n# \n#\n" @?= Right defrules{rdirectives = [("skip","")]}
+      parseWithState' defrules rulesp "skip\n# \n#\n" @?= Right (mkrules $ defrules{rdirectives = [("skip","")]})
 
     ,test "trailing blank lines" $
-      parseWithState' defrules rulesp "skip\n\n  \n" @?= (Right defrules{rdirectives = [("skip","")]})
+      parseWithState' defrules rulesp "skip\n\n  \n" @?= (Right (mkrules $ defrules{rdirectives = [("skip","")]}))
 
     ,test "no final newline" $
-      parseWithState' defrules rulesp "skip" @?= (Right defrules{rdirectives=[("skip","")]})
+      parseWithState' defrules rulesp "skip" @?= (Right (mkrules $ defrules{rdirectives=[("skip","")]}))
 
     ,test "assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
-        (Right defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher "foo"],cbAssignments=[("account2","foo")]}]})
+        (Right (mkrules $ defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher "foo"],cbAssignments=[("account2","foo")]}]}))
    ]
   ,tests "conditionalblockp" [
     test "space after conditional" $ -- #1120
@@ -1226,11 +1260,11 @@ tests_CsvReader = tests "CsvReader" [
    ]
 
   ,tests "getEffectiveAssignment" [
-    let rules = defrules{rcsvfieldindexes=[("csvdate",1)],rassignments=[("date","%csvdate")]}
+    let rules = mkrules $ defrules {rcsvfieldindexes=[("csvdate",1)],rassignments=[("date","%csvdate")]}
     
     in test "toplevel" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
 
-   ,let rules = defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher "%csvdate" "a"] [("date","%csvdate")]]}
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher "%csvdate" "a"] [("date","%csvdate")]]}
     in test "conditional" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
        
    ]
