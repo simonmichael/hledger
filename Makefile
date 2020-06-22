@@ -956,6 +956,12 @@ cloc: $(call def-help,cloc, count lines of source code )
 # 	@darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
 # 	@echo
 
+nix-hledger-version: $(call def-help,nix-hledger-version, show which version of hledger has reached nixpkgs)
+	@curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger"'
+
+nix-hledger-versions: $(call def-help,nix-hledger-versions, show versions of all hledger packages in nixpkgs)
+	@curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger'
+
 ###############################################################################
 $(call def-help-subheading,MISCELLANEOUS:)
 
