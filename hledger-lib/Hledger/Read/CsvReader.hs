@@ -569,7 +569,7 @@ conditionaltablep = do
   lift $ dbgparse 8 "trying conditionaltablep"
   start <- getOffset
   string "if" 
-  sep <- lift $ satisfy (not.isAlphaNum)
+  sep <- lift $ satisfy (\c -> not (isAlphaNum c || isSpace c))
   fields <- journalfieldnamep `sepBy1` (char sep)
   newline
   body <- flip manyTill (lift eolof) $ do
