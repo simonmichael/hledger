@@ -42,6 +42,7 @@ jobs:
           TS="$(git log -1 --format="%ct" -- ${filename})"
           touch "${filename}" -mt "$(date --date="@$TS" "+%Y%m%d%H%M.%S")"
         done
+      # help emacs highlighter: "
 
     # things to be cached/restored:
 
@@ -118,9 +119,9 @@ jobs:
       run: |
         stack build --only-dependencies
 
-    - name: Build hledger fast
+    - name: Build hledger fast (all modules, troubleshooting CI failure XXX)
       run: |
-        stack build --fast --ghc-options=-Werror
+        stack build --fast --ghc-options=-Werror --ghc-options=-fforce-recomp 
       #  --pedantic
 
     - name: Install shelltestrunner
