@@ -72,7 +72,7 @@ reordered. See also the import command.
 
 This command also supports the output destination and output format
 options The output formats supported are txt, csv, and (experimental)
-json.
+json and sql.
 
 Here's an example of print's CSV output:
 

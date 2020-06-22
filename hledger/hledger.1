@@ -1070,7 +1070,8 @@ $ hledger print -o -        # write to stdout (the default)
 Some commands (print, register, the balance commands) offer a choice of
 output format.
 In addition to the usual plain text format (\f[C]txt\f[R]), there are
-CSV (\f[C]csv\f[R]), HTML (\f[C]html\f[R]) and JSON (\f[C]json\f[R]).
+CSV (\f[C]csv\f[R]), HTML (\f[C]html\f[R]), JSON (\f[C]json\f[R]) and
+SQL (\f[C]sql\f[R]).
 This is controlled by the \f[C]-O/--output-format\f[R] option:
 .IP
 .nf
@@ -1119,6 +1120,20 @@ your control.
 We hope this approach will not cause problems in practice; if you find
 otherwise, please let us know.
 (Cf #1195)
+.PP
+Notes about SQL output:
+.IP \[bu] 2
+SQL output is also marked experimental, and much like JSON could use
+real-world feedback.
+.IP \[bu] 2
+SQL output is expected to work with sqlite, MySQL and PostgreSQL
+.IP \[bu] 2
+SQL output is structured with the expectations that statements will be
+executed in the empty database.
+If you already have tables created via SQL output of hledger, you would
+probably want to either clear tables of existing data (via
+\f[C]delete\f[R] or \f[C]truncate\f[R] SQL statements) or drop tables
+completely as otherwise your postings will be duped.
 .SS Regular expressions
 .PP
 hledger uses regular expressions in a number of places:
@@ -3763,7 +3778,7 @@ See also the import command.
 .PP
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
-and (experimental) \f[C]json\f[R].
+and (experimental) \f[C]json\f[R] and \f[C]sql\f[R].
 .PP
 Here\[aq]s an example of print\[aq]s CSV output:
 .IP
