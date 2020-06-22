@@ -410,14 +410,14 @@ DIGIT: 0-9
 rulesp :: CsvRulesParser CsvRules
 rulesp = do
   _ <- many $ choice
-    [blankorcommentlinep                                                  <?> "blank or comment line"
-    ,(directivep        >>= modify' . addDirective)                       <?> "directive"
-    ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList)   <?> "field name list"
-    ,(fieldassignmentp  >>= modify' . addAssignment)                      <?> "field assignment"
-    -- conditionaltablep backtracks because it shares "if" prefix with conditionalblockp and the
-    -- reverse is there to ensure that conditions are added in the order they listed in the file
-    ,try (conditionaltablep >>= modify' . addConditionalBlocks . reverse) <?> "conditional table"
-    ,(conditionalblockp >>= modify' . addConditionalBlock)                <?> "conditional block"
+    [blankorcommentlinep                                                <?> "blank or comment line"
+    ,(directivep        >>= modify' . addDirective)                     <?> "directive"
+    ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList) <?> "field name list"
+    ,(fieldassignmentp  >>= modify' . addAssignment)                    <?> "field assignment"
+    -- conditionalblockp backtracks because it shares "if" prefix with conditionaltablep.
+    ,try (conditionalblockp >>= modify' . addConditionalBlock)          <?> "conditional block"
+    -- 'reverse' is there to ensure that conditions are added in the order they listed in the file
+    ,(conditionaltablep >>= modify' . addConditionalBlocks . reverse)   <?> "conditional table"
     ]
   eof
   r <- get
@@ -1141,7 +1141,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
         -- all top level field assignments
         toplevelassignments    = rassignments rules
         -- all field assignments in conditional blocks assigning to field f and active for the current csv record
-        conditionalassignments = concatMap cbAssignments $ filter isBlockActive $ rblocksassigning rules f
+        conditionalassignments = concatMap cbAssignments $ filter isBlockActive $ (rblocksassigning rules) f
           where
             -- does this conditional block match the current csv record ?
             isBlockActive :: ConditionalBlock -> Bool
