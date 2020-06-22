@@ -23,10 +23,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag_name: X.Y
+          release_name: X.Y
           body: |
-            
-            https://hledger.org/release-notes.html
+            CHANGE 1; CHANGE 2.
+            https://hledger.org/release-notes.html#hledger-X-Y
           draft: true
-          prerelease: false
+          prerelease: true
