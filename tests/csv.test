@@ -829,7 +829,7 @@ hledger: user error (input.rules:6:3:
 6 |   myaccount2 acct
   |   ^^^^^^^^^^^^
 unexpected "myaccount2 a"
-expecting end of input, field assignment, or newline
+expecting conditional block
 )
 >=1
 
