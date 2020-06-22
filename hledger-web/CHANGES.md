@@ -1,6 +1,8 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# ce4de7ae
+
 # 1.18.1 2020-06-21
 
 - fix some doc typos (Martin Michlmayr)

@@ -1,6 +1,13 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# a7bb6b92
+
+- ci: separate quick and full tests again, update
+  The linux full tests no longer test GHC 8.0,
+  and all full tests now always compile all modules
+  and generate optimised binaries.
+
 # 1.18.1 2020-06-21
 
 - provide CI binaries for windows, mac & gnu/linux

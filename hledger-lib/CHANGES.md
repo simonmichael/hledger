@@ -1,6 +1,8 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 36829710
+
 # 1.18.1 2020-06-21
 
 - fix some doc typos (Martin Michlmayr)

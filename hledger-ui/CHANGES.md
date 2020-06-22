@@ -1,6 +1,8 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# ce4de7ae
+
 # 1.18.1 2020-06-21
 
 - Fix regression in 'F' (#1255) (Dmitry Astapov)

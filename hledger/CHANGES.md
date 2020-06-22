@@ -1,6 +1,23 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 36829710
+
+- csv: speed up csv conversion performance when there are a lot of
+  conditional rules (Dmitry Astapov)
+
+- csv: add "if tables" to csv rules, a more compact format for conditional
+  rules (Dmitry Astapov)
+
+- csv: fix a bug in the csv rules parser that was causing vague parse error
+  messages (Dmitry Astapov)
+
+- print: sql output format (Dmitry Astapov)
+
+- bs,cf,is: --no-total hides subtotals as well as the grand total (Stephen Morgan)
+
+- roi: show errors without a traceback
+
 # 1.18.1 2020-06-21
 
 - journal: document recursive wildcards
