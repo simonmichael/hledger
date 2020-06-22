@@ -103,9 +103,11 @@ accountNameDrop n a
       case accountNameDrop n $ T.drop (T.length unbudgetedAccountAndSep) a of
         "" -> unbudgetedAccountName
         a' -> unbudgetedAccountAndSep <> a'
-  | otherwise = accountNameFromComponents $ drop n $ accountNameComponents a
+  | otherwise = accountNameFromComponentsOrElide . drop n $ accountNameComponents a
   where
     unbudgetedAccountAndSep = unbudgetedAccountName <> acctsep
+    accountNameFromComponentsOrElide [] = "..."
+    accountNameFromComponentsOrElide xs = accountNameFromComponents xs
 
 -- | Sorted unique account names implied by these account names,
 -- ie these plus all their parent accounts up to the root.
