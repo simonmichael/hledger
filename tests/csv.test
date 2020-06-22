@@ -857,6 +857,31 @@ $  ./csvtest.sh
 
 >=0
 
+# 43. Attempt to use space as a separator in the tabular rules
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,150
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if account2 comment
+%amount 150 acct2 
+%description Flubber acct 
+$  ./csvtest.sh
+>2
+hledger: user error (input.rules:5:1:
+  |
+5 | if account2 comment
+  | ^
+start of conditional block found, but no assignment rules afterward
+(assignment rules in a conditional block should be indented)
+
+)
+>=1
+
 
 ## . 
 #<
