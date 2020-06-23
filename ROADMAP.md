@@ -2,71 +2,7 @@
 
 Current ideas about where the hledger project should be going next.
 
-## 2020 Priorities
-
-<table>
-<tr valign="top">
-<td>
-
-### Documentation
-
-Improving the docs.
-<br>
-<br>
-
-- <s>home</s> & faq
-- <s>manuals (more discoverable structure of web manuals)</s>
-- contrib guide (include readmes, update)
-- cookbook docs (survey, plan, update)
-
-</td>
-<td>
-
-### "Effectiveness"
-
-Improving approachability, just-works quality, practicality, real-world usefulness.
-
-- <s>ghc 8.8, get back in stackage nightly</s>
-- install issues (C libs..)
-- <s>more powerful CSV conversion</s>
-- fill out holes in feature matrix
-
-</td>
-</tr>
-<tr valign="top">
-<td>
-
-### Charts
-
-Adding charts and more visual appeal.
-<br>
-<br>
-
-- console charts, basic bar charts
-- clarify architecture/UI for charts
-- graphical charts using Chart and/or Vega
-- review/design/add more attractive default output (see taskwarrior)
-
-</td>
-<td>
-
-### Investment
-
-Improving suitability for investment tracking.
-[#1015](https://github.com/simonmichael/hledger/issues/1015)
-
-- <s>market price inference from transactions</s>
-- easy market price fetching
-- lot tracking
-- capital gains reporting
-
-</td>
-</tr>
-</table>
-
-----
-
-## Targets
+## Next Targets
 
 - hledger 1.19, 2020-09-01\
 account transactions register,
@@ -94,6 +30,70 @@ refreshed home page, faq, tutorials, manuals,
 <s>more powerful CSV conversion</s>,
 updated home page, faq, manuals,
 reduce install hassles with terminfo C lib
+
+----
+
+## 2020 Priorities
+
+<table>
+<tr valign="top">
+<td>
+
+### Documentation
+
+Improve the docs.
+<br>
+<br>
+
+- <s>home</s> & faq
+- <s>manuals (more discoverable structure of web manuals)</s>
+- cookbook docs (survey, plan, update)
+- contrib guide (update, build from readmes)
+
+</td>
+<td>
+
+### Effectiveness
+
+Improve approachability, just-works quality, practicality, real-world usefulness.
+
+- <s>ghc 8.8, get back in stackage nightly</s>
+- install issues (C libs..)
+- <s>more powerful CSV conversion</s>
+- fill out holes in feature matrix
+
+</td>
+</tr>
+<tr valign="top">
+<td>
+
+### Investment
+
+Improve suitability for investment tracking
+([#1015](https://github.com/simonmichael/hledger/issues/1015))
+
+- <s>market price inference from transactions</s>
+- easy market price fetching
+- lot tracking
+- capital gains reporting
+
+</td>
+<td>
+
+### Charts
+
+Add charts and more visual appeal.
+<br>
+<br>
+
+- console charts, basic bar charts
+- clarify architecture/UI for charts
+- graphical charts using Chart/matplotlib/hvega
+- review/design/add more attractive default output (see taskwarrior)
+
+</td>
+</tr>
+</table>
 
 ----
 
