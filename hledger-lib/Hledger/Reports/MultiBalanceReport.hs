@@ -26,6 +26,7 @@ module Hledger.Reports.MultiBalanceReport (
 where
 
 import Control.Monad (guard)
+import Data.Foldable (toList)
 import Data.List (sortBy, transpose)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -101,41 +102,12 @@ multiBalanceReportWith ropts q j priceoracle = report
     reportspan = dbg "reportspan" $ calculateReportSpan ropts' q j
     reportq    = dbg "reportq"    $ makeReportQuery ropts' reportspan q
 
-    -- The matched accounts with a starting balance. All of these should appear
-    -- in the report, even if they have no postings during the report period.
-    startbals = dbg' "startbals" $ startingBalances ropts' reportq j reportspan
-
-    -- Postings matching the query within the report period.
-    ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts' reportq j
-    days = map snd ps
-
-    -- The date spans to be included as report columns.
-    colspans = dbg "colspans" $ calculateColSpans ropts' reportspan days
-
     -- Group postings into their columns.
-    colps = dbg'' "colps" $ calculateColumns colspans ps
-
-    -- Each account's balance changes across all columns.
-    acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts' q colspans startbals colps
-
-    -- Process changes into normal, cumulative, or historical amounts, plus value them
-    accumvalued = dbg'' "accumvalued" $ accumValueAmounts ropts' j priceoracle colspans startbals acctchanges
-
-    -- All account names that will be displayed, possibly depth-clipped.
-    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts' q accumvalued
-
-    -- All the rows of the report.
-    rows = dbg'' "rows" $ buildReportRows ropts' accumvalued
-
-    -- Sorted report rows.
-    sortedrows = dbg' "sortedrows" $ sortRows ropts' j rows
-
-    -- Calculate column totals
-    totalsrow = dbg' "totalsrow" $ calculateTotalsRow ropts' displayaccts sortedrows
+    colps    = dbg'' "colps"  $ getPostingsByColumn ropts' reportq j reportspan
+    colspans = dbg "colspans" $ M.keys colps
 
     -- Postprocess the report, negating balances and taking percentages if needed
-    report = dbg' "report" . postprocessReport ropts' displayaccts $
-        PeriodicReport colspans sortedrows totalsrow
+    report = dbg' "report" $ generateMultiBalanceReport ropts' reportq j priceoracle reportspan colspans colps
 
 
 -- | Calculate the span of the report to be generated.
@@ -145,6 +117,35 @@ setDefaultAccountListMode def ropts = ropts{accountlistmode_=mode}
     mode = case accountlistmode_ ropts of
         ALDefault -> def
         a         -> a
+
+-- | Calculate starting balances, if needed for -H
+--
+-- Balances at report start date, from all earlier postings which otherwise match the query.
+-- These balances are unvalued.
+-- TODO: Do we want to check whether to bother calculating these? isHistorical
+-- and startDate is not nothing, otherwise mempty? This currently gives a
+-- failure with some totals which are supposed to be 0 being blank.
+startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> HashMap AccountName Account
+startingBalances ropts q j reportspan = acctchanges
+  where
+    acctchanges = acctChangesFromPostings ropts' startbalq . map fst $
+        getPostings ropts' startbalq j
+
+    -- q projected back before the report start date.
+    -- When there's no report start date, in case there are future txns (the hledger-ui case above),
+    -- we use emptydatespan to make sure they aren't counted as starting balance.
+    startbalq = dbg'' "startbalq" $ And [datelessq, precedingspanq]
+    datelessq = dbg "datelessq" $ filterQuery (not . queryIsDateOrDate2) q
+
+    ropts' | tree_ ropts = ropts{no_elide_=True, period_=precedingperiod}
+           | otherwise   = ropts{accountlistmode_=ALFlat, period_=precedingperiod}
+
+    precedingperiod = dateSpanAsPeriod . spanIntersect precedingspan .
+                         periodAsDateSpan $ period_ ropts
+    precedingspan = DateSpan Nothing $ spanStart reportspan
+    precedingspanq = (if date2_ ropts then Date2 else Date) $ case precedingspan of
+        DateSpan Nothing Nothing -> emptydatespan
+        a -> a
 
 -- | Calculate the span of the report to be generated.
 calculateReportSpan :: ReportOpts -> Query -> Journal -> DateSpan
@@ -179,34 +180,21 @@ makeReportQuery ropts reportspan q
     dateless   = dbg "dateless" . filterQuery (not . queryIsDateOrDate2)
     dateqcons  = if date2_ ropts then Date2 else Date
 
--- | Calculate starting balances, if needed for -H
---
--- Balances at report start date, from all earlier postings which otherwise match the query.
--- These balances are unvalued.
--- TODO: Do we want to check whether to bother calculating these? isHistorical
--- and startDate is not nothing, otherwise mempty? This currently gives a
--- failure with some totals which are supposed to be 0 being blank.
-startingBalances :: ReportOpts -> Query -> Journal -> DateSpan -> HashMap AccountName Account
-startingBalances ropts q j reportspan = acctchanges
+-- | Group postings, grouped by their column
+getPostingsByColumn :: ReportOpts -> Query -> Journal -> DateSpan -> Map DateSpan [Posting]
+getPostingsByColumn ropts q j reportspan = columns
   where
-    acctchanges = acctChangesFromPostings ropts' startbalq . map fst $
-        getPostings ropts' startbalq j
+    -- Postings matching the query within the report period.
+    ps :: [(Posting, Day)] = dbg'' "ps" $ getPostings ropts q j
+    days = map snd ps
 
-    -- q projected back before the report start date.
-    -- When there's no report start date, in case there are future txns (the hledger-ui case above),
-    -- we use emptydatespan to make sure they aren't counted as starting balance.
-    startbalq = dbg'' "startbalq" $ And [datelessq, precedingspanq]
-    datelessq = dbg "datelessq" $ filterQuery (not . queryIsDateOrDate2) q
+    -- The date spans to be included as report columns.
+    colspans = calculateColSpans ropts reportspan days
+    addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
+    emptyMap = M.fromList . zip colspans $ repeat []
 
-    ropts' | tree_ ropts = ropts{no_elide_=True, period_=precedingperiod}
-           | otherwise   = ropts{accountlistmode_=ALFlat, period_=precedingperiod}
-
-    precedingperiod = dateSpanAsPeriod . spanIntersect precedingspan .
-                         periodAsDateSpan $ period_ ropts
-    precedingspan = DateSpan Nothing $ spanStart reportspan
-    precedingspanq = (if date2_ ropts then Date2 else Date) $ case precedingspan of
-        DateSpan Nothing Nothing -> emptydatespan
-        a -> a
+    -- Group postings into their columns
+    columns = foldr addPosting emptyMap ps
 
 -- | Gather postings matching the query within the report period.
 getPostings :: ReportOpts -> Query -> Journal -> [(Posting, Day)]
@@ -237,12 +225,6 @@ calculateColSpans ropts reportspan days =
       | otherwise = dbg "displayspan" $ reportspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
     matchedspan = dbg "matchedspan" $ daysSpan days
 
--- | Group postings into their columns.
-calculateColumns :: [DateSpan] -> [(Posting, Day)] -> Map DateSpan [Posting]
-calculateColumns colspans = foldr addPosting emptyMap
-  where
-    addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
-    emptyMap = M.fromList . zip colspans $ repeat []
 
 -- | Calculate account balance changes in each column.
 --
@@ -260,15 +242,14 @@ acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
 -- | Gather the account balance changes into a regular matrix including the accounts
 -- from all columns
 calculateAccountChanges :: ReportOpts -> Query -> [DateSpan]
-                        -> HashMap ClippedAccountName Account
                         -> Map DateSpan [Posting]
                         -> HashMap ClippedAccountName (Map DateSpan Account)
-calculateAccountChanges ropts q colspans startbals colps
+calculateAccountChanges ropts q colspans colps
     | queryDepth q == 0 = acctchanges <> elided
     | otherwise         = acctchanges
   where
     -- Transpose to get each account's balance changes across all columns.
-    acctchanges = transposeMap colacctchanges <> (mempty <$ startbals)
+    acctchanges = transposeMap colacctchanges
 
     colacctchanges :: Map DateSpan (HashMap ClippedAccountName Account) =
       dbg'' "colacctchanges" $ fmap (acctChangesFromPostings ropts q) colps
@@ -281,21 +262,22 @@ calculateAccountChanges ropts q colspans startbals colps
 accumValueAmounts :: ReportOpts -> Journal -> PriceOracle -> [DateSpan]
                   -> HashMap ClippedAccountName Account
                   -> HashMap ClippedAccountName (Map DateSpan Account)
-                  -> HashMap ClippedAccountName [Account]
-accumValueAmounts ropts j priceoracle colspans startbals = HM.mapWithKey processRow
+                  -> HashMap ClippedAccountName (Map DateSpan Account)
+accumValueAmounts ropts j priceoracle colspans startbals acctchanges =
+    HM.mapWithKey processRow $ acctchanges <> (mempty <$ startbals)
   where
     -- Must accumulate before valuing, since valuation can change without any
-    -- postings
-    processRow name col = zipWith valueAcct spans $ rowbals name amts
-      where (spans, amts) = unzip . M.toList $ col <> zeros
+    -- postings. Make sure every column has an entry.
+    processRow name changes = M.mapWithKey valueAcct . rowbals name $ changes <> zeros
 
     -- The row amounts to be displayed: per-period changes,
     -- zero-based cumulative totals, or
     -- starting-balance-based historical balances.
     rowbals name changes = dbg'' "rowbals" $ case balancetype_ ropts of
         PeriodChange      -> changes
-        CumulativeChange  -> drop 1 $ scanl sumAcct nullacct                  changes
-        HistoricalBalance -> drop 1 $ scanl sumAcct (startingBalanceFor name) changes
+        CumulativeChange  -> snd $ M.mapAccum f nullacct                  changes
+        HistoricalBalance -> snd $ M.mapAccum f (startingBalanceFor name) changes
+      where f a b = let s = sumAcct a b in (s, s)
 
     -- Add the values of two accounts. Should be right-biased, since it's used
     -- in scanl, so other properties (such as anumpostings) stay in the right place
@@ -319,17 +301,52 @@ accumValueAmounts ropts j priceoracle colspans startbals = HM.mapWithKey process
         multiperiod = interval_ ropts /= NoInterval
 
     startingBalanceFor a = HM.lookupDefault nullacct a startbals
-
     zeros = M.fromList [(span, nullacct) | span <- colspans]
+
+
+-- | Group a date-separated list of postings into a regular matrix with rows
+-- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
+-- from the columns.
+generateMultiBalanceReport :: ReportOpts -> Query -> Journal -> PriceOracle
+                           -> DateSpan -> [DateSpan]
+                           -> Map DateSpan [Posting]
+                           -> MultiBalanceReport
+generateMultiBalanceReport ropts q j priceoracle reportspan colspans colps = report
+  where
+    -- Each account's balance changes across all columns.
+    acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts q colspans colps
+
+    -- The matched accounts with a starting balance. All of these should appear
+    -- in the report, even if they have no postings during the report period.
+    startbals = dbg' "startbals" $ startingBalances ropts q j reportspan
+
+    -- Process changes into normal, cumulative, or historical amounts, plus value them
+    accumvalued = accumValueAmounts ropts j priceoracle colspans startbals acctchanges
+
+    -- All account names that will be displayed, possibly depth-clipped.
+    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts q accumvalued
+
+    -- All the rows of the report.
+    rows = dbg'' "rows" $ buildReportRows ropts accumvalued
+
+    -- Calculate column totals
+    totalsrow = dbg' "totalsrow" $ calculateTotalsRow ropts displayaccts rows
+
+    -- Sorted report rows.
+    sortedrows = dbg' "sortedrows" $ sortRows ropts j rows
+
+    -- Postprocess the report, negating balances and taking percentages if needed
+    report = postprocessReport ropts displayaccts $
+        PeriodicReport colspans sortedrows totalsrow
 
 -- | Build the report rows.
 --
 -- One row per account, with account name info, row amounts, row total and row average.
-buildReportRows :: ReportOpts -> HashMap AccountName [Account] -> [MultiBalanceReportRow]
+buildReportRows :: ReportOpts -> HashMap AccountName (Map DateSpan Account) -> [MultiBalanceReportRow]
 buildReportRows ropts acctvalues =
     [ PeriodicReportRow (flatDisplayName a) rowbals rowtot rowavg
     | (a,accts) <- HM.toList acctvalues
-    , let rowbals = map balance accts
+    , let rowbals = map balance $ toList accts
     -- The total and average for the row.
     -- These are always simply the sum/average of the displayed row amounts.
     -- Total for a cumulative/historical report is always zero.
@@ -341,7 +358,7 @@ buildReportRows ropts acctvalues =
 -- | Calculate accounts which are to be displayed in the report, as well as
 -- their name and depth
 displayedAccounts :: ReportOpts -> Query
-                  -> HashMap AccountName [Account]
+                  -> HashMap AccountName (Map DateSpan Account)
                   -> HashMap AccountName DisplayName
 displayedAccounts ropts q valuedaccts
     | depth == 0 = HM.singleton "..." $ DisplayName "..." "..." 1
