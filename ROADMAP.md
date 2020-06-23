@@ -55,7 +55,7 @@ Improve the docs.
 
 ### Effectiveness
 
-Improve approachability, just-works quality, practicality, real-world usefulness.
+Improve getting-started experience, just-works quality, practicality, real-world usefulness.
 
 - <s>ghc 8.8, get back in stackage nightly</s>
 - install issues (C libs..)
@@ -89,7 +89,25 @@ Add charts and more visual appeal.
 - console charts, basic bar charts
 - clarify architecture/UI for charts
 - graphical charts using Chart/matplotlib/hvega
-- review/design/add more attractive default output (see taskwarrior)
+- review/design/add more attractive/colourful output (see eg taskwarrior)
+
+</td>
+</tr>
+<tr valign="top">
+<td>
+
+### Correctness
+
+<!-- added 2020-06: -->
+More support for enforcing correctness & accounting rules.
+
+- account names
+- commodity symbols
+- payees
+- notes/descriptions ?
+- account lifetimes ?
+- account balance conditions ?
+- transaction templates ?
 
 </td>
 </tr>
