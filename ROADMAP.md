@@ -55,10 +55,10 @@ Adding charts and more visual appeal.
 Improving suitability for investment tracking.
 [#1015](https://github.com/simonmichael/hledger/issues/1015)
 
-- easy price fetching
-- lots
-- capital gains
-- ?
+- <s>market price inference from transactions</s>
+- easy market price fetching
+- lot tracking
+- capital gains reporting
 
 </td>
 </tr>
