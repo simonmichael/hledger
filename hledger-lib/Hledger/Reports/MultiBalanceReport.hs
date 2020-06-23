@@ -349,7 +349,7 @@ displayedAccounts ropts q valuedaccts
     -- Accounts which are to be displayed
     displayedAccts = HM.filterWithKey keep valuedaccts
       where
-        keep name amts = isInteresting name amts || isInterestingParent name
+        keep name amts = isInteresting name amts || name `HM.member` interestingParents
 
     isDisplayed = (`HM.member` displayedAccts)
 
@@ -366,28 +366,23 @@ displayedAccounts ropts q valuedaccts
         droppedName = accountNameDrop (drop_ ropts) name
 
     -- Accounts interesting for their own sake
-    interestingAccounts = dbg'' "interestingAccounts" $
-        HM.filterWithKey isInteresting valuedaccts
-
     isInteresting name amts =
-        d <= depth                                      -- Throw out anything too deep
-        && (keepEmpty || not (isZeroRow balance amts))  -- Boring because has only zero entries
+        d <= depth                                                       -- Throw out anything too deep
+        && (empty_ ropts || depth == 0 || not (isZeroRow balance amts))  -- Boring because has only zero entries
       where
         d = accountNameLevel name
         balance = if tree_ ropts && d == depth then aibalance else aebalance
 
     -- Accounts interesting because they are a fork for interesting subaccounts
-    interestingParents = dbg'' "interestingParents" $
-        HM.filterWithKey (\name i -> i > 1 && accountNameLevel name > drop_ ropts) .
-        subaccountTallies $ HM.keys interestingAccounts
-
-    isInterestingParent
-        | flat_ ropts                     = const False
-        | empty_ ropts || no_elide_ ropts = const True
-        | otherwise                       = (`HM.member` interestingParents)
+    interestingParents = dbg'' "interestingParents" $ HM.filterWithKey keepParent tallies
+      where
+        keepParent name subaccts
+            | flat_ ropts     = False
+            | no_elide_ ropts = subaccts > 0 && accountNameLevel name > drop_ ropts
+            | otherwise       = subaccts > 1 && accountNameLevel name > drop_ ropts
+        tallies = subaccountTallies . HM.keys $ HM.filterWithKey isInteresting valuedaccts
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
-    keepEmpty = empty_ ropts || depth == 0
     depth = queryDepth q
 
 -- | Sort the rows by amount or by account declaration order. This is a bit tricky.
