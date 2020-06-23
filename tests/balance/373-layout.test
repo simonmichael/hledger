@@ -87,12 +87,14 @@ Balance changes in 2015:
 $ hledger -f - bal -Y --tree
 Balance changes in 2015:
 
-           || 2015 
-===========++======
-     3     ||    1 
-         5 ||    1 
------------++------
-           ||      
+         || 2015 
+=========++======
+ 1:2     ||    0 
+   3     ||    1 
+     4   ||    0 
+       5 ||    1 
+---------++------
+         ||    0 
 
 # 6. TODO: after 5, test account code sorting
 # account 1:2:3      100

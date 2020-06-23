@@ -314,9 +314,9 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
 
       if budget then do  -- single or multi period budget report
         reportspan <- reportSpan j ropts
-        let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt reportspan d j
+        let budgetreport = dbg4 "budgetreport" $ budgetReport ropts assrt reportspan d j
               where
-                assrt          = not $ ignore_assertions_ $ inputopts_ opts
+                assrt = not $ ignore_assertions_ $ inputopts_ opts
             render = case fmt of
               "txt"  -> budgetReportAsText ropts
               "json" -> (++"\n") . TL.unpack . toJsonText
@@ -335,13 +335,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
           writeOutput opts $ render report
 
         else do  -- single period simple balance report
-          let report
-                | balancetype_ `elem` [HistoricalBalance, CumulativeChange]
-                  = let ropts' | flat_ ropts = ropts
-                               | otherwise   = ropts{accountlistmode_=ALTree}
-                    in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j
-                          -- for historical balances we must use balanceReportFromMultiBalanceReport (also forces --no-elide)
-                | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
+          let report = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
               render = case fmt of
                 "txt"  -> balanceReportAsText
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
@@ -355,7 +349,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[T.unpack (maybeAccountNameDrop opts a), showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
+  [[T.unpack a, showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
@@ -404,7 +398,7 @@ This implementation turned out to be a bit convoluted but implements the followi
 balanceReportItemAsText :: ReportOpts -> StringFormat -> BalanceReportItem -> [String]
 balanceReportItemAsText opts fmt (_, accountName, depth, amt) =
   renderBalanceReportItem opts fmt (
-    maybeAccountNameDrop opts accountName,
+    accountName,
     depth,
     normaliseMixedAmountSquashPricesForDisplay amt
     )
@@ -463,18 +457,18 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
-    (PeriodicReport colspans items (PeriodicReportRow _ _ coltotals tot avg)) =
+    (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
   maybetranspose $
   ("Account" : map showDateSpan colspans
    ++ ["Total"   | row_total_]
    ++ ["Average" | average_]
   ) :
-  [T.unpack (maybeAccountNameDrop opts a) :
+  [T.unpack (displayFull a) :
    map showMixedAmountOneLineWithoutPrice
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
-  | PeriodicReportRow a _ amts rowtot rowavg <- items]
+  | PeriodicReportRow a amts rowtot rowavg <- items]
   ++
   if no_total_ opts
   then []
@@ -603,7 +597,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
 balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
-    (PeriodicReport colspans items (PeriodicReportRow _ _ coltotals tot avg)) =
+    (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
    maybetranspose $
    addtotalrow $
    Table
@@ -619,10 +613,9 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items
-    renderacct (PeriodicReportRow a i _ _ _)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack (accountLeafName a)
-      | otherwise  = T.unpack $ maybeAccountNameDrop opts a
-    rowvals (PeriodicReportRow _ _ as rowtot rowavg) = as
+    renderacct row =
+        replicate ((prrDepth row - 1) * 2) ' ' ++ T.unpack (prrDisplayName row)
+    rowvals (PeriodicReportRow _ as rowtot rowavg) = as
                              ++ [rowtot | totalscolumn]
                              ++ [rowavg | average_]
     addtotalrow | no_total_ opts = id
