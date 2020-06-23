@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.1.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dd7c200231996bc96dfb65f042843355e9f7db7002d68c953ada6e89cedd5cc5
+-- hash: 815a33ac989a4ad0d003e3b7bff14446ae89e484b6bb6ab49940770ca6bc13cf
 
 name:           hledger-lib
 version:        1.18.99
@@ -110,7 +110,7 @@ library
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
-    , aeson
+    , aeson >=1
     , aeson-pretty
     , ansi-terminal >=0.6.2.3
     , array
@@ -163,7 +163,7 @@ test-suite doctest
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.7
-    , aeson
+    , aeson >=1
     , aeson-pretty
     , ansi-terminal >=0.6.2.3
     , array
@@ -219,7 +219,7 @@ test-suite unittest
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
-    , aeson
+    , aeson >=1
     , aeson-pretty
     , ansi-terminal >=0.6.2.3
     , array

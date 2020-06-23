@@ -107,7 +107,7 @@ ghc-options:
 
 dependencies:
 - hledger-lib >=1.18.99 && <1.19
-- aeson
+- aeson >=1
 - ansi-terminal >=0.6.2.3
 - base >=4.9 && <4.15
 - base-compat-batteries >=0.10.1 && <0.12

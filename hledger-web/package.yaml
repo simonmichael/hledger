@@ -102,7 +102,7 @@ library:
   dependencies:
   - hledger-lib >=1.18.99 && <1.19
   - hledger >=1.18.99 && <1.19
-  - aeson
+  - aeson >=1
   - base >=4.9 && <4.15
   - blaze-html
   - blaze-markup

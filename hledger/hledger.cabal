@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: add9571ab706995c6fd0edd71da2224407d87ed9b1ebc1135efdf423fa10dd38
+-- hash: 5e784bab6ff198140799be6cb6f020a95efbd447621b278bf06c97b28793d571
 
 name:           hledger
 version:        1.18.99
@@ -148,7 +148,7 @@ library
   build-depends:
       Decimal >=0.5.1
     , Diff
-    , aeson
+    , aeson >=1
     , ansi-terminal >=0.6.2.3
     , base >=4.9 && <4.15
     , base-compat-batteries >=0.10.1 && <0.12
@@ -200,7 +200,7 @@ executable hledger
   cpp-options: -DVERSION="1.18.99"
   build-depends:
       Decimal >=0.5.1
-    , aeson
+    , aeson >=1
     , ansi-terminal >=0.6.2.3
     , base >=4.9 && <4.15
     , base-compat-batteries >=0.10.1 && <0.12
@@ -252,7 +252,7 @@ test-suite unittest
   cpp-options: -DVERSION="1.18.99"
   build-depends:
       Decimal >=0.5.1
-    , aeson
+    , aeson >=1
     , ansi-terminal >=0.6.2.3
     , base >=4.9 && <4.15
     , base-compat-batteries >=0.10.1 && <0.12
@@ -301,7 +301,7 @@ benchmark bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
   build-depends:
       Decimal >=0.5.1
-    , aeson
+    , aeson >=1
     , ansi-terminal >=0.6.2.3
     , base >=4.9 && <4.15
     , base-compat-batteries >=0.10.1 && <0.12
