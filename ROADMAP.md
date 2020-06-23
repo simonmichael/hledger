@@ -66,14 +66,21 @@ Improving suitability for investment tracking.
 
 ----
 
-## Current Targets
+## Targets
 
-- hledger 1.18, 2020-06-01\
-<s>more effective CI setup</s>,
-updated home page, quickstart, tutorials etc.,
-negative matching in CSV rules,
+- hledger 1.19, 2020-09-01\
+account transactions register,
+stricter/more correct handling of unbalanced multicommodity transactions (#1177),
+Track & show deposited lots (#1022),
+Report unrealized capital gains/losses (#1029)
+
 
 ### Past Targets
+
+- <s>hledger 1.18</s>, 2020-06-01\
+<s>more effective CI setup</s>,
+<s>updated home page, quickstart, tutorials etc.</s>,
+negative matching in CSV rules,
 
 - <s>hledger 1.17, 2020-03-01</s>\
 <s>field matching in CSV rules</s>,
@@ -90,9 +97,11 @@ reduce install hassles with terminfo C lib
 
 ----
 
-## Milestones
+## Achievements
 
-Some project achievements to unlock, for fun:
+Some project achievements to unlock.
+This is for fun.
+("being a software maintainer means unending toil in mostly-obscurity, so you've got to seek out the fun where you can!" --[me](https://www.reddit.com/r/haskell/comments/eddwbu/top_nonprogrammingrelated_haskell_apps/))
 
 - <s>**1.0 release**</s>
 - <s>**packaged in major distros, binaries available**</s>
