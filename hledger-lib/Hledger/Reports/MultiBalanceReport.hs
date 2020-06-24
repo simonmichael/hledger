@@ -18,6 +18,7 @@ module Hledger.Reports.MultiBalanceReport (
   balanceReportFromMultiBalanceReport,
 
   CompoundBalanceReport,
+  compoundBalanceReport,
   compoundBalanceReportWith,
 
   tableAsText,
@@ -118,9 +119,19 @@ multiBalanceReportWith ropts q j priceoracle = report
     -- Postprocess the report, negating balances and taking percentages if needed
     report = dbg' "report" $ generateMultiBalanceReport ropts' reportq j priceoracle reportspan colspans colps
 
+-- | Generate a compound balance report from a list of CBCSubreportSpec. This
+-- shares postings between the subreports.
+compoundBalanceReport :: Day -> ReportOpts -> Journal -> [CBCSubreportSpec]
+                      -> CompoundBalanceReport
+compoundBalanceReport today ropts j =
+    compoundBalanceReportWith ropts q j (journalPriceOracle infer j)
+  where
+    q = queryFromOpts today ropts
+    infer = infer_value_ ropts
+
+-- | A helper for compoundBalanceReport, similar to multiBalanceReportWith.
 compoundBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle
-                          -> [CBCSubreportSpec]
-                          -> CompoundBalanceReport
+                          -> [CBCSubreportSpec] -> CompoundBalanceReport
 compoundBalanceReportWith ropts q j priceoracle subreportspecs = cbr
   where
     -- Queries, report/column dates.
