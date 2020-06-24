@@ -1,8 +1,9 @@
 {- |
 New common report types, used by the BudgetReport for now, perhaps all reports later.
 -}
+{-# LANGUAGE CPP            #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric  #-}
 
 module Hledger.Reports.ReportTypes
 ( PeriodicReport(..)
@@ -17,9 +18,13 @@ module Hledger.Reports.ReportTypes
 , periodicReportSpan
 , prNegate
 , prNormaliseSign
-
 , prMapName
 , prMapMaybeName
+
+, prrNegate
+
+, CompoundPeriodicReport(..)
+, CBCSubreportSpec(..)
 
 , DisplayName(..)
 , flatDisplayName
@@ -33,8 +38,12 @@ module Hledger.Reports.ReportTypes
 import Data.Aeson
 import Data.Decimal
 import Data.Maybe (mapMaybe)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup (Semigroup(..))
+#endif
 import GHC.Generics (Generic)
 import Hledger.Data
+import Hledger.Query (Query)
 
 type Percentage = Decimal
 
@@ -89,6 +98,14 @@ data PeriodicReportRow a b =
   , prrAverage :: b    -- The average of this row's values.
   } deriving (Show, Generic, ToJSON)
 
+instance Num b => Semigroup (PeriodicReportRow a b) where
+  (PeriodicReportRow _ amts1 t1 a1) <> (PeriodicReportRow n2 amts2 t2 a2) =
+      PeriodicReportRow n2 (sumPadded amts1 amts2) (t1 + t2) (a1 + a2)
+    where
+      sumPadded (a:as) (b:bs) = (a + b) : sumPadded as bs
+      sumPadded as     []     = as
+      sumPadded []     bs     = bs
+
 -- | Figure out the overall date span of a PeridicReport
 periodicReportSpan :: PeriodicReport a b -> DateSpan
 periodicReportSpan (PeriodicReport [] _ _)       = DateSpan Nothing Nothing
@@ -103,10 +120,12 @@ prNormaliseSign _ = id
 -- | Flip the sign of all amounts in a PeriodicReport.
 prNegate :: Num b => PeriodicReport a b -> PeriodicReport a b
 prNegate (PeriodicReport colspans rows totalsrow) =
-    PeriodicReport colspans (map rowNegate rows) (rowNegate totalsrow)
-  where
-    rowNegate (PeriodicReportRow name amts tot avg) =
-        PeriodicReportRow name (map negate amts) (-tot) (-avg)
+    PeriodicReport colspans (map prrNegate rows) (prrNegate totalsrow)
+
+-- | Flip the sign of all amounts in a PeriodicReportRow.
+prrNegate :: Num b => PeriodicReportRow a b -> PeriodicReportRow a b
+prrNegate (PeriodicReportRow name amts tot avg) =
+    PeriodicReportRow name (map negate amts) (-tot) (-avg)
 
 -- | Map a function over the row names.
 prMapName :: (a -> b) -> PeriodicReport a c -> PeriodicReport b c
@@ -125,6 +144,36 @@ prrMapMaybeName :: (a -> Maybe b) -> PeriodicReportRow a c -> Maybe (PeriodicRep
 prrMapMaybeName f row = case f $ prrName row of
     Nothing -> Nothing
     Just a  -> Just row{prrName = a}
+
+
+-- | A compound balance report has:
+--
+-- * an overall title
+--
+-- * the period (date span) of each column
+--
+-- * one or more named, normal-positive multi balance reports,
+--   with columns corresponding to the above, and a flag indicating
+--   whether they increased or decreased the overall totals
+--
+-- * a list of overall totals for each column, and their grand total and average
+--
+-- It is used in compound balance report commands like balancesheet,
+-- cashflow and incomestatement.
+data CompoundPeriodicReport a b = CompoundPeriodicReport
+  { cbrTitle      :: String
+  , cbrDates      :: [DateSpan]
+  , cbrSubreports :: [(String, PeriodicReport a b, Bool)]
+  , cbrTotals     :: PeriodicReportRow () b
+  } deriving (Show, Generic, ToJSON)
+
+-- | Description of one subreport within a compound balance report.
+data CBCSubreportSpec = CBCSubreportSpec
+  { cbcsubreporttitle          :: String
+  , cbcsubreportquery          :: Journal -> Query
+  , cbcsubreportnormalsign     :: NormalSign
+  , cbcsubreportincreasestotal :: Bool
+  }
 
 
 -- | A full name, display name, and depth for an account.

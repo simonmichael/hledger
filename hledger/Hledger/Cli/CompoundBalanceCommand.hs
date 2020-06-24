@@ -8,7 +8,6 @@ like balancesheet, cashflow, and incomestatement.
 
 module Hledger.Cli.CompoundBalanceCommand (
   CompoundBalanceCommandSpec(..)
- ,CBCSubreportSpec(..)
  ,compoundBalanceCommandMode
  ,compoundBalanceCommand
 ) where
@@ -48,36 +47,6 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
   cbctype     :: BalanceType          -- ^ the "balance" type (change, cumulative, historical)
                                       --   this report shows (overrides command line flags)
 }
-
--- | Description of one subreport within a compound balance report.
-data CBCSubreportSpec = CBCSubreportSpec {
-   cbcsubreporttitle :: String
-  ,cbcsubreportquery :: Journal -> Query
-  ,cbcsubreportnormalsign :: NormalSign
-  ,cbcsubreportincreasestotal :: Bool
-}
-
--- | A compound balance report has:
---
--- * an overall title
---
--- * the period (date span) of each column
---
--- * one or more named, normal-positive multi balance reports,
---   with columns corresponding to the above, and a flag indicating
---   whether they increased or decreased the overall totals
---
--- * a list of overall totals for each column, and their grand total and average
---
--- It is used in compound balance report commands like balancesheet,
--- cashflow and incomestatement.
-type CompoundBalanceReport =
-  ( String
-  , [DateSpan]
-  , [(String, MultiBalanceReport, Bool)]
-  , ([MixedAmount], MixedAmount, MixedAmount)
-  )
-
 
 -- | Generate a cmdargs option-parsing mode from a compound balance command
 -- specification.
@@ -147,46 +116,6 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
       -- make a CompoundBalanceReport.
       -- For efficiency, generate a price oracle here and reuse it with each subreport.
       priceoracle = journalPriceOracle infer_value_ j
-      subreports =
-        map (\CBCSubreportSpec{..} ->
-                (cbcsubreporttitle
-                ,prNormaliseSign cbcsubreportnormalsign $ -- <- convert normal-negative to normal-positive
-                  compoundBalanceSubreport ropts' userq j priceoracle cbcsubreportquery cbcsubreportnormalsign
-                ,cbcsubreportincreasestotal
-                ))
-            cbcqueries
-
-      subtotalrows =
-        [(prrAmounts $ prTotals report, increasesoveralltotal)
-        | (_, report, increasesoveralltotal) <- subreports
-        ]
-
-      -- Sum the subreport totals by column. Handle these cases:
-      -- - no subreports
-      -- - empty subreports, having no subtotals (#588)
-      -- - subreports with a shorter subtotals row than the others
-      overalltotals = case subtotalrows of
-        [] -> ([], nullmixedamt, nullmixedamt)
-        rs ->
-          let
-            numcols = maximum $ map (length.fst) rs  -- partial maximum is ok, rs is non-null
-            paddedsignedsubtotalrows =
-              [map (if increasesoveralltotal then id else negate) $  -- maybe flip the signs
-               take numcols $ as ++ repeat nullmixedamt              -- pad short rows with zeros
-              | (as,increasesoveralltotal) <- rs
-              ]
-            coltotals = foldl' (zipWith (+)) zeros paddedsignedsubtotalrows  -- sum the columns
-              where zeros = replicate numcols nullmixedamt
-            grandtotal = sum coltotals
-            grandavg | null coltotals = nullmixedamt
-                     | otherwise      = fromIntegral (length coltotals) `divideMixedAmount` grandtotal
-          in
-            (coltotals, grandtotal, grandavg)
-
-      colspans =
-        case subreports of
-          (_, PeriodicReport ds _ _, _):_ -> ds
-          [] -> []
 
       title =
         cbctitle
@@ -201,11 +130,11 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
           -- column heading(s) (not the date span of the transactions).
           -- Also the dates should not be simplified (it should show
           -- "2008/01/01-2008/12/31", not "2008").
-          titledatestr
-            | balancetype == HistoricalBalance = showEndDates enddates
-            | otherwise                        = showDateSpan requestedspan
+          titledatestr = case balancetype of
+              HistoricalBalance -> showEndDates enddates
+              _                 -> showDateSpan requestedspan
             where
-              enddates = map (addDays (-1)) $ catMaybes $ map spanEnd colspans  -- these spans will always have a definite end date
+              enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
               requestedspan = queryDateSpan date2_ userq `spanDefaultsFrom` journalDateSpan date2_ j
 
           -- when user overrides, add an indication to the report title
@@ -226,12 +155,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
             Nothing             -> ""
             where
               multiperiod = interval_ /= NoInterval
-      cbr =
-        (title
-        ,colspans
-        ,subreports
-        ,overalltotals
-        )
+
+      cbr' = compoundBalanceReportWith ropts' userq j priceoracle cbcqueries
+      cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately
     writeOutput opts $
@@ -254,30 +180,6 @@ showEndDates es = case es of
   where
     showdate = show
 
--- | Run one subreport for a compound balance command in multi-column mode.
--- This returns a MultiBalanceReport.
-compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> PriceOracle -> (Journal -> Query) -> NormalSign -> MultiBalanceReport
-compoundBalanceSubreport ropts@ReportOpts{..} userq j priceoracle subreportqfn subreportnormalsign = r'
-  where
-    -- force --empty to ensure same columns in all sections
-    ropts' = ropts { empty_=True, normalbalance_=Just subreportnormalsign }
-    -- run the report
-    q = And [subreportqfn j, userq]
-    r@(PeriodicReport dates rows totals) = multiBalanceReportWith ropts' q j priceoracle
-    -- if user didn't specify --empty, now remove the all-zero rows, unless they have non-zero subaccounts
-    -- in this report
-    r' | empty_    = r
-       | otherwise = PeriodicReport dates rows' totals
-          where
-            nonzeroaccounts =
-              dbg5 "nonzeroaccounts" $
-              mapMaybe (\(PeriodicReportRow act amts _ _) ->
-                            if not (all mixedAmountLooksZero amts) then Just (displayFull act) else Nothing) rows
-            rows' = filter (not . emptyRow) rows
-              where
-                emptyRow (PeriodicReportRow act amts _ _) =
-                  all mixedAmountLooksZero amts && not (any (displayFull act `isAccountNamePrefixOf`) nonzeroaccounts)
-
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:
 Balance Sheet
@@ -299,9 +201,10 @@ Balance Sheet
 
 -}
 compoundBalanceReportAsText :: ReportOpts -> CompoundBalanceReport -> String
-compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, grandtotal, grandavg)) =
-  title ++ "\n\n" ++
-  balanceReportTableAsText ropts bigtable'
+compoundBalanceReportAsText ropts
+  (CompoundPeriodicReport title _colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
+    title ++ "\n\n" ++
+    balanceReportTableAsText ropts bigtable'
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
@@ -337,7 +240,7 @@ concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
 -- subreport title row, and an overall title row, one headings row, and an
 -- optional overall totals row is added.
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundBalanceReport -> CSV
-compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grandtotal, grandavg)) =
+compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
   addtotals $
   padRow title :
   ("Account" :
@@ -376,7 +279,7 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundBalanceReport -> Html ()
 compoundBalanceReportAsHtml ropts cbr =
   let
-    (title, colspans, subreports, (coltotals, grandtotal, grandavg)) = cbr
+    CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg) = cbr
     colspanattr = colspan_ $ TS.pack $ show $
       1 + length colspans + (if row_total_ ropts then 1 else 0) + (if average_ ropts then 1 else 0)
     leftattr = style_ "text-align:left"
