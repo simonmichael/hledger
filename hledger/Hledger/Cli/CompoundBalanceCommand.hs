@@ -89,7 +89,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
 compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=ropts@ReportOpts{..}, rawopts_=rawopts} j = do
-    d <- getCurrentDay
+    today <- getCurrentDay
     let
       -- use the default balance type for this report, unless the user overrides
       mBalanceTypeOverride =
@@ -110,12 +110,6 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
         accountlistmode_=if not (flat_ ropts) && interval_==NoInterval && balancetype `elem` [CumulativeChange, HistoricalBalance] then ALTree else accountlistmode_,
         no_total_=if percent_ && length cbcqueries > 1 then True else no_total_
       }
-      userq = queryFromOpts d ropts'
-      fmt = outputFormatFromOpts opts
-
-      -- make a CompoundBalanceReport.
-      -- For efficiency, generate a price oracle here and reuse it with each subreport.
-      priceoracle = journalPriceOracle infer_value_ j
 
       title =
         cbctitle
@@ -135,7 +129,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
               _                 -> showDateSpan requestedspan
             where
               enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
-              requestedspan = queryDateSpan date2_ userq `spanDefaultsFrom` journalDateSpan date2_ j
+              requestedspan = queryDateSpan date2_ (queryFromOpts today ropts')
+                                  `spanDefaultsFrom` journalDateSpan date2_ j
 
           -- when user overrides, add an indication to the report title
           mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
@@ -145,28 +140,27 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
               HistoricalBalance -> "(Historical Ending Balances)"
 
           valuationdesc = case value_ of
-            Just (AtCost _mc)   -> ", valued at cost"
-            Just (AtThen _mc)   -> error' unsupportedValueThenError  -- TODO
-            Just (AtEnd _mc)    -> ", valued at period ends"
-            Just (AtNow _mc)    -> ", current value"
+            Just (AtCost _mc)       -> ", valued at cost"
+            Just (AtThen _mc)       -> error' unsupportedValueThenError  -- TODO
+            Just (AtEnd _mc)        -> ", valued at period ends"
+            Just (AtNow _mc)        -> ", current value"
             Just (AtDefault _mc) | multiperiod   -> ", valued at period ends"
             Just (AtDefault _mc)    -> ", current value"
-            Just (AtDate d _mc) -> ", valued at "++showDate d
-            Nothing             -> ""
-            where
-              multiperiod = interval_ /= NoInterval
+            Just (AtDate today _mc) -> ", valued at "++showDate today
+            Nothing                 -> ""
+            where multiperiod = interval_ /= NoInterval
 
-      cbr' = compoundBalanceReportWith ropts' userq j priceoracle cbcqueries
+      -- make a CompoundBalanceReport.
+      cbr' = compoundBalanceReport today ropts' j cbcqueries
       cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately
-    writeOutput opts $
-      case fmt of
+    writeOutput opts $ case outputFormatFromOpts opts of
         "txt"  -> compoundBalanceReportAsText ropts' cbr
         "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
         "html" -> (++"\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
         "json" -> (++"\n") $ TL.unpack $ toJsonText cbr
-        _      -> error' $ unsupportedOutputFormatError fmt
+        x      -> error' $ unsupportedOutputFormatError x
 
 -- | Summarise one or more (inclusive) end dates, in a way that's
 -- visually different from showDateSpan, suggesting discrete end dates
