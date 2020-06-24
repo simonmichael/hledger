@@ -16,6 +16,10 @@ module Hledger.Reports.MultiBalanceReport (
   multiBalanceReport,
   multiBalanceReportWith,
   balanceReportFromMultiBalanceReport,
+
+  CompoundBalanceReport,
+  compoundBalanceReportWith,
+
   tableAsText,
 
   sortAccountItemsLike,
@@ -28,6 +32,7 @@ where
 import Control.Monad (guard)
 import Data.Foldable (toList)
 import Data.List (sortBy, transpose)
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
@@ -37,6 +42,7 @@ import Data.Ord (comparing)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
 #endif
+import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Safe (headDef, headMay, lastMay)
 import Text.Tabular as T
@@ -70,9 +76,12 @@ import Hledger.Reports.ReportTypes
 
 type MultiBalanceReport    = PeriodicReport    DisplayName MixedAmount
 type MultiBalanceReportRow = PeriodicReportRow DisplayName MixedAmount
+type CompoundBalanceReport = CompoundPeriodicReport DisplayName MixedAmount
 
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
+
+
 
 -- | Generate a multicolumn balance report for the matched accounts,
 -- showing the change of balance, accumulated balance, or historical balance
@@ -108,6 +117,49 @@ multiBalanceReportWith ropts q j priceoracle = report
 
     -- Postprocess the report, negating balances and taking percentages if needed
     report = dbg' "report" $ generateMultiBalanceReport ropts' reportq j priceoracle reportspan colspans colps
+
+compoundBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle
+                          -> [CBCSubreportSpec]
+                          -> CompoundBalanceReport
+compoundBalanceReportWith ropts q j priceoracle subreportspecs = cbr
+  where
+    -- Queries, report/column dates.
+    ropts'     = dbg "ropts'"     $ setDefaultAccountListMode ALFlat ropts
+    reportspan = dbg "reportspan" $ calculateReportSpan ropts' q j
+    reportq    = dbg "reportq"    $ makeReportQuery ropts' reportspan q
+
+    -- Group postings into their columns.
+    colps    = dbg'' "colps"  $ getPostingsByColumn ropts'{empty_=True} reportq j reportspan
+    colspans = dbg "colspans" $ M.keys colps
+
+    -- Filter the column postings according to each subreport
+    subreportcolps = map filterSubreport subreportspecs
+      where filterSubreport sr = filter (matchesPosting $ cbcsubreportquery sr j) <$> colps
+
+    subreports = zipWith generateSubreport subreportspecs subreportcolps
+      where
+        generateSubreport CBCSubreportSpec{..} colps' =
+            ( cbcsubreporttitle
+            -- Postprocess the report, negating balances and taking percentages if needed
+            , prNormaliseSign cbcsubreportnormalsign $
+                generateMultiBalanceReport ropts'' reportq j priceoracle reportspan colspans colps'
+            , cbcsubreportincreasestotal
+            )
+          where
+            ropts'' = ropts'{normalbalance_=Just cbcsubreportnormalsign}
+
+    -- Sum the subreport totals by column. Handle these cases:
+    -- - no subreports
+    -- - empty subreports, having no subtotals (#588)
+    -- - subreports with a shorter subtotals row than the others
+    overalltotals = case subreports of
+        []     -> PeriodicReportRow () [] nullmixedamt nullmixedamt
+        (r:rs) -> sconcat $ fmap subreportTotal (r:|rs)
+      where
+        subreportTotal (_, sr, increasestotal) =
+            (if increasestotal then id else prrNegate) $ prTotals sr
+
+    cbr = CompoundPeriodicReport "" colspans subreports overalltotals
 
 
 -- | Calculate the span of the report to be generated.
