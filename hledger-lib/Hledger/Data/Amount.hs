@@ -100,6 +100,7 @@ module Hledger.Data.Amount (
   mapMixedAmount,
   normaliseMixedAmountSquashPricesForDisplay,
   normaliseMixedAmount,
+  unifyMixedAmount,
   mixedAmountStripPrices,
   -- ** arithmetic
   mixedAmountCost,
@@ -131,6 +132,7 @@ module Hledger.Data.Amount (
   tests_Amount
 ) where
 
+import Control.Monad (foldM)
 import Data.Char (isDigit)
 import Data.Decimal (roundTo, decimalPlaces, normalizeDecimal)
 import Data.Function (on)
@@ -536,6 +538,19 @@ normaliseHelper squashprices (Mixed as)
 -- only used as a rendering helper, and could show a misleading price.
 normaliseMixedAmountSquashPricesForDisplay :: MixedAmount -> MixedAmount
 normaliseMixedAmountSquashPricesForDisplay = normaliseHelper True
+
+-- | Unify a MixedAmount to a single commodity value if possible.
+-- Like normaliseMixedAmount, this consolidates amounts of the same commodity
+-- and discards zero amounts; but this one insists on simplifying to
+-- a single commodity, and will return Nothing if this is not possible.
+unifyMixedAmount :: MixedAmount -> Maybe Amount
+unifyMixedAmount = foldM combine 0 . amounts
+  where
+    combine amount result
+      | amountIsZero amount                    = Just result
+      | amountIsZero result                    = Just amount
+      | acommodity amount == acommodity result = Just $ amount + result
+      | otherwise                              = Nothing
 
 -- | Sum same-commodity amounts in a lossy way, applying the first
 -- price to the result and discarding any other prices. Only used as a
