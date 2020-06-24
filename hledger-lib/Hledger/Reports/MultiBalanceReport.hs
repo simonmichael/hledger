@@ -25,20 +25,21 @@ module Hledger.Reports.MultiBalanceReport (
 )
 where
 
-import Data.List
+import Control.Monad (guard)
+import Data.List (sortBy, transpose)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe
-import Data.Ord
+import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Ord (comparing)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
 #endif
-import Data.Time.Calendar
-import Safe
+import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Safe (headDef, headMay, lastMay)
 import Text.Tabular as T
-import Text.Tabular.AsciiWide
+import Text.Tabular.AsciiWide (render)
 
 import Hledger.Data
 import Hledger.Query
@@ -511,32 +512,15 @@ subaccountTallies as = foldr incrementParent mempty allaccts
     allaccts = expandAccountNames as
     incrementParent a = HM.insertWith (+) (parentAccountName a) 1
 
--- | Helper to unify a MixedAmount to a single commodity value.
--- Like normaliseMixedAmount, this consolidates amounts of the same commodity
--- and discards zero amounts; but this one insists on simplifying to
--- a single commodity, and will throw a program-terminating error if
--- this is not possible.
-unifyMixedAmount :: MixedAmount -> Amount
-unifyMixedAmount mixedAmount = foldl combine (num 0) (amounts mixedAmount)
-  where
-    combine amount result =
-      if amountIsZero amount
-      then result
-      else if amountIsZero result
-        then amount
-        else if acommodity amount == acommodity result
-          then amount + result
-          else error' "Cannot calculate percentages for accounts with multiple commodities. (Hint: Try --cost, -V or similar flags.)"
-
 -- | Helper to calculate the percentage from two mixed. Keeps the sign of the first argument.
 -- Uses unifyMixedAmount to unify each argument and then divides them.
 perdivide :: MixedAmount -> MixedAmount -> MixedAmount
-perdivide a b =
-  let a' = unifyMixedAmount a
-      b' = unifyMixedAmount b
-  in if amountIsZero a' || amountIsZero b' || acommodity a' == acommodity b'
-    then mixed [per $ if aquantity b' == 0 then 0 else (aquantity a' / abs (aquantity b') * 100)]
-    else error' "Cannot calculate percentages if accounts have different commodities. (Hint: Try --cost, -V or similar flags.)"
+perdivide a b = fromMaybe (error' errmsg) $ do
+    a' <- unifyMixedAmount a
+    b' <- unifyMixedAmount b
+    guard $ amountIsZero a' || amountIsZero b' || acommodity a' == acommodity b'
+    return $ mixed [per $ if aquantity b' == 0 then 0 else aquantity a' / abs (aquantity b') * 100]
+  where errmsg = "Cannot calculate percentages if accounts have different commodities (Hint: Try --cost, -V or similar flags.)"
 
 -- Local debug helper
 -- add a prefix to this function's debug output
