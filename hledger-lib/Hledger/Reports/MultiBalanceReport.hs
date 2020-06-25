@@ -344,7 +344,7 @@ displayedAccounts :: ReportOpts -> Query
                   -> HashMap AccountName [Account]
                   -> HashMap AccountName DisplayName
 displayedAccounts ropts q valuedaccts
-    | depth == 0 = HM.singleton "..." $ DisplayName "..." "..." 0
+    | depth == 0 = HM.singleton "..." $ DisplayName "..." "..." 1
     | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
     -- Accounts which are to be displayed
@@ -352,19 +352,18 @@ displayedAccounts ropts q valuedaccts
       where
         keep name amts = isInteresting name amts || name `HM.member` interestingParents
 
-    isDisplayed = (`HM.member` displayedAccts)
-
     displayedName name
-        | flat_ ropts = DisplayName name droppedName 0
-        | otherwise   = DisplayName name leaf d
+        | flat_ ropts = DisplayName name droppedName 1
+        | otherwise   = DisplayName name leaf $ level - boringParents
       where
-        leaf = accountNameFromComponents . reverse . map accountLeafName $
-            droppedName : takeWhile (not . isDisplayed) parents
-        d | no_elide_ ropts = accountNameLevel droppedName
-          | otherwise       = accountNameLevel droppedName - length boringParents
-        boringParents = filter (not . isDisplayed) parents
-        parents = parentAccountNames droppedName
         droppedName = accountNameDrop (drop_ ropts) name
+        leaf = accountNameFromComponents . reverse . map accountLeafName $
+            droppedName : takeWhile notDisplayed parents
+
+        level = accountNameLevel name - drop_ ropts
+        parents = take (level - 1) $ parentAccountNames name
+        boringParents = if no_elide_ ropts then 0 else length $ filter notDisplayed parents
+        notDisplayed = not . (`HM.member` displayedAccts)
 
     -- Accounts interesting for their own sake
     isInteresting name amts =
