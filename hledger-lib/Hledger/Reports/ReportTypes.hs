@@ -139,14 +139,15 @@ instance ToJSON DisplayName where
     toEncoding = toEncoding . displayFull
 
 -- | Construct a flat display name, where the full name is also displayed at
--- depth 0
+-- depth 1
 flatDisplayName :: AccountName -> DisplayName
-flatDisplayName a = DisplayName a a 0
+flatDisplayName a = DisplayName a a 1
 
 -- | Construct a tree display name, where only the leaf is displayed at its
 -- given depth
 treeDisplayName :: AccountName -> DisplayName
 treeDisplayName a = DisplayName a (accountLeafName a) (accountNameLevel a)
+
 -- | Get the full, canonical, name of a PeriodicReportRow tagged by a
 -- DisplayName.
 prrFullName :: PeriodicReportRow DisplayName a -> AccountName
