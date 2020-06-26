@@ -121,8 +121,10 @@ module Hledger.Data.Amount (
   showMixedAmountDebug,
   showMixedAmountWithoutPrice,
   showMixedAmountOneLineWithoutPrice,
+  showMixedAmountElided,
   cshowMixedAmountWithoutPrice,
   cshowMixedAmountOneLineWithoutPrice,
+  cshowMixedAmountElided,
   showMixedAmountWithZeroCommodity,
   showMixedAmountWithPrecision,
   setMixedAmountPrecision,
@@ -735,6 +737,39 @@ cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithou
     where
       (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
       stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
+
+-- | Like showMixedAmountOneLineWithoutPrice, but show at most two commodities,
+-- with a elision indicator if there are more.
+showMixedAmountElided :: MixedAmount -> String
+showMixedAmountElided m = intercalate ", " $ take 2 astrs ++ elisionstr
+  where
+    astrs = map showAmountWithoutPrice as
+      where
+        (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
+          where
+            stripPrices (Mixed as) = Mixed $ map stripprice as
+              where
+                stripprice a = a{aprice=Nothing}
+    elisionstr | n > 2     = [show (n - 2) ++ " more.."]
+               | otherwise = []
+      where
+        n = length astrs
+
+-- | Colour version.
+cshowMixedAmountElided :: MixedAmount -> String
+cshowMixedAmountElided m = intercalate ", " $ take 2 astrs ++ elisionstr
+  where
+    astrs = map cshowAmountWithoutPrice as
+      where
+        (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
+          where
+            stripPrices (Mixed as) = Mixed $ map stripprice as
+              where
+                stripprice a = a{aprice=Nothing}
+    elisionstr | n > 2     = [show (n - 2) ++ " more.."]
+               | otherwise = []
+      where
+        n = length astrs
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount

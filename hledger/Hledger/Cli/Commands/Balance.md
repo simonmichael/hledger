@@ -315,6 +315,17 @@ supported.
 The `--transpose` flag can be used to exchange the rows and columns of
 a multicolumn report.
      
+When showing multicommodity amounts, multicolumn balance reports will
+elide any amounts which have more than two commodities, since
+otherwise columns could get very wide. The `--no-elide` flag disables
+this. Hiding totals with the `-N/--no-total` flag can also help reduce
+the width of multicommodity reports. 
+
+When the report is still too wide, a good workaround is to pipe it
+into `less -RS` (-R for colour, -S to chop long lines). 
+Eg: `hledger bal -D | less -RS`.
+
+
 ### Budget report
 
 With `--budget`, extra columns are displayed showing budget goals for each account and period, if any.
