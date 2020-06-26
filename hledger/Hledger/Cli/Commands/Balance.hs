@@ -629,12 +629,16 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
 
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
--- console output.
+-- console output. Amounts with more than two commodities will be elided
+-- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Table String String MixedAmount -> String
-balanceReportTableAsText ropts = tableAsText ropts showamt
+balanceReportTableAsText ropts@ReportOpts{..} = tableAsText ropts showamt
   where
-    showamt | color_ ropts = cshowMixedAmountOneLineWithoutPrice
-            | otherwise    =  showMixedAmountOneLineWithoutPrice
+    showamt
+      | no_elide_ && color_ = cshowMixedAmountOneLineWithoutPrice
+      | no_elide_           =  showMixedAmountOneLineWithoutPrice
+      | color_              = cshowMixedAmountElided
+      | otherwise           =  showMixedAmountElided
 
 
 tests_Balance = tests "Balance" [

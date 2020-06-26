@@ -1,0 +1,26 @@
+# 1. In tabular balance reports, amounts with more than two commodities are elided.
+<
+2020-01-01
+  (a)  1A
+  (a)  1B
+  (a)  1C
+  (a)  1D
+
+$ hledger -f- bal -Y
+Balance changes in 2020:
+
+   ||             2020 
+===++==================
+ a || 1A, 1B, 2 more.. 
+---++------------------
+   || 1A, 1B, 2 more.. 
+
+# 2. Unless --no-elide is used.
+$ hledger -f- bal -Y --no-elide
+Balance changes in 2020:
+
+   ||           2020 
+===++================
+ a || 1A, 1B, 1C, 1D 
+---++----------------
+   || 1A, 1B, 1C, 1D 
