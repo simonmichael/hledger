@@ -122,9 +122,6 @@ module Hledger.Data.Amount (
   showMixedAmountWithoutPrice,
   showMixedAmountOneLineWithoutPrice,
   showMixedAmountElided,
-  cshowMixedAmountWithoutPrice,
-  cshowMixedAmountOneLineWithoutPrice,
-  cshowMixedAmountElided,
   showMixedAmountWithZeroCommodity,
   showMixedAmountWithPrecision,
   setMixedAmountPrecision,
@@ -149,7 +146,6 @@ import Text.Printf
 import Hledger.Data.Types
 import Hledger.Data.Commodity
 import Hledger.Utils
-
 
 deriving instance Show MarketPrice
 
@@ -272,7 +268,7 @@ digits = "123456789" :: String
 -- | Does mixed amount appear to be zero when rendered with its
 -- display precision ?
 amountLooksZero :: Amount -> Bool
-amountLooksZero = not . any (`elem` digits) . showAmountWithoutPriceOrCommodity
+amountLooksZero = not . any (`elem` digits) . (showAmountWithoutPriceOrCommodity False)
 
 -- | Is this amount exactly zero, ignoring its display precision ?
 amountIsZero :: Amount -> Bool
@@ -325,8 +321,11 @@ showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
 showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showAmountPriceDebug aprice) (show astyle)
 
 -- | Get the string representation of an amount, without any \@ price.
-showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice a = showAmount a{aprice=Nothing}
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showAmountWithoutPrice :: Bool -> Amount -> String
+showAmountWithoutPrice c a = showamt a{aprice=Nothing}
+  where
+    showamt = if c then cshowAmount else showAmount
 
 -- | Set an amount's internal precision, ie rounds the Decimal representing
 -- the amount's quantity to some number of decimal places.
@@ -353,13 +352,12 @@ setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
 withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
 
--- | Colour version.
-cshowAmountWithoutPrice :: Amount -> String
-cshowAmountWithoutPrice a = cshowAmount a{aprice=Nothing}
-
 -- | Get the string representation of an amount, without any price or commodity symbol.
-showAmountWithoutPriceOrCommodity :: Amount -> String
-showAmountWithoutPriceOrCommodity a = showAmount a{acommodity="", aprice=Nothing}
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showAmountWithoutPriceOrCommodity :: Bool -> Amount -> String
+showAmountWithoutPriceOrCommodity c a = showamt a{acommodity="", aprice=Nothing}
+  where
+    showamt = if c then cshowAmount else showAmount
 
 showAmountPrice :: Maybe AmountPrice -> String
 showAmountPrice Nothing                = ""
@@ -700,23 +698,14 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 -- TODO these and related fns are comically complicated:
 
 -- | Get the string representation of a mixed amount, without showing any transaction prices.
-showMixedAmountWithoutPrice :: MixedAmount -> String
-showMixedAmountWithoutPrice m = intercalate "\n" $ map showamt as
-  where
-    Mixed as = normaliseMixedAmountSquashPricesForDisplay $ mixedAmountStripPrices m
-    showamt = printf (printf "%%%ds" width) . showAmountWithoutPrice
-      where
-        width = maximumDef 0 $ map (length . showAmount) as
-
--- | Colour version of showMixedAmountWithoutPrice. Any individual Amount
--- which is negative is wrapped in ANSI codes to make it display in red.
-cshowMixedAmountWithoutPrice :: MixedAmount -> String
-cshowMixedAmountWithoutPrice m = intercalate "\n" $ map showamt as
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showMixedAmountWithoutPrice :: Bool -> MixedAmount -> String
+showMixedAmountWithoutPrice c m = intercalate "\n" $ map showamt as
   where
     Mixed as = normaliseMixedAmountSquashPricesForDisplay $ mixedAmountStripPrices m
     showamt a =
-      (if isNegativeAmount a then color Dull Red else id) $
-      printf (printf "%%%ds" width) $ showAmountWithoutPrice a
+      (if c && isNegativeAmount a then color Dull Red else id) $
+      printf (printf "%%%ds" width) $ showAmountWithoutPrice c a
       where
         width = maximumDef 0 $ map (length . showAmount) as
 
@@ -725,41 +714,21 @@ mixedAmountStripPrices (Mixed as) = Mixed $ map (\a -> a{aprice=Nothing}) as
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.
-showMixedAmountOneLineWithoutPrice :: MixedAmount -> String
-showMixedAmountOneLineWithoutPrice m = intercalate ", " $ map showAmountWithoutPrice as
-    where
-      (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
-
--- | Colour version.
-cshowMixedAmountOneLineWithoutPrice :: MixedAmount -> String
-cshowMixedAmountOneLineWithoutPrice m = intercalate ", " $ map cshowAmountWithoutPrice as
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
+showMixedAmountOneLineWithoutPrice c m =
+  intercalate ", " $ map (showAmountWithoutPrice c) as
     where
       (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
       stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
 
 -- | Like showMixedAmountOneLineWithoutPrice, but show at most two commodities,
 -- with a elision indicator if there are more.
-showMixedAmountElided :: MixedAmount -> String
-showMixedAmountElided m = intercalate ", " $ take 2 astrs ++ elisionstr
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showMixedAmountElided :: Bool -> MixedAmount -> String
+showMixedAmountElided c m = intercalate ", " $ take 2 astrs ++ elisionstr
   where
-    astrs = map showAmountWithoutPrice as
-      where
-        (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-          where
-            stripPrices (Mixed as) = Mixed $ map stripprice as
-              where
-                stripprice a = a{aprice=Nothing}
-    elisionstr | n > 2     = [show (n - 2) ++ " more.."]
-               | otherwise = []
-      where
-        n = length astrs
-
--- | Colour version.
-cshowMixedAmountElided :: MixedAmount -> String
-cshowMixedAmountElided m = intercalate ", " $ take 2 astrs ++ elisionstr
-  where
-    astrs = map cshowAmountWithoutPrice as
+    astrs = map (showAmountWithoutPrice c) as
       where
         (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
           where
@@ -846,8 +815,8 @@ tests_Amount = tests "Amount" [
 
     ,test "showMixedAmountWithoutPrice" $ do
       let a = usd 1 `at` eur 2
-      showMixedAmountWithoutPrice (Mixed [a]) @?= "$1.00"
-      showMixedAmountWithoutPrice (Mixed [a, -a]) @?= "0"
+      showMixedAmountWithoutPrice False (Mixed [a]) @?= "$1.00"
+      showMixedAmountWithoutPrice False (Mixed [a, -a]) @?= "0"
 
     ,tests "normaliseMixedAmount" [
        test "a missing amount overrides any other amounts" $

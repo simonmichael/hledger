@@ -263,7 +263,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
     budgetwidth = maximum' $ map snd amountsAndGoals
     amountsAndGoals = map (\(a,g) -> (amountLength a, amountLength g))
                     . concatMap prrAmounts $ prRows budgetr
-      where amountLength = maybe 0 (length . showMixedAmountOneLineWithoutPrice)
+      where amountLength = maybe 0 (length . showMixedAmountOneLineWithoutPrice False)
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
     showcell :: BudgetCell -> String
     showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
@@ -296,12 +296,10 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
                Nothing
       where
         maybecost = if valuationTypeIsCost ropts then mixedAmountCost else id
-    showamt :: MixedAmount -> String
-    showamt | color_    = cshowMixedAmountOneLineWithoutPrice
-            | otherwise = showMixedAmountOneLineWithoutPrice
+    showamt = showMixedAmountOneLineWithoutPrice color_
 
-    -- don't show the budget amount in color, it messes up alignment
-    showbudgetamt = showMixedAmountOneLineWithoutPrice
+    -- don't show the budget amount in color, it messes up alignment (XXX)
+    showbudgetamt = showMixedAmountOneLineWithoutPrice False
 
     maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise  = id

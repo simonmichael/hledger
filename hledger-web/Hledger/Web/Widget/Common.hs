@@ -102,7 +102,7 @@ accountOnlyQuery = ("inacctonly:" <>) . quoteIfSpaced
 
 mixedAmountAsHtml :: MixedAmount -> HtmlUrl a
 mixedAmountAsHtml b _ =
-  for_ (lines (showMixedAmountWithoutPrice b)) $ \t -> do
+  for_ (lines (showMixedAmountWithoutPrice False b)) $ \t -> do
     H.span ! A.class_ c $ toHtml t
     H.br
   where

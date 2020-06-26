@@ -262,7 +262,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
       | no_total_ ropts || length subreports == 1 = id
       | otherwise = (++
           ["Net:" :
-           map showMixedAmountOneLineWithoutPrice (
+           map (showMixedAmountOneLineWithoutPrice False) (
              coltotals
              ++ (if row_total_ ropts then [grandtotal] else [])
              ++ (if average_ ropts   then [grandavg]   else [])
@@ -309,9 +309,9 @@ compoundBalanceReportAsHtml ropts cbr =
                   in
                     [tr_ $ mconcat $
                          th_ [class_ "", style_ "text-align:left"] "Net:"
-                       : [th_ [class_ "amount coltotal", defstyle] (toHtml $ showMixedAmountOneLineWithoutPrice a) | a <- coltotals]
-                      ++ (if row_total_ ropts then [th_ [class_ "amount coltotal", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice $ grandtotal] else [])
-                      ++ (if average_ ropts   then [th_ [class_ "amount colaverage", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice $ grandavg] else [])
+                       : [th_ [class_ "amount coltotal", defstyle] (toHtml $ showMixedAmountOneLineWithoutPrice False a) | a <- coltotals]
+                      ++ (if row_total_ ropts then [th_ [class_ "amount coltotal", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice False grandtotal] else [])
+                      ++ (if average_ ropts   then [th_ [class_ "amount colaverage", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice False grandavg] else [])
                     ]
 
   in do
