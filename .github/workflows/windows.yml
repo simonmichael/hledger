@@ -150,6 +150,7 @@ jobs:
         copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger.exe .
         copy C:\Users\runneradmin\AppData\Roaming\local\bin\hledger-web.exe .
              
+    # XXX intermittent upload failures
     - name: Create executables artifact
       uses: actions/upload-artifact@v2
       with:

@@ -211,22 +211,24 @@ jobs:
         ARGS: ${{ matrix.plan.args }}
 
     # artifacts:
+    # XXX unreliable, and we don't need this for every PR; disable for now
 
-    - name: Gather executables
-      run: |
-        mkdir tmp
-        cd tmp
-        mkdir hledger
-        cd hledger
-        cp ~/.local/bin/hledger .
-        cp ~/.local/bin/hledger-ui .
-        cp ~/.local/bin/hledger-web .
+    # - name: Gather executables
+    #   run: |
+    #     mkdir tmp
+    #     cd tmp
+    #     mkdir hledger
+    #     cd hledger
+    #     cp ~/.local/bin/hledger .
+    #     cp ~/.local/bin/hledger-ui .
+    #     cp ~/.local/bin/hledger-web .
 
-    - name: Upload executables artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: hledger-ubuntu
-        path: tmp/hledger
+    # XXX intermittent upload failures
+    # - name: Upload executables artifact
+    #   uses: actions/upload-artifact@v2
+    #   with:
+    #     name: hledger-ubuntu
+    #     path: tmp/hledger
 
 
 

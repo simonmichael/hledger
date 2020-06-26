@@ -130,6 +130,7 @@ jobs:
         cp ~/.local/bin/hledger-ui .
         cp ~/.local/bin/hledger-web .
 
+    # XXX intermittent upload failures
     - name: Upload executables artifact
       uses: actions/upload-artifact@v2
       with:
