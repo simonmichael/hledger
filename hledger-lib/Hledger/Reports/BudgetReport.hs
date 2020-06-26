@@ -261,9 +261,10 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
         Nothing             -> "")
     actualwidth = maximum' $ map fst amountsAndGoals
     budgetwidth = maximum' $ map snd amountsAndGoals
-    amountsAndGoals = map (\(a,g) -> (amountLength a, amountLength g))
-                    . concatMap prrAmounts $ prRows budgetr
-      where amountLength = maybe 0 (length . showMixedAmountOneLineWithoutPrice False)
+    amountsAndGoals =
+      map (\(a,g) -> (amountWidth a, amountWidth g)) . concatMap prrAmounts $ prRows budgetr
+      where
+        amountWidth = maybe 0 (length . showMixedAmountElided False)
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
     showcell :: BudgetCell -> String
     showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
@@ -277,10 +278,12 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
             case percentage actual budget of
               Just pct ->
                 printf ("[%"++show percentwidth++"s%% of %"++show budgetwidth++"s]")
-                       (show $ roundTo 0 pct) (showbudgetamt budget)
+                       (show $ roundTo 0 pct) (showamt' budget)
               Nothing ->
                 printf ("["++replicate (percentwidth+5) ' '++"%"++show budgetwidth++"s]")
-                       (showbudgetamt budget)
+                       (showamt' budget)
+        showamt = showMixedAmountElided color_
+        showamt' = showMixedAmountElided False  -- XXX colored budget amounts disrupts layout
 
     -- | Calculate the percentage of actual change to budget goal to show, if any.
     -- If valuing at cost, both amounts are converted to cost before comparing.
@@ -296,10 +299,6 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
                Nothing
       where
         maybecost = if valuationTypeIsCost ropts then mixedAmountCost else id
-    showamt = showMixedAmountOneLineWithoutPrice color_
-
-    -- don't show the budget amount in color, it messes up alignment (XXX)
-    showbudgetamt = showMixedAmountOneLineWithoutPrice False
 
     maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise  = id
