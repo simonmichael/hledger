@@ -86,8 +86,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              BalancedVirtualPosting -> (\s -> "["++s++"]")
                              VirtualPosting -> (\s -> "("++s++")")
                              _ -> id
-    amt = showMixedAmountOneLineWithoutPrice $ pamount p
-    bal = showMixedAmountOneLineWithoutPrice b
+    amt = showMixedAmountOneLineWithoutPrice False $ pamount p
+    bal = showMixedAmountOneLineWithoutPrice False b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> String
@@ -179,8 +179,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
               BalancedVirtualPosting -> (\s -> "["++s++"]", acctwidth-2)
               VirtualPosting         -> (\s -> "("++s++")", acctwidth-2)
               _                      -> (id,acctwidth)
-      showamt | color_ (reportopts_ opts) = cshowMixedAmountWithoutPrice
-              | otherwise                 = showMixedAmountWithoutPrice
+      showamt = showMixedAmountWithoutPrice (color_ $ reportopts_ opts)
       amt = showamt $ pamount p
       bal = showamt b
       -- alternate behaviour, show null amounts as 0 instead of blank

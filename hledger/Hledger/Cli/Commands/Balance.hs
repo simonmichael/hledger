@@ -349,11 +349,11 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[T.unpack a, showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
+  [[T.unpack a, showMixedAmountOneLineWithoutPrice False b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
-  else [["total", showMixedAmountOneLineWithoutPrice total]]
+  else [["total", showMixedAmountOneLineWithoutPrice False total]]
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> String
@@ -426,10 +426,7 @@ renderComponent opts (acctname, depth, total) (FormatField ljust min max field) 
                                  Just m  -> depth * m
                                  Nothing -> depth
   AccountField     -> formatString ljust min max (T.unpack acctname)
-  TotalField       -> fitStringMulti min max True False $ showamt total
-    where
-      showamt | color_ opts = cshowMixedAmountWithoutPrice
-              | otherwise   = showMixedAmountWithoutPrice
+  TotalField       -> fitStringMulti min max True False $ showMixedAmountWithoutPrice (color_ opts) total
   _                -> ""
 
 -- | Render one StringFormat component for a balance report item.
@@ -446,8 +443,7 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
                         indented = ((replicate (depth*2) ' ')++)
   TotalField       -> fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showamt total))
     where
-      showamt | color_ opts = cshowMixedAmountWithoutPrice
-              | otherwise   = showMixedAmountWithoutPrice
+      showamt = showMixedAmountWithoutPrice (color_ opts)
   _                -> ""
 
 -- rendering multi-column balance reports
@@ -464,7 +460,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["Average" | average_]
   ) :
   [T.unpack (displayFull a) :
-   map showMixedAmountOneLineWithoutPrice
+   map (showMixedAmountOneLineWithoutPrice False)
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
@@ -473,7 +469,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
   if no_total_ opts
   then []
   else ["Total:" :
-        map showMixedAmountOneLineWithoutPrice (
+        map (showMixedAmountOneLineWithoutPrice False) (
           coltotals
           ++ [tot | row_total_]
           ++ [avg | average_]
@@ -635,10 +631,8 @@ balanceReportTableAsText :: ReportOpts -> Table String String MixedAmount -> Str
 balanceReportTableAsText ropts@ReportOpts{..} = tableAsText ropts showamt
   where
     showamt
-      | no_elide_ && color_ = cshowMixedAmountOneLineWithoutPrice
-      | no_elide_           =  showMixedAmountOneLineWithoutPrice
-      | color_              = cshowMixedAmountElided
-      | otherwise           =  showMixedAmountElided
+      | no_elide_ = showMixedAmountOneLineWithoutPrice color_
+      | otherwise = showMixedAmountElided color_
 
 
 tests_Balance = tests "Balance" [
