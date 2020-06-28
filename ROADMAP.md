@@ -134,7 +134,7 @@ This is for fun.
 - <s>multiple people providing support</s>
 - **pretty good tutorial docs**
 - **pretty good cookbook docs**
-- 100 IRC chatters
+- <s>100 IRC chatters</s>
 - 2k github stars
 - in top 30 github starred haskell projects
 - **match ledger speed**
