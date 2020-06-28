@@ -7,7 +7,7 @@ they will install required dependencies and compile themselves as needed.
 (You can also run them with cabal or runghc, or compile them with ghc, if you take care of the dependencies.)
 
 [add-on commands]: http://hledger.org/hledger.html#add-on-commands
-[stack]: https://haskell.fpcomplete.com/get-started
+[stack]: https://www.fpcomplete.com/haskell/get-started
 
 - hledger-check.hs      - check more complex account balance assertions
 - hledger-smooth.hs     - an attempt at automatically splitting infrequent/irregular transactions
