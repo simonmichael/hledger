@@ -1,8 +1,14 @@
 Miscellaneous hledger add-ons, bash scripts, example make rules, etc. 
 The Makefile may also store hledger developer binaries here.
 
-hledger-*.hs are example/experimental hledger add-on commands, 
-shipped as executable stack scripts:
+hledger-*.hs are example/experimental hledger [add-on commands], 
+shipped as executable stack scripts.
+They are easiest to run reliably if you have [stack] in your PATH;
+they will install required dependencies and compile themselves as needed.
+(You can also run them with cabal or runghc, or compile them with ghc, if you take care of the dependencies.)
+
+[add-on commands]: http://hledger.org/hledger.html#add-on-commands
+[stack]: https://haskell.fpcomplete.com/get-started
 
 - hledger-check.hs      - check more complex account balance assertions
 - hledger-smooth.hs     - an attempt at automatically splitting infrequent/irregular transactions
@@ -10,16 +16,23 @@ shipped as executable stack scripts:
 - hledger-combine-balances.hs  - render two balance reports as single multi-column one
 - hledger-balance-as-budget.hs - use one balance report as the budget for the other one
 
-You can run them directly and they will install required dependencies 
-and run in interpreted mode. 
+## Installing a single script
 
-Or you can compile them to run faster using `stack ghc SCRIPT` or
-`bin/compile.sh`.
+    $ curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/bin/hledger-check.hs
+    $ chmod +x hledger-check.hs
+    $ ./hledger-check.hs --help
 
-Add this directory to $PATH and they will show up in hledger's commands list.
+If you put the script somewhere in your $PATH, it will also show up as a hledger command,
+so this also works:
 
-A reminder from http://hledger.org/hledger.html#add-on-commands :
-when using the main hledger executable to run add-on commands, remember
-to put a -- before the add-on's options, or hledger will complain. Eg, do:
+    $ hledger check -- --help
+
+Note the `--`, which is required to separate script options from hledger options:
 
     $ hledger [HLEDGEROPTS] ADDONCMD [-- ADDONOPTS]
+
+## Installing all scripts
+
+    $ git clone https://github.com/simonmichael/hledger
+    $ # add hledger/bin/ to your $PATH
+    $ hledger  # addons appear in command list
