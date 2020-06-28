@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info
+{- stack script --compile --resolver=lts-16.2
   --package base-compat
   --package filepath
   --package hledger-lib
@@ -8,7 +8,7 @@
   --package text
   --package time
   --package transformers
--}
+-} -- Change --resolver above to one you already have installed, if you like
 {-
 
 ```
