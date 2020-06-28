@@ -1,5 +1,4 @@
 Miscellaneous hledger add-ons, bash scripts, example make rules, etc. 
-The Makefile may also store hledger developer binaries here.
 
 hledger-*.hs are example/experimental hledger [add-on commands], 
 shipped as executable stack scripts.
