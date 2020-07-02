@@ -21,7 +21,9 @@ module Hledger.Data.RawOptions (
   maybestringopt,
   listofstringopt,
   intopt,
+  posintopt,
   maybeintopt,
+  maybeposintopt,
   maybecharopt
 )
 where
@@ -91,12 +93,35 @@ maybecharopt name (RawOpts rawopts) = lookup name rawopts >>= headMay
 listofstringopt :: String -> RawOpts -> [String]
 listofstringopt name (RawOpts rawopts) = [v | (k,v) <- rawopts, k==name]
 
+-- | Reads the named option's Int argument, if it is present.
+-- An argument that is too small or too large will raise an error.
 maybeintopt :: String -> RawOpts -> Maybe Int
-maybeintopt name rawopts =
-    let ms = maybestringopt name rawopts in
-    case ms of Nothing -> Nothing
-               Just s -> Just $ readDef (usageError $ "could not parse "++name++" number: "++s) s
+maybeintopt = maybeclippedintopt minBound maxBound
 
+-- | Reads the named option's natural-number argument, if it is present.
+-- An argument that is negative or too large will raise an error.
+maybeposintopt :: String -> RawOpts -> Maybe Int
+maybeposintopt = maybeclippedintopt 0 maxBound
+
+-- | Reads the named option's Int argument. If not present it will
+-- return 0. An argument that is too small or too large will raise an error.
 intopt :: String -> RawOpts -> Int
 intopt name = fromMaybe 0 . maybeintopt name
 
+-- | Reads the named option's natural-number argument. If not present it will
+-- return 0. An argument that is negative or too large will raise an error.
+posintopt :: String -> RawOpts -> Int
+posintopt name = fromMaybe 0 . maybeposintopt name
+
+-- | Reads the named option's Int argument, if it is present. An argument
+-- that does not fit within the given bounds will raise an error.
+maybeclippedintopt :: Int -> Int -> String -> RawOpts -> Maybe Int
+maybeclippedintopt minVal maxVal name =
+    fmap (intOrError . readOrError) . maybestringopt name
+  where
+    readOrError s = readDef (usageError $ "could not parse " ++ name ++ " number: " ++ s) s
+    intOrError n | n >= toInteger minVal && n <= toInteger maxVal = fromInteger n
+                 | otherwise = usageError $ "argument to " ++ name
+                                         ++ " must lie in the range "
+                                         ++ show minVal ++ " to " ++ show maxVal
+                                         ++ ", but is " ++ show n

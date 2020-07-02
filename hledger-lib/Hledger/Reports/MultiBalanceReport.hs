@@ -434,13 +434,13 @@ displayedAccounts ropts q valuedaccts
 
     displayedName name
         | flat_ ropts = DisplayName name droppedName 1
-        | otherwise   = DisplayName name leaf $ level - boringParents
+        | otherwise   = DisplayName name leaf . max 0 $ level - boringParents
       where
         droppedName = accountNameDrop (drop_ ropts) name
         leaf = accountNameFromComponents . reverse . map accountLeafName $
             droppedName : takeWhile notDisplayed parents
 
-        level = accountNameLevel name - drop_ ropts
+        level = max 0 $ accountNameLevel name - drop_ ropts
         parents = take (level - 1) $ parentAccountNames name
         boringParents = if no_elide_ ropts then 0 else length $ filter notDisplayed parents
         notDisplayed = not . (`HM.member` displayedAccts)

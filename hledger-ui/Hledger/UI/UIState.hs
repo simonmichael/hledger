@@ -49,14 +49,14 @@ uiShowStatus copts ss =
     _ -> map showstatus $ sort ss
   where
     numstatuses = length [minBound..maxBound::Status]
-    style = maybeintopt "status-toggles" $ rawopts_ copts
+    style = maybeposintopt "status-toggles" $ rawopts_ copts
     showstatus Cleared  = "cleared"
     showstatus Pending  = "pending"
     showstatus Unmarked = "unmarked"
 
 reportOptsToggleStatusSomehow :: Status -> CliOpts -> ReportOpts -> ReportOpts
 reportOptsToggleStatusSomehow s copts ropts =
-  case maybeintopt "status-toggles" $ rawopts_ copts of
+  case maybeposintopt "status-toggles" $ rawopts_ copts of
      Just 2 -> reportOptsToggleStatus2 s ropts
      Just 3 -> reportOptsToggleStatus3 s ropts
 --     Just 4 -> reportOptsToggleStatus4 s ropts
