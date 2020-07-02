@@ -128,7 +128,7 @@ rawOptsToWebOpts rawopts =
   checkWebOpts <$> do
     cliopts <- rawOptsToCliOpts rawopts
     let h = fromMaybe defhost $ maybestringopt "host" rawopts
-        p = fromMaybe defport $ maybeintopt "port" rawopts
+        p = fromMaybe defport $ maybeposintopt "port" rawopts
         b =
           maybe (defbaseurl h p) stripTrailingSlash $
           maybestringopt "base-url" rawopts
