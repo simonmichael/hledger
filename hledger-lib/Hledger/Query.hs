@@ -509,8 +509,7 @@ latestMaybeDate' = maximumByDef Nothing compareNothingMax
 
 -- | The depth limit this query specifies, or a large number if none.
 queryDepth :: Query -> Int
-queryDepth q = case queryDepth' q of [] -> 99999
-                                     ds -> minimum ds
+queryDepth = minimumDef maxBound . queryDepth'
   where
     queryDepth' (Depth d) = [d]
     queryDepth' (Or qs) = concatMap queryDepth' qs

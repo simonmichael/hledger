@@ -442,33 +442,27 @@ journalSelectingAmountFromOpts opts =
 
 -- | Convert report options and arguments to a query.
 queryFromOpts :: Day -> ReportOpts -> Query
-queryFromOpts d ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
+queryFromOpts d ropts = simplifyQuery . And $ [flagsq, argsq]
   where
-    flagsq = And $
-              [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
-              ++ (if real_ then [Real True] else [])
-              ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map StatusQ statuses_]
-              ++ (maybe [] ((:[]) . Depth) depth_)
-    argsq = fst $ parseQuery d (T.pack query_)
+    flagsq = queryFromOptsOnly d ropts
+    argsq = fst $ parseQuery d (T.pack $ query_ ropts)
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromOptsOnly :: Day -> ReportOpts -> Query
-queryFromOptsOnly _d ReportOpts{..} = simplifyQuery flagsq
+queryFromOptsOnly _d ReportOpts{..} = simplifyQuery $ And flagsq
   where
-    flagsq = And $
-              [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
-              ++ (if real_ then [Real True] else [])
-              ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map StatusQ statuses_]
-              ++ (maybe [] ((:[]) . Depth) depth_)
+    flagsq = consIf   Real  real_
+           . consIf   Empty empty_
+           . consJust Depth depth_
+           $   [ (if date2_ then Date2 else Date) $ periodAsDateSpan period_
+               , Or $ map StatusQ statuses_
+               ]
+    consIf f b = if b then (f True:) else id
+    consJust f = maybe id ((:) . f)
 
 -- | Convert report options and arguments to query options.
 queryOptsFromOpts :: Day -> ReportOpts -> [QueryOpt]
-queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
-  where
-    flagsqopts = []
-    argsqopts = snd $ parseQuery d (T.pack query_)
+queryOptsFromOpts d = snd . parseQuery d . T.pack . query_
 
 -- Report dates.
 
