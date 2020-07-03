@@ -816,8 +816,8 @@ numberp suggestedStyle = label "number" $ do
     sign <- signp
     rawNum <- either (disambiguateNumber suggestedStyle) id <$> rawnumberp
     mExp <- optional $ try $ exponentp
-    dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
-    case dbg8 "numberp quantity,precision,mdecimalpoint,mgrps"
+    dbg7 "numberp suggestedStyle" suggestedStyle `seq` return ()
+    case dbg7 "numberp quantity,precision,mdecimalpoint,mgrps"
            $ fromRawNumber rawNum mExp of
       Left errMsg -> Fail.fail errMsg
       Right (q, p, d, g) -> pure (sign q, p, d, g)
@@ -930,7 +930,7 @@ rawnumberp = label "number" $ do
                   parseErrorAt off "invalid number (excessive trailing digits)"
     Nothing -> pure ()
 
-  return $ dbg8 "rawnumberp" rawNumber
+  return $ dbg7 "rawnumberp" rawNumber
   where
 
   leadingDecimalPt :: TextParser m RawNumber

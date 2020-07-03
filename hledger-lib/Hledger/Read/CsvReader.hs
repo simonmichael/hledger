@@ -684,12 +684,12 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   rulestext <-
     if rulesfileexists
     then do
-      dbg7IO "using conversion rules file" rulesfile
+      dbg6IO "using conversion rules file" rulesfile
       readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile)
     else
       return $ defaultRulesText rulesfile
   rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
-  dbg7IO "rules" rules
+  dbg6IO "rules" rules
 
   -- parse the skip directive's value, if any
   let skiplines = case getDirective "skip" rules of
@@ -701,12 +701,12 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
   let separator = fromMaybe ',' (getDirective "separator" rules >>= parseSeparator)
-  dbg7IO "separator" separator
+  dbg6IO "separator" separator
   records <- (either throwerr id .
-              dbg8 "validateCsv" . validateCsv rules skiplines .
-              dbg8 "parseCsv")
+              dbg7 "validateCsv" . validateCsv rules skiplines .
+              dbg7 "parseCsv")
              `fmap` parseCsv separator parsecfilename csvdata
-  dbg7IO "first 3 csv records" $ take 3 records
+  dbg6IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
   -- let (headerlines, datalines) = identifyHeaderLines records
@@ -733,8 +733,8 @@ readJournalFromCsv mrulesfile csvfile csvdata =
     txns' =
       (if newestfirst || mdataseemsnewestfirst == Just True then reverse else id) txns
       where
-        newestfirst = dbg7 "newestfirst" $ isJust $ getDirective "newest-first" rules
-        mdataseemsnewestfirst = dbg7 "mdataseemsnewestfirst" $
+        newestfirst = dbg6 "newestfirst" $ isJust $ getDirective "newest-first" rules
+        mdataseemsnewestfirst = dbg6 "mdataseemsnewestfirst" $
           case nub $ map tdate txns of
             ds | length ds > 1 -> Just $ head ds > last ds
             _                  -> Nothing
@@ -1138,7 +1138,7 @@ getEffectiveAssignment :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Fie
 getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
   where
     -- all active assignments to field f, in order
-    assignments = dbg8 "assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
+    assignments = dbg7 "assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
       where
         -- all top level field assignments
         toplevelassignments    = rassignments rules
@@ -1153,18 +1153,18 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                 matcherMatches :: Matcher -> Bool
                 matcherMatches (RecordMatcher pat) = regexMatchesCI pat' wholecsvline
                   where
-                    pat' = dbg8 "regex" pat
+                    pat' = dbg7 "regex" pat
                     -- A synthetic whole CSV record to match against. Note, this can be
                     -- different from the original CSV data:
                     -- - any whitespace surrounding field values is preserved
                     -- - any quotes enclosing field values are removed
                     -- - and the field separator is always comma
                     -- which means that a field containing a comma will look like two fields.
-                    wholecsvline = dbg8 "wholecsvline" $ intercalate "," record
+                    wholecsvline = dbg7 "wholecsvline" $ intercalate "," record
                 matcherMatches (FieldMatcher csvfieldref pat) = regexMatchesCI pat csvfieldvalue
                   where
                     -- the value of the referenced CSV field to match against.
-                    csvfieldvalue = dbg8 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
+                    csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
 
 -- | Render a field assignment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.

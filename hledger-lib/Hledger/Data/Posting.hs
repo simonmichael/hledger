@@ -294,7 +294,7 @@ accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
   where
     (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
     aname' = foldl
-             (\acct alias -> dbg7 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
+             (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
              aname
              aliases
 

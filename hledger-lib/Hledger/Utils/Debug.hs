@@ -17,9 +17,9 @@ Debug level:  What to show:
 3             report options selection
 4             report generation
 5             report generation, more detail
-6             command line parsing
-7             input file reading
-8             input file reading, more detail
+6             input file reading
+7             input file reading, more detail
+8             command line parsing
 9             any other rarely needed / more in-depth info
 
 Tip: when debugging with GHCI, the first run after loading Debug.hs sets the

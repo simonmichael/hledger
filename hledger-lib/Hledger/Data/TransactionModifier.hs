@@ -120,13 +120,13 @@ tmPostingRuleToFunction querytxt pr =
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
           let
-            pramount = dbg7 "pramount" $ head $ amounts $ pamount pr
-            matchedamount = dbg7 "matchedamount" $ pamount p
+            pramount = dbg6 "pramount" $ head $ amounts $ pamount pr
+            matchedamount = dbg6 "matchedamount" $ pamount p
             -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
             -- Approach 1: convert to a unit price and increase the display precision slightly
-            -- Mixed as = dbg7 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
+            -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
             -- Approach 2: multiply the total price (keeping it positive) as well as the quantity
-            Mixed as = dbg7 "multipliedamount" $ n `multiplyMixedAmountAndPrice` matchedamount
+            Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmountAndPrice` matchedamount
           in
             case acommodity pramount of
               "" -> Mixed as
