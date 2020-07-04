@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "June 2020" "hledger 1.18.99" "hledger User Manuals"
+.TH "hledger" "1" "July 2020" "hledger 1.18.99" "hledger User Manuals"
 
 
 
@@ -2570,7 +2570,9 @@ By default, accounts are displayed hierarchically, with subaccounts
 indented below their parent.
 At each level of the tree, accounts are sorted by account code if any,
 then by account name.
-Or with \f[C]-S/--sort-amount\f[R], by their balance amount.
+Or with \f[C]-S/--sort-amount\f[R], by their balance amount, largest
+first.
+(Note: \f[C]-S\f[R] has a problem in hledger 1.11-1.18).
 .PP
 \[dq]Boring\[dq] accounts, which contain a single interesting subaccount
 and no balance of their own, are elided into the following line for more

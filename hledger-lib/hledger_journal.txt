@@ -1485,4 +1485,4 @@ SEE ALSO
 
 
 
-hledger 1.18.99                    June 2020                hledger_journal(5)
+hledger 1.18.99                    July 2020                hledger_journal(5)
