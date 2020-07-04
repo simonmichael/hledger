@@ -350,3 +350,17 @@ $ hledger -f- bal -N --sort-amount --flat
                   4X  a
                   3X  b
 >=
+
+# 19. Sort by amount, #1279
+<
+2020-01-01
+    (a:aa)                                         1
+    (a:ab)                                         3
+    (b)                                            2
+
+$ hledger bal -N -S
+                   4  a
+                   3    ab
+                   1    aa
+                   2  b
+>=
