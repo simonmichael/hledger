@@ -1,7 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# ce4de7ae
+# 44c3eb19
+
+- add lower bound needed for aeson, to help cabal (#1268)
 
 # 1.18.1 2020-06-21
 

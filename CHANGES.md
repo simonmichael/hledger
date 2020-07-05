@@ -1,7 +1,11 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# a7bb6b92
+# 7881edfc
+
+- stack: bump default stack file to lts 16
+
+- bin: hledger-check: use stack script command
 
 - ci: separate quick and full tests again, update
   The linux full tests no longer test GHC 8.0,

@@ -1,7 +1,47 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 36829710
+# 25c15d4b
+
+- add a color argument to most amount show helpers, drop cshow variants This
+  is an API change, but it seems better than having additional
+  colour-supporting variants and trying to avoid duplicated code. I stopped
+  short of changing showAmount, so cshowAmount still exists.
+
+- Remove the old BalanceReport code, and use MultiBalanceReport for
+  everything. (Stephen Morgan, #1256).
+
+  - The large multiBalanceReport function has been split up and refactored
+    extensively.
+  - Tabular data formerly represented as [[MixedAmount]] is now HashMap
+    AccountName (Map DateSpan Account). Reports with many columns are now faster.
+  - Calculating starting balances no longer calls the whole balanceReport,
+    just the first few functions.
+  - displayedAccounts is completely rewritten. Perhaps one subtle thing to
+    note is that in tree mode it no longer excludes nodes with zero inclusive
+    balance unless they also have zero exclusive balance.
+  - Simon's note: I'll mark the passing of the old multiBalanceReport, into
+    which I poured many an hour :). It is in a way the heart (brain ?) of
+    hledger - the key feature of ledgerlikes (balance report) and a key
+    improvement introduced by hledger (tabular multiperiod balance reports).
+    You have split that 300-line though well documented function into modular
+    parts, which could be a little harder to understand in detail but are
+    easier to understand in the large and more amenable to further
+    refactoring. Then you fixed some old limitations (boring parent eliding in
+    multi period balance reports, --drop with tree mode reports), allowing us
+    to drop the old balanceReport and focus on just the new
+    multiBalanceReport. And for representing the tabular data you replaced the
+    semantically correct but inefficient list of lists with a map of maps,
+    speeding up many-columned balance reports significantly (~40%). Last and
+    not least you made it really easy to review. Thanks @Xitian9, great work.
+
+- lib, cli: Introduce convenience function compoundBalanceReport. (Stephen Morgan)
+
+- lib, cli: Move CompoundBalanceReport into ReportTypes, compoundReportWith into MultiBalanceReport, share postings amongst subreports. (Stephen Morgan)
+
+- lib: Move unifyMixedAmount to Hledger.Data.Amount, make it return Maybe Amount, export it. (Stephen Morgan)
+
+- add lower bound needed for aeson, to help cabal (#1268)
 
 # 1.18.1 2020-06-21
 

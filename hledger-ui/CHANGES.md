@@ -1,7 +1,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# ce4de7ae
+# 3b6a8b09
+
+- ui: register: elide multicommodity amounts
 
 # 1.18.1 2020-06-21
 

@@ -1,7 +1,43 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 36829710
+# 44c3eb19
+
+- balcmds: elide amounts with 3 or more commodities, unless --no-elide
+  Multicolumn balance reports showing many commodities tend to become
+  unreadably wide, especially in tree mode. Now by default we show at
+  most two commodities, and a count of the rest if there are more than
+  two. This should help keep reports somewhat readable by default.
+
+- bal: warn about #1279 in manual
+
+- cli: for options taking a numeric argument, we now validate the
+  argument more carefully, avoiding unexpected negatives or Int
+  overflow. (Stephen Morgan)
+
+- cli: debug output is now organised better by debug level.
+  The levels are:
+
+  0. normal command output only (no warnings)
+  1. useful warnings & most common troubleshooting info (valuation, eg)
+  2. common troubleshooting info, more detail
+  3. report options selection
+  4. report generation
+  5. report generation, more detail
+  6. input file reading
+  7. input file reading, more detail
+  8. command line parsing
+  9. any other rarely needed or more in-depth info
+
+- lib: Using --drop in tree mode with boring parent ellision no longer considers all parents boring. Add tests to check this fact. (Stephen Morgan)
+
+- add lower bound needed for aeson, to help cabal (#1268)
+
+- lib: Add fortnightly as a synonym for biweekly. (Stephen Morgan)
+
+- bal: --drop now works in tree mode balance reports also. (Stephen Morgan)
+
+- bal: Boring parents are now elided in tabular balance reports, as in simple balance reports. (Stephen Morgan)
 
 - csv: speed up csv conversion performance when there are a lot of
   conditional rules (Dmitry Astapov)
