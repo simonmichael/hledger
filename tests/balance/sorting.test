@@ -358,7 +358,7 @@ $ hledger -f- bal -N --sort-amount --flat
     (a:ab)                                         3
     (b)                                            2
 
-$ hledger bal -N -S
+$ hledger -f- bal -N -S
                    4  a
                    3    ab
                    1    aa
