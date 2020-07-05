@@ -105,6 +105,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
       -- are used in single column mode, since in that situation we will be using
       -- balanceReportFromMultiBalanceReport which does not support eliding boring parents,
       -- and tree mode hides this.. or something.. XXX
+      -- This limitation on longer exists. Should this be changed?
       ropts' = ropts{
         balancetype_=balancetype,
         accountlistmode_=if not (flat_ ropts) && interval_==NoInterval && balancetype `elem` [CumulativeChange, HistoricalBalance] then ALTree else accountlistmode_,

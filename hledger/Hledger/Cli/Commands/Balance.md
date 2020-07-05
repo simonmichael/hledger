@@ -309,10 +309,6 @@ Balance changes in 2008:
 (Average is rounded to the dollar here since all journal amounts are)
 ```
 
-A limitation of multicolumn balance reports: eliding of boring parent
-accounts in tree mode, as in the classic balance report, is not yet
-supported.
-
 The `--transpose` flag can be used to exchange the rows and columns of
 a multicolumn report.
      

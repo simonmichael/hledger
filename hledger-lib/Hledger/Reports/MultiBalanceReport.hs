@@ -86,11 +86,11 @@ type ClippedAccountName = AccountName
 
 -- | Generate a multicolumn balance report for the matched accounts,
 -- showing the change of balance, accumulated balance, or historical balance
--- in each of the specified periods. Does not support tree-mode boring parent eliding.
--- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts
--- (see ReportOpts and CompoundBalanceCommand).
--- hledger's most powerful and useful report, used by the balance
--- command (in multiperiod mode) and (via multiBalanceReport') by the bs/cf/is commands.
+-- in each of the specified periods. If the normalbalance_ option is set, it
+-- adjusts the sorting and sign of amounts (see ReportOpts and
+-- CompoundBalanceCommand). hledger's most powerful and useful report, used
+-- by the balance command (in multiperiod mode) and (via compoundBalanceReport)
+-- by the bs/cf/is commands.
 multiBalanceReport :: Day -> ReportOpts -> Journal -> MultiBalanceReport
 multiBalanceReport today ropts j =
     multiBalanceReportWith ropts q j (journalPriceOracle infer j)
@@ -548,9 +548,9 @@ postprocessReport ropts displaynames =
 
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
--- in order to support --historical. Does not support tree-mode boring parent eliding.
--- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts
--- (see ReportOpts and CompoundBalanceCommand).
+-- in order to support --historical. If the normalbalance_ option is set, it
+-- adjusts the sorting and sign of amounts (see ReportOpts and
+-- CompoundBalanceCommand).
 balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal
     -> ([(AccountName, AccountName, Int, MixedAmount)], MixedAmount)
 balanceReportFromMultiBalanceReport ropts q j = (rows', total)
