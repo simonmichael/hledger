@@ -39,7 +39,8 @@ these are described more fully below, after the examples:
 | [**`fields`**](#fields)                   | name CSV fields, assign them to hledger fields          |
 | [**field assignment**](#field-assignment) | assign a value to one hledger field, with interpolation |
 | [**`separator`**](#separator)             | a custom field separator                                |
-| [**`if`**](#if)                           | apply some rules to matched CSV records                 |
+| [**`if` block**](#if-block)               | apply some rules to CSV records matched by patterns     |
+| [**`if` table**](#if-table)               | apply some rules to CSV records matched by patterns, alternate syntax |
 | [**`end`**](#end)                         | skip the remaining CSV records                          |
 | [**`date-format`**](#date-format)         | describe the format of CSV dates                        |
 | [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date    |
@@ -370,7 +371,7 @@ tells hledger to ignore this many non-empty lines preceding the CSV data.
 (Empty/blank lines are skipped automatically.)
 You'll need this whenever your CSV data contains header lines.
 
-It also has a second purpose: it can be used inside [if blocks](#if)
+It also has a second purpose: it can be used inside [if blocks](#if-block)
 to ignore certain CSV records (described below).
 
 
@@ -520,6 +521,7 @@ separator TAB
 
 See also: [File Extension](#file-extension).
 
+
 ## `if` block
 
 ```rules
@@ -590,6 +592,7 @@ banking thru software
  comment  XXX deductible ? check it
 ```
 
+
 ## `if` table
 
 ```rules
@@ -644,7 +647,7 @@ atm transaction fee,expenses:business:banking,deductible? check it
 
 ## `end`
 
-This rule can be used inside [if blocks](#if) (only), to make hledger stop
+This rule can be used inside [if blocks](#if-block) (only), to make hledger stop
 reading this CSV file and move on to the next input file, or to command execution.
 Eg:
 ```rules
