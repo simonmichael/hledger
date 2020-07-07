@@ -364,3 +364,14 @@ $ hledger -f- bal -N -S --tree
                    1    aa
                    2  b
 >=
+
+# 20. Flat mode. --historical (#1287)
+$ hledger -f- bal -NY --flat --sort-amount --historical
+Ending balances (historical) in 2020:
+
+      || 2020-12-31 
+======++============
+ a:ab ||          3 
+ b    ||          2 
+ a:aa ||          1 
+>=
