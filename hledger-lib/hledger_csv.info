@@ -642,7 +642,14 @@ is a percent sign followed by the field's name or column number, like
 
    A single matcher can be written on the same line as the "if"; or
 multiple matchers can be written on the following lines, non-indented.
-Multiple matchers are OR'd (any one of them can match).
+Multiple matchers are OR'd (any one of them can match), unless one
+begins with an '&' symbol, in which case it is AND'ed with the previous
+matcher.
+
+if
+MATCHER
+& MATCHER
+ RULE
 
    After the patterns there should be one or more rules to apply, all
 indented by at least one space.  Three kinds of rule are allowed in
@@ -1141,40 +1148,40 @@ Node: separator21340
 Ref: #separator21475
 Node: if block21886
 Ref: #if-block22011
-Node: if table24167
-Ref: #if-table24286
-Node: end26024
-Ref: #end26136
-Node: date-format26360
-Ref: #date-format26492
-Node: newest-first27241
-Ref: #newest-first27379
-Node: include28062
-Ref: #include28193
-Node: balance-type28637
-Ref: #balance-type28757
-Node: TIPS29457
-Ref: #tips29539
-Node: Rapid feedback29795
-Ref: #rapid-feedback29912
-Node: Valid CSV30372
-Ref: #valid-csv30502
-Node: File Extension30694
-Ref: #file-extension30846
-Node: Reading multiple CSV files31256
-Ref: #reading-multiple-csv-files31441
-Node: Valid transactions31682
-Ref: #valid-transactions31860
-Node: Deduplicating importing32488
-Ref: #deduplicating-importing32667
-Node: Setting amounts33700
-Ref: #setting-amounts33869
-Node: Setting currency/commodity34856
-Ref: #setting-currencycommodity35048
-Node: Referencing other fields35851
-Ref: #referencing-other-fields36051
-Node: How CSV rules are evaluated36948
-Ref: #how-csv-rules-are-evaluated37121
+Node: if table24287
+Ref: #if-table24406
+Node: end26144
+Ref: #end26256
+Node: date-format26480
+Ref: #date-format26612
+Node: newest-first27361
+Ref: #newest-first27499
+Node: include28182
+Ref: #include28313
+Node: balance-type28757
+Ref: #balance-type28877
+Node: TIPS29577
+Ref: #tips29659
+Node: Rapid feedback29915
+Ref: #rapid-feedback30032
+Node: Valid CSV30492
+Ref: #valid-csv30622
+Node: File Extension30814
+Ref: #file-extension30966
+Node: Reading multiple CSV files31376
+Ref: #reading-multiple-csv-files31561
+Node: Valid transactions31802
+Ref: #valid-transactions31980
+Node: Deduplicating importing32608
+Ref: #deduplicating-importing32787
+Node: Setting amounts33820
+Ref: #setting-amounts33989
+Node: Setting currency/commodity34976
+Ref: #setting-currencycommodity35168
+Node: Referencing other fields35971
+Ref: #referencing-other-fields36171
+Node: How CSV rules are evaluated37068
+Ref: #how-csv-rules-are-evaluated37241
 
 End Tag Table
 

@@ -3429,6 +3429,64 @@ Here\[aq]s one way to resolve that:
     assets:checking
 \f[R]
 .fi
+.SS codes
+.PP
+codes
+.PD 0
+.P
+.PD
+List the codes seen in transactions, in the order parsed.
+.PP
+This command prints the value of each transaction\[aq]s code field, in
+the order transactions were parsed.
+The transaction code is an optional value written in parentheses between
+the date and description, often used to store a cheque number, order
+number or similar.
+.PP
+Transactions aren\[aq]t required to have a code, and missing or empty
+codes will not be shown by default.
+With the \f[C]-E\f[R]/\f[C]--empty\f[R] flag, they will be printed as
+blank lines.
+.PP
+You can add a query to select a subset of transactions.
+.PP
+Examples:
+.IP
+.nf
+\f[C]
+1/1 (123)
+ (a)  1
+
+1/1 ()
+ (a)  1
+
+1/1
+ (a)  1
+
+1/1 (126)
+ (a)  1
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger codes
+123
+124
+126
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger codes -E
+123
+124
+
+
+126
+\f[R]
+.fi
 .SS commodities
 .PP
 commodities
@@ -3438,11 +3496,17 @@ commodities
 List all commodity/currency symbols used or declared in the journal.
 .SS descriptions
 .PP
-descriptions Show descriptions.
+descriptions
+.PD 0
+.P
+.PD
+List the unique descriptions that appear in transactions.
 .PP
-This command lists all descriptions that appear in transactions.
+This command lists the unique descriptions that appear in transactions,
+in alphabetic order.
+You can add a query to select a subset of transactions.
 .PP
-Examples:
+Example:
 .IP
 .nf
 \f[C]
@@ -3652,11 +3716,19 @@ options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
 \f[C]html\f[R], and (experimental) \f[C]json\f[R].
 .SS notes
 .PP
-notes Show notes.
+notes
+.PD 0
+.P
+.PD
+List the unique notes that appear in transactions.
 .PP
-This command lists all notes that appear in transactions.
+This command lists the unique notes that appear in transactions, in
+alphabetic order.
+You can add a query to select a subset of transactions.
+The note is the part of the transaction description after a | character
+(or if there is no |, the whole description).
 .PP
-Examples:
+Example:
 .IP
 .nf
 \f[C]
@@ -3667,11 +3739,19 @@ Snacks
 .fi
 .SS payees
 .PP
-payees Show payee names.
+payees
+.PD 0
+.P
+.PD
+List the unique payee/payer names that appear in transactions.
 .PP
-This command lists all payee names that appear in transactions.
+This command lists the unique payee/payer names that appear in
+transactions, in alphabetic order.
+You can add a query to select a subset of transactions.
+The payee/payer is the part of the transaction description before a |
+character (or if there is no |, the whole description).
 .PP
-Examples:
+Example:
 .IP
 .nf
 \f[C]

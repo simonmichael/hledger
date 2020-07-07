@@ -674,7 +674,18 @@ number, like \f[C]%date\f[R] or \f[C]%1\f[R].
 .PP
 A single matcher can be written on the same line as the \[dq]if\[dq]; or
 multiple matchers can be written on the following lines, non-indented.
-Multiple matchers are OR\[aq]d (any one of them can match).
+Multiple matchers are OR\[aq]d (any one of them can match), unless one
+begins with an \f[C]&\f[R] symbol, in which case it is AND\[aq]ed with
+the previous matcher.
+.IP
+.nf
+\f[C]
+if
+MATCHER
+& MATCHER
+ RULE
+\f[R]
+.fi
 .PP
 After the patterns there should be one or more rules to apply, all
 indented by at least one space.
