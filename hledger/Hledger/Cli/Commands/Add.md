@@ -1,5 +1,6 @@
 add\
 Prompt for transactions and add them to the journal.
+Any arguments will be used as default inputs for the first N prompts.
 
 _FLAGS
 
@@ -61,5 +62,5 @@ Date [2015/05/22]: <CTRL-D> $
 ```
 
 On Microsoft Windows, the add command makes sure that no part of the
-file path ends with a period, as it can cause data loss on that platform
-(cf [#1056](https://github.com/simonmichael/hledger/issues/1056)).
+file path ends with a period, as that would cause problems
+([#1056](https://github.com/simonmichael/hledger/issues/1056)).
