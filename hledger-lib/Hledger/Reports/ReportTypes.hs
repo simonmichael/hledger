@@ -3,6 +3,7 @@ New common report types, used by the BudgetReport for now, perhaps all reports l
 -}
 {-# LANGUAGE CPP            #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor  #-}
 {-# LANGUAGE DeriveGeneric  #-}
 
 module Hledger.Reports.ReportTypes
@@ -88,7 +89,7 @@ data PeriodicReport a b =
                                          -- significant. Usually displayed as report columns.
   , prRows   :: [PeriodicReportRow a b]  -- One row per account in the report.
   , prTotals :: PeriodicReportRow () b   -- The grand totals row.
-  } deriving (Show, Generic, ToJSON)
+  } deriving (Show, Functor, Generic, ToJSON)
 
 data PeriodicReportRow a b =
   PeriodicReportRow
@@ -96,7 +97,7 @@ data PeriodicReportRow a b =
   , prrAmounts :: [b]  -- The data value for each subperiod.
   , prrTotal   :: b    -- The total of this row's values.
   , prrAverage :: b    -- The average of this row's values.
-  } deriving (Show, Generic, ToJSON)
+  } deriving (Show, Functor, Generic, ToJSON)
 
 instance Num b => Semigroup (PeriodicReportRow a b) where
   (PeriodicReportRow _ amts1 t1 a1) <> (PeriodicReportRow n2 amts2 t2 a2) =

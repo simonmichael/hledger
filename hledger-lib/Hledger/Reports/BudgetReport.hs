@@ -10,13 +10,14 @@ module Hledger.Reports.BudgetReport
 where
 
 import Data.Decimal
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HM
 import Data.List
 import Data.List.Extra (nubSort)
 import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
-import Data.Ord
 import Data.Time.Calendar
 import Safe
 --import Data.List
@@ -29,12 +30,9 @@ import qualified Data.Text as T
 --import Lucid as L
 import Text.Printf (printf)
 import Text.Tabular as T
---import Text.Tabular.AsciiWide
 
 import Hledger.Data
---import Hledger.Query
 import Hledger.Utils
---import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.MultiBalanceReport
@@ -54,8 +52,8 @@ type BudgetReportRow = PeriodicReportRow DisplayName BudgetCell
 -- and compare these to get a 'BudgetReport'.
 -- Unbudgeted accounts may be hidden or renamed (see budgetRollup).
 budgetReport :: ReportOpts -> Bool -> DateSpan -> Day -> Journal -> BudgetReport
-budgetReport ropts' assrt reportspan d j =
-  let
+budgetReport ropts' assrt reportspan d j = dbg1 "sortedbudgetreport" budgetreport
+  where
     -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
     -- and that reports with and without --empty make sense when compared side by side
     ropts = ropts' { accountlistmode_ = ALTree }
@@ -80,50 +78,7 @@ budgetReport ropts' assrt reportspan d j =
       -- it should be safe to replace it with the latter, so they combine well.
       | interval_ ropts == NoInterval = PeriodicReport actualspans budgetgoalitems budgetgoaltotals
       | otherwise = budgetgoalreport
-    budgetreport = combineBudgetAndActual budgetgoalreport' actualreport
-    sortedbudgetreport = sortBudgetReport ropts j budgetreport
-  in
-    dbg1 "sortedbudgetreport" sortedbudgetreport
-
--- | Sort a budget report's rows according to options.
-sortBudgetReport :: ReportOpts -> Journal -> BudgetReport -> BudgetReport
-sortBudgetReport ropts j (PeriodicReport ps rows trow) = PeriodicReport ps sortedrows trow
-  where
-    sortedrows
-      | sort_amount_ ropts && tree_ ropts = sortTreeBURByActualAmount rows
-      | sort_amount_ ropts                = sortFlatBURByActualAmount rows
-      | otherwise                         = sortByAccountDeclaration rows
-
-    -- Sort a tree-mode budget report's rows by total actual amount at each level.
-    sortTreeBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
-    sortTreeBURByActualAmount rows = sortedrows
-      where
-        atotals = [(displayFull a, tot) | PeriodicReportRow a _ (tot,_) _ <- rows]
-        accounttree = accountTree "root" $ map prrFullName rows
-        accounttreewithbals = mapAccounts setibalance accounttree
-          where
-            setibalance a = a{aibalance=
-              fromMaybe 0 $ -- when there's no actual amount, assume 0; will mess up with negative amounts ? TODO
-              fromMaybe (error "sortTreeByAmount 1") $ -- should not happen, but it's ugly; TODO
-              lookup (aname a) atotals
-              }
-        sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
-        sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
-        sortedrows = sortRowsLike sortedanames rows
-
-    -- Sort a flat-mode budget report's rows by total actual amount.
-    sortFlatBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
-    sortFlatBURByActualAmount = case normalbalance_ ropts of
-        Just NormallyNegative -> sortOn (fst . prrTotal)
-        _                     -> sortOn (Down . fst . prrTotal)
-
-    -- Sort the report rows by account declaration order then account name.
-    -- <unbudgeted> remains at the top.
-    sortByAccountDeclaration rows = sortedrows
-      where
-        (unbudgetedrow,rows') = partition ((==unbudgetedAccountName) . prrFullName) rows
-        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) $ map prrFullName rows'
-        sortedrows = unbudgetedrow ++ sortRowsLike sortedanames rows
+    budgetreport = combineBudgetAndActual ropts j budgetgoalreport' actualreport
 
 -- | Use all periodic transactions in the journal to generate
 -- budget transactions in the specified report period.
@@ -182,11 +137,11 @@ budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
 -- - all accounts mentioned in either report, sorted by account code or
 --   account name or amount as appropriate.
 --
-combineBudgetAndActual :: MultiBalanceReport -> MultiBalanceReport -> BudgetReport
-combineBudgetAndActual
+combineBudgetAndActual :: ReportOpts -> Journal -> MultiBalanceReport -> MultiBalanceReport -> BudgetReport
+combineBudgetAndActual ropts j
       (PeriodicReport budgetperiods budgetrows (PeriodicReportRow _ budgettots budgetgrandtot budgetgrandavg))
       (PeriodicReport actualperiods actualrows (PeriodicReportRow _ actualtots actualgrandtot actualgrandavg)) =
-    PeriodicReport periods rows totalrow
+    PeriodicReport periods sortedrows totalrow
   where
     periods = nubSort . filter (/= nulldatespan) $ budgetperiods ++ actualperiods
 
@@ -194,8 +149,8 @@ combineBudgetAndActual
     rows1 =
       [ PeriodicReportRow acct amtandgoals totamtandgoal avgamtandgoal
       | PeriodicReportRow acct actualamts actualtot actualavg <- actualrows
-      , let mbudgetgoals       = Map.lookup (displayFull acct) budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
-      , let budgetmamts        = maybe (replicate (length periods) Nothing) (map Just . first3) mbudgetgoals :: [Maybe BudgetGoal]
+      , let mbudgetgoals       = HM.lookup (displayFull acct) budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
+      , let budgetmamts        = maybe (Nothing <$ periods) (map Just . first3) mbudgetgoals :: [Maybe BudgetGoal]
       , let mbudgettot         = second3 <$> mbudgetgoals :: Maybe BudgetTotal
       , let mbudgetavg         = third3 <$> mbudgetgoals  :: Maybe BudgetAverage
       , let acctBudgetByPeriod = Map.fromList [ (p,budgetamt) | (p, Just budgetamt) <- zip budgetperiods budgetmamts ] :: Map DateSpan BudgetGoal
@@ -205,8 +160,8 @@ combineBudgetAndActual
       , let avgamtandgoal      = (Just actualavg, mbudgetavg)
       ]
       where
-        budgetGoalsByAcct :: Map AccountName ([BudgetGoal], BudgetTotal, BudgetAverage) =
-          Map.fromList [ (displayFull acct, (amts, tot, avg))
+        budgetGoalsByAcct :: HashMap AccountName ([BudgetGoal], BudgetTotal, BudgetAverage) =
+          HM.fromList [ (displayFull acct, (amts, tot, avg))
                          | PeriodicReportRow acct amts tot avg <- budgetrows ]
 
     -- next, make rows for budget goals with no actual changes
@@ -221,11 +176,12 @@ combineBudgetAndActual
       ]
 
     -- combine and re-sort rows
-    -- TODO: use MBR code
-    -- TODO: respect --sort-amount
     -- TODO: add --sort-budget to sort by budget goal amount
-    rows :: [BudgetReportRow] =
-      sortOn prrFullName $ rows1 ++ rows2
+    sortedrows :: [BudgetReportRow] = sortRowsLike (mbrsorted unbudgetedrows ++ mbrsorted rows') rows
+      where
+        (unbudgetedrows, rows') = partition ((==unbudgetedAccountName) . prrFullName) rows
+        mbrsorted = map prrFullName . sortRows ropts j . map (fmap $ fromMaybe 0 . fst)
+        rows = rows1 ++ rows2
 
     -- TODO: grand total & average shows 0% when there are no actual amounts, inconsistent with other cells
     totalrow = PeriodicReportRow ()
@@ -317,9 +273,9 @@ budgetReportAsTable
     -- FIXME. Have to check explicitly for which to render here, since
     -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
     -- this.
-    renderacct row
-      | tree_ ropts = replicate ((prrDepth row - 1)*2) ' ' ++ T.unpack (prrDisplayName row)
-      | otherwise   = T.unpack . maybeAccountNameDrop ropts $ prrFullName row
+    renderacct row = case accountlistmode_ ropts of
+        ALTree -> replicate ((prrDepth row - 1)*2) ' ' ++ T.unpack (prrDisplayName row)
+        ALFlat -> T.unpack . accountNameDrop (drop_ ropts) $ prrFullName row
     rowvals (PeriodicReportRow _ as rowtot rowavg) =
         as ++ [rowtot | row_total_ ropts] ++ [rowavg | average_ ropts]
     addtotalrow
@@ -328,13 +284,6 @@ budgetReportAsTable
                        coltots ++ [grandtot | row_total_ ropts && not (null coltots)]
                                ++ [grandavg | average_ ropts && not (null coltots)]
                     ))
-
--- XXX here for now
--- TODO: does not work for flat-by-default reports with --flat not specified explicitly
--- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
-maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
-maybeAccountNameDrop opts a | flat_ opts = accountNameDrop (drop_ opts) a
-                            | otherwise  = a
 
 -- tests
 
