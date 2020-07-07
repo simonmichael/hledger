@@ -35,7 +35,7 @@ hledger -f- print
 >>>=0
 #
 # 5. real and balanced virtual postings are balanced separately, and multiple blank virtuals are ok
-hledger -f- balance
+hledger -f- balance --tree
 <<<
 2010/1/1 x
   a  1

@@ -1,6 +1,6 @@
 #!/usr/bin/env shelltest
 # 1. Single column percent
-hledger -f sample.journal balance expenses -%
+hledger -f sample.journal balance expenses -% --tree
 >>>
              100.0 %  expenses
               50.0 %    food

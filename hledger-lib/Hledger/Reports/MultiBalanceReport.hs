@@ -15,7 +15,6 @@ module Hledger.Reports.MultiBalanceReport (
 
   multiBalanceReport,
   multiBalanceReportWith,
-  balanceReportFromMultiBalanceReport,
 
   CompoundBalanceReport,
   compoundBalanceReport,
@@ -45,7 +44,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
-import Safe (headDef, headMay, lastMay)
+import Safe (headMay, lastMay)
 import Text.Tabular as T
 import Text.Tabular.AsciiWide (render)
 
@@ -108,16 +107,15 @@ multiBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle -> Multi
 multiBalanceReportWith ropts q j priceoracle = report
   where
     -- Queries, report/column dates.
-    ropts'     = dbg "ropts'"     $ setDefaultAccountListMode ALFlat ropts
-    reportspan = dbg "reportspan" $ calculateReportSpan ropts' q j
-    reportq    = dbg "reportq"    $ makeReportQuery ropts' reportspan q
+    reportspan = dbg "reportspan" $ calculateReportSpan ropts q j
+    reportq    = dbg "reportq"    $ makeReportQuery ropts reportspan q
 
     -- Group postings into their columns.
-    colps    = dbg'' "colps"  $ getPostingsByColumn ropts' reportq j reportspan
+    colps    = dbg'' "colps"  $ getPostingsByColumn ropts reportq j reportspan
     colspans = dbg "colspans" $ M.keys colps
 
     -- Postprocess the report, negating balances and taking percentages if needed
-    report = dbg' "report" $ generateMultiBalanceReport ropts' reportq j priceoracle reportspan colspans colps
+    report = dbg' "report" $ generateMultiBalanceReport ropts reportq j priceoracle reportspan colspans colps
 
 -- | Generate a compound balance report from a list of CBCSubreportSpec. This
 -- shares postings between the subreports.
@@ -135,12 +133,11 @@ compoundBalanceReportWith :: ReportOpts -> Query -> Journal -> PriceOracle
 compoundBalanceReportWith ropts q j priceoracle subreportspecs = cbr
   where
     -- Queries, report/column dates.
-    ropts'     = dbg "ropts'"     $ setDefaultAccountListMode ALFlat ropts
-    reportspan = dbg "reportspan" $ calculateReportSpan ropts' q j
-    reportq    = dbg "reportq"    $ makeReportQuery ropts' reportspan q
+    reportspan = dbg "reportspan" $ calculateReportSpan ropts q j
+    reportq    = dbg "reportq"    $ makeReportQuery ropts reportspan q
 
     -- Group postings into their columns.
-    colps    = dbg'' "colps"  $ getPostingsByColumn ropts'{empty_=True} reportq j reportspan
+    colps    = dbg'' "colps"  $ getPostingsByColumn ropts{empty_=True} reportq j reportspan
     colspans = dbg "colspans" $ M.keys colps
 
     -- Filter the column postings according to each subreport
@@ -153,11 +150,11 @@ compoundBalanceReportWith ropts q j priceoracle subreportspecs = cbr
             ( cbcsubreporttitle
             -- Postprocess the report, negating balances and taking percentages if needed
             , prNormaliseSign cbcsubreportnormalsign $
-                generateMultiBalanceReport ropts'' reportq j priceoracle reportspan colspans colps'
+                generateMultiBalanceReport ropts' reportq j priceoracle reportspan colspans colps'
             , cbcsubreportincreasestotal
             )
           where
-            ropts'' = ropts'{normalbalance_=Just cbcsubreportnormalsign}
+            ropts' = ropts{normalbalance_=Just cbcsubreportnormalsign}
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports
@@ -172,14 +169,6 @@ compoundBalanceReportWith ropts q j priceoracle subreportspecs = cbr
 
     cbr = CompoundPeriodicReport "" colspans subreports overalltotals
 
-
--- | Calculate the span of the report to be generated.
-setDefaultAccountListMode :: AccountListMode -> ReportOpts -> ReportOpts
-setDefaultAccountListMode def ropts = ropts{accountlistmode_=mode}
-  where
-    mode = case accountlistmode_ ropts of
-        ALDefault -> def
-        a         -> a
 
 -- | Calculate starting balances, if needed for -H
 --
@@ -200,8 +189,9 @@ startingBalances ropts q j reportspan = acctchanges
     startbalq = dbg'' "startbalq" $ And [datelessq, precedingspanq]
     datelessq = dbg "datelessq" $ filterQuery (not . queryIsDateOrDate2) q
 
-    ropts' | tree_ ropts = ropts{no_elide_=True, period_=precedingperiod}
-           | otherwise   = ropts{accountlistmode_=ALFlat, period_=precedingperiod}
+    ropts' = case accountlistmode_ ropts of
+        ALTree -> ropts{no_elide_=True, period_=precedingperiod}
+        ALFlat -> ropts{period_=precedingperiod}
 
     precedingperiod = dateSpanAsPeriod . spanIntersect precedingspan .
                          periodAsDateSpan $ period_ ropts
@@ -296,9 +286,9 @@ acctChangesFromPostings :: ReportOpts -> Query -> [Posting] -> HashMap ClippedAc
 acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
   where
     as = filterAccounts . drop 1 $ accountsFromPostings ps
-    filterAccounts
-      | tree_ ropts = filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
-      | otherwise   = clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
+    filterAccounts = case accountlistmode_ ropts of
+        ALTree -> filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
+        ALFlat -> clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
                       filter ((0<) . anumpostings)
     depthq = dbg "depthq" $ filterQuery queryIsDepth q
 
@@ -416,7 +406,7 @@ buildReportRows ropts acctvalues =
     , let rowtot = if balancetype_ ropts == PeriodChange then sum rowbals else 0
     , let rowavg = averageMixedAmounts rowbals
     ]
-  where balance = if tree_ ropts then aibalance else aebalance
+  where balance = case accountlistmode_ ropts of ALTree -> aibalance; ALFlat -> aebalance
 
 -- | Calculate accounts which are to be displayed in the report, as well as
 -- their name and depth
@@ -432,9 +422,9 @@ displayedAccounts ropts q valuedaccts
       where
         keep name amts = isInteresting name amts || name `HM.member` interestingParents
 
-    displayedName name
-        | flat_ ropts = DisplayName name droppedName 1
-        | otherwise   = DisplayName name leaf . max 0 $ level - boringParents
+    displayedName name = case accountlistmode_ ropts of
+        ALTree -> DisplayName name leaf . max 0 $ level - boringParents
+        ALFlat -> DisplayName name droppedName 1
       where
         droppedName = accountNameDrop (drop_ ropts) name
         leaf = accountNameFromComponents . reverse . map accountLeafName $
@@ -451,13 +441,14 @@ displayedAccounts ropts q valuedaccts
         && (empty_ ropts || depth == 0 || not (isZeroRow balance amts))  -- Boring because has only zero entries
       where
         d = accountNameLevel name
-        balance = if tree_ ropts && d == depth then aibalance else aebalance
+        balance | ALTree <- accountlistmode_ ropts, d == depth = aibalance
+                | otherwise = aebalance
 
     -- Accounts interesting because they are a fork for interesting subaccounts
     interestingParents = dbg'' "interestingParents" $ HM.filterWithKey keepParent tallies
       where
         keepParent name subaccts
-            | flat_ ropts     = False
+            | ALFlat <- accountlistmode_ ropts = False
             | no_elide_ ropts = subaccts > 0 && accountNameLevel name > drop_ ropts
             | otherwise       = subaccts > 1 && accountNameLevel name > drop_ ropts
         tallies = subaccountTallies . HM.keys $ HM.filterWithKey isInteresting valuedaccts
@@ -515,7 +506,7 @@ calculateTotalsRow ropts displayaccts rows =
       where isHighest = not . any (`HM.member` displayaccts) . init . expandAccountName
 
     colamts = transpose . map prrAmounts $ filter isHighest rows
-      where isHighest row = not (tree_ ropts) || prrFullName row `HM.member` highestlevelaccts
+      where isHighest row = flat_ ropts || prrFullName row `HM.member` highestlevelaccts
 
     -- TODO: If colamts is null, then this is empty. Do we want it to be a full
     -- column of zeros?
@@ -545,25 +536,6 @@ postprocessReport ropts displaynames =
                 (zipWith perdivide rowvals $ prrAmounts totalrow)
                 (perdivide rowtotal $ prrTotal totalrow)
                 (perdivide rowavg $ prrAverage totalrow)
-
-
--- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport,
--- in order to support --historical. If the normalbalance_ option is set, it
--- adjusts the sorting and sign of amounts (see ReportOpts and
--- CompoundBalanceCommand).
-balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal
-    -> ([(AccountName, AccountName, Int, MixedAmount)], MixedAmount)
-balanceReportFromMultiBalanceReport ropts q j = (rows', total)
-  where
-    PeriodicReport _ rows (PeriodicReportRow _ totals _ _) =
-        multiBalanceReportWith ropts' q j (journalPriceOracle (infer_value_ ropts) j)
-    rows' = [( displayFull a
-             , displayName a
-             , if tree_ ropts' then displayDepth a - 1 else 0  -- BalanceReport uses 0-based account depths
-             , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
-             ) | PeriodicReportRow a amts _ _ <- rows]
-    total = headDef nullmixedamt totals
-    ropts' = setDefaultAccountListMode ALTree ropts
 
 
 -- | Transpose a Map of HashMaps to a HashMap of Maps.

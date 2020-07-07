@@ -240,7 +240,7 @@ Balance Sheet 2016-01-31
 
 # 9. Check that accounts brought to zero by subaccount balances
 # are not erased from balancesheet
-hledger -f - balancesheet
+hledger -f - balancesheet --tree
 <<<
 2018-10-01
    income:whatever
