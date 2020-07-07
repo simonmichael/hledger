@@ -27,6 +27,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Checkdates
   ,module Hledger.Cli.Commands.Checkdupes
   ,module Hledger.Cli.Commands.Close
+  ,module Hledger.Cli.Commands.Codes
   ,module Hledger.Cli.Commands.Commodities
   ,module Hledger.Cli.Commands.Descriptions
   ,module Hledger.Cli.Commands.Diff
@@ -72,6 +73,7 @@ import Hledger.Cli.Commands.Cashflow
 import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Close
+import Hledger.Cli.Commands.Codes
 import Hledger.Cli.Commands.Commodities
 import Hledger.Cli.Commands.Descriptions
 import Hledger.Cli.Commands.Diff
@@ -107,6 +109,7 @@ builtinCommands = [
   ,(checkdatesmode         , checkdates)
   ,(checkdupesmode         , checkdupes)
   ,(closemode              , close)
+  ,(codesmode              , codes)
   ,(commoditiesmode        , commodities)
   ,(descriptionsmode        , descriptions)
   ,(diffmode               , diff)
@@ -180,6 +183,7 @@ commandsList = unlines [
   ," accounts (a)             show account names"
   ," activity                 show postings-per-interval bar charts"
   ," balance (b, bal)         show balance changes/end balances/budgets in accounts"
+  ," codes                    show transaction codes"
   ," commodities              show commodity/currency symbols"
   ," descriptions             show unique transaction descriptions"
   ," files                    show input file paths"

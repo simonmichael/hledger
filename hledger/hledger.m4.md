@@ -1581,6 +1581,10 @@ _include_({{Hledger/Cli/Commands/Checkdupes.md}})
 
 _include_({{Hledger/Cli/Commands/Close.md}})
 
+## codes
+
+_include_({{Hledger/Cli/Commands/Codes.md}})
+
 ## commodities
 
 _include_({{Hledger/Cli/Commands/Commodities.md}})
