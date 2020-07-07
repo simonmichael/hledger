@@ -882,6 +882,30 @@ start of conditional block found, but no assignment rules afterward
 )
 >=1
 
+# 44. handle conditions with & operator
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if Flubber
+& %amount 50
+  account2 acct
+$  ./csvtest.sh
+2009-09-10 Flubber Co
+    assets:myacct             $50
+    acct                     $-50
+
+2009-09-10 Blubber Co
+    assets:myacct              $50
+    income:unknown            $-50
+
+>=0
+
 
 ## . 
 #<
