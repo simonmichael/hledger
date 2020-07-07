@@ -83,7 +83,9 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   -- 4. print what remains as a list or tree, maybe applying --drop in the former case
   mapM_ (T.putStrLn . render) clippedaccts
     where
-      render a
-        | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a
-        | otherwise   = accountNameDrop (drop_ ropts) a
-
+      render a = case accountlistmode_ ropts of
+          ALTree -> T.replicate indent " " <> accountLeafName droppedName
+          ALFlat -> droppedName
+        where
+          indent = 2 * (max 0 (accountNameLevel a - drop_ ropts) - 1)
+          droppedName = accountNameDrop (drop_ ropts) a
