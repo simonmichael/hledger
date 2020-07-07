@@ -44,7 +44,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
-import Safe (headMay, lastMay)
+import Safe (headMay, lastDef, lastMay)
 import Text.Tabular as T
 import Text.Tabular.AsciiWide (render)
 
@@ -403,7 +403,7 @@ buildReportRows ropts acctvalues =
     -- The total and average for the row.
     -- These are always simply the sum/average of the displayed row amounts.
     -- Total for a cumulative/historical report is always zero.
-    , let rowtot = if balancetype_ ropts == PeriodChange then sum rowbals else 0
+    , let rowtot = if balancetype_ ropts == PeriodChange then sum rowbals else lastDef 0 rowbals
     , let rowavg = averageMixedAmounts rowbals
     ]
   where balance = case accountlistmode_ ropts of ALTree -> aibalance; ALFlat -> aebalance
@@ -616,8 +616,8 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
      ,test "with -H on a populated period"  $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
        (
-        [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mamountp' "$1.00"]  (Mixed [nullamt]) (Mixed [amt0 {aquantity=1}])
-        , PeriodicReportRow (flatDisplayName "income:salary")        [mamountp' "$-1.00"] (Mixed [nullamt]) (Mixed [amt0 {aquantity=(-1)}])
+        [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mamountp' "$1.00"]  (mamountp' "$1.00")  (Mixed [amt0 {aquantity=1}])
+        , PeriodicReportRow (flatDisplayName "income:salary")        [mamountp' "$-1.00"] (mamountp' "$-1.00") (Mixed [amt0 {aquantity=(-1)}])
         ],
         Mixed [nullamt])
 

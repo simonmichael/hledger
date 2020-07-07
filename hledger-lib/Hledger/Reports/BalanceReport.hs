@@ -18,7 +18,6 @@ module Hledger.Reports.BalanceReport (
 where
 
 import Data.Time.Calendar
-import Safe (headDef)
 
 import Hledger.Data
 import Hledger.Read (mamountp')
@@ -69,12 +68,9 @@ balanceReport ropts q j = (rows, total)
     rows = [( prrFullName row
             , prrDisplayName row
             , prrDepth row - 1  -- BalanceReport uses 0-based account depths
-            , headAmt row
+            , prrTotal row
             ) | row <- prRows report]
-    total = headAmt $ prTotals report
-    headAmt = headDef nullmixedamt . prrAmounts
-
-
+    total = prrTotal $ prTotals report
 
 
 -- tests
@@ -110,12 +106,12 @@ tests_BalanceReport = tests "BalanceReport" [
           (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
           showw (acct,acct',indent,amt) = (acct, acct', indent, showMixedAmountDebug amt)
       (map showw aitems) @?= (map showw eitems)
-      (showMixedAmountDebug etotal) @?= (showMixedAmountDebug atotal)
+      (showMixedAmountDebug atotal) @?= (showMixedAmountDebug etotal)
   in
     tests "balanceReport" [
 
      test "no args, null journal" $
-     (defreportopts, nulljournal) `gives` ([], Mixed [])
+     (defreportopts, nulljournal) `gives` ([], 0)
 
     ,test "no args, sample journal" $
      (defreportopts, samplejournal) `gives`
@@ -165,7 +161,7 @@ tests_BalanceReport = tests "BalanceReport" [
 
     ,test "with date:" $
      (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
-      ([], Mixed [num 0])
+      ([], 0)
 
     ,test "with date2:" $
      (defreportopts{query_="date2:'in 2009'"}, samplejournal2) `gives`
@@ -205,7 +201,7 @@ tests_BalanceReport = tests "BalanceReport" [
 
      ,test "with period on an unpopulated period" $
       (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}, samplejournal) `gives`
-       ([], Mixed [num 0])
+       ([], 0)
 
 
 
