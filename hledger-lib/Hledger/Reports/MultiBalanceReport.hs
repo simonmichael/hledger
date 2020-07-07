@@ -22,7 +22,7 @@ module Hledger.Reports.MultiBalanceReport (
 
   tableAsText,
 
-  sortAccountItemsLike,
+  sortRowsLike,
 
   -- -- * Tests
   tests_MultiBalanceReport
@@ -31,14 +31,14 @@ where
 
 import Control.Monad (guard)
 import Data.Foldable (toList)
-import Data.List (sortBy, transpose)
+import Data.List (sortOn, transpose)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, mapMaybe)
-import Data.Ord (comparing)
+import Data.Ord (Down(..))
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
 #endif
@@ -377,36 +377,42 @@ generateMultiBalanceReport ropts q j priceoracle reportspan colspans colps = rep
     accumvalued = accumValueAmounts ropts j priceoracle colspans startbals acctchanges
 
     -- All account names that will be displayed, possibly depth-clipped.
-    displayaccts = dbg'' "displayaccts" $ displayedAccounts ropts q accumvalued
+    displaynames = dbg'' "displaynames" $ displayedAccounts ropts q accumvalued
 
     -- All the rows of the report.
-    rows = dbg'' "rows" $ buildReportRows ropts accumvalued
+    rows = dbg'' "rows" $ buildReportRows ropts displaynames accumvalued
 
     -- Calculate column totals
-    totalsrow = dbg' "totalsrow" $ calculateTotalsRow ropts displayaccts rows
+    totalsrow = dbg' "totalsrow" $ calculateTotalsRow ropts rows
 
     -- Sorted report rows.
     sortedrows = dbg' "sortedrows" $ sortRows ropts j rows
 
     -- Postprocess the report, negating balances and taking percentages if needed
-    report = postprocessReport ropts displayaccts $
-        PeriodicReport colspans sortedrows totalsrow
+    report = postprocessReport ropts $ PeriodicReport colspans sortedrows totalsrow
 
 -- | Build the report rows.
 --
 -- One row per account, with account name info, row amounts, row total and row average.
-buildReportRows :: ReportOpts -> HashMap AccountName (Map DateSpan Account) -> [MultiBalanceReportRow]
-buildReportRows ropts acctvalues =
-    [ PeriodicReportRow (flatDisplayName a) rowbals rowtot rowavg
-    | (a,accts) <- HM.toList acctvalues
-    , let rowbals = map balance $ toList accts
-    -- The total and average for the row.
-    -- These are always simply the sum/average of the displayed row amounts.
-    -- Total for a cumulative/historical report is always zero.
-    , let rowtot = if balancetype_ ropts == PeriodChange then sum rowbals else lastDef 0 rowbals
-    , let rowavg = averageMixedAmounts rowbals
-    ]
-  where balance = case accountlistmode_ ropts of ALTree -> aibalance; ALFlat -> aebalance
+buildReportRows :: ReportOpts
+                -> HashMap AccountName DisplayName
+                -> HashMap AccountName (Map DateSpan Account)
+                -> [MultiBalanceReportRow]
+buildReportRows ropts displaynames = toList . HM.mapMaybeWithKey mkRow
+  where
+    mkRow name accts = do
+        displayname <- HM.lookup name displaynames
+        return $ PeriodicReportRow displayname rowbals rowtot rowavg
+      where
+        rowbals = map balance $ toList accts
+        -- The total and average for the row.
+        -- These are always simply the sum/average of the displayed row amounts.
+        -- Total for a cumulative/historical report is always the last column.
+        rowtot = case balancetype_ ropts of
+            PeriodChange -> sum rowbals
+            _            -> lastDef 0 rowbals
+        rowavg = averageMixedAmounts rowbals
+    balance = case accountlistmode_ ropts of ALTree -> aibalance; ALFlat -> aebalance
 
 -- | Calculate accounts which are to be displayed in the report, as well as
 -- their name and depth
@@ -456,75 +462,69 @@ displayedAccounts ropts q valuedaccts
     isZeroRow balance = all (mixedAmountLooksZero . balance)
     depth = queryDepth q
 
--- | Sort the rows by amount or by account declaration order. This is a bit tricky.
--- TODO: is it always ok to sort report rows after report has been generated, as a separate step ?
+-- | Sort the rows by amount or by account declaration order.
 sortRows :: ReportOpts -> Journal -> [MultiBalanceReportRow] -> [MultiBalanceReportRow]
 sortRows ropts j
-    | sort_amount_ ropts && accountlistmode_ ropts == ALTree = sortTreeMBRByAmount
-    | sort_amount_ ropts                                     = sortFlatMBRByAmount
-    | otherwise                                              = sortMBRByAccountDeclaration
+    | sort_amount_ ropts, ALTree <- accountlistmode_ ropts = sortTreeMBRByAmount
+    | sort_amount_ ropts, ALFlat <- accountlistmode_ ropts = sortFlatMBRByAmount
+    | otherwise                                            = sortMBRByAccountDeclaration
   where
     -- Sort the report rows, representing a tree of accounts, by row total at each level.
     -- Similar to sortMBRByAccountDeclaration/sortAccountNamesByDeclaration.
     sortTreeMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
-    sortTreeMBRByAmount rows = sortedrows
+    sortTreeMBRByAmount rows = mapMaybe (`HM.lookup` rowMap) sortedanames
       where
-        anamesandrows = [(prrFullName r, r) | r <- rows]
-        anames = map fst anamesandrows
-        atotals = [(prrFullName r, prrTotal r) | r <- rows]
-        accounttree = accountTree "root" anames
+        accounttree = accountTree "root" $ map prrFullName rows
+        rowMap = HM.fromList $ map (\row -> (prrFullName row, row)) rows
+        -- Set the inclusive balance of an account from the rows, or sum the
+        -- subaccounts if it's not present
         accounttreewithbals = mapAccounts setibalance accounttree
-          where
-            -- should not happen, but it's dangerous; TODO
-            setibalance a = a{aibalance=fromMaybe (error "sortTreeMBRByAmount 1") $ lookup (aname a) atotals}
+        setibalance a = a{aibalance = maybe (sum . map aibalance $ asubs a) prrTotal $
+                                          HM.lookup (aname a) rowMap}
         sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
         sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
-        sortedrows = sortAccountItemsLike sortedanames anamesandrows
 
     -- Sort the report rows, representing a flat account list, by row total.
-    sortFlatMBRByAmount = sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . prrTotal))
-      where
-        maybeflip = if normalbalance_ ropts == Just NormallyNegative then id else flip
+    sortFlatMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
+    sortFlatMBRByAmount = case normalbalance_ ropts of
+        Just NormallyNegative -> sortOn amt
+        _                     -> sortOn (Down . amt)
+      where amt = normaliseMixedAmountSquashPricesForDisplay . prrTotal
 
     -- Sort the report rows by account declaration order then account name.
-    sortMBRByAccountDeclaration rows = sortedrows
+    sortMBRByAccountDeclaration :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
+    sortMBRByAccountDeclaration rows = sortRowsLike sortedanames rows
       where
-        anamesandrows = [(prrFullName r, r) | r <- rows]
-        anames = map fst anamesandrows
-        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
-        sortedrows = sortAccountItemsLike sortedanames anamesandrows
+        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) $ map prrFullName rows
 
 -- | Build the report totals row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-calculateTotalsRow :: ReportOpts -> HashMap ClippedAccountName DisplayName
-                   -> [MultiBalanceReportRow] -> PeriodicReportRow () MixedAmount
-calculateTotalsRow ropts displayaccts rows =
+calculateTotalsRow :: ReportOpts -> [MultiBalanceReportRow] -> PeriodicReportRow () MixedAmount
+calculateTotalsRow ropts rows =
     PeriodicReportRow () coltotals grandtotal grandaverage
   where
-    highestlevelaccts = HM.filterWithKey (\a _ -> isHighest a) displayaccts
-      where isHighest = not . any (`HM.member` displayaccts) . init . expandAccountName
+    isTopRow row = flat_ ropts || not (any (`HM.member` rowMap) parents)
+      where parents = init . expandAccountName $ prrFullName row
+    rowMap = HM.fromList $ map (\row -> (prrFullName row, row)) rows
 
-    colamts = transpose . map prrAmounts $ filter isHighest rows
-      where isHighest row = flat_ ropts || prrFullName row `HM.member` highestlevelaccts
+    colamts = transpose . map prrAmounts $ filter isTopRow rows
 
-    -- TODO: If colamts is null, then this is empty. Do we want it to be a full
-    -- column of zeros?
     coltotals :: [MixedAmount] = dbg'' "coltotals" $ map sum colamts
 
     -- Calculate the grand total and average. These are always the sum/average
     -- of the column totals.
-    grandtotal  = if balancetype_ ropts == PeriodChange then sum coltotals else 0
+    -- Total for a cumulative/historical report is always the last column.
+    grandtotal = case balancetype_ ropts of
+        PeriodChange -> sum coltotals
+        _            -> lastDef 0 coltotals
     grandaverage = averageMixedAmounts coltotals
 
 -- | Map the report rows to percentages and negate if needed
-postprocessReport :: ReportOpts -> HashMap AccountName DisplayName
-                  -> MultiBalanceReport -> MultiBalanceReport
-postprocessReport ropts displaynames =
-    maybeInvert . maybePercent . setNames
+postprocessReport :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
+postprocessReport ropts =
+    maybeInvert . maybePercent
   where
-    setNames = prMapMaybeName $ (`HM.lookup` displaynames) . displayFull
-
     maybeInvert  = if invert_  ropts then prNegate  else id
     maybePercent = if percent_ ropts then prPercent else id
 
@@ -552,8 +552,9 @@ transposeMap xs = M.foldrWithKey addSpan mempty xs
 
 -- | A sorting helper: sort a list of things (eg report rows) keyed by account name
 -- to match the provided ordering of those same account names.
-sortAccountItemsLike :: [AccountName] -> [(AccountName, b)] -> [b]
-sortAccountItemsLike sortedas items = mapMaybe (`lookup` items) sortedas
+sortRowsLike :: [AccountName] -> [PeriodicReportRow DisplayName b] -> [PeriodicReportRow DisplayName b]
+sortRowsLike sortedas rows = mapMaybe (`HM.lookup` rowMap) sortedas
+  where rowMap = HM.fromList $ map (\row -> (prrFullName row, row)) rows
 
 -- | Given a list of account names, find all forking parent accounts, i.e.
 -- those which fork between different branches
@@ -619,7 +620,7 @@ tests_MultiBalanceReport = tests "MultiBalanceReport" [
         [ PeriodicReportRow (flatDisplayName "assets:bank:checking") [mamountp' "$1.00"]  (mamountp' "$1.00")  (Mixed [amt0 {aquantity=1}])
         , PeriodicReportRow (flatDisplayName "income:salary")        [mamountp' "$-1.00"] (mamountp' "$-1.00") (Mixed [amt0 {aquantity=(-1)}])
         ],
-        Mixed [nullamt])
+        mamountp' "$0.00")
 
      -- ,test "a valid history on an empty period"  $
      --  (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`

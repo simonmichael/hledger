@@ -98,10 +98,8 @@ sortBudgetReport ropts j (PeriodicReport ps rows trow) = PeriodicReport ps sorte
     sortTreeBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
     sortTreeBURByActualAmount rows = sortedrows
       where
-        anamesandrows = [(prrFullName r, r) | r <- rows]
-        anames = map fst anamesandrows
         atotals = [(displayFull a, tot) | PeriodicReportRow a _ (tot,_) _ <- rows]
-        accounttree = accountTree "root" anames
+        accounttree = accountTree "root" $ map prrFullName rows
         accounttreewithbals = mapAccounts setibalance accounttree
           where
             setibalance a = a{aibalance=
@@ -111,7 +109,7 @@ sortBudgetReport ropts j (PeriodicReport ps rows trow) = PeriodicReport ps sorte
               }
         sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
         sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
-        sortedrows = sortAccountItemsLike sortedanames anamesandrows
+        sortedrows = sortRowsLike sortedanames rows
 
     -- Sort a flat-mode budget report's rows by total actual amount.
     sortFlatBURByActualAmount :: [BudgetReportRow] -> [BudgetReportRow]
@@ -124,10 +122,8 @@ sortBudgetReport ropts j (PeriodicReport ps rows trow) = PeriodicReport ps sorte
     sortByAccountDeclaration rows = sortedrows
       where
         (unbudgetedrow,rows') = partition ((==unbudgetedAccountName) . prrFullName) rows
-        anamesandrows = [(prrFullName r, r) | r <- rows']
-        anames = map fst anamesandrows
-        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) anames
-        sortedrows = unbudgetedrow ++ sortAccountItemsLike sortedanames anamesandrows
+        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) $ map prrFullName rows'
+        sortedrows = unbudgetedrow ++ sortRowsLike sortedanames rows
 
 -- | Use all periodic transactions in the journal to generate
 -- budget transactions in the specified report period.
