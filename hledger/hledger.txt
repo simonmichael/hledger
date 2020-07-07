@@ -1668,24 +1668,25 @@ COMMANDS
 
    add
        add
-       Prompt for transactions and add them to the journal.
+       Prompt  for  transactions  and  add them to the journal.  Any arguments
+       will be used as default inputs for the first N prompts.
 
-       Many  hledger users edit their journals directly with a text editor, or
-       generate them from CSV.  For more interactive data entry, there is  the
-       add  command, which prompts interactively on the console for new trans-
+       Many hledger users edit their journals directly with a text editor,  or
+       generate  them from CSV.  For more interactive data entry, there is the
+       add command, which prompts interactively on the console for new  trans-
        actions, and appends them to the journal file (if there are multiple -f
-       FILE  options,  the  first file is used.) Existing transactions are not
-       changed.  This is the only hledger command that writes to  the  journal
+       FILE options, the first file is used.) Existing  transactions  are  not
+       changed.   This  is the only hledger command that writes to the journal
        file.
 
        To use it, just run hledger add and follow the prompts.  You can add as
-       many transactions as you like; when you are finished, enter . or  press
+       many  transactions as you like; when you are finished, enter . or press
        control-d or control-c to exit.
 
        Features:
 
-       o add  tries to provide useful defaults, using the most similar (by de-
-         scription) recent transaction (filtered by the query, if  any)  as  a
+       o add tries to provide useful defaults, using the most similar (by  de-
+         scription)  recent  transaction  (filtered by the query, if any) as a
          template.
 
        o You can also set the initial defaults with command line arguments.
@@ -1693,10 +1694,10 @@ COMMANDS
        o Readline-style edit keys can be used during data entry.
 
        o The tab key will auto-complete whenever possible - accounts, descrip-
-         tions, dates (yesterday, today, tomorrow).   If  the  input  area  is
+         tions,  dates  (yesterday,  today,  tomorrow).   If the input area is
          empty, it will insert the default value.
 
-       o If  the  journal defines a default commodity, it will be added to any
+       o If the journal defines a default commodity, it will be added  to  any
          bare numbers entered.
 
        o A parenthesised transaction code may be entered following a date.
@@ -1705,7 +1706,7 @@ COMMANDS
 
        o If you make a mistake, enter < at any prompt to go one step backward.
 
-       o Input prompts are displayed in a different colour when  the  terminal
+       o Input  prompts  are displayed in a different colour when the terminal
          supports it.
 
        Example (see the tutorial for a detailed explanation):
@@ -1735,9 +1736,8 @@ COMMANDS
               Starting the next transaction (. or ctrl-D/ctrl-C to quit)
               Date [2015/05/22]: <CTRL-D> $
 
-       On  Microsoft  Windows,  the add command makes sure that no part of the
-       file path ends with a period, as it can cause data loss on  that  plat-
-       form (cf #1056).
+       On Microsoft Windows, the add command makes sure that no  part  of  the
+       file path ends with a period, as that would cause problems (#1056).
 
    balance
        balance, bal, b
@@ -2040,6 +2040,16 @@ COMMANDS
 
        The  --transpose flag can be used to exchange the rows and columns of a
        multicolumn report.
+
+       When showing multicommodity amounts, multicolumn balance  reports  will
+       elide any amounts which have more than two commodities, since otherwise
+       columns could get very wide.  The --no-elide flag disables this.   Hid-
+       ing  totals  with the -N/--no-total flag can also help reduce the width
+       of multicommodity reports.
+
+       When the report is still too wide, a good workaround is to pipe it into
+       less  -RS (-R for colour, -S to chop long lines).  Eg: hledger bal -D |
+       less -RS.
 
    Budget report
        With --budget, extra columns are displayed  showing  budget  goals  for

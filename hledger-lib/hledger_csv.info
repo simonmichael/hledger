@@ -28,17 +28,24 @@ rules for categorising transactions based on their descriptions.  Here's
 an overview of the CSV rules; these are described more fully below,
 after the examples:
 
-*'skip'*           skip one or more header lines or matched CSV records
-*'fields'*         name CSV fields, assign them to hledger fields
-*field             assign a value to one hledger field, with interpolation
-assignment*
-*'separator'*      a custom field separator
-*'if'*             apply some rules to matched CSV records
-*'end'*            skip the remaining CSV records
-*'date-format'*    describe the format of CSV dates
-*'newest-first'*   disambiguate record order when there's only one date
-*'include'*        inline another CSV rules file
-*'balance-type'*   choose which type of balance assignments to use
+*'skip'*                        skip one or more header lines or
+                                matched CSV records
+*'fields'*                      name CSV fields, assign them to hledger
+                                fields
+*field assignment*              assign a value to one hledger field,
+                                with interpolation
+*'separator'*                   a custom field separator
+*'if' block*                    apply some rules to CSV records matched
+                                by patterns
+*'if' table*                    apply some rules to CSV records matched
+                                by patterns, alternate syntax
+*'end'*                         skip the remaining CSV records
+*'date-format'*                 describe the format of CSV dates
+*'newest-first'*                disambiguate record order when there's
+                                only one date
+*'include'*                     inline another CSV rules file
+*'balance-type'*                choose which type of balance
+                                assignments to use
 
    Note, for best error messages when reading CSV files, use a '.csv',
 '.tsv' or '.ssv' file extension or file prefix - see File Extension
@@ -1098,76 +1105,76 @@ command the user specified.
 
 Tag Table:
 Node: Top72
-Node: EXAMPLES2180
-Ref: #examples2286
-Node: Basic2494
-Ref: #basic2594
-Node: Bank of Ireland3136
-Ref: #bank-of-ireland3271
-Node: Amazon4733
-Ref: #amazon4851
-Node: Paypal6570
-Ref: #paypal6664
-Node: CSV RULES14308
-Ref: #csv-rules14417
-Node: skip14712
-Ref: #skip14805
-Node: fields15180
-Ref: #fields15302
-Node: Transaction field names16467
-Ref: #transaction-field-names16627
-Node: Posting field names16738
-Ref: #posting-field-names16890
-Node: account16960
-Ref: #account17076
-Node: amount17613
-Ref: #amount17744
-Node: currency18851
-Ref: #currency18986
-Node: balance19192
-Ref: #balance19326
-Node: comment19643
-Ref: #comment19760
-Node: field assignment19923
-Ref: #field-assignment20066
-Node: separator20884
-Ref: #separator21019
-Node: if block21430
-Ref: #if-block21555
-Node: if table23711
-Ref: #if-table23830
-Node: end25568
-Ref: #end25680
-Node: date-format25904
-Ref: #date-format26036
-Node: newest-first26785
-Ref: #newest-first26923
-Node: include27606
-Ref: #include27737
-Node: balance-type28181
-Ref: #balance-type28301
-Node: TIPS29001
-Ref: #tips29083
-Node: Rapid feedback29339
-Ref: #rapid-feedback29456
-Node: Valid CSV29916
-Ref: #valid-csv30046
-Node: File Extension30238
-Ref: #file-extension30390
-Node: Reading multiple CSV files30800
-Ref: #reading-multiple-csv-files30985
-Node: Valid transactions31226
-Ref: #valid-transactions31404
-Node: Deduplicating importing32032
-Ref: #deduplicating-importing32211
-Node: Setting amounts33244
-Ref: #setting-amounts33413
-Node: Setting currency/commodity34400
-Ref: #setting-currencycommodity34592
-Node: Referencing other fields35395
-Ref: #referencing-other-fields35595
-Node: How CSV rules are evaluated36492
-Ref: #how-csv-rules-are-evaluated36665
+Node: EXAMPLES2636
+Ref: #examples2742
+Node: Basic2950
+Ref: #basic3050
+Node: Bank of Ireland3592
+Ref: #bank-of-ireland3727
+Node: Amazon5189
+Ref: #amazon5307
+Node: Paypal7026
+Ref: #paypal7120
+Node: CSV RULES14764
+Ref: #csv-rules14873
+Node: skip15168
+Ref: #skip15261
+Node: fields15636
+Ref: #fields15758
+Node: Transaction field names16923
+Ref: #transaction-field-names17083
+Node: Posting field names17194
+Ref: #posting-field-names17346
+Node: account17416
+Ref: #account17532
+Node: amount18069
+Ref: #amount18200
+Node: currency19307
+Ref: #currency19442
+Node: balance19648
+Ref: #balance19782
+Node: comment20099
+Ref: #comment20216
+Node: field assignment20379
+Ref: #field-assignment20522
+Node: separator21340
+Ref: #separator21475
+Node: if block21886
+Ref: #if-block22011
+Node: if table24167
+Ref: #if-table24286
+Node: end26024
+Ref: #end26136
+Node: date-format26360
+Ref: #date-format26492
+Node: newest-first27241
+Ref: #newest-first27379
+Node: include28062
+Ref: #include28193
+Node: balance-type28637
+Ref: #balance-type28757
+Node: TIPS29457
+Ref: #tips29539
+Node: Rapid feedback29795
+Ref: #rapid-feedback29912
+Node: Valid CSV30372
+Ref: #valid-csv30502
+Node: File Extension30694
+Ref: #file-extension30846
+Node: Reading multiple CSV files31256
+Ref: #reading-multiple-csv-files31441
+Node: Valid transactions31682
+Ref: #valid-transactions31860
+Node: Deduplicating importing32488
+Ref: #deduplicating-importing32667
+Node: Setting amounts33700
+Ref: #setting-amounts33869
+Node: Setting currency/commodity34856
+Ref: #setting-currencycommodity35048
+Node: Referencing other fields35851
+Ref: #referencing-other-fields36051
+Node: How CSV rules are evaluated36948
+Ref: #how-csv-rules-are-evaluated37121
 
 End Tag Table
 

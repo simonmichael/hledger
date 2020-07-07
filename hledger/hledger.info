@@ -1982,7 +1982,8 @@ File: hledger.info,  Node: add,  Next: balance,  Prev: activity,  Up: COMMANDS
 =======
 
 add
-Prompt for transactions and add them to the journal.
+Prompt for transactions and add them to the journal.  Any arguments will
+be used as default inputs for the first N prompts.
 
    Many hledger users edit their journals directly with a text editor,
 or generate them from CSV. For more interactive data entry, there is the
@@ -2043,8 +2044,7 @@ Starting the next transaction (. or ctrl-D/ctrl-C to quit)
 Date [2015/05/22]: <CTRL-D> $
 
    On Microsoft Windows, the add command makes sure that no part of the
-file path ends with a period, as it can cause data loss on that platform
-(cf #1056).
+file path ends with a period, as that would cause problems (#1056).
 
 
 File: hledger.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMMANDS
@@ -2391,6 +2391,16 @@ supported.
 
    The '--transpose' flag can be used to exchange the rows and columns
 of a multicolumn report.
+
+   When showing multicommodity amounts, multicolumn balance reports will
+elide any amounts which have more than two commodities, since otherwise
+columns could get very wide.  The '--no-elide' flag disables this.
+Hiding totals with the '-N/--no-total' flag can also help reduce the
+width of multicommodity reports.
+
+   When the report is still too wide, a good workaround is to pipe it
+into 'less -RS' (-R for colour, -S to chop long lines).  Eg: 'hledger
+bal -D | less -RS'.
 
 
 File: hledger.info,  Node: Budget report,  Next: ,  Prev: Multicolumn balance report,  Up: balance
@@ -3964,107 +3974,107 @@ Node: activity66438
 Ref: #activity66548
 Node: add66931
 Ref: #add67030
-Node: balance69769
-Ref: #balance69880
-Node: Classic balance report71338
-Ref: #classic-balance-report71511
-Node: Customising the classic balance report72945
-Ref: #customising-the-classic-balance-report73173
-Node: Colour support75249
-Ref: #colour-support75416
-Node: Flat mode75589
-Ref: #flat-mode75737
-Node: Depth limited balance reports76150
-Ref: #depth-limited-balance-reports76335
-Node: Percentages76791
-Ref: #percentages76957
-Node: Multicolumn balance report78094
-Ref: #multicolumn-balance-report78274
-Node: Budget report83536
-Ref: #budget-report83679
-Node: Nested budgets88945
-Ref: #nested-budgets89057
-Ref: #output-format-192538
-Node: balancesheet92735
-Ref: #balancesheet92871
-Node: balancesheetequity94337
-Ref: #balancesheetequity94486
-Node: cashflow95209
-Ref: #cashflow95337
-Node: check-dates96516
-Ref: #check-dates96643
-Node: check-dupes96922
-Ref: #check-dupes97046
-Node: close97339
-Ref: #close97453
-Node: close usage98975
-Ref: #close-usage99068
-Node: commodities101881
-Ref: #commodities102008
-Node: descriptions102090
-Ref: #descriptions102218
-Node: diff102399
-Ref: #diff102505
-Node: files103552
-Ref: #files103652
-Node: help103799
-Ref: #help103899
-Node: import104980
-Ref: #import105094
-Node: Importing balance assignments105987
-Ref: #importing-balance-assignments106135
-Node: incomestatement106784
-Ref: #incomestatement106917
-Node: notes108404
-Ref: #notes108517
-Node: payees108643
-Ref: #payees108749
-Node: prices108907
-Ref: #prices109013
-Node: print109354
-Ref: #print109464
-Node: print-unique114260
-Ref: #print-unique114386
-Node: register114671
-Ref: #register114798
-Node: Custom register output118970
-Ref: #custom-register-output119099
-Node: register-match120436
-Ref: #register-match120570
-Node: rewrite120921
-Ref: #rewrite121036
-Node: Re-write rules in a file122891
-Ref: #re-write-rules-in-a-file123025
-Node: Diff output format124235
-Ref: #diff-output-format124404
-Node: rewrite vs print --auto125496
-Ref: #rewrite-vs.-print---auto125675
-Node: roi126231
-Ref: #roi126329
-Node: stats127341
-Ref: #stats127440
-Node: tags128228
-Ref: #tags128326
-Node: test128620
-Ref: #test128728
-Node: Add-on commands129475
-Ref: #add-on-commands129592
-Node: ui130935
-Ref: #ui131023
-Node: web131077
-Ref: #web131180
-Node: iadd131296
-Ref: #iadd131407
-Node: interest131489
-Ref: #interest131596
-Node: ENVIRONMENT131836
-Ref: #environment131948
-Node: FILES132777
-Ref: #files-1132880
-Node: LIMITATIONS133093
-Ref: #limitations133212
-Node: TROUBLESHOOTING133954
-Ref: #troubleshooting134067
+Node: balance69823
+Ref: #balance69934
+Node: Classic balance report71392
+Ref: #classic-balance-report71565
+Node: Customising the classic balance report72999
+Ref: #customising-the-classic-balance-report73227
+Node: Colour support75303
+Ref: #colour-support75470
+Node: Flat mode75643
+Ref: #flat-mode75791
+Node: Depth limited balance reports76204
+Ref: #depth-limited-balance-reports76389
+Node: Percentages76845
+Ref: #percentages77011
+Node: Multicolumn balance report78148
+Ref: #multicolumn-balance-report78328
+Node: Budget report84066
+Ref: #budget-report84209
+Node: Nested budgets89475
+Ref: #nested-budgets89587
+Ref: #output-format-193068
+Node: balancesheet93265
+Ref: #balancesheet93401
+Node: balancesheetequity94867
+Ref: #balancesheetequity95016
+Node: cashflow95739
+Ref: #cashflow95867
+Node: check-dates97046
+Ref: #check-dates97173
+Node: check-dupes97452
+Ref: #check-dupes97576
+Node: close97869
+Ref: #close97983
+Node: close usage99505
+Ref: #close-usage99598
+Node: commodities102411
+Ref: #commodities102538
+Node: descriptions102620
+Ref: #descriptions102748
+Node: diff102929
+Ref: #diff103035
+Node: files104082
+Ref: #files104182
+Node: help104329
+Ref: #help104429
+Node: import105510
+Ref: #import105624
+Node: Importing balance assignments106517
+Ref: #importing-balance-assignments106665
+Node: incomestatement107314
+Ref: #incomestatement107447
+Node: notes108934
+Ref: #notes109047
+Node: payees109173
+Ref: #payees109279
+Node: prices109437
+Ref: #prices109543
+Node: print109884
+Ref: #print109994
+Node: print-unique114790
+Ref: #print-unique114916
+Node: register115201
+Ref: #register115328
+Node: Custom register output119500
+Ref: #custom-register-output119629
+Node: register-match120966
+Ref: #register-match121100
+Node: rewrite121451
+Ref: #rewrite121566
+Node: Re-write rules in a file123421
+Ref: #re-write-rules-in-a-file123555
+Node: Diff output format124765
+Ref: #diff-output-format124934
+Node: rewrite vs print --auto126026
+Ref: #rewrite-vs.-print---auto126205
+Node: roi126761
+Ref: #roi126859
+Node: stats127871
+Ref: #stats127970
+Node: tags128758
+Ref: #tags128856
+Node: test129150
+Ref: #test129258
+Node: Add-on commands130005
+Ref: #add-on-commands130122
+Node: ui131465
+Ref: #ui131553
+Node: web131607
+Ref: #web131710
+Node: iadd131826
+Ref: #iadd131937
+Node: interest132019
+Ref: #interest132126
+Node: ENVIRONMENT132366
+Ref: #environment132478
+Node: FILES133307
+Ref: #files-1133410
+Node: LIMITATIONS133623
+Ref: #limitations133742
+Node: TROUBLESHOOTING134484
+Ref: #troubleshooting134597
 
 End Tag Table
 

@@ -26,27 +26,24 @@ DESCRIPTION
        Here's an overview of the CSV rules; these are described more fully be-
        low, after the examples:
 
-       skip               skip one  or  more  header
-                          lines   or   matched   CSV
-                          records
-       fields             name  CSV  fields,  assign
-                          them to hledger fields
-       field assignment   assign   a  value  to  one
-                          hledger field, with inter-
-                          polation
-       separator          a custom field separator
-       if                 apply    some   rules   to
-                          matched CSV records
-       end                skip  the  remaining   CSV
-                          records
-       date-format        describe the format of CSV
-                          dates
-       newest-first       disambiguate record  order
-                          when there's only one date
-       include            inline  another  CSV rules
-                          file
-       balance-type       choose which type of  bal-
-                          ance assignments to use
+       skip                             skip one or more header lines or matched
+                                        CSV records
+       fields                           name  CSV fields, assign them to hledger
+                                        fields
+       field assignment                 assign a value  to  one  hledger  field,
+                                        with interpolation
+       separator                        a custom field separator
+       if block                         apply  some rules to CSV records matched
+                                        by patterns
+       if table                         apply some rules to CSV records  matched
+                                        by patterns, alternate syntax
+       end                              skip the remaining CSV records
+       date-format                      describe the format of CSV dates
+       newest-first                     disambiguate  record  order when there's
+                                        only one date
+       include                          inline another CSV rules file
+       balance-type                     choose which type of balance assignments
+                                        to use
 
        Note,  for best error messages when reading CSV files, use a .csv, .tsv
        or .ssv file extension or file prefix - see File Extension below.

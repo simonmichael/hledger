@@ -35,7 +35,7 @@ below, after the examples:
 .PP
 .TS
 tab(@);
-l l.
+lw(30.1n) lw(39.9n).
 T{
 \f[B]\f[CB]skip\f[B]\f[R]
 T}@T{
@@ -57,9 +57,14 @@ T}@T{
 a custom field separator
 T}
 T{
-\f[B]\f[CB]if\f[B]\f[R]
+\f[B]\f[CB]if\f[B] block\f[R]
 T}@T{
-apply some rules to matched CSV records
+apply some rules to CSV records matched by patterns
+T}
+T{
+\f[B]\f[CB]if\f[B] table\f[R]
+T}@T{
+apply some rules to CSV records matched by patterns, alternate syntax
 T}
 T{
 \f[B]\f[CB]end\f[B]\f[R]

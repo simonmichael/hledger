@@ -2434,6 +2434,7 @@ add
 .P
 .PD
 Prompt for transactions and add them to the journal.
+Any arguments will be used as default inputs for the first N prompts.
 .PP
 Many hledger users edit their journals directly with a text editor, or
 generate them from CSV.
@@ -2508,8 +2509,7 @@ Date [2015/05/22]: <CTRL-D> $
 .fi
 .PP
 On Microsoft Windows, the add command makes sure that no part of the
-file path ends with a period, as it can cause data loss on that platform
-(cf #1056).
+file path ends with a period, as that would cause problems (#1056).
 .SS balance
 .PP
 balance, bal, b
@@ -2882,6 +2882,17 @@ supported.
 .PP
 The \f[C]--transpose\f[R] flag can be used to exchange the rows and
 columns of a multicolumn report.
+.PP
+When showing multicommodity amounts, multicolumn balance reports will
+elide any amounts which have more than two commodities, since otherwise
+columns could get very wide.
+The \f[C]--no-elide\f[R] flag disables this.
+Hiding totals with the \f[C]-N/--no-total\f[R] flag can also help reduce
+the width of multicommodity reports.
+.PP
+When the report is still too wide, a good workaround is to pipe it into
+\f[C]less -RS\f[R] (-R for colour, -S to chop long lines).
+Eg: \f[C]hledger bal -D | less -RS\f[R].
 .SS Budget report
 .PP
 With \f[C]--budget\f[R], extra columns are displayed showing budget
