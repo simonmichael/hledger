@@ -566,8 +566,8 @@ CSVFIELD is a percent sign followed by the field's name or column number, like `
 
 A single matcher can be written on the same line as the "if";
 or multiple matchers can be written on the following lines, non-indented.
-Multiple matchers are OR'd (any one of them can match), unless one includes 
-an `&` symbol, in which case it is combined with the previous matcher.
+Multiple matchers are OR'd (any one of them can match), unless one begins with
+an `&` symbol, in which case it is AND'ed with the previous matcher.
 
 ```rules
 if
