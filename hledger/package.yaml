@@ -62,6 +62,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Checkdates.txt
 - Hledger/Cli/Commands/Checkdupes.txt
 - Hledger/Cli/Commands/Close.txt
+- Hledger/Cli/Commands/Codes.txt
 - Hledger/Cli/Commands/Commodities.txt
 - Hledger/Cli/Commands/Descriptions.txt
 - Hledger/Cli/Commands/Diff.txt
@@ -169,6 +170,7 @@ library:
   - Hledger.Cli.Commands.Checkdates
   - Hledger.Cli.Commands.Checkdupes
   - Hledger.Cli.Commands.Close
+  - Hledger.Cli.Commands.Codes
   - Hledger.Cli.Commands.Commodities
   - Hledger.Cli.Commands.Descriptions
   - Hledger.Cli.Commands.Diff
