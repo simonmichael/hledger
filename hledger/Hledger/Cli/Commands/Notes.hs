@@ -1,6 +1,6 @@
 {-|
 
-The @notes@ command lists allpayees seen in transactions.
+The @notes@ command lists all unique notes (description part after a |) seen in transactions, sorted alphabetically.
 
 -}
 

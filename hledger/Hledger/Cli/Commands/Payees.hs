@@ -1,6 +1,6 @@
 {-|
 
-The @payees@ command lists allpayees seen in transactions.
+The @payees@ command lists all unique payees (description part before a |) seen in transactions, sorted alphabetically.
 
 -}
 

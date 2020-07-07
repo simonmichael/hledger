@@ -1,6 +1,6 @@
 {-|
 
-The @descriptions@ command lists allpayees seen in transactions.
+The @descriptions@ command lists all unique descriptions seen in transactions, sorted alphabetically.
 
 -}
 
