@@ -1,5 +1,5 @@
 # 1.
-hledger -f sample.journal balance
+hledger -f sample.journal balance --tree
 >>>
                  $-1  assets
                   $1    bank:saving
@@ -16,7 +16,7 @@ hledger -f sample.journal balance
 >>>=0
 
 # 2.
-hledger -f sample.journal balance o
+hledger -f sample.journal balance --tree o
 >>>
                   $1  expenses:food
                  $-2  income
@@ -58,7 +58,7 @@ hledger -f - balance -b 2016 -e 2017
 >>>= 0
 
 # 4. Period reporting works for two years
-hledger -f - balance -b 2015 -e 2017
+hledger -f - balance --tree -b 2015 -e 2017
 <<<
 2015/10/10 Client A | Invoice #1
     assets:receivables      $10,000.00
@@ -91,7 +91,7 @@ hledger -f - balance -b 2015 -e 2017
 >>>= 0
 
 # 5. Period reporting works for one month
-hledger -f - balance -b 2015/11 -e 2015/12
+hledger -f - balance --tree -b 2015/11 -e 2015/12
 <<<
 2015/10/10 Client A | Invoice #1
     assets:receivables      $10,000.00

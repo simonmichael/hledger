@@ -38,7 +38,7 @@ $ hledger register -f- --auto
 >=
 
 # 3. balance
-$ hledger balance -f- --auto
+$ hledger balance -f- --auto --tree
                 $115  assets
                  $95    bank
                  $20    cash

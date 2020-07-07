@@ -63,7 +63,7 @@ hledger -f- print --explicit --empty
 # When preserving a zero amount's commodity, we should also preserve
 # the amount style, such as where to place the symbol.
 # https://github.com/simonmichael/hledger/issues/230
-hledger -f- balance
+hledger -f- balance --tree
 <<<
 D 1000,00€
 

@@ -86,7 +86,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                   False -> normaliseMixedAmount . mixedAmountStripPrices
 
     -- the balances to close
-    (acctbals,_) = balanceReportFromMultiBalanceReport ropts_ q j
+    (acctbals,_) = balanceReport ropts_ q j
     totalamt = sum $ map (\(_,_,_,b) -> normalise b) acctbals
 
     -- since balance assertion amounts are required to be exact, the

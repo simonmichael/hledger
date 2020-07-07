@@ -76,9 +76,9 @@ data BalanceType = PeriodChange      -- ^ The change of balance in each period.
 instance Default BalanceType where def = PeriodChange
 
 -- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
-data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typeable)
+data AccountListMode = ALFlat | ALTree deriving (Eq, Show, Data, Typeable)
 
-instance Default AccountListMode where def = ALDefault
+instance Default AccountListMode where def = ALFlat
 
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
@@ -225,7 +225,7 @@ checkReportOpts ropts@ReportOpts{..} =
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =
-  fromMaybe ALDefault . choiceopt parse where
+  fromMaybe ALFlat . choiceopt parse where
     parse = \case
       "tree" -> Just ALTree
       "flat" -> Just ALFlat
@@ -423,10 +423,11 @@ whichDateFromOpts ReportOpts{..} = if date2_ then SecondaryDate else PrimaryDate
 
 -- | Legacy-compatible convenience aliases for accountlistmode_.
 tree_ :: ReportOpts -> Bool
-tree_ = (==ALTree) . accountlistmode_
+tree_ ReportOpts{accountlistmode_ = ALTree} = True
+tree_ ReportOpts{accountlistmode_ = ALFlat} = False
 
 flat_ :: ReportOpts -> Bool
-flat_ = (==ALFlat) . accountlistmode_
+flat_ = not . tree_
 
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)

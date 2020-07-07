@@ -223,7 +223,7 @@ Balance changes in 2018:
 2018/1/1
   (a:k)  1
 
-$ hledger -f- bal -N
+$ hledger -f- bal -N --tree
                    1  a:k
                    2  b
                    1    i
@@ -268,7 +268,7 @@ account d
 2018/1/1
   (d)    1
 
-$ hledger -f- bal -N
+$ hledger -f- bal -N --tree
                    1  d
                    1  a:l
                    3  b
@@ -358,7 +358,7 @@ $ hledger -f- bal -N --sort-amount --flat
     (a:ab)                                         3
     (b)                                            2
 
-$ hledger -f- bal -N -S
+$ hledger -f- bal -N -S --tree
                    4  a
                    3    ab
                    1    aa
