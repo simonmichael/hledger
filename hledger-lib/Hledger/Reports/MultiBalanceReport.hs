@@ -22,6 +22,7 @@ module Hledger.Reports.MultiBalanceReport (
 
   tableAsText,
 
+  sortRows,
   sortRowsLike,
 
   -- -- * Tests
