@@ -12,6 +12,7 @@ module Hledger.Cli.CliOptions (
   -- * cmdargs flags & modes
   helpflags,
   detailedversionflag,
+  flattreeflags,
   hiddenflags,
   inputflags,
   reportflags,
@@ -189,6 +190,13 @@ reportflags = [
    , "Note that = (and not a space) is required before PERIODEXP if you wish to supply it."
    ])
  ]
+
+-- | Flags for selecting flat/tree mode, used in accounts/balance reports.
+flattreeflags :: [Flag RawOpts]
+flattreeflags = [
+   flagNone ["flat"] (setboolopt "flat") "show accounts as a list; amounts exclude subaccounts, except where account is depth-clipped"
+  ,flagNone ["tree"] (setboolopt "tree") "show accounts as a tree; amounts include subaccounts"
+  ]
 
 -- | Common flags that are accepted but not shown in --help,
 -- such as --effective, --aux-date.

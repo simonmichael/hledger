@@ -53,8 +53,8 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
 compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
 compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
-    cbcdoc
-    [flagNone ["change"] (setboolopt "change")
+   cbcdoc
+   ([flagNone ["change"] (setboolopt "change")
        ("show balance change in each period" ++ defType PeriodChange)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
        ("show balance change accumulated across periods (in multicolumn reports)"
@@ -64,12 +64,12 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
        ("show historical ending balance in each period (includes postings before report start date)"
            ++ defType HistoricalBalance
        )
-    ,flagNone ["flat"] (setboolopt "flat") "show accounts as a list"
-    ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
-    ,flagNone ["tree"] (setboolopt "tree") "show accounts as a tree; amounts include subaccounts (default in simple reports)"
+    ]
+    ++ flattreeflags ++
+    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
+    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
     ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode when displaying tables"
@@ -77,7 +77,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,outputFormatFlag ["txt","html","csv","json"]
     ,outputFileFlag
-    ]
+    ])
     [generalflagsgroup1]
     hiddenflags
     ([], Just $ argsFlag "[QUERY]")
