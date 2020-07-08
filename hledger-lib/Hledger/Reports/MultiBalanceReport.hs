@@ -32,7 +32,7 @@ where
 
 import Control.Monad (guard)
 import Data.Foldable (toList)
-import Data.List (sortOn, transpose)
+import Data.List (partition, sortOn, transpose)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
@@ -482,21 +482,25 @@ sortRows ropts j
         accounttreewithbals = mapAccounts setibalance accounttree
         setibalance a = a{aibalance = maybe (sum . map aibalance $ asubs a) prrTotal $
                                           HM.lookup (aname a) rowMap}
-        sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
+        sortedaccounttree = sortAccountTreeByAmount normalbalance accounttreewithbals
         sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
 
     -- Sort the report rows, representing a flat account list, by row total.
     sortFlatMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
-    sortFlatMBRByAmount = case normalbalance_ ropts of
-        Just NormallyNegative -> sortOn amt
-        _                     -> sortOn (Down . amt)
-      where amt = normaliseMixedAmountSquashPricesForDisplay . prrTotal
+    sortFlatMBRByAmount rows = case normalbalance of
+        NormallyPositive -> sortOn (Down . amt) posRows ++ sortOn amt negRows
+        NormallyNegative -> sortOn amt negRows ++ sortOn (Down . amt) posRows
+      where
+        (negRows, posRows) = partition (fromMaybe False . isNegativeMixedAmount . prrTotal) rows
+        amt = normaliseMixedAmountSquashPricesForDisplay . prrTotal
 
     -- Sort the report rows by account declaration order then account name.
     sortMBRByAccountDeclaration :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
     sortMBRByAccountDeclaration rows = sortRowsLike sortedanames rows
       where
         sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) $ map prrFullName rows
+
+    normalbalance = fromMaybe NormallyPositive $ normalbalance_ ropts
 
 -- | Build the report totals row.
 --

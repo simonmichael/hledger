@@ -375,3 +375,41 @@ Ending balances (historical) in 2020:
  b    ||          2 
  a:aa ||          1 
 >=
+
+# 21. Flat mode. Decreasing magnitude positive then negative (#1287)
+<
+2020-01-01
+    (a:aa)                                         1
+    (a:ab)                                         3
+    (b)                                            2
+    (c)                                           -2
+    (c:cc)                                        -2
+    (d)                                           -3
+
+$ hledger -f- bal -NY --flat --sort-amount
+Balance changes in 2020:
+
+      || 2020 
+======++======
+ a:ab ||    3 
+ b    ||    2 
+ a:aa ||    1 
+ d    ||   -3 
+ c    ||   -2 
+ c:cc ||   -2 
+>=
+
+# 21. Tree mode. Decreasing magnitude positive then negative (#1287)
+$ hledger -f- bal -NY --tree --sort-amount
+Balance changes in 2020:
+
+      || 2020 
+======++======
+ a    ||    4 
+   ab ||    3 
+   aa ||    1 
+ b    ||    2 
+ c    ||   -4 
+   cc ||   -2 
+ d    ||   -3 
+>=
