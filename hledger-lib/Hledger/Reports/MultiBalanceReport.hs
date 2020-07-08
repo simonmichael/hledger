@@ -166,7 +166,7 @@ compoundBalanceReportWith ropts q j priceoracle subreportspecs = cbr
         (r:rs) -> sconcat $ fmap subreportTotal (r:|rs)
       where
         subreportTotal (_, sr, increasestotal) =
-            (if increasestotal then id else prrNegate) $ prTotals sr
+            (if increasestotal then id else fmap negate) $ prTotals sr
 
     cbr = CompoundPeriodicReport "" colspans subreports overalltotals
 
@@ -523,11 +523,10 @@ calculateTotalsRow ropts rows =
 
 -- | Map the report rows to percentages and negate if needed
 postprocessReport :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
-postprocessReport ropts =
-    maybeInvert . maybePercent
+postprocessReport ropts = maybePercent . maybeInvert
   where
-    maybeInvert  = if invert_  ropts then prNegate  else id
-    maybePercent = if percent_ ropts then prPercent else id
+    maybeInvert  = if invert_  ropts then fmap negate else id
+    maybePercent = if percent_ ropts then prPercent   else id
 
     prPercent (PeriodicReport spans rows totalrow) =
         PeriodicReport spans (map percentRow rows) (percentRow totalrow)
