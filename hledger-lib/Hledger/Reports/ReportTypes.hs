@@ -17,12 +17,9 @@ module Hledger.Reports.ReportTypes
 , Average
 
 , periodicReportSpan
-, prNegate
 , prNormaliseSign
 , prMapName
 , prMapMaybeName
-
-, prrNegate
 
 , CompoundPeriodicReport(..)
 , CBCSubreportSpec(..)
@@ -115,18 +112,8 @@ periodicReportSpan (PeriodicReport colspans _ _) = DateSpan (spanStart $ head co
 -- | Given a PeriodicReport and its normal balance sign,
 -- if it is known to be normally negative, convert it to normally positive.
 prNormaliseSign :: Num b => NormalSign -> PeriodicReport a b -> PeriodicReport a b
-prNormaliseSign NormallyNegative = prNegate
-prNormaliseSign _ = id
-
--- | Flip the sign of all amounts in a PeriodicReport.
-prNegate :: Num b => PeriodicReport a b -> PeriodicReport a b
-prNegate (PeriodicReport colspans rows totalsrow) =
-    PeriodicReport colspans (map prrNegate rows) (prrNegate totalsrow)
-
--- | Flip the sign of all amounts in a PeriodicReportRow.
-prrNegate :: Num b => PeriodicReportRow a b -> PeriodicReportRow a b
-prrNegate (PeriodicReportRow name amts tot avg) =
-    PeriodicReportRow name (map negate amts) (-tot) (-avg)
+prNormaliseSign NormallyNegative = fmap negate
+prNormaliseSign NormallyPositive = id
 
 -- | Map a function over the row names.
 prMapName :: (a -> b) -> PeriodicReport a c -> PeriodicReport b c
