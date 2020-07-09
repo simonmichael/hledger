@@ -593,7 +593,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
 balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
-    (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
+    (PeriodicReport spans items (PeriodicReportRow _ coltotals tot avg)) =
    maybetranspose $
    addtotalrow $
    Table
@@ -602,13 +602,9 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
      (map rowvals items)
   where
     totalscolumn = row_total_ && balancetype_ `notElem` [CumulativeChange, HistoricalBalance]
-    colheadings = map mkheading colspans
+    colheadings = map (reportPeriodName balancetype_ spans) spans
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
-      where
-        mkheading = case balancetype_ of
-          PeriodChange -> showDateSpanMonthAbbrev
-          _            -> maybe "" (showDate . prevday) . spanEnd
     accts = map renderacct items
     renderacct row =
         replicate ((prrDepth row - 1) * 2) ' ' ++ T.unpack (prrDisplayName row)
