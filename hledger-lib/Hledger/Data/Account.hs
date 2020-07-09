@@ -9,10 +9,10 @@ account, and subaccounting-excluding and -including balances.
 
 module Hledger.Data.Account
 where
-import Data.List
+import Data.List (find, sortOn)
 import Data.List.Extra (groupSort, groupOn)
-import Data.Maybe
-import Data.Ord
+import Data.Maybe (fromMaybe)
+import Data.Ord (Down(..))
 import qualified Data.Map as M
 import Data.Text (pack,unpack)
 import Safe (headMay, lookupJustDef)
@@ -20,7 +20,7 @@ import Text.Printf
 
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
-import Hledger.Data.Posting()
+import Hledger.Data.Posting ()
 import Hledger.Data.Types
 import Hledger.Utils
 
@@ -199,14 +199,11 @@ filterAccounts p a
 -- if balances are normally negative, then the most negative balances
 -- sort first, and vice versa.
 sortAccountTreeByAmount :: NormalSign -> Account -> Account
-sortAccountTreeByAmount normalsign a
-  | null $ asubs a = a
-  | otherwise      = a{asubs=
-                        sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . aibalance)) $
-                        map (sortAccountTreeByAmount normalsign) $ asubs a}
+sortAccountTreeByAmount normalsign = mapAccounts $ \a -> a{asubs=sortSubs $ asubs a}
   where
-    maybeflip | normalsign==NormallyNegative = id
-              | otherwise                  = flip
+    sortSubs = case normalsign of
+        NormallyPositive -> sortOn (Down . normaliseMixedAmountSquashPricesForDisplay . aibalance)
+        NormallyNegative -> sortOn (       normaliseMixedAmountSquashPricesForDisplay . aibalance)
 
 -- | Add extra info for this account derived from the Journal's
 -- account directives, if any (comment, tags, declaration order..).
