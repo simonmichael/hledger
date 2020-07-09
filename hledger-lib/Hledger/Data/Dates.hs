@@ -57,6 +57,9 @@ module Hledger.Data.Dates (
   isDateSepChar,
   spanStart,
   spanEnd,
+  spanStartYear,
+  spanEndYear,
+  spanYears,
   spansSpan,
   spanIntersect,
   spansIntersect,
@@ -148,6 +151,16 @@ spanStart (DateSpan d _) = d
 
 spanEnd :: DateSpan -> Maybe Day
 spanEnd (DateSpan _ d) = d
+
+spanStartYear :: DateSpan -> Maybe Year
+spanStartYear (DateSpan d _) = fmap (first3 . toGregorian) d
+
+spanEndYear :: DateSpan -> Maybe Year
+spanEndYear (DateSpan d _) = fmap (first3 . toGregorian) d
+
+-- | Get the 0-2 years mentioned explicitly in a DateSpan.
+spanYears :: DateSpan -> [Year]
+spanYears (DateSpan ma mb) = mapMaybe (fmap (first3 . toGregorian)) [ma,mb]
 
 -- might be useful later: http://en.wikipedia.org/wiki/Allen%27s_interval_algebra
 
