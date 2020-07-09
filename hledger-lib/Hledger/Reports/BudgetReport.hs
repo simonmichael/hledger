@@ -2,6 +2,7 @@
 -}
 
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -258,7 +259,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table String String (Maybe MixedAmount, Maybe MixedAmount)
 budgetReportAsTable
-  ropts
+  ropts@ReportOpts{balancetype_}
   (PeriodicReport periods rows (PeriodicReportRow _ coltots grandtot grandavg)) =
     addtotalrow $
     Table
@@ -266,9 +267,13 @@ budgetReportAsTable
       (T.Group NoLine $ map Header colheadings)
       (map rowvals rows)
   where
-    colheadings = map showDateSpanMonthAbbrev periods
+    colheadings = map mkheading periods
                   ++ ["  Total" | row_total_ ropts]
                   ++ ["Average" | average_ ropts]
+      where
+        mkheading = case balancetype_ of
+          PeriodChange -> showDateSpanMonthAbbrev
+          _            -> maybe "" (showDate . prevday) . spanEnd
     accts = map renderacct rows
     -- FIXME. Have to check explicitly for which to render here, since
     -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
