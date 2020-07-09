@@ -317,8 +317,10 @@ budgetReportAsTable
 reportPeriodName :: BalanceType -> [DateSpan] -> DateSpan -> String
 reportPeriodName balancetype spans =
   case balancetype of
-    PeriodChange -> showDateSpanMonthAbbrev
-    _            -> maybe "" (showDate . prevday) . spanEnd
+    PeriodChange -> if multiyear then showDateSpan else showDateSpanMonthAbbrev
+      where
+        multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
+    _ -> maybe "" (showDate . prevday) . spanEnd
 
 -- tests
 
