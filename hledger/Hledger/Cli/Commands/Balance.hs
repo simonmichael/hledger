@@ -602,12 +602,13 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
      (map rowvals items)
   where
     totalscolumn = row_total_ && balancetype_ `notElem` [CumulativeChange, HistoricalBalance]
-    mkDate = case balancetype_ of
-       PeriodChange -> showDateSpanMonthAbbrev
-       _            -> maybe "" (showDate . prevday) . spanEnd
-    colheadings = map mkDate colspans
+    colheadings = map mkheading colspans
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
+      where
+        mkheading = case balancetype_ of
+          PeriodChange -> showDateSpanMonthAbbrev
+          _            -> maybe "" (showDate . prevday) . spanEnd
     accts = map renderacct items
     renderacct row =
         replicate ((prrDepth row - 1) * 2) ' ' ++ T.unpack (prrDisplayName row)
