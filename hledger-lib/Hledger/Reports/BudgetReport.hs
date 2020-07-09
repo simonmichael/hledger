@@ -7,7 +7,21 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Hledger.Reports.BudgetReport
+module Hledger.Reports.BudgetReport (
+  BudgetGoal,
+  BudgetTotal,
+  BudgetAverage,
+  BudgetCell,
+  BudgetReportRow,
+  BudgetReport,
+  budgetReport,
+  budgetReportAsTable,
+  budgetReportAsText,
+  -- * Helpers
+  reportPeriodName,
+  -- * Tests
+  tests_BudgetReport
+)
 where
 
 import Data.Decimal
@@ -45,8 +59,8 @@ type BudgetAverage = Average
 
 -- | A budget report tracks expected and actual changes per account and subperiod.
 type BudgetCell = (Maybe Change, Maybe BudgetGoal)
-type BudgetReport    = PeriodicReport    DisplayName BudgetCell
 type BudgetReportRow = PeriodicReportRow DisplayName BudgetCell
+type BudgetReport    = PeriodicReport    DisplayName BudgetCell
 
 -- | Calculate budget goals from all periodic transactions,
 -- actual balance changes from the regular transactions,
