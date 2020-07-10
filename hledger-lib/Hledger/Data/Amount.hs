@@ -40,10 +40,6 @@ exchange rates.
 
 -}
 
--- Silence safe 0.3.18's deprecation warnings for (max|min)imum(By)?Def for now
--- (may hide other deprecation warnings too). https://github.com/ndmitchell/safe/issues/26
-{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
-
 {-# LANGUAGE StandaloneDeriving, RecordWildCards, OverloadedStrings #-}
 
 module Hledger.Data.Amount (
@@ -140,7 +136,7 @@ import qualified Data.Map as M
 import Data.Map (findWithDefault)
 import Data.Maybe
 import qualified Data.Text as T
-import Safe (maximumDef)
+import Safe (lastDef, maximumMay)
 import Text.Printf
 
 import Hledger.Data.Types
@@ -507,9 +503,7 @@ normaliseHelper squashprices (Mixed as)
   | null nonzeros        = Mixed [newzero]
   | otherwise            = Mixed nonzeros
   where
-    newzero = case filter (/= "") (map acommodity zeros) of
-               _:_ -> last zeros
-               _   -> nullamt
+    newzero = lastDef nullamt $ filter (not . T.null . acommodity) zeros
     (zeros, nonzeros) = partition amountIsZero $
                         map sumSimilarAmountsUsingFirstPrice $
                         groupBy groupfn $
@@ -698,7 +692,7 @@ showMixedAmountWithoutPrice c m = intercalate "\n" $ map showamt as
       (if c && isNegativeAmount a then color Dull Red else id) $
       printf (printf "%%%ds" width) $ showAmountWithoutPrice c a
       where
-        width = maximumDef 0 $ map (length . showAmount) as
+        width = fromMaybe 0 . maximumMay $ map (length . showAmount) as
 
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
 mixedAmountStripPrices (Mixed as) = Mixed $ map (\a -> a{aprice=Nothing}) as
