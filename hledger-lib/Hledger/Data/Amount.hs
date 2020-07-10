@@ -263,12 +263,11 @@ multiplyAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q*n, apric
 isNegativeAmount :: Amount -> Bool
 isNegativeAmount Amount{aquantity=q} = q < 0
 
-digits = "123456789" :: String
-
 -- | Does mixed amount appear to be zero when rendered with its
 -- display precision ?
 amountLooksZero :: Amount -> Bool
-amountLooksZero = not . any (`elem` digits) . (showAmountWithoutPriceOrCommodity False)
+amountLooksZero Amount{aquantity=q, astyle=AmountStyle{asprecision=p}} =
+    roundTo (fromIntegral p) q == 0
 
 -- | Is this amount exactly zero, ignoring its display precision ?
 amountIsZero :: Amount -> Bool
@@ -352,13 +351,6 @@ setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
 withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
 
--- | Get the string representation of an amount, without any price or commodity symbol.
--- With a True argument, adds ANSI codes to show negative amounts in red.
-showAmountWithoutPriceOrCommodity :: Bool -> Amount -> String
-showAmountWithoutPriceOrCommodity c a = showamt a{acommodity="", aprice=Nothing}
-  where
-    showamt = if c then cshowAmount else showAmount
-
 showAmountPrice :: Maybe AmountPrice -> String
 showAmountPrice Nothing                = ""
 showAmountPrice (Just (UnitPrice pa))  = " @ "  ++ showAmount pa
@@ -407,8 +399,7 @@ showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=mp, astyle=Amou
       R -> printf "%s%s%s%s" quantity' space (T.unpack c') price
     where
       quantity = showamountquantity a
-      displayingzero = not (any (`elem` digits) quantity)
-      (quantity',c') | displayingzero && not showzerocommodity = ("0","")
+      (quantity',c') | amountLooksZero a && not showzerocommodity = ("0","")
                      | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
       space = if not (T.null c') && ascommodityspaced then " " else "" :: String
       price = showAmountPrice mp
