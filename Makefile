@@ -45,7 +45,7 @@ $(call def-help-heading,Main rules in the hledger project Makefile:)
 $(call def-help-subheading,HELP:)
 dummy1: $(call def-help,[help], list documented rules in this makefile )
 help-%: $(call def-help,help-SECTION, list documented rules containing some string )
-	make help 2>&1 | grep -i $*
+	@make help 2>&1 | grep -i $*
 %-help: $(call def-help,SECTION-help, same but easier to type (can append "-help" to any "make RULE") )
 	@make help 2>&1 | grep -i $*
 dummy2: $(call def-help,RULE -n, show what RULE would do )
