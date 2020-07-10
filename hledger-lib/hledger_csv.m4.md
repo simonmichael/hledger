@@ -540,6 +540,8 @@ Conditional blocks ("if blocks") are a block of rules that are applied
 only to CSV records which match certain patterns. They are often used
 for customising account names based on transaction descriptions.
 
+### Matching the whole record
+
 Each MATCHER can be a record matcher, which looks like this:
 ```rules
 REGEX
@@ -557,12 +559,16 @@ with any enclosing double quotes (but not enclosing whitespace) removed, and alw
 Eg, if the original record is `2020-01-01; "Acme, Inc.";  1,000`,
 the REGEX will actually see   `2020-01-01,Acme, Inc.,  1,000`).
 
+### Matching individual fields
+
 Or, MATCHER can be a field matcher, like this:
 ```rules
 %CSVFIELD REGEX
 ```
 which matches just the content of a particular CSV field.
 CSVFIELD is a percent sign followed by the field's name or column number, like `%date` or `%1`.
+
+### Combining matchers
 
 A single matcher can be written on the same line as the "if";
 or multiple matchers can be written on the following lines, non-indented.
@@ -575,6 +581,8 @@ MATCHER
 & MATCHER
  RULE
 ```
+
+### Rules applied on successful match
 
 After the patterns there should be one or more rules to apply, all
 indented by at least one space. Three kinds of rule are allowed in
