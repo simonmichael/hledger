@@ -273,6 +273,26 @@ templates: \
 	)
 	ln -sf hledger-web/$@
 
+save-hledger-unopt: \
+	$(call def-help,save-hledger-fast, build an unoptimised hledger executable named with git describe in bin )
+	$(STACK) --verbosity=error install hledger --local-bin-path=bin && mv bin/hledger{,-`git describe --tags`-unopt}
+	@echo "built bin/hledger-`git describe --tags`-unopt"
+
+save-hledger-unopt-%: \
+	$(call def-help,save-hledger-fast-EXT, build an unoptimised hledger executable named with the given extension in bin )
+	$(STACK) --verbosity=error install hledger --local-bin-path=bin && mv bin/hledger{,-$*-unopt}
+	@echo "built bin/hledger-$*-unopt"
+
+save-hledger: \
+	$(call def-help,save-hledger, build an optimised hledger executable named with git describe in bin )
+	$(STACK) --verbosity=error install hledger --local-bin-path=bin && mv bin/hledger{,-`git describe --tags`}
+	@echo "built bin/hledger-`git describe --tags`"
+
+save-hledger-%: \
+	$(call def-help,save-hledger-EXT, build an optimised hledger executable named with the given suffix in bin )
+	$(STACK) --verbosity=error install hledger --local-bin-path=bin && mv bin/hledger{,-$*}
+	@echo "built bin/hledger-$*"
+
 hledgerprof: \
 	$(call def-help,hledgerprof, build a hledger executable with profiling enabled (with stack) )
 	$(STACK) build --profile hledger
