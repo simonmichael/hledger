@@ -615,7 +615,20 @@ applied only to CSV records which match certain patterns.  They are
 often used for customising account names based on transaction
 descriptions.
 
-   Each MATCHER can be a record matcher, which looks like this:
+* Menu:
+
+* Matching the whole record::
+* Matching individual fields::
+* Combining matchers::
+* Rules applied on successful match::
+
+
+File: hledger_csv.info,  Node: Matching the whole record,  Next: Matching individual fields,  Up: if block
+
+2.5.1 Matching the whole record
+-------------------------------
+
+Each MATCHER can be a record matcher, which looks like this:
 
 REGEX
 
@@ -632,7 +645,13 @@ that a field containing a comma will appear like two fields).  Eg, if
 the original record is '2020-01-01; "Acme, Inc."; 1,000', the REGEX will
 actually see '2020-01-01,Acme, Inc., 1,000').
 
-   Or, MATCHER can be a field matcher, like this:
+
+File: hledger_csv.info,  Node: Matching individual fields,  Next: Combining matchers,  Prev: Matching the whole record,  Up: if block
+
+2.5.2 Matching individual fields
+--------------------------------
+
+Or, MATCHER can be a field matcher, like this:
 
 %CSVFIELD REGEX
 
@@ -640,7 +659,13 @@ actually see '2020-01-01,Acme, Inc., 1,000').
 is a percent sign followed by the field's name or column number, like
 '%date' or '%1'.
 
-   A single matcher can be written on the same line as the "if"; or
+
+File: hledger_csv.info,  Node: Combining matchers,  Next: Rules applied on successful match,  Prev: Matching individual fields,  Up: if block
+
+2.5.3 Combining matchers
+------------------------
+
+A single matcher can be written on the same line as the "if"; or
 multiple matchers can be written on the following lines, non-indented.
 Multiple matchers are OR'd (any one of them can match), unless one
 begins with an '&' symbol, in which case it is AND'ed with the previous
@@ -651,7 +676,13 @@ MATCHER
 & MATCHER
  RULE
 
-   After the patterns there should be one or more rules to apply, all
+
+File: hledger_csv.info,  Node: Rules applied on successful match,  Prev: Combining matchers,  Up: if block
+
+2.5.4 Rules applied on successful match
+---------------------------------------
+
+After the patterns there should be one or more rules to apply, all
 indented by at least one space.  Three kinds of rule are allowed in
 conditional blocks:
 
@@ -1148,40 +1179,48 @@ Node: separator21340
 Ref: #separator21475
 Node: if block21886
 Ref: #if-block22011
-Node: if table24287
-Ref: #if-table24406
-Node: end26144
-Ref: #end26256
-Node: date-format26480
-Ref: #date-format26612
-Node: newest-first27361
-Ref: #newest-first27499
-Node: include28182
-Ref: #include28313
-Node: balance-type28757
-Ref: #balance-type28877
-Node: TIPS29577
-Ref: #tips29659
-Node: Rapid feedback29915
-Ref: #rapid-feedback30032
-Node: Valid CSV30492
-Ref: #valid-csv30622
-Node: File Extension30814
-Ref: #file-extension30966
-Node: Reading multiple CSV files31376
-Ref: #reading-multiple-csv-files31561
-Node: Valid transactions31802
-Ref: #valid-transactions31980
-Node: Deduplicating importing32608
-Ref: #deduplicating-importing32787
-Node: Setting amounts33820
-Ref: #setting-amounts33989
-Node: Setting currency/commodity34976
-Ref: #setting-currencycommodity35168
-Node: Referencing other fields35971
-Ref: #referencing-other-fields36171
-Node: How CSV rules are evaluated37068
-Ref: #how-csv-rules-are-evaluated37241
+Node: Matching the whole record22412
+Ref: #matching-the-whole-record22587
+Node: Matching individual fields23391
+Ref: #matching-individual-fields23595
+Node: Combining matchers23819
+Ref: #combining-matchers24015
+Node: Rules applied on successful match24328
+Ref: #rules-applied-on-successful-match24519
+Node: if table25173
+Ref: #if-table25292
+Node: end27030
+Ref: #end27142
+Node: date-format27366
+Ref: #date-format27498
+Node: newest-first28247
+Ref: #newest-first28385
+Node: include29068
+Ref: #include29199
+Node: balance-type29643
+Ref: #balance-type29763
+Node: TIPS30463
+Ref: #tips30545
+Node: Rapid feedback30801
+Ref: #rapid-feedback30918
+Node: Valid CSV31378
+Ref: #valid-csv31508
+Node: File Extension31700
+Ref: #file-extension31852
+Node: Reading multiple CSV files32262
+Ref: #reading-multiple-csv-files32447
+Node: Valid transactions32688
+Ref: #valid-transactions32866
+Node: Deduplicating importing33494
+Ref: #deduplicating-importing33673
+Node: Setting amounts34706
+Ref: #setting-amounts34875
+Node: Setting currency/commodity35862
+Ref: #setting-currencycommodity36054
+Node: Referencing other fields36857
+Ref: #referencing-other-fields37057
+Node: How CSV rules are evaluated37954
+Ref: #how-csv-rules-are-evaluated38127
 
 End Tag Table
 

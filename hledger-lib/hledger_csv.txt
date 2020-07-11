@@ -479,6 +479,7 @@ CSV RULES
        only to CSV records which match certain patterns.  They are often  used
        for customising account names based on transaction descriptions.
 
+   Matching the whole record
        Each MATCHER can be a record matcher, which looks like this:
 
               REGEX
@@ -496,6 +497,7 @@ CSV RULES
        original record is 2020-01-01; "Acme, Inc.";  1,000, the REGEX will ac-
        tually see 2020-01-01,Acme, Inc.,  1,000).
 
+   Matching individual fields
        Or, MATCHER can be a field matcher, like this:
 
               %CSVFIELD REGEX
@@ -504,6 +506,7 @@ CSV RULES
        a  percent  sign  followed  by  the field's name or column number, like
        %date or %1.
 
+   Combining matchers
        A single matcher can be written on the same line as the "if"; or multi-
        ple matchers can be written on the following lines, non-indented.  Mul-
        tiple matchers are OR'd (any one of them can match), unless one  begins
@@ -514,6 +517,7 @@ CSV RULES
               & MATCHER
                RULE
 
+   Rules applied on successful match
        After  the patterns there should be one or more rules to apply, all in-
        dented by at least one space.  Three kinds of rule are allowed in  con-
        ditional blocks:
