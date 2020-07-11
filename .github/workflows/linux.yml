@@ -1,9 +1,12 @@
-# Thorough tests on linux.
 # Runs on notable pushes to ci-linux, on notable pull requests against
 # master, and weekly on master.
-# Builds all modules optimised, runs unit, benchmark, doc, functional,
-# haddock tests, with all supported GHC versions,
-# and uploads binaries artifact.
+
+# Builds all modules optimised and runs
+# unit/doc/functional/haddock/benchmark tests on linux,
+# using the oldest supported GHC version (only, as a compromise to
+# reduce carbon emissions. Some of the other versions are exercised by
+# the other workflows.)
+# Currently does not upload a binaries artifact.
 
 name: linux CI
 
@@ -46,18 +49,18 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         plan:
         # GHC 8.0 is still supported but we don't have a build plan for hledger-web, let it go
-        # - { key: "80", args: "--stack-yaml=stack8.0.yaml" }
-        - { key: "82", args: "--stack-yaml=stack8.2.yaml" }
-        - { key: "84", args: "--stack-yaml=stack8.4.yaml" }
-        - { key: "86", args: "--stack-yaml=stack8.6.yaml" }
-        - { key: "88", args: "--stack-yaml=stack.yaml" }
-        - { key: "810", args: "--stack-yaml=stack8.10.yaml" }
-    runs-on: ubuntu-latest
+        # - { ghc: "80", args: "--stack-yaml=stack8.0.yaml" }
+        - { ghc: "82", args: "--stack-yaml=stack8.2.yaml" }
+        # - { ghc: "84", args: "--stack-yaml=stack8.4.yaml" }
+        # - { ghc: "86", args: "--stack-yaml=stack8.6.yaml" }
+        # - { ghc: "88", args: "--stack-yaml=stack.yaml" }
+        # - { ghc: "810", args: "--stack-yaml=stack8.10.yaml" }
 
     steps:
 
@@ -71,65 +74,58 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-stack-global-${{ matrix.plan.key }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-stack-global-${{ matrix.plan.key }}
-          ${{ runner.os }}-stack-global
+             ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v2
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-stack-programs-${{ matrix.plan.key }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-stack-programs-${{ matrix.plan.key }}
-          ${{ runner.os }}-stack-programs
+             ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}
 
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
         path: .stack-work
-        key: ${{ runner.os }}-stack-work-${{ matrix.plan.key }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-stack-work-${{ matrix.plan.key }}
-          ${{ runner.os }}-stack-work
+             ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger-lib/package.yaml') }}
+        key: ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.key }}
-          ${{ runner.os }}-hledger-lib-stack-work
+             ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.ghc }}
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger/package.yaml') }}
+        key: ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.key }}
-          ${{ runner.os }}-hledger-stack-work
+             ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.ghc }}
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger-ui/package.yaml') }}
+        key: ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.key }}
-          ${{ runner.os }}-hledger-ui-stack-work
+             ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.ghc }}
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.key }}-${{ hashFiles('hledger-web/package.yaml') }}
+        key: ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.ghc }}-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.key }}
-          ${{ runner.os }}-hledger-web-stack-work
+             ${{ runner.os }}-hledger-web-stack-work-${{ matrix.plan.ghc }}
 
     # For now due to
     # https://github.com/actions/virtual-environments/issues/709
@@ -168,7 +164,6 @@ jobs:
         df -h
         stack $ARGS setup --install-ghc
         df -h
-
       env:
         ARGS: ${{ matrix.plan.args }}
 

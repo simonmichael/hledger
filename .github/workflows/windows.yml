@@ -1,12 +1,8 @@
-# Fairly thorough tests on windows.
 # Runs on notable pushes to ci-windows, and weekly on master.
-# Builds all modules optimised, runs unit, doc tests,
-# and uploads binaries artifact.
 
-# Light Windows CI tests: build and run functional tests with one GHC version.
-# GHC 8.8.2 for now to avoid https://gitlab.haskell.org/ghc/ghc/issues/17926.
-#
-# Runs: periodically on master, and on notable push to ci-windows.
+# Builds all modules optimised on windows,
+# using GHC 8.8.2 to avoid https://gitlab.haskell.org/ghc/ghc/issues/17926,
+# and uploads a binaries artifact.
 
 name: windows CI
 
@@ -45,8 +41,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
-        key:          ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-appdata-roaming-stack
+        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-appdata-roaming-stack
 
     - name: Cache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
@@ -55,43 +52,49 @@ jobs:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
         # which files signal a change in stack's global db ?
         # **.yaml includes */package.yaml and stack.yaml* (too many), and hopefully no other changing yamls
-        key:          ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-appdata-local-programs-stack
+        key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-appdata-local-programs-stack
 
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
         path: .stack-work
-        key:          ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
-        restore-keys: ${{ runner.os }}-stack-work
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-work
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-lib/.stack-work
-        key:          ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
-        restore-keys: ${{ runner.os }}-hledger-lib-stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger/.stack-work
-        key:          ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
-        restore-keys: ${{ runner.os }}-hledger-stack-work
+        key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-stack-work
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-ui/.stack-work
-        key:          ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
-        restore-keys: ${{ runner.os }}-hledger-ui-stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-web/.stack-work
-        key:          ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
-        restore-keys: ${{ runner.os }}-hledger-web-stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-web-stack-work
 
     # - name: showStuff
     #   shell: bash

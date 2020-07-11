@@ -1,7 +1,8 @@
-# Fairly thorough tests on mac.
 # Runs on notable pushes to ci-mac, and weekly on master.
-# Builds all modules optimised, runs unit, doc, functional tests,
-# and uploads binaries artifact.
+
+# Builds all modules optimised and runs unit/doc/functional tests on mac,
+# using GHC 8.6,
+# and uploads a binaries artifact.
 
 name: mac CI
 
@@ -28,6 +29,17 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        plan:
+        # - { ghc: "80", args: "--stack-yaml=stack8.0.yaml" }
+        # - { ghc: "82", args: "--stack-yaml=stack8.2.yaml" }
+        # - { ghc: "84", args: "--stack-yaml=stack8.4.yaml" }
+        - { ghc: "86", args: "--stack-yaml=stack8.6.yaml" }
+        # - { ghc: "88", args: "--stack-yaml=stack.yaml" }
+        # - { ghc: "810", args: "--stack-yaml=stack8.10.yaml" }
+
     steps:
 
     - name: Check out
@@ -40,50 +52,58 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.stack
-        key:          ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-stack-global
-          ${{ runner.os }}-stack
+             ${{ runner.os }}-stack-global
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v2
       with:
         path: ~/.local/bin
-        key:          ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
         restore-keys: |
-          ${{ runner.os }}-stack-programs
-          ${{ runner.os }}-local-bin
+             ${{ runner.os }}-stack-programs
 
     - name: Cache .stack-work
       uses: actions/cache@v2
       with:
         path: .stack-work
-        key: ${{ runner.os }}-stack-work
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-work
 
     - name: Cache hledger-lib/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-hledger-lib-stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Cache hledger/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-hledger-stack-work
+        key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-stack-work
 
     - name: Cache hledger-ui/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-hledger-ui-stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Cache hledger-web/.stack-work
       uses: actions/cache@v2
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-hledger-web-stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-web-stack-work
 
     # actions:
 
@@ -91,32 +111,44 @@ jobs:
       # curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C $INSTALLDIR
       run: |
         brew install haskell-stack
-        stack --version
+        stack $ARGS --version
+      env:
+        ARGS: ${{ matrix.plan.args }}
 
     - name: Install GHC
       run: |
-        stack setup --install-ghc
+        stack $ARGS setup --install-ghc
+      env:
+        ARGS: ${{ matrix.plan.args }}
 
     - name: Install haskell deps
       run: |
-        stack build --test --only-dependencies
+        stack $ARGS build --test --only-dependencies
+      env:
+        ARGS: ${{ matrix.plan.args }}
 
     - name: Build hledger and test unit tests, doc tests
       run: |
-        stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+        stack $ARGS install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on mac
       #  --pedantic
+      env:
+        ARGS: ${{ matrix.plan.args }}
 
     - name: Install shelltestrunner
       run: |
         export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
+        if [[ ! -x ~/.local/bin/shelltest ]]; then stack $ARGS install shelltestrunner-1.9; fi
         shelltest --version
+      env:
+        ARGS: ${{ matrix.plan.args }}
 
     - name: Test functional tests (excluding addons)
       run: |
         export PATH=~/.local/bin:$PATH
-        COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
+        COLUMNS=80 stack $ARGS exec -- shelltest --execdir -j16 tests -x /bin -x /addons
+      env:
+        ARGS: ${{ matrix.plan.args }}
 
     # artifacts:
 
