@@ -29,9 +29,10 @@ import Hledger.Utils
 
 -- | An account transactions report represents transactions affecting
 -- a particular account (or possibly several accounts, but we don't
--- use that). It is used eg by hledger-ui's and hledger-web's account
--- register view, where we want to show one row per transaction, in
--- the context of the current account. Report items consist of:
+-- use that). It is used eg by hledger-ui's and hledger-web's register
+-- view, and hledger's aregister report, where we want to show one row
+-- per transaction, in the context of the current account. Report
+-- items consist of:
 --
 -- - the transaction, unmodified
 --
@@ -84,7 +85,7 @@ balancelabel = "Historical Total"
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
 accountTransactionsReport ropts j reportq thisacctq = (label, items)
   where
-    -- a depth limit does not affect the account transactions report
+    -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
     reportq' = -- filterQuery (not . queryIsDepth)
                reportq
@@ -116,17 +117,18 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
     ts4 = map tval ts3 
 
     -- sort by the transaction's register date, for accurate starting balance
-    ts = sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
+    -- these are not yet filtered by tdate, we want to search them all for priorps
+    ts5 = sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
 
     (startbal,label)
       | balancetype_ ropts == HistoricalBalance = (sumPostings priorps, balancelabel)
-      | otherwise                              = (nullmixedamt,        totallabel)
+      | otherwise                               = (nullmixedamt,        totallabel)
       where
         priorps = dbg1 "priorps" $
                   filter (matchesPosting
                           (dbg1 "priorq" $
                            And [thisacctq, tostartdateq, datelessreportq]))
-                         $ transactionsPostings ts
+                         $ transactionsPostings ts5
         tostartdateq =
           case mstartdate of
             Just _  -> Date (DateSpan Nothing mstartdate)
@@ -134,8 +136,15 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
         mstartdate = queryStartDate (date2_ ropts) reportq'
         datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
 
+    -- now should we include only transactions dated inside report period ?
+    -- or all transactions with any posting inside the report period ? an option ?
+    -- filtering might apply some other query terms here too. I think we should.
+    filtertxns = True
+
     items = reverse $
-            accountTransactionsReportItems reportq' thisacctq startbal negate ts
+            accountTransactionsReportItems reportq' thisacctq startbal negate $
+            (if filtertxns then filter (reportq' `matchesTransaction`) else id) $
+            ts5
 
 -- | Generate transactions report items from a list of transactions,
 -- using the provided user-specified report query, a query specifying
