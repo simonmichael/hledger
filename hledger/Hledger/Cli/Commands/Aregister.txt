@@ -13,11 +13,11 @@ subaccounts), from the point of view of that account. Each line shows:
 -   the account's historical running balance (including balance from
     transactions before the report start date).
 
-This is different from register, which shows individual postings. With
-aregister, each line represents a whole transaction - as in hledger-ui,
-hledger-web, and your bank statement. You might prefer aregister for
-reconciling with real-world asset/liability accounts, and register for
-reviewing detailed revenues/expenses.
+With aregister, each line represents a whole transaction - as in
+hledger-ui, hledger-web, and your bank statement. By contrast, the
+register command shows individual postings, across all accounts. You
+might prefer aregister for reconciling with real-world asset/liability
+accounts, and register for reviewing detailed revenues/expenses.
 
 An account must be specified as the first argument, which should be the
 full account name or an account pattern (regular expression). aregister

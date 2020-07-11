@@ -1739,6 +1739,68 @@ COMMANDS
        On Microsoft Windows, the add command makes sure that no  part  of  the
        file path ends with a period, as that would cause problems (#1056).
 
+   aregister
+       aregister, areg
+       Show  transactions  affecting  a  particular account, and the account's
+       running balance.
+
+       aregister shows the transactions affecting a  particular  account  (and
+       its  subaccounts),  from  the point of view of that account.  Each line
+       shows:
+
+       o the transaction's (or posting's, see below) date
+
+       o the names of the other account(s) involved
+
+       o the net change to this account's balance
+
+       o the account's historical  running  balance  (including  balance  from
+         transactions before the report start date).
+
+       With  aregister,  each  line  represents  a  whole  transaction - as in
+       hledger-ui, hledger-web, and your bank  statement.   By  contrast,  the
+       register  command  shows individual postings, across all accounts.  You
+       might prefer aregister for reconciling with real-world  asset/liability
+       accounts, and register for reviewing detailed revenues/expenses.
+
+       An account must be specified as the first argument, which should be the
+       full account name or an account pattern (regular expression).   aregis-
+       ter  will show transactions in this account (the first one matched) and
+       any of its subaccounts.
+
+       Any additional arguments form a query which will  filter  the  transac-
+       tions shown.
+
+       Transactions  making a net change of zero are not shown by default; add
+       the -E/--empty flag to show them.
+
+   aregister and custom posting dates
+       Transactions whose date is outside  the  report  period  can  still  be
+       shown,  if  they have a posting to this account dated inside the report
+       period.  (And in this case it's the posting date that is  shown.)  This
+       ensures that aregister can show an accurate historical running balance,
+       matching the one shown by register -H with the same arguments.
+
+       To filter strictly by transaction date  instead,  add  the  --txn-dates
+       flag.   If  you  use  this  flag  and some of your postings have custom
+       dates, it's probably best to assume the running balance is wrong.
+
+   Output format
+       This command also supports the output destination and output format op-
+       tions The output formats supported are txt, csv, and json.
+
+       Examples:
+
+       Show  all  transactions and historical running balance in the first ac-
+       count whose name contains "checking":
+
+              $ hledger areg checking
+
+       Show transactions and historical running balance in all asset  accounts
+       during july:
+
+              $ hledger areg assets date:jul
+
    balance
        balance, bal, b
        Show accounts and their balances.
@@ -2033,10 +2095,6 @@ COMMANDS
                           ||     $-1      $1       0       0        0        0
 
               (Average is rounded to the dollar here since all journal amounts are)
-
-       A  limitation  of multicolumn balance reports: eliding of boring parent
-       accounts in tree mode, as in the classic balance  report,  is  not  yet
-       supported.
 
        The  --transpose flag can be used to exchange the rows and columns of a
        multicolumn report.
@@ -3139,23 +3197,30 @@ COMMANDS
 
    tags
        tags
-       List  all the tag names used in the journal.  With a TAGREGEX argument,
-       only tag names matching the regular expression (case  insensitive)  are
-       shown.   With QUERY arguments, only transactions matching the query are
-       considered.  With --values flag, the tags' unique values are listed in-
-       stead.
+       List  the  unique tag names used in the journal.  With a TAGREGEX argu-
+       ment, only tag names matching the regular expression (case insensitive)
+       are  shown.  With QUERY arguments, only transactions matching the query
+       are considered.
+
+       With the --values flag, the tags' unique values are listed instead.
+
+       With --parsed flag, all tags or values are shown in the order they  are
+       parsed from the input data, including duplicates.
+
+       With  -E/--empty,  any blank/empty values will also be shown, otherwise
+       they are omitted.
 
    test
        test
        Run built-in unit tests.
 
-       This  command  runs the unit tests built in to hledger and hledger-lib,
-       printing the results on stdout.  If any test fails, the exit code  will
+       This command runs the unit tests built in to hledger  and  hledger-lib,
+       printing  the results on stdout.  If any test fails, the exit code will
        be non-zero.
 
-       This  is  mainly used by hledger developers, but you can also use it to
-       sanity-check the installed hledger executable on  your  platform.   All
-       tests  are  expected to pass - if you ever see a failure, please report
+       This is mainly used by hledger developers, but you can also use  it  to
+       sanity-check  the  installed  hledger executable on your platform.  All
+       tests are expected to pass - if you ever see a failure,  please  report
        as a bug!
 
        This command also accepts tasty test runner options, written after a --
@@ -3164,35 +3229,35 @@ COMMANDS
 
               $ hledger test -- -pData.Amount --color=never
 
-       For help on these, see  https://github.com/feuerbach/tasty#options  (--
+       For  help  on these, see https://github.com/feuerbach/tasty#options (--
        --help currently doesn't show them).
 
    Add-on commands
-       hledger  also  searches  for external add-on commands, and will include
+       hledger also searches for external add-on commands,  and  will  include
        these in the commands list.  These are programs or scripts in your PATH
-       whose  name starts with hledger- and ends with a recognised file exten-
+       whose name starts with hledger- and ends with a recognised file  exten-
        sion (currently: no extension, bat,com,exe, hs,lhs,pl,py,rb,rkt,sh).
 
-       Add-ons can be invoked like any hledger command, but there  are  a  few
+       Add-ons  can  be  invoked like any hledger command, but there are a few
        things to be aware of.  Eg if the hledger-web add-on is installed,
 
-       o hledger  -h  web  shows  hledger's  help,  while hledger web -h shows
+       o hledger -h web shows hledger's  help,  while  hledger  web  -h  shows
          hledger-web's help.
 
-       o Flags specific to the add-on must have a preceding --  to  hide  them
-         from  hledger.   So hledger web --serve --port 9000 will be rejected;
+       o Flags  specific  to  the add-on must have a preceding -- to hide them
+         from hledger.  So hledger web --serve --port 9000 will  be  rejected;
          you must use hledger web -- --serve --port 9000.
 
        o You can always run add-ons directly if preferred: hledger-web --serve
          --port 9000.
 
-       Add-ons  are  a relatively easy way to add local features or experiment
-       with new ideas.  They can be  written  in  any  language,  but  haskell
-       scripts  have  a  big  advantage:  they  can  use the same hledger (and
-       haskell) library functions that built-in commands do, for  command-line
+       Add-ons are a relatively easy way to add local features  or  experiment
+       with  new  ideas.   They  can  be  written in any language, but haskell
+       scripts have a big advantage:  they  can  use  the  same  hledger  (and
+       haskell)  library functions that built-in commands do, for command-line
        options, journal parsing, reporting, etc.
 
-       Two  important  add-ons  are the hledger-ui and hledger-web user inter-
+       Two important add-ons are the hledger-ui and  hledger-web  user  inter-
        faces.  These are maintained and released along with hledger:
 
    ui
@@ -3211,23 +3276,23 @@ COMMANDS
        hledger-interest generates interest transactions for an account accord-
        ing to various schemes.
 
-       A few more experimental or old add-ons can be found in  hledger's  bin/
+       A  few  more experimental or old add-ons can be found in hledger's bin/
        directory.  These are typically prototypes and not guaranteed to work.
 
 ENVIRONMENT
-       COLUMNS  The  screen  width used by the register command.  Default: the
+       COLUMNS The screen width used by the register  command.   Default:  the
        full terminal width.
 
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-       A typical value is ~/DIR/YYYY.journal,  where  DIR  is  a  version-con-
-       trolled  finance directory and YYYY is the current year.  Or ~/DIR/cur-
+       A  typical  value  is  ~/DIR/YYYY.journal,  where DIR is a version-con-
+       trolled finance directory and YYYY is the current year.  Or  ~/DIR/cur-
        rent.journal, where current.journal is a symbolic link to YYYY.journal.
 
        On Mac computers, you can set this and other environment variables in a
-       more  thorough  way that also affects applications started from the GUI
+       more thorough way that also affects applications started from  the  GUI
        (say, an Emacs dock icon).  Eg on MacOS Catalina I have a ~/.MacOSX/en-
        vironment.plist file containing
 
@@ -3238,13 +3303,13 @@ ENVIRONMENT
        To see the effect you may need to killall Dock, or reboot.
 
 FILES
-       Reads  data from one or more files in hledger journal, timeclock, time-
-       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
-       $HOME/.hledger.journal           (on          windows,          perhaps
+       Reads data from one or more files in hledger journal, timeclock,  time-
+       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
+       $HOME/.hledger.journal          (on          windows,           perhaps
        C:/Users/USER/.hledger.journal).
 
 LIMITATIONS
-       The need to precede addon command options with  --  when  invoked  from
+       The  need  to  precede  addon command options with -- when invoked from
        hledger is awkward.
 
        When input data contains non-ascii characters, a suitable system locale
@@ -3260,36 +3325,36 @@ LIMITATIONS
        In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
        add.
 
-       Not all of Ledger's journal file syntax is supported.  See file  format
+       Not  all of Ledger's journal file syntax is supported.  See file format
        differences.
 
-       On  large  data  files,  hledger  is  slower  and uses more memory than
+       On large data files, hledger  is  slower  and  uses  more  memory  than
        Ledger.
 
 TROUBLESHOOTING
-       Here are some issues you might encounter when you run hledger (and  re-
-       member  you  can  also seek help from the IRC channel, mail list or bug
+       Here  are some issues you might encounter when you run hledger (and re-
+       member you can also seek help from the IRC channel, mail  list  or  bug
        tracker):
 
        Successfully installed, but "No command 'hledger' found"
        stack and cabal install binaries into a special directory, which should
-       be  added  to your PATH environment variable.  Eg on unix-like systems,
+       be added to your PATH environment variable.  Eg on  unix-like  systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        I set a custom LEDGER_FILE, but hledger is still using the default file
-       LEDGER_FILE should be a real environment variable,  not  just  a  shell
-       variable.   The command env | grep LEDGER_FILE should show it.  You may
+       LEDGER_FILE  should  be  a  real environment variable, not just a shell
+       variable.  The command env | grep LEDGER_FILE should show it.  You  may
        need to use export.  Here's an explanation.
 
-       Getting errors like "Illegal byte sequence" or "Invalid  or  incomplete
-       multibyte  or wide character" or "commitAndReleaseBuffer: invalid argu-
+       Getting  errors  like "Illegal byte sequence" or "Invalid or incomplete
+       multibyte or wide character" or "commitAndReleaseBuffer: invalid  argu-
        ment (invalid character)"
        Programs compiled with GHC (hledger, haskell build tools, etc.) need to
        have a UTF-8-aware locale configured in the environment, otherwise they
-       will fail with these kinds of  errors  when  they  encounter  non-ascii
+       will  fail  with  these  kinds  of errors when they encounter non-ascii
        characters.
 
-       To  fix it, set the LANG environment variable to some locale which sup-
+       To fix it, set the LANG environment variable to some locale which  sup-
        ports UTF-8.  The locale you choose must be installed on your system.
 
        Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
@@ -3304,8 +3369,8 @@ TROUBLESHOOTING
               POSIX
               $ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
 
-       If available, C.UTF-8 will also work.  If your preferred  locale  isn't
-       listed  by  locale  -a, you might need to install it.  Eg on Ubuntu/De-
+       If  available,  C.UTF-8 will also work.  If your preferred locale isn't
+       listed by locale -a, you might need to install it.   Eg  on  Ubuntu/De-
        bian:
 
               $ apt-get install language-pack-fr
@@ -3325,8 +3390,8 @@ TROUBLESHOOTING
               $ echo "export LANG=en_US.utf8" >>~/.bash_profile
               $ bash --login
 
-       Exact spelling and capitalisation may be important.  Note  the  differ-
-       ence  on  MacOS  (UTF-8,  not  utf8).  Some platforms (eg ubuntu) allow
+       Exact  spelling  and capitalisation may be important.  Note the differ-
+       ence on MacOS (UTF-8, not utf8).   Some  platforms  (eg  ubuntu)  allow
        variant spellings, but others (eg macos) require it to be exact:
 
               $ locale -a | grep -iE en_us.*utf
@@ -3336,7 +3401,7 @@ TROUBLESHOOTING
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -3350,7 +3415,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

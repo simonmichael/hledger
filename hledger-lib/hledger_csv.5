@@ -635,6 +635,7 @@ Conditional blocks (\[dq]if blocks\[dq]) are a block of rules that are
 applied only to CSV records which match certain patterns.
 They are often used for customising account names based on transaction
 descriptions.
+.SS Matching the whole record
 .PP
 Each MATCHER can be a record matcher, which looks like this:
 .IP
@@ -659,6 +660,7 @@ field containing a comma will appear like two fields).
 Eg, if the original record is
 \f[C]2020-01-01; \[dq]Acme, Inc.\[dq];  1,000\f[R], the REGEX will
 actually see \f[C]2020-01-01,Acme, Inc.,  1,000\f[R]).
+.SS Matching individual fields
 .PP
 Or, MATCHER can be a field matcher, like this:
 .IP
@@ -671,6 +673,7 @@ Or, MATCHER can be a field matcher, like this:
 which matches just the content of a particular CSV field.
 CSVFIELD is a percent sign followed by the field\[aq]s name or column
 number, like \f[C]%date\f[R] or \f[C]%1\f[R].
+.SS Combining matchers
 .PP
 A single matcher can be written on the same line as the \[dq]if\[dq]; or
 multiple matchers can be written on the following lines, non-indented.
@@ -686,6 +689,7 @@ MATCHER
  RULE
 \f[R]
 .fi
+.SS Rules applied on successful match
 .PP
 After the patterns there should be one or more rules to apply, all
 indented by at least one space.
