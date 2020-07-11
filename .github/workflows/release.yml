@@ -1,6 +1,7 @@
-# Create a github release, when a "[0-9]*" tag is pushed
-#
-# https://github.com/actions/create-release - still pretty rough, 20200609
+# Runs on push of a [0-9]* or r[0-9]* tag.
+
+# Creates a draft github release.
+# See https://github.com/actions/create-release, still pretty rough as of 20200609.
 
 name: release
 

@@ -8,6 +8,9 @@
 # the other workflows.)
 # Currently does not upload a binaries artifact.
 
+# This is the "master" workflow on which the others are based, 
+# with the most detailed notes.
+
 name: linux CI
 
 on:
@@ -55,12 +58,12 @@ jobs:
       matrix:
         plan:
         # GHC 8.0 is still supported but we don't have a build plan for hledger-web, let it go
-        # - { ghc: "80", args: "--stack-yaml=stack8.0.yaml" }
-        - { ghc: "82", args: "--stack-yaml=stack8.2.yaml" }
-        # - { ghc: "84", args: "--stack-yaml=stack8.4.yaml" }
-        # - { ghc: "86", args: "--stack-yaml=stack8.6.yaml" }
-        # - { ghc: "88", args: "--stack-yaml=stack.yaml" }
-        # - { ghc: "810", args: "--stack-yaml=stack8.10.yaml" }
+        # - { ghc: "80"  , stack: "stack --stack-yaml=stack8.0.yaml" }
+        - { ghc: "82"    , stack: "stack --stack-yaml=stack8.2.yaml" }
+        # - { ghc: "84"  , stack: "stack --stack-yaml=stack8.4.yaml" }
+        # - { ghc: "86"  , stack: "stack --stack-yaml=stack8.6.yaml" }
+        # - { ghc: "88"  , stack: "stack --stack-yaml=stack.yaml" }
+        # - { ghc: "810" , stack: "stack --stack-yaml=stack8.10.yaml" }
 
     steps:
 
@@ -157,53 +160,55 @@ jobs:
       # export PATH=~/.local/bin:$PATH
       # if [[ ! -x ~/.local/bin/stack ]]; then curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
       run: |
-        stack --version
+        $stack --version
+      env:
+        stack: ${{ matrix.plan.stack }}
 
     - name: Install GHC
+      env:
+        stack: ${{ matrix.plan.stack }}
       run: |
         df -h
-        stack $ARGS setup --install-ghc
+        $stack setup --install-ghc
         df -h
-      env:
-        ARGS: ${{ matrix.plan.args }}
 
     - name: Install haskell deps
-      run: |
-        stack $ARGS build --test --bench --only-dependencies
-        #  --no-terminal
       env:
-        ARGS: ${{ matrix.plan.args }}
+        stack: ${{ matrix.plan.stack }}
+      run: |
+        $stack build --test --bench --only-dependencies
+        #  --no-terminal
 
     - name: Build all hledger modules warning free, optimised and minimised, run unit/doc/bench tests
+      env:
+        stack: ${{ matrix.plan.stack }}
       run: |
-        stack $ARGS install --test --bench --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --ghc-options=-split-sections --no-terminal
+        $stack install --test --bench --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --ghc-options=-split-sections --no-terminal
         # -split-sections shrinks binaries by 30% on average here
         # --pedantic --no-run-benchmarks
-      env:
-        ARGS: ${{ matrix.plan.args }}
 
     - name: Install shelltestrunner
+      env:
+        stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then stack $ARGS install shelltestrunner-1.9; fi
+        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.9; fi
         shelltest --version
-      env:
-        ARGS: ${{ matrix.plan.args }}
 
     - name: Test functional tests (excluding addons)
+      env:
+        stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        COLUMNS=80 stack $ARGS exec -- shelltest --execdir -j16 tests -x /bin -x /addons
-      env:
-        ARGS: ${{ matrix.plan.args }}
+        COLUMNS=80 $stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
     - name: Test haddock generation
-      run: |
-        time stack $ARGS build --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
-      # --no-haddock-hyperlink-source is 25% faster
-      # --no-print-missing-docs is 600% quieter
       env:
-        ARGS: ${{ matrix.plan.args }}
+        stack: ${{ matrix.plan.stack }}
+      run: |
+        time $stack build --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
+        # --no-haddock-hyperlink-source is 25% faster
+        # --no-print-missing-docs is 600% quieter
 
     # artifacts:
     # XXX unreliable, and we don't need this for every PR; disable for now
