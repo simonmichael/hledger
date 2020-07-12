@@ -115,7 +115,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
 
 accountTransactionsReportAsCsv :: Query -> Query -> AccountTransactionsReport -> CSV
 accountTransactionsReportAsCsv reportq thisacctq (_,is) =
-  ["txnidx","date","code","description","account","amount","total"]
+  ["txnidx","date","code","description","otheraccounts","change","balance"]
   : map (accountTransactionsReportItemAsCsvRecord reportq thisacctq) is
 
 accountTransactionsReportItemAsCsvRecord :: Query -> Query -> AccountTransactionsReportItem -> CsvRecord
