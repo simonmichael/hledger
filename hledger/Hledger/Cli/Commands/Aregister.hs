@@ -134,13 +134,21 @@ accountTransactionsReportItemAsCsvRecord
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> String
 accountTransactionsReportAsText opts reportq thisacctq (_balancelabel,items) =
-  unlines $ map (accountTransactionsReportItemAsText opts reportq thisacctq amtwidth balwidth) items
+  unlines $ title :
+    map (accountTransactionsReportItemAsText opts reportq thisacctq amtwidth balwidth) items
   where
     amtwidth = maximumStrict $ 12 : map (strWidth . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (strWidth . showamt . itembal) items
     showamt = showMixedAmountOneLineWithoutPrice False
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
+    -- show a title indicating which account was picked, which can be confusing otherwise
+    title = maybe "" (("Transactions in "++).(++" and subaccounts:")) macct
+      where
+        -- XXX temporary hack ? recover the account name from the query
+        macct = case filterQuery queryIsAcct thisacctq of
+                  Acct r -> Just $ init $ init $ init $ init $ init $ tail r  -- Acct "^JS:expenses(:|$)"
+                  _      -> Nothing  -- shouldn't happen
 
 -- | Render one account register report line item as plain text. Layout is like so:
 -- @
