@@ -73,7 +73,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   d <- getCurrentDay
   -- the first argument specifies the account, any remaining arguments are a filter query
   let args' = listofstringopt "args" rawopts
-  when (null args') $ error' "please provide an account name or pattern"
+  when (null args') $ error' "aregister needs an account, please provide an account name or pattern"
   let
     (apat:queryargs) = args'
     acct = headDef (error' $ show apat++" did not match any account") $
