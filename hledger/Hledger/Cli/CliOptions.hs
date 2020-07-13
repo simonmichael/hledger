@@ -171,13 +171,12 @@ reportflags = [
      ])
  ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE[,COMM]"
    (unlines
-     ["TYPE is cost, end, now or YYYY-MM-DD."
-     ,"COMM is an optional commodity symbol."
-     ,"Shows amounts converted to:"
-     ,"- cost using transaction prices, then optionally to COMM using period-end market prices"
-     ,"- period-end market value, in default valuation commodity or COMM"
-     ,"- current market value, in default valuation commodity or COMM"
-     ,"- market value on the given date, in default valuation commodity or COMM"
+     ["show amounts converted with valuation TYPE, and optionally to specified commodity COMM. TYPE can be:"
+     ,"'cost': convert to cost using transaction prices, then optionally to COMM using period-end market prices"
+     ,"'then': convert to contemporaneous market value, in default valuation commodity or COMM (print & register commands only)"
+     ,"'end':  convert to period-end market value, in default valuation commodity or COMM"
+     ,"'now':  convert to current market value, in default valuation commodity or COMM"
+     ,"YYYY-MM-DD: convert to market value on the given date, in default valuation commodity or COMM"
      ])
  ,flagNone ["infer-value"]   (setboolopt "infer-value") "with -V/-X/--value, also infer market prices from transactions"
 
