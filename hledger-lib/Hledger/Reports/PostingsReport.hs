@@ -100,7 +100,7 @@ postingsReport ropts@ReportOpts{..} q j =
 
       -- Posting report items ready for display.
       items =
-        dbg1 "postingsReport items" $
+        dbg4 "postingsReport items" $
         postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
         where
           -- In historical mode we'll need a starting balance, which we
@@ -145,16 +145,16 @@ adjustReportDates :: ReportOpts -> Query -> Journal -> DateSpan
 adjustReportDates opts q j = reportspan
   where
     -- see also multiBalanceReport
-    requestedspan       = dbg1 "requestedspan"       $ queryDateSpan' q                                       -- span specified by -b/-e/-p options and query args
-    journalspan         = dbg1 "journalspan"         $ dates `spanUnion` date2s                               -- earliest and latest dates (or date2s) in the journal
+    requestedspan       = dbg3 "requestedspan"       $ queryDateSpan' q                                       -- span specified by -b/-e/-p options and query args
+    journalspan         = dbg3 "journalspan"         $ dates `spanUnion` date2s                               -- earliest and latest dates (or date2s) in the journal
       where
         dates  = journalDateSpan False j
         date2s = journalDateSpan True  j
-    requestedspanclosed = dbg1 "requestedspanclosed" $ requestedspan `spanDefaultsFrom` journalspan           -- if open-ended, close it using the journal's dates (if any)
-    intervalspans       = dbg1 "intervalspans"       $ splitSpan (interval_ opts) requestedspanclosed  -- get the whole intervals enclosing that
-    mreportstart        = dbg1 "reportstart"         $ maybe Nothing spanStart $ headMay intervalspans        -- start of the first interval, or open ended
-    mreportend          = dbg1 "reportend"           $ maybe Nothing spanEnd   $ lastMay intervalspans        -- end of the last interval, or open ended
-    reportspan          = dbg1 "reportspan"          $ DateSpan mreportstart mreportend                       -- the requested span enlarged to whole intervals if possible
+    requestedspanclosed = dbg3 "requestedspanclosed" $ requestedspan `spanDefaultsFrom` journalspan           -- if open-ended, close it using the journal's dates (if any)
+    intervalspans       = dbg3 "intervalspans"       $ splitSpan (interval_ opts) requestedspanclosed  -- get the whole intervals enclosing that
+    mreportstart        = dbg3 "reportstart"         $ maybe Nothing spanStart $ headMay intervalspans        -- start of the first interval, or open ended
+    mreportend          = dbg3 "reportend"           $ maybe Nothing spanEnd   $ lastMay intervalspans        -- end of the last interval, or open ended
+    reportspan          = dbg3 "reportspan"          $ DateSpan mreportstart mreportend                       -- the requested span enlarged to whole intervals if possible
 
 -- | Find postings matching a given query, within a given date span,
 -- and also any similarly-matched postings before that date span.
@@ -162,30 +162,30 @@ adjustReportDates opts q j = reportspan
 -- A helper for the postings report.
 matchedPostingsBeforeAndDuring :: ReportOpts -> Query -> Journal -> DateSpan -> ([Posting],[Posting])
 matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
-  dbg1 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
+  dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
-    beforestartq = dbg1 "beforestartq" $ dateqtype $ DateSpan Nothing mstart
+    beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing mstart
     beforeandduringps =
-      dbg1 "ps5" $ sortOn sortdate $                                           -- sort postings by date or date2
-      dbg1 "ps4" $ (if invert_ opts then map negatePostingAmount else id) $    -- with --invert, invert amounts
-      dbg1 "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
-      dbg1 "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
-      dbg1 "ps1" $ filter (beforeandduringq `matchesPosting`) $                -- filter postings by the query, with no start date or depth limit
+      dbg5 "ps5" $ sortOn sortdate $                                           -- sort postings by date or date2
+      dbg5 "ps4" $ (if invert_ opts then map negatePostingAmount else id) $    -- with --invert, invert amounts
+      dbg5 "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
+      dbg5 "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
+      dbg5 "ps1" $ filter (beforeandduringq `matchesPosting`) $                -- filter postings by the query, with no start date or depth limit
                   journalPostings $
                   journalSelectingAmountFromOpts opts j    -- maybe convert to cost early, will be seen by amt:. XXX what about converting to value ?
       where
-        beforeandduringq = dbg1 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
+        beforeandduringq = dbg4 "beforeandduringq" $ And [depthless $ dateless q, beforeendq]
           where
             depthless  = filterQuery (not . queryIsDepth)
             dateless   = filterQuery (not . queryIsDateOrDate2)
             beforeendq = dateqtype $ DateSpan Nothing mend
         sortdate = if date2_ opts then postingDate2 else postingDate
-        symq = dbg1 "symq" $ filterQuery queryIsSym q
+        symq = dbg4 "symq" $ filterQuery queryIsSym q
     dateqtype
       | queryIsDate2 dateq || (queryIsDate dateq && date2_ opts) = Date2
       | otherwise = Date
       where
-        dateq = dbg1 "dateq" $ filterQuery queryIsDateOrDate2 $ dbg1 "q" q  -- XXX confused by multiple date:/date2: ?
+        dateq = dbg4 "dateq" $ filterQuery queryIsDateOrDate2 $ dbg4 "q" q  -- XXX confused by multiple date:/date2: ?
 
 -- | Generate postings report line items from a list of postings or (with
 -- non-Nothing dates attached) summary postings.
