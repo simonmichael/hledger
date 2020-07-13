@@ -41,6 +41,7 @@ aregistermode = hledgerCommandMode
   ([
    flagNone ["txn-dates"] (setboolopt "txn-dates") 
      "filter strictly by transaction date, not posting date. Warning: this can show a wrong running balance."
+   ,flagNone ["no-elide"] (setboolopt "no-elide") "don't limit amount commodities shown to 2"
   --  flagNone ["cumulative"] (setboolopt "change")
   --    "show running total from report start date (default)"
   -- ,flagNone ["historical","H"] (setboolopt "historical")
@@ -133,13 +134,16 @@ accountTransactionsReportItemAsCsvRecord
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> String
-accountTransactionsReportAsText opts reportq thisacctq (_balancelabel,items) =
-  unlines $ title :
-    map (accountTransactionsReportItemAsText opts reportq thisacctq amtwidth balwidth) items
+accountTransactionsReportAsText
+  copts@CliOpts{reportopts_=ReportOpts{no_elide_}} reportq thisacctq (_balancelabel,items)
+  = unlines $ title :
+    map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
   where
     amtwidth = maximumStrict $ 12 : map (strWidth . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (strWidth . showamt . itembal) items
-    showamt = showMixedAmountOneLineWithoutPrice False
+    showamt
+      | no_elide_ = showMixedAmountOneLineWithoutPrice False -- color_
+      | otherwise = showMixedAmountElided False
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise
@@ -164,7 +168,8 @@ accountTransactionsReportAsText opts reportq thisacctq (_balancelabel,items) =
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> String
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportopts_=ReportOpts{color_}} reportq thisacctq preferredamtwidth preferredbalwidth
+  copts@CliOpts{reportopts_=ReportOpts{color_,no_elide_}}
+  reportq thisacctq preferredamtwidth preferredbalwidth
   (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance)
     -- Transaction -- the transaction, unmodified
     -- Transaction -- the transaction, as seen from the current account
@@ -216,8 +221,9 @@ accountTransactionsReportItemAsText
       desc = T.unpack tdescription
       accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
               otheracctsstr
-      showamt = -- showMixedAmountWithoutPrice color_
-                showMixedAmountOneLineWithoutPrice color_
+      showamt
+        | no_elide_ = showMixedAmountOneLineWithoutPrice color_
+        | otherwise = showMixedAmountElided color_
       amt = showamt change
       bal = showamt balance
       -- alternate behaviour, show null amounts as 0 instead of blank
