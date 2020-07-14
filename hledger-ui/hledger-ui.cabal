@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2106ad0b8a3edbcfb79239f336c6b163755b6e89b179b2b955a7bc4e735a9ed9
+-- hash: 69306ba4d4fa65c6f9bd30b888fb32ff3bb2c88cd2cac3f58282b108c699d74e
 
 name:           hledger-ui
 version:        1.18.99
@@ -66,7 +66,7 @@ executable hledger-ui
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="1.18.99"
   build-depends:
-      ansi-terminal >=0.6.2.3
+      ansi-terminal >=0.9
     , async
     , base >=4.9 && <4.15
     , base-compat-batteries >=0.10.1 && <0.12
