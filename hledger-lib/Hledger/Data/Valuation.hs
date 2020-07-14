@@ -258,6 +258,8 @@ priceLookup makepricegraph d from mto =
               Nothing    -> Nothing
               Just nodes ->
                 dbg ("market price for "++intercalate " -> " (map T.unpack comms)) $
+                  -- TODO: it would be nice to include price date as part of the label
+                  -- in PriceGraph, so we could show the dates of market prices here
                 Just $ product $ pathEdgeLabels g nodes  -- convert to a single exchange rate
                 where comms = catMaybes $ map (lab g) nodes
 
