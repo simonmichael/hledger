@@ -188,6 +188,17 @@ reportflags = [
    , "Also, in hledger-ui, make future transactions visible."
    , "Note that = (and not a space) is required before PERIODEXP if you wish to supply it."
    ])
+
+  -- general output-related
+
+ ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "always|never|auto"
+   (unwords
+     ["When to use color (or colour) in terminal output."
+     ,"'auto' is the default; it tries to enable color when the terminal is color-supporting and interactive."
+     ,"'always' or 'yes' forces color on, useful eg when piping output into 'less -R'."
+     ,"'never' or 'no' forces color off."
+     ,"A NO_COLOR environment variable will also force color off, overriding this option."
+     ])
  ]
 
 -- | Flags for selecting flat/tree mode, used in accounts/balance reports.

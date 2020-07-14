@@ -1723,12 +1723,17 @@ directory. These are typically prototypes and not guaranteed to work.
 
 # ENVIRONMENT
 
+m4_dnl Standard LEDGER_FILE description:
+_LEDGER_FILE_
+
 **COLUMNS**
 The screen width used by the register command.
 Default: the full terminal width.
 
-m4_dnl Standard LEDGER_FILE description:
-_LEDGER_FILE_
+**NO_COLOR**
+If this variable exists with any value, 
+hledger will not use ANSI color codes in terminal output.
+This overrides the --color/--colour option.
 
 # FILES
 

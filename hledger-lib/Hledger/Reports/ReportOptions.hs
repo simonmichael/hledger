@@ -4,7 +4,10 @@ Options common to most hledger reports.
 
 -}
 
-{-# LANGUAGE OverloadedStrings, RecordWildCards, LambdaCase, DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
@@ -54,7 +57,9 @@ import Data.Typeable (Typeable)
 import Data.Time.Calendar
 import Data.Default
 import Safe
-import System.Console.ANSI (hSupportsANSI)
+
+import System.Console.ANSI (hSupportsANSIColor)
+import System.Environment (lookupEnv)
 import System.IO (stdout)
 import Text.Megaparsec.Custom
 
@@ -129,6 +134,10 @@ data ReportOpts = ReportOpts {
       --   sign normalisation, converting normally negative subreports to
       --   normally positive for a more conventional display.
     ,color_          :: Bool
+      -- ^ Whether to use ANSI color codes in text output.
+      --   Influenced by the --color/colour flag (cf CliOptions),
+      --   whether stdout is an interactive terminal, and the value of
+      --   TERM and existence of NO_COLOR environment variables.
     ,forecast_       :: Maybe DateSpan
     ,transpose_      :: Bool
  } deriving (Show, Data, Typeable)
@@ -172,7 +181,9 @@ rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
   let rawopts' = checkRawOpts rawopts
   d <- getCurrentDay
-  color <- hSupportsANSI stdout
+  no_color <- isJust <$> lookupEnv "NO_COLOR"
+  supports_color <- hSupportsANSIColor stdout
+  let colorflag = stringopt "color" rawopts
   return defreportopts{
      today_       = Just d
     ,period_      = periodFromRawOpts d rawopts'
@@ -200,7 +211,10 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,percent_     = boolopt "percent" rawopts'
     ,invert_      = boolopt "invert" rawopts'
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
-    ,color_       = color
+    ,color_       = and [not no_color
+                        ,not $ colorflag `elem` ["never","no"]
+                        ,colorflag `elem` ["always","yes"] || supports_color
+                        ]
     ,forecast_    = forecastPeriodFromRawOpts d rawopts'
     ,transpose_   = boolopt "transpose" rawopts'
     }

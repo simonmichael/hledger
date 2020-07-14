@@ -124,10 +124,8 @@ Some example formats:
 
 ### Colour support
 
-The balance command shows negative amounts in red, if:
-
-- the `TERM` environment variable is not set to `dumb`
-- the output is not being redirected or piped anywhere
+In terminal output, when colour is enabled, 
+the balance command shows negative amounts in red.
 
 ### Flat mode
 
@@ -320,7 +318,7 @@ the width of multicommodity reports.
 
 When the report is still too wide, a good workaround is to pipe it
 into `less -RS` (-R for colour, -S to chop long lines). 
-Eg: `hledger bal -D | less -RS`.
+Eg: `hledger bal -D --color=yes | less -RS`.
 
 
 ### Budget report
