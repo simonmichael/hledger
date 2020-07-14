@@ -191,13 +191,12 @@ reportflags = [
 
   -- general output-related
 
- ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "always|never|auto"
+ ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "always|yes|never|no|auto"
    (unwords
-     ["When to use color (or colour) in terminal output."
-     ,"'auto' is the default; it tries to enable color when the terminal is color-supporting and interactive."
-     ,"'always' or 'yes' forces color on, useful eg when piping output into 'less -R'."
+     ["'auto' is the default, it tries to use ANSI color codes in terminal output when supported."
+     ,"'always' or 'yes' forces color on, useful when piping output, eg into 'less -R'."
      ,"'never' or 'no' forces color off."
-     ,"A NO_COLOR environment variable will also force color off, overriding this option."
+     ,"A NO_COLOR environment variable also disables color, overriding this option."
      ])
  ]
 
