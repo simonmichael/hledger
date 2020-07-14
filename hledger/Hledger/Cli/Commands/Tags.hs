@@ -18,6 +18,7 @@ import Hledger.Cli.CliOptions
 tagsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Tags.txt")
   [flagNone ["values"] (setboolopt "values") "list tag values instead of tag names"
+  ,flagNone ["parsed"] (setboolopt "parsed") "show tags/values in the order they were parsed, including duplicates"
   ]
   [generalflagsgroup1]
   hiddenflags
@@ -30,12 +31,16 @@ tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     mtagpat   = headMay args
     queryargs = drop 1 args
     values    = boolopt "values" rawopts
+    parsed    = boolopt "parsed" rawopts
+    empty     = empty_ ropts
     q = queryFromOpts d $ ropts{query_ = unwords $ map quoteIfNeeded queryargs}
     txns = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
     tagsorvalues =
-      nubSort $
-      [if values then v else t
+      (if parsed then id else nubSort)
+      [ r
       | (t,v) <- concatMap transactionAllTags txns
       , maybe True (`regexMatchesCI` T.unpack t) mtagpat
+      , let r = if values then v else t
+      , not (values && T.null v && not empty)
       ]
   mapM_ T.putStrLn tagsorvalues
