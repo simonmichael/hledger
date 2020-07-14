@@ -1897,7 +1897,6 @@ detailed command help.
 * activity::
 * add::
 * aregister::
-* aregister and custom posting dates::
 * balance::
 * balancesheet::
 * balancesheetequity::
@@ -2050,7 +2049,7 @@ Date [2015/05/22]: <CTRL-D> $
 file path ends with a period, as that would cause problems (#1056).
 
 
-File: hledger.info,  Node: aregister,  Next: aregister and custom posting dates,  Prev: add,  Up: COMMANDS
+File: hledger.info,  Node: aregister,  Next: balance,  Prev: add,  Up: COMMANDS
 
 3.4 aregister
 =============
@@ -2086,11 +2085,16 @@ transactions shown.
    Transactions making a net change of zero are not shown by default;
 add the '-E/--empty' flag to show them.
 
-
-File: hledger.info,  Node: aregister and custom posting dates,  Next: balance,  Prev: aregister,  Up: COMMANDS
+* Menu:
 
-3.5 aregister and custom posting dates
-======================================
+* aregister and custom posting dates::
+* Output format::
+
+
+File: hledger.info,  Node: aregister and custom posting dates,  Next: ,  Up: aregister
+
+3.4.1 aregister and custom posting dates
+----------------------------------------
 
 Transactions whose date is outside the report period can still be shown,
 if they have a posting to this account dated inside the report period.
@@ -2102,11 +2106,7 @@ matching the one shown by 'register -H' with the same arguments.
 flag.  If you use this flag and some of your postings have custom dates,
 it's probably best to assume the running balance is wrong.
 
-* Menu:
-
-* Output format::
-
-3.5.1 Output format
+3.4.2 Output format
 -------------------
 
 This command also supports the output destination and output format
@@ -2125,9 +2125,9 @@ accounts during july:
 $ hledger areg assets date:jul
 
 
-File: hledger.info,  Node: balance,  Next: balancesheet,  Prev: aregister and custom posting dates,  Up: COMMANDS
+File: hledger.info,  Node: balance,  Next: balancesheet,  Prev: aregister,  Up: COMMANDS
 
-3.6 balance
+3.5 balance
 ===========
 
 balance, bal, b
@@ -2170,7 +2170,7 @@ is used to ensure this (more below).
 
 File: hledger.info,  Node: Classic balance report,  Next: Customising the classic balance report,  Up: balance
 
-3.6.1 Classic balance report
+3.5.1 Classic balance report
 ----------------------------
 
 This is the original balance report, as found in Ledger.  It usually
@@ -2218,7 +2218,7 @@ $ hledger balance -p 2008/6 expenses --no-total
 
 File: hledger.info,  Node: Customising the classic balance report,  Next: Colour support,  Prev: Classic balance report,  Up: balance
 
-3.6.2 Customising the classic balance report
+3.5.2 Customising the classic balance report
 --------------------------------------------
 
 You can customise the layout of classic balance reports with '--format
@@ -2280,7 +2280,7 @@ may be needed to get pleasing results.
 
 File: hledger.info,  Node: Colour support,  Next: Flat mode,  Prev: Customising the classic balance report,  Up: balance
 
-3.6.3 Colour support
+3.5.3 Colour support
 --------------------
 
 The balance command shows negative amounts in red, if:
@@ -2291,7 +2291,7 @@ The balance command shows negative amounts in red, if:
 
 File: hledger.info,  Node: Flat mode,  Next: Depth limited balance reports,  Prev: Colour support,  Up: balance
 
-3.6.4 Flat mode
+3.5.4 Flat mode
 ---------------
 
 To see a flat list instead of the default hierarchical display, use
@@ -2307,7 +2307,7 @@ $ hledger balance -p 2008/6 expenses -N --flat --drop 1
 
 File: hledger.info,  Node: Depth limited balance reports,  Next: Percentages,  Prev: Flat mode,  Up: balance
 
-3.6.5 Depth limited balance reports
+3.5.5 Depth limited balance reports
 -----------------------------------
 
 With '--depth N' or 'depth:N' or just '-N', balance reports show
@@ -2326,7 +2326,7 @@ show inclusive balances at the depth limit.
 
 File: hledger.info,  Node: Percentages,  Next: Multicolumn balance report,  Prev: Depth limited balance reports,  Up: balance
 
-3.6.6 Percentages
+3.5.6 Percentages
 -----------------
 
 With '-%' or '--percent', balance reports show each account's value
@@ -2358,7 +2358,7 @@ to use '-V' or '-B' to coerce the report into using a single commodity.
 
 File: hledger.info,  Node: Multicolumn balance report,  Next: Budget report,  Prev: Percentages,  Up: balance
 
-3.6.7 Multicolumn balance report
+3.5.7 Multicolumn balance report
 --------------------------------
 
 Multicolumn or tabular balance reports are a very useful hledger
@@ -2479,7 +2479,7 @@ bal -D | less -RS'.
 
 File: hledger.info,  Node: Budget report,  Next: ,  Prev: Multicolumn balance report,  Up: balance
 
-3.6.8 Budget report
+3.5.8 Budget report
 -------------------
 
 With '--budget', extra columns are displayed showing budget goals for
@@ -2602,7 +2602,7 @@ Budget performance in 2017/11/01-2017/12/31:
 
 File: hledger.info,  Node: Nested budgets,  Up: Budget report
 
-3.6.8.1 Nested budgets
+3.5.8.1 Nested budgets
 ......................
 
 You can add budgets to any account in your account hierarchy.  If you
@@ -2687,7 +2687,7 @@ Budget performance in 2019/01:
 ----------------------------------------++-------------------------------
                                         ||        0 [                 0] 
 
-3.6.9 Output format
+3.5.9 Output format
 -------------------
 
 This command also supports the output destination and output format
@@ -2697,7 +2697,7 @@ non-budget reports only) 'html', and (experimental) 'json'.
 
 File: hledger.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balance,  Up: COMMANDS
 
-3.7 balancesheet
+3.6 balancesheet
 ================
 
 balancesheet, bs
@@ -2747,7 +2747,7 @@ options The output formats supported are 'txt', 'csv', 'html', and
 
 File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesheet,  Up: COMMANDS
 
-3.8 balancesheetequity
+3.7 balancesheetequity
 ======================
 
 balancesheetequity, bse
@@ -2787,7 +2787,7 @@ options The output formats supported are 'txt', 'csv', 'html', and
 
 File: hledger.info,  Node: cashflow,  Next: check-dates,  Prev: balancesheetequity,  Up: COMMANDS
 
-3.9 cashflow
+3.8 cashflow
 ============
 
 cashflow, cf
@@ -2827,8 +2827,8 @@ options The output formats supported are 'txt', 'csv', 'html', and
 
 File: hledger.info,  Node: check-dates,  Next: check-dupes,  Prev: cashflow,  Up: COMMANDS
 
-3.10 check-dates
-================
+3.9 check-dates
+===============
 
 check-dates
 Check that transactions are sorted by increasing date.  With -date2,
@@ -2839,7 +2839,7 @@ Reads the default journal file, or another specified with -f.
 
 File: hledger.info,  Node: check-dupes,  Next: close,  Prev: check-dates,  Up: COMMANDS
 
-3.11 check-dupes
+3.10 check-dupes
 ================
 
 check-dupes
@@ -2852,7 +2852,7 @@ the default journal file, or another specified as an argument.
 
 File: hledger.info,  Node: close,  Next: codes,  Prev: check-dupes,  Up: COMMANDS
 
-3.12 close
+3.11 close
 ==========
 
 close, equity
@@ -2892,7 +2892,7 @@ you have many foreign currency or investment transactions.
 
 File: hledger.info,  Node: close usage,  Up: close
 
-3.12.1 close usage
+3.11.1 close usage
 ------------------
 
 If you split your journal files by time (eg yearly), you will typically
@@ -2963,7 +2963,7 @@ breaking balance assertions:
 
 File: hledger.info,  Node: codes,  Next: commodities,  Prev: close,  Up: COMMANDS
 
-3.13 codes
+3.12 codes
 ==========
 
 codes
@@ -3009,7 +3009,7 @@ $ hledger codes -E
 
 File: hledger.info,  Node: commodities,  Next: descriptions,  Prev: codes,  Up: COMMANDS
 
-3.14 commodities
+3.13 commodities
 ================
 
 commodities
@@ -3018,7 +3018,7 @@ List all commodity/currency symbols used or declared in the journal.
 
 File: hledger.info,  Node: descriptions,  Next: diff,  Prev: commodities,  Up: COMMANDS
 
-3.15 descriptions
+3.14 descriptions
 =================
 
 descriptions
@@ -3038,7 +3038,7 @@ Person A
 
 File: hledger.info,  Node: diff,  Next: files,  Prev: descriptions,  Up: COMMANDS
 
-3.16 diff
+3.15 diff
 =========
 
 diff
@@ -3073,7 +3073,7 @@ These transactions are in the second file only:
 
 File: hledger.info,  Node: files,  Next: help,  Prev: diff,  Up: COMMANDS
 
-3.17 files
+3.16 files
 ==========
 
 files
@@ -3083,7 +3083,7 @@ file names matching the regular expression (case sensitive) are shown.
 
 File: hledger.info,  Node: help,  Next: import,  Prev: files,  Up: COMMANDS
 
-3.18 help
+3.17 help
 =========
 
 help
@@ -3123,7 +3123,7 @@ DESCRIPTION
 
 File: hledger.info,  Node: import,  Next: incomestatement,  Prev: help,  Up: COMMANDS
 
-3.19 import
+3.18 import
 ===========
 
 import
@@ -3152,7 +3152,7 @@ $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 
 File: hledger.info,  Node: Importing balance assignments,  Up: import
 
-3.19.1 Importing balance assignments
+3.18.1 Importing balance assignments
 ------------------------------------
 
 Entries added by import will have their posting amounts made explicit
@@ -3171,7 +3171,7 @@ please test it and send a pull request.)
 
 File: hledger.info,  Node: incomestatement,  Next: notes,  Prev: import,  Up: COMMANDS
 
-3.20 incomestatement
+3.19 incomestatement
 ====================
 
 incomestatement, is
@@ -3220,7 +3220,7 @@ options The output formats supported are 'txt', 'csv', 'html', and
 
 File: hledger.info,  Node: notes,  Next: payees,  Prev: incomestatement,  Up: COMMANDS
 
-3.21 notes
+3.20 notes
 ==========
 
 notes
@@ -3240,7 +3240,7 @@ Snacks
 
 File: hledger.info,  Node: payees,  Next: prices,  Prev: notes,  Up: COMMANDS
 
-3.22 payees
+3.21 payees
 ===========
 
 payees
@@ -3262,7 +3262,7 @@ Person A
 
 File: hledger.info,  Node: prices,  Next: print,  Prev: payees,  Up: COMMANDS
 
-3.23 prices
+3.22 prices
 ===========
 
 prices
@@ -3275,7 +3275,7 @@ Price amounts are always displayed with their full precision.
 
 File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
 
-3.24 print
+3.23 print
 ==========
 
 print, txns, p
@@ -3384,7 +3384,7 @@ $ hledger print -Ocsv
 
 File: hledger.info,  Node: print-unique,  Next: register,  Prev: print,  Up: COMMANDS
 
-3.25 print-unique
+3.24 print-unique
 =================
 
 print-unique
@@ -3405,7 +3405,7 @@ $ LEDGER_FILE=unique.journal hledger print-unique
 
 File: hledger.info,  Node: register,  Next: register-match,  Prev: print-unique,  Up: COMMANDS
 
-3.26 register
+3.25 register
 =============
 
 register, reg, r
@@ -3495,7 +3495,7 @@ length and comparable to the others in the report.
 
 File: hledger.info,  Node: Custom register output,  Up: register
 
-3.26.1 Custom register output
+3.25.1 Custom register output
 -----------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -3527,7 +3527,7 @@ options The output formats supported are 'txt', 'csv', and
 
 File: hledger.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
 
-3.27 register-match
+3.26 register-match
 ===================
 
 register-match
@@ -3540,7 +3540,7 @@ ledger-autosync detect already-seen transactions when importing.
 
 File: hledger.info,  Node: rewrite,  Next: roi,  Prev: register-match,  Up: COMMANDS
 
-3.28 rewrite
+3.27 rewrite
 ============
 
 rewrite
@@ -3592,7 +3592,7 @@ commodity.
 
 File: hledger.info,  Node: Re-write rules in a file,  Up: rewrite
 
-3.28.1 Re-write rules in a file
+3.27.1 Re-write rules in a file
 -------------------------------
 
 During the run this tool will execute so called "Automated Transactions"
@@ -3635,7 +3635,7 @@ postings.
 
 File: hledger.info,  Node: Diff output format,  Next: rewrite vs print --auto,  Up: Re-write rules in a file
 
-3.28.1.1 Diff output format
+3.27.1.1 Diff output format
 ...........................
 
 To use this tool for batch modification of your journal files you may
@@ -3676,7 +3676,7 @@ output from 'hledger print'.
 
 File: hledger.info,  Node: rewrite vs print --auto,  Prev: Diff output format,  Up: Re-write rules in a file
 
-3.28.1.2 rewrite vs. print -auto
+3.27.1.2 rewrite vs. print -auto
 ................................
 
 This command predates print -auto, and currently does much the same
@@ -3696,7 +3696,7 @@ thing, but with these differences:
 
 File: hledger.info,  Node: roi,  Next: stats,  Prev: rewrite,  Up: COMMANDS
 
-3.29 roi
+3.28 roi
 ========
 
 roi
@@ -3724,7 +3724,7 @@ regardless of the length of reporting interval.
 
 File: hledger.info,  Node: stats,  Next: tags,  Prev: roi,  Up: COMMANDS
 
-3.30 stats
+3.29 stats
 ==========
 
 stats
@@ -3755,7 +3755,7 @@ selection.
 
 File: hledger.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
 
-3.31 tags
+3.30 tags
 =========
 
 tags
@@ -3775,7 +3775,7 @@ they are omitted.
 
 File: hledger.info,  Node: test,  Next: Add-on commands,  Prev: tags,  Up: COMMANDS
 
-3.32 test
+3.31 test
 =========
 
 test
@@ -3802,7 +3802,7 @@ $ hledger test -- -pData.Amount --color=never
 
 File: hledger.info,  Node: Add-on commands,  Prev: test,  Up: COMMANDS
 
-3.33 Add-on commands
+3.32 Add-on commands
 ====================
 
 hledger also searches for external add-on commands, and will include
@@ -3843,7 +3843,7 @@ interfaces.  These are maintained and released along with hledger:
 
 File: hledger.info,  Node: ui,  Next: web,  Up: Add-on commands
 
-3.33.1 ui
+3.32.1 ui
 ---------
 
 hledger-ui provides an efficient terminal interface.
@@ -3851,7 +3851,7 @@ hledger-ui provides an efficient terminal interface.
 
 File: hledger.info,  Node: web,  Next: iadd,  Prev: ui,  Up: Add-on commands
 
-3.33.2 web
+3.32.2 web
 ----------
 
 hledger-web provides a simple web interface.
@@ -3861,7 +3861,7 @@ hledger-web provides a simple web interface.
 
 File: hledger.info,  Node: iadd,  Next: interest,  Prev: web,  Up: Add-on commands
 
-3.33.3 iadd
+3.32.3 iadd
 -----------
 
 hledger-iadd is a more interactive, terminal UI replacement for the add
@@ -3870,7 +3870,7 @@ command.
 
 File: hledger.info,  Node: interest,  Prev: iadd,  Up: Add-on commands
 
-3.33.4 interest
+3.32.4 interest
 ---------------
 
 hledger-interest generates interest transactions for an account
@@ -4107,120 +4107,120 @@ Node: Effect of valuation on reports58740
 Ref: #effect-of-valuation-on-reports58928
 Node: COMMANDS64449
 Ref: #commands64557
-Node: accounts65704
-Ref: #accounts65802
-Node: activity66501
-Ref: #activity66611
-Node: add66994
-Ref: #add67095
-Node: aregister69888
-Ref: #aregister70027
-Node: aregister and custom posting dates71333
-Ref: #aregister-and-custom-posting-dates71526
-Ref: #output-format-172147
-Node: balance72552
-Ref: #balance72694
-Node: Classic balance report74152
-Ref: #classic-balance-report74325
-Node: Customising the classic balance report75759
-Ref: #customising-the-classic-balance-report75987
-Node: Colour support78063
-Ref: #colour-support78230
-Node: Flat mode78403
-Ref: #flat-mode78551
-Node: Depth limited balance reports78964
-Ref: #depth-limited-balance-reports79149
-Node: Percentages79605
-Ref: #percentages79771
-Node: Multicolumn balance report80908
-Ref: #multicolumn-balance-report81088
-Node: Budget report86673
-Ref: #budget-report86816
-Node: Nested budgets92082
-Ref: #nested-budgets92194
-Ref: #output-format-295675
-Node: balancesheet95872
-Ref: #balancesheet96008
-Node: balancesheetequity97474
-Ref: #balancesheetequity97623
-Node: cashflow98346
-Ref: #cashflow98474
-Node: check-dates99653
-Ref: #check-dates99782
-Node: check-dupes100061
-Ref: #check-dupes100187
-Node: close100480
-Ref: #close100588
-Node: close usage102110
-Ref: #close-usage102203
-Node: codes105016
-Ref: #codes105124
-Node: commodities105836
-Ref: #commodities105963
-Node: descriptions106045
-Ref: #descriptions106173
-Node: diff106477
-Ref: #diff106583
-Node: files107630
-Ref: #files107730
-Node: help107877
-Ref: #help107977
-Node: import109058
-Ref: #import109172
-Node: Importing balance assignments110065
-Ref: #importing-balance-assignments110213
-Node: incomestatement110862
-Ref: #incomestatement110995
-Node: notes112482
-Ref: #notes112595
-Node: payees112963
-Ref: #payees113069
-Node: prices113489
-Ref: #prices113595
-Node: print113936
-Ref: #print114046
-Node: print-unique118842
-Ref: #print-unique118968
-Node: register119253
-Ref: #register119380
-Node: Custom register output123552
-Ref: #custom-register-output123681
-Node: register-match125018
-Ref: #register-match125152
-Node: rewrite125503
-Ref: #rewrite125618
-Node: Re-write rules in a file127473
-Ref: #re-write-rules-in-a-file127607
-Node: Diff output format128817
-Ref: #diff-output-format128986
-Node: rewrite vs print --auto130078
-Ref: #rewrite-vs.-print---auto130257
-Node: roi130813
-Ref: #roi130911
-Node: stats131923
-Ref: #stats132022
-Node: tags132810
-Ref: #tags132908
-Node: test133427
-Ref: #test133535
-Node: Add-on commands134282
-Ref: #add-on-commands134399
-Node: ui135742
-Ref: #ui135830
-Node: web135884
-Ref: #web135987
-Node: iadd136103
-Ref: #iadd136214
-Node: interest136296
-Ref: #interest136403
-Node: ENVIRONMENT136643
-Ref: #environment136755
-Node: FILES137584
-Ref: #files-1137687
-Node: LIMITATIONS137900
-Ref: #limitations138019
-Node: TROUBLESHOOTING138761
-Ref: #troubleshooting138874
+Node: accounts65665
+Ref: #accounts65763
+Node: activity66462
+Ref: #activity66572
+Node: add66955
+Ref: #add67056
+Node: aregister69849
+Ref: #aregister69961
+Node: aregister and custom posting dates71334
+Ref: #aregister-and-custom-posting-dates71507
+Ref: #output-format-172100
+Node: balance72505
+Ref: #balance72622
+Node: Classic balance report74080
+Ref: #classic-balance-report74253
+Node: Customising the classic balance report75687
+Ref: #customising-the-classic-balance-report75915
+Node: Colour support77991
+Ref: #colour-support78158
+Node: Flat mode78331
+Ref: #flat-mode78479
+Node: Depth limited balance reports78892
+Ref: #depth-limited-balance-reports79077
+Node: Percentages79533
+Ref: #percentages79699
+Node: Multicolumn balance report80836
+Ref: #multicolumn-balance-report81016
+Node: Budget report86601
+Ref: #budget-report86744
+Node: Nested budgets92010
+Ref: #nested-budgets92122
+Ref: #output-format-295603
+Node: balancesheet95800
+Ref: #balancesheet95936
+Node: balancesheetequity97402
+Ref: #balancesheetequity97551
+Node: cashflow98274
+Ref: #cashflow98402
+Node: check-dates99581
+Ref: #check-dates99708
+Node: check-dupes99987
+Ref: #check-dupes100113
+Node: close100406
+Ref: #close100514
+Node: close usage102036
+Ref: #close-usage102129
+Node: codes104942
+Ref: #codes105050
+Node: commodities105762
+Ref: #commodities105889
+Node: descriptions105971
+Ref: #descriptions106099
+Node: diff106403
+Ref: #diff106509
+Node: files107556
+Ref: #files107656
+Node: help107803
+Ref: #help107903
+Node: import108984
+Ref: #import109098
+Node: Importing balance assignments109991
+Ref: #importing-balance-assignments110139
+Node: incomestatement110788
+Ref: #incomestatement110921
+Node: notes112408
+Ref: #notes112521
+Node: payees112889
+Ref: #payees112995
+Node: prices113415
+Ref: #prices113521
+Node: print113862
+Ref: #print113972
+Node: print-unique118768
+Ref: #print-unique118894
+Node: register119179
+Ref: #register119306
+Node: Custom register output123478
+Ref: #custom-register-output123607
+Node: register-match124944
+Ref: #register-match125078
+Node: rewrite125429
+Ref: #rewrite125544
+Node: Re-write rules in a file127399
+Ref: #re-write-rules-in-a-file127533
+Node: Diff output format128743
+Ref: #diff-output-format128912
+Node: rewrite vs print --auto130004
+Ref: #rewrite-vs.-print---auto130183
+Node: roi130739
+Ref: #roi130837
+Node: stats131849
+Ref: #stats131948
+Node: tags132736
+Ref: #tags132834
+Node: test133353
+Ref: #test133461
+Node: Add-on commands134208
+Ref: #add-on-commands134325
+Node: ui135668
+Ref: #ui135756
+Node: web135810
+Ref: #web135913
+Node: iadd136029
+Ref: #iadd136140
+Node: interest136222
+Ref: #interest136329
+Node: ENVIRONMENT136569
+Ref: #environment136681
+Node: FILES137510
+Ref: #files-1137613
+Node: LIMITATIONS137826
+Ref: #limitations137945
+Node: TROUBLESHOOTING138687
+Ref: #troubleshooting138800
 
 End Tag Table
 

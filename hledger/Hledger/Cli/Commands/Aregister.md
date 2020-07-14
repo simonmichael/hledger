@@ -32,7 +32,7 @@ transactions shown.
 Transactions making a net change of zero are not shown by default;
 add the `-E/--empty` flag to show them.
 
-## aregister and custom posting dates
+### aregister and custom posting dates
 
 Transactions whose date is outside the report period can still be
 shown, if they have a posting to this account dated inside the report
