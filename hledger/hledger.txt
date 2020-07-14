@@ -538,6 +538,13 @@ OPTIONS
               for the next 6 months or till report end date.   In  hledger-ui,
               also make ordinary future transactions visible.
 
+       --color=always|yes|never|no|auto (or --colour=...)
+              'auto'  is the default, it tries to use ANSI color codes in ter-
+              minal output when supported.  'always' or 'yes' forces color on,
+              useful  when  piping output, eg into 'less -R'.  'never' or 'no'
+              forces color off.  A NO_COLOR environment variable also disables
+              color, overriding this option.
+
        When a reporting option appears more than once in the command line, the
        last one takes precedence.
 
@@ -1007,7 +1014,6 @@ OPTIONS
        -b 2016/3/17       begin on St. Patrick's day 2016
        -e 12/1            end  at  the  start  of  december  1st of the current year
                           (11/30 will be the last date included)
-
        -b thismonth       all transactions on or after the 1st of the current month
        -p thismonth       all transactions in the current month
        date:2016/3/17..   the  above  written as queries instead (.. can also be re-
@@ -1064,6 +1070,8 @@ OPTIONS
 
        -p "2009"       the  year 2009; equivalent
                        to "2009/1/1 to 2010/1/1"
+
+
        -p "2009/1"     the month of jan;  equiva-
                        lent   to   "2009/1/1   to
                        2009/2/1"
@@ -1550,6 +1558,9 @@ OPTIONS
        (with report   costs          riod ends of                   riod ends of   DATE/today of
        interval)                     sums      of                   sums      of   sums of post-
                                      postings                       postings       ings
+
+
+
        starting       sums      of   sums      of   not supported   sums      of   sums of post-
        balances       costs     of   postings be-                   postings be-   ings   before
        (with report   postings be-   fore  report                   fore  report   report start
@@ -1561,10 +1572,6 @@ OPTIONS
        grand  total   sum of  dis-   sum of  dis-   not supported   sum of  dis-   sum  of  dis-
        (no   report   played  val-   played  val-                   played  val-   played values
        interval)      ues            ues                            ues
-
-
-
-
        row      to-   sums/aver-     sums/aver-     not supported   sums/aver-     sums/averages
        tals/aver-     ages of dis-   ages of dis-                   ages of dis-   of  displayed
        ages   (with   played  val-   played  val-                   played  val-   values

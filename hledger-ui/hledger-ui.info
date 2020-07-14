@@ -175,6 +175,13 @@ the data.
      generate future transactions from periodic transaction rules, for
      the next 6 months or till report end date.  In hledger-ui, also
      make ordinary future transactions visible.
+'--color=always|yes|never|no|auto (or --colour=...)'
+
+     'auto' is the default, it tries to use ANSI color codes in terminal
+     output when supported.  'always' or 'yes' forces color on, useful
+     when piping output, eg into 'less -R'. 'never' or 'no' forces color
+     off.  A NO_COLOR environment variable also disables color,
+     overriding this option.
 
    When a reporting option appears more than once in the command line,
 the last one takes precedence.
@@ -510,24 +517,24 @@ Tag Table:
 Node: Top71
 Node: OPTIONS1476
 Ref: #options1573
-Node: KEYS5188
-Ref: #keys5283
-Node: SCREENS9559
-Ref: #screens9664
-Node: Accounts screen9754
-Ref: #accounts-screen9882
-Node: Register screen12098
-Ref: #register-screen12253
-Node: Transaction screen14250
-Ref: #transaction-screen14408
-Node: Error screen15278
-Ref: #error-screen15400
-Node: ENVIRONMENT15644
-Ref: #environment15758
-Node: FILES16565
-Ref: #files16664
-Node: BUGS16877
-Ref: #bugs16954
+Node: KEYS5552
+Ref: #keys5647
+Node: SCREENS9923
+Ref: #screens10028
+Node: Accounts screen10118
+Ref: #accounts-screen10246
+Node: Register screen12462
+Ref: #register-screen12617
+Node: Transaction screen14614
+Ref: #transaction-screen14772
+Node: Error screen15642
+Ref: #error-screen15764
+Node: ENVIRONMENT16008
+Ref: #environment16122
+Node: FILES16929
+Ref: #files17028
+Node: BUGS17241
+Ref: #bugs17318
 
 End Tag Table
 

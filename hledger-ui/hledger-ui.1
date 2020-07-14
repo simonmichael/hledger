@@ -160,6 +160,15 @@ apply automated posting rules to modify transactions.
 generate future transactions from periodic transaction rules, for the
 next 6 months or till report end date.
 In hledger-ui, also make ordinary future transactions visible.
+.TP
+\f[B]\f[CB]--color=always|yes|never|no|auto (or --colour=...)\f[B]\f[R]
+\[aq]auto\[aq] is the default, it tries to use ANSI color codes in
+terminal output when supported.
+\[aq]always\[aq] or \[aq]yes\[aq] forces color on, useful when piping
+output, eg into \[aq]less -R\[aq].
+\[aq]never\[aq] or \[aq]no\[aq] forces color off.
+A NO_COLOR environment variable also disables color, overriding this
+option.
 .PP
 When a reporting option appears more than once in the command line, the
 last one takes precedence.
