@@ -2283,10 +2283,8 @@ File: hledger.info,  Node: Colour support,  Next: Flat mode,  Prev: Customising 
 3.5.3 Colour support
 --------------------
 
-The balance command shows negative amounts in red, if:
-
-   * the 'TERM' environment variable is not set to 'dumb'
-   * the output is not being redirected or piped anywhere
+In terminal output, when colour is enabled, the balance command shows
+negative amounts in red.
 
 
 File: hledger.info,  Node: Flat mode,  Next: Depth limited balance reports,  Prev: Colour support,  Up: balance
@@ -2474,7 +2472,7 @@ width of multicommodity reports.
 
    When the report is still too wide, a good workaround is to pipe it
 into 'less -RS' (-R for colour, -S to chop long lines).  Eg: 'hledger
-bal -D | less -RS'.
+bal -D --color=yes | less -RS'.
 
 
 File: hledger.info,  Node: Budget report,  Next: ,  Prev: Multicolumn balance report,  Up: balance
@@ -3885,10 +3883,7 @@ File: hledger.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: COMMANDS,  Up: Top
 4 ENVIRONMENT
 *************
 
-*COLUMNS* The screen width used by the register command.  Default: the
-full terminal width.
-
-   *LEDGER_FILE* The journal file path when not specified with '-f'.
+*LEDGER_FILE* The journal file path when not specified with '-f'.
 Default: '~/.hledger.journal' (on windows, perhaps
 'C:/Users/USER/.hledger.journal').
 
@@ -3907,6 +3902,13 @@ a more thorough way that also affects applications started from the GUI
 }
 
    To see the effect you may need to 'killall Dock', or reboot.
+
+   *COLUMNS* The screen width used by the register command.  Default:
+the full terminal width.
+
+   *NO_COLOR* If this variable exists with any value, hledger will not
+use ANSI color codes in terminal output.  This overrides the
+-color/-colour option.
 
 
 File: hledger.info,  Node: FILES,  Next: LIMITATIONS,  Prev: ENVIRONMENT,  Up: Top
@@ -4126,101 +4128,101 @@ Node: Customising the classic balance report75687
 Ref: #customising-the-classic-balance-report75915
 Node: Colour support77991
 Ref: #colour-support78158
-Node: Flat mode78331
-Ref: #flat-mode78479
-Node: Depth limited balance reports78892
-Ref: #depth-limited-balance-reports79077
-Node: Percentages79533
-Ref: #percentages79699
-Node: Multicolumn balance report80836
-Ref: #multicolumn-balance-report81016
-Node: Budget report86601
-Ref: #budget-report86744
-Node: Nested budgets92010
-Ref: #nested-budgets92122
-Ref: #output-format-295603
-Node: balancesheet95800
-Ref: #balancesheet95936
-Node: balancesheetequity97402
-Ref: #balancesheetequity97551
-Node: cashflow98274
-Ref: #cashflow98402
-Node: check-dates99581
-Ref: #check-dates99708
-Node: check-dupes99987
-Ref: #check-dupes100113
-Node: close100406
-Ref: #close100514
-Node: close usage102036
-Ref: #close-usage102129
-Node: codes104942
-Ref: #codes105050
-Node: commodities105762
-Ref: #commodities105889
-Node: descriptions105971
-Ref: #descriptions106099
-Node: diff106403
-Ref: #diff106509
-Node: files107556
-Ref: #files107656
-Node: help107803
-Ref: #help107903
-Node: import108984
-Ref: #import109098
-Node: Importing balance assignments109991
-Ref: #importing-balance-assignments110139
-Node: incomestatement110788
-Ref: #incomestatement110921
-Node: notes112408
-Ref: #notes112521
-Node: payees112889
-Ref: #payees112995
-Node: prices113415
-Ref: #prices113521
-Node: print113862
-Ref: #print113972
-Node: print-unique118768
-Ref: #print-unique118894
-Node: register119179
-Ref: #register119306
-Node: Custom register output123478
-Ref: #custom-register-output123607
-Node: register-match124944
-Ref: #register-match125078
-Node: rewrite125429
-Ref: #rewrite125544
-Node: Re-write rules in a file127399
-Ref: #re-write-rules-in-a-file127533
-Node: Diff output format128743
-Ref: #diff-output-format128912
-Node: rewrite vs print --auto130004
-Ref: #rewrite-vs.-print---auto130183
-Node: roi130739
-Ref: #roi130837
-Node: stats131849
-Ref: #stats131948
-Node: tags132736
-Ref: #tags132834
-Node: test133353
-Ref: #test133461
-Node: Add-on commands134208
-Ref: #add-on-commands134325
-Node: ui135668
-Ref: #ui135756
-Node: web135810
-Ref: #web135913
-Node: iadd136029
-Ref: #iadd136140
-Node: interest136222
-Ref: #interest136329
-Node: ENVIRONMENT136569
-Ref: #environment136681
-Node: FILES137510
-Ref: #files-1137613
-Node: LIMITATIONS137826
-Ref: #limitations137945
-Node: TROUBLESHOOTING138687
-Ref: #troubleshooting138800
+Node: Flat mode78254
+Ref: #flat-mode78402
+Node: Depth limited balance reports78815
+Ref: #depth-limited-balance-reports79000
+Node: Percentages79456
+Ref: #percentages79622
+Node: Multicolumn balance report80759
+Ref: #multicolumn-balance-report80939
+Node: Budget report86536
+Ref: #budget-report86679
+Node: Nested budgets91945
+Ref: #nested-budgets92057
+Ref: #output-format-295538
+Node: balancesheet95735
+Ref: #balancesheet95871
+Node: balancesheetequity97337
+Ref: #balancesheetequity97486
+Node: cashflow98209
+Ref: #cashflow98337
+Node: check-dates99516
+Ref: #check-dates99643
+Node: check-dupes99922
+Ref: #check-dupes100048
+Node: close100341
+Ref: #close100449
+Node: close usage101971
+Ref: #close-usage102064
+Node: codes104877
+Ref: #codes104985
+Node: commodities105697
+Ref: #commodities105824
+Node: descriptions105906
+Ref: #descriptions106034
+Node: diff106338
+Ref: #diff106444
+Node: files107491
+Ref: #files107591
+Node: help107738
+Ref: #help107838
+Node: import108919
+Ref: #import109033
+Node: Importing balance assignments109926
+Ref: #importing-balance-assignments110074
+Node: incomestatement110723
+Ref: #incomestatement110856
+Node: notes112343
+Ref: #notes112456
+Node: payees112824
+Ref: #payees112930
+Node: prices113350
+Ref: #prices113456
+Node: print113797
+Ref: #print113907
+Node: print-unique118703
+Ref: #print-unique118829
+Node: register119114
+Ref: #register119241
+Node: Custom register output123413
+Ref: #custom-register-output123542
+Node: register-match124879
+Ref: #register-match125013
+Node: rewrite125364
+Ref: #rewrite125479
+Node: Re-write rules in a file127334
+Ref: #re-write-rules-in-a-file127468
+Node: Diff output format128678
+Ref: #diff-output-format128847
+Node: rewrite vs print --auto129939
+Ref: #rewrite-vs.-print---auto130118
+Node: roi130674
+Ref: #roi130772
+Node: stats131784
+Ref: #stats131883
+Node: tags132671
+Ref: #tags132769
+Node: test133288
+Ref: #test133396
+Node: Add-on commands134143
+Ref: #add-on-commands134260
+Node: ui135603
+Ref: #ui135691
+Node: web135745
+Ref: #web135848
+Node: iadd135964
+Ref: #iadd136075
+Node: interest136157
+Ref: #interest136264
+Node: ENVIRONMENT136504
+Ref: #environment136616
+Node: FILES137601
+Ref: #files-1137704
+Node: LIMITATIONS137917
+Ref: #limitations138036
+Node: TROUBLESHOOTING138778
+Ref: #troubleshooting138891
 
 End Tag Table
 

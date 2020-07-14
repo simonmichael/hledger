@@ -2750,11 +2750,8 @@ rendered on one line
 for the single-column balance report
 .SS Colour support
 .PP
-The balance command shows negative amounts in red, if:
-.IP \[bu] 2
-the \f[C]TERM\f[R] environment variable is not set to \f[C]dumb\f[R]
-.IP \[bu] 2
-the output is not being redirected or piped anywhere
+In terminal output, when colour is enabled, the balance command shows
+negative amounts in red.
 .SS Flat mode
 .PP
 To see a flat list instead of the default hierarchical display, use
@@ -2966,7 +2963,7 @@ the width of multicommodity reports.
 .PP
 When the report is still too wide, a good workaround is to pipe it into
 \f[C]less -RS\f[R] (-R for colour, -S to chop long lines).
-Eg: \f[C]hledger bal -D | less -RS\f[R].
+Eg: \f[C]hledger bal -D --color=yes | less -RS\f[R].
 .SS Budget report
 .PP
 With \f[C]--budget\f[R], extra columns are displayed showing budget
@@ -4507,9 +4504,6 @@ bin/ directory.
 These are typically prototypes and not guaranteed to work.
 .SH ENVIRONMENT
 .PP
-\f[B]COLUMNS\f[R] The screen width used by the register command.
-Default: the full terminal width.
-.PP
 \f[B]LEDGER_FILE\f[R] The journal file path when not specified with
 \f[C]-f\f[R].
 Default: \f[C]\[ti]/.hledger.journal\f[R] (on windows, perhaps
@@ -4535,6 +4529,13 @@ file containing
 .fi
 .PP
 To see the effect you may need to \f[C]killall Dock\f[R], or reboot.
+.PP
+\f[B]COLUMNS\f[R] The screen width used by the register command.
+Default: the full terminal width.
+.PP
+\f[B]NO_COLOR\f[R] If this variable exists with any value, hledger will
+not use ANSI color codes in terminal output.
+This overrides the --color/--colour option.
 .SH FILES
 .PP
 Reads data from one or more files in hledger journal, timeclock,
