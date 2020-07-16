@@ -121,6 +121,7 @@ data AccountType =
   | Equity
   | Revenue
   | Expense
+  | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
   deriving (Show,Eq,Ord,Data,Generic)
 
 instance NFData AccountType

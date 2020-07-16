@@ -1087,37 +1087,88 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 
 #### Account types
 
-hledger recognises five types (or classes) of account: Asset, Liability, Equity, Revenue, Expense.
-This is used by a few accounting-aware reports such as [balancesheet][], [incomestatement][] and [cashflow][].
+hledger recognises five main types of account,
+corresponding to the account classes in the [accounting equation][]:
 
-[balancesheet]: hledger.html#balancesheet
-[cashflow]: hledger.html#cashflow
-[incomestatement]: hledger.html#incomestatement
+`Asset`, `Liability`, `Equity`, `Revenue`, `Expense`.
+
+These account types are important for controlling which accounts
+appear in the [balancesheet][], [balancesheetequity][],
+[incomestatement][] reports (and probably for other things in future).
+
+There is also the `Cash` type, which is a subtype of `Asset`,
+and which causes accounts to appear in the [cashflow][] report.
+("Cash" here means [liquid assets][CCE], eg typically bank balances
+but not investments or receivables.)
+
+##### Declaring account types
+
+Generally, to make these reports work you should declare your
+top-level accounts and their types, 
+using [account directives](#declaring-accounts) 
+with `type:` [tags](journal.html#tags).
+
+The tag's value should be one of:
+`Asset`, `Liability`, `Equity`, `Revenue`, `Expense`, `Cash`,
+`A`, `L`, `E`, `R`, `X`, `C` (all case insensitive).
+The type is inherited by all subaccounts except where they override it.
+Here's a complete example:
+
+```journal
+account assets       ; type: Asset
+account assets:bank  ; type: Cash
+account assets:cash  ; type: Cash
+account liabilities  ; type: Liability
+account equity       ; type: Equity
+account revenues     ; type: Revenue
+account expenses     ; type: Expense
+```
 
 ##### Auto-detected account types
 
-If you name your top-level accounts with some variation of
-`assets`, `liabilities`/`debts`, `equity`, `revenues`/`income`, or `expenses`,
-their types are detected automatically.
+If you happen to use common english top-level account names, you may
+not need to declare account types, as they will be detected
+automatically using the following rules:
 
-##### Account types declared with tags
+| If name matches [regular expression][]: | account type is:
+|-----------------------------------------|-----------------
+| `^assets?(:|$)`                         | `Asset`
+| `^(debts?|liabilit(y|ies))(:|$)`        | `Liability`
+| `^equity(:|$)`                          | `Equity`
+| `^(income|revenue)s?(:|$)`              | `Revenue`
+| `^expenses?(:|$)`                       | `Expense`
 
-More generally, you can declare an account's type with an account directive,
-by writing a `type:` [tag](journal.html#tags) in a comment, followed by one of the words
-`Asset`, `Liability`, `Equity`, `Revenue`, `Expense`,
-or one of the letters `ALERX` (case insensitive):
+| If account type is `Asset` and name does not contain regular expression: | account type is:
+|--------------------------------------------------------------------------|-----------------
+| `(investment|receivable|:A/R|:fixed)`                                    | `Cash`
+
+Even so, explicit declarations may be a good idea, for clarity and
+predictability. 
+
+##### Interference from auto-detected account types
+
+If you assign any account type, it's a good idea to assign all of
+them, to prevent any confusion from mixing declared and auto-detected
+types. Although it's unlikely to happen in real life, here's an
+example: with the following journal, `balancesheetequity` shows
+"liabilities" in both Liabilities and Equity sections. Declaring another
+account as `type:Liability` would fix it:
+
 ```journal
-account assets       ; type:Asset
-account liabilities  ; type:Liability
-account equity       ; type:Equity
-account revenues     ; type:Revenue
-account expenses     ; type:Expense
+account liabilities  ; type:Equity
+
+2020-01-01
+  assets        1
+  liabilities   1
+  equity       -2
 ```
 
-##### Account types declared with account type codes
+##### Old account type syntax
 
-Or, you can write one of those letters separated from the account name by two or more spaces,
-but this should probably be considered deprecated as of hledger 1.13:
+In some hledger journals you might instead see this old syntax (the
+letters ALERX, separated from the account name by two or more spaces);
+this is deprecated and may be removed soon:
+
 ```journal
 account assets       A
 account liabilities  L
@@ -1126,18 +1177,15 @@ account revenues     R
 account expenses     X
 ```
 
-##### Overriding auto-detected types
 
-If you ever override the types of those auto-detected english account names mentioned above,
-you might need to help the reports a bit. Eg:
-```journal
-; make "liabilities" not have the liability type - who knows why
-account liabilities  ; type:E
+[balancesheet]: hledger.html#balancesheet
+[balancesheetequity]: hledger.html#balancesheetequity
+[cashflow]: hledger.html#cashflow
+[incomestatement]: hledger.html#incomestatement
+[CCE]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
+[regular expression]: hledger.html#regular-expressions
+[account equation]: https://en.wikipedia.org/wiki/Accounting_equation
 
-; we need to ensure some other account has the liability type,
-; otherwise balancesheet would still show "liabilities" under Liabilities
-account -            ; type:L
-```
 
 #### Account display order
 

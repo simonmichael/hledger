@@ -296,29 +296,6 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
 -- queries for standard account types
 
--- | Get a query for accounts of a certain type (Asset, Liability..) in this journal.
--- The query will match all accounts which were declared as that type by account directives,
--- plus all their subaccounts which have not been declared as a different type.
--- If no accounts were declared as this type, the query will instead match accounts
--- with names matched by the provided case-insensitive regular expression.
-journalAccountTypeQuery :: AccountType -> Regexp -> Journal -> Query
-journalAccountTypeQuery atype fallbackregex j =
-  case M.lookup atype (jdeclaredaccounttypes j) of
-    Nothing -> Acct fallbackregex
-    Just as ->
-      -- XXX Query isn't able to match account type since that requires extra info from the journal.
-      -- So we do a hacky search by name instead.
-      And [
-         Or $ map (Acct . accountNameToAccountRegex) as
-        ,Not $ Or $ map (Acct . accountNameToAccountRegex) differentlytypedsubs
-        ]
-      where
-        differentlytypedsubs = concat
-          [subs | (t,bs) <- M.toList (jdeclaredaccounttypes j)
-              , t /= atype
-              , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
-          ]
-
 -- | A query for accounts in this journal which have been
 -- declared as Asset by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
@@ -369,12 +346,43 @@ journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
                                         ,journalExpenseAccountQuery j
                                         ]
 
--- | A query for Cash (-equivalent) accounts in this journal (ie,
--- accounts which appear on the cashflow statement.)  This is currently
--- hard-coded to be all the Asset accounts except for those with names
--- containing the case-insensitive regular expression @(receivable|:A/R|:fixed)@.
+-- | A query for "Cash" (liquid asset) accounts in this journal (ie,
+-- accounts which appear on the cashflow statement.) This is the
+-- accounts declared to be Cash type, or if none of these are
+-- declared, the Asset accounts whose names do not contain the
+-- case-insensitive regular expression @(investment|receivable|:A/R|:fixed)@.
 journalCashAccountQuery  :: Journal -> Query
-journalCashAccountQuery j = And [journalAssetAccountQuery j, Not $ Acct "(receivable|:A/R|:fixed)"]
+journalCashAccountQuery j =
+  case M.lookup Cash (jdeclaredaccounttypes j) of
+    Just _  -> journalAccountTypeQuery Cash notused j
+      where notused = error' "journalCashAccountQuery: this should not have happened!"
+    Nothing -> And
+               [journalAssetAccountQuery j
+               ,Not $ Acct "(investment|receivable|:A/R|:fixed)"
+               ]
+
+-- | Get a query for accounts of a certain type (Asset, Liability..) in this journal.
+-- The query will match all accounts which were declared as that type by account directives,
+-- plus all their subaccounts which have not been declared as a different type.
+-- If no accounts were declared as this type, the query will instead match accounts
+-- with names matched by the provided case-insensitive regular expression.
+journalAccountTypeQuery :: AccountType -> Regexp -> Journal -> Query
+journalAccountTypeQuery atype fallbackregex j =
+  case M.lookup atype (jdeclaredaccounttypes j) of
+    Nothing -> Acct fallbackregex
+    Just as ->
+      -- XXX Query isn't able to match account type since that requires extra info from the journal.
+      -- So we do a hacky search by name instead.
+      And [
+         Or $ map (Acct . accountNameToAccountRegex) as
+        ,Not $ Or $ map (Acct . accountNameToAccountRegex) differentlytypedsubs
+        ]
+      where
+        differentlytypedsubs = concat
+          [subs | (t,bs) <- M.toList (jdeclaredaccounttypes j)
+              , t /= atype
+              , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
+          ]
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
