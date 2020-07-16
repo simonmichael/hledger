@@ -302,11 +302,10 @@ commentSpace = ("  "++)
 -- appropriately bracketed/parenthesised for the given posting type.
 showAccountName :: Maybe Int -> PostingType -> AccountName -> String
 showAccountName w = fmt
-    where
-      fmt RegularPosting = take w' . T.unpack
-      fmt VirtualPosting = parenthesise . reverse . take (w'-2) . reverse . T.unpack
-      fmt BalancedVirtualPosting = bracket . reverse . take (w'-2) . reverse . T.unpack
-      w' = fromMaybe 999999 w
+  where
+    fmt RegularPosting = maybe id take w . T.unpack
+    fmt VirtualPosting = parenthesise . maybe id (takeEnd . subtract 2) w . T.unpack
+    fmt BalancedVirtualPosting = bracket . maybe id (takeEnd . subtract 2) w . T.unpack
 
 parenthesise :: String -> String
 parenthesise s = "("++s++")"
