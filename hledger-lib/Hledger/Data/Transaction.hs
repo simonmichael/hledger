@@ -121,7 +121,7 @@ transactionNote = snd . payeeAndNoteFromDescription . tdescription
 payeeAndNoteFromDescription :: Text -> (Text,Text)
 payeeAndNoteFromDescription t
   | T.null n = (t, t)
-  | otherwise = (textstrip p, textstrip $ T.drop 1 n)
+  | otherwise = (T.strip p, T.strip $ T.drop 1 n)
   where
     (p, n) = T.span (/= '|') t
 

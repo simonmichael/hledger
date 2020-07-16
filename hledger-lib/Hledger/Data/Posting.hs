@@ -361,7 +361,7 @@ commentAddTag c (t,v)
   | T.null c' = tag
   | otherwise = c' `commentJoin` tag
   where
-    c'  = textchomp c
+    c'  = T.stripEnd c
     tag = t <> ": " <> v
 
 -- | Add a tag on its own line to a comment, preserving any prior content.
