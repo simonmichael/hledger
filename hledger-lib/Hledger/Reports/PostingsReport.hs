@@ -72,7 +72,7 @@ postingsReport ropts@ReportOpts{..} q j =
     where
       reportspan  = adjustReportDates ropts q j
       whichdate   = whichDateFromOpts ropts
-      depth       = queryDepth q
+      depth       = fromMaybe maxBound $ queryDepth q
       styles      = journalCommodityStyles j
       priceoracle = journalPriceOracle infer_value_ j
       multiperiod = interval_ /= NoInterval

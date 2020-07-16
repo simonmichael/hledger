@@ -92,7 +92,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
          reportopts_= ropts{
             -- incorporate any depth: query args into depth_,
             -- any date: query args into period_
-            depth_ =depthfromoptsandargs,
+            depth_ =queryDepth q,
             period_=periodfromoptsandargs,
             query_ =unwords -- as in ReportOptions, with same limitations
                     $ collectopts filteredQueryArg (rawopts_ copts),
@@ -107,8 +107,6 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       }
       where
         q = queryFromOpts d ropts
-        depthfromoptsandargs = case queryDepth q of 99999 -> Nothing
-                                                    d     -> Just d
         datespanfromargs = queryDateSpan (date2_ ropts) $ fst $ parseQuery d (T.pack $ query_ ropts)
         periodfromoptsandargs =
           dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]

@@ -64,7 +64,7 @@ import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Safe (readDef, maximumByDef, maximumDef, minimumDef)
+import Safe (readDef, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -488,33 +488,33 @@ queryDateSpan' _            = nulldatespan
 
 -- | What is the earliest of these dates, where Nothing is earliest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day
-earliestMaybeDate = minimumDef Nothing
+earliestMaybeDate = fromMaybe Nothing . minimumMay
 
 -- | What is the latest of these dates, where Nothing is earliest ?
 latestMaybeDate :: [Maybe Day] -> Maybe Day
-latestMaybeDate = maximumDef Nothing
+latestMaybeDate = fromMaybe Nothing . maximumMay
 
 -- | What is the earliest of these dates, where Nothing is the latest ?
 earliestMaybeDate' :: [Maybe Day] -> Maybe Day
-earliestMaybeDate' = minimumDef Nothing . filter isJust
+earliestMaybeDate' = fromMaybe Nothing . minimumMay . filter isJust
 
 -- | What is the latest of these dates, where Nothing is the latest ?
 latestMaybeDate' :: [Maybe Day] -> Maybe Day
-latestMaybeDate' = maximumByDef Nothing compareNothingMax
+latestMaybeDate' = fromMaybe Nothing . maximumByMay compareNothingMax
   where
     compareNothingMax Nothing  Nothing  = EQ
     compareNothingMax (Just _) Nothing  = LT
     compareNothingMax Nothing  (Just _) = GT
     compareNothingMax (Just a) (Just b) = compare a b
 
--- | The depth limit this query specifies, or a large number if none.
-queryDepth :: Query -> Int
-queryDepth = minimumDef maxBound . queryDepth'
+-- | The depth limit this query specifies, if it has one
+queryDepth :: Query -> Maybe Int
+queryDepth = minimumMay . queryDepth'
   where
     queryDepth' (Depth d) = [d]
-    queryDepth' (Or qs) = concatMap queryDepth' qs
-    queryDepth' (And qs) = concatMap queryDepth' qs
-    queryDepth' _ = []
+    queryDepth' (Or qs)   = concatMap queryDepth' qs
+    queryDepth' (And qs)  = concatMap queryDepth' qs
+    queryDepth' _         = []
 
 -- | The account we are currently focussed on, if any, and whether subaccounts are included.
 -- Just looks at the first query option.

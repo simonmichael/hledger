@@ -74,10 +74,10 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   -- 3. if there's a depth limit, depth-clip and remove any no longer useful items
       clippedaccts =
         dbg1 "clippedaccts" $
-        filter (matchesAccount acctq) $  -- clipping can leave accounts that no longer match the query, remove such
-        nub $                          -- clipping can leave duplicates (adjacent, hopefully)
-        filter (not . T.null) $        -- depth:0 can leave nulls
-        map (clipAccountName depth) $  -- clip at depth if specified
+        filter (matchesAccount acctq) $           -- clipping can leave accounts that no longer match the query, remove such
+        nub $                                     -- clipping can leave duplicates (adjacent, hopefully)
+        filter (not . T.null) $                   -- depth:0 can leave nulls
+        maybe id (map . clipAccountName) depth $  -- clip at depth if specified
         sortedaccts
 
   -- 4. print what remains as a list or tree, maybe applying --drop in the former case
