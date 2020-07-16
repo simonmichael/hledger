@@ -289,7 +289,7 @@ acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
     as = filterAccounts . drop 1 $ accountsFromPostings ps
     filterAccounts = case accountlistmode_ ropts of
         ALTree -> filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
-        ALFlat -> clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
+        ALFlat -> maybe id clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
                       filter ((0<) . anumpostings)
     depthq = dbg "depthq" $ filterQuery queryIsDepth q
 
@@ -299,8 +299,8 @@ calculateAccountChanges :: ReportOpts -> Query -> [DateSpan]
                         -> Map DateSpan [Posting]
                         -> HashMap ClippedAccountName (Map DateSpan Account)
 calculateAccountChanges ropts q colspans colps
-    | queryDepth q == 0 = acctchanges <> elided
-    | otherwise         = acctchanges
+    | queryDepth q == Just 0 = acctchanges <> elided
+    | otherwise              = acctchanges
   where
     -- Transpose to get each account's balance changes across all columns.
     acctchanges = transposeMap colacctchanges
@@ -461,7 +461,7 @@ displayedAccounts ropts q valuedaccts
         tallies = subaccountTallies . HM.keys $ HM.filterWithKey isInteresting valuedaccts
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
-    depth = queryDepth q
+    depth = fromMaybe maxBound $ queryDepth q
 
 -- | Sort the rows by amount or by account declaration order.
 sortRows :: ReportOpts -> Journal -> [MultiBalanceReportRow] -> [MultiBalanceReportRow]
