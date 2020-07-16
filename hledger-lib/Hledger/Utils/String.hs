@@ -1,6 +1,7 @@
 -- | String formatting helpers, starting to get a bit out of control.
 
 module Hledger.Utils.String (
+ takeEnd,
  -- * misc
  lowercase,
  uppercase,
@@ -57,6 +58,14 @@ import Text.Printf (printf)
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex
 
+
+-- | Take elements from the end of a list.
+takeEnd n l = go (drop n l) l
+  where
+    go (_:xs) (_:ys) = go xs ys
+    go []     r      = r
+    go _      []     = []
+
 lowercase, uppercase :: String -> String
 lowercase = map toLower
 uppercase = map toUpper
@@ -86,7 +95,7 @@ stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . re
 
 elideLeft :: Int -> String -> String
 elideLeft width s =
-    if length s > width then ".." ++ reverse (take (width - 2) $ reverse s) else s
+    if length s > width then ".." ++ takeEnd (width - 2) s else s
 
 elideRight :: Int -> String -> String
 elideRight width s =
