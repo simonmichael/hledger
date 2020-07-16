@@ -27,10 +27,6 @@ module Hledger.Utils.Text
  -- isSingleQuoted,
  -- isDoubleQuoted,
  -- -- * single-line layout
-  textstrip,
-  textlstrip,
-  textrstrip,
-  textchomp,
  -- elideLeft,
   textElideRight,
  -- formatString,
@@ -77,22 +73,6 @@ import Hledger.Utils.Test
 -- lowercase, uppercase :: String -> String
 -- lowercase = map toLower
 -- uppercase = map toUpper
-
--- | Remove leading and trailing whitespace.
-textstrip :: Text -> Text
-textstrip = textlstrip . textrstrip
-
--- | Remove leading whitespace.
-textlstrip :: Text -> Text
-textlstrip = T.dropWhile (`elem` (" \t" :: String)) :: Text -> Text -- XXX isSpace ?
-
--- | Remove trailing whitespace.
-textrstrip = T.reverse . textlstrip . T.reverse
-textrstrip :: Text -> Text
-
--- | Remove trailing newlines/carriage returns (and other whitespace).
-textchomp :: Text -> Text
-textchomp = T.stripEnd
 
 -- stripbrackets :: String -> String
 -- stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String
