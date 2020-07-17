@@ -280,7 +280,7 @@ balancemode = hledgerCommandMode
    ,flagNone ["historical","H"] (setboolopt "historical")
       "show historical ending balance in each period (includes postings before report start date)\n "
    ]
-   ++ flattreeflags ++
+   ++ flattreeflags True ++
    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
    ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
    ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"

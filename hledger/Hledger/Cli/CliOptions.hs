@@ -201,11 +201,15 @@ reportflags = [
      ])
  ]
 
--- | Flags for selecting flat/tree mode, used in accounts/balance reports.
-flattreeflags :: [Flag RawOpts]
-flattreeflags = [
-   flagNone ["flat"] (setboolopt "flat") "show accounts as a list; amounts exclude subaccounts, except where account is depth-clipped"
-  ,flagNone ["tree"] (setboolopt "tree") "show accounts as a tree; amounts include subaccounts"
+-- | Flags for selecting flat/tree mode, used for reports organised by account.
+-- With a True argument, shows some extra help about inclusive/exclusive amounts.
+flattreeflags :: Bool -> [Flag RawOpts]
+flattreeflags showamounthelp = [
+   flagNone ["flat","l"] (setboolopt "flat")
+     ("show accounts as a flat list (default)"
+      ++ if showamounthelp then ". Amounts exclude subaccount amounts, except where the account is depth-clipped." else "")
+  ,flagNone ["tree","t"] (setboolopt "tree")
+    ("show accounts as a hierarchic tree" ++ if showamounthelp then ". Amounts include subaccount amounts." else "")
   ]
 
 -- | Common flags that are accepted but not shown in --help,

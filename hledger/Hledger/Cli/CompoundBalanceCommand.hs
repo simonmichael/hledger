@@ -65,7 +65,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
            ++ defType HistoricalBalance
        )
     ]
-    ++ flattreeflags ++
+    ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
