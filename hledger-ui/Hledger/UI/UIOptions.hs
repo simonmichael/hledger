@@ -35,13 +35,12 @@ uiflags = [
   --   "show balance change accumulated across periods (in multicolumn reports)"
   -- ,flagNone ["historical","H"] (setboolopt "historical")
   --   "show historical ending balance in each period (includes postings before report start date)\n "
-  ,flagNone ["flat","F"] (setboolopt "flat") "show accounts as a list (default)"
-  ,flagNone ["tree","T"] (setboolopt "tree") "show accounts as a tree"
+  ]
+  ++ flattreeflags False
 --  ,flagNone ["present"] (setboolopt "present") "exclude transactions dated later than today (default)"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
   -- ,flagNone ["no-elide"] (setboolopt "no-elide") "don't compress empty parent accounts on one line"
- ]
 
 --uimode :: Mode RawOpts
 uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
