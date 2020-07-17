@@ -134,11 +134,13 @@ clipAccounts d a = a{asubs=subs}
 
 -- | Remove subaccounts below the specified depth, aggregating their balance at the depth limit
 -- (accounts at the depth limit will have any sub-balances merged into their exclusive balance).
-clipAccountsAndAggregate :: Int -> [Account] -> [Account]
-clipAccountsAndAggregate d as = combined
+-- If the depth is Nothing, return the original accounts
+clipAccountsAndAggregate :: Maybe Int -> [Account] -> [Account]
+clipAccountsAndAggregate Nothing  as = as
+clipAccountsAndAggregate (Just d) as = combined
     where
-      clipped  = [a{aname=clipOrEllipsifyAccountName d $ aname a} | a <- as]
-      combined = [a{aebalance=sum (map aebalance same)}
+      clipped  = [a{aname=clipOrEllipsifyAccountName (Just d) $ aname a} | a <- as]
+      combined = [a{aebalance=sum $ map aebalance same}
                  | same@(a:_) <- groupOn aname clipped]
 {-
 test cases, assuming d=1:

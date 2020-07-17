@@ -72,7 +72,7 @@ postingsReport ropts@ReportOpts{..} q j =
     where
       reportspan  = adjustReportDates ropts q j
       whichdate   = whichDateFromOpts ropts
-      depth       = fromMaybe maxBound $ queryDepth q
+      mdepth      = queryDepth q
       styles      = journalCommodityStyles j
       priceoracle = journalPriceOracle infer_value_ j
       multiperiod = interval_ /= NoInterval
@@ -84,7 +84,7 @@ postingsReport ropts@ReportOpts{..} q j =
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
         | multiperiod =
-            let summaryps = summarisePostingsByInterval interval_ whichdate depth showempty reportspan reportps
+            let summaryps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan reportps
             in [(pvalue p lastday, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
         | otherwise =
             [(pvalue p reportorjournallast, Nothing) | p <- reportps]
@@ -101,7 +101,7 @@ postingsReport ropts@ReportOpts{..} q j =
       -- Posting report items ready for display.
       items =
         dbg4 "postingsReport items" $
-        postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
+        postingsReportItems displayps (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
         where
           -- In historical mode we'll need a starting balance, which we
           -- may be converting to value per hledger_options.m4.md "Effect
@@ -189,18 +189,19 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
 
 -- | Generate postings report line items from a list of postings or (with
 -- non-Nothing dates attached) summary postings.
-postingsReportItems :: [(Posting,Maybe Day)] -> (Posting,Maybe Day) -> WhichDate -> Int -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
+postingsReportItems :: [(Posting,Maybe Day)] -> (Posting,Maybe Day) -> WhichDate -> Maybe Int -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
 postingsReportItems [] _ _ _ _ _ _ = []
-postingsReportItems ((p,menddate):ps) (pprev,menddateprev) wd d b runningcalcfn itemnum = i:(postingsReportItems ps (p,menddate) wd d b' runningcalcfn (itemnum+1))
-    where
-      i = mkpostingsReportItem showdate showdesc wd menddate p' b'
-      (showdate, showdesc) | isJust menddate = (menddate /= menddateprev,        False)
-                           | otherwise       = (isfirstintxn || isdifferentdate, isfirstintxn)
-      isfirstintxn = ptransaction p /= ptransaction pprev
-      isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
-                                   SecondaryDate -> postingDate2 p /= postingDate2 pprev
-      p' = p{paccount= clipOrEllipsifyAccountName d $ paccount p}
-      b' = runningcalcfn itemnum b (pamount p)
+postingsReportItems ((p,menddate):ps) (pprev,menddateprev) wd d b runningcalcfn itemnum =
+    i:(postingsReportItems ps (p,menddate) wd d b' runningcalcfn (itemnum+1))
+  where
+    i = mkpostingsReportItem showdate showdesc wd menddate p' b'
+    (showdate, showdesc) | isJust menddate = (menddate /= menddateprev,        False)
+                         | otherwise       = (isfirstintxn || isdifferentdate, isfirstintxn)
+    isfirstintxn = ptransaction p /= ptransaction pprev
+    isdifferentdate = case wd of PrimaryDate   -> postingDate p  /= postingDate pprev
+                                 SecondaryDate -> postingDate2 p /= postingDate2 pprev
+    p' = p{paccount= clipOrEllipsifyAccountName d $ paccount p}
+    b' = runningcalcfn itemnum b (pamount p)
 
 -- | Generate one postings report line item, containing the posting,
 -- the current running balance, and optionally the posting date and/or
@@ -221,11 +222,11 @@ mkpostingsReportItem showdate showdesc wd menddate p b =
 -- | Convert a list of postings into summary postings, one per interval,
 -- aggregated to the specified depth if any.
 -- Each summary posting will have a non-Nothing interval end date.
-summarisePostingsByInterval :: Interval -> WhichDate -> Int -> Bool -> DateSpan -> [Posting] -> [SummaryPosting]
-summarisePostingsByInterval interval wd depth showempty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
-    where
-      summarisespan s = summarisePostingsInDateSpan s wd depth showempty (postingsinspan s)
-      postingsinspan s = filter (isPostingInDateSpan' wd s) ps
+summarisePostingsByInterval :: Interval -> WhichDate -> Maybe Int -> Bool -> DateSpan -> [Posting] -> [SummaryPosting]
+summarisePostingsByInterval interval wd mdepth showempty reportspan ps = concatMap summarisespan $ splitSpan interval reportspan
+  where
+    summarisespan s = summarisePostingsInDateSpan s wd mdepth showempty (postingsinspan s)
+    postingsinspan s = filter (isPostingInDateSpan' wd s) ps
 
 -- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per
@@ -239,28 +240,27 @@ summarisePostingsByInterval interval wd depth showempty reportspan ps = concatMa
 -- The showempty flag includes spans with no postings and also postings
 -- with 0 amount.
 --
-summarisePostingsInDateSpan :: DateSpan -> WhichDate -> Int -> Bool -> [Posting] -> [SummaryPosting]
-summarisePostingsInDateSpan (DateSpan b e) wd depth showempty ps
-    | null ps && (isNothing b || isNothing e) = []
-    | null ps && showempty = [(summaryp, e')]
-    | otherwise = summarypes
-    where
-      postingdate = if wd == PrimaryDate then postingDate else postingDate2
-      b' = fromMaybe (maybe nulldate postingdate $ headMay ps) b
-      e' = fromMaybe (maybe (addDays 1 nulldate) postingdate $ lastMay ps) e
-      summaryp = nullposting{pdate=Just b'}
-      clippedanames | depth > 0 = nub $ map (clipAccountName depth) anames
-                    | otherwise = ["..."]
-      summaryps | depth > 0 = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
-                | otherwise = [summaryp{paccount="...",pamount=sum $ map pamount ps}]
-      summarypes = map (, e') $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps
-      anames = nubSort $ map paccount ps
-      -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
-      accts = accountsFromPostings ps
-      balance a = maybe nullmixedamt bal $ lookupAccount a accts
-        where
-          bal = if isclipped a then aibalance else aebalance
-          isclipped a = accountNameLevel a >= depth
+summarisePostingsInDateSpan :: DateSpan -> WhichDate -> Maybe Int -> Bool -> [Posting] -> [SummaryPosting]
+summarisePostingsInDateSpan (DateSpan b e) wd mdepth showempty ps
+  | null ps && (isNothing b || isNothing e) = []
+  | null ps && showempty = [(summaryp, e')]
+  | otherwise = summarypes
+  where
+    postingdate = if wd == PrimaryDate then postingDate else postingDate2
+    b' = fromMaybe (maybe nulldate postingdate $ headMay ps) b
+    e' = fromMaybe (maybe (addDays 1 nulldate) postingdate $ lastMay ps) e
+    summaryp = nullposting{pdate=Just b'}
+    clippedanames = nub $ map (clipAccountName mdepth) anames
+    summaryps | mdepth == Just 0 = [summaryp{paccount="...",pamount=sum $ map pamount ps}]
+              | otherwise        = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
+    summarypes = map (, e') $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps
+    anames = nubSort $ map paccount ps
+    -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
+    accts = accountsFromPostings ps
+    balance a = maybe nullmixedamt bal $ lookupAccount a accts
+      where
+        bal = if isclipped a then aibalance else aebalance
+        isclipped a = maybe True (accountNameLevel a >=) mdepth
 
 negatePostingAmount :: Posting -> Posting
 negatePostingAmount p = p { pamount = negate $ pamount p }
@@ -432,7 +432,7 @@ tests_PostingsReport = tests "PostingsReport" [
     -}
 
   ,test "summarisePostingsByInterval" $
-    summarisePostingsByInterval (Quarters 1) PrimaryDate 99999 False (DateSpan Nothing Nothing) [] @?= []
+    summarisePostingsByInterval (Quarters 1) PrimaryDate Nothing False (DateSpan Nothing Nothing) [] @?= []
 
   -- ,tests_summarisePostingsInDateSpan = [
     --  "summarisePostingsInDateSpan" ~: do
