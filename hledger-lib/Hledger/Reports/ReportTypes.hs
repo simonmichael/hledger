@@ -156,6 +156,7 @@ data CompoundPeriodicReport a b = CompoundPeriodicReport
   } deriving (Show, Generic, ToJSON)
 
 -- | Description of one subreport within a compound balance report.
+-- Part of a "CompoundBalanceCommandSpec", but also used in hledger-lib.
 data CBCSubreportSpec = CBCSubreportSpec
   { cbcsubreporttitle          :: String
   , cbcsubreportquery          :: Journal -> Query
