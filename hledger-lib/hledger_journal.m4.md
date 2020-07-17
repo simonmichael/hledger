@@ -1096,10 +1096,10 @@ These account types are important for controlling which accounts
 appear in the [balancesheet][], [balancesheetequity][],
 [incomestatement][] reports (and probably for other things in future).
 
-There is also the `Cash` type, which is a subtype of `Asset`,
+Additionally, we recognise the `Cash` type, which is also an `Asset`,
 and which causes accounts to appear in the [cashflow][] report.
-("Cash" here means [liquid assets][CCE], eg typically bank balances
-but not investments or receivables.)
+("Cash" here means [liquid assets][CCE], eg bank balances
+but typically not investments or receivables.)
 
 ##### Declaring account types
 
@@ -1184,7 +1184,7 @@ account expenses     X
 [incomestatement]: hledger.html#incomestatement
 [CCE]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
 [regular expression]: hledger.html#regular-expressions
-[account equation]: https://en.wikipedia.org/wiki/Accounting_equation
+[accounting equation]: https://en.wikipedia.org/wiki/Accounting_equation
 
 
 #### Account display order
