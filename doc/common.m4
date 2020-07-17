@@ -161,11 +161,12 @@ m4_define({{_reportingoptions_}}, {{
 : generate future transactions from [periodic transaction](journal.html#periodic-transactions) rules, for the next 6 months or till report end date.
 In hledger-ui, also make ordinary future transactions visible.
 
-`--color=always|yes|never|no|auto (or --colour=...)`
-: 'auto' is the default, it tries to use ANSI color codes in terminal output when supported.
-: 'always' or 'yes' forces color on, useful when piping output, eg into 'less -R'.
-: 'never' or 'no' forces color off.
-: A NO_COLOR environment variable also disables color, overriding this option.
+`--color=WHEN (or --colour=WHEN)`
+: Should color-supporting commands use ANSI color codes in text output.
+: 'auto' (default): whenever stdout seems to be a color-supporting terminal.
+: 'always' or 'yes': always, useful eg when piping output into 'less -R'.
+: 'never' or 'no': never.
+: A NO_COLOR environment variable overrides this.
 
 When a reporting option appears more than once in the command line, the last one takes precedence.
 
