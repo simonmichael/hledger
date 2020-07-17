@@ -101,7 +101,7 @@ helpDialog _copts =
                   ,str "      move selection"
                   ,renderKey ("RIGHT", "show account txns, or txn detail")
                   ,renderKey ("LEFT ", "go back")
-                  ,renderKey ("ESC  ", "cancel input, or reset")
+                  ,renderKey ("ESC  ", "cancel input, or reset everything")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Report period"
                   ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
