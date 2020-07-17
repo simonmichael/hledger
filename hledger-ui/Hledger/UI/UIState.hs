@@ -236,6 +236,10 @@ setReportPeriod :: Period -> UIState -> UIState
 setReportPeriod p ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=p}}}}
 
+-- | Clear any report period limits.
+resetReportPeriod :: UIState -> UIState
+resetReportPeriod = setReportPeriod PeriodAll
+
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
@@ -341,7 +345,7 @@ popScreen ui = ui
 
 resetScreens :: Day -> UIState -> UIState
 resetScreens d ui@UIState{aScreen=s,aPrevScreens=ss} =
-  (sInit topscreen) d True $ resetDepth $ resetFilter $ closeMinibuffer ui{aScreen=topscreen, aPrevScreens=[]}
+  (sInit topscreen) d True $ resetDepth $ resetReportPeriod $ resetFilter $ closeMinibuffer ui{aScreen=topscreen, aPrevScreens=[]}
   where
     topscreen = case ss of _:_ -> last ss
                            []  -> s
