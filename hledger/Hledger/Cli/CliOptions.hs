@@ -209,7 +209,7 @@ flattreeflags showamounthelp = [
      ("show accounts as a flat list (default)"
       ++ if showamounthelp then ". Amounts exclude subaccount amounts, except where the account is depth-clipped." else "")
   ,flagNone ["tree","t"] (setboolopt "tree")
-    ("show accounts as a hierarchic tree" ++ if showamounthelp then ". Amounts include subaccount amounts." else "")
+    ("show accounts as a tree" ++ if showamounthelp then ". Amounts include subaccount amounts." else "")
   ]
 
 -- | Common flags that are accepted but not shown in --help,

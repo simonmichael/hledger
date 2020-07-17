@@ -91,31 +91,31 @@ helpDialog _copts =
     render $
       withDefAttr "help" $
       renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
-      padTop (Pad 1) $ padLeft (Pad 1) $ padRight (Pad 1) $
+      padTop (Pad 0) $ padLeft (Pad 1) $ padRight (Pad 1) $
         vBox [
            hBox [
               padRight (Pad 1) $
                 vBox [
                    withAttr ("help" <> "heading") $ str "Navigation"
-                  ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/emacs/vi keys", "")
+                  ,renderKey ("UP/DOWN/PUP/PDN/HOME/END or C-p/n/f/b", "")
                   ,str "      move selection"
-                  ,renderKey ("RIGHT", "show account txns, txn detail")
+                  ,renderKey ("RIGHT", "show account txns, or txn detail")
                   ,renderKey ("LEFT ", "go back")
-                  ,renderKey ("ESC  ", "cancel or reset")
+                  ,renderKey ("ESC  ", "cancel input, or reset")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Report period"
                   ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
                   ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")
-                  ,renderKey ("t             ", "set period to today")
+                  ,renderKey ("T             ", "set period to today")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Accounts screen"
-                  ,renderKey ("-+0123456789 ", "set depth limit")
-                  ,renderKey ("T ", "toggle tree/flat mode")
-                  ,renderKey ("H ", "historical end balance/period change")
+                  ,renderKey ("1234567890-+ ", "set/adjust depth limit")
+                  ,renderKey ("t/l", "set tree/list mode")
+                  ,renderKey ("H  ", "toggle historical balance/change")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Register screen"
-                  ,renderKey ("T ", "toggle subaccount txns\n(and accounts screen tree/flat mode)")
-                  ,renderKey ("H ", "show historical total/period total")
+                  ,renderKey ("t/l", "show/hide subaccount txns\n(and set accounts tree/list mode)")
+                  ,renderKey ("H  ", "toggle historical/period total")
                   ,str " "
                 ]
              ,padLeft (Pad 1) $ padRight (Pad 0) $
@@ -130,8 +130,8 @@ helpDialog _copts =
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Help"
                   ,renderKey ("?   ", "toggle this help")
-                  ,renderKey ("p/m/i ", "(with this help open)\nshow manual in pager/man/info")
-                  ,str " "
+                  ,renderKey ("p/m/i", "(with this help open)\nshow manual in pager/man/info")
+                  -- ,str " "  -- need one more line in 80x25
                   ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
                   ,renderKey ("A   ", "add transaction (hledger-iadd)")
@@ -341,10 +341,16 @@ scrollSelectionToMiddle list = do
     _ -> return ()
 
 --                 arrow keys       vi keys               emacs keys
-moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
-moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
-moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
-moveRightEvents = [EvKey KRight [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
+-- moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
+-- moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
+-- moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
+-- moveRightEvents = [EvKey KRight [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
+
+--                 arrow keys       emacs keys
+moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'p') [MCtrl]]
+moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'n') [MCtrl]]
+moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'b') [MCtrl]]
+moveRightEvents = [EvKey KRight [], EvKey (KChar 'f') [MCtrl]]
 
 normaliseMovementKeys ev
   | ev `elem` moveUpEvents    = EvKey KUp []

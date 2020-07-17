@@ -1,6 +1,7 @@
-{-# LANGUAGE CPP #-}
 {- | UIState operations. -}
 
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
@@ -134,6 +135,16 @@ valuationToggleCost _                 = Just $ AtCost Nothing
 valuationToggleValue :: Maybe ValuationType -> Maybe ValuationType
 valuationToggleValue (Just (AtDefault _)) = Nothing
 valuationToggleValue _                    = Just $ AtDefault Nothing
+
+-- | Set hierarchic account tree mode.
+setTree :: UIState -> UIState
+setTree ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{accountlistmode_=ALTree}}}}
+
+-- | Set flat account list mode.
+setList :: UIState -> UIState
+setList ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{accountlistmode_=ALFlat}}}}
 
 -- | Toggle between flat and tree mode. If current mode is unspecified/default, assume it's flat.
 toggleTree :: UIState -> UIState

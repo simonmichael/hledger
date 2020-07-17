@@ -208,8 +208,9 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             quickhelp = borderKeysStr' [
                ("?", str "help")
 --              ,("RIGHT", str "register")
+              ,("t", str "tree")
+              ,("l", str "list")
               ,("-+", str "depth")
-              ,("T", renderToggle (tree_ ropts) "flat" "tree")
               ,("H", renderToggle (not ishistorical) "end-bals" "changes")
               ,("F", renderToggle1 (isJust $ forecast_ ropts) "forecast")
               --,("/", "filter")
@@ -322,11 +323,12 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar '-') []) -> continue $ regenerateScreens j d $ decDepth ui
         VtyEvent (EvKey (KChar '_') []) -> continue $ regenerateScreens j d $ decDepth ui
         VtyEvent (EvKey (KChar c)   []) | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
-        VtyEvent (EvKey (KChar 't') [])    -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+        VtyEvent (EvKey (KChar 'T') []) -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
 
         -- display mode/query toggles
         VtyEvent (EvKey (KChar 'H') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 'T') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleTree ui
+        VtyEvent (EvKey (KChar 't') []) -> asCenterAndContinue $ regenerateScreens j d $ setTree ui
+        VtyEvent (EvKey (KChar 'l') []) -> asCenterAndContinue $ regenerateScreens j d $ setList ui
         VtyEvent (EvKey (KChar 'Z') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
         VtyEvent (EvKey (KChar 'R') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
