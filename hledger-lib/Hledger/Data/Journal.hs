@@ -297,39 +297,52 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- queries for standard account types
 
 -- | A query for accounts in this journal which have been
--- declared as Asset by account directives, or otherwise for
--- accounts with names matched by the case-insensitive regular expression
--- @^assets?(:|$)@.
+-- declared as Asset (or Cash, a subtype of Asset) by account directives, 
+-- or otherwise for accounts with names matched by the case-insensitive 
+-- regular expression @^assets?(:|$)@.
 journalAssetAccountQuery :: Journal -> Query
-journalAssetAccountQuery = journalAccountTypeQuery Asset "^assets?(:|$)"
+journalAssetAccountQuery j = journalAccountTypeQuery [Asset,Cash] "^assets?(:|$)" j
+
+-- | A query for "Cash" (liquid asset) accounts in this journal, ie accounts
+-- declared as Cash by account directives, or otherwise with names matched by the 
+-- case-insensitive regular expression @^assets?(:|$)@. and not including
+-- the case-insensitive regular expression @(investment|receivable|:A/R|:fixed)@.
+journalCashAccountQuery  :: Journal -> Query
+journalCashAccountQuery j =
+  case M.lookup Cash (jdeclaredaccounttypes j) of
+    Just _  -> journalAccountTypeQuery [Cash] notused j
+      where notused = error' "journalCashAccountQuery: this should not have happened!" -- XXX ugly
+    Nothing -> And [journalAssetAccountQuery j
+                   ,Not $ Acct "(investment|receivable|:A/R|:fixed)"
+                   ]
 
 -- | A query for accounts in this journal which have been
 -- declared as Liability by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(debts?|liabilit(y|ies))(:|$)@.
 journalLiabilityAccountQuery :: Journal -> Query
-journalLiabilityAccountQuery = journalAccountTypeQuery Liability "^(debts?|liabilit(y|ies))(:|$)"
+journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] "^(debts?|liabilit(y|ies))(:|$)"
 
 -- | A query for accounts in this journal which have been
 -- declared as Equity by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^equity(:|$)@.
 journalEquityAccountQuery :: Journal -> Query
-journalEquityAccountQuery = journalAccountTypeQuery Equity "^equity(:|$)"
+journalEquityAccountQuery = journalAccountTypeQuery [Equity] "^equity(:|$)"
 
 -- | A query for accounts in this journal which have been
 -- declared as Revenue by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(income|revenue)s?(:|$)@.
 journalRevenueAccountQuery :: Journal -> Query
-journalRevenueAccountQuery = journalAccountTypeQuery Revenue "^(income|revenue)s?(:|$)"
+journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] "^(income|revenue)s?(:|$)"
 
 -- | A query for accounts in this journal which have been
 -- declared as Expense by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^expenses?(:|$)@.
 journalExpenseAccountQuery  :: Journal -> Query
-journalExpenseAccountQuery = journalAccountTypeQuery Expense "^expenses?(:|$)"
+journalExpenseAccountQuery = journalAccountTypeQuery [Expense] "^expenses?(:|$)"
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
@@ -346,31 +359,21 @@ journalProfitAndLossAccountQuery j = Or [journalRevenueAccountQuery j
                                         ,journalExpenseAccountQuery j
                                         ]
 
--- | A query for "Cash" (liquid asset) accounts in this journal (ie,
--- accounts which appear on the cashflow statement.) This is the
--- accounts declared to be Cash type, or if none of these are
--- declared, the Asset accounts whose names do not contain the
--- case-insensitive regular expression @(investment|receivable|:A/R|:fixed)@.
-journalCashAccountQuery  :: Journal -> Query
-journalCashAccountQuery j =
-  case M.lookup Cash (jdeclaredaccounttypes j) of
-    Just _  -> journalAccountTypeQuery Cash notused j
-      where notused = error' "journalCashAccountQuery: this should not have happened!"
-    Nothing -> And
-               [journalAssetAccountQuery j
-               ,Not $ Acct "(investment|receivable|:A/R|:fixed)"
-               ]
-
--- | Get a query for accounts of a certain type (Asset, Liability..) in this journal.
--- The query will match all accounts which were declared as that type by account directives,
--- plus all their subaccounts which have not been declared as a different type.
--- If no accounts were declared as this type, the query will instead match accounts
--- with names matched by the provided case-insensitive regular expression.
-journalAccountTypeQuery :: AccountType -> Regexp -> Journal -> Query
-journalAccountTypeQuery atype fallbackregex j =
-  case M.lookup atype (jdeclaredaccounttypes j) of
-    Nothing -> Acct fallbackregex
-    Just as ->
+-- | Get a query for accounts of the specified types (Asset, Liability..) in this journal.
+-- The query will match all accounts which were declared as one of
+-- these types by account directives, plus all their subaccounts which
+-- have not been declared as some other type.
+-- Or if no accounts were declared with these types, the query will
+-- instead match accounts with names matched by the provided
+-- case-insensitive regular expression.
+journalAccountTypeQuery :: [AccountType] -> Regexp -> Journal -> Query
+journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
+  let
+    declaredacctsoftype :: [AccountName] =
+      concat $ catMaybes [M.lookup t jdeclaredaccounttypes | t <- atypes]
+  in case declaredacctsoftype of
+    [] -> Acct fallbackregex
+    as ->
       -- XXX Query isn't able to match account type since that requires extra info from the journal.
       -- So we do a hacky search by name instead.
       And [
@@ -379,8 +382,8 @@ journalAccountTypeQuery atype fallbackregex j =
         ]
       where
         differentlytypedsubs = concat
-          [subs | (t,bs) <- M.toList (jdeclaredaccounttypes j)
-              , t /= atype
+          [subs | (t,bs) <- M.toList jdeclaredaccounttypes
+              , not $ t `elem` atypes
               , let subs = [b | b <- bs, any (`isAccountNamePrefixOf` b) as]
           ]
 
@@ -1407,11 +1410,18 @@ tests_Journal = tests "Journal" [
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
     in [
-       test "assets"      $ assertEqual "" (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-      ,test "liabilities" $ assertEqual "" (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-      ,test "equity"      $ assertEqual "" (namesfrom journalEquityAccountQuery)    []
-      ,test "income"      $ assertEqual "" (namesfrom journalRevenueAccountQuery)    ["income","income:gifts","income:salary"]
-      ,test "expenses"    $ assertEqual "" (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
+       test "assets"      $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+         (namesfrom journalAssetAccountQuery)
+      ,test "cash"        $ assertEqual "" ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+        (namesfrom journalCashAccountQuery)
+      ,test "liabilities" $ assertEqual "" ["liabilities","liabilities:debts"]
+        (namesfrom journalLiabilityAccountQuery)
+      ,test "equity"      $ assertEqual "" []
+        (namesfrom journalEquityAccountQuery)
+      ,test "income"      $ assertEqual "" ["income","income:gifts","income:salary"]
+        (namesfrom journalRevenueAccountQuery)
+      ,test "expenses"    $ assertEqual "" ["expenses","expenses:food","expenses:supplies"]
+        (namesfrom journalExpenseAccountQuery)
     ]
 
   ,tests "journalBalanceTransactions" [
