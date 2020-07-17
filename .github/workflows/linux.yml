@@ -77,9 +77,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-2-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}
+             ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}-2
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
