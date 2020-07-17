@@ -289,7 +289,7 @@ acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
     as = filterAccounts . drop 1 $ accountsFromPostings ps
     filterAccounts = case accountlistmode_ ropts of
         ALTree -> filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
-        ALFlat -> maybe id clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
+        ALFlat -> clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
                       filter ((0<) . anumpostings)
     depthq = dbg "depthq" $ filterQuery queryIsDepth q
 

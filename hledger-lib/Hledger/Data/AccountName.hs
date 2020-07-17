@@ -194,15 +194,18 @@ elideAccountName width s
           | otherwise = done++ss
 
 -- | Keep only the first n components of an account name, where n
--- is a positive integer. If n is 0, returns the empty string.
-clipAccountName :: Int -> AccountName -> AccountName
-clipAccountName n = accountNameFromComponents . take n . accountNameComponents
+-- is a positive integer. If n is Just 0, returns the empty string, if n is
+-- Nothing, return the full name.
+clipAccountName :: Maybe Int -> AccountName -> AccountName
+clipAccountName Nothing  = id
+clipAccountName (Just n) = accountNameFromComponents . take n . accountNameComponents
 
 -- | Keep only the first n components of an account name, where n
--- is a positive integer. If n is 0, returns "...".
-clipOrEllipsifyAccountName :: Int -> AccountName -> AccountName
-clipOrEllipsifyAccountName 0 = const "..."
-clipOrEllipsifyAccountName n = accountNameFromComponents . take n . accountNameComponents
+-- is a positive integer. If n is Just 0, returns "...", if n is Nothing, return
+-- the full name.
+clipOrEllipsifyAccountName :: Maybe Int -> AccountName -> AccountName
+clipOrEllipsifyAccountName (Just 0) = const "..."
+clipOrEllipsifyAccountName n        = clipAccountName n
 
 -- | Escape an AccountName for use within a regular expression.
 -- >>> putStr $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
