@@ -54,7 +54,8 @@ import Hledger.UI.UIOptions
 -- The app can be in one of several modes: normal screen operation,
 -- showing a help dialog, entering data in the minibuffer etc.
 data UIState = UIState {
-   aopts        :: UIOpts    -- ^ the command-line options and query arguments currently in effect
+   astartupopts :: UIOpts    -- ^ the command-line options and query arguments specified at startup
+  ,aopts        :: UIOpts    -- ^ the command-line options and query arguments currently in effect
   ,ajournal     :: Journal   -- ^ the journal being viewed
   ,aPrevScreens :: [Screen]  -- ^ previously visited screens, most recent first
   ,aScreen      :: Screen    -- ^ the currently active screen

@@ -245,17 +245,21 @@ setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{query_=s}}}}
 
--- | Clear all filters/flags.
+-- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
 resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{
-     accountlistmode_=ALFlat
-    ,empty_=True
+     empty_=True
     ,statuses_=[]
     ,real_=False
     ,query_=""
     --,period_=PeriodAll
     }}}}
+
+-- | Reset all options state to exactly what it was at startup
+-- (preserving any command-line options/arguments).
+resetOpts :: UIState -> UIState
+resetOpts ui@UIState{astartupopts} = ui{aopts=astartupopts}
 
 resetDepth :: UIState -> UIState
 resetDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
@@ -345,7 +349,9 @@ popScreen ui = ui
 
 resetScreens :: Day -> UIState -> UIState
 resetScreens d ui@UIState{aScreen=s,aPrevScreens=ss} =
-  (sInit topscreen) d True $ resetDepth $ resetReportPeriod $ resetFilter $ closeMinibuffer ui{aScreen=topscreen, aPrevScreens=[]}
+  (sInit topscreen) d True $
+  resetOpts $
+  closeMinibuffer ui{aScreen=topscreen, aPrevScreens=[]}
   where
     topscreen = case ss of _:_ -> last ss
                            []  -> s

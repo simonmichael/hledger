@@ -98,11 +98,10 @@ helpDialog _copts =
                 vBox [
                    withAttr ("help" <> "heading") $ str "Navigation"
                   ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/k/j/C-p/C-n", "")
-                  ,str "      move selection up/down"
-                  ,renderKey ("RIGHT/l/C-f", "")
-                  ,str "      show account txns, or txn detail"
+                  ,str "     move selection up/down"
+                  ,renderKey ("RIGHT/l/C-f", "show txns, or txn detail")
                   ,renderKey ("LEFT/h/C-b ", "go back")
-                  ,renderKey ("ESC  ", "cancel or reset")
+                  ,renderKey ("ESC ", "cancel or reset to initial state")
 
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Accounts screen"
@@ -168,15 +167,14 @@ helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 helpHandle ui ev = do
   pagerprog <- liftIO $ fromMaybe "less" <$> lookupEnv "PAGER"
   case ev of
-    VtyEvent e
-      | e `elem` (moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') [], EvKey (KChar 'q') []])
-        -> continue $ setMode Normal ui
+    VtyEvent e | e `elem` closeHelpEvents -> continue $ setMode Normal ui
     VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic pagerprog "hledger-ui" >> return ui'
     VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic             "hledger-ui" >> return ui'
     VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic            "hledger-ui" >> return ui'
     _ -> continue ui
   where
     ui' = setMode Normal ui
+    closeHelpEvents = moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') [], EvKey (KChar 'q') []]
 
 -- | Draw the minibuffer.
 minibuffer :: Editor String Name -> Widget Name

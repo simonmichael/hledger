@@ -136,7 +136,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
           ascr' = aScreen $
                   asInit d True
                     UIState{
-                      aopts=uopts'
+                     astartupopts=uopts'
+                    ,aopts=uopts'
                     ,ajournal=j
                     ,aScreen=asSetSelectedAccount acct accountsScreen
                     ,aPrevScreens=[]
@@ -147,7 +148,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       (sInit scr) d True $
         (if change_ uopts' then toggleHistorical else id) -- XXX
           UIState{
-            aopts=uopts'
+           astartupopts=uopts'
+          ,aopts=uopts'
           ,ajournal=j
           ,aScreen=scr
           ,aPrevScreens=prevscrs
