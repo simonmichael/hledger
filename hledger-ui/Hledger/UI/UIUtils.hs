@@ -101,7 +101,7 @@ helpDialog _copts =
                   ,str "     move selection up/down"
                   ,renderKey ("RIGHT/l/C-f", "show txns, or txn detail")
                   ,renderKey ("LEFT/h/C-b ", "go back")
-                  ,renderKey ("ESC ", "cancel or reset to initial state")
+                  ,renderKey ("ESC ", "cancel, or reset app state")
 
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Accounts screen"
@@ -126,10 +126,10 @@ helpDialog _copts =
                   ,renderKey ("F   ", "show future & periodic txns")
                   ,renderKey ("R   ", "show real/all postings")
                   ,renderKey ("Z   ", "show nonzero/all amounts")
-                  ,renderKey ("DEL ", "remove filters")
                   ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
                   ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")
                   ,renderKey ("T             ", "set period to today")
+                  ,renderKey ("DEL ", "reset filters")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
