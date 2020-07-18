@@ -141,7 +141,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
   case mode of
     Help ->
       case ev of
-        VtyEvent (EvKey (KChar 'q') []) -> halt ui
+        -- VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _                    -> helpHandle ui ev

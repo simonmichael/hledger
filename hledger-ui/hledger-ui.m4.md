@@ -95,7 +95,7 @@ which should contain one command line option/argument per line.
 
 `?` shows a help dialog listing all keys.
 (some of these also appear in the quick help at the bottom of each screen.)
-press `?` again (or `escape`, or `left`) to close it.
+press `?` again (or `escape`, or `left`, or `q`) to close it.
 the following keys work on most screens:
 
 the cursor keys navigate:

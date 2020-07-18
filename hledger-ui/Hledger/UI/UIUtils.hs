@@ -90,7 +90,7 @@ helpDialog _copts =
     c <- getContext
     render $
       withDefAttr "help" $
-      renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
+      renderDialog (dialog (Just "Help (LEFT/ESC/?/q to close help)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
       padTop (Pad 0) $ padLeft (Pad 1) $ padRight (Pad 1) $
         vBox [
            hBox [
@@ -102,12 +102,8 @@ helpDialog _copts =
                   ,renderKey ("RIGHT/l/C-f", "")
                   ,str "      show account txns, or txn detail"
                   ,renderKey ("LEFT/h/C-b ", "go back")
-                  ,renderKey ("ESC  ", "cancel input, or reset UI")
-                  ,str " "
-                  ,withAttr ("help" <> "heading") $ str "Report period"
-                  ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
-                  ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")
-                  ,renderKey ("T             ", "set period to today")
+                  ,renderKey ("ESC  ", "cancel or reset")
+
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Accounts screen"
                   ,renderKey ("1234567890-+ ", "set/adjust depth limit")
@@ -117,6 +113,10 @@ helpDialog _copts =
                   ,withAttr ("help" <> "heading") $ str "Register screen"
                   ,renderKey ("t ", "toggle subaccount txns\n(and accounts tree/list mode)")
                   ,renderKey ("H ", "toggle historical/period total")
+                  ,str " "
+                  ,withAttr ("help" <> "heading") $ str "Help"
+                  ,renderKey ("?    ", "toggle this help")
+                  ,renderKey ("p/m/i", "while help is open:\nshow manual in pager/man/info")
                   ,str " "
                 ]
              ,padLeft (Pad 1) $ padRight (Pad 0) $
@@ -128,11 +128,10 @@ helpDialog _copts =
                   ,renderKey ("R   ", "show real/all postings")
                   ,renderKey ("Z   ", "show nonzero/all amounts")
                   ,renderKey ("DEL ", "remove filters")
+                  ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
+                  ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")
+                  ,renderKey ("T             ", "set period to today")
                   ,str " "
-                  ,withAttr ("help" <> "heading") $ str "Help"
-                  ,renderKey ("?   ", "toggle this help")
-                  ,renderKey ("p/m/i", "(with this help open)\nshow manual in pager/man/info")
-                  -- ,str " "  -- need one more line in 80x25
                   ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
                   ,renderKey ("A   ", "add transaction (hledger-iadd)")
@@ -169,7 +168,9 @@ helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 helpHandle ui ev = do
   pagerprog <- liftIO $ fromMaybe "less" <$> lookupEnv "PAGER"
   case ev of
-    VtyEvent e | e `elem` (moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') []]) -> continue $ setMode Normal ui
+    VtyEvent e
+      | e `elem` (moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') [], EvKey (KChar 'q') []])
+        -> continue $ setMode Normal ui
     VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic pagerprog "hledger-ui" >> return ui'
     VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic             "hledger-ui" >> return ui'
     VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic            "hledger-ui" >> return ui'
