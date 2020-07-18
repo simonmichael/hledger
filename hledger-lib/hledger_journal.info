@@ -1250,44 +1250,78 @@ File: hledger_journal.info,  Node: Account types,  Next: Account display order, 
 1.13.8.3 Account types
 ......................
 
-hledger recognises five types (or classes) of account: Asset, Liability,
-Equity, Revenue, Expense.  This is used by a few accounting-aware
-reports such as balancesheet, incomestatement and cashflow.
-Auto-detected account types If you name your top-level accounts with
-some variation of 'assets', 'liabilities'/'debts', 'equity',
-'revenues'/'income', or 'expenses', their types are detected
-automatically.  Account types declared with tags More generally, you can
-declare an account's type with an account directive, by writing a
-'type:' tag in a comment, followed by one of the words 'Asset',
-'Liability', 'Equity', 'Revenue', 'Expense', or one of the letters
-'ALERX' (case insensitive):
+hledger recognises five main types of account, corresponding to the
+account classes in the accounting equation:
 
-account assets       ; type:Asset
-account liabilities  ; type:Liability
-account equity       ; type:Equity
-account revenues     ; type:Revenue
-account expenses     ; type:Expense
+   'Asset', 'Liability', 'Equity', 'Revenue', 'Expense'.
 
-   Account types declared with account type codes Or, you can write one
-of those letters separated from the account name by two or more spaces,
-but this should probably be considered deprecated as of hledger 1.13:
+   These account types are important for controlling which accounts
+appear in the balancesheet, balancesheetequity, incomestatement reports
+(and probably for other things in future).
+
+   Additionally, we recognise the 'Cash' type, which is also an 'Asset',
+and which causes accounts to appear in the cashflow report.  ("Cash"
+here means liquid assets, eg bank balances but typically not investments
+or receivables.)  Declaring account types Generally, to make these
+reports work you should declare your top-level accounts and their types,
+using account directives with 'type:' tags.
+
+   The tag's value should be one of: 'Asset', 'Liability', 'Equity',
+'Revenue', 'Expense', 'Cash', 'A', 'L', 'E', 'R', 'X', 'C' (all case
+insensitive).  The type is inherited by all subaccounts except where
+they override it.  Here's a complete example:
+
+account assets       ; type: Asset
+account assets:bank  ; type: Cash
+account assets:cash  ; type: Cash
+account liabilities  ; type: Liability
+account equity       ; type: Equity
+account revenues     ; type: Revenue
+account expenses     ; type: Expense
+
+   Auto-detected account types If you happen to use common english
+top-level account names, you may not need to declare account types, as
+they will be detected automatically using the following rules:
+
+If name matches regular            account
+expression:                        type is:
+-------------------------------------------------
+'^assets?(:|$)'                    'Asset'
+'^(debts?|liabilit(y|ies))(:|$)'   'Liability'
+'^equity(:|$)'                     'Equity'
+'^(income|revenue)s?(:|$)'         'Revenue'
+'^expenses?(:|$)'                  'Expense'
+
+If account type is 'Asset' and name does not contain       account type
+regular expression:                                        is:
+--------------------------------------------------------------------------
+'(investment|receivable|:A/R|:fixed)'                      'Cash'
+
+   Even so, explicit declarations may be a good idea, for clarity and
+predictability.  Interference from auto-detected account types If you
+assign any account type, it's a good idea to assign all of them, to
+prevent any confusion from mixing declared and auto-detected types.
+Although it's unlikely to happen in real life, here's an example: with
+the following journal, 'balancesheetequity' shows "liabilities" in both
+Liabilities and Equity sections.  Declaring another account as
+'type:Liability' would fix it:
+
+account liabilities  ; type:Equity
+
+2020-01-01
+  assets        1
+  liabilities   1
+  equity       -2
+
+   Old account type syntax In some hledger journals you might instead
+see this old syntax (the letters ALERX, separated from the account name
+by two or more spaces); this is deprecated and may be removed soon:
 
 account assets       A
 account liabilities  L
 account equity       E
 account revenues     R
 account expenses     X
-
-   Overriding auto-detected types If you ever override the types of
-those auto-detected english account names mentioned above, you might
-need to help the reports a bit.  Eg:
-
-; make "liabilities" not have the liability type - who knows why
-account liabilities  ; type:E
-
-; we need to ensure some other account has the liability type,
-; otherwise balancesheet would still show "liabilities" under Liabilities
-account -            ; type:L
 
 
 File: hledger_journal.info,  Node: Account display order,  Prev: Account types,  Up: Declaring accounts
@@ -1910,42 +1944,42 @@ Node: Account subdirectives45713
 Ref: #account-subdirectives45908
 Node: Account types46221
 Ref: #account-types46405
-Node: Account display order48044
-Ref: #account-display-order48214
-Node: Rewriting accounts49365
-Ref: #rewriting-accounts49550
-Node: Basic aliases50307
-Ref: #basic-aliases50453
-Node: Regex aliases51157
-Ref: #regex-aliases51329
-Node: Combining aliases52047
-Ref: #combining-aliases52240
-Node: Aliases and multiple files53516
-Ref: #aliases-and-multiple-files53725
-Node: end aliases54304
-Ref: #end-aliases54461
-Node: Default parent account54562
-Ref: #default-parent-account54730
-Node: Periodic transactions55614
-Ref: #periodic-transactions55789
-Node: Periodic rule syntax57661
-Ref: #periodic-rule-syntax57867
-Node: Two spaces between period expression and description!58571
-Ref: #two-spaces-between-period-expression-and-description58890
-Node: Forecasting with periodic transactions59574
-Ref: #forecasting-with-periodic-transactions59879
-Node: Budgeting with periodic transactions61934
-Ref: #budgeting-with-periodic-transactions62173
-Node: Auto postings62622
-Ref: #auto-postings62762
-Node: Auto postings and multiple files64941
-Ref: #auto-postings-and-multiple-files65145
-Node: Auto postings and dates65354
-Ref: #auto-postings-and-dates65628
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions65803
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions66154
-Node: Auto posting tags66496
-Ref: #auto-posting-tags66711
+Node: Account display order49451
+Ref: #account-display-order49621
+Node: Rewriting accounts50772
+Ref: #rewriting-accounts50957
+Node: Basic aliases51714
+Ref: #basic-aliases51860
+Node: Regex aliases52564
+Ref: #regex-aliases52736
+Node: Combining aliases53454
+Ref: #combining-aliases53647
+Node: Aliases and multiple files54923
+Ref: #aliases-and-multiple-files55132
+Node: end aliases55711
+Ref: #end-aliases55868
+Node: Default parent account55969
+Ref: #default-parent-account56137
+Node: Periodic transactions57021
+Ref: #periodic-transactions57196
+Node: Periodic rule syntax59068
+Ref: #periodic-rule-syntax59274
+Node: Two spaces between period expression and description!59978
+Ref: #two-spaces-between-period-expression-and-description60297
+Node: Forecasting with periodic transactions60981
+Ref: #forecasting-with-periodic-transactions61286
+Node: Budgeting with periodic transactions63341
+Ref: #budgeting-with-periodic-transactions63580
+Node: Auto postings64029
+Ref: #auto-postings64169
+Node: Auto postings and multiple files66348
+Ref: #auto-postings-and-multiple-files66552
+Node: Auto postings and dates66761
+Ref: #auto-postings-and-dates67035
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions67210
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions67561
+Node: Auto posting tags67903
+Ref: #auto-posting-tags68118
 
 End Tag Table
 

@@ -1381,38 +1381,132 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 .fi
 .SS Account types
 .PP
-hledger recognises five types (or classes) of account: Asset, Liability,
-Equity, Revenue, Expense.
-This is used by a few accounting-aware reports such as balancesheet,
-incomestatement and cashflow.
-.SS Auto-detected account types
+hledger recognises five main types of account, corresponding to the
+account classes in the accounting equation:
 .PP
-If you name your top-level accounts with some variation of
-\f[C]assets\f[R], \f[C]liabilities\f[R]/\f[C]debts\f[R],
-\f[C]equity\f[R], \f[C]revenues\f[R]/\f[C]income\f[R], or
-\f[C]expenses\f[R], their types are detected automatically.
-.SS Account types declared with tags
+\f[C]Asset\f[R], \f[C]Liability\f[R], \f[C]Equity\f[R],
+\f[C]Revenue\f[R], \f[C]Expense\f[R].
 .PP
-More generally, you can declare an account\[aq]s type with an account
-directive, by writing a \f[C]type:\f[R] tag in a comment, followed by
-one of the words \f[C]Asset\f[R], \f[C]Liability\f[R], \f[C]Equity\f[R],
-\f[C]Revenue\f[R], \f[C]Expense\f[R], or one of the letters
-\f[C]ALERX\f[R] (case insensitive):
+These account types are important for controlling which accounts appear
+in the balancesheet, balancesheetequity, incomestatement reports (and
+probably for other things in future).
+.PP
+Additionally, we recognise the \f[C]Cash\f[R] type, which is also an
+\f[C]Asset\f[R], and which causes accounts to appear in the cashflow
+report.
+(\[dq]Cash\[dq] here means liquid assets, eg bank balances but typically
+not investments or receivables.)
+.SS Declaring account types
+.PP
+Generally, to make these reports work you should declare your top-level
+accounts and their types, using account directives with \f[C]type:\f[R]
+tags.
+.PP
+The tag\[aq]s value should be one of: \f[C]Asset\f[R],
+\f[C]Liability\f[R], \f[C]Equity\f[R], \f[C]Revenue\f[R],
+\f[C]Expense\f[R], \f[C]Cash\f[R], \f[C]A\f[R], \f[C]L\f[R],
+\f[C]E\f[R], \f[C]R\f[R], \f[C]X\f[R], \f[C]C\f[R] (all case
+insensitive).
+The type is inherited by all subaccounts except where they override it.
+Here\[aq]s a complete example:
 .IP
 .nf
 \f[C]
-account assets       ; type:Asset
-account liabilities  ; type:Liability
-account equity       ; type:Equity
-account revenues     ; type:Revenue
-account expenses     ; type:Expense
+account assets       ; type: Asset
+account assets:bank  ; type: Cash
+account assets:cash  ; type: Cash
+account liabilities  ; type: Liability
+account equity       ; type: Equity
+account revenues     ; type: Revenue
+account expenses     ; type: Expense
 \f[R]
 .fi
-.SS Account types declared with account type codes
+.SS Auto-detected account types
 .PP
-Or, you can write one of those letters separated from the account name
-by two or more spaces, but this should probably be considered deprecated
-as of hledger 1.13:
+If you happen to use common english top-level account names, you may not
+need to declare account types, as they will be detected automatically
+using the following rules:
+.PP
+.TS
+tab(@);
+l l.
+T{
+If name matches regular expression:
+T}@T{
+account type is:
+T}
+_
+T{
+\f[C]\[ha]assets?(:|$)\f[R]
+T}@T{
+\f[C]Asset\f[R]
+T}
+T{
+\f[C]\[ha](debts?|liabilit(y|ies))(:|$)\f[R]
+T}@T{
+\f[C]Liability\f[R]
+T}
+T{
+\f[C]\[ha]equity(:|$)\f[R]
+T}@T{
+\f[C]Equity\f[R]
+T}
+T{
+\f[C]\[ha](income|revenue)s?(:|$)\f[R]
+T}@T{
+\f[C]Revenue\f[R]
+T}
+T{
+\f[C]\[ha]expenses?(:|$)\f[R]
+T}@T{
+\f[C]Expense\f[R]
+T}
+.TE
+.PP
+.TS
+tab(@);
+lw(56.9n) lw(13.1n).
+T{
+If account type is \f[C]Asset\f[R] and name does not contain regular
+expression:
+T}@T{
+account type is:
+T}
+_
+T{
+\f[C](investment|receivable|:A/R|:fixed)\f[R]
+T}@T{
+\f[C]Cash\f[R]
+T}
+.TE
+.PP
+Even so, explicit declarations may be a good idea, for clarity and
+predictability.
+.SS Interference from auto-detected account types
+.PP
+If you assign any account type, it\[aq]s a good idea to assign all of
+them, to prevent any confusion from mixing declared and auto-detected
+types.
+Although it\[aq]s unlikely to happen in real life, here\[aq]s an
+example: with the following journal, \f[C]balancesheetequity\f[R] shows
+\[dq]liabilities\[dq] in both Liabilities and Equity sections.
+Declaring another account as \f[C]type:Liability\f[R] would fix it:
+.IP
+.nf
+\f[C]
+account liabilities  ; type:Equity
+
+2020-01-01
+  assets        1
+  liabilities   1
+  equity       -2
+\f[R]
+.fi
+.SS Old account type syntax
+.PP
+In some hledger journals you might instead see this old syntax (the
+letters ALERX, separated from the account name by two or more spaces);
+this is deprecated and may be removed soon:
 .IP
 .nf
 \f[C]
@@ -1421,22 +1515,6 @@ account liabilities  L
 account equity       E
 account revenues     R
 account expenses     X
-\f[R]
-.fi
-.SS Overriding auto-detected types
-.PP
-If you ever override the types of those auto-detected english account
-names mentioned above, you might need to help the reports a bit.
-Eg:
-.IP
-.nf
-\f[C]
-; make \[dq]liabilities\[dq] not have the liability type - who knows why
-account liabilities  ; type:E
-
-; we need to ensure some other account has the liability type,
-; otherwise balancesheet would still show \[dq]liabilities\[dq] under Liabilities
-account -            ; type:L
 \f[R]
 .fi
 .SS Account display order

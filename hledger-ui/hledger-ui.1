@@ -57,10 +57,10 @@ start in the (first) matched account\[aq]s register screen
 \f[B]\f[CB]--change\f[B]\f[R]
 show period balances (changes) at startup instead of historical balances
 .TP
-\f[B]\f[CB]-F --flat\f[B]\f[R]
-show accounts as a list (default)
+\f[B]\f[CB]-l --flat\f[B]\f[R]
+show accounts as a flat list (default)
 .TP
-\f[B]\f[CB]-T --tree\f[B]\f[R]
+\f[B]\f[CB]-t --tree\f[B]\f[R]
 show accounts as a tree
 .PP
 hledger input options:
@@ -161,14 +161,14 @@ generate future transactions from periodic transaction rules, for the
 next 6 months or till report end date.
 In hledger-ui, also make ordinary future transactions visible.
 .TP
-\f[B]\f[CB]--color=always|yes|never|no|auto (or --colour=...)\f[B]\f[R]
-\[aq]auto\[aq] is the default, it tries to use ANSI color codes in
-terminal output when supported.
-\[aq]always\[aq] or \[aq]yes\[aq] forces color on, useful when piping
-output, eg into \[aq]less -R\[aq].
-\[aq]never\[aq] or \[aq]no\[aq] forces color off.
-A NO_COLOR environment variable also disables color, overriding this
-option.
+\f[B]\f[CB]--color=WHEN (or --colour=WHEN)\f[B]\f[R]
+Should color-supporting commands use ANSI color codes in text output.
+\[aq]auto\[aq] (default): whenever stdout seems to be a color-supporting
+terminal.
+\[aq]always\[aq] or \[aq]yes\[aq]: always, useful eg when piping output
+into \[aq]less -R\[aq].
+\[aq]never\[aq] or \[aq]no\[aq]: never.
+A NO_COLOR environment variable overrides this.
 .PP
 When a reporting option appears more than once in the command line, the
 last one takes precedence.
@@ -186,133 +186,132 @@ show version
 \f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
 .PP
-A \[at]FILE argument will be expanded to the contents of FILE, which
+a \[at]file argument will be expanded to the contents of file, which
 should contain one command line option/argument per line.
-(To prevent this, insert a \f[C]--\f[R] argument before.)
-.SH KEYS
+(to prevent this, insert a \f[C]--\f[R] argument before.)
+.SH keys
 .PP
 \f[C]?\f[R] shows a help dialog listing all keys.
-(Some of these also appear in the quick help at the bottom of each
-screen.) Press \f[C]?\f[R] again (or \f[C]ESCAPE\f[R], or
-\f[C]LEFT\f[R]) to close it.
-The following keys work on most screens:
+(some of these also appear in the quick help at the bottom of each
+screen.) press \f[C]?\f[R] again (or \f[C]escape\f[R], or
+\f[C]left\f[R], or \f[C]q\f[R]) to close it.
+the following keys work on most screens:
 .PP
-The cursor keys navigate: \f[C]right\f[R] (or \f[C]enter\f[R]) goes
+the cursor keys navigate: \f[C]right\f[R] (or \f[C]enter\f[R]) goes
 deeper, \f[C]left\f[R] returns to the previous screen,
 \f[C]up\f[R]/\f[C]down\f[R]/\f[C]page up\f[R]/\f[C]page down\f[R]/\f[C]home\f[R]/\f[C]end\f[R]
 move up and down through lists.
-Vi-style (\f[C]h\f[R]/\f[C]j\f[R]/\f[C]k\f[R]/\f[C]l\f[R]) and
 Emacs-style
-(\f[C]CTRL-p\f[R]/\f[C]CTRL-n\f[R]/\f[C]CTRL-f\f[R]/\f[C]CTRL-b\f[R])
-movement keys are also supported.
+(\f[C]ctrl-p\f[R]/\f[C]ctrl-n\f[R]/\f[C]ctrl-f\f[R]/\f[C]ctrl-b\f[R])
+movement keys are also supported (but not vi-style keys, since
+hledger-1.19, sorry!).
 A tip: movement speed is limited by your keyboard repeat rate, to move
 faster you may want to adjust it.
-(If you\[aq]re on a mac, the Karabiner app is one way to do that.)
+(If you\[aq]re on a mac, the karabiner app is one way to do that.)
 .PP
-With shift pressed, the cursor keys adjust the report period, limiting
+with shift pressed, the cursor keys adjust the report period, limiting
 the transactions to be shown (by default, all are shown).
 \f[C]shift-down/up\f[R] steps downward and upward through these standard
 report period durations: year, quarter, month, week, day.
-Then, \f[C]shift-left/right\f[R] moves to the previous/next period.
-\f[C]t\f[R] sets the report period to today.
-With the \f[C]--watch\f[R] option, when viewing a \[dq]current\[dq]
+then, \f[C]shift-left/right\f[R] moves to the previous/next period.
+\f[C]T\f[R] sets the report period to today.
+with the \f[C]--watch\f[R] option, when viewing a \[dq]current\[dq]
 period (the current day, week, month, quarter, or year), the period will
 move automatically to track the current date.
-To set a non-standard period, you can use \f[C]/\f[R] and a
+to set a non-standard period, you can use \f[C]/\f[R] and a
 \f[C]date:\f[R] query.
 .PP
 \f[C]/\f[R] lets you set a general filter query limiting the data shown,
 using the same query terms as in hledger and hledger-web.
-While editing the query, you can use CTRL-a/e/d/k, BS, cursor keys;
-press \f[C]ENTER\f[R] to set it, or \f[C]ESCAPE\f[R]to cancel.
-There are also keys for quickly adjusting some common filters like
+while editing the query, you can use ctrl-a/e/d/k, bs, cursor keys;
+press \f[C]enter\f[R] to set it, or \f[C]escape\f[R]to cancel.
+there are also keys for quickly adjusting some common filters like
 account depth and transaction status (see below).
-\f[C]BACKSPACE\f[R] or \f[C]DELETE\f[R] removes all filters, showing all
+\f[C]backspace\f[R] or \f[C]delete\f[R] removes all filters, showing all
 transactions.
 .PP
-As mentioned above, by default hledger-ui hides future transactions -
+as mentioned above, by default hledger-ui hides future transactions -
 both ordinary transactions recorded in the journal, and periodic
 transactions generated by rule.
-\f[C]F\f[R] toggles forecast mode, in which future/forecasted
+\f[C]f\f[R] toggles forecast mode, in which future/forecasted
 transactions are shown.
-(experimental)
+\f[I](experimental)\f[R]
 .PP
-\f[C]ESCAPE\f[R] removes all filters and jumps back to the top screen.
-Or, it cancels a minibuffer edit or help dialog in progress.
+\f[C]escape\f[R] resets the UI state and jumps back to the top screen,
+restoring the app\[aq]s initial state at startup.
+Or, it cancels minibuffer data entry or the help dialog.
 .PP
-\f[C]CTRL-l\f[R] redraws the screen and centers the selection if
+\f[C]ctrl-l\f[R] redraws the screen and centers the selection if
 possible (selections near the top won\[aq]t be centered, since we
 don\[aq]t scroll above the top).
 .PP
 \f[C]g\f[R] reloads from the data file(s) and updates the current screen
 and any previous screens.
-(With large files, this could cause a noticeable pause.)
+(with large files, this could cause a noticeable pause.)
 .PP
-\f[C]I\f[R] toggles balance assertion checking.
-Disabling balance assertions temporarily can be useful for
+\f[C]i\f[R] toggles balance assertion checking.
+disabling balance assertions temporarily can be useful for
 troubleshooting.
 .PP
 \f[C]a\f[R] runs command-line hledger\[aq]s add command, and reloads the
 updated file.
-This allows some basic data entry.
+this allows some basic data entry.
 .PP
-\f[C]A\f[R] is like \f[C]a\f[R], but runs the hledger-iadd tool, which
+\f[C]a\f[R] is like \f[C]a\f[R], but runs the hledger-iadd tool, which
 provides a terminal interface.
-This key will be available if \f[C]hledger-iadd\f[R] is installed in
-$PATH.
+this key will be available if \f[C]hledger-iadd\f[R] is installed in
+$path.
 .PP
-\f[C]E\f[R] runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default
+\f[C]e\f[R] runs $hledger_ui_editor, or $editor, or a default
 (\f[C]emacsclient -a \[dq]\[dq] -nw\f[R]) on the journal file.
-With some editors (emacs, vi), the cursor will be positioned at the
+with some editors (emacs, vi), the cursor will be positioned at the
 current transaction when invoked from the register and transaction
 screens, and at the error location (if possible) when invoked from the
 error screen.
 .PP
-\f[C]q\f[R] quits the application.
+\f[C]b\f[R] toggles cost mode, showing amounts in their transaction
+price\[aq]s commodity (like toggling the \f[C]-b/--cost\f[R] flag).
 .PP
-Experimental:
-.PP
-\f[C]B\f[R] toggles cost mode, showing amounts in their transaction
-price\[aq]s commodity (like toggling the \f[C]-B/--cost\f[R] flag).
-.PP
-\f[C]V\f[R] toggles value mode, showing amounts\[aq] current market
+\f[C]v\f[R] toggles value mode, showing amounts\[aq] current market
 value in their default valuation commodity (like toggling the
-\f[C]-V/--market\f[R] flag).
-Note, \[dq]current market value\[dq] means the value on the report end
+\f[C]-v/--market\f[R] flag).
+note, \[dq]current market value\[dq] means the value on the report end
 date if specified, otherwise today.
-To see the value on another date, you can temporarily set that as the
+to see the value on another date, you can temporarily set that as the
 report end date.
-Eg: to see a transaction as it was valued on july 30, go to the accounts
+eg: to see a transaction as it was valued on july 30, go to the accounts
 or register screen, press \f[C]/\f[R], and add \f[C]date:-7/30\f[R] to
 the query.
 .PP
-At most one of cost or value mode can be active at once.
+at most one of cost or value mode can be active at once.
 .PP
-There\[aq]s not yet any visual reminder when cost or value mode is
-active; for now pressing \f[C]B\f[R] \f[C]B\f[R] \f[C]V\f[R] should
+there\[aq]s not yet any visual reminder when cost or value mode is
+active; for now pressing \f[C]b\f[R] \f[C]b\f[R] \f[C]v\f[R] should
 reliably reset to normal mode.
 .PP
-With --watch active, if you save an edit to the journal file while
+with --watch active, if you save an edit to the journal file while
 viewing the transaction screen in cost or value mode, the
-\f[C]B\f[R]/\f[C]V\f[R] keys will stop working.
-To work around, press g to force a manual reload, or exit the
+\f[C]b\f[R]/\f[C]v\f[R] keys will stop working.
+to work around, press g to force a manual reload, or exit the
 transaction screen.
 .PP
-Additional screen-specific keys are described below.
-.SH SCREENS
-.SS Accounts screen
+\f[C]q\f[R] quits the application.
 .PP
-This is normally the first screen displayed.
-It lists accounts and their balances, like hledger\[aq]s balance
+additional screen-specific keys are described below.
+.SH screens
+.SS accounts screen
+.PP
+this is normally the first screen displayed.
+it lists accounts and their balances, like hledger\[aq]s balance
 command.
-By default, it shows all accounts and their latest ending balances
+by default, it shows all accounts and their latest ending balances
 (including the balances of subaccounts).
 if you specify a query on the command line, it shows just the matched
 accounts and the balances from matched transactions.
 .PP
-Account names are shown as a flat list by default.
-Press \f[C]T\f[R] to toggle tree mode.
-In flat mode, account balances are exclusive of subaccounts, except
+Account names are shown as a flat list by default; press \f[C]t\f[R] to
+toggle tree mode.
+In list mode, account balances are exclusive of subaccounts, except
 where subaccounts are hidden by a depth limit (see below).
 In tree mode, all account balances are inclusive of subaccounts.
 .PP
@@ -378,11 +377,11 @@ current account.
 .PP
 Transactions affecting this account\[aq]s subaccounts will be included
 in the register if the accounts screen is in tree mode, or if it\[aq]s
-in flat mode but this account has subaccounts which are not shown due to
+in list mode but this account has subaccounts which are not shown due to
 a depth limit.
 In other words, the register always shows the transactions contributing
 to the balance shown on the accounts screen.
-Tree mode/flat mode can be toggled with \f[C]T\f[R] here also.
+Tree mode/list mode can be toggled with \f[C]t\f[R] here also.
 .PP
 \f[C]U\f[R] toggles filtering by unmarked status, showing or hiding
 unmarked transactions.
