@@ -237,9 +237,9 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 --              ,("RIGHT", str "transaction")
 
               -- tree/list mode - rsForceInclusive may override, but use tree_ to ensure a visible toggle effect
-              -- ,("T", renderToggle (tree_ ropts) "flat(-subs)" "tree(+subs)")
-              ,("t", str "tree(+subs)")
-              ,("l", str "list(-subs)")
+              ,("t", renderToggle (tree_ ropts) "list(-subs)" "tree(+subs)")
+              -- ,("t", str "tree(+subs)")
+              -- ,("l", str "list(-subs)")
 
               ,("H", renderToggle (not ishistorical) "historical" "period")
               ,("F", renderToggle1 (isJust $ forecast_ ropts) "forecast")
@@ -335,8 +335,7 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'B') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCost ui
         VtyEvent (EvKey (KChar 'V') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleValue ui
         VtyEvent (EvKey (KChar 'H') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 't') []) -> rsCenterAndContinue $ regenerateScreens j d $ setTree ui
-        VtyEvent (EvKey (KChar 'l') []) -> rsCenterAndContinue $ regenerateScreens j d $ setList ui
+        VtyEvent (EvKey (KChar 't') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleTree ui
         VtyEvent (EvKey (KChar 'Z') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
         VtyEvent (EvKey (KChar 'R') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui

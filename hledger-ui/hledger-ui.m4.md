@@ -192,8 +192,8 @@ it lists accounts and their balances, like hledger's balance command.
 by default, it shows all accounts and their latest ending balances (including the balances of subaccounts).
 if you specify a query on the command line, it shows just the matched accounts and the balances from matched transactions.
 
-Press `t` or `l` to show accounts as a tree or flat list (the default).
-In flat mode, account balances are exclusive of subaccounts, except where subaccounts are hidden by a depth limit (see below).
+Account names are shown as a flat list by default; press `t` to toggle tree mode.
+In list mode, account balances are exclusive of subaccounts, except where subaccounts are hidden by a depth limit (see below).
 In tree mode, all account balances are inclusive of subaccounts.
 
 To see less detail, press a number key, `1` to `9`, to set a depth limit.
@@ -246,9 +246,9 @@ running historical balance you would see on a bank register for the current acco
 
 Transactions affecting this account's subaccounts will be included in the register
 if the accounts screen is in tree mode,
-or if it's in flat mode but this account has subaccounts which are not shown due to a depth limit.
+or if it's in list mode but this account has subaccounts which are not shown due to a depth limit.
 In other words, the register always shows the transactions contributing to the balance shown on the accounts screen.
-Tree mode or flat mode can be selected with `t`or `l` here also.
+Tree mode/list mode can be toggled with `t` here also.
 
 `U` toggles filtering by [unmarked status](journal.html#status), showing or hiding unmarked transactions.
 Similarly, `P` toggles pending transactions, and `C` toggles cleared transactions.

@@ -97,11 +97,12 @@ helpDialog _copts =
               padRight (Pad 1) $
                 vBox [
                    withAttr ("help" <> "heading") $ str "Navigation"
-                  ,renderKey ("UP/DOWN/PUP/PDN/HOME/END or C-p/n/f/b", "")
-                  ,str "      move selection"
-                  ,renderKey ("RIGHT", "show account txns, or txn detail")
-                  ,renderKey ("LEFT ", "go back")
-                  ,renderKey ("ESC  ", "cancel input, or reset everything")
+                  ,renderKey ("UP/DOWN/PUP/PDN/HOME/END/k/j/C-p/C-n", "")
+                  ,str "      move selection up/down"
+                  ,renderKey ("RIGHT/l/C-f", "")
+                  ,str "      show account txns, or txn detail"
+                  ,renderKey ("LEFT/h/C-b ", "go back")
+                  ,renderKey ("ESC  ", "cancel input, or reset UI")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Report period"
                   ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
@@ -110,12 +111,12 @@ helpDialog _copts =
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Accounts screen"
                   ,renderKey ("1234567890-+ ", "set/adjust depth limit")
-                  ,renderKey ("t/l", "set tree/list mode")
-                  ,renderKey ("H  ", "toggle historical balance/change")
+                  ,renderKey ("t ", "toggle accounts tree/list mode")
+                  ,renderKey ("H ", "toggle historical balance/change")
                   ,str " "
                   ,withAttr ("help" <> "heading") $ str "Register screen"
-                  ,renderKey ("t/l", "show/hide subaccount txns\n(and set accounts tree/list mode)")
-                  ,renderKey ("H  ", "toggle historical/period total")
+                  ,renderKey ("t ", "toggle subaccount txns\n(and accounts tree/list mode)")
+                  ,renderKey ("H ", "toggle historical/period total")
                   ,str " "
                 ]
              ,padLeft (Pad 1) $ padRight (Pad 0) $
@@ -341,16 +342,10 @@ scrollSelectionToMiddle list = do
     _ -> return ()
 
 --                 arrow keys       vi keys               emacs keys
--- moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
--- moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
--- moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
--- moveRightEvents = [EvKey KRight [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
-
---                 arrow keys       emacs keys
-moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'p') [MCtrl]]
-moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'n') [MCtrl]]
-moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'b') [MCtrl]]
-moveRightEvents = [EvKey KRight [], EvKey (KChar 'f') [MCtrl]]
+moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
+moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
+moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
+moveRightEvents = [EvKey KRight [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
 
 normaliseMovementKeys ev
   | ev `elem` moveUpEvents    = EvKey KUp []

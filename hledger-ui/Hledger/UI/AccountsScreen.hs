@@ -208,8 +208,9 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             quickhelp = borderKeysStr' [
                ("?", str "help")
 --              ,("RIGHT", str "register")
-              ,("t", str "tree")
-              ,("l", str "list")
+              ,("t", renderToggle (tree_ ropts) "list" "tree")
+              -- ,("t", str "tree")
+              -- ,("l", str "list")
               ,("-+", str "depth")
               ,("H", renderToggle (not ishistorical) "end-bals" "changes")
               ,("F", renderToggle1 (isJust $ forecast_ ropts) "forecast")
@@ -327,8 +328,7 @@ asHandle ui0@UIState{
 
         -- display mode/query toggles
         VtyEvent (EvKey (KChar 'H') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 't') []) -> asCenterAndContinue $ regenerateScreens j d $ setTree ui
-        VtyEvent (EvKey (KChar 'l') []) -> asCenterAndContinue $ regenerateScreens j d $ setList ui
+        VtyEvent (EvKey (KChar 't') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleTree ui
         VtyEvent (EvKey (KChar 'Z') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
         VtyEvent (EvKey (KChar 'R') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
