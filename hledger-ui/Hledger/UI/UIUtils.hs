@@ -122,10 +122,10 @@ helpDialog _copts =
                 vBox [
                    withAttr ("help" <> "heading") $ str "Filtering"
                   ,renderKey ("/   ", "set a filter query")
-                  ,renderKey ("UPC ", "show unmarked/pending/cleared")
                   ,renderKey ("F   ", "show future & periodic txns")
                   ,renderKey ("R   ", "show real/all postings")
                   ,renderKey ("Z   ", "show nonzero/all amounts")
+                  ,renderKey ("U/P/C ", "show unmarked/pending/cleared")
                   ,renderKey ("S-DOWN /S-UP  ", "shrink/grow period")
                   ,renderKey ("S-RIGHT/S-LEFT", "next/previous period")
                   ,renderKey ("T             ", "set period to today")
@@ -134,10 +134,10 @@ helpDialog _copts =
                   ,withAttr ("help" <> "heading") $ str "Other"
                   ,renderKey ("a   ", "add transaction (hledger add)")
                   ,renderKey ("A   ", "add transaction (hledger-iadd)")
-                  ,renderKey ("B   ", "toggle normal/cost mode")
+                  ,renderKey ("B   ", "show amounts/costs")
                   ,renderKey ("E   ", "open editor")
                   ,renderKey ("I   ", "toggle balance assertions")
-                  ,renderKey ("V   ", "toggle normal/value mode")
+                  ,renderKey ("V   ", "show amounts/market values")
                   ,renderKey ("g   ", "reload data")
                   ,renderKey ("C-l ", "redraw & recenter")
                   ,renderKey ("C-z ", "suspend")
