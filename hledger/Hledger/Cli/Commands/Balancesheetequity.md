@@ -1,8 +1,15 @@
 balancesheetequity, bse\
-Just like [balancesheet](#balancesheet), but also reports Equity
-(which it assumes is under a top-level `equity` account).
+This command displays a balance sheet, showing historical ending
+balances of asset, liability and equity accounts.
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
 
 _FLAGS
+
+The asset, liability and equity accounts shown are those accounts
+declared with the `Asset`, `Cash`, `Liability` or `Equity` type, or
+otherwise all accounts under a top-level `asset`, `liability` or
+`equity` account (case insensitive, plurals allowed).
 
 Example:
 ```shell

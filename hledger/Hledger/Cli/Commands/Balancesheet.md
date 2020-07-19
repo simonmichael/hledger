@@ -1,14 +1,16 @@
 balancesheet, bs\
-This command displays a simple balance sheet, showing historical ending
-balances of asset and liability accounts (ignoring any report begin date).
-It assumes that these accounts are under a top-level `asset` or `liability`
-account (case insensitive, plural forms also  allowed).
-
-Note this report shows all account balances with normal positive sign
-(like conventional financial statements, unlike balance/print/register)
-(experimental).
+This command displays a balance sheet, showing historical ending
+balances of asset and liability accounts. (To see equity as well,
+use the [balancesheetequity](#balancesheetequity) command.)
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
 
 _FLAGS
+
+The asset and liability accounts shown are those accounts declared
+with the `Asset` or `Cash` or `Liability` type, or otherwise all
+accounts under a top-level `asset` or `liability` account (case
+insensitive, plurals allowed).
 
 Example:
 

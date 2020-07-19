@@ -1,13 +1,15 @@
 cashflow, cf\
-This command displays a simple cashflow statement, showing changes
-in "cash" accounts. It assumes that these accounts are under a top-level
-`asset` account (case insensitive, plural forms also allowed) and do not
-contain `receivable` or `A/R` in their name.
-Note this report shows all account balances with normal positive sign
-(like conventional financial statements, unlike balance/print/register)
-(experimental).
+This command displays a cashflow statement, showing the inflows and
+outflows affecting "cash" (ie, liquid) assets.
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
 
 _FLAGS
+
+The "cash" accounts shown are those accounts declared with the `Cash`
+type, or otherwise all accounts under a top-level `asset` account
+(case insensitive, plural allowed) which do not have `fixed`,
+`investment`, `receivable` or `A/R` in their name.
 
 Example:
 ```shell

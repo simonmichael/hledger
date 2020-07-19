@@ -1,19 +1,19 @@
 incomestatement, is\
-This command displays a simple income statement, showing revenues
-and expenses during a period. It assumes that these accounts are under a
-top-level `revenue` or `income` or `expense` account (case insensitive,
-plural forms also allowed).
-Note this report shows all account balances with normal positive sign
-(like conventional financial statements, unlike balance/print/register)
-(experimental).
+
+This command displays an
+[income statement](http://en.wikipedia.org/wiki/Income_statement), 
+showing revenues and expenses during one or more periods. 
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
 
 _FLAGS
 
-This command displays a simple
-[income statement](http://en.wikipedia.org/wiki/Income_statement).  It
-currently assumes that you have top-level accounts named `income` (or
-`revenue`) and `expense` (plural forms also allowed.)
+The revenue and expense accounts shown are those accounts declared
+with the `Revenue` or `Expense` type, or otherwise all accounts under
+a top-level `revenue` or `income` or `expense` account (case
+insensitive, plurals allowed).
 
+Example:
 ```shell
 $ hledger incomestatement
 Income Statement
