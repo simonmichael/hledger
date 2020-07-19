@@ -115,7 +115,7 @@ multiBalanceReportWith ropts q j priceoracle = report
     colps    = dbg'' "colps"  $ getPostingsByColumn ropts reportq j reportspan
     colspans = dbg "colspans" $ M.keys colps
 
-    -- Postprocess the report, negating balances and taking percentages if needed
+    -- Generate and postprocess the report, negating balances and taking percentages if needed
     report = dbg' "report" $ generateMultiBalanceReport ropts reportq j priceoracle reportspan colspans colps
 
 -- | Generate a compound balance report from a list of CBCSubreportSpec. This
@@ -280,21 +280,8 @@ calculateColSpans ropts reportspan days =
     matchedspan = dbg "matchedspan" $ daysSpan days
 
 
--- | Calculate account balance changes in each column.
---
--- In each column, gather the accounts that have postings and their change amount.
-acctChangesFromPostings :: ReportOpts -> Query -> [Posting] -> HashMap ClippedAccountName Account
-acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
-  where
-    as = filterAccounts . drop 1 $ accountsFromPostings ps
-    filterAccounts = case accountlistmode_ ropts of
-        ALTree -> filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
-        ALFlat -> clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
-                      filter ((0<) . anumpostings)
-    depthq = dbg "depthq" $ filterQuery queryIsDepth q
-
--- | Gather the account balance changes into a regular matrix including the accounts
--- from all columns
+-- | Gather the account balance changes into a regular matrix
+-- including the accounts from all columns.
 calculateAccountChanges :: ReportOpts -> Query -> [DateSpan]
                         -> Map DateSpan [Posting]
                         -> HashMap ClippedAccountName (Map DateSpan Account)
@@ -309,6 +296,20 @@ calculateAccountChanges ropts q colspans colps
       dbg'' "colacctchanges" $ fmap (acctChangesFromPostings ropts q) colps
 
     elided = HM.singleton "..." $ M.fromList [(span, nullacct) | span <- colspans]
+
+-- | Given a set of postings, eg for a single report column, gather
+-- the accounts that have postings and calculate the change amount for
+-- each. Accounts and amounts will be depth-clipped appropriately if
+-- a depth limit is in effect.
+acctChangesFromPostings :: ReportOpts -> Query -> [Posting] -> HashMap ClippedAccountName Account
+acctChangesFromPostings ropts q ps = HM.fromList [(aname a, a) | a <- as]
+  where
+    as = filterAccounts . drop 1 $ accountsFromPostings ps
+    filterAccounts = case accountlistmode_ ropts of
+        ALTree -> filter ((depthq `matchesAccount`) . aname)      -- exclude deeper balances
+        ALFlat -> clipAccountsAndAggregate (queryDepth depthq) .  -- aggregate deeper balances at the depth limit.
+                      filter ((0<) . anumpostings)
+    depthq = dbg "depthq" $ filterQuery queryIsDepth q
 
 -- | Accumulate and value amounts, as specified by the report options.
 --
@@ -358,7 +359,7 @@ accumValueAmounts ropts j priceoracle colspans startbals acctchanges =
     zeros = M.fromList [(span, nullacct) | span <- colspans]
 
 
--- | Group a date-separated list of postings into a regular matrix with rows
+-- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
 generateMultiBalanceReport :: ReportOpts -> Query -> Journal -> PriceOracle
