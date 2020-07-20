@@ -159,7 +159,7 @@ commentlinesp = do
 
 orgheadingprefixp = do
   -- traceparse "orgheadingprefixp"
-  skipSome (char '*') >> skipSome spacenonewline
+  skipSome (char '*') >> skipNonNewlineSpaces1
 
 -- | Parse a single timedot entry to one (dateless) transaction.
 -- @
@@ -170,9 +170,9 @@ entryp = do
   lift $ traceparse "entryp"
   pos <- genericSourcePos <$> getSourcePos
   notFollowedBy datelinep
-  lift $ optional $ choice [orgheadingprefixp, skipSome spacenonewline]
+  lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   hours <-
     try (lift followingcommentp >> return 0)
     <|> (durationp <*
@@ -211,7 +211,7 @@ numericquantityp = do
   -- lift $ traceparse "numericquantityp"
   (q, _, _, _) <- lift $ numberp Nothing
   msymbol <- optional $ choice $ map (string . fst) timeUnits
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   let q' =
         case msymbol of
           Nothing  -> q
@@ -249,7 +249,7 @@ emptyorcommentlinep :: [Char] -> TextParser m ()
 emptyorcommentlinep cs =
   label ("empty line or comment line beginning with "++cs) $ do
     traceparse "emptyorcommentlinep" -- XXX possible to combine label and traceparse ?
-    skipMany spacenonewline
+    skipNonNewlineSpaces
     void newline <|> void commentp
     traceparse' "emptyorcommentlinep"
     where

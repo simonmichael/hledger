@@ -121,10 +121,10 @@ timeclockentryp :: JournalParser m TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> lift getSourcePos
   code <- oneOf ("bhioO" :: [Char])
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   datetime <- datetimep
-  account <- fromMaybe "" <$> optional (lift (skipSome spacenonewline) >> modifiedaccountnamep)
-  description <- T.pack . fromMaybe "" <$> lift (optional (skipSome spacenonewline >> restofline))
+  account <- fromMaybe "" <$> optional (lift skipNonNewlineSpaces1 >> modifiedaccountnamep)
+  description <- T.pack . fromMaybe "" <$> lift (optional (skipNonNewlineSpaces1 >> restofline))
   return $ TimeclockEntry sourcepos (read [code]) datetime account description
 
 

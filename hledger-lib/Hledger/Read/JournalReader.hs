@@ -247,7 +247,7 @@ directivep = (do
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   string "include"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   prefixedglob <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
   parentoff <- getOffset
   parentpos <- getSourcePos
@@ -331,7 +331,7 @@ accountdirectivep = do
   off <- getOffset -- XXX figure out a more precise position later
 
   string "account"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
 
   -- the account name, possibly modified by preceding alias or apply account directives
   acct <- modifiedaccountnamep
@@ -339,7 +339,7 @@ accountdirectivep = do
   -- maybe an account type code (ALERX) after two or more spaces
   -- XXX added in 1.11, deprecated in 1.13, remove in 1.14
   mtypecode :: Maybe Char <- lift $ optional $ try $ do
-    skipSome spacenonewline -- at least one more space in addition to the one consumed by modifiedaccountp
+    skipNonNewlineSpaces1 -- at least one more space in addition to the one consumed by modifiedaccountp
     choice $ map char "ALERX"
 
   -- maybe a comment, on this and/or following lines
@@ -402,7 +402,7 @@ addAccountDeclaration (a,cmt,tags) =
                j{jdeclaredaccounts = d:decls})
 
 indentedlinep :: JournalParser m String
-indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
+indentedlinep = lift skipNonNewlineSpaces1 >> (rstrip <$> lift restofline)
 
 -- | Parse a one-line or multi-line commodity directive.
 --
@@ -421,11 +421,11 @@ commoditydirectiveonelinep :: JournalParser m ()
 commoditydirectiveonelinep = do
   (off, Amount{acommodity,astyle}) <- try $ do
     string "commodity"
-    lift (skipSome spacenonewline)
+    lift skipNonNewlineSpaces1
     off <- getOffset
     amount <- amountp
     pure $ (off, amount)
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg6 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
@@ -449,21 +449,21 @@ pleaseincludedecimalpoint = chomp $ unlines [
 commoditydirectivemultilinep :: JournalParser m ()
 commoditydirectivemultilinep = do
   string "commodity"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   sym <- lift commoditysymbolp
   _ <- lift followingcommentp
   mformat <- lastMay <$> many (indented $ formatdirectivep sym)
   let comm = Commodity{csymbol=sym, cformat=mformat}
   modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
   where
-    indented = (lift (skipSome spacenonewline) >>)
+    indented = (lift skipNonNewlineSpaces1 >>)
 
 -- | Parse a format (sub)directive, throwing a parse error if its
 -- symbol does not match the one given.
 formatdirectivep :: CommoditySymbol -> JournalParser m AmountStyle
 formatdirectivep expectedsym = do
   string "format"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   off <- getOffset
   Amount{acommodity,astyle} <- amountp
   _ <- lift followingcommentp
@@ -479,7 +479,7 @@ keywordp :: String -> JournalParser m ()
 keywordp = (() <$) . string . fromString
 
 spacesp :: JournalParser m ()
-spacesp = () <$ lift (skipSome spacenonewline)
+spacesp = () <$ lift skipNonNewlineSpaces1
 
 -- | Backtracking parser similar to string, but allows varying amount of space between words
 keywordsp :: String -> JournalParser m ()
@@ -488,7 +488,7 @@ keywordsp = try . sequence_ . intersperse spacesp . map keywordp . words
 applyaccountdirectivep :: JournalParser m ()
 applyaccountdirectivep = do
   keywordsp "apply account" <?> "apply account directive"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   parent <- lift accountnamep
   newline
   pushParentAccount parent
@@ -501,7 +501,7 @@ endapplyaccountdirectivep = do
 aliasdirectivep :: JournalParser m ()
 aliasdirectivep = do
   string "alias"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   alias <- lift accountaliasp
   addAccountAlias alias
 
@@ -513,7 +513,7 @@ basicaliasp = do
   -- dbgparse 0 "basicaliasp"
   old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
   char '='
-  skipMany spacenonewline
+  skipNonNewlineSpaces
   new <- rstrip <$> anySingle `manyTill` eolof  -- eol in journal, eof in command lines, normally
   return $ BasicAlias (T.pack old) (T.pack new)
 
@@ -523,9 +523,9 @@ regexaliasp = do
   char '/'
   re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
   char '/'
-  skipMany spacenonewline
+  skipNonNewlineSpaces
   char '='
-  skipMany spacenonewline
+  skipNonNewlineSpaces
   repl <- anySingle `manyTill` eolof
   return $ RegexAlias re repl
 
@@ -537,7 +537,7 @@ endaliasesdirectivep = do
 tagdirectivep :: JournalParser m ()
 tagdirectivep = do
   string "tag" <?> "tag directive"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   _ <- lift $ some nonspace
   lift restofline
   return ()
@@ -551,7 +551,7 @@ endtagdirectivep = do
 defaultyeardirectivep :: JournalParser m ()
 defaultyeardirectivep = do
   char 'Y' <?> "default year"
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   y <- some digitChar
   let y' = read y
   failIfInvalidYear y
@@ -560,7 +560,7 @@ defaultyeardirectivep = do
 defaultcommoditydirectivep :: JournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   off <- getOffset
   Amount{acommodity,astyle} <- amountp
   lift restofline
@@ -571,11 +571,11 @@ defaultcommoditydirectivep = do
 marketpricedirectivep :: JournalParser m PriceDirective
 marketpricedirectivep = do
   char 'P' <?> "market price"
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   symbol <- lift commoditysymbolp
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   price <- amountp
   lift restofline
   return $ PriceDirective date symbol price
@@ -583,7 +583,7 @@ marketpricedirectivep = do
 ignoredpricecommoditydirectivep :: JournalParser m ()
 ignoredpricecommoditydirectivep = do
   char 'N' <?> "ignored-price commodity"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   lift commoditysymbolp
   lift restofline
   return ()
@@ -591,11 +591,11 @@ ignoredpricecommoditydirectivep = do
 commodityconversiondirectivep :: JournalParser m ()
 commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
-  lift (skipSome spacenonewline)
+  lift skipNonNewlineSpaces1
   amountp
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   char '='
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   amountp
   lift restofline
   return ()
@@ -606,7 +606,7 @@ commodityconversiondirectivep = do
 transactionmodifierp :: JournalParser m TransactionModifier
 transactionmodifierp = do
   char '=' <?> "modifier transaction"
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   querytxt <- lift $ T.strip <$> descriptionp
   (_comment, _tags) <- lift transactioncommentp   -- TODO apply these to modified txns ?
   postings <- postingsp Nothing
@@ -626,7 +626,7 @@ periodictransactionp = do
 
   -- first line
   char '~' <?> "periodic transaction"
-  lift $ skipMany spacenonewline
+  lift $ skipNonNewlineSpaces
   -- a period expression
   off <- getOffset
 
@@ -706,7 +706,7 @@ postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 
 -- linebeginningwithspaces :: JournalParser m String
 -- linebeginningwithspaces = do
---   sp <- lift (skipSome spacenonewline)
+--   sp <- lift skipNonNewlineSpaces1
 --   c <- nonspace
 --   cs <- lift restofline
 --   return $ sp ++ (c:cs) ++ "\n"
@@ -715,17 +715,17 @@ postingp :: Maybe Year -> JournalParser m Posting
 postingp mTransactionYear = do
   -- lift $ dbgparse 0 "postingp"
   (status, account) <- try $ do
-    lift (skipSome spacenonewline)
+    lift skipNonNewlineSpaces1
     status <- lift statusp
-    lift (skipMany spacenonewline)
+    lift skipNonNewlineSpaces
     account <- modifiedaccountnamep
     return (status, account)
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   amount <- option missingmixedamt $ Mixed . (:[]) <$> amountp
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   massertion <- optional balanceassertionp
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   (comment,tags,mdate,mdate2) <- lift $ postingcommentp mTransactionYear
   return posting
    { pdate=mdate

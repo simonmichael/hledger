@@ -20,9 +20,13 @@ module Hledger.Utils.Parse (
   showDateParseError,
   nonspace,
   isNonNewlineSpace,
-  spacenonewline,
   restofline,
   eolof,
+
+  spacenonewline,
+  skipNonNewlineSpaces,
+  skipNonNewlineSpaces1,
+  skipNonNewlineSpaces',
 
   -- * re-exports
   CustomErr
@@ -125,9 +129,26 @@ isNonNewlineSpace c = c /= '\n' && isSpace c
 
 spacenonewline :: (Stream s, Char ~ Token s) => ParsecT CustomErr s m Char
 spacenonewline = satisfy isNonNewlineSpace
+{-# INLINABLE spacenonewline #-}
 
 restofline :: TextParser m String
 restofline = anySingle `manyTill` eolof
+
+-- Skip many non-newline spaces.
+skipNonNewlineSpaces :: (Stream s, Token s ~ Char) => ParsecT CustomErr s m ()
+skipNonNewlineSpaces = () <$ takeWhileP Nothing isNonNewlineSpace
+{-# INLINABLE skipNonNewlineSpaces #-}
+
+-- Skip many non-newline spaces, failing if there are none.
+skipNonNewlineSpaces1 :: (Stream s, Token s ~ Char) => ParsecT CustomErr s m ()
+skipNonNewlineSpaces1 = () <$ takeWhile1P Nothing isNonNewlineSpace
+{-# INLINABLE skipNonNewlineSpaces1 #-}
+
+-- Skip many non-newline spaces, returning True if any have been skipped.
+skipNonNewlineSpaces' :: (Stream s, Token s ~ Char) => ParsecT CustomErr s m Bool
+skipNonNewlineSpaces' = True <$ skipNonNewlineSpaces1 <|> pure False
+{-# INLINABLE skipNonNewlineSpaces' #-}
+
 
 eolof :: TextParser m ()
 eolof = (newline >> return ()) <|> eof

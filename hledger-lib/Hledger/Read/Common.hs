@@ -105,6 +105,9 @@ module Hledger.Read.Common (
   singlespacedtextsatisfyingp,
   singlespacep,
 
+  skipNonNewlineSpaces,
+  skipNonNewlineSpaces1,
+
   -- * tests
   tests_Common,
 )
@@ -412,15 +415,15 @@ match' p = do
 statusp :: TextParser m Status
 statusp =
   choice'
-    [ skipMany spacenonewline >> char '*' >> return Cleared
-    , skipMany spacenonewline >> char '!' >> return Pending
+    [ skipNonNewlineSpaces >> char '*' >> return Cleared
+    , skipNonNewlineSpaces >> char '!' >> return Pending
     , return Unmarked
     ]
 
 codep :: TextParser m Text
 codep = option "" $ do
   try $ do
-    skipSome spacenonewline
+    skipNonNewlineSpaces1
     char '('
   code <- takeWhileP Nothing $ \c -> c /= ')' && c /= '\n'
   char ')' <?> "closing bracket ')' for transaction code"
@@ -499,7 +502,7 @@ datetimep = do
 datetimep' :: Maybe Year -> TextParser m LocalTime
 datetimep' mYear = do
   day <- datep' mYear
-  skipSome spacenonewline
+  skipNonNewlineSpaces1
   time <- timeOfDay
   optional timeZone -- ignoring time zones
   pure $ LocalTime day time
@@ -595,7 +598,7 @@ singlespacedtextsatisfyingp pred = do
 
 -- | Parse one non-newline whitespace character that is not followed by another one.
 singlespacep :: TextParser m ()
-singlespacep = void spacenonewline *> notFollowedBy spacenonewline
+singlespacep = spacenonewline *> notFollowedBy spacenonewline
 
 --- *** amounts
 
@@ -605,7 +608,7 @@ singlespacep = void spacenonewline *> notFollowedBy spacenonewline
 spaceandamountormissingp :: JournalParser m MixedAmount
 spaceandamountormissingp =
   option missingmixedamt $ try $ do
-    lift $ skipSome spacenonewline
+    lift $ skipNonNewlineSpaces1
     Mixed . (:[]) <$> amountp
 
 -- | Parse a single-commodity amount, with optional symbol on the left
@@ -614,7 +617,7 @@ spaceandamountormissingp =
 -- lot date. A lot price and lot date will be ignored.
 amountp :: JournalParser m Amount
 amountp = label "amount" $ do
-  let spaces = lift $ skipMany spacenonewline
+  let spaces = lift $ skipNonNewlineSpaces
   amount <- amountwithoutpricep <* spaces
   (mprice, _elotprice, _elotdate) <- runPermutation $
     (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp <* spaces)
@@ -625,7 +628,7 @@ amountp = label "amount" $ do
 -- XXX Just like amountp but don't allow lot prices. Needed for balanceassertionp.
 amountpnolotprices :: JournalParser m Amount
 amountpnolotprices = label "amount" $ do
-  let spaces = lift $ skipMany spacenonewline
+  let spaces = lift $ skipNonNewlineSpaces
   amount <- amountwithoutpricep
   spaces
   mprice <- optional $ priceamountp <* spaces
@@ -642,7 +645,7 @@ amountwithoutpricep = do
   leftsymbolamountp mult sign = label "amount" $ do
     c <- lift commoditysymbolp
     suggestedStyle <- getAmountStyle c
-    commodityspaced <- lift $ skipMany' spacenonewline
+    commodityspaced <- lift skipNonNewlineSpaces'
     sign2 <- lift $ signp
     offBeforeNum <- getOffset
     ambiguousRawNum <- lift rawnumberp
@@ -660,7 +663,7 @@ amountwithoutpricep = do
     mExponent <- lift $ optional $ try exponentp
     offAfterNum <- getOffset
     let numRegion = (offBeforeNum, offAfterNum)
-    mSpaceAndCommodity <- lift $ optional $ try $ (,) <$> skipMany' spacenonewline <*> commoditysymbolp
+    mSpaceAndCommodity <- lift $ optional $ try $ (,) <$> skipNonNewlineSpaces' <*> commoditysymbolp
     case mSpaceAndCommodity of
       -- right symbol amount
       Just (commodityspaced, c) -> do
@@ -709,22 +712,10 @@ mamountp' = Mixed . (:[]) . amountp'
 -- | Parse a minus or plus sign followed by zero or more spaces,
 -- or nothing, returning a function that negates or does nothing.
 signp :: Num a => TextParser m (a -> a)
-signp = ((char '-' *> pure negate <|> char '+' *> pure id) <* many spacenonewline) <|> pure id
+signp = ((char '-' *> pure negate <|> char '+' *> pure id) <* skipNonNewlineSpaces) <|> pure id
 
 multiplierp :: TextParser m Bool
 multiplierp = option False $ char '*' *> pure True
-
--- | This is like skipMany but it returns True if at least one element
--- was skipped. This is helpful if you’re just using many to check if
--- the resulting list is empty or not.
-skipMany' :: MonadPlus m => m a -> m Bool
-skipMany' p = go False
-  where
-    go !isNull = do
-      more <- option False (True <$ p)
-      if more
-        then go True
-        else pure isNull
 
 commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp =
@@ -746,7 +737,7 @@ priceamountp = label "transaction price" $ do
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
   when parenthesised $ void $ char ')'
 
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   priceAmount <- amountwithoutpricep -- <?> "unpriced amount (specifying a price)"
 
   pure $ priceConstructor priceAmount
@@ -757,7 +748,7 @@ balanceassertionp = do
   char '='
   istotal <- fmap isJust $ optional $ try $ char '='
   isinclusive <- fmap isJust $ optional $ try $ char '*'
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   -- this amount can have a price; balance assertions ignore it,
   -- but balance assignments will use it
   a <- amountpnolotprices <?> "amount (for a balance assertion or assignment)"
@@ -776,10 +767,10 @@ lotpricep :: JournalParser m ()
 lotpricep = label "ledger-style lot price" $ do
   char '{'
   doublebrace <- option False $ char '{' >> pure True
-  _fixed <- fmap isJust $ optional $ lift (skipMany spacenonewline) >> char '='
-  lift (skipMany spacenonewline)
+  _fixed <- fmap isJust $ optional $ lift skipNonNewlineSpaces >> char '='
+  lift skipNonNewlineSpaces
   _a <- amountwithoutpricep
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   char '}'
   when (doublebrace) $ void $ char '}'
   return ()
@@ -789,9 +780,9 @@ lotpricep = label "ledger-style lot price" $ do
 lotdatep :: JournalParser m ()
 lotdatep = (do
   char '['
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   _d <- datep
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   char ']'
   return ()
   ) <?> "ledger-style lot date"
@@ -1037,7 +1028,7 @@ multilinecommentp = startComment *> anyLine `skipManyTill` endComment
     startComment = string "comment" *> trailingSpaces
     endComment = eof <|> string "end comment" *> trailingSpaces
 
-    trailingSpaces = skipMany spacenonewline <* newline
+    trailingSpaces = skipNonNewlineSpaces <* newline
     anyLine = void $ takeWhileP Nothing (\c -> c /= '\n') *> newline
 
 {-# INLINABLE multilinecommentp #-}
@@ -1047,7 +1038,7 @@ multilinecommentp = startComment *> anyLine `skipManyTill` endComment
 -- is semicolon, hash, or star.
 emptyorcommentlinep :: TextParser m ()
 emptyorcommentlinep = do
-  skipMany spacenonewline
+  skipNonNewlineSpaces
   skiplinecommentp <|> void newline
   where
     skiplinecommentp :: TextParser m ()
@@ -1076,13 +1067,13 @@ emptyorcommentlinep = do
 --
 followingcommentp' :: (Monoid a, Show a) => TextParser m a -> TextParser m (Text, a)
 followingcommentp' contentp = do
-  skipMany spacenonewline
+  skipNonNewlineSpaces
   -- there can be 0 or 1 sameLine
   sameLine <- try headerp *> ((:[]) <$> match' contentp) <|> pure []
   _ <- eolof
   -- there can be 0 or more nextLines
   nextLines <- many $
-    try (skipSome spacenonewline *> headerp) *> match' contentp <* eolof
+    try (skipNonNewlineSpaces1 *> headerp) *> match' contentp <* eolof
   let
     -- if there's just a next-line comment, insert an empty same-line comment
     -- so the next-line comment doesn't get rendered as a same-line comment.
@@ -1094,7 +1085,7 @@ followingcommentp' contentp = do
   pure (strippedCommentText, commentContent)
 
   where
-    headerp = char ';' *> skipMany spacenonewline
+    headerp = char ';' *> skipNonNewlineSpaces
 
 {-# INLINABLE followingcommentp' #-}
 
@@ -1158,7 +1149,7 @@ commenttagsp = do
       if T.null name
         then commenttagsp
         else do
-          skipMany spacenonewline
+          skipNonNewlineSpaces
           val <- tagValue
           let tag = (name, val)
           (tag:) <$> commenttagsp
@@ -1256,7 +1247,7 @@ commenttagsanddatesp mYear = do
 
     atColon :: Text -> TextParser m ([Tag], [DateTag])
     atColon name = char ':' *> do
-      skipMany spacenonewline
+      skipNonNewlineSpaces
       (tags, dateTags) <- case name of
         ""      -> pure ([], [])
         "date"  -> dateValue name
