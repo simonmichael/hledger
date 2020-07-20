@@ -449,10 +449,10 @@ blankorcommentlinep :: CsvRulesParser ()
 blankorcommentlinep = lift (dbgparse 8 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
 
 blanklinep :: CsvRulesParser ()
-blanklinep = lift (skipMany spacenonewline) >> newline >> return () <?> "blank line"
+blanklinep = lift skipNonNewlineSpaces >> newline >> return () <?> "blank line"
 
 commentlinep :: CsvRulesParser ()
-commentlinep = lift (skipMany spacenonewline) >> commentcharp >> lift restofline >> return () <?> "comment line"
+commentlinep = lift skipNonNewlineSpaces >> commentcharp >> lift restofline >> return () <?> "comment line"
 
 commentcharp :: CsvRulesParser Char
 commentcharp = oneOf (";#*" :: [Char])
@@ -462,7 +462,7 @@ directivep = (do
   lift $ dbgparse 8 "trying directive"
   d <- fmap T.unpack $ choiceInState $ map (lift . string . T.pack) directives
   v <- (((char ':' >> lift (many spacenonewline)) <|> lift (some spacenonewline)) >> directivevalp)
-       <|> (optional (char ':') >> lift (skipMany spacenonewline) >> lift eolof >> return "")
+       <|> (optional (char ':') >> lift skipNonNewlineSpaces >> lift eolof >> return "")
   return (d, v)
   ) <?> "directive"
 
@@ -485,8 +485,8 @@ fieldnamelistp = (do
   lift $ dbgparse 8 "trying fieldnamelist"
   string "fields"
   optional $ char ':'
-  lift (skipSome spacenonewline)
-  let separator = lift (skipMany spacenonewline) >> char ',' >> lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces1
+  let separator = lift skipNonNewlineSpaces >> char ',' >> lift skipNonNewlineSpaces
   f <- fromMaybe "" <$> optional fieldnamep
   fs <- some $ (separator >> fromMaybe "" <$> optional fieldnamep)
   lift restofline
@@ -554,8 +554,8 @@ journalfieldnames =
 assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
   lift $ dbgparse 8 "trying assignmentseparatorp"
-  _ <- choiceInState [ lift (skipMany spacenonewline) >> char ':' >> lift (skipMany spacenonewline)
-                     , lift (skipSome spacenonewline)
+  _ <- choiceInState [ lift skipNonNewlineSpaces >> char ':' >> lift skipNonNewlineSpaces
+                     , lift skipNonNewlineSpaces1
                      ]
   return ()
 
@@ -571,10 +571,10 @@ conditionalblockp = do
   -- "if\nMATCHER" or "if    \nMATCHER" or "if MATCHER"
   start <- getOffset
   string "if" >> ( (newline >> return Nothing)
-                  <|> (lift (skipSome spacenonewline) >> optional newline))
+                  <|> (lift skipNonNewlineSpaces1 >> optional newline))
   ms <- some matcherp
   as <- catMaybes <$>
-    many (lift (skipSome spacenonewline) >>
+    many (lift skipNonNewlineSpaces1 >>
           choice [ lift eolof >> return Nothing
                  , fmap Just fieldassignmentp
                  ])
@@ -620,7 +620,7 @@ recordmatcherp :: CsvRulesParser () -> CsvRulesParser Matcher
 recordmatcherp end = do
   lift $ dbgparse 8 "trying recordmatcherp"
   -- pos <- currentPos
-  -- _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
+  -- _  <- optional (matchoperatorp >> lift skipNonNewlineSpaces >> optional newline)
   p <- matcherprefixp
   r <- regexp end
   -- when (null ps) $
@@ -638,13 +638,13 @@ fieldmatcherp end = do
   -- An optional fieldname (default: "all")
   -- f <- fromMaybe "all" `fmap` (optional $ do
   --        f' <- fieldnamep
-  --        lift (skipMany spacenonewline)
+  --        lift skipNonNewlineSpaces
   --        return f')
   p <- matcherprefixp
-  f <- csvfieldreferencep <* lift (skipMany spacenonewline)
+  f <- csvfieldreferencep <* lift skipNonNewlineSpaces
   -- optional operator.. just ~ (case insensitive infix regex) for now
   -- _op <- fromMaybe "~" <$> optional matchoperatorp
-  lift (skipMany spacenonewline)
+  lift skipNonNewlineSpaces
   r <- regexp end
   return $ FieldMatcher p f r
   <?> "field matcher"
@@ -652,7 +652,7 @@ fieldmatcherp end = do
 matcherprefixp :: CsvRulesParser MatcherPrefix
 matcherprefixp = do
   lift $ dbgparse 8 "trying matcherprefixp"
-  (char '&' >> lift (skipMany spacenonewline) >> return And) <|> return None
+  (char '&' >> lift skipNonNewlineSpaces >> return And) <|> return None
 
 csvfieldreferencep :: CsvRulesParser CsvFieldReference
 csvfieldreferencep = do

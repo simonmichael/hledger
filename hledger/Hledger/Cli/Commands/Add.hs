@@ -279,7 +279,7 @@ dateAndCodeWizard PrevInput{..} EntryState{..} = do
             dateandcodep = do
                 d <- smartdate
                 c <- optional codep
-                skipMany spacenonewline
+                skipNonNewlineSpaces
                 eof
                 return (d, fromMaybe "" c)
       -- defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
@@ -356,7 +356,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
       amountandcommentp :: JournalParser Identity (Amount, Text)
       amountandcommentp = do
         a <- amountp
-        lift (skipMany spacenonewline)
+        lift skipNonNewlineSpaces
         c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
         -- eof
         return (a,c)
