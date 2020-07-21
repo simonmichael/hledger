@@ -98,6 +98,7 @@ import Data.Time.LocalTime
 import Safe
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
 import Text.Printf
 import System.FilePath
@@ -552,10 +553,8 @@ defaultyeardirectivep :: JournalParser m ()
 defaultyeardirectivep = do
   char 'Y' <?> "default year"
   lift skipNonNewlineSpaces
-  y <- some digitChar
-  let y' = read y
-  failIfInvalidYear y
-  setYear y'
+  y <- decimal
+  setYear y
 
 defaultcommoditydirectivep :: JournalParser m ()
 defaultcommoditydirectivep = do
@@ -997,7 +996,7 @@ tests_JournalReader = tests "JournalReader" [
 
   ,tests "defaultyeardirectivep" [
       test "1000" $ assertParse defaultyeardirectivep "Y 1000" -- XXX no \n like the others
-     ,test "999" $ assertParseError defaultyeardirectivep "Y 999" "bad year number"
+     -- ,test "999" $ assertParseError defaultyeardirectivep "Y 999" "bad year number"
      ,test "12345" $ assertParse defaultyeardirectivep "Y 12345"
      ]
 

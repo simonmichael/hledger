@@ -49,9 +49,6 @@ module Hledger.Data.Dates (
   parsePeriodExpr',
   nulldatespan,
   emptydatespan,
-  failIfInvalidYear,
-  failIfInvalidMonth,
-  failIfInvalidDay,
   datesepchar,
   datesepchars,
   isDateSepChar,
@@ -104,9 +101,10 @@ import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Clock
 import Data.Time.LocalTime
-import Safe (headMay, lastMay, readMay, maximumMay, minimumMay)
+import Safe (headMay, lastMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
 import Text.Printf
 
@@ -370,30 +368,26 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       (ry,rm,_) = toGregorian refdate
       (b,e) = span sdate
       span :: SmartDate -> (Day,Day)
-      span ("","","today")       = (refdate, nextday refdate)
-      span ("","this","day")     = (refdate, nextday refdate)
-      span ("","","yesterday")   = (prevday refdate, refdate)
-      span ("","last","day")     = (prevday refdate, refdate)
-      span ("","","tomorrow")    = (nextday refdate, addDays 2 refdate)
-      span ("","next","day")     = (nextday refdate, addDays 2 refdate)
-      span ("","last","week")    = (prevweek refdate, thisweek refdate)
-      span ("","this","week")    = (thisweek refdate, nextweek refdate)
-      span ("","next","week")    = (nextweek refdate, startofweek $ addDays 14 refdate)
-      span ("","last","month")   = (prevmonth refdate, thismonth refdate)
-      span ("","this","month")   = (thismonth refdate, nextmonth refdate)
-      span ("","next","month")   = (nextmonth refdate, startofmonth $ addGregorianMonthsClip 2 refdate)
-      span ("","last","quarter") = (prevquarter refdate, thisquarter refdate)
-      span ("","this","quarter") = (thisquarter refdate, nextquarter refdate)
-      span ("","next","quarter") = (nextquarter refdate, startofquarter $ addGregorianMonthsClip 6 refdate)
-      span ("","last","year")    = (prevyear refdate, thisyear refdate)
-      span ("","this","year")    = (thisyear refdate, nextyear refdate)
-      span ("","next","year")    = (nextyear refdate, startofyear $ addGregorianYearsClip 2 refdate)
-      span ("","",d)             = (day, nextday day) where day = fromGregorian ry rm (read d)
-      span ("",m,"")             = (startofmonth day, nextmonth day) where day = fromGregorian ry (read m) 1
-      span ("",m,d)              = (day, nextday day) where day = fromGregorian ry (read m) (read d)
-      span (y,"","")             = (startofyear day, nextyear day) where day = fromGregorian (read y) 1 1
-      span (y,m,"")              = (startofmonth day, nextmonth day) where day = fromGregorian (read y) (read m) 1
-      span (y,m,d)               = (day, nextday day) where day = fromGregorian (read y) (read m) (read d)
+      span (SmartRel This Day)     = (refdate, nextday refdate)
+      span (SmartRel Last Day)     = (prevday refdate, refdate)
+      span (SmartRel Next Day)     = (nextday refdate, addDays 2 refdate)
+      span (SmartRel This Week)    = (thisweek refdate, nextweek refdate)
+      span (SmartRel Last Week)    = (prevweek refdate, thisweek refdate)
+      span (SmartRel Next Week)    = (nextweek refdate, startofweek $ addDays 14 refdate)
+      span (SmartRel This Month)   = (thismonth refdate, nextmonth refdate)
+      span (SmartRel Last Month)   = (prevmonth refdate, thismonth refdate)
+      span (SmartRel Next Month)   = (nextmonth refdate, startofmonth $ addGregorianMonthsClip 2 refdate)
+      span (SmartRel This Quarter) = (thisquarter refdate, nextquarter refdate)
+      span (SmartRel Last Quarter) = (prevquarter refdate, thisquarter refdate)
+      span (SmartRel Next Quarter) = (nextquarter refdate, startofquarter $ addGregorianMonthsClip 6 refdate)
+      span (SmartRel This Year)    = (thisyear refdate, nextyear refdate)
+      span (SmartRel Last Year)    = (prevyear refdate, thisyear refdate)
+      span (SmartRel Next Year)    = (nextyear refdate, startofyear $ addGregorianYearsClip 2 refdate)
+      span s@(SmartYMD Nothing Nothing Nothing)   = error' $ "Ill-defined SmartDate " ++ show s
+      span s@(SmartYMD (Just _) Nothing (Just _)) = error' $ "Ill-defined SmartDate " ++ show s
+      span (SmartYMD y m (Just d)) = (day, nextday day) where day = fromGregorian (fromMaybe ry y) (fromMaybe rm m) d
+      span (SmartYMD y (Just m) Nothing) = (startofmonth day, nextmonth day) where day = fromGregorian (fromMaybe ry y) m 1
+      span (SmartYMD (Just y) Nothing Nothing) = (startofyear day, nextyear day) where day = fromGregorian y 1 1
 
 -- showDay :: Day -> String
 -- showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
@@ -492,31 +486,24 @@ fixSmartDate :: Day -> SmartDate -> Day
 fixSmartDate refdate = fix
   where
     fix :: SmartDate -> Day
-    fix ("", "", "today") = fromGregorian ry rm rd
-    fix ("", "this", "day") = fromGregorian ry rm rd
-    fix ("", "", "yesterday") = prevday refdate
-    fix ("", "last", "day") = prevday refdate
-    fix ("", "", "tomorrow") = nextday refdate
-    fix ("", "next", "day") = nextday refdate
-    fix ("", "last", "week") = prevweek refdate
-    fix ("", "this", "week") = thisweek refdate
-    fix ("", "next", "week") = nextweek refdate
-    fix ("", "last", "month") = prevmonth refdate
-    fix ("", "this", "month") = thismonth refdate
-    fix ("", "next", "month") = nextmonth refdate
-    fix ("", "last", "quarter") = prevquarter refdate
-    fix ("", "this", "quarter") = thisquarter refdate
-    fix ("", "next", "quarter") = nextquarter refdate
-    fix ("", "last", "year") = prevyear refdate
-    fix ("", "this", "year") = thisyear refdate
-    fix ("", "next", "year") = nextyear refdate
-    fix ("", "", d) = fromGregorian ry rm (read d)
-    fix ("", m, "") = fromGregorian ry (read m) 1
-    fix ("", m, d) = fromGregorian ry (read m) (read d)
-    fix (y, "", "") = fromGregorian (read y) 1 1
-    fix (y, m, "") = fromGregorian (read y) (read m) 1
-    fix (y, m, d) = fromGregorian (read y) (read m) (read d)
-    (ry, rm, rd) = toGregorian refdate
+    fix (SmartRel This Day)     = refdate
+    fix (SmartRel Last Day)     = prevday refdate
+    fix (SmartRel Next Day)     = nextday refdate
+    fix (SmartRel This Week)    = thisweek refdate
+    fix (SmartRel Last Week)    = prevweek refdate
+    fix (SmartRel Next Week)    = nextweek refdate
+    fix (SmartRel This Month)   = thismonth refdate
+    fix (SmartRel Last Month)   = prevmonth refdate
+    fix (SmartRel Next Month)   = nextmonth refdate
+    fix (SmartRel This Quarter) = thisquarter refdate
+    fix (SmartRel Last Quarter) = prevquarter refdate
+    fix (SmartRel Next Quarter) = nextquarter refdate
+    fix (SmartRel This Year)    = thisyear refdate
+    fix (SmartRel Last Year)    = prevyear refdate
+    fix (SmartRel Next Year)    = nextyear refdate
+    fix (SmartYMD Nothing Nothing (Just d)) = fromGregorian ry rm d
+    fix (SmartYMD my mm md)     = fromGregorian (fromMaybe ry my) (fromMaybe 1 mm) (fromMaybe 1 md)
+    (ry, rm, _) = toGregorian refdate
 
 prevday :: Day -> Day
 prevday = addDays (-1)
@@ -573,8 +560,8 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 -- 2017-01-01
 nthdayofyearcontaining :: Month -> MonthDay -> Day -> Day
 nthdayofyearcontaining m md date
-  | not (validMonth $ show m)  = error' $ "nthdayofyearcontaining: invalid month "++show m
-  | not (validDay   $ show md) = error' $ "nthdayofyearcontaining: invalid day "  ++show md
+  | not (validMonth m)  = error' $ "nthdayofyearcontaining: invalid month "++show m
+  | not (validDay   md) = error' $ "nthdayofyearcontaining: invalid day "  ++show md
   | mmddOfSameYear <= date = mmddOfSameYear
   | otherwise = mmddOfPrevYear
   where mmddOfSameYear = addDays (fromIntegral md-1) $ applyN (m-1) nextmonth s
@@ -601,7 +588,7 @@ nthdayofyearcontaining m md date
 -- 2017-10-30
 nthdayofmonthcontaining :: MonthDay -> Day -> Day
 nthdayofmonthcontaining md date
-  | not (validDay $ show md) = error' $ "nthdayofmonthcontaining: invalid day "  ++show md
+  | not (validDay md) = error' $ "nthdayofmonthcontaining: invalid day "  ++show md
   | nthOfSameMonth <= date = nthOfSameMonth
   | otherwise = nthOfPrevMonth
   where nthOfSameMonth = nthdayofmonth md s
@@ -754,15 +741,15 @@ Eg:
 YYYYMMDD is parsed as year-month-date if those parts are valid
 (>=4 digits, 1-12, and 1-31 respectively):
 >>> parsewith (smartdate <* eof) "20181201"
-Right ("2018","12","01")
+Right (SmartYMD (Just 2018) (Just 12) (Just 1))
 
 YYYYMM is parsed as year-month-01 if year and month are valid:
 >>> parsewith (smartdate <* eof) "201804"
-Right ("2018","04","01")
+Right (SmartYMD (Just 2018) (Just 4) Nothing)
 
 With an invalid month, it's parsed as a year:
 >>> parsewith (smartdate <* eof) "201813"
-Right ("201813","","")
+Right (SmartYMD (Just 201813) Nothing Nothing)
 
 A 9+ digit number beginning with valid YYYYMMDD gives an error:
 >>> parsewith (smartdate <* eof) "201801012"
@@ -770,22 +757,31 @@ Left (...)
 
 Big numbers not beginning with a valid YYYYMMDD are parsed as a year:
 >>> parsewith (smartdate <* eof) "201813012"
-Right ("201813012","","")
+Right (SmartYMD (Just 201813012) Nothing Nothing)
 
 -}
 smartdate :: TextParser m SmartDate
-smartdate = do
+smartdate = choice'
   -- XXX maybe obscures date errors ? see ledgerdate
-  (y,m,d) <- choice' [yyyymmdd, yyyymm, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow, lastthisnextthing]
-  return (y,m,d)
+    [ yyyymmdd
+    , md
+    , ymd
+    , yd
+    , month
+    , mon
+    , SmartRel This Day <$ string' "today"
+    , SmartRel Last Day <$ string' "yesterday"
+    , SmartRel Next Day <$ string' "tomorrow"
+    , liftA2 SmartRel (seqP <* skipNonNewlineSpaces) intervalP
+    ]
+  where
+    seqP = choice [This <$ string' "this", Last <$ string' "last", Next <$ string' "next"]
+    intervalP = choice [Day <$ string' "day", Week <$ string' "week", Month <$ string' "month",
+                        Quarter <$ string' "quarter", Year <$ string' "year"]
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
 smartdateonly :: TextParser m SmartDate
-smartdateonly = do
-  d <- smartdate
-  skipNonNewlineSpaces
-  eof
-  return d
+smartdateonly = smartdate <* skipNonNewlineSpaces <* eof
 
 datesepchars :: String
 datesepchars = "/-."
@@ -796,73 +792,49 @@ datesepchar = satisfy isDateSepChar
 isDateSepChar :: Char -> Bool
 isDateSepChar c = c == '-' || c == '/' || c == '.'
 
-validYear, validMonth, validDay :: String -> Bool
-validYear s = length s >= 4 && isJust (readMay s :: Maybe Year)
-validMonth s = maybe False (\n -> n>=1 && n<=12) $ readMay s
-validDay s = maybe False (\n -> n>=1 && n<=31) $ readMay s
+validMonth, validDay :: Int -> Bool
+validMonth n = n >= 1 && n <= 12
+validDay n = n >= 1 && n <= 31
 
-failIfInvalidYear, failIfInvalidMonth, failIfInvalidDay :: (Fail.MonadFail m) => String -> m ()
-failIfInvalidYear s  = unless (validYear s)  $ Fail.fail $ "bad year number: " ++ s
-failIfInvalidMonth s = unless (validMonth s) $ Fail.fail $ "bad month number: " ++ s
-failIfInvalidDay s   = unless (validDay s)   $ Fail.fail $ "bad day number: " ++ s
+failIfInvalidDate :: Fail.MonadFail m => SmartDate -> m ()
+failIfInvalidDate s@(SmartYMD y m d) = unless isValid $ Fail.fail $ "bad smart date: " ++ show s
+  where isValid = isJust $ fromGregorianValid (fromMaybe 2004 y) (fromMaybe 1 m) (fromMaybe 1 d)
+failIfInvalidDate _ = return ()
 
 yyyymmdd :: TextParser m SmartDate
 yyyymmdd = do
-  y <- count 4 digitChar
-  m <- count 2 digitChar
-  failIfInvalidMonth m
-  d <- count 2 digitChar
-  failIfInvalidDay d
-  return (y,m,d)
-
-yyyymm :: TextParser m SmartDate
-yyyymm = do
-  y <- count 4 digitChar
-  m <- count 2 digitChar
-  failIfInvalidMonth m
-  return (y,m,"01")
+  y <- read <$> count 4 digitChar
+  m <- read <$> count 2 digitChar
+  d <- optional $ read <$> count 2 digitChar
+  let date = SmartYMD (Just y) (Just m) d
+  failIfInvalidDate date
+  return date
 
 ymd :: TextParser m SmartDate
 ymd = do
-  y <- some digitChar
-  failIfInvalidYear y
+  y <- decimal
   sep <- datesepchar
-  m <- some digitChar
-  failIfInvalidMonth m
-  char sep
-  d <- some digitChar
-  failIfInvalidDay d
-  return $ (y,m,d)
-
-ym :: TextParser m SmartDate
-ym = do
-  y <- some digitChar
-  failIfInvalidYear y
-  datesepchar
-  m <- some digitChar
-  failIfInvalidMonth m
-  return (y,m,"")
-
-y :: TextParser m SmartDate
-y = do
-  y <- some digitChar
-  failIfInvalidYear y
-  return (y,"","")
-
-d :: TextParser m SmartDate
-d = do
-  d <- some digitChar
-  failIfInvalidDay d
-  return ("","",d)
+  m <- decimal
+  d <- optional $ char sep *> decimal
+  let date = SmartYMD (Just y) (Just m) d
+  failIfInvalidDate date
+  return date
 
 md :: TextParser m SmartDate
 md = do
-  m <- some digitChar
-  failIfInvalidMonth m
+  m <- decimal
   datesepchar
-  d <- some digitChar
-  failIfInvalidDay d
-  return ("",m,d)
+  d <- decimal
+  let date = SmartYMD Nothing (Just m) (Just d)
+  failIfInvalidDate date
+  return date
+
+yd :: TextParser m SmartDate
+yd = do
+  n <- decimal
+  if n >= 1 && n <= 31
+     then return $ SmartYMD Nothing Nothing (Just $ fromInteger n)
+     else return $ SmartYMD (Just n) Nothing Nothing
 
 -- These are compared case insensitively, and should all be kept lower case.
 months         = ["january","february","march","april","may","june",
@@ -871,23 +843,9 @@ monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","n
 weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
 weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
--- | Convert a case insensitive english month name to a month number.
-monthIndex name = maybe 0 (+1) $ T.toLower name `elemIndex` months
-
--- | Convert a case insensitive english three-letter month abbreviation to a month number.
-monIndex   name = maybe 0 (+1) $ T.toLower name `elemIndex` monthabbrevs
-
-month :: TextParser m SmartDate
-month = do
-  m <- choice $ map string' months
-  let i = monthIndex m
-  return ("",show i,"")
-
-mon :: TextParser m SmartDate
-mon = do
-  m <- choice $ map string' monthabbrevs
-  let i = monIndex m
-  return ("",show i,"")
+month, mon :: TextParser m SmartDate
+month = choice $ zipWith (\i m -> SmartYMD Nothing (Just i) Nothing <$ string' m) [1..12] months
+mon   = choice $ zipWith (\i m -> SmartYMD Nothing (Just i) Nothing <$ string' m) [1..12] monthabbrevs
 
 weekday :: TextParser m Int
 weekday = do
@@ -896,31 +854,6 @@ weekday = do
     (i:_) -> return (i+1)
     []    -> Fail.fail $ "weekday: should not happen: attempted to find " <>
                          show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
-
-today,yesterday,tomorrow :: TextParser m SmartDate
-today     = string' "today"     *> return ("","","today")
-yesterday = string' "yesterday" *> return ("","","yesterday")
-tomorrow  = string' "tomorrow"  *> return ("","","tomorrow")
-
-lastthisnextthing :: TextParser m SmartDate
-lastthisnextthing = do
-  r <- choice $ map string' [
-        "last"
-       ,"this"
-       ,"next"
-      ]
-  skipNonNewlineSpaces  -- make the space optional for easier scripting
-  p <- choice $ map string' [
-        "day"
-       ,"week"
-       ,"month"
-       ,"quarter"
-       ,"year"
-      ]
--- XXX support these in fixSmartDate
---       ++ (map string' $ months ++ monthabbrevs ++ weekdays ++ weekdayabbrevs)
-
-  return ("", T.unpack r, T.unpack p)
 
 -- | Parse a period expression, specifying a date span and optionally
 -- a reporting interval. Requires a reference "today" date for
@@ -991,89 +924,48 @@ intervalanddateperiodexprp rdate = do
 
 -- Parse a reporting interval.
 reportingintervalp :: TextParser m Interval
-reportingintervalp = choice' [
-                       tryinterval "day"     "daily"     Days,
-                       tryinterval "week"    "weekly"    Weeks,
-                       tryinterval "month"   "monthly"   Months,
-                       tryinterval "quarter" "quarterly" Quarters,
-                       tryinterval "year"    "yearly"    Years,
-                       do string' "biweekly"
-                          return $ Weeks 2,
-                       do string' "fortnightly"
-                          return $ Weeks 2,
-                       do string' "bimonthly"
-                          return $ Months 2,
-                       do string' "every"
-                          skipNonNewlineSpaces
-                          n <- nth
-                          skipNonNewlineSpaces
-                          string' "day"
-                          of_ "week"
-                          return $ DayOfWeek n,
-                       do string' "every"
-                          skipNonNewlineSpaces
-                          DayOfWeek <$> weekday,
-                       do string' "every"
-                          skipNonNewlineSpaces
-                          n <- nth
-                          skipNonNewlineSpaces
-                          string' "day"
-                          optOf_ "month"
-                          return $ DayOfMonth n,
-                       do string' "every"
-                          let mnth = choice' [month, mon] >>= \(_,m,_) -> return (read m)
-                          d_o_y <- runPermutation $
-                            DayOfYear <$> toPermutation (try (skipNonNewlineSpaces *> mnth))
-                                      <*> toPermutation (try (skipNonNewlineSpaces *> nth))
-                          optOf_ "year"
-                          return d_o_y,
-                       do string' "every"
-                          skipNonNewlineSpaces
-                          ("",m,d) <- md
-                          optOf_ "year"
-                          return $ DayOfYear (read m) (read d),
-                       do string' "every"
-                          skipNonNewlineSpaces
-                          n <- nth
-                          skipNonNewlineSpaces
-                          wd <- weekday
-                          optOf_ "month"
-                          return $ WeekdayOfMonth n wd
-                    ]
-    where
-      of_ period = do
-        skipNonNewlineSpaces
-        string' "of"
-        skipNonNewlineSpaces
-        string' period
+reportingintervalp = choice'
+    [ tryinterval "day"     "daily"     Days
+    , tryinterval "week"    "weekly"    Weeks
+    , tryinterval "month"   "monthly"   Months
+    , tryinterval "quarter" "quarterly" Quarters
+    , tryinterval "year"    "yearly"    Years
+    , Weeks 2 <$ string' "biweekly"
+    , Weeks 2 <$ string' "fortnightly"
+    , Months 2 <$ string' "bimonthly"
+    , string' "every" *> skipNonNewlineSpaces *> choice'
+        [ DayOfWeek <$> (nth <* skipNonNewlineSpaces <* string' "day" <* of_ "week")
+        , DayOfMonth <$> (nth <* skipNonNewlineSpaces <* string' "day" <* optOf_ "month")
+        , liftA2 WeekdayOfMonth nth $ skipNonNewlineSpaces *> weekday <* optOf_ "month"
+        , (\(SmartYMD Nothing (Just m) (Just d)) -> DayOfYear m d) <$> (md <* optOf_ "year")
+        , DayOfWeek <$> weekday
+        , d_o_y <* optOf_ "year"
+        ]
+    ]
+  where
+    of_ period =
+      skipNonNewlineSpaces *> string' "of" *> skipNonNewlineSpaces *> string' period
 
-      optOf_ period = optional $ try $ of_ period
+    optOf_ period = optional . try $ of_ period
 
-      nth = do n <- some digitChar
-               choice' $ map string' ["st","nd","rd","th"]
-               return $ read n
+    nth = decimal <* choice (map string' ["st","nd","rd","th"])
+    mnth = (\(SmartYMD Nothing (Just m) Nothing) -> m) <$> choice' [month, mon]
+    d_o_y = runPermutation $ liftA2 DayOfYear (toPermutation $ mnth <* skipNonNewlineSpaces)
+                                              (toPermutation $ nth  <* skipNonNewlineSpaces)
 
-      -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
-      tryinterval :: String -> String -> (Int -> Interval) -> TextParser m Interval
-      tryinterval singular compact intcons =
-        choice' [
-          do string' compact'
-             return $ intcons 1,
-          do string' "every"
-             skipNonNewlineSpaces
-             string' singular'
-             return $ intcons 1,
-          do string' "every"
-             skipNonNewlineSpaces
-             n <- read <$> some digitChar
-             skipNonNewlineSpaces
-             string' plural'
-             return $ intcons n
-          ]
-        where
-          compact'  = T.pack compact
-          singular' = T.pack singular
-          plural'   = T.pack $ singular ++ "s"
+    -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
+    tryinterval :: String -> String -> (Int -> Interval) -> TextParser m Interval
+    tryinterval singular compact intcons = intcons <$> choice'
+        [ 1 <$ string' compact'
+        , string' "every" *> skipNonNewlineSpaces *> choice
+            [ 1 <$ string' singular'
+            , decimal <* skipNonNewlineSpaces <* string' plural'
+            ]
+        ]
+      where
+        compact'  = T.pack compact
+        singular' = T.pack singular
+        plural'   = T.pack $ singular ++ "s"
 
 periodexprdatespanp :: Day -> TextParser m DateSpan
 periodexprdatespanp rdate = choice $ map try [
