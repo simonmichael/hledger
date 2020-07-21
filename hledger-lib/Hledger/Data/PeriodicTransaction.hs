@@ -196,16 +196,16 @@ instance Show PeriodicTransaction where
 -- ...
 --
 -- >>> _ptgen "weekly from 2017"
--- *** Exception: Unable to generate transactions according to "weekly from 2017" because 2017-01-01 is not a first day of the week
+-- *** Exception: Unable to generate transactions according to "weekly from 2017" because 2017-01-01 is not a first day of the Week
 --
 -- >>> _ptgen "monthly from 2017/5/4"
--- *** Exception: Unable to generate transactions according to "monthly from 2017/5/4" because 2017-05-04 is not a first day of the month
+-- *** Exception: Unable to generate transactions according to "monthly from 2017/5/4" because 2017-05-04 is not a first day of the Month
 --
 -- >>> _ptgen "every quarter from 2017/1/2"
--- *** Exception: Unable to generate transactions according to "every quarter from 2017/1/2" because 2017-01-02 is not a first day of the quarter
+-- *** Exception: Unable to generate transactions according to "every quarter from 2017/1/2" because 2017-01-02 is not a first day of the Quarter
 --
 -- >>> _ptgen "yearly from 2017/1/14"
--- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the year
+-- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the Year
 --
 -- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ parsedate "2018-01-01") (Just $ parsedate "2018-01-03"))
 -- []
@@ -259,20 +259,20 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
 checkPeriodicTransactionStartDate :: Interval -> DateSpan -> T.Text -> Maybe String
 checkPeriodicTransactionStartDate i s periodexpr =
   case (i, spanStart s) of
-    (Weeks _,    Just d) -> checkStart d "week"
-    (Months _,   Just d) -> checkStart d "month"
-    (Quarters _, Just d) -> checkStart d "quarter"
-    (Years _,    Just d) -> checkStart d "year"
+    (Weeks _,    Just d) -> checkStart d Week
+    (Months _,   Just d) -> checkStart d Month
+    (Quarters _, Just d) -> checkStart d Quarter
+    (Years _,    Just d) -> checkStart d Year
     _                    -> Nothing
     where
       checkStart d x =
-        let firstDate = fixSmartDate d ("","this",x)
+        let firstDate = fixSmartDate d $ SmartRel This x
         in
          if d == firstDate
          then Nothing
          else Just $
           "Unable to generate transactions according to "++show (T.unpack periodexpr)
-          ++" because "++show d++" is not a first day of the "++x
+          ++" because "++show d++" is not a first day of the "++show x
 
 ---- | What is the interval of this 'PeriodicTransaction's period expression, if it can be parsed ?
 --periodTransactionInterval :: PeriodicTransaction -> Maybe Interval

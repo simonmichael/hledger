@@ -44,10 +44,26 @@ import Text.Printf
 import Hledger.Utils.Regex
 
 
--- | A possibly incomplete date, whose missing parts will be filled from a reference date.
--- A numeric year, month, and day of month, or the empty string for any of these.
--- See the smartdate parser.
-type SmartDate = (String,String,String)
+-- | A possibly incomplete year-month-day date provided by the user, to be
+-- interpreted as either a date or a date span depending on context. Missing
+-- parts "on the left" will be filled from the provided reference date, e.g. if
+-- the year and month are missing, the reference date's year and month are used.
+-- Missing parts "on the right" are assumed, when interpreting as a date, to be
+-- 1, (e.g. if the year and month are present but the day is missing, it means
+-- first day of that month); or when interpreting as a date span, to be a
+-- wildcard (so it would mean all days of that month). See the `smartdate`
+-- parser for more examples.
+--
+-- Or, one of the standard periods and an offset relative to the reference date:
+-- (last|this|next) (day|week|month|quarter|year), where "this" means the period
+-- containing the reference date.
+data SmartDate
+  = SmartYMD (Maybe Year) (Maybe Month) (Maybe MonthDay)
+  | SmartRel SmartSequence SmartInterval
+  deriving (Show)
+
+data SmartSequence = Last | This | Next deriving (Show)
+data SmartInterval = Day | Week | Month | Quarter | Year deriving (Show)
 
 data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 
