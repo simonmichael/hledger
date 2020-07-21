@@ -12,6 +12,7 @@ are thousands separated by comma, significant decimal places and so on.
 
 module Hledger.Data.Commodity
 where
+import Control.Applicative (liftA2)
 import Data.Char (isDigit)
 import Data.List
 import Data.Maybe (fromMaybe)
@@ -27,13 +28,15 @@ import Hledger.Utils
 
 -- characters that may not be used in a non-quoted commodity symbol
 isNonsimpleCommodityChar :: Char -> Bool
-isNonsimpleCommodityChar c = isDigit c || c `textElem` otherChars
- where
-   otherChars = "-+.@*;\t\n \"{}=" :: T.Text
-   textElem = T.any . (==)
+isNonsimpleCommodityChar = liftA2 (||) isDigit isOther
+  where
+    otherChars = "-+.@*;\t\n \"{}=" :: T.Text
+    isOther c = T.any (==c) otherChars
 
-quoteCommoditySymbolIfNeeded s | T.any (isNonsimpleCommodityChar) s = "\"" <> s <> "\""
-                               | otherwise = s
+quoteCommoditySymbolIfNeeded :: T.Text -> T.Text
+quoteCommoditySymbolIfNeeded s
+  | T.any isNonsimpleCommodityChar s = "\"" <> s <> "\""
+  | otherwise = s
 
 commodity = ""
 

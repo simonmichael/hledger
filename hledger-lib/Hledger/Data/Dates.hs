@@ -83,11 +83,13 @@ where
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (MonadFail, fail)
+import Control.Applicative (liftA2)
 import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
 import "base-compat-batteries" Data.List.Compat
 import Data.Default
 import Data.Foldable (asum)
+import Data.Function (on)
 import Data.Maybe
 import qualified Data.Set as Set
 import Data.Text (Text)
@@ -877,13 +879,13 @@ monIndex   name = maybe 0 (+1) $ T.toLower name `elemIndex` monthabbrevs
 
 month :: TextParser m SmartDate
 month = do
-  m <- choice $ map (try . string') months
+  m <- choice $ map string' months
   let i = monthIndex m
   return ("",show i,"")
 
 mon :: TextParser m SmartDate
 mon = do
-  m <- choice $ map (try . string') monthabbrevs
+  m <- choice $ map string' monthabbrevs
   let i = monIndex m
   return ("",show i,"")
 
@@ -896,9 +898,9 @@ weekday = do
                          show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
 
 today,yesterday,tomorrow :: TextParser m SmartDate
-today     = string' "today"     >> return ("","","today")
-yesterday = string' "yesterday" >> return ("","","yesterday")
-tomorrow  = string' "tomorrow"  >> return ("","","tomorrow")
+today     = string' "today"     *> return ("","","today")
+yesterday = string' "yesterday" *> return ("","","yesterday")
+tomorrow  = string' "tomorrow"  *> return ("","","tomorrow")
 
 lastthisnextthing :: TextParser m SmartDate
 lastthisnextthing = do
@@ -1085,41 +1087,36 @@ periodexprdatespanp rdate = choice $ map try [
 -- -- >>> parsewith (doubledatespan (parsedate "2018/01/01") <* eof) "20180101-201804"
 -- Right DateSpan 2018-01-01..2018-04-01
 doubledatespanp :: Day -> TextParser m DateSpan
-doubledatespanp rdate = do
-  optional (string' "from" >> skipNonNewlineSpaces)
-  b <- smartdate
-  skipNonNewlineSpaces
-  optional (choice [string' "to", string "..", string' "-"] >> skipNonNewlineSpaces)
-  DateSpan (Just $ fixSmartDate rdate b) . Just . fixSmartDate rdate <$> smartdate
+doubledatespanp rdate = liftA2 fromToSpan
+    (optional (string' "from" *> skipNonNewlineSpaces) *> smartdate)
+    (skipNonNewlineSpaces *> choice [string' "to", string "..", string "-"]
+    *> skipNonNewlineSpaces *> smartdate)
+  where
+    fromToSpan = DateSpan `on` (Just . fixSmartDate rdate)
 
 fromdatespanp :: Day -> TextParser m DateSpan
-fromdatespanp rdate = do
-  b <- choice [
-    do
-      string' "from" >> skipNonNewlineSpaces
-      smartdate
-    ,
-    do
-      d <- smartdate
-      choice [string "..", string' "-"]
-      return d
+fromdatespanp rdate = fromSpan <$> choice
+    [ string' "from" *> skipNonNewlineSpaces *> smartdate
+    , smartdate <* choice [string "..", string "-"]
     ]
-  return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
+  where
+    fromSpan b = DateSpan (Just $ fixSmartDate rdate b) Nothing
 
 todatespanp :: Day -> TextParser m DateSpan
-todatespanp rdate = do
-  choice [string' "to", string' "until", string "..", string' "-"] >> skipNonNewlineSpaces
-  DateSpan Nothing . Just . fixSmartDate rdate <$> smartdate
+todatespanp rdate =
+    choice [string' "to", string' "until", string "..", string "-"]
+    *> skipNonNewlineSpaces
+    *> (DateSpan Nothing . Just . fixSmartDate rdate <$> smartdate)
 
 justdatespanp :: Day -> TextParser m DateSpan
-justdatespanp rdate = do
-  optional (string' "in" >> skipNonNewlineSpaces)
-  spanFromSmartDate rdate <$> smartdate
+justdatespanp rdate =
+    optional (string' "in" *> skipNonNewlineSpaces)
+    *> (spanFromSmartDate rdate <$> smartdate)
 
 -- | Make a datespan from two valid date strings parseable by parsedate
 -- (or raise an error). Eg: mkdatespan \"2011/1/1\" \"2011/12/31\".
 mkdatespan :: String -> String -> DateSpan
-mkdatespan b = DateSpan (Just $ parsedate b) . Just . parsedate
+mkdatespan = DateSpan `on` (Just . parsedate)
 
 nulldatespan :: DateSpan
 nulldatespan = DateSpan Nothing Nothing
