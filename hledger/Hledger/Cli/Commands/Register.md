@@ -3,10 +3,17 @@ Show postings and their running total.
 
 _FLAGS
 
-The register command displays postings in date order, one per line,
-and their running total.  This is typically used with a
-[query](#queries) selecting a particular account, to see that
-account's activity:
+The register command displays matched postings, across all accounts,
+in date order, with their running total or running historical balance.
+(See also the [`aregister`](#aregister) command, which shows matched
+transactions in a specific account.)
+
+register normally shows line per posting, but note that
+multi-commodity amounts will occupy multiple lines (one line per
+commodity).
+
+It is typically used with a [query](#queries) selecting a
+particular account, to see that account's activity:
 
 ```shell
 $ hledger register checking

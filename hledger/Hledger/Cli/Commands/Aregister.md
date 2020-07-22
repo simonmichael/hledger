@@ -16,8 +16,8 @@ Each line shows:
 
 With `aregister`, each line represents a whole transaction - as in
 hledger-ui, hledger-web, and your bank statement. By contrast, the
-`register` command shows individual postings, across all accounts.
-You might prefer `aregister` for reconciling with real-world
+[`register`](#register) command shows individual postings, across all
+accounts. You might prefer `aregister` for reconciling with real-world
 asset/liability accounts, and `register` for reviewing detailed
 revenues/expenses.
 
