@@ -1285,7 +1285,7 @@ by the usual numeric backreferences in REPLACEMENT.
 Eg:
 
 ```journal
-alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
+alias /^(.+):bank:([^:]+):(.*)/ = \1:\2 \3
 ; rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 ```
 
