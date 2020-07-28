@@ -151,6 +151,21 @@ $ hledger -f- print
 $ hledger -f- print
 > //    # any stdout, no stderr, 0 exit code
 
+# 12. After commodity on the right, don't parse tab
+<
+2020-07-21
+	a    	-1600 EUR
+	a		1600 EUR	
+	
+; import Stock value at 2020-07-22
+2020-07-21 
+	a 	-1 EUR  
+	a 	 1 EUR	
+$ hledger -f- bal a
+--------------------
+                   0
+>=
+
 # 12. Example of surprising decimal mark parsing behaviour.
 # Without a commodity declaration, these amounts are parsed as 10 and 10000.
 # <
