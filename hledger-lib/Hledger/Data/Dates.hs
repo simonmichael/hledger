@@ -71,6 +71,7 @@ module Hledger.Data.Dates (
   fixSmartDateStr,
   fixSmartDateStrEither,
   fixSmartDateStrEither',
+  yearp,
   daysInSpan,
   maybePeriod,
   mkdatespan,
@@ -84,6 +85,7 @@ import Control.Applicative (liftA2)
 import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
 import "base-compat-batteries" Data.List.Compat
+import Data.Char (isDigit)
 import Data.Default
 import Data.Foldable (asum)
 import Data.Function (on)
@@ -763,12 +765,7 @@ Right (SmartYMD (Just 201813012) Nothing Nothing)
 smartdate :: TextParser m SmartDate
 smartdate = choice'
   -- XXX maybe obscures date errors ? see ledgerdate
-    [ yyyymmdd
-    , md
-    , ymd
-    , yd
-    , month
-    , mon
+    [ yyyymmdd, md, ymd, smartYear, smartDay, month, mon
     , SmartRel This Day <$ string' "today"
     , SmartRel Last Day <$ string' "yesterday"
     , SmartRel Next Day <$ string' "tomorrow"
@@ -778,6 +775,11 @@ smartdate = choice'
     seqP = choice [This <$ string' "this", Last <$ string' "last", Next <$ string' "next"]
     intervalP = choice [Day <$ string' "day", Week <$ string' "week", Month <$ string' "month",
                         Quarter <$ string' "quarter", Year <$ string' "year"]
+    smartYear = (\y -> SmartYMD (Just y) Nothing Nothing) <$> yearp
+    smartDay = do
+      d <- SmartYMD Nothing Nothing . Just <$> decimal
+      failIfInvalidDate d
+      return d
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
 smartdateonly :: TextParser m SmartDate
@@ -812,7 +814,7 @@ yyyymmdd = do
 
 ymd :: TextParser m SmartDate
 ymd = do
-  y <- decimal
+  y <- yearp
   sep <- datesepchar
   m <- decimal
   d <- optional $ char sep *> decimal
@@ -829,12 +831,13 @@ md = do
   failIfInvalidDate date
   return date
 
-yd :: TextParser m SmartDate
-yd = do
-  n <- decimal
-  if n >= 1 && n <= 31
-     then return $ SmartYMD Nothing Nothing (Just $ fromInteger n)
-     else return $ SmartYMD (Just n) Nothing Nothing
+-- | Parse a year number from a Text, making sure that at least four digits are
+-- used.
+yearp :: TextParser m Integer
+yearp = do
+  year <- takeWhile1P (Just "year") isDigit
+  unless (T.length year >= 4) . Fail.fail $ "Year must contain at least 4 digits: " <> T.unpack year
+  return $ readDecimal year
 
 -- These are compared case insensitively, and should all be kept lower case.
 months         = ["january","february","march","april","may","june",

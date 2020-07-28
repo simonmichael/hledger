@@ -50,12 +50,14 @@ module Hledger.Utils.Text
  -- fitStringMulti,
   textPadLeftWide,
   textPadRightWide,
+  -- -- * Reading
+  readDecimal,
   -- -- * tests
   tests_Text
   )
 where
 
--- import Data.Char
+import Data.Char (digitToInt)
 import Data.List
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
@@ -398,6 +400,13 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 --         | c >= '\x1F300' && c <= '\x1F773' -> 1
 --         | c >= '\x20000' && c <= '\x3FFFD' -> 2
 --         | otherwise                        -> 1
+
+
+-- | Read a decimal number from a Text. Assumes the input consists only of digit
+-- characters.
+readDecimal :: Integral a => Text -> a
+readDecimal = foldl' step 0 . T.unpack
+  where step a c = a * 10 + fromIntegral (digitToInt c)
 
 
 tests_Text = tests "Text" [

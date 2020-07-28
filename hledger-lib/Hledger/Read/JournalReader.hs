@@ -98,7 +98,6 @@ import Data.Time.LocalTime
 import Safe
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
-import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
 import Text.Printf
 import System.FilePath
@@ -553,8 +552,7 @@ defaultyeardirectivep :: JournalParser m ()
 defaultyeardirectivep = do
   char 'Y' <?> "default year"
   lift skipNonNewlineSpaces
-  y <- decimal
-  setYear y
+  setYear =<< lift yearp
 
 defaultcommoditydirectivep :: JournalParser m ()
 defaultcommoditydirectivep = do
