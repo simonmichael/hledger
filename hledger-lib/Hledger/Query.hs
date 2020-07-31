@@ -64,6 +64,7 @@ import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as T
 import Data.Time.Calendar
+import qualified Control.Monad.Trans.State as MS
 import Safe (readDef, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -185,16 +186,19 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- (And ([Acct "foo",Or ([Date (DateSpan 2018),Date (DateSpan 2019)])]),[])
 --
 parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
-parseQuery d s = (q, opts)
+parseQuery d s = (MS.evalState dissect pats, opts)
   where
     terms = words'' prefixes s
     (pats, opts) = partitionEithers $ map (parseQueryTerm d) terms
-    (descpats, pats') = partition queryIsDesc pats
-    (acctpats, pats'') = partition queryIsAcct pats'
-    (statuspats, pats''') = partition queryIsStatus pats''
-    (datepats, pats'''') = partition queryIsDate pats'''
-    (date2pats, otherpats) = partition queryIsDate2 pats''''
-    q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats, Or datepats, Or date2pats] ++ otherpats
+    dissect = do
+      let extract predicate = MS.state $ partition predicate
+      acctpats <- extract queryIsAcct
+      descpats <- extract queryIsDesc
+      statuspats <- extract queryIsStatus
+      datepats <- extract queryIsDate
+      date2pats <- extract queryIsDate2
+      otherpats <- MS.get
+      return $ simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats, Or datepats, Or date2pats] ++ otherpats
 
 -- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
