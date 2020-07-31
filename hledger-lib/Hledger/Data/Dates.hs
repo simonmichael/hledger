@@ -930,6 +930,10 @@ lastthisnextthing = do
 -- Right (NoInterval,DateSpan 2008-08-01..2008-09-30)
 -- >>> p "aug to oct"
 -- Right (NoInterval,DateSpan 2008-08-01..2008-09-30)
+-- >>> p "2009q2"
+-- Right (NoInterval,DateSpan 2009Q2)
+-- >>> p "Q3"
+-- Right (NoInterval,DateSpan 2008Q3)
 -- >>> p "every 3 days in Aug"
 -- Right (Days 3,DateSpan 2008-08)
 -- >>> p "daily from aug"
@@ -1076,6 +1080,7 @@ reportingintervalp = choice' [
 periodexprdatespanp :: Day -> TextParser m DateSpan
 periodexprdatespanp rdate = choice $ map try [
                             doubledatespanp rdate,
+                            quarterdatespanp rdate,
                             fromdatespanp rdate,
                             todatespanp rdate,
                             justdatespanp rdate
@@ -1091,6 +1096,19 @@ doubledatespanp rdate = do
   skipNonNewlineSpaces
   optional (choice [string' "to", string "..", string' "-"] >> skipNonNewlineSpaces)
   DateSpan (Just $ fixSmartDate rdate b) . Just . fixSmartDate rdate <$> smartdate
+
+-- |
+-- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "q1"
+-- Right DateSpan 2018Q1
+-- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "2020q4"
+-- Right DateSpan 2020Q4
+quarterdatespanp :: Day -> TextParser m DateSpan
+quarterdatespanp rdate = do
+  let defaultYear = first3 $ toGregorian rdate
+  y <- maybe defaultYear read <$> optional (count 4 digitChar)
+  char 'q'
+  q <- oneOf ("1234"::[Char])
+  return $ periodAsDateSpan $ QuarterPeriod y $ read [q]
 
 fromdatespanp :: Day -> TextParser m DateSpan
 fromdatespanp rdate = do
