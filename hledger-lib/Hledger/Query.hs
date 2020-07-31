@@ -186,15 +186,15 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- (And ([Acct "foo",Or ([Date (DateSpan 2018),Date (DateSpan 2019)])]),[])
 --
 parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
-parseQuery d s = (MS.evalState dissect pats, opts)
+parseQuery d s = (q, opts)
   where
     terms = words'' prefixes s
     (pats, opts) = partitionEithers $ map (parseQueryTerm d) terms
-    dissect = do
-      let extract predicate = MS.state $ partition predicate
-      patGroups <- mapM extract [queryIsAcct, queryIsDesc, queryIsStatus, queryIsDate, queryIsDate2]
-      otherpats <- MS.get
-      return $ simplifyQuery $ And $ map Or patGroups ++ otherpats
+    extract predicate = MS.state $ partition predicate
+    (patGroups,otherpats) =
+      flip MS.runState pats $
+      mapM extract [queryIsAcct, queryIsDesc, queryIsStatus, queryIsDate, queryIsDate2]
+    q = simplifyQuery $ And $ map Or patGroups ++ otherpats
 
 -- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
