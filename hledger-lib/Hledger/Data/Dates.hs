@@ -979,8 +979,8 @@ periodexprdatespanp rdate = choice $ map try [
                            ]
 
 -- |
--- -- >>> parsewith (doubledatespan (parsedate "2018/01/01") <* eof) "20180101-201804"
--- Right DateSpan 2018-01-01..2018-04-01
+-- >>> parsewith (doubledatespanp (parsedate "2018/01/01") <* eof) "20180101-201804"
+-- Right DateSpan 2018Q1
 doubledatespanp :: Day -> TextParser m DateSpan
 doubledatespanp rdate = liftA2 fromToSpan
     (optional (string' "from" *> skipNonNewlineSpaces) *> smartdate)
