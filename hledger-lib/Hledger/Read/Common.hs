@@ -12,20 +12,20 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 -}
 
 --- ** language
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE NoMonoLocalBinds #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PackageImports #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE BangPatterns        #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE DeriveDataTypeable  #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE NoMonoLocalBinds    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PackageImports      #-}
+{-# LANGUAGE Rank2Types          #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 --- ** exports
 module Hledger.Read.Common (
@@ -446,45 +446,44 @@ datep = do
 
 datep' :: Maybe Year -> TextParser m Day
 datep' mYear = do
-  startOffset <- getOffset
-  d1 <- decimal <?> "year or month"
-  sep <- satisfy isDateSepChar <?> "date separator"
-  d2 <- decimal <?> "month or day"
-  fullDate startOffset d1 sep d2 <|> partialDate startOffset mYear d1 sep d2
-  <?> "full or partial date"
-
+    startOffset <- getOffset
+    d1 <- yearorintp <?> "year or month"
+    sep <- datesepchar <?> "date separator"
+    d2 <- decimal <?> "month or day"
+    case d1 of
+         Left y  -> fullDate startOffset y sep d2
+         Right m -> partialDate startOffset mYear m sep d2
+    <?> "full or partial date"
   where
+    fullDate :: Int -> Year -> Char -> Month -> TextParser m Day
+    fullDate startOffset year sep1 month = do
+      sep2 <- satisfy isDateSepChar <?> "date separator"
+      day <- decimal <?> "day"
+      endOffset <- getOffset
+      let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
 
-  fullDate :: Int -> Integer -> Char -> Int -> TextParser m Day
-  fullDate startOffset year sep1 month = do
-    sep2 <- satisfy isDateSepChar <?> "date separator"
-    day <- decimal <?> "day"
-    endOffset <- getOffset
-    let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
+      when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startOffset endOffset $
+        "invalid date (mixing date separators is not allowed): " ++ dateStr
 
-    when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startOffset endOffset $
-      "invalid date (mixing date separators is not allowed): " ++ dateStr
+      case fromGregorianValid year month day of
+        Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
+                     "well-formed but invalid date: " ++ dateStr
+        Just date -> pure $! date
 
-    case fromGregorianValid year month day of
-      Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-                   "well-formed but invalid date: " ++ dateStr
-      Just date -> pure $! date
+    partialDate :: Int -> Maybe Year -> Month -> Char -> MonthDay -> TextParser m Day
+    partialDate startOffset mYear month sep day = do
+      endOffset <- getOffset
+      case mYear of
+        Just year ->
+          case fromGregorianValid year month day of
+            Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
+                        "well-formed but invalid date: " ++ dateStr
+            Just date -> pure $! date
+          where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
-  partialDate
-    :: Int -> Maybe Year -> Integer -> Char -> Int -> TextParser m Day
-  partialDate startOffset mYear month sep day = do
-    endOffset <- getOffset
-    case mYear of
-      Just year ->
-        case fromGregorianValid year (fromIntegral month) day of
-          Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-                      "well-formed but invalid date: " ++ dateStr
-          Just date -> pure $! date
-        where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
-
-      Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-        "partial date "++dateStr++" found, but the current year is unknown"
-        where dateStr = show month ++ [sep] ++ show day
+        Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
+          "partial date "++dateStr++" found, but the current year is unknown"
+          where dateStr = show month ++ [sep] ++ show day
 
 {-# INLINABLE datep' #-}
 
@@ -550,6 +549,14 @@ datetimep' mYear = do
 secondarydatep :: Day -> TextParser m Day
 secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
   where primaryYear = first3 $ toGregorian primaryDate
+
+-- | Parse a year number or an Int. Years must contain at least four
+-- digits.
+yearorintp :: TextParser m (Either Year Int)
+yearorintp = do
+    yearOrMonth <- takeWhile1P (Just "digit") isDigit
+    let n = readDecimal yearOrMonth
+    return $ if T.length yearOrMonth >= 4 then Left n else Right (fromInteger n)
 
 --- *** account names
 
