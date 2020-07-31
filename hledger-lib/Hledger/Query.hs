@@ -192,13 +192,9 @@ parseQuery d s = (MS.evalState dissect pats, opts)
     (pats, opts) = partitionEithers $ map (parseQueryTerm d) terms
     dissect = do
       let extract predicate = MS.state $ partition predicate
-      acctpats <- extract queryIsAcct
-      descpats <- extract queryIsDesc
-      statuspats <- extract queryIsStatus
-      datepats <- extract queryIsDate
-      date2pats <- extract queryIsDate2
+      patGroups <- mapM extract [queryIsAcct, queryIsDesc, queryIsStatus, queryIsDate, queryIsDate2]
       otherpats <- MS.get
-      return $ simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats, Or datepats, Or date2pats] ++ otherpats
+      return $ simplifyQuery $ And $ map Or patGroups ++ otherpats
 
 -- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
