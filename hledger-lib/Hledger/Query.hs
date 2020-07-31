@@ -171,12 +171,18 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- 1. multiple account patterns are OR'd together
 -- 2. multiple description patterns are OR'd together
 -- 3. multiple status patterns are OR'd together
--- 4. then all terms are AND'd together
+-- 4. multiple date patterns are OR'd together
+-- 5. multiple date2 patterns are OR'd together
+-- 6. then all terms are AND'd together
 --
 -- >>> parseQuery nulldate "expenses:dining out"
 -- (Or ([Acct "expenses:dining",Acct "out"]),[])
 -- >>> parseQuery nulldate "\"expenses:dining out\""
 -- (Acct "expenses:dining out",[])
+-- >>> parseQuery nulldate "date:2018 date:2019"
+-- (Or ([Date (DateSpan 2018),Date (DateSpan 2019)]),[])
+-- >>> parseQuery nulldate "date:2018 acct:foo date:2019"
+-- (And ([Acct "foo",Or ([Date (DateSpan 2018),Date (DateSpan 2019)])]),[])
 --
 parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
 parseQuery d s = (q, opts)
@@ -185,8 +191,10 @@ parseQuery d s = (q, opts)
     (pats, opts) = partitionEithers $ map (parseQueryTerm d) terms
     (descpats, pats') = partition queryIsDesc pats
     (acctpats, pats'') = partition queryIsAcct pats'
-    (statuspats, otherpats) = partition queryIsStatus pats''
-    q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats] ++ otherpats
+    (statuspats, pats''') = partition queryIsStatus pats''
+    (datepats, pats'''') = partition queryIsDate pats'''
+    (date2pats, otherpats) = partition queryIsDate2 pats''''
+    q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats, Or datepats, Or date2pats] ++ otherpats
 
 -- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
