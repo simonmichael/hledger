@@ -119,8 +119,10 @@ instance Yesod App where
     hideEmptyAccts <- (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
 
     let ropts = reportopts_ (cliopts_ opts)
-        -- flip the default for items with zero amounts, show them by default
-        ropts' = ropts { empty_ = not (empty_ ropts) }
+        ropts' = ropts
+          {accountlistmode_ = ALTree  -- force tree mode for sidebar
+          ,empty_           = not (empty_ ropts)  -- show zero items by default
+          }
         accounts =
           balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j q qopts $
           balanceReport ropts' m j
