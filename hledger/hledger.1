@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "July 2020" "hledger 1.18.99" "hledger User Manuals"
+.TH "hledger" "1" "August 2020" "hledger 1.18.99" "hledger User Manuals"
 
 
 
@@ -1467,6 +1467,23 @@ T{
 \f[C]-p \[dq]2009/1/1\[dq]\f[R]
 T}@T{
 just that day; equivalent to \[lq]2009/1/1 to 2009/1/2\[rq]
+T}
+.TE
+.PP
+Or you can specify a single quarter like so:
+.PP
+.TS
+tab(@);
+l l.
+T{
+\f[C]-p \[dq]2009Q1\[dq]\f[R]
+T}@T{
+first quarter of 2009, equivalent to \[lq]2009/1/1 to 2009/4/1\[rq]
+T}
+T{
+\f[C]-p \[dq]q4\[dq]\f[R]
+T}@T{
+fourth quarter of the current year
 T}
 .TE
 .PP
@@ -3223,16 +3240,16 @@ balancesheet, bs
 .PD 0
 .P
 .PD
-This command displays a simple balance sheet, showing historical ending
-balances of asset and liability accounts (ignoring any report begin
-date).
-It assumes that these accounts are under a top-level \f[C]asset\f[R] or
-\f[C]liability\f[R] account (case insensitive, plural forms also
-allowed).
+This command displays a balance sheet, showing historical ending
+balances of asset and liability accounts.
+(To see equity as well, use the balancesheetequity command.) Amounts are
+shown with normal positive sign, as in conventional financial
+statements.
 .PP
-Note this report shows all account balances with normal positive sign
-(like conventional financial statements, unlike balance/print/register)
-(experimental).
+The asset and liability accounts shown are those accounts declared with
+the \f[C]Asset\f[R] or \f[C]Cash\f[R] or \f[C]Liability\f[R] type, or
+otherwise all accounts under a top-level \f[C]asset\f[R] or
+\f[C]liability\f[R] account (case insensitive, plurals allowed).
 .PP
 Example:
 .IP
@@ -3279,8 +3296,16 @@ balancesheetequity, bse
 .PD 0
 .P
 .PD
-Just like balancesheet, but also reports Equity (which it assumes is
-under a top-level \f[C]equity\f[R] account).
+This command displays a balance sheet, showing historical ending
+balances of asset, liability and equity accounts.
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
+.PP
+The asset, liability and equity accounts shown are those accounts
+declared with the \f[C]Asset\f[R], \f[C]Cash\f[R], \f[C]Liability\f[R]
+or \f[C]Equity\f[R] type, or otherwise all accounts under a top-level
+\f[C]asset\f[R], \f[C]liability\f[R] or \f[C]equity\f[R] account (case
+insensitive, plurals allowed).
 .PP
 Example:
 .IP
@@ -3321,14 +3346,16 @@ cashflow, cf
 .PD 0
 .P
 .PD
-This command displays a simple cashflow statement, showing changes in
-\[dq]cash\[dq] accounts.
-It assumes that these accounts are under a top-level \f[C]asset\f[R]
-account (case insensitive, plural forms also allowed) and do not contain
-\f[C]receivable\f[R] or \f[C]A/R\f[R] in their name.
-Note this report shows all account balances with normal positive sign
-(like conventional financial statements, unlike balance/print/register)
-(experimental).
+This command displays a cashflow statement, showing the inflows and
+outflows affecting \[dq]cash\[dq] (ie, liquid) assets.
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
+.PP
+The \[dq]cash\[dq] accounts shown are those accounts declared with the
+\f[C]Cash\f[R] type, or otherwise all accounts under a top-level
+\f[C]asset\f[R] account (case insensitive, plural allowed) which do not
+have \f[C]fixed\f[R], \f[C]investment\f[R], \f[C]receivable\f[R] or
+\f[C]A/R\f[R] in their name.
 .PP
 Example:
 .IP
@@ -3744,19 +3771,18 @@ incomestatement, is
 .PD 0
 .P
 .PD
-This command displays a simple income statement, showing revenues and
-expenses during a period.
-It assumes that these accounts are under a top-level \f[C]revenue\f[R]
-or \f[C]income\f[R] or \f[C]expense\f[R] account (case insensitive,
-plural forms also allowed).
-Note this report shows all account balances with normal positive sign
-(like conventional financial statements, unlike balance/print/register)
-(experimental).
 .PP
-This command displays a simple income statement.
-It currently assumes that you have top-level accounts named
-\f[C]income\f[R] (or \f[C]revenue\f[R]) and \f[C]expense\f[R] (plural
-forms also allowed.)
+This command displays an income statement, showing revenues and expenses
+during one or more periods.
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
+.PP
+The revenue and expense accounts shown are those accounts declared with
+the \f[C]Revenue\f[R] or \f[C]Expense\f[R] type, or otherwise all
+accounts under a top-level \f[C]revenue\f[R] or \f[C]income\f[R] or
+\f[C]expense\f[R] account (case insensitive, plurals allowed).
+.PP
+Example:
 .IP
 .nf
 \f[C]
@@ -4019,10 +4045,16 @@ register, reg, r
 .PD
 Show postings and their running total.
 .PP
-The register command displays postings in date order, one per line, and
-their running total.
-This is typically used with a query selecting a particular account, to
-see that account\[aq]s activity:
+The register command displays matched postings, across all accounts, in
+date order, with their running total or running historical balance.
+(See also the \f[C]aregister\f[R] command, which shows matched
+transactions in a specific account.)
+.PP
+register normally shows line per posting, but note that multi-commodity
+amounts will occupy multiple lines (one line per commodity).
+.PP
+It is typically used with a query selecting a particular account, to see
+that account\[aq]s activity:
 .IP
 .nf
 \f[C]

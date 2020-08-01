@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "July 2020" "hledger 1.18.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "August 2020" "hledger 1.18.99" "hledger User Manuals"
 
 
 
@@ -670,10 +670,13 @@ hledger infer the price that balances the transaction:
 \f[R]
 .fi
 .RE
+.IP "4." 3
+Like 1, but the \f[C]\[at]\f[R] is parenthesised, i.e.
+\f[C](\[at])\f[R]; this is for compatibility with Ledger journals
+(Virtual posting costs), and is equivalent to 1 in hledger.
 .IP "5." 3
-Like 1 and 2, but the \f[C]\[at]\f[R] or \f[C]\[at]\[at]\f[R] is
-parenthesised; this is for compatibility with Ledger journals (Virtual
-posting costs), and in hledger is equivalent to 1 and 2.
+Like 2, but as in 4 the \f[C]\[at]\[at]\f[R] is parenthesised, i.e.
+\f[C](\[at]\[at])\f[R]; in hledger, this is equivalent to 2.
 .PP
 Use the \f[C]-B/--cost\f[R] flag to convert amounts to their transaction
 price\[aq]s commodity, if any.
@@ -1646,7 +1649,7 @@ Eg:
 .IP
 .nf
 \f[C]
-alias /\[ha](.+):bank:([\[ha]:]+)(.*)/ = \[rs]1:\[rs]2 \[rs]3
+alias /\[ha](.+):bank:([\[ha]:]+):(.*)/ = \[rs]1:\[rs]2 \[rs]3
 ; rewrites \[dq]assets:bank:wells fargo:checking\[dq] to  \[dq]assets:wells fargo checking\[dq]
 \f[R]
 .fi

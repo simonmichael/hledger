@@ -1245,6 +1245,11 @@ date like so:
 '-p "2009/1"'     the month of jan; equivalent to “2009/1/1 to 2009/2/1”
 '-p "2009/1/1"'   just that day; equivalent to “2009/1/1 to 2009/1/2”
 
+   Or you can specify a single quarter like so:
+
+'-p "2009Q1"'   first quarter of 2009, equivalent to “2009/1/1 to 2009/4/1”
+'-p "q4"'       fourth quarter of the current year
+
    The argument of '-p' can also begin with, or be, a report interval
 expression.  The basic report intervals are 'daily', 'weekly',
 'monthly', 'quarterly', or 'yearly', which have the same effect as the
@@ -2706,14 +2711,15 @@ File: hledger.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balan
 ================
 
 balancesheet, bs
-This command displays a simple balance sheet, showing historical ending
-balances of asset and liability accounts (ignoring any report begin
-date).  It assumes that these accounts are under a top-level 'asset' or
-'liability' account (case insensitive, plural forms also allowed).
+This command displays a balance sheet, showing historical ending
+balances of asset and liability accounts.  (To see equity as well, use
+the balancesheetequity command.)  Amounts are shown with normal positive
+sign, as in conventional financial statements.
 
-   Note this report shows all account balances with normal positive sign
-(like conventional financial statements, unlike balance/print/register)
-(experimental).
+   The asset and liability accounts shown are those accounts declared
+with the 'Asset' or 'Cash' or 'Liability' type, or otherwise all
+accounts under a top-level 'asset' or 'liability' account (case
+insensitive, plurals allowed).
 
    Example:
 
@@ -2756,8 +2762,14 @@ File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesh
 ======================
 
 balancesheetequity, bse
-Just like balancesheet, but also reports Equity (which it assumes is
-under a top-level 'equity' account).
+This command displays a balance sheet, showing historical ending
+balances of asset, liability and equity accounts.  Amounts are shown
+with normal positive sign, as in conventional financial statements.
+
+   The asset, liability and equity accounts shown are those accounts
+declared with the 'Asset', 'Cash', 'Liability' or 'Equity' type, or
+otherwise all accounts under a top-level 'asset', 'liability' or
+'equity' account (case insensitive, plurals allowed).
 
    Example:
 
@@ -2796,12 +2808,14 @@ File: hledger.info,  Node: cashflow,  Next: check-dates,  Prev: balancesheetequi
 ============
 
 cashflow, cf
-This command displays a simple cashflow statement, showing changes in
-"cash" accounts.  It assumes that these accounts are under a top-level
-'asset' account (case insensitive, plural forms also allowed) and do not
-contain 'receivable' or 'A/R' in their name.  Note this report shows all
-account balances with normal positive sign (like conventional financial
-statements, unlike balance/print/register) (experimental).
+This command displays a cashflow statement, showing the inflows and
+outflows affecting "cash" (ie, liquid) assets.  Amounts are shown with
+normal positive sign, as in conventional financial statements.
+
+   The "cash" accounts shown are those accounts declared with the 'Cash'
+type, or otherwise all accounts under a top-level 'asset' account (case
+insensitive, plural allowed) which do not have 'fixed', 'investment',
+'receivable' or 'A/R' in their name.
 
    Example:
 
@@ -3180,16 +3194,17 @@ File: hledger.info,  Node: incomestatement,  Next: notes,  Prev: import,  Up: CO
 ====================
 
 incomestatement, is
-This command displays a simple income statement, showing revenues and
-expenses during a period.  It assumes that these accounts are under a
-top-level 'revenue' or 'income' or 'expense' account (case insensitive,
-plural forms also allowed).  Note this report shows all account balances
-with normal positive sign (like conventional financial statements,
-unlike balance/print/register) (experimental).
 
-   This command displays a simple income statement.  It currently
-assumes that you have top-level accounts named 'income' (or 'revenue')
-and 'expense' (plural forms also allowed.)
+   This command displays an income statement, showing revenues and
+expenses during one or more periods.  Amounts are shown with normal
+positive sign, as in conventional financial statements.
+
+   The revenue and expense accounts shown are those accounts declared
+with the 'Revenue' or 'Expense' type, or otherwise all accounts under a
+top-level 'revenue' or 'income' or 'expense' account (case insensitive,
+plurals allowed).
+
+   Example:
 
 $ hledger incomestatement
 Income Statement
@@ -3416,9 +3431,17 @@ File: hledger.info,  Node: register,  Next: register-match,  Prev: print-unique,
 register, reg, r
 Show postings and their running total.
 
-   The register command displays postings in date order, one per line,
-and their running total.  This is typically used with a query selecting
-a particular account, to see that account's activity:
+   The register command displays matched postings, across all accounts,
+in date order, with their running total or running historical balance.
+(See also the 'aregister' command, which shows matched transactions in a
+specific account.)
+
+   register normally shows line per posting, but note that
+multi-commodity amounts will occupy multiple lines (one line per
+commodity).
+
+   It is typically used with a query selecting a particular account, to
+see that account's activity:
 
 $ hledger register checking
 2008/01/01 income               assets:bank:checking            $1           $1
@@ -4086,150 +4109,150 @@ Node: Report intervals40503
 Ref: #report-intervals40668
 Node: Period expressions41058
 Ref: #period-expressions41218
-Node: Depth limiting45369
-Ref: #depth-limiting45513
-Node: Pivoting45845
-Ref: #pivoting45968
-Node: Valuation47644
-Ref: #valuation47746
-Node: -B Cost48435
-Ref: #b-cost48539
-Node: -V Value48672
-Ref: #v-value48818
-Node: -X Value in specified commodity49013
-Ref: #x-value-in-specified-commodity49212
-Node: Valuation date49361
-Ref: #valuation-date49529
-Node: Market prices49939
-Ref: #market-prices50119
-Node: --infer-value market prices from transactions50896
-Ref: #infer-value-market-prices-from-transactions51145
-Node: Valuation commodity52427
-Ref: #valuation-commodity52636
-Node: Simple valuation examples53862
-Ref: #simple-valuation-examples54064
-Node: --value Flexible valuation54723
-Ref: #value-flexible-valuation54931
-Node: More valuation examples56878
-Ref: #more-valuation-examples57087
-Node: Effect of valuation on reports59092
-Ref: #effect-of-valuation-on-reports59280
-Node: COMMANDS64801
-Ref: #commands64909
-Node: accounts66017
-Ref: #accounts66115
-Node: activity66814
-Ref: #activity66924
-Node: add67307
-Ref: #add67408
-Node: aregister70201
-Ref: #aregister70313
-Node: aregister and custom posting dates71686
-Ref: #aregister-and-custom-posting-dates71859
-Ref: #output-format-172452
-Node: balance72857
-Ref: #balance72974
-Node: Classic balance report74432
-Ref: #classic-balance-report74605
-Node: Customising the classic balance report76039
-Ref: #customising-the-classic-balance-report76267
-Node: Colour support78343
-Ref: #colour-support78510
-Node: Flat mode78606
-Ref: #flat-mode78754
-Node: Depth limited balance reports79167
-Ref: #depth-limited-balance-reports79352
-Node: Percentages79808
-Ref: #percentages79974
-Node: Multicolumn balance report81111
-Ref: #multicolumn-balance-report81291
-Node: Budget report86888
-Ref: #budget-report87031
-Node: Nested budgets92297
-Ref: #nested-budgets92409
-Ref: #output-format-295890
-Node: balancesheet96087
-Ref: #balancesheet96223
-Node: balancesheetequity97689
-Ref: #balancesheetequity97838
-Node: cashflow98561
-Ref: #cashflow98689
-Node: check-dates99868
-Ref: #check-dates99995
-Node: check-dupes100274
-Ref: #check-dupes100400
-Node: close100693
-Ref: #close100801
-Node: close usage102323
-Ref: #close-usage102416
-Node: codes105229
-Ref: #codes105337
-Node: commodities106049
-Ref: #commodities106176
-Node: descriptions106258
-Ref: #descriptions106386
-Node: diff106690
-Ref: #diff106796
-Node: files107843
-Ref: #files107943
-Node: help108090
-Ref: #help108190
-Node: import109271
-Ref: #import109385
-Node: Importing balance assignments110278
-Ref: #importing-balance-assignments110426
-Node: incomestatement111075
-Ref: #incomestatement111208
-Node: notes112695
-Ref: #notes112808
-Node: payees113176
-Ref: #payees113282
-Node: prices113702
-Ref: #prices113808
-Node: print114149
-Ref: #print114259
-Node: print-unique119055
-Ref: #print-unique119181
-Node: register119466
-Ref: #register119593
-Node: Custom register output123765
-Ref: #custom-register-output123894
-Node: register-match125231
-Ref: #register-match125365
-Node: rewrite125716
-Ref: #rewrite125831
-Node: Re-write rules in a file127686
-Ref: #re-write-rules-in-a-file127820
-Node: Diff output format129030
-Ref: #diff-output-format129199
-Node: rewrite vs print --auto130291
-Ref: #rewrite-vs.-print---auto130470
-Node: roi131026
-Ref: #roi131124
-Node: stats132136
-Ref: #stats132235
-Node: tags133023
-Ref: #tags133121
-Node: test133640
-Ref: #test133748
-Node: Add-on commands134495
-Ref: #add-on-commands134612
-Node: ui135955
-Ref: #ui136043
-Node: web136097
-Ref: #web136200
-Node: iadd136316
-Ref: #iadd136427
-Node: interest136509
-Ref: #interest136616
-Node: ENVIRONMENT136856
-Ref: #environment136968
-Node: FILES137953
-Ref: #files-1138056
-Node: LIMITATIONS138269
-Ref: #limitations138388
-Node: TROUBLESHOOTING139130
-Ref: #troubleshooting139243
+Node: Depth limiting45550
+Ref: #depth-limiting45694
+Node: Pivoting46026
+Ref: #pivoting46149
+Node: Valuation47825
+Ref: #valuation47927
+Node: -B Cost48616
+Ref: #b-cost48720
+Node: -V Value48853
+Ref: #v-value48999
+Node: -X Value in specified commodity49194
+Ref: #x-value-in-specified-commodity49393
+Node: Valuation date49542
+Ref: #valuation-date49710
+Node: Market prices50120
+Ref: #market-prices50300
+Node: --infer-value market prices from transactions51077
+Ref: #infer-value-market-prices-from-transactions51326
+Node: Valuation commodity52608
+Ref: #valuation-commodity52817
+Node: Simple valuation examples54043
+Ref: #simple-valuation-examples54245
+Node: --value Flexible valuation54904
+Ref: #value-flexible-valuation55112
+Node: More valuation examples57059
+Ref: #more-valuation-examples57268
+Node: Effect of valuation on reports59273
+Ref: #effect-of-valuation-on-reports59461
+Node: COMMANDS64982
+Ref: #commands65090
+Node: accounts66198
+Ref: #accounts66296
+Node: activity66995
+Ref: #activity67105
+Node: add67488
+Ref: #add67589
+Node: aregister70382
+Ref: #aregister70494
+Node: aregister and custom posting dates71867
+Ref: #aregister-and-custom-posting-dates72040
+Ref: #output-format-172633
+Node: balance73038
+Ref: #balance73155
+Node: Classic balance report74613
+Ref: #classic-balance-report74786
+Node: Customising the classic balance report76220
+Ref: #customising-the-classic-balance-report76448
+Node: Colour support78524
+Ref: #colour-support78691
+Node: Flat mode78787
+Ref: #flat-mode78935
+Node: Depth limited balance reports79348
+Ref: #depth-limited-balance-reports79533
+Node: Percentages79989
+Ref: #percentages80155
+Node: Multicolumn balance report81292
+Ref: #multicolumn-balance-report81472
+Node: Budget report87069
+Ref: #budget-report87212
+Node: Nested budgets92478
+Ref: #nested-budgets92590
+Ref: #output-format-296071
+Node: balancesheet96268
+Ref: #balancesheet96404
+Node: balancesheetequity97916
+Ref: #balancesheetequity98065
+Node: cashflow99141
+Ref: #cashflow99269
+Node: check-dates100485
+Ref: #check-dates100612
+Node: check-dupes100891
+Ref: #check-dupes101017
+Node: close101310
+Ref: #close101418
+Node: close usage102940
+Ref: #close-usage103033
+Node: codes105846
+Ref: #codes105954
+Node: commodities106666
+Ref: #commodities106793
+Node: descriptions106875
+Ref: #descriptions107003
+Node: diff107307
+Ref: #diff107413
+Node: files108460
+Ref: #files108560
+Node: help108707
+Ref: #help108807
+Node: import109888
+Ref: #import110002
+Node: Importing balance assignments110895
+Ref: #importing-balance-assignments111043
+Node: incomestatement111692
+Ref: #incomestatement111825
+Node: notes113170
+Ref: #notes113283
+Node: payees113651
+Ref: #payees113757
+Node: prices114177
+Ref: #prices114283
+Node: print114624
+Ref: #print114734
+Node: print-unique119530
+Ref: #print-unique119656
+Node: register119941
+Ref: #register120068
+Node: Custom register output124517
+Ref: #custom-register-output124646
+Node: register-match125983
+Ref: #register-match126117
+Node: rewrite126468
+Ref: #rewrite126583
+Node: Re-write rules in a file128438
+Ref: #re-write-rules-in-a-file128572
+Node: Diff output format129782
+Ref: #diff-output-format129951
+Node: rewrite vs print --auto131043
+Ref: #rewrite-vs.-print---auto131222
+Node: roi131778
+Ref: #roi131876
+Node: stats132888
+Ref: #stats132987
+Node: tags133775
+Ref: #tags133873
+Node: test134392
+Ref: #test134500
+Node: Add-on commands135247
+Ref: #add-on-commands135364
+Node: ui136707
+Ref: #ui136795
+Node: web136849
+Ref: #web136952
+Node: iadd137068
+Ref: #iadd137179
+Node: interest137261
+Ref: #interest137368
+Node: ENVIRONMENT137608
+Ref: #environment137720
+Node: FILES138705
+Ref: #files-1138808
+Node: LIMITATIONS139021
+Ref: #limitations139140
+Node: TROUBLESHOOTING139882
+Ref: #troubleshooting139995
 
 End Tag Table
 
