@@ -995,11 +995,18 @@ earliest or latest transaction in your journal:
 A single date with no "from" or "to" defines both the start and end date
 like so:
 
-|                 |                                                        |
-|-----------------|--------------------------------------------------------|
-| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”    |
-| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1” |
-| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”    |
+|                 |                                                             |
+|-----------------|-------------------------------------------------------------|
+| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”         |
+| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1”      |
+| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”         |
+
+Or you can specify a single quarter like so:
+
+|                 |                                                             |
+|-----------------|-------------------------------------------------------------|
+| `-p "2009Q1"`   | first quarter of 2009, equivalent to “2009/1/1 to 2009/4/1” |
+| `-p "q4"`       | fourth quarter of the current year                          |
 
 The argument of `-p` can also begin with, or be, a [report interval](#report-intervals) expression.
 The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`,
