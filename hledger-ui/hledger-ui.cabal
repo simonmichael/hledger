@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 69306ba4d4fa65c6f9bd30b888fb32ff3bb2c88cd2cac3f58282b108c699d74e
+-- hash: 4508b3e1554f07f5381ff30cf41a11d1ddd090adf8ce181d3d5aba990fd29813
 
 name:           hledger-ui
 version:        1.18.99
@@ -70,6 +70,7 @@ executable hledger-ui
     , async
     , base >=4.9 && <4.15
     , base-compat-batteries >=0.10.1 && <0.12
+    , brick >=0.23
     , cmdargs >=0.8
     , containers
     , data-default
@@ -90,14 +91,13 @@ executable hledger-ui
     , text-zipper >=0.4
     , time >=1.5
     , transformers
+    , unix
     , vector
+    , vty >=5.5
   if os(windows)
     buildable: False
   else
-    build-depends:
-        brick >=0.23
-      , unix
-      , vty >=5.5
+    buildable: True
   if flag(threaded)
     ghc-options: -threaded
   default-language: Haskell2010

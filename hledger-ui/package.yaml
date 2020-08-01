@@ -66,6 +66,10 @@ dependencies:
 - time >=1.5
 - transformers
 - vector
+# not installable on windows, cf buildable flag below
+- brick >=0.23
+- vty >=5.5
+- unix
 
 when:
  # curses is required to build terminfo for vty for hledger-ui.
@@ -82,10 +86,7 @@ when:
    then:
      buildable: false
    else:
-     dependencies:
-       - brick >=0.23
-       - unix
-       - vty >=5.5
+     buildable: true
 
 executables:
   hledger-ui:
