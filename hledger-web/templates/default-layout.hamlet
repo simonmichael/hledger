@@ -77,5 +77,4 @@ $if elem CapView caps
                 <li> <code>real:BOOL</code> - filter on postings' real/virtual-ness
                 <li> Enclose search patterns containing spaces in single or double quotes
                 <li> Prepend <code>not:</code> to negate a search term
-                <li> Multiple search terms on different fields are AND'ed, multiple search terms on the same field are OR'ed
-                <li> These search terms also work with command-line hledger
+                <li> Description, account, status query terms are OR'ed, others are AND'ed.
