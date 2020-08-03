@@ -85,7 +85,7 @@ import Control.Applicative (liftA2)
 import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
 import "base-compat-batteries" Data.List.Compat
-import Data.Char (isDigit)
+import Data.Char (digitToInt, isDigit, ord)
 import Data.Default
 import Data.Foldable (asum)
 import Data.Function (on)
@@ -997,15 +997,17 @@ doubledatespanp rdate = liftA2 fromToSpan
 -- |
 -- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "q1"
 -- Right DateSpan 2018Q1
+-- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "Q1"
+-- Right DateSpan 2018Q1
 -- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "2020q4"
 -- Right DateSpan 2020Q4
 quarterdatespanp :: Day -> TextParser m DateSpan
 quarterdatespanp rdate = do
-  let defaultYear = first3 $ toGregorian rdate
-  y <- maybe defaultYear read <$> optional (count 4 digitChar)
-  char 'q'
-  q <- oneOf ("1234"::[Char])
-  return $ periodAsDateSpan $ QuarterPeriod y $ read [q]
+    y <- yearp <|> pure (first3 $ toGregorian rdate)
+    q <- char' 'q' *> satisfy is4Digit
+    return . periodAsDateSpan $ QuarterPeriod y (digitToInt q)
+  where
+    is4Digit c = (fromIntegral (ord c - ord '1') :: Word) <= 3
 
 fromdatespanp :: Day -> TextParser m DateSpan
 fromdatespanp rdate = fromSpan <$> choice
