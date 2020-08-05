@@ -329,7 +329,7 @@ parseAmountQueryTerm amtarg =
     -- specified prefix, remove all whitespace from the remainder, and
     -- read it as a simple integer or decimal if possible.
     parse :: T.Text -> T.Text -> Maybe Quantity
-    parse p s = T.stripPrefix p s >>= readMay . T.unpack
+    parse p s = (T.stripPrefix p . T.strip) s >>= readMay . filter (not.(==' ')) . T.unpack
 
 parseTag :: T.Text -> (Regexp, Maybe Regexp)
 parseTag s | "=" `T.isInfixOf` s = (T.unpack n, Just $ tail $ T.unpack v)
@@ -730,6 +730,7 @@ tests_Query = tests "Query" [
   ,test "parseAmountQueryTerm" $ do
      parseAmountQueryTerm "<0"        @?= Right (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
      parseAmountQueryTerm ">0"        @?= Right (Gt,0) -- special case for convenience and consistency with above
+     parseAmountQueryTerm " > - 0 "   @?= Right (Gt,0) -- accept whitespace around the argument parts
      parseAmountQueryTerm ">10000.10" @?= Right (AbsGt,10000.1)
      parseAmountQueryTerm "=0.23"     @?= Right (AbsEq,0.23)
      parseAmountQueryTerm "0.23"      @?= Right (AbsEq,0.23)
