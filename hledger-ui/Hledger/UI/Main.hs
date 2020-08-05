@@ -107,7 +107,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       }
       where
         q = queryFromOpts d ropts
-        datespanfromargs = queryDateSpan (date2_ ropts) $ fst $ parseQuery d (T.pack $ query_ ropts)
+        datespanfromargs = queryDateSpan (date2_ ropts) $ fst $
+                           either error' id $ parseQuery d (T.pack $ query_ ropts)
         periodfromoptsandargs =
           dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
         filteredQueryArg = \case
