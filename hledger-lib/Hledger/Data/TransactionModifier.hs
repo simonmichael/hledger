@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE CPP #-}
@@ -25,7 +26,6 @@ import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Query
 import Hledger.Data.Posting (commentJoin, commentAddTag)
-import Hledger.Utils.UTF8IOCompat (error')
 import Hledger.Utils.Debug
 
 -- $setup
@@ -35,24 +35,31 @@ import Hledger.Utils.Debug
 -- >>> import Hledger.Data.Journal
 
 -- | Apply all the given transaction modifiers, in turn, to each transaction.
-modifyTransactions :: [TransactionModifier] -> [Transaction] -> [Transaction]
-modifyTransactions tmods = map applymods
-  where
-    applymods t = taggedt'
+-- Or if any of them fails to be parsed, return the first error. A reference
+-- date is provided to help interpret relative dates in transaction modifier
+-- queries.
+modifyTransactions :: Day -> [TransactionModifier] -> [Transaction] -> Either String [Transaction]
+modifyTransactions d tmods ts = do
+  fs <- mapM (transactionModifierToFunction d) tmods  -- convert modifiers to functions, or return a parse error
+  let
+    modifytxn t = t''
       where
-        t' = foldr (flip (.) . transactionModifierToFunction) id tmods t
-        taggedt'
-          -- PERF: compares txns to see if any modifier had an effect, inefficient ?
-          | t' /= t   = t'{tcomment = tcomment t' `commentAddTag` ("modified","")
-                          ,ttags    = ("modified","") : ttags t'
-                          }
-          | otherwise = t'
+        t' = foldr (flip (.)) id fs t  -- apply each function in turn
+        t'' = if t' == t  -- and add some tags if it was changed
+              then t'
+              else t'{tcomment=tcomment t' `commentAddTag` ("modified",""), ttags=("modified","") : ttags t'}
+  Right $ map modifytxn ts
 
--- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function,
+-- | Converts a 'TransactionModifier' to a 'Transaction'-transforming function
 -- which applies the modification(s) specified by the TransactionModifier.
--- Currently this means adding automated postings when certain other postings are present.
+-- Or, returns the error message there is a problem parsing the TransactionModifier's query.
+-- A reference date is provided to help interpret relative dates in the query.
+--
 -- The postings of the transformed transaction will reference it in the usual
 -- way (ie, 'txnTieKnot' is called).
+--
+-- Currently the only kind of modification possible is adding automated
+-- postings when certain other postings are present.
 --
 -- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000-01-01
@@ -69,30 +76,14 @@ modifyTransactions tmods = map applymods
 --     pong           $6.00  ; generated-posting: = ping
 -- <BLANKLINE>
 --
-transactionModifierToFunction :: TransactionModifier -> (Transaction -> Transaction)
-transactionModifierToFunction mt =
-  \t@(tpostings -> ps) -> txnTieKnot t{ tpostings=generatePostings ps }
-  where
-    q = simplifyQuery $ tmParseQuery mt (error' "a transaction modifier's query cannot depend on current date")
-    mods = map (tmPostingRuleToFunction (tmquerytxt mt)) $ tmpostingrules mt
+transactionModifierToFunction :: Day -> TransactionModifier -> Either String (Transaction -> Transaction)
+transactionModifierToFunction refdate TransactionModifier{tmquerytxt, tmpostingrules} = do
+  q <- simplifyQuery . fst <$> parseQuery refdate tmquerytxt
+  let
+    fs = map (tmPostingRuleToFunction tmquerytxt) tmpostingrules
     generatePostings ps = [p' | p <- ps
-                              , p' <- if q `matchesPosting` p then p:[ m p | m <- mods] else [p]]
-
--- | Parse the 'Query' from a 'TransactionModifier's 'tmquerytxt',
--- and return it as a function requiring the current date.
---
--- >>> tmParseQuery (TransactionModifier "" []) undefined
--- Any
--- >>> tmParseQuery (TransactionModifier "ping" []) undefined
--- Acct "ping"
--- >>> tmParseQuery (TransactionModifier "date:2016" []) undefined
--- Date (DateSpan 2016)
--- >>> tmParseQuery (TransactionModifier "date:today" []) (read "2017-01-01")
--- Date (DateSpan 2017-01-01)
--- >>> tmParseQuery (TransactionModifier "date:today" []) (read "2017-01-01")
--- Date (DateSpan 2017-01-01)
-tmParseQuery :: TransactionModifier -> (Day -> Query)
-tmParseQuery mt = fst . flip parseQuery (tmquerytxt mt)
+                              , p' <- if q `matchesPosting` p then p:[f p | f <- fs] else [p]]
+  Right $ \t@(tpostings -> ps) -> txnTieKnot t{tpostings=generatePostings ps}
 
 -- | Converts a 'TransactionModifier''s posting rule to a 'Posting'-generating function,
 -- which will be used to make a new posting based on the old one (an "automated posting").

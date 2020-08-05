@@ -298,6 +298,7 @@ parseAndFinaliseJournal' parser iopts f txt = do
 journalFinalise :: InputOpts -> FilePath -> Text -> Journal -> ExceptT String IO Journal
 journalFinalise iopts f txt pj = do
   t <- liftIO getClockTime
+  d <- liftIO getCurrentDay
   -- Infer and apply canonical styles for each commodity (or fail).
   -- This affects transaction balancing/assertions/assignments, so needs to be done early.
   -- (TODO: since #903's refactoring for hledger 1.12,
@@ -322,11 +323,13 @@ journalFinalise iopts f txt pj = do
            -- then add the auto postings
            -- (Note adding auto postings after balancing means #893b fails;
            -- adding them before balancing probably means #893a, #928, #938 fail.)
-           let j'' = journalModifyTransactions j'
-           -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
-           j''' <- journalApplyCommodityStyles j''
-           -- then check balance assertions.
-           journalBalanceTransactions (not $ ignore_assertions_ iopts) j'''
+           case journalModifyTransactions d j' of
+             Left e -> throwError e
+             Right j'' -> do
+               -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
+               j''' <- journalApplyCommodityStyles j''
+               -- then check balance assertions.
+               journalBalanceTransactions (not $ ignore_assertions_ iopts) j'''
         )
      & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
 

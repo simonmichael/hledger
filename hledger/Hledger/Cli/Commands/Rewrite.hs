@@ -38,8 +38,9 @@ rewritemode = hledgerCommandMode
 
 rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do
   -- rewrite matched transactions
+  d <- getCurrentDay
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
-  let j' = j{jtxns=modifyTransactions modifiers ts}
+  let j' = j{jtxns=either error' id $ modifyTransactions d modifiers ts}
   -- run the print command, showing all transactions, or show diffs
   printOrDiff rawopts opts{reportopts_=ropts{query_=""}} j j'
 

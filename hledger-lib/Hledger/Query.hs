@@ -177,18 +177,24 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- 4. then all terms are AND'd together
 --
 -- >>> parseQuery nulldate "expenses:dining out"
--- (Or ([Acct "expenses:dining",Acct "out"]),[])
+-- Right (Or ([Acct "expenses:dining",Acct "out"]),[])
+--
 -- >>> parseQuery nulldate "\"expenses:dining out\""
--- (Acct "expenses:dining out",[])
-parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
-parseQuery d s = (q, opts)
-  where
-    terms = words'' prefixes s
-    (pats, opts) = partitionEithers $ map (parseQueryTerm d) terms
-    (descpats, pats') = partition queryIsDesc pats
-    (acctpats, pats'') = partition queryIsAcct pats'
-    (statuspats, otherpats) = partition queryIsStatus pats''
-    q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats] ++ otherpats
+-- Right (Acct "expenses:dining out",[])
+--
+-- >>> isLeft $ parseQuery nulldate "\"\""
+-- True
+--
+parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
+parseQuery d s = do
+  let termstrs = words'' prefixes s
+  eterms <- sequence $ map (parseQueryTerm d) termstrs
+  let (pats, opts) = partitionEithers eterms
+      (descpats, pats') = partition queryIsDesc pats
+      (acctpats, pats'') = partition queryIsAcct pats'
+      (statuspats, otherpats) = partition queryIsStatus pats''
+      q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats] ++ otherpats
+  Right (q, opts)
 
 -- XXX
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
@@ -252,39 +258,40 @@ defaultprefix = "acct"
 -- query = undefined
 
 -- | Parse a single query term as either a query or a query option,
--- or raise an error if it has invalid syntax.
-parseQueryTerm :: Day -> T.Text -> Either Query QueryOpt
-parseQueryTerm _ (T.stripPrefix "inacctonly:" -> Just s) = Right $ QueryOptInAcctOnly s
-parseQueryTerm _ (T.stripPrefix "inacct:" -> Just s) = Right $ QueryOptInAcct s
+-- or return an error message if parsing fails.
+parseQueryTerm :: Day -> T.Text -> Either String (Either Query QueryOpt)
+parseQueryTerm _ (T.stripPrefix "inacctonly:" -> Just s) = Right $ Right $ QueryOptInAcctOnly s
+parseQueryTerm _ (T.stripPrefix "inacct:" -> Just s) = Right $ Right $ QueryOptInAcct s
 parseQueryTerm d (T.stripPrefix "not:" -> Just s) =
   case parseQueryTerm d s of
-    Left m -> Left $ Not m
-    Right _ -> Left Any -- not:somequeryoption will be ignored
-parseQueryTerm _ (T.stripPrefix "code:" -> Just s) = Left $ Code $ T.unpack s
-parseQueryTerm _ (T.stripPrefix "desc:" -> Just s) = Left $ Desc $ T.unpack s
-parseQueryTerm _ (T.stripPrefix "payee:" -> Just s) = Left $ Tag "payee" $ Just $ T.unpack s
-parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = Left $ Tag "note" $ Just $ T.unpack s
-parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Left $ Acct $ T.unpack s
+    Right (Left m)  -> Right $ Left $ Not m
+    Right (Right _) -> Right $ Left Any -- not:somequeryoption will be ignored
+    Left err        -> Left err
+parseQueryTerm _ (T.stripPrefix "code:" -> Just s) = Right $ Left $ Code $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "desc:" -> Just s) = Right $ Left $ Desc $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "payee:" -> Just s) = Right $ Left $ Tag "payee" $ Just $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = Right $ Left $ Tag "note" $ Just $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Right $ Left $ Acct $ T.unpack s
 parseQueryTerm d (T.stripPrefix "date2:" -> Just s) =
-        case parsePeriodExpr d s of Left e         -> error' $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
-                                    Right (_,span) -> Left $ Date2 span
+        case parsePeriodExpr d s of Left e         -> Left $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
+                                    Right (_,span) -> Right $ Left $ Date2 span
 parseQueryTerm d (T.stripPrefix "date:" -> Just s) =
-        case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++T.unpack s++"\" gave a "++showDateParseError e
-                                    Right (_,span) -> Left $ Date span
+        case parsePeriodExpr d s of Left e         -> Left $ "\"date:"++T.unpack s++"\" gave a "++showDateParseError e
+                                    Right (_,span) -> Right $ Left $ Date span
 parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
-        case parseStatus s of Left e   -> error' $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
-                              Right st -> Left $ StatusQ st
-parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Left $ Real $ parseBool s || T.null s
-parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Left $ Amt ord q where (ord, q) = either error id $ parseAmountQueryTerm s
-parseQueryTerm _ (T.stripPrefix "empty:" -> Just s) = Left $ Empty $ parseBool s
+        case parseStatus s of Left e   -> Left $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
+                              Right st -> Right $ Left $ StatusQ st
+parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Right $ Left $ Real $ parseBool s || T.null s
+parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Right $ Left $ Amt ord q where (ord, q) = either error id $ parseAmountQueryTerm s
+parseQueryTerm _ (T.stripPrefix "empty:" -> Just s) = Right $ Left $ Empty $ parseBool s
 parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
-  | n >= 0    = Left $ Depth n
-  | otherwise = error' "depth: should have a positive number"
+  | n >= 0    = Right $ Left $ Depth n
+  | otherwise = Left "depth: should have a positive number"
   where n = readDef 0 (T.unpack s)
 
-parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = Left $ Sym (T.unpack s) -- support cur: as an alias
-parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Left $ Tag n v where (n,v) = parseTag s
-parseQueryTerm _ "" = Left $ Any
+parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = Right $ Left $ Sym (T.unpack s) -- support cur: as an alias
+parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Right $ Left $ Tag n v where (n,v) = parseTag s
+parseQueryTerm _ "" = Right $ Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 
 -- | Parse the argument of an amt query term ([OP][SIGN]NUM), to an
@@ -683,12 +690,12 @@ tests_Query = tests "Query" [
      (simplifyQuery $ And [Or [],Or [Desc "b b"]]) @?= (Desc "b b")
 
   ,test "parseQuery" $ do
-     (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") @?= (And [Acct "expenses:autres d\233penses", Desc "b"], [])
-     parseQuery nulldate "inacct:a desc:\"b b\""                     @?= (Desc "b b", [QueryOptInAcct "a"])
-     parseQuery nulldate "inacct:a inacct:b"                         @?= (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
-     parseQuery nulldate "desc:'x x'"                                @?= (Desc "x x", [])
-     parseQuery nulldate "'a a' 'b"                                  @?= (Or [Acct "a a",Acct "'b"], [])
-     parseQuery nulldate "\""                                        @?= (Acct "\"", [])
+     (parseQuery nulldate "acct:'expenses:autres d\233penses' desc:b") @?= Right (And [Acct "expenses:autres d\233penses", Desc "b"], [])
+     parseQuery nulldate "inacct:a desc:\"b b\""                       @?= Right (Desc "b b", [QueryOptInAcct "a"])
+     parseQuery nulldate "inacct:a inacct:b"                           @?= Right (Any, [QueryOptInAcct "a", QueryOptInAcct "b"])
+     parseQuery nulldate "desc:'x x'"                                  @?= Right (Desc "x x", [])
+     parseQuery nulldate "'a a' 'b"                                    @?= Right (Or [Acct "a a",Acct "'b"], [])
+     parseQuery nulldate "\""                                          @?= Right (Acct "\"", [])
 
   ,test "words''" $ do
       (words'' [] "a b")                   @?= ["a","b"]
@@ -707,25 +714,25 @@ tests_Query = tests "Query" [
      filterQuery queryIsDepth (And [Date nulldatespan, Not (Or [Any, Depth 1])]) @?= Any   -- XXX unclear
 
   ,test "parseQueryTerm" $ do
-     parseQueryTerm nulldate "a"                                @?= (Left $ Acct "a")
-     parseQueryTerm nulldate "acct:expenses:autres d\233penses" @?= (Left $ Acct "expenses:autres d\233penses")
-     parseQueryTerm nulldate "not:desc:a b"                     @?= (Left $ Not $ Desc "a b")
-     parseQueryTerm nulldate "status:1"                         @?= (Left $ StatusQ Cleared)
-     parseQueryTerm nulldate "status:*"                         @?= (Left $ StatusQ Cleared)
-     parseQueryTerm nulldate "status:!"                         @?= (Left $ StatusQ Pending)
-     parseQueryTerm nulldate "status:0"                         @?= (Left $ StatusQ Unmarked)
-     parseQueryTerm nulldate "status:"                          @?= (Left $ StatusQ Unmarked)
-     parseQueryTerm nulldate "payee:x"                          @?= (Left $ Tag "payee" (Just "x"))
-     parseQueryTerm nulldate "note:x"                           @?= (Left $ Tag "note" (Just "x"))
-     parseQueryTerm nulldate "real:1"                           @?= (Left $ Real True)
-     parseQueryTerm nulldate "date:2008"                        @?= (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
-     parseQueryTerm nulldate "date:from 2012/5/17"              @?= (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
-     parseQueryTerm nulldate "date:20180101-201804"             @?= (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
-     parseQueryTerm nulldate "inacct:a"                         @?= (Right $ QueryOptInAcct "a")
-     parseQueryTerm nulldate "tag:a"                            @?= (Left $ Tag "a" Nothing)
-     parseQueryTerm nulldate "tag:a=some value"                 @?= (Left $ Tag "a" (Just "some value"))
-     parseQueryTerm nulldate "amt:<0"                           @?= (Left $ Amt Lt 0)
-     parseQueryTerm nulldate "amt:>10000.10"                    @?= (Left $ Amt AbsGt 10000.1)
+     parseQueryTerm nulldate "a"                                @?= Right (Left $ Acct "a")
+     parseQueryTerm nulldate "acct:expenses:autres d\233penses" @?= Right (Left $ Acct "expenses:autres d\233penses")
+     parseQueryTerm nulldate "not:desc:a b"                     @?= Right (Left $ Not $ Desc "a b")
+     parseQueryTerm nulldate "status:1"                         @?= Right (Left $ StatusQ Cleared)
+     parseQueryTerm nulldate "status:*"                         @?= Right (Left $ StatusQ Cleared)
+     parseQueryTerm nulldate "status:!"                         @?= Right (Left $ StatusQ Pending)
+     parseQueryTerm nulldate "status:0"                         @?= Right (Left $ StatusQ Unmarked)
+     parseQueryTerm nulldate "status:"                          @?= Right (Left $ StatusQ Unmarked)
+     parseQueryTerm nulldate "payee:x"                          @?= Right (Left $ Tag "payee" (Just "x"))
+     parseQueryTerm nulldate "note:x"                           @?= Right (Left $ Tag "note" (Just "x"))
+     parseQueryTerm nulldate "real:1"                           @?= Right (Left $ Real True)
+     parseQueryTerm nulldate "date:2008"                        @?= Right (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
+     parseQueryTerm nulldate "date:from 2012/5/17"              @?= Right (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
+     parseQueryTerm nulldate "date:20180101-201804"             @?= Right (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
+     parseQueryTerm nulldate "inacct:a"                         @?= Right (Right $ QueryOptInAcct "a")
+     parseQueryTerm nulldate "tag:a"                            @?= Right (Left $ Tag "a" Nothing)
+     parseQueryTerm nulldate "tag:a=some value"                 @?= Right (Left $ Tag "a" (Just "some value"))
+     parseQueryTerm nulldate "amt:<0"                           @?= Right (Left $ Amt Lt 0)
+     parseQueryTerm nulldate "amt:>10000.10"                    @?= Right (Left $ Amt AbsGt 10000.1)
 
   ,test "parseAmountQueryTerm" $ do
      parseAmountQueryTerm "<0"        @?= Right (Lt,0) -- special case for convenience, since AbsLt 0 would be always false

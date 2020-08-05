@@ -590,10 +590,15 @@ journalTieTransactions j@Journal{jtxns=ts} = j{jtxns=map txnTieKnot ts}
 journalUntieTransactions :: Transaction -> Transaction
 journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
 
--- | Apply any transaction modifier rules in the journal
--- (adding automated postings to transactions, eg).
-journalModifyTransactions :: Journal -> Journal
-journalModifyTransactions j = j{ jtxns = modifyTransactions (jtxnmodifiers j) (jtxns j) }
+-- | Apply any transaction modifier rules in the journal (adding automated
+-- postings to transactions, eg). Or if a modifier rule fails to parse,
+-- return the error message. A reference date is provided to help interpret
+-- relative dates in transaction modifier queries.
+journalModifyTransactions :: Day -> Journal -> Either String Journal
+journalModifyTransactions d j =
+  case modifyTransactions d (jtxnmodifiers j) (jtxns j) of
+    Right ts -> Right j{jtxns=ts}
+    Left err -> Left err
 
 -- | Check any balance assertions in the journal and return an error message
 -- if any of them fail (or if the transaction balancing they require fails).

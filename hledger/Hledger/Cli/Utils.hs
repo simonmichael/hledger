@@ -108,10 +108,12 @@ anonymiseByOpts opts =
 -- | Generate periodic transactions from all periodic transaction rules in the journal.
 -- These transactions are added to the in-memory Journal (but not the on-disk file).
 --
--- They can start no earlier than: the day following the latest normal
--- transaction in the journal (or today if there are none).
--- They end on or before the specified report end date, or 180 days
--- from today if unspecified.
+-- When --auto is active, auto posting rules will be applied to the
+-- generated transactions. If the query in any auto posting rule fails
+-- to parse, this function will raise an error.
+--
+-- The start & end date for generated periodic transactions are determined in
+-- a somewhat complicated way; see the hledger manual -> Periodic transactions.
 --
 journalAddForecast :: CliOpts -> Journal -> IO Journal
 journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
@@ -136,7 +138,9 @@ journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
                        , spanContainsDate forecastspan (tdate t)
                        ]
       -- With --auto enabled, transaction modifiers are also applied to forecast txns
-      forecasttxns' = (if auto_ iopts then modifyTransactions (jtxnmodifiers j) else id) forecasttxns
+      forecasttxns' =
+        (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)
+        forecasttxns
 
   return $
     case forecast_ ropts of

@@ -461,11 +461,12 @@ journalSelectingAmountFromOpts opts =
     _               -> id
 
 -- | Convert report options and arguments to a query.
+-- If there is a parsing problem, this function calls error.
 queryFromOpts :: Day -> ReportOpts -> Query
 queryFromOpts d ropts = simplifyQuery . And $ [flagsq, argsq]
   where
     flagsq = queryFromOptsOnly d ropts
-    argsq = fst $ parseQuery d (T.pack $ query_ ropts)
+    argsq = fst $ either error' id $ parseQuery d (T.pack $ query_ ropts)  -- TODO:
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromOptsOnly :: Day -> ReportOpts -> Query
@@ -481,8 +482,9 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery $ And flagsq
     consJust f = maybe id ((:) . f)
 
 -- | Convert report options and arguments to query options.
+-- If there is a parsing problem, this function calls error.
 queryOptsFromOpts :: Day -> ReportOpts -> [QueryOpt]
-queryOptsFromOpts d = snd . parseQuery d . T.pack . query_
+queryOptsFromOpts d = snd . either error' id . parseQuery d . T.pack . query_
 
 -- Report dates.
 
