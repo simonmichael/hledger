@@ -64,7 +64,7 @@ import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Safe (readDef, maximumByMay, maximumMay, minimumMay)
+import Safe (readDef, readMay, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -143,8 +143,11 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- showAccountMatcher _ = Nothing
 
 
--- | Convert a query expression containing zero or more space-separated
--- terms to a query and zero or more query options. A query term is either:
+-- | Convert a query expression containing zero or more
+-- space-separated terms to a query and zero or more query options; or
+-- return an error message if query parsing fails.
+--
+-- A query term is either:
 --
 -- 1. a search pattern, which matches on one or more fields, eg:
 --
@@ -177,7 +180,6 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- (Or ([Acct "expenses:dining",Acct "out"]),[])
 -- >>> parseQuery nulldate "\"expenses:dining out\""
 -- (Acct "expenses:dining out",[])
---
 parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
 parseQuery d s = (q, opts)
   where
@@ -273,7 +275,7 @@ parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
         case parseStatus s of Left e   -> error' $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
                               Right st -> Left $ StatusQ st
 parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Left $ Real $ parseBool s || T.null s
-parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
+parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Left $ Amt ord q where (ord, q) = either error id $ parseAmountQueryTerm s
 parseQueryTerm _ (T.stripPrefix "empty:" -> Just s) = Left $ Empty $ parseBool s
 parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
   | n >= 0    = Left $ Depth n
@@ -285,41 +287,49 @@ parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Left $ Tag n v where (n,v) =
 parseQueryTerm _ "" = Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 
--- | Parse what comes after amt: .
-parseAmountQueryTerm :: T.Text -> (OrdPlus, Quantity)
-parseAmountQueryTerm s' =
-  case s' of
-    -- feel free to do this a smarter way
-    ""              -> err
-    (T.stripPrefix "<+" -> Just s)  -> (Lt, readDef err (T.unpack s))
-    (T.stripPrefix "<=+" -> Just s) -> (LtEq, readDef err (T.unpack s))
-    (T.stripPrefix ">+" -> Just s)  -> (Gt, readDef err (T.unpack s))
-    (T.stripPrefix ">=+" -> Just s) -> (GtEq, readDef err (T.unpack s))
-    (T.stripPrefix "=+" -> Just s)  -> (Eq, readDef err (T.unpack s))
-    (T.stripPrefix "+" -> Just s)   -> (Eq, readDef err (T.unpack s))
-    (T.stripPrefix "<-" -> Just s)  -> (Lt, negate $ readDef err (T.unpack s))
-    (T.stripPrefix "<=-" -> Just s) -> (LtEq, negate $ readDef err (T.unpack s))
-    (T.stripPrefix ">-" -> Just s)  -> (Gt, negate $ readDef err (T.unpack s))
-    (T.stripPrefix ">=-" -> Just s) -> (GtEq, negate $ readDef err (T.unpack s))
-    (T.stripPrefix "=-" -> Just s)  -> (Eq, negate $ readDef err (T.unpack s))
-    (T.stripPrefix "-" -> Just s)   -> (Eq, negate $ readDef err (T.unpack s))
-    (T.stripPrefix "<=" -> Just s)  -> let n = readDef err (T.unpack s) in
-                                         case n of
-                                           0 -> (LtEq, 0)
-                                           _ -> (AbsLtEq, n)
-    (T.stripPrefix "<" -> Just s)   -> let n = readDef err (T.unpack s) in
-                                         case n of 0 -> (Lt, 0)
-                                                   _ -> (AbsLt, n)
-    (T.stripPrefix ">=" -> Just s)  -> let n = readDef err (T.unpack s) in
-                                         case n of 0 -> (GtEq, 0)
-                                                   _ -> (AbsGtEq, n)
-    (T.stripPrefix ">" -> Just s)   -> let n = readDef err (T.unpack s) in
-                                         case n of 0 -> (Gt, 0)
-                                                   _ -> (AbsGt, n)
-    (T.stripPrefix "=" -> Just s)           -> (AbsEq, readDef err (T.unpack s))
-    s               -> (AbsEq, readDef err (T.unpack s))
+-- | Parse the argument of an amt query term ([OP][SIGN]NUM), to an
+-- OrdPlus and a Quantity, or if parsing fails, an error message. OP
+-- can be <=, <, >=, >, or = . NUM can be a simple integer or decimal.
+-- If a decimal, the decimal mark must be period, and it must have
+-- digits preceding it. Digit group marks are not allowed.
+parseAmountQueryTerm :: T.Text -> Either String (OrdPlus, Quantity)
+parseAmountQueryTerm amtarg =
+  case amtarg of
+    -- number has a + sign, do a signed comparison
+    (parse "<=+" -> Just q) -> Right (LtEq    ,q)
+    (parse "<+"  -> Just q) -> Right (Lt      ,q)
+    (parse ">=+" -> Just q) -> Right (GtEq    ,q)
+    (parse ">+"  -> Just q) -> Right (Gt      ,q)
+    (parse "=+"  -> Just q) -> Right (Eq      ,q)
+    (parse "+"   -> Just q) -> Right (Eq      ,q)
+    -- number has a - sign, do a signed comparison
+    (parse "<-"  -> Just q) -> Right (Lt      ,-q)
+    (parse "<=-" -> Just q) -> Right (LtEq    ,-q)
+    (parse ">-"  -> Just q) -> Right (Gt      ,-q)
+    (parse ">=-" -> Just q) -> Right (GtEq    ,-q)
+    (parse "=-"  -> Just q) -> Right (Eq      ,-q)
+    (parse "-"   -> Just q) -> Right (Eq      ,-q)
+    -- number is unsigned and zero, do a signed comparison (more useful)
+    (parse "<="  -> Just 0) -> Right (LtEq    ,0)
+    (parse "<"   -> Just 0) -> Right (Lt      ,0)
+    (parse ">="  -> Just 0) -> Right (GtEq    ,0)
+    (parse ">"   -> Just 0) -> Right (Gt      ,0)
+    -- number is unsigned and non-zero, do an absolute magnitude comparison
+    (parse "<="  -> Just q) -> Right (AbsLtEq ,q)
+    (parse "<"   -> Just q) -> Right (AbsLt   ,q)
+    (parse ">="  -> Just q) -> Right (AbsGtEq ,q)
+    (parse ">"   -> Just q) -> Right (AbsGt   ,q)
+    (parse "="   -> Just q) -> Right (AbsEq   ,q)
+    (parse ""    -> Just q) -> Right (AbsEq   ,q)
+    _ -> Left $
+         "could not parse as a comparison operator followed by an optionally-signed number: "
+         ++ T.unpack amtarg
   where
-    err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a (optionally signed) numeric quantity: " ++ T.unpack s'
+    -- Strip outer whitespace from the text, require and remove the
+    -- specified prefix, remove all whitespace from the remainder, and
+    -- read it as a simple integer or decimal if possible.
+    parse :: T.Text -> T.Text -> Maybe Quantity
+    parse p s = T.stripPrefix p s >>= readMay . T.unpack
 
 parseTag :: T.Text -> (Regexp, Maybe Regexp)
 parseTag s | "=" `T.isInfixOf` s = (T.unpack n, Just $ tail $ T.unpack v)
@@ -718,14 +728,15 @@ tests_Query = tests "Query" [
      parseQueryTerm nulldate "amt:>10000.10"                    @?= (Left $ Amt AbsGt 10000.1)
 
   ,test "parseAmountQueryTerm" $ do
-     parseAmountQueryTerm "<0"        @?= (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
-     parseAmountQueryTerm ">0"        @?= (Gt,0) -- special case for convenience and consistency with above
-     parseAmountQueryTerm ">10000.10" @?= (AbsGt,10000.1)
-     parseAmountQueryTerm "=0.23"     @?= (AbsEq,0.23)
-     parseAmountQueryTerm "0.23"      @?= (AbsEq,0.23)
-     parseAmountQueryTerm "<=+0.23"   @?= (LtEq,0.23)
-     parseAmountQueryTerm "-0.23"     @?= (Eq,(-0.23))
-    -- ,test "number beginning with decimal mark" $ parseAmountQueryTerm "=.23" @?= (AbsEq,0.23)  -- XXX
+     parseAmountQueryTerm "<0"        @?= Right (Lt,0) -- special case for convenience, since AbsLt 0 would be always false
+     parseAmountQueryTerm ">0"        @?= Right (Gt,0) -- special case for convenience and consistency with above
+     parseAmountQueryTerm ">10000.10" @?= Right (AbsGt,10000.1)
+     parseAmountQueryTerm "=0.23"     @?= Right (AbsEq,0.23)
+     parseAmountQueryTerm "0.23"      @?= Right (AbsEq,0.23)
+     parseAmountQueryTerm "<=+0.23"   @?= Right (LtEq,0.23)
+     parseAmountQueryTerm "-0.23"     @?= Right (Eq,(-0.23))
+     assertLeft $ parseAmountQueryTerm "-0,23"
+     assertLeft $ parseAmountQueryTerm "=.23"
 
   ,test "queryStartDate" $ do
      let small = Just $ fromGregorian 2000 01 01
