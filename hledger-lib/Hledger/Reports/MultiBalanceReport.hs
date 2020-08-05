@@ -426,7 +426,7 @@ displayedAccounts ropts q valuedaccts
     | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
     -- Accounts which are to be displayed
-    displayedAccts = HM.filterWithKey keep valuedaccts
+    displayedAccts = (if depth == 0 then id else HM.filterWithKey keep) valuedaccts
       where
         keep name amts = isInteresting name amts || name `HM.member` interestingParents
 
@@ -445,24 +445,25 @@ displayedAccounts ropts q valuedaccts
 
     -- Accounts interesting for their own sake
     isInteresting name amts =
-        d <= depth                                                       -- Throw out anything too deep
-        && (empty_ ropts || depth == 0 || not (isZeroRow balance amts))  -- Boring because has only zero entries
+        d <= depth                                     -- Throw out anything too deep
+        && ((empty_ ropts && all (null . asubs) amts)  -- Keep all leaves when using empty_
+           || not (isZeroRow balance amts))            -- Throw out anything with zero balance
       where
         d = accountNameLevel name
         balance | ALTree <- accountlistmode_ ropts, d == depth = aibalance
                 | otherwise = aebalance
 
     -- Accounts interesting because they are a fork for interesting subaccounts
-    interestingParents = dbg'' "interestingParents" $ HM.filterWithKey keepParent tallies
+    interestingParents = dbg'' "interestingParents" $ case accountlistmode_ ropts of
+        ALTree -> HM.filterWithKey hasEnoughSubs numSubs
+        ALFlat -> mempty
       where
-        keepParent name subaccts
-            | ALFlat <- accountlistmode_ ropts = False
-            | no_elide_ ropts = subaccts > 0 && accountNameLevel name > drop_ ropts
-            | otherwise       = subaccts > 1 && accountNameLevel name > drop_ ropts
-        tallies = subaccountTallies . HM.keys $ HM.filterWithKey isInteresting valuedaccts
+        hasEnoughSubs name nsubs = nsubs >= minSubs && accountNameLevel name > drop_ ropts
+        minSubs = if no_elide_ ropts then 1 else 2
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
     depth = fromMaybe maxBound $ queryDepth q
+    numSubs = subaccountTallies . HM.keys $ HM.filterWithKey isInteresting valuedaccts
 
 -- | Sort the rows by amount or by account declaration order.
 sortRows :: ReportOpts -> Journal -> [MultiBalanceReportRow] -> [MultiBalanceReportRow]
@@ -560,9 +561,8 @@ sortRowsLike sortedas rows = mapMaybe (`HM.lookup` rowMap) sortedas
 -- | Given a list of account names, find all forking parent accounts, i.e.
 -- those which fork between different branches
 subaccountTallies :: [AccountName] -> HashMap AccountName Int
-subaccountTallies as = foldr incrementParent mempty allaccts
+subaccountTallies = foldr incrementParent mempty . expandAccountNames
   where
-    allaccts = expandAccountNames as
     incrementParent a = HM.insertWith (+) (parentAccountName a) 1
 
 -- | A helper: what percentage is the second mixed amount of the first ?
