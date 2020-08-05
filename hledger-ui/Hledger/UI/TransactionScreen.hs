@@ -55,7 +55,7 @@ tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
   --       (acommodity$head$amounts$pamount$head$tpostings$snd$tsTransaction)
   --      `seq`
   ui
-tsInit _ _ _ = error "init function called with wrong screen type, should not happen"
+tsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
@@ -76,10 +76,10 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         prices = journalPriceOracle (infer_value_ ropts) j
         styles = journalCommodityStyles j
         periodlast =
-          fromMaybe (error' "TransactionScreen: expected a non-empty journal") $ -- XXX shouldn't happen
+          fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
           reportPeriodOrJournalLastDay ropts j
         mreportlast = reportPeriodLastDay ropts
-        today = fromMaybe (error' "TransactionScreen: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts
+        today = fromMaybe (error' "TransactionScreen: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts  -- PARTIAL:
         multiperiod = interval_ ropts /= NoInterval
 
       render $ defaultLayout toplabel bottomlabel $ str $
@@ -126,7 +126,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,("q", "quit")
               ]
 
-tsDraw _ = error "draw function called with wrong screen type, should not happen"
+tsDraw _ = error "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
 tsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
@@ -204,7 +204,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _ -> continue ui
 
-tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
+tsHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 
 -- Got to redo the register screen's transactions report, to get the latest transactions list for this screen.
 -- XXX Duplicates rsInit. Why do we have to do this as well as regenerateScreens ?

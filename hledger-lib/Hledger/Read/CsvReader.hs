@@ -101,7 +101,7 @@ reader = Reader
   {rFormat     = "csv"
   ,rExtensions = ["csv","tsv","ssv"]
   ,rReadFn     = parse
-  ,rParser    = error' "sorry, CSV files can't be included yet"
+  ,rParser    = error' "sorry, CSV files can't be included yet"  -- PARTIAL:
   }
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
@@ -908,6 +908,7 @@ transactionFromCsvRecord sourcepos rules record = t
 
     mdateformat = rule "date-format"
     date        = fromMaybe "" $ fieldval "date"
+    -- PARTIAL:
     date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parsedate' date
     mdate2      = fieldval "date2"
     mdate2'     = maybe Nothing (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate') mdate2
@@ -1010,7 +1011,7 @@ getAmount rules record currency p1IsVirtual n =
       [] -> Nothing
       [(f,a)] | "-out" `isSuffixOf` f -> Just (-a)  -- for -out fields, flip the sign
       [(_,a)] -> Just a
-      fs      -> error' $ unlines $ [
+      fs      -> error' $ unlines $ [  -- PARTIAL:
          "multiple non-zero amounts or multiple zero amounts assigned,"
         ,"please ensure just one. (https://hledger.org/csv.html#amount)"
         ,"  " ++ showRecord record
@@ -1028,7 +1029,7 @@ getAmount rules record currency p1IsVirtual n =
     -- The CSV rules and record are provided for the error message.
     parseAmount :: CsvRules -> CsvRecord -> String -> String -> MixedAmount
     parseAmount rules record currency amountstr =
-      either mkerror (Mixed . (:[])) $
+      either mkerror (Mixed . (:[])) $  -- PARTIAL:
       runParser (evalStateT (amountp <* eof) nulljournal) "" $
       T.pack $ (currency++) $ simplifySign amountstr
       where
@@ -1086,7 +1087,7 @@ mkBalanceAssertion rules record (amt, pos) = assrt{baamount=amt, baposition=pos}
         Just "=="  -> nullassertion{batotal=True}
         Just "=*"  -> nullassertion{bainclusive=True}
         Just "==*" -> nullassertion{batotal=True, bainclusive=True}
-        Just x     -> error' $ unlines
+        Just x     -> error' $ unlines  -- PARTIAL:
           [ "balance-type \"" ++ x ++"\" is invalid. Use =, ==, =* or ==*."
           , showRecord record
           , showRules rules record

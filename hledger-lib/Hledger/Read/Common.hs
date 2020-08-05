@@ -713,7 +713,7 @@ amountp' :: String -> Amount
 amountp' s =
   case runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s) of
     Right amt -> amt
-    Left err  -> error' $ show err -- XXX should throwError
+    Left err  -> error' $ show err  -- PARTIAL: XXX should throwError
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount

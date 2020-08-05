@@ -311,7 +311,7 @@ journalCashAccountQuery  :: Journal -> Query
 journalCashAccountQuery j =
   case M.lookup Cash (jdeclaredaccounttypes j) of
     Just _  -> journalAccountTypeQuery [Cash] notused j
-      where notused = error' "journalCashAccountQuery: this should not have happened!" -- XXX ugly
+      where notused = error' "journalCashAccountQuery: this should not have happened!"  -- PARTIAL:
     Nothing -> And [journalAssetAccountQuery j
                    ,Not $ Acct "(investment|receivable|:A/R|:fixed)"
                    ]

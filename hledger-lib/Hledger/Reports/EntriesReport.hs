@@ -45,7 +45,7 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
           where
             periodlast  = fromMaybe today $ reportPeriodOrJournalLastDay ropts j
             mreportlast = reportPeriodLastDay ropts
-            today       = fromMaybe (error' "erValue: could not pick a valuation date, ReportOpts today_ is unset") today_  -- should not happen
+            today       = fromMaybe (error' "erValue: could not pick a valuation date, ReportOpts today_ is unset") today_  -- PARTIAL: should not happen
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

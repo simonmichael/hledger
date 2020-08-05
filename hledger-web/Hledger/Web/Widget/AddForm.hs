@@ -91,7 +91,7 @@ addForm j today = identifyForm "add" $ \extra -> do
 
     listField = Field
       { fieldParse = const . pure . Right . Just . dropWhileEnd T.null
-      , fieldView = error "Don't render using this!"
+      , fieldView = error "Don't render using this!"  -- PARTIAL:
       , fieldEnctype = UrlEncoded
       }
 

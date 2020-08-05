@@ -63,5 +63,5 @@ binaryfilename progname = prettify $ splitAtElement '.' buildversion
                   prettify (major:minor:bugfix:[]) = prettify [major,minor,bugfix,"0"]
                   prettify (major:minor:[])        = prettify [major,minor,"0","0"]
                   prettify (major:[])              = prettify [major,"0","0","0"]
-                  prettify []                      = error' "VERSION is empty, please fix"
+                  prettify []                      = error' "VERSION is empty, please fix"  -- PARTIAL:
                   prettify _                       = error' "VERSION has too many components, please fix"

@@ -40,7 +40,7 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = d
   -- rewrite matched transactions
   d <- getCurrentDay
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
-  let j' = j{jtxns=either error' id $ modifyTransactions d modifiers ts}
+  let j' = j{jtxns=either error' id $ modifyTransactions d modifiers ts}  -- PARTIAL:
   -- run the print command, showing all transactions, or show diffs
   printOrDiff rawopts opts{reportopts_=ropts{query_=""}} j j'
 
@@ -52,7 +52,7 @@ transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} =
   where
     q = T.pack $ query_ ropts
     ps = map (parseposting . T.pack) $ listofstringopt "add-posting" rawopts
-    parseposting t = either (error' . errorBundlePretty) id ep
+    parseposting t = either (error' . errorBundlePretty) id ep  -- PARTIAL:
       where
         ep = runIdentity (runJournalParser (postingp Nothing <* eof) t')
         t' = " " <> t <> "\n" -- inject space and newline for proper parsing

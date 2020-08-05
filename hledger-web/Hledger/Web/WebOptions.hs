@@ -134,7 +134,7 @@ rawOptsToWebOpts rawopts =
           maybestringopt "base-url" rawopts
         caps' = join $ T.splitOn "," . T.pack <$> listofstringopt "capabilities" rawopts
         caps = case traverse capabilityFromText caps' of
-          Left e -> error' ("Unknown capability: " ++ T.unpack e)
+          Left e -> error' ("Unknown capability: " ++ T.unpack e)  -- PARTIAL:
           Right [] -> [CapView, CapAdd]
           Right xs -> xs
         sock = stripTrailingSlash <$> maybestringopt "socket" rawopts

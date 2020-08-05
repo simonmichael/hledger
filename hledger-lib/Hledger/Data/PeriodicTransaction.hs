@@ -38,7 +38,7 @@ _ptgen str = do
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
   case checkPeriodicTransactionStartDate i s t of
-    Just e  -> error' e
+    Just e  -> error' e  -- PARTIAL:
     Nothing ->
       mapM_ (putStr . showTransaction) $
         runPeriodicTransaction
@@ -50,7 +50,7 @@ _ptgenspan str span = do
     t = T.pack str
     (i,s) = parsePeriodExpr' nulldate t
   case checkPeriodicTransactionStartDate i s t of
-    Just e  -> error' e
+    Just e  -> error' e  -- PARTIAL:
     Nothing ->
       mapM_ (putStr . showTransaction) $
         runPeriodicTransaction

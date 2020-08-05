@@ -108,7 +108,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       where
         q = queryFromOpts d ropts
         datespanfromargs = queryDateSpan (date2_ ropts) $ fst $
-                           either error' id $ parseQuery d (T.pack $ query_ ropts)
+                           either error' id $ parseQuery d (T.pack $ query_ ropts)  -- PARTIAL:
         periodfromoptsandargs =
           dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
         filteredQueryArg = \case
@@ -130,7 +130,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       Just apat -> (rsSetAccount acct False registerScreen, [ascr'])
         where
           acct = headDef
-                 (error' $ "--register "++apat++" did not match any account")
+                 (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
                  $ filter (regexMatches apat . T.unpack) $ journalAccountNames j
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary UIState value..

@@ -64,7 +64,7 @@ register opts@CliOpts{reportopts_=ropts} j = do
       render | fmt=="txt"  = postingsReportAsText
              | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
              | fmt=="json" = const ((++"\n") . TL.unpack . toJsonText)
-             | otherwise   = const $ error' $ unsupportedOutputFormatError fmt
+             | otherwise   = const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
   writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 
 postingsReportAsCsv :: PostingsReport -> CSV

@@ -90,7 +90,7 @@ journalDefaultFilename  = ".hledger.journal"
 -- | Read a Journal from the given text, assuming journal format; or
 -- throw an error.
 readJournal' :: Text -> IO Journal
-readJournal' t = readJournal def Nothing t >>= either error' return
+readJournal' t = readJournal def Nothing t >>= either error' return  -- PARTIAL:
 
 -- | @readJournal iopts mfile txt@
 --
@@ -116,7 +116,7 @@ readJournal iopts mpath txt = do
 
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
-defaultJournal = defaultJournalPath >>= readJournalFile def >>= either error' return
+defaultJournal = defaultJournalPath >>= readJournalFile def >>= either error' return  -- PARTIAL:
 
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment

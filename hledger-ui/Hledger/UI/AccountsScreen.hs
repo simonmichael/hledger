@@ -116,7 +116,7 @@ asInit d reset ui@UIState{
                         }
 
 
-asInit _ _ _ = error "init function called with wrong screen type, should not happen"
+asInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 asDraw :: UIState -> [Widget Name]
 asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
@@ -222,7 +222,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,("q", str "quit")
               ]
 
-asDraw _ = error "draw function called with wrong screen type, should not happen"
+asDraw _ = error "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
 asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name
 asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
@@ -393,7 +393,7 @@ asHandle ui0@UIState{
   where
     journalspan = journalDateSpan False j
 
-asHandle _ _ = error "event handler called with wrong screen type, should not happen"
+asHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 
 asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
 asSetSelectedAccount _ s = s

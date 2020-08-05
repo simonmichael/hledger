@@ -242,6 +242,7 @@ writeJsonFile f = TL.writeFile f . toJsonText
 readJsonFile :: FromJSON a => FilePath -> IO a
 readJsonFile f = do
   bl <- BL.readFile f
+  -- PARTIAL:
   let v = fromMaybe (error $ "could not decode JSON in "++show f++" to target value")
           (decode bl :: Maybe Value)
   case fromJSON v :: FromJSON a => Result a of

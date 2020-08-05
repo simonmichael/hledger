@@ -34,7 +34,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
     dryrun = boolopt "dry-run" rawopts
     iopts' = iopts{new_=True, new_save_=not dryrun}
   case inputfiles of
-    [] -> error' "please provide one or more input files as arguments"
+    [] -> error' "please provide one or more input files as arguments"  -- PARTIAL:
     fs -> do
       enewj <- readJournalFiles iopts' fs
       case enewj of

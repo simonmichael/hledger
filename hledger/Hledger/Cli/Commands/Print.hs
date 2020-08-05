@@ -62,7 +62,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
         "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
         "json" -> (++"\n") . TL.unpack . toJsonText
         "sql"  -> entriesReportAsSql
-        _      -> const $ error' $ unsupportedOutputFormatError fmt
+        _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
   writeOutput opts $ render $ entriesReport ropts q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String

@@ -110,13 +110,14 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
       filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
 
     -- maybe convert these transactions to cost or value
+    -- PARTIAL:
     prices = journalPriceOracle (infer_value_ ropts) j
     styles = journalCommodityStyles j
     periodlast =
       fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
       reportPeriodOrJournalLastDay ropts j
     mreportlast = reportPeriodLastDay ropts
-    today = fromMaybe (error' "journalApplyValuation: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts
+    today = fromMaybe (error' "journalApplyValuation: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts -- XXX shouldn't happen
     multiperiod = interval_ ropts /= NoInterval
     tval = case value_ ropts of
              Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast today multiperiod t v

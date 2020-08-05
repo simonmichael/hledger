@@ -101,7 +101,7 @@ budgetReport ropts' assrt reportspan d j = dbg1 "sortedbudgetreport" budgetrepor
 -- their purpose is to set goal amounts (of change) per account and period.
 budgetJournal :: Bool -> ReportOpts -> DateSpan -> Journal -> Journal
 budgetJournal assrt _ropts reportspan j =
-  either error' id $ journalBalanceTransactions assrt j{ jtxns = budgetts }
+  either error' id $ journalBalanceTransactions assrt j{ jtxns = budgetts }  -- PARTIAL:
   where
     budgetspan = dbg2 "budgetspan" $ reportspan
     budgetts =
@@ -218,7 +218,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
       (showDateSpan $ periodicReportSpan budgetr)
       (case value_ of
         Just (AtCost _mc)   -> ", valued at cost"
-        Just (AtThen _mc)   -> error' unsupportedValueThenError  -- TODO
+        Just (AtThen _mc)   -> error' unsupportedValueThenError  -- PARTIAL:
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
         -- XXX duplicates the above

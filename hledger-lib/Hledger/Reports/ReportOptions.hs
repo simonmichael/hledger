@@ -327,7 +327,7 @@ intervalFromRawOpts = lastDef NoInterval . collectopts intervalfromrawopt
             (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e)
             extractIntervalOrNothing $
             parsePeriodExpr
-              (error' "intervalFromRawOpts: did not expect to need today's date here") -- should not happen; we are just getting the interval, which does not use the reference date
+              (error' "intervalFromRawOpts: did not expect to need today's date here")  -- PARTIAL: should not happen; we are just getting the interval, which does not use the reference date
               (stripquotes $ T.pack v)
       | n == "daily"     = Just $ Days 1
       | n == "weekly"    = Just $ Weeks 1
@@ -466,7 +466,7 @@ queryFromOpts :: Day -> ReportOpts -> Query
 queryFromOpts d ropts = simplifyQuery . And $ [flagsq, argsq]
   where
     flagsq = queryFromOptsOnly d ropts
-    argsq = fst $ either error' id $ parseQuery d (T.pack $ query_ ropts)  -- TODO:
+    argsq = fst $ either error' id $ parseQuery d (T.pack $ query_ ropts)  -- PARTIAL:
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromOptsOnly :: Day -> ReportOpts -> Query
@@ -484,7 +484,7 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery $ And flagsq
 -- | Convert report options and arguments to query options.
 -- If there is a parsing problem, this function calls error.
 queryOptsFromOpts :: Day -> ReportOpts -> [QueryOpt]
-queryOptsFromOpts d = snd . either error' id . parseQuery d . T.pack . query_
+queryOptsFromOpts d = snd . either error' id . parseQuery d . T.pack . query_  -- PARTIAL:
 
 -- Report dates.
 

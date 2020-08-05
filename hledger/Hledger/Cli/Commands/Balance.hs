@@ -304,6 +304,7 @@ balancemode = hledgerCommandMode
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
 balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
+  -- PARTIAL:
   d <- getCurrentDay
   case lineFormatFromOpts ropts of
     Left err -> error' $ unlines [err]
@@ -494,7 +495,7 @@ multiBalanceReportAsHtml ropts mbr =
 multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], Maybe (Html ()))
 multiBalanceReportHtmlRows ropts mbr =
   let
-    headingsrow:rest | transpose_ ropts = error' "Sorry, --transpose is not supported with HTML output yet"
+    headingsrow:rest | transpose_ ropts = error' "Sorry, --transpose is not supported with HTML output yet"  -- PARTIAL:
                      | otherwise = multiBalanceReportAsCsv ropts mbr
     (bodyrows, mtotalsrow) | no_total_ ropts = (rest,      Nothing)
                            | otherwise       = (init rest, Just $ last rest)
@@ -581,7 +582,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
       (showDateSpan $ periodicReportSpan r)
       (case value_ of
         Just (AtCost _mc)   -> ", valued at cost"
-        Just (AtThen _mc)   -> error' unsupportedValueThenError  -- TODO -- ", valued at period ends"  -- handled like AtEnd for now
+        Just (AtThen _mc)   -> error' unsupportedValueThenError  -- TODO -- ", valued at period ends"  -- handled like AtEnd for now  -- PARTIAL:
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
         -- XXX duplicates the above

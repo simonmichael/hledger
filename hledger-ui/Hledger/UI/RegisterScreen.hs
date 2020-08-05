@@ -135,7 +135,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
                 ts = map rsItemTransaction displayitems
         endidx = length displayitems - 1
 
-rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
+rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDraw :: UIState -> [Widget Name]
 rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
@@ -248,7 +248,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 --               ,("q", "quit")
               ]
 
-rsDraw _ = error "draw function called with wrong screen type, should not happen"
+rsDraw _ = error "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget Name
 rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
@@ -396,7 +396,7 @@ rsHandle ui@UIState{
         MouseDown _ _ _ _ -> continue ui
         MouseUp _ _ _     -> continue ui
 
-rsHandle _ _ = error "event handler called with wrong screen type, should not happen"
+rsHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 

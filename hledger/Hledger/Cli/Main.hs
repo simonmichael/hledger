@@ -140,7 +140,7 @@ main = do
     hasVersion           = ("--version" `elem`)
     hasDetailedVersion   = ("--version+" `elem`)
     printUsage           = putStr $ showModeUsage $ mainmode addons
-    badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
+    badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
     hasHelpFlag args     = any (`elem` args) ["-h","--help"]
     f `orShowHelp` mode
       | hasHelpFlag args = putStr $ showModeUsage mode

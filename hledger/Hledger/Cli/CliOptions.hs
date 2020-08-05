@@ -323,7 +323,7 @@ hledgerCommandMode :: CommandDoc -> [Flag RawOpts] -> [(String, [Flag RawOpts])]
   -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
 hledgerCommandMode doc unnamedflaggroup namedflaggroups hiddenflaggroup argsdescr =
   case parseCommandDoc doc of
-    Nothing -> error' $ "Could not parse command doc:\n"++doc++"\n"
+    Nothing -> error' $ "Could not parse command doc:\n"++doc++"\n"  -- PARTIAL:
     Just (names, shorthelp, longhelplines) ->
       (defCommandMode names) {
          modeHelp        = shorthelp

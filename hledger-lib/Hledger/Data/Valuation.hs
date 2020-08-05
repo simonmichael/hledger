@@ -167,7 +167,7 @@ amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperi
   case v of
     AtCost    Nothing            -> styleAmount styles $ amountCost a
     AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodlast $ styleAmount styles $ amountCost a
-    AtThen    _mc                -> error' unsupportedValueThenError  -- TODO
+    AtThen    _mc                -> error' unsupportedValueThenError  -- PARTIAL:
                                  -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
     AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodlast a
     AtNow     mc                 -> amountValueAtDate priceoracle styles mc today a
@@ -402,7 +402,7 @@ node m = fst . fst . mkNode m
 -- lowest-sorting label is used.
 pathEdgeLabels :: (Show b, Ord b) => Gr a b -> [Node] -> [b]
 pathEdgeLabels g = map frommaybe . map (nodesEdgeLabel g) . pathEdges
-  where frommaybe = fromMaybe (error' "pathEdgeLabels: expected no Nothings here")
+  where frommaybe = fromMaybe (error' "pathEdgeLabels: expected no Nothings here")  -- PARTIAL:
 
 -- | Convert a path to node pairs representing the path's edges.
 pathEdges :: [Node] -> [(Node,Node)]

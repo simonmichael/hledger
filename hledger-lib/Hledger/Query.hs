@@ -282,7 +282,7 @@ parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
         case parseStatus s of Left e   -> Left $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
                               Right st -> Right $ Left $ StatusQ st
 parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Right $ Left $ Real $ parseBool s || T.null s
-parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Right $ Left $ Amt ord q where (ord, q) = either error id $ parseAmountQueryTerm s
+parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Right $ Left $ Amt ord q where (ord, q) = either error id $ parseAmountQueryTerm s  -- PARTIAL:
 parseQueryTerm _ (T.stripPrefix "empty:" -> Just s) = Right $ Left $ Empty $ parseBool s
 parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
   | n >= 0    = Right $ Left $ Depth n

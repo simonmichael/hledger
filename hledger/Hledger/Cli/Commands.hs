@@ -304,7 +304,7 @@ tests_Commands = tests "Commands" [
         let
           ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
           sameParse str1 str2 = do
-            j1 <- readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)
+            j1 <- readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)  -- PARTIAL:
             j2 <- readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
             j1 @?= j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
         sameParse
@@ -322,19 +322,19 @@ tests_Commands = tests "Commands" [
            )
 
     ,test "preserves \"virtual\" posting type" $ do
-      j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
+      j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return  -- PARTIAL:
       let p = head $ tpostings $ head $ jtxns j
       paccount p @?= "test:from"
       ptype p @?= VirtualPosting
     ]
 
   ,test "alias directive" $ do
-    j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
+    j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return  -- PARTIAL:
     let p = head $ tpostings $ head $ jtxns j
     paccount p @?= "equity:draw:personal:food"
 
   ,test "Y default year directive" $ do
-    j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return
+    j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return  -- PARTIAL:
     tdate (head $ jtxns j) @?= fromGregorian 2009 1 1
 
   ,test "ledgerAccountNames" $

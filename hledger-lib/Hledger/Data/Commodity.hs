@@ -59,7 +59,7 @@ commoditysymbols =
 -- | Look up one of the sample commodities' symbol by name.
 comm :: String -> CommoditySymbol
 comm name = snd $ fromMaybe
-              (error' "commodity lookup failed")
+              (error' "commodity lookup failed")  -- PARTIAL:
               (find (\n -> fst n == name) commoditysymbols)
 
 -- | Find the conversion rate between two commodities. Currently returns 1.

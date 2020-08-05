@@ -241,7 +241,7 @@ splitspan start next span@(DateSpan (Just s) (Just e))
           | otherwise = DateSpan (Just subs) (Just sube) : splitspan' start next (DateSpan (Just sube) (Just e))
           where subs = start s
                 sube = next subs
-      splitspan' _ _ _ = error' "won't happen, avoids warnings"
+      splitspan' _ _ _ = error' "won't happen, avoids warnings"  -- PARTIAL:
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -344,7 +344,7 @@ parsePeriodExpr refdate s = parsewith (periodexprp refdate <* eof) (T.toLower s)
 -- | Like parsePeriodExpr, but call error' on failure.
 parsePeriodExpr' :: Day -> Text -> (Interval, DateSpan)
 parsePeriodExpr' refdate s =
-  either (error' . ("failed to parse:" ++) . customErrorBundlePretty) id $
+  either (error' . ("failed to parse:" ++) . customErrorBundlePretty) id $  -- PARTIAL:
   parsePeriodExpr refdate s
 
 maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
@@ -385,6 +385,7 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       span (SmartRel This Year)    = (thisyear refdate, nextyear refdate)
       span (SmartRel Last Year)    = (prevyear refdate, thisyear refdate)
       span (SmartRel Next Year)    = (nextyear refdate, startofyear $ addGregorianYearsClip 2 refdate)
+      -- PARTIAL:
       span s@(SmartYMD Nothing Nothing Nothing)   = error' $ "Ill-defined SmartDate " ++ show s
       span s@(SmartYMD (Just _) Nothing (Just _)) = error' $ "Ill-defined SmartDate " ++ show s
       span (SmartYMD y m (Just d)) = (day, nextday day) where day = fromGregorian (fromMaybe ry y) (fromMaybe rm m) d
@@ -398,7 +399,7 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
 -- the provided reference date, or raise an error.
 fixSmartDateStr :: Day -> Text -> String
 fixSmartDateStr d s =
-  either (error' . printf "could not parse date %s %s" (show s) . show) id $
+  either (error' . printf "could not parse date %s %s" (show s) . show) id $  -- PARTIAL:
   (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text CustomErr) String)
 
 -- | A safe version of fixSmartDateStr.
@@ -562,6 +563,7 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 -- 2017-01-01
 nthdayofyearcontaining :: Month -> MonthDay -> Day -> Day
 nthdayofyearcontaining m md date
+  -- PARTIAL:
   | not (validMonth m)  = error' $ "nthdayofyearcontaining: invalid month "++show m
   | not (validDay   md) = error' $ "nthdayofyearcontaining: invalid day "  ++show md
   | mmddOfSameYear <= date = mmddOfSameYear
@@ -590,6 +592,7 @@ nthdayofyearcontaining m md date
 -- 2017-10-30
 nthdayofmonthcontaining :: MonthDay -> Day -> Day
 nthdayofmonthcontaining md date
+  -- PARTIAL:
   | not (validDay md) = error' $ "nthdayofmonthcontaining: invalid day "  ++show md
   | nthOfSameMonth <= date = nthOfSameMonth
   | otherwise = nthOfPrevMonth
@@ -645,8 +648,10 @@ nthweekdayofmonthcontaining n wd d | nthWeekdaySameMonth <= d  = nthWeekdaySameM
           nthWeekdayPrevMonth = advancetonthweekday n wd $ prevmonth d
 
 -- | Advance to nth weekday wd after given start day s
+-- Can call error.
 advancetonthweekday :: Int -> WeekDay -> Day -> Day
 advancetonthweekday n wd s =
+  -- PARTIAL:
   maybe err (addWeeks (n-1)) $ firstMatch (>=s) $ iterate (addWeeks 1) $ firstweekday s
   where
     err = error' "advancetonthweekday: should not happen"
@@ -694,7 +699,7 @@ parsedateM s = asum [
 -- >>> parsedate "2008/02/03"
 -- 2008-02-03
 parsedate :: String -> Day
-parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
+parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")  -- PARTIAL:
                          (parsedateM s)
 -- doctests I haven't been able to make compatible with both GHC 7 and 8
 -- -- >>> parsedate "2008/02/03/"

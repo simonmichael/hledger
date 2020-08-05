@@ -76,7 +76,7 @@ postingsReport ropts@ReportOpts{..} q j =
       styles      = journalCommodityStyles j
       priceoracle = journalPriceOracle infer_value_ j
       multiperiod = interval_ /= NoInterval
-      today       = fromMaybe (error' "postingsReport: could not pick a valuation date, ReportOpts today_ is unset") today_
+      today       = fromMaybe (error' "postingsReport: could not pick a valuation date, ReportOpts today_ is unset") today_  -- PARTIAL:
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
@@ -95,7 +95,7 @@ postingsReport ropts@ReportOpts{..} q j =
             where
               mreportlast = reportPeriodLastDay ropts
           reportorjournallast =
-            fromMaybe (error' "postingsReport: expected a non-empty journal") $ -- XXX shouldn't happen
+            fromMaybe (error' "postingsReport: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
             reportPeriodOrJournalLastDay ropts j
 
       -- Posting report items ready for display.
@@ -118,7 +118,7 @@ postingsReport ropts@ReportOpts{..} q j =
                   -- XXX constrain valuation type to AtDate daybeforereportstart here ?
                 where
                   daybeforereportstart =
-                    maybe (error' "postingsReport: expected a non-empty journal") -- XXX shouldn't happen
+                    maybe (error' "postingsReport: expected a non-empty journal")  -- PARTIAL: shouldn't happen
                     (addDays (-1))
                     $ reportPeriodOrJournalStart ropts j
 

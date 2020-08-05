@@ -214,7 +214,7 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
 #endif
         (0.000000000001,10000) (interestSum spanEnd totalCF) of
         Root rate -> return ((rate-1)*100)
-        NotBracketed -> error' "Error: No solution -- not bracketed."
+        NotBracketed -> error' "Error: No solution -- not bracketed."  -- PARTIAL:
         SearchFailed -> error' "Error: Failed to find solution."
 
 type CashFlow = [(Day, Quantity)]
@@ -236,5 +236,5 @@ unMix :: MixedAmount -> Quantity
 unMix a =
   case (normaliseMixedAmount $ mixedAmountCost a) of
     (Mixed [a]) -> aquantity a
-    _ -> error' "MixedAmount failed to normalize"
+    _ -> error' "MixedAmount failed to normalize"  -- PARTIAL:
 

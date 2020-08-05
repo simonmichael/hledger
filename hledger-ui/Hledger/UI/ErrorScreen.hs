@@ -41,7 +41,7 @@ errorScreen = ErrorScreen{
 
 esInit :: Day -> Bool -> UIState -> UIState
 esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
-esInit _ _ _ = error "init function called with wrong screen type, should not happen"
+esInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 esDraw :: UIState -> [Widget Name]
 esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
@@ -72,7 +72,7 @@ esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
               ,("q", "quit")
               ]
 
-esDraw _ = error "draw function called with wrong screen type, should not happen"
+esDraw _ = error "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
 esHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 esHandle ui@UIState{aScreen=ErrorScreen{..}
@@ -111,7 +111,7 @@ esHandle ui@UIState{aScreen=ErrorScreen{..}
         VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
         _ -> continue ui
 
-esHandle _ _ = error "event handler called with wrong screen type, should not happen"
+esHandle _ _ = error "event handler called with wrong screen type, should not happen"  -- PARTIAL:
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX

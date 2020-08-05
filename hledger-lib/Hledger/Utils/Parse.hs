@@ -108,7 +108,7 @@ fromparse
 fromparse = either parseerror id
 
 parseerror :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> a
-parseerror e = error' $ showParseError e
+parseerror e = error' $ showParseError e  -- PARTIAL:
 
 showParseError
   :: (Show t, Show (Token t), Show e)

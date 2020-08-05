@@ -130,6 +130,7 @@ replaceMatch replpat s matchgroups = pre ++ repl ++ post
 replaceBackReference :: MatchText String -> String -> String
 replaceBackReference grps ('\\':s@(_:_)) | all isDigit s =
   case read s of n | n `elem` indices grps -> fst (grps ! n)
+  -- PARTIAL:D
                  _                         -> error' $ "no match group exists for backreference \"\\"++s++"\""
 replaceBackReference _ s = error' $ "replaceBackReference called on non-numeric-backreference \""++s++"\", shouldn't happen"
 

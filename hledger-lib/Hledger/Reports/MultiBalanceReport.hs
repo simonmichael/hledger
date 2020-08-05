@@ -318,7 +318,7 @@ accumValueAmounts :: ReportOpts -> Journal -> PriceOracle -> [DateSpan]
                   -> HashMap ClippedAccountName Account
                   -> HashMap ClippedAccountName (Map DateSpan Account)
                   -> HashMap ClippedAccountName (Map DateSpan Account)
-accumValueAmounts ropts j priceoracle colspans startbals acctchanges =
+accumValueAmounts ropts j priceoracle colspans startbals acctchanges =  -- PARTIAL:
     HM.mapWithKey processRow $ acctchanges <> (mempty <$ startbals)
   where
     -- Must accumulate before valuing, since valuation can change without any
@@ -565,10 +565,13 @@ subaccountTallies as = foldr incrementParent mempty allaccts
     allaccts = expandAccountNames as
     incrementParent a = HM.insertWith (+) (parentAccountName a) 1
 
--- | Helper to calculate the percentage from two mixed. Keeps the sign of the first argument.
+-- | A helper: what percentage is the second mixed amount of the first ?
+-- Keeps the sign of the first amount.
 -- Uses unifyMixedAmount to unify each argument and then divides them.
+-- Both amounts should be in the same, single commodity.
+-- This can call error if the arguments are not right.
 perdivide :: MixedAmount -> MixedAmount -> MixedAmount
-perdivide a b = fromMaybe (error' errmsg) $ do
+perdivide a b = fromMaybe (error' errmsg) $ do  -- PARTIAL:
     a' <- unifyMixedAmount a
     b' <- unifyMixedAmount b
     guard $ amountIsZero a' || amountIsZero b' || acommodity a' == acommodity b'

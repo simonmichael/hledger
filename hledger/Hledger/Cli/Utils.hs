@@ -73,7 +73,7 @@ withJournalDo opts cmd = do
   journalpaths <- journalFilePathFromOpts opts
   readJournalFiles (inputopts_ opts) journalpaths
   >>= mapM (journalTransform opts)
-  >>= either error' cmd
+  >>= either error' cmd  -- PARTIAL:
 
 -- | Apply some extra post-parse transformations to the journal, if
 -- specified by options. These happen after journal validation, but
@@ -139,7 +139,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
                        ]
       -- With --auto enabled, transaction modifiers are also applied to forecast txns
       forecasttxns' =
-        (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)
+        (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
         forecasttxns
 
   return $
@@ -150,7 +150,7 @@ journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
     journalBalanceTransactions' iopts j =
       let assrt = not . ignore_assertions_ $ iopts
       in
-       either error' id $ journalBalanceTransactions assrt j
+       either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.

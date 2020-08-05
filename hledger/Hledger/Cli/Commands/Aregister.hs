@@ -74,10 +74,10 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   d <- getCurrentDay
   -- the first argument specifies the account, any remaining arguments are a filter query
   let args' = listofstringopt "args" rawopts
-  when (null args') $ error' "aregister needs an account, please provide an account name or pattern"
+  when (null args') $ error' "aregister needs an account, please provide an account name or pattern"  -- PARTIAL:
   let
     (apat:queryargs) = args'
-    acct = headDef (error' $ show apat++" did not match any account") $
+    acct = headDef (error' $ show apat++" did not match any account") $  -- PARTIAL:
            filter (regexMatches apat . T.unpack) $ journalAccountNames j
     -- gather report options
     inclusive = True  -- tree_ ropts
@@ -108,7 +108,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     render | fmt=="json" = (++"\n") . T.unpack . TL.toStrict . encodeToLazyText . toJSON
            | fmt=="csv"  = (++"\n") . printCSV . accountTransactionsReportAsCsv reportq thisacctq
            | fmt=="txt"  = accountTransactionsReportAsText opts reportq thisacctq
-           | otherwise   = const $ error' $ unsupportedOutputFormatError fmt
+           | otherwise   = const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
         fmt = outputFormatFromOpts opts
 

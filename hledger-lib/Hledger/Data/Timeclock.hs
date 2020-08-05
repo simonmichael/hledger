@@ -94,7 +94,7 @@ entryFromTimeclockInOut :: TimeclockEntry -> TimeclockEntry -> Transaction
 entryFromTimeclockInOut i o
     | otime >= itime = t
     | otherwise =
-        error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
+        error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t  -- PARTIAL:
     where
       t = Transaction {
             tindex       = 0,

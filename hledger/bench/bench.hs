@@ -34,7 +34,7 @@ main = do
 benchWithTimeit = do
   getCurrentDirectory >>= printf "Benchmarking hledger in %s with timeit\n"
   let opts = defcliopts{output_file_=Just outputfile}
-  (t0,j) <- timeit ("read "++inputfile) $ either error id <$> readJournalFile def inputfile
+  (t0,j) <- timeit ("read "++inputfile) $ either error id <$> readJournalFile def inputfile  -- PARTIAL:
   (t1,_) <- timeit ("print") $ print' opts j
   (t2,_) <- timeit ("register") $ register opts j
   (t3,_) <- timeit ("balance") $ balance  opts j
@@ -50,9 +50,9 @@ timeit name action = do
 benchWithCriterion = do
   getCurrentDirectory >>= printf "Benchmarking hledger in %s with criterion\n"
   let opts = defcliopts{output_file_=Just "/dev/null"}
-  j <- either error id <$> readJournalFile def inputfile
+  j <- either error id <$> readJournalFile def inputfile  -- PARTIAL:
   Criterion.Main.defaultMainWith defaultConfig $ [
-    bench ("read "++inputfile) $ nfIO $ (either error const <$> readJournalFile def inputfile),
+    bench ("read "++inputfile) $ nfIO $ (either error const <$> readJournalFile def inputfile),  -- PARTIAL:
     bench ("print")            $ nfIO $ print'   opts j,
     bench ("register")         $ nfIO $ register opts j,
     bench ("balance")          $ nfIO $ balance  opts j,

@@ -162,7 +162,8 @@ applyN n f | n < 1     = id
 expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
 expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandHomePath p
-
+-- PARTIAL:
+  
 -- | Expand user home path indicated by tilde prefix
 expandHomePath :: FilePath -> IO FilePath
 expandHomePath = \case
