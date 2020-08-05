@@ -16,6 +16,7 @@
 
 module Hledger.Web.Foundation where
 
+import Control.Applicative ((<|>))
 import Control.Monad (join, when)
 import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
@@ -201,14 +202,25 @@ getViewData = do
   App {appOpts = opts, appJournal} <- getYesod
   today <- liftIO getCurrentDay
   let copts = cliopts_ opts
-  (j, merr) <-
-    getCurrentJournal
-      appJournal
-      copts {reportopts_ = (reportopts_ copts) {no_elide_ = True}}
-      today
-  maybe (pure ()) (setMessage . toHtml) merr
+
+  -- try to read the latest journal content, keeping the old content
+  -- if there's an error
+  (j, mjerr) <- getCurrentJournal
+                appJournal
+                copts {reportopts_ = (reportopts_ copts) {no_elide_ = True}}
+                today
+
+  -- try to parse the query param, assuming no query if there's an error
   q <- fromMaybe "" <$> lookupGetParam "q"
-  let (m, qopts) = parseQuery today q
+  (m, qopts, mqerr) <- do
+    case parseQuery today q of
+      Right (m, qopts) -> return (m, qopts, Nothing)
+      Left err         -> return (Any, [], Just err)
+
+  -- if either of the above gave an error, display it
+  maybe (pure ()) (setMessage . toHtml) $ mjerr <|> mqerr
+
+  -- do some permissions checking
   caps <- case capabilitiesHeader_ opts of
     Nothing -> return (capabilities_ opts)
     Just h -> do
@@ -216,7 +228,8 @@ getViewData = do
       fmap join . for (join hs) $ \x -> case capabilityFromBS x of
         Left e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml (BC.unpack e))
         Right c -> pure [c]
-  return VD {opts, today, j, q, m, qopts, caps}
+
+  return VD{opts, today, j, q, m, qopts, caps}
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do
