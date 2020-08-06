@@ -69,16 +69,16 @@ type Replacement = String
 -- | Convert our string-based Regexp to a real Regex.
 -- Or if it's not well formed, call error with a "malformed regexp" message.
 toRegex :: Regexp -> Regex
-toRegex = memo (compileRegexOrError defaultCompOpt defaultExecOpt)
+toRegex = memo (compileRegexOrError defaultCompOpt defaultExecOpt)  -- PARTIAL:
 
 -- | Like toRegex but make a case-insensitive Regex.
 toRegexCI :: Regexp -> Regex
-toRegexCI = memo (compileRegexOrError defaultCompOpt{caseSensitive=False} defaultExecOpt)
+toRegexCI = memo (compileRegexOrError defaultCompOpt{caseSensitive=False} defaultExecOpt)  -- PARTIAL:
 
 compileRegexOrError :: CompOption -> ExecOption -> Regexp -> Regex
 compileRegexOrError compopt execopt r =
   fromMaybe
-  (errorWithoutStackTrace $ "this regular expression could not be compiled: " ++ show r) $
+  (error' $ "this regular expression could not be compiled: " ++ show r) $  -- PARTIAL:
   makeRegexOptsM compopt execopt r
 
 -- regexMatch' :: RegexContext Regexp String a => Regexp -> String -> a
