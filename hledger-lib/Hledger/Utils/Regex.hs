@@ -153,9 +153,12 @@ replaceRegex re repl s = foldl (replaceMatch repl) s (reverse $ match re s :: [M
 --------------------------------------------------------------------------------
 -- new total functions
 
+-- | Does this regexp match the given string ?
+-- Or return an error if the regexp is malformed.
 regexMatches_ :: Regexp -> String -> Either Error Bool
 regexMatches_ r s = (`match` s) <$> toRegex_ r
 
+-- | Like regexMatches_ but match case-insensitively.
 regexMatchesCI_ :: Regexp -> String -> Either Error Bool
 regexMatchesCI_ r s = (`match` s) <$> toRegexCI_ r
 
@@ -165,6 +168,7 @@ regexMatchesCI_ r s = (`match` s) <$> toRegexCI_ r
 regexReplace_ :: Regexp -> Replacement -> String -> Either Error String
 regexReplace_ re repl s = toRegex_ re >>= \rx -> replaceRegex_ rx repl s
 
+-- | Like regexReplace_ but match occurrences case-insensitively.
 regexReplaceCI_ :: Regexp -> Replacement -> String -> Either Error String
 regexReplaceCI_ re repl s = toRegexCI_ re >>= \rx -> replaceRegex_ rx repl s
 
@@ -173,6 +177,7 @@ regexReplaceCI_ re repl s = toRegexCI_ re >>= \rx -> replaceRegex_ rx repl s
 regexReplaceMemo_ :: Regexp -> Replacement -> String -> Either Error String
 regexReplaceMemo_ re repl = memo (regexReplace_ re repl)
 
+-- | Like regexReplaceMemo_ but match occurrences case-insensitively.
 regexReplaceCIMemo_ :: Regexp -> Replacement -> String -> Either Error String
 regexReplaceCIMemo_ re repl = memo (regexReplaceCI_ re repl)
 
@@ -181,26 +186,29 @@ regexReplaceCIMemo_ re repl = memo (regexReplaceCI_ re repl)
 regexReplaceBy_ :: Regexp -> (String -> String) -> String -> Either Error String
 regexReplaceBy_ r f s = toRegex_ r >>= \rx -> Right $ replaceAllBy rx f s
 
+-- | Like regexReplaceBy_ but match occurrences case-insensitively.
 regexReplaceByCI_ :: Regexp -> (String -> String) -> String -> Either Error String
 regexReplaceByCI_ r f s = toRegexCI_ r >>= \rx -> Right $ replaceAllBy rx f s
 
 -- helpers:
 
--- | Convert our string-based Regexp to a real Regex, or return a parse error.
+-- Convert a Regexp string to a compiled Regex, or return an error message.
 toRegex_ :: Regexp -> Either Error Regex
 toRegex_ = memo (compileRegex_ defaultCompOpt defaultExecOpt)
 
--- | Convert our string-based Regexp to a case-insensitive real Regex,
--- or return a parse error.
+-- Like toRegex, but make a case-insensitive Regex.
 toRegexCI_ :: Regexp -> Either Error Regex
 toRegexCI_ = memo (compileRegex_ defaultCompOpt{caseSensitive=False} defaultExecOpt)
 
+-- Compile a Regexp string to a Regex with the given options, or return an
+-- error message if this fails.
 compileRegex_ :: CompOption -> ExecOption -> Regexp -> Either Error Regex
 compileRegex_ compopt execopt r =
   maybe (Left $ "this regular expression could not be compiled: " ++ show r) Right $
   makeRegexOptsM compopt execopt r
 
--- Replace this regular expression with this replacement pattern in this string, or return an error message.
+-- Replace this regular expression with this replacement pattern in this
+-- string, or return an error message.
 replaceRegex_ :: Regex -> Replacement -> String -> Either Error String
 replaceRegex_ re repl s = foldM (replaceMatch_ repl) s (reverse $ match re s :: [MatchText String])
   where
@@ -228,10 +236,10 @@ replaceRegex_ re repl s = foldM (replaceMatch_ repl) s (reverse $ match re s :: 
 
 -- helpers
 
--- Adapted from http://stackoverflow.com/questions/9071682/replacement-substition-with-haskell-regex-libraries:
+-- adapted from http://stackoverflow.com/questions/9071682/replacement-substition-with-haskell-regex-libraries:
 
--- | Replace all occurrences of a regexp in a string, transforming each match
--- with the given function.
+-- Replace all occurrences of a regexp in a string, transforming each match
+-- with the given pure function.
 replaceAllBy :: Regex -> (String -> String) -> String -> String
 replaceAllBy re transform s = prependdone rest
   where
@@ -244,10 +252,10 @@ replaceAllBy re transform s = prependdone rest
               (matched, rest) = splitAt len matchandrest
           in (off + len, rest, prepend . (prematch++) . (transform matched ++))
 
--- | Replace all occurrences of a regexp in a string, transforming each match
--- with the given monadic transform function. Eg if the monad is Either, a
--- Left result from the transform function short-circuits and is returned as
--- the overall result.
+-- Replace all occurrences of a regexp in a string, transforming each match
+-- with the given monadic function. Eg if the monad is Either, a Left result
+-- from the transform function short-circuits and is returned as the overall
+-- result.
 replaceAllByM :: forall m. Monad m => Regex -> (String -> m String) -> String -> m String
 replaceAllByM re transform s =
   foldM go (0, s, id) matches >>= \(_, rest, prependdone) -> pure $ prependdone rest
