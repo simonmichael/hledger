@@ -521,13 +521,17 @@ regexaliasp :: TextParser m AccountAlias
 regexaliasp = do
   -- dbgparse 0 "regexaliasp"
   char '/'
+  off1 <- getOffset
   re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
+  off2 <- getOffset
   char '/'
   skipNonNewlineSpaces
   char '='
   skipNonNewlineSpaces
   repl <- anySingle `manyTill` eolof
-  return $ RegexAlias re repl
+  case toRegex_ re of
+    Right _ -> return $! RegexAlias re repl
+    Left e  -> customFailure $! parseErrorAtRegion off1 off2 e
 
 endaliasesdirectivep :: JournalParser m ()
 endaliasesdirectivep = do

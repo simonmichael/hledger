@@ -68,6 +68,7 @@ module Hledger.Data.Posting (
 )
 where
 
+import Control.Monad (foldM)
 import Data.Foldable (asum)
 import Data.List.Extra (nubSort)
 import qualified Data.Map as M
@@ -289,17 +290,18 @@ concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map a
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
 -- Each alias sees the result of applying the previous aliases.
-accountNameApplyAliases :: [AccountAlias] -> AccountName -> AccountName
-accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
-  where
-    (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
-    aname' = foldl
-             (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
-             aname
-             aliases
+-- Or, return any error arising from a bad regular expression in the aliases.
+accountNameApplyAliases :: [AccountAlias] -> AccountName -> Either RegexError AccountName
+accountNameApplyAliases aliases a =
+  let (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
+  in foldM
+     (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
+     aname
+     aliases
+     >>= Right . accountNameWithPostingType atype
 
 -- | Memoising version of accountNameApplyAliases, maybe overkill.
-accountNameApplyAliasesMemo :: [AccountAlias] -> AccountName -> AccountName
+accountNameApplyAliasesMemo :: [AccountAlias] -> AccountName -> Either RegexError AccountName
 accountNameApplyAliasesMemo aliases = memo (accountNameApplyAliases aliases)
   -- XXX re-test this memoisation
 
@@ -307,11 +309,13 @@ accountNameApplyAliasesMemo aliases = memo (accountNameApplyAliases aliases)
 -- aliasMatches (BasicAlias old _) a = old `isAccountNamePrefixOf` a
 -- aliasMatches (RegexAlias re  _) a = regexMatchesCI re a
 
-aliasReplace :: AccountAlias -> AccountName -> AccountName
+aliasReplace :: AccountAlias -> AccountName -> Either RegexError AccountName
 aliasReplace (BasicAlias old new) a
-  | old `isAccountNamePrefixOf` a || old == a = new <> T.drop (T.length old) a
-  | otherwise = a
-aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.unpack a -- XXX
+  | old `isAccountNamePrefixOf` a || old == a =
+      Right $ new <> T.drop (T.length old) a
+  | otherwise = Right a
+aliasReplace (RegexAlias re repl) a =
+  fmap T.pack $ regexReplaceCIMemo_ re repl $ T.unpack a -- XXX
 
 -- | Apply a specified valuation to this posting's amount, using the
 -- provided price oracle, commodity styles, reference dates, and

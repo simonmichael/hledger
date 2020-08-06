@@ -566,16 +566,23 @@ yearorintp = do
 -- | Parse an account name (plus one following space if present),
 -- then apply any parent account prefix and/or account aliases currently in effect,
 -- in that order. (Ie first add the parent account prefix, then rewrite with aliases).
+-- This calls error if any account alias with an invalid regular expression exists.
 modifiedaccountnamep :: JournalParser m AccountName
 modifiedaccountnamep = do
-  parent <- getParentAccount
+  parent  <- getParentAccount
   aliases <- getAccountAliases
-  a <- lift accountnamep
-  return $!
-    accountNameApplyAliases aliases $
-     -- XXX accountNameApplyAliasesMemo ? doesn't seem to make a difference (retest that function)
-    joinAccountNames parent
-    a
+  -- off1    <- getOffset
+  a       <- lift accountnamep
+  -- off2    <- getOffset
+  -- XXX or accountNameApplyAliasesMemo ? doesn't seem to make a difference (retest that function)
+  case accountNameApplyAliases aliases $ joinAccountNames parent a of
+    Right a' -> return $! a'
+    -- should not happen, regexaliasp will have displayed a better error already:
+    -- (XXX why does customFailure cause error to be displayed there, but not here ?)
+    -- Left e  -> customFailure $! parseErrorAtRegion off1 off2 err
+    Left e   -> error' err  -- PARTIAL:
+      where
+        err = "problem in account alias applied to "++T.unpack a++": "++e
 
 -- | Parse an account name, plus one following space if present.
 -- Account names have one or more parts separated by the account separator character,
