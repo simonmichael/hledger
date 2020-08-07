@@ -285,7 +285,7 @@ Income Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
 >>>= 0
 
 # 8. Percentage test
-hledger -f sample.journal incomestatement -p 'quarterly 2008' -T --average -%
+hledger -f sample.journal incomestatement -p 'quarterly 2008' -T --average -% --no-total
 >>>
 Income Statement 2008
 
