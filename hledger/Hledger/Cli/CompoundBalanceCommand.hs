@@ -101,10 +101,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
             _            -> Nothing
       balancetype = fromMaybe cbctype mBalanceTypeOverride
       -- Set balance type in the report options.
-      ropts' = ropts{
-        balancetype_=balancetype,
-        no_total_=if percent_ && length cbcqueries > 1 then True else no_total_
-      }
+      ropts' = ropts{balancetype_=balancetype}
 
       title =
         cbctitle
