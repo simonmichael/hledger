@@ -370,27 +370,26 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
       (ry,rm,_) = toGregorian refdate
       (b,e) = span sdate
       span :: SmartDate -> (Day,Day)
-      span (SmartRel This Day)     = (refdate, nextday refdate)
-      span (SmartRel Last Day)     = (prevday refdate, refdate)
-      span (SmartRel Next Day)     = (nextday refdate, addDays 2 refdate)
-      span (SmartRel This Week)    = (thisweek refdate, nextweek refdate)
-      span (SmartRel Last Week)    = (prevweek refdate, thisweek refdate)
-      span (SmartRel Next Week)    = (nextweek refdate, startofweek $ addDays 14 refdate)
-      span (SmartRel This Month)   = (thismonth refdate, nextmonth refdate)
-      span (SmartRel Last Month)   = (prevmonth refdate, thismonth refdate)
-      span (SmartRel Next Month)   = (nextmonth refdate, startofmonth $ addGregorianMonthsClip 2 refdate)
-      span (SmartRel This Quarter) = (thisquarter refdate, nextquarter refdate)
-      span (SmartRel Last Quarter) = (prevquarter refdate, thisquarter refdate)
-      span (SmartRel Next Quarter) = (nextquarter refdate, startofquarter $ addGregorianMonthsClip 6 refdate)
-      span (SmartRel This Year)    = (thisyear refdate, nextyear refdate)
-      span (SmartRel Last Year)    = (prevyear refdate, thisyear refdate)
-      span (SmartRel Next Year)    = (nextyear refdate, startofyear $ addGregorianYearsClip 2 refdate)
-      -- PARTIAL:
-      span s@(SmartYMD Nothing Nothing Nothing)   = error' $ "Ill-defined SmartDate " ++ show s
-      span s@(SmartYMD (Just _) Nothing (Just _)) = error' $ "Ill-defined SmartDate " ++ show s
-      span (SmartYMD y m (Just d)) = (day, nextday day) where day = fromGregorian (fromMaybe ry y) (fromMaybe rm m) d
-      span (SmartYMD y (Just m) Nothing) = (startofmonth day, nextmonth day) where day = fromGregorian (fromMaybe ry y) m 1
-      span (SmartYMD (Just y) Nothing Nothing) = (startofyear day, nextyear day) where day = fromGregorian y 1 1
+      span (SmartRelative This Day)                 = (refdate, nextday refdate)
+      span (SmartRelative Last Day)                 = (prevday refdate, refdate)
+      span (SmartRelative Next Day)                 = (nextday refdate, addDays 2 refdate)
+      span (SmartRelative This Week)                = (thisweek refdate, nextweek refdate)
+      span (SmartRelative Last Week)                = (prevweek refdate, thisweek refdate)
+      span (SmartRelative Next Week)                = (nextweek refdate, startofweek $ addDays 14 refdate)
+      span (SmartRelative This Month)               = (thismonth refdate, nextmonth refdate)
+      span (SmartRelative Last Month)               = (prevmonth refdate, thismonth refdate)
+      span (SmartRelative Next Month)               = (nextmonth refdate, startofmonth $ addGregorianMonthsClip 2 refdate)
+      span (SmartRelative This Quarter)             = (thisquarter refdate, nextquarter refdate)
+      span (SmartRelative Last Quarter)             = (prevquarter refdate, thisquarter refdate)
+      span (SmartRelative Next Quarter)             = (nextquarter refdate, startofquarter $ addGregorianMonthsClip 6 refdate)
+      span (SmartRelative This Year)                = (thisyear refdate, nextyear refdate)
+      span (SmartRelative Last Year)                = (prevyear refdate, thisyear refdate)
+      span (SmartRelative Next Year)                = (nextyear refdate, startofyear $ addGregorianYearsClip 2 refdate)
+      span (SmartAssumeStart y Nothing)             = (startofyear day, nextyear day) where day = fromGregorian y 1 1
+      span (SmartAssumeStart y (Just (m, Nothing))) = (startofmonth day, nextmonth day) where day = fromGregorian y m 1
+      span (SmartAssumeStart y (Just (m, Just d)))  = (day, nextday day) where day = fromGregorian y m d
+      span (SmartFromReference m d)                 = (day, nextday day) where day = fromGregorian ry (fromMaybe rm m) d
+      span (SmartMonth m)                           = (startofmonth day, nextmonth day) where day = fromGregorian ry m 1
 
 -- showDay :: Day -> String
 -- showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
@@ -489,23 +488,24 @@ fixSmartDate :: Day -> SmartDate -> Day
 fixSmartDate refdate = fix
   where
     fix :: SmartDate -> Day
-    fix (SmartRel This Day)     = refdate
-    fix (SmartRel Last Day)     = prevday refdate
-    fix (SmartRel Next Day)     = nextday refdate
-    fix (SmartRel This Week)    = thisweek refdate
-    fix (SmartRel Last Week)    = prevweek refdate
-    fix (SmartRel Next Week)    = nextweek refdate
-    fix (SmartRel This Month)   = thismonth refdate
-    fix (SmartRel Last Month)   = prevmonth refdate
-    fix (SmartRel Next Month)   = nextmonth refdate
-    fix (SmartRel This Quarter) = thisquarter refdate
-    fix (SmartRel Last Quarter) = prevquarter refdate
-    fix (SmartRel Next Quarter) = nextquarter refdate
-    fix (SmartRel This Year)    = thisyear refdate
-    fix (SmartRel Last Year)    = prevyear refdate
-    fix (SmartRel Next Year)    = nextyear refdate
-    fix (SmartYMD Nothing Nothing (Just d)) = fromGregorian ry rm d
-    fix (SmartYMD my mm md)     = fromGregorian (fromMaybe ry my) (fromMaybe 1 mm) (fromMaybe 1 md)
+    fix (SmartRelative This Day)     = refdate
+    fix (SmartRelative Last Day)     = prevday refdate
+    fix (SmartRelative Next Day)     = nextday refdate
+    fix (SmartRelative This Week)    = thisweek refdate
+    fix (SmartRelative Last Week)    = prevweek refdate
+    fix (SmartRelative Next Week)    = nextweek refdate
+    fix (SmartRelative This Month)   = thismonth refdate
+    fix (SmartRelative Last Month)   = prevmonth refdate
+    fix (SmartRelative Next Month)   = nextmonth refdate
+    fix (SmartRelative This Quarter) = thisquarter refdate
+    fix (SmartRelative Last Quarter) = prevquarter refdate
+    fix (SmartRelative Next Quarter) = nextquarter refdate
+    fix (SmartRelative This Year)    = thisyear refdate
+    fix (SmartRelative Last Year)    = prevyear refdate
+    fix (SmartRelative Next Year)    = nextyear refdate
+    fix (SmartAssumeStart y md)      = fromGregorian y (maybe 1 fst md) (fromMaybe 1 $ snd =<< md)
+    fix (SmartFromReference m d)     = fromGregorian ry (fromMaybe rm m) d
+    fix (SmartMonth m)               = fromGregorian ry m 1
     (ry, rm, _) = toGregorian refdate
 
 prevday :: Day -> Day
@@ -748,15 +748,15 @@ Eg:
 YYYYMMDD is parsed as year-month-date if those parts are valid
 (>=4 digits, 1-12, and 1-31 respectively):
 >>> parsewith (smartdate <* eof) "20181201"
-Right (SmartYMD (Just 2018) (Just 12) (Just 1))
+Right (SmartAssumeStart 2018 (Just (12,Just 1)))
 
 YYYYMM is parsed as year-month-01 if year and month are valid:
 >>> parsewith (smartdate <* eof) "201804"
-Right (SmartYMD (Just 2018) (Just 4) Nothing)
+Right (SmartAssumeStart 2018 (Just (4,Nothing)))
 
 With an invalid month, it's parsed as a year:
 >>> parsewith (smartdate <* eof) "201813"
-Right (SmartYMD (Just 201813) Nothing Nothing)
+Right (SmartAssumeStart 201813 Nothing)
 
 A 9+ digit number beginning with valid YYYYMMDD gives an error:
 >>> parsewith (smartdate <* eof) "201801012"
@@ -764,27 +764,25 @@ Left (...)
 
 Big numbers not beginning with a valid YYYYMMDD are parsed as a year:
 >>> parsewith (smartdate <* eof) "201813012"
-Right (SmartYMD (Just 201813012) Nothing Nothing)
+Right (SmartAssumeStart 201813012 Nothing)
 
 -}
 smartdate :: TextParser m SmartDate
 smartdate = choice'
   -- XXX maybe obscures date errors ? see ledgerdate
-    [ yyyymmdd, md, ymd, smartYear, smartDay, month, mon
-    , SmartRel This Day <$ string' "today"
-    , SmartRel Last Day <$ string' "yesterday"
-    , SmartRel Next Day <$ string' "tomorrow"
-    , liftA2 SmartRel (seqP <* skipNonNewlineSpaces) intervalP
+    [ yyyymmdd, ymd
+    , (\(m,d) -> SmartFromReference (Just m) d) <$> md
+    , (SmartFromReference Nothing <$> decimal) >>= failIfInvalidDate
+    , SmartMonth <$> (month <|> mon)
+    , SmartRelative This Day <$ string' "today"
+    , SmartRelative Last Day <$ string' "yesterday"
+    , SmartRelative Next Day <$ string' "tomorrow"
+    , liftA2 SmartRelative (seqP <* skipNonNewlineSpaces) intervalP
     ]
   where
     seqP = choice [This <$ string' "this", Last <$ string' "last", Next <$ string' "next"]
     intervalP = choice [Day <$ string' "day", Week <$ string' "week", Month <$ string' "month",
                         Quarter <$ string' "quarter", Year <$ string' "year"]
-    smartYear = (\y -> SmartYMD (Just y) Nothing Nothing) <$> yearp
-    smartDay = do
-      d <- SmartYMD Nothing Nothing . Just <$> decimal
-      failIfInvalidDate d
-      return d
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
 smartdateonly :: TextParser m SmartDate
@@ -803,38 +801,35 @@ validMonth, validDay :: Int -> Bool
 validMonth n = n >= 1 && n <= 12
 validDay n = n >= 1 && n <= 31
 
-failIfInvalidDate :: Fail.MonadFail m => SmartDate -> m ()
-failIfInvalidDate s@(SmartYMD y m d) = unless isValid $ Fail.fail $ "bad smart date: " ++ show s
-  where isValid = isJust $ fromGregorianValid (fromMaybe 2004 y) (fromMaybe 1 m) (fromMaybe 1 d)
-failIfInvalidDate _ = return ()
+failIfInvalidDate :: Fail.MonadFail m => SmartDate -> m SmartDate
+failIfInvalidDate s = unless isValid (Fail.fail $ "bad smart date: " ++ show s) *> return s
+  where isValid = case s of
+            SmartAssumeStart y (Just (m, md)) -> isJust $ fromGregorianValid y m (fromMaybe 1 md)
+            SmartFromReference mm d           -> isJust $ fromGregorianValid 2004 (fromMaybe 1 mm) d
+            SmartMonth m                      -> validMonth m
+            _                                 -> True
 
 yyyymmdd :: TextParser m SmartDate
 yyyymmdd = do
   y <- read <$> count 4 digitChar
   m <- read <$> count 2 digitChar
   d <- optional $ read <$> count 2 digitChar
-  let date = SmartYMD (Just y) (Just m) d
+  let date = SmartAssumeStart y $ Just (m, d)
   failIfInvalidDate date
-  return date
 
 ymd :: TextParser m SmartDate
-ymd = do
-  y <- yearp
-  sep <- datesepchar
-  m <- decimal
-  d <- optional $ char sep *> decimal
-  let date = SmartYMD (Just y) (Just m) d
-  failIfInvalidDate date
-  return date
+ymd = liftA2 SmartAssumeStart yearp (optional $ try monthday) >>= failIfInvalidDate
+  where monthday = do
+            sep <- datesepchar
+            liftA2 (,) decimal . optional $ char sep *> decimal
 
-md :: TextParser m SmartDate
+md :: TextParser m (Month, MonthDay)
 md = do
   m <- decimal
   datesepchar
   d <- decimal
-  let date = SmartYMD Nothing (Just m) (Just d)
-  failIfInvalidDate date
-  return date
+  _ <- failIfInvalidDate $ SmartFromReference (Just m) d
+  return (m, d)
 
 -- | Parse a year number from a Text, making sure that at least four digits are
 -- used.
@@ -851,9 +846,9 @@ monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","n
 weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
 weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
-month, mon :: TextParser m SmartDate
-month = choice $ zipWith (\i m -> SmartYMD Nothing (Just i) Nothing <$ string' m) [1..12] months
-mon   = choice $ zipWith (\i m -> SmartYMD Nothing (Just i) Nothing <$ string' m) [1..12] monthabbrevs
+month, mon :: TextParser m Month
+month = choice $ zipWith (\i m -> i <$ string' m) [1..12] months
+mon   = choice $ zipWith (\i m -> i <$ string' m) [1..12] monthabbrevs
 
 weekday :: TextParser m Int
 weekday = do
@@ -920,10 +915,9 @@ weekday = do
 periodexprp :: Day -> TextParser m (Interval, DateSpan)
 periodexprp rdate = do
   skipNonNewlineSpaces
-  choice $ map try [
-                    intervalanddateperiodexprp rdate,
-                    (,) NoInterval <$> periodexprdatespanp rdate
-                   ]
+  choice' [ intervalanddateperiodexprp rdate
+          , (,) NoInterval <$> periodexprdatespanp rdate
+          ]
 
 -- Parse a reporting interval and a date span.
 intervalanddateperiodexprp :: Day -> TextParser m (Interval, DateSpan)
@@ -949,7 +943,7 @@ reportingintervalp = choice'
         [ DayOfWeek <$> (nth <* skipNonNewlineSpaces <* string' "day" <* of_ "week")
         , DayOfMonth <$> (nth <* skipNonNewlineSpaces <* string' "day" <* optOf_ "month")
         , liftA2 WeekdayOfMonth nth $ skipNonNewlineSpaces *> weekday <* optOf_ "month"
-        , (\(SmartYMD Nothing (Just m) (Just d)) -> DayOfYear m d) <$> (md <* optOf_ "year")
+        , uncurry DayOfYear <$> (md <* optOf_ "year")
         , DayOfWeek <$> weekday
         , d_o_y <* optOf_ "year"
         ]
@@ -961,9 +955,8 @@ reportingintervalp = choice'
     optOf_ period = optional . try $ of_ period
 
     nth = decimal <* choice (map string' ["st","nd","rd","th"])
-    mnth = (\(SmartYMD Nothing (Just m) Nothing) -> m) <$> choice' [month, mon]
-    d_o_y = runPermutation $ liftA2 DayOfYear (toPermutation $ mnth <* skipNonNewlineSpaces)
-                                              (toPermutation $ nth  <* skipNonNewlineSpaces)
+    d_o_y = runPermutation $ liftA2 DayOfYear (toPermutation $ (month <|> mon) <* skipNonNewlineSpaces)
+                                              (toPermutation $ nth <* skipNonNewlineSpaces)
 
     -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
     tryinterval :: String -> String -> (Int -> Interval) -> TextParser m Interval
