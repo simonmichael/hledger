@@ -58,8 +58,10 @@ import Hledger.Utils.Regex
 -- (last|this|next) (day|week|month|quarter|year), where "this" means the period
 -- containing the reference date.
 data SmartDate
-  = SmartYMD (Maybe Year) (Maybe Month) (Maybe MonthDay)
-  | SmartRel SmartSequence SmartInterval
+  = SmartAssumeStart Year (Maybe (Month, Maybe MonthDay))
+  | SmartFromReference (Maybe Month) MonthDay
+  | SmartMonth Month
+  | SmartRelative SmartSequence SmartInterval
   deriving (Show)
 
 data SmartSequence = Last | This | Next deriving (Show)
