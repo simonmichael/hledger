@@ -42,12 +42,20 @@ module Hledger.Query (
   inAccountQuery,
   -- * matching
   matchesTransaction,
+  matchesTransaction_,
   matchesPosting,
+  matchesPosting_,
   matchesAccount,
+  matchesAccount_,
   matchesMixedAmount,
   matchesAmount,
+  matchesAmount_,
   matchesCommodity,
+  matchesCommodity_,
+  matchesTags,
+  matchesTags_,
   matchesPriceDirective,
+  matchesPriceDirective_,
   words'',
   prefixes,
   -- * tests
@@ -55,6 +63,7 @@ module Hledger.Query (
 )
 where
 
+import Control.Arrow ((>>>))
 import Data.Data
 import Data.Either
 import Data.List
@@ -555,6 +564,8 @@ inAccountQuery (QueryOptInAcct a     : _) = Just $ Acct $ accountNameToAccountRe
 
 -- | Does the match expression match this account ?
 -- A matching in: clause is also considered a match.
+-- When matching by account name pattern, if there's a regular
+-- expression error, this function calls error.
 matchesAccount :: Query -> AccountName -> Bool
 matchesAccount (None) _ = False
 matchesAccount (Not m) a = not $ matchesAccount m a
@@ -565,6 +576,18 @@ matchesAccount (Depth d) a = accountNameLevel a <= d
 matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
 
+-- | Total version of matchesAccount, which will return any error
+-- arising from a malformed regular expression in the query.
+matchesAccount_ :: Query -> AccountName -> Either RegexError Bool
+matchesAccount_ (None) _    = Right False
+matchesAccount_ (Not m) a   = Right $ not $ matchesAccount m a
+matchesAccount_ (Or ms) a   = sequence (map (`matchesAccount_` a) ms) >>= pure . or
+matchesAccount_ (And ms) a  = sequence (map (`matchesAccount_` a) ms) >>= pure . and
+matchesAccount_ (Acct r) a  = regexMatchesCI_ r (T.unpack a) -- XXX pack
+matchesAccount_ (Depth d) a = Right $ accountNameLevel a <= d
+matchesAccount_ (Tag _ _) _ = Right False
+matchesAccount_ _ _         = Right True
+
 matchesMixedAmount :: Query -> MixedAmount -> Bool
 matchesMixedAmount q (Mixed []) = q `matchesAmount` nullamt
 matchesMixedAmount q (Mixed as) = any (q `matchesAmount`) as
@@ -573,6 +596,12 @@ matchesCommodity :: Query -> CommoditySymbol -> Bool
 matchesCommodity (Sym r) s = regexMatchesCI ("^" ++ r ++ "$") (T.unpack s)
 matchesCommodity _ _ = True
 
+-- | Total version of matchesCommodity, which will return any error
+-- arising from a malformed regular expression in the query.
+matchesCommodity_ :: Query -> CommoditySymbol -> Either RegexError Bool
+matchesCommodity_ (Sym r) s = regexMatchesCI_ ("^" ++ r ++ "$") (T.unpack s)
+matchesCommodity_ _ _ = Right True
+
 -- | Does the match expression match this (simple) amount ?
 matchesAmount :: Query -> Amount -> Bool
 matchesAmount (Not q) a = not $ q `matchesAmount` a
@@ -580,11 +609,21 @@ matchesAmount (Any) _ = True
 matchesAmount (None) _ = False
 matchesAmount (Or qs) a = any (`matchesAmount` a) qs
 matchesAmount (And qs) a = all (`matchesAmount` a) qs
---
 matchesAmount (Amt ord n) a = compareAmount ord n a
 matchesAmount (Sym r) a = matchesCommodity (Sym r) (acommodity a)
---
 matchesAmount _ _ = True
+
+-- | Total version of matchesAmount, returning any error from a
+-- malformed regular expression in the query.
+matchesAmount_ :: Query -> Amount -> Either RegexError Bool
+matchesAmount_ (Not q) a     = not <$> q `matchesAmount_` a
+matchesAmount_ (Any) _       = Right True
+matchesAmount_ (None) _      = Right False
+matchesAmount_ (Or qs) a     = sequence (map (`matchesAmount_` a) qs) >>= pure . or
+matchesAmount_ (And qs) a    = sequence (map (`matchesAmount_` a) qs) >>= pure . and
+matchesAmount_ (Amt ord n) a = Right $ compareAmount ord n a
+matchesAmount_ (Sym r) a     = matchesCommodity_ (Sym r) (acommodity a)
+matchesAmount_ _ _           = Right True
 
 -- | Is this simple (single-amount) mixed amount's quantity less than, greater than, equal to, or unsignedly equal to this number ?
 -- For multi-amount (multiple commodities, or just unsimplified) mixed amounts this is always true.
@@ -613,8 +652,8 @@ matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Code r) p = regexMatchesCI r $ maybe "" (T.unpack . tcode) $ ptransaction p
 matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" (T.unpack . tdescription) $ ptransaction p
-matchesPosting (Acct r) p = matchesPosting p || matchesPosting (originalPosting p)
-    where matchesPosting p = regexMatchesCI r $ T.unpack $ paccount p -- XXX pack
+matchesPosting (Acct r) p = matches p || matches (originalPosting p)
+  where matches p = regexMatchesCI r $ T.unpack $ paccount p -- XXX pack
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (StatusQ s) p = postingStatus p == s
@@ -631,6 +670,31 @@ matchesPosting (Tag n v) p = case (n, v) of
   ("payee", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionPayee) $ ptransaction p
   ("note", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionNote) $ ptransaction p
   (n, v) -> matchesTags n v $ postingAllTags p
+
+-- | Total version of matchesPosting, returning any error from a
+-- malformed regular expression in the query.
+matchesPosting_ :: Query -> Posting -> Either RegexError Bool
+matchesPosting_ (Not q) p                         = not <$> q `matchesPosting_` p
+matchesPosting_ (Any) _                           = Right True
+matchesPosting_ (None) _                          = Right False
+matchesPosting_ (Or qs) p                         = sequence (map (`matchesPosting_` p) qs) >>= pure.or
+matchesPosting_ (And qs) p                        = sequence (map (`matchesPosting_` p) qs) >>= pure.and
+matchesPosting_ (Code r) p                        = regexMatchesCI_ r $ maybe "" (T.unpack . tcode) $ ptransaction p
+matchesPosting_ (Desc r) p                        = regexMatchesCI_ r $ maybe "" (T.unpack . tdescription) $ ptransaction p
+matchesPosting_ (Acct r) p                        = sequence [matches p, matches (originalPosting p)] >>= pure.or
+  where matches p = regexMatchesCI_ r $ T.unpack $ paccount p -- XXX pack
+matchesPosting_ (Date span) p                     = Right $ span `spanContainsDate` postingDate p
+matchesPosting_ (Date2 span) p                    = Right $ span `spanContainsDate` postingDate2 p
+matchesPosting_ (StatusQ s) p                     = Right $ postingStatus p == s
+matchesPosting_ (Real v) p                        = Right $ v == isReal p
+matchesPosting_ q@(Depth _) Posting{paccount=a}   = q `matchesAccount_` a
+matchesPosting_ q@(Amt _ _) Posting{pamount=amt}  = Right $ q `matchesMixedAmount` amt
+matchesPosting_ (Empty _) _                       = Right True
+matchesPosting_ (Sym r) Posting{pamount=Mixed as} = sequence (map (matchesCommodity_ (Sym r)) $ map acommodity as) >>= pure.or
+matchesPosting_ (Tag n v) p                       = case (n, v) of
+  ("payee", Just v) -> maybe (Right False) (T.unpack . transactionPayee >>> regexMatchesCI_ v) $ ptransaction p
+  ("note", Just v)  -> maybe (Right False) (T.unpack . transactionNote  >>> regexMatchesCI_ v) $ ptransaction p
+  (n, v)            -> matchesTags_ n v $ postingAllTags p
 
 -- | Does the match expression match this transaction ?
 matchesTransaction :: Query -> Transaction -> Bool
@@ -655,13 +719,46 @@ matchesTransaction (Tag n v) t = case (n, v) of
   ("note", Just v) -> regexMatchesCI v . T.unpack . transactionNote $ t
   (n, v) -> matchesTags n v $ transactionAllTags t
 
--- | Filter a list of tags by matching against their names and
--- optionally also their values.
+-- | Total version of matchesTransaction, returning any error from a
+-- malformed regular expression in the query.
+matchesTransaction_ :: Query -> Transaction -> Either RegexError Bool
+matchesTransaction_ (Not q) t      = not <$> q `matchesTransaction_` t
+matchesTransaction_ (Any) _        = Right True
+matchesTransaction_ (None) _       = Right False
+matchesTransaction_ (Or qs) t      = sequence (map (`matchesTransaction_` t) qs) >>= pure.or
+matchesTransaction_ (And qs) t     = sequence (map (`matchesTransaction_` t) qs) >>= pure.and
+matchesTransaction_ (Code r) t     = regexMatchesCI_ r $ T.unpack $ tcode t
+matchesTransaction_ (Desc r) t     = regexMatchesCI_ r $ T.unpack $ tdescription t
+matchesTransaction_ q@(Acct _) t   = sequence (map (q `matchesPosting_`) $ tpostings t) >>= pure.or
+matchesTransaction_ (Date span) t  = Right $ spanContainsDate span $ tdate t
+matchesTransaction_ (Date2 span) t = Right $ spanContainsDate span $ transactionDate2 t
+matchesTransaction_ (StatusQ s) t  = Right $ tstatus t == s
+matchesTransaction_ (Real v) t     = Right $ v == hasRealPostings t
+matchesTransaction_ q@(Amt _ _) t  = sequence (map (q `matchesPosting_`) $ tpostings t) >>= pure.or
+matchesTransaction_ (Empty _) _    = Right True
+matchesTransaction_ (Depth d) t    = sequence (map (Depth d `matchesPosting_`) $ tpostings t) >>= pure.or
+matchesTransaction_ q@(Sym _) t    = sequence (map (q `matchesPosting_`) $ tpostings t) >>= pure.or
+matchesTransaction_ (Tag n v) t    = case (n, v) of
+  ("payee", Just v) -> regexMatchesCI_ v . T.unpack . transactionPayee $ t
+  ("note", Just v)  -> regexMatchesCI_ v . T.unpack . transactionNote $ t
+  (n, v)            -> matchesTags_ n v $ transactionAllTags t
+
+-- | Does the query match the name and optionally the value of any of these tags ?
 matchesTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
 matchesTags namepat valuepat = not . null . filter (match namepat valuepat)
   where
     match npat Nothing     (n,_) = regexMatchesCI npat (T.unpack n) -- XXX
     match npat (Just vpat) (n,v) = regexMatchesCI npat (T.unpack n) && regexMatchesCI vpat (T.unpack v)
+
+-- | Total version of matchesTags, returning any error from a
+-- malformed regular expression in the query.
+matchesTags_ :: Regexp -> Maybe Regexp -> [Tag] -> Either RegexError Bool
+matchesTags_ namepat valuepat tags =
+  sequence (map (match namepat valuepat) tags) >>= pure.or
+  where
+    match npat Nothing     (n,_) = regexMatchesCI_ npat (T.unpack n) -- XXX
+    match npat (Just vpat) (n,v) =
+      sequence [regexMatchesCI_ npat (T.unpack n), regexMatchesCI_ vpat (T.unpack v)] >>= pure.and
 
 -- | Does the query match this market price ?
 matchesPriceDirective :: Query -> PriceDirective -> Bool
@@ -673,6 +770,18 @@ matchesPriceDirective q@(Amt _ _) p = matchesAmount q (pdamount p)
 matchesPriceDirective q@(Sym _) p   = matchesCommodity q (pdcommodity p)
 matchesPriceDirective (Date span) p = spanContainsDate span (pddate p)
 matchesPriceDirective _ _           = True
+
+-- | Total version of matchesPriceDirective, returning any error from
+-- a malformed regular expression in the query.
+matchesPriceDirective_ :: Query -> PriceDirective -> Either RegexError Bool
+matchesPriceDirective_ (None) _      = Right False
+matchesPriceDirective_ (Not q) p     = not <$> matchesPriceDirective_ q p
+matchesPriceDirective_ (Or qs) p     = sequence (map (`matchesPriceDirective_` p) qs) >>= pure.or
+matchesPriceDirective_ (And qs) p    = sequence (map (`matchesPriceDirective_` p) qs) >>= pure.and
+matchesPriceDirective_ q@(Amt _ _) p = matchesAmount_ q (pdamount p)
+matchesPriceDirective_ q@(Sym _) p   = matchesCommodity_ q (pdcommodity p)
+matchesPriceDirective_ (Date span) p = Right $ spanContainsDate span (pddate p)
+matchesPriceDirective_ _ _           = Right True
 
 
 -- tests
