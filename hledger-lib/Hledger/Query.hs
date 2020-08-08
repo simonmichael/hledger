@@ -191,9 +191,6 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- >>> parseQuery nulldate "\"expenses:dining out\""
 -- Right (Acct "expenses:dining out",[])
 --
--- >>> isLeft $ parseQuery nulldate "\"\""
--- True
---
 parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
 parseQuery d s = do
   let termstrs = words'' prefixes s

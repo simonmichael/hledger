@@ -61,19 +61,21 @@ modifyTransactions d tmods ts = do
 -- Currently the only kind of modification possible is adding automated
 -- postings when certain other postings are present.
 --
--- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> test = either putStr (putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
+-- >>> test $ TransactionModifier "" ["pong" `post` usd 2]
 -- 0000-01-01
 --     ping           $1.00
 --     pong           $2.00  ; generated-posting: =
 -- <BLANKLINE>
--- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> test $ TransactionModifier "miss" ["pong" `post` usd 2]
 -- 0000-01-01
 --     ping           $1.00
 -- <BLANKLINE>
--- >>> putStr $ showTransaction $ transactionModifierToFunction (TransactionModifier "ping" ["pong" `post` amount{aismultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
+-- >>> test $ TransactionModifier "ping" ["pong" `post` amount{aismultiplier=True, aquantity=3}]
 -- 0000-01-01
---     ping           $2.00
---     pong           $6.00  ; generated-posting: = ping
+--     ping           $1.00
+--     pong           $3.00  ; generated-posting: = ping
 -- <BLANKLINE>
 --
 transactionModifierToFunction :: Day -> TransactionModifier -> Either String (Transaction -> Transaction)
