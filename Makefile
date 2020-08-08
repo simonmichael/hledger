@@ -26,6 +26,8 @@
 # This makefile mostly uses stack to get things done (slow but robust).
 # It may sometimes (still ?) use ghc only, or cabal, when easier.
 
+# see also: https://gmsl.sourceforge.io/
+
 # XXX do we need this ?
 #SHELL=/bin/bash
 #.SHELLFLAGS="-O extglob -c" # example
