@@ -1,6 +1,8 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+- 3822c27b ;lib: regex: rename & export RegexError, export toRegex_, docs (#1312)
+
 # 25c15d4b
 
 - add a color argument to most amount show helpers, drop cshow variants This
