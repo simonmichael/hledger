@@ -716,7 +716,7 @@ journalBalanceTransactions assrt j' =
     runST $ do
       -- We'll update a mutable array of transactions as we balance them,
       -- not strictly necessary but avoids a sort at the end I think.
-      balancedtxns <- newListArray (1, genericLength ts) ts
+      balancedtxns <- newListArray (1, toInteger $ length ts) ts
 
       -- Infer missing posting amounts, check transactions are balanced,
       -- and check balance assertions. This is done in two passes:

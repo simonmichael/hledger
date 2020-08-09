@@ -560,8 +560,8 @@ nthdayofyearcontaining m md date
   | not (validDay   md) = error' $ "nthdayofyearcontaining: invalid day "  ++show md
   | mmddOfSameYear <= date = mmddOfSameYear
   | otherwise = mmddOfPrevYear
-  where mmddOfSameYear = addDays (fromIntegral md-1) $ applyN (m-1) nextmonth s
-        mmddOfPrevYear = addDays (fromIntegral md-1) $ applyN (m-1) nextmonth $ prevyear s
+  where mmddOfSameYear = addDays (toInteger md-1) $ applyN (m-1) nextmonth s
+        mmddOfPrevYear = addDays (toInteger md-1) $ applyN (m-1) nextmonth $ prevyear s
         s = startofyear date
 
 -- | For given date d find month-long interval that starts on nth day of month
@@ -612,8 +612,8 @@ nthdayofmonthcontaining md date
 nthdayofweekcontaining :: WeekDay -> Day -> Day
 nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
                            | otherwise = nthOfPrevWeek
-    where nthOfSameWeek = addDays (fromIntegral n-1) s
-          nthOfPrevWeek = addDays (fromIntegral n-1) $ prevweek s
+    where nthOfSameWeek = addDays (toInteger n-1) s
+          nthOfPrevWeek = addDays (toInteger n-1) $ prevweek s
           s = startofweek d
 
 -- | For given date d find month-long interval that starts on nth weekday of month
@@ -647,9 +647,9 @@ advancetonthweekday n wd s =
   maybe err (addWeeks (n-1)) $ firstMatch (>=s) $ iterate (addWeeks 1) $ firstweekday s
   where
     err = error' "advancetonthweekday: should not happen"
-    addWeeks k = addDays (7 * fromIntegral k)
+    addWeeks k = addDays (7 * toInteger k)
     firstMatch p = headMay . dropWhile (not . p)
-    firstweekday = addDays (fromIntegral wd-1) . startofweek
+    firstweekday = addDays (toInteger wd-1) . startofweek
 
 ----------------------------------------------------------------------
 -- parsing

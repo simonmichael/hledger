@@ -435,7 +435,7 @@ applyDigitGroupStyle (Just (DigitGroups c gs)) s = addseps (repeatLast gs) s
   where
     addseps [] s = s
     addseps (g:gs) s
-      | genericLength s <= toInteger g = s
+      | toInteger (length s) <= toInteger g = s
       | otherwise     = let (part,rest) = genericSplitAt g s
                         in part ++ c : addseps gs rest
     repeatLast [] = []
@@ -602,7 +602,7 @@ multiplyMixedAmountAndPrice n = mapMixedAmount (multiplyAmountAndPrice n)
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount
 averageMixedAmounts [] = 0
-averageMixedAmounts as = genericLength as `divideMixedAmount` sum as
+averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` sum as
 
 -- | Is this mixed amount negative, if we can tell that unambiguously?
 -- Ie when normalised, are all individual commodity amounts negative ?

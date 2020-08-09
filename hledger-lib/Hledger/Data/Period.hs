@@ -295,7 +295,7 @@ periodShrink today (YearPeriod y)
 periodShrink today _ = YearPeriod y
   where (y,_,_) = toGregorian today
 
-mondayBefore d = addDays (fromIntegral (1 - wd)) d
+mondayBefore d = addDays (1 - toInteger wd) d
   where
     (_,_,wd) = toWeekDate d
 

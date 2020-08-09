@@ -779,7 +779,7 @@ tests_JournalReader = tests "JournalReader" [
      bad "2011/1/1 00:00:60"
      bad "2011/1/1 3:5:7"
      -- timezone is parsed but ignored
-     let t = LocalTime (fromGregorian 2018 1 1) (TimeOfDay 0 0 (fromIntegral 0))
+     let t = LocalTime (fromGregorian 2018 1 1) (TimeOfDay 0 0 0)
      assertParseEq datetimep "2018/1/1 00:00-0800" t
      assertParseEq datetimep "2018/1/1 00:00+1234" t
 

@@ -1024,7 +1024,7 @@ data DigitGrp = DigitGrp {
 instance Show DigitGrp where
   show (DigitGrp len num) = "\"" ++ padding ++ numStr ++ "\""
     where numStr = show num
-          padding = genericReplicate (toInteger len - genericLength numStr) '0'
+          padding = genericReplicate (toInteger len - toInteger (length numStr)) '0'
 
 instance Sem.Semigroup DigitGrp where
   DigitGrp l1 n1 <> DigitGrp l2 n2 = DigitGrp (l1 + l2) (n1 * 10^l2 + n2)
