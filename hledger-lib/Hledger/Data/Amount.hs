@@ -136,6 +136,7 @@ import qualified Data.Map as M
 import Data.Map (findWithDefault)
 import Data.Maybe
 import qualified Data.Text as T
+import Data.Word (Word8)
 import Safe (lastDef, maximumMay)
 import Text.Printf
 
@@ -263,7 +264,7 @@ isNegativeAmount Amount{aquantity=q} = q < 0
 -- display precision ?
 amountLooksZero :: Amount -> Bool
 amountLooksZero Amount{aquantity=q, astyle=AmountStyle{asprecision=p}} =
-    roundTo (fromIntegral p) q == 0
+    roundTo p q == 0
 
 -- | Is this amount exactly zero, ignoring its display precision ?
 amountIsZero :: Amount -> Bool
@@ -271,15 +272,15 @@ amountIsZero Amount{aquantity=q} = q == 0
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings except using the specified precision.
-showAmountWithPrecision :: Int -> Amount -> String
+showAmountWithPrecision :: Word8 -> Amount -> String
 showAmountWithPrecision p = showAmount . setAmountPrecision p
 
 -- | Set an amount's display precision, flipped.
-withPrecision :: Amount -> Int -> Amount
+withPrecision :: Amount -> Word8 -> Amount
 withPrecision = flip setAmountPrecision
 
 -- | Set an amount's display precision.
-setAmountPrecision :: Int -> Amount -> Amount
+setAmountPrecision :: Word8 -> Amount -> Amount
 setAmountPrecision p a@Amount{astyle=s} = a{astyle=s{asprecision=p}}
 
 -- | Increase an amount's display precision, if needed, to enough
@@ -290,7 +291,7 @@ setFullPrecision a = setAmountPrecision p a
   where
     p                = max displayprecision naturalprecision
     displayprecision = asprecision $ astyle a
-    naturalprecision = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
+    naturalprecision = decimalPlaces . normalizeDecimal $ aquantity a
 
 -- | Set an amount's display precision to just enough decimal places
 -- to show it exactly (possibly less than the number specified by
@@ -298,16 +299,16 @@ setFullPrecision a = setAmountPrecision p a
 setNaturalPrecision :: Amount -> Amount
 setNaturalPrecision a = setAmountPrecision normalprecision a
   where
-    normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
+    normalprecision  = decimalPlaces . normalizeDecimal $ aquantity a
 
 -- | Set an amount's display precision to just enough decimal places
 -- to show it exactly (possibly less than the number specified by the
 -- amount's display style), but not more than the given maximum number
 -- of decimal digits.
-setNaturalPrecisionUpTo :: Int -> Amount -> Amount
+setNaturalPrecisionUpTo :: Word8 -> Amount -> Amount
 setNaturalPrecisionUpTo n a = setAmountPrecision (min n normalprecision) a
   where
-    normalprecision  = fromIntegral $ decimalPlaces $ normalizeDecimal $ aquantity a
+    normalprecision  = decimalPlaces . normalizeDecimal $ aquantity a
 
 -- | Get a string representation of an amount for debugging,
 -- appropriate to the current debug level. 9 shows maximum detail.
@@ -328,15 +329,15 @@ showAmountWithoutPrice c a = showamt a{aprice=Nothing}
 -- "If the value ends in 5 then it is rounded to the nearest even value (Banker's Rounding)".
 -- Does not change the amount's display precision.
 -- Intended only for internal use, eg when comparing amounts in tests.
-setAmountInternalPrecision :: Int -> Amount -> Amount
+setAmountInternalPrecision :: Word8 -> Amount -> Amount
 setAmountInternalPrecision p a@Amount{ aquantity=q, astyle=s } = a{
    astyle=s{asprecision=p}
-  ,aquantity=roundTo (fromIntegral p) q
+  ,aquantity=roundTo p q
   }
 
 -- | Set an amount's internal precision, flipped.
 -- Intended only for internal use, eg when comparing amounts in tests.
-withInternalPrecision :: Amount -> Int -> Amount
+withInternalPrecision :: Amount -> Word8 -> Amount
 withInternalPrecision = flip setAmountInternalPrecision
 
 -- | Set (or clear) an amount's display decimal point.
@@ -414,7 +415,7 @@ showamountquantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p, asdecim
       qstr -- p == maxprecision && isint q = printf "%d" (round q::Integer)
         | p == maxprecisionwithpoint = show q
         | p == maxprecision          = chopdotzero $ show q
-        | otherwise                  = show $ roundTo (fromIntegral p) q
+        | otherwise                  = show $ roundTo p q
 
 -- | Replace a number string's decimal mark with the specified
 -- character, and add the specified digit group marks. The last digit
@@ -434,9 +435,9 @@ applyDigitGroupStyle (Just (DigitGroups c gs)) s = addseps (repeatLast gs) s
   where
     addseps [] s = s
     addseps (g:gs) s
-      | length s <= g = s
-      | otherwise     = let (part,rest) = splitAt g s
-                        in part ++ [c] ++ addseps gs rest
+      | genericLength s <= toInteger g = s
+      | otherwise     = let (part,rest) = genericSplitAt g s
+                        in part ++ c : addseps gs rest
     repeatLast [] = []
     repeatLast gs = init gs ++ repeat (last gs)
 
@@ -445,12 +446,12 @@ chopdotzero str = reverse $ case reverse str of
                               s         -> s
 
 -- | For rendering: a special precision value which means show all available digits.
-maxprecision :: Int
-maxprecision = 999998
+maxprecision :: Word8
+maxprecision = 254
 
 -- | For rendering: a special precision value which forces display of a decimal point.
-maxprecisionwithpoint :: Int
-maxprecisionwithpoint = 999999
+maxprecisionwithpoint :: Word8
+maxprecisionwithpoint = 255
 
 -- like journalCanonicaliseAmounts
 -- | Canonicalise an amount's display style using the provided commodity style map.
@@ -601,7 +602,7 @@ multiplyMixedAmountAndPrice n = mapMixedAmount (multiplyAmountAndPrice n)
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount
 averageMixedAmounts [] = 0
-averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` sum as
+averageMixedAmounts as = genericLength as `divideMixedAmount` sum as
 
 -- | Is this mixed amount negative, if we can tell that unambiguously?
 -- Ie when normalised, are all individual commodity amounts negative ?
@@ -665,13 +666,13 @@ ltraceamount :: String -> MixedAmount -> MixedAmount
 ltraceamount s = traceWith (((s ++ ": ") ++).showMixedAmount)
 
 -- | Set the display precision in the amount's commodities.
-setMixedAmountPrecision :: Int -> MixedAmount -> MixedAmount
+setMixedAmountPrecision :: Word8 -> MixedAmount -> MixedAmount
 setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 
 -- | Get the string representation of a mixed amount, showing each of its
 -- component amounts with the specified precision, ignoring their
 -- commoditys' display precision settings.
-showMixedAmountWithPrecision :: Int -> MixedAmount -> String
+showMixedAmountWithPrecision :: Word8 -> MixedAmount -> String
 showMixedAmountWithPrecision p m =
     vConcatRightAligned $ map (showAmountWithPrecision p) $ amounts $ normaliseMixedAmountSquashPricesForDisplay m
 

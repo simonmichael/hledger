@@ -45,6 +45,7 @@ import Data.Text (Text)
 -- import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.Word (Word8)
 import System.Time (ClockTime(..))
 import Text.Printf
 
@@ -192,7 +193,7 @@ instance NFData AmountPrice
 data AmountStyle = AmountStyle {
       ascommodityside   :: Side,                 -- ^ does the symbol appear on the left or the right ?
       ascommodityspaced :: Bool,                 -- ^ space between symbol and quantity ?
-      asprecision       :: !Int,                 -- ^ number of digits displayed after the decimal point
+      asprecision       :: !Word8,               -- ^ number of digits displayed after the decimal point
       asdecimalpoint    :: Maybe Char,           -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
       asdigitgroups     :: Maybe DigitGroupStyle -- ^ style for displaying digit groups, if any
 } deriving (Eq,Ord,Read,Typeable,Data,Generic)
@@ -214,7 +215,7 @@ instance Show AmountStyle where
 -- point), and the size of each group, starting with the one nearest
 -- the decimal point. The last group size is assumed to repeat. Eg,
 -- comma between thousands is DigitGroups ',' [3].
-data DigitGroupStyle = DigitGroups Char [Int]
+data DigitGroupStyle = DigitGroups Char [Word8]
   deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)
 
 instance NFData DigitGroupStyle

@@ -135,6 +135,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.Word (Word8)
 import System.Time (getClockTime)
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -706,8 +707,8 @@ amountwithoutpricep = do
     :: (Int, Int) -- offsets
     -> Maybe AmountStyle
     -> Either AmbiguousNumber RawNumber
-    -> Maybe Int
-    -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+    -> Maybe Integer
+    -> TextParser m (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
   interpretNumber posRegion suggestedStyle ambiguousNum mExp =
     let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
     in  case fromRawNumber rawNum mExp of
@@ -816,7 +817,7 @@ lotdatep = (do
 -- seen following the decimal mark), the decimal mark character used if any,
 -- and the digit group style if any.
 --
-numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp :: Maybe AmountStyle -> TextParser m (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
 numberp suggestedStyle = label "number" $ do
     -- a number is an optional sign followed by a sequence of digits possibly
     -- interspersed with periods, commas, or both
@@ -830,7 +831,7 @@ numberp suggestedStyle = label "number" $ do
       Left errMsg -> Fail.fail errMsg
       Right (q, p, d, g) -> pure (sign q, p, d, g)
 
-exponentp :: TextParser m Int
+exponentp :: TextParser m Integer
 exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 
 -- | Interpret a raw number as a decimal number.
@@ -842,9 +843,9 @@ exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 -- - the digit group style, if any (digit group character and sizes of digit groups)
 fromRawNumber
   :: RawNumber
-  -> Maybe Int
+  -> Maybe Integer
   -> Either String
-            (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+            (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
 fromRawNumber raw mExp = case raw of
 
   NoSeparators digitGrp mDecimals ->
@@ -870,21 +871,25 @@ fromRawNumber raw mExp = case raw of
 
   where
     -- Outputs digit group sizes from least significant to most significant
-    groupSizes :: [DigitGrp] -> [Int]
+    groupSizes :: [DigitGrp] -> [Word8]
     groupSizes digitGrps = reverse $ case map digitGroupLength digitGrps of
       (a:b:cs) | a < b -> b:cs
       gs               -> gs
 
-    toQuantity :: DigitGrp -> DigitGrp -> (Quantity, Int)
+    toQuantity :: DigitGrp -> DigitGrp -> (Quantity, Word8)
     toQuantity preDecimalGrp postDecimalGrp = (quantity, precision)
       where
-        quantity = Decimal (fromIntegral precision)
+        quantity = Decimal precision
                            (digitGroupNumber $ preDecimalGrp <> postDecimalGrp)
         precision = digitGroupLength postDecimalGrp
 
-    applyExp :: Int -> (Decimal, Int) -> (Decimal, Int)
-    applyExp exponent (quantity, precision) =
-      (quantity * 10^^exponent, max 0 (precision - exponent))
+    applyExp :: Integer -> (Decimal, Word8) -> (Decimal, Word8)
+    applyExp exponent (quantity, precision) = (quantity * 10^^exponent, newPrecision)
+      where
+        newPrecision | precisionDiff >= 255 = maxBound
+                     | precisionDiff <= 0   = 0
+                     | otherwise            = fromInteger precisionDiff
+        precisionDiff = toInteger precision - exponent
 
 
 disambiguateNumber :: Maybe AmountStyle -> AmbiguousNumber -> RawNumber
@@ -1011,17 +1016,15 @@ data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp
 -- | Description of a single digit group in a number literal.
 -- "Thousands" is one well known digit grouping, but there are others.
 data DigitGrp = DigitGrp {
-  digitGroupLength :: !Int,    -- ^ The number of digits in this group.
-  digitGroupNumber :: !Integer -- ^ The natural number formed by this group's digits.
+  digitGroupLength :: !Word8,   -- ^ The number of digits in this group.
+  digitGroupNumber :: !Integer  -- ^ The natural number formed by this group's digits. This should always be positive.
 } deriving (Eq)
 
 -- | A custom show instance, showing digit groups as the parser saw them.
 instance Show DigitGrp where
-  show (DigitGrp len num)
-    | len > 0 = "\"" ++ padding ++ numStr ++ "\""
-    | otherwise = "\"\""
+  show (DigitGrp len num) = "\"" ++ padding ++ numStr ++ "\""
     where numStr = show num
-          padding = replicate (len - length numStr) '0'
+          padding = genericReplicate (toInteger len - genericLength numStr) '0'
 
 instance Sem.Semigroup DigitGrp where
   DigitGrp l1 n1 <> DigitGrp l2 n2 = DigitGrp (l1 + l2) (n1 * 10^l2 + n2)
@@ -1381,7 +1384,7 @@ tests_Common = tests "Common" [
    ,test "total price, parenthesised" $ assertParse amountp "$10 (@@) €0.5"
    ]
 
-  ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
+  ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle) in
    test "numberp" $ do
      assertParseEq p "0"          (0, 0, Nothing, Nothing)
      assertParseEq p "1"          (1, 0, Nothing, Nothing)
