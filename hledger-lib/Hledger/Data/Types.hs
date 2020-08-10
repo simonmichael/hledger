@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-|
 
 Most data types are defined here to avoid import cycles.
@@ -17,6 +15,15 @@ Here is an overview of the hledger data model:
 For more detailed documentation on each type, see the corresponding modules.
 
 -}
+
+-- {-# LANGUAGE DeriveAnyClass #-}  -- https://hackage.haskell.org/package/deepseq-1.4.4.0/docs/Control-DeepSeq.html#v:rnf
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Hledger.Data.Types
 where
