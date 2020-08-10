@@ -360,7 +360,7 @@ rsHandle ui@UIState{
               let
                 ts = map rsItemTransaction $ V.toList $ nonblanks
                 numberedts = zip [1..] ts
-                i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
+                i = maybe 0 (toInteger . (+1)) $ elemIndex t ts -- XXX
               in
                 continue $ screenEnter d transactionScreen{tsTransaction=(i,t)
                                                           ,tsTransactions=numberedts

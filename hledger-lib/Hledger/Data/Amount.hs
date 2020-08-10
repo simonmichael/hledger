@@ -411,8 +411,8 @@ showamountquantity :: Amount -> String
 showamountquantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p, asdecimalpoint=mdec, asdigitgroups=mgrps}} =
     punctuatenumber (fromMaybe '.' mdec) mgrps qstr
     where
-      -- isint n = fromIntegral (round n) == n
-      qstr -- p == maxprecision && isint q = printf "%d" (round q::Integer)
+      -- isint n = round n == n
+      qstr  -- p == maxprecision && isint q = printf "%d" (round q::Integer)
         | p == maxprecisionwithpoint = show q
         | p == maxprecision          = chopdotzero $ show q
         | otherwise                  = show $ roundTo p q

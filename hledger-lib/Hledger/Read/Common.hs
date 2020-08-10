@@ -241,14 +241,13 @@ runErroringJournalParser p t =
 rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
-genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
+genericSourcePos p = GenericSourcePos (sourceName p) (unPos $ sourceLine p) (unPos $ sourceColumn p)
 
 -- | Construct a generic start & end line parse position from start and end megaparsec SourcePos's.
 journalSourcePos :: SourcePos -> SourcePos -> GenericSourcePos
-journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p, fromIntegral $ line')
-    where line'
-            | (unPos $ sourceColumn p') == 1 = unPos (sourceLine p') - 1
-            | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
+journalSourcePos p p' = JournalSourcePos (sourceName p) (unPos $ sourceLine p, line')
+    where line' | (unPos $ sourceColumn p') == 1 = unPos (sourceLine p') - 1
+                | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
 
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content, and finalise the result to
