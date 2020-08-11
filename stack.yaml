@@ -4,7 +4,11 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-resolver: lts-16.3
+resolver: lts-16.9
+
+# Provides a very nice reduction in final binary size.
+ghc-options:
+  $everything: -split-sections
 
 packages:
 - hledger-lib
