@@ -845,50 +845,36 @@ fromRawNumber
   -> Maybe Integer
   -> Either String
             (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber raw mExp = case raw of
-
-  NoSeparators digitGrp mDecimals ->
-    let mDecPt = fmap fst mDecimals
-        decimalGrp = maybe mempty snd mDecimals
-
-        (quantity, precision) =
-          maybe id applyExp mExp $ toQuantity digitGrp decimalGrp
-
-    in  Right (quantity, precision, mDecPt, Nothing)
-
-  WithSeparators digitSep digitGrps mDecimals -> case mExp of
-    Nothing ->
-      let mDecPt = fmap fst mDecimals
-          decimalGrp = maybe mempty snd mDecimals
-          digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
-
-          (quantity, precision) = toQuantity (mconcat digitGrps) decimalGrp
-
-      in  Right (quantity, precision, mDecPt, Just digitGroupStyle)
-    Just _ -> Left
-      "invalid number: mixing digit separators with exponents is not allowed"
-
+fromRawNumber (WithSeparators _ _ _) (Just _) =
+    Left "invalid number: mixing digit separators with exponents is not allowed"
+fromRawNumber raw mExp = do
+    (quantity, precision) <- toQuantity (fromMaybe 0 mExp) (digitGroup raw) (decimalGroup raw)
+    return (quantity, precision, mDecPt raw, digitGroupStyle raw)
   where
+    toQuantity :: Integer -> DigitGrp -> DigitGrp -> Either String (Quantity, Word8)
+    toQuantity e preDecimalGrp postDecimalGrp
+      | precision < 0   = Right (Decimal 0 (digitGrpNum * 10^(-precision)), 0)
+      | precision < 256 = Right (Decimal precision8 digitGrpNum, precision8)
+      | otherwise = Left "invalid number: numbers with more than 255 decimal digits are now allowed at this time"
+      where
+        digitGrpNum = digitGroupNumber $ preDecimalGrp <> postDecimalGrp
+        precision   = toInteger (digitGroupLength postDecimalGrp) - e
+        precision8  = fromIntegral precision :: Word8
+
+    mDecPt (NoSeparators _ mDecimals)           = fst <$> mDecimals
+    mDecPt (WithSeparators _ _ mDecimals)       = fst <$> mDecimals
+    decimalGroup (NoSeparators _ mDecimals)     = maybe mempty snd mDecimals
+    decimalGroup (WithSeparators _ _ mDecimals) = maybe mempty snd mDecimals
+    digitGroup (NoSeparators digitGrp _)        = digitGrp
+    digitGroup (WithSeparators _ digitGrps _)   = mconcat digitGrps
+    digitGroupStyle (NoSeparators _ _)          = Nothing
+    digitGroupStyle (WithSeparators sep grps _) = Just . DigitGroups sep $ groupSizes grps
+
     -- Outputs digit group sizes from least significant to most significant
     groupSizes :: [DigitGrp] -> [Word8]
-    groupSizes digitGrps = reverse $ case map digitGroupLength digitGrps of
+    groupSizes digitGrps = reverse $ case map (fromIntegral . digitGroupLength) digitGrps of
       (a:b:cs) | a < b -> b:cs
       gs               -> gs
-
-    toQuantity :: DigitGrp -> DigitGrp -> (Quantity, Word8)
-    toQuantity preDecimalGrp postDecimalGrp = (quantity, precision)
-      where
-        quantity = Decimal precision
-                           (digitGroupNumber $ preDecimalGrp <> postDecimalGrp)
-        precision = digitGroupLength postDecimalGrp
-
-    applyExp :: Integer -> (Decimal, Word8) -> (Decimal, Word8)
-    applyExp exponent (quantity, precision) = (quantity * 10^^exponent, newPrecision)
-      where
-        newPrecision | precisionDiff >= 255 = maxBound
-                     | precisionDiff <= 0   = 0
-                     | otherwise            = fromInteger precisionDiff
-        precisionDiff = toInteger precision - exponent
 
 
 disambiguateNumber :: Maybe AmountStyle -> AmbiguousNumber -> RawNumber
@@ -1015,7 +1001,9 @@ data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp
 -- | Description of a single digit group in a number literal.
 -- "Thousands" is one well known digit grouping, but there are others.
 data DigitGrp = DigitGrp {
-  digitGroupLength :: !Word8,   -- ^ The number of digits in this group.
+  digitGroupLength :: !Word,    -- ^ The number of digits in this group.
+                                -- This is Word to avoid the need to do overflow
+                                -- checking for the Semigroup instance of DigitGrp.
   digitGroupNumber :: !Integer  -- ^ The natural number formed by this group's digits. This should always be positive.
 } deriving (Eq)
 
@@ -1403,6 +1391,8 @@ tests_Common = tests "Common" [
      assertParseError p "1..1" ""
      assertParseError p ".1," ""
      assertParseError p ",1." ""
+     assertParseEq    p "1.555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" (1.555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555, 255, Just '.', Nothing)
+     assertParseError p "1.5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" ""
 
   ,tests "spaceandamountormissingp" [
      test "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])
