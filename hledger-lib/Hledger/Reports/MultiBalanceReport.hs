@@ -605,7 +605,7 @@ tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
 tests_MultiBalanceReport = tests "MultiBalanceReport" [
 
   let
-    amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, aismultiplier=False}
+    amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = Precision 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, aismultiplier=False}
     (opts,journal) `gives` r = do
       let (eitems, etotal) = r
           (PeriodicReport _ aitems atotal) = multiBalanceReport nulldate opts journal

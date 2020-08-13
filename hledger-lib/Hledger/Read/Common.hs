@@ -707,13 +707,13 @@ amountwithoutpricep = do
     -> Maybe AmountStyle
     -> Either AmbiguousNumber RawNumber
     -> Maybe Integer
-    -> TextParser m (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
+    -> TextParser m (Quantity, AmountPrecision, Maybe Char, Maybe DigitGroupStyle)
   interpretNumber posRegion suggestedStyle ambiguousNum mExp =
     let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
     in  case fromRawNumber rawNum mExp of
           Left errMsg -> customFailure $
                            uncurry parseErrorAtRegion posRegion errMsg
-          Right res -> pure res
+          Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
@@ -890,7 +890,7 @@ disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
     isValidDecimalBy c = \case
       AmountStyle{asdecimalpoint = Just d} -> d == c
       AmountStyle{asdigitgroups = Just (DigitGroups g _)} -> g /= c
-      AmountStyle{asprecision = 0} -> False
+      AmountStyle{asprecision = Precision 0} -> False
       _ -> True
 
 -- | Parse and interpret the structure of a number without external hints.
@@ -1340,31 +1340,31 @@ tests_Common = tests "Common" [
 
    tests "amountp" [
     test "basic"                  $ assertParseEq amountp "$47.18"     (usd 47.18)
-   ,test "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+   ,test "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` Precision 0)
    ,test "unit price"             $ assertParseEq amountp "$10 @ €0.5"
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
          acommodity="$"
         ,aquantity=10 -- need to test internal precision with roundTo ? I think not
-        ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+        ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
         ,aprice=Just $ UnitPrice $
           amount{
              acommodity="€"
             ,aquantity=0.5
-            ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
+            ,astyle=amountstyle{asprecision=Precision 1, asdecimalpoint=Just '.'}
             }
         }
    ,test "total price"            $ assertParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
         ,aquantity=10
-        ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+        ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
         ,aprice=Just $ TotalPrice $
           amount{
              acommodity="€"
             ,aquantity=5
-            ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+            ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
             }
         }
    ,test "unit price, parenthesised" $ assertParse amountp "$10 (@) €0.5"

@@ -193,7 +193,7 @@ instance NFData AmountPrice
 data AmountStyle = AmountStyle {
       ascommodityside   :: Side,                 -- ^ does the symbol appear on the left or the right ?
       ascommodityspaced :: Bool,                 -- ^ space between symbol and quantity ?
-      asprecision       :: !Word8,               -- ^ number of digits displayed after the decimal point
+      asprecision       :: !AmountPrecision,     -- ^ number of digits displayed after the decimal point
       asdecimalpoint    :: Maybe Char,           -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
       asdigitgroups     :: Maybe DigitGroupStyle -- ^ style for displaying digit groups, if any
 } deriving (Eq,Ord,Read,Typeable,Data,Generic)
@@ -208,6 +208,10 @@ instance Show AmountStyle where
     (show asprecision)
     (show asdecimalpoint)
     (show asdigitgroups)
+
+data AmountPrecision = Precision !Word8 | NaturalPrecision deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)
+
+instance NFData AmountPrecision
 
 -- | A style for displaying digit groups in the integer part of a
 -- floating point number. It consists of the character used to
