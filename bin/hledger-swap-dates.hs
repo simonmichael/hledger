@@ -1,10 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --compile --resolver lts-16.3
-   --package hledger-lib
-   --package hledger
-   --package string-qq
-   --package text
--}
+-- stack script --compile --resolver lts-16.3
 
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 {-# LANGUAGE NamedFieldPuns #-}

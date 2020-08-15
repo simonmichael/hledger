@@ -1,8 +1,5 @@
 #!/usr/bin/env stack
 {- stack script --compile --resolver lts-16.3
-   --package hledger
-   --package string-qq
-   --package text
 -}
 {-
 Quick script that adds file/line number tags to print output.

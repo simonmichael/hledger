@@ -1,9 +1,6 @@
 #!/usr/bin/env stack
-{- stack script --compile --resolver lts-16.3
-   --package hledger
-   --package directory
-   --package text
--}
+-- stack script --compile --resolver lts-16.3
+
 {-
 hledger-check-tag-files stack script.
 Read the default journal and give an error if any tag values

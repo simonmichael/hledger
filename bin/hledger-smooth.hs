@@ -1,13 +1,6 @@
 #!/usr/bin/env stack
-{- stack script --compile --resolver lts-16.3
-   --package hledger
-   --package safe
-   --package string-qq
-   --package text
-   --package time
--}
---   --package hledger-lib
--- Experimental; not guaranteed to work or be useful.
+-- stack script --compile --resolver lts-16.3
+
 -- This is an unfinished prototype, see https://github.com/simonmichael/hledger/issues/1171
 -- Requires a contemporaneous version of the hledger package.
 -- Requires journal entries to be sorted by date.

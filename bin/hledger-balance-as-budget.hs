@@ -1,7 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --compile --resolver lts-16.3
-   --package hledger
--}
+-- stack script --compile --resolver lts-16.3
 
 -- {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 

@@ -1,14 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --compile --resolver=lts-16.3
-   --package base-compat
-   --package filepath
-   --package hledger-lib
-   --package optparse-applicative
-   --package megaparsec
-   --package text
-   --package time
-   --package transformers
--}
+-- stack script --compile --resolver=lts-16.3
 
 {-
 ```
