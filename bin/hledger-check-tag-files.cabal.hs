@@ -1,9 +1,9 @@
 #!/usr/bin/env cabal
 {- cabal:
-build-depends: base, directory, hledger-lib, hledger, text
+build-depends: base, directory, hledger, text
 -}
 {-
-hledger-check-tag-files script (cabal version, requires cabal-install 3.0.0.0+)
+hledger-check-tag-files cabal script (requires cabal 3+).
 Read the default journal and give an error if any tag values
 containing '/' do not exist as file paths.
 Usage:
