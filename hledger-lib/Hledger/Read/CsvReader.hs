@@ -44,6 +44,7 @@ import "base-compat-batteries" Prelude.Compat hiding (fail)
 import Control.Exception          (IOException, handle, throw)
 import Control.Monad              (liftM, unless, when)
 import Control.Monad.Except       (ExceptT, throwError)
+import qualified Control.Monad.Fail as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
@@ -69,7 +70,7 @@ import qualified Data.Csv.Parser.Megaparsec as CassavaMP
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Foldable
-import Text.Megaparsec hiding (parse)
+import Text.Megaparsec hiding (match, parse)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
 import Text.Printf (printf)
@@ -294,17 +295,14 @@ type FieldTemplate    = String
 -- | A strptime date parsing pattern, as supported by Data.Time.Format.
 type DateFormat       = String
 
--- | A regular expression.
-type RegexpPattern    = String
-
 -- | A prefix for a matcher test, either & or none (implicit or).
 data MatcherPrefix = And | None
   deriving (Show, Eq)
 
 -- | A single test for matching a CSV record, in one way or another.
 data Matcher =
-    RecordMatcher MatcherPrefix RegexpPattern                   -- ^ match if this regexp matches the overall CSV record
-  | FieldMatcher MatcherPrefix CsvFieldReference RegexpPattern  -- ^ match if this regexp matches the referenced CSV field's value
+    RecordMatcher MatcherPrefix Regexp                          -- ^ match if this regexp matches the overall CSV record
+  | FieldMatcher MatcherPrefix CsvFieldReference Regexp         -- ^ match if this regexp matches the referenced CSV field's value
   deriving (Show, Eq)
 
 -- | A conditional block: a set of CSV record matchers, and a sequence
@@ -617,9 +615,9 @@ recordmatcherp end = do
   -- _  <- optional (matchoperatorp >> lift skipNonNewlineSpaces >> optional newline)
   p <- matcherprefixp
   r <- regexp end
+  return $ RecordMatcher p r
   -- when (null ps) $
   --   Fail.fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
-  return $ RecordMatcher p r
   <?> "record matcher"
 
 -- | A single matcher for a specific field. A csv field reference
@@ -656,13 +654,15 @@ csvfieldreferencep = do
   return $ '%' : quoteIfNeeded f
 
 -- A single regular expression
-regexp :: CsvRulesParser () -> CsvRulesParser RegexpPattern
+regexp :: CsvRulesParser () -> CsvRulesParser Regexp
 regexp end = do
   lift $ dbgparse 8 "trying regexp"
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anySingle `manyTill` end
-  return $ strip $ c:cs
+  case toRegexCI_ . strip $ c:cs of
+       Left x -> Fail.fail $ "CSV parser: " ++ x
+       Right x -> return x
 
 -- -- A match operator, indicating the type of match to perform.
 -- -- Currently just ~ meaning case insensitive infix regex match.
@@ -1181,7 +1181,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
               where
                 -- does this individual matcher match the current csv record ?
                 matcherMatches :: Matcher -> Bool
-                matcherMatches (RecordMatcher _ pat) = regexMatchesCI pat' wholecsvline
+                matcherMatches (RecordMatcher _ pat) = match pat' wholecsvline
                   where
                     pat' = dbg7 "regex" pat
                     -- A synthetic whole CSV record to match against. Note, this can be
@@ -1191,7 +1191,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                     -- - and the field separator is always comma
                     -- which means that a field containing a comma will look like two fields.
                     wholecsvline = dbg7 "wholecsvline" $ intercalate "," record
-                matcherMatches (FieldMatcher _ csvfieldref pat) = regexMatchesCI pat csvfieldvalue
+                matcherMatches (FieldMatcher _ csvfieldref pat) = match pat csvfieldvalue
                   where
                     -- the value of the referenced CSV field to match against.
                     csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
@@ -1199,7 +1199,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
 -- | Render a field assignment's template, possibly interpolating referenced
 -- CSV field values. Outer whitespace is removed from interpolated values.
 renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> String
-renderTemplate rules record t = regexReplaceBy "%[A-z0-9_-]+" (replaceCsvFieldReference rules record) t
+renderTemplate rules record t = replaceAllBy (toRegex' "%[A-z0-9_-]+") (replaceCsvFieldReference rules record) t  -- PARTIAL: should not happen
 
 -- | Replace something that looks like a reference to a csv field ("%date" or "%1)
 -- with that field's value. If it doesn't look like a field reference, or if we
@@ -1256,12 +1256,12 @@ tests_CsvReader = tests "CsvReader" [
 
     ,test "assignment with empty value" $
       parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
-        (Right (mkrules $ defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher None "foo"],cbAssignments=[("account2","foo")]}]}))
+        (Right (mkrules $ defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher None (toRegex' "foo")],cbAssignments=[("account2","foo")]}]}))
    ]
   ,tests "conditionalblockp" [
     test "space after conditional" $ -- #1120
       parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
-        (Right $ CB{cbMatchers=[RecordMatcher None "a"],cbAssignments=[("account2","b")]})
+        (Right $ CB{cbMatchers=[RecordMatcher None $ toRegexCI' "a"],cbAssignments=[("account2","b")]})
 
   ,tests "csvfieldreferencep" [
     test "number" $ parseWithState' defrules csvfieldreferencep "%1" @?= (Right "%1")
@@ -1272,19 +1272,19 @@ tests_CsvReader = tests "CsvReader" [
   ,tests "matcherp" [
 
     test "recordmatcherp" $
-      parseWithState' defrules matcherp "A A\n" @?= (Right $ RecordMatcher None "A A")
+      parseWithState' defrules matcherp "A A\n" @?= (Right $ RecordMatcher None $ toRegexCI' "A A")
 
    ,test "recordmatcherp.starts-with-&" $
-      parseWithState' defrules matcherp "& A A\n" @?= (Right $ RecordMatcher And "A A")
+      parseWithState' defrules matcherp "& A A\n" @?= (Right $ RecordMatcher And $ toRegexCI' "A A")
 
    ,test "fieldmatcherp.starts-with-%" $
-      parseWithState' defrules matcherp "description A A\n" @?= (Right $ RecordMatcher None "description A A")
+      parseWithState' defrules matcherp "description A A\n" @?= (Right $ RecordMatcher None $ toRegexCI' "description A A")
 
    ,test "fieldmatcherp" $
-      parseWithState' defrules matcherp "%description A A\n" @?= (Right $ FieldMatcher None "%description" "A A")
+      parseWithState' defrules matcherp "%description A A\n" @?= (Right $ FieldMatcher None "%description" $ toRegexCI' "A A")
 
    ,test "fieldmatcherp.starts-with-&" $
-      parseWithState' defrules matcherp "& %description A A\n" @?= (Right $ FieldMatcher And "%description" "A A")
+      parseWithState' defrules matcherp "& %description A A\n" @?= (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
 
    -- ,test "fieldmatcherp with operator" $
    --    parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
@@ -1293,22 +1293,22 @@ tests_CsvReader = tests "CsvReader" [
 
   ,tests "getEffectiveAssignment" [
     let rules = mkrules $ defrules {rcsvfieldindexes=[("csvdate",1)],rassignments=[("date","%csvdate")]}
-    
+
     in test "toplevel" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
 
-   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" "a"] [("date","%csvdate")]]}
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a"] [("date","%csvdate")]]}
     in test "conditional" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
 
-   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" "a", FieldMatcher None "%description" "b"] [("date","%csvdate")]]}
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher None "%description" $ toRegex' "b"] [("date","%csvdate")]]}
     in test "conditional-with-or-a" $ getEffectiveAssignment rules ["a"] "date" @?= (Just "%csvdate")
 
-   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" "a", FieldMatcher None "%description" "b"] [("date","%csvdate")]]}
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher None "%description" $ toRegex' "b"] [("date","%csvdate")]]}
     in test "conditional-with-or-b" $ getEffectiveAssignment rules ["_", "b"] "date" @?= (Just "%csvdate")
 
-   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" "a", FieldMatcher And "%description" "b"] [("date","%csvdate")]]}
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher And "%description" $ toRegex' "b"] [("date","%csvdate")]]}
     in test "conditional.with-and" $ getEffectiveAssignment rules ["a", "b"] "date" @?= (Just "%csvdate")
 
-   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" "a", FieldMatcher And "%description" "b", FieldMatcher None "%description" "c"] [("date","%csvdate")]]}
+   ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher And "%description" $ toRegex' "b", FieldMatcher None "%description" $ toRegex' "c"] [("date","%csvdate")]]}
     in test "conditional.with-and-or" $ getEffectiveAssignment rules ["_", "c"] "date" @?= (Just "%csvdate")
 
    ]

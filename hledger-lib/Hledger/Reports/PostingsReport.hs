@@ -277,13 +277,13 @@ tests_PostingsReport = tests "PostingsReport" [
     (Any, samplejournal) `gives` 13
     -- register --depth just clips account names
     (Depth 2, samplejournal) `gives` 13
-    (And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
-    (And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
+    (And [Depth 1, StatusQ Cleared, Acct (toRegex' "expenses")], samplejournal) `gives` 2
+    (And [And [Depth 1, StatusQ Cleared], Acct (toRegex' "expenses")], samplejournal) `gives` 2
     -- with query and/or command-line options
     (length $ snd $ postingsReport defreportopts Any samplejournal) @?= 13
     (length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal) @?= 11
     (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal) @?= 20
-    (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal) @?= 5
+    (length $ snd $ postingsReport defreportopts (Acct (toRegex' "assets:bank:checking")) samplejournal) @?= 5
 
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
      -- [(Just (fromGregorian 2008 01 01,"income"),assets:bank:checking             $1,$1)

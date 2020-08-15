@@ -76,7 +76,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
         excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
           And [
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
-            ,Not (Tag "generated-transaction" Nothing)
+            ,Not (Tag (toRegexCI' "generated-transaction") Nothing)
           ]
 
     (_label,items) = accountTransactionsReport ropts' j q thisacctq

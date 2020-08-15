@@ -24,7 +24,9 @@ import Data.Aeson (toJSON)
 import Data.Aeson.Text (encodeToLazyText)
 import Data.List
 import Data.Maybe
--- import Data.Text (Text)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Time (addDays)
@@ -77,8 +79,9 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   when (null args') $ error' "aregister needs an account, please provide an account name or pattern"  -- PARTIAL:
   let
     (apat:queryargs) = args'
+    apatregex = toRegex' apat  -- PARTIAL: do better
     acct = headDef (error' $ show apat++" did not match any account") $  -- PARTIAL:
-           filter (regexMatches apat . T.unpack) $ journalAccountNames j
+           filter (match apatregex . T.unpack) $ journalAccountNames j
     -- gather report options
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
@@ -97,7 +100,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
         excludeforecastq False =  -- not:date:tomorrow- not:tag:generated-transaction
           And [
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
-            ,Not (Tag "generated-transaction" Nothing)
+            ,Not (Tag (toRegex' "generated-transaction") Nothing)
           ]
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
@@ -147,11 +150,11 @@ accountTransactionsReportAsText
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise
-    title = maybe "" (("Transactions in "++).(++" and subaccounts:")) macct
+    title = T.unpack $ maybe "" (("Transactions in "<>).(<>" and subaccounts:")) macct
       where
         -- XXX temporary hack ? recover the account name from the query
         macct = case filterQuery queryIsAcct thisacctq of
-                  Acct r -> Just $ init $ init $ init $ init $ init $ tail r  -- Acct "^JS:expenses(:|$)"
+                  Acct r -> Just . T.drop 1 . T.dropEnd 5 . T.pack $ reString r  -- Acct "^JS:expenses(:|$)"
                   _      -> Nothing  -- shouldn't happen
 
 -- | Render one account register report line item as plain text. Layout is like so:

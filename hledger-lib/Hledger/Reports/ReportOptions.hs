@@ -346,7 +346,7 @@ forecastPeriodFromRawOpts d opts =
     Just str ->
       either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e) (Just . snd) $ 
       parsePeriodExpr d $ stripquotes $ T.pack str
-    
+
 -- | Extract the interval from the parsed -p/--period expression.
 -- Return Nothing if an interval is not explicitly defined.
 extractIntervalOrNothing :: (Interval, DateSpan) -> Maybe Interval
@@ -423,10 +423,10 @@ type DisplayExp = String
 
 maybedisplayopt :: Day -> RawOpts -> Maybe DisplayExp
 maybedisplayopt d rawopts =
-    maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) $ maybestringopt "display" rawopts
-    where
-      fixbracketeddatestr "" = ""
-      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (T.pack $ init $ tail s) ++ "]"
+    maybe Nothing (Just . replaceAllBy (toRegex' "\\[.+?\\]") fixbracketeddatestr) $ maybestringopt "display" rawopts
+  where
+    fixbracketeddatestr "" = ""
+    fixbracketeddatestr s = "[" ++ fixSmartDateStr d (T.pack $ init $ tail s) ++ "]"
 
 -- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
@@ -573,12 +573,12 @@ reportPeriodOrJournalLastDay ropts j =
 tests_ReportOptions = tests "ReportOptions" [
    test "queryFromOpts" $ do
        queryFromOpts nulldate defreportopts @?= Any
-       queryFromOpts nulldate defreportopts{query_="a"} @?= Acct "a"
-       queryFromOpts nulldate defreportopts{query_="desc:'a a'"} @?= Desc "a a"
+       queryFromOpts nulldate defreportopts{query_="a"} @?= Acct (toRegexCI' "a")
+       queryFromOpts nulldate defreportopts{query_="desc:'a a'"} @?= Desc (toRegexCI' "a a")
        queryFromOpts nulldate defreportopts{period_=PeriodFrom (fromGregorian 2012 01 01),query_="date:'to 2013'" }
          @?= (Date $ DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01))
        queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"} @?= (Date2 $ DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01))
-       queryFromOpts nulldate defreportopts{query_="'a a' 'b"} @?= Or [Acct "a a", Acct "'b"]
+       queryFromOpts nulldate defreportopts{query_="'a a' 'b"} @?= Or [Acct $ toRegexCI' "a a", Acct $ toRegexCI' "'b"]
 
   ,test "queryOptsFromOpts" $ do
       queryOptsFromOpts nulldate defreportopts @?= []
@@ -586,4 +586,3 @@ tests_ReportOptions = tests "ReportOptions" [
       queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (fromGregorian 2012 01 01)
                                               ,query_="date:'to 2013'"} @?= []
  ]
-

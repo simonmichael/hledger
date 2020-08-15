@@ -115,7 +115,7 @@ addForm j today = identifyForm "add" $ \extra -> do
         ]
       where
         -- avoid https://github.com/simonmichael/hledger/issues/236
-        escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>"
+        escapeJSSpecialChars = regexReplace (toRegexCI' "</script>") "<\\/script>"
 
 validateTransaction ::
      FormResult Day

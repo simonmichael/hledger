@@ -74,7 +74,6 @@ module Hledger.Data.Journal (
   journalCashAccountQuery,
   -- * Misc
   canonicalStyleFrom,
-  matchpats,
   nulljournal,
   journalCheckBalanceAssertions,
   journalNumberAndTieTransactions,
@@ -301,7 +300,7 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- or otherwise for accounts with names matched by the case-insensitive 
 -- regular expression @^assets?(:|$)@.
 journalAssetAccountQuery :: Journal -> Query
-journalAssetAccountQuery j = journalAccountTypeQuery [Asset,Cash] "^assets?(:|$)" j
+journalAssetAccountQuery = journalAccountTypeQuery [Asset,Cash] (toRegex' "^assets?(:|$)")
 
 -- | A query for "Cash" (liquid asset) accounts in this journal, ie accounts
 -- declared as Cash by account directives, or otherwise with names matched by the 
@@ -310,43 +309,41 @@ journalAssetAccountQuery j = journalAccountTypeQuery [Asset,Cash] "^assets?(:|$)
 journalCashAccountQuery  :: Journal -> Query
 journalCashAccountQuery j =
   case M.lookup Cash (jdeclaredaccounttypes j) of
+    Nothing -> And [ journalAssetAccountQuery j, Not . Acct $ toRegex' "(investment|receivable|:A/R|:fixed)" ]
     Just _  -> journalAccountTypeQuery [Cash] notused j
       where notused = error' "journalCashAccountQuery: this should not have happened!"  -- PARTIAL:
-    Nothing -> And [journalAssetAccountQuery j
-                   ,Not $ Acct "(investment|receivable|:A/R|:fixed)"
-                   ]
 
 -- | A query for accounts in this journal which have been
 -- declared as Liability by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(debts?|liabilit(y|ies))(:|$)@.
 journalLiabilityAccountQuery :: Journal -> Query
-journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] "^(debts?|liabilit(y|ies))(:|$)"
+journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] (toRegex' "^(debts?|liabilit(y|ies))(:|$)")
 
 -- | A query for accounts in this journal which have been
 -- declared as Equity by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^equity(:|$)@.
 journalEquityAccountQuery :: Journal -> Query
-journalEquityAccountQuery = journalAccountTypeQuery [Equity] "^equity(:|$)"
+journalEquityAccountQuery = journalAccountTypeQuery [Equity] (toRegex' "^equity(:|$)")
 
 -- | A query for accounts in this journal which have been
 -- declared as Revenue by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(income|revenue)s?(:|$)@.
 journalRevenueAccountQuery :: Journal -> Query
-journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] "^(income|revenue)s?(:|$)"
+journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] (toRegex' "^(income|revenue)s?(:|$)")
 
 -- | A query for accounts in this journal which have been
 -- declared as Expense by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^expenses?(:|$)@.
 journalExpenseAccountQuery  :: Journal -> Query
-journalExpenseAccountQuery = journalAccountTypeQuery [Expense] "^expenses?(:|$)"
+journalExpenseAccountQuery = journalAccountTypeQuery [Expense] (toRegex' "^expenses?(:|$)")
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
-journalBalanceSheetAccountQuery  :: Journal -> Query
+journalBalanceSheetAccountQuery :: Journal -> Query
 journalBalanceSheetAccountQuery j = Or [journalAssetAccountQuery j
                                        ,journalLiabilityAccountQuery j
                                        ,journalEquityAccountQuery j
@@ -370,17 +367,16 @@ journalAccountTypeQuery :: [AccountType] -> Regexp -> Journal -> Query
 journalAccountTypeQuery atypes fallbackregex Journal{jdeclaredaccounttypes} =
   let
     declaredacctsoftype :: [AccountName] =
-      concat $ catMaybes [M.lookup t jdeclaredaccounttypes | t <- atypes]
+      concat $ mapMaybe (`M.lookup` jdeclaredaccounttypes) atypes
   in case declaredacctsoftype of
     [] -> Acct fallbackregex
-    as ->
-      -- XXX Query isn't able to match account type since that requires extra info from the journal.
-      -- So we do a hacky search by name instead.
-      And [
-         Or $ map (Acct . accountNameToAccountRegex) as
-        ,Not $ Or $ map (Acct . accountNameToAccountRegex) differentlytypedsubs
-        ]
+    as -> And [ Or acctnameRegexes, Not $ Or differentlyTypedRegexes ]
       where
+        -- XXX Query isn't able to match account type since that requires extra info from the journal.
+        -- So we do a hacky search by name instead.
+        acctnameRegexes = map (Acct . accountNameToAccountRegex) as
+        differentlyTypedRegexes = map (Acct . accountNameToAccountRegex) differentlytypedsubs
+
         differentlytypedsubs = concat
           [subs | (t,bs) <- M.toList jdeclaredaccounttypes
               , not $ t `elem` atypes
@@ -1236,25 +1232,6 @@ postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
 --     , (showAmount . setAmountPrecision maxprecision) (pdamount pd
 --     )
 --     ]
-
--- Misc helpers
-
--- | Check if a set of hledger account/description filter patterns matches the
--- given account name or entry description.  Patterns are case-insensitive
--- regular expressions. Prefixed with not:, they become anti-patterns.
-matchpats :: [String] -> String -> Bool
-matchpats pats str =
-    (null positives || any match positives) && (null negatives || not (any match negatives))
-    where
-      (negatives,positives) = partition isnegativepat pats
-      match "" = True
-      match pat = regexMatchesCI (abspat pat) str
-
-negateprefix = "not:"
-
-isnegativepat = (negateprefix `isPrefixOf`)
-
-abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 
 -- debug helpers
 -- traceAmountPrecision a = trace (show $ map (precision . acommodity) $ amounts a) a

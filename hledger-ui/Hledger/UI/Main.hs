@@ -122,7 +122,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
         where
           acct = headDef
                  (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-                 $ filter (regexMatches apat . T.unpack) $ journalAccountNames j
+                 $ filter (match (toRegexCI' apat) . T.unpack) $ journalAccountNames j
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary UIState value..
           ascr' = aScreen $

@@ -144,7 +144,7 @@ import Text.Megaparsec.Custom
 import Control.Applicative.Permutations
 
 import Hledger.Data
-import Hledger.Utils
+import Hledger.Utils hiding (match)
 
 --- ** doctest setup
 -- $setup

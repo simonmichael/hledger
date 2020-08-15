@@ -166,7 +166,7 @@ data AccountAlias = BasicAlias AccountName AccountName
                   | RegexAlias Regexp Replacement
   deriving (Eq, Read, Show, Ord, Data, Generic, Typeable)
 
-instance NFData AccountAlias
+-- instance NFData AccountAlias
 
 data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data,Generic)
 
@@ -512,13 +512,13 @@ data Journal = Journal {
                                                                     --   any included journal files. The main file is first,
                                                                     --   followed by any included files in the order encountered.
   ,jlastreadtime          :: ClockTime                              -- ^ when this journal was last read from its file(s)
-  } deriving (Eq, Typeable, Data, Generic)
+  } deriving (Eq, Generic)
 
 deriving instance Data ClockTime
 deriving instance Typeable ClockTime
 deriving instance Generic ClockTime
 instance NFData ClockTime
-instance NFData Journal
+-- instance NFData Journal
 
 -- | A journal in the process of being parsed, not yet finalised.
 -- The data is partial, and list fields are in reverse order.

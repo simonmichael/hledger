@@ -50,7 +50,7 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
-     test "not acct" $ (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal) @?= 1
+     test "not acct" $ (length $ entriesReport defreportopts (Not . Acct $ toRegex' "bank") samplejournal) @?= 1
     ,test "date" $ (length $ entriesReport defreportopts (Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)) samplejournal) @?= 3
   ]
  ]

@@ -18,7 +18,6 @@ module Hledger.Data.AccountName (
   ,accountNameToAccountOnlyRegex
   ,accountNameToAccountRegex
   ,accountNameTreeFrom
-  ,accountRegexToAccountName
   ,accountSummarisedName
   ,acctsep
   ,acctsepchar
@@ -48,7 +47,6 @@ import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Tree
-import Text.Printf
 
 import Hledger.Data.Types
 import Hledger.Utils
@@ -210,23 +208,17 @@ clipOrEllipsifyAccountName n        = clipAccountName n
 -- | Escape an AccountName for use within a regular expression.
 -- >>> putStr $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
 -- First\?!#\$\*\?\$\(\*\) !@\^#\*\? %\)\*!@#
-escapeName :: AccountName -> Regexp
-escapeName = regexReplaceBy "[[?+|()*\\\\^$]" ("\\" <>)
+escapeName :: AccountName -> String
+escapeName = replaceAllBy (toRegex' "[[?+|()*\\\\^$]") ("\\" <>)  -- PARTIAL: should not happen
            . T.unpack
 
 -- | Convert an account name to a regular expression matching it and its subaccounts.
 accountNameToAccountRegex :: AccountName -> Regexp
-accountNameToAccountRegex "" = ""
-accountNameToAccountRegex a = printf "^%s(:|$)" (escapeName a)
+accountNameToAccountRegex a = toRegex' $ '^' : escapeName a ++ "(:|$)"  -- PARTIAL: Is this safe after escapeName?
 
 -- | Convert an account name to a regular expression matching it but not its subaccounts.
 accountNameToAccountOnlyRegex :: AccountName -> Regexp
-accountNameToAccountOnlyRegex "" = ""
-accountNameToAccountOnlyRegex a = printf "^%s$"  $ escapeName a -- XXX pack
-
--- | Convert an exact account-matching regular expression to a plain account name.
-accountRegexToAccountName :: Regexp -> AccountName
-accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1" -- XXX pack
+accountNameToAccountOnlyRegex a = toRegex' $ '^' : escapeName a ++ "$" -- PARTIAL: Is this safe after escapeName?
 
 -- -- | Does this string look like an exact account-matching regular expression ?
 --isAccountRegex  :: String -> Bool
