@@ -1,7 +1,7 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info
-   --package hledger-lib
+{- stack script --compile --resolver lts-16.3
    --package hledger
+   --package containers
 -}
 
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}

@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info
+{- stack script --compile --resolver lts-16.3
    --package hledger
    --package safe
    --package string-qq

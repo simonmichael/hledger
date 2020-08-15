@@ -1,10 +1,9 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info
-   --package hledger-lib
+{- stack script --compile --resolver lts-16.3
    --package hledger
 -}
 
-{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
+-- {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 
 {-| Construct two balance reports for two different time periods and use one of the as "budget" for
     the other, thus comparing them

@@ -1,9 +1,11 @@
 #!/usr/bin/env stack
--- stack script --compile --resolver nightly-2020-03-26 --package hledger-lib --package hledger --package directory --package text
--- Add this to see more progress: --verbosity info
--- Change --resolver to an already-installed one if you like
+{- stack script --compile --resolver lts-16.3
+   --package hledger
+   --package directory
+   --package text
+-}
 {-
-hledger-check-tag-files script (stack version)
+hledger-check-tag-files stack script.
 Read the default journal and give an error if any tag values
 containing '/' do not exist as file paths.
 Usage:
