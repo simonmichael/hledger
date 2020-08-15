@@ -2,7 +2,7 @@
 {- stack runghc --verbosity info
    --package hledger-lib
    --package hledger
-   --package here
+   --package string-qq
    --package text
 -}
 
@@ -11,13 +11,13 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 
-import Data.String.Here
+import Data.String.QQ (s)
 import Hledger
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
-  [here| swap-dates
+  [s| swap-dates
 Swap date and date2, on transactions which have date2 defined.
 (Does not yet swap posting dates.)
 FLAGS
