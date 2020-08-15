@@ -25,7 +25,7 @@ import Hledger.Cli
 cmdmode = hledgerCommandMode
   [s| print-location
 Like print, but adds tags showing the file path and location of transactions.
-FLAGS
+_FLAGS
   |]
   [] 
   [generalflagsgroup1]

@@ -15,7 +15,7 @@ cmdmode = hledgerCommandMode
   [s| swap-dates
 Swap date and date2, on transactions which have date2 defined.
 (Does not yet swap posting dates.)
-FLAGS
+_FLAGS
   |]
   [] 
   [generalflagsgroup1]

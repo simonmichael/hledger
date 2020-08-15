@@ -39,7 +39,7 @@ Useful for preprocessing a journal to smooth out irregular revenues or
 expenses in daily/weekly/monthly reports, eg:
 hledger smooth revenues:consulting | hledger -f- incomestatement -W
 
-FLAGS
+_FLAGS
   |]
   []
   [generalflagsgroup1]
