@@ -1,21 +1,28 @@
 Miscellaneous hledger add-ons, bash scripts, example make rules, etc. 
 
-The hledger-*.hs scripts here are example/experimental hledger [add-on commands], including:
+The hledger-*.hs scripts here are example/experimental hledger [add-on commands].
+See <https://hledger.org/scripting.html> for more about this.
 
-- hledger-check.hs      - check more complex account balance assertions
-- hledger-smooth.hs     - an attempt at automatically splitting infrequent/irregular transactions
-- hledger-swap-dates.hs - print transactions with their date and date2 fields swapped
-- hledger-combine-balances.hs  - render two balance reports as single multi-column one
-- hledger-balance-as-budget.hs - use one balance report as the budget for the other one
+They are mostly implemented as [stack] scripts; if you have stack in your $PATH,
+they should just work, automatically installing their dependencies if needed.
+(You can also run them with [cabal], or runghc, or compile them with
+ghc, if you take care of the dependencies yourself.)
 
-Note these are not tested as much as the rest of hledger, and some of them may be only proof of concepts.
+Scripts overview, simplest first:
 
-They are easiest to run reliably if you have [stack] in your $PATH;
-they will install required dependencies and compile themselves as needed.
-(You can also run them with cabal or runghc, or compile them with ghc, if you take care of the dependencies.)
+- hledger-check-tag-files.hs        - check that all tag values containing / exist as file paths
+- hledger-check-tag-files.cabal.hs  - the above as a cabal script
+- hledger-swap-dates.hs             - print transactions with their date and date2 fields swapped
+- hledger-print-location.hs         - add file path/line number tags to the print command
+- hledger-balance-as-budget.hs      - use one balance report as budget goals for another one
+- hledger-combine-balances.hs       - show balance reports for two different periods side by side
+- hledger-smooth.hs                 - incomplete attempt at automatically splitting infrequent/irregular transactions
+- hledger-check.hs                  - check more complex account balance assertions
+
 
 [add-on commands]: http://hledger.org/hledger.html#add-on-commands
 [stack]: https://www.fpcomplete.com/haskell/get-started
+[cabal]: https://www.haskell.org/cabal
 
 ## Installing a single script
 
@@ -38,3 +45,8 @@ Note the `--`, which is required to separate script options from hledger options
     $ # add hledger/bin/ to your $PATH
     $ hledger  # addons appear in command list
 
+
+
+stack exec -- ghcid bin/hledger-import-shared-expenses.hs 
+
+stack ghci bin/hledger-import-shared-expenses.hs 
