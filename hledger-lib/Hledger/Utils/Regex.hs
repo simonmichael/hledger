@@ -215,7 +215,6 @@ replaceRegexUnmemo_ re repl s = foldM (replaceMatch_ repl) s (reverse $ match (r
         -- The replacement text: the replacement pattern with all
         -- numeric backreferences replaced by the appropriate groups
         -- from this match. Or an error message.
-        -- FIXME: Use makeRegex instead of toRegex_
         erepl = replaceAllByM backrefRegex (lookupMatchGroup_ matchgroups) replpat
           where
             -- Given some match groups and a numeric backreference,
