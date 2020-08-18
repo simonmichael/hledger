@@ -105,7 +105,7 @@ data Query = Any              -- ^ always match
                               --   and sometimes like a query option (for controlling display)
            | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
                                         -- matching the regexp if provided, exists
-    deriving (Eq,Data,Typeable)
+    deriving (Eq,Show,Data,Typeable)
 
 -- | Construct a payee tag
 payeeTag :: Maybe String -> Either RegexError Query
@@ -114,26 +114,6 @@ payeeTag = liftA2 Tag (toRegexCI_ "payee") . maybe (pure Nothing) (fmap Just . t
 -- | Construct a note tag
 noteTag :: Maybe String -> Either RegexError Query
 noteTag = liftA2 Tag (toRegexCI_ "note") . maybe (pure Nothing) (fmap Just . toRegexCI_)
-
--- custom Show implementation to show strings more accurately, eg for debugging regexps
-instance Show Query where
-  show Any           = "Any"
-  show None          = "None"
-  show (Not q)       = "Not ("   ++ show q  ++ ")"
-  show (Or qs)       = "Or ("    ++ show qs ++ ")"
-  show (And qs)      = "And ("   ++ show qs ++ ")"
-  show (Code r)      = "Code "   ++ show r
-  show (Desc r)      = "Desc "   ++ show r
-  show (Acct r)      = "Acct "   ++ show r
-  show (Date ds)     = "Date ("  ++ show ds ++ ")"
-  show (Date2 ds)    = "Date2 (" ++ show ds ++ ")"
-  show (StatusQ b)    = "StatusQ " ++ show b
-  show (Real b)      = "Real "   ++ show b
-  show (Amt ord qty) = "Amt "    ++ show ord ++ " " ++ show qty
-  show (Sym r)       = "Sym "    ++ show r
-  show (Empty b)     = "Empty "  ++ show b
-  show (Depth n)     = "Depth "  ++ show n
-  show (Tag s ms)    = "Tag "    ++ show s ++ " (" ++ show ms ++ ")"
 
 -- | A more expressive Ord, used for amt: queries. The Abs* variants
 -- compare with the absolute value of a number, ignoring sign.
@@ -190,11 +170,10 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- 4. then all terms are AND'd together
 --
 -- >>> parseQuery nulldate "expenses:dining out"
--- Right (Or ([Acct "expenses:dining",Acct "out"]),[])
+-- Right (Or [Acct (RegexpCI "expenses:dining"),Acct (RegexpCI "out")],[])
 --
 -- >>> parseQuery nulldate "\"expenses:dining out\""
--- Right (Acct "expenses:dining out",[])
---
+-- Right (Acct (RegexpCI "expenses:dining out"),[])
 parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
 parseQuery d s = do
   let termstrs = words'' prefixes s
