@@ -415,8 +415,8 @@ ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 ###############################################################################
 $(call def-help-subheading,TESTING:)
 
-test: pkgtest functest \
-	$(call def-help,test, run default tests: package tests plus functional tests)
+test: functest bench \
+	$(call def-help,test, run default tests: functional tests (including unit tests) and benchmarks )
 
 # For quieter tests add --silent. It may hide troubleshooting info.
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
@@ -621,7 +621,10 @@ examples/mixed.journal: tools/generatejournal
 BENCHEXES=hledger
 # or, eg: BENCHEXES=ledger,hledger-1.4,hledger  
 
-bench: samplejournals bench.sh $(call def-help,bench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
+bench: quickbench
+
+quickbench: samplejournals bench.sh $(call def-help,bench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
+	@echo; echo "run quick performance benchmarks in bench.sh (approximate, can be skewed):"
 	quickbench -v -w $(BENCHEXES)
 
 # bench: samplejournals tests/bench.tests tools/simplebench \
