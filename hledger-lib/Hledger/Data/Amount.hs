@@ -261,7 +261,7 @@ multiplyAmountAndPrice n a@Amount{aquantity=q,aprice=p} = a{aquantity=q*n, apric
 isNegativeAmount :: Amount -> Bool
 isNegativeAmount Amount{aquantity=q} = q < 0
 
--- | Round an Amount to its specified display precision. If that is
+-- | Round an Amount's Quantity to its specified display precision. If that is
 -- NaturalPrecision, this does nothing.
 amountRoundedQuantity :: Amount -> Quantity
 amountRoundedQuantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p}} = case p of

@@ -855,7 +855,7 @@ fromRawNumber raw mExp = do
     toQuantity e preDecimalGrp postDecimalGrp
       | precision < 0   = Right (Decimal 0 (digitGrpNum * 10^(-precision)), 0)
       | precision < 256 = Right (Decimal precision8 digitGrpNum, precision8)
-      | otherwise = Left "invalid number: numbers with more than 255 decimal digits are now allowed at this time"
+      | otherwise = Left "invalid number: numbers with more than 255 decimal digits are not allowed at this time"
       where
         digitGrpNum = digitGroupNumber $ preDecimalGrp <> postDecimalGrp
         precision   = toInteger (digitGroupLength postDecimalGrp) - e
