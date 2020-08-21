@@ -725,10 +725,8 @@ The file name `-` (hyphen) means standard input:
 $ cat some.journal | hledger -f-
 ```
 
-Usually the data file is in hledger's journal format,
-but it can also be one of several other formats, listed below.
-hledger detects the format automatically based on the file extension,
-or if that is not recognised, by trying each built-in "reader" in turn:
+Usually the data file is in hledger's journal format, but it can be in
+any of the supported file formats, which currently are:
 
 | Reader:     | Reads:                                                           | Used for file extensions:            |
 |-------------|------------------------------------------------------------------|--------------------------------------|
@@ -737,22 +735,31 @@ or if that is not recognised, by trying each built-in "reader" in turn:
 | `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
 | `csv`       | comma/semicolon/tab/other-separated values, for data import      | `.csv` `.ssv` `.tsv`                 |
 
-If needed (eg to ensure correct error messages when a file has the "wrong" extension),
-you can force a specific reader/format by prepending it to the file path with a colon.
-Examples:
+hledger detects the format automatically based on the file extensions
+shown above. If it can't recognise the file extension, it assumes
+`journal` format. So for non-journal files, it's important to use a
+recognised file extension, so as to either read successfully or to
+show relevant error messages.
+
+When you can't ensure the right file extension, not to worry: you can
+force a specific reader/format by prefixing the file path with the
+format and a colon. Eg to read a .dat file as csv:
+
 ```shell
 $ hledger -f csv:/some/csv-file.dat stats
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 ```
 
-You can also specify multiple `-f` options, to read multiple files as one big journal.
+You can specify multiple `-f` options, to read multiple files as one big journal.
 There are some limitations with this:
 
 - directives in one file will not affect the other files
 - [balance assertions](journal.html#balance-assertions) will not see any account balances from previous files
 
-If you need those, either use the [include directive](journal.html#including-other-files),
-or concatenate the files, eg: `cat a.journal b.journal | hledger -f- CMD`.
+If you need either of those things, you can 
+
+- use a single parent file which [includes](journal.html#including-other-files) the others
+- or concatenate the files into one before reading, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Output destination
 
