@@ -730,12 +730,12 @@ but it can also be one of several other formats, listed below.
 hledger detects the format automatically based on the file extension,
 or if that is not recognised, by trying each built-in "reader" in turn:
 
-| Reader:     | Reads:                                              | Used for file extensions:                           |
-|-------------|-----------------------------------------------------|-----------------------------------------------------|
-| `journal`   | hledger's journal format, also some Ledger journals | `.journal` `.j` `.hledger` `.ledger`                |
-| `timeclock` | timeclock files (precise time logging)              | `.timeclock`                                        |
-| `timedot`   | timedot files (approximate time logging)            | `.timedot`                                          |
-| `csv`       | comma-separated values (data interchange)           | `.csv`                                              |
+| Reader:     | Reads:                                                           | Used for file extensions:            |
+|-------------|------------------------------------------------------------------|--------------------------------------|
+| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
+| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
+| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
+| `csv`       | comma/semicolon/tab/other-separated values, for data import      | `.csv` `.ssv` `.tsv`                 |
 
 If needed (eg to ensure correct error messages when a file has the "wrong" extension),
 you can force a specific reader/format by prepending it to the file path with a colon.

@@ -12,11 +12,14 @@ _man_({{
 # DESCRIPTION
 }})
 
-hledger can read
-[CSV](http://en.wikipedia.org/wiki/Comma-separated_values)
-(Comma Separated Value/Character Separated Value) files as if they were journal files,
-automatically converting each CSV record into a transaction.  (To
-learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
+hledger can read [CSV] files (Character Separated Value - usually
+comma, semicolon, or tab) containing dated records as if they were
+journal files, automatically converting each CSV record into a
+transaction.
+
+(To learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
+
+[CSV]: http://en.wikipedia.org/wiki/Comma-separated_values
 
 We describe each CSV file's format with a corresponding *rules file*.
 By default this is named like the CSV file with a `.rules` extension
@@ -506,21 +509,29 @@ See TIPS below for more about referencing other fields.
 
 ## `separator`
 
-You can use the `separator` directive to read other kinds of
-character-separated data. Eg to read SSV (Semicolon Separated Values), use:
+You can use the `separator` rule to read other kinds of
+character-separated data. The argument is any single separator
+character, or the words `tab` or `space` (case insensitive). Eg, for
+comma-separated values (CSV):
+
+```
+separator ,
+```
+
+or for semicolon-separated values (SSV):
 ```
 separator ;
 ```
 
-The separator directive accepts exactly one single byte character as a
-separator. To specify whitespace characters, you may use the special
-words `TAB` or `SPACE`. Eg to read TSV (Tab Separated Values), use:
+or for tab-separated values (TSV):
 ```
 separator TAB
 ```
 
-See also: [File Extension](#file-extension).
-
+If the input file has a `.csv`, `.ssv` or `.tsv`
+[file extension](#file-extension) (or a `csv:`, `ssv:`, `tsv:` prefix), 
+the appropriate separator will be inferred automatically, and you
+won't need this rule.
 
 ## `if` block
 
@@ -790,11 +801,10 @@ When CSV values are enclosed in quotes, note:
 
 ## File Extension
 
-CSV ("Character Separated Values") files
-should be named with one of these filename extensions: `.csv`, `.ssv`, `.tsv`.
-Or, the file path should be prefixed with one of `csv:`, `ssv:`, `tsv:`.
-This helps hledger identify the format and show the right error messages.
-For example:
+To help hledger identify the format and show the right error messages,
+CSV/SSV/TSV files should normally be named with a `.csv`, `.ssv` or `.tsv`
+filename extension. Or, the file path should be prefixed with `csv:`, `ssv:` or `tsv:`.
+Eg:
 ```shell
 $ hledger -f foo.ssv print
 ```
@@ -802,7 +812,9 @@ or:
 ```
 $ cat foo | hledger -f ssv:- foo
 ```
-More about this: [Input files](hledger.html#input-files) in the hledger manual.
+
+You can override the file extension with a [separator](#separator) rule if needed.
+See also: [Input files](hledger.html#input-files) in the hledger manual.
 
 ## Reading multiple CSV files
 
