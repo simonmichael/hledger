@@ -725,10 +725,18 @@ readJournalFromCsv mrulesfile csvfile csvdata =
                     Just s  -> readDef (throwerr $ "could not parse skip value: " ++ show s) s
 
   -- parse csv
-  -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
-  let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
-  let separator = fromMaybe ',' (getDirective "separator" rules >>= parseSeparator)
-  dbg6IO "separator" separator
+  let
+    -- parsec seems to fail if you pass it "-" here TODO: try again with megaparsec
+    parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
+    separator =
+      case getDirective "separator" rules >>= parseSeparator of
+        Just c           -> c
+        _ | ext == "ssv" -> ';'
+        _ | ext == "tsv" -> '\t'
+        _                -> ','
+        where
+          ext = map toLower $ drop 1 $ takeExtension csvfile
+  dbg6IO "using separator" separator
   records <- (either throwerr id .
               dbg7 "validateCsv" . validateCsv rules skiplines .
               dbg7 "parseCsv")
