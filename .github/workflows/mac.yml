@@ -52,18 +52,18 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-stack-global-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-3-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-global
+             ${{ runner.os }}-stack-global-3
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v2
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-stack-programs-2-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-programs-2
+             ${{ runner.os }}-stack-programs
 
     - name: Cache .stack-work
       uses: actions/cache@v2
