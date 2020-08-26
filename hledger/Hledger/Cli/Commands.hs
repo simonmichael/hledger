@@ -363,7 +363,7 @@ tests_Commands = tests "Commands" [
 
 -- test data
 
--- date1 = parsedate "2008/11/26"
+-- date1 = fromGregorian 2008 11 26
 -- t1 = LocalTime date1 midday
 
 {-
@@ -569,7 +569,7 @@ journal7 = nulljournal {jtxns =
            txnTieKnot Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2007/01/01",
+             tdate=fromGregorian 2007 01 01,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="*",
@@ -586,7 +586,7 @@ journal7 = nulljournal {jtxns =
            txnTieKnot Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2007/02/01",
+             tdate=fromGregorian 2007 02 01,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="*",
@@ -603,7 +603,7 @@ journal7 = nulljournal {jtxns =
            txnTieKnot Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2007/01/02",
+             tdate=fromGregorian 2007 01 02,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="*",
@@ -620,7 +620,7 @@ journal7 = nulljournal {jtxns =
            txnTieKnot Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2007/01/03",
+             tdate=fromGregorian 2007 01 03,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="*",
@@ -637,7 +637,7 @@ journal7 = nulljournal {jtxns =
            txnTieKnot Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2007/01/03",
+             tdate=fromGregorian 2007 01 03,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="*",
@@ -654,7 +654,7 @@ journal7 = nulljournal {jtxns =
            txnTieKnot Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2007/01/03",
+             tdate=fromGregorian 2007 01 03,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="*",

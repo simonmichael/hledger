@@ -1295,7 +1295,7 @@ Right samplejournal = journalBalanceTransactions False $
            txnTieKnot $ Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2008/01/01",
+             tdate=fromGregorian 2008 01 01,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="",
@@ -1312,7 +1312,7 @@ Right samplejournal = journalBalanceTransactions False $
            txnTieKnot $ Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2008/06/01",
+             tdate=fromGregorian 2008 06 01,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="",
@@ -1329,7 +1329,7 @@ Right samplejournal = journalBalanceTransactions False $
            txnTieKnot $ Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2008/06/02",
+             tdate=fromGregorian 2008 06 02,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="",
@@ -1346,7 +1346,7 @@ Right samplejournal = journalBalanceTransactions False $
            txnTieKnot $ Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2008/06/03",
+             tdate=fromGregorian 2008 06 03,
              tdate2=Nothing,
              tstatus=Cleared,
              tcode="",
@@ -1363,7 +1363,7 @@ Right samplejournal = journalBalanceTransactions False $
            txnTieKnot $ Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2008/10/01",
+             tdate=fromGregorian 2008 10 01,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="",
@@ -1379,7 +1379,7 @@ Right samplejournal = journalBalanceTransactions False $
            txnTieKnot $ Transaction {
              tindex=0,
              tsourcepos=nullsourcepos,
-             tdate=parsedate "2008/12/31",
+             tdate=fromGregorian 2008 12 31,
              tdate2=Nothing,
              tstatus=Unmarked,
              tcode="",
@@ -1398,11 +1398,11 @@ tests_Journal = tests "Journal" [
 
    test "journalDateSpan" $
     journalDateSpan True nulljournal{
-      jtxns = [nulltransaction{tdate = parsedate "2014/02/01"
-                              ,tpostings = [posting{pdate=Just (parsedate "2014/01/10")}]
+      jtxns = [nulltransaction{tdate = fromGregorian 2014 02 01
+                              ,tpostings = [posting{pdate=Just (fromGregorian 2014 01 10)}]
                               }
-              ,nulltransaction{tdate = parsedate "2014/09/01"
-                              ,tpostings = [posting{pdate2=Just (parsedate "2014/10/10")}]
+              ,nulltransaction{tdate = fromGregorian 2014 09 01
+                              ,tpostings = [posting{pdate2=Just (fromGregorian 2014 10 10)}]
                               }
               ]
       }
@@ -1436,7 +1436,7 @@ tests_Journal = tests "Journal" [
             --2019/01/01
             --  (a)            = 1
             nulljournal{ jtxns = [
-              transaction "2019/01/01" [ vpost' "a" missingamt (balassert (num 1)) ]
+              transaction (fromGregorian 2019 01 01) [ vpost' "a" missingamt (balassert (num 1)) ]
             ]}
       assertRight ej
       let Right j = ej
@@ -1449,8 +1449,8 @@ tests_Journal = tests "Journal" [
             --2019/01/01
             --  (a)          1 = 2
             nulljournal{ jtxns = [
-               transaction "2019/01/01" [ vpost' "a" missingamt (balassert (num 1)) ]
-              ,transaction "2019/01/01" [ vpost' "a" (num 1)    (balassert (num 2)) ]
+               transaction (fromGregorian 2019 01 01) [ vpost' "a" missingamt (balassert (num 1)) ]
+              ,transaction (fromGregorian 2019 01 01) [ vpost' "a" (num 1)    (balassert (num 2)) ]
             ]}
 
     ,test "same-day-2" $ do
@@ -1463,12 +1463,12 @@ tests_Journal = tests "Journal" [
             --2019/01/01
             --    a                    0 = 1
             nulljournal{ jtxns = [
-               transaction "2019/01/01" [ vpost' "a" (num 2)    (balassert (num 2)) ]
-              ,transaction "2019/01/01" [
+               transaction (fromGregorian 2019 01 01) [ vpost' "a" (num 2)    (balassert (num 2)) ]
+              ,transaction (fromGregorian 2019 01 01) [
                  post' "b" (num 1)     Nothing
                 ,post' "a"  missingamt Nothing
               ]
-              ,transaction "2019/01/01" [ post' "a" (num 0)     (balassert (num 1)) ]
+              ,transaction (fromGregorian 2019 01 01) [ post' "a" (num 0)     (balassert (num 1)) ]
             ]}
 
     ,test "out-of-order" $ do
@@ -1478,8 +1478,8 @@ tests_Journal = tests "Journal" [
             --2019/1/1
             --  (a)    1 = 1
             nulljournal{ jtxns = [
-               transaction "2019/01/02" [ vpost' "a" (num 1)    (balassert (num 2)) ]
-              ,transaction "2019/01/01" [ vpost' "a" (num 1)    (balassert (num 1)) ]
+               transaction (fromGregorian 2019 01 02) [ vpost' "a" (num 1)    (balassert (num 2)) ]
+              ,transaction (fromGregorian 2019 01 01) [ vpost' "a" (num 1)    (balassert (num 1)) ]
             ]}
 
     ]

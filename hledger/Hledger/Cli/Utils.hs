@@ -303,7 +303,7 @@ tests_Cli_Utils = tests "Utils" [
   --            -- all prices for consistent timing.
   --            let ropts = defreportopts{
   --              value_=True,
-  --              period_=PeriodTo $ parsedate "3000-01-01"
+  --              period_=PeriodTo $ fromGregorian 3000 01 01
   --              }
   --            j' <- journalApplyValue ropts j
   --            sum (journalAmounts j') `seq` return ()

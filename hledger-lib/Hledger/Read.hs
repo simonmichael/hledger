@@ -67,7 +67,7 @@ import System.Info (os)
 import System.IO (stderr, writeFile)
 import Text.Printf (hPrintf, printf)
 
-import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
+import Hledger.Data.Dates (getCurrentDay, parsedateM, showDate)
 import Hledger.Data.Types
 import Hledger.Read.Common
 import Hledger.Read.JournalReader as JournalReader
@@ -251,9 +251,11 @@ saveLatestDates dates f = writeFile (latestDatesFileFor f) $ unlines $ map showD
 previousLatestDates :: FilePath -> IO LatestDates
 previousLatestDates f = do
   let latestfile = latestDatesFileFor f
+      parsedate s = maybe (fail $ "could not parse date \"" ++ s ++ "\"") return $
+                      parsedateM s
   exists <- doesFileExist latestfile
   if exists
-  then map (parsedate . strip) . lines . strip . T.unpack <$> readFileStrictly latestfile
+  then traverse (parsedate . T.unpack . T.strip) . T.lines =<< readFileStrictly latestfile
   else return []
 
 -- | Where to save latest transaction dates for the given file path.

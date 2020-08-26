@@ -13,7 +13,7 @@ module Hledger.Data.PeriodicTransaction (
 where
 
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid ((<>))
+import Data.Semigroup ((<>))
 #endif
 import qualified Data.Text as T
 import Text.Printf
@@ -85,6 +85,7 @@ instance Show PeriodicTransaction where
 -- - a generated-transaction: tag
 -- - a hidden _generated-transaction: tag which does not appear in the comment. 
 --
+-- >>> import Data.Time (fromGregorian)
 -- >>> _ptgen "monthly from 2017/1 to 2017/4"
 -- 2017-01-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/4
@@ -207,17 +208,17 @@ instance Show PeriodicTransaction where
 -- >>> _ptgen "yearly from 2017/1/14"
 -- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" because 2017-01-14 is not a first day of the Year
 --
--- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ parsedate "2018-01-01") (Just $ parsedate "2018-01-03"))
+-- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 01 03))
 -- []
 --
--- >>> _ptgenspan "every 3 months from 2019-05" (mkdatespan "2020-01-01" "2020-02-01")
---  
--- >>> _ptgenspan "every 3 months from 2019-05" (mkdatespan "2020-02-01" "2020-03-01")
+-- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ fromGregorian 2020 01 01) (Just $ fromGregorian 2020 02 01))
+--
+-- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ fromGregorian 2020 02 01) (Just $ fromGregorian 2020 03 01))
 -- 2020-02-01
 --     ; generated-transaction: ~ every 3 months from 2019-05
 --     a           $1.00
 -- <BLANKLINE>
--- >>> _ptgenspan "every 3 days from 2018" (mkdatespan "2018-01-01" "2018-01-05")
+-- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 01 05))
 -- 2018-01-01
 --     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
@@ -226,7 +227,7 @@ instance Show PeriodicTransaction where
 --     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
 -- <BLANKLINE>
--- >>> _ptgenspan "every 3 days from 2018" (mkdatespan "2018-01-02" "2018-01-05")
+-- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ fromGregorian 2018 01 02) (Just $ fromGregorian 2018 01 05))
 -- 2018-01-04
 --     ; generated-transaction: ~ every 3 days from 2018
 --     a           $1.00
@@ -252,7 +253,7 @@ runPeriodicTransaction PeriodicTransaction{..} requestedspan =
     -- If transaction does not have start/end date, we set them to start/end of requested span,
     -- to avoid generating (infinitely) many events. 
     alltxnspans = dbg3 "alltxnspans" $ ptinterval `splitSpan` (spanDefaultsFrom ptspan requestedspan)
-      
+
 -- | Check that this date span begins at a boundary of this interval,
 -- or return an explanatory error message including the provided period expression
 -- (from which the span and interval are derived).

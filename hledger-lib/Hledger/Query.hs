@@ -791,8 +791,8 @@ tests_Query = tests "Query" [
      (simplifyQuery $ And [Any,Any])      @?= (Any)
      (simplifyQuery $ And [Acct "b",Any]) @?= (Acct "b")
      (simplifyQuery $ And [Any,And [Date (DateSpan Nothing Nothing)]]) @?= (Any)
-     (simplifyQuery $ And [Date (DateSpan Nothing (Just $ parsedate "2013-01-01")), Date (DateSpan (Just $ parsedate "2012-01-01") Nothing)])
-       @?= (Date (DateSpan (Just $ parsedate "2012-01-01") (Just $ parsedate "2013-01-01")))
+     (simplifyQuery $ And [Date (DateSpan Nothing (Just $ fromGregorian 2013 01 01)), Date (DateSpan (Just $ fromGregorian 2012 01 01) Nothing)])
+       @?= (Date (DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01)))
      (simplifyQuery $ And [Or [],Or [Desc "b b"]]) @?= (Desc "b b")
 
   ,test "parseQuery" $ do
@@ -831,9 +831,9 @@ tests_Query = tests "Query" [
      parseQueryTerm nulldate "payee:x"                          @?= Right (Left $ Tag "payee" (Just "x"))
      parseQueryTerm nulldate "note:x"                           @?= Right (Left $ Tag "note" (Just "x"))
      parseQueryTerm nulldate "real:1"                           @?= Right (Left $ Real True)
-     parseQueryTerm nulldate "date:2008"                        @?= Right (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
-     parseQueryTerm nulldate "date:from 2012/5/17"              @?= Right (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
-     parseQueryTerm nulldate "date:20180101-201804"             @?= Right (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
+     parseQueryTerm nulldate "date:2008"                        @?= Right (Left $ Date $ DateSpan (Just $ fromGregorian 2008 01 01) (Just $ fromGregorian 2009 01 01))
+     parseQueryTerm nulldate "date:from 2012/5/17"              @?= Right (Left $ Date $ DateSpan (Just $ fromGregorian 2012 05 17) Nothing)
+     parseQueryTerm nulldate "date:20180101-201804"             @?= Right (Left $ Date $ DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 04 01))
      parseQueryTerm nulldate "inacct:a"                         @?= Right (Right $ QueryOptInAcct "a")
      parseQueryTerm nulldate "tag:a"                            @?= Right (Left $ Tag "a" Nothing)
      parseQueryTerm nulldate "tag:a=some value"                 @?= Right (Left $ Tag "a" (Just "some value"))
