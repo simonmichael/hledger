@@ -1,5 +1,5 @@
-{-# LANGUAGE ParallelListComp, CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-|
 
 The @roi@ command prints internal rate of return and time-weighted rate of return for and investment.
@@ -205,15 +205,10 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
   -- 0% is always a solution, so require at least something here
   case totalCF of
     [] -> return 0
-    _ -> 
-      case ridders
-#if MIN_VERSION_math_functions(0,3,0)
-        (RiddersParam 100 (AbsTol 0.00001))
-#else
-        0.00001
-#endif
-        (0.000000000001,10000) (interestSum spanEnd totalCF) of
-        Root rate -> return ((rate-1)*100)
+    _ -> case ridders (RiddersParam 100 (AbsTol 0.00001))
+                      (0.000000000001,10000)
+                      (interestSum spanEnd totalCF) of
+        Root rate    -> return ((rate-1)*100)
         NotBracketed -> error' "Error: No solution -- not bracketed."  -- PARTIAL:
         SearchFailed -> error' "Error: Failed to find solution."
 

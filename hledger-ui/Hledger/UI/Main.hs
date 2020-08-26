@@ -33,11 +33,7 @@ import System.FilePath
 import System.FSNotify
 import Brick
 
-#if MIN_VERSION_brick(0,16,0)
 import qualified Brick.BChan as BC
-#else
-import Control.Concurrent.Chan (newChan, writeChan)
-#endif
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
@@ -50,13 +46,11 @@ import Hledger.UI.RegisterScreen
 
 ----------------------------------------------------------------------
 
-#if MIN_VERSION_brick(0,16,0)
 newChan :: IO (BC.BChan a)
 newChan = BC.newBChan 10
 
 writeChan :: BC.BChan a -> a -> IO ()
 writeChan = BC.writeBChan
-#endif
 
 
 main :: IO ()
