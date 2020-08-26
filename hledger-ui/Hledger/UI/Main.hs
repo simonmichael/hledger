@@ -16,9 +16,6 @@ import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
-#if !MIN_VERSION_vty(5,15,0)
-import Data.Default (def)
-#endif
 -- import Data.Monoid              --
 import Data.List
 import Data.List.Extra (nubSort)
@@ -227,11 +224,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
             )
 
         -- and start the app. Must be inside the withManager block
-#if MIN_VERSION_vty(5,15,0)
         let mkvty = mkVty mempty
-#else
-        let mkvty = mkVty def
-#endif
 #if MIN_VERSION_brick(0,47,0)
         vty0 <- mkvty
         void $ customMain vty0 mkvty (Just eventChan) brickapp ui
