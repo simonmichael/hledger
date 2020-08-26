@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE NoMonoLocalBinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -93,12 +92,7 @@ import Data.Maybe
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-#if MIN_VERSION_time(1,5,0)
 import Data.Time.Format hiding (months)
-#else
-import Data.Time.Format
-import System.Locale (TimeLocale, defaultTimeLocale)
-#endif
 import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Clock
@@ -669,23 +663,20 @@ advancetonthweekday n wd s =
 --     parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
 --     ]
 
-parsetime :: ParseTime t => TimeLocale -> String -> String -> Maybe t
-parsetime =
-#if MIN_VERSION_time(1,5,0)
-     parseTimeM True
-#else
-     parseTime
-#endif
-
-
 -- | Try to parse a couple of date string formats:
 -- `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`, with leading zeros required.
 -- For internal use, not quite the same as the journal's "simple dates".
+-- >>> parsedateM "2008/02/03"
+-- Just 2008-02-03
+-- >>> parsedateM "2008/02/03/"
+-- Nothing
+-- >>> parsedateM "2008/02/30"
+-- Nothing
 parsedateM :: String -> Maybe Day
 parsedateM s = asum [
-     parsetime defaultTimeLocale "%Y-%m-%d" s,
-     parsetime defaultTimeLocale "%Y/%m/%d" s,
-     parsetime defaultTimeLocale "%Y.%m.%d" s
+     parseTimeM True defaultTimeLocale "%Y-%m-%d" s,
+     parseTimeM True defaultTimeLocale "%Y/%m/%d" s,
+     parseTimeM True defaultTimeLocale "%Y.%m.%d" s
      ]
 
 
@@ -695,28 +686,9 @@ parsedateM s = asum [
 --                             (parsedatetimeM s)
 
 -- | Like parsedateM, raising an error on parse failure.
---
--- >>> parsedate "2008/02/03"
--- 2008-02-03
 parsedate :: String -> Day
-parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")  -- PARTIAL:
-                         (parsedateM s)
--- doctests I haven't been able to make compatible with both GHC 7 and 8
--- -- >>> parsedate "2008/02/03/"
--- -- *** Exception: could not parse date "2008/02/03/"
--- #if MIN_VERSION_base(4,9,0)
--- -- ...
--- #endif
--- #if MIN_VERSION_time(1,6,0)
--- -- >>> parsedate "2008/02/30"  -- with time >= 1.6, invalid dates are rejected
--- -- *** Exception: could not parse date "2008/02/30"
--- #if MIN_VERSION_base(4,9,0)
--- -- ...
--- #endif
--- #else
--- -- >>> parsedate "2008/02/30"  -- with time < 1.6, they are silently adjusted
--- -- 2008-02-29
--- #endif
+parsedate s = fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")  -- PARTIAL:
+            $ parsedateM s
 
 {-|
 Parse a date in any of the formats allowed in Ledger's period expressions, and some others.

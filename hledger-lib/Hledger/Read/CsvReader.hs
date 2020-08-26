@@ -11,7 +11,6 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 -- stack haddock hledger-lib --fast --no-haddock-deps --haddock-arguments='--ignore-all-exports' --open
 
 --- ** language
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -61,12 +60,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import Data.Time.Calendar (Day)
-#if MIN_VERSION_time(1,5,0)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
-#else
-import Data.Time.Format (parseTime)
-import System.Locale (defaultTimeLocale)
-#endif
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
@@ -1229,13 +1223,7 @@ csvFieldValue rules record fieldname = do
 parseDateWithCustomOrDefaultFormats :: Maybe DateFormat -> String -> Maybe Day
 parseDateWithCustomOrDefaultFormats mformat s = asum $ map parsewith formats
   where
-    parsetime =
-#if MIN_VERSION_time(1,5,0)
-     parseTimeM True
-#else
-     parseTime
-#endif
-    parsewith = flip (parsetime defaultTimeLocale) s
+    parsewith = flip (parseTimeM True defaultTimeLocale) s
     formats = maybe
                ["%Y/%-m/%-d"
                ,"%Y-%-m-%-d"

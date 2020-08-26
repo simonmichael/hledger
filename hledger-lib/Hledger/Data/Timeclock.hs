@@ -6,7 +6,7 @@ converted to 'Transactions' and queried like a ledger.
 
 -}
 
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Data.Timeclock (
    timeclockEntriesToTransactions
@@ -21,9 +21,6 @@ import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
 import Data.Time.LocalTime
-#if !(MIN_VERSION_time(1,5,0))
-import System.Locale (defaultTimeLocale)
-#endif
 import Text.Printf
 
 import Hledger.Utils
@@ -136,11 +133,7 @@ tests_Timeclock = tests "Timeclock" [
           yesterday = prevday today
           clockin = TimeclockEntry nullsourcepos In
           mktime d = LocalTime d . fromMaybe midnight .
-#if MIN_VERSION_time(1,5,0)
                      parseTimeM True defaultTimeLocale "%H:%M:%S"
-#else
-                     parseTime defaultTimeLocale "%H:%M:%S"
-#endif
           showtime = formatTime defaultTimeLocale "%H:%M"
           txndescs = map (T.unpack . tdescription) . timeclockEntriesToTransactions now
           future = utcToLocalTime tz $ addUTCTime 100 now'

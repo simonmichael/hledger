@@ -180,12 +180,7 @@ helpHandle ui ev = do
 minibuffer :: Editor String Name -> Widget Name
 minibuffer ed =
   forceAttr ("border" <> "minibuffer") $
-  hBox $
-#if MIN_VERSION_brick(0,19,0)
-  [txt "filter: ", renderEditor (str . unlines) True ed]
-#else
-  [txt "filter: ", renderEditor True ed]
-#endif
+  hBox [txt "filter: ", renderEditor (str . unlines) True ed]
 
 borderQueryStr :: String -> Widget Name
 borderQueryStr ""  = str ""
