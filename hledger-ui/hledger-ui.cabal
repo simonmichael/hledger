@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4508b3e1554f07f5381ff30cf41a11d1ddd090adf8ce181d3d5aba990fd29813
+-- hash: 67cb06231a9cca7ebcd922f7528bc853a5f78e009d69a0afc41e599c78eac8ec
 
 name:           hledger-ui
 version:        1.18.99
@@ -93,7 +93,7 @@ executable hledger-ui
     , transformers
     , unix
     , vector
-    , vty >=5.5
+    , vty >=5.15
   if os(windows)
     buildable: False
   else

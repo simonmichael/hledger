@@ -68,7 +68,7 @@ dependencies:
 - vector
 # not installable on windows, cf buildable flag below
 - brick >=0.23
-- vty >=5.5
+- vty >=5.15
 - unix
 
 when:
