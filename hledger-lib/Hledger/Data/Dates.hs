@@ -37,7 +37,6 @@ module Hledger.Data.Dates (
   spanContainsDate,
   periodContainsDate,
   parsedateM,
-  parsedate,
   showDate,
   showDateSpan,
   showDateSpanMonthAbbrev,
@@ -73,7 +72,6 @@ module Hledger.Data.Dates (
   yearp,
   daysInSpan,
   maybePeriod,
-  mkdatespan,
 )
 where
 
@@ -172,34 +170,34 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 --
 --
 -- ==== Examples:
--- >>> let t i d1 d2 = splitSpan i $ mkdatespan d1 d2
--- >>> t NoInterval "2008/01/01" "2009/01/01"
+-- >>> let t i y1 m1 d1 y2 m2 d2 = splitSpan i $ DateSpan (Just $ fromGregorian y1 m1 d1) (Just $ fromGregorian y2 m2 d2)
+-- >>> t NoInterval 2008 01 01 2009 01 01
 -- [DateSpan 2008]
--- >>> t (Quarters 1) "2008/01/01" "2009/01/01"
+-- >>> t (Quarters 1) 2008 01 01 2009 01 01
 -- [DateSpan 2008Q1,DateSpan 2008Q2,DateSpan 2008Q3,DateSpan 2008Q4]
 -- >>> splitSpan (Quarters 1) nulldatespan
 -- [DateSpan ..]
--- >>> t (Days 1) "2008/01/01" "2008/01/01"  -- an empty datespan
+-- >>> t (Days 1) 2008 01 01 2008 01 01  -- an empty datespan
 -- []
--- >>> t (Quarters 1) "2008/01/01" "2008/01/01"
+-- >>> t (Quarters 1) 2008 01 01 2008 01 01
 -- []
--- >>> t (Months 1) "2008/01/01" "2008/04/01"
+-- >>> t (Months 1) 2008 01 01 2008 04 01
 -- [DateSpan 2008-01,DateSpan 2008-02,DateSpan 2008-03]
--- >>> t (Months 2) "2008/01/01" "2008/04/01"
+-- >>> t (Months 2) 2008 01 01 2008 04 01
 -- [DateSpan 2008-01-01..2008-02-29,DateSpan 2008-03-01..2008-04-30]
--- >>> t (Weeks 1) "2008/01/01" "2008/01/15"
+-- >>> t (Weeks 1) 2008 01 01 2008 01 15
 -- [DateSpan 2007-12-31W01,DateSpan 2008-01-07W02,DateSpan 2008-01-14W03]
--- >>> t (Weeks 2) "2008/01/01" "2008/01/15"
+-- >>> t (Weeks 2) 2008 01 01 2008 01 15
 -- [DateSpan 2007-12-31..2008-01-13,DateSpan 2008-01-14..2008-01-27]
--- >>> t (DayOfMonth 2) "2008/01/01" "2008/04/01"
+-- >>> t (DayOfMonth 2) 2008 01 01 2008 04 01
 -- [DateSpan 2007-12-02..2008-01-01,DateSpan 2008-01-02..2008-02-01,DateSpan 2008-02-02..2008-03-01,DateSpan 2008-03-02..2008-04-01]
--- >>> t (WeekdayOfMonth 2 4) "2011/01/01" "2011/02/15"
+-- >>> t (WeekdayOfMonth 2 4) 2011 01 01 2011 02 15
 -- [DateSpan 2010-12-09..2011-01-12,DateSpan 2011-01-13..2011-02-09,DateSpan 2011-02-10..2011-03-09]
--- >>> t (DayOfWeek 2) "2011/01/01" "2011/01/15"
+-- >>> t (DayOfWeek 2) 2011 01 01 2011 01 15
 -- [DateSpan 2010-12-28..2011-01-03,DateSpan 2011-01-04..2011-01-10,DateSpan 2011-01-11..2011-01-17]
--- >>> t (DayOfYear 11 29) "2011/10/01" "2011/10/15"
+-- >>> t (DayOfYear 11 29) 2011 10 01 2011 10 15
 -- [DateSpan 2010-11-29..2011-11-28]
--- >>> t (DayOfYear 11 29) "2011/12/01" "2012/12/15"
+-- >>> t (DayOfYear 11 29) 2011 12 01 2012 12 15
 -- [DateSpan 2011-11-29..2012-11-28,DateSpan 2012-11-29..2013-11-28]
 --
 splitSpan :: Interval -> DateSpan -> [DateSpan]
@@ -267,7 +265,7 @@ spansIntersect (d:ds) = d `spanIntersect` (spansIntersect ds)
 -- | Calculate the intersection of two datespans.
 --
 -- For non-intersecting spans, gives an empty span beginning on the second's start date:
--- >>> mkdatespan "2018-01-01" "2018-01-03" `spanIntersect` mkdatespan "2018-01-03" "2018-01-05"
+-- >>> DateSpan (Just $ fromGregorian 2018 01 01) (Just $ fromGregorian 2018 01 03) `spanIntersect` DateSpan (Just $ fromGregorian 2018 01 03) (Just $ fromGregorian 2018 01 05)
 -- DateSpan 2018-01-03..2018-01-02
 spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
     where
@@ -409,7 +407,7 @@ fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
 --
 -- ==== Examples:
 -- >>> :set -XOverloadedStrings
--- >>> let t = fixSmartDateStr (parsedate "2008/11/26")
+-- >>> let t = fixSmartDateStr (fromGregorian 2008 11 26)
 -- >>> t "0000-01-01"
 -- "0000-01-01"
 -- >>> t "1999-12-02"
@@ -542,7 +540,7 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 -- Examples: lets take 2017-11-22. Year-long intervals covering it that
 -- starts before Nov 22 will start in 2017. However
 -- intervals that start after Nov 23rd should start in 2016:
--- >>> let wed22nd = parsedate "2017-11-22"
+-- >>> let wed22nd = fromGregorian 2017 11 22
 -- >>> nthdayofyearcontaining 11 21 wed22nd
 -- 2017-11-21
 -- >>> nthdayofyearcontaining 11 22 wed22nd
@@ -573,7 +571,7 @@ nthdayofyearcontaining m md date
 -- Examples: lets take 2017-11-22. Month-long intervals covering it that
 -- start on 1st-22nd of month will start in Nov. However
 -- intervals that start on 23rd-30th of month should start in Oct:
--- >>> let wed22nd = parsedate "2017-11-22"
+-- >>> let wed22nd = fromGregorian 2017 11 22
 -- >>> nthdayofmonthcontaining 1 wed22nd
 -- 2017-11-01
 -- >>> nthdayofmonthcontaining 12 wed22nd
@@ -600,7 +598,7 @@ nthdayofmonthcontaining md date
 -- Examples: 2017-11-22 is Wed. Week-long intervals that cover it and
 -- start on Mon, Tue or Wed will start in the same week. However
 -- intervals that start on Thu or Fri should start in prev week:
--- >>> let wed22nd = parsedate "2017-11-22"
+-- >>> let wed22nd = fromGregorian 2017 11 22
 -- >>> nthdayofweekcontaining 1 wed22nd
 -- 2017-11-20
 -- >>> nthdayofweekcontaining 2 wed22nd
@@ -624,7 +622,7 @@ nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
 -- Examples: 2017-11-22 is 3rd Wed of Nov. Month-long intervals that cover it and
 -- start on 1st-4th Wed will start in Nov. However
 -- intervals that start on 4th Thu or Fri or later should start in Oct:
--- >>> let wed22nd = parsedate "2017-11-22"
+-- >>> let wed22nd = fromGregorian 2017 11 22
 -- >>> nthweekdayofmonthcontaining 1 3 wed22nd
 -- 2017-11-01
 -- >>> nthweekdayofmonthcontaining 3 2 wed22nd
@@ -678,17 +676,6 @@ parsedateM s = asum [
      parseTimeM True defaultTimeLocale "%Y/%m/%d" s,
      parseTimeM True defaultTimeLocale "%Y.%m.%d" s
      ]
-
-
--- -- | Parse a date-time string to a time type, or raise an error.
--- parsedatetime :: String -> LocalTime
--- parsedatetime s = fromMaybe (error' $ "could not parse timestamp \"" ++ s ++ "\"")
---                             (parsedatetimeM s)
-
--- | Like parsedateM, raising an error on parse failure.
-parsedate :: String -> Day
-parsedate s = fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")  -- PARTIAL:
-            $ parsedateM s
 
 {-|
 Parse a date in any of the formats allowed in Ledger's period expressions, and some others.
@@ -835,7 +822,7 @@ weekday = do
 -- resolving any relative start/end dates (only; it is not needed for
 -- parsing the reporting interval).
 --
--- >>> let p = parsePeriodExpr (parsedate "2008-11-26")
+-- >>> let p = parsePeriodExpr (fromGregorian 2008 11 26)
 -- >>> p "from Aug to Oct"
 -- Right (NoInterval,DateSpan 2008-08-01..2008-09-30)
 -- >>> p "aug to oct"
@@ -954,7 +941,7 @@ periodexprdatespanp rdate = choice $ map try [
                            ]
 
 -- |
--- >>> parsewith (doubledatespanp (parsedate "2018/01/01") <* eof) "20180101-201804"
+-- >>> parsewith (doubledatespanp (fromGregorian 2018 01 01) <* eof) "20180101-201804"
 -- Right DateSpan 2018Q1
 doubledatespanp :: Day -> TextParser m DateSpan
 doubledatespanp rdate = liftA2 fromToSpan
@@ -965,11 +952,11 @@ doubledatespanp rdate = liftA2 fromToSpan
     fromToSpan = DateSpan `on` (Just . fixSmartDate rdate)
 
 -- |
--- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "q1"
+-- >>> parsewith (quarterdatespanp (fromGregorian 2018 01 01) <* eof) "q1"
 -- Right DateSpan 2018Q1
--- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "Q1"
+-- >>> parsewith (quarterdatespanp (fromGregorian 2018 01 01) <* eof) "Q1"
 -- Right DateSpan 2018Q1
--- >>> parsewith (quarterdatespanp (parsedate "2018/01/01") <* eof) "2020q4"
+-- >>> parsewith (quarterdatespanp (fromGregorian 2018 01 01) <* eof) "2020q4"
 -- Right DateSpan 2020Q4
 quarterdatespanp :: Day -> TextParser m DateSpan
 quarterdatespanp rdate = do
@@ -997,11 +984,6 @@ justdatespanp :: Day -> TextParser m DateSpan
 justdatespanp rdate =
     optional (string' "in" *> skipNonNewlineSpaces)
     *> (spanFromSmartDate rdate <$> smartdate)
-
--- | Make a datespan from two valid date strings parseable by parsedate
--- (or raise an error). Eg: mkdatespan \"2011/1/1\" \"2011/12/31\".
-mkdatespan :: String -> String -> DateSpan
-mkdatespan = DateSpan `on` (Just . parsedate)
 
 nulldatespan :: DateSpan
 nulldatespan = DateSpan Nothing Nothing

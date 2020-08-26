@@ -14,9 +14,10 @@ module Hledger.Reports.EntriesReport (
 )
 where
 
-import Data.List
-import Data.Maybe
-import Data.Ord
+import Data.List (sortBy)
+import Data.Maybe (fromMaybe)
+import Data.Ord (comparing)
+import Data.Time (fromGregorian)
 
 import Hledger.Data
 import Hledger.Query
@@ -50,7 +51,7 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
      test "not acct" $ (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal) @?= 1
-    ,test "date" $ (length $ entriesReport defreportopts (Date $ mkdatespan "2008/06/01" "2008/07/01") samplejournal) @?= 3
+    ,test "date" $ (length $ entriesReport defreportopts (Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)) samplejournal) @?= 3
   ]
  ]
 

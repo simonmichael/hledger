@@ -82,8 +82,8 @@ Right samplejournal2 =
         txnTieKnot Transaction{
           tindex=0,
           tsourcepos=nullsourcepos,
-          tdate=parsedate "2008/01/01",
-          tdate2=Just $ parsedate "2009/01/01",
+          tdate=fromGregorian 2008 01 01,
+          tdate2=Just $ fromGregorian 2009 01 01,
           tstatus=Unmarked,
           tcode="",
           tdescription="income",

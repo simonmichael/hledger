@@ -258,6 +258,7 @@ import Data.Maybe
 --import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import Data.Time (fromGregorian)
 import System.Console.CmdArgs.Explicit as C
 import Lucid as L
 import Text.Printf (printf)
@@ -639,7 +640,7 @@ tests_Balance = tests "Balance" [
     test "unicode in balance layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let opts = defreportopts
-      balanceReportAsText opts (balanceReport opts (queryFromOpts (parsedate "2008/11/26") opts) j)
+      balanceReportAsText opts (balanceReport opts (queryFromOpts (fromGregorian 2008 11 26) opts) j)
         @?=
         unlines
         ["                -100  актив:наличные"

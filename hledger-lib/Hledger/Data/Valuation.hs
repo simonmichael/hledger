@@ -38,7 +38,7 @@ import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar (Day, fromGregorian)
 import Data.MemoUgly (memo)
 import GHC.Generics (Generic)
 import Safe (headMay)
@@ -46,7 +46,6 @@ import Safe (headMay)
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
-import Hledger.Data.Dates (parsedate)
 
 
 ------------------------------------------------------------------------------
@@ -268,21 +267,20 @@ priceLookup makepricegraph d from mto =
 
 tests_priceLookup =
   let
-    d = parsedate
-    p date from q to = MarketPrice{mpdate=d date, mpfrom=from, mpto=to, mprate=q}
+    p y m d from q to = MarketPrice{mpdate=fromGregorian y m d, mpfrom=from, mpto=to, mprate=q}
     ps1 = [
-       p "2000/01/01" "A" 10 "B"
-      ,p "2000/01/01" "B" 10 "C"
-      ,p "2000/01/01" "C" 10 "D"
-      ,p "2000/01/01" "E"  2 "D"
-      ,p "2001/01/01" "A" 11 "B"
+       p 2000 01 01 "A" 10 "B"
+      ,p 2000 01 01 "B" 10 "C"
+      ,p 2000 01 01 "C" 10 "D"
+      ,p 2000 01 01 "E"  2 "D"
+      ,p 2001 01 01 "A" 11 "B"
       ]
     makepricegraph = makePriceGraph ps1 []
   in test "priceLookup" $ do
-    priceLookup makepricegraph (d "1999/01/01") "A" Nothing    @?= Nothing
-    priceLookup makepricegraph (d "2000/01/01") "A" Nothing    @?= Just ("B",10)
-    priceLookup makepricegraph (d "2000/01/01") "B" (Just "A") @?= Just ("A",0.1)
-    priceLookup makepricegraph (d "2000/01/01") "A" (Just "E") @?= Just ("E",500)
+    priceLookup makepricegraph (fromGregorian 1999 01 01) "A" Nothing    @?= Nothing
+    priceLookup makepricegraph (fromGregorian 2000 01 01) "A" Nothing    @?= Just ("B",10)
+    priceLookup makepricegraph (fromGregorian 2000 01 01) "B" (Just "A") @?= Just ("A",0.1)
+    priceLookup makepricegraph (fromGregorian 2000 01 01) "A" (Just "E") @?= Just ("E",500)
 
 -- | Build the graph of commodity conversion prices for a given day.
 -- Converts a list of declared market prices in parse order, and a

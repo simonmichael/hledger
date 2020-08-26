@@ -23,6 +23,7 @@ import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import Data.Time (fromGregorian)
 import System.Console.CmdArgs.Explicit
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
@@ -200,7 +201,7 @@ tests_Register = tests "Register" [
     test "unicode in register layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let opts = defreportopts
-      (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (parsedate "2008/11/26") opts) j)
+      (postingsReportAsText defcliopts $ postingsReport opts (queryFromOpts (fromGregorian 2008 11 26) opts) j)
         @?=
         unlines
         ["2009-01-01 медвежья шкура       расходы:покупки                100           100"

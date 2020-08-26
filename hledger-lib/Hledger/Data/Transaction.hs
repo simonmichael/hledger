@@ -105,8 +105,8 @@ nulltransaction = Transaction {
                   }
 
 -- | Make a simple transaction with the given date and postings.
-transaction :: String -> [Posting] -> Transaction
-transaction datestr ps = txnTieKnot $ nulltransaction{tdate=parsedate datestr, tpostings=ps}
+transaction :: Day -> [Posting] -> Transaction
+transaction day ps = txnTieKnot $ nulltransaction{tdate=day, tpostings=ps}
 
 transactionPayee :: Transaction -> Text
 transactionPayee = fst . payeeAndNoteFromDescription . tdescription
@@ -669,8 +669,8 @@ tests_Transaction =
           test "null transaction" $ showTransaction nulltransaction @?= "0000-01-01\n\n"
         , test "non-null transaction" $ showTransaction
             nulltransaction
-              { tdate = parsedate "2012/05/14"
-              , tdate2 = Just $ parsedate "2012/05/15"
+              { tdate = fromGregorian 2012 05 14
+              , tdate2 = Just $ fromGregorian 2012 05 15
               , tstatus = Unmarked
               , tcode = "code"
               , tdescription = "desc"
@@ -702,7 +702,7 @@ tests_Transaction =
                    0
                    ""
                    nullsourcepos
-                   (parsedate "2007/01/28")
+                   (fromGregorian 2007 01 28)
                    Nothing
                    Unmarked
                    ""
@@ -726,7 +726,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
-                (parsedate "2007/01/28")
+                (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
                 ""
@@ -749,7 +749,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
-                (parsedate "2007/01/28")
+                (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
                 ""
@@ -765,7 +765,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
-                (parsedate "2010/01/01")
+                (fromGregorian 2010 01 01)
                 Nothing
                 Unmarked
                 ""
@@ -786,7 +786,7 @@ tests_Transaction =
                   0
                   ""
                   nullsourcepos
-                  (parsedate "2007/01/28")
+                  (fromGregorian 2007 01 28)
                   Nothing
                   Unmarked
                   ""
@@ -802,7 +802,7 @@ tests_Transaction =
                   0
                   ""
                   nullsourcepos
-                  (parsedate "2007/01/28")
+                  (fromGregorian 2007 01 28)
                   Nothing
                   Unmarked
                   ""
@@ -820,7 +820,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
-                (parsedate "2007/01/28")
+                (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
                 ""
@@ -837,7 +837,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
-                (parsedate "2007/01/28")
+                (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
                 ""
@@ -856,7 +856,7 @@ tests_Transaction =
                0
                ""
                nullsourcepos
-               (parsedate "2011/01/01")
+               (fromGregorian 2011 01 01)
                Nothing
                Unmarked
                ""
@@ -874,7 +874,7 @@ tests_Transaction =
                0
                ""
                nullsourcepos
-               (parsedate "2011/01/01")
+               (fromGregorian 2011 01 01)
                Nothing
                Unmarked
                ""
@@ -893,7 +893,7 @@ tests_Transaction =
             0
             ""
             nullsourcepos
-            (parsedate "2009/01/01")
+            (fromGregorian 2009 01 01)
             Nothing
             Unmarked
             ""
@@ -911,7 +911,7 @@ tests_Transaction =
             0
             ""
             nullsourcepos
-            (parsedate "2009/01/01")
+            (fromGregorian 2009 01 01)
             Nothing
             Unmarked
             ""
@@ -929,7 +929,7 @@ tests_Transaction =
             0
             ""
             nullsourcepos
-            (parsedate "2009/01/01")
+            (fromGregorian 2009 01 01)
             Nothing
             Unmarked
             ""
@@ -944,7 +944,7 @@ tests_Transaction =
             0
             ""
             nullsourcepos
-            (parsedate "2009/01/01")
+            (fromGregorian 2009 01 01)
             Nothing
             Unmarked
             ""
@@ -959,7 +959,7 @@ tests_Transaction =
             0
             ""
             nullsourcepos
-            (parsedate "2009/01/01")
+            (fromGregorian 2009 01 01)
             Nothing
             Unmarked
             ""
@@ -978,7 +978,7 @@ tests_Transaction =
             0
             ""
             nullsourcepos
-            (parsedate "2009/01/01")
+            (fromGregorian 2009 01 01)
             Nothing
             Unmarked
             ""
@@ -996,7 +996,7 @@ tests_Transaction =
             0
             ""
             nullsourcepos
-            (parsedate "2009/01/01")
+            (fromGregorian 2009 01 01)
             Nothing
             Unmarked
             ""

@@ -887,7 +887,7 @@ transactionFromCsvRecord sourcepos rules record = t
     -- ruleval  = csvRuleValue      rules record :: DirectiveName    -> Maybe String
     field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
-    parsedate' = parseDateWithCustomOrDefaultFormats (rule "date-format")
+    parsedate = parseDateWithCustomOrDefaultFormats (rule "date-format")
     mkdateerror datefield datevalue mdateformat = unlines
       ["error: could not parse \""++datevalue++"\" as a date using date format "
         ++maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" show mdateformat
@@ -911,9 +911,9 @@ transactionFromCsvRecord sourcepos rules record = t
     mdateformat = rule "date-format"
     date        = fromMaybe "" $ fieldval "date"
     -- PARTIAL:
-    date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parsedate' date
+    date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parsedate date
     mdate2      = fieldval "date2"
-    mdate2'     = maybe Nothing (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate') mdate2
+    mdate2'     = maybe Nothing (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate) mdate2
     status      =
       case fieldval "status" of
         Nothing -> Unmarked
