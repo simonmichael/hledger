@@ -618,14 +618,15 @@ examples/chinese.journal: tools/generatejournal
 examples/mixed.journal: tools/generatejournal
 	tools/generatejournal 3 5 5 --mixed >$@
 
-BENCHEXES=hledger
-# or, eg: BENCHEXES=ledger,hledger-1.4,hledger  
+# hledger executables to bench test, can be overridden by env var, 
+# eg: BENCHEXES=ledger,hledger-1.18,hledger make bench
+BENCHEXES ?= hledger
 
 bench: quickbench
 
 quickbench: samplejournals bench.sh $(call def-help,bench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
 	@echo; echo "run quick performance benchmarks in bench.sh (approximate, can be skewed):"
-	quickbench -v -w $(BENCHEXES)
+	quickbench -w $(BENCHEXES)  # -v
 
 # bench: samplejournals tests/bench.tests tools/simplebench \
 # 	$(call def-help,bench,\
