@@ -5,7 +5,7 @@ Current ideas about where the hledger project should be going next.
 ## Next Targets
 
 - hledger 1.19, 2020-09-01\
-account transactions register,
+<s>account transactions register</s>,
 stricter/more correct handling of unbalanced multicommodity transactions (#1177),
 Track & show deposited lots (#1022),
 Report unrealized capital gains/losses (#1029)
