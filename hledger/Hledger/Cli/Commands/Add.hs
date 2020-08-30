@@ -371,7 +371,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
                   -- 4 maximum precision entered so far in this transaction ?
                   -- 5 3 or 4, whichever would show the most decimal places ?
                   -- I think 1 or 4, whichever would show the most decimal places
-                  maxprecisionwithpoint
+                  NaturalPrecision
   --
   -- let -- (amt,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amtcmt
       -- a           = fromparse $ runParser (amountp <|> return missingamt) (jparsestate esJournal) "" amt

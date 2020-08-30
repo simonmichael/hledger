@@ -105,7 +105,7 @@ splitPosting acct dates p@Posting{paccount,pamount}
         [d]        -> (d, [])
         []         -> error' "splitPosting ran out of dates, should not happen (maybe sort your transactions by date)"
     days = initSafe [start..end]
-    amt  = (fromIntegral $ length days) `divideMixedAmount` pamount
+    amt  = (genericLength days) `divideMixedAmount` pamount
     -- give one of the postings an exact balancing amount to ensure the transaction is balanced
     -- lastamt = pamount - ptrace (amt `multiplyMixedAmount` (fromIntegral $ length days))
     lastamt = missingmixedamt

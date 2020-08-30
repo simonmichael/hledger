@@ -540,15 +540,20 @@ priceInferrerFor t pt = inferprice
       where
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
         conversionprice
-          | fromcount==1 = TotalPrice $ abs toamount `withPrecision` maxprecision
+          | fromcount==1 = TotalPrice $ abs toamount `withPrecision` NaturalPrecision
           | otherwise    = UnitPrice $ abs unitprice `withPrecision` unitprecision
           where
             fromcount     = length $ filter ((==fromcommodity).acommodity) pamounts
             fromamount    = head $ filter ((==fromcommodity).acommodity) sumamounts
+            fromprecision = asprecision $ astyle fromamount
             tocommodity   = head $ filter (/=fromcommodity) sumcommodities
             toamount      = head $ filter ((==tocommodity).acommodity) sumamounts
+            toprecision   = asprecision $ astyle toamount
             unitprice     = (aquantity fromamount) `divideAmount` toamount
-            unitprecision = max 2 (asprecision (astyle toamount) + asprecision (astyle fromamount))
+            -- Sum two display precisions, capping the result at the maximum bound
+            unitprecision = case (fromprecision, toprecision) of
+                (Precision a, Precision b) -> Precision $ if maxBound - a < b then maxBound else max 2 (a + b)
+                _                          -> NaturalPrecision
     inferprice p = p
 
 -- Get a transaction's secondary date, defaulting to the primary date.
@@ -772,7 +777,7 @@ tests_Transaction =
                 "x"
                 ""
                 []
-                [ posting {paccount = "a", pamount = Mixed [num 1 `at` (usd 2 `withPrecision` 0)]}
+                [ posting {paccount = "a", pamount = Mixed [num 1 `at` (usd 2 `withPrecision` Precision 0)]}
                 , posting {paccount = "b", pamount = missingmixedamt}
                 ])) @?=
           (unlines ["2010-01-01 x", "    a          1 @ $2", "    b", ""])
@@ -847,7 +852,7 @@ tests_Transaction =
                 [ posting {paccount = "a", pamount = Mixed [usd 1.35]}
                 , posting {paccount = "b", pamount = Mixed [eur (-1)]}
                 ])) @?=
-          Right (Mixed [usd 1.35 @@ (eur 1 `withPrecision` maxprecision)])
+          Right (Mixed [usd 1.35 @@ (eur 1 `withPrecision` NaturalPrecision)])
         ,test "balanceTransaction balances based on cost if there are unit prices" $
           assertRight $
           balanceTransaction

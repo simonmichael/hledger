@@ -404,9 +404,9 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 
 -- | Read a decimal number from a Text. Assumes the input consists only of digit
 -- characters.
-readDecimal :: Integral a => Text -> a
+readDecimal :: Text -> Integer
 readDecimal = foldl' step 0 . T.unpack
-  where step a c = a * 10 + fromIntegral (digitToInt c)
+  where step a c = a * 10 + toInteger (digitToInt c)
 
 
 tests_Text = tests "Text" [

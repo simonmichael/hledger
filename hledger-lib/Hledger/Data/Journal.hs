@@ -716,7 +716,7 @@ journalBalanceTransactions assrt j' =
     runST $ do
       -- We'll update a mutable array of transactions as we balance them,
       -- not strictly necessary but avoids a sort at the end I think.
-      balancedtxns <- newListArray (1, genericLength ts) ts
+      balancedtxns <- newListArray (1, toInteger $ length ts) ts
 
       -- Infer missing posting amounts, check transactions are balanced,
       -- and check balance assertions. This is done in two passes:
@@ -1495,26 +1495,26 @@ tests_Journal = tests "Journal" [
       --
       test "1091a" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False 3 (Just ',') Nothing}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
+           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False 3 (Just '.') (Just (DigitGroups ',' [3])))
+            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
           ])
         -- same journal, entries in reverse order
       ,test "1091b" $ do
         commodityStylesFromAmounts [
-           nullamt{aquantity=1000, astyle=AmountStyle L False 2 (Just '.') (Just (DigitGroups ',' [3]))}
-          ,nullamt{aquantity=1000, astyle=AmountStyle L False 3 (Just ',') Nothing}
+           nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 2) (Just '.') (Just (DigitGroups ',' [3]))}
+          ,nullamt{aquantity=1000, astyle=AmountStyle L False (Precision 3) (Just ',') Nothing}
           ]
          @?=
           -- The commodity style should have period as decimal mark
           -- and comma as digit group mark.
           Right (M.fromList [
-            ("", AmountStyle L False 3 (Just '.') (Just (DigitGroups ',' [3])))
+            ("", AmountStyle L False (Precision 3) (Just '.') (Just (DigitGroups ',' [3])))
           ])
 
      ]

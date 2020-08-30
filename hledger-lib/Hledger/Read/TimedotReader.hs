@@ -182,7 +182,7 @@ entryp = do
         tstatus    = Cleared,
         tpostings  = [
           nullposting{paccount=a
-                     ,pamount=Mixed [setAmountPrecision 2 $ num hours]  -- don't assume hours; do set precision to 2
+                     ,pamount=Mixed [setAmountPrecision (Precision 2) $ num hours]  -- don't assume hours; do set precision to 2
                      ,ptype=VirtualPosting
                      ,ptransaction=Just t
                      }
@@ -240,7 +240,7 @@ dotquantityp :: JournalParser m Quantity
 dotquantityp = do
   -- lift $ traceparse "dotquantityp"
   dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))
-  return $ (/4) $ fromIntegral $ length dots
+  return $ fromIntegral (length dots) / 4
 
 -- | XXX new comment line parser, move to Hledger.Read.Common.emptyorcommentlinep
 -- Parse empty lines, all-blank lines, and lines beginning with any of the provided

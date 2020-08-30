@@ -50,7 +50,9 @@ divideAmount' n a = a' where
     a' = (n `divideAmount` a) { astyle = style' }
     style' = (astyle a) { asprecision = precision' }
     extPrecision = (1+) . floor . logBase 10 $ (realToFrac n :: Double)
-    precision' = extPrecision + asprecision (astyle a)
+    precision' = case asprecision (astyle a) of
+                      NaturalPrecision -> NaturalPrecision
+                      Precision p      -> Precision $ extPrecision + p
 
 -- XXX
 

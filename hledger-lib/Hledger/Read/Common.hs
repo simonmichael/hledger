@@ -135,6 +135,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.Word (Word8)
 import System.Time (getClockTime)
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -240,14 +241,13 @@ runErroringJournalParser p t =
 rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
-genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
+genericSourcePos p = GenericSourcePos (sourceName p) (unPos $ sourceLine p) (unPos $ sourceColumn p)
 
 -- | Construct a generic start & end line parse position from start and end megaparsec SourcePos's.
 journalSourcePos :: SourcePos -> SourcePos -> GenericSourcePos
-journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p, fromIntegral $ line')
-    where line'
-            | (unPos $ sourceColumn p') == 1 = unPos (sourceLine p') - 1
-            | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
+journalSourcePos p p' = JournalSourcePos (sourceName p) (unPos $ sourceLine p, line')
+    where line' | (unPos $ sourceColumn p') == 1 = unPos (sourceLine p') - 1
+                | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
 
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content, and finalise the result to
@@ -706,14 +706,14 @@ amountwithoutpricep = do
     :: (Int, Int) -- offsets
     -> Maybe AmountStyle
     -> Either AmbiguousNumber RawNumber
-    -> Maybe Int
-    -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+    -> Maybe Integer
+    -> TextParser m (Quantity, AmountPrecision, Maybe Char, Maybe DigitGroupStyle)
   interpretNumber posRegion suggestedStyle ambiguousNum mExp =
     let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
     in  case fromRawNumber rawNum mExp of
           Left errMsg -> customFailure $
                            uncurry parseErrorAtRegion posRegion errMsg
-          Right res -> pure res
+          Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
@@ -816,7 +816,7 @@ lotdatep = (do
 -- seen following the decimal mark), the decimal mark character used if any,
 -- and the digit group style if any.
 --
-numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp :: Maybe AmountStyle -> TextParser m (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
 numberp suggestedStyle = label "number" $ do
     -- a number is an optional sign followed by a sequence of digits possibly
     -- interspersed with periods, commas, or both
@@ -830,7 +830,7 @@ numberp suggestedStyle = label "number" $ do
       Left errMsg -> Fail.fail errMsg
       Right (q, p, d, g) -> pure (sign q, p, d, g)
 
-exponentp :: TextParser m Int
+exponentp :: TextParser m Integer
 exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 
 -- | Interpret a raw number as a decimal number.
@@ -842,49 +842,39 @@ exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 -- - the digit group style, if any (digit group character and sizes of digit groups)
 fromRawNumber
   :: RawNumber
-  -> Maybe Int
+  -> Maybe Integer
   -> Either String
-            (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber raw mExp = case raw of
-
-  NoSeparators digitGrp mDecimals ->
-    let mDecPt = fmap fst mDecimals
-        decimalGrp = maybe mempty snd mDecimals
-
-        (quantity, precision) =
-          maybe id applyExp mExp $ toQuantity digitGrp decimalGrp
-
-    in  Right (quantity, precision, mDecPt, Nothing)
-
-  WithSeparators digitSep digitGrps mDecimals -> case mExp of
-    Nothing ->
-      let mDecPt = fmap fst mDecimals
-          decimalGrp = maybe mempty snd mDecimals
-          digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
-
-          (quantity, precision) = toQuantity (mconcat digitGrps) decimalGrp
-
-      in  Right (quantity, precision, mDecPt, Just digitGroupStyle)
-    Just _ -> Left
-      "invalid number: mixing digit separators with exponents is not allowed"
-
+            (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber (WithSeparators _ _ _) (Just _) =
+    Left "invalid number: mixing digit separators with exponents is not allowed"
+fromRawNumber raw mExp = do
+    (quantity, precision) <- toQuantity (fromMaybe 0 mExp) (digitGroup raw) (decimalGroup raw)
+    return (quantity, precision, mDecPt raw, digitGroupStyle raw)
   where
+    toQuantity :: Integer -> DigitGrp -> DigitGrp -> Either String (Quantity, Word8)
+    toQuantity e preDecimalGrp postDecimalGrp
+      | precision < 0   = Right (Decimal 0 (digitGrpNum * 10^(-precision)), 0)
+      | precision < 256 = Right (Decimal precision8 digitGrpNum, precision8)
+      | otherwise = Left "invalid number: numbers with more than 255 decimal digits are not allowed at this time"
+      where
+        digitGrpNum = digitGroupNumber $ preDecimalGrp <> postDecimalGrp
+        precision   = toInteger (digitGroupLength postDecimalGrp) - e
+        precision8  = fromIntegral precision :: Word8
+
+    mDecPt (NoSeparators _ mDecimals)           = fst <$> mDecimals
+    mDecPt (WithSeparators _ _ mDecimals)       = fst <$> mDecimals
+    decimalGroup (NoSeparators _ mDecimals)     = maybe mempty snd mDecimals
+    decimalGroup (WithSeparators _ _ mDecimals) = maybe mempty snd mDecimals
+    digitGroup (NoSeparators digitGrp _)        = digitGrp
+    digitGroup (WithSeparators _ digitGrps _)   = mconcat digitGrps
+    digitGroupStyle (NoSeparators _ _)          = Nothing
+    digitGroupStyle (WithSeparators sep grps _) = Just . DigitGroups sep $ groupSizes grps
+
     -- Outputs digit group sizes from least significant to most significant
-    groupSizes :: [DigitGrp] -> [Int]
-    groupSizes digitGrps = reverse $ case map digitGroupLength digitGrps of
+    groupSizes :: [DigitGrp] -> [Word8]
+    groupSizes digitGrps = reverse $ case map (fromIntegral . digitGroupLength) digitGrps of
       (a:b:cs) | a < b -> b:cs
       gs               -> gs
-
-    toQuantity :: DigitGrp -> DigitGrp -> (Quantity, Int)
-    toQuantity preDecimalGrp postDecimalGrp = (quantity, precision)
-      where
-        quantity = Decimal (fromIntegral precision)
-                           (digitGroupNumber $ preDecimalGrp <> postDecimalGrp)
-        precision = digitGroupLength postDecimalGrp
-
-    applyExp :: Int -> (Decimal, Int) -> (Decimal, Int)
-    applyExp exponent (quantity, precision) =
-      (quantity * 10^^exponent, max 0 (precision - exponent))
 
 
 disambiguateNumber :: Maybe AmountStyle -> AmbiguousNumber -> RawNumber
@@ -900,7 +890,7 @@ disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
     isValidDecimalBy c = \case
       AmountStyle{asdecimalpoint = Just d} -> d == c
       AmountStyle{asdigitgroups = Just (DigitGroups g _)} -> g /= c
-      AmountStyle{asprecision = 0} -> False
+      AmountStyle{asprecision = Precision 0} -> False
       _ -> True
 
 -- | Parse and interpret the structure of a number without external hints.
@@ -1011,17 +1001,17 @@ data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp
 -- | Description of a single digit group in a number literal.
 -- "Thousands" is one well known digit grouping, but there are others.
 data DigitGrp = DigitGrp {
-  digitGroupLength :: !Int,    -- ^ The number of digits in this group.
-  digitGroupNumber :: !Integer -- ^ The natural number formed by this group's digits.
+  digitGroupLength :: !Word,    -- ^ The number of digits in this group.
+                                -- This is Word to avoid the need to do overflow
+                                -- checking for the Semigroup instance of DigitGrp.
+  digitGroupNumber :: !Integer  -- ^ The natural number formed by this group's digits. This should always be positive.
 } deriving (Eq)
 
 -- | A custom show instance, showing digit groups as the parser saw them.
 instance Show DigitGrp where
-  show (DigitGrp len num)
-    | len > 0 = "\"" ++ padding ++ numStr ++ "\""
-    | otherwise = "\"\""
+  show (DigitGrp len num) = "\"" ++ padding ++ numStr ++ "\""
     where numStr = show num
-          padding = replicate (len - length numStr) '0'
+          padding = genericReplicate (toInteger len - toInteger (length numStr)) '0'
 
 instance Sem.Semigroup DigitGrp where
   DigitGrp l1 n1 <> DigitGrp l2 n2 = DigitGrp (l1 + l2) (n1 * 10^l2 + n2)
@@ -1350,38 +1340,38 @@ tests_Common = tests "Common" [
 
    tests "amountp" [
     test "basic"                  $ assertParseEq amountp "$47.18"     (usd 47.18)
-   ,test "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+   ,test "ends with decimal mark" $ assertParseEq amountp "$1."        (usd 1  `withPrecision` Precision 0)
    ,test "unit price"             $ assertParseEq amountp "$10 @ €0.5"
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
          acommodity="$"
         ,aquantity=10 -- need to test internal precision with roundTo ? I think not
-        ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+        ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
         ,aprice=Just $ UnitPrice $
           amount{
              acommodity="€"
             ,aquantity=0.5
-            ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
+            ,astyle=amountstyle{asprecision=Precision 1, asdecimalpoint=Just '.'}
             }
         }
    ,test "total price"            $ assertParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
         ,aquantity=10
-        ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+        ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
         ,aprice=Just $ TotalPrice $
           amount{
              acommodity="€"
             ,aquantity=5
-            ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+            ,astyle=amountstyle{asprecision=Precision 0, asdecimalpoint=Nothing}
             }
         }
    ,test "unit price, parenthesised" $ assertParse amountp "$10 (@) €0.5"
    ,test "total price, parenthesised" $ assertParse amountp "$10 (@@) €0.5"
    ]
 
-  ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Int, Maybe Char, Maybe DigitGroupStyle) in
+  ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle) in
    test "numberp" $ do
      assertParseEq p "0"          (0, 0, Nothing, Nothing)
      assertParseEq p "1"          (1, 0, Nothing, Nothing)
@@ -1401,6 +1391,8 @@ tests_Common = tests "Common" [
      assertParseError p "1..1" ""
      assertParseError p ".1," ""
      assertParseError p ",1." ""
+     assertParseEq    p "1.555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" (1.555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555, 255, Just '.', Nothing)
+     assertParseError p "1.5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555" ""
 
   ,tests "spaceandamountormissingp" [
      test "space and amount" $ assertParseEq spaceandamountormissingp " $47.18" (Mixed [usd 47.18])

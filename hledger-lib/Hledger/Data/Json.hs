@@ -89,6 +89,7 @@ instance ToJSON Decimal where
 
 instance ToJSON Amount
 instance ToJSON AmountStyle
+instance ToJSON AmountPrecision
 instance ToJSON Side
 instance ToJSON DigitGroupStyle
 instance ToJSON MixedAmount
@@ -158,6 +159,7 @@ instance FromJSON Status
 instance FromJSON GenericSourcePos
 instance FromJSON Amount
 instance FromJSON AmountStyle
+instance FromJSON AmountPrecision
 instance FromJSON Side
 instance FromJSON DigitGroupStyle
 instance FromJSON MixedAmount
