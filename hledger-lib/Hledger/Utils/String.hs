@@ -49,14 +49,14 @@ module Hledger.Utils.String (
  ) where
 
 
-import Data.Char
-import Data.List
-import Text.Megaparsec
-import Text.Megaparsec.Char
+import Data.Char (isDigit, isSpace, toLower, toUpper)
+import Data.List (intercalate, transpose)
+import Text.Megaparsec (Parsec, (<|>), (<?>), between, many, noneOf, oneOf,
+                        parseMaybe, sepBy, takeWhile1P)
+import Text.Megaparsec.Char (char, string)
 import Text.Printf (printf)
 
 import Hledger.Utils.Parse
-import Hledger.Utils.Regex
 
 
 -- | Take elements from the end of a list.
@@ -341,12 +341,15 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
 -- (not counted), and line breaks (in a multi-line string, the longest
 -- line determines the width).
 strWidth :: String -> Int
-strWidth "" = 0
-strWidth s = maximum $ map (foldr (\a b -> charWidth a + b) 0) $ lines s'
-  where s' = stripAnsi s
+strWidth = maximum . (0:) . map (foldr (\a b -> charWidth a + b) 0) . lines . stripAnsi
 
 stripAnsi :: String -> String
-stripAnsi = regexReplace (toRegex' "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]") "" -- PARTIAL: should never happen, no backreferences
+stripAnsi s = maybe s concat $ parseMaybe (many $ takeWhile1P Nothing (/='\ESC') <|> "" <$ ansi) s
+  where
+    -- This parses lots of invalid ANSI escape codes, but that should be fine
+    ansi = string "\ESC[" *> digitSemicolons *> suffix <?> "ansi" :: Parsec CustomErr String Char
+    digitSemicolons = takeWhile1P Nothing (\c -> isDigit c || c == ';')
+    suffix = oneOf ['A', 'B', 'C', 'D', 'H', 'J', 'K', 'f', 'm', 's', 'u']
 
 -- | Get the designated render width of a character: 0 for a combining
 -- character, 1 for a regular character, 2 for a wide character.
