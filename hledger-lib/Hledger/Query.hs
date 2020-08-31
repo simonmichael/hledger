@@ -10,7 +10,6 @@ transactions..)  by various criteria, and a SimpleTextParser for query expressio
 {-# OPTIONS_GHC -Wno-warnings-deprecations #-}
 
 {-# LANGUAGE CPP                #-}
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE ViewPatterns       #-}
@@ -60,18 +59,17 @@ module Hledger.Query (
 where
 
 import Control.Applicative ((<|>), liftA2, many, optional)
-import Data.Data
-import Data.Either
-import Data.List
-import Data.Maybe
+import Data.Either (partitionEithers)
+import Data.List (partition)
+import Data.Maybe (fromMaybe, isJust, mapMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as T
-import Data.Time.Calendar
+import Data.Time.Calendar (Day, fromGregorian )
 import Safe (readDef, readMay, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec (between, noneOf, sepBy)
-import Text.Megaparsec.Char
+import Text.Megaparsec.Char (char, string)
 
 import Hledger.Utils hiding (words')
 import Hledger.Data.Types
@@ -105,7 +103,7 @@ data Query = Any              -- ^ always match
                               --   and sometimes like a query option (for controlling display)
            | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
                                         -- matching the regexp if provided, exists
-    deriving (Eq,Show,Data,Typeable)
+    deriving (Eq,Show)
 
 -- | Construct a payee tag
 payeeTag :: Maybe String -> Either RegexError Query
@@ -118,14 +116,14 @@ noteTag = liftA2 Tag (toRegexCI_ "note") . maybe (pure Nothing) (fmap Just . toR
 -- | A more expressive Ord, used for amt: queries. The Abs* variants
 -- compare with the absolute value of a number, ignoring sign.
 data OrdPlus = Lt | LtEq | Gt | GtEq | Eq | AbsLt | AbsLtEq | AbsGt | AbsGtEq | AbsEq
- deriving (Show,Eq,Data,Typeable)
+ deriving (Show,Eq)
 
 -- | A query option changes a query's/report's behaviour and output in some way.
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
               | QueryOptInAcct AccountName      -- ^ as above but include sub-accounts in the account register
            -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
            -- | QueryOptDate2  -- ^ show secondary dates instead of primary dates
-    deriving (Show, Eq, Data, Typeable)
+    deriving (Show, Eq)
 
 -- parsing
 

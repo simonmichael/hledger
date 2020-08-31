@@ -4,7 +4,6 @@ Options common to most hledger reports.
 
 -}
 
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -49,14 +48,12 @@ module Hledger.Reports.ReportOptions (
 where
 
 import Control.Applicative ((<|>))
-import Data.Data (Data)
 import Data.List.Extra (nubSort)
-import Data.Maybe
+import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
-import Data.Typeable (Typeable)
-import Data.Time.Calendar
-import Data.Default
-import Safe
+import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Data.Default (Default(..))
+import Safe (lastDef, lastMay)
 
 import System.Console.ANSI (hSupportsANSIColor)
 import System.Environment (lookupEnv)
@@ -76,12 +73,12 @@ data BalanceType = PeriodChange      -- ^ The change of balance in each period.
                  | HistoricalBalance -- ^ The historical ending balance, including the effect of
                                      --   all postings before the report period. Unless altered by,
                                      --   a query, this is what you would see on a bank statement.
-  deriving (Eq,Show,Data,Typeable)
+  deriving (Eq,Show)
 
 instance Default BalanceType where def = PeriodChange
 
 -- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
-data AccountListMode = ALFlat | ALTree deriving (Eq, Show, Data, Typeable)
+data AccountListMode = ALFlat | ALTree deriving (Eq, Show)
 
 instance Default AccountListMode where def = ALFlat
 
@@ -140,7 +137,7 @@ data ReportOpts = ReportOpts {
       --   TERM and existence of NO_COLOR environment variables.
     ,forecast_       :: Maybe DateSpan
     ,transpose_      :: Bool
- } deriving (Show, Data, Typeable)
+ } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
 

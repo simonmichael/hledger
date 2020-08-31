@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -80,7 +79,6 @@ import Control.Monad (foldM)
 import Data.Aeson (ToJSON(..), Value(String))
 import Data.Array ((!), elems, indices)
 import Data.Char (isDigit)
-import Data.Data (Data(..), mkNoRepType)
 import Data.List (foldl')
 import Data.MemoUgly (memo)
 import qualified Data.Text as T
@@ -123,11 +121,6 @@ instance Read Regexp where
                                                     ("Regex",s) <- lex r,
                                                     (m,t) <- readsPrec (app_prec+1) s]) r
     where app_prec = 10
-
-instance Data Regexp where
-  toConstr _   = error' "No toConstr for Regex"
-  gunfold _ _  = error' "No gunfold for Regex"
-  dataTypeOf _ = mkNoRepType "Hledger.Utils.Regex"
 
 instance ToJSON Regexp where
   toJSON (Regexp   s _) = String . T.pack $ "Regexp "   ++ s

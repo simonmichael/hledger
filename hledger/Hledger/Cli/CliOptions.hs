@@ -5,7 +5,7 @@ related utilities used by hledger commands.
 
 -}
 
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TypeFamilies, OverloadedStrings, PackageImports #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, FlexibleContexts, TypeFamilies, OverloadedStrings, PackageImports #-}
 
 module Hledger.Cli.CliOptions (
 
@@ -413,7 +413,7 @@ data CliOpts = CliOpts {
                                         -- 1. the COLUMNS env var, if set
                                         -- 2. the width reported by the terminal, if supported
                                         -- 3. the default (80)
- } deriving (Show, Data, Typeable)
+ } deriving (Show)
 
 instance Default CliOpts where def = defcliopts
 

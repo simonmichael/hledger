@@ -9,7 +9,7 @@ looking up historical market prices (exchange rates) between commodities.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Hledger.Data.Valuation (
    ValuationType(..)
@@ -29,7 +29,6 @@ where
 
 import Control.Applicative ((<|>))
 import Control.DeepSeq (NFData)
-import Data.Data
 import Data.Decimal (roundTo)
 import Data.Function ((&), on)
 import Data.Graph.Inductive  (Gr, Node, NodeMap, mkMapGraph, mkNode, lab, out, sp)
@@ -60,7 +59,7 @@ data ValuationType =
   | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using current market prices
   | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices on some date
   | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
-  deriving (Show,Data,Eq) -- Typeable
+  deriving (Show,Eq)
 
 -- | A snapshot of the known exchange rates between commodity pairs at a given date,
 -- as a graph allowing fast lookup and path finding, along with some helper data.
