@@ -72,7 +72,7 @@ writeJournalTextIfValidAndChanged f t = do
   -- Ensure unix line endings, since both readJournal (cf
   -- formatdirectivep, #1194) writeFileWithBackupIfChanged require them.
   -- XXX klunky. Any equivalent of "hSetNewlineMode h universalNewlineMode" for form posts ?
-  let t' = T.pack $ regexReplace (toRegex' "\r") "" $ T.unpack t
+  let t' = T.replace "\r" "" t
   liftIO (readJournal def (Just f) t') >>= \case
     Left e -> return (Left e)
     Right _ -> do

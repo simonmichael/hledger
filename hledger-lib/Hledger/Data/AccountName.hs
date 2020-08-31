@@ -39,14 +39,14 @@ module Hledger.Data.AccountName (
 )
 where
 
-import Data.List
 import Data.List.Extra (nubSort)
+import qualified Data.List.NonEmpty as NE
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
+import Data.Semigroup ((<>))
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Tree
+import Data.Tree (Tree(..))
 
 import Hledger.Data.Types
 import Hledger.Utils
@@ -115,7 +115,7 @@ expandAccountNames as = nubSort $ concatMap expandAccountName as
 
 -- | "a:b:c" -> ["a","a:b","a:b:c"]
 expandAccountName :: AccountName -> [AccountName]
-expandAccountName = map accountNameFromComponents . tail . inits . accountNameComponents
+expandAccountName = map accountNameFromComponents . NE.tail . NE.inits . accountNameComponents
 
 -- | ["a:b:c","d:e"] -> ["a","d"]
 topAccountNames :: [AccountName] -> [AccountName]
@@ -209,8 +209,10 @@ clipOrEllipsifyAccountName n        = clipAccountName n
 -- >>> putStr $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
 -- First\?!#\$\*\?\$\(\*\) !@\^#\*\? %\)\*!@#
 escapeName :: AccountName -> String
-escapeName = replaceAllBy (toRegex' "[[?+|()*\\\\^$]") ("\\" <>)  -- PARTIAL: should not happen
-           . T.unpack
+escapeName = T.unpack . T.concatMap escapeChar
+  where
+    escapeChar c = if c `elem` escapedChars then T.snoc "\\" c else T.singleton c
+    escapedChars = ['[', '?', '+', '|', '(', ')', '*', '$', '^', '\\']
 
 -- | Convert an account name to a regular expression matching it and its subaccounts.
 accountNameToAccountRegex :: AccountName -> Regexp

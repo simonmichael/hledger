@@ -106,16 +106,13 @@ addForm j today = identifyForm "add" $ \extra -> do
         intercalate "," $ map (
           ("{\"value\":" ++).
           (++"}").
-          escapeJSSpecialChars .
-          drop 7 .  -- "String "
           show .
-          toJSON
+          -- avoid https://github.com/simonmichael/hledger/issues/236
+          T.replace "</script>" "<\\/script>"
           ) ts,
         "]"
         ]
       where
-        -- avoid https://github.com/simonmichael/hledger/issues/236
-        escapeJSSpecialChars = regexReplace (toRegexCI' "</script>") "<\\/script>"
 
 validateTransaction ::
      FormResult Day
