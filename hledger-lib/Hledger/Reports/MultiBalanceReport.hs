@@ -115,8 +115,13 @@ multiBalanceReportWith ropts q j priceoracle = report
     colps    = dbg'' "colps"  $ getPostingsByColumn ropts reportq j reportspan
     colspans = dbg "colspans" $ M.keys colps
 
+    -- The matched accounts with a starting balance. All of these should appear
+    -- in the report, even if they have no postings during the report period.
+    startbals = dbg' "startbals" $ startingBalances ropts reportq j reportspan
+
     -- Generate and postprocess the report, negating balances and taking percentages if needed
-    report = dbg' "report" $ generateMultiBalanceReport ropts reportq j priceoracle reportspan colspans colps
+    report = dbg' "report" $
+      generateMultiBalanceReport ropts reportq j priceoracle colspans colps startbals
 
 -- | Generate a compound balance report from a list of CBCSubreportSpec. This
 -- shares postings between the subreports.
@@ -141,21 +146,24 @@ compoundBalanceReportWith ropts q j priceoracle subreportspecs = cbr
     colps    = dbg'' "colps"  $ getPostingsByColumn ropts{empty_=True} reportq j reportspan
     colspans = dbg "colspans" $ M.keys colps
 
-    -- Filter the column postings according to each subreport
-    subreportcolps = map filterSubreport subreportspecs
-      where filterSubreport sr = filter (matchesPosting $ cbcsubreportquery sr j) <$> colps
+    -- The matched accounts with a starting balance. All of these should appear
+    -- in the report, even if they have no postings during the report period.
+    startbals = dbg' "startbals" $ startingBalances ropts reportq j reportspan
 
-    subreports = zipWith generateSubreport subreportspecs subreportcolps
+    subreports = map generateSubreport subreportspecs
       where
-        generateSubreport CBCSubreportSpec{..} colps' =
+        generateSubreport CBCSubreportSpec{..} =
             ( cbcsubreporttitle
             -- Postprocess the report, negating balances and taking percentages if needed
             , prNormaliseSign cbcsubreportnormalsign $
-                generateMultiBalanceReport ropts' reportq j priceoracle reportspan colspans colps'
+                generateMultiBalanceReport ropts' reportq j priceoracle colspans colps' startbals'
             , cbcsubreportincreasestotal
             )
           where
-            ropts' = ropts{normalbalance_=Just cbcsubreportnormalsign}
+            ropts'     = ropts{normalbalance_=Just cbcsubreportnormalsign}
+            -- Filter the column postings according to each subreport
+            colps'     = filter (matchesPosting $ cbcsubreportquery j) <$> colps
+            startbals' = HM.filterWithKey (\k _ -> matchesAccount (cbcsubreportquery j) k) startbals
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports
@@ -363,17 +371,14 @@ accumValueAmounts ropts j priceoracle colspans startbals acctchanges =  -- PARTI
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
 generateMultiBalanceReport :: ReportOpts -> Query -> Journal -> PriceOracle
-                           -> DateSpan -> [DateSpan]
+                           -> [DateSpan]
                            -> Map DateSpan [Posting]
+                           -> HashMap AccountName Account
                            -> MultiBalanceReport
-generateMultiBalanceReport ropts q j priceoracle reportspan colspans colps = report
+generateMultiBalanceReport ropts q j priceoracle colspans colps startbals = report
   where
     -- Each account's balance changes across all columns.
     acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts q colspans colps
-
-    -- The matched accounts with a starting balance. All of these should appear
-    -- in the report, even if they have no postings during the report period.
-    startbals = dbg' "startbals" $ startingBalances ropts q j reportspan
 
     -- Process changes into normal, cumulative, or historical amounts, plus value them
     accumvalued = accumValueAmounts ropts j priceoracle colspans startbals acctchanges

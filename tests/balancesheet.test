@@ -278,3 +278,33 @@ Balance Sheet 2018-10-03
  Net:                                ||       $120 
 >>>2
 >>>= 0
+
+# 10. Check that starting balances are also filtered by subreport query. (See issue #1335)
+hledger -f - balancesheet --begin 2020-03-02
+<<<
+2020-03-01 * Rent
+    assets:a     -$1
+    expenses
+
+2020-03-25 * Salary
+    assets:a      $2
+    income
+>>>
+Balance Sheet 2020-03-25
+
+             || 2020-03-25 
+=============++============
+ Assets      ||            
+-------------++------------
+ assets:a    ||         $1 
+-------------++------------
+             ||         $1 
+=============++============
+ Liabilities ||            
+-------------++------------
+-------------++------------
+             ||            
+=============++============
+ Net:        ||         $1 
+>>>2
+>>>= 0
