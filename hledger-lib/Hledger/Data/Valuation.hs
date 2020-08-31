@@ -28,7 +28,6 @@ module Hledger.Data.Valuation (
 where
 
 import Control.Applicative ((<|>))
-import Control.DeepSeq (NFData)
 import Data.Decimal (roundTo)
 import Data.Function ((&), on)
 import Data.Graph.Inductive  (Gr, Node, NodeMap, mkMapGraph, mkNode, lab, out, sp)
@@ -85,8 +84,6 @@ data PriceGraph = PriceGraph {
     --   graph).
   }
   deriving (Show,Generic)
-
-instance NFData PriceGraph
 
 -- | A price oracle is a magic memoising function that efficiently
 -- looks up market prices (exchange rates) from one commodity to
