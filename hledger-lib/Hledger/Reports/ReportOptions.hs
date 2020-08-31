@@ -98,7 +98,6 @@ data ReportOpts = ReportOpts {
     ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
     ,infer_value_    :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_          :: Maybe Int
-    ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
     ,empty_          :: Bool
     ,no_elide_       :: Bool
@@ -172,7 +171,6 @@ defreportopts = ReportOpts
     def
     def
     def
-    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
@@ -189,7 +187,6 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,value_       = valuationTypeFromRawOpts rawopts'
     ,infer_value_ = boolopt "infer-value" rawopts'
     ,depth_       = maybeposintopt "depth" rawopts'
-    ,display_     = maybedisplayopt d rawopts'
     ,date2_       = boolopt "date2" rawopts'
     ,empty_       = boolopt "empty" rawopts'
     ,no_elide_    = boolopt "no-elide" rawopts'
@@ -415,15 +412,6 @@ valuationTypeIsDefaultValue ropts =
   case value_ ropts of
     Just (AtDefault _) -> True
     _                  -> False
-
-type DisplayExp = String
-
-maybedisplayopt :: Day -> RawOpts -> Maybe DisplayExp
-maybedisplayopt d rawopts =
-    maybe Nothing (Just . replaceAllBy (toRegex' "\\[.+?\\]") fixbracketeddatestr) $ maybestringopt "display" rawopts
-  where
-    fixbracketeddatestr "" = ""
-    fixbracketeddatestr s = "[" ++ fixSmartDateStr d (T.pack $ init $ tail s) ++ "]"
 
 -- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)

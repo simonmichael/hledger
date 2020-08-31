@@ -373,7 +373,7 @@ tests_PostingsReport = tests "PostingsReport" [
         j <- samplejournal
         let gives displayexpr =
                 (registerdates (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is`)
-                    where opts = defreportopts{display_=Just displayexpr}
+                    where opts = defreportopts
         "d<[2008/6/2]"  `gives` ["2008/01/01","2008/06/01"]
         "d<=[2008/6/2]" `gives` ["2008/01/01","2008/06/01","2008/06/02"]
         "d=[2008/6/2]"  `gives` ["2008/06/02"]
