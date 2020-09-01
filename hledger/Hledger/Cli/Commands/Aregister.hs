@@ -79,9 +79,11 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   when (null args') $ error' "aregister needs an account, please provide an account name or pattern"  -- PARTIAL:
   let
     (apat:queryargs) = args'
-    apatregex = toRegex' apat  -- PARTIAL: do better
-    acct = headDef (error' $ show apat++" did not match any account") $  -- PARTIAL:
-           filter (match apatregex . T.unpack) $ journalAccountNames j
+    acct = headDef (error' $ show apat++" did not match any account")   -- PARTIAL:
+           . filterAccts $ journalAccountNames j
+    filterAccts = case toRegexCI apat of
+        Right re -> filter (regexMatch re . T.unpack)
+        Left  _  -> const []
     -- gather report options
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
@@ -100,7 +102,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
         excludeforecastq False =  -- not:date:tomorrow- not:tag:generated-transaction
           And [
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
-            ,Not (Tag (toRegex' "generated-transaction") Nothing)
+            ,Not generatedTransactionTag
           ]
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?

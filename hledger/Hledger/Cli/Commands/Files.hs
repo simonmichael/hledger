@@ -33,8 +33,8 @@ filesmode = hledgerCommandMode
 files :: CliOpts -> Journal -> IO ()
 files CliOpts{rawopts_=rawopts} j = do
   let args = listofstringopt "args" rawopts
-  regex <- mapM (either fail pure . toRegex_) $ headMay args
-  let files = maybe id (filter . match) regex
+  regex <- mapM (either fail pure . toRegex) $ headMay args
+  let files = maybe id (filter . regexMatch) regex
               $ map fst
               $ jfiles j
   mapM_ putStrLn files

@@ -90,7 +90,7 @@ asInit d reset ui@UIState{
         excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
           And [
              Not (Date $ DateSpan (Just $ addDays 1 d) Nothing)
-            ,Not (Tag (toRegexCI' "generated-transaction") Nothing)
+            ,Not generatedTransactionTag
           ]
 
     -- run the report

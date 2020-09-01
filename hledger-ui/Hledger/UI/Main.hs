@@ -120,9 +120,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
       -- to that as usual.
       Just apat -> (rsSetAccount acct False registerScreen, [ascr'])
         where
-          acct = headDef
-                 (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-                 $ filter (match (toRegexCI' apat) . T.unpack) $ journalAccountNames j
+          acct = headDef (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
+                 . filterAccts $ journalAccountNames j
+          filterAccts = case toRegexCI apat of
+              Right re -> filter (regexMatch re . T.unpack)
+              Left  _  -> const []
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary UIState value..
           ascr' = aScreen $

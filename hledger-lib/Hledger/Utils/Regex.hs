@@ -29,14 +29,12 @@ functions have memoised variants (*Memo), which also trade space for time.
 
 Currently two APIs are provided:
 
-- The old partial one which will call error on any problem (eg with malformed
-  regexps). This comes from hledger's origin as a command-line tool.
+- The old partial one (with ' suffixes') which will call error on any problem
+  (eg with malformed regexps). This comes from hledger's origin as a
+  command-line tool.
 
-- The new total one (with _ suffixes) which will return an error message. This
-  is better for long-running apps like hledger-web.
-
-We are gradually replacing usage of the old API in hledger. Probably at some
-point the suffixless names will be reclaimed for the new API.
+- The new total one which will return an error message. This is better for
+  long-running apps like hledger-web.
 
 Current limitations:
 
@@ -47,31 +45,18 @@ Current limitations:
 module Hledger.Utils.Regex (
   -- * Regexp type and constructors
    Regexp(reString)
-  ,toRegex_
-  ,toRegexCI_
+  ,toRegex
+  ,toRegexCI
   ,toRegex'
   ,toRegexCI'
    -- * type aliases
   ,Replacement
   ,RegexError
-   -- * partial regex operations (may call error)
---   ,regexMatches
---   ,regexMatchesCI
---   ,regexReplaceCI
---   ,regexReplaceCIMemo
---   ,regexReplaceByCI
    -- * total regex operations
-  ,match
+  ,regexMatch
   ,regexReplace
-  ,regexReplaceMemo_
---   ,replaceAllBy
---   ,regexMatches_
---   ,regexMatchesCI_
---   ,regexReplace_
---   ,regexReplaceCI_
---   ,regexReplaceMemo_
---   ,regexReplaceCIMemo_
-  ,replaceAllBy
+  ,regexReplaceUnmemo
+  ,regexReplaceAllBy
   )
 where
 
@@ -139,12 +124,12 @@ instance RegexContext Regexp String String where
   matchM = matchM . reCompiled
 
 -- Convert a Regexp string to a compiled Regex, or return an error message.
-toRegex_ :: String -> Either RegexError Regexp
-toRegex_ = memo $ \s -> mkRegexErr s (Regexp s <$> makeRegexM s)
+toRegex :: String -> Either RegexError Regexp
+toRegex = memo $ \s -> mkRegexErr s (Regexp s <$> makeRegexM s)
 
--- Like toRegex_, but make a case-insensitive Regex.
-toRegexCI_ :: String -> Either RegexError Regexp
-toRegexCI_ = memo $ \s -> mkRegexErr s (RegexpCI s <$> makeRegexOptsM defaultCompOpt{caseSensitive=False} defaultExecOpt s)
+-- Like toRegex, but make a case-insensitive Regex.
+toRegexCI :: String -> Either RegexError Regexp
+toRegexCI = memo $ \s -> mkRegexErr s (RegexpCI s <$> makeRegexOptsM defaultCompOpt{caseSensitive=False} defaultExecOpt s)
 
 -- | Make a nice error message for a regexp error.
 mkRegexErr :: String -> Maybe a -> Either RegexError a
@@ -153,11 +138,11 @@ mkRegexErr s = maybe (Left errmsg) Right
 
 -- Convert a Regexp string to a compiled Regex, throw an error
 toRegex' :: String -> Regexp
-toRegex' = either error' id . toRegex_
+toRegex' = either error' id . toRegex
 
 -- Like toRegex', but make a case-insensitive Regex.
 toRegexCI' :: String -> Regexp
-toRegexCI' = either error' id . toRegexCI_
+toRegexCI' = either error' id . toRegexCI
 
 -- | A replacement pattern. May include numeric backreferences (\N).
 type Replacement = String
@@ -167,44 +152,30 @@ type RegexError = String
 
 -- helpers
 
-regexReplace :: Regexp -> Replacement -> String -> String
-regexReplace re repl s = foldl (replaceMatch repl) s (reverse $ match (reCompiled re) s :: [MatchText String])
-  where
-    replaceMatch :: Replacement -> String -> MatchText String -> String
-    replaceMatch replpat s matchgroups = pre ++ repl ++ post
-      where
-        ((_,(off,len)):_) = elems matchgroups  -- groups should have 0-based indexes, and there should always be at least one, since this is a match
-        (pre, post') = splitAt off s
-        post = drop len post'
-        repl = replaceAllBy backrefRegex (lookupMatchGroup matchgroups) replpat
-          where
-            lookupMatchGroup :: MatchText String -> String -> String
-            lookupMatchGroup grps ('\\':s@(_:_)) | all isDigit s =
-              case read s of n | n `elem` indices grps -> fst (grps ! n)
-              -- PARTIAL:
-                             _                         -> error' $ "no match group exists for backreference \"\\"++s++"\""
-            lookupMatchGroup _ s = error' $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
-    backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not error happen
+-- | Test whether a Regexp matches a String. This is an alias for `matchTest` for consistent
+-- naming.
+regexMatch :: Regexp -> String -> Bool
+regexMatch = matchTest
 
 --------------------------------------------------------------------------------
 -- new total functions
 
--- | A memoising version of regexReplace_. Caches the result for each
+-- | A memoising version of regexReplace. Caches the result for each
 -- search pattern, replacement pattern, target string tuple.
-regexReplaceMemo_ :: Regexp -> Replacement -> String -> Either RegexError String
-regexReplaceMemo_ re repl = memo (replaceRegexUnmemo_ re repl)
+regexReplace :: Regexp -> Replacement -> String -> Either RegexError String
+regexReplace re repl = memo $ regexReplaceUnmemo re repl
 
 -- helpers:
 
 -- Replace this regular expression with this replacement pattern in this
 -- string, or return an error message.
-replaceRegexUnmemo_ :: Regexp -> Replacement -> String -> Either RegexError String
-replaceRegexUnmemo_ re repl s = foldM (replaceMatch_ repl) s (reverse $ match (reCompiled re) s :: [MatchText String])
+regexReplaceUnmemo :: Regexp -> Replacement -> String -> Either RegexError String
+regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reCompiled re) s :: [MatchText String])
   where
     -- Replace one match within the string with the replacement text
     -- appropriate for this match. Or return an error message.
-    replaceMatch_ :: Replacement -> String -> MatchText String -> Either RegexError String
-    replaceMatch_ replpat s matchgroups =
+    replaceMatch :: Replacement -> String -> MatchText String -> Either RegexError String
+    replaceMatch replpat s matchgroups =
       erepl >>= \repl -> Right $ pre ++ repl ++ post
       where
         ((_,(off,len)):_) = elems matchgroups  -- groups should have 0-based indexes, and there should always be at least one, since this is a match
@@ -213,16 +184,37 @@ replaceRegexUnmemo_ re repl s = foldM (replaceMatch_ repl) s (reverse $ match (r
         -- The replacement text: the replacement pattern with all
         -- numeric backreferences replaced by the appropriate groups
         -- from this match. Or an error message.
-        erepl = replaceAllByM backrefRegex (lookupMatchGroup_ matchgroups) replpat
+        erepl = regexReplaceAllByM backrefRegex (lookupMatchGroup matchgroups) replpat
           where
             -- Given some match groups and a numeric backreference,
             -- return the referenced group text, or an error message.
-            lookupMatchGroup_ :: MatchText String -> String -> Either RegexError String
-            lookupMatchGroup_ grps ('\\':s@(_:_)) | all isDigit s = 
+            lookupMatchGroup :: MatchText String -> String -> Either RegexError String
+            lookupMatchGroup grps ('\\':s@(_:_)) | all isDigit s =
               case read s of n | n `elem` indices grps -> Right $ fst (grps ! n)
                              _                         -> Left $ "no match group exists for backreference \"\\"++s++"\""
-            lookupMatchGroup_ _ s = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
+            lookupMatchGroup _ s = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
     backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not happen
+
+-- regexReplace' :: Regexp -> Replacement -> String -> String
+-- regexReplace' re repl s =
+--     foldl (replaceMatch repl) s (reverse $ match (reCompiled re) s :: [MatchText String])
+--   where
+--     replaceMatch :: Replacement -> String -> MatchText String -> String
+--     replaceMatch replpat s matchgroups = pre ++ repl ++ post
+--       where
+--         ((_,(off,len)):_) = elems matchgroups  -- groups should have 0-based indexes, and there should always be at least one, since this is a match
+--         (pre, post') = splitAt off s
+--         post = drop len post'
+--         repl = regexReplaceAllBy backrefRegex (lookupMatchGroup matchgroups) replpat
+--           where
+--             lookupMatchGroup :: MatchText String -> String -> String
+--             lookupMatchGroup grps ('\\':s@(_:_)) | all isDigit s =
+--               case read s of n | n `elem` indices grps -> fst (grps ! n)
+--               -- PARTIAL:
+--                              _                         -> error' $ "no match group exists for backreference \"\\"++s++"\""
+--             lookupMatchGroup _ s = error' $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
+--     backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not error happen
+
 
 -- helpers
 
@@ -230,8 +222,8 @@ replaceRegexUnmemo_ re repl s = foldM (replaceMatch_ repl) s (reverse $ match (r
 
 -- Replace all occurrences of a regexp in a string, transforming each match
 -- with the given pure function.
-replaceAllBy :: Regexp -> (String -> String) -> String -> String
-replaceAllBy re transform s = prependdone rest
+regexReplaceAllBy :: Regexp -> (String -> String) -> String -> String
+regexReplaceAllBy re transform s = prependdone rest
   where
     (_, rest, prependdone) = foldl' go (0, s, id) matches
       where
@@ -246,9 +238,9 @@ replaceAllBy re transform s = prependdone rest
 -- with the given monadic function. Eg if the monad is Either, a Left result
 -- from the transform function short-circuits and is returned as the overall
 -- result.
-replaceAllByM :: forall m. Monad m => Regexp -> (String -> m String) -> String -> m String
-replaceAllByM re transform s =
-  foldM go (0, s, id) matches >>= \(_, rest, prependdone) -> pure $ prependdone rest
+regexReplaceAllByM :: forall m. Monad m => Regexp -> (String -> m String) -> String -> m String
+regexReplaceAllByM re transform s =
+    foldM go (0, s, id) matches >>= \(_, rest, prependdone) -> pure $ prependdone rest
   where
     matches = getAllMatches $ match (reCompiled re) s :: [(Int, Int)]  -- offset and length
     go :: (Int,String,String->String) -> (Int,Int) -> m (Int,String,String->String)
@@ -256,4 +248,3 @@ replaceAllByM re transform s =
       let (prematch, matchandrest) = splitAt (off - pos) todo
           (matched, rest) = splitAt len matchandrest
       in transform matched >>= \matched' -> pure (off + len, rest, prepend . (prematch++) . (matched' ++))
-

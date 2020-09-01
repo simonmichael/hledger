@@ -30,7 +30,7 @@ tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   d <- getCurrentDay
   let
     args      = listofstringopt "args" rawopts
-  mtagpat <- mapM (either Fail.fail pure . toRegexCI_) $ headMay args
+  mtagpat <- mapM (either Fail.fail pure . toRegexCI) $ headMay args
   let
     queryargs = drop 1 args
     values    = boolopt "values" rawopts
@@ -42,7 +42,7 @@ tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
       (if parsed then id else nubSort)
       [ r
       | (t,v) <- concatMap transactionAllTags txns
-      , maybe True (`match` T.unpack t) mtagpat
+      , maybe True (`regexMatch` T.unpack t) mtagpat
       , let r = if values then v else t
       , not (values && T.null v && not empty)
       ]

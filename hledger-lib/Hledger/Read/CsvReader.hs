@@ -661,7 +661,7 @@ regexp end = do
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anySingle `manyTill` end
-  case toRegexCI_ . strip $ c:cs of
+  case toRegexCI . strip $ c:cs of
        Left x -> Fail.fail $ "CSV parser: " ++ x
        Right x -> return x
 
@@ -1181,7 +1181,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
               where
                 -- does this individual matcher match the current csv record ?
                 matcherMatches :: Matcher -> Bool
-                matcherMatches (RecordMatcher _ pat) = match pat' wholecsvline
+                matcherMatches (RecordMatcher _ pat) = regexMatch pat' wholecsvline
                   where
                     pat' = dbg7 "regex" pat
                     -- A synthetic whole CSV record to match against. Note, this can be
@@ -1191,7 +1191,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                     -- - and the field separator is always comma
                     -- which means that a field containing a comma will look like two fields.
                     wholecsvline = dbg7 "wholecsvline" $ intercalate "," record
-                matcherMatches (FieldMatcher _ csvfieldref pat) = match pat csvfieldvalue
+                matcherMatches (FieldMatcher _ csvfieldref pat) = regexMatch pat csvfieldvalue
                   where
                     -- the value of the referenced CSV field to match against.
                     csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref

@@ -529,7 +529,7 @@ regexaliasp = do
   char '='
   skipNonNewlineSpaces
   repl <- anySingle `manyTill` eolof
-  case toRegexCI_ re of
+  case toRegexCI re of
     Right r -> return $! RegexAlias r repl
     Left e  -> customFailure $! parseErrorAtRegion off1 off2 e
 
