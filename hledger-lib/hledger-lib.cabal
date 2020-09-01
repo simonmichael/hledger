@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ca2b9f025d75c0b65f91b2e5fe7203d00d1d9f8c423c8c4f0cb7675df848a5aa
+-- hash: e8ee8c99329f53fe86ae9df138d05c8c39726a66da2ad1da3ae27500c45b2591
 
 name:           hledger-lib
 version:        1.18.99
@@ -124,7 +124,6 @@ library
     , cmdargs >=0.10
     , containers
     , data-default >=0.5
-    , deepseq
     , directory
     , extra >=1.6.3
     , fgl >=5.5.4.0
@@ -177,7 +176,6 @@ test-suite doctest
     , cmdargs >=0.10
     , containers
     , data-default >=0.5
-    , deepseq
     , directory
     , doctest >=0.16.3
     , extra >=1.6.3
@@ -233,7 +231,6 @@ test-suite unittest
     , cmdargs >=0.10
     , containers
     , data-default >=0.5
-    , deepseq
     , directory
     , extra >=1.6.3
     , fgl >=5.5.4.0

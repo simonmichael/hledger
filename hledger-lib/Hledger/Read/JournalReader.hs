@@ -529,8 +529,8 @@ regexaliasp = do
   char '='
   skipNonNewlineSpaces
   repl <- anySingle `manyTill` eolof
-  case toRegex_ re of
-    Right _ -> return $! RegexAlias re repl
+  case toRegexCI re of
+    Right r -> return $! RegexAlias r repl
     Left e  -> customFailure $! parseErrorAtRegion off1 off2 e
 
 endaliasesdirectivep :: JournalParser m ()

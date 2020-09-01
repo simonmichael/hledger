@@ -7,6 +7,7 @@ module Hledger.Cli.Commands.Tags (
 )
 where
 
+import qualified Control.Monad.Fail as Fail
 import Data.List.Extra (nubSort)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -24,11 +25,13 @@ tagsmode = hledgerCommandMode
   hiddenflags
   ([], Just $ argsFlag "[TAGREGEX [QUERY...]]")
 
+tags :: CliOpts -> Journal -> IO ()
 tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   d <- getCurrentDay
   let
     args      = listofstringopt "args" rawopts
-    mtagpat   = headMay args
+  mtagpat <- mapM (either Fail.fail pure . toRegexCI) $ headMay args
+  let
     queryargs = drop 1 args
     values    = boolopt "values" rawopts
     parsed    = boolopt "parsed" rawopts
@@ -39,7 +42,7 @@ tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
       (if parsed then id else nubSort)
       [ r
       | (t,v) <- concatMap transactionAllTags txns
-      , maybe True (`regexMatchesCI` T.unpack t) mtagpat
+      , maybe True (`regexMatch` T.unpack t) mtagpat
       , let r = if values then v else t
       , not (values && T.null v && not empty)
       ]

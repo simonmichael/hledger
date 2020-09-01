@@ -82,14 +82,14 @@ mainmode addons = defMode {
         [detailedversionflag]
         -- ++ inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
     }
- ,modeHelpSuffix = map (regexReplace "PROGNAME" progname) [
-     "Examples:"
-    ,"PROGNAME                         list commands"
-    ,"PROGNAME CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)"
-    ,"PROGNAME-CMD [OPTS] [ARGS]       or run addon commands directly"
-    ,"PROGNAME -h                      show general usage"
-    ,"PROGNAME CMD -h                  show command usage"
-    ,"PROGNAME help [MANUAL]           show any of the hledger manuals in various formats"
+ ,modeHelpSuffix = "Examples:" :
+    map (progname ++) [
+     "                         list commands"
+    ," CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)"
+    ,"-CMD [OPTS] [ARGS]       or run addon commands directly"
+    ," -h                      show general usage"
+    ," CMD -h                  show command usage"
+    ," help [MANUAL]           show any of the hledger manuals in various formats"
     ]
  }
 

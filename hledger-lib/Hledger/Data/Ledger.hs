@@ -17,7 +17,6 @@ module Hledger.Data.Ledger (
   ,ledgerRootAccount
   ,ledgerTopAccounts
   ,ledgerLeafAccounts
-  ,ledgerAccountsMatching
   ,ledgerPostings
   ,ledgerDateSpan
   ,ledgerCommodities
@@ -26,8 +25,6 @@ module Hledger.Data.Ledger (
 where
 
 import qualified Data.Map as M
--- import Data.Text (Text)
-import qualified Data.Text as T
 import Safe (headDef)
 import Text.Printf
 
@@ -89,10 +86,6 @@ ledgerTopAccounts = asubs . head . laccounts
 -- | List a ledger's bottom-level (subaccount-less) accounts, in tree order.
 ledgerLeafAccounts :: Ledger -> [Account]
 ledgerLeafAccounts = filter (null.asubs) . laccounts
-
--- | Accounts in ledger whose name matches the pattern, in tree order.
-ledgerAccountsMatching :: [String] -> Ledger -> [Account]
-ledgerAccountsMatching pats = filter (matchpats pats . T.unpack . aname) . laccounts -- XXX pack
 
 -- | List a ledger's postings, in the order parsed.
 ledgerPostings :: Ledger -> [Posting]

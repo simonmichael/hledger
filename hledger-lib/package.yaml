@@ -59,7 +59,6 @@ dependencies:
 - cassava-megaparsec
 - data-default >=0.5
 - Decimal >=0.5.1
-- deepseq
 - directory
 - fgl >=5.5.4.0
 - file-embed >=0.0.10

@@ -4,7 +4,6 @@ Options common to most hledger reports.
 
 -}
 
-{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -49,14 +48,12 @@ module Hledger.Reports.ReportOptions (
 where
 
 import Control.Applicative ((<|>))
-import Data.Data (Data)
 import Data.List.Extra (nubSort)
-import Data.Maybe
+import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
-import Data.Typeable (Typeable)
-import Data.Time.Calendar
-import Data.Default
-import Safe
+import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Data.Default (Default(..))
+import Safe (lastDef, lastMay)
 
 import System.Console.ANSI (hSupportsANSIColor)
 import System.Environment (lookupEnv)
@@ -76,12 +73,12 @@ data BalanceType = PeriodChange      -- ^ The change of balance in each period.
                  | HistoricalBalance -- ^ The historical ending balance, including the effect of
                                      --   all postings before the report period. Unless altered by,
                                      --   a query, this is what you would see on a bank statement.
-  deriving (Eq,Show,Data,Typeable)
+  deriving (Eq,Show)
 
 instance Default BalanceType where def = PeriodChange
 
 -- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
-data AccountListMode = ALFlat | ALTree deriving (Eq, Show, Data, Typeable)
+data AccountListMode = ALFlat | ALTree deriving (Eq, Show)
 
 instance Default AccountListMode where def = ALFlat
 
@@ -101,7 +98,6 @@ data ReportOpts = ReportOpts {
     ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
     ,infer_value_    :: Bool      -- ^ Infer market prices from transactions ?
     ,depth_          :: Maybe Int
-    ,display_        :: Maybe DisplayExp  -- XXX unused ?
     ,date2_          :: Bool
     ,empty_          :: Bool
     ,no_elide_       :: Bool
@@ -140,13 +136,12 @@ data ReportOpts = ReportOpts {
       --   TERM and existence of NO_COLOR environment variables.
     ,forecast_       :: Maybe DateSpan
     ,transpose_      :: Bool
- } deriving (Show, Data, Typeable)
+ } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
-    def
     def
     def
     def
@@ -192,7 +187,6 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,value_       = valuationTypeFromRawOpts rawopts'
     ,infer_value_ = boolopt "infer-value" rawopts'
     ,depth_       = maybeposintopt "depth" rawopts'
-    ,display_     = maybedisplayopt d rawopts'
     ,date2_       = boolopt "date2" rawopts'
     ,empty_       = boolopt "empty" rawopts'
     ,no_elide_    = boolopt "no-elide" rawopts'
@@ -346,7 +340,7 @@ forecastPeriodFromRawOpts d opts =
     Just str ->
       either (\e -> usageError $ "could not parse forecast period : "++customErrorBundlePretty e) (Just . snd) $ 
       parsePeriodExpr d $ stripquotes $ T.pack str
-    
+
 -- | Extract the interval from the parsed -p/--period expression.
 -- Return Nothing if an interval is not explicitly defined.
 extractIntervalOrNothing :: (Interval, DateSpan) -> Maybe Interval
@@ -418,15 +412,6 @@ valuationTypeIsDefaultValue ropts =
   case value_ ropts of
     Just (AtDefault _) -> True
     _                  -> False
-
-type DisplayExp = String
-
-maybedisplayopt :: Day -> RawOpts -> Maybe DisplayExp
-maybedisplayopt d rawopts =
-    maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) $ maybestringopt "display" rawopts
-    where
-      fixbracketeddatestr "" = ""
-      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (T.pack $ init $ tail s) ++ "]"
 
 -- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
@@ -573,12 +558,12 @@ reportPeriodOrJournalLastDay ropts j =
 tests_ReportOptions = tests "ReportOptions" [
    test "queryFromOpts" $ do
        queryFromOpts nulldate defreportopts @?= Any
-       queryFromOpts nulldate defreportopts{query_="a"} @?= Acct "a"
-       queryFromOpts nulldate defreportopts{query_="desc:'a a'"} @?= Desc "a a"
+       queryFromOpts nulldate defreportopts{query_="a"} @?= Acct (toRegexCI' "a")
+       queryFromOpts nulldate defreportopts{query_="desc:'a a'"} @?= Desc (toRegexCI' "a a")
        queryFromOpts nulldate defreportopts{period_=PeriodFrom (fromGregorian 2012 01 01),query_="date:'to 2013'" }
          @?= (Date $ DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01))
        queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"} @?= (Date2 $ DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01))
-       queryFromOpts nulldate defreportopts{query_="'a a' 'b"} @?= Or [Acct "a a", Acct "'b"]
+       queryFromOpts nulldate defreportopts{query_="'a a' 'b"} @?= Or [Acct $ toRegexCI' "a a", Acct $ toRegexCI' "'b"]
 
   ,test "queryOptsFromOpts" $ do
       queryOptsFromOpts nulldate defreportopts @?= []
@@ -586,4 +571,3 @@ tests_ReportOptions = tests "ReportOptions" [
       queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (fromGregorian 2012 01 01)
                                               ,query_="date:'to 2013'"} @?= []
  ]
-

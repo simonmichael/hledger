@@ -18,7 +18,6 @@ module Hledger.Data.AccountName (
   ,accountNameToAccountOnlyRegex
   ,accountNameToAccountRegex
   ,accountNameTreeFrom
-  ,accountRegexToAccountName
   ,accountSummarisedName
   ,acctsep
   ,acctsepchar
@@ -40,15 +39,14 @@ module Hledger.Data.AccountName (
 )
 where
 
-import Data.List
 import Data.List.Extra (nubSort)
+import qualified Data.List.NonEmpty as NE
 #if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
+import Data.Semigroup ((<>))
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Tree
-import Text.Printf
+import Data.Tree (Tree(..))
 
 import Hledger.Data.Types
 import Hledger.Utils
@@ -117,7 +115,7 @@ expandAccountNames as = nubSort $ concatMap expandAccountName as
 
 -- | "a:b:c" -> ["a","a:b","a:b:c"]
 expandAccountName :: AccountName -> [AccountName]
-expandAccountName = map accountNameFromComponents . tail . inits . accountNameComponents
+expandAccountName = map accountNameFromComponents . NE.tail . NE.inits . accountNameComponents
 
 -- | ["a:b:c","d:e"] -> ["a","d"]
 topAccountNames :: [AccountName] -> [AccountName]
@@ -210,23 +208,19 @@ clipOrEllipsifyAccountName n        = clipAccountName n
 -- | Escape an AccountName for use within a regular expression.
 -- >>> putStr $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
 -- First\?!#\$\*\?\$\(\*\) !@\^#\*\? %\)\*!@#
-escapeName :: AccountName -> Regexp
-escapeName = regexReplaceBy "[[?+|()*\\\\^$]" ("\\" <>)
-           . T.unpack
+escapeName :: AccountName -> String
+escapeName = T.unpack . T.concatMap escapeChar
+  where
+    escapeChar c = if c `elem` escapedChars then T.snoc "\\" c else T.singleton c
+    escapedChars = ['[', '?', '+', '|', '(', ')', '*', '$', '^', '\\']
 
 -- | Convert an account name to a regular expression matching it and its subaccounts.
 accountNameToAccountRegex :: AccountName -> Regexp
-accountNameToAccountRegex "" = ""
-accountNameToAccountRegex a = printf "^%s(:|$)" (escapeName a)
+accountNameToAccountRegex a = toRegex' $ '^' : escapeName a ++ "(:|$)"  -- PARTIAL: Is this safe after escapeName?
 
 -- | Convert an account name to a regular expression matching it but not its subaccounts.
 accountNameToAccountOnlyRegex :: AccountName -> Regexp
-accountNameToAccountOnlyRegex "" = ""
-accountNameToAccountOnlyRegex a = printf "^%s$"  $ escapeName a -- XXX pack
-
--- | Convert an exact account-matching regular expression to a plain account name.
-accountRegexToAccountName :: Regexp -> AccountName
-accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1" -- XXX pack
+accountNameToAccountOnlyRegex a = toRegex' $ '^' : escapeName a ++ "$" -- PARTIAL: Is this safe after escapeName?
 
 -- -- | Does this string look like an exact account-matching regular expression ?
 --isAccountRegex  :: String -> Bool

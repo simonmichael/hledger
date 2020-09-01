@@ -14,7 +14,6 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 --- ** language
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE CPP                 #-}
-{-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
@@ -116,32 +115,33 @@ where
 --- ** imports
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (fail, readFile)
+import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
 import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail (fail)
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import Control.Monad.State.Strict hiding (fail)
 import Data.Bifunctor (bimap, second)
-import Data.Char
-import Data.Data
+import Data.Char (digitToInt, isDigit, isSpace)
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
-import Data.Default
+import Data.Default (Default(..))
 import Data.Function ((&))
-import Data.Functor.Identity
+import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
-import Data.Maybe
+import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar
-import Data.Time.LocalTime
+import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
+import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
 import System.Time (getClockTime)
 import Text.Megaparsec
-import Text.Megaparsec.Char
+import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
-import Control.Applicative.Permutations
+  (FinalParseError, attachSource, customErrorBundlePretty,
+  finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
 
 import Hledger.Data
 import Hledger.Utils
@@ -194,7 +194,7 @@ data InputOpts = InputOpts {
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
- } deriving (Show, Data) --, Typeable)
+ } deriving (Show)
 
 instance Default InputOpts where def = definputopts
 

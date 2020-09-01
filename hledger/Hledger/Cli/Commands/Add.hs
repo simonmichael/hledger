@@ -3,7 +3,7 @@ A history-aware add command to help with data entry.
 |-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings, PackageImports, LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings, PackageImports, LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Add (
@@ -32,7 +32,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
-import Data.Typeable (Typeable)
 import Safe (headDef, headMay, atMay)
 import System.Console.CmdArgs.Explicit
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
@@ -65,7 +64,7 @@ data EntryState = EntryState {
   ,esJournal            :: Journal           -- ^ the journal we are adding to
   ,esSimilarTransaction :: Maybe Transaction -- ^ the most similar historical txn
   ,esPostings           :: [Posting]         -- ^ postings entered so far in the current txn
-  } deriving (Show,Typeable)
+  } deriving (Show)
 
 defEntryState = EntryState {
    esOpts               = defcliopts
@@ -77,10 +76,10 @@ defEntryState = EntryState {
   ,esPostings           = []
 }
 
-data RestartTransactionException = RestartTransactionException deriving (Typeable,Show)
+data RestartTransactionException = RestartTransactionException deriving (Show)
 instance Exception RestartTransactionException
 
--- data ShowHelpException = ShowHelpException deriving (Typeable,Show)
+-- data ShowHelpException = ShowHelpException deriving (Show)
 -- instance Exception ShowHelpException
 
 -- | Read multiple transactions from the console, prompting for each

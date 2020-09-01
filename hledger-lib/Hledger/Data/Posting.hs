@@ -315,7 +315,7 @@ aliasReplace (BasicAlias old new) a
       Right $ new <> T.drop (T.length old) a
   | otherwise = Right a
 aliasReplace (RegexAlias re repl) a =
-  fmap T.pack $ regexReplaceCIMemo_ re repl $ T.unpack a -- XXX
+  fmap T.pack . regexReplace re repl $ T.unpack a -- XXX
 
 -- | Apply a specified valuation to this posting's amount, using the
 -- provided price oracle, commodity styles, reference dates, and

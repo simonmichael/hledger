@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances #-}
 {-|
 
 An account-centric transactions report.
