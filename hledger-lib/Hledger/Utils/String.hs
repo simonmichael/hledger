@@ -13,7 +13,6 @@ module Hledger.Utils.String (
  singleQuoteIfNeeded,
  -- quotechars,
  -- whitespacechars,
- escapeQuotes,
  words',
  unwords',
  stripAnsi,
@@ -120,8 +119,9 @@ underline s = s' ++ replicate (length s) '-' ++ "\n"
 -- | Double-quote this string if it contains whitespace, single quotes
 -- or double-quotes, escaping the quotes as needed.
 quoteIfNeeded :: String -> String
-quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars++redirectchars) = "\"" ++ escapeDoubleQuotes s ++ "\""
+quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars++redirectchars) = show s
                 | otherwise = s
+
 -- | Single-quote this string if it contains whitespace or double-quotes.
 -- No good for strings containing single quotes.
 singleQuoteIfNeeded :: String -> String
@@ -132,12 +132,6 @@ quotechars, whitespacechars, redirectchars :: [Char]
 quotechars      = "'\""
 whitespacechars = " \t\n\r"
 redirectchars   = "<>"
-
-escapeDoubleQuotes :: String -> String
-escapeDoubleQuotes = id  -- regexReplace "\"" "\""
-
-escapeQuotes :: String -> String
-escapeQuotes = id  -- regexReplace "([\"'])" "\\1"
 
 -- | Quote-aware version of words - don't split on spaces which are inside quotes.
 -- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
