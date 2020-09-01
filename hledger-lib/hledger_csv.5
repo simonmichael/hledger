@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_csv" "5" "August 2020" "hledger 1.18.99" "hledger User Manuals"
+.TH "hledger_csv" "5" "September 2020" "hledger 1.18.99" "hledger User Manuals"
 
 
 
@@ -9,9 +9,10 @@
 CSV - how hledger reads CSV data, and the CSV rules file format
 .SH DESCRIPTION
 .PP
-hledger can read CSV (Comma Separated Value/Character Separated Value)
-files as if they were journal files, automatically converting each CSV
-record into a transaction.
+hledger can read CSV files (Character Separated Value - usually comma,
+semicolon, or tab) containing dated records as if they were journal
+files, automatically converting each CSV record into a transaction.
+.PP
 (To learn about \f[I]writing\f[R] CSV, see CSV output.)
 .PP
 We describe each CSV file\[aq]s format with a corresponding \f[I]rules
@@ -592,9 +593,19 @@ Interpolation strips outer whitespace (so a CSV value like
 See TIPS below for more about referencing other fields.
 .SS \f[C]separator\f[R]
 .PP
-You can use the \f[C]separator\f[R] directive to read other kinds of
+You can use the \f[C]separator\f[R] rule to read other kinds of
 character-separated data.
-Eg to read SSV (Semicolon Separated Values), use:
+The argument is any single separator character, or the words
+\f[C]tab\f[R] or \f[C]space\f[R] (case insensitive).
+Eg, for comma-separated values (CSV):
+.IP
+.nf
+\f[C]
+separator ,
+\f[R]
+.fi
+.PP
+or for semicolon-separated values (SSV):
 .IP
 .nf
 \f[C]
@@ -602,11 +613,7 @@ separator ;
 \f[R]
 .fi
 .PP
-The separator directive accepts exactly one single byte character as a
-separator.
-To specify whitespace characters, you may use the special words
-\f[C]TAB\f[R] or \f[C]SPACE\f[R].
-Eg to read TSV (Tab Separated Values), use:
+or for tab-separated values (TSV):
 .IP
 .nf
 \f[C]
@@ -614,7 +621,10 @@ separator TAB
 \f[R]
 .fi
 .PP
-See also: File Extension.
+If the input file has a \f[C].csv\f[R], \f[C].ssv\f[R] or \f[C].tsv\f[R]
+file extension (or a \f[C]csv:\f[R], \f[C]ssv:\f[R], \f[C]tsv:\f[R]
+prefix), the appropriate separator will be inferred automatically, and
+you won\[aq]t need this rule.
 .SS \f[C]if\f[R] block
 .IP
 .nf
@@ -964,14 +974,12 @@ they must be double quotes (not single quotes)
 spaces outside the quotes are not allowed
 .SS File Extension
 .PP
-CSV (\[dq]Character Separated Values\[dq]) files should be named with
-one of these filename extensions: \f[C].csv\f[R], \f[C].ssv\f[R],
-\f[C].tsv\f[R].
-Or, the file path should be prefixed with one of \f[C]csv:\f[R],
-\f[C]ssv:\f[R], \f[C]tsv:\f[R].
-This helps hledger identify the format and show the right error
-messages.
-For example:
+To help hledger identify the format and show the right error messages,
+CSV/SSV/TSV files should normally be named with a \f[C].csv\f[R],
+\f[C].ssv\f[R] or \f[C].tsv\f[R] filename extension.
+Or, the file path should be prefixed with \f[C]csv:\f[R], \f[C]ssv:\f[R]
+or \f[C]tsv:\f[R].
+Eg:
 .IP
 .nf
 \f[C]
@@ -987,7 +995,8 @@ $ cat foo | hledger -f ssv:- foo
 \f[R]
 .fi
 .PP
-More about this: Input files in the hledger manual.
+You can override the file extension with a separator rule if needed.
+See also: Input files in the hledger manual.
 .SS Reading multiple CSV files
 .PP
 If you use multiple \f[C]-f\f[R] options to read multiple CSV files at

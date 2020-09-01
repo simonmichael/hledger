@@ -456,4 +456,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.18.99                August 2020                    hledger-ui(1)
+hledger-ui 1.18.99              September 2020                   hledger-ui(1)

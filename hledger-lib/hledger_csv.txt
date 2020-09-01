@@ -7,19 +7,20 @@ NAME
        CSV - how hledger reads CSV data, and the CSV rules file format
 
 DESCRIPTION
-       hledger  can read CSV (Comma Separated Value/Character Separated Value)
-       files as if they were journal files, automatically converting each  CSV
-       record  into  a transaction.  (To learn about writing CSV, see CSV out-
-       put.)
+       hledger  can read CSV files (Character Separated Value - usually comma,
+       semicolon, or tab) containing dated records as  if  they  were  journal
+       files, automatically converting each CSV record into a transaction.
+
+       (To learn about writing CSV, see CSV output.)
 
        We describe each CSV file's format with a corresponding rules file.  By
-       default  this is named like the CSV file with a .rules extension added.
-       Eg when reading FILE.csv, hledger also looks for FILE.csv.rules in  the
-       same  directory  as  FILE.csv.   You can specify a different rules file
-       with the --rules-file option.  If a rules file is  not  found,  hledger
+       default this is named like the CSV file with a .rules extension  added.
+       Eg  when reading FILE.csv, hledger also looks for FILE.csv.rules in the
+       same directory as FILE.csv.  You can specify  a  different  rules  file
+       with  the  --rules-file  option.  If a rules file is not found, hledger
        will create a sample rules file, which you'll need to adjust.
 
-       This  file  contains rules describing the CSV data (header line, fields
+       This file contains rules describing the CSV data (header  line,  fields
        layout, date format etc.), and how to construct hledger journal entries
        (transactions) from it.  Often there will also be a list of conditional
        rules  for  categorising  transactions  based  on  their  descriptions.
@@ -28,36 +29,36 @@ DESCRIPTION
 
        skip                             skip one or more header lines or matched
                                         CSV records
-       fields                           name  CSV fields, assign them to hledger
+       fields                           name CSV fields, assign them to  hledger
                                         fields
-       field assignment                 assign a value  to  one  hledger  field,
+       field assignment                 assign  a  value  to  one hledger field,
                                         with interpolation
        separator                        a custom field separator
-       if block                         apply  some rules to CSV records matched
+       if block                         apply some rules to CSV records  matched
                                         by patterns
-       if table                         apply some rules to CSV records  matched
+       if table                         apply  some rules to CSV records matched
                                         by patterns, alternate syntax
        end                              skip the remaining CSV records
        date-format                      describe the format of CSV dates
-       newest-first                     disambiguate  record  order when there's
+       newest-first                     disambiguate record order  when  there's
                                         only one date
        include                          inline another CSV rules file
        balance-type                     choose which type of balance assignments
                                         to use
 
-       Note,  for best error messages when reading CSV files, use a .csv, .tsv
+       Note, for best error messages when reading CSV files, use a .csv,  .tsv
        or .ssv file extension or file prefix - see File Extension below.
 
        There's an introductory Convert CSV files tutorial on hledger.org.
 
 EXAMPLES
-       Here are some sample hledger CSV rules files.  See also the  full  col-
+       Here  are  some sample hledger CSV rules files.  See also the full col-
        lection at:
        https://github.com/simonmichael/hledger/tree/master/examples/csv
 
    Basic
-       At  minimum,  the  rules file must identify the date and amount fields,
-       and often it also specifies the date format and how many  header  lines
+       At minimum, the rules file must identify the date  and  amount  fields,
+       and  often  it also specifies the date format and how many header lines
        there are.  Here's a simple CSV file and a rules file for it:
 
               Date, Description, Id, Amount
@@ -76,8 +77,8 @@ EXAMPLES
        Default account names are chosen, since we didn't set them.
 
    Bank of Ireland
-       Here's  a  CSV with two amount fields (Debit and Credit), and a balance
-       field, which we can use to add balance assertions, which is not  neces-
+       Here's a CSV with two amount fields (Debit and Credit), and  a  balance
+       field,  which we can use to add balance assertions, which is not neces-
        sary but provides extra error checking:
 
               Date,Details,Debit,Credit,Balance
@@ -119,13 +120,13 @@ EXAMPLES
                   assets:bank:boi:checking         EUR-5.0 = EUR126.0
                   expenses:unknown                  EUR5.0
 
-       The  balance assertions don't raise an error above, because we're read-
-       ing directly from CSV, but they will be checked if  these  entries  are
+       The balance assertions don't raise an error above, because we're  read-
+       ing  directly  from  CSV, but they will be checked if these entries are
        imported into a journal file.
 
    Amazon
        Here we convert amazon.com order history, and use an if block to gener-
-       ate a third posting if there's a fee.  (In practice you'd probably  get
+       ate  a third posting if there's a fee.  (In practice you'd probably get
        this data from your bank instead, but it's an example.)
 
               "Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
@@ -177,7 +178,7 @@ EXAMPLES
                   expenses:fees           $1.00
 
    Paypal
-       Here's  a  real-world rules file for (customised) Paypal CSV, with some
+       Here's a real-world rules file for (customised) Paypal CSV,  with  some
        Paypal-specific rules, and a second rules file included:
 
               "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Item Title","Item ID","Reference Txn ID","Receipt ID","Balance","Note"
@@ -332,9 +333,9 @@ CSV RULES
    skip
               skip N
 
-       The  word  "skip"  followed by a number (or no number, meaning 1) tells
-       hledger to ignore this many non-empty lines  preceding  the  CSV  data.
-       (Empty/blank  lines  are skipped automatically.) You'll need this when-
+       The word "skip" followed by a number (or no number,  meaning  1)  tells
+       hledger  to  ignore  this  many non-empty lines preceding the CSV data.
+       (Empty/blank lines are skipped automatically.) You'll need  this  when-
        ever your CSV data contains header lines.
 
        It also has a second purpose: it can be used inside if blocks to ignore
@@ -343,27 +344,27 @@ CSV RULES
    fields
               fields FIELDNAME1, FIELDNAME2, ...
 
-       A  fields  list  (the  word  "fields" followed by comma-separated field
-       names) is the quick way to assign CSV field values to  hledger  fields.
+       A fields list (the word  "fields"  followed  by  comma-separated  field
+       names)  is  the quick way to assign CSV field values to hledger fields.
        It does two things:
 
-       1. it  names  the  CSV fields.  This is optional, but can be convenient
+       1. it names the CSV fields.  This is optional, but  can  be  convenient
           later for interpolating them.
 
        2. when you use a standard hledger field name, it assigns the CSV value
           to that part of the hledger transaction.
 
-       Here's  an  example  that  says "use the 1st, 2nd and 4th fields as the
-       transaction's date, description and amount; name the  last  two  fields
+       Here's an example that says "use the 1st, 2nd and  4th  fields  as  the
+       transaction's  date,  description  and amount; name the last two fields
        for later reference; and ignore the others":
 
               fields date, description, , amount, , , somefield, anotherfield
 
-       Field  names  may  not contain whitespace.  Fields you don't care about
-       can be left unnamed.  Currently there must be least  two  items  (there
+       Field names may not contain whitespace.  Fields you  don't  care  about
+       can  be  left  unnamed.  Currently there must be least two items (there
        must be at least one comma).
 
-       Note,  always  use  comma in the fields list, even if your CSV uses an-
+       Note, always use comma in the fields list, even if your  CSV  uses  an-
        other separator character.
 
        Here are the standard hledger field/pseudo-field names.  For more about
@@ -376,52 +377,52 @@ CSV RULES
 
    Posting field names
    account
-       accountN,  where  N  is 1 to 99, causes a posting to be generated, with
+       accountN, where N is 1 to 99, causes a posting to  be  generated,  with
        that account name.
 
-       Most often there are two postings, so you'll want to set  account1  and
-       account2.   Typically  account1 is associated with the CSV file, and is
-       set once with a top-level assignment, while account2 is  set  based  on
+       Most  often  there are two postings, so you'll want to set account1 and
+       account2.  Typically account1 is associated with the CSV file,  and  is
+       set  once  with  a top-level assignment, while account2 is set based on
        each transaction's description, and in conditional blocks.
 
-       If  a  posting's  account name is left unset but its amount is set (see
-       below), a default account name will be chosen (like  "expenses:unknown"
+       If a posting's account name is left unset but its amount  is  set  (see
+       below),  a default account name will be chosen (like "expenses:unknown"
        or "income:unknown").
 
    amount
-       amountN  sets  posting N's amount.  If the CSV uses separate fields for
-       inflows and outflows, you can use amountN-in and  amountN-out  instead.
-       By  assigning to amount1, amount2, ...  etc.  you can generate anywhere
+       amountN sets posting N's amount.  If the CSV uses separate  fields  for
+       inflows  and  outflows, you can use amountN-in and amountN-out instead.
+       By assigning to amount1, amount2, ...  etc.  you can generate  anywhere
        from 0 to 99 postings.
 
-       There is also an older, unnumbered form of these  names,  suitable  for
+       There  is  also  an older, unnumbered form of these names, suitable for
        2-posting transactions, which sets both posting 1's and (negated) post-
-       ing 2's amount: amount, or amount-in and  amount-out.   This  is  still
-       supported  because  it  keeps pre-hledger-1.17 csv rules files working,
-       and because it can be more succinct, and because  it  converts  posting
+       ing  2's  amount:  amount,  or amount-in and amount-out.  This is still
+       supported because it keeps pre-hledger-1.17 csv  rules  files  working,
+       and  because  it  can be more succinct, and because it converts posting
        2's amount to cost if there's a transaction price, which can be useful.
 
        If you have an existing rules file using the unnumbered form, you might
-       want to use the numbered form in certain  conditional  blocks,  without
-       having  to  update  and  retest all the old rules.  To facilitate this,
-       posting   1   ignores    amount/amount-in/amount-out    if    any    of
+       want  to  use  the numbered form in certain conditional blocks, without
+       having to update and retest all the old  rules.   To  facilitate  this,
+       posting    1    ignores    amount/amount-in/amount-out    if   any   of
        amount1/amount1-in/amount1-out are assigned, and posting 2 ignores them
-       if any of amount2/amount2-in/amount2-out are  assigned,  avoiding  con-
+       if  any  of  amount2/amount2-in/amount2-out are assigned, avoiding con-
        flicts.
 
    currency
        If the CSV has the currency symbol in a separate field (ie, not part of
-       the amount field), you can use currencyN to prepend it to  posting  N's
+       the  amount  field), you can use currencyN to prepend it to posting N's
        amount.  Or, currency with no number affects all postings.
 
    balance
-       balanceN  sets  a balance assertion amount (or if the posting amount is
+       balanceN sets a balance assertion amount (or if the posting  amount  is
        left empty, a balance assignment) on posting N.
 
-       Also, for compatibility with hledger <1.17: balance with no  number  is
+       Also,  for  compatibility with hledger <1.17: balance with no number is
        equivalent to balance1.
 
-       You  can  adjust the type of assertion/assignment with the balance-type
+       You can adjust the type of assertion/assignment with  the  balance-type
        rule (see below).
 
    comment
@@ -433,11 +434,11 @@ CSV RULES
    field assignment
               HLEDGERFIELDNAME FIELDVALUE
 
-       Instead  of  or  in addition to a fields list, you can use a "field as-
-       signment" rule to set the value of a single hledger field,  by  writing
-       its  name (any of the standard hledger field names above) followed by a
-       text value.  The value may contain interpolated CSV fields,  referenced
-       by  their  1-based position in the CSV record (%N), or by the name they
+       Instead of or in addition to a fields list, you can use  a  "field  as-
+       signment"  rule  to set the value of a single hledger field, by writing
+       its name (any of the standard hledger field names above) followed by  a
+       text  value.  The value may contain interpolated CSV fields, referenced
+       by their 1-based position in the CSV record (%N), or by the  name  they
        were given in the fields list (%CSVFIELDNAME).  Some examples:
 
               # set the amount to the 4th CSV field, with " USD" appended
@@ -446,23 +447,29 @@ CSV RULES
               # combine three fields to make a comment, containing note: and date: tags
               comment note: %somefield - %anotherfield, date: %1
 
-       Interpolation strips outer whitespace (so a CSV value like "  1  "  be-
+       Interpolation  strips  outer  whitespace (so a CSV value like " 1 " be-
        comes 1 when interpolated) (#1051).  See TIPS below for more about ref-
        erencing other fields.
 
    separator
-       You can use the separator directive to read other kinds  of  character-
-       separated data.  Eg to read SSV (Semicolon Separated Values), use:
+       You  can  use the separator rule to read other kinds of character-sepa-
+       rated data.  The argument is any single  separator  character,  or  the
+       words  tab or space (case insensitive).  Eg, for comma-separated values
+       (CSV):
+
+              separator ,
+
+       or for semicolon-separated values (SSV):
 
               separator ;
 
-       The  separator directive accepts exactly one single byte character as a
-       separator.  To specify whitespace characters, you may use  the  special
-       words TAB or SPACE.  Eg to read TSV (Tab Separated Values), use:
+       or for tab-separated values (TSV):
 
               separator TAB
 
-       See also: File Extension.
+       If the input file has a .csv, .ssv or .tsv file extension (or  a  csv:,
+       ssv:, tsv: prefix), the appropriate separator will be inferred automat-
+       ically, and you won't need this rule.
 
    if block
               if MATCHER
@@ -475,8 +482,8 @@ CSV RULES
                RULE
                RULE
 
-       Conditional  blocks ("if blocks") are a block of rules that are applied
-       only to CSV records which match certain patterns.  They are often  used
+       Conditional blocks ("if blocks") are a block of rules that are  applied
+       only  to CSV records which match certain patterns.  They are often used
        for customising account names based on transaction descriptions.
 
    Matching the whole record
@@ -484,16 +491,16 @@ CSV RULES
 
               REGEX
 
-       REGEX  is  a  case-insensitive  regular expression which tries to match
-       anywhere within the CSV record.  It is a POSIX  ERE  (extended  regular
-       expression)  that  also  supports GNU word boundaries (\b, \B, \<, \>),
+       REGEX is a case-insensitive regular expression  which  tries  to  match
+       anywhere  within  the  CSV record.  It is a POSIX ERE (extended regular
+       expression) that also supports GNU word boundaries (\b,  \B,  \<,  \>),
        and  nothing  else.   If  you  have  trouble,  be  sure  to  check  our
        https://hledger.org/hledger.html#regular-expressions doc.
 
-       Important  note: the record that is matched is not the original record,
-       but a synthetic one, with any enclosing double quotes (but not  enclos-
+       Important note: the record that is matched is not the original  record,
+       but  a synthetic one, with any enclosing double quotes (but not enclos-
        ing whitespace) removed, and always comma-separated (which means that a
-       field containing a comma will appear like  two  fields).   Eg,  if  the
+       field  containing  a  comma  will  appear like two fields).  Eg, if the
        original record is 2020-01-01; "Acme, Inc.";  1,000, the REGEX will ac-
        tually see 2020-01-01,Acme, Inc.,  1,000).
 
@@ -502,14 +509,14 @@ CSV RULES
 
               %CSVFIELD REGEX
 
-       which matches just the content of a particular CSV field.  CSVFIELD  is
-       a  percent  sign  followed  by  the field's name or column number, like
+       which  matches just the content of a particular CSV field.  CSVFIELD is
+       a percent sign followed by the field's  name  or  column  number,  like
        %date or %1.
 
    Combining matchers
        A single matcher can be written on the same line as the "if"; or multi-
        ple matchers can be written on the following lines, non-indented.  Mul-
-       tiple matchers are OR'd (any one of them can match), unless one  begins
+       tiple  matchers are OR'd (any one of them can match), unless one begins
        with an & symbol, in which case it is AND'ed with the previous matcher.
 
               if
@@ -518,8 +525,8 @@ CSV RULES
                RULE
 
    Rules applied on successful match
-       After  the patterns there should be one or more rules to apply, all in-
-       dented by at least one space.  Three kinds of rule are allowed in  con-
+       After the patterns there should be one or more rules to apply, all  in-
+       dented  by at least one space.  Three kinds of rule are allowed in con-
        ditional blocks:
 
        o field assignments (to set a hledger field)
@@ -549,11 +556,11 @@ CSV RULES
               MATCHER3,VALUE31,VALUE32,...,VALUE3n
               <empty line>
 
-       Conditional  tables  ("if  tables")  are  a different syntax to specify
-       field assignments that will be applied only to CSV records which  match
+       Conditional tables ("if tables") are  a  different  syntax  to  specify
+       field  assignments that will be applied only to CSV records which match
        certain patterns.
 
-       MATCHER  could  be  either field or record matcher, as described above.
+       MATCHER could be either field or record matcher,  as  described  above.
        When MATCHER matches, values from that row would be assigned to the CSV
        fields named on the if line, in the same order.
 
@@ -577,17 +584,17 @@ CSV RULES
                 ...
                 CSVFIELDNAMEn VALUE3n
 
-       Each  line starting with MATCHER should contain enough (possibly empty)
+       Each line starting with MATCHER should contain enough (possibly  empty)
        values for all the listed fields.
 
-       Rules would be checked and applied in the order they are listed in  the
+       Rules  would be checked and applied in the order they are listed in the
        table and, like with if blocks, later rules (in the same or another ta-
        ble) or if blocks could override the effect of any rule.
 
-       Instead of ',' you can use a variety of other non-alphanumeric  charac-
+       Instead  of ',' you can use a variety of other non-alphanumeric charac-
        ters as a separator.  First character after if is taken to be the sepa-
-       rator for the rest of the table.  It is the responsibility of the  user
-       to  ensure  that  separator does not occur inside MATCHERs and values -
+       rator  for the rest of the table.  It is the responsibility of the user
+       to ensure that separator does not occur inside MATCHERs  and  values  -
        there is no way to escape separator.
 
        Example:
@@ -598,7 +605,7 @@ CSV RULES
               2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
 
    end
-       This rule can be used inside if blocks (only),  to  make  hledger  stop
+       This  rule  can  be  used inside if blocks (only), to make hledger stop
        reading this CSV file and move on to the next input file, or to command
        execution.  Eg:
 
@@ -609,10 +616,10 @@ CSV RULES
    date-format
               date-format DATEFMT
 
-       This is a helper for the date (and date2) fields.  If  your  CSV  dates
-       are  not  formatted  like  YYYY-MM-DD, YYYY/MM/DD or YYYY.MM.DD, you'll
-       need to add a date-format rule describing them  with  a  strptime  date
-       parsing  pattern, which must parse the CSV date value completely.  Some
+       This  is  a  helper for the date (and date2) fields.  If your CSV dates
+       are not formatted like YYYY-MM-DD,  YYYY/MM/DD  or  YYYY.MM.DD,  you'll
+       need  to  add  a  date-format rule describing them with a strptime date
+       parsing pattern, which must parse the CSV date value completely.   Some
        examples:
 
               # MM/DD/YY
@@ -634,15 +641,15 @@ CSV RULES
        mat.html#v:formatTime
 
    newest-first
-       hledger  always sorts the generated transactions by date.  Transactions
-       on the same date should appear in the same order as their CSV  records,
-       as  hledger  can  usually auto-detect whether the CSV's normal order is
+       hledger always sorts the generated transactions by date.   Transactions
+       on  the same date should appear in the same order as their CSV records,
+       as hledger can usually auto-detect whether the CSV's  normal  order  is
        oldest first or newest first.  But if all of the following are true:
 
-       o the CSV might sometimes contain just one day  of  data  (all  records
+       o the  CSV  might  sometimes  contain just one day of data (all records
          having the same date)
 
-       o the  CSV  records are normally in reverse chronological order (newest
+       o the CSV records are normally in reverse chronological  order  (newest
          at the top)
 
        o and you care about preserving the order of same-day transactions
@@ -655,9 +662,9 @@ CSV RULES
    include
               include RULESFILE
 
-       This includes the contents of another CSV rules  file  at  this  point.
-       RULESFILE  is  an  absolute file path or a path relative to the current
-       file's directory.  This can be useful for sharing common rules  between
+       This  includes  the  contents  of another CSV rules file at this point.
+       RULESFILE is an absolute file path or a path relative  to  the  current
+       file's  directory.  This can be useful for sharing common rules between
        several rules files, eg:
 
               # someaccount.csv.rules
@@ -672,10 +679,10 @@ CSV RULES
 
    balance-type
        Balance assertions generated by assigning to balanceN are of the simple
-       = type by default, which is  a  single-commodity,  subaccount-excluding
+       =  type  by  default, which is a single-commodity, subaccount-excluding
        assertion.  You may find the subaccount-including variants more useful,
-       eg if you have created some virtual subaccounts  of  checking  to  help
-       with  budgeting.  You can select a different type of assertion with the
+       eg  if  you  have  created some virtual subaccounts of checking to help
+       with budgeting.  You can select a different type of assertion with  the
        balance-type rule:
 
               # balance assertions will consider all commodities and all subaccounts
@@ -690,19 +697,19 @@ CSV RULES
 
 TIPS
    Rapid feedback
-       It's a good idea to get rapid feedback  while  creating/troubleshooting
+       It's  a  good idea to get rapid feedback while creating/troubleshooting
        CSV rules.  Here's a good way, using entr from http://eradman.com/entr-
        project :
 
               $ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
 
-       A desc: query (eg) is used to select just one, or a  few,  transactions
-       of  interest.   "bash  -c"  is used to run multiple commands, so we can
-       echo a separator each time the command re-runs,  making  it  easier  to
+       A  desc:  query (eg) is used to select just one, or a few, transactions
+       of interest.  "bash -c" is used to run multiple  commands,  so  we  can
+       echo  a  separator  each  time the command re-runs, making it easier to
        read the output.
 
    Valid CSV
-       hledger  accepts  CSV  conforming to RFC 4180.  When CSV values are en-
+       hledger accepts CSV conforming to RFC 4180.  When CSV  values  are  en-
        closed in quotes, note:
 
        o they must be double quotes (not single quotes)
@@ -710,10 +717,10 @@ TIPS
        o spaces outside the quotes are not allowed
 
    File Extension
-       CSV ("Character Separated Values") files should be named  with  one  of
-       these  filename extensions: .csv, .ssv, .tsv.  Or, the file path should
-       be prefixed with one of csv:, ssv:, tsv:.  This helps hledger  identify
-       the format and show the right error messages.  For example:
+       To  help hledger identify the format and show the right error messages,
+       CSV/SSV/TSV files should normally be named with a .csv,  .ssv  or  .tsv
+       filename  extension.   Or,  the file path should be prefixed with csv:,
+       ssv: or tsv:.  Eg:
 
               $ hledger -f foo.ssv print
 
@@ -721,7 +728,8 @@ TIPS
 
               $ cat foo | hledger -f ssv:- foo
 
-       More about this: Input files in the hledger manual.
+       You can override the file extension with a separator  rule  if  needed.
+       See also: Input files in the hledger manual.
 
    Reading multiple CSV files
        If  you  use  multiple  -f  options to read multiple CSV files at once,
@@ -914,4 +922,4 @@ SEE ALSO
 
 
 
-hledger 1.18.99                   August 2020                   hledger_csv(5)
+hledger 1.18.99                 September 2020                  hledger_csv(5)

@@ -8,10 +8,12 @@ hledger_csv(5) hledger 1.18.99
 
 CSV - how hledger reads CSV data, and the CSV rules file format
 
-   hledger can read CSV (Comma Separated Value/Character Separated
-Value) files as if they were journal files, automatically converting
-each CSV record into a transaction.  (To learn about _writing_ CSV, see
-CSV output.)
+   hledger can read CSV files (Character Separated Value - usually
+comma, semicolon, or tab) containing dated records as if they were
+journal files, automatically converting each CSV record into a
+transaction.
+
+   (To learn about _writing_ CSV, see CSV output.)
 
    We describe each CSV file's format with a corresponding _rules file_.
 By default this is named like the CSV file with a '.rules' extension
@@ -580,19 +582,24 @@ File: hledger_csv.info,  Node: separator,  Next: if block,  Prev: field assignme
 2.4 'separator'
 ===============
 
-You can use the 'separator' directive to read other kinds of
-character-separated data.  Eg to read SSV (Semicolon Separated Values),
-use:
+You can use the 'separator' rule to read other kinds of
+character-separated data.  The argument is any single separator
+character, or the words 'tab' or 'space' (case insensitive).  Eg, for
+comma-separated values (CSV):
+
+separator ,
+
+   or for semicolon-separated values (SSV):
 
 separator ;
 
-   The separator directive accepts exactly one single byte character as
-a separator.  To specify whitespace characters, you may use the special
-words 'TAB' or 'SPACE'.  Eg to read TSV (Tab Separated Values), use:
+   or for tab-separated values (TSV):
 
 separator TAB
 
-   See also: File Extension.
+   If the input file has a '.csv', '.ssv' or '.tsv' file extension (or a
+'csv:', 'ssv:', 'tsv:' prefix), the appropriate separator will be
+inferred automatically, and you won't need this rule.
 
 
 File: hledger_csv.info,  Node: if block,  Next: if table,  Prev: separator,  Up: CSV RULES
@@ -932,11 +939,10 @@ File: hledger_csv.info,  Node: File Extension,  Next: Reading multiple CSV files
 3.3 File Extension
 ==================
 
-CSV ("Character Separated Values") files should be named with one of
-these filename extensions: '.csv', '.ssv', '.tsv'.  Or, the file path
-should be prefixed with one of 'csv:', 'ssv:', 'tsv:'.  This helps
-hledger identify the format and show the right error messages.  For
-example:
+To help hledger identify the format and show the right error messages,
+CSV/SSV/TSV files should normally be named with a '.csv', '.ssv' or
+'.tsv' filename extension.  Or, the file path should be prefixed with
+'csv:', 'ssv:' or 'tsv:'.  Eg:
 
 $ hledger -f foo.ssv print
 
@@ -944,7 +950,8 @@ $ hledger -f foo.ssv print
 
 $ cat foo | hledger -f ssv:- foo
 
-   More about this: Input files in the hledger manual.
+   You can override the file extension with a separator rule if needed.
+See also: Input files in the hledger manual.
 
 
 File: hledger_csv.info,  Node: Reading multiple CSV files,  Next: Valid transactions,  Prev: File Extension,  Up: TIPS
@@ -1143,84 +1150,84 @@ command the user specified.
 
 Tag Table:
 Node: Top72
-Node: EXAMPLES2636
-Ref: #examples2742
-Node: Basic2950
-Ref: #basic3050
-Node: Bank of Ireland3592
-Ref: #bank-of-ireland3727
-Node: Amazon5189
-Ref: #amazon5307
-Node: Paypal7026
-Ref: #paypal7120
-Node: CSV RULES14764
-Ref: #csv-rules14873
-Node: skip15168
-Ref: #skip15261
-Node: fields15636
-Ref: #fields15758
-Node: Transaction field names16923
-Ref: #transaction-field-names17083
-Node: Posting field names17194
-Ref: #posting-field-names17346
-Node: account17416
-Ref: #account17532
-Node: amount18069
-Ref: #amount18200
-Node: currency19307
-Ref: #currency19442
-Node: balance19648
-Ref: #balance19782
-Node: comment20099
-Ref: #comment20216
-Node: field assignment20379
-Ref: #field-assignment20522
-Node: separator21340
-Ref: #separator21475
-Node: if block21886
-Ref: #if-block22011
-Node: Matching the whole record22412
-Ref: #matching-the-whole-record22587
-Node: Matching individual fields23391
-Ref: #matching-individual-fields23595
-Node: Combining matchers23819
-Ref: #combining-matchers24015
-Node: Rules applied on successful match24328
-Ref: #rules-applied-on-successful-match24519
-Node: if table25173
-Ref: #if-table25292
-Node: end27030
-Ref: #end27142
-Node: date-format27366
-Ref: #date-format27498
-Node: newest-first28247
-Ref: #newest-first28385
-Node: include29068
-Ref: #include29199
-Node: balance-type29643
-Ref: #balance-type29763
-Node: TIPS30463
-Ref: #tips30545
-Node: Rapid feedback30801
-Ref: #rapid-feedback30918
-Node: Valid CSV31378
-Ref: #valid-csv31508
-Node: File Extension31700
-Ref: #file-extension31852
-Node: Reading multiple CSV files32262
-Ref: #reading-multiple-csv-files32447
-Node: Valid transactions32688
-Ref: #valid-transactions32866
-Node: Deduplicating importing33494
-Ref: #deduplicating-importing33673
-Node: Setting amounts34706
-Ref: #setting-amounts34875
-Node: Setting currency/commodity35862
-Ref: #setting-currencycommodity36054
-Node: Referencing other fields36857
-Ref: #referencing-other-fields37057
-Node: How CSV rules are evaluated37954
-Ref: #how-csv-rules-are-evaluated38127
+Node: EXAMPLES2677
+Ref: #examples2783
+Node: Basic2991
+Ref: #basic3091
+Node: Bank of Ireland3633
+Ref: #bank-of-ireland3768
+Node: Amazon5230
+Ref: #amazon5348
+Node: Paypal7067
+Ref: #paypal7161
+Node: CSV RULES14805
+Ref: #csv-rules14914
+Node: skip15209
+Ref: #skip15302
+Node: fields15677
+Ref: #fields15799
+Node: Transaction field names16964
+Ref: #transaction-field-names17124
+Node: Posting field names17235
+Ref: #posting-field-names17387
+Node: account17457
+Ref: #account17573
+Node: amount18110
+Ref: #amount18241
+Node: currency19348
+Ref: #currency19483
+Node: balance19689
+Ref: #balance19823
+Node: comment20140
+Ref: #comment20257
+Node: field assignment20420
+Ref: #field-assignment20563
+Node: separator21381
+Ref: #separator21516
+Node: if block22056
+Ref: #if-block22181
+Node: Matching the whole record22582
+Ref: #matching-the-whole-record22757
+Node: Matching individual fields23561
+Ref: #matching-individual-fields23765
+Node: Combining matchers23989
+Ref: #combining-matchers24185
+Node: Rules applied on successful match24498
+Ref: #rules-applied-on-successful-match24689
+Node: if table25343
+Ref: #if-table25462
+Node: end27200
+Ref: #end27312
+Node: date-format27536
+Ref: #date-format27668
+Node: newest-first28417
+Ref: #newest-first28555
+Node: include29238
+Ref: #include29369
+Node: balance-type29813
+Ref: #balance-type29933
+Node: TIPS30633
+Ref: #tips30715
+Node: Rapid feedback30971
+Ref: #rapid-feedback31088
+Node: Valid CSV31548
+Ref: #valid-csv31678
+Node: File Extension31870
+Ref: #file-extension32022
+Node: Reading multiple CSV files32451
+Ref: #reading-multiple-csv-files32636
+Node: Valid transactions32877
+Ref: #valid-transactions33055
+Node: Deduplicating importing33683
+Ref: #deduplicating-importing33862
+Node: Setting amounts34895
+Ref: #setting-amounts35064
+Node: Setting currency/commodity36051
+Ref: #setting-currencycommodity36243
+Node: Referencing other fields37046
+Ref: #referencing-other-fields37246
+Node: How CSV rules are evaluated38143
+Ref: #how-csv-rules-are-evaluated38316
 
 End Tag Table
 

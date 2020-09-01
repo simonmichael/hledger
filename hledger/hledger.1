@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "August 2020" "hledger 1.18.99" "hledger User Manuals"
+.TH "hledger" "1" "September 2020" "hledger 1.18.99" "hledger User Manuals"
 
 
 
@@ -982,15 +982,12 @@ $ cat some.journal | hledger -f-
 \f[R]
 .fi
 .PP
-Usually the data file is in hledger\[aq]s journal format, but it can
-also be one of several other formats, listed below.
-hledger detects the format automatically based on the file extension, or
-if that is not recognised, by trying each built-in \[dq]reader\[dq] in
-turn:
+Usually the data file is in hledger\[aq]s journal format, but it can be
+in any of the supported file formats, which currently are:
 .PP
 .TS
 tab(@);
-lw(7.6n) lw(31.2n) lw(31.2n).
+lw(7.8n) lw(39.5n) lw(22.7n).
 T{
 Reader:
 T}@T{
@@ -1002,37 +999,45 @@ _
 T{
 \f[C]journal\f[R]
 T}@T{
-hledger\[aq]s journal format, also some Ledger journals
+hledger journal files and some Ledger journals, for transactions
 T}@T{
 \f[C].journal\f[R] \f[C].j\f[R] \f[C].hledger\f[R] \f[C].ledger\f[R]
 T}
 T{
 \f[C]timeclock\f[R]
 T}@T{
-timeclock files (precise time logging)
+timeclock files, for precise time logging
 T}@T{
 \f[C].timeclock\f[R]
 T}
 T{
 \f[C]timedot\f[R]
 T}@T{
-timedot files (approximate time logging)
+timedot files, for approximate time logging
 T}@T{
 \f[C].timedot\f[R]
 T}
 T{
 \f[C]csv\f[R]
 T}@T{
-comma-separated values (data interchange)
+comma/semicolon/tab/other-separated values, for data import
 T}@T{
-\f[C].csv\f[R]
+\f[C].csv\f[R] \f[C].ssv\f[R] \f[C].tsv\f[R]
 T}
 .TE
 .PP
-If needed (eg to ensure correct error messages when a file has the
-\[dq]wrong\[dq] extension), you can force a specific reader/format by
-prepending it to the file path with a colon.
-Examples:
+hledger detects the format automatically based on the file extensions
+shown above.
+If it can\[aq]t recognise the file extension, it assumes
+\f[C]journal\f[R] format.
+So for non-journal files, it\[aq]s important to use a recognised file
+extension, so as to either read successfully or to show relevant error
+messages.
+.PP
+When you can\[aq]t ensure the right file extension, not to worry: you
+can force a specific reader/format by prefixing the file path with the
+format and a colon.
+Eg to read a .dat file as csv:
 .IP
 .nf
 \f[C]
@@ -1041,16 +1046,20 @@ $ echo \[aq]i 2009/13/1 08:00:00\[aq] | hledger print -ftimeclock:-
 \f[R]
 .fi
 .PP
-You can also specify multiple \f[C]-f\f[R] options, to read multiple
-files as one big journal.
+You can specify multiple \f[C]-f\f[R] options, to read multiple files as
+one big journal.
 There are some limitations with this:
 .IP \[bu] 2
 directives in one file will not affect the other files
 .IP \[bu] 2
 balance assertions will not see any account balances from previous files
 .PP
-If you need those, either use the include directive, or concatenate the
-files, eg: \f[C]cat a.journal b.journal | hledger -f- CMD\f[R].
+If you need either of those things, you can
+.IP \[bu] 2
+use a single parent file which includes the others
+.IP \[bu] 2
+or concatenate the files into one before reading, eg:
+\f[C]cat a.journal b.journal | hledger -f- CMD\f[R].
 .SS Output destination
 .PP
 hledger commands send their output to the terminal by default.
@@ -2676,7 +2685,6 @@ At each level of the tree, accounts are sorted by account code if any,
 then by account name.
 Or with \f[C]-S/--sort-amount\f[R], by their balance amount, largest
 first.
-(Note: \f[C]-S\f[R] has a problem in hledger 1.11-1.18).
 .PP
 \[dq]Boring\[dq] accounts, which contain a single interesting subaccount
 and no balance of their own, are elided into the following line for more
