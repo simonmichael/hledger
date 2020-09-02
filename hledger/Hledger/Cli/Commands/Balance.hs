@@ -305,44 +305,41 @@ balancemode = hledgerCommandMode
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
 balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
-  d <- getCurrentDay
-  case lineFormatFromOpts ropts of
-    Left err -> error' $ unlines [err]  -- PARTIAL:
-    Right _ -> do
-      let budget      = boolopt "budget" rawopts
-          multiperiod = interval_ /= NoInterval
-          fmt         = outputFormatFromOpts opts
+    d <- getCurrentDay
+    let budget      = boolopt "budget" rawopts
+        multiperiod = interval_ /= NoInterval
+        fmt         = outputFormatFromOpts opts
 
-      if budget then do  -- single or multi period budget report
-        reportspan <- reportSpan j ropts
-        let budgetreport = dbg4 "budgetreport" $ budgetReport ropts assrt reportspan d j
-              where
-                assrt = not $ ignore_assertions_ $ inputopts_ opts
+    if budget then do  -- single or multi period budget report
+      reportspan <- reportSpan j ropts
+      let budgetreport = dbg4 "budgetreport" $ budgetReport ropts assrt reportspan d j
+            where
+              assrt = not $ ignore_assertions_ $ inputopts_ opts
+          render = case fmt of
+            "txt"  -> budgetReportAsText ropts
+            "json" -> (++"\n") . TL.unpack . toJsonText
+            _      -> const $ error' $ unsupportedOutputFormatError fmt
+      writeOutput opts $ render budgetreport
+
+    else
+      if multiperiod then do  -- multi period balance report
+        let report = multiBalanceReport d ropts j
             render = case fmt of
-              "txt"  -> budgetReportAsText ropts
+              "txt"  -> multiBalanceReportAsText ropts
+              "csv"  -> (++"\n") . printCSV . multiBalanceReportAsCsv ropts
+              "html" -> (++"\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
               "json" -> (++"\n") . TL.unpack . toJsonText
-              _      -> const $ error' $ unsupportedOutputFormatError fmt
-        writeOutput opts $ render budgetreport
+              _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
+        writeOutput opts $ render report
 
-      else
-        if multiperiod then do  -- multi period balance report
-          let report = multiBalanceReport d ropts j
-              render = case fmt of
-                "txt"  -> multiBalanceReportAsText ropts
-                "csv"  -> (++"\n") . printCSV . multiBalanceReportAsCsv ropts
-                "html" -> (++"\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
-                "json" -> (++"\n") . TL.unpack . toJsonText
-                _      -> const $ error' $ unsupportedOutputFormatError fmt
-          writeOutput opts $ render report
-
-        else do  -- single period simple balance report
-          let report = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
-              render = case fmt of
-                "txt"  -> balanceReportAsText
-                "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
-                "json" -> const $ (++"\n") . TL.unpack . toJsonText
-                _      -> const $ error' $ unsupportedOutputFormatError fmt
-          writeOutput opts $ render ropts report
+      else do  -- single period simple balance report
+        let report = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report
+            render = case fmt of
+              "txt"  -> balanceReportAsText
+              "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
+              "json" -> const $ (++"\n") . TL.unpack . toJsonText
+              _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
+        writeOutput opts $ render ropts report
 
 -- rendering single-column balance reports
 
@@ -358,28 +355,17 @@ balanceReportAsCsv opts (items, total) =
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> String
-balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
+balanceReportAsText opts ((items, total)) = unlines $
+    concat lines ++ if no_total_ opts then [] else overline : totallines
   where
-      fmt = lineFormatFromOpts opts
-      lines = case fmt of
-                Right fmt -> map (balanceReportItemAsText opts fmt) items
-                Left err  -> [[err]]
-      t = if no_total_ opts
-           then []
-           else
-             case fmt of
-               Right fmt ->
-                let
-                  -- abuse renderBalanceReportItem to render the total with similar format
-                  acctcolwidth = maximum' [T.length fullname | (fullname, _, _, _) <- items]
-                  totallines = map rstrip $ renderBalanceReportItem opts fmt (T.replicate (acctcolwidth+1) " ", 0, total)
-                  -- with a custom format, extend the line to the full report width;
-                  -- otherwise show the usual 20-char line for compatibility
-                  overlinewidth | isJust (format_ opts) = maximum' $ map length $ concat lines
-                                | otherwise             = defaultTotalFieldWidth
-                  overline   = replicate overlinewidth '-'
-                in overline : totallines
-               Left _ -> []
+    lines = map (balanceReportItemAsText opts) items
+    -- abuse renderBalanceReportItem to render the total with similar format
+    acctcolwidth = maximum' [T.length fullname | (fullname, _, _, _) <- items]
+    totallines = map rstrip $ renderBalanceReportItem opts (T.replicate (acctcolwidth+1) " ", 0, total)
+    -- with a custom format, extend the line to the full report width;
+    -- otherwise show the usual 20-char line for compatibility
+    overlinewidth = fromMaybe (maximum' . map length $ concat lines) . overlineWidth $ format_ opts
+    overline   = replicate overlinewidth '-'
 
 {-
 :r
@@ -396,27 +382,24 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- whatever string format is specified). Note, prices will not be rendered, and
 -- differently-priced quantities of the same commodity will appear merged.
 -- The output will be one or more lines depending on the format and number of commodities.
-balanceReportItemAsText :: ReportOpts -> StringFormat -> BalanceReportItem -> [String]
-balanceReportItemAsText opts fmt (_, accountName, depth, amt) =
-  renderBalanceReportItem opts fmt (
+balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> [String]
+balanceReportItemAsText opts (_, accountName, depth, amt) =
+  renderBalanceReportItem opts (
     accountName,
     depth,
     normaliseMixedAmountSquashPricesForDisplay amt
     )
 
 -- | Render a balance report item using the given StringFormat, generating one or more lines of text.
-renderBalanceReportItem :: ReportOpts -> StringFormat -> (AccountName, Int, MixedAmount) -> [String]
-renderBalanceReportItem opts fmt (acctname, depth, total) =
-  lines $
-  case fmt of
-    OneLine comps       -> concatOneLine      $ render1 comps
-    TopAligned comps    -> concatBottomPadded $ render comps
-    BottomAligned comps -> concatTopPadded    $ render comps
+renderBalanceReportItem :: ReportOpts -> (AccountName, Int, MixedAmount) -> [String]
+renderBalanceReportItem opts (acctname, depth, total) =
+  lines $ case format_ opts of
+      OneLine       _ comps -> concatOneLine      $ render1 comps
+      TopAligned    _ comps -> concatBottomPadded $ render comps
+      BottomAligned _ comps -> concatTopPadded    $ render comps
   where
     render1 = map (renderComponent1 opts (acctname, depth, total))
     render  = map (renderComponent opts (acctname, depth, total))
-
-defaultTotalFieldWidth = 20
 
 -- | Render one StringFormat component for a balance report item.
 renderComponent :: ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
