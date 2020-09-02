@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 818dea3e
+# 1.19 2020-09-01
 
 - The --color/--colour=WHEN command line option, support for the
   NO_COLOR environment variable, and smarter autodetection of colour

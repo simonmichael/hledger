@@ -1,7 +1,7 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 818dea3e
+# 1.19 2020-09-01
 
 ## general
 

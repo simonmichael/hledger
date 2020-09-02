@@ -1,7 +1,7 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# ba59fed6
+# 1.19 2020-09-01
 
 - example scripts:
 

@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 818dea3e
+# 1.19 2020-09-01
 
 - Queries containing a malformed regular expression (eg the single
   character `?`) now show a tidy error message instead "internal

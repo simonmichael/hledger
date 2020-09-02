@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 818dea3e
+# 1.19 2020-09-01
 
 - Added a missing lower bound for aeson, making cabal installs more
   reliable. (#1268)
