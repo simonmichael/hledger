@@ -13,7 +13,6 @@ module Hledger.Reports.ReportOptions (
   BalanceType(..),
   AccountListMode(..),
   ValuationType(..),
-  FormatStr,
   defreportopts,
   rawOptsToReportOpts,
   flat_,
@@ -64,8 +63,6 @@ import Hledger.Query
 import Hledger.Utils
 
 
-type FormatStr = String
-
 -- | Which "balance" is being shown in a balance report.
 data BalanceType = PeriodChange      -- ^ The change of balance in each period.
                  | CumulativeChange  -- ^ The accumulated change across multiple periods.
@@ -101,7 +98,7 @@ data ReportOpts = ReportOpts {
     ,empty_          :: Bool
     ,no_elide_       :: Bool
     ,real_           :: Bool
-    ,format_         :: Maybe FormatStr
+    ,format_         :: StringFormat
     ,query_          :: String -- ^ All query arguments space sepeareted
                                --   and quoted if needed (see 'quoteIfNeeded')
     --
@@ -173,43 +170,49 @@ defreportopts = ReportOpts
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = do
-  d <- getCurrentDay
-  no_color <- isJust <$> lookupEnv "NO_COLOR"
-  supports_color <- hSupportsANSIColor stdout
-  let colorflag = stringopt "color" rawopts
-  return defreportopts{
-     today_       = Just d
-    ,period_      = periodFromRawOpts d rawopts
-    ,interval_    = intervalFromRawOpts rawopts
-    ,statuses_    = statusesFromRawOpts rawopts
-    ,value_       = valuationTypeFromRawOpts rawopts
-    ,infer_value_ = boolopt "infer-value" rawopts
-    ,depth_       = maybeposintopt "depth" rawopts
-    ,date2_       = boolopt "date2" rawopts
-    ,empty_       = boolopt "empty" rawopts
-    ,no_elide_    = boolopt "no-elide" rawopts
-    ,real_        = boolopt "real" rawopts
-    ,format_      = maybestringopt "format" rawopts -- XXX move to CliOpts or move validation from Cli.CliOptions to here
-    ,query_       = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
-    ,average_     = boolopt "average" rawopts
-    ,related_     = boolopt "related" rawopts
-    ,txn_dates_   = boolopt "txn-dates" rawopts
-    ,balancetype_ = balancetypeopt rawopts
-    ,accountlistmode_ = accountlistmodeopt rawopts
-    ,drop_        = posintopt "drop" rawopts
-    ,row_total_   = boolopt "row-total" rawopts
-    ,no_total_    = boolopt "no-total" rawopts
-    ,sort_amount_ = boolopt "sort-amount" rawopts
-    ,percent_     = boolopt "percent" rawopts
-    ,invert_      = boolopt "invert" rawopts
-    ,pretty_tables_ = boolopt "pretty-tables" rawopts
-    ,color_       = and [not no_color
-                        ,not $ colorflag `elem` ["never","no"]
-                        ,colorflag `elem` ["always","yes"] || supports_color
-                        ]
-    ,forecast_    = forecastPeriodFromRawOpts d rawopts
-    ,transpose_   = boolopt "transpose" rawopts
-    }
+    d <- getCurrentDay
+    no_color <- isJust <$> lookupEnv "NO_COLOR"
+    supports_color <- hSupportsANSIColor stdout
+    let colorflag = stringopt "color" rawopts
+
+    format <- case parseStringFormat <$> maybestringopt "format" rawopts of
+         Nothing         -> return defaultBalanceLineFormat
+         Just (Right x)  -> return x
+         Just (Left err) -> usageError $ "could not parse format option: " ++ err
+
+    return defreportopts{
+       today_       = Just d
+      ,period_      = periodFromRawOpts d rawopts
+      ,interval_    = intervalFromRawOpts rawopts
+      ,statuses_    = statusesFromRawOpts rawopts
+      ,value_       = valuationTypeFromRawOpts rawopts
+      ,infer_value_ = boolopt "infer-value" rawopts
+      ,depth_       = maybeposintopt "depth" rawopts
+      ,date2_       = boolopt "date2" rawopts
+      ,empty_       = boolopt "empty" rawopts
+      ,no_elide_    = boolopt "no-elide" rawopts
+      ,real_        = boolopt "real" rawopts
+      ,format_      = format
+      ,query_       = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
+      ,average_     = boolopt "average" rawopts
+      ,related_     = boolopt "related" rawopts
+      ,txn_dates_   = boolopt "txn-dates" rawopts
+      ,balancetype_ = balancetypeopt rawopts
+      ,accountlistmode_ = accountlistmodeopt rawopts
+      ,drop_        = posintopt "drop" rawopts
+      ,row_total_   = boolopt "row-total" rawopts
+      ,no_total_    = boolopt "no-total" rawopts
+      ,sort_amount_ = boolopt "sort-amount" rawopts
+      ,percent_     = boolopt "percent" rawopts
+      ,invert_      = boolopt "invert" rawopts
+      ,pretty_tables_ = boolopt "pretty-tables" rawopts
+      ,color_       = and [not no_color
+                          ,not $ colorflag `elem` ["never","no"]
+                          ,colorflag `elem` ["always","yes"] || supports_color
+                          ]
+      ,forecast_    = forecastPeriodFromRawOpts d rawopts
+      ,transpose_   = boolopt "transpose" rawopts
+      }
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =

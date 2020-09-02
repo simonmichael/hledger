@@ -38,10 +38,8 @@ module Hledger.Cli.CliOptions (
   getHledgerCliOpts,
   getHledgerCliOpts',
   rawOptsToCliOpts,
-  checkCliOpts,
   outputFormats,
   defaultOutputFormat,
-  defaultBalanceLineFormat,
   CommandDoc,
 
   -- possibly these should move into argsToCliOpts
@@ -56,8 +54,6 @@ module Hledger.Cli.CliOptions (
   replaceNumericFlags,
   -- | For register:
   registerWidthsFromOpts,
-  -- | For balance:
-  lineFormatFromOpts,
 
   -- * Other utils
   hledgerAddons,
@@ -448,7 +444,7 @@ replaceNumericFlags = map replace
 -- today's date. Parsing failures will raise an error.
 -- Also records the terminal width, if supported.
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
-rawOptsToCliOpts rawopts = checkCliOpts <$> do
+rawOptsToCliOpts rawopts = do
   let iopts = rawOptsToInputOpts rawopts
   ropts <- rawOptsToReportOpts rawopts
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
@@ -473,16 +469,6 @@ rawOptsToCliOpts rawopts = checkCliOpts <$> do
              ,width_           = maybestringopt "width" rawopts
              ,available_width_ = availablewidth
              }
-
--- | Do final validation of processed opts, raising an error if there is trouble.
-checkCliOpts :: CliOpts -> CliOpts
-checkCliOpts opts =
-  either usageError (const opts) $ do
-    -- XXX move to checkReportOpts or move _format to CliOpts
-    case lineFormatFromOpts $ reportopts_ opts of
-      Left err -> Left $ "could not parse format option: "++err
-      Right _  -> Right ()
-  -- XXX check registerWidthsFromOpts opts
 
 -- | A helper for addon commands: this parses options and arguments from
 -- the current command line using the given hledger-style cmdargs mode,
@@ -642,22 +628,6 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
           descwidth <- optional (char ',' >> read `fmap` some digitChar)
           eof
           return (totalwidth, descwidth)
-
--- for balance, currently:
-
--- | Parse the format option if provided, possibly returning an error,
--- otherwise get the default value.
-lineFormatFromOpts :: ReportOpts -> Either String StringFormat
-lineFormatFromOpts = maybe (Right defaultBalanceLineFormat) parseStringFormat . format_
-
--- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceLineFormat :: StringFormat
-defaultBalanceLineFormat = BottomAligned [
-      FormatField False (Just 20) Nothing TotalField
-    , FormatLiteral "  "
-    , FormatField True (Just 2) Nothing DepthSpacerField
-    , FormatField True Nothing Nothing AccountField
-    ]
 
 -- Other utils
 
