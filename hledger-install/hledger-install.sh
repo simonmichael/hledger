@@ -94,7 +94,7 @@ EXTRA_DEPS="\
 # megaparsec-7.0.4 \
 
 # the oldest version of stack that might work:
-STACK_MIN_VERSION=1.9.1
+STACK_MIN_VERSION=2.3.1
 
 
 
