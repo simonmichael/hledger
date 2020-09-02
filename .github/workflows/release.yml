@@ -8,7 +8,7 @@ name: release
 on:
   push:
     tags: [ '[0-9]*', 'r[0-9]*' ]
-    # branches: [ 'master', '[0-9]*-branch' ]
+    branches: [ 'master', '[0-9]*-branch' ]
 
 jobs:
   release:
