@@ -16,7 +16,6 @@ module Hledger.Reports.ReportOptions (
   FormatStr,
   defreportopts,
   rawOptsToReportOpts,
-  checkReportOpts,
   flat_,
   tree_,
   reportOptsToggleStatus,
@@ -173,68 +172,44 @@ defreportopts = ReportOpts
     def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
-rawOptsToReportOpts rawopts = checkReportOpts <$> do
-  let rawopts' = checkRawOpts rawopts
+rawOptsToReportOpts rawopts = do
   d <- getCurrentDay
   no_color <- isJust <$> lookupEnv "NO_COLOR"
   supports_color <- hSupportsANSIColor stdout
   let colorflag = stringopt "color" rawopts
   return defreportopts{
      today_       = Just d
-    ,period_      = periodFromRawOpts d rawopts'
-    ,interval_    = intervalFromRawOpts rawopts'
-    ,statuses_    = statusesFromRawOpts rawopts'
-    ,value_       = valuationTypeFromRawOpts rawopts'
-    ,infer_value_ = boolopt "infer-value" rawopts'
-    ,depth_       = maybeposintopt "depth" rawopts'
-    ,date2_       = boolopt "date2" rawopts'
-    ,empty_       = boolopt "empty" rawopts'
-    ,no_elide_    = boolopt "no-elide" rawopts'
-    ,real_        = boolopt "real" rawopts'
-    ,format_      = maybestringopt "format" rawopts' -- XXX move to CliOpts or move validation from Cli.CliOptions to here
-    ,query_       = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts' -- doesn't handle an arg like "" right
-    ,average_     = boolopt "average" rawopts'
-    ,related_     = boolopt "related" rawopts'
-    ,txn_dates_   = boolopt "txn-dates" rawopts'
-    ,balancetype_ = balancetypeopt rawopts'
-    ,accountlistmode_ = accountlistmodeopt rawopts'
-    ,drop_        = posintopt "drop" rawopts'
-    ,row_total_   = boolopt "row-total" rawopts'
-    ,no_total_    = boolopt "no-total" rawopts'
-    ,sort_amount_ = boolopt "sort-amount" rawopts'
-    ,percent_     = boolopt "percent" rawopts'
-    ,invert_      = boolopt "invert" rawopts'
-    ,pretty_tables_ = boolopt "pretty-tables" rawopts'
+    ,period_      = periodFromRawOpts d rawopts
+    ,interval_    = intervalFromRawOpts rawopts
+    ,statuses_    = statusesFromRawOpts rawopts
+    ,value_       = valuationTypeFromRawOpts rawopts
+    ,infer_value_ = boolopt "infer-value" rawopts
+    ,depth_       = maybeposintopt "depth" rawopts
+    ,date2_       = boolopt "date2" rawopts
+    ,empty_       = boolopt "empty" rawopts
+    ,no_elide_    = boolopt "no-elide" rawopts
+    ,real_        = boolopt "real" rawopts
+    ,format_      = maybestringopt "format" rawopts -- XXX move to CliOpts or move validation from Cli.CliOptions to here
+    ,query_       = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
+    ,average_     = boolopt "average" rawopts
+    ,related_     = boolopt "related" rawopts
+    ,txn_dates_   = boolopt "txn-dates" rawopts
+    ,balancetype_ = balancetypeopt rawopts
+    ,accountlistmode_ = accountlistmodeopt rawopts
+    ,drop_        = posintopt "drop" rawopts
+    ,row_total_   = boolopt "row-total" rawopts
+    ,no_total_    = boolopt "no-total" rawopts
+    ,sort_amount_ = boolopt "sort-amount" rawopts
+    ,percent_     = boolopt "percent" rawopts
+    ,invert_      = boolopt "invert" rawopts
+    ,pretty_tables_ = boolopt "pretty-tables" rawopts
     ,color_       = and [not no_color
                         ,not $ colorflag `elem` ["never","no"]
                         ,colorflag `elem` ["always","yes"] || supports_color
                         ]
-    ,forecast_    = forecastPeriodFromRawOpts d rawopts'
-    ,transpose_   = boolopt "transpose" rawopts'
+    ,forecast_    = forecastPeriodFromRawOpts d rawopts
+    ,transpose_   = boolopt "transpose" rawopts
     }
-
--- | Do extra validation of raw option values, raising an error if there's a problem.
-checkRawOpts :: RawOpts -> RawOpts
-checkRawOpts rawopts
--- our standard behaviour is to accept conflicting options actually,
--- using the last one - more forgiving for overriding command-line aliases
---   | countopts ["change","cumulative","historical"] > 1
---     = usageError "please specify at most one of --change, --cumulative, --historical"
---   | countopts ["flat","tree"] > 1
---     = usageError "please specify at most one of --flat, --tree"
---   | countopts ["daily","weekly","monthly","quarterly","yearly"] > 1
---     = usageError "please specify at most one of --daily, "
-  | otherwise = rawopts
---   where
---     countopts = length . filter (`boolopt` rawopts)
-
--- | Do extra validation of report options, raising an error if there's a problem.
-checkReportOpts :: ReportOpts -> ReportOpts
-checkReportOpts ropts@ReportOpts{..} =
-  either usageError (const ropts) $ do
-    case depth_ of
-      Just d | d < 0 -> Left "--depth should have a positive number"
-      _              -> Right ()
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =
