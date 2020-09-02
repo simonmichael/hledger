@@ -19,7 +19,6 @@ module Hledger.Cli.Commands.Aregister (
  ,tests_Aregister
 ) where
 
-import Control.Monad (when)
 import Data.Aeson (toJSON)
 import Data.Aeson.Text (encodeToLazyText)
 import Data.List
@@ -75,10 +74,11 @@ aregister :: CliOpts -> Journal -> IO ()
 aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   d <- getCurrentDay
   -- the first argument specifies the account, any remaining arguments are a filter query
-  let args' = listofstringopt "args" rawopts
-  when (null args') $ error' "aregister needs an account, please provide an account name or pattern"  -- PARTIAL:
+  (apat,querystring) <- case listofstringopt "args" rawopts of
+      []     -> fail "aregister needs an account, please provide an account name or pattern"
+      (a:as) -> return (a, T.pack . unwords $ map quoteIfNeeded as)
+  argsquery <- either fail (return . fst) $ parseQuery d querystring
   let
-    (apat:queryargs) = args'
     acct = headDef (error' $ show apat++" did not match any account")   -- PARTIAL:
            . filterAccts $ journalAccountNames j
     filterAccts = case toRegexCI apat of
@@ -88,13 +88,13 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
     ropts' = ropts{
-       query_=unwords $ map quoteIfNeeded $ queryargs
+       query_=simplifyQuery $ And [queryFromFlags ropts, argsquery]
        -- remove a depth limit for reportq, as in RegisterScreen, I forget why XXX
       ,depth_=Nothing
        -- always show historical balance
       ,balancetype_= HistoricalBalance
       }
-    reportq = And [queryFromOpts d ropts', excludeforecastq (isJust $ forecast_ ropts)]
+    reportq = And [query_ ropts', excludeforecastq (isJust $ forecast_ ropts)]
       where
         -- As in RegisterScreen, why ? XXX
         -- Except in forecast mode, exclude future/forecast transactions.

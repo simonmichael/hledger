@@ -19,6 +19,7 @@ import Data.Function (on)
 import Data.List
 import Numeric.RootFinding
 import Data.Decimal
+import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular as Tbl
@@ -54,11 +55,16 @@ roi ::  CliOpts -> Journal -> IO ()
 roi CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   d <- getCurrentDay
   let
-    investmentsQuery = queryFromOpts d $ ropts{query_ = stringopt "investment" rawopts,period_=PeriodAll}
-    pnlQuery         = queryFromOpts d $ ropts{query_ = stringopt "pnl" rawopts,period_=PeriodAll}
-    showCashFlow      = boolopt "cashflow" rawopts
-    prettyTables     = pretty_tables_ ropts
+    showCashFlow = boolopt "cashflow" rawopts
+    prettyTables = pretty_tables_ ropts
+    makeQuery flag = do
+        q <- either usageError (return . fst) . parseQuery d . T.pack $ stringopt flag rawopts
+        return . simplifyQuery $ And [queryFromFlags ropts{period_=PeriodAll}, q]
 
+  investmentsQuery <- makeQuery "investment"
+  pnlQuery         <- makeQuery "pnl"
+
+  let
     trans = dbg3 "investments" $ jtxns $ filterJournalTransactions investmentsQuery j
 
     journalSpan =

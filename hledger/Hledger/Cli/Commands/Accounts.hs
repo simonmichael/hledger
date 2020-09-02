@@ -51,11 +51,10 @@ accounts :: CliOpts -> Journal -> IO ()
 accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
 
   -- 1. identify the accounts we'll show
-  d <- getCurrentDay
   let tree     = tree_ ropts
       declared = boolopt "declared" rawopts
       used     = boolopt "used"     rawopts
-      q        = queryFromOpts d ropts
+      q        = query_ ropts
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
       -- just the acct: part of the query will be reapplied later, after clipping

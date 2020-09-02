@@ -41,5 +41,4 @@ tests_Reports = tests "Reports" [
   ,tests_EntriesReport
   ,tests_MultiBalanceReport
   ,tests_PostingsReport
-  ,tests_ReportOptions
   ]

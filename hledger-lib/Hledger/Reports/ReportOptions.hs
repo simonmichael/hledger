@@ -23,9 +23,7 @@ module Hledger.Reports.ReportOptions (
   journalSelectingAmountFromOpts,
   intervalFromRawOpts,
   forecastPeriodFromRawOpts,
-  queryFromOpts,
-  queryFromOptsOnly,
-  queryOptsFromOpts,
+  queryFromFlags,
   transactionDateFn,
   postingDateFn,
   reportSpan,
@@ -40,8 +38,6 @@ module Hledger.Reports.ReportOptions (
   reportPeriodOrJournalLastDay,
   valuationTypeIsCost,
   valuationTypeIsDefaultValue,
-
-  tests_ReportOptions
 )
 where
 
@@ -49,7 +45,7 @@ import Control.Applicative ((<|>))
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
 import Safe (lastDef, lastMay)
 
@@ -99,8 +95,8 @@ data ReportOpts = ReportOpts {
     ,no_elide_       :: Bool
     ,real_           :: Bool
     ,format_         :: StringFormat
-    ,query_          :: String -- ^ All query arguments space sepeareted
-                               --   and quoted if needed (see 'quoteIfNeeded')
+    ,query_          :: Query
+    ,queryopts_      :: [QueryOpt]
     --
     ,average_        :: Bool
     -- for posting reports (register)
@@ -167,52 +163,62 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = do
     d <- getCurrentDay
     no_color <- isJust <$> lookupEnv "NO_COLOR"
     supports_color <- hSupportsANSIColor stdout
-    let colorflag = stringopt "color" rawopts
 
-    format <- case parseStringFormat <$> maybestringopt "format" rawopts of
-         Nothing         -> return defaultBalanceLineFormat
-         Just (Right x)  -> return x
-         Just (Left err) -> usageError $ "could not parse format option: " ++ err
+    let colorflag    = stringopt "color" rawopts
+        formatstring = maybestringopt "format" rawopts
+        querystring  = T.pack . unwords . map quoteIfNeeded $
+                        listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
 
-    return defreportopts{
-       today_       = Just d
-      ,period_      = periodFromRawOpts d rawopts
-      ,interval_    = intervalFromRawOpts rawopts
-      ,statuses_    = statusesFromRawOpts rawopts
-      ,value_       = valuationTypeFromRawOpts rawopts
-      ,infer_value_ = boolopt "infer-value" rawopts
-      ,depth_       = maybeposintopt "depth" rawopts
-      ,date2_       = boolopt "date2" rawopts
-      ,empty_       = boolopt "empty" rawopts
-      ,no_elide_    = boolopt "no-elide" rawopts
-      ,real_        = boolopt "real" rawopts
-      ,format_      = format
-      ,query_       = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
-      ,average_     = boolopt "average" rawopts
-      ,related_     = boolopt "related" rawopts
-      ,txn_dates_   = boolopt "txn-dates" rawopts
-      ,balancetype_ = balancetypeopt rawopts
-      ,accountlistmode_ = accountlistmodeopt rawopts
-      ,drop_        = posintopt "drop" rawopts
-      ,row_total_   = boolopt "row-total" rawopts
-      ,no_total_    = boolopt "no-total" rawopts
-      ,sort_amount_ = boolopt "sort-amount" rawopts
-      ,percent_     = boolopt "percent" rawopts
-      ,invert_      = boolopt "invert" rawopts
-      ,pretty_tables_ = boolopt "pretty-tables" rawopts
-      ,color_       = and [not no_color
-                          ,not $ colorflag `elem` ["never","no"]
-                          ,colorflag `elem` ["always","yes"] || supports_color
-                          ]
-      ,forecast_    = forecastPeriodFromRawOpts d rawopts
-      ,transpose_   = boolopt "transpose" rawopts
-      }
+    format <- case parseStringFormat <$> formatstring of
+        Nothing         -> return defaultBalanceLineFormat
+        Just (Right x)  -> return x
+        Just (Left err) -> fail $ "could not parse format option: " ++ err
+
+    (argsquery, queryopts) <- either fail return $ parseQuery d querystring
+
+    let reportopts = defreportopts
+          {today_       = Just d
+          ,period_      = periodFromRawOpts d rawopts
+          ,interval_    = intervalFromRawOpts rawopts
+          ,statuses_    = statusesFromRawOpts rawopts
+          ,value_       = valuationTypeFromRawOpts rawopts
+          ,infer_value_ = boolopt "infer-value" rawopts
+          ,depth_       = maybeposintopt "depth" rawopts
+          ,date2_       = boolopt "date2" rawopts
+          ,empty_       = boolopt "empty" rawopts
+          ,no_elide_    = boolopt "no-elide" rawopts
+          ,real_        = boolopt "real" rawopts
+          ,format_      = format
+          ,query_       = simplifyQuery $ And [queryFromFlags reportopts, argsquery]
+          ,queryopts_   = queryopts
+          ,average_     = boolopt "average" rawopts
+          ,related_     = boolopt "related" rawopts
+          ,txn_dates_   = boolopt "txn-dates" rawopts
+          ,balancetype_ = balancetypeopt rawopts
+          ,accountlistmode_ = accountlistmodeopt rawopts
+          ,drop_        = posintopt "drop" rawopts
+          ,row_total_   = boolopt "row-total" rawopts
+          ,no_total_    = boolopt "no-total" rawopts
+          ,sort_amount_ = boolopt "sort-amount" rawopts
+          ,percent_     = boolopt "percent" rawopts
+          ,invert_      = boolopt "invert" rawopts
+          ,pretty_tables_ = boolopt "pretty-tables" rawopts
+          ,color_       = and [not no_color
+                              ,not $ colorflag `elem` ["never","no"]
+                              ,colorflag `elem` ["always","yes"] || supports_color
+                              ]
+          ,forecast_    = forecastPeriodFromRawOpts d rawopts
+          ,transpose_   = boolopt "transpose" rawopts
+          }
+
+    return reportopts
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =
@@ -423,17 +429,9 @@ journalSelectingAmountFromOpts opts =
     Just (AtCost _) -> journalToCost
     _               -> id
 
--- | Convert report options and arguments to a query.
--- If there is a parsing problem, this function calls error.
-queryFromOpts :: Day -> ReportOpts -> Query
-queryFromOpts d ropts = simplifyQuery . And $ [flagsq, argsq]
-  where
-    flagsq = queryFromOptsOnly d ropts
-    argsq = fst $ either error' id $ parseQuery d (T.pack $ query_ ropts)  -- PARTIAL:
-
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
-queryFromOptsOnly :: Day -> ReportOpts -> Query
-queryFromOptsOnly _d ReportOpts{..} = simplifyQuery $ And flagsq
+queryFromFlags :: ReportOpts -> Query
+queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
   where
     flagsq = consIf   Real  real_
            . consIf   Empty empty_
@@ -443,11 +441,6 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery $ And flagsq
                ]
     consIf f b = if b then (f True:) else id
     consJust f = maybe id ((:) . f)
-
--- | Convert report options and arguments to query options.
--- If there is a parsing problem, this function calls error.
-queryOptsFromOpts :: Day -> ReportOpts -> [QueryOpt]
-queryOptsFromOpts d = snd . either error' id . parseQuery d . T.pack . query_  -- PARTIAL:
 
 -- Report dates.
 
@@ -477,9 +470,8 @@ reportEndDate j ropts = spanEnd <$> reportSpan j ropts
 -- Needs IO to parse smart dates in options/queries.
 specifiedStartEndDates :: ReportOpts -> IO (Maybe Day, Maybe Day)
 specifiedStartEndDates ropts = do
-  today <- getCurrentDay
   let
-    q = queryFromOpts today ropts
+    q = query_ ropts
     mspecifiedstartdate = queryStartDate False q
     mspecifiedenddate   = queryEndDate   False q
   return (mspecifiedstartdate, mspecifiedenddate)
@@ -498,9 +490,7 @@ specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 -- since we need that to get the report period robustly
 -- (unlike reportStartDate, which looks up the date with IO.)
 reportPeriodStart :: ReportOpts -> Maybe Day
-reportPeriodStart ropts@ReportOpts{..} = do
-  t <- today_
-  queryStartDate False $ queryFromOpts t ropts
+reportPeriodStart = queryStartDate False . query_
 
 -- Get the report's start date, or if no report period is specified,
 -- the journal's start date (the earliest posting date). If there's no
@@ -517,11 +507,7 @@ reportPeriodOrJournalStart ropts j =
 -- since we need that to get the report period robustly
 -- (unlike reportEndDate, which looks up the date with IO.)
 reportPeriodLastDay :: ReportOpts -> Maybe Day
-reportPeriodLastDay ropts@ReportOpts{..} = do
-  t <- today_
-  let q = queryFromOpts t ropts
-  qend <- queryEndDate False q
-  return $ addDays (-1) qend
+reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . query_
 
 -- Get the last day of the overall report period, or if no report
 -- period is specified, the last day of the journal (ie the latest
@@ -530,22 +516,3 @@ reportPeriodLastDay ropts@ReportOpts{..} = do
 reportPeriodOrJournalLastDay :: ReportOpts -> Journal -> Maybe Day
 reportPeriodOrJournalLastDay ropts j =
   reportPeriodLastDay ropts <|> journalEndDate False j
-
--- tests
-
-tests_ReportOptions = tests "ReportOptions" [
-   test "queryFromOpts" $ do
-       queryFromOpts nulldate defreportopts @?= Any
-       queryFromOpts nulldate defreportopts{query_="a"} @?= Acct (toRegexCI' "a")
-       queryFromOpts nulldate defreportopts{query_="desc:'a a'"} @?= Desc (toRegexCI' "a a")
-       queryFromOpts nulldate defreportopts{period_=PeriodFrom (fromGregorian 2012 01 01),query_="date:'to 2013'" }
-         @?= (Date $ DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01))
-       queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"} @?= (Date2 $ DateSpan (Just $ fromGregorian 2012 01 01) (Just $ fromGregorian 2013 01 01))
-       queryFromOpts nulldate defreportopts{query_="'a a' 'b"} @?= Or [Acct $ toRegexCI' "a a", Acct $ toRegexCI' "'b"]
-
-  ,test "queryOptsFromOpts" $ do
-      queryOptsFromOpts nulldate defreportopts @?= []
-      queryOptsFromOpts nulldate defreportopts{query_="a"} @?= []
-      queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (fromGregorian 2012 01 01)
-                                              ,query_="date:'to 2013'"} @?= []
- ]

@@ -32,9 +32,9 @@ type EntriesReport = [EntriesReportItem]
 type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
-entriesReport :: ReportOpts -> Query -> Journal -> EntriesReport
-entriesReport ropts@ReportOpts{..} q j@Journal{..} =
-  sortBy (comparing getdate) $ filter (q `matchesTransaction`) $ map tvalue jtxns
+entriesReport :: ReportOpts -> Journal -> EntriesReport
+entriesReport ropts@ReportOpts{..} j@Journal{..} =
+  sortBy (comparing getdate) $ filter (query_ `matchesTransaction`) $ map tvalue jtxns
   where
     getdate = transactionDateFn ropts
     -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
@@ -50,8 +50,8 @@ entriesReport ropts@ReportOpts{..} q j@Journal{..} =
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
-     test "not acct" $ (length $ entriesReport defreportopts (Not . Acct $ toRegex' "bank") samplejournal) @?= 1
-    ,test "date" $ (length $ entriesReport defreportopts (Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)) samplejournal) @?= 3
+     test "not acct" $ (length $ entriesReport defreportopts{query_=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
+    ,test "date" $ (length $ entriesReport defreportopts{query_=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
   ]
  ]
 

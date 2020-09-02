@@ -28,15 +28,17 @@ tagsmode = hledgerCommandMode
 tags :: CliOpts -> Journal -> IO ()
 tags CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   d <- getCurrentDay
-  let
-    args      = listofstringopt "args" rawopts
+  let args = listofstringopt "args" rawopts
   mtagpat <- mapM (either Fail.fail pure . toRegexCI) $ headMay args
   let
-    queryargs = drop 1 args
-    values    = boolopt "values" rawopts
-    parsed    = boolopt "parsed" rawopts
-    empty     = empty_ ropts
-    q = queryFromOpts d $ ropts{query_ = unwords $ map quoteIfNeeded queryargs}
+    querystring = T.pack . unwords . map quoteIfNeeded $ drop 1 args
+    values      = boolopt "values" rawopts
+    parsed      = boolopt "parsed" rawopts
+    empty       = empty_ ropts
+
+  argsquery <- either usageError (return . fst) $ parseQuery d querystring
+  let
+    q = simplifyQuery $ And [queryFromFlags ropts, argsquery]
     txns = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
     tagsorvalues =
       (if parsed then id else nubSort)

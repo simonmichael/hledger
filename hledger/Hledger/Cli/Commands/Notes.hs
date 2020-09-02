@@ -33,9 +33,6 @@ notesmode = hledgerCommandMode
 -- | The notes command.
 notes :: CliOpts -> Journal -> IO ()
 notes CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let q  = queryFromOpts d ropts
-      ts = entriesReport ropts q j
+  let ts = entriesReport ropts j
       notes = nubSort $ map transactionNote ts
-
   mapM_ T.putStrLn notes

@@ -33,9 +33,6 @@ payeesmode = hledgerCommandMode
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
 payees CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let q  = queryFromOpts d ropts
-      ts = entriesReport ropts q j
+  let ts = entriesReport ropts j
       payees = nubSort $ map transactionPayee ts
-
   mapM_ T.putStrLn payees

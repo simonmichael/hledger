@@ -276,8 +276,8 @@ testmode = hledgerCommandMode
 -- not be used (and would raise an error).
 --
 testcmd :: CliOpts -> Journal -> IO ()
-testcmd opts _undefined = do 
-  withArgs (words' $ query_ $ reportopts_ opts) $
+testcmd opts _undefined = do
+  withArgs (listofstringopt "args" $ rawopts_ opts) $
     Test.Tasty.defaultMain $ tests "hledger" [
        tests_Hledger
       ,tests_Hledger_Cli

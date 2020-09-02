@@ -54,16 +54,14 @@ print' opts j = do
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let q = queryFromOpts d ropts
-      fmt = outputFormatFromOpts opts
+  let fmt = outputFormatFromOpts opts
       render = case fmt of
         "txt"  -> entriesReportAsText opts
         "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
         "json" -> (++"\n") . TL.unpack . toJsonText
         "sql"  -> entriesReportAsSql
         _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-  writeOutput opts $ render $ entriesReport ropts q j
+  writeOutput opts $ render $ entriesReport ropts j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
 entriesReportAsText opts = concatMap (showTransaction . whichtxn)
@@ -185,11 +183,9 @@ postingToCSV p =
 -- (and the query, if any).
 printMatch :: CliOpts -> Journal -> Text -> IO ()
 printMatch CliOpts{reportopts_=ropts} j desc = do
-  d <- getCurrentDay
-  let q = queryFromOpts d ropts
-  case similarTransaction' j q desc of
-                Nothing -> putStrLn "no matches found."
-                Just t  -> putStr $ showTransaction t
+  case similarTransaction' j (query_ ropts) desc of
+      Nothing -> putStrLn "no matches found."
+      Just t  -> putStr $ showTransaction t
 
   where
     -- Identify the closest recent match for this description in past transactions.

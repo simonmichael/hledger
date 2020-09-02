@@ -42,12 +42,11 @@ statsmode = hledgerCommandMode
 -- like Register.summarisePostings
 -- | Print various statistics for the journal.
 stats :: CliOpts -> Journal -> IO ()
-stats opts@CliOpts{reportopts_=reportopts_} j = do
+stats opts@CliOpts{reportopts_=ReportOpts{query_=q, interval_=interval}} j = do
   d <- getCurrentDay
-  let q = queryFromOpts d reportopts_
-      l = ledgerFromJournal q j
+  let l = ledgerFromJournal q j
       reportspan = (ledgerDateSpan l) `spanDefaultsFrom` (queryDateSpan False q)
-      intervalspans = splitSpan (interval_ reportopts_) reportspan
+      intervalspans = splitSpan interval reportspan
       showstats = showLedgerStats l d
       s = intercalate "\n" $ map showstats intervalspans
   writeOutput opts s
