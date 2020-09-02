@@ -1,9 +1,33 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 3b6a8b09
+# 818dea3e
 
-- ui: register: elide multicommodity amounts
+- The --color/--colour=WHEN command line option, support for the
+  NO_COLOR environment variable, and smarter autodetection of colour
+  terminals have been added (#1296)
+
+- -t and -l command line flags have been added as short forms of
+  --tree and --flat (#1286)
+
+- Flat (AKA list) mode is now the default
+
+- t now toggles tree mode, while T sets the "today" period (#1286)
+
+- register: multicommodity amounts containing more than two
+  commodities are now elided
+
+- register: a transaction dated outside the report period now is not
+  shown even if it has postings dated inside the report period.
+
+- ESC now restores exactly the app's state at startup, which includes
+  clearing any report period limit (#1286)
+
+- DEL/BS no longer changes the tree/list mode
+
+- q now exits help before exiting the app (#1286)
+
+- The help dialog's layout is improved
 
 # 1.18.1 2020-06-21
 

@@ -1,17 +1,76 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-- 3822c27b ;lib: regex: rename & export RegexError, export toRegex_, docs (#1312)
+# 818dea3e
 
-# 25c15d4b
+- Added a missing lower bound for aeson, making cabal installs more
+  reliable. (#1268)
 
-- add a color argument to most amount show helpers, drop cshow variants This
-  is an API change, but it seems better than having additional
-  colour-supporting variants and trying to avoid duplicated code. I stopped
-  short of changing showAmount, so cshowAmount still exists.
+- The Regex type alias has been replaced by the Regexp ADT, which
+  contains both the compiled regular expression (so is guaranteed to
+  be usable at runtime) and the original string (so can be serialised,
+  printed, compared, etc.) A Regexp also knows whether is it case
+  sensitive or case insensitive. The Hledger.Utils.Regex API has
+  changed. (#1312, #1330).
 
-- Remove the old BalanceReport code, and use MultiBalanceReport for
-  everything. (Stephen Morgan, #1256).
+- Typeable and Data instances are no longer derived for hledger's
+  data types; they were redundant/no longer needed.
+
+- NFData instances are no longer derived for hledger's data types.
+  This speeds up a full build by roughly 7%. But it means we can't
+  deep-evaluate hledger values, or time hledger code with Criterion.
+  https://github.com/simonmichael/hledger/pull/1330#issuecomment-684075129
+  has some ideas on this.
+
+- Query no longer has a custom Show instance
+
+- Hledger.Utils.String: quoteIfNeeded now actually escapes quotes in
+  strings. escapeQuotes was dropped. (Stephen Morgan)
+
+- Hledger.Utils.Tree: dropped some old utilities
+
+- Some fromIntegral calls have been replaced with safer code, removing
+  some potential for integer wrapping bugs (#1325, #1326)
+
+- Parsing numbers with more than 255 decimal places now gives an error
+  instead of silently misparsing (#1326)
+
+- Digit groups are now limited to at most 255 digits each. (#1326)
+
+- Exponents are parsed as Integer rather than Int.
+  This means exponents greater than 9223372036854775807 or less than
+  -9223372036854775808 are now parsed correctly, in theory. (In
+  practice, very large exponents will cause hledger to eat all your
+  memory, so avoid them for now.) (#1326)
+
+- AmountStyle's asprecision is now a sum type with Word8, instead of
+  an Int with magic values.
+
+- DigitGroupStyle uses Word8 instead of Int.
+
+- Partial helper function parsedate has been dropped, use fromGregorian instead.
+
+- Partial helper function mkdatespan has been dropped.
+
+- Helper function transaction now takes a Day instead of a date string. (Stephen Morgan)
+
+- Old CPP directives made redundant by version bounds have been
+  removed. (Stephen Morgan)
+
+- Smart dates are now represented by the SmartDate type, and are
+  always well formed. (Stephen Morgan)
+
+- accountTransactionsReport (used for hledger aregister and
+  hledger-ui/hledger-web registers) now filters transactions more
+  thoroughly, so eg transactions dated outside the report period will
+  not be shown. Previously the transaction would be shown if it had
+  any posting dated inside the report period. Possibly some other
+  filter criteria now get applied that didn't before. I think on
+  balance this will give slightly preferable results.
+
+- The old BalanceReport code has been dropped at last, replaced by
+  MultiBalanceReport so that all balance reports now use the same
+  code. (Stephen Morgan, #1256).
 
   - The large multiBalanceReport function has been split up and refactored
     extensively.
@@ -22,28 +81,12 @@ For user-visible changes, see the hledger package changelog.
   - displayedAccounts is completely rewritten. Perhaps one subtle thing to
     note is that in tree mode it no longer excludes nodes with zero inclusive
     balance unless they also have zero exclusive balance.
-  - Simon's note: I'll mark the passing of the old multiBalanceReport, into
+  - Simon's note: "I'll mark the passing of the old multiBalanceReport, into
     which I poured many an hour :). It is in a way the heart (brain ?) of
     hledger - the key feature of ledgerlikes (balance report) and a key
-    improvement introduced by hledger (tabular multiperiod balance reports).
-    You have split that 300-line though well documented function into modular
-    parts, which could be a little harder to understand in detail but are
-    easier to understand in the large and more amenable to further
-    refactoring. Then you fixed some old limitations (boring parent eliding in
-    multi period balance reports, --drop with tree mode reports), allowing us
-    to drop the old balanceReport and focus on just the new
-    multiBalanceReport. And for representing the tabular data you replaced the
-    semantically correct but inefficient list of lists with a map of maps,
-    speeding up many-columned balance reports significantly (~40%). Last and
-    not least you made it really easy to review. Thanks @Xitian9, great work.
-
-- lib, cli: Introduce convenience function compoundBalanceReport. (Stephen Morgan)
-
-- lib, cli: Move CompoundBalanceReport into ReportTypes, compoundReportWith into MultiBalanceReport, share postings amongst subreports. (Stephen Morgan)
-
-- lib: Move unifyMixedAmount to Hledger.Data.Amount, make it return Maybe Amount, export it. (Stephen Morgan)
-
-- add lower bound needed for aeson, to help cabal (#1268)
+    improvement introduced by hledger (tabular multiperiod balance reports)
+    ...
+    Thanks @Xitian9, great work."
 
 # 1.18.1 2020-06-21
 

@@ -1,9 +1,18 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 44c3eb19
+# 818dea3e
 
-- add lower bound needed for aeson, to help cabal (#1268)
+- Queries containing a malformed regular expression (eg the single
+  character `?`) now show a tidy error message instead "internal
+  server error" (Stephen Morgan, Simon Michael) (#1245)
+
+- In account registers, a transaction dated outside the report period
+  now is not shown even if it has postings dated inside the report
+  period.
+
+- Added a missing lower bound for aeson, making cabal installs more
+  reliable. (#1268)
 
 # 1.18.1 2020-06-21
 

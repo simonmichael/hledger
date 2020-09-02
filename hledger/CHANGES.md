@@ -1,21 +1,52 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 44c3eb19
+# 818dea3e
 
-- balcmds: elide amounts with 3 or more commodities, unless --no-elide
-  Multicolumn balance reports showing many commodities tend to become
-  unreadably wide, especially in tree mode. Now by default we show at
-  most two commodities, and a count of the rest if there are more than
-  two. This should help keep reports somewhat readable by default.
+## general
 
-- bal: warn about #1279 in manual
+- When parsing dates, the year is now required to have at least four
+  digits. So eg we no longer accept `200/1/1` as a valid date, it
+  would need to be written `0200/1/1`. This was done for.. reasons,
+  and is experimental; let us know if it causes you trouble.
 
-- cli: for options taking a numeric argument, we now validate the
-  argument more carefully, avoiding unexpected negatives or Int
+- The --color/--colour=WHEN command line option, support for the
+  NO_COLOR environment variable, and smarter autodetection of colour
+  terminals have been added (#1296)
+
+- Command line options taking a numeric argument are now validated
+  more carefully, preventing issues with unexpected negatives or Int
   overflow. (Stephen Morgan)
 
-- cli: debug output is now organised better by debug level.
+- In queries, you can now specify a quarter like `2020q1` or `q4`
+  (the q is case-insensitive). (#1247, Henning Thieleman, Stephen Morgan)
+
+- In report intervals, `fortnightly` has been added as a synonym for
+  `biweekly`. (Stephen Morgan)
+
+- -t and -l command line flags have been added as short forms of
+  --tree and --flat (#1286)
+
+- All reports displaying accounts now choose flat mode by default
+  (Stephen Morgan)
+
+- Reports now show at most 2 commodities of multicommodity amounts,
+  unless the --no-elide flag is used. This helps keep them readable by
+  default, since multicolumn, multicommodity balance reports otherwise
+  tend to become very wide, especially in tree mode.
+
+- Numbers with more than 255 decimal places, which we do not support,
+  now give an error instead of silently misparsing. (#1326)
+
+- Digit groups are now limited to at most 255 digits each. (#1326)
+
+- Account aliases (on command line or in journal) containing a bad
+  regular expression now give a more detailed error message.
+
+- A tab character could get parsed as part of a commodity symbol, with
+  confusing results. This no longer happens. (#1301, Dmitry Astapov)
+
+- Debug output is now organised better by debug level.
   The levels are:
 
   0. normal command output only (no warnings)
@@ -29,30 +60,80 @@ User-visible changes in the hledger command line tool and library.
   8. command line parsing
   9. any other rarely needed or more in-depth info
 
-- lib: Using --drop in tree mode with boring parent ellision no longer considers all parents boring. Add tests to check this fact. (Stephen Morgan)
+- Added a missing lower bound for aeson, making cabal installs more
+  reliable. (#1268)
 
-- add lower bound needed for aeson, to help cabal (#1268)
+- lib: parseAmountQueryTerm: allow whitespace around arg parts (#1312)
+  Whitespace around the operator, sign, or number is now tolerated.
 
-- lib: Add fortnightly as a synonym for biweekly. (Stephen Morgan)
+## commands
 
-- bal: --drop now works in tree mode balance reports also. (Stephen Morgan)
+- account,bal,bs,cf,is: --drop now also works in tree mode (Stephen Morgan)
 
-- bal: Boring parents are now elided in tabular balance reports, as in simple balance reports. (Stephen Morgan)
+- add: fix an error in the command line help (arguments are inputs,
+  not a query)
 
-- csv: speed up csv conversion performance when there are a lot of
-  conditional rules (Dmitry Astapov)
+- aregister: a new command showing a transaction-oriented account
+  register, like hledger-ui, hledger-web, or your bank statement. 
+  Each line represents a whole transaction in one account, unlike
+  the register command which shows individual postings possibly from
+  multiple accounts. You might prefer aregister when reconciling
+  real-world asset/liability accounts, and register when reviewing
+  detailed revenues/expenses. (#1294)
 
-- csv: add "if tables" to csv rules, a more compact format for conditional
-  rules (Dmitry Astapov)
+- bal,bs,cf,is: boring parents are now elided by default in tabular
+  balance reports too, like single-column reports. (Stephen Morgan)
 
-- csv: fix a bug in the csv rules parser that was causing vague parse error
-  messages (Dmitry Astapov)
+- bal,bs,cf,is: monthly column headings are no longer elided to just
+  the short month name, if multiple years are being displayed.
 
-- print: sql output format (Dmitry Astapov)
+- bal --budget's column headings are now end dates rather than
+  periods when appropriate (ie with --cumulative or --historical).
 
-- bs,cf,is: --no-total hides subtotals as well as the grand total (Stephen Morgan)
+- bs,cf,is: -%/--no-total no longer forces --no-total (Stephen Morgan)
 
-- roi: show errors without a traceback
+- bs,cf,is: --no-total now hides subtotals as well as the grand total
+  (Stephen Morgan)
+
+- codes: a new command for listing transaction codes
+
+- print: a new `sql` output format has been added (Dmitry Astapov)
+
+- roi: errors are now shown without a call stack
+
+- tags: add --parsed flag, hide empties without --empty. With the
+  --parsed flag, all tags or values are shown in the order they are
+  parsed from the input data, including duplicates. With -E/--empty,
+  any blank/empty values will also be shown, otherwise they are
+  omitted.
+
+## journal format
+
+- account directives can specify a new `Cash` account type. This is a
+  subtype of `Asset`, denoting accounts which should be displayed
+  in `cashflow` reports. 
+  
+- The built-in regular expressions for choosing default account types
+  have been tweaked, and documentation for account types has been
+  improved.
+
+## csv format
+
+- Inferring the appropriate default field separator based on file
+  extension (, for .csv, ; for .ssv, \t for .tsv) now works as
+  documented.
+
+- Conditional rule patterns can now be grouped with the `&` (AND) operator,
+  allowing more powerful matching. (Michael Sanders)
+
+- Invalid csv rules files now give clearer parse error messages.
+  (Dmitry Astapov)
+
+- "If tables", a compact bulk format for conditional rules, have been
+  added. (Dmitry Astapov)
+
+- csv conversion with a lot of conditional rules is now faster (Dmitry Astapov)
+
 
 # 1.18.1 2020-06-21
 

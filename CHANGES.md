@@ -1,16 +1,24 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 7881edfc
+# ba59fed6
 
-- stack: bump default stack file to lts 16
+- example scripts:
 
-- bin: hledger-check: use stack script command
+  - stack scripts now use stack's script command consistently
+  - stack scripts no longer have explicit --package lists, stack
+    infers them from the imports
+  - hledger-print-location: new script
 
-- ci: separate quick and full tests again, update
-  The linux full tests no longer test GHC 8.0,
-  and all full tests now always compile all modules
-  and generate optimised binaries.
+- CI: 
+
+  - always recompile all modules for robustness
+  - generate optimised binaries, which can be downloaded
+  - build a single different GHC version with each workflow, reducing
+    total building and carbon footprint a bit
+  - stop building with GHC 8.0
+
+- the default stack file now uses lts 16.12 (ghc 8.8.4)
 
 # 1.18.1 2020-06-21
 
