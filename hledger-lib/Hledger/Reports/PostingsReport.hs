@@ -65,20 +65,20 @@ type SummaryPosting = (Posting, Day)
 
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
-postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
-postingsReport ropts@ReportOpts{..} q j =
+postingsReport :: ReportOpts -> Journal -> PostingsReport
+postingsReport ropts@ReportOpts{..} j =
   (totallabel, items)
     where
-      reportspan  = adjustReportDates ropts q j
+      reportspan  = adjustReportDates ropts j
       whichdate   = whichDateFromOpts ropts
-      mdepth      = queryDepth q
+      mdepth      = queryDepth query_
       styles      = journalCommodityStyles j
       priceoracle = journalPriceOracle infer_value_ j
       multiperiod = interval_ /= NoInterval
       today       = fromMaybe (error' "postingsReport: could not pick a valuation date, ReportOpts today_ is unset") today_  -- PARTIAL:
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
-      (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts q j reportspan
+      (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts j reportspan
 
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
@@ -140,11 +140,11 @@ totallabel = "Total"
 -- 1. If the start date is unspecified, use the earliest date in the journal (if any)
 -- 2. If the end date is unspecified, use the latest date in the journal (if any)
 -- 3. If a report interval is specified, enlarge the dates to enclose whole intervals
-adjustReportDates :: ReportOpts -> Query -> Journal -> DateSpan
-adjustReportDates opts q j = reportspan
+adjustReportDates :: ReportOpts -> Journal -> DateSpan
+adjustReportDates opts j = reportspan
   where
     -- see also multiBalanceReport
-    requestedspan       = dbg3 "requestedspan"       $ queryDateSpan' q                                       -- span specified by -b/-e/-p options and query args
+    requestedspan       = dbg3 "requestedspan"       $ queryDateSpan' $ query_ opts                           -- span specified by -b/-e/-p options and query args
     journalspan         = dbg3 "journalspan"         $ dates `spanUnion` date2s                               -- earliest and latest dates (or date2s) in the journal
       where
         dates  = journalDateSpan False j
@@ -159,10 +159,11 @@ adjustReportDates opts q j = reportspan
 -- and also any similarly-matched postings before that date span.
 -- Date restrictions and depth restrictions in the query are ignored.
 -- A helper for the postings report.
-matchedPostingsBeforeAndDuring :: ReportOpts -> Query -> Journal -> DateSpan -> ([Posting],[Posting])
-matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
+matchedPostingsBeforeAndDuring :: ReportOpts -> Journal -> DateSpan -> ([Posting],[Posting])
+matchedPostingsBeforeAndDuring opts j (DateSpan mstart mend) =
   dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
+    q = query_ opts
     beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing mstart
     beforeandduringps =
       dbg5 "ps5" $ sortOn sortdate $                                           -- sort postings by date or date2
@@ -179,7 +180,7 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
             dateless   = filterQuery (not . queryIsDateOrDate2)
             beforeendq = dateqtype $ DateSpan Nothing mend
         sortdate = if date2_ opts then postingDate2 else postingDate
-        symq = dbg4 "symq" $ filterQuery queryIsSym q
+        symq = dbg4 "symq" . filterQuery queryIsSym $ query_ opts
     dateqtype
       | queryIsDate2 dateq || (queryIsDate dateq && date2_ opts) = Date2
       | otherwise = Date
@@ -270,7 +271,7 @@ negatePostingAmount p = p { pamount = negate $ pamount p }
 tests_PostingsReport = tests "PostingsReport" [
 
    test "postingsReport" $ do
-    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) @?= n
+    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts{query_=query} journal) @?= n
     -- with the query specified explicitly
     (Any, nulljournal) `gives` 0
     (Any, samplejournal) `gives` 13
@@ -279,10 +280,10 @@ tests_PostingsReport = tests "PostingsReport" [
     (And [Depth 1, StatusQ Cleared, Acct (toRegex' "expenses")], samplejournal) `gives` 2
     (And [And [Depth 1, StatusQ Cleared], Acct (toRegex' "expenses")], samplejournal) `gives` 2
     -- with query and/or command-line options
-    (length $ snd $ postingsReport defreportopts Any samplejournal) @?= 13
-    (length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal) @?= 11
-    (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal) @?= 20
-    (length $ snd $ postingsReport defreportopts (Acct (toRegex' "assets:bank:checking")) samplejournal) @?= 5
+    (length $ snd $ postingsReport defreportopts samplejournal) @?= 13
+    (length $ snd $ postingsReport defreportopts{interval_=Months 1} samplejournal) @?= 11
+    (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} samplejournal) @?= 20
+    (length $ snd $ postingsReport defreportopts{query_=Acct $ toRegex' "assets:bank:checking"} samplejournal) @?= 5
 
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
      -- [(Just (fromGregorian 2008 01 01,"income"),assets:bank:checking             $1,$1)

@@ -25,10 +25,9 @@ pricesmode = hledgerCommandMode
 
 -- XXX the original hledger-prices script always ignored assertions
 prices opts j = do
-  d <- getCurrentDay
   let
     styles     = journalCommodityStyles j
-    q          = queryFromOpts d (reportopts_ opts)
+    q          = query_ $ reportopts_ opts
     ps         = filter (matchesPosting q) $ allPostings j
     mprices    = jpricedirectives j
     cprices    = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts ps

@@ -32,9 +32,7 @@ descriptionsmode = hledgerCommandMode
 -- | The descriptions command.
 descriptions :: CliOpts -> Journal -> IO ()
 descriptions CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let q  = queryFromOpts d ropts
-      ts = entriesReport ropts q j
+  let ts = entriesReport ropts j
       descriptions = nubSort $ map tdescription ts
 
   mapM_ T.putStrLn descriptions

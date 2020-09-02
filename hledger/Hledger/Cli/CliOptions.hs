@@ -518,8 +518,7 @@ getHledgerCliOpts' mode' args' = do
         putStrLn $ "running: " ++ progname'
         putStrLn $ "raw args: " ++ show args'
         putStrLn $ "processed opts:\n" ++ show opts
-        d <- getCurrentDay
-        putStrLn $ "search query: " ++ show (queryFromOpts d $ reportopts_ opts)
+        putStrLn $ "search query: " ++ show (query_ $ reportopts_ opts)
 
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do

@@ -9,7 +9,7 @@ module Hledger.Cli.Commands.Rewrite (
 where
 
 #if !(MIN_VERSION_base(4,11,0))
-import Control.Monad.Writer
+import Control.Monad.Writer hiding (Any)
 #endif
 import Data.Functor.Identity
 import Data.List (sortOn, foldl')
@@ -42,15 +42,15 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = d
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
   let j' = j{jtxns=either error' id $ modifyTransactions d modifiers ts}  -- PARTIAL:
   -- run the print command, showing all transactions, or show diffs
-  printOrDiff rawopts opts{reportopts_=ropts{query_=""}} j j'
+  printOrDiff rawopts opts{reportopts_=ropts{query_=Any}} j j'
 
 -- | Build a 'TransactionModifier' from any query arguments and --add-posting flags
 -- provided on the command line, or throw a parse error.
 transactionModifierFromOpts :: CliOpts -> TransactionModifier
-transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} =
-  TransactionModifier{tmquerytxt=q, tmpostingrules=ps}
+transactionModifierFromOpts CliOpts{rawopts_=rawopts} =
+    TransactionModifier{tmquerytxt=q, tmpostingrules=ps}
   where
-    q = T.pack $ query_ ropts
+    q = T.pack . unwords . map quoteIfNeeded $ listofstringopt "args" rawopts
     ps = map (parseposting . T.pack) $ listofstringopt "add-posting" rawopts
     parseposting t = either (error' . errorBundlePretty) id ep  -- PARTIAL:
       where

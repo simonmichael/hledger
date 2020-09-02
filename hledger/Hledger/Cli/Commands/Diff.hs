@@ -102,11 +102,11 @@ unmatchedtxns s pp m =
 
 -- | The diff command.
 diff :: CliOpts -> Journal -> IO ()
-diff CliOpts{file_=[f1, f2], reportopts_=ReportOpts{query_=acctName}} _ = do
+diff CliOpts{file_=[f1, f2], reportopts_=ReportOpts{query_=Acct acctRe}} _ = do
   j1 <- readJournalFile' f1
   j2 <- readJournalFile' f2
 
-  let acct = T.pack acctName
+  let acct = T.pack $ reString acctRe
   let pp1 = matchingPostings acct j1
   let pp2 = matchingPostings acct j2
 

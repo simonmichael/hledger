@@ -33,10 +33,7 @@ codesmode = hledgerCommandMode
 -- | The codes command.
 codes :: CliOpts -> Journal -> IO ()
 codes CliOpts{reportopts_=ropts@ReportOpts{empty_}} j = do
-  d <- getCurrentDay
-  let q  = queryFromOpts d ropts
-      ts = entriesReport ropts q j
+  let ts = entriesReport ropts j
       codes = (if empty_ then id else filter (not . T.null)) $
               map tcode ts
-
   mapM_ T.putStrLn codes

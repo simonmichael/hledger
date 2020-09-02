@@ -22,10 +22,8 @@ checkdatesmode = hledgerCommandMode
 
 checkdates :: CliOpts -> Journal -> IO ()
 checkdates CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
-  d <- getCurrentDay
   let ropts_ = ropts{accountlistmode_=ALFlat}
-  let q = queryFromOpts d ropts_
-  let ts = filter (q `matchesTransaction`) $
+  let ts = filter (query_ ropts_ `matchesTransaction`) $
            jtxns $ journalSelectingAmountFromOpts ropts j
   let strict = boolopt "strict" rawopts
   let date = transactionDateFn ropts

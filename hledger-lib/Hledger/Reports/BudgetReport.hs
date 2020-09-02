@@ -33,7 +33,6 @@ import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
-import Data.Time.Calendar
 import Safe
 --import Data.List
 --import Data.Maybe
@@ -66,8 +65,8 @@ type BudgetReport    = PeriodicReport    DisplayName BudgetCell
 -- actual balance changes from the regular transactions,
 -- and compare these to get a 'BudgetReport'.
 -- Unbudgeted accounts may be hidden or renamed (see budgetRollup).
-budgetReport :: ReportOpts -> Bool -> DateSpan -> Day -> Journal -> BudgetReport
-budgetReport ropts' assrt reportspan d j = dbg1 "sortedbudgetreport" budgetreport
+budgetReport :: ReportOpts -> Bool -> DateSpan -> Journal -> BudgetReport
+budgetReport ropts' assrt reportspan j = dbg1 "sortedbudgetreport" budgetreport
   where
     -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
     -- and that reports with and without --empty make sense when compared side by side
@@ -84,9 +83,9 @@ budgetReport ropts' assrt reportspan d j = dbg1 "sortedbudgetreport" budgetrepor
     actualj = dbg1With (("actualj"++).show.jtxns)  $ budgetRollUp budgetedaccts showunbudgeted j
     budgetj = dbg1With (("budgetj"++).show.jtxns)  $ budgetJournal assrt ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
-        dbg1 "actualreport" $ multiBalanceReport d ropts{empty_=True} actualj
+        dbg1 "actualreport" $ multiBalanceReport ropts{empty_=True} actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
-        dbg1 "budgetgoalreport" $ multiBalanceReport d ropts{empty_=True} budgetj
+        dbg1 "budgetgoalreport" $ multiBalanceReport ropts{empty_=True} budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;

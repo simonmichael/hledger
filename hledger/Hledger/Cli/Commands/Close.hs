@@ -73,7 +73,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
 
     -- dates of the closing and opening transactions
     ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
-    q = queryFromOpts today ropts_
+    q = query_ ropts_
     openingdate = fromMaybe today $ queryEndDate False q
     closingdate = addDays (-1) openingdate
 
@@ -86,7 +86,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                   False -> normaliseMixedAmount . mixedAmountStripPrices
 
     -- the balances to close
-    (acctbals,_) = balanceReport ropts_ q j
+    (acctbals,_) = balanceReport ropts_ j
     totalamt = sum $ map (\(_,_,_,b) -> normalise b) acctbals
 
     -- since balance assertion amounts are required to be exact, the

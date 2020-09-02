@@ -59,6 +59,7 @@ module Hledger.Query (
 where
 
 import Control.Applicative ((<|>), many, optional)
+import Data.Default (Default(..))
 import Data.Either (partitionEithers)
 import Data.List (partition)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
@@ -104,6 +105,8 @@ data Query = Any              -- ^ always match
            | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
                                         -- matching the regexp if provided, exists
     deriving (Eq,Show)
+
+instance Default Query where def = Any
 
 -- | Construct a payee tag
 payeeTag :: Maybe String -> Either RegexError Query
