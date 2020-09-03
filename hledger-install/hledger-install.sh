@@ -50,7 +50,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's version
-HLEDGER_INSTALL_VERSION=20200901
+HLEDGER_INSTALL_VERSION=20200903
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or 
@@ -78,7 +78,7 @@ HLEDGER_UI_VERSION=1.19
 HLEDGER_WEB_VERSION=1.19
 
 HLEDGER_IADD_VERSION=1.3.12
-HLEDGER_INTEREST_VERSION=1.5.5
+HLEDGER_INTEREST_VERSION=1.6.0
 
 # extra dependencies that aren't in stackage:
 EXTRA_DEPS="\
@@ -1033,12 +1033,11 @@ if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) 
   echo
 fi
 
-# XXX reenable when it supports hledger 1.19
-# if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
-#   echo Installing hledger-interest
-#   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
-#   echo
-# fi
+ if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
+   echo Installing hledger-interest
+   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $EXTRA_DEPS
+   echo
+ fi
 
 # show new installation status
 echo
