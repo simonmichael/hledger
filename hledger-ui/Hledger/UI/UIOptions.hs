@@ -58,15 +58,17 @@ uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
 
 -- hledger-ui options, used in hledger-ui and above
 data UIOpts = UIOpts {
-     watch_   :: Bool
-    ,change_  :: Bool
-    ,cliopts_ :: CliOpts
+     watch_       :: Bool
+    ,change_      :: Bool
+    ,cliopts_     :: CliOpts
+    ,querystring_ :: String
  } deriving (Show)
 
 defuiopts = UIOpts
     def
     def
     def
+    ""
 
 -- instance Default CliOpts where def = defcliopts
 
@@ -74,9 +76,10 @@ rawOptsToUIOpts :: RawOpts -> IO UIOpts
 rawOptsToUIOpts rawopts = checkUIOpts <$> do
   cliopts <- rawOptsToCliOpts rawopts
   return defuiopts {
-              watch_   = boolopt "watch" rawopts
-             ,change_  = boolopt "change" rawopts
-             ,cliopts_ = cliopts
+              watch_       = boolopt "watch" rawopts
+             ,change_      = boolopt "change" rawopts
+             ,cliopts_     = cliopts
+             ,querystring_ = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts
              }
 
 checkUIOpts :: UIOpts -> UIOpts
@@ -94,4 +97,3 @@ getHledgerUIOpts = do
   let args' = replaceNumericFlags args
   let cmdargopts = either usageError id $ process uimode args'
   rawOptsToUIOpts cmdargopts
-

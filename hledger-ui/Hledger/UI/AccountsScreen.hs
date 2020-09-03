@@ -81,9 +81,7 @@ asInit d reset ui@UIState{
                         as = map asItemAccountName displayitems
 
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
-    ropts' = ropts{accountlistmode_=if tree_ ropts then ALTree else ALFlat}
-
-    q = And [queryFromOpts d ropts, excludeforecastq (forecast_ ropts)]
+    ropts' = ropts{query_=simplifyQuery $ And [query_ ropts, excludeforecastq (forecast_ ropts)]}
       where
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq (Just _) = Any
@@ -94,7 +92,7 @@ asInit d reset ui@UIState{
           ]
 
     -- run the report
-    (items,_total) = balanceReport ropts' q j
+    (items,_total) = balanceReport ropts' j
 
     -- pre-render the list items
     displayitem (fullacct, shortacct, indent, bal) =
@@ -119,7 +117,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts},querystring_=query}
               ,ajournal=j
               ,aScreen=s@AccountsScreen{}
               ,aMode=mode
@@ -174,7 +172,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> toggles
           <+> str (" account " ++ if ishistorical then "balances" else "changes")
           <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
-          <+> borderQueryStr querystr
+          <+> borderQueryStr query
           <+> borderDepthStr mdepth
           <+> str (" ("++curidx++"/"++totidx++")")
           <+> (if ignore_assertions_ $ inputopts_ copts
@@ -192,7 +190,6 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,uiShowStatus copts $ statuses_ ropts
               ,if real_ ropts then ["real"] else []
               ]
-            querystr = query_ ropts
             mdepth = depth_ ropts
             curidx = case _asList s ^. listSelectedL of
                        Nothing -> "-"

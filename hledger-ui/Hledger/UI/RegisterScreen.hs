@@ -69,7 +69,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
     ropts' = ropts{
                depth_=Nothing
               }
-    q = And [queryFromOpts d ropts', excludeforecastq (forecast_ ropts)]
+    q = And [query_ ropts', excludeforecastq (forecast_ ropts)]
       where
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq (Just _) = Any
@@ -138,7 +138,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts},querystring_=query}
               ,aScreen=RegisterScreen{..}
               ,aMode=mode
               } =
@@ -201,7 +201,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> togglefilters
           <+> str " transactions"
           -- <+> str (if ishistorical then " historical total" else " period total")
-          <+> borderQueryStr (query_ ropts)
+          <+> borderQueryStr query
           -- <+> str " and subs"
           <+> borderPeriodStr "in" (period_ ropts)
           <+> str " ("

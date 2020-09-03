@@ -58,8 +58,7 @@ runWith opts
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
-  d <- getCurrentDay
-  let initq = queryFromOpts d $ reportopts_ $ cliopts_ opts
+  let initq = query_ . reportopts_ $ cliopts_ opts
       j' = filterJournalTransactions initq j
       h = host_ opts
       p = port_ opts
