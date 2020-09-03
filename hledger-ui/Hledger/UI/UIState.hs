@@ -8,10 +8,11 @@ module Hledger.UI.UIState
 where
 
 import Brick.Widgets.Edit
-import Data.List
+import Data.List ((\\), foldl', sort)
+import Data.Maybe (fromMaybe)
+import qualified Data.Text as T
 import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
-import Data.Maybe (fromMaybe)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -239,7 +240,8 @@ resetReportPeriod = setReportPeriod PeriodAll
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{query_=s}}}}
+    ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{query_=q}},querystring_=s}}
+  where q = either (const None) fst . parseQuery undefined $ T.pack s
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
@@ -248,7 +250,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
      empty_=True
     ,statuses_=[]
     ,real_=False
-    ,query_=""
+    ,query_=Any
     --,period_=PeriodAll
     }}}}
 
@@ -305,7 +307,7 @@ showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui
   where
     e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
-    oldq = query_ $ reportopts_ $ cliopts_ $ aopts ui
+    oldq = querystring_ $ aopts ui
 
 -- | Close the minibuffer, discarding any edit in progress.
 closeMinibuffer :: UIState -> UIState

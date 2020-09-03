@@ -130,7 +130,7 @@ instance Yesod App where
           }
         accounts =
           balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j q qopts $
-          balanceReport ropts' m j
+          balanceReport ropts'{query_=m} j
 
         topShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text
         topShowsm = if showSidebar then "col-sm-4" else "" :: Text
@@ -265,7 +265,7 @@ getCurrentJournal jref opts d = do
   j <- liftIO (readIORef jref)
   (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
   -- re-apply any initial filter specified at startup
-  let initq = queryFromOpts d (reportopts_ opts)
+  let initq = query_ $ reportopts_ opts
   case (changed, filterJournalTransactions initq <$> ej) of
     (False, _) -> return (j, Nothing)
     (True, Right j') -> do

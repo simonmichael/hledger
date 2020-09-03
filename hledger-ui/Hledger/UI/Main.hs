@@ -17,7 +17,6 @@ import Control.Concurrent.Async
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
 -- import Data.Monoid              --
-import Data.List
 import Data.List.Extra (nubSort)
 import Data.Maybe
 -- import Data.Text (Text)
@@ -83,10 +82,9 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
          reportopts_= ropts{
             -- incorporate any depth: query args into depth_,
             -- any date: query args into period_
-            depth_ =queryDepth q,
+            depth_ =queryDepth $ query_ ropts,
             period_=periodfromoptsandargs,
-            query_ =unwords -- as in ReportOptions, with same limitations
-                    $ collectopts filteredQueryArg (rawopts_ copts),
+            query_ =filteredQuery $ query_ ropts, -- as in ReportOptions, with same limitations
             -- always disable boring account name eliding, unlike the CLI, for a more regular tree
             no_elide_=True,
             -- flip the default for items with zero amounts, show them by default
@@ -97,16 +95,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
          }
       }
       where
-        q = queryFromOpts d ropts
-        datespanfromargs = queryDateSpan (date2_ ropts) $ fst $
-                           either error' id $ parseQuery d (T.pack $ query_ ropts)  -- PARTIAL:
+        datespanfromargs = queryDateSpan (date2_ ropts) $ query_ ropts
         periodfromoptsandargs =
           dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
-        filteredQueryArg = \case
-            ("args", v)
-                | not $ any (`isPrefixOf` v) ["depth:", "date:"] -- skip depth/date passed as query
-                    -> Just (quoteIfNeeded v)
-            _ -> Nothing
+        filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
+          where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
     -- XXX move this stuff into Options, UIOpts
     theme = maybe defaultTheme (fromMaybe defaultTheme . getTheme) $
