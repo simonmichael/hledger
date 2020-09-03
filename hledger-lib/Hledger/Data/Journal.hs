@@ -300,7 +300,7 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 -- or otherwise for accounts with names matched by the case-insensitive 
 -- regular expression @^assets?(:|$)@.
 journalAssetAccountQuery :: Journal -> Query
-journalAssetAccountQuery = journalAccountTypeQuery [Asset,Cash] (toRegex' "^assets?(:|$)")
+journalAssetAccountQuery = journalAccountTypeQuery [Asset,Cash] (toRegexCI' "^assets?(:|$)")
 
 -- | A query for "Cash" (liquid asset) accounts in this journal, ie accounts
 -- declared as Cash by account directives, or otherwise with names matched by the 
@@ -309,7 +309,7 @@ journalAssetAccountQuery = journalAccountTypeQuery [Asset,Cash] (toRegex' "^asse
 journalCashAccountQuery  :: Journal -> Query
 journalCashAccountQuery j =
   case M.lookup Cash (jdeclaredaccounttypes j) of
-    Nothing -> And [ journalAssetAccountQuery j, Not . Acct $ toRegex' "(investment|receivable|:A/R|:fixed)" ]
+    Nothing -> And [ journalAssetAccountQuery j, Not . Acct $ toRegexCI' "(investment|receivable|:A/R|:fixed)" ]
     Just _  -> journalAccountTypeQuery [Cash] notused j
       where notused = error' "journalCashAccountQuery: this should not have happened!"  -- PARTIAL:
 
@@ -318,28 +318,28 @@ journalCashAccountQuery j =
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(debts?|liabilit(y|ies))(:|$)@.
 journalLiabilityAccountQuery :: Journal -> Query
-journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] (toRegex' "^(debts?|liabilit(y|ies))(:|$)")
+journalLiabilityAccountQuery = journalAccountTypeQuery [Liability] (toRegexCI' "^(debts?|liabilit(y|ies))(:|$)")
 
 -- | A query for accounts in this journal which have been
 -- declared as Equity by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^equity(:|$)@.
 journalEquityAccountQuery :: Journal -> Query
-journalEquityAccountQuery = journalAccountTypeQuery [Equity] (toRegex' "^equity(:|$)")
+journalEquityAccountQuery = journalAccountTypeQuery [Equity] (toRegexCI' "^equity(:|$)")
 
 -- | A query for accounts in this journal which have been
 -- declared as Revenue by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^(income|revenue)s?(:|$)@.
 journalRevenueAccountQuery :: Journal -> Query
-journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] (toRegex' "^(income|revenue)s?(:|$)")
+journalRevenueAccountQuery = journalAccountTypeQuery [Revenue] (toRegexCI' "^(income|revenue)s?(:|$)")
 
 -- | A query for accounts in this journal which have been
 -- declared as Expense by account directives, or otherwise for
 -- accounts with names matched by the case-insensitive regular expression
 -- @^expenses?(:|$)@.
 journalExpenseAccountQuery  :: Journal -> Query
-journalExpenseAccountQuery = journalAccountTypeQuery [Expense] (toRegex' "^expenses?(:|$)")
+journalExpenseAccountQuery = journalAccountTypeQuery [Expense] (toRegexCI' "^expenses?(:|$)")
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.

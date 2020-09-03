@@ -16,7 +16,9 @@ module Hledger.Data.AccountName (
   ,accountNameFromComponents
   ,accountNameLevel
   ,accountNameToAccountOnlyRegex
+  ,accountNameToAccountOnlyRegexCI
   ,accountNameToAccountRegex
+  ,accountNameToAccountRegexCI
   ,accountNameTreeFrom
   ,accountSummarisedName
   ,acctsep
@@ -218,9 +220,19 @@ escapeName = T.unpack . T.concatMap escapeChar
 accountNameToAccountRegex :: AccountName -> Regexp
 accountNameToAccountRegex a = toRegex' $ '^' : escapeName a ++ "(:|$)"  -- PARTIAL: Is this safe after escapeName?
 
+-- | Convert an account name to a regular expression matching it and its subaccounts,
+-- case insensitively.
+accountNameToAccountRegexCI :: AccountName -> Regexp
+accountNameToAccountRegexCI a = toRegexCI' $ '^' : escapeName a ++ "(:|$)"  -- PARTIAL: Is this safe after escapeName?
+
 -- | Convert an account name to a regular expression matching it but not its subaccounts.
 accountNameToAccountOnlyRegex :: AccountName -> Regexp
 accountNameToAccountOnlyRegex a = toRegex' $ '^' : escapeName a ++ "$" -- PARTIAL: Is this safe after escapeName?
+
+-- | Convert an account name to a regular expression matching it but not its subaccounts,
+-- case insensitively.
+accountNameToAccountOnlyRegexCI :: AccountName -> Regexp
+accountNameToAccountOnlyRegexCI a = toRegexCI' $ '^' : escapeName a ++ "$" -- PARTIAL: Is this safe after escapeName?
 
 -- -- | Does this string look like an exact account-matching regular expression ?
 --isAccountRegex  :: String -> Bool
