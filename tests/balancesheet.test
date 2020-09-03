@@ -1,10 +1,9 @@
 # 1. trivial balance sheet
-hledger -f - balancesheet
-<<<
+<
 2016/1/1
   assets  1
   b
->>>
+$ hledger -f - balancesheet
 Balance Sheet 2016-01-01
 
              || 2016-01-01 
@@ -21,8 +20,6 @@ Balance Sheet 2016-01-01
              ||            
 =============++============
  Net:        ||          1 
->>>2
->>>= 0
 
 # 2. monthly balance sheet, normal positive sign
 # old (arithmetic sign):
@@ -46,8 +43,7 @@ Balance Sheet 2016-01-01
 #======================++================================================================================================================================================
 # Total                ||         $1          $1          $1          $1          $1           0           0           0           0           0           0           0 
 #
-hledger -f sample.journal balancesheet -p 'monthly in 2008'
->>>
+$ hledger -f sample.journal balancesheet -p 'monthly in 2008'
 Balance Sheet 2008-01-31..2008-12-31
 
                       || 2008-01-31  2008-02-29  2008-03-31  2008-04-30  2008-05-31  2008-06-30  2008-07-31  2008-08-31  2008-09-30  2008-10-31  2008-11-30  2008-12-31 
@@ -67,7 +63,6 @@ Balance Sheet 2008-01-31..2008-12-31
                       ||          0           0           0           0           0           0           0           0           0           0           0         $-1 
 ======================++================================================================================================================================================
  Net:                 ||         $1          $1          $1          $1          $1           0           0           0           0           0           0           0 
->>>=0
 
 # 3. monthly balance sheet in tree mode
 # old (arithmetic sign):
@@ -92,8 +87,7 @@ Balance Sheet 2008-01-31..2008-12-31
 #==============++================================================================================================================================================
 # Total        ||         $1          $1          $1          $1          $1           0           0           0           0           0           0           0 
 #
-hledger -f sample.journal balancesheet -p 'monthly in 2008' --tree
->>>
+$ hledger -f sample.journal balancesheet -p 'monthly in 2008' --tree
 Balance Sheet 2008-01-31..2008-12-31
 
                    || 2008-01-31  2008-02-29  2008-03-31  2008-04-30  2008-05-31  2008-06-30  2008-07-31  2008-08-31  2008-09-30  2008-10-31  2008-11-30  2008-12-31 
@@ -115,13 +109,11 @@ Balance Sheet 2008-01-31..2008-12-31
                    ||          0           0           0           0           0           0           0           0           0           0           0         $-1 
 ===================++================================================================================================================================================
  Net:              ||         $1          $1          $1          $1          $1           0           0           0           0           0           0           0 
->>>= 0
 
 # 4. monthly balancesheet with average column and without overall totals row.
 # Total column is requested but not shown because balancesheet is in historical mode
 # by default (shows ending balances).
-hledger -f sample.journal balancesheet -p 'monthly in 2008' -NAT
->>>
+$ hledger -f sample.journal balancesheet -p 'monthly in 2008' -NAT
 Balance Sheet 2008-01-31..2008-12-31
 
                       || 2008-01-31  2008-02-29  2008-03-31  2008-04-30  2008-05-31  2008-06-30  2008-07-31  2008-08-31  2008-09-30  2008-10-31  2008-11-30  2008-12-31  Average 
@@ -135,14 +127,12 @@ Balance Sheet 2008-01-31..2008-12-31
  Liabilities          ||                                                                                                                                                         
 ----------------------++---------------------------------------------------------------------------------------------------------------------------------------------------------
  liabilities:debts    ||          0           0           0           0           0           0           0           0           0           0           0         $-1        0 
->>>= 0
 
 # 5. Tree output still works, #565
-hledger -f- balancesheet
-<<<
+<
 2017/1/1
   (assets:b)  1
->>>
+$ hledger -f- balancesheet
 Balance Sheet 2017-01-01
 
              || 2017-01-01 
@@ -159,15 +149,12 @@ Balance Sheet 2017-01-01
              ||            
 =============++============
  Net:        ||          1 
->>>2
->>>=0
 
 # 6. Flat output still works, #552
-hledger -f- balancesheet --flat
-<<<
+<
 2017/1/1
   (assets:b)  1
->>>
+$ hledger -f- balancesheet --flat
 Balance Sheet 2017-01-01
 
              || 2017-01-01 
@@ -184,15 +171,12 @@ Balance Sheet 2017-01-01
              ||            
 =============++============
  Net:        ||          1 
->>>2
->>>=0
 
 # 7. An empty section does not disrupt the overall totals, #588
-hledger -f- balancesheet -YA
-<<<
+<
 2017/1/1
   (assets)  $1
->>>
+$ hledger -f- balancesheet -YA
 Balance Sheet 2017-12-31
 
              || 2017-12-31  Average 
@@ -209,16 +193,13 @@ Balance Sheet 2017-12-31
              ||                     
 =============++=====================
  Net:        ||         $1       $1 
->>>2
->>>=0
 
 # 8. --pretty-tables uses unicode chars for borders
-hledger -f - balancesheet -M --pretty-tables
-<<<
+<
 2016/1/1
   assets  1
   b
->>>
+$ hledger -f - balancesheet -M --pretty-tables
 Balance Sheet 2016-01-31
 
              ║ 2016-01-31 
@@ -235,13 +216,10 @@ Balance Sheet 2016-01-31
              ║            
 ═════════════╬════════════
  Net:        ║          1 
->>>2
->>>= 0
 
 # 9. Check that accounts brought to zero by subaccount balances
 # are not erased from balancesheet
-hledger -f - balancesheet --tree
-<<<
+<
 2018-10-01
    income:whatever
    assets:bank      $100
@@ -255,7 +233,7 @@ hledger -f - balancesheet --tree
 2018-10-03
    assets:this account should not disappear:subaccount   -$10
    assets:this account should not disappear
->>>
+$ hledger -f - balancesheet --tree
 Balance Sheet 2018-10-03
 
                                      || 2018-10-03 
@@ -276,12 +254,9 @@ Balance Sheet 2018-10-03
                                      ||            
 =====================================++============
  Net:                                ||       $120 
->>>2
->>>= 0
 
 # 10. Check that starting balances are also filtered by subreport query. (See issue #1335)
-hledger -f - balancesheet --begin 2020-03-02
-<<<
+<
 2020-03-01 * Rent
     assets:a     -$1
     expenses
@@ -289,7 +264,7 @@ hledger -f - balancesheet --begin 2020-03-02
 2020-03-25 * Salary
     assets:a      $2
     income
->>>
+$ hledger -f - balancesheet --begin 2020-03-02
 Balance Sheet 2020-03-25
 
              || 2020-03-25 
@@ -306,5 +281,3 @@ Balance Sheet 2020-03-25
              ||            
 =============++============
  Net:        ||         $1 
->>>2
->>>= 0
