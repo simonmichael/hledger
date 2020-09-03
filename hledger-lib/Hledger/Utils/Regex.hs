@@ -193,7 +193,7 @@ regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reC
               case read s of n | n `elem` indices grps -> Right $ fst (grps ! n)
                              _                         -> Left $ "no match group exists for backreference \"\\"++s++"\""
             lookupMatchGroup _ s = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
-    backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not happen
+    backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not fail
 
 -- regexReplace' :: Regexp -> Replacement -> String -> String
 -- regexReplace' re repl s =
@@ -213,7 +213,7 @@ regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reC
 --               -- PARTIAL:
 --                              _                         -> error' $ "no match group exists for backreference \"\\"++s++"\""
 --             lookupMatchGroup _ s = error' $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
---     backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not error happen
+--     backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not fail
 
 
 -- helpers

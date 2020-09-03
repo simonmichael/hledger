@@ -305,10 +305,9 @@ balancemode = hledgerCommandMode
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
 balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
-  -- PARTIAL:
   d <- getCurrentDay
   case lineFormatFromOpts ropts of
-    Left err -> error' $ unlines [err]
+    Left err -> error' $ unlines [err]  -- PARTIAL:
     Right _ -> do
       let budget      = boolopt "budget" rawopts
           multiperiod = interval_ /= NoInterval

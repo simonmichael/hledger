@@ -439,8 +439,7 @@ instance Num MixedAmount where
     fromInteger i = Mixed [fromInteger i]
     negate (Mixed as) = Mixed $ map negate as
     (+) (Mixed as) (Mixed bs) = normaliseMixedAmount $ Mixed $ as ++ bs
-    -- PARTIAL:
-    (*)    = error' "error, mixed amounts do not support multiplication"
+    (*)    = error' "error, mixed amounts do not support multiplication" -- PARTIAL:
     abs    = error' "error, mixed amounts do not support abs"
     signum = error' "error, mixed amounts do not support signum"
 
