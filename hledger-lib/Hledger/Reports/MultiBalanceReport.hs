@@ -82,6 +82,8 @@ type CompoundBalanceReport = CompoundPeriodicReport DisplayName MixedAmount
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
 
+-- Type alias for a valuation function
+type Valuation = Day -> MixedAmount -> MixedAmount
 
 
 -- | Generate a multicolumn balance report for the matched accounts,
@@ -106,6 +108,8 @@ multiBalanceReportWith ropts' j priceoracle = report
     -- Queries, report/column dates.
     reportspan = dbg "reportspan" $ calculateReportSpan ropts' j
     ropts      = dbg "reportopts" $ makeReportQuery ropts' reportspan
+    valuation  = makeValuation ropts' j priceoracle  -- Must use ropts' instead of ropts,
+                                                     -- so the reportspan isn't used for valuation
 
     -- Group postings into their columns.
     colps    = dbg'' "colps"  $ getPostingsByColumn ropts j reportspan
@@ -117,7 +121,7 @@ multiBalanceReportWith ropts' j priceoracle = report
 
     -- Generate and postprocess the report, negating balances and taking percentages if needed
     report = dbg' "report" $
-      generateMultiBalanceReport ropts j priceoracle colspans colps startbals
+      generateMultiBalanceReport ropts j valuation colspans colps startbals
 
 -- | Generate a compound balance report from a list of CBCSubreportSpec. This
 -- shares postings between the subreports.
@@ -134,6 +138,8 @@ compoundBalanceReportWith ropts' j priceoracle subreportspecs = cbr
     -- Queries, report/column dates.
     reportspan = dbg "reportspan" $ calculateReportSpan ropts' j
     ropts      = dbg "reportopts" $ makeReportQuery ropts' reportspan
+    valuation  = makeValuation ropts' j priceoracle  -- Must use ropts' instead of ropts,
+                                                     -- so the reportspan isn't used for valuation
 
     -- Group postings into their columns.
     colps    = dbg'' "colps"  $ getPostingsByColumn ropts{empty_=True} j reportspan
@@ -149,7 +155,7 @@ compoundBalanceReportWith ropts' j priceoracle subreportspecs = cbr
             ( cbcsubreporttitle
             -- Postprocess the report, negating balances and taking percentages if needed
             , prNormaliseSign cbcsubreportnormalsign $
-                generateMultiBalanceReport ropts' j priceoracle colspans colps' startbals'
+                generateMultiBalanceReport ropts' j valuation colspans colps' startbals'
             , cbcsubreportincreasestotal
             )
           where
@@ -234,6 +240,18 @@ makeReportQuery ropts reportspan
     dateless         = dbg "dateless" . filterQuery (not . queryIsDateOrDate2)
     dateqcons        = if date2_ ropts then Date2 else Date
 
+-- | Make a valuation function for valuating MixedAmounts and a given Day
+makeValuation :: ReportOpts -> Journal -> PriceOracle -> Valuation
+makeValuation ropts j priceoracle day = case value_ ropts of
+    Nothing -> id
+    Just v  -> mixedAmountApplyValuation priceoracle styles day mreportlast today multiperiod v
+  where
+    -- Some things needed if doing valuation.
+    styles = journalCommodityStyles j
+    mreportlast = reportPeriodLastDay ropts
+    today = fromMaybe (error' "multiBalanceReport: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts  -- XXX shouldn't happen
+    multiperiod = interval_ ropts /= NoInterval
+
 -- | Group postings, grouped by their column
 getPostingsByColumn :: ReportOpts -> Journal -> DateSpan -> Map DateSpan [Posting]
 getPostingsByColumn ropts j reportspan = columns
@@ -314,11 +332,11 @@ acctChangesFromPostings ropts ps = HM.fromList [(aname a, a) | a <- as]
 -- | Accumulate and value amounts, as specified by the report options.
 --
 -- Makes sure all report columns have an entry.
-accumValueAmounts :: ReportOpts -> Journal -> PriceOracle -> [DateSpan]
+accumValueAmounts :: ReportOpts -> Valuation -> [DateSpan]
                   -> HashMap ClippedAccountName Account
                   -> HashMap ClippedAccountName (Map DateSpan Account)
                   -> HashMap ClippedAccountName (Map DateSpan Account)
-accumValueAmounts ropts j priceoracle colspans startbals acctchanges =  -- PARTIAL:
+accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
     HM.mapWithKey processRow $ acctchanges <> (mempty <$ startbals)
   where
     -- Must accumulate before valuing, since valuation can change without any
@@ -342,18 +360,8 @@ accumValueAmounts ropts j priceoracle colspans startbals acctchanges =  -- PARTI
     -- We may be converting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
     valueAcct (DateSpan _ (Just end)) acct =
         acct{aibalance = value (aibalance acct), aebalance = value (aebalance acct)}
-      where value = avalue (addDays (-1) end)
-    valueAcct _ _ = error' "multiBalanceReport: expected all spans to have an end date"  -- XXX should not happen
-
-    avalue periodlast = maybe id
-        (mixedAmountApplyValuation priceoracle styles periodlast mreportlast today multiperiod) $
-        value_ ropts
-      where
-        -- Some things needed if doing valuation.
-        styles = journalCommodityStyles j
-        mreportlast = reportPeriodLastDay ropts
-        today = fromMaybe (error' "multiBalanceReport: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts  -- XXX shouldn't happen
-        multiperiod = interval_ ropts /= NoInterval
+      where value = valuation (addDays (-1) end)
+    valueAcct _ _ = error "multiBalanceReport: expected all spans to have an end date"  -- XXX should not happen
 
     startingBalanceFor a = HM.lookupDefault nullacct a startbals
     zeros = M.fromList [(span, nullacct) | span <- colspans]
@@ -362,16 +370,16 @@ accumValueAmounts ropts j priceoracle colspans startbals acctchanges =  -- PARTI
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
-generateMultiBalanceReport :: ReportOpts -> Journal -> PriceOracle -> [DateSpan]
+generateMultiBalanceReport :: ReportOpts -> Journal -> Valuation -> [DateSpan]
                            -> Map DateSpan [Posting] -> HashMap AccountName Account
                            -> MultiBalanceReport
-generateMultiBalanceReport ropts j priceoracle colspans colps startbals = report
+generateMultiBalanceReport ropts j valuation colspans colps startbals = report
   where
     -- Each account's balance changes across all columns.
     acctchanges = dbg'' "acctchanges" $ calculateAccountChanges ropts colspans colps
 
     -- Process changes into normal, cumulative, or historical amounts, plus value them
-    accumvalued = accumValueAmounts ropts j priceoracle colspans startbals acctchanges
+    accumvalued = accumValueAmounts ropts valuation colspans startbals acctchanges
 
     -- All account names that will be displayed, possibly depth-clipped.
     displaynames = dbg'' "displaynames" $ displayedAccounts ropts accumvalued
