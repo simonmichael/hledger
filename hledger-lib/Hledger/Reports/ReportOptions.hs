@@ -80,10 +80,9 @@ instance Default AccountListMode where def = ALFlat
 -- commands, as noted below.
 data ReportOpts = ReportOpts {
      -- for most reports:
-     today_          :: Maybe Day  -- ^ The current date. A late addition to ReportOpts.
-                                   -- Optional, but when set it may affect some reports:
-                                   -- Reports use it when picking a -V valuation date.
-                                   -- This is not great, adds indeterminacy.
+     today_          :: Day  -- ^ The current date. A late addition to ReportOpts.
+                             -- Reports use it when picking a -V valuation date.
+                             -- This is not great, adds indeterminacy.
     ,period_         :: Period
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
@@ -134,7 +133,7 @@ instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
-    def
+    nulldate
     def
     def
     def
@@ -184,7 +183,7 @@ rawOptsToReportOpts rawopts = do
     (argsquery, queryopts) <- either fail return $ parseQuery d querystring
 
     let reportopts = defreportopts
-          {today_       = Just d
+          {today_       = d
           ,period_      = periodFromRawOpts d rawopts
           ,interval_    = intervalFromRawOpts rawopts
           ,statuses_    = statusesFromRawOpts rawopts
@@ -486,9 +485,6 @@ specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 
 -- Get the report's start date.
 -- If no report period is specified, will be Nothing.
--- Will also be Nothing if ReportOpts does not have today_ set,
--- since we need that to get the report period robustly
--- (unlike reportStartDate, which looks up the date with IO.)
 reportPeriodStart :: ReportOpts -> Maybe Day
 reportPeriodStart = queryStartDate False . query_
 
@@ -503,9 +499,6 @@ reportPeriodOrJournalStart ropts j =
 -- This the inclusive end date (one day before the
 -- more commonly used, exclusive, report end date).
 -- If no report period is specified, will be Nothing.
--- Will also be Nothing if ReportOpts does not have today_ set,
--- since we need that to get the report period robustly
--- (unlike reportEndDate, which looks up the date with IO.)
 reportPeriodLastDay :: ReportOpts -> Maybe Day
 reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . query_
 

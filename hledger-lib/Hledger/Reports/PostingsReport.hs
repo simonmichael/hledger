@@ -75,7 +75,6 @@ postingsReport ropts@ReportOpts{..} j =
       styles      = journalCommodityStyles j
       priceoracle = journalPriceOracle infer_value_ j
       multiperiod = interval_ /= NoInterval
-      today       = fromMaybe (error' "postingsReport: could not pick a valuation date, ReportOpts today_ is unset") today_  -- PARTIAL:
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring ropts j reportspan
@@ -90,7 +89,7 @@ postingsReport ropts@ReportOpts{..} j =
         where
           showempty = empty_ || average_
           -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-          pvalue p periodlast = maybe p (postingApplyValuation priceoracle styles periodlast mreportlast today multiperiod p) value_
+          pvalue p periodlast = maybe p (postingApplyValuation priceoracle styles periodlast mreportlast today_ multiperiod p) value_
             where
               mreportlast = reportPeriodLastDay ropts
           reportorjournallast =
@@ -113,7 +112,7 @@ postingsReport ropts@ReportOpts{..} j =
               precedingsum = sumPostings precedingps
               precedingavg | null precedingps = 0
                            | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
-              bvalue = maybe id (mixedAmountApplyValuation priceoracle styles daybeforereportstart Nothing today multiperiod) value_
+              bvalue = maybe id (mixedAmountApplyValuation priceoracle styles daybeforereportstart Nothing today_ multiperiod) value_
                   -- XXX constrain valuation type to AtDate daybeforereportstart here ?
                 where
                   daybeforereportstart =

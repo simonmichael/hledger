@@ -117,10 +117,9 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
       fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
       reportPeriodOrJournalLastDay ropts j
     mreportlast = reportPeriodLastDay ropts
-    today = fromMaybe (error' "journalApplyValuation: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts -- XXX shouldn't happen
     multiperiod = interval_ ropts /= NoInterval
     tval = case value_ ropts of
-             Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast today multiperiod t v
+             Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast (today_ ropts) multiperiod t v
              Nothing -> id
     ts4 =
       ptraceAtWith 5 (("ts4:\n"++).pshowTransactions) $

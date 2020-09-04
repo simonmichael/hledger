@@ -621,7 +621,7 @@ tests_Balance = tests "Balance" [
     test "unicode in balance layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let opts = defreportopts
-      balanceReportAsText opts (balanceReport opts{today_=Just $ fromGregorian 2008 11 26} j)
+      balanceReportAsText opts (balanceReport opts{today_=fromGregorian 2008 11 26} j)
         @?=
         unlines
         ["                -100  актив:наличные"

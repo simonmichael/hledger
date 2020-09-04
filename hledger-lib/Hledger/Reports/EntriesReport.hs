@@ -41,12 +41,11 @@ entriesReport ropts@ReportOpts{..} j@Journal{..} =
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
       where
         pvalue p = maybe p
-          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast mreportlast today False p)
+          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast mreportlast today_ False p)
           value_
           where
-            periodlast  = fromMaybe today $ reportPeriodOrJournalLastDay ropts j
+            periodlast  = fromMaybe today_ $ reportPeriodOrJournalLastDay ropts j
             mreportlast = reportPeriodLastDay ropts
-            today       = fromMaybe (error' "erValue: could not pick a valuation date, ReportOpts today_ is unset") today_  -- PARTIAL: should not happen
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
