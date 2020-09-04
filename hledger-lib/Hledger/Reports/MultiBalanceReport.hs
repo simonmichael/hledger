@@ -244,12 +244,11 @@ makeReportQuery ropts reportspan
 makeValuation :: ReportOpts -> Journal -> PriceOracle -> Valuation
 makeValuation ropts j priceoracle day = case value_ ropts of
     Nothing -> id
-    Just v  -> mixedAmountApplyValuation priceoracle styles day mreportlast today multiperiod v
+    Just v  -> mixedAmountApplyValuation priceoracle styles day mreportlast (today_ ropts) multiperiod v
   where
     -- Some things needed if doing valuation.
     styles = journalCommodityStyles j
     mreportlast = reportPeriodLastDay ropts
-    today = fromMaybe (error' "multiBalanceReport: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts  -- XXX shouldn't happen
     multiperiod = interval_ ropts /= NoInterval
 
 -- | Group postings, grouped by their column

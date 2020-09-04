@@ -79,13 +79,12 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts},querystrin
           fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
           reportPeriodOrJournalLastDay ropts j
         mreportlast = reportPeriodLastDay ropts
-        today = fromMaybe (error' "TransactionScreen: could not pick a valuation date, ReportOpts today_ is unset") $ today_ ropts  -- PARTIAL:
         multiperiod = interval_ ropts /= NoInterval
 
       render $ defaultLayout toplabel bottomlabel $ str $
         showTransactionOneLineAmounts $
         (if valuationTypeIsCost ropts then transactionToCost (journalCommodityStyles j) else id) $
-        (if valuationTypeIsDefaultValue ropts then (\t -> transactionApplyValuation prices styles periodlast mreportlast today multiperiod t (AtDefault Nothing)) else id) $
+        (if valuationTypeIsDefaultValue ropts then (\t -> transactionApplyValuation prices styles periodlast mreportlast (today_ ropts) multiperiod t (AtDefault Nothing)) else id) $
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
         t
       where
