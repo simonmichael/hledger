@@ -1,6 +1,11 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# a9fbaaf2
+
+- Fix a regression in account type autodetection for accounts with
+  capitalised names. (#1341)
+
 # 1.19 2020-09-01
 
 ## general

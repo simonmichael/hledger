@@ -1,6 +1,12 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# a9fbaaf2
+
+- Added case-insensitive accountNameToAccountRegexCI,
+  accountNameToAccountOnlyRegexCI, made the default account type
+  queries case insensitive again. (#1341)
+
 # 1.19 2020-09-01
 
 - Added a missing lower bound for aeson, making cabal installs more
