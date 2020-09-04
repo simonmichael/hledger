@@ -1,6 +1,6 @@
 #!/usr/bin/env stack
 {- stack script --compile
-   --resolver=lts-15.4
+   --resolver=lts-16.12
    --package base-prelude
    --package directory
    --package extra
