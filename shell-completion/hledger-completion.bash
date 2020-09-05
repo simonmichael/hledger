@@ -119,6 +119,7 @@ check-dupes
 close
 diff
 rewrite
+aregister
 balancesheet
 balancesheetequity
 cashflow
@@ -127,8 +128,12 @@ roi
 accounts
 activity
 balance
+codes
 commodities
+descriptions
 files
+notes
+payees
 prices
 print
 print-unique
@@ -139,12 +144,14 @@ tags
 test
 help
 equity
+areg
 bs
 bse
 cf
 is
 ui
 web
+api
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/query-filters.txt"
@@ -179,6 +186,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -191,6 +199,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -199,7 +208,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -240,7 +248,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-add.txt"
 --no-new-accounts
 --pivot
 --rules-file
---separator
 --version
 -I
 -f
@@ -253,7 +260,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-import.txt"
 --auto
 --aux-date
 --begin
+--catchup
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -267,6 +276,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-import.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --new
@@ -276,7 +286,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-import.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -312,6 +321,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dates.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -324,6 +334,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dates.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -332,7 +343,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dates.txt"
 --quarterly
 --real
 --rules-file
---separator
 --strict
 --unmarked
 --value
@@ -368,6 +378,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dupes.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -380,6 +391,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dupes.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -388,7 +400,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dupes.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -423,7 +434,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-close.txt"
 --aux-date
 --begin
 --cleared
---closing
+--close
+--close-acct
+--close-desc
+--colour
 --cost
 --daily
 --date2
@@ -432,24 +446,30 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-close.txt"
 --empty
 --end
 --exchange
+--explicit
 --file
 --forecast
 --help
 --ignore-assertions
+--infer-value
+--interleaved
 --market
 --monthly
---opening
+--open
+--open-acct
+--open-desc
 --pending
 --period
 --pivot
 --quarterly
 --real
 --rules-file
---separator
+--show-costs
 --unmarked
 --value
 --version
 --weekly
+--x
 --yearly
 -5
 -B
@@ -472,6 +492,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-close.txt"
 -f
 -h
 -p
+-x
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-diff.txt"
@@ -483,7 +504,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-diff.txt"
 --ignore-assertions
 --pivot
 --rules-file
---separator
 --version
 -I
 -f
@@ -498,6 +518,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-rewrite.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -511,6 +532,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-rewrite.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -519,7 +541,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-rewrite.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -549,6 +570,71 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-rewrite.txt"
 -p
 TEXT
 
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-aregister.txt"
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--no-elide
+--output-file
+--output-format
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--txn-dates
+--unmarked
+--value
+--version
+--weekly
+--width
+--yearly
+-B
+-C
+-D
+-E
+-H
+-I
+-M
+-N
+-O
+-P
+-Q
+-R
+-U
+-V
+-W
+-X
+-Y
+-b
+-e
+-f
+-h
+-o
+-p
+-w
+TEXT
+
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
 --alias
 --anon
@@ -558,6 +644,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -575,6 +662,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -582,6 +670,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -589,7 +678,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -621,8 +709,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
@@ -634,6 +724,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -651,6 +742,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -658,6 +750,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -665,7 +758,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -697,8 +789,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
@@ -710,6 +804,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -727,6 +822,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -734,6 +830,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -741,7 +838,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -773,8 +869,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
@@ -786,6 +884,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -803,6 +902,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -810,6 +910,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -817,7 +918,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -849,8 +949,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-roi.txt"
@@ -861,6 +963,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-roi.txt"
 --begin
 --cashflow
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -873,6 +976,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-roi.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --inv
 --investment
 --market
@@ -884,7 +988,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-roi.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -919,6 +1022,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-accounts.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -934,6 +1038,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-accounts.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -942,7 +1047,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-accounts.txt"
 --quarterly
 --real
 --rules-file
---separator
 --tree
 --unmarked
 --used
@@ -969,7 +1073,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-accounts.txt"
 -e
 -f
 -h
+-l
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-activity.txt"
@@ -979,6 +1085,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-activity.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -991,6 +1098,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-activity.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -999,7 +1107,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-activity.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -1037,6 +1144,8 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 --budget
 --change
 --cleared
+--color
+--colour
 --cost
 --cumulative
 --daily
@@ -1054,6 +1163,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --invert
 --market
 --monthly
@@ -1062,6 +1172,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -1069,7 +1180,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --transpose
 --tree
@@ -1103,7 +1213,65 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 -e
 -f
 -h
+-l
 -o
+-p
+-t
+TEXT
+
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-codes.txt"
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+-B
+-C
+-D
+-E
+-I
+-M
+-N
+-P
+-Q
+-R
+-U
+-V
+-W
+-X
+-Y
+-b
+-e
+-f
+-h
 -p
 TEXT
 
@@ -1116,11 +1284,66 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-commodities.txt"
 --ignore-assertions
 --pivot
 --rules-file
---separator
 --version
 -I
 -f
 -h
+TEXT
+
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-descriptions.txt"
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+-B
+-C
+-D
+-E
+-I
+-M
+-N
+-P
+-Q
+-R
+-U
+-V
+-W
+-X
+-Y
+-b
+-e
+-f
+-h
+-p
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-files.txt"
@@ -1132,11 +1355,122 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-files.txt"
 --ignore-assertions
 --pivot
 --rules-file
---separator
 --version
 -I
 -f
 -h
+TEXT
+
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-notes.txt"
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+-B
+-C
+-D
+-E
+-I
+-M
+-N
+-P
+-Q
+-R
+-U
+-V
+-W
+-X
+-Y
+-b
+-e
+-f
+-h
+-p
+TEXT
+
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-payees.txt"
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+-B
+-C
+-D
+-E
+-I
+-M
+-N
+-P
+-Q
+-R
+-U
+-V
+-W
+-X
+-Y
+-b
+-e
+-f
+-h
+-p
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
@@ -1146,6 +1480,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --costs
 --daily
@@ -1159,6 +1494,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --inverted-costs
 --market
 --monthly
@@ -1168,7 +1504,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -1203,6 +1538,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -1216,6 +1552,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --match
 --monthly
@@ -1228,7 +1565,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -1267,6 +1603,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print-unique.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -1279,6 +1616,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print-unique.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -1287,7 +1625,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print-unique.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -1323,6 +1660,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register.txt"
 --average
 --begin
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -1337,6 +1675,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --invert
 --market
 --monthly
@@ -1349,7 +1688,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register.txt"
 --real
 --related
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -1391,6 +1729,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register-match.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -1403,6 +1742,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register-match.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -1411,7 +1751,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register-match.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -1446,6 +1785,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-stats.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -1458,6 +1798,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-stats.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --output-file
@@ -1467,7 +1808,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-stats.txt"
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
 --version
@@ -1503,6 +1843,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-tags.txt"
 --aux-date
 --begin
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -1515,17 +1856,19 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-tags.txt"
 --forecast
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
+--parsed
 --pending
 --period
 --pivot
 --quarterly
 --real
 --rules-file
---separator
 --unmarked
 --value
+--values
 --version
 --weekly
 --yearly
@@ -1552,10 +1895,12 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-tags.txt"
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-test.txt"
+--color
 --debug
 --help
 --version
 -h
+-p
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-help.txt"
@@ -1574,7 +1919,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-equity.txt"
 --aux-date
 --begin
 --cleared
---closing
+--close
+--close-acct
+--close-desc
+--colour
 --cost
 --daily
 --date2
@@ -1583,24 +1931,30 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-equity.txt"
 --empty
 --end
 --exchange
+--explicit
 --file
 --forecast
 --help
 --ignore-assertions
+--infer-value
+--interleaved
 --market
 --monthly
---opening
+--open
+--open-acct
+--open-desc
 --pending
 --period
 --pivot
 --quarterly
 --real
 --rules-file
---separator
+--show-costs
 --unmarked
 --value
 --version
 --weekly
+--x
 --yearly
 -5
 -B
@@ -1623,6 +1977,72 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-equity.txt"
 -f
 -h
 -p
+-x
+TEXT
+
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-areg.txt"
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--no-elide
+--output-file
+--output-format
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--txn-dates
+--unmarked
+--value
+--version
+--weekly
+--width
+--yearly
+-B
+-C
+-D
+-E
+-H
+-I
+-M
+-N
+-O
+-P
+-Q
+-R
+-U
+-V
+-W
+-X
+-Y
+-b
+-e
+-f
+-h
+-o
+-p
+-w
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
@@ -1634,6 +2054,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -1651,6 +2072,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -1658,6 +2080,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -1665,7 +2088,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -1697,8 +2119,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
@@ -1710,6 +2134,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -1727,6 +2152,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -1734,6 +2160,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -1741,7 +2168,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -1773,8 +2199,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
@@ -1786,6 +2214,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -1803,6 +2232,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -1810,6 +2240,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -1817,7 +2248,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -1849,8 +2279,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
@@ -1862,6 +2294,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --cumulative
 --daily
@@ -1879,6 +2312,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
 --help
 --historical
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --no-elide
@@ -1886,6 +2320,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
 --output-file
 --output-format
 --pending
+--percent
 --period
 --pivot
 --pretty-tables
@@ -1893,7 +2328,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
 --real
 --row-total
 --rules-file
---separator
 --sort-amount
 --tree
 --unmarked
@@ -1925,8 +2359,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
 -e
 -f
 -h
+-l
 -o
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
@@ -1937,6 +2373,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
 --begin
 --change
 --cleared
+--colour
 --cost
 --daily
 --date2
@@ -1948,9 +2385,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
 --file
 --flat
 --forecast
---future
 --help
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -1960,7 +2397,6 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
 --real
 --register
 --rules-file
---separator
 --theme
 --tree
 --unmarked
@@ -1973,14 +2409,12 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
 -C
 -D
 -E
--F
 -I
 -M
 -N
 -P
 -Q
 -R
--T
 -U
 -V
 -W
@@ -1990,7 +2424,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
 -e
 -f
 -h
+-l
 -p
+-t
 TEXT
 
 cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-web.txt"
@@ -2003,6 +2439,8 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-web.txt"
 --capabilities
 --capabilities-header
 --cleared
+--colour
+--cors
 --cost
 --daily
 --date2
@@ -2017,6 +2455,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-web.txt"
 --help
 --host
 --ignore-assertions
+--infer-value
 --market
 --monthly
 --pending
@@ -2026,8 +2465,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-web.txt"
 --quarterly
 --real
 --rules-file
---separator
+--serve
 --server
+--socket
 --unmarked
 --value
 --version
@@ -2050,6 +2490,20 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-web.txt"
 -Y
 -b
 -e
+-f
+-h
+-p
+TEXT
+
+cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-api.txt"
+--file
+--help
+--host
+--port
+--static-dir
+--swagger
+--version
+-d
 -f
 -h
 -p
