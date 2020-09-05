@@ -1067,4 +1067,4 @@ Clean: stackclean cleanghco cleantags \
 
 # show a final message in make help
 $(call def-help-heading,)
-$(call def-help-heading,See also ./Shake help   (after make Shake))
+$(call def-help-heading,See also ./Shake.hs help)
