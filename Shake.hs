@@ -48,7 +48,7 @@ import "base-prelude" BasePrelude
 import "base"         Control.Exception as C
 -- required packages, keep synced with Makefile -> SHAKEDEPS:
 import "directory"    System.Directory as S (getDirectoryContents)
-import "extra"        Data.List.Extra
+import "extra"        Data.List.Extra hiding (headDef, lastDef)
 import "process"      System.Process
 import "regex"        Text.RE.TDFA.String
 import "regex"        Text.RE.Replace
@@ -72,7 +72,7 @@ usage =
   ,"./Shake webmanuals       build web manuals (in site/) for all packages"
   ,"./Shake PKG              build a single hledger package and its embedded docs"
   ,"./Shake build            build all hledger packages and their embedded docs"
-  ,"./Shake setversion [VER] set version strings from */.version (or VER)"
+  ,"./Shake setversion [VER] [PKGS]  set version strings from */.version (or VER)"
   ,"./Shake changelogs       add any new non-boring commits to */CHANGES.md"
   ,"./Shake [PKG/]CHANGES.md-finalise  add version/date heading in this changelog"
   -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
@@ -120,7 +120,10 @@ main = do
   let sitedir = "site"
   pages <- map takeBaseName . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents sitedir
 
-  (target, args) <- splitAt 1 <$> getArgs
+  -- The rule that we run can make use of command line opts/args if it wants.
+  -- We distinguish them by the dash, so option arguments should be adjacent to their flag.
+  (opts, args') <- partition ("-" `isPrefixOf`) <$> getArgs
+  let (target, args) = splitAt 1 args'
 
   -- 2. define the shake rules
 
@@ -142,6 +145,8 @@ main = do
           ,"hledger-ui"
           ,"hledger-web"
           ]
+        pkgdirs = packages
+        pkgandprojdirs = "" : pkgdirs
 
         changelogs = "CHANGES.md" : map (</> "CHANGES.md") packages
 
@@ -472,23 +477,27 @@ main = do
 
       -- VERSION NUMBERS
 
-      -- Given the desired version string saved in PKG/.version, update
-      -- it everywhere needed in the package. See also CONTRIBUTING.md >
-      -- Version numbers.
-
-      let inAllPackages f = map (</> f) packages
-
+      -- Update all packages' version strings based on the version saved in PKG/.version.
+      -- If a version number is provided as first argument, save that in the .version files first.
+      -- If one or more subdirectories are provided as arguments, save/update only those.
+      -- See also CONTRIBUTING.md > Version numbers.
       phony "setversion" $ do
-        -- if a version number was provided as first argument, save it in all .version files
-        case take 1 args of
-          a@(_:_):_ | all (`elem` "0123456789.") a -> liftIO $
-            forM ("" : packages) $ \dir -> writeFile (dir </> ".version") (a++"\n")
-          _ -> return []
-        -- XXX any problems from laziness here ? seems not
-        -- liftIO $ forM ("" : packages) $ \dir -> readFileStrictly (dir </> ".version") >>= putStr
+        let
+          (mver, dirargs) = (headMay ver', drop 1 ver' ++ dirs')
+            where (ver',dirs') = span isVersion args
+          (specifieddirs, specifiedpkgs) =
+            case dirargs of [] -> (pkgandprojdirs, pkgdirs)
+                            ds -> (ds, ds)
+        -- if a version was provided, update .version files in the specified directories
+        case mver of
+          Just v  -> liftIO $ forM_ specifieddirs $ \d -> writeFile (d </> ".version") (v++"\n")
+          Nothing -> return ()
 
-        -- update all files depending on .version
-        need $ inAllPackages "defs.m4" ++ inAllPackages "package.yaml"
+        -- update all files depending on .version in the specified packages
+        need $ concat [
+           map (</> "defs.m4")      specifiedpkgs
+          ,map (</> "package.yaml") specifiedpkgs
+          ]
 
       -- PKG/defs.m4 <- PKG/.version
       "hledger*/defs.m4" %> \out -> do
@@ -597,7 +606,7 @@ main = do
   -- leaving the other args for the rule to use
 
   let
-    opts = shakeOptions{
+    shakeopts = shakeOptions{
        shakeVerbosity=Quiet
       -- ,shakeReport=[".shake.html"]
       }
@@ -609,7 +618,7 @@ main = do
         (a:_) -> want [a] >> withoutActions rules
 
   -- shakeArgsWith :: ShakeOptions -> [OptDescr (Either String a)] -> ([a] -> [String] -> IO (Maybe (Rules ()))) -> IO () 
-  shakeArgsWith opts [] (runWithArgs rules)
+  shakeArgsWith shakeopts [] (runWithArgs rules)
 
 
 -- Convert numbered man page names to manual names.
@@ -646,3 +655,6 @@ replaceRe re repl = replaceBy re (\_ _ _ -> Just repl)
 -- each matched text with the given function.
 replaceBy :: RE -> (Match String -> RELocation -> Capture String -> Maybe String) -> String -> String
 replaceBy re f src = replaceAllCaptures TOP f $ src *=~ re
+
+-- | Does this string look like a valid cabal package version ?
+isVersion s = not (null s) && all (`elem` "0123456789.") s
