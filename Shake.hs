@@ -72,8 +72,8 @@ usage =
   ,"./Shake webmanuals       build web manuals (in site/) for all packages"
   ,"./Shake PKG              build a single hledger package and its embedded docs"
   ,"./Shake build            build all hledger packages and their embedded docs"
-  ,"./Shake setversion       update version strings from */.version (& man dates)"
-  ,"./Shake changelogs       update */CHANGES.md with any new non-boring commits"
+  ,"./Shake setversion [VER] set version strings from */.version (or VER)"
+  ,"./Shake changelogs       add any new non-boring commits to */CHANGES.md"
   ,"./Shake [PKG/]CHANGES.md-finalise  add version/date heading in this changelog"
   -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
   -- ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
@@ -120,8 +120,7 @@ main = do
   let sitedir = "site"
   pages <- map takeBaseName . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents sitedir
 
-  args <- getArgs
-  let args2 = drop 1 args
+  (target, args) <- splitAt 1 <$> getArgs
 
   -- 2. define the shake rules
 
@@ -479,9 +478,17 @@ main = do
 
       let inAllPackages f = map (</> f) packages
 
-      phony "setversion" $ need $
-           inAllPackages "defs.m4"
-        ++ inAllPackages "package.yaml"
+      phony "setversion" $ do
+        -- if a version number was provided as first argument, save it in all .version files
+        case take 1 args of
+          a@(_:_):_ | all (`elem` "0123456789.") a -> liftIO $
+            forM ("" : packages) $ \dir -> writeFile (dir </> ".version") (a++"\n")
+          _ -> return []
+        -- XXX any problems from laziness here ? seems not
+        -- liftIO $ forM ("" : packages) $ \dir -> readFileStrictly (dir </> ".version") >>= putStr
+
+        -- update all files depending on .version
+        need $ inAllPackages "defs.m4" ++ inAllPackages "package.yaml"
 
       -- PKG/defs.m4 <- PKG/.version
       "hledger*/defs.m4" %> \out -> do
