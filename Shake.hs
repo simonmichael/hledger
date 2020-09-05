@@ -1,6 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --compile
-   --resolver=lts-16.12
+{- stack script --compile --resolver=lts-16.12
    --package base-prelude
    --package directory
    --package extra
@@ -63,33 +62,26 @@ usage =
   let scriptname = "Shake" in replaceRe [re|/Shake|] ('/':scriptname) $
   unlines
     ---------------------------------------79--------------------------------------
-  ["hledger developer's helper. See also: make help"
+  ["hledger developer scripts that didn't fit in Makefile. See also: make help"
   ,"Usage:"
-  ,"./Shake.hs [CMD]         run this script, compiling it first if needed"
-  ,"./Shake    [CMD]         run the compiled version of this script directly"
+  ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
+  ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
   ,"./Shake                  list commands"
-  ,"./Shake --help           list Shake options (--color, --rebuild, ...)"
-  ,"Commands:"
-  ,"./Shake commandhelp      build help texts for the hledger CLI"
+  ,"./Shake commandhelp      build plain text help for hledger CLI commands"
   ,"./Shake manuals          build txt/man/info/web manuals for all packages"
   ,"./Shake webmanuals       build web manuals (in site/) for all packages"
-  -- ,"./Shake oldmanuals       build old versions of html manuals for all packages"
   ,"./Shake PKG              build a single hledger package and its embedded docs"
   ,"./Shake build            build all hledger packages and their embedded docs"
-  -- ,"./Shake website          build the website and web manuals"
-  -- ,"./Shake website-all      build the website and all web manual versions"
-  ,"./Shake all              build all the above"
-  -- ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
-  -- ,"./Shake mainpages                   build the web pages from the main repo"
-  -- ,"./Shake site/index.md               update wiki links on the website home page"
-  ,"./Shake FILE                        build any individual file"
-  ,"./Shake setversion                  update package version strings from PKG/.version (and manual dates from today)"
-  ,"./Shake changelogs                  update the changelogs with any new commits"
-  ,"./Shake [PKG/]CHANGES.md[-dry]      update or preview this changelog"
-  ,"./Shake [PKG/]CHANGES.md-finalise   set final release heading in this changelog"
+  ,"./Shake setversion       update version strings from */.version (& man dates)"
+  ,"./Shake changelogs       update */CHANGES.md with any new non-boring commits"
+  ,"./Shake [PKG/]CHANGES.md-finalise  add version/date heading in this changelog"
+  -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
   -- ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
+  -- ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
   ,"./Shake clean            clean help texts, manuals, staged site content"
-  ,"./Shake Clean            also clean rendered site, object files, Shake's cache"
+  ,"./Shake Clean            also clean object files, Shake's cache"
+  ,"./Shake FILE             build any individual file"
+  ,"./Shake --help           list Shake options (--color, --rebuild, ...)"
   ]
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
@@ -140,15 +132,6 @@ main = do
       want ["help"]
 
       phony "help" $ liftIO $ putStrLn usage
-
-      phony "all" $ need ["commandhelp", "manuals", "build"]  --, "website"]
-
-      -- phony "compile" $ need ["Shake"]
-      -- "Shake" %> \out -> do
-      --   need [out <.> "hs"]
-      --   unit $ cmd "./Shake.hs"  -- running as stack script installs deps and compiles
-      --   putLoud "You can now run ./Shake instead of ./Shake.hs"
-
 
       -- NAMES, FILES, URIS..
 
@@ -203,21 +186,10 @@ main = do
         -- manuals as sphinx-ready markdown, to be rendered as part of the website (hledger/hledger.webmanual.md)
         webmanuals = [manualDir m </> m <.> "webmanual.md" | m <- manualNames]
 
-        -- -- latest version of the manuals rendered to html (site/_site/hledger.html)
-        -- htmlmanuals = ["site/_site" </> manpageNameToWebManualName m <.> "html" | m <- manpageNames]
-
         -- -- old versions of the manuals rendered to html (site/_site/doc/1.14/hledger.html)
         -- oldhtmlmanuals = map (normalise . ("site/_site/doc" </>) . (<.> "html")) $
         --   [ v </> manpageNameToWebManualName p | v <- docversions, v>="1.0", p <- manpageNames ++ ["manual"] ] ++
         --   [ v </> "manual"           | v <- docversions, v <"1.0" ]  -- before 1.0 there was only the combined manual
-
-        -- the html for website pages kept in the main repo
-        -- mainpageshtml = map (normalise . ("site/_site" </>) . (<.> "html")) pages
-
-        -- TODO: make website URIs lower-case ?
-
-        -- extensions of static web asset files, to be copied to the website
-        -- webassetexts = ["png", "gif", "cur", "js", "css", "eot", "ttf", "woff", "svg"]
 
         -- The directory in which to find this man page.
         -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
@@ -346,70 +318,6 @@ main = do
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" out
 
-      -- Copy some extra markdown files from the main repo into the site
-      -- TODO adding table of contents placeholders
-      -- [
-      --   -- "site/README.md",
-      --   -- "site/CONTRIBUTING.md"
-      --   ]  |%> \out ->
-      --   copyFile' (dropDirectory1 out) out -- XXX (map toLower out)
-
-      -- WEBSITE HTML & ASSETS
-
-      -- phony "website" $ need [
-      --    "webassets"
-      --   -- ,"mainpages"
-      --   -- ,"htmlmanuals"
-      --   ]
-
-      -- phony "website-all" $ need [
-      --    "website"
-      --   -- ,"oldmanuals"
-      --   ]
-
-      -- -- copy all static asset files (files with certain extensions
-      -- -- found under sites, plus one or two more) to sites/_site/
-      -- phony "webassets" $ do
-      --     assets <- getDirectoryFiles "site" (map ("//*" <.>) webassetexts)
-      --     need [ "site/_site" </> file
-      --             | file <- assets ++ [
-      --                 "files/README"
-      --                 ]
-      --             , not ("_site//*" ?== file)
-      --          ]
-
-      -- copy any one of the static asset files to sites/_site/
-      -- "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webassetexts ] |%> \out -> do
-      --     copyFile' ("site" </> dropDirectory2 out) out
-
-      -- render all web pages from the main repo (manuals, home, download, relnotes etc) as html, saved in site/_site/
-      -- phony "mainpages" $ need mainpageshtml
-
-      -- phony "htmlmanuals" $ need htmlmanuals
-
-      -- phony "oldmanuals" $ need oldhtmlmanuals
-
-      -- Render one website page as html, saved in sites/_site/.
-      -- Github-style wiki links will be hyperlinked.
-      -- "site/_site//*.html" %> \out -> do
-      --     let filename = takeBaseName out
-      --         pagename = fileNameToPageName filename
-      --         isdownloadpage = filename == "download"
-      --         isoldmanual = "site/_site/doc/" `isPrefixOf` out
-      --         source
-      --           | isoldmanual = "site" </> (drop 11 $ dropExtension out) <.> "md"
-      --           | otherwise   = "site" </> filename <.> "md"
-      --         template = "site/site.tmpl"
-      --         siteRoot = if "site/_site/doc//*" ?== out then "../.." else "."
-      --     need [source, template]
-      --     -- read markdown source, link any wikilinks, pipe it to pandoc, write html out
-      --     Stdin . wikiLink <$> (readFile' source) >>=
-      --       (cmd Shell pandoc "-" fromsrcmd "-t html"
-      --                        "--template" template
-      --                        ("--metadata=siteRoot:" ++ siteRoot)
-      --                        ("--metadata=\"title:" ++ pagename ++ "\"")
-      --                        "-o" out )
-
       -- This rule, for updating the live hledger.org site, gets called by:
       -- 1. github-post-receive (github webhook handler), when something is pushed
       --    to the main repo on Github. Config:
@@ -431,9 +339,6 @@ main = do
 
       --   -- Shake.hs might have been updated, but we won't execute the
       --   -- new one, too insecure. Continue with this one.
-
-      --   -- update the live site based on all latest content
-      --   need [ "website-all" ]
 
       -- HLEDGER PACKAGES/EXECUTABLES
 
@@ -726,47 +631,6 @@ getCurrentDay = do
   t <- getZonedTime
   return $ localDay (zonedTimeToLocalTime t)
 
--- markdown helpers
-
-type Markdown = String
-
--- | Prepend a markdown heading.
-addHeading :: String -> Markdown -> Markdown
-addHeading h = (("# "++h++"\n\n")++)
-
--- | Convert Github-style wikilinks to hledger website links.
-wikiLink :: Markdown -> Markdown
-wikiLink =
-  replaceBy wikilinkre         wikilinkReplace         .
-  replaceBy labelledwikilinkre labelledwikilinkReplace
-
--- regex stuff
-
--- couldn't figure out how to use match subgroups, so we don't
--- wikilinkre         = [re|\[\[$([^]]+)]]|]                -- [[A]]
--- labelledwikilinkre = [re|\[\[$([^(|)]+)\|$([^]]*)\]\]|]  -- [[A|B]]
-wikilinkre         = [re|\[\[[^]]+]]|]             -- [[A]]
-labelledwikilinkre = [re|\[\[[^(|)]+\|[^]]*\]\]|]  -- [[A|B]]. The | is parenthesised to avoid ending the quasiquoter
-
--- wikilinkReplace _ loc@RELocation{locationCapture} cap@Capture{capturedText} =
-wikilinkReplace _ _ Capture{capturedText} =
-  -- trace (show (loc,cap)) $
-  Just $ "["++name++"]("++uri++")"
-  where
-    name = init $ init $ drop 2 capturedText
-    uri  = pageNameToUri name
-
--- labelledwikilinkReplace _ loc@RELocation{locationCapture} cap@Capture{capturedText} =
-labelledwikilinkReplace _ _ Capture{capturedText} =
-  Just $ "["++label++"]("++uri++")"
-  where
-    [label,name] = take 2 $ (splitOn "|" $ init $ init $ drop 2 capturedText) ++ [""]
-    uri = pageNameToUri name
-
-pageNameToUri = (++".html") . intercalate "-" . words
-
-fileNameToPageName = unwords . splitOn "-"
-
 -- | Replace each occurrence of a regular expression by this string.
 replaceRe :: RE -> String -> String -> String
 replaceRe re repl = replaceBy re (\_ _ _ -> Just repl)
@@ -775,13 +639,3 @@ replaceRe re repl = replaceBy re (\_ _ _ -> Just repl)
 -- each matched text with the given function.
 replaceBy :: RE -> (Match String -> RELocation -> Capture String -> Maybe String) -> String -> String
 replaceBy re f src = replaceAllCaptures TOP f $ src *=~ re
-
--- not powerful enough, saved for reference:
--- wikify = (*=~/ wikilinkreplace) . (*=~/ labelledwikilinkreplace)
---   where
---     -- [[A]] -> [A](.../A)
---     wikilinkreplace :: SearchReplace RE String
---     wikilinkreplace = [ed|\[\[$([^]]+)]]///[$1]($1.html)|]
---     -- [[A|B]] -> [A](.../B)
---     labelledwikilinkreplace :: SearchReplace RE String
---     labelledwikilinkreplace = [ed|\[\[$([^(|)]+)\|$([^]]*)\]\]///[$1]($2.html)|]
