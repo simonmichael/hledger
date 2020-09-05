@@ -125,7 +125,6 @@ library:
   - megaparsec >=7.0.0 && <9.1
   - mtl >=2.2.1
   - network
-  - semigroups
   - shakespeare >=2.0.2.2
   - template-haskell
   - text >=1.2
