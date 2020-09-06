@@ -66,22 +66,23 @@ usage =
   ,"Usage:"
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
-  ,"./Shake                  list commands"
+  ,"./Shake [help]           show this help"
   ,"./Shake commandhelp      build plain text help for hledger CLI commands"
   ,"./Shake manuals          build txt/man/info/web manuals for all packages"
   ,"./Shake webmanuals       build web manuals (in site/) for all packages"
+  -- TODO: commit, show commit
+  ,"./Shake setversion [VER] [PKGS]  set version strings from */.version (or VER)"
+  -- TODO: commit, show commit
+  ,"./Shake changelogs[-dry]  add new commits, headings to */CHANGES.md"
+  -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
   ,"./Shake PKG              build a single hledger package and its embedded docs"
   ,"./Shake build            build all hledger packages and their embedded docs"
-  ,"./Shake setversion [VER] [PKGS]  set version strings from */.version (or VER)"
-  ,"./Shake changelogs       add any new non-boring commits to */CHANGES.md"
-  ,"./Shake [PKG/]CHANGES.md-finalise  add version/date heading in this changelog"
-  -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
-  -- ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
-  -- ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
-  ,"./Shake clean            clean help texts, manuals, staged site content"
+  ,"./Shake clean            clean generated help texts, manuals"
   ,"./Shake Clean            also clean object files, Shake's cache"
   ,"./Shake FILE             build any individual file"
   ,"./Shake --help           list Shake options (--color, --rebuild, ...)"
+  ,""
+  ,"Option arguments should be adjacent to their flag."
   ]
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
@@ -334,15 +335,18 @@ main = do
       --   -- but I don't know how to do that for the Shake rules.
       --   -- Instead we'll do the logging in "make site".
       --   cmd_ Shell
-
+      --
       --     -- print timestamp. On mac, use brew-installed GNU date.
       --     "PATH=\"/usr/local/opt/coreutils/libexec/gnubin:$PATH\" date --rfc-3339=seconds"
       --     -- pull latest code and site repos - sometimes already done by webhook, not always
       --     "&& printf 'code repo: ' && git pull"
       --     "&& printf 'site repo: ' && git -C site pull"
-
+      --
       --   -- Shake.hs might have been updated, but we won't execute the
       --   -- new one, too insecure. Continue with this one.
+      --
+      -- Help:
+      -- ,"./Shake hledgerorg       update the hledger.org website (when run on prod)"
 
       -- HLEDGER PACKAGES/EXECUTABLES
 
@@ -593,6 +597,8 @@ main = do
       --     cmd_ Shell "cp" f (snapshot </> takeFileName f)
       --   cmd_ Shell "cp -r site/images" snapshot
       --   cmd_ Shell "touch" out
+      -- Help:
+      -- ,"./Shake site/doc/VERSION/.snapshot  save current web manuals as this snapshot"
 
       -- Cleanup.
 
