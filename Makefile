@@ -374,6 +374,7 @@ SHAKEDEPS= \
 	--package safe \
 	--package shake \
 	--package time \
+#	--package hledger-lib \  # for Hledger.Utils.Debug
 
 ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghcid Shake.hs
