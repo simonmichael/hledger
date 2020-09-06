@@ -148,7 +148,7 @@ main = do
         pkgdirs = packages
         pkgandprojdirs = "" : pkgdirs
 
-        changelogs = "CHANGES.md" : map (</> "CHANGES.md") packages
+        changelogs = map (</> "CHANGES.md") pkgandprojdirs
 
         -- doc files (or related targets) that should be generated
         -- before building hledger packages.
@@ -398,81 +398,84 @@ main = do
 
       -- update all changelogs with latest commits
       phony "changelogs" $ need changelogs
+      phony "changelogs-dry" $ need $ map (++"-dry") changelogs
 
       -- show the changelogs updates that would be written
       -- phony "changelogs-dry" $ need changelogsdry
 
-      -- [PKG/]CHANGES.md[-dry] <- git log
-      -- Add commits to the specified changelog since the tag/commit in
-      -- the topmost heading, also removing that previous heading if it
-      -- was an interim heading (a commit hash). Or (the -dry variants)
-      -- just print the new changelog items to stdout without saving.
+      -- [PKG/]CHANGES.md
+      -- Add any new non-boring commits to the specified changelog, in
+      -- an idempotent way, minimising manual toil, as follows. We look at:
+      --
+      -- - the changelog's topmost markdown heading, which can be a
+      --   dev heading (first word is a git revision like 4fffe6e7) or
+      --   a release heading (first word is a release version & tag
+      --   like 1.18.1, second word is a date like 2020-06-21).
+      --
+      -- - the package version, in the adjacent .version file, which
+      --   can be a dev version like 1.18.99 (first two digits of last
+      --   part are 97, 98 or 99) or a release version like 1.18.1
+      --   (any other cabal-style version).
+      --
+      -- The old changelog heading is removed if it was a dev heading;
+      -- new commits in PKG not prefixed with semicolon are added;
+      -- and a suitable new heading is added (a release heading if the
+      -- package has a release version set, otherwise a dev heading
+      -- with the current HEAD revision).
+      -- 
+      -- [PKG/]CHANGES.md-dry
+      -- When invoked with -dry suffix, don't update the changelog;
+      -- just print the items to stdout.
+      --
       phonys (\out' -> if
         | not $ out' `elem` (changelogs ++ map (++"-dry") changelogs) -> Nothing
         | otherwise -> Just $ do
           let (out, dryrun) | "-dry" `isSuffixOf` out' = (take (length out' - 4) out', True)
                             | otherwise                = (out', False)
-          old <- liftIO $ lines <$> readFileStrictly out
+          oldlines <- liftIO $ lines <$> readFileStrictly out
+          let
+            (preamble, oldheading:rest) = span isnotheading oldlines
+              where isnotheading = not . ("#" `isPrefixOf`)
+            changelogversion = headDef err $ drop 1 $ words oldheading
+              where err = error $ "could not parse changelog heading: "++oldheading
+            dir = takeDirectory out
 
-          let dir = takeDirectory out
-              pkg | dir=="."  = Nothing
-                  | otherwise = Just dir
-              gitlogpaths = fromMaybe projectChangelogExcludeDirs pkg
-              isnotheading = not . ("#" `isPrefixOf`)
-              iscommithash s = length s > 6 && all isAlphaNum s
-              (preamble, oldheading:rest) = span isnotheading old
-              lastversion = words oldheading !! 1
-              lastrev | iscommithash lastversion = lastversion
-                      | otherwise                = fromMaybe "hledger" pkg ++ "-" ++ lastversion
-              excludeboring = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
-
+          packageversion <-
+            let versionfile = dir </> ".version"
+                err = error $ "could not parse a version in "++versionfile
+            in (liftIO $ headDef err . words <$> readFileStrictly versionfile)
+          let
+            pkg | dir=="."  = Nothing
+                | otherwise = Just dir
+            gitlogpaths = fromMaybe projectChangelogExcludeDirs pkg
+            lastrev = changelogversion
           headrev <- unwords . words . fromStdout <$>
                      (cmd Shell gitlog "-1 --pretty=%h -- " gitlogpaths :: Action (Stdout String))
+          let excludeboring = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
+          newitems <- fromStdout <$>
+                        (cmd Shell gitlog changelogGitFormat (lastrev++"..") excludeboring "--" gitlogpaths
+                         "|" changelogCleanupCmd :: Action (Stdout String))
+          date <- liftIO getCurrentDay
 
-          if headrev == lastrev
-          then liftIO $ putStrLn $ out ++ ": up to date"
-          else do
-            newitems <- fromStdout <$>
-                          (cmd Shell gitlog changelogGitFormat (lastrev++"..") excludeboring "--" gitlogpaths
-                           "|" changelogCleanupCmd :: Action (Stdout String))
-            let newcontent = "# "++headrev++"\n\n" ++ newitems
-                newfile = unlines $ concat [
-                   preamble
-                  ,[newcontent]
-                  ,if iscommithash lastrev then [] else [oldheading]
-                  ,rest
-                  ]
-            liftIO $ if dryrun
-                     then putStr newcontent
-                     else do
-                       writeFile out newfile
-                       putStrLn $ out ++ ": updated to " ++ headrev
-          )
-
-      -- [PKG/]CHANGES.md-finalise <- PKG/.version
-      -- Converts the specified changelog's topmost heading, if it is an
-      -- interim heading (a commit hash), to a permanent heading
-      -- containing the intended release version (from .version) and
-      -- today's date.  For the project CHANGES.md, the version number
-      -- in hledger/.version is used.
-      phonys (\out' -> let suffix = "-finalise" in if
-        | not $ out' `elem` (map (++suffix) changelogs) -> Nothing
-        | otherwise -> Just $ do
           let
-            out = take (length out' - length suffix) out'
-            versiondir = case takeDirectory out of
-                           "." -> "hledger"
-                           d   -> d
-            versionfile = versiondir </> ".version"
-          need [versionfile]
-          version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-          old     <- liftIO $ readFileStrictly out
-          date    <- liftIO getCurrentDay
-          let (before, _:after) = break ("# " `isPrefixOf`) $ lines old
-              new = unlines $ before ++ ["# "++version++" "++show date] ++ after
-          liftIO $ do
-            writeFile out new
-            putStrLn $ out ++ ": updated to " ++ version
+            (newrev, newheading)
+              | isReleaseVersion packageversion = (packageversion, unwords [packageversion, show date])
+              | otherwise                       = (headrev, headrev)
+            newcontent = "# "++newheading++"\n\n" ++ newitems
+            newchangelog = unlines $ concat [
+               preamble
+              ,[newcontent]
+              ,if isCommitHash changelogversion then [] else [oldheading]
+              ,rest
+              ]
+
+          liftIO $ if
+            | lastrev == newrev -> putStrLn $ out ++ ": up to date"
+            | dryrun -> putStr $ out ++ ":\n" ++ newcontent
+            | otherwise -> do
+                writeFile out newchangelog
+                putStrLn $ out ++ ": updated to " ++ newrev
+
           )
 
       -- VERSION NUMBERS
@@ -658,3 +661,17 @@ replaceBy re f src = replaceAllCaptures TOP f $ src *=~ re
 
 -- | Does this string look like a valid cabal package version ?
 isVersion s = not (null s) && all (`elem` "0123456789.") s
+
+-- | Does this string look like a hledger development version ?
+-- Ie a version where the first two digits of the last part are the
+-- special values 97, 98 or 99, indicating alpha/beta/rc or whatever.
+isDevVersion s = isVersion s && lastpart >= "97"
+  where lastpart = lastDef "" $ splitOn "." s
+
+-- | Does this string look like a hledger release version ?
+-- Ie a cabal package version that's not a hledger development version.
+isReleaseVersion s = isVersion s && not (isDevVersion s)
+
+-- | Does this string look like a git commit hash ?
+-- Ie a sequence of 7 or more numbers or letters.
+isCommitHash s = length s > 6 && all isAlphaNum s
