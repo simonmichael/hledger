@@ -26,6 +26,10 @@ on:
       - '!**.info'
       - '!**.txt'
 
+  pull_request:
+    paths:
+      - '.github/workflows/mac.yml'
+
 jobs:
   build:
     runs-on: macos-latest
