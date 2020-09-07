@@ -75,8 +75,7 @@ usage =
   -- TODO: commit, show commit
   ,"./Shake changelogs[-dry]  add new commits, headings to */CHANGES.md"
   -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
-  ,"./Shake PKG              build a single hledger package and its embedded docs"
-  ,"./Shake build            build all hledger packages and their embedded docs"
+  ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
   ,"./Shake clean            clean generated help texts, manuals"
   ,"./Shake Clean            also clean object files, Shake's cache"
   ,"./Shake FILE             build any individual file"
@@ -349,14 +348,18 @@ main = do
 
       -- HLEDGER PACKAGES/EXECUTABLES
 
-      phony "build" $ need packages
-
-      -- build any of the hledger packages, after generating any doc
+      -- build [PKGS]
+      -- Build some or all hledger packages, after generating any doc
       -- files they embed or import.
-      sequence_ [ phony pkg $ do
-        need $ fromMaybe [] $ lookup pkg embeddedFiles
-        cmd Shell "stack build " pkg
-        | pkg <- packages ]
+      phony "build" $ do
+        let
+          pkgs | null args = packages
+               | otherwise = args
+        sequence_ [ do
+          need $ fromMaybe [] $ lookup pkg embeddedFiles
+          cmd Shell "stack build " pkg :: Action ()
+          | pkg <- pkgs
+          ]
 
       phony "commandtxts" $ need commandtxts
 
