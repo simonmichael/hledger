@@ -75,6 +75,7 @@ usage =
   -- TODO: commit, show commit
   ,"./Shake changelogs[-dry]  add new commits, headings to */CHANGES.md"
   -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
+  ,"./Shake cabalfiles       update .cabal files from */package.yaml"
   ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
   ,"./Shake clean            clean generated help texts, manuals"
   ,"./Shake Clean            also clean object files, Shake's cache"
@@ -147,7 +148,7 @@ main = do
           ]
         pkgdirs = packages
         pkgandprojdirs = "" : pkgdirs
-
+        cabalfiles = [p <.> "cabal" | p <- packages]
         changelogs = map (</> "CHANGES.md") pkgandprojdirs
 
         -- doc files (or related targets) that should be generated
@@ -361,6 +362,11 @@ main = do
           | pkg <- pkgs
           ]
 
+      -- regenerate .cabal files from package.yaml's, using stack (also installs deps)
+      phony "cabalfiles" $ do
+        cmd Shell "stack build --dry-run" :: Action ()
+
+      -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
       phony "commandtxts" $ need commandtxts
 
       commandtxts |%> \out -> do
