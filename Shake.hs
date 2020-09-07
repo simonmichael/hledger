@@ -265,10 +265,10 @@ main = do
         -- and maybe commit them
         when commit $ do
           let msg = unwords [
-                 "; bump"
-                ,case specifiedpkgs of
+                 ";bump"
+                ,case dirargs of
                    [] -> "version"
-                   ps -> intercalate ", " ps ++ " version"
+                   ds -> intercalate ", " ds ++ " version"
                 ,case mver of
                    Nothing -> ""
                    Just v  -> "to " ++ v
