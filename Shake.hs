@@ -67,7 +67,7 @@ usage =
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
   ,"./Shake [help]           show this help"
-  ,"./Shake commandhelp      build plain text help for hledger CLI commands"
+  ,"./Shake commandtxts      build plain text docs for hledger CLI command help"
   ,"./Shake manuals          build txt/man/info/web manuals for all packages"
   ,"./Shake webmanuals       build web manuals (in site/) for all packages"
   -- TODO: commit, show commit
@@ -222,7 +222,6 @@ main = do
 
       -- Generate the manuals in plain text, nroff, info, and markdown formats.
       phony "manuals" $ need $
-        "commandhelp" :
         concat [
          nroffmanuals
         ,infomanuals
@@ -359,7 +358,7 @@ main = do
         cmd Shell "stack build " pkg
         | pkg <- packages ]
 
-      phony "commandhelp" $ need commandtxts
+      phony "commandtxts" $ need commandtxts
 
       commandtxts |%> \out -> do
         let src = out -<.> "md"
