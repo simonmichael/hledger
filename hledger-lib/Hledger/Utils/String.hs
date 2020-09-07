@@ -50,8 +50,8 @@ module Hledger.Utils.String (
 
 import Data.Char (isDigit, isSpace, toLower, toUpper)
 import Data.List (intercalate, transpose)
-import Text.Megaparsec (Parsec, (<|>), (<?>), between, many, noneOf, oneOf,
-                        parseMaybe, sepBy, takeWhile1P)
+import Text.Megaparsec (Parsec, (<|>), (<?>), anySingle, between, many, noneOf,
+                        oneOf, parseMaybe, sepBy, takeWhileP, try)
 import Text.Megaparsec.Char (char, string)
 import Text.Printf (printf)
 
@@ -337,12 +337,18 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
 strWidth :: String -> Int
 strWidth = maximum . (0:) . map (foldr (\a b -> charWidth a + b) 0) . lines . stripAnsi
 
+-- | Strip ANSI escape sequences from a string.
+--
+-- >>> stripAnsi "\ESC[31m-1\ESC[m"
+-- "-1"
 stripAnsi :: String -> String
-stripAnsi s = maybe s concat $ parseMaybe (many $ takeWhile1P Nothing (/='\ESC') <|> "" <$ ansi) s
+stripAnsi s = case parseMaybe (many $ "" <$ try ansi <|> pure <$> anySingle) s of
+    Nothing -> error "Bad ansi escape"  -- PARTIAL: should not happen
+    Just xs -> concat xs
   where
     -- This parses lots of invalid ANSI escape codes, but that should be fine
     ansi = string "\ESC[" *> digitSemicolons *> suffix <?> "ansi" :: Parsec CustomErr String Char
-    digitSemicolons = takeWhile1P Nothing (\c -> isDigit c || c == ';')
+    digitSemicolons = takeWhileP Nothing (\c -> isDigit c || c == ';')
     suffix = oneOf ['A', 'B', 'C', 'D', 'H', 'J', 'K', 'f', 'm', 's', 'u']
 
 -- | Get the designated render width of a character: 0 for a combining
