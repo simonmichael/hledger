@@ -82,7 +82,11 @@ GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # HADDOCK=haddock
 # CABAL=cabal
 # CABALINSTALL=cabal install -w $(GHC)
-STACK=stack
+
+# can override this with an env var, eg:
+# STACK="stack --stack-yaml=stack8.10.yaml" make functest
+STACK ?= stack
+
 # if using an unreleased stack with a newer hpack than the one mentioned in */*.cabal,
 # it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
 #STACK=stack --with-hpack=hpack-0.20
@@ -479,8 +483,8 @@ builtintest: $(call def-help,builtintest, run hledgers built in test command)
 #functest: addons tests/addons/hledger-addon 
 functest: tests/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
-	@stack build --fast hledger
-	@($(SHELLTESTSTK) -w `stack exec -- which hledger` tests \
+	@$(STACK) build --fast hledger
+	@($(SHELLTESTSTK) -w `$(STACK) exec -- which hledger` tests \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 functest-%: tests/addons/hledger-addon \
