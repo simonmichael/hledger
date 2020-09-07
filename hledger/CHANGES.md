@@ -1,10 +1,14 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# a9fbaaf2
+# 1.19.1 2020-09-07
+
+- Fix alignment of coloured numbers (#1345, #1349, Stephen Morgan)
 
 - Fix a regression in account type autodetection for accounts with
   capitalised names. (#1341)
+
+- Allow megaparsec 9
 
 # 1.19 2020-09-01
 
