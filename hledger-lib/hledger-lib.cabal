@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 562b07c743e67f55f539704cf37da021e6ec23c3b47b3bc3f673875b1feb256f
+-- hash: 4cff01322093c9a60a07a65c0ed150394360e71104dd3e7b52fc6782c5cf5a57
 
 name:           hledger-lib
-version:        1.19
+version:        1.19.1
 synopsis:       A reusable library providing the core functionality of hledger
 description:    A reusable library containing hledger's core functionality.
                 This is used by most hledger* packages so that they support the same
@@ -130,7 +130,7 @@ library
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
-    , megaparsec >=7.0.0 && <8.1
+    , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
     , old-time
     , parsec >=3
@@ -183,7 +183,7 @@ test-suite doctest
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
-    , megaparsec >=7.0.0 && <8.1
+    , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
     , old-time
     , parsec >=3
@@ -238,7 +238,7 @@ test-suite unittest
     , filepath
     , hashtables >=1.2.3.1
     , hledger-lib
-    , megaparsec >=7.0.0 && <8.1
+    , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
     , old-time
     , parsec >=3
