@@ -75,6 +75,7 @@ usage =
   ,"./Shake changelogs [--dry-run]"
   ,"                         add new commits & headings to */CHANGES.md"
   ,"./Shake cabalfiles       update */*.cabal from */package.yaml"
+  ,"./Shake update           update all that needs updating, eg after setversion"
   ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
   ,"./Shake clean            remove generated texts, manuals"
   ,"./Shake Clean            also remove object files, Shake's cache"
@@ -374,7 +375,7 @@ main = do
 
       -- regenerate .cabal files from package.yaml's, using stack (also installs deps)
       phony "cabalfiles" $ do
-        cmd Shell "stack build --dry-run" :: Action ()
+        cmd Shell "stack build --dry-run --silent" :: Action ()
 
       -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
       phony "commandtxts" $ need commandtxts
@@ -486,7 +487,7 @@ main = do
             dryrun = any (`elem` ruleopts) ["--dry-run", "--dry", "-n"]
 
           liftIO $ if
-            | lastrev == newrev -> putStrLn $ out ++ ": up to date"
+            | lastrev == newrev -> pure ()  -- putStrLn $ out ++ ": up to date"
             | dryrun -> putStr $ out ++ ":\n" ++ newcontent
             | otherwise -> do
                 writeFile out newchangelog
@@ -597,6 +598,15 @@ main = do
         --   for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
 
       -- MISC
+
+      -- update
+      -- Update all that needs updating.
+      phony "update" $ need [
+         "cabalfiles"
+        ,"commandtxts"
+        ,"manuals"
+        ,"changelogs"
+        ]
 
       -- Generate the web manuals based on the current checkout and save
       -- them as the specified versioned snapshot in site/doc/VER/ .
