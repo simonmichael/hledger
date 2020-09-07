@@ -144,7 +144,7 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         brew install shelltestrunner
-        shelltestrunner --version
+        $shelltestrunner --version
 
     - name: Test functional tests (excluding addons)
       env:
