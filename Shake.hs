@@ -62,27 +62,25 @@ usage =
   let scriptname = "Shake" in replaceRe [re|/Shake|] ('/':scriptname) $
   unlines
     ---------------------------------------79--------------------------------------
-  ["hledger developer scripts that didn't fit in Makefile. See also: make help"
+  ["hledger developer scripts. See also: make help"
   ,"Usage:"
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
   ,"./Shake [help]           show this help"
-  ,"./Shake commandtxts      build plain text docs for hledger CLI command help"
-  ,"./Shake manuals          build txt/man/info/web manuals for all packages"
-  ,"./Shake webmanuals       build web manuals (in site/) for all packages"
-  -- TODO: commit, show commit
-  ,"./Shake setversion [VER] [PKGS]  set version strings from */.version (or VER)"
-  -- TODO: commit, show commit
-  ,"./Shake changelogs[-dry]  add new commits, headings to */CHANGES.md"
-  -- ,"./Shake [PKG/]CHANGES.md[-dry]  update (or preview) one changelog"
-  ,"./Shake cabalfiles       update .cabal files from */package.yaml"
+  ,"./Shake setversion [VER] [PKGS]"
+  ,"                         update version strings from */.version (or VER)"
+  ,"./Shake commandtxts      update hledger CLI commands' usage texts"
+  ,"./Shake manuals          update txt/man/info/web manuals for all packages"
+  ,"./Shake webmanuals       update just the web manuals"
+  ,"./Shake changelogs [--dry-run]"
+  ,"                         add new commits & headings to */CHANGES.md"
+  ,"./Shake cabalfiles       update */*.cabal from */package.yaml"
   ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
-  ,"./Shake clean            clean generated help texts, manuals"
-  ,"./Shake Clean            also clean object files, Shake's cache"
+  ,"./Shake clean            remove generated texts, manuals"
+  ,"./Shake Clean            also remove object files, Shake's cache"
   ,"./Shake FILE             build any individual file"
-  ,"./Shake --help           list Shake options (--color, --rebuild, ...)"
-  ,""
-  ,"Option arguments should be adjacent to their flag."
+  ,"./Shake --help           list Shake's options (--color, --rebuild, etc.)"
+  ,"Keep Shake option arguments adjacent to their flag."
   ]
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
@@ -128,7 +126,10 @@ main = do
   -- Option arguments should be kept adjacent to their flag or this will go wrong.
   (opts, args) <- partition ("-" `isPrefixOf`) <$> getArgs
   let
-    ruleoptnames = [ "--commit" ]
+    ruleoptnames = [
+       "--commit", "-c"
+      ,"--dry-run", "--dry", "-n"
+      ]
     (ruleopts, shakeopts) = partition (`elem` ruleoptnames) opts
     (shakearg, ruleargs) = splitAt 1 args
     shakeargs = shakeopts ++ shakearg
@@ -143,7 +144,7 @@ main = do
   
       want ["help"]
 
-      phony "help" $ liftIO $ putStrLn usage
+      phony "help" $ liftIO $ putStr usage
 
       -- NAMES, FILES, URIS..
 
@@ -419,10 +420,6 @@ main = do
 
       -- update all changelogs with latest commits
       phony "changelogs" $ need changelogs
-      phony "changelogs-dry" $ need $ map (++"-dry") changelogs
-
-      -- show the changelogs updates that would be written
-      -- phony "changelogs-dry" $ need changelogsdry
 
       -- [PKG/]CHANGES.md
       -- Add any new non-boring commits to the specified changelog, in
@@ -444,15 +441,12 @@ main = do
       -- package has a release version set, otherwise a dev heading
       -- with the current HEAD revision).
       -- 
-      -- [PKG/]CHANGES.md-dry
-      -- When invoked with -dry suffix, don't update the changelog;
-      -- just print the items to stdout.
+      -- With --dry-run, print new content to stdout instead of
+      -- updating the changelog.
       --
-      phonys (\out' -> if
-        | not $ out' `elem` (changelogs ++ map (++"-dry") changelogs) -> Nothing
+      phonys (\out -> if
+        | not $ out `elem` changelogs -> Nothing
         | otherwise -> Just $ do
-          let (out, dryrun) | "-dry" `isSuffixOf` out' = (take (length out' - 4) out', True)
-                            | otherwise                = (out', False)
           oldlines <- liftIO $ lines <$> readFileStrictly out
           let
             (preamble, oldheading:rest) = span isnotheading oldlines
@@ -489,6 +483,7 @@ main = do
               ,if isCommitHash changelogversion then [] else [oldheading]
               ,rest
               ]
+            dryrun = any (`elem` ruleopts) ["--dry-run", "--dry", "-n"]
 
           liftIO $ if
             | lastrev == newrev -> putStrLn $ out ++ ": up to date"
