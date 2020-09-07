@@ -1,6 +1,9 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 2b715fbe
+
+
 # 1.19.1 2020-09-07
 
 - Fix alignment of coloured numbers (#1345, #1349, Stephen Morgan)

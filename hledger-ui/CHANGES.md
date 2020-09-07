@@ -1,6 +1,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 2b715fbe
+
+
 # 1.19.1 2020-09-07
 
 - Allow megaparsec 9

@@ -1,6 +1,9 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# 65d603ab
+
+
 # 1.19.1 2020-09-07
 
 - Update shell completions (Jakob Schöttl)

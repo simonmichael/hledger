@@ -1,6 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 2b715fbe
+
+
 # 1.19.1 2020-09-07
 
 - Allow megaparsec 9
