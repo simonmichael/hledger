@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3781a0068e7647eb59ffb0c20198955f86df134e69d18ed657cbddf233258217
+-- hash: 1eb0c9f666a96f3ad17e9a63f16fd6a679e784b6f3d1008c06158c676d87c49e
 
 name:           hledger-web
-version:        1.19
+version:        1.19.99
 synopsis:       Web-based user interface for the hledger accounting system
 description:    A simple web-based user interface for the hledger accounting system,
                 providing a more modern UI than the command-line or terminal interfaces.
@@ -151,7 +151,7 @@ library
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
-  cpp-options: -DVERSION="1.19"
+  cpp-options: -DVERSION="1.19.99"
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
@@ -170,12 +170,12 @@ library
     , extra >=1.6.3
     , filepath
     , hjsmin
-    , hledger >=1.19 && <1.20
-    , hledger-lib >=1.19 && <1.20
+    , hledger >=1.19.99 && <1.20
+    , hledger-lib >=1.19.99 && <1.20
     , http-client
     , http-conduit
     , http-types
-    , megaparsec >=7.0.0 && <8.1
+    , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
     , network
     , shakespeare >=2.0.2.2
@@ -209,7 +209,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fwarn-tabs -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
-  cpp-options: -DVERSION="1.19"
+  cpp-options: -DVERSION="1.19.99"
   build-depends:
       base
     , hledger-web
