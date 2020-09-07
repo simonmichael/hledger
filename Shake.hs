@@ -67,7 +67,7 @@ usage =
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
   ,"./Shake [help]           show this help"
-  ,"./Shake setversion [VER] [PKGS]"
+  ,"./Shake setversion [VER] [PKGS] [--commit]"
   ,"                         update version strings from */.version (or VER)"
   ,"./Shake commandtxts      update hledger CLI commands' usage texts"
   ,"./Shake manuals          update txt/man/info/web manuals for all packages"
@@ -132,6 +132,8 @@ main = do
       ,"--dry-run", "--dry", "-n"
       ]
     (ruleopts, shakeopts) = partition (`elem` ruleoptnames) opts
+    commit = any (`elem` ruleopts) ["--commit", "-c"]
+    dryrun = any (`elem` ruleopts) ["--dry-run", "--dry", "-n"]
     (shakearg, ruleargs) = splitAt 1 args
     shakeargs = shakeopts ++ shakearg
   -- print (opts,args,shakeopts,shakearg,shakeargs,ruleopts,ruleargs)
@@ -147,7 +149,7 @@ main = do
 
       phony "help" $ liftIO $ putStr usage
 
-      -- NAMES, FILES, URIS..
+      -- NAMES, FILES, URIS, HELPERS
 
       let
         -- main package names, in standard build order
@@ -228,6 +230,123 @@ main = do
         -- hledger -> hledger.1, journal -> hledger_journal.5
         webManualNameToManpageName u | "hledger" `isPrefixOf` u = u <.> "1"
                                      | otherwise                = "hledger_" ++ u <.> "5"
+
+      -- VERSION NUMBERS
+
+      -- Update all packages' version strings based on the version saved in PKG/.version.
+      -- If a version number is provided as first argument, save that in the .version files first.
+      -- If one or more subdirectories are provided as arguments, save/update only those.
+      -- See also CONTRIBUTING.md > Version numbers.
+      phony "setversion" $ do
+        let
+          (mver, dirargs) = (headMay ver', drop 1 ver' ++ dirs')
+            where (ver',dirs') = span isVersion ruleargs
+          (specifieddirs, specifiedpkgs) =
+            case dirargs of [] -> (pkgandprojdirs, pkgdirs)
+                            ds -> (ds, ds)
+        -- if a version was provided, update .version files in the specified directories
+        let specifiedversionfiles = map (</> ".version") specifieddirs
+        case mver of
+          Just v  -> liftIO $ forM_ specifiedversionfiles $ \f -> writeFile f (v++"\n")
+          Nothing -> return ()
+
+        -- update all files depending on .version in the specified packages
+        let dependents = concat [
+               map (</> "defs.m4")      specifiedpkgs
+              ,map (</> "package.yaml") specifiedpkgs
+              ]
+        need dependents
+
+        -- and maybe commit them
+        when commit $ do
+          let msg = unwords [
+                 "; bump"
+                ,case specifiedpkgs of
+                   [] -> "version"
+                   ps -> intercalate ", " ps ++ " version"
+                ,case mver of
+                   Nothing -> ""
+                   Just v  -> "to " ++ v
+                ]
+          cmd Shell ("git commit -m '"++msg++"' --") specifiedversionfiles dependents
+
+      -- PKG/defs.m4 <- PKG/.version
+      "hledger*/defs.m4" %> \out -> do
+        let versionfile = takeDirectory out </> ".version"
+        need [versionfile]
+        version <- ((head . words) <$>) $ liftIO $ readFile versionfile
+        date    <- liftIO getCurrentDay
+        let manualdate = formatTime defaultTimeLocale "%B %Y" date
+        cmd_ Shell sed "-i -e" (
+            "'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/;"
+          ++" s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++manualdate++"/;"
+          ++"'")
+          out
+
+      -- PKG/package.yaml <- PKG/.version
+      "hledger*/package.yaml" %> \out -> do
+        let versionfile = takeDirectory out </> ".version"
+        need [versionfile]
+        version <- ((head . words) <$>) $ liftIO $ readFile versionfile
+        let ma:jor:_ = splitOn "." version
+            nextmajorversion = intercalate "." $ ma : (show $ read jor+1) : []
+
+        -- One simple task: update some strings in a small text file.
+        -- Several ugly solutions:
+        --
+        -- 1. use haskell list utils. Tedious.
+        -- old <- liftIO $ readFileStrictly out
+        -- let isversionline s = "version" `isPrefixOf` (dropWhile isSpace $ takeWhile (not.(`elem` " :")) s)
+        --     (before, _:after) = break isversionline $ lines old
+        --     -- oldversion = words versionline !! 1
+        --     new = unlines $ before ++ ["version: "++version] ++ after
+        -- liftIO $ writeFile out new
+        --
+        -- 2. use regular expressions in haskell. Haskell has no portable,
+        -- featureful, replacing, backreference-supporting regex lib yet.
+        --
+        -- 3. use sed. Have to assume non-GNU sed, eg on mac.
+
+        -- Things to update in package.yaml:
+        --
+        --  version: VER
+        cmd_ Shell sed "-i -e" ("'s/(^version *:).*/\\1 "++version++"/'") out
+        --
+        --  -DVERSION="VER"
+        cmd_ Shell sed "-i -e" ("'s/(-DVERSION=)\"[^\"]+/\\1\""++version++"/'") out
+        --
+        --  this package's dependencies on other hledger packages (typically hledger-lib, hledger)
+        --
+        --  This one is a bit tricky, and we do it with these limitations:
+        --  a. We handle bounds in one of these forms (allowing extra whitespace):
+        --     ==A
+        --     >A
+        --     >=A
+        --     >A && <B
+        --     >=A && <B
+        --  b. We set
+        --     the new lower bound to:         this package's new version, V
+        --     the new upper bound if any, to: the next major version after V
+        --     both of which may not be what's desired.
+        --  c. We convert > bounds to >= bounds.
+        --
+        --  hledger[-PKG] ==LOWER
+        let versionre = "([0-9]+\\.)*[0-9]+"  -- 2 or 3 part version number regexp
+        cmd_ Shell sed "-i -e" ("'s/(hledger(-[a-z]+)?) *== *"++versionre++" *$/\\1 == "++version++"/'") out
+        --
+        --  hledger[-PKG] >[=]LOWER
+        cmd_ Shell sed "-i -e" ("'s/(hledger(-[a-z]+)?) *>=? *"++versionre++" *$/\\1 >= "++version++"/'") out
+        --
+        --  hledger[-PKG] >[=]LOWER && <UPPER
+        let
+          pat = "(hledger(-[a-z]+)?) *>=? *"++versionre++" *&& *< *"++versionre++" *$"
+          rpl = "\\1 >="++version++" \\&\\& <"++nextmajorversion -- This was a beast. These ampersands must be backslash-escaped.
+          arg = "'s/"++pat++"/"++rpl++"/'"
+        cmd_ Shell sed "-i -e" arg out
+
+        -- tagrelease: \
+        --   $(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
+        --   for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
 
       -- MANUALS
 
@@ -484,7 +603,6 @@ main = do
               ,if isCommitHash changelogversion then [] else [oldheading]
               ,rest
               ]
-            dryrun = any (`elem` ruleopts) ["--dry-run", "--dry", "-n"]
 
           liftIO $ if
             | lastrev == newrev -> pure ()  -- putStrLn $ out ++ ": up to date"
@@ -494,108 +612,6 @@ main = do
                 putStrLn $ out ++ ": updated to " ++ newrev
 
           )
-
-      -- VERSION NUMBERS
-
-      -- Update all packages' version strings based on the version saved in PKG/.version.
-      -- If a version number is provided as first argument, save that in the .version files first.
-      -- If one or more subdirectories are provided as arguments, save/update only those.
-      -- See also CONTRIBUTING.md > Version numbers.
-      phony "setversion" $ do
-        let
-          (mver, dirargs) = (headMay ver', drop 1 ver' ++ dirs')
-            where (ver',dirs') = span isVersion ruleargs
-          (specifieddirs, specifiedpkgs) =
-            case dirargs of [] -> (pkgandprojdirs, pkgdirs)
-                            ds -> (ds, ds)
-        -- if a version was provided, update .version files in the specified directories
-        case mver of
-          Just v  -> liftIO $ forM_ specifieddirs $ \d -> writeFile (d </> ".version") (v++"\n")
-          Nothing -> return ()
-
-        -- update all files depending on .version in the specified packages
-        need $ concat [
-           map (</> "defs.m4")      specifiedpkgs
-          ,map (</> "package.yaml") specifiedpkgs
-          ]
-
-      -- PKG/defs.m4 <- PKG/.version
-      "hledger*/defs.m4" %> \out -> do
-        let versionfile = takeDirectory out </> ".version"
-        need [versionfile]
-        version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-        date    <- liftIO getCurrentDay
-        let manualdate = formatTime defaultTimeLocale "%B %Y" date
-        cmd_ Shell sed "-i -e" (
-            "'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/;"
-          ++" s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++manualdate++"/;"
-          ++"'")
-          out
-
-      -- PKG/package.yaml <- PKG/.version
-      "hledger*/package.yaml" %> \out -> do
-        let versionfile = takeDirectory out </> ".version"
-        need [versionfile]
-        version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-        let ma:jor:_ = splitOn "." version
-            nextmajorversion = intercalate "." $ ma : (show $ read jor+1) : []
-
-        -- One simple task: update some strings in a small text file.
-        -- Several ugly solutions:
-        --
-        -- 1. use haskell list utils. Tedious.
-        -- old <- liftIO $ readFileStrictly out
-        -- let isversionline s = "version" `isPrefixOf` (dropWhile isSpace $ takeWhile (not.(`elem` " :")) s)
-        --     (before, _:after) = break isversionline $ lines old
-        --     -- oldversion = words versionline !! 1
-        --     new = unlines $ before ++ ["version: "++version] ++ after
-        -- liftIO $ writeFile out new
-        --
-        -- 2. use regular expressions in haskell. Haskell has no portable,
-        -- featureful, replacing, backreference-supporting regex lib yet.
-        --
-        -- 3. use sed. Have to assume non-GNU sed, eg on mac.
-
-        -- Things to update in package.yaml:
-        --
-        --  version: VER
-        cmd_ Shell sed "-i -e" ("'s/(^version *:).*/\\1 "++version++"/'") out
-        --
-        --  -DVERSION="VER"
-        cmd_ Shell sed "-i -e" ("'s/(-DVERSION=)\"[^\"]+/\\1\""++version++"/'") out
-        --
-        --  this package's dependencies on other hledger packages (typically hledger-lib, hledger)
-        --
-        --  This one is a bit tricky, and we do it with these limitations:
-        --  a. We handle bounds in one of these forms (allowing extra whitespace):
-        --     ==A
-        --     >A
-        --     >=A
-        --     >A && <B
-        --     >=A && <B
-        --  b. We set
-        --     the new lower bound to:         this package's new version, V
-        --     the new upper bound if any, to: the next major version after V
-        --     both of which may not be what's desired.
-        --  c. We convert > bounds to >= bounds.
-        --
-        --  hledger[-PKG] ==LOWER
-        let versionre = "([0-9]+\\.)*[0-9]+"  -- 2 or 3 part version number regexp
-        cmd_ Shell sed "-i -e" ("'s/(hledger(-[a-z]+)?) *== *"++versionre++" *$/\\1 == "++version++"/'") out
-        --
-        --  hledger[-PKG] >[=]LOWER
-        cmd_ Shell sed "-i -e" ("'s/(hledger(-[a-z]+)?) *>=? *"++versionre++" *$/\\1 >= "++version++"/'") out
-        --
-        --  hledger[-PKG] >[=]LOWER && <UPPER
-        let
-          pat = "(hledger(-[a-z]+)?) *>=? *"++versionre++" *&& *< *"++versionre++" *$"
-          rpl = "\\1 >="++version++" \\&\\& <"++nextmajorversion -- This was a beast. These ampersands must be backslash-escaped.
-          arg = "'s/"++pat++"/"++rpl++"/'"
-        cmd_ Shell sed "-i -e" arg out
-
-        -- tagrelease: \
-        --   $(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
-        --   for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
 
       -- MISC
 
