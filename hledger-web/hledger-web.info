@@ -3,7 +3,7 @@ This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.18.99
+hledger-web(1) hledger-web 1.19.99
 **********************************
 
 hledger-web - web interface for the hledger accounting tool

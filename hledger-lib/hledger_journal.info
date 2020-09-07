@@ -4,7 +4,7 @@ stdin.
 
 File: hledger_journal.info,  Node: Top,  Up: (dir)
 
-hledger_journal(5) hledger 1.18.99
+hledger_journal(5) hledger 1.19.99
 **********************************
 
 Journal - hledger's default file format, representing a General Journal

@@ -3,7 +3,7 @@ This is hledger_csv.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger_csv(5) hledger 1.18.99
+hledger_csv(5) hledger 1.19.99
 ******************************
 
 CSV - how hledger reads CSV data, and the CSV rules file format

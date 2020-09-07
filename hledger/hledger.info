@@ -3,7 +3,7 @@ This is hledger.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger.info,  Node: Top,  Next: COMMON TASKS,  Up: (dir)
 
-hledger(1) hledger 1.18.99
+hledger(1) hledger 1.19.99
 **************************
 
 hledger - a command-line accounting tool

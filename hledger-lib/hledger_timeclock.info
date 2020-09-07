@@ -4,7 +4,7 @@ stdin.
 
 File: hledger_timeclock.info,  Node: Top,  Up: (dir)
 
-hledger_timeclock(5) hledger 1.18.99
+hledger_timeclock(5) hledger 1.19.99
 ************************************
 
 Timeclock - the time logging format of timeclock.el, as read by hledger
