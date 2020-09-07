@@ -109,7 +109,7 @@ towebmd = "-t markdown-smart-fenced_divs-fenced_code_attributes-simple_tables-mu
 
 main = do
 
-  -- 1. gather some IO values used by rules
+  -- Gather some IO values used by rules.
 
   -- hledger manual also includes the markdown files from here:
   let commandsdir = "hledger/Hledger/Cli/Commands"
@@ -121,17 +121,26 @@ main = do
   let sitedir = "site"
   pages <- map takeBaseName . filter (".md" `isSuffixOf`) <$> S.getDirectoryContents sitedir
 
-  -- The rule that we run can make use of command line opts/args if it wants.
-  -- We distinguish them by the dash, so option arguments should be adjacent to their flag.
-  (opts, args') <- partition ("-" `isPrefixOf`) <$> getArgs
-  let (target, args) = splitAt 1 args'
+  -- Run the shake rule selected by the first command line argument.
+  -- Other arguments and some custom flags are set aside for the rule
+  -- to use if it wants.
 
-  -- 2. define the shake rules
-
+  -- Option arguments should be kept adjacent to their flag or this will go wrong.
+  (opts, args) <- partition ("-" `isPrefixOf`) <$> getArgs
   let
-    rules :: Rules ()
-    rules = do
-
+    ruleoptnames = [ "--commit" ]
+    (ruleopts, shakeopts) = partition (`elem` ruleoptnames) opts
+    (shakearg, ruleargs) = splitAt 1 args
+    shakeargs = shakeopts ++ shakearg
+  -- print (opts,args,shakeopts,shakearg,shakeargs,ruleopts,ruleargs)
+  withArgs shakeargs $ shakeArgs shakeOptions{
+    shakeVerbosity=Quiet
+    -- ,shakeReport=[".shake.html"]
+    }
+    $ do
+   
+  -- The rules.
+  
       want ["help"]
 
       phony "help" $ liftIO $ putStrLn usage
@@ -499,7 +508,7 @@ main = do
       phony "setversion" $ do
         let
           (mver, dirargs) = (headMay ver', drop 1 ver' ++ dirs')
-            where (ver',dirs') = span isVersion args
+            where (ver',dirs') = span isVersion ruleargs
           (specifieddirs, specifiedpkgs) =
             case dirargs of [] -> (pkgandprojdirs, pkgdirs)
                             ds -> (ds, ds)
@@ -619,24 +628,7 @@ main = do
         putNormal "Cleaning shake build cache"
         removeFilesAfter ".shake" ["//*"]
 
-  -- 3. run the shake rule selected by the first command line argument,
-  -- leaving the other args for the rule to use
-
-  let
-    shakeopts = shakeOptions{
-       shakeVerbosity=Quiet
-      -- ,shakeReport=[".shake.html"]
-      }
-
-    runWithArgs :: Rules () -> [a] -> [String] -> IO (Maybe (Rules ()))
-    runWithArgs rules _flags args = pure $ Just $
-      case args of
-        []    -> rules
-        (a:_) -> want [a] >> withoutActions rules
-
-  -- shakeArgsWith :: ShakeOptions -> [OptDescr (Either String a)] -> ([a] -> [String] -> IO (Maybe (Rules ()))) -> IO () 
-  shakeArgsWith shakeopts [] (runWithArgs rules)
-
+  
 
 -- Convert numbered man page names to manual names.
 -- hledger.1 -> hledger, hledger_journal.5 -> hledger_journal
