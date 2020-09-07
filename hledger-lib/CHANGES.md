@@ -1,7 +1,12 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# a9fbaaf2
+# 1.19.1 2020-09-07
+
+- Allow megaparsec 9
+
+- stripAnsi: correctly strip ansi sequences with no
+  numbers/semicolons. (Stephen Morgan)
 
 - Added case-insensitive accountNameToAccountRegexCI,
   accountNameToAccountOnlyRegexCI, made the default account type

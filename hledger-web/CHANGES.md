@@ -1,8 +1,11 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 09ac90a7
+# 1.19.1 2020-09-07
 
+- Allow megaparsec 9
+
+- Drop redundant semigroups dependency (Felix Yan)
 
 # 1.19 2020-09-01
 
