@@ -69,13 +69,17 @@ usage =
   ,"./Shake [help]           show this help"
   ,"./Shake setversion [VER] [PKGS] [--commit]"
   ,"                         update version strings from */.version (or VER)"
-  ,"./Shake commandtxts      update hledger CLI commands' usage texts"
-  ,"./Shake manuals          update txt/man/info/web manuals for all packages"
-  ,"./Shake webmanuals       update just the web manuals"
-  ,"./Shake changelogs [--dry-run]"
-  ,"                         add new commits & headings to */CHANGES.md"
-  ,"./Shake cabalfiles       update */*.cabal from */package.yaml"
-  ,"./Shake update           update all that needs updating, eg after setversion"
+  ,"./Shake commandtxts [--commit]"
+  ,"                         update usage texts for hledger CLI commands"
+  ,"./Shake manuals [--commit]"
+  ,"                         update txt/man/info/web manuals for all packages"
+  -- ,"./Shake webmanuals       update just the web manuals"
+  ,"./Shake changelogs [--commit] [--dry-run]"
+  ,"                         update */CHANGES.md, adding new commits & headings"
+  ,"./Shake cabalfiles [--commit]"
+  ,"                         update */*.cabal from */package.yaml"
+  ,"./Shake update [--commit]"
+  ,"                         update all the above, eg after setversion"
   ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
   ,"./Shake clean            remove generated texts, manuals"
   ,"./Shake Clean            also remove object files, Shake's cache"
@@ -87,6 +91,7 @@ usage =
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
 makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
 pandoc   = "pandoc --strip-comments"
+gitcommit = "git commit --allow-empty"
 
 -- Must support both BSD sed and GNU sed. Tips:
 -- BSD:
@@ -161,7 +166,7 @@ main = do
           ]
         pkgdirs = packages
         pkgandprojdirs = "" : pkgdirs
-        cabalfiles = [p <.> "cabal" | p <- packages]
+        cabalfiles = [p </> p <.> "cabal" | p <- packages]
         changelogs = map (</> "CHANGES.md") pkgandprojdirs
 
         -- doc files (or related targets) that should be generated
@@ -268,7 +273,7 @@ main = do
                    Nothing -> ""
                    Just v  -> "to " ++ v
                 ]
-          cmd Shell ("git commit -m '"++msg++"' --") specifiedversionfiles dependents
+          cmd Shell gitcommit ("-m '"++msg++"' --") specifiedversionfiles dependents
 
       -- PKG/defs.m4 <- PKG/.version
       "hledger*/defs.m4" %> \out -> do
@@ -351,13 +356,16 @@ main = do
       -- MANUALS
 
       -- Generate the manuals in plain text, nroff, info, and markdown formats.
-      phony "manuals" $ need $
-        concat [
-         nroffmanuals
-        ,infomanuals
-        ,txtmanuals
-        ,webmanuals
-        ]
+      phony "manuals" $ do
+        need $ concat [
+               nroffmanuals
+              ,infomanuals
+              ,txtmanuals
+              ,webmanuals
+              ]
+        when commit $ do
+          let msg = ";update manuals"
+          cmd Shell gitcommit ("-m '"++msg++"' --") nroffmanuals infomanuals txtmanuals
 
       -- Generate nroff man pages suitable for man output, from the .m4.md source.
       phony "nroffmanuals" $ need nroffmanuals
@@ -495,9 +503,16 @@ main = do
       -- regenerate .cabal files from package.yaml's, using stack (also installs deps)
       phony "cabalfiles" $ do
         cmd Shell "stack build --dry-run --silent" :: Action ()
+        when commit $ do
+          let msg = ";update cabal files"
+          cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
 
       -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
-      phony "commandtxts" $ need commandtxts
+      phony "commandtxts" $ do
+        need commandtxts
+        when commit $ do
+          let msg = ";update CLI usage texts"
+          cmd Shell gitcommit ("-m '"++msg++"' --") commandtxts
 
       commandtxts |%> \out -> do
         let src = out -<.> "md"
@@ -539,7 +554,11 @@ main = do
           ]
 
       -- update all changelogs with latest commits
-      phony "changelogs" $ need changelogs
+      phony "changelogs" $ do
+        need changelogs
+        when commit $ do
+          let msg = ";update changelogs"
+          cmd Shell gitcommit ("-m '"++msg++"' --") changelogs
 
       -- [PKG/]CHANGES.md
       -- Add any new non-boring commits to the specified changelog, in
