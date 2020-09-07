@@ -144,7 +144,7 @@ jobs:
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
-        $stack build --fast --ghc-options=-Werror 
+        $stack build --fast --ghc-options=-Werror --force-dirty
         # --ghc-options=-fforce-recomp   # needed occasionally to clear out stale compiled modules
         #  --pedantic
 
