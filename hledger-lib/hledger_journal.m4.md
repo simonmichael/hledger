@@ -1513,10 +1513,7 @@ Eg the first example above declares a goal of spending $2000 on rent
 (and also, a goal of depositing $2000 into checking) every month.
 Goals and actual performance can then be compared in [budget reports](hledger.html#budget-report).
 
-For more details, see:
-[balance: Budget report](hledger.html#budget-report)
-and
-[Budgeting and Forecasting](budgeting-and-forecasting.html).
+See also: [Budgeting and Forecasting](budgeting-and-forecasting.html).
 
 
 <a name="automated-postings"></a>
