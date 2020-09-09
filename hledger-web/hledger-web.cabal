@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3781a0068e7647eb59ffb0c20198955f86df134e69d18ed657cbddf233258217
+-- hash: aa718b67789de795338ed7fcf056b830cbc3b021a58c77af16e221a6ccb70b5b
 
 name:           hledger-web
 version:        1.19
@@ -166,7 +166,7 @@ library
     , conduit-extra >=1.1
     , containers
     , data-default
-    , directory
+    , directory >=1.2.3.0
     , extra >=1.6.3
     , filepath
     , hjsmin
