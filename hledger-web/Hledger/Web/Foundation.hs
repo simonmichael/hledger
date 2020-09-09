@@ -103,7 +103,7 @@ instance Yesod App where
   approot = ApprootMaster $ appRoot . settings
 
   makeSessionBackend _ = do
-    hledgerdata <- getXdgDirectory XdgData "hledger"
+    hledgerdata <- getXdgDirectory XdgCache "hledger"
     createDirectoryIfMissing True hledgerdata
     let sessionexpirysecs = 120
     Just <$> defaultClientSessionBackend sessionexpirysecs (hledgerdata </> "hledger-web_client_session_key.aes")
