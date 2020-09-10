@@ -993,6 +993,9 @@ nix-hledger-version: $(call def-help,nix-hledger-version, show which version of 
 nix-hledger-versions: $(call def-help,nix-hledger-versions, show versions of all hledger packages in nixpkgs)
 	@curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger'
 
+make nix-view-commits: $(call def-help,nix-view-commits, show recent haskell commits in nixpkgs)
+	@open 'https://github.com/search?l=&o=desc&q=%22automatic+Haskell+package+set+update%22+repo%3ANixOS%2Fnixpkgs+filename%3Ahaskell-packages.nix&s=committer-date&type=Commits'
+
 ###############################################################################
 $(call def-help-subheading,MISCELLANEOUS:)
 
