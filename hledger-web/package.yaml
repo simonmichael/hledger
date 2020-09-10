@@ -115,7 +115,7 @@ library:
   - containers
   - data-default
   - Decimal >=0.5.1
-  - directory
+  - directory >=1.2.3.0
   - extra >=1.6.3
   - filepath
   - hjsmin

@@ -31,7 +31,9 @@ import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
 import Network.HTTP.Types (status403)
 import Network.Wai (requestHeaders)
-import System.FilePath (takeFileName)
+import System.Directory (XdgDirectory (..), createDirectoryIfMissing,
+                         getXdgDirectory)
+import System.FilePath (takeFileName, (</>))
 import Text.Blaze (Markup)
 import Text.Hamlet (hamletFile)
 import Yesod
@@ -100,9 +102,11 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
   approot = ApprootMaster $ appRoot . settings
 
-  makeSessionBackend _ =
+  makeSessionBackend _ = do
+    hledgerdata <- getXdgDirectory XdgCache "hledger"
+    createDirectoryIfMissing True hledgerdata
     let sessionexpirysecs = 120
-    in  Just <$> defaultClientSessionBackend sessionexpirysecs ".hledger-web_client_session_key.aes"
+    Just <$> defaultClientSessionBackend sessionexpirysecs (hledgerdata </> "hledger-web_client_session_key.aes")
 
   -- defaultLayout :: WidgetFor site () -> HandlerFor site Html
   defaultLayout widget = do
