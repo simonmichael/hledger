@@ -629,7 +629,7 @@ BENCHEXES ?= hledger
 
 bench: quickbench
 
-quickbench: samplejournals bench.sh $(call def-help,bench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
+quickbench: samplejournals bench.sh $(call def-help,quickbench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
 	@echo; echo "run quick performance benchmarks in bench.sh (approximate, can be skewed):"
 	quickbench -w $(BENCHEXES)  # -v
 
