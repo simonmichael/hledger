@@ -30,9 +30,6 @@ module Hledger.Reports.ReportOptions (
   reportSpan,
   reportStartDate,
   reportEndDate,
-  specifiedStartEndDates,
-  specifiedStartDate,
-  specifiedEndDate,
   reportPeriodStart,
   reportPeriodOrJournalStart,
   reportPeriodLastDay,
@@ -457,39 +454,19 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
 -- options or queries, or otherwise the earliest and latest transaction or
 -- posting dates in the journal. If no dates are specified by options/queries
 -- and the journal is empty, returns the null date span.
--- Needs IO to parse smart dates in options/queries.
-reportSpan :: Journal -> ReportOpts -> IO DateSpan
-reportSpan j ropts = do
-  (mspecifiedstartdate, mspecifiedenddate) <-
-    dbg3 "specifieddates" <$> specifiedStartEndDates ropts
-  let
+reportSpan :: Journal -> ReportOpts -> DateSpan
+reportSpan j ropts = dbg3 "reportspan" $ DateSpan mstartdate menddate
+  where
     DateSpan mjournalstartdate mjournalenddate =
       dbg3 "journalspan" $ journalDateSpan False j  -- ignore secondary dates
-    mstartdate = mspecifiedstartdate <|> mjournalstartdate
-    menddate   = mspecifiedenddate   <|> mjournalenddate
-  return $ dbg3 "reportspan" $ DateSpan mstartdate menddate
+    mstartdate = queryStartDate False (query_ ropts) <|> mjournalstartdate
+    menddate   = queryEndDate   False (query_ ropts) <|> mjournalenddate
 
-reportStartDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportStartDate j ropts = spanStart <$> reportSpan j ropts
+reportStartDate :: Journal -> ReportOpts -> Maybe Day
+reportStartDate j ropts = spanStart $ reportSpan j ropts
 
-reportEndDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportEndDate j ropts = spanEnd <$> reportSpan j ropts
-
--- | The specified report start/end dates are the dates specified by options or queries, if any.
--- Needs IO to parse smart dates in options/queries.
-specifiedStartEndDates :: ReportOpts -> IO (Maybe Day, Maybe Day)
-specifiedStartEndDates ropts = do
-  let
-    q = query_ ropts
-    mspecifiedstartdate = queryStartDate False q
-    mspecifiedenddate   = queryEndDate   False q
-  return (mspecifiedstartdate, mspecifiedenddate)
-
-specifiedStartDate :: ReportOpts -> IO (Maybe Day)
-specifiedStartDate ropts = fst <$> specifiedStartEndDates ropts
-
-specifiedEndDate :: ReportOpts -> IO (Maybe Day)
-specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
+reportEndDate :: Journal -> ReportOpts -> Maybe Day
+reportEndDate j ropts = spanEnd $ reportSpan j ropts
 
 -- Some pure alternatives to the above. XXX review/clean up
 
