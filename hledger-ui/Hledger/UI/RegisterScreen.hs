@@ -138,7 +138,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts},querystring_=query}
+rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,aScreen=RegisterScreen{..}
               ,aMode=mode
               } =
@@ -201,7 +201,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts},que
           <+> togglefilters
           <+> str " transactions"
           -- <+> str (if ishistorical then " historical total" else " period total")
-          <+> borderQueryStr query
+          <+> borderQueryStr (T.unpack $ querystring_ ropts)
           -- <+> str " and subs"
           <+> borderPeriodStr "in" (period_ ropts)
           <+> str " ("

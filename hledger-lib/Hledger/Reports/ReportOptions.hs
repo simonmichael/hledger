@@ -15,6 +15,7 @@ module Hledger.Reports.ReportOptions (
   ValuationType(..),
   defreportopts,
   rawOptsToReportOpts,
+  regenerateReportOpts,
   flat_,
   tree_,
   reportOptsToggleStatus,
@@ -96,6 +97,7 @@ data ReportOpts = ReportOpts {
     ,format_         :: StringFormat
     ,query_          :: Query
     ,queryopts_      :: [QueryOpt]
+    ,querystring_    :: T.Text
     --
     ,average_        :: Bool
     -- for posting reports (register)
@@ -133,36 +135,38 @@ instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
-    nulldate
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
+    { today_           = nulldate
+    , period_          = PeriodAll
+    , interval_        = NoInterval
+    , statuses_        = []
+    , value_           = Nothing
+    , infer_value_     = False
+    , depth_           = Nothing
+    , date2_           = False
+    , empty_           = False
+    , no_elide_        = False
+    , real_            = False
+    , format_          = def
+    , query_           = Any
+    , queryopts_       = []
+    , querystring_     = ""
+    , average_         = False
+    , related_         = False
+    , txn_dates_       = False
+    , balancetype_     = def
+    , accountlistmode_ = ALFlat
+    , drop_            = 0
+    , row_total_       = False
+    , no_total_        = False
+    , pretty_tables_   = False
+    , sort_amount_     = False
+    , percent_         = False
+    , invert_          = False
+    , normalbalance_   = Nothing
+    , color_           = False
+    , forecast_        = Nothing
+    , transpose_       = False
+    }
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = do
@@ -197,6 +201,7 @@ rawOptsToReportOpts rawopts = do
           ,format_      = format
           ,query_       = simplifyQuery $ And [queryFromFlags reportopts, argsquery]
           ,queryopts_   = queryopts
+          ,querystring_ = querystring
           ,average_     = boolopt "average" rawopts
           ,related_     = boolopt "related" rawopts
           ,txn_dates_   = boolopt "txn-dates" rawopts
@@ -216,8 +221,13 @@ rawOptsToReportOpts rawopts = do
           ,forecast_    = forecastPeriodFromRawOpts d rawopts
           ,transpose_   = boolopt "transpose" rawopts
           }
-
     return reportopts
+
+-- | Regenerate a ReportOpts on a different day with a different query string.
+regenerateReportOpts :: Day -> T.Text -> ReportOpts -> Either String ReportOpts
+regenerateReportOpts d querystring ropts = do
+    (q,o) <- parseQuery d querystring
+    return ropts{today_=d, query_=q, queryopts_=o, querystring_=querystring}
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =
