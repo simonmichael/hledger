@@ -82,9 +82,6 @@ type CompoundBalanceReport = CompoundPeriodicReport DisplayName MixedAmount
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
 
--- Type alias for a valuation function
-type Valuation = Day -> MixedAmount -> MixedAmount
-
 
 -- | Generate a multicolumn balance report for the matched accounts,
 -- showing the change of balance, accumulated balance, or historical balance
@@ -241,7 +238,7 @@ makeReportQuery ropts reportspan
     dateqcons        = if date2_ ropts then Date2 else Date
 
 -- | Make a valuation function for valuating MixedAmounts and a given Day
-makeValuation :: ReportOpts -> Journal -> PriceOracle -> Valuation
+makeValuation :: ReportOpts -> Journal -> PriceOracle -> Day -> MixedAmount -> MixedAmount
 makeValuation ropts j priceoracle day = case value_ ropts of
     Nothing -> id
     Just v  -> mixedAmountApplyValuation priceoracle styles day mreportlast (today_ ropts) multiperiod v
@@ -331,7 +328,7 @@ acctChangesFromPostings ropts ps = HM.fromList [(aname a, a) | a <- as]
 -- | Accumulate and value amounts, as specified by the report options.
 --
 -- Makes sure all report columns have an entry.
-accumValueAmounts :: ReportOpts -> Valuation -> [DateSpan]
+accumValueAmounts :: ReportOpts -> (Day -> MixedAmount -> MixedAmount) -> [DateSpan]
                   -> HashMap ClippedAccountName Account
                   -> HashMap ClippedAccountName (Map DateSpan Account)
                   -> HashMap ClippedAccountName (Map DateSpan Account)
@@ -369,7 +366,7 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
-generateMultiBalanceReport :: ReportOpts -> Journal -> Valuation -> [DateSpan]
+generateMultiBalanceReport :: ReportOpts -> Journal -> (Day -> MixedAmount -> MixedAmount) -> [DateSpan]
                            -> Map DateSpan [Posting] -> HashMap AccountName Account
                            -> MultiBalanceReport
 generateMultiBalanceReport ropts j valuation colspans colps startbals = report
