@@ -123,20 +123,19 @@ journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j =
       today <- getCurrentDay
 
       -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
-      let 
+      let
         mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
         forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
 
-      -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-      mspecifiedend <-  snd . dbg2 "specifieddates" <$> specifiedStartEndDates ropts
-      let 
+        -- "They end on or before the specified report end date, or 180 days from today if unspecified."
+        mspecifiedend = dbg2 "specifieddates" $ reportPeriodLastDay ropts
         forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
-          
+
         forecastspan = dbg2 "forecastspan" $
           spanDefaultsFrom
             (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
             (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
-              
+
         forecasttxns =
           [ txnTieKnot t | pt <- jperiodictxns j
                           , t <- runPeriodicTransaction pt forecastspan

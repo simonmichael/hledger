@@ -310,8 +310,8 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
         fmt         = outputFormatFromOpts opts
 
     if budget then do  -- single or multi period budget report
-      reportspan <- reportSpan j ropts
-      let budgetreport = dbg4 "budgetreport" $ budgetReport ropts assrt reportspan j
+      let reportspan = reportSpan j ropts
+          budgetreport = dbg4 "budgetreport" $ budgetReport ropts assrt reportspan j
             where
               assrt = not $ ignore_assertions_ $ inputopts_ opts
           render = case fmt of

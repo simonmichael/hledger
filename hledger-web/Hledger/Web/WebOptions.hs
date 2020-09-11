@@ -119,7 +119,19 @@ data WebOpts = WebOpts
   } deriving (Show)
 
 defwebopts :: WebOpts
-defwebopts = WebOpts def def Nothing def def def def [CapView, CapAdd] Nothing def Nothing
+defwebopts = WebOpts
+  { serve_              = False
+  , serve_api_          = False
+  , cors_               = Nothing
+  , host_               = ""
+  , port_               = def
+  , base_url_           = ""
+  , file_url_           = Nothing
+  , capabilities_       = [CapView, CapAdd]
+  , capabilitiesHeader_ = Nothing
+  , cliopts_            = def
+  , socket_             = Nothing
+  }
 
 instance Default WebOpts where def = defwebopts
 

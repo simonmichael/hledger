@@ -61,8 +61,8 @@ main = do
         }
   withJournalDo copts' $ \j -> do
     today <- getCurrentDay
-    menddate <- specifiedEndDate ropts
     let
+      menddate = reportPeriodLastDay ropts
       args = words' $ query_ ropts
       q = queryFromOpts today ropts
       acct = T.pack $ headDef (error' "Please provide an account name argument") args
