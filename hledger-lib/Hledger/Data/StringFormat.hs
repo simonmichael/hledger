@@ -31,10 +31,12 @@ import Hledger.Utils.Test
 
 -- | A format specification/template to use when rendering a report line item as text.
 --
--- A format is a sequence of components; each is either a literal
--- string, or a hledger report item field with specified width and
--- justification whose value will be interpolated at render time.
--- This includes an optional width for any overlines.
+-- A format is an optional width, along with a sequence of components;
+-- each is either a literal string, or a hledger report item field with
+-- specified width and justification whose value will be interpolated
+-- at render time. The optional width determines the length of the
+-- overline to draw above the totals row; if it is Nothing, then the
+-- maximum width of all lines is used.
 --
 -- A component's value may be a multi-line string (or a
 -- multi-commodity amount), in which case the final string will be
