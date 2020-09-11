@@ -61,14 +61,13 @@ data UIOpts = UIOpts {
      watch_       :: Bool
     ,change_      :: Bool
     ,cliopts_     :: CliOpts
-    ,querystring_ :: String
  } deriving (Show)
 
 defuiopts = UIOpts
-    def
-    def
-    def
-    ""
+  { watch_   = False
+  , change_  = False
+  , cliopts_ = def
+  }
 
 -- instance Default CliOpts where def = defcliopts
 
@@ -79,7 +78,6 @@ rawOptsToUIOpts rawopts = checkUIOpts <$> do
               watch_       = boolopt "watch" rawopts
              ,change_      = boolopt "change" rawopts
              ,cliopts_     = cliopts
-             ,querystring_ = unwords . map quoteIfNeeded $ listofstringopt "args" rawopts
              }
 
 checkUIOpts :: UIOpts -> UIOpts

@@ -240,8 +240,9 @@ resetReportPeriod = setReportPeriod PeriodAll
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-    ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{query_=q}},querystring_=s}}
-  where q = either (const None) fst . parseQuery undefined $ T.pack s
+    ui{aopts=uopts{cliopts_=copts{reportopts_=newRopts}}}
+  where
+    newRopts = either (const ropts) id $ regenerateReportOpts (today_ ropts) (T.pack s) ropts
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
@@ -307,7 +308,7 @@ showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui
   where
     e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
-    oldq = querystring_ $ aopts ui
+    oldq = T.unpack . querystring_ . reportopts_ . cliopts_ $ aopts ui
 
 -- | Close the minibuffer, discarding any edit in progress.
 closeMinibuffer :: UIState -> UIState

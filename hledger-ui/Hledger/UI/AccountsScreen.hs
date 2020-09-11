@@ -117,7 +117,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts},querystring_=query}
+asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,ajournal=j
               ,aScreen=s@AccountsScreen{}
               ,aMode=mode
@@ -172,7 +172,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts},que
           <+> toggles
           <+> str (" account " ++ if ishistorical then "balances" else "changes")
           <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
-          <+> borderQueryStr query
+          <+> borderQueryStr (T.unpack $ querystring_ ropts)
           <+> borderDepthStr mdepth
           <+> str (" ("++curidx++"/"++totidx++")")
           <+> (if ignore_assertions_ $ inputopts_ copts
