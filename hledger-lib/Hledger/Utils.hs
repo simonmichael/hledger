@@ -36,7 +36,6 @@ where
 
 import Control.Monad (liftM, when)
 -- import Data.Char
-import Data.Default
 import Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import Data.List
 -- import Data.Maybe
@@ -143,8 +142,6 @@ getCurrentZonedTime = do
   return $ utcToZonedTime tz t
 
 -- misc
-
-instance Default Bool where def = False
 
 -- | Apply a function the specified number of times,
 -- which should be > 0 (otherwise does nothing).

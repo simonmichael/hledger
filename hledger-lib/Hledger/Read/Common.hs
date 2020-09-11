@@ -199,7 +199,17 @@ data InputOpts = InputOpts {
 instance Default InputOpts where def = definputopts
 
 definputopts :: InputOpts
-definputopts = InputOpts def def def def def def True def def
+definputopts = InputOpts
+    { mformat_           = Nothing
+    , mrules_file_       = Nothing
+    , aliases_           = []
+    , anon_              = False
+    , ignore_assertions_ = False
+    , new_               = False
+    , new_save_          = True
+    , pivot_             = ""
+    , auto_              = False
+    }
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
 rawOptsToInputOpts rawopts = InputOpts{

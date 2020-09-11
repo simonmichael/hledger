@@ -415,17 +415,18 @@ instance Default CliOpts where def = defcliopts
 
 defcliopts :: CliOpts
 defcliopts = CliOpts
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    defaultWidth
+    { rawopts_         = def
+    , command_         = ""
+    , file_            = []
+    , inputopts_       = def
+    , reportopts_      = def
+    , output_file_     = Nothing
+    , output_format_   = Nothing
+    , debug_           = 0
+    , no_new_accounts_ = False
+    , width_           = Nothing
+    , available_width_ = defaultWidth
+    }
 
 -- | Default width for hledger console output, when not otherwise specified.
 defaultWidth :: Int
