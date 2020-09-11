@@ -48,15 +48,14 @@ module Hledger.Utils.String (
  ) where
 
 
-import Data.Char (isDigit, isSpace, toLower, toUpper)
+import Data.Char (isSpace, toLower, toUpper)
 import Data.List (intercalate, transpose)
-import Text.Megaparsec (Parsec, (<|>), (<?>), anySingle, between, many, noneOf,
-                        oneOf, parseMaybe, sepBy, takeWhileP, try)
-import Text.Megaparsec.Char (char, string)
+import Text.Megaparsec ((<|>), between, many, noneOf, sepBy)
+import Text.Megaparsec.Char (char)
 import Text.Printf (printf)
 
 import Hledger.Utils.Parse
-
+import Hledger.Utils.Regex (toRegex', regexReplace)
 
 -- | Take elements from the end of a list.
 takeEnd n l = go (drop n l) l
@@ -342,14 +341,10 @@ strWidth = maximum . (0:) . map (foldr (\a b -> charWidth a + b) 0) . lines . st
 -- >>> stripAnsi "\ESC[31m-1\ESC[m"
 -- "-1"
 stripAnsi :: String -> String
-stripAnsi s = case parseMaybe (many $ "" <$ try ansi <|> pure <$> anySingle) s of
-    Nothing -> error "Bad ansi escape"  -- PARTIAL: should not happen
-    Just xs -> concat xs
-  where
-    -- This parses lots of invalid ANSI escape codes, but that should be fine
-    ansi = string "\ESC[" *> digitSemicolons *> suffix <?> "ansi" :: Parsec CustomErr String Char
-    digitSemicolons = takeWhileP Nothing (\c -> isDigit c || c == ';')
-    suffix = oneOf ['A', 'B', 'C', 'D', 'H', 'J', 'K', 'f', 'm', 's', 'u']
+stripAnsi s = either err id $ regexReplace ansire "" s
+ where
+   err    = error "stripAnsi: invalid replacement pattern"      -- PARTIAL, shouldn't happen
+   ansire = toRegex' "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]"  -- PARTIAL, should succeed
 
 -- | Get the designated render width of a character: 0 for a combining
 -- character, 1 for a regular character, 2 for a wide character.
