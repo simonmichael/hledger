@@ -130,11 +130,11 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack --stack-yaml=stack8.6.yaml --no-terminal build --only-dependencies
+        stack --stack-yaml=stack8.6.yaml --no-terminal build --only-dependencies  hledger hledger-ui
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
-        stack --stack-yaml=stack8.6.yaml --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+        stack --stack-yaml=stack8.6.yaml --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  hledger hledger-ui
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
 
