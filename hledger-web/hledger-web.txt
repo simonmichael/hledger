@@ -545,4 +545,4 @@ SEE ALSO
 
 
 
-hledger-web 1.18.99             September 2020                  hledger-web(1)
+hledger-web 1.19.2              September 2020                  hledger-web(1)
