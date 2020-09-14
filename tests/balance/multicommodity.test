@@ -1,26 +1,26 @@
-# 1. In tabular balance reports, amounts with more than two commodities are elided.
+# 1. In tabular balance reports, cap the maximum width and elide if sufficiently large
 <
 2020-01-01
-  (a)  1A
-  (a)  1B
-  (a)  1C
-  (a)  1D
+  (a)  1.00A
+  (a)  1.00B
+  (a)  1.00C
+  (a)  1.00D
 
 $ hledger -f- bal -Y
 Balance changes in 2020:
 
-   ||             2020 
-===++==================
- a || 1A, 1B, 2 more.. 
----++------------------
-   || 1A, 1B, 2 more.. 
+   ||                   2020 
+===++========================
+ a || 1.00A, 1.00B, 2 more.. 
+---++------------------------
+   || 1.00A, 1.00B, 2 more.. 
 
 # 2. Unless --no-elide is used.
 $ hledger -f- bal -Y --no-elide
 Balance changes in 2020:
 
-   ||           2020 
-===++================
- a || 1A, 1B, 1C, 1D 
----++----------------
-   || 1A, 1B, 1C, 1D 
+   ||                       2020 
+===++============================
+ a || 1.00A, 1.00B, 1.00C, 1.00D 
+---++----------------------------
+   || 1.00A, 1.00B, 1.00C, 1.00D 

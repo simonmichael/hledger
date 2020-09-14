@@ -99,7 +99,7 @@ asInit d reset ui@UIState{
       AccountsScreenItem{asItemIndentLevel        = indent
                         ,asItemAccountName        = fullacct
                         ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts then shortacct else fullacct
-                        ,asItemRenderedAmounts    = map (showAmountWithoutPrice False) amts
+                        ,asItemRenderedAmounts    = map showAmountWithoutPrice amts
                         }
       where
         Mixed amts = normaliseMixedAmountSquashPricesForDisplay $ stripPrices bal
