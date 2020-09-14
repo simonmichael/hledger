@@ -128,13 +128,19 @@ jobs:
     # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
     # - shelltest --version
 
+    # When building from scratch without cached data, temporarily disabling
+    # hledger-web (by uncommenting "hledger hledger-ui" below) seems
+    # necessary to avoid timeouts
+
     - name: Install haskell deps
+      shell: bash
       run: |
-        stack --stack-yaml=stack8.6.yaml --no-terminal build --only-dependencies  hledger hledger-ui
+        stack --stack-yaml=stack8.6.yaml --no-terminal build --only-dependencies  # hledger hledger-ui
 
     - name: Build all hledger modules warning free, optimised and minimised
+      shell: bash
       run: |
-        stack --stack-yaml=stack8.6.yaml --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  hledger hledger-ui
+        stack --stack-yaml=stack8.6.yaml --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror  #  hledger hledger-ui
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
 
