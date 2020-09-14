@@ -7,15 +7,17 @@ import Data.List (intersperse, transpose)
 import Text.Tabular
 import Hledger.Utils.String
 
--- | for simplicity, we assume that each cell is rendered
---   on a single line
-render :: Bool -- ^ pretty tables
-       -> (rh -> String)
-       -> (ch -> String)
-       -> (a -> String)
-       -> Table rh ch a
-       -> String
-render pretty fr fc f (Table rh ch cells) =
+
+render :: Bool -> (rh -> String) -> (ch -> String) -> (a -> String) -> Table rh ch a -> String
+render pretty fr fc f = renderTable pretty fr fc (\a -> let str = f a in (str, strWidth str))
+
+renderTable :: Bool -- ^ pretty tables
+            -> (rh -> String)
+            -> (ch -> String)
+            -> (a -> (String, Int))  -- ^ Function determining the string and width of a cell
+            -> Table rh ch a
+            -> String
+renderTable pretty fr fc f (Table rh ch cells) =
   unlines $ [ bar VT SingleLine   -- +--------------------------------------+
             , renderColumns pretty sizes ch2
             , bar VM DoubleLine   -- +======================================+
@@ -26,17 +28,17 @@ render pretty fr fc f (Table rh ch cells) =
   bar vpos prop = concat (renderHLine vpos pretty sizes ch2 prop)
   -- ch2 and cell2 include the row and column labels
   ch2 = Group DoubleLine [Header "", fmap fc ch]
-  cells2 = headerContents ch2
-         : zipWith (\h cs -> h : map f cs) rhStrings cells
+  cells2 = map (\h -> (h, strWidth h)) (headerContents ch2)
+         : zipWith (\h cs -> (h, strWidth h) : map f cs) rhStrings cells
   --
   renderR (cs,h) = renderColumns pretty sizes $ Group DoubleLine
                     [ Header h
-                    , fmap fst $ zipHeader "" (map f cs) ch]
+                    , fmap fst $ zipHeader "" (map (fst . f) cs) ch]
   rhStrings = map fr $ headerContents rh
   -- maximum width for each column
-  sizes   = map (maximum . map strWidth) . transpose $ cells2
+  sizes   = map (maximum . map snd) $ transpose cells2
   renderRs (Header s)   = [s]
-  renderRs (Group p hs) = concat . intersperse sep . map renderRs $ hs
+  renderRs (Group p hs) = concat . intersperse sep $ map renderRs hs
     where sep = renderHLine VM pretty sizes ch2 p
 
 verticalBar :: Bool -> Char
