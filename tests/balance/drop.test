@@ -23,7 +23,7 @@ $ hledger -f - balance --flat --no-total --drop 1
                    1  ...
 >=
 
-## 2. Drop works in tree mode with no boring parent ellision
+## 2. Drop works in tree mode with no boring parent elision
 $ hledger -f - balance --tree --no-elide --no-total --drop 1
                    1  k
                    1  i
@@ -33,7 +33,7 @@ $ hledger -f - balance --tree --no-elide --no-total --drop 1
                    1  ...
 >=
 
-## 3. Drop works in tree mode with boring parent ellision
+## 3. Drop works in tree mode with boring parent elision
 $ hledger -f - balance --tree --no-total --drop 1
                    1  k
                    1  i:p

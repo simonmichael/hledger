@@ -116,6 +116,8 @@ module Hledger.Data.Amount (
   showMixedAmountElided,
   showMixedAmountWithZeroCommodity,
   showMixedAmountWithPrecision,
+  showMixed,
+  showMixedOneLine,
   setMixedAmountPrecision,
   canonicaliseMixedAmount,
   -- * misc.
@@ -126,15 +128,17 @@ module Hledger.Data.Amount (
 import Control.Monad (foldM)
 import Data.Char (isDigit)
 import Data.Decimal (decimalPlaces, normalizeDecimal, roundTo)
+import Data.Foldable (toList)
 import Data.Function (on)
-import Data.List
+import Data.List (genericSplitAt, groupBy, intercalate, mapAccumL,
+                  partition, sortBy)
 import qualified Data.Map as M
 import Data.Map (findWithDefault)
-import Data.Maybe
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Word (Word8)
-import Safe (lastDef, maximumMay)
-import Text.Printf
+import Safe (lastDef, lastMay)
+import Text.Printf (printf)
 
 import Hledger.Data.Types
 import Hledger.Data.Commodity
@@ -277,11 +281,6 @@ amountLooksZero = (0==) . amountRoundedQuantity
 amountIsZero :: Amount -> Bool
 amountIsZero Amount{aquantity=q} = q == 0
 
--- | Get the string representation of an amount, based on its commodity's
--- display settings except using the specified precision.
-showAmountWithPrecision :: AmountPrecision -> Amount -> String
-showAmountWithPrecision p = showAmount . setAmountPrecision p
-
 -- | Set an amount's display precision, flipped.
 withPrecision :: Amount -> AmountPrecision -> Amount
 withPrecision = flip setAmountPrecision
@@ -299,19 +298,6 @@ setFullPrecision a = setAmountPrecision p a
     p                = max displayprecision naturalprecision
     displayprecision = asprecision $ astyle a
     naturalprecision = Precision . decimalPlaces . normalizeDecimal $ aquantity a
-
--- | Get a string representation of an amount for debugging,
--- appropriate to the current debug level. 9 shows maximum detail.
-showAmountDebug :: Amount -> String
-showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
-showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showAmountPriceDebug aprice) (show astyle)
-
--- | Get the string representation of an amount, without any \@ price.
--- With a True argument, adds ANSI codes to show negative amounts in red.
-showAmountWithoutPrice :: Bool -> Amount -> String
-showAmountWithoutPrice c a = showamt a{aprice=Nothing}
-  where
-    showamt = if c then cshowAmount else showAmount
 
 -- | Set an amount's internal precision, ie rounds the Decimal representing
 -- the amount's quantity to some number of decimal places.
@@ -374,9 +360,17 @@ showAmount = showAmountHelper False
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
 cshowAmount :: Amount -> String
-cshowAmount a =
-  (if isNegativeAmount a then color Dull Red else id) $
-  showAmountHelper False a
+cshowAmount a = (if isNegativeAmount a then color Dull Red else id) $
+                showAmountHelper False a
+
+-- | Get the string representation of an amount, without any \@ price.
+showAmountWithoutPrice :: Amount -> String
+showAmountWithoutPrice a = showAmount a{aprice=Nothing}
+
+-- | Get the string representation of an amount, based on its commodity's
+-- display settings except using the specified precision.
+showAmountWithPrecision :: AmountPrecision -> Amount -> String
+showAmountWithPrecision p = showAmount . setAmountPrecision p
 
 showAmountHelper :: Bool -> Amount -> String
 showAmountHelper _ Amount{acommodity="AUTO"} = ""
@@ -394,6 +388,12 @@ showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=mp, astyle=Amou
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 showAmountWithZeroCommodity :: Amount -> String
 showAmountWithZeroCommodity = showAmountHelper True
+
+-- | Get a string representation of an amount for debugging,
+-- appropriate to the current debug level. 9 shows maximum detail.
+showAmountDebug :: Amount -> String
+showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
+showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showAmountPriceDebug aprice) (show astyle)
 
 -- | Get the string representation of the number part of of an amount,
 -- using the display settings from its commodity.
@@ -612,25 +612,136 @@ styleMixedAmount styles (Mixed as) = Mixed $ map (styleAmount styles) as
 -- normalising it to one amount per commodity. Assumes amounts have
 -- no or similar prices, otherwise this can show misleading prices.
 showMixedAmount :: MixedAmount -> String
-showMixedAmount = showMixedAmountHelper False False
+showMixedAmount = fst . showMixed showAmount Nothing Nothing False
+
+-- | Get the one-line string representation of a mixed amount.
+showMixedAmountOneLine :: MixedAmount -> String
+showMixedAmountOneLine = fst . showMixedOneLine showAmountWithoutPrice Nothing Nothing False
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
 showMixedAmountWithZeroCommodity :: MixedAmount -> String
-showMixedAmountWithZeroCommodity = showMixedAmountHelper True False
+showMixedAmountWithZeroCommodity = fst . showMixed showAmountWithZeroCommodity Nothing Nothing False
 
--- | Get the one-line string representation of a mixed amount.
-showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = showMixedAmountHelper False True
+-- | Get the string representation of a mixed amount, showing each of its
+-- component amounts with the specified precision, ignoring their
+-- commoditys' display precision settings.
+showMixedAmountWithPrecision :: AmountPrecision -> MixedAmount -> String
+showMixedAmountWithPrecision p = fst . showMixed (showAmountWithPrecision p) Nothing Nothing False
 
-showMixedAmountHelper :: Bool -> Bool -> MixedAmount -> String
-showMixedAmountHelper showzerocommodity useoneline m =
-  join $ map showamt $ amounts $ normaliseMixedAmountSquashPricesForDisplay m
+-- | Get the string representation of a mixed amount, without showing any transaction prices.
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showMixedAmountWithoutPrice :: Bool -> MixedAmount -> String
+showMixedAmountWithoutPrice c = fst . showMixed showAmountWithoutPrice Nothing Nothing c
+
+-- | Get the one-line string representation of a mixed amount, but without
+-- any \@ prices.
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
+showMixedAmountOneLineWithoutPrice c = fst . showMixedOneLine showAmountWithoutPrice Nothing Nothing c
+
+-- | Like showMixedAmountOneLineWithoutPrice, but show at most width 22
+-- with an elision indicator if there are more.
+-- With a True argument, adds ANSI codes to show negative amounts in red.
+showMixedAmountElided :: Bool -> MixedAmount -> String
+showMixedAmountElided c = fst . showMixedOneLine showAmountWithoutPrice Nothing (Just 22) c
+
+-- | Get an unambiguous string representation of a mixed amount for debugging.
+showMixedAmountDebug :: MixedAmount -> String
+showMixedAmountDebug m | m == missingmixedamt = "(missing)"
+                       | otherwise       = printf "Mixed [%s]" as
+    where as = intercalate "\n       " $ map showAmountDebug $ amounts m
+
+-- | General function to display a MixedAmount, one Amount on each line.
+-- It takes a function to display each Amount, an optional minimum width
+-- to pad to, an optional maximum width to display, and a Bool to determine
+-- whether to colourise negative numbers. Amounts longer than the maximum
+-- width (if given) will be elided. The function also returns the actual
+-- width of the output string.
+showMixed :: (Amount -> String) -> Maybe Int -> Maybe Int -> Bool -> MixedAmount -> (String, Int)
+showMixed showamt mmin mmax c mixed =
+    (intercalate "\n" $ map finalise elided, width)
   where
-    join | useoneline = intercalate ", "
-         | otherwise  = vConcatRightAligned
-    showamt | showzerocommodity = showAmountWithZeroCommodity
-            | otherwise         = showAmount
+    width    = maximum $ fromMaybe 0 mmin : map adLength elided
+    astrs    = amtDisplayList sepwidth showamt as
+    Mixed as = normaliseMixedAmountSquashPricesForDisplay mixed
+    sepwidth = 0  -- "\n" has width 0
+
+    finalise = adString . pad . if c then colourise else id
+    pad amt = amt{ adString = applyN (width - adLength amt) (' ':) $ adString amt
+                 , adLength = width
+                 }
+
+    elided = maybe id elideTo mmax astrs
+    elideTo m xs = maybeAppend (elisionDisplay mmax sepwidth (length long) =<< lastMay short) short
+      where (short, long) = partition ((m>=) . adLength) xs
+
+-- | General function to display a MixedAmount on a single line. It
+-- takes a function to display each Amount, an optional minimum width to
+-- pad to, an optional maximum width to display, and a Bool to determine
+-- whether to colourise negative numbers. It will display as many Amounts
+-- as it can in the maximum width (if given), and further Amounts will be
+-- elided. The function also returns the actual width of the output string.
+showMixedOneLine :: (Amount -> String) -> Maybe Int -> Maybe Int -> Bool -> MixedAmount -> (String, Int)
+showMixedOneLine showamt mmin mmax c mixed =
+    (pad . intercalate ", " $ map finalise elided, max width $ fromMaybe 0 mmin)
+  where
+    width    = maybe 0 adTotal $ lastMay elided
+    astrs    = amtDisplayList sepwidth showamt as
+    Mixed as = normaliseMixedAmountSquashPricesForDisplay mixed
+    sepwidth = 2  -- ", " has width 2
+    n        = length as
+
+    finalise = adString . if c then colourise else id
+    pad = applyN (fromMaybe 0 mmin - width) (' ':)
+
+    elided = maybe id elideTo mmax astrs
+    elideTo m = addElide m . takeFitting m . withElided
+    addElide m xs = fromMaybe (toList . elisionDisplay (Just m) 0 n $ AmountDisplay 0 "" 0 0) $ do
+        eDisplay <- snd <$> lastMay xs
+        pure . maybeAppend eDisplay $ map fst xs
+    takeFitting m = filter (\(_,e) -> maybe True ((m>=) . adTotal) e)
+                  . takeWhile (\(amt,_) -> adTotal amt <= m)
+    withElided = zipWith (\m amt -> (amt, elisionDisplay Nothing sepwidth m amt)) [n-1,n-2..0]
+
+data AmountDisplay = AmountDisplay
+  { adAmount :: !Amount
+  , adString :: !String
+  , adLength :: !Int
+  , adTotal  :: !Int
+  }
+
+amtDisplayList :: Int -> (Amount -> String) -> [Amount] -> [AmountDisplay]
+amtDisplayList sep showamt = snd . mapAccumL display (-sep)
+  where
+    display tot amt = (tot', AmountDisplay amt str width tot')
+      where
+        str  = showamt amt
+        width  = strWidth str
+        tot' = tot + width + sep
+
+-- The string "m more", added to the previous running total
+elisionDisplay :: Maybe Int -> Int -> Int -> AmountDisplay -> Maybe AmountDisplay
+elisionDisplay mmax sep n lastAmt
+  | n > 0     = Just $AmountDisplay 0 str len (adTotal lastAmt + len)
+  | otherwise = Nothing
+  where
+    fullString = show n ++ " more.."
+    -- sep from the separator, 7 from " more..", 1 + floor (logBase 10 n) from number
+    fullLength = sep + 8 + floor (logBase 10 $ fromIntegral n)
+
+    str | Just m <- mmax, fullLength > m = take (m - 2) fullString ++ ".."
+        | otherwise                      = fullString
+    len = case mmax of Nothing -> fullLength
+                       Just m  -> max 2 $ min m fullLength
+
+maybeAppend :: Maybe a -> [a] -> [a]
+maybeAppend Nothing  = id
+maybeAppend (Just a) = (++[a])
+
+colourise :: AmountDisplay -> AmountDisplay
+colourise amt = amt{adString=markColour $ adString amt}
+  where markColour = if isNegativeAmount (adAmount amt) then color Dull Red else id
 
 -- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount
@@ -640,63 +751,8 @@ ltraceamount s = traceWith (((s ++ ": ") ++).showMixedAmount)
 setMixedAmountPrecision :: AmountPrecision -> MixedAmount -> MixedAmount
 setMixedAmountPrecision p (Mixed as) = Mixed $ map (setAmountPrecision p) as
 
--- | Get the string representation of a mixed amount, showing each of its
--- component amounts with the specified precision, ignoring their
--- commoditys' display precision settings.
-showMixedAmountWithPrecision :: AmountPrecision -> MixedAmount -> String
-showMixedAmountWithPrecision p m =
-    vConcatRightAligned $ map (showAmountWithPrecision p) $ amounts $ normaliseMixedAmountSquashPricesForDisplay m
-
--- | Get an unambiguous string representation of a mixed amount for debugging.
-showMixedAmountDebug :: MixedAmount -> String
-showMixedAmountDebug m | m == missingmixedamt = "(missing)"
-                       | otherwise       = printf "Mixed [%s]" as
-    where as = intercalate "\n       " $ map showAmountDebug $ amounts m
-
--- TODO these and related fns are comically complicated:
-
--- | Get the string representation of a mixed amount, without showing any transaction prices.
--- With a True argument, adds ANSI codes to show negative amounts in red.
-showMixedAmountWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountWithoutPrice c m = intercalate "\n" $ map showamt as
-  where
-    Mixed as = normaliseMixedAmountSquashPricesForDisplay $ mixedAmountStripPrices m
-    showamt a =
-      (if c && isNegativeAmount a then color Dull Red else id) $
-      printf (printf "%%%ds" width) $ showAmountWithoutPrice c a
-      where
-        width = fromMaybe 0 . maximumMay $ map (length . showAmount) as
-
 mixedAmountStripPrices :: MixedAmount -> MixedAmount
 mixedAmountStripPrices (Mixed as) = Mixed $ map (\a -> a{aprice=Nothing}) as
-
--- | Get the one-line string representation of a mixed amount, but without
--- any \@ prices.
--- With a True argument, adds ANSI codes to show negative amounts in red.
-showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountOneLineWithoutPrice c m =
-  intercalate ", " $ map (showAmountWithoutPrice c) as
-    where
-      (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
-
--- | Like showMixedAmountOneLineWithoutPrice, but show at most two commodities,
--- with a elision indicator if there are more.
--- With a True argument, adds ANSI codes to show negative amounts in red.
-showMixedAmountElided :: Bool -> MixedAmount -> String
-showMixedAmountElided c m = intercalate ", " $ take 2 astrs ++ elisionstr
-  where
-    astrs = map (showAmountWithoutPrice c) as
-      where
-        (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
-          where
-            stripPrices (Mixed as) = Mixed $ map stripprice as
-              where
-                stripprice a = a{aprice=Nothing}
-    elisionstr | n > 2     = [show (n - 2) ++ " more.."]
-               | otherwise = []
-      where
-        n = length astrs
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
