@@ -49,7 +49,7 @@ data CellSpec = CellSpec
     { csString :: String
     , csAlign  :: Align
     , csWidth  :: Int
-    }
+    } deriving (Show)
 
 emptyCell :: CellSpec
 emptyCell = CellSpec "" AlignRight 0
@@ -61,6 +61,7 @@ leftCell :: String -> CellSpec
 leftCell x = CellSpec x AlignLeft (strWidth x)
 
 data Align = AlignLeft | AlignRight
+  deriving (Show)
 
 
 verticalBar :: Bool -> Char

@@ -640,11 +640,11 @@ showMixedAmountWithoutPrice c = fst . showMixed showAmountWithoutPrice Nothing N
 showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
 showMixedAmountOneLineWithoutPrice c = fst . showMixedOneLine showAmountWithoutPrice Nothing Nothing c
 
--- | Like showMixedAmountOneLineWithoutPrice, but show at most width 22
+-- | Like showMixedAmountOneLineWithoutPrice, but show at most the given width,
 -- with an elision indicator if there are more.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
-showMixedAmountElided :: Bool -> MixedAmount -> String
-showMixedAmountElided c = fst . showMixedOneLine showAmountWithoutPrice Nothing (Just 22) c
+showMixedAmountElided :: Int -> Bool -> MixedAmount -> String
+showMixedAmountElided w c = fst . showMixedOneLine showAmountWithoutPrice Nothing (Just w) c
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
