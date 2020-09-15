@@ -93,8 +93,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                                                      [s] -> s
                                                      ss  -> intercalate ", " ss
                                                      -- _   -> "<split>"  -- should do this if accounts field width < 30
-                            ,rsItemChangeAmount  = showMixedAmountElided False change
-                            ,rsItemBalanceAmount = showMixedAmountElided False bal
+                            ,rsItemChangeAmount  = showMixedAmountElided 22 False change
+                            ,rsItemBalanceAmount = showMixedAmountElided 22 False bal
                             ,rsItemTransaction   = t
                             }
     -- blank items are added to allow more control of scroll position; we won't allow movement over these

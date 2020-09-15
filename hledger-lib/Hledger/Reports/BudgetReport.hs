@@ -1,11 +1,12 @@
 {- |
 -}
 
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Hledger.Reports.BudgetReport (
   BudgetGoal,
@@ -61,6 +62,8 @@ type BudgetAverage = Average
 type BudgetCell = (Maybe Change, Maybe BudgetGoal)
 type BudgetReportRow = PeriodicReportRow DisplayName BudgetCell
 type BudgetReport    = PeriodicReport    DisplayName BudgetCell
+
+type BudgetDisplayCell = ((String, Int), Maybe ((String, Int), Maybe (String, Int)))
 
 -- | Calculate budget goals from all periodic transactions,
 -- actual balance changes from the regular transactions,
@@ -211,8 +214,7 @@ combineBudgetAndActual ropts j
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
 budgetReportAsText ropts@ReportOpts{..} budgetr =
     title ++ "\n\n" ++
-    renderTable False pretty_tables_ leftCell rightCell showcell
-      (maybetranspose $ budgetReportAsTable ropts budgetr)
+    renderTable False pretty_tables_ leftCell rightCell (uncurry showcell) displayTableWithWidths
   where
     multiperiod = interval_ /= NoInterval
     title = printf "Budget performance in %s%s:"
@@ -227,31 +229,41 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
         Just (AtDefault _mc)  -> ", current value"
         Just (AtDate d _mc) -> ", valued at "++showDate d
         Nothing             -> "")
-    actualwidth = maximum' $ map fst amountsAndGoals
-    budgetwidth = maximum' $ map snd amountsAndGoals
-    amountsAndGoals =
-      map (\(a,g) -> (amountWidth a, amountWidth g)) . concatMap prrAmounts $ prRows budgetr
+
+    displayTableWithWidths :: Table String String ((Int, Int, Int), BudgetDisplayCell)
+    displayTableWithWidths = Table rh ch $ map (zipWith (,) widths) displaycells
+    Table rh ch displaycells = case budgetReportAsTable ropts budgetr of
+        Table rh' ch' vals -> maybetranspose . Table rh' ch' $ map (map displayCell) vals
+
+    displayCell (actual, budget) = (showamt actual', budgetAndPerc <$> budget)
       where
-        amountWidth = maybe 0 (length . showMixedAmountElided False)
+        actual' = fromMaybe 0 actual
+        budgetAndPerc b = (showamt b, showper <$> percentage actual' b)
+        showamt = showMixedOneLine showAmountWithoutPrice Nothing (Just 22) color_
+        showper p = let str = show (roundTo 0 p) in (str, length str)
+    cellWidth ((_,wa), Nothing)                    = (wa,  0,  0)
+    cellWidth ((_,wa), Just ((_,wb), Nothing))     = (wa, wb,  0)
+    cellWidth ((_,wa), Just ((_,wb), Just (_,wp))) = (wa, wb, wp)
+
+    widths = zip3 actualwidths budgetwidths percentwidths
+    actualwidths  = map (maximum' . map (first3  . cellWidth)) cols
+    budgetwidths  = map (maximum' . map (second3 . cellWidth)) cols
+    percentwidths = map (maximum' . map (third3  . cellWidth)) cols
+    cols = transpose displaycells
+
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
-    showcell :: BudgetCell -> CellSpec
-    showcell (mactual, mbudget) = rightCell $ actualstr ++ " " ++ budgetstr
+    showcell :: (Int, Int, Int) -> BudgetDisplayCell -> CellSpec
+    showcell (actualwidth, budgetwidth, percentwidth) ((actual,wa), mbudget) =
+        CellSpec (replicate (actualwidth - wa) ' ' ++ actual ++ budgetstr)
+                 AlignRight
+                 (actualwidth + totalbudgetwidth)
       where
-        percentwidth = 4
-        actual = fromMaybe 0 mactual
-        actualstr = printf ("%"++show actualwidth++"s") (showamt actual)
+        totalpercentwidth = if percentwidth == 0 then 0 else percentwidth + 5
+        totalbudgetwidth  = if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth + 3
         budgetstr = case mbudget of
-          Nothing     -> replicate (percentwidth + 7 + budgetwidth) ' '
-          Just budget ->
-            case percentage actual budget of
-              Just pct ->
-                printf ("[%"++show percentwidth++"s%% of %"++show budgetwidth++"s]")
-                       (show $ roundTo 0 pct) (showamt' budget)
-              Nothing ->
-                printf ("["++replicate (percentwidth+5) ' '++"%"++show budgetwidth++"s]")
-                       (showamt' budget)
-        showamt = showMixedAmountElided color_
-        showamt' = showMixedAmountElided False  -- XXX colored budget amounts disrupts layout
+          Nothing                             -> replicate totalbudgetwidth ' '
+          Just ((budget, wb), Nothing)        -> " [" ++ replicate totalpercentwidth ' ' ++ replicate (budgetwidth - wb) ' ' ++ budget ++ "]"
+          Just ((budget, wb), Just (pct, wp)) -> " [" ++ replicate (percentwidth - wp) ' ' ++ pct ++ "% of " ++ replicate (budgetwidth - wb) ' ' ++ budget ++ "]"
 
     -- | Calculate the percentage of actual change to budget goal to show, if any.
     -- If valuing at cost, both amounts are converted to cost before comparing.

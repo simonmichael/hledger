@@ -151,7 +151,7 @@ accountTransactionsReportAsText
     balwidth = maximumStrict $ 12 : map (strWidth . showamt . itembal) items
     showamt
       | no_elide_ = showMixedAmountOneLineWithoutPrice False -- color_
-      | otherwise = showMixedAmountElided False
+      | otherwise = showMixedAmountElided 22 False
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise
@@ -231,7 +231,7 @@ accountTransactionsReportItemAsText
               otheracctsstr
       showamt
         | no_elide_ = showMixedAmountOneLineWithoutPrice color_
-        | otherwise = showMixedAmountElided color_
+        | otherwise = showMixedAmountElided 22 color_
       amt = showamt change
       bal = showamt balance
       -- alternate behaviour, show null amounts as 0 instead of blank
