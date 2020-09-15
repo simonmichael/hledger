@@ -263,7 +263,7 @@ import System.Console.CmdArgs.Explicit as C
 import Lucid as L
 import Text.Printf (printf)
 import Text.Tabular as T
-import Text.Tabular.AsciiWide (renderWidth)
+import Text.Tabular.AsciiWide as T
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -610,9 +610,10 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
 -- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Table String String MixedAmount -> String
 balanceReportTableAsText ReportOpts{..} =
-    trimBorder . renderWidth pretty_tables_ id id showamt . leftAlignRowHeaders
+    T.renderTable False pretty_tables_ T.leftCell T.rightCell showamt
   where
-    showamt = showMixedOneLine showAmountWithoutPrice Nothing mmax color_
+    showamt a = CellSpec str AlignRight w
+      where (str, w) = showMixedOneLine showAmountWithoutPrice Nothing mmax color_ a
     mmax = if no_elide_ then Nothing else Just 22
 
 

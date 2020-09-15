@@ -44,6 +44,7 @@ import qualified Data.Text as T
 --import Lucid as L
 import Text.Printf (printf)
 import Text.Tabular as T
+import Text.Tabular.AsciiWide as T
 
 import Hledger.Data
 import Hledger.Utils
@@ -209,8 +210,9 @@ combineBudgetAndActual ropts j
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
 budgetReportAsText ropts@ReportOpts{..} budgetr =
-  title ++ "\n\n" ++
-  tableAsText ropts showcell (maybetranspose $ budgetReportAsTable ropts budgetr)
+    title ++ "\n\n" ++
+    renderTable False pretty_tables_ leftCell rightCell showcell
+      (maybetranspose $ budgetReportAsTable ropts budgetr)
   where
     multiperiod = interval_ /= NoInterval
     title = printf "Budget performance in %s%s:"
@@ -232,8 +234,8 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
       where
         amountWidth = maybe 0 (length . showMixedAmountElided False)
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
-    showcell :: BudgetCell -> String
-    showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
+    showcell :: BudgetCell -> CellSpec
+    showcell (mactual, mbudget) = rightCell $ actualstr ++ " " ++ budgetstr
       where
         percentwidth = 4
         actual = fromMaybe 0 mactual
