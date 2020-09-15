@@ -19,10 +19,6 @@ module Hledger.Reports.MultiBalanceReport (
   compoundBalanceReport,
   compoundBalanceReportWith,
 
-  tableAsText,
-  trimBorder,
-  leftAlignRowHeaders,
-
   sortRows,
   sortRowsLike,
 
@@ -56,8 +52,6 @@ import Data.Semigroup ((<>))
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Safe (headMay, lastDef, lastMay)
-import Text.Tabular as T
-import Text.Tabular.AsciiWide (render)
 
 import Hledger.Data
 import Hledger.Query
@@ -595,22 +589,6 @@ dbg   s = let p = "multiBalanceReport" in Hledger.Utils.dbg3 (p++" "++s)
 dbg'  s = let p = "multiBalanceReport" in Hledger.Utils.dbg4 (p++" "++s)
 dbg'' s = let p = "multiBalanceReport" in Hledger.Utils.dbg5 (p++" "++s)
 -- dbg = const id  -- exclude this function from debug output
-
--- common rendering helper, XXX here for now
-tableAsText :: ReportOpts -> (a -> String) -> Table String String a -> String
-tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
-  trimBorder
-  . render pretty id id showcell
-  . leftAlignRowHeaders
-
-trimBorder :: String -> String
-trimBorder = unlines . map (drop 1 . init) . drop 1 . init . lines
-
-leftAlignRowHeaders :: Table String ch a -> Table String ch a
-leftAlignRowHeaders (Table l t d) = Table l' t d
-  where
-    acctswidth = maximum' $ map strWidth (headerContents l)
-    l'         = padRightWide acctswidth <$> l
 
 -- tests
 
