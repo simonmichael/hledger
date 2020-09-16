@@ -36,13 +36,13 @@ rewritemode = hledgerCommandMode
 -- TODO interpolating match groups in replacement
 -- TODO allow using this on unbalanced entries, eg to rewrite while editing
 
-rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do
+rewrite opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j@Journal{jtxns=ts} = do
   -- rewrite matched transactions
   d <- getCurrentDay
   let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
   let j' = j{jtxns=either error' id $ modifyTransactions d modifiers ts}  -- PARTIAL:
   -- run the print command, showing all transactions, or show diffs
-  printOrDiff rawopts opts{reportopts_=ropts{query_=Any}} j j'
+  printOrDiff rawopts opts{reportspec_=rspec{rsQuery=Any}} j j'
 
 -- | Build a 'TransactionModifier' from any query arguments and --add-posting flags
 -- provided on the command line, or throw a parse error.

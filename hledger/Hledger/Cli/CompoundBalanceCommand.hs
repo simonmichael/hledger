@@ -88,8 +88,9 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
-compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=ropts@ReportOpts{..}, rawopts_=rawopts} j = do
+compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=rspec, rawopts_=rawopts} j = do
     let
+      ropts@ReportOpts{..} = rsOpts rspec
       -- use the default balance type for this report, unless the user overrides
       mBalanceTypeOverride =
         choiceopt parse rawopts where
@@ -120,7 +121,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
               _                 -> showDateSpan requestedspan
             where
               enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
-              requestedspan = queryDateSpan date2_ query_
+              requestedspan = queryDateSpan date2_ (rsQuery rspec)
                                   `spanDefaultsFrom` journalDateSpan date2_ j
 
           -- when user overrides, add an indication to the report title
@@ -142,7 +143,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
             where multiperiod = interval_ /= NoInterval
 
       -- make a CompoundBalanceReport.
-      cbr' = compoundBalanceReport ropts' j cbcqueries
+      cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
       cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately

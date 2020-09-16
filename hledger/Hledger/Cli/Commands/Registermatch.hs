@@ -22,10 +22,10 @@ registermatchmode = hledgerCommandMode
   ([], Just $ argsFlag "DESC")
 
 registermatch :: CliOpts -> Journal -> IO ()
-registermatch opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j =
+registermatch opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j =
   case listofstringopt "args" rawopts of
     [desc] -> do
-        let (_,pris) = postingsReport ropts j
+        let (_,pris) = postingsReport rspec j
             ps = [p | (_,_,_,p,_) <- pris]
         case similarPosting ps desc of
           Nothing -> putStrLn "no matches found."

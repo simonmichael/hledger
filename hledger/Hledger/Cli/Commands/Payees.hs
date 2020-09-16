@@ -32,7 +32,7 @@ payeesmode = hledgerCommandMode
 
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
-payees CliOpts{reportopts_=ropts} j = do
-  let ts = entriesReport ropts j
+payees CliOpts{reportspec_=rspec} j = do
+  let ts = entriesReport rspec j
       payees = nubSort $ map transactionPayee ts
   mapM_ T.putStrLn payees

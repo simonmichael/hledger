@@ -23,7 +23,7 @@ import Hledger.Data
 import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils
-import Hledger.Reports.MultiBalanceReport (multiBalanceReportWith)
+import Hledger.Reports.MultiBalanceReport (multiBalanceReport)
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 
@@ -61,10 +61,10 @@ flatShowsExclusiveBalance    = True
 -- their balances (change of balance) during the specified period.
 -- If the normalbalance_ option is set, it adjusts the sorting and sign of
 -- amounts (see ReportOpts and CompoundBalanceCommand).
-balanceReport :: ReportOpts -> Journal -> BalanceReport
-balanceReport ropts j = (rows, total)
+balanceReport :: ReportSpec -> Journal -> BalanceReport
+balanceReport rspec j = (rows, total)
   where
-    report = multiBalanceReportWith ropts j (journalPriceOracle (infer_value_ ropts) j)
+    report = multiBalanceReport rspec j
     rows = [( prrFullName row
             , prrDisplayName row
             , prrDepth row - 1  -- BalanceReport uses 0-based account depths
@@ -101,8 +101,8 @@ Right samplejournal2 =
 tests_BalanceReport = tests "BalanceReport" [
 
   let
-    (opts,journal) `gives` r = do
-      let opts' = opts{query_=And [queryFromFlags opts, query_ opts]}
+    (rspec,journal) `gives` r = do
+      let opts' = rspec{rsQuery=And [queryFromFlags $ rsOpts rspec, rsQuery rspec]}
           (eitems, etotal) = r
           (aitems, atotal) = balanceReport opts' journal
           showw (acct,acct',indent,amt) = (acct, acct', indent, showMixedAmountDebug amt)
@@ -112,10 +112,10 @@ tests_BalanceReport = tests "BalanceReport" [
     tests "balanceReport" [
 
      test "no args, null journal" $
-     (defreportopts, nulljournal) `gives` ([], 0)
+     (defreportspec, nulljournal) `gives` ([], 0)
 
     ,test "no args, sample journal" $
-     (defreportopts, samplejournal) `gives`
+     (defreportspec, samplejournal) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
        ,("assets:bank:saving","assets:bank:saving",0, mamountp' "$1.00")
@@ -128,7 +128,7 @@ tests_BalanceReport = tests "BalanceReport" [
        Mixed [usd 0])
 
     ,test "with --tree" $
-     (defreportopts{accountlistmode_=ALTree}, samplejournal) `gives`
+     (defreportspec{rsOpts=defreportopts{accountlistmode_=ALTree}}, samplejournal) `gives`
       ([
         ("assets","assets",0, mamountp' "$0.00")
        ,("assets:bank","bank",1, mamountp' "$2.00")
@@ -145,7 +145,7 @@ tests_BalanceReport = tests "BalanceReport" [
        Mixed [usd 0])
 
     ,test "with --depth=N" $
-     (defreportopts{depth_=Just 1}, samplejournal) `gives`
+     (defreportspec{rsOpts=defreportopts{depth_=Just 1}}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
        ,("income",      "income",      0, mamountp' "$-2.00")
@@ -153,7 +153,7 @@ tests_BalanceReport = tests "BalanceReport" [
        Mixed [usd 0])
 
     ,test "with depth:N" $
-     (defreportopts{query_=Depth 1}, samplejournal) `gives`
+     (defreportspec{rsQuery=Depth 1}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",    0, mamountp'  "$2.00")
        ,("income",      "income",      0, mamountp' "$-2.00")
@@ -161,11 +161,11 @@ tests_BalanceReport = tests "BalanceReport" [
        Mixed [usd 0])
 
     ,test "with date:" $
-     (defreportopts{query_=Date $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
+     (defreportspec{rsQuery=Date $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([], 0)
 
     ,test "with date2:" $
-     (defreportopts{query_=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
+     (defreportspec{rsQuery=Date2 $ DateSpan (Just $ fromGregorian 2009 01 01) (Just $ fromGregorian 2010 01 01)}, samplejournal2) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
        ,("income:salary","income:salary",0,mamountp' "$-1.00")
@@ -173,7 +173,7 @@ tests_BalanceReport = tests "BalanceReport" [
        Mixed [usd 0])
 
     ,test "with desc:" $
-     (defreportopts{query_=Desc $ toRegexCI' "income"}, samplejournal) `gives`
+     (defreportspec{rsQuery=Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
         ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
        ,("income:salary","income:salary",0, mamountp' "$-1.00")
@@ -181,7 +181,7 @@ tests_BalanceReport = tests "BalanceReport" [
        Mixed [usd 0])
 
     ,test "with not:desc:" $
-     (defreportopts{query_=Not . Desc $ toRegexCI' "income"}, samplejournal) `gives`
+     (defreportspec{rsQuery=Not . Desc $ toRegexCI' "income"}, samplejournal) `gives`
       ([
         ("assets:bank:saving","assets:bank:saving",0, mamountp' "$1.00")
        ,("assets:cash","assets:cash",0, mamountp' "$-2.00")
@@ -192,7 +192,7 @@ tests_BalanceReport = tests "BalanceReport" [
        Mixed [usd 0])
 
     ,test "with period on a populated period" $
-      (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}, samplejournal) `gives`
+      (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}}, samplejournal) `gives`
        (
         [
          ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
@@ -201,7 +201,7 @@ tests_BalanceReport = tests "BalanceReport" [
         Mixed [usd 0])
 
      ,test "with period on an unpopulated period" $
-      (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}, samplejournal) `gives`
+      (defreportspec{rsOpts=defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}}, samplejournal) `gives`
        ([], 0)
 
 

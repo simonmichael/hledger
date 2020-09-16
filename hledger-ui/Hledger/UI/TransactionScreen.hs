@@ -43,7 +43,7 @@ transactionScreen = TransactionScreen{
   }
 
 tsInit :: Day -> Bool -> UIState -> UIState
-tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
+tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportspec_=_rspec}}
                            ,ajournal=_j
                            ,aScreen=TransactionScreen{}
                            } =
@@ -58,7 +58,7 @@ tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
 tsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 tsDraw :: UIState -> [Widget Name]
-tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}
               ,ajournal=j
               ,aScreen=TransactionScreen{tsTransaction=(i,t)
                                         ,tsTransactions=nts
@@ -77,14 +77,14 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         styles = journalCommodityStyles j
         periodlast =
           fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
-          reportPeriodOrJournalLastDay ropts j
-        mreportlast = reportPeriodLastDay ropts
+          reportPeriodOrJournalLastDay rspec j
+        mreportlast = reportPeriodLastDay rspec
         multiperiod = interval_ ropts /= NoInterval
 
       render $ defaultLayout toplabel bottomlabel $ str $
         showTransactionOneLineAmounts $
         (if valuationTypeIsCost ropts then transactionToCost (journalCommodityStyles j) else id) $
-        (if valuationTypeIsDefaultValue ropts then (\t -> transactionApplyValuation prices styles periodlast mreportlast (today_ ropts) multiperiod t (AtDefault Nothing)) else id) $
+        (if valuationTypeIsDefaultValue ropts then (\t -> transactionApplyValuation prices styles periodlast mreportlast (rsToday rspec) multiperiod t (AtDefault Nothing)) else id) $
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
         t
       where
@@ -132,7 +132,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                                                ,tsTransactions=nts
                                                ,tsAccount=acct
                                                }
-                   ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+                   ,aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
                    ,ajournal=j
                    ,aMode=mode
                    }
@@ -172,7 +172,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
             Right j' -> do
               continue $
                 regenerateScreens j' d $
-                regenerateTransactions ropts j' s acct i $   -- added (inline) 201512 (why ?)
+                regenerateTransactions rspec j' s acct i $   -- added (inline) 201512 (why ?)
                 clearCostValue $
                 ui
         VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
@@ -207,15 +207,12 @@ tsHandle _ _ = error "event handler called with wrong screen type, should not ha
 
 -- Got to redo the register screen's transactions report, to get the latest transactions list for this screen.
 -- XXX Duplicates rsInit. Why do we have to do this as well as regenerateScreens ?
-regenerateTransactions :: ReportOpts -> Journal -> Screen -> AccountName -> Integer -> UIState -> UIState
-regenerateTransactions ropts j s acct i ui =
+regenerateTransactions :: ReportSpec -> Journal -> Screen -> AccountName -> Integer -> UIState -> UIState
+regenerateTransactions rspec j s acct i ui =
   let
-    ropts' = ropts {depth_=Nothing
-                   ,balancetype_=HistoricalBalance
-                   }
-    q = filterQuery (not . queryIsDepth) $ query_ ropts'
+    q = filterQuery (not . queryIsDepth) $ rsQuery rspec
     thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
-    items = reverse $ snd $ accountTransactionsReport ropts j q thisacctq
+    items = reverse $ snd $ accountTransactionsReport rspec j q thisacctq
     ts = map first6 items
     numberedts = zip [1..] ts
     -- select the best current transaction from the new list

@@ -52,9 +52,10 @@ data OneSpan = OneSpan
 
 
 roi ::  CliOpts -> Journal -> IO ()
-roi CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
+roi CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
   d <- getCurrentDay
   let
+    ropts = rsOpts rspec
     showCashFlow = boolopt "cashflow" rawopts
     prettyTables = pretty_tables_ ropts
     makeQuery flag = do

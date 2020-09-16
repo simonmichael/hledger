@@ -255,7 +255,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
 -- Identify the closest recent match for this description in past transactions.
 similarTransaction :: EntryState -> Text -> Maybe Transaction
 similarTransaction EntryState{..} desc =
-  let q = queryFromFlags $ reportopts_ esOpts
+  let q = queryFromFlags . rsOpts $ reportspec_ esOpts
       historymatches = transactionsSimilarTo esJournal q desc
       bestmatch | null historymatches = Nothing
                 | otherwise           = Just $ snd $ head historymatches
@@ -462,10 +462,11 @@ ensureOneNewlineTerminated = (++"\n") . reverse . dropWhile (=='\n') . reverse
 registerFromString :: String -> IO String
 registerFromString s = do
   j <- readJournal' $ T.pack s
-  return . postingsReportAsText opts $ postingsReport ropts j
+  return . postingsReportAsText opts $ postingsReport rspec j
       where
         ropts = defreportopts{empty_=True}
-        opts = defcliopts{reportopts_=ropts}
+        rspec = defreportspec{rsOpts=ropts}
+        opts = defcliopts{reportspec_=rspec}
 
 capitalize :: String -> String
 capitalize "" = ""

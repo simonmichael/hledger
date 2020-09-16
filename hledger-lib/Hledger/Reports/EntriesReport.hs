@@ -32,25 +32,25 @@ type EntriesReport = [EntriesReportItem]
 type EntriesReportItem = Transaction
 
 -- | Select transactions for an entries report.
-entriesReport :: ReportOpts -> Journal -> EntriesReport
-entriesReport ropts@ReportOpts{..} j@Journal{..} =
-  sortBy (comparing getdate) $ filter (query_ `matchesTransaction`) $ map tvalue jtxns
+entriesReport :: ReportSpec -> Journal -> EntriesReport
+entriesReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j@Journal{..} =
+  sortBy (comparing getdate) $ filter (rsQuery rspec `matchesTransaction`) $ map tvalue jtxns
   where
     getdate = transactionDateFn ropts
     -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
       where
         pvalue p = maybe p
-          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast mreportlast today_ False p)
+          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast mreportlast (rsToday rspec) False p)
           value_
           where
-            periodlast  = fromMaybe today_ $ reportPeriodOrJournalLastDay ropts j
-            mreportlast = reportPeriodLastDay ropts
+            periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
+            mreportlast = reportPeriodLastDay rspec
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [
-     test "not acct" $ (length $ entriesReport defreportopts{query_=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
-    ,test "date" $ (length $ entriesReport defreportopts{query_=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
+     test "not acct" $ (length $ entriesReport defreportspec{rsQuery=Not . Acct $ toRegex' "bank"} samplejournal) @?= 1
+    ,test "date" $ (length $ entriesReport defreportspec{rsQuery=Date $ DateSpan (Just $ fromGregorian 2008 06 01) (Just $ fromGregorian 2008 07 01)} samplejournal) @?= 3
   ]
  ]
 

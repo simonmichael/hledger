@@ -82,8 +82,8 @@ type AccountTransactionsReportItem =
 totallabel   = "Period Total"
 balancelabel = "Historical Total"
 
-accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport ropts j reportq thisacctq = (label, items)
+accountTransactionsReport :: ReportSpec -> Journal -> Query -> Query -> AccountTransactionsReport
+accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = (label, items)
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
@@ -115,11 +115,11 @@ accountTransactionsReport ropts j reportq thisacctq = (label, items)
     styles = journalCommodityStyles j
     periodlast =
       fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
-      reportPeriodOrJournalLastDay ropts j
-    mreportlast = reportPeriodLastDay ropts
+      reportPeriodOrJournalLastDay rspec j
+    mreportlast = reportPeriodLastDay rspec
     multiperiod = interval_ ropts /= NoInterval
     tval = case value_ ropts of
-             Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast (today_ ropts) multiperiod t v
+             Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast (rsToday rspec) multiperiod t v
              Nothing -> id
     ts4 =
       ptraceAtWith 5 (("ts4:\n"++).pshowTransactions) $

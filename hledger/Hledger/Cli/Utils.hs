@@ -30,7 +30,6 @@ module Hledger.Cli.Utils
     )
 where
 import Control.Exception as C
-import Control.Monad
 
 import Data.List
 import Data.Maybe
@@ -71,9 +70,9 @@ withJournalDo opts cmd = do
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
-  readJournalFiles (inputopts_ opts) journalpaths
-  >>= mapM (journalTransform opts)
-  >>= either error' cmd  -- PARTIAL:
+  files <- readJournalFiles (inputopts_ opts) journalpaths
+  let transformed = journalTransform opts <$> files
+  either error' cmd transformed  -- PARTIAL:
 
 -- | Apply some extra post-parse transformations to the journal, if
 -- specified by options. These happen after journal validation, but
@@ -83,13 +82,13 @@ withJournalDo opts cmd = do
 -- - pivoting account names (--pivot)
 -- - anonymising (--anonymise).
 --
-journalTransform :: CliOpts -> Journal -> IO Journal
-journalTransform opts@CliOpts{reportopts_=_ropts} =
-      journalAddForecast opts
--- - converting amounts to market value (--value)
-  -- >=> journalApplyValue ropts
-  >=> return . pivotByOpts opts
-  >=> return . anonymiseByOpts opts
+journalTransform :: CliOpts -> Journal -> Journal
+journalTransform opts =
+    anonymiseByOpts opts
+  -- - converting amounts to market value (--value)
+  -- . journalApplyValue ropts
+  . pivotByOpts opts
+  . journalAddForecast opts
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
@@ -115,45 +114,43 @@ anonymiseByOpts opts =
 -- The start & end date for generated periodic transactions are determined in
 -- a somewhat complicated way; see the hledger manual -> Periodic transactions.
 --
-journalAddForecast :: CliOpts -> Journal -> IO Journal
-journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j =
-  case forecast_ ropts of
-    Nothing -> return j
-    Just _ -> do
-      today <- getCurrentDay
+journalAddForecast :: CliOpts -> Journal -> Journal
+journalAddForecast CliOpts{inputopts_=iopts, reportspec_=rspec} j =
+    case forecast_ ropts of
+        Nothing -> j
+        Just _  -> either (error') id . journalApplyCommodityStyles $  -- PARTIAL:
+                     journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
+  where
+    today = rsToday rspec
+    ropts = rsOpts rspec
 
-      -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
-      let
-        mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
-        forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
+    -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
+    mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
+    forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
 
-        -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-        mspecifiedend = dbg2 "specifieddates" $ reportPeriodLastDay ropts
-        forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
+    -- "They end on or before the specified report end date, or 180 days from today if unspecified."
+    mspecifiedend = dbg2 "specifieddates" $ reportPeriodLastDay rspec
+    forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
 
-        forecastspan = dbg2 "forecastspan" $
-          spanDefaultsFrom
-            (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
-            (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
+    forecastspan = dbg2 "forecastspan" $
+      spanDefaultsFrom
+        (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
+        (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
 
-        forecasttxns =
-          [ txnTieKnot t | pt <- jperiodictxns j
-                          , t <- runPeriodicTransaction pt forecastspan
-                          , spanContainsDate forecastspan (tdate t)
-                          ]
-        -- With --auto enabled, transaction modifiers are also applied to forecast txns
-        forecasttxns' =
-          (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
-          forecasttxns
+    forecasttxns =
+      [ txnTieKnot t | pt <- jperiodictxns j
+                     , t <- runPeriodicTransaction pt forecastspan
+                     , spanContainsDate forecastspan (tdate t)
+                     ]
+    -- With --auto enabled, transaction modifiers are also applied to forecast txns
+    forecasttxns' =
+      (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
+      forecasttxns
 
-        j' = either error' id $ journalBalanceTransactions (not . ignore_assertions_ $ iopts)  -- PARTIAL:
-          j{jtxns=concat [jtxns j, forecasttxns']}
-
-        -- Display styles were applied early.. apply them again to ensure the forecasted
-        -- transactions are also styled. XXX Possible optimisation: style just the forecasttxns.
-        j'' = either error' id $ journalApplyCommodityStyles j'  -- PARTIAL:
-
-      return j''
+    journalBalanceTransactions' iopts j =
+      let assrt = not . ignore_assertions_ $ iopts
+      in
+       either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
@@ -172,8 +169,8 @@ writeOutput opts s = do
 journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   journalpaths <- journalFilePathFromOpts opts
-  readJournalFiles (inputopts_ opts) journalpaths
-  >>= mapM (journalTransform opts)
+  files <- readJournalFiles (inputopts_ opts) journalpaths
+  return $ journalTransform opts <$> files
 
 -- | Re-read the option-specified journal file(s), but only if any of
 -- them has changed since last read. (If the file is standard input,

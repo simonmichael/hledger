@@ -53,7 +53,7 @@ print' opts j = do
     Just desc -> printMatch opts j $ T.pack desc
 
 printEntries :: CliOpts -> Journal -> IO ()
-printEntries opts@CliOpts{reportopts_=ropts} j = do
+printEntries opts@CliOpts{reportspec_=rspec} j = do
   let fmt = outputFormatFromOpts opts
       render = case fmt of
         "txt"  -> entriesReportAsText opts
@@ -61,7 +61,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
         "json" -> (++"\n") . TL.unpack . toJsonText
         "sql"  -> entriesReportAsSql
         _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-  writeOutput opts $ render $ entriesReport ropts j
+  writeOutput opts $ render $ entriesReport rspec j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
 entriesReportAsText opts = concatMap (showTransaction . whichtxn)
@@ -73,7 +73,7 @@ entriesReportAsText opts = concatMap (showTransaction . whichtxn)
         -- Because of #551, and because of print -V valuing only one
         -- posting when there's an implicit txn price.
         -- So -B/-V/-X/--value implies -x. Is this ok ?
-        || (isJust $ value_ $ reportopts_ opts) = id
+        || (isJust . value_ . rsOpts $ reportspec_ opts) = id
       -- By default, use the original as-written-in-the-journal txn.
       | otherwise = originalTransaction
 
@@ -182,8 +182,8 @@ postingToCSV p =
 -- | Print the transaction most closely and recently matching a description
 -- (and the query, if any).
 printMatch :: CliOpts -> Journal -> Text -> IO ()
-printMatch CliOpts{reportopts_=ropts} j desc = do
-  case similarTransaction' j (query_ ropts) desc of
+printMatch CliOpts{reportspec_=rspec} j desc = do
+  case similarTransaction' j (rsQuery rspec) desc of
       Nothing -> putStrLn "no matches found."
       Just t  -> putStr $ showTransaction t
 

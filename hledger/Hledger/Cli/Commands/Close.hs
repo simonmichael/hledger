@@ -47,7 +47,7 @@ closemode = hledgerCommandMode
 
 -- debugger, beware: close is incredibly devious. simple rules combine to make a horrid maze.
 -- tests are in tests/close.test.
-close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
+close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
   today <- getCurrentDay
   let
     -- show opening entry, closing entry, or (default) both ?
@@ -72,8 +72,9 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
         (Nothing, Nothing) -> (T.pack defclosingacct, T.pack defopeningacct)
 
     -- dates of the closing and opening transactions
-    ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
-    q = query_ ropts_
+    rspec_ = rspec{rsOpts=ropts}
+    ropts = (rsOpts rspec){balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
+    q = rsQuery rspec
     openingdate = fromMaybe today $ queryEndDate False q
     closingdate = addDays (-1) openingdate
 
@@ -86,7 +87,7 @@ close CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
                   False -> normaliseMixedAmount . mixedAmountStripPrices
 
     -- the balances to close
-    (acctbals,_) = balanceReport ropts_ j
+    (acctbals,_) = balanceReport rspec_ j
     totalamt = sum $ map (\(_,_,_,b) -> normalise b) acctbals
 
     -- since balance assertion amounts are required to be exact, the

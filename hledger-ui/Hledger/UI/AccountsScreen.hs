@@ -53,7 +53,7 @@ accountsScreen = AccountsScreen{
 
 asInit :: Day -> Bool -> UIState -> UIState
 asInit d reset ui@UIState{
-  aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
+  aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}},
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
@@ -80,8 +80,8 @@ asInit d reset ui@UIState{
                       where
                         as = map asItemAccountName displayitems
 
-    uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
-    ropts' = ropts{query_=simplifyQuery $ And [query_ ropts, excludeforecastq (forecast_ ropts)]}
+    uopts' = uopts{cliopts_=copts{reportspec_=rspec'}}
+    rspec' = rspec{rsQuery=simplifyQuery $ And [rsQuery rspec, excludeforecastq (forecast_ ropts)]}
       where
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq (Just _) = Any
@@ -92,13 +92,13 @@ asInit d reset ui@UIState{
           ]
 
     -- run the report
-    (items,_total) = balanceReport ropts' j
+    (items,_total) = balanceReport rspec' j
 
     -- pre-render the list items
     displayitem (fullacct, shortacct, indent, bal) =
       AccountsScreenItem{asItemIndentLevel        = indent
                         ,asItemAccountName        = fullacct
-                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts' then shortacct else fullacct
+                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if tree_ ropts then shortacct else fullacct
                         ,asItemRenderedAmounts    = map (showAmountWithoutPrice False) amts
                         }
       where
@@ -117,7 +117,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 asDraw :: UIState -> [Widget Name]
-asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
               ,ajournal=j
               ,aScreen=s@AccountsScreen{}
               ,aMode=mode
@@ -165,6 +165,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (_asList s)
 
       where
+        ropts = rsOpts rspec
         ishistorical = balancetype_ ropts == HistoricalBalance
 
         toplabel =

@@ -32,8 +32,8 @@ codesmode = hledgerCommandMode
 
 -- | The codes command.
 codes :: CliOpts -> Journal -> IO ()
-codes CliOpts{reportopts_=ropts@ReportOpts{empty_}} j = do
-  let ts = entriesReport ropts j
-      codes = (if empty_ then id else filter (not . T.null)) $
+codes CliOpts{reportspec_=rspec} j = do
+  let ts = entriesReport rspec j
+      codes = (if empty_ (rsOpts rspec) then id else filter (not . T.null)) $
               map tcode ts
   mapM_ T.putStrLn codes
