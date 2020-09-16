@@ -59,17 +59,15 @@ rsSetAccount a forceinclusive scr@RegisterScreen{} =
 rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
     -- XXX temp
     inclusive = tree_ ropts || rsForceInclusive
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
-    ropts' = ropts{
-               depth_=Nothing
-              }
-    q = And [query_ ropts', excludeforecastq (forecast_ ropts)]
+    rspec' = rspec{rsOpts=ropts{depth_=Nothing}}
+    q = And [rsQuery rspec, excludeforecastq (forecast_ ropts)]
       where
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq (Just _) = Any
@@ -79,8 +77,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
             ,Not generatedTransactionTag
           ]
 
-    (_label,items) = accountTransactionsReport ropts' j q thisacctq
-    items' = (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
+    (_label,items) = accountTransactionsReport rspec' j q thisacctq
+    items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
 
@@ -138,7 +136,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportopts_=ropts
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"  -- PARTIAL:
 
 rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
               ,aScreen=RegisterScreen{..}
               ,aMode=mode
               } =
@@ -192,6 +190,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
 
       where
+        ropts = rsOpts rspec
         ishistorical = balancetype_ ropts == HistoricalBalance
         -- inclusive = tree_ ropts || rsForceInclusive
 

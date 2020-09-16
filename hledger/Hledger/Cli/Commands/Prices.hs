@@ -27,7 +27,7 @@ pricesmode = hledgerCommandMode
 prices opts j = do
   let
     styles     = journalCommodityStyles j
-    q          = query_ $ reportopts_ opts
+    q          = rsQuery $ reportspec_ opts
     ps         = filter (matchesPosting q) $ allPostings j
     mprices    = jpricedirectives j
     cprices    = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts ps

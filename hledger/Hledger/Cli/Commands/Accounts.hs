@@ -48,18 +48,17 @@ accountsmode = hledgerCommandMode
 
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()
-accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
+accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{rsQuery=query,rsOpts=ropts}} j = do
 
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts
       declared = boolopt "declared" rawopts
       used     = boolopt "used"     rawopts
-      q        = query_ ropts
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
-      nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
+      nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) query
       -- just the acct: part of the query will be reapplied later, after clipping
-      acctq    = dbg1 "acctq" $ filterQuery queryIsAcct q
-      depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
+      acctq    = dbg1 "acctq" $ filterQuery queryIsAcct query
+      depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth query
       matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ filter (matchesAccount nodepthq) $ map fst $ jdeclaredaccounts j
       matchedusedaccts     = dbg5 "matchedusedaccts" $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
       accts                = dbg5 "accts to show" $ -- no need to nub/sort, accountTree will

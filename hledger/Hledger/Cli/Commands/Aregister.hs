@@ -71,7 +71,7 @@ aregistermode = hledgerCommandMode
 
 -- | Print an account register report for a specified account.
 aregister :: CliOpts -> Journal -> IO ()
-aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
+aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   d <- getCurrentDay
   -- the first argument specifies the account, any remaining arguments are a filter query
   (apat,querystring) <- case listofstringopt "args" rawopts of
@@ -87,14 +87,17 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     -- gather report options
     inclusive = True  -- tree_ ropts
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
-    ropts' = ropts{
-       query_=simplifyQuery $ And [queryFromFlags ropts, argsquery]
-       -- remove a depth limit for reportq, as in RegisterScreen, I forget why XXX
-      ,depth_=Nothing
-       -- always show historical balance
-      ,balancetype_= HistoricalBalance
+    rspec' = rspec{ rsQuery=simplifyQuery $ And [queryFromFlags ropts, argsquery]
+                  , rsOpts=ropts'
+                  }
+    ropts' = ropts
+      { -- remove a depth limit for reportq, as in RegisterScreen, I forget why XXX
+        depth_=Nothing
+        -- always show historical balance
+      , balancetype_= HistoricalBalance
       }
-    reportq = And [query_ ropts', excludeforecastq (isJust $ forecast_ ropts)]
+    ropts = rsOpts rspec
+    reportq = And [rsQuery rspec', excludeforecastq (isJust $ forecast_ ropts')]
       where
         -- As in RegisterScreen, why ? XXX
         -- Except in forecast mode, exclude future/forecast transactions.
@@ -106,7 +109,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           ]
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
-    (balancelabel,items) = accountTransactionsReport ropts' j reportq thisacctq
+    (balancelabel,items) = accountTransactionsReport rspec' j reportq thisacctq
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $
              reverse items
     -- select renderer
@@ -140,7 +143,7 @@ accountTransactionsReportItemAsCsvRecord
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> String
 accountTransactionsReportAsText
-  copts@CliOpts{reportopts_=ReportOpts{no_elide_}} reportq thisacctq (_balancelabel,items)
+  copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{no_elide_}}} reportq thisacctq (_balancelabel,items)
   = unlines $ title :
     map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
   where
@@ -173,7 +176,7 @@ accountTransactionsReportAsText
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> String
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportopts_=ReportOpts{color_,no_elide_}}
+  copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{color_,no_elide_}}}
   reportq thisacctq preferredamtwidth preferredbalwidth
   (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance)
     -- Transaction -- the transaction, unmodified

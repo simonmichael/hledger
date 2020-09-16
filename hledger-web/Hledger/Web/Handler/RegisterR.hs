@@ -33,7 +33,7 @@ getRegisterR = do
       s2 = if m /= Any then ", filtered" else ""
       header = a <> s1 <> s2
 
-  let ropts = reportopts_ (cliopts_ opts)
+  let rspec = reportspec_ (cliopts_ opts)
       acctQuery = fromMaybe Any (inAccountQuery qopts)
       acctlink acc = (RegisterR, [("q", replaceInacct q $ accountQuery acc)])
       otherTransAccounts =
@@ -44,7 +44,7 @@ getRegisterR = do
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
           tail $ (", "<$xs) ++ [""]
-      r@(balancelabel,items) = accountTransactionsReport ropts j m acctQuery
+      r@(balancelabel,items) = accountTransactionsReport rspec j m acctQuery
       balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
       transactionFrag = transactionFragment j
   defaultLayout $ do

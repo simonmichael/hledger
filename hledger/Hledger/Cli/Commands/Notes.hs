@@ -32,7 +32,7 @@ notesmode = hledgerCommandMode
 
 -- | The notes command.
 notes :: CliOpts -> Journal -> IO ()
-notes CliOpts{reportopts_=ropts} j = do
-  let ts = entriesReport ropts j
+notes CliOpts{reportspec_=rspec} j = do
+  let ts = entriesReport rspec j
       notes = nubSort $ map transactionNote ts
   mapM_ T.putStrLn notes

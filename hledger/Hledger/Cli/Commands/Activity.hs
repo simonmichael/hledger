@@ -30,10 +30,10 @@ barchar = '*'
 
 -- | Print a bar chart of number of postings per report interval.
 activity :: CliOpts -> Journal -> IO ()
-activity CliOpts{reportopts_=ropts} j = putStr $ showHistogram ropts j
+activity CliOpts{reportspec_=rspec} j = putStr $ showHistogram rspec j
 
-showHistogram :: ReportOpts -> Journal -> String
-showHistogram ReportOpts{query_=q,interval_=i,date2_=date2} j =
+showHistogram :: ReportSpec -> Journal -> String
+showHistogram ReportSpec{rsQuery=q,rsOpts=ReportOpts{interval_=i,date2_=date2}} j =
     concatMap (printDayWith countBar) spanps
   where
     interval | i == NoInterval = Days 1

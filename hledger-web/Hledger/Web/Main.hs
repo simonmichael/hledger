@@ -58,7 +58,7 @@ runWith opts
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
-  let initq = query_ . reportopts_ $ cliopts_ opts
+  let initq = rsQuery . reportspec_ $ cliopts_ opts
       j' = filterJournalTransactions initq j
       h = host_ opts
       p = port_ opts

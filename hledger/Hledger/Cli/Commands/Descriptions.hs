@@ -31,8 +31,8 @@ descriptionsmode = hledgerCommandMode
 
 -- | The descriptions command.
 descriptions :: CliOpts -> Journal -> IO ()
-descriptions CliOpts{reportopts_=ropts} j = do
-  let ts = entriesReport ropts j
+descriptions CliOpts{reportspec_=rspec} j = do
+  let ts = entriesReport rspec j
       descriptions = nubSort $ map tdescription ts
 
   mapM_ T.putStrLn descriptions

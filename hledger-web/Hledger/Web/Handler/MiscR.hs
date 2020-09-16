@@ -102,9 +102,9 @@ getAccounttransactionsR a = do
   VD{caps, j} <- getViewData
   when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   let
-    ropts = defreportopts
+    rspec = defreportspec
     q = Any --filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
     thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
   selectRep $ do
-    provideJson $ accountTransactionsReport ropts j q thisacctq
+    provideJson $ accountTransactionsReport rspec j q thisacctq
 

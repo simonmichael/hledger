@@ -399,7 +399,7 @@ data CliOpts = CliOpts {
     ,command_         :: String
     ,file_            :: [FilePath]
     ,inputopts_       :: InputOpts
-    ,reportopts_      :: ReportOpts
+    ,reportspec_      :: ReportSpec
     ,output_file_     :: Maybe FilePath
     ,output_format_   :: Maybe String
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
@@ -419,7 +419,7 @@ defcliopts = CliOpts
     , command_         = ""
     , file_            = []
     , inputopts_       = def
-    , reportopts_      = def
+    , reportspec_      = def
     , output_file_     = Nothing
     , output_format_   = Nothing
     , debug_           = 0
@@ -447,7 +447,7 @@ replaceNumericFlags = map replace
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
 rawOptsToCliOpts rawopts = do
   let iopts = rawOptsToInputOpts rawopts
-  ropts <- rawOptsToReportOpts rawopts
+  rspec <- rawOptsToReportSpec rawopts
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
 #ifdef mingw32_HOST_OS
@@ -462,7 +462,7 @@ rawOptsToCliOpts rawopts = do
              ,command_         = stringopt "command" rawopts
              ,file_            = listofstringopt "file" rawopts
              ,inputopts_       = iopts
-             ,reportopts_      = ropts
+             ,reportspec_      = rspec
              ,output_file_     = maybestringopt "output-file" rawopts
              ,output_format_   = maybestringopt "output-format" rawopts
              ,debug_           = posintopt "debug" rawopts
@@ -519,7 +519,7 @@ getHledgerCliOpts' mode' args' = do
         putStrLn $ "running: " ++ progname'
         putStrLn $ "raw args: " ++ show args'
         putStrLn $ "processed opts:\n" ++ show opts
-        putStrLn $ "search query: " ++ show (query_ $ reportopts_ opts)
+        putStrLn $ "search query: " ++ show (rsQuery $ reportspec_ opts)
 
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do

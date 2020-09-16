@@ -304,14 +304,15 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
-    let budget      = boolopt "budget" rawopts
+balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
+    let ropts@ReportOpts{..} = rsOpts rspec
+        budget      = boolopt "budget" rawopts
         multiperiod = interval_ /= NoInterval
         fmt         = outputFormatFromOpts opts
 
     if budget then do  -- single or multi period budget report
-      let reportspan = reportSpan j ropts
-          budgetreport = dbg4 "budgetreport" $ budgetReport ropts assrt reportspan j
+      let reportspan = reportSpan j rspec
+          budgetreport = dbg4 "budgetreport" $ budgetReport rspec assrt reportspan j
             where
               assrt = not $ ignore_assertions_ $ inputopts_ opts
           render = case fmt of
@@ -322,7 +323,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
 
     else
       if multiperiod then do  -- multi period balance report
-        let report = multiBalanceReport ropts j
+        let report = multiBalanceReport rspec j
             render = case fmt of
               "txt"  -> multiBalanceReportAsText ropts
               "csv"  -> (++"\n") . printCSV . multiBalanceReportAsCsv ropts
@@ -332,7 +333,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts@ReportOpts{..}} j = do
         writeOutput opts $ render report
 
       else do  -- single period simple balance report
-        let report = balanceReport ropts j -- simple Ledger-style balance report
+        let report = balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
               "txt"  -> balanceReportAsText
               "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
@@ -620,8 +621,8 @@ tests_Balance = tests "Balance" [
    tests "balanceReportAsText" [
     test "unicode in balance layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-      let opts = defreportopts
-      balanceReportAsText opts (balanceReport opts{today_=fromGregorian 2008 11 26} j)
+      let rspec = defreportspec
+      balanceReportAsText (rsOpts rspec) (balanceReport rspec{rsToday=fromGregorian 2008 11 26} j)
         @?=
         unlines
         ["                -100  актив:наличные"

@@ -102,7 +102,7 @@ unmatchedtxns s pp m =
 
 -- | The diff command.
 diff :: CliOpts -> Journal -> IO ()
-diff CliOpts{file_=[f1, f2], reportopts_=ReportOpts{query_=Acct acctRe}} _ = do
+diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{rsQuery=Acct acctRe}} _ = do
   j1 <- readJournalFile' f1
   j2 <- readJournalFile' f2
 

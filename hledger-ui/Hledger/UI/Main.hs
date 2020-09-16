@@ -51,12 +51,12 @@ writeChan = BC.writeBChan
 
 main :: IO ()
 main = do
-  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=ropts,rawopts_=rawopts}} <- getHledgerUIOpts
+  opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{rsOpts=ropts},rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
   -- always include forecasted periodic transactions when loading data;
   -- they will be toggled on and off in the UI.
-  let copts' = copts{reportopts_=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}
+  let copts' = copts{reportspec_=rspec{rsOpts=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}}
 
   case True of
     _ | "help"            `inRawOpts` rawopts -> putStr (showModeUsage uimode)
@@ -65,7 +65,7 @@ main = do
     _                                         -> withJournalDo copts' (runBrickUi opts)
 
 runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=ropts}} j = do
+runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{rsOpts=ropts}}} j = do
   d <- getCurrentDay
 
   let
@@ -79,23 +79,25 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportopts_=rop
     -- can be displayed independently.
     uopts' = uopts{
       cliopts_=copts{
-         reportopts_= ropts{
-            -- incorporate any depth: query args into depth_,
-            -- any date: query args into period_
-            depth_ =queryDepth $ query_ ropts,
-            period_=periodfromoptsandargs,
-            query_ =filteredQuery $ query_ ropts, -- as in ReportOptions, with same limitations
-            -- always disable boring account name eliding, unlike the CLI, for a more regular tree
-            no_elide_=True,
-            -- flip the default for items with zero amounts, show them by default
-            empty_=not $ empty_ ropts,
-            -- show historical balances by default, unlike the CLI
-            balancetype_=HistoricalBalance
+         reportspec_=rspec{
+            rsQuery=filteredQuery $ rsQuery rspec, -- as in ReportOptions, with same limitations
+            rsOpts=ropts{
+               -- incorporate any depth: query args into depth_,
+               -- any date: query args into period_
+               depth_ =queryDepth $ rsQuery rspec,
+               period_=periodfromoptsandargs,
+               -- always disable boring account name eliding, unlike the CLI, for a more regular tree
+               no_elide_=True,
+               -- flip the default for items with zero amounts, show them by default
+               empty_=not $ empty_ ropts,
+               -- show historical balances by default, unlike the CLI
+               balancetype_=HistoricalBalance
+               }
             }
          }
       }
       where
-        datespanfromargs = queryDateSpan (date2_ ropts) $ query_ ropts
+        datespanfromargs = queryDateSpan (date2_ ropts) $ rsQuery rspec
         periodfromoptsandargs =
           dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]

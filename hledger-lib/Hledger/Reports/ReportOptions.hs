@@ -10,12 +10,15 @@ Options common to most hledger reports.
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
+  ReportSpec(..),
   BalanceType(..),
   AccountListMode(..),
   ValuationType(..),
   defreportopts,
   rawOptsToReportOpts,
-  regenerateReportOpts,
+  defreportspec,
+  reportOptsToSpec,
+  rawOptsToReportSpec,
   flat_,
   tree_,
   reportOptsToggleStatus,
@@ -78,10 +81,7 @@ instance Default AccountListMode where def = ALFlat
 -- commands, as noted below.
 data ReportOpts = ReportOpts {
      -- for most reports:
-     today_          :: Day  -- ^ The current date. A late addition to ReportOpts.
-                             -- Reports use it when picking a -V valuation date.
-                             -- This is not great, adds indeterminacy.
-    ,period_         :: Period
+     period_         :: Period
     ,interval_       :: Interval
     ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
@@ -92,8 +92,6 @@ data ReportOpts = ReportOpts {
     ,no_elide_       :: Bool
     ,real_           :: Bool
     ,format_         :: StringFormat
-    ,query_          :: Query
-    ,queryopts_      :: [QueryOpt]
     ,querystring_    :: T.Text
     --
     ,average_        :: Bool
@@ -132,8 +130,7 @@ instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
-    { today_           = nulldate
-    , period_          = PeriodAll
+    { period_          = PeriodAll
     , interval_        = NoInterval
     , statuses_        = []
     , value_           = Nothing
@@ -144,8 +141,6 @@ defreportopts = ReportOpts
     , no_elide_        = False
     , real_            = False
     , format_          = def
-    , query_           = Any
-    , queryopts_       = []
     , querystring_     = ""
     , average_         = False
     , related_         = False
@@ -181,11 +176,8 @@ rawOptsToReportOpts rawopts = do
         Just (Right x)  -> return x
         Just (Left err) -> fail $ "could not parse format option: " ++ err
 
-    (argsquery, queryopts) <- either fail return $ parseQuery d querystring
-
     let reportopts = defreportopts
-          {today_       = d
-          ,period_      = periodFromRawOpts d rawopts
+          {period_      = periodFromRawOpts d rawopts
           ,interval_    = intervalFromRawOpts rawopts
           ,statuses_    = statusesFromRawOpts rawopts
           ,value_       = valuationTypeFromRawOpts rawopts
@@ -196,8 +188,6 @@ rawOptsToReportOpts rawopts = do
           ,no_elide_    = boolopt "no-elide" rawopts
           ,real_        = boolopt "real" rawopts
           ,format_      = format
-          ,query_       = simplifyQuery $ And [queryFromFlags reportopts, argsquery]
-          ,queryopts_   = queryopts
           ,querystring_ = querystring
           ,average_     = boolopt "average" rawopts
           ,related_     = boolopt "related" rawopts
@@ -220,11 +210,40 @@ rawOptsToReportOpts rawopts = do
           }
     return reportopts
 
--- | Regenerate a ReportOpts on a different day with a different query string.
-regenerateReportOpts :: Day -> T.Text -> ReportOpts -> Either String ReportOpts
-regenerateReportOpts d querystring ropts = do
-    (q,o) <- parseQuery d querystring
-    return ropts{today_=d, query_=q, queryopts_=o, querystring_=querystring}
+data ReportSpec = ReportSpec
+  { rsOpts      :: ReportOpts
+  , rsToday     :: Day
+  , rsQuery     :: Query
+  , rsQueryOpts :: [QueryOpt]
+  } deriving (Show)
+
+instance Default ReportSpec where def = defreportspec
+
+defreportspec :: ReportSpec
+defreportspec = ReportSpec
+    { rsOpts      = def
+    , rsToday     = nulldate
+    , rsQuery     = Any
+    , rsQueryOpts = []
+    }
+
+-- | Generate a ReportSpec from a set of ReportOpts on a given day
+reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
+reportOptsToSpec day ropts = do
+    (argsquery, queryopts) <- parseQuery day $ querystring_ ropts
+    return ReportSpec
+      { rsOpts = ropts
+      , rsToday = day
+      , rsQuery = simplifyQuery $ And [queryFromFlags ropts, argsquery]
+      , rsQueryOpts = queryopts
+      }
+
+-- | Generate a ReportSpec from RawOpts and the current date.
+rawOptsToReportSpec :: RawOpts -> IO ReportSpec
+rawOptsToReportSpec rawopts = do
+    d <- getCurrentDay
+    ropts <- rawOptsToReportOpts rawopts
+    either fail return $ reportOptsToSpec d ropts
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt =
@@ -454,45 +473,45 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
 -- options or queries, or otherwise the earliest and latest transaction or
 -- posting dates in the journal. If no dates are specified by options/queries
 -- and the journal is empty, returns the null date span.
-reportSpan :: Journal -> ReportOpts -> DateSpan
-reportSpan j ropts = dbg3 "reportspan" $ DateSpan mstartdate menddate
+reportSpan :: Journal -> ReportSpec -> DateSpan
+reportSpan j ReportSpec{rsQuery=query} = dbg3 "reportspan" $ DateSpan mstartdate menddate
   where
     DateSpan mjournalstartdate mjournalenddate =
       dbg3 "journalspan" $ journalDateSpan False j  -- ignore secondary dates
-    mstartdate = queryStartDate False (query_ ropts) <|> mjournalstartdate
-    menddate   = queryEndDate   False (query_ ropts) <|> mjournalenddate
+    mstartdate = queryStartDate False query <|> mjournalstartdate
+    menddate   = queryEndDate   False query <|> mjournalenddate
 
-reportStartDate :: Journal -> ReportOpts -> Maybe Day
-reportStartDate j ropts = spanStart $ reportSpan j ropts
+reportStartDate :: Journal -> ReportSpec -> Maybe Day
+reportStartDate j = spanStart . reportSpan j
 
-reportEndDate :: Journal -> ReportOpts -> Maybe Day
-reportEndDate j ropts = spanEnd $ reportSpan j ropts
+reportEndDate :: Journal -> ReportSpec -> Maybe Day
+reportEndDate j = spanEnd . reportSpan j
 
 -- Some pure alternatives to the above. XXX review/clean up
 
 -- Get the report's start date.
 -- If no report period is specified, will be Nothing.
-reportPeriodStart :: ReportOpts -> Maybe Day
-reportPeriodStart = queryStartDate False . query_
+reportPeriodStart :: ReportSpec -> Maybe Day
+reportPeriodStart = queryStartDate False . rsQuery
 
 -- Get the report's start date, or if no report period is specified,
 -- the journal's start date (the earliest posting date). If there's no
 -- report period and nothing in the journal, will be Nothing.
-reportPeriodOrJournalStart :: ReportOpts -> Journal -> Maybe Day
-reportPeriodOrJournalStart ropts j =
-  reportPeriodStart ropts <|> journalStartDate False j
+reportPeriodOrJournalStart :: ReportSpec -> Journal -> Maybe Day
+reportPeriodOrJournalStart rspec j =
+  reportPeriodStart rspec <|> journalStartDate False j
 
 -- Get the last day of the overall report period.
 -- This the inclusive end date (one day before the
 -- more commonly used, exclusive, report end date).
 -- If no report period is specified, will be Nothing.
-reportPeriodLastDay :: ReportOpts -> Maybe Day
-reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . query_
+reportPeriodLastDay :: ReportSpec -> Maybe Day
+reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . rsQuery
 
 -- Get the last day of the overall report period, or if no report
 -- period is specified, the last day of the journal (ie the latest
 -- posting date). If there's no report period and nothing in the
 -- journal, will be Nothing.
-reportPeriodOrJournalLastDay :: ReportOpts -> Journal -> Maybe Day
-reportPeriodOrJournalLastDay ropts j =
-  reportPeriodLastDay ropts <|> journalEndDate False j
+reportPeriodOrJournalLastDay :: ReportSpec -> Journal -> Maybe Day
+reportPeriodOrJournalLastDay rspec j =
+  reportPeriodLastDay rspec <|> journalEndDate False j

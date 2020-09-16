@@ -58,13 +58,13 @@ registermode = hledgerCommandMode
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()
-register opts@CliOpts{reportopts_=ropts} j = do
+register opts@CliOpts{reportspec_=rspec} j = do
   let fmt = outputFormatFromOpts opts
       render | fmt=="txt"  = postingsReportAsText
              | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
              | fmt=="json" = const ((++"\n") . TL.unpack . toJsonText)
              | otherwise   = const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-  writeOutput opts . render opts $ postingsReport ropts j
+  writeOutput opts . render opts $ postingsReport rspec j
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =
@@ -178,7 +178,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
               BalancedVirtualPosting -> (\s -> "["++s++"]", acctwidth-2)
               VirtualPosting         -> (\s -> "("++s++")", acctwidth-2)
               _                      -> (id,acctwidth)
-      showamt = showMixedAmountWithoutPrice (color_ $ reportopts_ opts)
+      showamt = showMixedAmountWithoutPrice (color_ . rsOpts $ reportspec_ opts)
       amt = showamt $ pamount p
       bal = showamt b
       -- alternate behaviour, show null amounts as 0 instead of blank
@@ -198,8 +198,8 @@ tests_Register = tests "Register" [
    tests "postingsReportAsText" [
     test "unicode in register layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
-      let opts = defreportopts
-      (postingsReportAsText defcliopts $ postingsReport opts j)
+      let rspec = defreportspec
+      (postingsReportAsText defcliopts $ postingsReport rspec j)
         @?=
         unlines
         ["2009-01-01 медвежья шкура       расходы:покупки                100           100"
