@@ -466,7 +466,7 @@ datep' mYear = do
       let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
 
       when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startOffset endOffset $
-        "invalid date (mixing date separators is not allowed): " ++ dateStr
+        "invalid date: separators are different, should be the same"
 
       case fromGregorianValid year month day of
         Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
@@ -846,7 +846,7 @@ fromRawNumber
   -> Either String
             (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle)
 fromRawNumber (WithSeparators _ _ _) (Just _) =
-    Left "invalid number: mixing digit separators with exponents is not allowed"
+    Left "invalid number: digit separators and exponents may not be used together"
 fromRawNumber raw mExp = do
     (quantity, precision) <- toQuantity (fromMaybe 0 mExp) (digitGroup raw) (decimalGroup raw)
     return (quantity, precision, mDecPt raw, digitGroupStyle raw)
@@ -855,7 +855,7 @@ fromRawNumber raw mExp = do
     toQuantity e preDecimalGrp postDecimalGrp
       | precision < 0   = Right (Decimal 0 (digitGrpNum * 10^(-precision)), 0)
       | precision < 256 = Right (Decimal precision8 digitGrpNum, precision8)
-      | otherwise = Left "invalid number: numbers with more than 255 decimal digits are not allowed at this time"
+      | otherwise = Left "invalid number: numbers with more than 255 decimal places are currently not supported"
       where
         digitGrpNum = digitGroupNumber $ preDecimalGrp <> postDecimalGrp
         precision   = toInteger (digitGroupLength postDecimalGrp) - e

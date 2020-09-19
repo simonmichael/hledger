@@ -495,7 +495,7 @@ multiBalanceReportAsHtml ropts mbr =
 multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], Maybe (Html ()))
 multiBalanceReportHtmlRows ropts mbr =
   let
-    headingsrow:rest | transpose_ ropts = error' "Sorry, --transpose is not supported with HTML output yet"  -- PARTIAL:
+    headingsrow:rest | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
                      | otherwise = multiBalanceReportAsCsv ropts mbr
     (bodyrows, mtotalsrow) | no_total_ ropts = (rest,      Nothing)
                            | otherwise       = (init rest, Just $ last rest)

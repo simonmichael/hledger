@@ -172,7 +172,7 @@ amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperi
 
 -- | Standard error message for a report not supporting --value=then.
 unsupportedValueThenError :: String
-unsupportedValueThenError = "Sorry, --value=then is not yet implemented for this kind of report."
+unsupportedValueThenError = "Sorry, --value=then is not yet supported for this kind of report."
 
 -- | Find the market value of each component amount in the given
 -- commodity, or its default valuation commodity, at the given
