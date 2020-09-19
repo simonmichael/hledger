@@ -588,7 +588,7 @@ P 2020-04-01 A 4 B
    (a)  1 A
 
 $ hledger -f- reg --value=then -b 2020-03 -H
->2 /not yet implemented/
+>2 /not yet supported/
 >=1
 
 # 51. --value=then with a report interval. How are the summary amounts valued ?
