@@ -92,8 +92,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
 postingsReportAsText :: CliOpts -> PostingsReport -> String
 postingsReportAsText opts (_,items) = unlines $ map (postingsReportItemAsText opts amtwidth balwidth) items
   where
-    amtwidth = maximumStrict $ 12 : map (strWidth . showMixedAmount . itemamt) items
-    balwidth = maximumStrict $ 12 : map (strWidth . showMixedAmount . itembal) items
+    amtwidth = maximumStrict $ map (snd . showMixed showAmount (Just 12) Nothing False . itemamt) items
+    balwidth = maximumStrict $ map (snd . showMixed showAmount (Just 12) Nothing False . itembal) items
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
 
@@ -130,15 +130,15 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
            ,"  "
            ,fitString (Just acctwidth) (Just acctwidth) True True acct
            ,"  "
-           ,fitString (Just amtwidth) (Just amtwidth) True False amtfirstline
+           ,amtfirstline
            ,"  "
-           ,fitString (Just balwidth) (Just balwidth) True False balfirstline
+           ,balfirstline
            ]
     :
     [concat [spacer
-            ,fitString (Just amtwidth) (Just amtwidth) True False a
+            ,a
             ,"  "
-            ,fitString (Just balwidth) (Just balwidth) True False b
+            ,b
             ]
      | (a,b) <- zip amtrest balrest
      ]
@@ -178,17 +178,16 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
               BalancedVirtualPosting -> (\s -> "["++s++"]", acctwidth-2)
               VirtualPosting         -> (\s -> "("++s++")", acctwidth-2)
               _                      -> (id,acctwidth)
-      showamt = showMixedAmountWithoutPrice (color_ . rsOpts $ reportspec_ opts)
-      amt = showamt $ pamount p
-      bal = showamt b
+      amt = fst $ showMixed showAmountWithoutPrice (Just amtwidth) (Just amtwidth) (color_ . rsOpts $ reportspec_ opts) $ pamount p
+      bal = fst $ showMixed showAmountWithoutPrice (Just balwidth) (Just balwidth) (color_ . rsOpts $ reportspec_ opts) b
       -- alternate behaviour, show null amounts as 0 instead of blank
       -- amt = if null amt' then "0" else amt'
       -- bal = if null bal' then "0" else bal'
       (amtlines, ballines) = (lines amt, lines bal)
       (amtlen, ballen) = (length amtlines, length ballines)
       numlines = max 1 (max amtlen ballen)
-      (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat "" -- posting amount is top-aligned
-      (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
+      (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat (replicate amtwidth ' ') -- posting amount is top-aligned
+      (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) (replicate balwidth ' ') ++ ballines -- balance amount is bottom-aligned
       spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
 
 -- tests
