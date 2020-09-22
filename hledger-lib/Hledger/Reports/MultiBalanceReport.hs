@@ -25,6 +25,15 @@ module Hledger.Reports.MultiBalanceReport (
   sortRows,
   sortRowsLike,
 
+  -- * Helper functions
+  calculateReportSpan,
+  makeReportQuery,
+  getPostingsByColumn,
+  getPostings,
+  calculateColSpans,
+  startingBalances,
+  generateMultiBalanceReport,
+
   -- -- * Tests
   tests_MultiBalanceReport
 )
