@@ -42,7 +42,7 @@ hledger rewrite -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
 
 2016-01-01 gift  ; modified:
     assets:cash               $-15
-    expenses:gifts      ; [1/2]
+    expenses:gifts                  ; [1/2]
     (budget:gifts)            $-15  ; [2016-01-02], generated-posting: = expenses:gifts
 
 >>>2
@@ -107,17 +107,17 @@ hledger rewrite -f- -B
 2017-04-24 * 09:00-09:25  ; modified:
     (assets:unbilled:client1)           0.42h
     assets:to bill:client1             $42.00  ; generated-posting: = ^assets:unbilled:client1
-    income:consulting:client1      ; generated-posting: = ^assets:unbilled:client1
+    income:consulting:client1                  ; generated-posting: = ^assets:unbilled:client1
 
 2017-04-25 * 10:00-11:15  ; modified:
     (assets:unbilled:client1)           1.25h
     assets:to bill:client1            $125.00  ; generated-posting: = ^assets:unbilled:client1
-    income:consulting:client1      ; generated-posting: = ^assets:unbilled:client1
+    income:consulting:client1                  ; generated-posting: = ^assets:unbilled:client1
 
 2017-04-25 * 14:00-15:32  ; modified:
     (assets:unbilled:client2)           1.54h
     assets:to bill:client2            $231.00  ; generated-posting: = ^assets:unbilled:client2
-    income:consulting:client2      ; generated-posting: = ^assets:unbilled:client2
+    income:consulting:client2                  ; generated-posting: = ^assets:unbilled:client2
 
 >>>2
 >>>=0

@@ -64,7 +64,7 @@ hledger -f - print
     equity
 >>>
 2017-01-01
-    assets     = $100
+    assets                 = $100
     equity
 
 >>>2

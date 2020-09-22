@@ -147,11 +147,10 @@ accountTransactionsReportAsText
   = unlines $ title :
     map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
   where
-    amtwidth = maximumStrict $ 12 : map (strWidth . showamt . itemamt) items
-    balwidth = maximumStrict $ 12 : map (strWidth . showamt . itembal) items
-    showamt
-      | no_elide_ = showMixedAmountOneLineWithoutPrice False -- color_
-      | otherwise = showMixedAmountElided 22 False
+    amtwidth = maximumStrict $ 12 : map (snd . showamt . itemamt) items
+    balwidth = maximumStrict $ 12 : map (snd . showamt . itembal) items
+    showamt = showMixedOneLine showAmountWithoutPrice (Just 12) mmax False  -- color_
+      where mmax = if no_elide_ then Nothing else Just 22
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise
@@ -176,7 +175,7 @@ accountTransactionsReportAsText
 --
 accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> String
 accountTransactionsReportItemAsText
-  copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{color_,no_elide_}}}
+  copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{color_}}}
   reportq thisacctq preferredamtwidth preferredbalwidth
   (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance)
     -- Transaction -- the transaction, unmodified
@@ -193,15 +192,15 @@ accountTransactionsReportItemAsText
            ,"  "
            ,fitString (Just acctwidth) (Just acctwidth) True True accts
            ,"  "
-           ,fitString (Just amtwidth) (Just amtwidth) True False amtfirstline
+           ,amtfirstline
            ,"  "
-           ,fitString (Just balwidth) (Just balwidth) True False balfirstline
+           ,balfirstline
            ]
     :
     [concat [spacer
-            ,fitString (Just amtwidth) (Just amtwidth) True False a
+            ,a
             ,"  "
-            ,fitString (Just balwidth) (Just balwidth) True False b
+            ,b
             ]
      | (a,b) <- zip amtrest balrest
      ]
@@ -229,19 +228,16 @@ accountTransactionsReportItemAsText
       desc = T.unpack tdescription
       accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
               otheracctsstr
-      showamt
-        | no_elide_ = showMixedAmountOneLineWithoutPrice color_
-        | otherwise = showMixedAmountElided 22 color_
-      amt = showamt change
-      bal = showamt balance
+      amt = fst $ showMixed showAmountWithoutPrice (Just amtwidth) (Just balwidth) color_ change
+      bal = fst $ showMixed showAmountWithoutPrice (Just balwidth) (Just balwidth) color_ balance
       -- alternate behaviour, show null amounts as 0 instead of blank
       -- amt = if null amt' then "0" else amt'
       -- bal = if null bal' then "0" else bal'
       (amtlines, ballines) = (lines amt, lines bal)
       (amtlen, ballen) = (length amtlines, length ballines)
       numlines = max 1 (max amtlen ballen)
-      (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat "" -- posting amount is top-aligned
-      (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
+      (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat (replicate amtwidth ' ') -- posting amount is top-aligned
+      (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) (replicate balwidth ' ') ++ ballines -- balance amount is bottom-aligned
       spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
 
 -- tests

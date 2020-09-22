@@ -408,15 +408,15 @@ account1 assets
 account2 income
 $  ./csvtest.sh
 2018-10-15 Assets Update
-    assets     = EUR 100
+    assets                 = EUR 100
     income
 
 2018-10-16 Assets Update
-    assets     = EUR 200
+    assets                 = EUR 200
     income
 
 2018-10-17 Assets Update
-    assets     = EUR 300
+    assets                 = EUR 300
     income
 
 >=0
