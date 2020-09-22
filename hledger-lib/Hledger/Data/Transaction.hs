@@ -256,11 +256,11 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     -- currently prices are considered part of the amount string when right-aligning amounts
     shownAmounts
       | elideamount    = [""]
-      | onelineamounts = [fitString (Just amtwidth) Nothing False False $ showMixedAmountOneLine $ pamount p]
+      | onelineamounts = [fst . showMixedOneLineUnnormalised showAmount (Just amtwidth) Nothing False $ pamount p]
       | null (amounts $ pamount p) = [""]
-      | otherwise      = map (fitStringMulti (Just amtwidth) Nothing False False . showAmount ) . amounts $ pamount p
+      | otherwise      = lines . fst . showMixedUnnormalised showAmount (Just amtwidth) Nothing False $ pamount p
       where
-        amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) pstoalignwith  -- min. 12 for backwards compatibility
+        amtwidth = maximum $ map (snd . showMixed showAmount (Just 12) Nothing False . pamount) pstoalignwith  -- min. 12 for backwards compatibility
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])

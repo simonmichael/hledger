@@ -117,7 +117,9 @@ module Hledger.Data.Amount (
   showMixedAmountWithZeroCommodity,
   showMixedAmountWithPrecision,
   showMixed,
+  showMixedUnnormalised,
   showMixedOneLine,
+  showMixedOneLineUnnormalised,
   setMixedAmountPrecision,
   canonicaliseMixedAmount,
   -- * misc.
@@ -659,12 +661,16 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
 -- width (if given) will be elided. The function also returns the actual
 -- width of the output string.
 showMixed :: (Amount -> String) -> Maybe Int -> Maybe Int -> Bool -> MixedAmount -> (String, Int)
-showMixed showamt mmin mmax c mixed =
+showMixed showamt mmin mmax c =
+    showMixedUnnormalised showamt mmin mmax c . normaliseMixedAmountSquashPricesForDisplay
+
+-- | Like showMixed, but does not normalise the MixedAmount before displaying.
+showMixedUnnormalised :: (Amount -> String) -> Maybe Int -> Maybe Int -> Bool -> MixedAmount -> (String, Int)
+showMixedUnnormalised showamt mmin mmax c (Mixed as) =
     (intercalate "\n" $ map finalise elided, width)
   where
     width    = maximum $ fromMaybe 0 mmin : map adLength elided
     astrs    = amtDisplayList sepwidth showamt as
-    Mixed as = normaliseMixedAmountSquashPricesForDisplay mixed
     sepwidth = 0  -- "\n" has width 0
 
     finalise = adString . pad . if c then colourise else id
@@ -683,12 +689,17 @@ showMixed showamt mmin mmax c mixed =
 -- as it can in the maximum width (if given), and further Amounts will be
 -- elided. The function also returns the actual width of the output string.
 showMixedOneLine :: (Amount -> String) -> Maybe Int -> Maybe Int -> Bool -> MixedAmount -> (String, Int)
-showMixedOneLine showamt mmin mmax c mixed =
+showMixedOneLine showamt mmin mmax c =
+    showMixedOneLineUnnormalised showamt mmin mmax c . normaliseMixedAmountSquashPricesForDisplay
+
+-- | Like showMixedOneLine, but does not normalise the MixedAmount before
+-- displaying.
+showMixedOneLineUnnormalised :: (Amount -> String) -> Maybe Int -> Maybe Int -> Bool -> MixedAmount -> (String, Int)
+showMixedOneLineUnnormalised showamt mmin mmax c (Mixed as) =
     (pad . intercalate ", " $ map finalise elided, max width $ fromMaybe 0 mmin)
   where
     width    = maybe 0 adTotal $ lastMay elided
     astrs    = amtDisplayList sepwidth showamt as
-    Mixed as = normaliseMixedAmountSquashPricesForDisplay mixed
     sepwidth = 2  -- ", " has width 2
     n        = length as
 

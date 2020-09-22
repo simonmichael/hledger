@@ -93,8 +93,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                                                      [s] -> s
                                                      ss  -> intercalate ", " ss
                                                      -- _   -> "<split>"  -- should do this if accounts field width < 30
-                            ,rsItemChangeAmount  = showMixedAmountElided 22 False change
-                            ,rsItemBalanceAmount = showMixedAmountElided 22 False bal
+                            ,rsItemChangeAmount  = showMixed showAmountWithoutPrice Nothing (Just 22) False change
+                            ,rsItemBalanceAmount = showMixed showAmountWithoutPrice Nothing (Just 22) False bal
                             ,rsItemTransaction   = t
                             }
     -- blank items are added to allow more control of scroll position; we won't allow movement over these
@@ -103,8 +103,8 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                             ,rsItemStatus        = Unmarked
                             ,rsItemDescription   = ""
                             ,rsItemOtherAccounts = ""
-                            ,rsItemChangeAmount  = ""
-                            ,rsItemBalanceAmount = ""
+                            ,rsItemChangeAmount  = ("", 0)
+                            ,rsItemBalanceAmount = ("", 0)
                             ,rsItemTransaction   = nulltransaction
                             }
     -- build the List
@@ -162,8 +162,8 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
         whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 1 + 2 + 2 -- date column plus at least 1 for status and 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
-        maxchangewidthseen = maximum' $ map (strWidth . rsItemChangeAmount) displayitems
-        maxbalwidthseen = maximum' $ map (strWidth . rsItemBalanceAmount) displayitems
+        maxchangewidthseen = maximum' $ map (snd . rsItemChangeAmount) displayitems
+        maxbalwidthseen = maximum' $ map (snd . rsItemBalanceAmount) displayitems
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
@@ -261,13 +261,13 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
       str "  " <+>
       str (fitString (Just acctswidth) (Just acctswidth) True True rsItemOtherAccounts) <+>
       str "   " <+>
-      withAttr changeattr (str (fitString (Just changewidth) (Just changewidth) True False rsItemChangeAmount)) <+>
+      withAttr changeattr (str (fitString (Just changewidth) (Just changewidth) True False $ fst rsItemChangeAmount)) <+>
       str "   " <+>
-      withAttr balattr (str (fitString (Just balwidth) (Just balwidth) True False rsItemBalanceAmount))
+      withAttr balattr (str (fitString (Just balwidth) (Just balwidth) True False $ fst rsItemBalanceAmount))
   where
-    changeattr | '-' `elem` rsItemChangeAmount = sel $ "list" <> "amount" <> "decrease"
+    changeattr | '-' `elem` fst rsItemChangeAmount = sel $ "list" <> "amount" <> "decrease"
                | otherwise                     = sel $ "list" <> "amount" <> "increase"
-    balattr    | '-' `elem` rsItemBalanceAmount = sel $ "list" <> "balance" <> "negative"
+    balattr    | '-' `elem` fst rsItemBalanceAmount = sel $ "list" <> "balance" <> "negative"
                | otherwise                      = sel $ "list" <> "balance" <> "positive"
     sel | selected  = (<> "selected")
         | otherwise = id
