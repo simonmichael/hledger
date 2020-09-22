@@ -2,6 +2,8 @@
 _*
 *~
 *.o
+\#*
+.\#*
 
 # dev stuff
 .build
@@ -43,6 +45,7 @@ TAGS
 *.hi
 *.p_o
 *.hp
+package.yaml-e
 .cabal-sandbox/
 cabal-dev*
 cabal.project.local
@@ -54,9 +57,11 @@ dist-newstyle/
 /.shake.html
 .stack-work/
 /lsp/
+Setup
 
 # hledger stuff
 old
+/.old
 /log
 /profs/*
 /*.prof.*
@@ -70,6 +75,9 @@ tests/addons/hledger-*
 tools/generatejournal
 tools/simplebench
 /examples/10*.journal
+*.webmanual.md
+*.m4-e
+stack*.yaml.lock
 
 # hledger-web stuff
 /config
@@ -85,4 +93,10 @@ hledger-web/yesod-devel/
 *.spk
 
 # recent stuff
-site
+/site
+/commands
+/.obsidian
+/.github/workflows/README
+/checks
+/headroom-templates
+.headroom.yaml
