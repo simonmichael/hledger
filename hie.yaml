@@ -1,0 +1,43 @@
+# hand-rolled hie.yaml file
+
+# $ stack ide targets
+# hledger:lib
+# hledger:exe:hledger
+# hledger:test:unittest
+# hledger:bench:bench
+# hledger-lib:lib
+# hledger-lib:test:doctest
+# hledger-lib:test:unittest
+# hledger-ui:exe:hledger-ui
+# hledger-web:lib
+# hledger-web:exe:hledger-web
+
+# testing:
+# $ hie-bios check
+# $ hie-bios debug hledger/Hledger/Cli/Commands/Register.hs
+
+cradle:
+  stack:
+    - path: "hledger-lib/"
+      component: "hledger-lib:lib"
+    - path: "hledger-lib/test/doctests.hs"
+      component: "hledger-lib:test:doctest"
+    - path: "hledger-lib/test/unittest.hs"
+      component: "hledger-lib:test:unittest"
+
+    - path: "hledger/"
+      component: "hledger:lib"
+    - path: "hledger/app/"
+      component: "hledger:exe:hledger"
+    - path: "hledger/test/unittest.hs"
+      component: "hledger:test:unittest"
+    - path: "hledger/bench/"
+      component: "hledger:bench:bench"
+
+    - path: "hledger-ui/"
+      component: "hledger-ui:exe:hledger-ui"
+
+    - path: "hledger-web/"
+      component: "hledger-web:lib"
+    - path: "hledger-web/app/"
+      component: "hledger-web:exe:hledger-web"
