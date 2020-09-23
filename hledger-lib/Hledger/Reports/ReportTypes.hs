@@ -17,7 +17,6 @@ module Hledger.Reports.ReportTypes
 , Average
 
 , periodicReportSpan
-, prNormaliseSign
 , prMapName
 , prMapMaybeName
 
@@ -40,8 +39,10 @@ import Data.Maybe (mapMaybe)
 import Data.Semigroup (Semigroup(..))
 #endif
 import GHC.Generics (Generic)
+
 import Hledger.Data
 import Hledger.Query (Query)
+import Hledger.Reports.ReportOptions (ReportOpts)
 
 type Percentage = Decimal
 
@@ -109,12 +110,6 @@ periodicReportSpan :: PeriodicReport a b -> DateSpan
 periodicReportSpan (PeriodicReport [] _ _)       = DateSpan Nothing Nothing
 periodicReportSpan (PeriodicReport colspans _ _) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
 
--- | Given a PeriodicReport and its normal balance sign,
--- if it is known to be normally negative, convert it to normally positive.
-prNormaliseSign :: Num b => NormalSign -> PeriodicReport a b -> PeriodicReport a b
-prNormaliseSign NormallyNegative = fmap negate
-prNormaliseSign NormallyPositive = id
-
 -- | Map a function over the row names.
 prMapName :: (a -> b) -> PeriodicReport a c -> PeriodicReport b c
 prMapName f report = report{prRows = map (prrMapName f) $ prRows report}
@@ -157,10 +152,11 @@ data CompoundPeriodicReport a b = CompoundPeriodicReport
 
 -- | Description of one subreport within a compound balance report.
 -- Part of a "CompoundBalanceCommandSpec", but also used in hledger-lib.
-data CBCSubreportSpec = CBCSubreportSpec
+data CBCSubreportSpec a = CBCSubreportSpec
   { cbcsubreporttitle          :: String
   , cbcsubreportquery          :: Journal -> Query
-  , cbcsubreportnormalsign     :: NormalSign
+  , cbcsubreportoptions        :: ReportOpts -> ReportOpts
+  , cbcsubreporttransform      :: PeriodicReport DisplayName MixedAmount -> PeriodicReport a MixedAmount
   , cbcsubreportincreasestotal :: Bool
   }
 
