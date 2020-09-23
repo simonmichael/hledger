@@ -24,13 +24,15 @@ balancesheetSpec = CompoundBalanceCommandSpec {
      CBCSubreportSpec{
       cbcsubreporttitle="Assets"
      ,cbcsubreportquery=journalAssetAccountQuery
-     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
+     ,cbcsubreporttransform=id
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Liabilities"
      ,cbcsubreportquery=journalLiabilityAccountQuery
-     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
+     ,cbcsubreporttransform=fmap negate
      ,cbcsubreportincreasestotal=False
      }
     ],

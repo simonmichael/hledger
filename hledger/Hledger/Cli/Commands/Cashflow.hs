@@ -27,7 +27,8 @@ cashflowSpec = CompoundBalanceCommandSpec {
      CBCSubreportSpec{
       cbcsubreporttitle="Cash flows"
      ,cbcsubreportquery=journalCashAccountQuery
-     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_= Just NormallyPositive})
+     ,cbcsubreporttransform=id
      ,cbcsubreportincreasestotal=True
      }
     ],

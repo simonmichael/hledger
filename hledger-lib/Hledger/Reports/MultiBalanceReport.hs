@@ -16,7 +16,6 @@ module Hledger.Reports.MultiBalanceReport (
   multiBalanceReport,
   multiBalanceReportWith,
 
-  CompoundBalanceReport,
   compoundBalanceReport,
   compoundBalanceReportWith,
 
@@ -86,7 +85,6 @@ import Hledger.Reports.ReportTypes
 
 type MultiBalanceReport    = PeriodicReport    DisplayName MixedAmount
 type MultiBalanceReportRow = PeriodicReportRow DisplayName MixedAmount
-type CompoundBalanceReport = CompoundPeriodicReport DisplayName MixedAmount
 
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
@@ -131,14 +129,15 @@ multiBalanceReportWith rspec' j priceoracle = report
 
 -- | Generate a compound balance report from a list of CBCSubreportSpec. This
 -- shares postings between the subreports.
-compoundBalanceReport :: ReportSpec -> Journal -> [CBCSubreportSpec]
-                      -> CompoundBalanceReport
+compoundBalanceReport :: ReportSpec -> Journal -> [CBCSubreportSpec a]
+                      -> CompoundPeriodicReport a MixedAmount
 compoundBalanceReport rspec j = compoundBalanceReportWith rspec j (journalPriceOracle infer j)
   where infer = infer_value_ $ rsOpts rspec
 
 -- | A helper for compoundBalanceReport, similar to multiBalanceReportWith.
 compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle
-                          -> [CBCSubreportSpec] -> CompoundBalanceReport
+                          -> [CBCSubreportSpec a]
+                          -> CompoundPeriodicReport a MixedAmount
 compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
   where
     -- Queries, report/column dates.
@@ -160,16 +159,16 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
         generateSubreport CBCSubreportSpec{..} =
             ( cbcsubreporttitle
             -- Postprocess the report, negating balances and taking percentages if needed
-            , prNormaliseSign cbcsubreportnormalsign $
-                generateMultiBalanceReport rspec' j valuation colspans colps' startbals'
+            , cbcsubreporttransform $
+                generateMultiBalanceReport rspec{rsOpts=ropts} j valuation colspans colps' startbals'
             , cbcsubreportincreasestotal
             )
           where
-            rspec'     = rspec{rsOpts=ropts}
-            ropts      = (rsOpts rspec){normalbalance_=Just cbcsubreportnormalsign}
             -- Filter the column postings according to each subreport
-            colps'     = filter (matchesPosting $ cbcsubreportquery j) <$> colps
-            startbals' = HM.filterWithKey (\k _ -> matchesAccount (cbcsubreportquery j) k) startbals
+            colps'     = filter (matchesPosting q) <$> colps
+            startbals' = HM.filterWithKey (\k _ -> matchesAccount q k) startbals
+            ropts      = cbcsubreportoptions $ rsOpts rspec
+            q          = cbcsubreportquery j
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports

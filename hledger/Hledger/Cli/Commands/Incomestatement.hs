@@ -23,13 +23,15 @@ incomestatementSpec = CompoundBalanceCommandSpec {
      CBCSubreportSpec{
       cbcsubreporttitle="Revenues"
      ,cbcsubreportquery=journalRevenueAccountQuery
-     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
+     ,cbcsubreporttransform=fmap negate
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Expenses"
      ,cbcsubreportquery=journalExpenseAccountQuery
-     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
+     ,cbcsubreporttransform=id
      ,cbcsubreportincreasestotal=False
      }
     ],

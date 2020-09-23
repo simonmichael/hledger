@@ -41,11 +41,11 @@ import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutput)
 -- it should be added to or subtracted from the grand total.
 --
 data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
-  cbcdoc      :: CommandDoc,          -- ^ the command's name(s) and documentation
-  cbctitle    :: String,              -- ^ overall report title
-  cbcqueries  :: [CBCSubreportSpec],  -- ^ subreport details
-  cbctype     :: BalanceType          -- ^ the "balance" type (change, cumulative, historical)
-                                      --   this report shows (overrides command line flags)
+  cbcdoc      :: CommandDoc,                      -- ^ the command's name(s) and documentation
+  cbctitle    :: String,                          -- ^ overall report title
+  cbcqueries  :: [CBCSubreportSpec DisplayName],  -- ^ subreport details
+  cbctype     :: BalanceType                      -- ^ the "balance" type (change, cumulative, historical)
+                                                  --   this report shows (overrides command line flags)
 }
 
 -- | Generate a cmdargs option-parsing mode from a compound balance command
@@ -186,7 +186,7 @@ Balance Sheet
  Total       ||           1        1        1
 
 -}
-compoundBalanceReportAsText :: ReportOpts -> CompoundBalanceReport -> String
+compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> String
 compoundBalanceReportAsText ropts
   (CompoundPeriodicReport title _colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
     title ++ "\n\n" ++
@@ -225,7 +225,7 @@ concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
 -- subreport title row, and an overall title row, one headings row, and an
 -- optional overall totals row is added.
-compoundBalanceReportAsCsv :: ReportOpts -> CompoundBalanceReport -> CSV
+compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
 compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
   addtotals $
   padRow title :
@@ -262,7 +262,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
           ])
 
 -- | Render a compound balance report as HTML.
-compoundBalanceReportAsHtml :: ReportOpts -> CompoundBalanceReport -> Html ()
+compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()
 compoundBalanceReportAsHtml ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg) = cbr
