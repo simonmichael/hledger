@@ -58,6 +58,10 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 --                     LINE                  nano +LINE     FILE
 --                                           nano           FILE
 --
+-- code                LINE COL              code --goto FILE:LINE:COL
+--                     LINE                  code --goto FILE:LINE
+--                                           code        FILE
+--
 -- vi, & variants      LINE [COL]            vi +LINE FILE
 --                     LINE (negative)       vi +     FILE
 --                                           vi       FILE
@@ -87,6 +91,7 @@ editFileAtPositionCommand mpos f = do
     args = case editor of
              e | e `elem` ["emacs", "emacsclient"] -> ['+' : join ":" [ml,mc], f']
              e | e `elem` ["nano"]                 -> ['+' : join "," [ml,mc], f']
+             e | e `elem` ["code"]                 -> ["--goto " ++ join ":" [Just f',ml,mc]]
              e | e `elem` ["vi","vim","view","nvim","evim","eview","gvim","gview","rvim","rview",
                            "rgvim","rgview","ex"]  -> [maybe "" plusMaybeLine ml, f']
              _ -> [f']
