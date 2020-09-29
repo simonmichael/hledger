@@ -1,7 +1,5 @@
 {- | Editor integration. -}
 
--- {-# LANGUAGE OverloadedStrings #-}
-
 module Hledger.UI.Editor (
    -- TextPosition
    endPosition
@@ -11,6 +9,8 @@ module Hledger.UI.Editor (
 where
 
 import Control.Applicative ((<|>))
+import Data.List (intercalate)
+import Data.Maybe (catMaybes)
 import Safe
 import System.Environment
 import System.Exit
@@ -43,58 +43,58 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 -- | Get a shell command line to open the user's preferred text editor
 -- (or a default editor) on the given file, and to focus it at the
 -- given text position if one is provided and if we know how.
--- We know how to focus on position for: emacs, vi, nano.
+-- We know how to focus on position for: emacs, vi, nano, VS code.
 -- We know how to focus on last line for: vi.
 --
--- Some tests: With line and column numbers specified,
+-- Some tests:
 -- @
--- if EDITOR is:  the command should be:
--- -------------  -----------------------------------
--- notepad        notepad FILE
--- vi             vi +LINE FILE
---                vi + FILE                                    # negative LINE
--- emacs          emacs +LINE:COL FILE
---                emacs FILE                                   # negative LINE
--- (unset)        emacsclient -a '' -nw +LINE:COL FILE
---                emacsclient -a '' -nw FILE                   # negative LINE
+-- EDITOR program is:  LINE/COL specified ?  Command should be:               
+-- ------------------  --------------------  ----------------------------------- 
+-- emacs, emacsclient  LINE COL              emacs +LINE:COL FILE
+--                     LINE                  emacs +LINE     FILE
+--                                           emacs           FILE
+--
+-- nano                LINE COL              nano +LINE,COL FILE
+--                     LINE                  nano +LINE     FILE
+--                                           nano           FILE
+--
+-- vi, & variants      LINE [COL]            vi +LINE FILE
+--                     LINE (negative)       vi +     FILE
+--                                           vi       FILE
+--
+-- (other PROG)        [LINE [COL]]          PROG FILE
+--
+-- (not set)           LINE COL              emacsclient -a '' -nw +LINE:COL FILE
+--                     LINE                  emacsclient -a '' -nw +LINE     FILE
+--                                           emacsclient -a '' -nw           FILE
 -- @
 --
--- How to open editors at the last line of a file:
+-- Notes on opening editors at the last line of a file:
 -- @
--- emacs:       emacs FILE -f end-of-buffer
+-- emacs:       emacs FILE -f end-of-buffer  # (-f must appear after FILE, +LINE:COL must appear before)
 -- emacsclient: can't
 -- vi:          vi + FILE
 -- @
 --
 editFileAtPositionCommand :: Maybe TextPosition -> FilePath -> IO String
 editFileAtPositionCommand mpos f = do
-  let f' = singleQuoteIfNeeded f
-  editcmd <- getEditCommand
-  let editor = lowercase $ takeFileName $ headDef "" $ words' editcmd
-  let positionarg =
-        case mpos of
-          Just (l, mc)
-            | editor `elem` [
-                "ex",
-                "vi","vim","view","nvim","evim","eview",
-                "gvim","gview","rvim","rview","rgvim","rgview"
-                ] -> plusAndMaybeLine l mc
-          Just (l, mc)
-            | editor `elem` ["emacs", "emacsclient"] -> plusLineAndMaybeColonColumnOrEnd l mc
-          Just (l, mc)
-            | editor `elem` ["nano"] -> plusLineAndMaybeCommaColumn l mc
-          _ -> ""
-        where
-          plusAndMaybeLine            l _  = "+" ++ if l >= 0 then show l else ""
-          plusLineAndMaybeCommaColumn l mc = "+" ++ show l ++ maybe "" ((","++).show) mc
-          plusLineAndMaybeColonColumnOrEnd l mc
-            | l >= 0    = "+" ++ show l ++ maybe "" ((":"++).show) mc
-            | otherwise = ""
-            -- otherwise = "-f end-of-buffer"
-            -- XXX Problems with this:
-            -- it must appear after the filename, whereas +LINE:COL must appear before
-            -- it works only with emacs, not emacsclient
-  return $ unwords [editcmd, positionarg, f']
+  cmd <- getEditCommand
+  let
+    editor = lowercase $ takeFileName $ headDef "" $ words' cmd
+    f' = singleQuoteIfNeeded f
+    ml = show.fst <$> mpos
+    mc = maybe Nothing (fmap show.snd) mpos :: Maybe String 
+    args = case editor of
+             e | e `elem` ["emacs", "emacsclient"] -> ['+' : join ":" [ml,mc], f']
+             e | e `elem` ["nano"]                 -> ['+' : join "," [ml,mc], f']
+             e | e `elem` ["vi","vim","view","nvim","evim","eview","gvim","gview","rvim","rview",
+                           "rgvim","rgview","ex"]  -> [maybe "" plusMaybeLine ml, f']
+             _ -> [f']
+           where
+             join sep = intercalate sep . catMaybes
+             plusMaybeLine l = "+" ++ if take 1 l == "-" then "" else l
+
+  return $ unwords $ cmd:args
 
 -- | Get the user's preferred edit command. This is the value of the
 -- $HLEDGER_UI_EDITOR environment variable, or of $EDITOR, or a
