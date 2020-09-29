@@ -84,7 +84,7 @@ editFileAtPositionCommand :: Maybe TextPosition -> FilePath -> IO String
 editFileAtPositionCommand mpos f = do
   cmd <- getEditCommand
   let
-    editor = lowercase $ takeFileName $ headDef "" $ words' cmd
+    editor = lowercase $ takeBaseName $ headDef "" $ words' cmd
     f' = singleQuoteIfNeeded f
     ml = show.fst <$> mpos
     mc = maybe Nothing (fmap show.snd) mpos :: Maybe String 
