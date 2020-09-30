@@ -27,7 +27,7 @@ import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger
 import Hledger.Web.Import
-import Hledger.WebOptions (version)
+import Hledger.Web.WebOptions (version)
 import Hledger.Web.Widget.Common (journalFile404)
 
 getRootR :: Handler Html
