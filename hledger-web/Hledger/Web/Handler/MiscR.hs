@@ -26,8 +26,8 @@ import qualified Data.Text as T
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger
-import Hledger.Cli.Version (version)
 import Hledger.Web.Import
+import Hledger.Web.Options (version)
 import Hledger.Web.Widget.Common (journalFile404)
 
 getRootR :: Handler Html
