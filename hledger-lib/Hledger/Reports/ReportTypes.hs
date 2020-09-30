@@ -148,7 +148,7 @@ data CompoundPeriodicReport a b = CompoundPeriodicReport
   , cbrDates      :: [DateSpan]
   , cbrSubreports :: [(String, PeriodicReport a b, Bool)]
   , cbrTotals     :: PeriodicReportRow () b
-  } deriving (Show, Generic, ToJSON)
+  } deriving (Show, Functor, Generic, ToJSON)
 
 -- | Description of one subreport within a compound balance report.
 -- Part of a "CompoundBalanceCommandSpec", but also used in hledger-lib.
