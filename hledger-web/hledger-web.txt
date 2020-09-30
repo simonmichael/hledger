@@ -314,6 +314,7 @@ JSON API
 
        You can get JSON data from these routes:
 
+              /version
               /accountnames
               /transactions
               /prices

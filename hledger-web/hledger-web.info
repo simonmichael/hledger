@@ -355,6 +355,7 @@ $ hledger-web -f examples/sample.journal --serve-api
 
    You can get JSON data from these routes:
 
+/version
 /accountnames
 /transactions
 /prices
@@ -590,12 +591,12 @@ Node: RELOADING11103
 Ref: #reloading11237
 Node: JSON API11670
 Ref: #json-api11784
-Node: ENVIRONMENT17265
-Ref: #environment17381
-Node: FILES18114
-Ref: #files18214
-Node: BUGS18427
-Ref: #bugs18505
+Node: ENVIRONMENT17274
+Ref: #environment17390
+Node: FILES18123
+Ref: #files18223
+Node: BUGS18436
+Ref: #bugs18514
 
 End Tag Table
 

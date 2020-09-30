@@ -1723,8 +1723,7 @@ spending $2000 on rent (and also, a goal of depositing $2000 into
 checking) every month.  Goals and actual performance can then be
 compared in budget reports.
 
-   For more details, see: balance: Budget report and Budgeting and
-Forecasting.
+   See also: Budgeting and Forecasting.
 
 
 File: hledger_journal.info,  Node: Auto postings,  Prev: Periodic transactions,  Up: Transactions
@@ -1973,16 +1972,16 @@ Node: Forecasting with periodic transactions61081
 Ref: #forecasting-with-periodic-transactions61386
 Node: Budgeting with periodic transactions63441
 Ref: #budgeting-with-periodic-transactions63680
-Node: Auto postings64129
-Ref: #auto-postings64269
-Node: Auto postings and multiple files66448
-Ref: #auto-postings-and-multiple-files66652
-Node: Auto postings and dates66861
-Ref: #auto-postings-and-dates67135
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions67310
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions67661
-Node: Auto posting tags68003
-Ref: #auto-posting-tags68218
+Node: Auto postings64089
+Ref: #auto-postings64229
+Node: Auto postings and multiple files66408
+Ref: #auto-postings-and-multiple-files66612
+Node: Auto postings and dates66821
+Ref: #auto-postings-and-dates67095
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions67270
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions67621
+Node: Auto posting tags67963
+Ref: #auto-posting-tags68178
 
 End Tag Table
 
