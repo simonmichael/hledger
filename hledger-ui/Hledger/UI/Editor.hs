@@ -87,7 +87,7 @@ editFileAtPositionCommand mpos f = do
     editor = lowercase $ takeBaseName $ headDef "" $ words' cmd
     f' = singleQuoteIfNeeded f
     ml = show.fst <$> mpos
-    mc = maybe Nothing (fmap show.snd) mpos :: Maybe String 
+    mc = maybe Nothing (fmap show.snd) mpos
     args = case editor of
              e | e `elem` ["emacs", "emacsclient"] -> ['+' : join ":" [ml,mc], f']
              e | e `elem` ["nano"]                 -> ['+' : join "," [ml,mc], f']
