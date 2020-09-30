@@ -7,7 +7,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Web.Handler.MiscR
-  ( getAccountnamesR
+  ( getVersionR
+  , getAccountnamesR
   , getTransactionsR
   , getPricesR
   , getCommoditiesR
@@ -25,6 +26,7 @@ import qualified Data.Text as T
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger
+import Hledger.Cli.Version (version)
 import Hledger.Web.Import
 import Hledger.Web.Widget.Common (journalFile404)
 
@@ -52,6 +54,13 @@ getDownloadR f = do
   sendResponse ("text/plain" :: ByteString, toContent txt)
 
 -- hledger-web equivalents of the old hledger-api's handlers
+
+getVersionR :: Handler TypedContent
+getVersionR = do
+  VD{caps} <- getViewData
+  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  selectRep $ do
+    provideJson $ version
 
 getAccountnamesR :: Handler TypedContent
 getAccountnamesR = do

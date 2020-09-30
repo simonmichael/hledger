@@ -215,6 +215,7 @@ $ hledger-web -f examples/sample.journal --serve-api
 You can get JSON data from these routes:
 
 ```
+/version
 /accountnames
 /transactions
 /prices
