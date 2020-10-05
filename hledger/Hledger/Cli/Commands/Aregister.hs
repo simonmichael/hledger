@@ -43,7 +43,7 @@ aregistermode = hledgerCommandMode
   ([
    flagNone ["txn-dates"] (setboolopt "txn-dates") 
      "filter strictly by transaction date, not posting date. Warning: this can show a wrong running balance."
-   ,flagNone ["no-elide"] (setboolopt "no-elide") "don't limit amount commodities shown to 2"
+   ,flagNone ["no-elide"] (setboolopt "no-elide") "don't show only 2 commodities per amount"
   --  flagNone ["cumulative"] (setboolopt "change")
   --    "show running total from report start date (default)"
   -- ,flagNone ["historical","H"] (setboolopt "historical")
