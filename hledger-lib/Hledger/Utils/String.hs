@@ -118,13 +118,17 @@ underline s = s' ++ replicate (length s) '-' ++ "\n"
 -- | Double-quote this string if it contains whitespace, single quotes
 -- or double-quotes, escaping the quotes as needed.
 quoteIfNeeded :: String -> String
-quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars++redirectchars) = show s
+quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars++redirectchars) = showChar '"' $ escapeQuotes s "\""
                 | otherwise = s
+  where
+    escapeQuotes []       x = x
+    escapeQuotes ('"':cs) x = showString "\\\"" $ escapeQuotes cs x
+    escapeQuotes (c:cs)   x = showChar c        $ escapeQuotes cs x
 
 -- | Single-quote this string if it contains whitespace or double-quotes.
 -- No good for strings containing single quotes.
 singleQuoteIfNeeded :: String -> String
-singleQuoteIfNeeded s | any (`elem` s) whitespacechars = "'"++s++"'"
+singleQuoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = "'"++s++"'"
                       | otherwise = s
 
 quotechars, whitespacechars, redirectchars :: [Char]
