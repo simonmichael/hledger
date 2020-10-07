@@ -1,9 +1,10 @@
-{-# LANGUAGE NoMonoLocalBinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE NoMonoLocalBinds    #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-|
 
 Date parsing and utilities for hledger.
@@ -777,10 +778,17 @@ yyyymmdd = do
   failIfInvalidDate date
 
 ymd :: TextParser m SmartDate
-ymd = liftA2 SmartAssumeStart yearp (optional $ try monthday) >>= failIfInvalidDate
-  where monthday = do
-            sep <- datesepchar
-            liftA2 (,) decimal . optional $ char sep *> decimal
+ymd = do
+    y <- yearp
+    fmap (SmartAssumeStart y) . optional . try $ do
+        sep <- datesepchar
+        m <- decimal
+        unless (validMonth m) $ Fail.fail ("Bad month " <> show m)
+        fmap (m,) . optional . try $ do
+            _ <- char sep
+            d <- decimal
+            failIfInvalidDate $ SmartAssumeStart y (Just (m, Just d))
+            return d
 
 md :: TextParser m (Month, MonthDay)
 md = do
@@ -943,6 +951,14 @@ periodexprdatespanp rdate = choice $ map try [
 -- |
 -- >>> parsewith (doubledatespanp (fromGregorian 2018 01 01) <* eof) "20180101-201804"
 -- Right DateSpan 2018Q1
+-- >>> parsewith (doubledatespanp (fromGregorian 2018 01 01) <* eof) "2017..2018"
+-- Right DateSpan 2017
+-- >>> parsewith (doubledatespanp (fromGregorian 2018 01 01) <* eof) "2017-2018"
+-- Right DateSpan 2017
+-- >>> parsewith (doubledatespanp (fromGregorian 2018 01 01) <* eof) "2017-01-2018"
+-- Right DateSpan 2017
+-- >>> parsewith (doubledatespanp (fromGregorian 2018 01 01) <* eof) "2017-01-01-2018"
+-- Right DateSpan 2017
 doubledatespanp :: Day -> TextParser m DateSpan
 doubledatespanp rdate = liftA2 fromToSpan
     (optional (string' "from" *> skipNonNewlineSpaces) *> smartdate)
