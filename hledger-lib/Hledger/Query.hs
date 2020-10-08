@@ -5,10 +5,6 @@ transactions..)  by various criteria, and a SimpleTextParser for query expressio
 
 -}
 
--- Silence safe 0.3.18's deprecation warnings for (max|min)imum(By)?Def for now
--- (may hide other deprecation warnings too). https://github.com/ndmitchell/safe/issues/26
-{-# OPTIONS_GHC -Wno-warnings-deprecations #-}
-
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE FlexibleContexts   #-}
 {-# LANGUAGE OverloadedStrings  #-}
