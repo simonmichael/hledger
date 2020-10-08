@@ -18,6 +18,7 @@ module Hledger.Query (
   -- * Query and QueryOpt
   Query(..),
   QueryOpt(..),
+  OrdPlus(..),
   payeeTag,
   noteTag,
   generatedTransactionTag,
