@@ -168,6 +168,7 @@ main = do
         pkgandprojdirs = "" : pkgdirs
         cabalfiles = [p </> p <.> "cabal" | p <- packages]
         changelogs = map (</> "CHANGES.md") pkgandprojdirs
+        packagem4s = [p </> "defs.m4" | p <- packages]
 
         -- doc files (or related targets) that should be generated
         -- before building hledger packages.
@@ -365,7 +366,7 @@ main = do
               ]
         when commit $ do
           let msg = ";update manuals"
-          cmd Shell gitcommit ("-m '"++msg++"' --") nroffmanuals infomanuals txtmanuals
+          cmd Shell gitcommit ("-m '"++msg++"' --") packagem4s nroffmanuals infomanuals txtmanuals
 
       -- Generate nroff man pages suitable for man output, from the .m4.md source.
       phony "nroffmanuals" $ need nroffmanuals
