@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "September 2020" "hledger 1.19.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "October 2020" "hledger 1.19.99" "hledger User Manuals"
 
 
 
@@ -950,6 +950,8 @@ versions).
 Directives\[aq] behaviour and interactions can get a little bit complex,
 so here is a table summarising the directives and their effects, with
 links to more detailed docs.
+Note part of this table is hidden when viewed in a web browser - scroll
+it sideways to see more.
 .PP
 .TS
 tab(@);
@@ -984,8 +986,7 @@ T}@T{
 T}@T{
 rewrite account names
 T}@T{
-following inline/included entries until end of current file or end
-directive
+following entries until end of current file or end directive
 T}
 T{
 \f[C]apply account\f[R]
@@ -995,8 +996,7 @@ T}@T{
 T}@T{
 prepend a common parent to account names
 T}@T{
-following inline/included entries until end of current file or end
-directive
+following entries until end of current file or end directive
 T}
 T{
 \f[C]comment\f[R]
@@ -1006,8 +1006,7 @@ T}@T{
 T}@T{
 ignore part of journal
 T}@T{
-following inline/included entries until end of current file or end
-directive
+following entries until end of current file or end directive
 T}
 T{
 \f[C]commodity\f[R]
@@ -1017,7 +1016,7 @@ T}@T{
 T}@T{
 declare a commodity and its number notation & display style
 T}@T{
-number notation: following entries in that commodity in all files;
+number notation: following entries in that commodity in all files ;
 display style: amounts of that commodity in reports
 T}
 T{
@@ -1057,7 +1056,7 @@ T}@T{
 T}@T{
 declare a year for yearless dates
 T}@T{
-following inline/included entries until end of current file
+following entries until end of current file
 T}
 T{
 \f[C]=\f[R]

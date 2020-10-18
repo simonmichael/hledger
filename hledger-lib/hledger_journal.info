@@ -888,7 +888,8 @@ some differences between hledger versions).
 
    Directives' behaviour and interactions can get a little bit complex,
 so here is a table summarising the directives and their effects, with
-links to more detailed docs.
+links to more detailed docs.  Note part of this table is hidden when
+viewed in a web browser - scroll it sideways to see more.
 
 directiveend       subdirectivespurpose                  can affect (as of
          directive                                       2018/06)
@@ -896,25 +897,22 @@ directiveend       subdirectivespurpose                  can affect (as of
 'account'          any     document account names,       all entries in
                    text    declare account types &       all files, before
                            display order                 or after
-'alias'  'end              rewrite account names         following
-         aliases'                                        inline/included
-                                                         entries until end
-                                                         of current file
-                                                         or end directive
-'apply   'end              prepend a common parent to    following
-account' apply             account names                 inline/included
-         account'                                        entries until end
-                                                         of current file
-                                                         or end directive
-'comment''end              ignore part of journal        following
-         comment'                                        inline/included
-                                                         entries until end
-                                                         of current file
-                                                         or end directive
+'alias'  'end              rewrite account names         following entries
+         aliases'                                        until end of
+                                                         current file or
+                                                         end directive
+'apply   'end              prepend a common parent to    following entries
+account' apply             account names                 until end of
+         account'                                        current file or
+                                                         end directive
+'comment''end              ignore part of journal        following entries
+         comment'                                        until end of
+                                                         current file or
+                                                         end directive
 'commodity'        'format'declare a commodity and its   number notation:
                            number notation & display     following entries
                            style                         in that commodity
-                                                         in all files;
+                                                         in all files ;
                                                          display style:
                                                          amounts of that
                                                          commodity in
@@ -940,10 +938,9 @@ account' apply             account names                 inline/included
                            a commodity                   commodity in
                                                          reports, when -V
                                                          is used
-'Y'                        declare a year for yearless   following
-                           dates                         inline/included
-                                                         entries until end
-                                                         of current file
+'Y'                        declare a year for yearless   following entries
+                           dates                         until end of
+                                                         current file
 '='                        declare an auto posting       all entries in
                            rule, adding postings to      parent/current/child
                            other transactions            files (but not
@@ -1924,64 +1921,64 @@ Node: Balance assignments and prices30866
 Ref: #balance-assignments-and-prices31038
 Node: Directives31262
 Ref: #directives31421
-Node: Directives and multiple files37112
-Ref: #directives-and-multiple-files37295
-Node: Comment blocks37959
-Ref: #comment-blocks38142
-Node: Including other files38318
-Ref: #including-other-files38498
-Node: Default year39422
-Ref: #default-year39591
-Node: Declaring commodities39998
-Ref: #declaring-commodities40181
-Node: Default commodity41987
-Ref: #default-commodity42173
-Node: Declaring market prices43062
-Ref: #declaring-market-prices43257
-Node: Declaring accounts44114
-Ref: #declaring-accounts44300
-Node: Account comments45225
-Ref: #account-comments45388
-Node: Account subdirectives45812
-Ref: #account-subdirectives46007
-Node: Account types46320
-Ref: #account-types46504
-Node: Account display order49550
-Ref: #account-display-order49720
-Node: Rewriting accounts50871
-Ref: #rewriting-accounts51056
-Node: Basic aliases51813
-Ref: #basic-aliases51959
-Node: Regex aliases52663
-Ref: #regex-aliases52835
-Node: Combining aliases53554
-Ref: #combining-aliases53747
-Node: Aliases and multiple files55023
-Ref: #aliases-and-multiple-files55232
-Node: end aliases55811
-Ref: #end-aliases55968
-Node: Default parent account56069
-Ref: #default-parent-account56237
-Node: Periodic transactions57121
-Ref: #periodic-transactions57296
-Node: Periodic rule syntax59168
-Ref: #periodic-rule-syntax59374
-Node: Two spaces between period expression and description!60078
-Ref: #two-spaces-between-period-expression-and-description60397
-Node: Forecasting with periodic transactions61081
-Ref: #forecasting-with-periodic-transactions61386
-Node: Budgeting with periodic transactions63441
-Ref: #budgeting-with-periodic-transactions63680
-Node: Auto postings64089
-Ref: #auto-postings64229
-Node: Auto postings and multiple files66408
-Ref: #auto-postings-and-multiple-files66612
-Node: Auto postings and dates66821
-Ref: #auto-postings-and-dates67095
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions67270
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions67621
-Node: Auto posting tags67963
-Ref: #auto-posting-tags68178
+Node: Directives and multiple files36919
+Ref: #directives-and-multiple-files37102
+Node: Comment blocks37766
+Ref: #comment-blocks37949
+Node: Including other files38125
+Ref: #including-other-files38305
+Node: Default year39229
+Ref: #default-year39398
+Node: Declaring commodities39805
+Ref: #declaring-commodities39988
+Node: Default commodity41794
+Ref: #default-commodity41980
+Node: Declaring market prices42869
+Ref: #declaring-market-prices43064
+Node: Declaring accounts43921
+Ref: #declaring-accounts44107
+Node: Account comments45032
+Ref: #account-comments45195
+Node: Account subdirectives45619
+Ref: #account-subdirectives45814
+Node: Account types46127
+Ref: #account-types46311
+Node: Account display order49357
+Ref: #account-display-order49527
+Node: Rewriting accounts50678
+Ref: #rewriting-accounts50863
+Node: Basic aliases51620
+Ref: #basic-aliases51766
+Node: Regex aliases52470
+Ref: #regex-aliases52642
+Node: Combining aliases53361
+Ref: #combining-aliases53554
+Node: Aliases and multiple files54830
+Ref: #aliases-and-multiple-files55039
+Node: end aliases55618
+Ref: #end-aliases55775
+Node: Default parent account55876
+Ref: #default-parent-account56044
+Node: Periodic transactions56928
+Ref: #periodic-transactions57103
+Node: Periodic rule syntax58975
+Ref: #periodic-rule-syntax59181
+Node: Two spaces between period expression and description!59885
+Ref: #two-spaces-between-period-expression-and-description60204
+Node: Forecasting with periodic transactions60888
+Ref: #forecasting-with-periodic-transactions61193
+Node: Budgeting with periodic transactions63248
+Ref: #budgeting-with-periodic-transactions63487
+Node: Auto postings63896
+Ref: #auto-postings64036
+Node: Auto postings and multiple files66215
+Ref: #auto-postings-and-multiple-files66419
+Node: Auto postings and dates66628
+Ref: #auto-postings-and-dates66902
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions67077
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions67428
+Node: Auto posting tags67770
+Ref: #auto-posting-tags67985
 
 End Tag Table
 
