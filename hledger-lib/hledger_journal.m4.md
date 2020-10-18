@@ -799,6 +799,7 @@ hledger's directives are based on a subset of Ledger's, but there are many diffe
 
 Directives' behaviour and interactions can get a little bit [complex](https://github.com/simonmichael/hledger/issues/793),
 so here is a table summarising the directives and their effects, with links to more detailed docs.
+Note part of this table is hidden when viewed in a web browser - scroll it sideways to see more.
 
 <!-- <style> -->
 <!-- table a code { white-space:nowrap; } -->
