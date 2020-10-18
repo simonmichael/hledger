@@ -809,14 +809,14 @@ Note part of this table is hidden when viewed in a web browser - scroll it sidew
 | directive         | end directive       | subdirectives   | purpose                                                            | can affect (as of 2018/06)
 |-------------------|---------------------|-----------------|--------------------------------------------------------------------|----------------------------------------------
 | [`account`]       |                     | any text        | document account names, declare account types & display order      | all entries in all files, before or after
-| [`alias`]         | `end aliases`       |                 | rewrite account names                                              | following inline/included entries until end of current file or end directive
-| [`apply account`] | `end apply account` |                 | prepend a common parent to account names                           | following inline/included entries until end of current file or end directive
-| [`comment`]       | `end comment`       |                 | ignore part of journal                                             | following inline/included entries until end of current file or end directive
-| [`commodity`]     |                     | `format`        | declare a commodity and its number notation & display style        | number notation: following entries in that commodity in all files; <br>display style: amounts of that commodity in reports
+| [`alias`]         | `end aliases`       |                 | rewrite account names                                              | following entries until end of current file or end directive
+| [`apply account`] | `end apply account` |                 | prepend a common parent to account names                           | following entries until end of current file or end directive
+| [`comment`]       | `end comment`       |                 | ignore part of journal                                             | following entries until end of current file or end directive
+| [`commodity`]     |                     | `format`        | declare a commodity and its number notation & display style        | number notation: following entries in that commodity in all files <!-- or until end of current file ? -->; <br>display style: amounts of that commodity in reports
 | [`D`]             |                     |                 | declare a commodity to be used for commodityless amounts, and its number notation & display style  | default commodity: following commodityless entries until end of current file; <br>number notation: following entries in that commodity until end of current file; <br>display style: amounts of that commodity in reports
 | [`include`]       |                     |                 | include entries/directives from another file                       | what the included directives affect
 | [`P`]             |                     |                 | declare a market price for a commodity                             | amounts of that commodity in reports, when -V is used
-| [`Y`]             |                     |                 | declare a year for yearless dates                                  | following inline/included entries until end of current file
+| [`Y`]             |                     |                 | declare a year for yearless dates                                  | following entries until end of current file
 | [`=`]             |                     |                 | declare an auto posting rule, adding postings to other transactions | all entries in parent/current/child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212))
 
 [`account`]:       #declaring-accounts
