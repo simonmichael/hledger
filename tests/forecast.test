@@ -201,3 +201,20 @@ unexpected 'f'
 expecting end of input
  (use -h to see usage)
 >>>=1
+
+# 10. Amount display style is applied to forecasted transactions.
+hledger -f - reg --forecast date:202001
+<<<
+commodity 1,000.00 USD
+
+2020-01-01
+  (a)      1,000.00 USD
+
+~ every 28th day
+  (a)       1000.00 USD
+
+>>>
+2020-01-01                      (a)                   1,000.00 USD  1,000.00 USD
+2020-01-28                      (a)                   1,000.00 USD  2,000.00 USD
+>>>2
+>>>=0

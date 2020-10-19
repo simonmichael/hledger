@@ -148,11 +148,15 @@ journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
       either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
         where assrt = not . ignore_assertions_ $ iopts
 
-  let j' = case forecast_ ropts of
-            Just _  -> journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
-            Nothing -> j
-
-  return j'
+  case forecast_ ropts of
+    Nothing -> return j
+    Just _ -> do
+      let j' = journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
+      -- Display styles were applied early.. apply them again to ensure the forecasted
+      -- transactions are also styled. XXX Possible optimisation: style just the forecasttxns.
+      case journalApplyCommodityStyles j' of
+        Left e    -> error' e  -- PARTIAL:
+        Right j'' -> return j''
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
