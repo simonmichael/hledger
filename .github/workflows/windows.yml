@@ -107,12 +107,23 @@ jobs:
     # - name: Add stack local bin to PATH
     #   run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
 
+    # - name: Install stack
+    #   shell: bash
+    #   run: |
+    #     mkdir -p ~/.local/bin
+    #     export PATH=~/.local/bin:$PATH
+    #     if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+    #     $stack --version
+    #   env:
+    #     stack: ${{ matrix.plan.stack }}
+
     - name: Install stack
       #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # this step is needed to get stack.exe into PATH, for now
       run: |
         curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
         7z x stack.zip -oC:\Windows stack.exe
+        which stack
         stack --version
 
     # resolver lts-15.3 to avoid GHC 8.8.3 access violation, https://gitlab.haskell.org/ghc/ghc/issues/17926:

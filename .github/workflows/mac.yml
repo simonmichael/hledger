@@ -108,11 +108,14 @@ jobs:
     # actions:
 
     - name: Install stack
-      # curl --insecure -L https://get.haskellstack.org/stable/osx-x86_64.tar.gz | tar xz --strip-components=1 --include '*/stack' -C $INSTALLDIR
-      env:
-        stack: ${{ matrix.plan.stack }}
+      # run: |
+      #   brew install haskell-stack
+      #   $stack --version
       run: |
-        brew install haskell-stack
+        mkdir -p ~/.local/bin
+        export PATH=~/.local/bin:$PATH
+        curl -sL https://www.stackage.org/stack/osx-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
+        # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://www.stackage.org/stack/osx-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
         $stack --version
 
     - name: Install GHC
