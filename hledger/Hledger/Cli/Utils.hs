@@ -116,47 +116,45 @@ anonymiseByOpts opts =
 -- a somewhat complicated way; see the hledger manual -> Periodic transactions.
 --
 journalAddForecast :: CliOpts -> Journal -> IO Journal
-journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
-  today <- getCurrentDay
-
-  -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
-  let 
-    mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
-    forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
-
-  -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-  mspecifiedend <-  snd . dbg2 "specifieddates" <$> specifiedStartEndDates ropts
-  let 
-    forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
-      
-    forecastspan = dbg2 "forecastspan" $
-      spanDefaultsFrom
-        (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
-        (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
-          
-    forecasttxns =
-      [ txnTieKnot t | pt <- jperiodictxns j
-                      , t <- runPeriodicTransaction pt forecastspan
-                      , spanContainsDate forecastspan (tdate t)
-                      ]
-    -- With --auto enabled, transaction modifiers are also applied to forecast txns
-    forecasttxns' =
-      (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
-      forecasttxns
-
-    journalBalanceTransactions' iopts j = 
-      either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
-        where assrt = not . ignore_assertions_ $ iopts
-
+journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j =
   case forecast_ ropts of
     Nothing -> return j
     Just _ -> do
-      let j' = journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
-      -- Display styles were applied early.. apply them again to ensure the forecasted
-      -- transactions are also styled. XXX Possible optimisation: style just the forecasttxns.
-      case journalApplyCommodityStyles j' of
-        Left e    -> error' e  -- PARTIAL:
-        Right j'' -> return j''
+      today <- getCurrentDay
+
+      -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
+      let 
+        mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
+        forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
+
+      -- "They end on or before the specified report end date, or 180 days from today if unspecified."
+      mspecifiedend <-  snd . dbg2 "specifieddates" <$> specifiedStartEndDates ropts
+      let 
+        forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
+          
+        forecastspan = dbg2 "forecastspan" $
+          spanDefaultsFrom
+            (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
+            (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
+              
+        forecasttxns =
+          [ txnTieKnot t | pt <- jperiodictxns j
+                          , t <- runPeriodicTransaction pt forecastspan
+                          , spanContainsDate forecastspan (tdate t)
+                          ]
+        -- With --auto enabled, transaction modifiers are also applied to forecast txns
+        forecasttxns' =
+          (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
+          forecasttxns
+
+        j' = either error' id $ journalBalanceTransactions (not . ignore_assertions_ $ iopts)  -- PARTIAL:
+          j{jtxns=concat [jtxns j, forecasttxns']}
+
+        -- Display styles were applied early.. apply them again to ensure the forecasted
+        -- transactions are also styled. XXX Possible optimisation: style just the forecasttxns.
+        j'' = either error' id $ journalApplyCommodityStyles j'  -- PARTIAL:
+
+      return j''
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
