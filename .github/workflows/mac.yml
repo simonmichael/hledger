@@ -36,8 +36,8 @@ jobs:
         # - { ghc: "80"  , stack: "stack --stack-yaml=stack8.0.yaml" }
         # - { ghc: "82"  , stack: "stack --stack-yaml=stack8.2.yaml" }
         # - { ghc: "84"  , stack: "stack --stack-yaml=stack8.4.yaml" }
-        - { ghc: "86"    , stack: "stack --stack-yaml=stack8.6.yaml" }
-        # - { ghc: "88"  , stack: "stack --stack-yaml=stack.yaml" }
+        # - { ghc: "86"    , stack: "stack --stack-yaml=stack8.6.yaml" }
+        - { ghc: "88"  , stack: "stack --stack-yaml=stack.yaml" }
         # - { ghc: "810" , stack: "stack --stack-yaml=stack8.10.yaml" }
 
     steps:
@@ -113,10 +113,9 @@ jobs:
       #   $stack --version
       run: |
         mkdir -p ~/.local/bin
-        export PATH=~/.local/bin:$PATH
-        brew install gnu-tar
-        curl -sL https://get.haskellstack.org/stable/osx-x86_64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
-        # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/osx-x86_64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+        export PATH=~/.local/bin:$PATH        
+        # brew install gnu-tar; curl -sL https://get.haskellstack.org/stable/osx-x86_64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
+        if [[ ! -x ~/.local/bin/stack ]]; then brew install gnu-tar; curl -sL https://get.haskellstack.org/stable/osx-x86_64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
         stack --version
 
     - name: Install GHC
