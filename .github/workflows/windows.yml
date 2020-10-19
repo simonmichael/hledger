@@ -121,7 +121,7 @@ jobs:
       #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # this step is needed to get stack.exe into PATH, for now
       run: |
-        curl -skL -o stack.zip http://www.stackage.org/stack/windows-x86_64
+        curl -skL -o stack.zip http://get.haskellstack.org/stable/windows-x86_64
         7z x stack.zip -oC:\Windows stack.exe
         which stack
         stack --version
