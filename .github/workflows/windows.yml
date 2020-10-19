@@ -127,7 +127,7 @@ jobs:
         # 7z x stack.zip -oC:\Windows stack.exe
         7z x stack.zip stack.exe
         which stack
-        stack --version
+        ./stack --version
 
     # resolver lts-15.3 to avoid GHC 8.8.3 access violation, https://gitlab.haskell.org/ghc/ghc/issues/17926:
 
@@ -135,7 +135,7 @@ jobs:
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |
-        stack --resolver=lts-15.3 --no-terminal setup --install-ghc
+        ./stack --resolver=lts-15.3 --no-terminal setup --install-ghc
 
     # - name: Install shelltestrunner
     ## - export PATH=~/.local/bin:$PATH
@@ -144,11 +144,11 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        stack --resolver=lts-15.3 --no-terminal build --only-dependencies
+        ./stack --resolver=lts-15.3 --no-terminal build --only-dependencies
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
-        stack --resolver=lts-15.3 --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+        ./stack --resolver=lts-15.3 --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
 
