@@ -122,11 +122,11 @@ jobs:
       # this step is needed to get stack.exe into PATH, for now
       run: |
         curl -sL https://get.haskellstack.org/stable/windows-x86_64.zip -o stack.zip
-        # 7z x stack.zip -oC:\Windows stack.exe
         7z x stack.zip stack.exe
         which stack
-        ./stack --version
         stack --version
+        which ./stack
+        ./stack --version
 
     # resolver lts-15.3 to avoid GHC 8.8.3 access violation, https://gitlab.haskell.org/ghc/ghc/issues/17926:
 
