@@ -161,9 +161,7 @@ jobs:
         export PATH=~/.local/bin:$PATH
         # curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
         if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
-        $stack --version
-      env:
-        stack: ${{ matrix.plan.stack }}
+        stack --version
 
     - name: Install GHC
       env:
