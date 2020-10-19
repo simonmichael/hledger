@@ -63,3 +63,20 @@ $ hledger -f- register date:2019-02 date:2019-01-01-
 # Smart dates https://github.com/simonmichael/hledger/issues/1079
 $ hledger -f- activity -b 2019-02-01 -e 'next year'
 > /2019-02-01 \*/
+
+# Date ranges
+# Dotted range syntax, full dates
+$ hledger -f- reg date:2019-01-01..2019-02-01
+2019-01-01                      (a)                              2             2
+
+# Dotted range syntax, partial dates
+$ hledger -f- reg date:2019-01..2019-02
+2019-01-01                      (a)                              2             2
+
+# Dashed range syntax, full dates
+$ hledger -f- reg date:2019-01-01-2019-02-01
+2019-01-01                      (a)                              2             2
+
+# Dashed range syntax, partial dates
+$ hledger -f- reg date:2019-01-2019-02
+2019-01-01                      (a)                              2             2
