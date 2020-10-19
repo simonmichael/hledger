@@ -120,37 +120,39 @@ journalAddForecast CliOpts{inputopts_=iopts, reportopts_=ropts} j = do
   today <- getCurrentDay
 
   -- "They can start no earlier than: the day following the latest normal transaction in the journal (or today if there are none)."
-  let mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
-      forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
+  let 
+    mjournalend   = dbg2 "journalEndDate" $ journalEndDate False j  -- ignore secondary dates
+    forecastbeginDefault = dbg2 "forecastbeginDefault" $ fromMaybe today mjournalend
 
   -- "They end on or before the specified report end date, or 180 days from today if unspecified."
   mspecifiedend <-  snd . dbg2 "specifieddates" <$> specifiedStartEndDates ropts
-  let forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
+  let 
+    forecastendDefault = dbg2 "forecastendDefault" $ fromMaybe (addDays 180 today) mspecifiedend
       
-  let forecastspan = dbg2 "forecastspan" $
-        spanDefaultsFrom
-          (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
-          (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
+    forecastspan = dbg2 "forecastspan" $
+      spanDefaultsFrom
+        (fromMaybe nulldatespan $ dbg2 "forecastspan flag" $ forecast_ ropts)
+        (DateSpan (Just forecastbeginDefault) (Just forecastendDefault))
           
-      forecasttxns =
-        [ txnTieKnot t | pt <- jperiodictxns j
-                       , t <- runPeriodicTransaction pt forecastspan
-                       , spanContainsDate forecastspan (tdate t)
-                       ]
-      -- With --auto enabled, transaction modifiers are also applied to forecast txns
-      forecasttxns' =
-        (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
-        forecasttxns
+    forecasttxns =
+      [ txnTieKnot t | pt <- jperiodictxns j
+                      , t <- runPeriodicTransaction pt forecastspan
+                      , spanContainsDate forecastspan (tdate t)
+                      ]
+    -- With --auto enabled, transaction modifiers are also applied to forecast txns
+    forecasttxns' =
+      (if auto_ iopts then either error' id . modifyTransactions today (jtxnmodifiers j) else id)  -- PARTIAL:
+      forecasttxns
 
-  return $
-    case forecast_ ropts of
-      Just _  -> journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
-      Nothing -> j
-  where
-    journalBalanceTransactions' iopts j =
-      let assrt = not . ignore_assertions_ $ iopts
-      in
-       either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
+    journalBalanceTransactions' iopts j = 
+      either error' id $ journalBalanceTransactions assrt j  -- PARTIAL:
+        where assrt = not . ignore_assertions_ $ iopts
+
+  let j' = case forecast_ ropts of
+            Just _  -> journalBalanceTransactions' iopts j{ jtxns = concat [jtxns j, forecasttxns'] }
+            Nothing -> j
+
+  return j'
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
