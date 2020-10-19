@@ -44,6 +44,7 @@ import Safe (headMay)
 import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
+import Hledger.Data.Dates (nulldate)
 
 
 ------------------------------------------------------------------------------
@@ -380,7 +381,8 @@ effectiveMarketPrices declaredprices inferredprices =
     & nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto)))
 
 marketPriceReverse :: MarketPrice -> MarketPrice
-marketPriceReverse mp@MarketPrice{..} = mp{mpfrom=mpto, mpto=mpfrom, mprate=1/mprate}
+marketPriceReverse mp@MarketPrice{..} = 
+  mp{mpfrom=mpto, mpto=mpfrom, mprate=if mprate==0 then 0 else 1/mprate}  -- PARTIAL: /
 
 ------------------------------------------------------------------------------
 -- fgl helpers
@@ -407,8 +409,21 @@ pathEdges p = [(f,t) | f:t:_ <- tails p]
 nodesEdgeLabel :: Ord b => Gr a b -> (Node, Node) -> Maybe b
 nodesEdgeLabel g (from,to) = headMay $ sort [l | (_,t,l) <- out g from, t==to]
 
+nullmarketprice :: MarketPrice
+nullmarketprice = MarketPrice {
+   mpdate=nulldate
+  ,mpfrom=""
+  ,mpto=""
+  ,mprate=0
+  }
+
 ------------------------------------------------------------------------------
 
 tests_Valuation = tests "Valuation" [
    tests_priceLookup
+  ,test "marketPriceReverse" $ do
+    marketPriceReverse nullmarketprice{mprate=2} @?= nullmarketprice{mprate=0.5}
+    marketPriceReverse nullmarketprice @?= nullmarketprice  -- the reverse of a 0 price is a 0 price
+
+
   ]
