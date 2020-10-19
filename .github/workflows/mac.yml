@@ -114,8 +114,8 @@ jobs:
       run: |
         mkdir -p ~/.local/bin
         export PATH=~/.local/bin:$PATH
-        curl -sL https://get.haskellstack.org/stable/osx-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
-        # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/osx-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+        curl -sL https://get.haskellstack.org/stable/osx-x86_64 | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
+        # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/osx-x86_64 | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
         $stack --version
 
     - name: Install GHC
