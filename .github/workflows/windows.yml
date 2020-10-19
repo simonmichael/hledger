@@ -121,13 +121,12 @@ jobs:
       #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # this step is needed to get stack.exe into PATH, for now
       run: |
-        # url is not consistent for windows
-        # curl -sL https://get.haskellstack.org/stable/windows-x86_64 -o stack.zip
-        curl -sL http://www.stackage.org/stack/windows-x86_64 -o stack.zip
+        curl -sL https://get.haskellstack.org/stable/windows-x86_64.zip -o stack.zip
         # 7z x stack.zip -oC:\Windows stack.exe
         7z x stack.zip stack.exe
         which stack
         ./stack --version
+        stack --version
 
     # resolver lts-15.3 to avoid GHC 8.8.3 access violation, https://gitlab.haskell.org/ghc/ghc/issues/17926:
 
