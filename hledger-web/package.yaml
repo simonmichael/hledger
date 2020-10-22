@@ -5,7 +5,7 @@ description: |
   A simple web-based user interface for the hledger accounting system,
   providing a more modern UI than the command-line or terminal interfaces.
   It can be used as a local single-user UI, or as a multi-user UI for
-  viewing/adding/editing on the web.
+  viewing\/adding\/editing on the web.
 
   hledger is a robust, cross-platform set of tools for tracking money,
   time, or any other commodity, using double-entry accounting and a
