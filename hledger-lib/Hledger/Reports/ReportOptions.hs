@@ -210,11 +210,18 @@ rawOptsToReportOpts rawopts = do
           }
     return reportopts
 
+-- | The result of successfully parsing a ReportOpts on a particular
+-- Day. Any ambiguous dates are completed and Queries are parsed,
+-- ensuring that there are no regular expression errors. Values here
+-- should be used in preference to re-deriving them from ReportOpts.
+-- If you change the query_ in ReportOpts, you should call
+-- `reportOptsToSpec` to regenerate the ReportSpec with the new
+-- Query.
 data ReportSpec = ReportSpec
-  { rsOpts      :: ReportOpts
-  , rsToday     :: Day
-  , rsQuery     :: Query
-  , rsQueryOpts :: [QueryOpt]
+  { rsOpts      :: ReportOpts  -- ^ The underlying ReportOpts used to generate this ReportSpec
+  , rsToday     :: Day         -- ^ The Day this ReportSpec is generated for
+  , rsQuery     :: Query       -- ^ The generated Query for the given day
+  , rsQueryOpts :: [QueryOpt]  -- ^ A list of QueryOpts for the given day
   } deriving (Show)
 
 instance Default ReportSpec where def = defreportspec
@@ -227,7 +234,7 @@ defreportspec = ReportSpec
     , rsQueryOpts = []
     }
 
--- | Generate a ReportSpec from a set of ReportOpts on a given day
+-- | Generate a ReportSpec from a set of ReportOpts on a given day.
 reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
 reportOptsToSpec day ropts = do
     (argsquery, queryopts) <- parseQuery day $ querystring_ ropts
