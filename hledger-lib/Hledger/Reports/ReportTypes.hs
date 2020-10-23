@@ -153,11 +153,13 @@ data CompoundPeriodicReport a b = CompoundPeriodicReport
 -- | Description of one subreport within a compound balance report.
 -- Part of a "CompoundBalanceCommandSpec", but also used in hledger-lib.
 data CBCSubreportSpec a = CBCSubreportSpec
-  { cbcsubreporttitle          :: String
-  , cbcsubreportquery          :: Journal -> Query
-  , cbcsubreportoptions        :: ReportOpts -> ReportOpts
-  , cbcsubreporttransform      :: PeriodicReport DisplayName MixedAmount -> PeriodicReport a MixedAmount
-  , cbcsubreportincreasestotal :: Bool
+  { cbcsubreporttitle          :: String                    -- ^ The title to use for the subreport
+  , cbcsubreportquery          :: Journal -> Query          -- ^ The Query to use for the subreport
+  , cbcsubreportoptions        :: ReportOpts -> ReportOpts  -- ^ A function to transform the ReportOpts used to produce the subreport
+  , cbcsubreporttransform      :: PeriodicReport DisplayName MixedAmount -> PeriodicReport a MixedAmount  -- ^ A function to transform the result of the subreport
+  , cbcsubreportincreasestotal :: Bool                      -- ^ Whether the subreport and overall report total are of the same sign (e.g. Assets are normally
+                                                            --   positive in a balance sheet report, as is the overall total. Liabilities are normally of the
+                                                            --   opposite sign.)
   }
 
 
