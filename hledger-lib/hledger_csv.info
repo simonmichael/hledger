@@ -1049,25 +1049,47 @@ File: hledger_csv.info,  Node: Setting currency/commodity,  Next: Referencing ot
 ==============================
 
 If the currency/commodity symbol is included in the CSV's amount
-field(s), you don't have to do anything special.
+field(s):
 
-   If the currency is provided as a separate CSV field, you can either:
+2020-01-01,foo,$123.00
 
-   * assign that to 'currency', which adds it to all posting amounts.
-     The symbol will prepended to the amount quantity (on the left
-     side).  If you write a trailing space after the symbol, there will
-     be a space between symbol and amount (an exception to the usual
-     whitespace stripping).
+   you don't have to do anything special for the commodity symbol, it
+will be assigned as part of the amount.  Eg:
 
-   * or assign it to 'currencyN' which adds it to posting N's amount
-     only.
+fields date,description,amount
 
-   * or for more control, construct the amount from symbol and quantity
-     using field assignment, eg:
+2020-01-01 foo
+    expenses:unknown         $123.00
+    income:unknown          $-123.00
 
-     fields date,description,currency,quantity
-     # add currency symbol on the right:
-     amount %quantity %currency
+   If the currency is provided as a separate CSV field:
+
+2020-01-01,foo,USD,123.00
+
+   You can assign that to the 'currency' pseudo-field, which has the
+special effect of prepending itself to every amount in the transaction
+(on the left, with no separating space):
+
+fields date,description,currency,amount
+
+2020-01-01 foo
+    expenses:unknown       USD123.00
+    income:unknown        USD-123.00
+
+   Or, you can use a field assignment to construct the amount yourself,
+with more control.  Eg to put the symbol on the right, and separated by
+a space:
+
+fields date,description,cur,amt
+amount %amt %cur
+
+2020-01-01 foo
+    expenses:unknown        123.00 USD
+    income:unknown         -123.00 USD
+
+   Note we used temporary field names 'cur' (and 'amt') - not
+'currency', since in this case we don't want to trigger that name's
+special effect.
 
 
 File: hledger_csv.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Setting currency/commodity,  Up: TIPS
@@ -1224,10 +1246,10 @@ Node: Setting amounts34895
 Ref: #setting-amounts35064
 Node: Setting currency/commodity36051
 Ref: #setting-currencycommodity36243
-Node: Referencing other fields37046
-Ref: #referencing-other-fields37246
-Node: How CSV rules are evaluated38143
-Ref: #how-csv-rules-are-evaluated38316
+Node: Referencing other fields37423
+Ref: #referencing-other-fields37623
+Node: How CSV rules are evaluated38520
+Ref: #how-csv-rules-are-evaluated38693
 
 End Tag Table
 

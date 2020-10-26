@@ -1087,31 +1087,80 @@ If an amount value begins with a plus sign, that will be removed
 .SS Setting currency/commodity
 .PP
 If the currency/commodity symbol is included in the CSV\[aq]s amount
-field(s), you don\[aq]t have to do anything special.
-.PP
-If the currency is provided as a separate CSV field, you can either:
-.IP \[bu] 2
-assign that to \f[C]currency\f[R], which adds it to all posting amounts.
-The symbol will prepended to the amount quantity (on the left side).
-If you write a trailing space after the symbol, there will be a space
-between symbol and amount (an exception to the usual whitespace
-stripping).
-.IP \[bu] 2
-or assign it to \f[C]currencyN\f[R] which adds it to posting N\[aq]s
-amount only.
-.IP \[bu] 2
-or for more control, construct the amount from symbol and quantity using
-field assignment, eg:
-.RS 2
+field(s):
 .IP
 .nf
 \f[C]
-fields date,description,currency,quantity
-# add currency symbol on the right:
-amount %quantity %currency
+2020-01-01,foo,$123.00
 \f[R]
 .fi
-.RE
+.PP
+you don\[aq]t have to do anything special for the commodity symbol, it
+will be assigned as part of the amount.
+Eg:
+.IP
+.nf
+\f[C]
+fields date,description,amount
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+2020-01-01 foo
+    expenses:unknown         $123.00
+    income:unknown          $-123.00
+\f[R]
+.fi
+.PP
+If the currency is provided as a separate CSV field:
+.IP
+.nf
+\f[C]
+2020-01-01,foo,USD,123.00
+\f[R]
+.fi
+.PP
+You can assign that to the \f[C]currency\f[R] pseudo-field, which has
+the special effect of prepending itself to every amount in the
+transaction (on the left, with no separating space):
+.IP
+.nf
+\f[C]
+fields date,description,currency,amount
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+2020-01-01 foo
+    expenses:unknown       USD123.00
+    income:unknown        USD-123.00
+\f[R]
+.fi
+.PP
+Or, you can use a field assignment to construct the amount yourself,
+with more control.
+Eg to put the symbol on the right, and separated by a space:
+.IP
+.nf
+\f[C]
+fields date,description,cur,amt
+amount %amt %cur
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+2020-01-01 foo
+    expenses:unknown        123.00 USD
+    income:unknown         -123.00 USD
+\f[R]
+.fi
+.PP
+Note we used temporary field names \f[C]cur\f[R] (and \f[C]amt\f[R]) -
+not \f[C]currency\f[R], since in this case we don\[aq]t want to trigger
+that name\[aq]s special effect.
 .SS Referencing other fields
 .PP
 In field assignments, you can interpolate only CSV fields, not hledger

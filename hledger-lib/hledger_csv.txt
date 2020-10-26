@@ -804,29 +804,51 @@ TIPS
 
    Setting currency/commodity
        If the currency/commodity  symbol  is  included  in  the  CSV's  amount
-       field(s), you don't have to do anything special.
+       field(s):
 
-       If the currency is provided as a separate CSV field, you can either:
+              2020-01-01,foo,$123.00
 
-       o assign  that  to currency, which adds it to all posting amounts.  The
-         symbol will prepended to the amount quantity (on the left side).   If
-         you  write  a  trailing space after the symbol, there will be a space
-         between symbol and amount  (an  exception  to  the  usual  whitespace
-         stripping).
+       you don't have to do anything special for the commodity symbol, it will
+       be assigned as part of the amount.  Eg:
 
-       o or assign it to currencyN which adds it to posting N's amount only.
+              fields date,description,amount
 
-       o or  for  more  control, construct the amount from symbol and quantity
-         using field assignment, eg:
+              2020-01-01 foo
+                  expenses:unknown         $123.00
+                  income:unknown          $-123.00
 
-                fields date,description,currency,quantity
-                # add currency symbol on the right:
-                amount %quantity %currency
+       If the currency is provided as a separate CSV field:
+
+              2020-01-01,foo,USD,123.00
+
+       You can assign that to the currency pseudo-field, which has the special
+       effect  of prepending itself to every amount in the transaction (on the
+       left, with no separating space):
+
+              fields date,description,currency,amount
+
+              2020-01-01 foo
+                  expenses:unknown       USD123.00
+                  income:unknown        USD-123.00
+
+       Or, you can use a field assignment to construct  the  amount  yourself,
+       with more control.  Eg to put the symbol on the right, and separated by
+       a space:
+
+              fields date,description,cur,amt
+              amount %amt %cur
+
+              2020-01-01 foo
+                  expenses:unknown        123.00 USD
+                  income:unknown         -123.00 USD
+
+       Note we used temporary field names cur (and amt) - not currency,  since
+       in this case we don't want to trigger that name's special effect.
 
    Referencing other fields
-       In field assignments, you can interpolate only CSV fields, not  hledger
-       fields.   In  the example below, there's both a CSV field and a hledger
-       field named amount1, but %amount1 always means the CSV field,  not  the
+       In  field assignments, you can interpolate only CSV fields, not hledger
+       fields.  In the example below, there's both a CSV field and  a  hledger
+       field  named  amount1, but %amount1 always means the CSV field, not the
        hledger field:
 
               # Name the third CSV field "amount1"
@@ -838,7 +860,7 @@ TIPS
               # Set comment to the CSV amount1 (not the amount1 assigned above)
               comment %amount1
 
-       Here,  since there's no CSV amount1 field, %amount1 will produce a lit-
+       Here, since there's no CSV amount1 field, %amount1 will produce a  lit-
        eral "amount1":
 
               fields date,description,csvamount
@@ -846,7 +868,7 @@ TIPS
               # Can't interpolate amount1 here
               comment %amount1
 
-       When there are multiple field assignments to the  same  hledger  field,
+       When  there  are  multiple field assignments to the same hledger field,
        only the last one takes effect.  Here, comment's value will be be B, or
        C if "something" is matched, but never A:
 
@@ -856,14 +878,14 @@ TIPS
                comment C
 
    How CSV rules are evaluated
-       Here's how to think of CSV rules being evaluated (if  you  really  need
+       Here's  how  to  think of CSV rules being evaluated (if you really need
        to).  First,
 
-       o include  - all includes are inlined, from top to bottom, depth first.
-         (At each include point the file is inlined and  scanned  for  further
+       o include - all includes are inlined, from top to bottom, depth  first.
+         (At  each  include  point the file is inlined and scanned for further
          includes, recursively, before proceeding.)
 
-       Then  "global"  rules  are  evaluated, top to bottom.  If a rule is re-
+       Then "global" rules are evaluated, top to bottom.  If  a  rule  is  re-
        peated, the last one wins:
 
        o skip (at top level)
@@ -877,30 +899,30 @@ TIPS
 
        Then for each CSV record in turn:
 
-       o test  all if blocks.  If any of them contain a end rule, skip all re-
-         maining CSV records.  Otherwise if any of them contain a  skip  rule,
-         skip  that  many  CSV  records.   If  there are multiple matched skip
+       o test all if blocks.  If any of them contain a end rule, skip all  re-
+         maining  CSV  records.  Otherwise if any of them contain a skip rule,
+         skip that many CSV records.   If  there  are  multiple  matched  skip
          rules, the first one wins.
 
-       o collect all field assignments at top level and in matched if  blocks.
-         When  there  are multiple assignments for a field, keep only the last
+       o collect  all field assignments at top level and in matched if blocks.
+         When there are multiple assignments for a field, keep only  the  last
          one.
 
-       o compute a value for each hledger field - either the one that was  as-
+       o compute  a value for each hledger field - either the one that was as-
          signed to it (and interpolate the %CSVFIELDNAME references), or a de-
          fault
 
        o generate a synthetic hledger transaction from these values.
 
-       This is all part of the CSV reader, one of several readers hledger  can
-       use  to parse input files.  When all files have been read successfully,
-       the transactions are passed as input to whichever hledger  command  the
+       This  is all part of the CSV reader, one of several readers hledger can
+       use to parse input files.  When all files have been read  successfully,
+       the  transactions  are passed as input to whichever hledger command the
        user specified.
 
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -914,7 +936,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
