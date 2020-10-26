@@ -942,8 +942,8 @@ amount %amt %cur
     expenses:unknown        123.00 USD
     income:unknown         -123.00 USD
 ```
-Note we used temporary field names `cur` (and `amt`) - not `currency`,
-since in this case we don't want to trigger that name's special effect.
+Note we used a temporary field name (`cur`) that is not `currency` -
+that would trigger the prepending effect, which we don't want here.
 
 ## Referencing other fields
 
