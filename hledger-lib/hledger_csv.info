@@ -1087,9 +1087,8 @@ amount %amt %cur
     expenses:unknown        123.00 USD
     income:unknown         -123.00 USD
 
-   Note we used temporary field names 'cur' (and 'amt') - not
-'currency', since in this case we don't want to trigger that name's
-special effect.
+   Note we used a temporary field name ('cur') that is not 'currency' -
+that would trigger the prepending effect, which we don't want here.
 
 
 File: hledger_csv.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Setting currency/commodity,  Up: TIPS
@@ -1246,10 +1245,10 @@ Node: Setting amounts34895
 Ref: #setting-amounts35064
 Node: Setting currency/commodity36051
 Ref: #setting-currencycommodity36243
-Node: Referencing other fields37423
-Ref: #referencing-other-fields37623
-Node: How CSV rules are evaluated38520
-Ref: #how-csv-rules-are-evaluated38693
+Node: Referencing other fields37417
+Ref: #referencing-other-fields37617
+Node: How CSV rules are evaluated38514
+Ref: #how-csv-rules-are-evaluated38687
 
 End Tag Table
 

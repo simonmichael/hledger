@@ -1158,9 +1158,9 @@ amount %amt %cur
 \f[R]
 .fi
 .PP
-Note we used temporary field names \f[C]cur\f[R] (and \f[C]amt\f[R]) -
-not \f[C]currency\f[R], since in this case we don\[aq]t want to trigger
-that name\[aq]s special effect.
+Note we used a temporary field name (\f[C]cur\f[R]) that is not
+\f[C]currency\f[R] - that would trigger the prepending effect, which we
+don\[aq]t want here.
 .SS Referencing other fields
 .PP
 In field assignments, you can interpolate only CSV fields, not hledger
