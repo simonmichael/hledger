@@ -379,21 +379,21 @@ Balance changes in 2000Q1, valued at cost:
 $ hledger -f- bal -M --value=end
 Balance changes in 2000Q1, valued at period ends:
 
-   || Jan  Feb  Mar 
-===++===============
- a || 5 B  2 B  3 B 
----++---------------
-   || 5 B  2 B  3 B 
+   || Jan   Feb  Mar 
+===++================
+ a || 5 B  -1 B  5 B 
+---++----------------
+   || 5 B  -1 B  5 B 
 
 # 36. multicolumn balance report valued at period end with -T or -A
 $ hledger -f- bal -MTA --value=end
 Balance changes in 2000Q1, valued at period ends:
 
-   || Jan  Feb  Mar    Total  Average 
-===++=================================
- a || 5 B  2 B  3 B     10 B      3 B 
----++---------------------------------
-   || 5 B  2 B  3 B     10 B      3 B 
+   || Jan   Feb  Mar    Total  Average 
+===++==================================
+ a || 5 B  -1 B  5 B      9 B      3 B 
+---++----------------------------------
+   || 5 B  -1 B  5 B      9 B      3 B 
 
 # 37. multicolumn balance report valued at other date
 $ hledger -f- bal -MTA --value=2000-01-15
@@ -419,11 +419,11 @@ Balance changes in 2000Q1, current value:
 $ hledger -f- bal -M -V
 Balance changes in 2000Q1, valued at period ends:
 
-   || Jan  Feb  Mar 
-===++===============
- a || 5 B  2 B  3 B 
----++---------------
-   || 5 B  2 B  3 B 
+   || Jan   Feb  Mar 
+===++================
+ a || 5 B  -1 B  5 B 
+---++----------------
+   || 5 B  -1 B  5 B 
 
 # balance, periodic, with -H (starting balance and accumulating across periods)
 
@@ -551,11 +551,11 @@ Budget performance in 2000Q1, valued at cost:
 $ hledger -f- bal -MTA --budget --value=e
 Budget performance in 2000Q1, valued at period ends:
 
-   ||               Jan               Feb               Mar               Total           Average 
-===++=============================================================================================
- a || 5 B [50% of 10 B]  2 B [50% of 4 B]  3 B [50% of 6 B]  10 B [50% of 20 B]  3 B [50% of 7 B] 
----++---------------------------------------------------------------------------------------------
-   || 5 B [50% of 10 B]  2 B [50% of 4 B]  3 B [50% of 6 B]  10 B [50% of 20 B]  3 B [50% of 7 B] 
+   ||               Jan                 Feb                Mar              Total           Average 
+===++===============================================================================================
+ a || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  9 B [50% of 18 B]  3 B [50% of 6 B] 
+---++-----------------------------------------------------------------------------------------------
+   || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  9 B [50% of 18 B]  3 B [50% of 6 B] 
 
 # 49. budget report, valued at other date.
 $ hledger -f- bal -MTA --budget --value=2000-01-15

@@ -51,7 +51,7 @@ import Data.Semigroup ((<>))
 #endif
 import Data.Semigroup (sconcat)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
-import Safe (headMay, lastDef, lastMay)
+import Safe (headMay, lastDef, lastMay, minimumMay)
 
 import Hledger.Data
 import Hledger.Query
@@ -339,25 +339,48 @@ accumValueAmounts :: ReportOpts -> (Day -> MixedAmount -> MixedAmount) -> [DateS
                   -> HashMap ClippedAccountName (Map DateSpan Account)
                   -> HashMap ClippedAccountName (Map DateSpan Account)
 accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
-    HM.mapWithKey processRow $ acctchanges <> (mempty <$ startbals)
+    HM.mapWithKey rowbals $ acctchanges <> (mempty <$ startbals)
   where
-    -- Must accumulate before valuing, since valuation can change without any
-    -- postings. Make sure every column has an entry.
-    processRow name changes = M.mapWithKey valueAcct . rowbals name $ changes <> zeros
-
     -- The row amounts to be displayed: per-period changes,
     -- zero-based cumulative totals, or
     -- starting-balance-based historical balances.
-    rowbals name changes = dbg'' "rowbals" $ case balancetype_ ropts of
-        PeriodChange      -> changes
-        CumulativeChange  -> snd $ M.mapAccum f nullacct                  changes
-        HistoricalBalance -> snd $ M.mapAccum f (startingBalanceFor name) changes
-      where f a b = let s = sumAcct a b in (s, s)
+    rowbals name changes' = dbg'' "rowbals" $ case balancetype_ ropts of
+        HistoricalBalance -> historical
+        CumulativeChange  -> cumulative
+        PeriodChange      -> changeamts
+      where
+        -- Calculate the valued historical balance in each column, ensuring every
+        -- columns has an entry.
+        historical = cumulativeSum startingBalance
+        -- If no valuation can sum the changes directly, otherwise need to
+        -- subtract the valued starting amount from the historical sum
+        cumulative = case value_ ropts of
+            Nothing -> cumulativeSum nullacct
+            Just _  -> fmap (`subtractAcct` valuedStart) historical
+        -- If no valuation can use the change list directly, otherwise need to
+        -- calculate the incremental differences in the historical sum
+        changeamts = case value_ ropts of
+            Nothing -> changes
+            Just _  -> let (dates, histamts) = unzip $ M.toAscList historical
+                       in M.fromDistinctAscList . zip dates $
+                           zipWith subtractAcct histamts (valuedStart:histamts)
+
+        cumulativeSum start = snd $ M.mapAccumWithKey accumValued start changes
+          where accumValued startAmt date newAmt = (s, valueAcct date s)
+                  where s = sumAcct startAmt newAmt
+
+        changes = changes' <> zeros
+        startingBalance = HM.lookupDefault nullacct name startbals
+        valuedStart = valueAcct (DateSpan Nothing historicalDate) startingBalance
 
     -- Add the values of two accounts. Should be right-biased, since it's used
     -- in scanl, so other properties (such as anumpostings) stay in the right place
     sumAcct Account{aibalance=i1,aebalance=e1} a@Account{aibalance=i2,aebalance=e2} =
         a{aibalance = i1 + i2, aebalance = e1 + e2}
+
+    -- Subtract the values in one account from another. Should be left-biased.
+    subtractAcct a@Account{aibalance=i1,aebalance=e1} Account{aibalance=i2,aebalance=e2} =
+        a{aibalance = i1 - i2, aebalance = e1 - e2}
 
     -- We may be converting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
     valueAcct (DateSpan _ (Just end)) acct =
@@ -365,8 +388,8 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
       where value = valuation (addDays (-1) end)
     valueAcct _ _ = error "multiBalanceReport: expected all spans to have an end date"  -- XXX should not happen
 
-    startingBalanceFor a = HM.lookupDefault nullacct a startbals
     zeros = M.fromList [(span, nullacct) | span <- colspans]
+    historicalDate = minimumMay $ mapMaybe spanStart colspans
 
 
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
