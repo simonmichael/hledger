@@ -375,3 +375,14 @@ Ending balances (historical) in 2020:
  b    ||          2 
  a:aa ||          1 
 >=
+
+# 21. --sort-amount interacts well with --invert (#1283)
+$ hledger -f- bal -NY --flat --sort-amount --invert
+Balance changes in 2020:
+
+      || 2020 
+======++======
+ a:aa ||   -1 
+ b    ||   -2 
+ a:ab ||   -3 
+>=
