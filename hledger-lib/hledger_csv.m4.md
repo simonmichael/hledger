@@ -890,27 +890,60 @@ There is some special handling for an amount's sign:
 
 ## Setting currency/commodity
 
-If the currency/commodity symbol is included in the  CSV's amount field(s),
-you don't have to do anything special.
+If the currency/commodity symbol is included in the  CSV's amount field(s):
 
-If the currency is provided as a separate CSV field, you can either:
+```csv
+2020-01-01,foo,$123.00
+```
 
-- assign that to `currency`, which adds it to all posting amounts. The
-  symbol will prepended to the amount quantity (on the left side). If
-  you write a trailing space after the symbol, there will be a space
-  between symbol and amount (an exception to the usual whitespace
-  stripping).
+you don't have to do anything special for the commodity symbol, it will be assigned as part of the amount. Eg:
 
-- or assign it to `currencyN` which adds it to posting N's amount only.
+```rules
+fields date,description,amount
+```
+```journal
+2020-01-01 foo
+    expenses:unknown         $123.00
+    income:unknown          $-123.00
+```
 
-- or for more control, construct the amount from symbol and quantity
-  using field assignment, eg:
+If the currency is provided as a separate CSV field:
 
-   ```rules
-   fields date,description,currency,quantity
-   # add currency symbol on the right:
-   amount %quantity %currency
-   ```
+```csv
+2020-01-01,foo,USD,123.00
+```
+
+You can assign that to the `currency` pseudo-field, which has the
+special effect of prepending itself to every amount in the
+transaction (on the left, with no separating space):
+  
+```rules
+fields date,description,currency,amount
+```
+```journal
+2020-01-01 foo
+    expenses:unknown       USD123.00
+    income:unknown        USD-123.00
+```
+<!-- a special case, I don't remember exactly where:
+If you write a trailing space after the symbol, there will be a space
+between symbol and amount (an exception to the usual whitespace stripping).
+-->
+
+Or, you can use a field assignment to construct the amount yourself, with more control.
+Eg to put the symbol on the right, and separated by a space:
+
+```rules
+fields date,description,cur,amt
+amount %amt %cur
+```
+```journal
+2020-01-01 foo
+    expenses:unknown        123.00 USD
+    income:unknown         -123.00 USD
+```
+Note we used temporary field names `cur` (and `amt`) - not `currency`,
+since in this case we don't want to trigger that name's special effect.
 
 ## Referencing other fields
 
