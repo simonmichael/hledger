@@ -410,7 +410,7 @@ renderComponent opts (acctname, depth, total) (FormatField ljust min max field) 
                                  Just m  -> depth * m
                                  Nothing -> depth
   AccountField     -> formatString ljust min max (T.unpack acctname)
-  TotalField       -> fitStringMulti min max True False $ showMixedAmountWithoutPrice (color_ opts) total
+  TotalField       -> fst $ showMixed showAmountWithoutPrice min max (color_ opts) total
   _                -> ""
 
 -- | Render one StringFormat component for a balance report item.
@@ -425,9 +425,7 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
                         -- better to indent the account name here rather than use a DepthField component
                         -- so that it complies with width spec. Uses a fixed indent step size.
                         indented = ((replicate (depth*2) ' ')++)
-  TotalField       -> fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showamt total))
-    where
-      showamt = showMixedAmountWithoutPrice (color_ opts)
+  TotalField       -> fst $ showMixedOneLine showAmountWithoutPrice min max (color_ opts) total
   _                -> ""
 
 -- rendering multi-column balance reports
