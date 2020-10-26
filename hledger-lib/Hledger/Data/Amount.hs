@@ -130,7 +130,6 @@ module Hledger.Data.Amount (
 import Control.Monad (foldM)
 import Data.Char (isDigit)
 import Data.Decimal (decimalPlaces, normalizeDecimal, roundTo)
-import Data.Foldable (toList)
 import Data.Function (on)
 import Data.List (genericSplitAt, groupBy, intercalate, mapAccumL,
                   partition, sortBy)
@@ -679,8 +678,10 @@ showMixedUnnormalised showamt mmin mmax c (Mixed as) =
                  }
 
     elided = maybe id elideTo mmax astrs
-    elideTo m xs = maybeAppend (elisionDisplay mmax sepwidth (length long) =<< lastMay short) short
-      where (short, long) = partition ((m>=) . adLength) xs
+    elideTo m xs = maybeAppend elisionStr short
+      where
+        elisionStr = elisionDisplay (Just m) sepwidth (length long) $ lastDef nullAmountDisplay short
+        (short, long) = partition ((m>=) . adLength) xs
 
 -- | General function to display a MixedAmount on a single line. It
 -- takes a function to display each Amount, an optional minimum width to
@@ -707,20 +708,27 @@ showMixedOneLineUnnormalised showamt mmin mmax c (Mixed as) =
     pad = applyN (fromMaybe 0 mmin - width) (' ':)
 
     elided = maybe id elideTo mmax astrs
-    elideTo m = addElide m . takeFitting m . withElided
-    addElide m xs = fromMaybe (toList . elisionDisplay (Just m) 0 n $ AmountDisplay 0 "" 0 0) $ do
-        eDisplay <- snd <$> lastMay xs
-        pure . maybeAppend eDisplay $ map fst xs
+    elideTo m = addElide . takeFitting m . withElided
+    -- Add the last elision string to the end of the display list
+    addElide [] = []
+    addElide xs = maybeAppend (snd $ last xs) $ map fst xs
+    -- Return the elements of the display list which fit within the maximum width
+    -- (including their elision strings)
     takeFitting m = filter (\(_,e) -> maybe True ((m>=) . adTotal) e)
                   . takeWhile (\(amt,_) -> adTotal amt <= m)
-    withElided = zipWith (\m amt -> (amt, elisionDisplay Nothing sepwidth m amt)) [n-1,n-2..0]
+    -- Add the elision strings (if any) to each amount
+    withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing sepwidth num amt)) [n-1,n-2..0]
 
 data AmountDisplay = AmountDisplay
-  { adAmount :: !Amount
-  , adString :: !String
-  , adLength :: !Int
-  , adTotal  :: !Int
-  }
+  { adAmount :: !Amount  -- ^ Amount displayed
+  , adString :: !String  -- ^ String representation of the Amount
+  , adLength :: !Int     -- ^ Length of the string representation
+  , adTotal  :: !Int     -- ^ Cumulative length of MixedAmount this Amount is part of,
+                         --   including separators
+  } deriving (Show)
+
+nullAmountDisplay :: AmountDisplay
+nullAmountDisplay = AmountDisplay nullamt "" 0 0
 
 amtDisplayList :: Int -> (Amount -> String) -> [Amount] -> [AmountDisplay]
 amtDisplayList sep showamt = snd . mapAccumL display (-sep)
@@ -734,7 +742,7 @@ amtDisplayList sep showamt = snd . mapAccumL display (-sep)
 -- The string "m more", added to the previous running total
 elisionDisplay :: Maybe Int -> Int -> Int -> AmountDisplay -> Maybe AmountDisplay
 elisionDisplay mmax sep n lastAmt
-  | n > 0     = Just $AmountDisplay 0 str len (adTotal lastAmt + len)
+  | n > 0     = Just $ AmountDisplay 0 str len (adTotal lastAmt + len)
   | otherwise = Nothing
   where
     fullString = show n ++ " more.."
