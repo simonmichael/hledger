@@ -388,7 +388,9 @@ generateMultiBalanceReport rspec@ReportSpec{rsOpts=ropts} j valuation colspans c
     displaynames = dbg'' "displaynames" $ displayedAccounts rspec accumvalued
 
     -- All the rows of the report.
-    rows = dbg'' "rows" $ buildReportRows ropts displaynames accumvalued
+    rows = dbg'' "rows"
+             . (if invert_ ropts then map (fmap negate) else id)  -- Negate amounts if applicable
+             $ buildReportRows ropts displaynames accumvalued
 
     -- Calculate column totals
     totalsrow = dbg' "totalsrow" $ calculateTotalsRow ropts rows
@@ -396,8 +398,8 @@ generateMultiBalanceReport rspec@ReportSpec{rsOpts=ropts} j valuation colspans c
     -- Sorted report rows.
     sortedrows = dbg' "sortedrows" $ sortRows ropts j rows
 
-    -- Postprocess the report, negating balances and taking percentages if needed
-    report = postprocessReport ropts $ PeriodicReport colspans sortedrows totalsrow
+    -- Take percentages if needed
+    report = reportPercent ropts $ PeriodicReport colspans sortedrows totalsrow
 
 -- | Build the report rows.
 --
@@ -528,21 +530,17 @@ calculateTotalsRow ropts rows =
         _            -> lastDef 0 coltotals
     grandaverage = averageMixedAmounts coltotals
 
--- | Map the report rows to percentages and negate if needed
-postprocessReport :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
-postprocessReport ropts = maybePercent . maybeInvert
+-- | Map the report rows to percentages if needed
+reportPercent :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
+reportPercent ropts report@(PeriodicReport spans rows totalrow)
+  | percent_ ropts = PeriodicReport spans (map percentRow rows) (percentRow totalrow)
+  | otherwise      = report
   where
-    maybeInvert  = if invert_  ropts then fmap negate else id
-    maybePercent = if percent_ ropts then prPercent   else id
-
-    prPercent (PeriodicReport spans rows totalrow) =
-        PeriodicReport spans (map percentRow rows) (percentRow totalrow)
-      where
-        percentRow (PeriodicReportRow name rowvals rowtotal rowavg) =
-            PeriodicReportRow name
-                (zipWith perdivide rowvals $ prrAmounts totalrow)
-                (perdivide rowtotal $ prrTotal totalrow)
-                (perdivide rowavg $ prrAverage totalrow)
+    percentRow (PeriodicReportRow name rowvals rowtotal rowavg) =
+      PeriodicReportRow name
+        (zipWith perdivide rowvals $ prrAmounts totalrow)
+        (perdivide rowtotal $ prrTotal totalrow)
+        (perdivide rowavg $ prrAverage totalrow)
 
 
 -- | Transpose a Map of HashMaps to a HashMap of Maps.
