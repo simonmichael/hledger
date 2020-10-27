@@ -24,8 +24,7 @@ where
 import Data.List
 import Data.List.Extra (nubSort)
 import Data.Maybe
--- import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text (Text)
 import Data.Time.Calendar
 import Safe (headMay, lastMay)
 
@@ -38,9 +37,7 @@ import Hledger.Reports.ReportOptions
 -- | A postings report is a list of postings with a running total, a label
 -- for the total field, and a little extra transaction info to help with rendering.
 -- This is used eg for the register command.
-type PostingsReport = (String               -- label for the running balance column XXX remove
-                      ,[PostingsReportItem] -- line items, one per posting
-                      )
+type PostingsReport = [PostingsReportItem] -- line items, one per posting
 type PostingsReportItem = (Maybe Day    -- The posting date, if this is the first posting in a
                                         -- transaction or if it's different from the previous
                                         -- posting's date. Or if this a summary posting, the
@@ -49,7 +46,7 @@ type PostingsReportItem = (Maybe Day    -- The posting date, if this is the firs
                           ,Maybe Day    -- If this is a summary posting, the report interval's
                                         -- end date if this is the first summary posting in
                                         -- the interval.
-                          ,Maybe String -- The posting's transaction's description, if this is the first posting in the transaction.
+                          ,Maybe Text   -- The posting's transaction's description, if this is the first posting in the transaction.
                           ,Posting      -- The posting, possibly with the account name depth-clipped.
                           ,MixedAmount  -- The running total after this posting, or with --average,
                                         -- the running average posting amount. With --historical,
@@ -66,8 +63,7 @@ type SummaryPosting = (Posting, Day)
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
 postingsReport :: ReportSpec -> Journal -> PostingsReport
-postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j =
-  (totallabel, items)
+postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
     where
       reportspan  = adjustReportDates rspec j
       whichdate   = whichDateFromOpts ropts
@@ -129,8 +125,6 @@ registerRunningCalculationFn :: ReportOpts -> (Int -> MixedAmount -> MixedAmount
 registerRunningCalculationFn ropts
   | average_ ropts = \i avg amt -> avg + divideMixedAmount (fromIntegral i) (amt - avg)
   | otherwise      = \_ bal amt -> bal + amt
-
-totallabel = "Total"
 
 -- | Adjust report start/end dates to more useful ones based on
 -- journal data and report intervals. Ie:
@@ -206,14 +200,13 @@ mkpostingsReportItem :: Bool -> Bool -> WhichDate -> Maybe Day -> Posting -> Mix
 mkpostingsReportItem showdate showdesc wd menddate p b =
   (if showdate then Just date else Nothing
   ,menddate
-  ,if showdesc then Just desc else Nothing
+  ,if showdesc then tdescription <$> ptransaction p else Nothing
   ,p
   ,b
   )
   where
     date = case wd of PrimaryDate   -> postingDate p
                       SecondaryDate -> postingDate2 p
-    desc = T.unpack $ maybe "" tdescription $ ptransaction p
 
 -- | Convert a list of postings into summary postings, one per interval,
 -- aggregated to the specified depth if any.
@@ -267,7 +260,7 @@ negatePostingAmount p = p { pamount = negate $ pamount p }
 tests_PostingsReport = tests "PostingsReport" [
 
    test "postingsReport" $ do
-    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportspec{rsQuery=query} journal) @?= n
+    let (query, journal) `gives` n = (length $ postingsReport defreportspec{rsQuery=query} journal) @?= n
     -- with the query specified explicitly
     (Any, nulljournal) `gives` 0
     (Any, samplejournal) `gives` 13
@@ -276,10 +269,10 @@ tests_PostingsReport = tests "PostingsReport" [
     (And [Depth 1, StatusQ Cleared, Acct (toRegex' "expenses")], samplejournal) `gives` 2
     (And [And [Depth 1, StatusQ Cleared], Acct (toRegex' "expenses")], samplejournal) `gives` 2
     -- with query and/or command-line options
-    (length $ snd $ postingsReport defreportspec samplejournal) @?= 13
-    (length $ snd $ postingsReport defreportspec{rsOpts=defreportopts{interval_=Months 1}} samplejournal) @?= 11
-    (length $ snd $ postingsReport defreportspec{rsOpts=defreportopts{interval_=Months 1, empty_=True}} samplejournal) @?= 20
-    (length $ snd $ postingsReport defreportspec{rsQuery=Acct $ toRegex' "assets:bank:checking"} samplejournal) @?= 5
+    (length $ postingsReport defreportspec samplejournal) @?= 13
+    (length $ postingsReport defreportspec{rsOpts=defreportopts{interval_=Months 1}} samplejournal) @?= 11
+    (length $ postingsReport defreportspec{rsOpts=defreportopts{interval_=Months 1, empty_=True}} samplejournal) @?= 20
+    (length $ postingsReport defreportspec{rsQuery=Acct $ toRegex' "assets:bank:checking"} samplejournal) @?= 5
 
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
      -- [(Just (fromGregorian 2008 01 01,"income"),assets:bank:checking             $1,$1)

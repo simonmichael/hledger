@@ -30,6 +30,8 @@ import qualified Data.Set as S
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.IO as TL
 import Data.Time.Calendar (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 import Safe (headDef, headMay, atMay)
@@ -442,7 +444,7 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
     -- unelided shows all amounts explicitly, in case there's a price, cf #283
   when (debug_ opts > 0) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
-    putStrLn =<< registerFromString (showTransaction t)
+    TL.putStrLn =<< registerFromString (T.pack $ showTransaction t)
   return j{jtxns=ts++[t]}
 
 -- | Append a string, typically one or more transactions, to a journal
@@ -464,9 +466,9 @@ ensureOneNewlineTerminated :: String -> String
 ensureOneNewlineTerminated = (++"\n") . reverse . dropWhile (=='\n') . reverse
 
 -- | Convert a string of journal data into a register report.
-registerFromString :: String -> IO String
+registerFromString :: Text -> IO TL.Text
 registerFromString s = do
-  j <- readJournal' $ T.pack s
+  j <- readJournal' s
   return . postingsReportAsText opts $ postingsReport rspec j
       where
         ropts = defreportopts{empty_=True}

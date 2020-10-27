@@ -13,6 +13,7 @@ module Hledger.Cli.Utils
      unsupportedOutputFormatError,
      withJournalDo,
      writeOutput,
+     writeOutputLazyText,
      journalTransform,
      journalAddForecast,
      journalReload,
@@ -34,6 +35,8 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.IO as TL
 import Data.Time (UTCTime, Day, addDays)
 import Safe (readMay)
 import System.Console.CmdArgs
@@ -158,6 +161,14 @@ writeOutput :: CliOpts -> String -> IO ()
 writeOutput opts s = do
   f <- outputFileFromOpts opts
   (if f == "-" then putStr else writeFile f) s
+
+-- | Write some output to stdout or to a file selected by --output-file.
+-- If the file exists it will be overwritten. This function operates on Lazy
+-- Text values.
+writeOutputLazyText :: CliOpts -> TL.Text -> IO ()
+writeOutputLazyText opts s = do
+  f <- outputFileFromOpts opts
+  (if f == "-" then TL.putStr else TL.writeFile f) s
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal
