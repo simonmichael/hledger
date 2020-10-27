@@ -44,7 +44,7 @@ import           Data.Decimal
 import           Data.Maybe
 import qualified Data.Text.Lazy    as TL
 import qualified Data.Text.Lazy.IO as TL
-import           Data.Text.Lazy.Builder (toLazyText)
+import qualified Data.Text.Lazy.Builder as TB
 import           GHC.Generics (Generic)
 import           System.Time (ClockTime)
 
@@ -232,7 +232,7 @@ instance FromJSON (DecimalRaw Integer)
 
 -- | Show a JSON-convertible haskell value as pretty-printed JSON text.
 toJsonText :: ToJSON a => a -> TL.Text
-toJsonText = (<>"\n") . toLazyText . encodePrettyToTextBuilder
+toJsonText = TB.toLazyText . (<> TB.fromText "\n") . encodePrettyToTextBuilder
 
 -- | Write a JSON-convertible haskell value to a pretty-printed JSON file.
 -- Eg: writeJsonFile "a.json" nulltransaction

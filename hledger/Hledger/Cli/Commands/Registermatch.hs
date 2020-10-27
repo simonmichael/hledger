@@ -10,6 +10,7 @@ where
 import Data.Char (toUpper)
 import Data.List
 import qualified Data.Text as T
+import qualified Data.Text.Lazy.IO as TL
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Register
@@ -25,14 +26,13 @@ registermatch :: CliOpts -> Journal -> IO ()
 registermatch opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j =
   case listofstringopt "args" rawopts of
     [desc] -> do
-        let (_,pris) = postingsReport rspec j
-            ps = [p | (_,_,_,p,_) <- pris]
+        let ps = [p | (_,_,_,p,_) <- postingsReport rspec j]
         case similarPosting ps desc of
           Nothing -> putStrLn "no matches found."
-          Just p  -> putStr $ postingsReportAsText opts ("",[pri])
+          Just p  -> TL.putStr $ postingsReportAsText opts [pri]
                      where pri = (Just (postingDate p)
                                  ,Nothing
-                                 ,Just $ T.unpack (maybe "" tdescription $ ptransaction p)
+                                 ,tdescription <$> ptransaction p
                                  ,p
                                  ,0)
     _ -> putStrLn "please provide one description argument."
