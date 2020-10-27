@@ -19,18 +19,17 @@ module Hledger.Cli.Commands.Aregister (
  ,tests_Aregister
 ) where
 
-import Data.Aeson (toJSON)
-import Data.Aeson.Text (encodeToLazyText)
-import Data.List
-import Data.Maybe
+import Data.List (intersperse)
+import Data.Maybe (fromMaybe, isJust)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup ((<>))
 #endif
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (addDays)
 import Safe (headDef)
-import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 import Hledger.Read.CsvReader (CSV, CsvRecord, printCSV)
 
 import Hledger
@@ -113,14 +112,14 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $
              reverse items
     -- select renderer
-    render | fmt=="json" = (++"\n") . T.unpack . TL.toStrict . encodeToLazyText . toJSON
-           | fmt=="csv"  = (++"\n") . printCSV . accountTransactionsReportAsCsv reportq thisacctq
-           | fmt=="txt"  = accountTransactionsReportAsText opts reportq thisacctq
-           | otherwise   = const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
+    render | fmt=="txt"  = accountTransactionsReportAsText opts reportq thisacctq
+           | fmt=="csv"  = TL.pack . printCSV . accountTransactionsReportAsCsv reportq thisacctq
+           | fmt=="json" = toJsonText
+           | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
         fmt = outputFormatFromOpts opts
 
-  writeOutput opts $ render (balancelabel,items')
+  writeOutputLazyText opts $ render (balancelabel,items')
 
 accountTransactionsReportAsCsv :: Query -> Query -> AccountTransactionsReport -> CSV
 accountTransactionsReportAsCsv reportq thisacctq (_,is) =
@@ -131,7 +130,7 @@ accountTransactionsReportItemAsCsvRecord :: Query -> Query -> AccountTransaction
 accountTransactionsReportItemAsCsvRecord
   reportq thisacctq
   (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheracctsstr, change, balance)
-  = [idx,date,code,desc,otheracctsstr,amt,bal]
+  = [idx,date,code,desc,T.unpack otheracctsstr,amt,bal]
   where
     idx  = show tindex
     date = showDate $ transactionRegisterDate reportq thisacctq t
@@ -141,20 +140,20 @@ accountTransactionsReportItemAsCsvRecord
     bal  = showMixedAmountOneLineWithoutPrice False balance
 
 -- | Render a register report as plain text suitable for console output.
-accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> String
-accountTransactionsReportAsText
-  copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{no_elide_}}} reportq thisacctq (_balancelabel,items)
-  = unlines $ title :
+accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
+accountTransactionsReportAsText copts reportq thisacctq (_balancelabel, items)
+  = TB.toLazyText . mconcat . intersperse (TB.fromText "\n") $
+    title :
     map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
   where
     amtwidth = maximumStrict $ 12 : map (snd . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (snd . showamt . itembal) items
     showamt = showMixedOneLine showAmountWithoutPrice (Just 12) mmax False  -- color_
-      where mmax = if no_elide_ then Nothing else Just 32
+      where mmax = if no_elide_ . rsOpts . reportspec_ $ copts then Nothing else Just 32
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise
-    title = T.unpack $ maybe "" (("Transactions in "<>).(<>" and subaccounts:")) macct
+    title = maybe mempty (\s -> foldMap TB.fromText ["Transactions in ", s, " and subaccounts:"]) macct
       where
         -- XXX temporary hack ? recover the account name from the query
         macct = case filterQuery queryIsAcct thisacctq of
@@ -173,72 +172,63 @@ accountTransactionsReportAsText
 -- Returns a string which can be multi-line, eg if the running balance
 -- has multiple commodities.
 --
-accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> String
+accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int -> AccountTransactionsReportItem -> TB.Builder
 accountTransactionsReportItemAsText
   copts@CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{color_}}}
   reportq thisacctq preferredamtwidth preferredbalwidth
-  (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance)
+  (t@Transaction{tdescription}, _, _issplit, otheracctsstr, change, balance) =
     -- Transaction -- the transaction, unmodified
     -- Transaction -- the transaction, as seen from the current account
     -- Bool        -- is this a split (more than one posting to other accounts) ?
     -- String      -- a display string describing the other account(s), if any
     -- MixedAmount -- the amount posted to the current account(s) (or total amount posted)
     -- MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
+    foldMap TB.fromText . concat . intersperse (["\n"]) $
+      [ fitText (Just datewidth) (Just datewidth) True True date
+      , " "
+      , fitText (Just descwidth) (Just descwidth) True True tdescription
+      , "  "
+      , fitText (Just acctwidth) (Just acctwidth) True True accts
+      , "  "
+      , amtfirstline
+      , "  "
+      , balfirstline
+      ]
+      :
+      [ [ spacer, a, "  ", b ] | (a,b) <- zip amtrest balrest ]
+  where
+    -- calculate widths
+    (totalwidth,mdescwidth) = registerWidthsFromOpts copts
+    (datewidth, date) = (10, T.pack . showDate $ transactionRegisterDate reportq thisacctq t)
+    (amtwidth, balwidth)
+      | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
+      | otherwise      = (adjustedamtwidth, adjustedbalwidth)
+      where
+        mincolwidth = 2 -- columns always show at least an ellipsis
+        maxamtswidth = max 0 (totalwidth - (datewidth + 1 + mincolwidth + 2 + mincolwidth + 2 + 2))
+        shortfall = (preferredamtwidth + preferredbalwidth) - maxamtswidth
+        amtwidthproportion = fromIntegral preferredamtwidth / fromIntegral (preferredamtwidth + preferredbalwidth)
+        adjustedamtwidth = round $ amtwidthproportion * fromIntegral maxamtswidth
+        adjustedbalwidth = maxamtswidth - adjustedamtwidth
 
-  = intercalate "\n" $
-    concat [fitString (Just datewidth) (Just datewidth) True True date
-           ," "
-           ,fitString (Just descwidth) (Just descwidth) True True desc
-           ,"  "
-           ,fitString (Just acctwidth) (Just acctwidth) True True accts
-           ,"  "
-           ,amtfirstline
-           ,"  "
-           ,balfirstline
-           ]
-    :
-    [concat [spacer
-            ,a
-            ,"  "
-            ,b
-            ]
-     | (a,b) <- zip amtrest balrest
-     ]
-    where
-      -- calculate widths
-      (totalwidth,mdescwidth) = registerWidthsFromOpts copts
-      (datewidth, date) = (10, showDate $ transactionRegisterDate reportq thisacctq t)
-      (amtwidth, balwidth)
-        | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
-        | otherwise      = (adjustedamtwidth, adjustedbalwidth)
-        where
-          mincolwidth = 2 -- columns always show at least an ellipsis
-          maxamtswidth = max 0 (totalwidth - (datewidth + 1 + mincolwidth + 2 + mincolwidth + 2 + 2))
-          shortfall = (preferredamtwidth + preferredbalwidth) - maxamtswidth
-          amtwidthproportion = fromIntegral preferredamtwidth / fromIntegral (preferredamtwidth + preferredbalwidth)
-          adjustedamtwidth = round $ amtwidthproportion * fromIntegral maxamtswidth
-          adjustedbalwidth = maxamtswidth - adjustedamtwidth
+    remaining = totalwidth - (datewidth + 1 + 2 + amtwidth + 2 + balwidth)
+    (descwidth, acctwidth) = (w, remaining - 2 - w)
+      where w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
 
-      remaining = totalwidth - (datewidth + 1 + 2 + amtwidth + 2 + balwidth)
-      (descwidth, acctwidth) = (w, remaining - 2 - w)
-        where
-          w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
-
-      -- gather content
-      desc = T.unpack tdescription
-      accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
-              otheracctsstr
-      amt = fst $ showMixed showAmountWithoutPrice (Just amtwidth) (Just balwidth) color_ change
-      bal = fst $ showMixed showAmountWithoutPrice (Just balwidth) (Just balwidth) color_ balance
-      -- alternate behaviour, show null amounts as 0 instead of blank
-      -- amt = if null amt' then "0" else amt'
-      -- bal = if null bal' then "0" else bal'
-      (amtlines, ballines) = (lines amt, lines bal)
-      (amtlen, ballen) = (length amtlines, length ballines)
-      numlines = max 1 (max amtlen ballen)
-      (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat (replicate amtwidth ' ') -- posting amount is top-aligned
-      (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) (replicate balwidth ' ') ++ ballines -- balance amount is bottom-aligned
-      spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
+    -- gather content
+    accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
+            otheracctsstr
+    amt = T.pack . fst $ showMixed showAmountWithoutPrice (Just amtwidth) (Just balwidth) color_ change
+    bal = T.pack . fst $ showMixed showAmountWithoutPrice (Just balwidth) (Just balwidth) color_ balance
+    -- alternate behaviour, show null amounts as 0 instead of blank
+    -- amt = if null amt' then "0" else amt'
+    -- bal = if null bal' then "0" else bal'
+    (amtlines, ballines) = (T.lines amt, T.lines bal)
+    (amtlen, ballen) = (length amtlines, length ballines)
+    numlines = max 1 (max amtlen ballen)
+    (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat "" -- posting amount is top-aligned
+    (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
+    spacer = T.replicate (totalwidth - (amtwidth + 2 + balwidth)) " "
 
 -- tests
 

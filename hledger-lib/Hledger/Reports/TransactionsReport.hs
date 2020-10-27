@@ -23,6 +23,7 @@ where
 
 import Data.List
 import Data.List.Extra (nubSort)
+import Data.Text (Text)
 import Data.Ord
 
 import Hledger.Data
@@ -45,7 +46,7 @@ type TransactionsReport = (String                   -- label for the balance col
 type TransactionsReportItem = (Transaction -- the original journal transaction, unmodified
                               ,Transaction -- the transaction as seen from a particular account, with postings maybe filtered
                               ,Bool        -- is this a split, ie more than one other account posting
-                              ,String      -- a display string describing the other account(s), if any
+                              ,Text        -- a display string describing the other account(s), if any
                               ,MixedAmount -- the amount posted to the current account(s) by the filtered postings (or total amount posted)
                               ,MixedAmount -- the running total of item amounts, starting from zero;
                                            -- or with --historical, the running total including items

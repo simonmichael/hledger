@@ -129,7 +129,7 @@ postingsReportItemAsText :: CliOpts -> Int -> Int -> PostingsReportItem -> TB.Bu
 postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, menddate, mdesc, p, b) =
   -- use elide*Width to be wide-char-aware
   -- trace (show (totalwidth, datewidth, descwidth, acctwidth, amtwidth, balwidth)) $
-  foldMap mconcat . intersperse ([TB.fromText "\n"]) . map (map TB.fromText) $
+  foldMap TB.fromText . concat . intersperse (["\n"]) $
     [ fitText (Just datewidth) (Just datewidth) True True date
     , " "
     , fitText (Just descwidth) (Just descwidth) True True desc
