@@ -6,7 +6,7 @@
    if ($chartdiv.is(':visible')) {
      \$('#register-chart-label').text('#{charttitle}');
      var seriesData = [
-      $forall (c,(_,items)) <- percommoditytxnreports
+      $forall (c,items) <- percommoditytxnreports
        /* we render each commodity using two series:
         * one with extra data points added to show a stepped balance line */
        {

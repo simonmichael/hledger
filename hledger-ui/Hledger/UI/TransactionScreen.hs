@@ -208,7 +208,7 @@ regenerateTransactions rspec j s acct i ui =
   let
     q = filterQuery (not . queryIsDepth) $ rsQuery rspec
     thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
-    items = reverse $ snd $ accountTransactionsReport rspec j q thisacctq
+    items = reverse $ accountTransactionsReport rspec j q thisacctq
     ts = map first6 items
     numberedts = zip [1..] ts
     -- select the best current transaction from the new list
