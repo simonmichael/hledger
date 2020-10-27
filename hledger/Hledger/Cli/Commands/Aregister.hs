@@ -108,7 +108,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
           ]
     -- run the report
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
-    (balancelabel,items) = accountTransactionsReport rspec' j reportq thisacctq
+    items = accountTransactionsReport rspec' j reportq thisacctq
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $
              reverse items
     -- select renderer
@@ -119,10 +119,10 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       where
         fmt = outputFormatFromOpts opts
 
-  writeOutputLazyText opts $ render (balancelabel,items')
+  writeOutputLazyText opts $ render items'
 
 accountTransactionsReportAsCsv :: Query -> Query -> AccountTransactionsReport -> CSV
-accountTransactionsReportAsCsv reportq thisacctq (_,is) =
+accountTransactionsReportAsCsv reportq thisacctq is =
   ["txnidx","date","code","description","otheraccounts","change","balance"]
   : map (accountTransactionsReportItemAsCsvRecord reportq thisacctq) is
 
@@ -141,7 +141,7 @@ accountTransactionsReportItemAsCsvRecord
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
-accountTransactionsReportAsText copts reportq thisacctq (_balancelabel, items)
+accountTransactionsReportAsText copts reportq thisacctq items
   = TB.toLazyText . mconcat . intersperse (TB.fromText "\n") $
     title :
     map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items

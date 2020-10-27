@@ -65,10 +65,7 @@ import Hledger.Utils
 -- posts to the current account), most recent first.
 -- Reporting intervals are currently ignored.
 --
-type AccountTransactionsReport =
-  (String                          -- label for the balance column, eg "balance" or "total"
-  ,[AccountTransactionsReportItem] -- line items, one per transaction
-  )
+type AccountTransactionsReport = [AccountTransactionsReportItem] -- line items, one per transaction
 
 type AccountTransactionsReportItem =
   (
@@ -80,11 +77,8 @@ type AccountTransactionsReportItem =
   ,MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
   )
 
-totallabel   = "Period Total"
-balancelabel = "Historical Total"
-
 accountTransactionsReport :: ReportSpec -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = (label, items)
+accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = items
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
@@ -130,9 +124,9 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = (
       ptraceAtWith 5 (("ts5:\n"++).pshowTransactions) $
       sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
 
-    (startbal,label)
-      | balancetype_ ropts == HistoricalBalance = (sumPostings priorps, balancelabel)
-      | otherwise                               = (nullmixedamt,        totallabel)
+    startbal
+      | balancetype_ ropts == HistoricalBalance = sumPostings priorps
+      | otherwise                               = nullmixedamt
       where
         priorps = dbg5 "priorps" $
                   filter (matchesPosting

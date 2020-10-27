@@ -79,7 +79,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
             ,Not generatedTransactionTag
           ]
 
-    (_label,items) = accountTransactionsReport rspec' j q thisacctq
+    items = accountTransactionsReport rspec' j q thisacctq
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
