@@ -81,11 +81,11 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
     date = showDate $ postingDate p -- XXX csv should show date2 with --date2
     code = maybe "" (T.unpack . tcode) $ ptransaction p
     desc = T.unpack $ maybe "" tdescription $ ptransaction p
-    acct = bracket $ T.unpack $ paccount p
+    acct = T.unpack . bracket $ paccount p
       where
         bracket = case ptype p of
-                             BalancedVirtualPosting -> (\s -> "["++s++"]")
-                             VirtualPosting -> (\s -> "("++s++")")
+                             BalancedVirtualPosting -> wrap "[" "]"
+                             VirtualPosting -> wrap "(" ")"
                              _ -> id
     amt = showMixedAmountOneLineWithoutPrice False $ pamount p
     bal = showMixedAmountOneLineWithoutPrice False b

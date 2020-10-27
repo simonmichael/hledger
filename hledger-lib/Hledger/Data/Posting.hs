@@ -165,11 +165,11 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
-      showaccountname = fitString (Just acctnamewidth) Nothing False False . bracket . T.unpack . elideAccountName width
+      showaccountname = T.unpack . fitText (Just acctnamewidth) Nothing False False . bracket . elideAccountName width
       (bracket,width) = case t of
-                          BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
-                          VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
-                          _ -> (id,acctnamewidth)
+                          BalancedVirtualPosting -> (wrap "[" "]", acctnamewidth-2)
+                          VirtualPosting         -> (wrap "(" ")", acctnamewidth-2)
+                          _                      -> (id,acctnamewidth)
       showamount = fst . showMixed showAmount (Just 12) Nothing False
 
 
@@ -274,9 +274,9 @@ accountNameWithoutPostingType a = case accountNamePostingType a of
                                     RegularPosting -> a
 
 accountNameWithPostingType :: PostingType -> AccountName -> AccountName
-accountNameWithPostingType BalancedVirtualPosting a = "["<>accountNameWithoutPostingType a<>"]"
-accountNameWithPostingType VirtualPosting a = "("<>accountNameWithoutPostingType a<>")"
-accountNameWithPostingType RegularPosting a = accountNameWithoutPostingType a
+accountNameWithPostingType BalancedVirtualPosting = wrap "[" "]" . accountNameWithoutPostingType
+accountNameWithPostingType VirtualPosting         = wrap "(" ")" . accountNameWithoutPostingType
+accountNameWithPostingType RegularPosting         = accountNameWithoutPostingType
 
 -- | Prefix one account name to another, preserving posting type
 -- indicators like concatAccountNames.

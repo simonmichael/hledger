@@ -12,6 +12,7 @@ module Hledger.Utils.Text
  -- underline,
  -- stripbrackets,
   textUnbracket,
+  wrap,
  -- -- quoting
   quoteIfSpaced,
   textQuoteIfNeeded,
@@ -86,6 +87,10 @@ import Text.WideString (charWidth, textWidth)
 textElideRight :: Int -> Text -> Text
 textElideRight width t =
     if T.length t > width then T.take (width - 2) t <> ".." else t
+
+-- | Wrap a Text with the surrounding Text.
+wrap :: Text -> Text -> Text -> Text
+wrap start end x = start <> x <> end
 
 -- -- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
 -- -- Works on multi-line strings too (but will rewrite non-unix line endings).
