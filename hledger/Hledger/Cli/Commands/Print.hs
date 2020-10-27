@@ -17,9 +17,10 @@ where
 
 import Data.Maybe (isJust)
 import Data.Text (Text)
-import Data.List (intercalate)
+import Data.List (intersperse)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit
 import Hledger.Read.CsvReader (CSV, printCSV)
 
@@ -53,18 +54,18 @@ print' opts j = do
     Just desc -> printMatch opts j $ T.pack desc
 
 printEntries :: CliOpts -> Journal -> IO ()
-printEntries opts@CliOpts{reportspec_=rspec} j = do
-  let fmt = outputFormatFromOpts opts
-      render = case fmt of
-        "txt"  -> entriesReportAsText opts
-        "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
-        "json" -> (++"\n") . TL.unpack . toJsonText
-        "sql"  -> entriesReportAsSql
-        _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-  writeOutput opts $ render $ entriesReport rspec j
+printEntries opts@CliOpts{reportspec_=rspec} j =
+    writeOutputLazyText opts . render $ entriesReport rspec j
+  where
+    fmt = outputFormatFromOpts opts
+    render | fmt=="txt"  = entriesReportAsText opts
+           | fmt=="csv"  = TL.pack . printCSV . entriesReportAsCsv
+           | fmt=="json" = toJsonText
+           | fmt=="sql"  = entriesReportAsSql
+           | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
-entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransaction . whichtxn)
+entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
+entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromString . showTransaction . whichtxn)
   where
     whichtxn
       -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
@@ -125,16 +126,17 @@ originalPostingPreservingAccount p = (originalPosting p) { paccount = paccount p
 --       ]
 --  ]
 
-entriesReportAsSql :: EntriesReport -> String
-entriesReportAsSql txns =
-  "create table if not exists postings(id serial,txnidx int,date1 date,date2 date,status text,code text,description text,comment text,account text,amount numeric,commodity text,credit numeric,debit numeric,posting_status text,posting_comment text);\n"++
-  "insert into postings(txnidx,date1,date2,status,code,description,comment,account,amount,commodity,credit,debit,posting_status,posting_comment) values\n"++
-  (intercalate "," (map values csv))
-  ++";\n"
+entriesReportAsSql :: EntriesReport -> TL.Text
+entriesReportAsSql txns = TB.toLazyText $ mconcat
+    [ TB.fromText "create table if not exists postings(id serial,txnidx int,date1 date,date2 date,status text,code text,description text,comment text,account text,amount numeric,commodity text,credit numeric,debit numeric,posting_status text,posting_comment text);\n"
+    , TB.fromText "insert into postings(txnidx,date1,date2,status,code,description,comment,account,amount,commodity,credit,debit,posting_status,posting_comment) values\n"
+    , mconcat . intersperse (TB.fromText ",") $ map values csv
+    , TB.fromText ";\n"
+    ]
   where
-    values vs = "(" ++ (intercalate "," $ map toSql vs) ++ ")\n"
-    toSql "" = "NULL"
-    toSql s  = "'" ++ (concatMap quoteChar s) ++ "'"
+    values vs = TB.fromText "(" <> mconcat (intersperse (TB.fromText ",") $ map toSql vs) <> TB.fromText ")\n"
+    toSql "" = TB.fromText "NULL"
+    toSql s  = TB.fromText "'" <> TB.fromString (concatMap quoteChar s) <> TB.fromText "'"
     quoteChar '\'' = "''"
     quoteChar c = [c]
     csv = concatMap transactionToCSV txns
