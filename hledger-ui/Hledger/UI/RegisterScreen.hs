@@ -14,7 +14,6 @@ where
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-import Data.List.Split (splitOn)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
@@ -92,9 +91,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
           RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate q thisacctq t
                             ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = T.unpack $ tdescription t
-                            ,rsItemOtherAccounts = case splitOn ", " otheracctsstr of
-                                                     [s] -> s
-                                                     ss  -> intercalate ", " ss
+                            ,rsItemOtherAccounts = T.unpack otheracctsstr
                                                      -- _   -> "<split>"  -- should do this if accounts field width < 30
                             ,rsItemChangeAmount  = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) False change
                             ,rsItemBalanceAmount = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) False bal
