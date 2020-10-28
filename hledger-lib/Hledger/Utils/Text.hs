@@ -13,6 +13,7 @@ module Hledger.Utils.Text
  -- stripbrackets,
   textUnbracket,
   wrap,
+  textChomp,
  -- -- quoting
   quoteIfSpaced,
   textQuoteIfNeeded,
@@ -91,6 +92,10 @@ textElideRight width t =
 -- | Wrap a Text with the surrounding Text.
 wrap :: Text -> Text -> Text -> Text
 wrap start end x = start <> x <> end
+
+-- | Remove trailing newlines/carriage returns.
+textChomp :: Text -> Text
+textChomp = T.dropWhileEnd (`elem` ['\r', '\n'])
 
 -- -- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
 -- -- Works on multi-line strings too (but will rewrite non-unix line endings).

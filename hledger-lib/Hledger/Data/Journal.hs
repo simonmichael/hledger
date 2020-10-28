@@ -895,7 +895,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
          Nothing -> "?" -- shouldn't happen
          Just t ->  printf "%s\ntransaction:\n%s"
                       (showGenericSourcePos pos)
-                      (chomp $ showTransaction t)
+                      (textChomp $ showTransaction t)
                       :: String
                       where
                         pos = baposition $ fromJust $ pbalanceassertion p
@@ -926,11 +926,11 @@ checkIllegalBalanceAssignmentB p = do
 checkBalanceAssignmentPostingDateB :: Posting -> Balancing s ()
 checkBalanceAssignmentPostingDateB p =
   when (hasBalanceAssignment p && isJust (pdate p)) $
-    throwError $ unlines $
+    throwError . T.unpack $ T.unlines
       ["postings which are balance assignments may not have a custom date."
       ,"Please write the posting amount explicitly, or remove the posting date:"
       ,""
-      ,maybe (unlines $ showPostingLines p) showTransaction $ ptransaction p
+      ,maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
       ]
 
 -- | Throw an error if this posting is trying to do a balance assignment and
@@ -940,16 +940,16 @@ checkBalanceAssignmentUnassignableAccountB :: Posting -> Balancing s ()
 checkBalanceAssignmentUnassignableAccountB p = do
   unassignable <- R.asks bsUnassignable
   when (hasBalanceAssignment p && paccount p `S.member` unassignable) $
-    throwError $ unlines $
+    throwError . T.unpack $ T.unlines
       ["balance assignments cannot be used with accounts which are"
       ,"posted to by transaction modifier rules (auto postings)."
       ,"Please write the posting amount explicitly, or remove the rule."
       ,""
-      ,"account: "++T.unpack (paccount p)
+      ,"account: " <> paccount p
       ,""
       ,"transaction:"
       ,""
-      ,maybe (unlines $ showPostingLines p) showTransaction $ ptransaction p
+      ,maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
       ]
 
 --

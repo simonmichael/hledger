@@ -19,6 +19,7 @@ import Data.Maybe (isJust)
 import Data.Text (Text)
 import Data.List (intersperse)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit
@@ -65,7 +66,7 @@ printEntries opts@CliOpts{reportspec_=rspec} j =
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
 entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
-entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromString . showTransaction . whichtxn)
+entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromText . showTransaction . whichtxn)
   where
     whichtxn
       -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
@@ -176,8 +177,8 @@ postingToCSV p =
   where
     Mixed amounts = pamount p
     status = show $ pstatus p
-    account = showAccountName Nothing (ptype p) (paccount p)
-    comment = chomp $ strip $ T.unpack $ pcomment p
+    account = T.unpack $ showAccountName Nothing (ptype p) (paccount p)
+    comment = T.unpack . textChomp . T.strip $ pcomment p
 
 -- --match
 
@@ -187,7 +188,7 @@ printMatch :: CliOpts -> Journal -> Text -> IO ()
 printMatch CliOpts{reportspec_=rspec} j desc = do
   case similarTransaction' j (rsQuery rspec) desc of
       Nothing -> putStrLn "no matches found."
-      Just t  -> putStr $ showTransaction t
+      Just t  -> T.putStr $ showTransaction t
 
   where
     -- Identify the closest recent match for this description in past transactions.
