@@ -90,8 +90,8 @@ errorWithSourceLine line msg = error $ "line " ++ show line ++ ": " ++ msg
 entryFromTimeclockInOut :: TimeclockEntry -> TimeclockEntry -> Transaction
 entryFromTimeclockInOut i o
     | otime >= itime = t
-    | otherwise =
-        error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t  -- PARTIAL:
+    | otherwise = error' . T.unpack $
+        "clock-out time less than clock-in time in:\n" <> showTransaction t  -- PARTIAL:
     where
       t = Transaction {
             tindex       = 0,

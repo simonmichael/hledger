@@ -27,18 +27,19 @@ import Data.Either (isRight)
 import Data.Functor.Identity (Identity(..))
 import "base-compat-batteries" Data.List.Compat
 import qualified Data.Set as S
-import Data.Maybe
+import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
 import Data.Time.Calendar (Day)
 import Data.Time.Format (formatTime, defaultTimeLocale, iso8601DateFormat)
 import Safe (headDef, headMay, atMay)
-import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Explicit (flagNone)
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
-import System.Console.Haskeline.Completion
-import System.Console.Wizard
+import System.Console.Haskeline.Completion (CompletionFunc, completeWord, isFinished, noCompletion, simpleCompletion)
+import System.Console.Wizard (Wizard, defaultTo, line, output, retryMsg, linePrewritten, nonEmpty, parser, run)
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
 import Text.Megaparsec
@@ -91,7 +92,7 @@ add :: CliOpts -> Journal -> IO ()
 add opts j
     | journalFilePath j == "-" = return ()
     | otherwise = do
-        hPrintf stderr "Adding transactions to journal file %s\n" (journalFilePath j)
+        hPutStrLn stderr $ "Adding transactions to journal file " <> journalFilePath j
         showHelp
         today <- getCurrentDay
         let es = defEntryState{esOpts=opts
@@ -125,16 +126,16 @@ getAndAddTransactions es@EntryState{..} = (do
     Nothing -> error "Could not interpret the input, restarting"  -- caught below causing a restart, I believe  -- PARTIAL:
     Just t -> do
       j <- if debug_ esOpts > 0
-           then do hPrintf stderr "Skipping journal add due to debug mode.\n"
+           then do hPutStrLn stderr "Skipping journal add due to debug mode."
                    return esJournal
            else do j' <- journalAddTransaction esJournal esOpts t
-                   hPrintf stderr "Saved.\n"
+                   hPutStrLn stderr "Saved."
                    return j'
-      hPrintf stderr "Starting the next transaction (. or ctrl-D/ctrl-C to quit)\n"
+      hPutStrLn stderr "Starting the next transaction (. or ctrl-D/ctrl-C to quit)"
       getAndAddTransactions es{esJournal=j, esDefDate=tdate t}
   )
   `E.catch` (\(_::RestartTransactionException) ->
-                 hPrintf stderr "Restarting this transaction.\n" >> getAndAddTransactions es)
+                 hPutStrLn stderr "Restarting this transaction." >> getAndAddTransactions es)
 
 data TxnParams = TxnParams
   { txnDate :: Day
@@ -182,7 +183,9 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
             }
           descAndCommentString = T.unpack $ desc <> (if T.null comment then "" else "  ; " <> comment)
           prevInput' = prevInput{prevDescAndCmnt=Just descAndCommentString}
-      when (isJust mbaset) $ liftIO $ hPrintf stderr "Using this similar transaction for defaults:\n%s" (showTransaction $ fromJust mbaset)
+      when (isJust mbaset) . liftIO $ do
+          hPutStrLn stderr "Using this similar transaction for defaults:"
+          T.hPutStr stderr $ showTransaction (fromJust mbaset)
       confirmedTransactionWizard prevInput' es' ((EnterNewPosting TxnParams{txnDate=date, txnCode=code, txnDesc=desc, txnCmnt=comment} Nothing) : stack)
     Nothing ->
       confirmedTransactionWizard prevInput es (drop 1 stack)
@@ -241,7 +244,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
     Nothing -> confirmedTransactionWizard prevInput es (drop 1 stack)
 
   EndStage t -> do
-    output $ showTransaction t
+    output . T.unpack $ showTransaction t
     y <- let def = "y" in
          retryMsg "Please enter y or n." $
           parser ((fmap (\c -> if c == '<' then Nothing else Just c)) . headMay . map toLower . strip) $
@@ -305,7 +308,7 @@ accountWizard PrevInput{..} EntryState{..} = do
       historicalp = fmap ((!! (pnum - 1)) . (++ (repeat nullposting)) . tpostings) esSimilarTransaction
       historicalacct = case historicalp of Just p  -> showAccountName Nothing (ptype p) (paccount p)
                                            Nothing -> ""
-      def = headDef historicalacct esArgs
+      def = headDef (T.unpack historicalacct) esArgs
       endmsg | canfinish && null def = " (or . or enter to finish this transaction)"
              | canfinish             = " (or . to finish this transaction)"
              | otherwise             = ""
@@ -444,7 +447,7 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
     -- unelided shows all amounts explicitly, in case there's a price, cf #283
   when (debug_ opts > 0) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
-    TL.putStrLn =<< registerFromString (T.pack $ showTransaction t)
+    TL.putStrLn =<< registerFromString (showTransaction t)
   return j{jtxns=ts++[t]}
 
 -- | Append a string, typically one or more transactions, to a journal
@@ -455,15 +458,15 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
 -- even if the file uses dos line endings (\r\n), which could leave
 -- mixed line endings in the file. See also writeFileWithBackupIfChanged.
 --
-appendToJournalFileOrStdout :: FilePath -> String -> IO ()
+appendToJournalFileOrStdout :: FilePath -> Text -> IO ()
 appendToJournalFileOrStdout f s
-  | f == "-"  = putStr s'
-  | otherwise = appendFile f s'
-  where s' = "\n" ++ ensureOneNewlineTerminated s
+  | f == "-"  = T.putStr s'
+  | otherwise = appendFile f $ T.unpack s'
+  where s' = "\n" <> ensureOneNewlineTerminated s
 
 -- | Replace a string's 0 or more terminating newlines with exactly one.
-ensureOneNewlineTerminated :: String -> String
-ensureOneNewlineTerminated = (++"\n") . reverse . dropWhile (=='\n') . reverse
+ensureOneNewlineTerminated :: Text -> Text
+ensureOneNewlineTerminated = (<>"\n") . T.dropWhileEnd (=='\n')
 
 -- | Convert a string of journal data into a register report.
 registerFromString :: Text -> IO TL.Text

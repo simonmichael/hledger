@@ -13,7 +13,9 @@ import Control.Monad.Writer hiding (Any)
 #endif
 import Data.Functor.Identity
 import Data.List (sortOn, foldl')
+import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
@@ -65,9 +67,9 @@ printOrDiff opts
 diffOutput :: Journal -> Journal -> IO ()
 diffOutput j j' = do
     let changed = [(originalTransaction t, originalTransaction t') | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
-    putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
+    T.putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
 
-type Chunk = (GenericSourcePos, [DiffLine String])
+type Chunk = (GenericSourcePos, [DiffLine Text])
 
 -- XXX doctests, update needed:
 -- >>> putStr $ renderPatch [(GenericSourcePos "a" 1 1, [D.First "x", D.Second "y"])]
@@ -95,17 +97,17 @@ type Chunk = (GenericSourcePos, [DiffLine String])
 -- @@ -5,0 +5,1 @@
 -- +z
 -- | Render list of changed lines as a unified diff
-renderPatch :: [Chunk] -> String
+renderPatch :: [Chunk] -> Text
 renderPatch = go Nothing . sortOn fst where
     go _ [] = ""
-    go Nothing cs@((sourceFilePath -> fp, _):_) = fileHeader fp ++ go (Just (fp, 0)) cs
+    go Nothing cs@((sourceFilePath -> fp, _):_) = fileHeader fp <> go (Just (fp, 0)) cs
     go (Just (fp, _)) cs@((sourceFilePath -> fp', _):_) | fp /= fp' = go Nothing cs
-    go (Just (fp, offs)) ((sourceFirstLine -> lineno, diffs):cs) = chunkHeader ++ chunk ++ go (Just (fp, offs + adds - dels)) cs
+    go (Just (fp, offs)) ((sourceFirstLine -> lineno, diffs):cs) = chunkHeader <> chunk <> go (Just (fp, offs + adds - dels)) cs
         where
-            chunkHeader = printf "@@ -%d,%d +%d,%d @@\n" lineno dels (lineno+offs) adds where
+            chunkHeader = T.pack $ printf "@@ -%d,%d +%d,%d @@\n" lineno dels (lineno+offs) adds where
             (dels, adds) = foldl' countDiff (0, 0) diffs
-            chunk = concatMap renderLine diffs
-    fileHeader fp = printf "--- %s\n+++ %s\n" fp fp
+            chunk = foldMap renderLine diffs
+    fileHeader fp = "--- " <> T.pack fp <> "\n+++ " <> T.pack fp <> "\n"
 
     countDiff (dels, adds) = \case
         Del _  -> (dels + 1, adds)
@@ -113,9 +115,9 @@ renderPatch = go Nothing . sortOn fst where
         Ctx _ -> (dels + 1, adds + 1)
 
     renderLine = \case
-        Del s -> '-' : s ++ "\n"
-        Add s -> '+' : s ++ "\n"
-        Ctx s -> ' ' : s ++ "\n"
+        Del s -> "-" <> s <> "\n"
+        Add s -> "+" <> s <> "\n"
+        Ctx s -> " " <> s <> "\n"
 
 diffTxn :: Journal -> Transaction -> Transaction -> Chunk
 diffTxn j t t' =
@@ -124,18 +126,18 @@ diffTxn j t t' =
                 -- TODO: use range and produce two chunks: one removes part of
                 --       original file, other adds transaction to new file with
                 --       suffix .ledger (generated). I.e. move transaction from one file to another.
-                diffs :: [DiffLine String]
+                diffs :: [DiffLine Text]
                 diffs = concat . map (traverse showPostingLines . mapDiff) $ D.getDiff (tpostings t) (tpostings t')
             pos@(JournalSourcePos fp (line, line')) -> (pos, diffs) where
                 -- We do diff for original lines vs generated ones. Often leads
                 -- to big diff because of re-format effect.
-                diffs :: [DiffLine String]
+                diffs :: [DiffLine Text]
                 diffs = map mapDiff $ D.getDiff source changed'
-                source | Just contents <- lookup fp $ jfiles j = map T.unpack . drop (line-1) . take line' $ T.lines contents
+                source | Just contents <- lookup fp $ jfiles j = drop (line-1) . take line' $ T.lines contents
                        | otherwise = []
-                changed = lines $ showTransaction t'
+                changed = T.lines $ showTransaction t'
                 changed' | null changed = changed
-                         | null $ last changed = init changed
+                         | T.null $ last changed = init changed
                          | otherwise = changed
 
 data DiffLine a = Del a | Add a | Ctx a

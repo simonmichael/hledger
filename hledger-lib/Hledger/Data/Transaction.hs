@@ -63,7 +63,6 @@ import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Text.Printf
 import qualified Data.Map as M
 
 import Hledger.Utils
@@ -148,53 +147,54 @@ To facilitate this, postings with explicit multi-commodity amounts
 are displayed as multiple similar postings, one per commodity.
 (Normally does not happen with this function).
 -}
-showTransaction :: Transaction -> String
+showTransaction :: Transaction -> Text
 showTransaction = showTransactionHelper False
 
 -- | Deprecated alias for 'showTransaction'
-showTransactionUnelided :: Transaction -> String
+showTransactionUnelided :: Transaction -> Text
 showTransactionUnelided = showTransaction  -- TODO: drop it
 
 -- | Like showTransaction, but explicit multi-commodity amounts
 -- are shown on one line, comma-separated. In this case the output will
 -- not be parseable journal syntax.
-showTransactionOneLineAmounts :: Transaction -> String
+showTransactionOneLineAmounts :: Transaction -> Text
 showTransactionOneLineAmounts = showTransactionHelper True
 
 -- | Deprecated alias for 'showTransactionOneLineAmounts'
-showTransactionUnelidedOneLineAmounts :: Transaction -> String
+showTransactionUnelidedOneLineAmounts :: Transaction -> Text
 showTransactionUnelidedOneLineAmounts = showTransactionOneLineAmounts  -- TODO: drop it
 
 -- | Helper for showTransaction*.
-showTransactionHelper :: Bool -> Transaction -> String
+showTransactionHelper :: Bool -> Transaction -> Text
 showTransactionHelper onelineamounts t =
-    unlines $ [descriptionline]
-              ++ newlinecomments
-              ++ (postingsAsLines onelineamounts (tpostings t))
-              ++ [""]
-    where
-      descriptionline = rstrip $ concat [date, status, code, desc, samelinecomment]
-      date = showDate (tdate t) ++ maybe "" (("="++) . showDate) (tdate2 t)
-      status | tstatus t == Cleared = " *"
-             | tstatus t == Pending = " !"
-             | otherwise            = ""
-      code = if T.length (tcode t) > 0 then printf " (%s)" $ T.unpack $ tcode t else ""
-      desc = if null d then "" else " " ++ d where d = T.unpack $ tdescription t
-      (samelinecomment, newlinecomments) =
-        case renderCommentLines (tcomment t) of []   -> ("",[])
-                                                c:cs -> (c,cs)
+    T.unlines $
+      descriptionline
+      : newlinecomments
+      ++ (postingsAsLines onelineamounts (tpostings t))
+      ++ [""]
+  where
+    descriptionline = T.stripEnd $ T.concat [date, status, code, desc, samelinecomment]
+    date = T.pack $ showDate (tdate t) ++ maybe "" (("="++) . showDate) (tdate2 t)
+    status | tstatus t == Cleared = " *"
+           | tstatus t == Pending = " !"
+           | otherwise            = ""
+    code = if T.null (tcode t) then "" else wrap " (" ")" $ tcode t
+    desc = if T.null d then "" else " " <> d where d = tdescription t
+    (samelinecomment, newlinecomments) =
+      case renderCommentLines (tcomment t) of []   -> ("",[])
+                                              c:cs -> (c,cs)
 
 -- | Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
 -- The first line (unless empty) will have leading space, subsequent lines will have a larger indent.
-renderCommentLines :: Text -> [String]
+renderCommentLines :: Text -> [Text]
 renderCommentLines t =
-  case lines $ T.unpack t of
+  case T.lines t of
     []      -> []
-    [l]     -> [(commentSpace . comment) l]        -- single-line comment
+    [l]     -> [commentSpace $ comment l]        -- single-line comment
     ("":ls) -> "" : map (lineIndent . comment) ls  -- multi-line comment with empty first line
-    (l:ls)  -> (commentSpace . comment) l : map (lineIndent . comment) ls
+    (l:ls)  -> commentSpace (comment l) : map (lineIndent . comment) ls
   where
-    comment = ("; "++)
+    comment = ("; "<>)
 
 -- | Given a transaction and its postings, render the postings, suitable
 -- for `print` output. Normally this output will be valid journal syntax which
@@ -214,7 +214,7 @@ renderCommentLines t =
 -- Posting amounts will be aligned with each other, starting about 4 columns
 -- beyond the widest account name (see postingAsLines for details).
 --
-postingsAsLines :: Bool -> [Posting] -> [String]
+postingsAsLines :: Bool -> [Posting] -> [Text]
 postingsAsLines onelineamounts ps = concatMap (postingAsLines False onelineamounts ps) ps
 
 -- | Render one posting, on one or more lines, suitable for `print` output.
@@ -236,23 +236,25 @@ postingsAsLines onelineamounts ps = concatMap (postingAsLines False onelineamoun
 -- increased if needed to match the posting with the longest account name.
 -- This is used to align the amounts of a transaction's postings.
 --
-postingAsLines :: Bool -> Bool -> [Posting] -> Posting -> [String]
+postingAsLines :: Bool -> Bool -> [Posting] -> Posting -> [Text]
 postingAsLines elideamount onelineamounts pstoalignwith p = concat [
     postingblock
     ++ newlinecomments
     | postingblock <- postingblocks]
   where
-    postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amt, assertion, samelinecomment] | amt <- shownAmounts]
+    postingblocks = [map (T.stripEnd . T.pack) . lines $
+                       concatTopPadded [T.unpack statusandaccount, "  ", amt, assertion, T.unpack samelinecomment]
+                    | amt <- shownAmounts]
     assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p
-    statusandaccount = lineIndent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
-        where
-          -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
-          minwidth = maximum $ map ((2+) . textWidth . T.pack . pacctstr) pstoalignwith
-          pstatusandacct p' = pstatusprefix p' ++ pacctstr p'
-          pstatusprefix p' | null s    = ""
-                           | otherwise = s ++ " "
-            where s = show $ pstatus p'
-          pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
+    statusandaccount = lineIndent . fitText (Just $ minwidth) Nothing False True $ pstatusandacct p
+      where
+        -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
+        minwidth = maximum $ map ((2+) . textWidth . pacctstr) pstoalignwith
+        pstatusandacct p' = pstatusprefix p' <> pacctstr p'
+        pstatusprefix p' = case pstatus p' of
+            Unmarked -> ""
+            s        -> T.pack (show s) <> " "
+        pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
 
     -- currently prices are considered part of the amount string when right-aligning amounts
     shownAmounts
@@ -286,33 +288,27 @@ showBalanceAssertion BalanceAssertion{..} =
 
 -- | Render a posting, at the appropriate width for aligning with
 -- its siblings if any. Used by the rewrite command.
-showPostingLines :: Posting -> [String]
+showPostingLines :: Posting -> [Text]
 showPostingLines p = postingAsLines False False ps p where
     ps | Just t <- ptransaction p = tpostings t
        | otherwise = [p]
 
 -- | Prepend a suitable indent for a posting (or transaction/posting comment) line.
-lineIndent :: String -> String
-lineIndent = ("    "++)
+lineIndent :: Text -> Text
+lineIndent = ("    "<>)
 
 -- | Prepend the space required before a same-line comment.
-commentSpace :: String -> String
-commentSpace = ("  "++)
+commentSpace :: Text -> Text
+commentSpace = ("  "<>)
 
 -- | Show an account name, clipped to the given width if any, and
 -- appropriately bracketed/parenthesised for the given posting type.
-showAccountName :: Maybe Int -> PostingType -> AccountName -> String
+showAccountName :: Maybe Int -> PostingType -> AccountName -> Text
 showAccountName w = fmt
   where
-    fmt RegularPosting = maybe id take w . T.unpack
-    fmt VirtualPosting = parenthesise . maybe id (takeEnd . subtract 2) w . T.unpack
-    fmt BalancedVirtualPosting = bracket . maybe id (takeEnd . subtract 2) w . T.unpack
-
-parenthesise :: String -> String
-parenthesise s = "("++s++")"
-
-bracket :: String -> String
-bracket s = "["++s++"]"
+    fmt RegularPosting         = maybe id T.take w
+    fmt VirtualPosting         = wrap "(" ")" . maybe id (T.takeEnd . subtract 2) w
+    fmt BalancedVirtualPosting = wrap "[" "]" . maybe id (T.takeEnd . subtract 2) w
 
 hasRealPostings :: Transaction -> Bool
 hasRealPostings = not . null . realPostings
@@ -427,7 +423,7 @@ transactionBalanceError t errs =
 
 annotateErrorWithTransaction :: Transaction -> String -> String
 annotateErrorWithTransaction t s =
-  unlines [showGenericSourcePos $ tsourcepos t, s, rstrip $ showTransaction t]
+  unlines [showGenericSourcePos $ tsourcepos t, s, T.unpack . T.stripEnd $ showTransaction t]
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -678,7 +674,7 @@ tests_Transaction =
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` usd 5]}
          (fst <$> inferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) @?=
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
-         
+
     , tests "showTransaction" [
           test "null transaction" $ showTransaction nulltransaction @?= "0000-01-01\n\n"
         , test "non-null transaction" $ showTransaction
@@ -701,7 +697,7 @@ tests_Transaction =
                       }
                   ]
               } @?=
-          unlines
+          T.unlines
             [ "2012-05-14=2012-05-15 (code) desc  ; tcomment1"
             , "    ; tcomment2"
             , "    * a         $1.00"
@@ -727,7 +723,7 @@ tests_Transaction =
                    , posting {paccount = "assets:checking", pamount = Mixed [usd (-47.18)], ptransaction = Just t}
                    ]
             in showTransaction t) @?=
-          (unlines
+          (T.unlines
              [ "2007-01-28 coopportunity"
              , "    expenses:food:groceries          $47.18"
              , "    assets:checking                 $-47.18"
@@ -750,7 +746,7 @@ tests_Transaction =
                 [ posting {paccount = "expenses:food:groceries", pamount = Mixed [usd 47.18]}
                 , posting {paccount = "assets:checking", pamount = Mixed [usd (-47.19)]}
                 ])) @?=
-          (unlines
+          (T.unlines
              [ "2007-01-28 coopportunity"
              , "    expenses:food:groceries          $47.18"
              , "    assets:checking                 $-47.19"
@@ -771,9 +767,9 @@ tests_Transaction =
                 ""
                 []
                 [posting {paccount = "expenses:food:groceries", pamount = missingmixedamt}])) @?=
-          (unlines ["2007-01-28 coopportunity", "    expenses:food:groceries", ""])
+          (T.unlines ["2007-01-28 coopportunity", "    expenses:food:groceries", ""])
         , test "show a transaction with a priced commodityless amount" $
-          (showTransaction
+          (T.unpack $ showTransaction
              (txnTieKnot $
               Transaction
                 0

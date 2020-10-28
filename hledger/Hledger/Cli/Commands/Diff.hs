@@ -19,6 +19,7 @@ import Data.Maybe
 import Data.Time
 import Data.Either
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import System.Exit
 
 import Hledger
@@ -116,10 +117,10 @@ diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{rsQuery=Acct acctRe}} _ = do
   let unmatchedtxn2 = unmatchedtxns R pp2 m
 
   putStrLn "These transactions are in the first file only:\n"
-  mapM_ (putStr . showTransaction) unmatchedtxn1
+  mapM_ (T.putStr . showTransaction) unmatchedtxn1
 
   putStrLn "These transactions are in the second file only:\n"
-  mapM_ (putStr . showTransaction) unmatchedtxn2
+  mapM_ (T.putStr . showTransaction) unmatchedtxn2
 
 diff _ _ = do
   putStrLn "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"

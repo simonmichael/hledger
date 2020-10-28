@@ -11,7 +11,8 @@ import Control.Monad (when)
 import Data.Function (on)
 import Data.List (groupBy)
 import Data.Maybe
-import qualified Data.Text as T (pack)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Time.Calendar
 import System.Console.CmdArgs.Explicit as C
 
@@ -152,6 +153,5 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
       ++ [posting{paccount=openingacct, pamount=if explicit then mapMixedAmount precise (negate totalamt) else missingmixedamt} | not interleaved]
 
   -- print them
-  when closing $ putStr $ showTransaction closingtxn
-  when opening $ putStr $ showTransaction openingtxn
-
+  when closing . T.putStr $ showTransaction closingtxn
+  when opening . T.putStr $ showTransaction openingtxn

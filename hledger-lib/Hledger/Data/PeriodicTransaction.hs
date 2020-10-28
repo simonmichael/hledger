@@ -16,6 +16,7 @@ where
 import Data.Semigroup ((<>))
 #endif
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Text.Printf
 
 import Hledger.Data.Types
@@ -40,7 +41,7 @@ _ptgen str = do
   case checkPeriodicTransactionStartDate i s t of
     Just e  -> error' e  -- PARTIAL:
     Nothing ->
-      mapM_ (putStr . showTransaction) $
+      mapM_ (T.putStr . showTransaction) $
         runPeriodicTransaction
           nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
           nulldatespan
@@ -52,7 +53,7 @@ _ptgenspan str span = do
   case checkPeriodicTransactionStartDate i s t of
     Just e  -> error' e  -- PARTIAL:
     Nothing ->
-      mapM_ (putStr . showTransaction) $
+      mapM_ (T.putStr . showTransaction) $
         runPeriodicTransaction
           nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] }
           span
