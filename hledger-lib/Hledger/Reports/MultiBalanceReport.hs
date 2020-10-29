@@ -339,17 +339,17 @@ accumValueAmounts :: ReportOpts -> (Day -> MixedAmount -> MixedAmount) -> [DateS
                   -> HashMap ClippedAccountName (Map DateSpan Account)
                   -> HashMap ClippedAccountName (Map DateSpan Account)
 accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
-    HM.mapWithKey rowbals $ acctchanges <> (mempty <$ startbals)
+    -- Ensure all columns have entries, including those with starting balances
+    HM.mapWithKey rowbals $ ((<>zeros) <$> acctchanges) <> (zeros <$ startbals)
   where
-    -- The row amounts to be displayed: per-period changes,
+    -- The valued row amounts to be displayed: per-period changes,
     -- zero-based cumulative totals, or
     -- starting-balance-based historical balances.
-    rowbals name changes' = dbg'' "rowbals" $ case balancetype_ ropts of
-        HistoricalBalance -> historical
-        CumulativeChange  -> cumulative
+    rowbals name changes = dbg'' "rowbals" $ case balancetype_ ropts of
         PeriodChange      -> changeamts
+        CumulativeChange  -> cumulative
+        HistoricalBalance -> historical
       where
-        -- Calculate the valued balances in each column, ensuring every column has an entry.
         historical = cumulativeSum startingBalance
         cumulative | fixedValuationDate = cumulativeSum nullacct
                    | otherwise          = fmap (`subtractAcct` valuedStart) historical
@@ -372,7 +372,6 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
             _                      -> True
           where singleperiod = interval_ ropts == NoInterval
 
-        changes = changes' <> zeros
         startingBalance = HM.lookupDefault nullacct name startbals
         valuedStart = valueAcct (DateSpan Nothing historicalDate) startingBalance
 
