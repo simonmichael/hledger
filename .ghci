@@ -1,4 +1,7 @@
 :set prompt "ghci> "
+-- https://github.com/cdepillabout/pretty-simple
+:set -package pretty-simple
+:set -interactive-print=Text.Pretty.Simple.pPrint
 
 -- ghci commands to be run once at ghci startup
 -- http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/ghci-commands.html
