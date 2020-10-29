@@ -13,24 +13,24 @@
 # stack bench hledger  # time a different set of benchmarks (bench/bench.hs) 
 # stack bench hledger --ba --criterion  # time more carefully, using criterion 
 
-hledger -f examples/100x100x10.journal print
-hledger -f examples/1000x1000x10.journal print
+# hledger -f examples/100x100x10.journal print
+# hledger -f examples/1000x1000x10.journal print
 hledger -f examples/10000x1000x10.journal print
-hledger -f examples/10000x1000x10.journal print ff
+# hledger -f examples/10000x1000x10.journal print ff
 #hledger -f examples/100000x1000x10.journal print
 #hledger -f examples/100000x1000x10.journal print ff
 
-hledger -f examples/100x100x10.journal register
-hledger -f examples/1000x1000x10.journal register
+# hledger -f examples/100x100x10.journal register
+# hledger -f examples/1000x1000x10.journal register
 hledger -f examples/10000x1000x10.journal register
-hledger -f examples/10000x1000x10.journal register ff
+# hledger -f examples/10000x1000x10.journal register ff
 #hledger -f examples/100000x1000x10.journal register
 #hledger -f examples/100000x1000x10.journal register ff
 
-hledger -f examples/100x100x10.journal balance
-hledger -f examples/1000x1000x10.journal balance
+# hledger -f examples/100x100x10.journal balance
+# hledger -f examples/1000x1000x10.journal balance
 hledger -f examples/10000x1000x10.journal balance
-hledger -f examples/10000x1000x10.journal balance ff
+# hledger -f examples/10000x1000x10.journal balance ff
 #hledger -f examples/100000x1000x10.journal balance
 #hledger -f examples/100000x1000x10.journal balance ff
 
