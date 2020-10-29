@@ -349,25 +349,28 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
         CumulativeChange  -> cumulative
         PeriodChange      -> changeamts
       where
-        -- Calculate the valued historical balance in each column, ensuring every
-        -- columns has an entry.
+        -- Calculate the valued balances in each column, ensuring every column has an entry.
         historical = cumulativeSum startingBalance
-        -- If no valuation can sum the changes directly, otherwise need to
-        -- subtract the valued starting amount from the historical sum
-        cumulative = case value_ ropts of
-            Nothing -> cumulativeSum nullacct
-            Just _  -> fmap (`subtractAcct` valuedStart) historical
-        -- If no valuation can use the change list directly, otherwise need to
-        -- calculate the incremental differences in the historical sum
-        changeamts = case value_ ropts of
-            Nothing -> changes
-            Just _  -> let (dates, histamts) = unzip $ M.toAscList historical
-                       in M.fromDistinctAscList . zip dates $
-                           zipWith subtractAcct histamts (valuedStart:histamts)
+        cumulative | fixedValuationDate = cumulativeSum nullacct
+                   | otherwise          = fmap (`subtractAcct` valuedStart) historical
+        changeamts | fixedValuationDate = M.mapWithKey valueAcct changes
+                   | otherwise          = M.fromDistinctAscList . zip dates $
+                                            zipWith subtractAcct histamts (valuedStart:histamts)
+          where (dates, histamts) = unzip $ M.toAscList historical
 
         cumulativeSum start = snd $ M.mapAccumWithKey accumValued start changes
           where accumValued startAmt date newAmt = (s, valueAcct date s)
                   where s = sumAcct startAmt newAmt
+
+        -- Whether the market price is measured at the same date for all report
+        -- periods, and we can therefore use the simpler calculations for
+        -- cumulative and change reports.
+        fixedValuationDate = case value_ ropts of
+            Just (AtCost (Just _)) -> singleperiod
+            Just (AtEnd  _)        -> singleperiod
+            Just (AtDefault _)     -> singleperiod
+            _                      -> True
+          where singleperiod = interval_ ropts == NoInterval
 
         changes = changes' <> zeros
         startingBalance = HM.lookupDefault nullacct name startbals
