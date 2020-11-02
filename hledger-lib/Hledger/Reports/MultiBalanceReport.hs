@@ -20,6 +20,8 @@ module Hledger.Reports.MultiBalanceReport (
   compoundBalanceReportWith,
 
   tableAsText,
+  trimBorder,
+  leftAlignRowHeaders,
 
   sortRows,
   sortRowsLike,
@@ -597,17 +599,18 @@ dbg'' s = let p = "multiBalanceReport" in Hledger.Utils.dbg5 (p++" "++s)
 -- common rendering helper, XXX here for now
 tableAsText :: ReportOpts -> (a -> String) -> Table String String a -> String
 tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
-  unlines
-  . trimborder
-  . lines
+  trimBorder
   . render pretty id id showcell
-  . align
+  . leftAlignRowHeaders
+
+trimBorder :: String -> String
+trimBorder = unlines . map (drop 1 . init) . drop 1 . init . lines
+
+leftAlignRowHeaders :: Table String ch a -> Table String ch a
+leftAlignRowHeaders (Table l t d) = Table l' t d
   where
-    trimborder = drop 1 . init . map (drop 1 . init)
-    align (Table l t d) = Table l' t d
-      where
-        acctswidth = maximum' $ map strWidth (headerContents l)
-        l'         = padRightWide acctswidth <$> l
+    acctswidth = maximum' $ map strWidth (headerContents l)
+    l'         = padRightWide acctswidth <$> l
 
 -- tests
 
