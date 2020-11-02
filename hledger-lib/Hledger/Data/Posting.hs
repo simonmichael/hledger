@@ -168,7 +168,7 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
                           BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
                           _ -> (id,acctnamewidth)
-      showamount = padLeftWide 12 . showMixedAmount
+      showamount = fst . showMixed showAmount (Just 12) Nothing False
 
 
 showComment :: Text -> String
