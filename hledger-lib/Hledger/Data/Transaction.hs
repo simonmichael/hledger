@@ -260,7 +260,7 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
       | null (amounts $ pamount p) = [""]
       | otherwise      = lines . fst . showMixedUnnormalised showAmount (Just amtwidth) Nothing False $ pamount p
       where
-        amtwidth = maximum $ map (snd . showMixed showAmount (Just 12) Nothing False . pamount) pstoalignwith  -- min. 12 for backwards compatibility
+        amtwidth = maximum $ 12 : map (snd . showMixedUnnormalised showAmount Nothing Nothing False . pamount) pstoalignwith  -- min. 12 for backwards compatibility
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
