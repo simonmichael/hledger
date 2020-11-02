@@ -40,6 +40,7 @@ module Hledger.Utils.String (
  -- * wide-character-aware layout
  charWidth,
  strWidth,
+ strWidthAnsi,
  takeWidth,
  fitString,
  fitStringMulti,
@@ -334,11 +335,19 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
 -- see also http://unicode.org/reports/tr11/#Description
 
 -- | Calculate the render width of a string, considering
--- wide characters (counted as double width), ANSI escape codes
--- (not counted), and line breaks (in a multi-line string, the longest
--- line determines the width).
+-- wide characters (counted as double width), and line breaks
+-- (in a multi-line string, the longest line determines the
+-- width).
 strWidth :: String -> Int
-strWidth = maximum . (0:) . map (foldr (\a b -> charWidth a + b) 0) . lines . stripAnsi
+strWidth = maximum . (0:) . map (foldr (\a b -> charWidth a + b) 0) . lines
+
+-- | Like strWidth, but also strips ANSI escape sequences before
+-- calculating the width.
+--
+-- This is no longer used in code, as widths are calculated before
+-- adding ANSI escape sequences, but is being kept around for now.
+strWidthAnsi :: String -> Int
+strWidthAnsi = strWidth . stripAnsi
 
 -- | Strip ANSI escape sequences from a string.
 --

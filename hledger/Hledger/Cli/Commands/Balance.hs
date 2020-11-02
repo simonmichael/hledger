@@ -263,7 +263,7 @@ import System.Console.CmdArgs.Explicit as C
 import Lucid as L
 import Text.Printf (printf)
 import Text.Tabular as T
---import Text.Tabular.AsciiWide
+import Text.Tabular.AsciiWide (renderWidth)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -609,11 +609,11 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
 -- console output. Amounts with more than two commodities will be elided
 -- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Table String String MixedAmount -> String
-balanceReportTableAsText ropts@ReportOpts{..} = tableAsText ropts showamt
+balanceReportTableAsText ReportOpts{..} =
+    trimBorder . renderWidth pretty_tables_ id id showamt . leftAlignRowHeaders
   where
-    showamt
-      | no_elide_ = showMixedAmountOneLineWithoutPrice color_
-      | otherwise = showMixedAmountElided color_
+    showamt = showMixedOneLine showAmountWithoutPrice Nothing mmax color_
+    mmax = if no_elide_ then Nothing else Just 22
 
 
 tests_Balance = tests "Balance" [
