@@ -150,7 +150,7 @@ accountTransactionsReportAsText
     amtwidth = maximumStrict $ 12 : map (snd . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (snd . showamt . itembal) items
     showamt = showMixedOneLine showAmountWithoutPrice (Just 12) mmax False  -- color_
-      where mmax = if no_elide_ then Nothing else Just 22
+      where mmax = if no_elide_ then Nothing else Just 32
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
     -- show a title indicating which account was picked, which can be confusing otherwise

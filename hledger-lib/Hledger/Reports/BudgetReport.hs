@@ -239,7 +239,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
       where
         actual' = fromMaybe 0 actual
         budgetAndPerc b = (showamt b, showper <$> percentage actual' b)
-        showamt = showMixedOneLine showAmountWithoutPrice Nothing (Just 22) color_
+        showamt = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) color_
         showper p = let str = show (roundTo 0 p) in (str, length str)
     cellWidth ((_,wa), Nothing)                    = (wa,  0,  0)
     cellWidth ((_,wa), Just ((_,wb), Nothing))     = (wa, wb,  0)

@@ -612,7 +612,7 @@ balanceReportTableAsText ReportOpts{..} =
   where
     showamt a = CellSpec str AlignRight w
       where (str, w) = showMixedOneLine showAmountWithoutPrice Nothing mmax color_ a
-    mmax = if no_elide_ then Nothing else Just 22
+    mmax = if no_elide_ then Nothing else Just 32
 
 
 tests_Balance = tests "Balance" [
