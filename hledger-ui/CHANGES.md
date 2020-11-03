@@ -1,7 +1,13 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 2b715fbe
+# 260283e2
+
+
+
+- ui: E ignores file extension, should help positioning on windows
+
+- ui: E supports positioning when EDITOR is code (VS Code) (#1359)
 
 
 # 1.19.1 2020-09-07

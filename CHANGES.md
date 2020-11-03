@@ -1,7 +1,9 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 65d603ab
+# 19ab2225
+
+- tools: add hie.yaml, hls now works with hledger
 
 
 # 1.19.1 2020-09-07

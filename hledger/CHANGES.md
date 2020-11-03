@@ -1,7 +1,18 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 2b715fbe
+# affc8d10
+
+
+
+- lib,cli: Remove old impure ReportOpts date functions. (Stephen Morgan)
+
+- lib,cli: Store parsed Query in ReportOpts, rather than an unparsed String. (Stephen Morgan)
+
+- journal: apply commodity styles to forecasted transactions (#1371)
+
+- balcmds: mention --no-elide's new function: disabling the eliding of
+  amounts to two commodities.
 
 
 # 1.19.1 2020-09-07

@@ -1,7 +1,19 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 2b715fbe
+# 260283e2
+
+- Fix hledger-web description (TANIGUCHI Kohei)
+  Slashes need to be escaped or they introduce unexpected italic style
+  due to Haddock markup.
+
+- The hledger version string, as JSON, is provided at /version (#1152)
+
+- Write the session file (hledger-web_client_session_key.aes) in 
+  $XDG_DATA_DIR rather than in the current directory.
+  Eg on non-Windows systems this is ~/.cache/ by default (cf
+  https://hackage.haskell.org/package/directory/docs/System-Directory.html#t:XdgDirectory).
+  (#1344) (Félix Sipma)
 
 
 # 1.19.1 2020-09-07
