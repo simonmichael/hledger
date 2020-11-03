@@ -26,6 +26,7 @@ module Hledger.Reports.BudgetReport (
 where
 
 import Data.Decimal
+import Data.Default (def)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.List
@@ -214,7 +215,8 @@ combineBudgetAndActual ropts j
 budgetReportAsText :: ReportOpts -> BudgetReport -> String
 budgetReportAsText ropts@ReportOpts{..} budgetr =
     title ++ "\n\n" ++
-    renderTable False pretty_tables_ leftCell rightCell (uncurry showcell) displayTableWithWidths
+    renderTable def{tableBorders=False,prettyTable=pretty_tables_}
+        (alignCell TopLeft) (alignCell TopRight) (uncurry showcell) displayTableWithWidths
   where
     multiperiod = interval_ /= NoInterval
     title = printf "Budget performance in %s%s:"
@@ -252,11 +254,9 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
     cols = transpose displaycells
 
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
-    showcell :: (Int, Int, Int) -> BudgetDisplayCell -> CellSpec
+    showcell :: (Int, Int, Int) -> BudgetDisplayCell -> Cell
     showcell (actualwidth, budgetwidth, percentwidth) ((actual,wa), mbudget) =
-        CellSpec (replicate (actualwidth - wa) ' ' ++ actual ++ budgetstr)
-                 AlignRight
-                 (actualwidth + totalbudgetwidth)
+        Cell TopRight [(replicate (actualwidth - wa) ' ' ++ actual ++ budgetstr, actualwidth + totalbudgetwidth)]
       where
         totalpercentwidth = if percentwidth == 0 then 0 else percentwidth + 5
         totalbudgetwidth  = if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth + 3

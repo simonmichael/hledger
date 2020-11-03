@@ -3,30 +3,66 @@
 
 module Text.Tabular.AsciiWide where
 
+import Data.Maybe (fromMaybe)
+import Data.Default (Default(..))
 import Data.List (intersperse, transpose)
+import Safe (maximumMay)
 import Text.Tabular
-import Hledger.Utils.String
+import Text.WideString (strWidth)
+
+
+-- | The options to use for rendering a table.
+data TableOpts = TableOpts
+  { prettyTable  :: Bool  -- ^ Pretty tables
+  , tableBorders :: Bool  -- ^ Whether to display the outer borders
+  , borderSpaces :: Bool  -- ^ Whether to display spaces around bars
+  } deriving (Show)
+
+instance Default TableOpts where
+  def = TableOpts { prettyTable  = False
+                  , tableBorders = True
+                  , borderSpaces = True
+                  }
+
+-- | Cell contents along an alignment
+data Cell = Cell Align [(String, Int)]
+    deriving (Show)
+
+-- | How to align text in a cell
+data Align = TopRight | BottomRight | BottomLeft | TopLeft
+  deriving (Show)
+
+emptyCell :: Cell
+emptyCell = Cell TopRight []
+
+-- | Create a single-line cell from the given contents with its natural width.
+alignCell :: Align -> String -> Cell
+alignCell a x = Cell a [(x, strWidth x)]
+
+-- | Return the width of a Cell.
+cellWidth :: Cell -> Int
+cellWidth (Cell _ xs) = fromMaybe 0 . maximumMay $ map snd xs
 
 
 -- | Render a table according to common options, for backwards compatibility
 render :: Bool -> (rh -> String) -> (ch -> String) -> (a -> String) -> Table rh ch a -> String
-render pretty fr fc f = renderTable True pretty (rightCell . fr) (rightCell . fc) (rightCell . f)
+render pretty fr fc f = renderTable def{prettyTable=pretty} (cell . fr) (cell . fc) (cell . f)
+  where cell = alignCell TopRight
 
 -- | Render a table according to various cell specifications
-renderTable :: Bool              -- ^ Whether to display the outer borders
-            -> Bool              -- ^ Pretty tables
-            -> (rh -> CellSpec)  -- ^ Rendering function for row headers
-            -> (ch -> CellSpec)  -- ^ Rendering function for column headers
-            -> (a -> CellSpec)   -- ^ Function determining the string and width of a cell
+renderTable :: TableOpts         -- ^ Options controlling Table rendering
+            -> (rh -> Cell)  -- ^ Rendering function for row headers
+            -> (ch -> Cell)  -- ^ Rendering function for column headers
+            -> (a -> Cell)   -- ^ Function determining the string and width of a cell
             -> Table rh ch a
             -> String
-renderTable borders pretty fr fc f (Table rh ch cells) =
+renderTable topts@TableOpts{prettyTable=pretty, tableBorders=borders} fr fc f (Table rh ch cells) =
   unlines . addBorders $
-    renderColumns borders pretty sizes ch2
+    renderColumns topts sizes ch2
     : bar VM DoubleLine   -- +======================================+
     : renderRs (fmap renderR $ zipHeader [] cellContents rowHeaders)
  where
-  renderR (cs,h) = renderColumns borders pretty sizes $ Group DoubleLine
+  renderR (cs,h) = renderColumns topts sizes $ Group DoubleLine
                      [ Header h
                      , fmap fst $ zipHeader emptyCell cs colHeaders
                      ]
@@ -40,7 +76,7 @@ renderTable borders pretty fr fc f (Table rh ch cells) =
   cells2 = headerContents ch2 : zipWith (:) (headerContents rowHeaders) cellContents
 
   -- maximum width for each column
-  sizes   = map (maximum . map csWidth) $ transpose cells2
+  sizes = map (fromMaybe 0 . maximumMay . map cellWidth) $ transpose cells2
   renderRs (Header s)   = [s]
   renderRs (Group p hs) = concat . intersperse sep $ map renderRs hs
     where sep = renderHLine VM borders pretty sizes ch2 p
@@ -49,59 +85,64 @@ renderTable borders pretty fr fc f (Table rh ch cells) =
   addBorders xs = if borders then bar VT SingleLine : xs ++ [bar VB SingleLine] else xs
   bar vpos prop = concat $ renderHLine vpos borders pretty sizes ch2 prop
 
-
-data CellSpec = CellSpec
-    { csString :: String
-    , csAlign  :: Align
-    , csWidth  :: Int
-    } deriving (Show)
-
-emptyCell :: CellSpec
-emptyCell = CellSpec "" AlignRight 0
-
-rightCell :: String -> CellSpec
-rightCell x = CellSpec x AlignRight (strWidth x)
-
-leftCell :: String -> CellSpec
-leftCell x = CellSpec x AlignLeft (strWidth x)
-
-data Align = AlignLeft | AlignRight
-  deriving (Show)
+-- | Render a single row according to cell specifications.
+renderRow :: TableOpts -> Header Cell -> String
+renderRow topts h = renderColumns topts is h
+  where is = map (\(Cell _ xs) -> fromMaybe 0 . maximumMay $ map snd xs) $ headerContents h
 
 
 verticalBar :: Bool -> Char
 verticalBar pretty = if pretty then '│' else '|'
 
-leftBar :: Bool -> String
-leftBar pretty = verticalBar pretty : " "
+leftBar :: Bool -> Bool -> String
+leftBar pretty True  = verticalBar pretty : " "
+leftBar pretty False = [verticalBar pretty]
 
-rightBar :: Bool -> String
-rightBar pretty = " " ++ [verticalBar pretty]
+rightBar :: Bool -> Bool -> String
+rightBar pretty True  = ' ' : [verticalBar pretty]
+rightBar pretty False = [verticalBar pretty]
 
-midBar :: Bool -> String
-midBar pretty = " " ++ verticalBar pretty : " "
+midBar :: Bool -> Bool -> String
+midBar pretty True  = ' ' : verticalBar pretty : " "
+midBar pretty False = [verticalBar pretty]
 
-doubleMidBar :: Bool -> String
-doubleMidBar pretty = if pretty then " ║ " else " || "
+doubleMidBar :: Bool -> Bool -> String
+doubleMidBar pretty True  = if pretty then " ║ " else " || "
+doubleMidBar pretty False = if pretty then "║" else "||"
 
 -- | We stop rendering on the shortest list!
-renderColumns :: Bool   -- ^ show outer borders
-              -> Bool   -- ^ pretty
-              -> [Int]  -- ^ max width for each column
-              -> Header CellSpec
+renderColumns :: TableOpts  -- ^ rendering options for the table
+              -> [Int]      -- ^ max width for each column
+              -> Header Cell
               -> String
-renderColumns borders pretty is h = addBorders coreLine
- where
-  addBorders xs = if borders then leftBar pretty ++ xs ++ rightBar pretty else ' ' : xs ++ " "
-  coreLine = concatMap helper $ flattenHeader $ zipHeader 0 is h
-  helper = either hsep (\(w, cs) -> case csAlign cs of
-                            AlignLeft  -> csString cs ++ replicate (w - csWidth cs) ' '
-                            AlignRight -> replicate (w - csWidth cs) ' ' ++ csString cs
-                        )
-  hsep :: Properties -> String
-  hsep NoLine     = "  "
-  hsep SingleLine = midBar pretty
-  hsep DoubleLine = doubleMidBar pretty
+renderColumns TableOpts{prettyTable=pretty, tableBorders=borders, borderSpaces=spaces} is h =
+    concat . intersperse "\n"                    -- Put each line on its own line
+    . map (addBorders . concat) . transpose      -- Change to a list of lines and add borders
+    . map (either hsep padCell) . flattenHeader  -- We now have a matrix of strings
+    . zipHeader 0 is $ padRow <$> h  -- Pad cell height and add width marker
+  where
+    -- Pad each cell to have the appropriate width
+    padCell (w, Cell TopLeft     ls) = map (\(x,xw) -> x ++ replicate (w - xw) ' ') ls
+    padCell (w, Cell BottomLeft  ls) = map (\(x,xw) -> x ++ replicate (w - xw) ' ') ls
+    padCell (w, Cell TopRight    ls) = map (\(x,xw) -> replicate (w - xw) ' ' ++ x) ls
+    padCell (w, Cell BottomRight ls) = map (\(x,xw) -> replicate (w - xw) ' ' ++ x) ls
+
+    -- Pad each cell to have the same number of lines
+    padRow (Cell TopLeft     ls) = Cell TopLeft     $ ls ++ replicate (nLines - length ls) ("",0)
+    padRow (Cell TopRight    ls) = Cell TopRight    $ ls ++ replicate (nLines - length ls) ("",0)
+    padRow (Cell BottomLeft  ls) = Cell BottomLeft  $ replicate (nLines - length ls) ("",0) ++ ls
+    padRow (Cell BottomRight ls) = Cell BottomRight $ replicate (nLines - length ls) ("",0) ++ ls
+
+    hsep :: Properties -> [String]
+    hsep NoLine     = replicate nLines $ if spaces then "  " else ""
+    hsep SingleLine = replicate nLines $ midBar pretty spaces
+    hsep DoubleLine = replicate nLines $ doubleMidBar pretty spaces
+
+    addBorders xs | borders   = leftBar pretty spaces ++ xs ++ rightBar pretty spaces
+                  | spaces    =  ' ' : xs ++ " "
+                  | otherwise = xs
+
+    nLines = fromMaybe 0 . maximumMay . map (\(Cell _ ls) -> length ls) $ headerContents h
 
 renderHLine :: VPos
             -> Bool  -- ^ show outer borders

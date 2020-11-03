@@ -253,8 +253,9 @@ module Hledger.Cli.Commands.Balance (
  ,tests_Balance
 ) where
 
-import Data.List
-import Data.Maybe
+import Data.Default (def)
+import Data.List (intercalate, transpose)
+import Data.Maybe (fromMaybe, maybeToList)
 --import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -608,10 +609,10 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
 -- unless --no-elide is used.
 balanceReportTableAsText :: ReportOpts -> Table String String MixedAmount -> String
 balanceReportTableAsText ReportOpts{..} =
-    T.renderTable False pretty_tables_ T.leftCell T.rightCell showamt
+    T.renderTable def{tableBorders=False, prettyTable=pretty_tables_}
+        (T.alignCell TopLeft) (T.alignCell TopRight) showamt
   where
-    showamt a = CellSpec str AlignRight w
-      where (str, w) = showMixedOneLine showAmountWithoutPrice Nothing mmax color_ a
+    showamt = Cell TopRight . pure . showMixedOneLine showAmountWithoutPrice Nothing mmax color_
     mmax = if no_elide_ then Nothing else Just 32
 
 

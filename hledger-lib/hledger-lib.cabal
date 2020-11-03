@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a604ce23a128bb6cf15351a33b24e7d1095f46624e7e066a5e07473c681da8da
+-- hash: 24b8acde4649dda5e31d86c9f4f95744af97bae68f0e978144a55baf621d0bc8
 
 name:           hledger-lib
 version:        1.19.99
@@ -103,6 +103,7 @@ library
       Text.Tabular.AsciiWide
   other-modules:
       Text.Megaparsec.Custom
+      Text.WideString
       Paths_hledger_lib
   hs-source-dirs:
       ./.
