@@ -50,13 +50,18 @@ module Hledger.Utils.String (
 
 
 import Data.Char (isSpace, toLower, toUpper)
-import Data.List (intercalate, transpose)
+import Data.Default (def)
+import Data.List (intercalate)
 import Text.Megaparsec ((<|>), between, many, noneOf, sepBy)
 import Text.Megaparsec.Char (char)
 import Text.Printf (printf)
 
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex (toRegex', regexReplace)
+import Text.Tabular (Header(..), Properties(..))
+import Text.Tabular.AsciiWide (Align(..), Cell(..), TableOpts(..), renderRow)
+import Text.WideString (strWidth, charWidth)
+
 
 -- | Take elements from the end of a list.
 takeEnd n l = go (drop n l) l
@@ -172,26 +177,16 @@ unbracket s
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 -- Treats wide characters as double width.
 concatTopPadded :: [String] -> String
-concatTopPadded strs = intercalate "\n" $ map concat $ transpose padded
-    where
-      lss = map lines strs
-      h = maximum $ map length lss
-      ypad ls = replicate (difforzero h (length ls)) "" ++ ls
-      xpad ls = map (padLeftWide w) ls where w | null ls = 0
-                                               | otherwise = maximum $ map strWidth ls
-      padded = map (xpad . ypad) lss
+concatTopPadded = renderRow def{tableBorders=False, borderSpaces=False}
+                . Group NoLine . map (Header . cell)
+  where cell = Cell BottomLeft . map (\x -> (x, strWidth x)) . lines
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
 -- Treats wide characters as double width.
 concatBottomPadded :: [String] -> String
-concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
-    where
-      lss = map lines strs
-      h = maximum $ map length lss
-      ypad ls = ls ++ replicate (difforzero h (length ls)) ""
-      xpad ls = map (padRightWide w) ls where w | null ls = 0
-                                                | otherwise = maximum $ map strWidth ls
-      padded = map (xpad . ypad) lss
+concatBottomPadded = renderRow def{tableBorders=False, borderSpaces=False}
+                   . Group NoLine . map (Header . cell)
+  where cell = Cell TopLeft . map (\x -> (x, strWidth x)) . lines
 
 
 -- | Join multi-line strings horizontally, after compressing each of
@@ -331,16 +326,6 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
                    | otherwise = ""
   where cw = charWidth c
 
--- from Pandoc (copyright John MacFarlane, GPL)
--- see also http://unicode.org/reports/tr11/#Description
-
--- | Calculate the render width of a string, considering
--- wide characters (counted as double width), and line breaks
--- (in a multi-line string, the longest line determines the
--- width).
-strWidth :: String -> Int
-strWidth = maximum . (0:) . map (foldr (\a b -> charWidth a + b) 0) . lines
-
 -- | Like strWidth, but also strips ANSI escape sequences before
 -- calculating the width.
 --
@@ -358,51 +343,3 @@ stripAnsi s = either err id $ regexReplace ansire "" s
  where
    err    = error "stripAnsi: invalid replacement pattern"      -- PARTIAL, shouldn't happen
    ansire = toRegex' "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]"  -- PARTIAL, should succeed
-
--- | Get the designated render width of a character: 0 for a combining
--- character, 1 for a regular character, 2 for a wide character.
--- (Wide characters are rendered as exactly double width in apps and
--- fonts that support it.) (From Pandoc.)
-charWidth :: Char -> Int
-charWidth c =
-  case c of
-      _ | c <  '\x0300'                    -> 1
-        | c >= '\x0300' && c <= '\x036F'   -> 0  -- combining
-        | c >= '\x0370' && c <= '\x10FC'   -> 1
-        | c >= '\x1100' && c <= '\x115F'   -> 2
-        | c >= '\x1160' && c <= '\x11A2'   -> 1
-        | c >= '\x11A3' && c <= '\x11A7'   -> 2
-        | c >= '\x11A8' && c <= '\x11F9'   -> 1
-        | c >= '\x11FA' && c <= '\x11FF'   -> 2
-        | c >= '\x1200' && c <= '\x2328'   -> 1
-        | c >= '\x2329' && c <= '\x232A'   -> 2
-        | c >= '\x232B' && c <= '\x2E31'   -> 1
-        | c >= '\x2E80' && c <= '\x303E'   -> 2
-        | c == '\x303F'                    -> 1
-        | c >= '\x3041' && c <= '\x3247'   -> 2
-        | c >= '\x3248' && c <= '\x324F'   -> 1 -- ambiguous
-        | c >= '\x3250' && c <= '\x4DBF'   -> 2
-        | c >= '\x4DC0' && c <= '\x4DFF'   -> 1
-        | c >= '\x4E00' && c <= '\xA4C6'   -> 2
-        | c >= '\xA4D0' && c <= '\xA95F'   -> 1
-        | c >= '\xA960' && c <= '\xA97C'   -> 2
-        | c >= '\xA980' && c <= '\xABF9'   -> 1
-        | c >= '\xAC00' && c <= '\xD7FB'   -> 2
-        | c >= '\xD800' && c <= '\xDFFF'   -> 1
-        | c >= '\xE000' && c <= '\xF8FF'   -> 1 -- ambiguous
-        | c >= '\xF900' && c <= '\xFAFF'   -> 2
-        | c >= '\xFB00' && c <= '\xFDFD'   -> 1
-        | c >= '\xFE00' && c <= '\xFE0F'   -> 1 -- ambiguous
-        | c >= '\xFE10' && c <= '\xFE19'   -> 2
-        | c >= '\xFE20' && c <= '\xFE26'   -> 1
-        | c >= '\xFE30' && c <= '\xFE6B'   -> 2
-        | c >= '\xFE70' && c <= '\xFEFF'   -> 1
-        | c >= '\xFF01' && c <= '\xFF60'   -> 2
-        | c >= '\xFF61' && c <= '\x16A38'  -> 1
-        | c >= '\x1B000' && c <= '\x1B001' -> 2
-        | c >= '\x1D000' && c <= '\x1F1FF' -> 1
-        | c >= '\x1F200' && c <= '\x1F251' -> 2
-        | c >= '\x1F300' && c <= '\x1F773' -> 1
-        | c >= '\x20000' && c <= '\x3FFFD' -> 2
-        | otherwise                        -> 1
-
