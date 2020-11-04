@@ -92,7 +92,7 @@ data ReportOpts = ReportOpts {
     ,no_elide_       :: Bool
     ,real_           :: Bool
     ,format_         :: StringFormat
-    ,querystring_    :: T.Text
+    ,querystring_    :: [T.Text]
     --
     ,average_        :: Bool
     -- for posting reports (register)
@@ -141,7 +141,7 @@ defreportopts = ReportOpts
     , no_elide_        = False
     , real_            = False
     , format_          = def
-    , querystring_     = ""
+    , querystring_     = []
     , average_         = False
     , related_         = False
     , txn_dates_       = False
@@ -168,8 +168,7 @@ rawOptsToReportOpts rawopts = do
 
     let colorflag    = stringopt "color" rawopts
         formatstring = maybestringopt "format" rawopts
-        querystring  = T.pack . unwords . map quoteIfNeeded $
-                        listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
+        querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
 
     format <- case parseStringFormat <$> formatstring of
         Nothing         -> return defaultBalanceLineFormat
@@ -237,7 +236,7 @@ defreportspec = ReportSpec
 -- | Generate a ReportSpec from a set of ReportOpts on a given day.
 reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
 reportOptsToSpec day ropts = do
-    (argsquery, queryopts) <- parseQuery day $ querystring_ ropts
+    (argsquery, queryopts) <- parseQueryList day $ querystring_ ropts
     return ReportSpec
       { rsOpts = ropts
       , rsToday = day

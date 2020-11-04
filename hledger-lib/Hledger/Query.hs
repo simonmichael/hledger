@@ -20,6 +20,7 @@ module Hledger.Query (
   generatedTransactionTag,
   -- * parsing
   parseQuery,
+  parseQueryList,
   simplifyQuery,
   filterQuery,
   -- * accessors
@@ -141,9 +142,23 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- showAccountMatcher _ = Nothing
 
 
--- | Convert a query expression containing zero or more
--- space-separated terms to a query and zero or more query options; or
--- return an error message if query parsing fails.
+-- | A version of parseQueryList which acts on a single Text of
+-- space-separated terms.
+--
+-- The usual shell quoting rules are assumed. When a pattern contains
+-- whitespace, it (or the whole term including prefix) should be enclosed
+-- in single or double quotes.
+--
+-- >>> parseQuery nulldate "expenses:dining out"
+-- Right (Or [Acct (RegexpCI "expenses:dining"),Acct (RegexpCI "out")],[])
+--
+-- >>> parseQuery nulldate "\"expenses:dining out\""
+-- Right (Acct (RegexpCI "expenses:dining out"),[])
+parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
+parseQuery d = parseQueryList d . words'' prefixes
+
+-- | Convert a list of query expression containing to a query and zero
+-- or more query options; or return an error message if query parsing fails.
 --
 -- A query term is either:
 --
@@ -161,10 +176,6 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 --
 --      inacct:FULLACCTNAME
 --
--- The usual shell quoting rules are assumed. When a pattern contains
--- whitespace, it (or the whole term including prefix) should be enclosed
--- in single or double quotes.
---
 -- Period expressions may contain relative dates, so a reference date is
 -- required to fully parse these.
 --
@@ -173,15 +184,8 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- 2. multiple description patterns are OR'd together
 -- 3. multiple status patterns are OR'd together
 -- 4. then all terms are AND'd together
---
--- >>> parseQuery nulldate "expenses:dining out"
--- Right (Or [Acct (RegexpCI "expenses:dining"),Acct (RegexpCI "out")],[])
---
--- >>> parseQuery nulldate "\"expenses:dining out\""
--- Right (Acct (RegexpCI "expenses:dining out"),[])
-parseQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
-parseQuery d s = do
-  let termstrs = words'' prefixes s
+parseQueryList :: Day -> [T.Text] -> Either String (Query, [QueryOpt])
+parseQueryList d termstrs = do
   eterms <- sequence $ map (parseQueryTerm d) termstrs
   let (pats, opts) = partitionEithers eterms
       (descpats, pats') = partition queryIsDesc pats

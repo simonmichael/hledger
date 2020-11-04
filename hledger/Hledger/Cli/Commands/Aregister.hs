@@ -76,8 +76,8 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   -- the first argument specifies the account, any remaining arguments are a filter query
   (apat,querystring) <- case listofstringopt "args" rawopts of
       []     -> fail "aregister needs an account, please provide an account name or pattern"
-      (a:as) -> return (a, T.pack . unwords $ map quoteIfNeeded as)
-  argsquery <- either fail (return . fst) $ parseQuery d querystring
+      (a:as) -> return (a, map T.pack as)
+  argsquery <- either fail (return . fst) $ parseQueryList d querystring
   let
     acct = headDef (error' $ show apat++" did not match any account")   -- PARTIAL:
            . filterAccts $ journalAccountNames j

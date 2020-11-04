@@ -173,7 +173,7 @@ asDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
           <+> toggles
           <+> str (" account " ++ if ishistorical then "balances" else "changes")
           <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
-          <+> borderQueryStr (T.unpack $ querystring_ ropts)
+          <+> borderQueryStr (unwords . map (quoteIfNeeded . T.unpack) $ querystring_ ropts)
           <+> borderDepthStr mdepth
           <+> str (" ("++curidx++"/"++totidx++")")
           <+> (if ignore_assertions_ $ inputopts_ copts

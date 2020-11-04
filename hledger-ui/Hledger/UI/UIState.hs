@@ -243,7 +243,8 @@ setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
     ui{aopts=uopts{cliopts_=copts{reportspec_=newrspec}}}
   where
-    newrspec = either (const rspec) id $ reportOptsToSpec (rsToday rspec) ropts{querystring_=T.pack s}
+    newrspec = either (const rspec) id $ reportOptsToSpec (rsToday rspec) ropts{querystring_=querystring}
+    querystring = words'' prefixes $ T.pack s
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
@@ -255,7 +256,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rsp
        empty_=True
       ,statuses_=[]
       ,real_=False
-      ,querystring_=""
+      ,querystring_=[]
       --,period_=PeriodAll
     }}}}}
 
@@ -312,7 +313,8 @@ showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui
   where
     e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
-    oldq = T.unpack . querystring_ . rsOpts . reportspec_ . cliopts_ $ aopts ui
+    oldq = unwords . map (quoteIfNeeded . T.unpack)
+         . querystring_ . rsOpts . reportspec_ . cliopts_ $ aopts ui
 
 -- | Close the minibuffer, discarding any edit in progress.
 closeMinibuffer :: UIState -> UIState
