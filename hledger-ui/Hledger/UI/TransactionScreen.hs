@@ -97,7 +97,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
           <+> withAttr ("border" <> "bold") (str $ show i)
           <+> str (" of "++show (length nts))
           <+> togglefilters
-          <+> borderQueryStr (T.unpack $ querystring_ ropts)
+          <+> borderQueryStr (unwords . map (quoteIfNeeded . T.unpack) $ querystring_ ropts)
           <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
           <+> (if ignore_assertions_ $ inputopts_ copts then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
           where

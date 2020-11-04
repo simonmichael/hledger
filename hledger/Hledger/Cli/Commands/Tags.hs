@@ -31,12 +31,12 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   let args = listofstringopt "args" rawopts
   mtagpat <- mapM (either Fail.fail pure . toRegexCI) $ headMay args
   let
-    querystring = T.pack . unwords . map quoteIfNeeded $ drop 1 args
+    querystring = map T.pack $ drop 1 args
     values      = boolopt "values" rawopts
     parsed      = boolopt "parsed" rawopts
     empty       = empty_ $ rsOpts rspec
 
-  argsquery <- either usageError (return . fst) $ parseQuery d querystring
+  argsquery <- either usageError (return . fst) $ parseQueryList d querystring
   let
     q = simplifyQuery $ And [queryFromFlags $ rsOpts rspec, argsquery]
     txns = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts (rsOpts rspec) j
