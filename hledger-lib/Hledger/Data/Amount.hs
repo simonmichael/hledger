@@ -714,8 +714,9 @@ showMixedOneLineUnnormalised showamt mmin mmax c (Mixed as) =
     addElide xs = maybeAppend (snd $ last xs) $ map fst xs
     -- Return the elements of the display list which fit within the maximum width
     -- (including their elision strings)
-    takeFitting m = filter (\(_,e) -> maybe True ((m>=) . adTotal) e)
-                  . takeWhile (\(amt,_) -> adTotal amt <= m)
+    takeFitting m = dropWhileRev (\(a,e) -> m < adTotal (fromMaybe a e))
+    dropWhileRev p = foldr (\x xs -> if null xs && p x then [] else x:xs) []
+
     -- Add the elision strings (if any) to each amount
     withElided = zipWith (\num amt -> (amt, elisionDisplay Nothing sepwidth num amt)) [n-1,n-2..0]
 
