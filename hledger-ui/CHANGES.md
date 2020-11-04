@@ -1,13 +1,13 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 260283e2
+# 093c11ec
 
+- Eliding of multicommodity amounts now makes better use of available space. (Stephen Morgan)
 
+- E ignores file extension, should help positioning on windows
 
-- ui: E ignores file extension, should help positioning on windows
-
-- ui: E supports positioning when EDITOR is code (VS Code) (#1359)
+- E supports positioning when EDITOR is code (VS Code) (#1359)
 
 
 # 1.19.1 2020-09-07

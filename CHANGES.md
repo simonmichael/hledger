@@ -1,7 +1,13 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 19ab2225
+# 093c11ec
+
+
+
+- benchmarks: run just the slowest commands; add some large tabular reports
+
+- tools: use pretty-simple for ghci output
 
 - tools: add hie.yaml, hls now works with hledger
 

@@ -1,7 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 260283e2
+# 093c11ec
+
+
 
 - Fix hledger-web description (TANIGUCHI Kohei)
   Slashes need to be escaped or they introduce unexpected italic style

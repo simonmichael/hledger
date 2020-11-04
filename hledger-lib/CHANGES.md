@@ -1,7 +1,23 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# b10e96d2
+# 093c11ec
+
+- In ReportOpts, store query terms term-by-term in a list in querystring_. (Stephen Morgan)
+  This helps deal with tricky quoting issues, as we no longer have to make
+  sure everything is quoted properly before merging it into a string.
+
+- Implement concat(Top|Bottom)Padded in terms of renderRow, allowing them to be width aware. (Stephen Morgan)
+
+- Expand Tabular.AsciiWide to allow multiline, custom-width,
+  vertically/horizontally-aligned cells, and optional table borders.
+  (Stephen Morgan)
+
+- Introduce showMixed*Unnormalised, eliminate most direct calls of strWidth. (Stephen Morgan)
+
+- showMixedAmountElided now makes better use of space, showing as many
+  Amounts possible as long as they and the elision string fit within
+  32 characters. (Stephen Morgan)
 
 - Add Functor instance for CompoundPeriodicReport. (Stephen Morgan)
 

@@ -1,18 +1,22 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# affc8d10
+# 093c11ec
 
+- Console rendering is more efficient, speeding up most reports by
+  around 30% (Stephen Morgan)
 
+- Amount eliding no longer displays corrupted ANSI codes (#1352, Stephen Morgan)
 
-- lib,cli: Remove old impure ReportOpts date functions. (Stephen Morgan)
+- Eliding of multicommodity amounts now makes better use of available space,
+  avoiding unnecessary eliding. (Stephen Morgan)
 
-- lib,cli: Store parsed Query in ReportOpts, rather than an unparsed String. (Stephen Morgan)
+- --no-elide's help now mentions that it also disables eliding of
+  multicommodity amounts.
 
-- journal: apply commodity styles to forecasted transactions (#1371)
+- bal: --budget reports no longer insert an extra space inside the brackets (Stephen Morgan)
 
-- balcmds: mention --no-elide's new function: disabling the eliding of
-  amounts to two commodities.
+- journal: forecasted transactions are now affected by commodity styles (#1371)
 
 
 # 1.19.1 2020-09-07
