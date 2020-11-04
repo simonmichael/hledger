@@ -362,16 +362,14 @@ getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` get
 getDefaultAmountStyle :: JournalParser m (Maybe AmountStyle)
 getDefaultAmountStyle = fmap snd <$> getDefaultCommodityAndStyle
 
--- | Lookup currency-specific amount style.
---
--- Returns 'AmountStyle' used in commodity directive within current journal
--- prior to current position or in its parents files.
+-- | Get the 'AmountStyle' declared by the most recently parsed (in the current or parent files,
+-- prior to the current position) commodity directive for the given commodity, if any.
 getAmountStyle :: CommoditySymbol -> JournalParser m (Maybe AmountStyle)
 getAmountStyle commodity = do
-    specificStyle <-  maybe Nothing cformat . M.lookup commodity . jcommodities <$> get
-    defaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
-    let effectiveStyle = listToMaybe $ catMaybes [specificStyle, defaultStyle]
-    return effectiveStyle
+  Journal{jcommodities} <- get
+  let mspecificStyle = M.lookup commodity jcommodities >>= cformat
+  mdefaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
+  return $ listToMaybe $ catMaybes [mspecificStyle, mdefaultStyle]
 
 addDeclaredAccountType :: AccountName -> AccountType -> JournalParser m ()
 addDeclaredAccountType acct atype =
