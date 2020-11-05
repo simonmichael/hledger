@@ -2015,10 +2015,10 @@ COMMANDS
        your biggest averaged monthly expenses first.
 
        Revenues  and liability balances are typically negative, however, so -S
-       shows these in reverse order (largest last).  To work around this,  you
-       can  add  --invert to flip the signs.  Or, use one of the sign-flipping
-       report like balancesheet or incomestatement,  which  also  support  -S.
-       Eg: hledger is -MAS.
+       shows these in reverse order.  To work around this, you can  add  --in-
+       vert  to flip the signs.  Or, use one of the sign-flipping reports like
+       balancesheet or incomestatement, which also support -S.  Eg: hledger is
+       -MAS.
 
    Multicolumn balance report
        Multicolumn  or  tabular balance reports are a very useful hledger fea-

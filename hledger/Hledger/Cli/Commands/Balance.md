@@ -189,10 +189,10 @@ or `-B` to coerce the report into using a single commodity.
 With `-S`/`--sort-amount`, accounts with the largest (most positive) balances are shown first.
 For example, `hledger bal expenses -MAS` shows your biggest averaged monthly expenses first.
 
-Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order (largest last).
+Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
 To work around this, you can add `--invert` to flip the signs.
-Or, use one of the sign-flipping report like `balancesheet` or `incomestatement`, which also support `-S`.
-Eg: `hledger is -MAS`.
+Or, use one of the sign-flipping reports like `balancesheet` or `incomestatement`, 
+which also support `-S`. Eg: `hledger is -MAS`.
 
 ### Multicolumn balance report
 

@@ -2383,10 +2383,10 @@ balances are shown first.  For example, 'hledger bal expenses -MAS'
 shows your biggest averaged monthly expenses first.
 
    Revenues and liability balances are typically negative, however, so
-'-S' shows these in reverse order (largest last).  To work around this,
-you can add '--invert' to flip the signs.  Or, use one of the
-sign-flipping report like 'balancesheet' or 'incomestatement', which
-also support '-S'.  Eg: 'hledger is -MAS'.
+'-S' shows these in reverse order.  To work around this, you can add
+'--invert' to flip the signs.  Or, use one of the sign-flipping reports
+like 'balancesheet' or 'incomestatement', which also support '-S'.  Eg:
+'hledger is -MAS'.
 
 
 File: hledger.info,  Node: Multicolumn balance report,  Next: Budget report,  Prev: Sorting by amount,  Up: balance
@@ -4189,95 +4189,95 @@ Node: Percentages80271
 Ref: #percentages80428
 Node: Sorting by amount81565
 Ref: #sorting-by-amount81731
-Node: Multicolumn balance report82239
-Ref: #multicolumn-balance-report82425
-Node: Budget report88022
-Ref: #budget-report88165
-Node: Nested budgets93431
-Ref: #nested-budgets93543
-Ref: #output-format-297026
-Node: balancesheet97223
-Ref: #balancesheet97359
-Node: balancesheetequity98871
-Ref: #balancesheetequity99020
-Node: cashflow100096
-Ref: #cashflow100224
-Node: check-dates101440
-Ref: #check-dates101567
-Node: check-dupes101846
-Ref: #check-dupes101972
-Node: close102265
-Ref: #close102373
-Node: close usage103895
-Ref: #close-usage103988
-Node: codes106801
-Ref: #codes106909
-Node: commodities107621
-Ref: #commodities107748
-Node: descriptions107830
-Ref: #descriptions107958
-Node: diff108262
-Ref: #diff108368
-Node: files109415
-Ref: #files109515
-Node: help109662
-Ref: #help109762
-Node: import110843
-Ref: #import110957
-Node: Importing balance assignments111850
-Ref: #importing-balance-assignments111998
-Node: incomestatement112647
-Ref: #incomestatement112780
-Node: notes114125
-Ref: #notes114238
-Node: payees114606
-Ref: #payees114712
-Node: prices115132
-Ref: #prices115238
-Node: print115579
-Ref: #print115689
-Node: print-unique120485
-Ref: #print-unique120611
-Node: register120896
-Ref: #register121023
-Node: Custom register output125472
-Ref: #custom-register-output125601
-Node: register-match126938
-Ref: #register-match127072
-Node: rewrite127423
-Ref: #rewrite127538
-Node: Re-write rules in a file129393
-Ref: #re-write-rules-in-a-file129527
-Node: Diff output format130737
-Ref: #diff-output-format130906
-Node: rewrite vs print --auto131998
-Ref: #rewrite-vs.-print---auto132177
-Node: roi132733
-Ref: #roi132831
-Node: stats133843
-Ref: #stats133942
-Node: tags134730
-Ref: #tags134828
-Node: test135347
-Ref: #test135455
-Node: Add-on commands136202
-Ref: #add-on-commands136319
-Node: ui137662
-Ref: #ui137750
-Node: web137804
-Ref: #web137907
-Node: iadd138023
-Ref: #iadd138134
-Node: interest138216
-Ref: #interest138323
-Node: ENVIRONMENT138563
-Ref: #environment138675
-Node: FILES139660
-Ref: #files-1139763
-Node: LIMITATIONS139976
-Ref: #limitations140095
-Node: TROUBLESHOOTING140837
-Ref: #troubleshooting140950
+Node: Multicolumn balance report82225
+Ref: #multicolumn-balance-report82411
+Node: Budget report88008
+Ref: #budget-report88151
+Node: Nested budgets93417
+Ref: #nested-budgets93529
+Ref: #output-format-297012
+Node: balancesheet97209
+Ref: #balancesheet97345
+Node: balancesheetequity98857
+Ref: #balancesheetequity99006
+Node: cashflow100082
+Ref: #cashflow100210
+Node: check-dates101426
+Ref: #check-dates101553
+Node: check-dupes101832
+Ref: #check-dupes101958
+Node: close102251
+Ref: #close102359
+Node: close usage103881
+Ref: #close-usage103974
+Node: codes106787
+Ref: #codes106895
+Node: commodities107607
+Ref: #commodities107734
+Node: descriptions107816
+Ref: #descriptions107944
+Node: diff108248
+Ref: #diff108354
+Node: files109401
+Ref: #files109501
+Node: help109648
+Ref: #help109748
+Node: import110829
+Ref: #import110943
+Node: Importing balance assignments111836
+Ref: #importing-balance-assignments111984
+Node: incomestatement112633
+Ref: #incomestatement112766
+Node: notes114111
+Ref: #notes114224
+Node: payees114592
+Ref: #payees114698
+Node: prices115118
+Ref: #prices115224
+Node: print115565
+Ref: #print115675
+Node: print-unique120471
+Ref: #print-unique120597
+Node: register120882
+Ref: #register121009
+Node: Custom register output125458
+Ref: #custom-register-output125587
+Node: register-match126924
+Ref: #register-match127058
+Node: rewrite127409
+Ref: #rewrite127524
+Node: Re-write rules in a file129379
+Ref: #re-write-rules-in-a-file129513
+Node: Diff output format130723
+Ref: #diff-output-format130892
+Node: rewrite vs print --auto131984
+Ref: #rewrite-vs.-print---auto132163
+Node: roi132719
+Ref: #roi132817
+Node: stats133829
+Ref: #stats133928
+Node: tags134716
+Ref: #tags134814
+Node: test135333
+Ref: #test135441
+Node: Add-on commands136188
+Ref: #add-on-commands136305
+Node: ui137648
+Ref: #ui137736
+Node: web137790
+Ref: #web137893
+Node: iadd138009
+Ref: #iadd138120
+Node: interest138202
+Ref: #interest138309
+Node: ENVIRONMENT138549
+Ref: #environment138661
+Node: FILES139646
+Ref: #files-1139749
+Node: LIMITATIONS139962
+Ref: #limitations140081
+Node: TROUBLESHOOTING140823
+Ref: #troubleshooting140936
 
 End Tag Table
 
