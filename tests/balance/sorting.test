@@ -1,12 +1,7 @@
-#* balance report sorting.
-# These tests are based on accounts' and somewhat duplicatory if
-# sorting code is shared between commands, but might be worth having
-# all the same.
-#** Tabular balance reports
-#*** Default sort without account declarations
+# * balance report sorting.      -*- eval:(outshine-mode 1); outline-regexp:"# \\*"; -*-
 
-# 1. Rows are sorted alphabetically by account name, at each tree level. 
-# Flat mode. Unused parent accounts are not added (b).
+# ** Default sort, without account declarations
+
 <
 2018/1/1
   (b:j)  1
@@ -20,231 +15,24 @@
 2018/1/1
   (a:k)  1
 
-$ hledger -f- bal -NY
-Balance changes in 2018:
-
-     || 2018 
-=====++======
- a:k ||    1 
- b:i ||    1 
- b:j ||    1 
- c   ||    1 
->=
-
-# 2. Tree mode. Missing parent accounts are added (b).
-$ hledger -f- bal -NY --tree --no-elide
-Balance changes in 2018:
-
-     || 2018 
-=====++======
- a   ||    1 
-   k ||    1 
- b   ||    2 
-   i ||    1 
-   j ||    1 
- c   ||    1 
->=
-
-#*** Default sort with account declarations
-
-# 3. With account directives, flat mode.
-# At each tree level, declared accounts are sorted first, in
-# declaration order, followed by undeclared accounts sorted alphabetically.
-# Unused parent accounts are not added (b).
-# The b:k, b:j declarations affect the subs of b, not b itself.
-<
-account b:k
-account b:j
-account d
-
-2018/1/1
-  (a:l)  1
-
-2018/1/1
-  (b:i)  1
-
-2018/1/1
-  (b:j)  1
-
-2018/1/1
-  (b:k)  1
-
-2018/1/1
-  (c)    1
-
-2018/1/1
-  (d)    1
-
-$ hledger -f- bal -NY
-Balance changes in 2018:
-
-     || 2018 
-=====++======
- d   ||    1 
- a:l ||    1 
- b:k ||    1 
- b:j ||    1 
- b:i ||    1 
- c   ||    1 
->=
-
-# 4. With account directives, tree mode.
+# In tree mode, rows are sorted alphabetically by account name, at each tree level. 
 # Missing parent accounts are added (b).
-$ hledger -f- bal -NY --tree --no-elide
-Balance changes in 2018:
-
-     || 2018 
-=====++======
- d   ||    1 
- a   ||    1 
-   l ||    1 
- b   ||    3 
-   k ||    1 
-   j ||    1 
-   i ||    1 
- c   ||    1 
->=
-
-# # .
-# <
-# $ hledger -f- bal -NY
-# >=
-
-# . With --drop, the modified names are sorted. ?
-# XXX not supported ?
-# $ hledger -f- bal -NY --drop 2
-# Balance changes in 2018:
-#
-#      || 2018 
-# =====++======
-#  c ||    1 
-#  i ||    1 
-#  j ||    1 
-#  k ||    1 
-# >=
-
-#*** Sort by amount
-
-# 5. Rows are sorted by decreasing amount (and then by account), at each tree level. 
-# Tree mode.
-
-<
-2018/1/1
-  (b:j)  2
-
-2018/1/1
-  (c)    1
-
-2018/1/1
-  (b:i)  1
-
-2018/1/1
-  (a:k)  1
-
-$ hledger -f- bal -NY --sort-amount --tree --no-elide
-Balance changes in 2018:
-
-     || 2018 
-=====++======
- b   ||    3 
-   j ||    2 
-   i ||    1 
- a   ||    1 
-   k ||    1 
- c   ||    1 
->=
-
-# 6. Flat mode.
-$ hledger -f- bal -NY --flat --sort-amount
-Balance changes in 2018:
-
-     || 2018 
-=====++======
- b:j ||    2 
- a:k ||    1 
- b:i ||    1 
- c   ||    1 
->=
-
-# 7. When the larger amount is composed of differently-priced amounts,
-# it could get sorted as if smaller (bug in hledger 1.4-1.10). Flat mode.
-<
-2018/1/1
-  (a)  2X @ 1Y
-  (a)  2X @ 2Y
-
-2018/1/1
-  (b)  3X
-
-$ hledger -f- bal -NY --sort-amount
-Balance changes in 2018:
-
-   || 2018 
-===++======
- a ||   4X 
- b ||   3X 
->=
-
-# 8. Explicit --flat flag, should be the same as above.
-$ hledger -f- bal -NY --sort-amount --flat
-Balance changes in 2018:
-
-   || 2018 
-===++======
- a ||   4X 
- b ||   3X 
->=
-
-# 9. Tree mode.
-$ hledger -f- bal -NY --sort-amount --tree
-Balance changes in 2018:
-
-   || 2018 
-===++======
- a ||   4X 
- b ||   3X 
->=
-
-#** Non-tabular balance reports
-#*** Default sort without account declarations
-
-# 10. Rows are sorted alphabetically by account name, at each tree level. 
-# Tree mode. Missing parent accounts are added (b).
-<
-2018/1/1
-  (b:j)  1
-
-2018/1/1
-  (c)    1
-
-2018/1/1
-  (b:i)  1
-
-2018/1/1
-  (a:k)  1
-
 $ hledger -f- bal -N --tree
                    1  a:k
                    2  b
                    1    i
                    1    j
                    1  c
->=
 
-# 11. Flat mode. Unused parent accounts are not added (b).
+# In flat mode, unused parent accounts are not added (b).
 $ hledger -f- bal -N --flat
                    1  a:k
                    1  b:i
                    1  b:j
                    1  c
->=
 
-#*** Default sort with account declarations
+# ** Default sort, with account declarations
 
-# 12. With account directives, tree mode.
-# At each tree level, declared accounts are sorted first, in
-# declaration order, followed by undeclared accounts sorted alphabetically.
-# Missing parent accounts are added (b).
 <
 account b:k
 account b:j
@@ -268,6 +56,11 @@ account d
 2018/1/1
   (d)    1
 
+# With account directives, in tree mode, at each tree level
+# declared accounts are sorted first in declaration order, 
+# followed by undeclared accounts sorted alphabetically.
+# Missing parent accounts are added (b).
+# The b:k, b:j declarations affect the subs of b, not b itself.
 $ hledger -f- bal -N --tree
                    1  d
                    1  a:l
@@ -276,11 +69,8 @@ $ hledger -f- bal -N --tree
                    1    j
                    1    i
                    1  c
->=
 
-# 13. With account directives, flat mode.
-# Unused parent accounts are not added (b).
-# The b:k, b:j declarations affect the subs of b, not b itself.
+# In flat mode, unused parent accounts are not added (b).
 $ hledger -f- bal -N --flat
                    1  d
                    1  a:l
@@ -288,13 +78,10 @@ $ hledger -f- bal -N --flat
                    1  b:j
                    1  b:i
                    1  c
->=
 
-#*** Sort by amount
+# ** Sort by amount
 
-# 14. Rows are sorted by decreasing amount (and then by account), at each tree level. 
-# Tree mode.
-
+# In flat mode with -S, largest (most-positive) amounts are shown first:
 <
 2018/1/1
   (b:j)  2
@@ -306,26 +93,24 @@ $ hledger -f- bal -N --flat
   (b:i)  1
 
 2018/1/1
-  (a:k)  1
+    (a:k)                                          1
 
-$ hledger -f- bal -N --sort-amount --tree
+$ hledger -f- bal -N -S --flat
+                   2  b:j
+                   1  a:k
+                   1  b:i
+                   1  c
+
+# In tree mode with -S, rows are sorted by largest amount, and then by account name, at each tree level.
+$ hledger -f- bal -N -S --tree
                    3  b
                    2    j
                    1    i
                    1  a:k
                    1  c
->=
 
-# 15. Flat mode.
-$ hledger -f- bal -N --flat --sort-amount
-                   2  b:j
-                   1  a:k
-                   1  b:i
-                   1  c
->=
-
-# 16. When the larger amount is composed of differently-priced amounts,
-# it could get sorted as if smaller (bug in hledger 1.4-1.10). Tree mode.
+# In hledger 1.4-1.10, when the larger amount was composed of differently-priced amounts,
+# it could get sorted as if smaller. Should work now:
 <
 2018/1/1
   (a)  2X @ 1Y
@@ -334,24 +119,11 @@ $ hledger -f- bal -N --flat --sort-amount
 2018/1/1
   (b)  3X
 
-$ hledger -f- bal -N --sort-amount
+$ hledger -f- bal -N -S
                   4X  a
                   3X  b
->=
 
-# 17. Explicit --tree flag, should be the same as above.
-$ hledger -f- bal -N --sort-amount --tree
-                  4X  a
-                  3X  b
->=
-
-# 18. Flat mode.
-$ hledger -f- bal -N --sort-amount --flat
-                  4X  a
-                  3X  b
->=
-
-# 19. Sort by amount, #1279
+# #1279 in hledger 1.11-1.18, bal -S did not respect the hierarchy. Should work now:
 <
 2020-01-01
     (a:aa)                                         1
@@ -363,15 +135,16 @@ $ hledger -f- bal -N -S --tree
                    3    ab
                    1    aa
                    2  b
->=
 
-# 20. Flat mode. --historical (#1287)
-$ hledger -f- bal -NY --flat --sort-amount --historical
-Ending balances (historical) in 2020:
+# #1287 bal -S -H did not sort by amount, should work now:
+$ hledger -f- bal -N -S -H --flat
+                   3  a:ab
+                   2  b
+                   1  a:aa
 
-      || 2020-12-31 
-======++============
- a:ab ||          3 
- b    ||          2 
- a:aa ||          1 
->=
+# #1287 and bal -S --cumulative:
+$ hledger -f- bal -N -S --cumulative --flat
+                   3  a:ab
+                   2  b
+                   1  a:aa
+
