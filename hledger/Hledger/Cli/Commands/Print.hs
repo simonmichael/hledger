@@ -60,7 +60,7 @@ printEntries opts@CliOpts{reportspec_=rspec} j =
   where
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"  = entriesReportAsText opts
-           | fmt=="csv"  = TL.pack . printCSV . entriesReportAsCsv
+           | fmt=="csv"  = printCSV . entriesReportAsCsv
            | fmt=="json" = toJsonText
            | fmt=="sql"  = entriesReportAsSql
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -137,9 +137,7 @@ entriesReportAsSql txns = TB.toLazyText $ mconcat
   where
     values vs = TB.fromText "(" <> mconcat (intersperse (TB.fromText ",") $ map toSql vs) <> TB.fromText ")\n"
     toSql "" = TB.fromText "NULL"
-    toSql s  = TB.fromText "'" <> TB.fromString (concatMap quoteChar s) <> TB.fromText "'"
-    quoteChar '\'' = "''"
-    quoteChar c = [c]
+    toSql s  = TB.fromText "'" <> TB.fromText (T.replace "'" "''" s) <> TB.fromText "'"
     csv = concatMap transactionToCSV txns
 
 entriesReportAsCsv :: EntriesReport -> CSV
@@ -151,16 +149,16 @@ entriesReportAsCsv txns =
 -- The txnidx field (transaction index) allows postings to be grouped back into transactions.
 transactionToCSV :: Transaction -> CSV
 transactionToCSV t =
-  map (\p -> show idx:date:date2:status:code:description:comment:p)
+  map (\p -> T.pack (show idx):date:date2:status:code:description:comment:p)
    (concatMap postingToCSV $ tpostings t)
   where
     idx = tindex t
-    description = T.unpack $ tdescription t
-    date = T.unpack $ showDate (tdate t)
-    date2 = maybe "" (T.unpack . showDate) (tdate2 t)
-    status = show $ tstatus t
-    code = T.unpack $ tcode t
-    comment = chomp $ strip $ T.unpack $ tcomment t
+    description = tdescription t
+    date = showDate (tdate t)
+    date2 = maybe "" showDate $ tdate2 t
+    status = T.pack . show $ tstatus t
+    code = tcode t
+    comment = T.strip $ tcomment t
 
 postingToCSV :: Posting -> CSV
 postingToCSV p =
@@ -168,17 +166,16 @@ postingToCSV p =
     -- commodity goes into separate column, so we suppress it, along with digit group
     -- separators and prices
     let a_ = a{acommodity="",astyle=(astyle a){asdigitgroups=Nothing},aprice=Nothing} in
-    let amount = showAmount a_ in
-    let commodity = T.unpack c in
-    let credit = if q < 0 then showAmount $ negate a_ else "" in
-    let debit  = if q >= 0 then showAmount a_ else "" in
-    [account, amount, commodity, credit, debit, status, comment])
+    let amount = T.pack $ showAmount a_ in
+    let credit = if q < 0 then T.pack . showAmount $ negate a_ else "" in
+    let debit  = if q >= 0 then T.pack $ showAmount a_ else "" in
+    [account, amount, c, credit, debit, status, comment])
    amounts
   where
     Mixed amounts = pamount p
-    status = show $ pstatus p
-    account = T.unpack $ showAccountName Nothing (ptype p) (paccount p)
-    comment = T.unpack . textChomp . T.strip $ pcomment p
+    status = T.pack . show $ pstatus p
+    account = showAccountName Nothing (ptype p) (paccount p)
+    comment = T.strip $ pcomment p
 
 -- --match
 

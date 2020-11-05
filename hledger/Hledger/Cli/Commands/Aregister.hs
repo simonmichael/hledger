@@ -113,7 +113,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
              reverse items
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts reportq thisacctq
-           | fmt=="csv"  = TL.pack . printCSV . accountTransactionsReportAsCsv reportq thisacctq
+           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv reportq thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
@@ -130,14 +130,12 @@ accountTransactionsReportItemAsCsvRecord :: Query -> Query -> AccountTransaction
 accountTransactionsReportItemAsCsvRecord
   reportq thisacctq
   (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheracctsstr, change, balance)
-  = [idx,date,code,desc,T.unpack otheracctsstr,amt,bal]
+  = [idx,date,tcode,tdescription,otheracctsstr,amt,bal]
   where
-    idx  = show tindex
-    date = T.unpack . showDate $ transactionRegisterDate reportq thisacctq t
-    code = T.unpack tcode
-    desc = T.unpack tdescription
-    amt  = showMixedAmountOneLineWithoutPrice False change
-    bal  = showMixedAmountOneLineWithoutPrice False balance
+    idx  = T.pack $ show tindex
+    date = showDate $ transactionRegisterDate reportq thisacctq t
+    amt  = T.pack $ showMixedAmountOneLineWithoutPrice False change
+    bal  = T.pack $ showMixedAmountOneLineWithoutPrice False balance
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text

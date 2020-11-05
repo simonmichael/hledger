@@ -321,8 +321,8 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
               assrt = not $ ignore_assertions_ $ inputopts_ opts
           render = case fmt of
             "txt"  -> budgetReportAsText ropts
-            "json" -> (++"\n") . TL.unpack . toJsonText
-            "csv"  -> (++"\n") . printCSV . budgetReportAsCsv ropts
+            "json" -> TL.unpack . (<>"\n") . toJsonText
+            "csv"  -> TL.unpack . printCSV . budgetReportAsCsv ropts
             _      -> const $ error' $ unsupportedOutputFormatError fmt
       writeOutput opts $ render budgetreport
 
@@ -330,21 +330,21 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       if multiperiod then do  -- multi period balance report
         let report = multiBalanceReport rspec j
             render = case fmt of
-              "txt"  -> multiBalanceReportAsText ropts
-              "csv"  -> (++"\n") . printCSV . multiBalanceReportAsCsv ropts
-              "html" -> (++"\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
-              "json" -> (++"\n") . TL.unpack . toJsonText
+              "txt"  -> TL.pack . multiBalanceReportAsText ropts
+              "csv"  -> printCSV . multiBalanceReportAsCsv ropts
+              "html" -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts
+              "json" -> (<>"\n") . toJsonText
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-        writeOutput opts $ render report
+        writeOutputLazyText opts $ render report
 
       else do  -- single period simple balance report
         let report = balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
-              "txt"  -> balanceReportAsText
-              "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
-              "json" -> const $ (++"\n") . TL.unpack . toJsonText
-              _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-        writeOutput opts $ render ropts report
+              "txt"  -> \ropts -> TL.pack . balanceReportAsText ropts
+              "csv"  -> \ropts -> printCSV . balanceReportAsCsv ropts
+              "json" -> const $ (<>"\n") . toJsonText
+              _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
+        writeOutputLazyText opts $ render ropts report
 
 
 -- XXX should all the per-report, per-format rendering code live in the command module,
@@ -356,11 +356,11 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[T.unpack a, showMixedAmountOneLineWithoutPrice False b] | (a, _, _, b) <- items]
+  [[a, T.pack $ showMixedAmountOneLineWithoutPrice False b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
-  else [["total", showMixedAmountOneLineWithoutPrice False total]]
+  else [["total", T.pack $ showMixedAmountOneLineWithoutPrice False total]]
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> String
@@ -446,12 +446,12 @@ multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
     (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
   maybetranspose $
-  ("Account" : map (T.unpack . showDateSpan) colspans
+  ("Account" : map showDateSpan colspans
    ++ ["Total"   | row_total_]
    ++ ["Average" | average_]
   ) :
-  [T.unpack (displayFull a) :
-   map (showMixedAmountOneLineWithoutPrice False)
+  [displayFull a :
+   map (T.pack . showMixedAmountOneLineWithoutPrice False)
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
@@ -460,7 +460,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
   if no_total_ opts
   then []
   else ["Total:" :
-        map (showMixedAmountOneLineWithoutPrice False) (
+        map (T.pack . showMixedAmountOneLineWithoutPrice False) (
           coltotals
           ++ [tot | row_total_]
           ++ [avg | average_]
@@ -496,7 +496,7 @@ multiBalanceReportHtmlRows ropts mbr =
     )
 
 -- | Render one MultiBalanceReport heading row as a HTML table row.
-multiBalanceReportHtmlHeadRow :: ReportOpts -> [String] -> Html ()
+multiBalanceReportHtmlHeadRow :: ReportOpts -> [T.Text] -> Html ()
 multiBalanceReportHtmlHeadRow _ [] = mempty  -- shouldn't happen
 multiBalanceReportHtmlHeadRow ropts (acct:rest) =
   let
@@ -514,7 +514,7 @@ multiBalanceReportHtmlHeadRow ropts (acct:rest) =
       ++ [td_ [class_ "rowaverage", defstyle] (toHtml a) | a <- avg]
 
 -- | Render one MultiBalanceReport data row as a HTML table row.
-multiBalanceReportHtmlBodyRow :: ReportOpts -> [String] -> Html ()
+multiBalanceReportHtmlBodyRow :: ReportOpts -> [T.Text] -> Html ()
 multiBalanceReportHtmlBodyRow _ [] = mempty  -- shouldn't happen
 multiBalanceReportHtmlBodyRow ropts (label:rest) =
   let
@@ -532,7 +532,7 @@ multiBalanceReportHtmlBodyRow ropts (label:rest) =
       ++ [td_ [class_ "amount rowaverage", defstyle] (toHtml a) | a <- avg]
 
 -- | Render one MultiBalanceReport totals row as a HTML table row.
-multiBalanceReportHtmlFootRow :: ReportOpts -> [String] -> Html ()
+multiBalanceReportHtmlFootRow :: ReportOpts -> [T.Text] -> Html ()
 multiBalanceReportHtmlFootRow _ropts [] = mempty
 -- TODO pad totals row with zeros when subreport is empty
 --  multiBalanceReportHtmlFootRow ropts $
