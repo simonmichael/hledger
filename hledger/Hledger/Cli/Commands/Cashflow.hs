@@ -1,5 +1,7 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-|
 
 The @cashflow@ command prints a simplified cashflow statement.  It just
