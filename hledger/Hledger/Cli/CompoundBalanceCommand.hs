@@ -149,7 +149,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
 
     -- make a CompoundBalanceReport.
     cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
-    cbr  = cbr'{cbrTitle=T.unpack title}
+    cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately
     render = case outputFormatFromOpts opts of
@@ -192,7 +192,7 @@ Balance Sheet
 compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> String
 compoundBalanceReportAsText ropts
   (CompoundPeriodicReport title _colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
-    title ++ "\n\n" ++
+    T.unpack title ++ "\n\n" ++
     balanceReportTableAsText ropts bigtable'
   where
     bigtable =
@@ -218,7 +218,7 @@ compoundBalanceReportAsText ropts
         -- convert to table
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
-        t = Table (Tab.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
+        t = Table (Tab.Group SingleLine [Header $ T.unpack title, lefthdrs]) tophdrs ([]:cells)
 
 -- | Add the second table below the first, discarding its column headings.
 concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
@@ -231,7 +231,7 @@ concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
 compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
     addtotals $
-      padRow (T.pack title)
+      padRow title
       : ( "Account"
         : map showDateSpanMonthAbbrev colspans
         ++ (if row_total_ ropts then ["Total"] else [])
@@ -241,7 +241,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
   where
     -- | Add a subreport title row and drop the heading row.
     subreportAsCsv ropts (subreporttitle, multibalreport, _) =
-      padRow (T.pack subreporttitle) :
+      padRow subreporttitle :
       tail (multiBalanceReportAsCsv ropts multibalreport)
     padRow s = take numcols $ s : repeat ""
       where
@@ -288,7 +288,7 @@ compoundBalanceReportAsHtml ropts cbr =
 
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
-    subreportrows :: (String, MultiBalanceReport, Bool) -> [Html ()]
+    subreportrows :: (T.Text, MultiBalanceReport, Bool) -> [Html ()]
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
         (_,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
