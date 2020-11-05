@@ -232,7 +232,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
         Just (AtThen _mc)   -> error' unsupportedValueThenError  -- PARTIAL:
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
-        Just (AtDate d _mc) -> ", valued at "++showDate d
+        Just (AtDate d _mc) -> ", valued at " ++ T.unpack (showDate d)
         Nothing             -> "")
 
     displayTableWithWidths :: Table String String ((Int, Int, Int), BudgetDisplayCell)
@@ -299,7 +299,7 @@ budgetReportAsTable
       (T.Group NoLine $ map Header colheadings)
       (map rowvals rows)
   where
-    colheadings = map (reportPeriodName balancetype_ spans) spans
+    colheadings = map (T.unpack . reportPeriodName balancetype_ spans) spans
                   ++ ["  Total" | row_total_ ropts]
                   ++ ["Average" | average_ ropts]
 
@@ -332,7 +332,7 @@ budgetReportAsTable
 -- - all other balance change reports: a description of the datespan,
 --   abbreviated to compact form if possible (see showDateSpan).
 --
-reportPeriodName :: BalanceType -> [DateSpan] -> DateSpan -> String
+reportPeriodName :: BalanceType -> [DateSpan] -> DateSpan -> T.Text
 reportPeriodName balancetype spans =
   case balancetype of
     PeriodChange -> if multiyear then showDateSpan else showDateSpanMonthAbbrev
@@ -344,14 +344,14 @@ reportPeriodName balancetype spans =
 -- | Render a budget report as CSV. Like multiBalanceReportAsCsv,
 -- but includes alternating actual and budget amount columns.
 budgetReportAsCsv :: ReportOpts -> BudgetReport -> CSV
-budgetReportAsCsv 
+budgetReportAsCsv
   ReportOpts{average_, row_total_, no_total_, transpose_}
   (PeriodicReport colspans items (PeriodicReportRow _ abtotals (magrandtot,mbgrandtot) (magrandavg,mbgrandavg)))
   = (if transpose_ then transpose else id) $
 
   -- heading row
-  ("Account" : 
-   concatMap (\span -> [showDateSpan span, "budget"]) colspans
+  ("Account" :
+   concatMap (\span -> [T.unpack $ showDateSpan span, "budget"]) colspans
    ++ concat [["Total"  ,"budget"] | row_total_]
    ++ concat [["Average","budget"] | average_]
   ) :
@@ -369,7 +369,7 @@ budgetReportAsCsv
     [
     "Total:" :
     map showmamt (flattentuples abtotals)
-    ++ concat [[showmamt magrandtot,showmamt mbgrandtot] | row_total_] 
+    ++ concat [[showmamt magrandtot,showmamt mbgrandtot] | row_total_]
     ++ concat [[showmamt magrandavg,showmamt mbgrandavg] | average_]
     ]
   | not no_total_

@@ -56,6 +56,7 @@ import Data.Ord (comparing)
 import Data.Semigroup (sconcat)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Time (Day)
 import Safe (headDef)
 import System.Directory (doesFileExist, getHomeDirectory)
@@ -63,8 +64,7 @@ import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath ((<.>), (</>), splitDirectories, splitFileName)
 import System.Info (os)
-import System.IO (stderr, writeFile)
-import Text.Printf (hPrintf, printf)
+import System.IO (hPutStr, stderr)
 
 import Hledger.Data.Dates (getCurrentDay, parsedateM, showDate)
 import Hledger.Data.Types
@@ -191,9 +191,9 @@ requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
   exists <- doesFileExist f
   when (not exists) $ do  -- XXX might not be a journal file
-    hPrintf stderr "The hledger journal file \"%s\" was not found.\n" f
-    hPrintf stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
-    hPrintf stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
+    hPutStr stderr $ "The hledger journal file \"" <> show f <> "\" was not found.\n"
+    hPutStr stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
+    hPutStr stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
     exitFailure
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
@@ -202,14 +202,14 @@ requireJournalFileExists f = do
 ensureJournalFileExists :: FilePath -> IO ()
 ensureJournalFileExists f = do
   when (os/="mingw32" && isWindowsUnsafeDotPath f) $ do
-    hPrintf stderr "Part of file path %s\n ends with a dot, which is unsafe on Windows; please use a different path.\n" (show f)
+    hPutStr stderr $ "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
     exitFailure
   exists <- doesFileExist f
   when (not exists) $ do
-    hPrintf stderr "Creating hledger journal file %s.\n" f
+    hPutStr stderr $ "Creating hledger journal file " <> show f <> ".\n"
     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
     -- we currently require unix line endings on all platforms.
-    newJournalContent >>= writeFile f
+    newJournalContent >>= T.writeFile f
 
 -- | Does any part of this path contain non-. characters and end with a . ?
 -- Such paths are not safe to use on Windows (cf #1056).
@@ -221,10 +221,10 @@ isWindowsUnsafeDotPath =
   splitDirectories
 
 -- | Give the content for a new auto-created journal file.
-newJournalContent :: IO String
+newJournalContent :: IO Text
 newJournalContent = do
   d <- getCurrentDay
-  return $ printf "; journal created %s by hledger\n" (show d)
+  return $ "; journal created " <> T.pack (show d) <> " by hledger\n"
 
 -- A "LatestDates" is zero or more copies of the same date,
 -- representing the latest transaction date read from a file,
@@ -240,7 +240,7 @@ latestDates = headDef [] . take 1 . group . reverse . sort
 -- | Remember that these transaction dates were the latest seen when
 -- reading this journal file.
 saveLatestDates :: LatestDates -> FilePath -> IO ()
-saveLatestDates dates f = writeFile (latestDatesFileFor f) $ unlines $ map showDate dates
+saveLatestDates dates f = T.writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
 
 -- | What were the latest transaction dates seen the last time this
 -- journal file was read ? If there were multiple transactions on the

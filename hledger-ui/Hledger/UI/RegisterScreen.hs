@@ -88,7 +88,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate q thisacctq t
+          RegisterScreenItem{rsItemDate          = T.unpack . showDate $ transactionRegisterDate q thisacctq t
                             ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = T.unpack $ tdescription t
                             ,rsItemOtherAccounts = T.unpack otheracctsstr

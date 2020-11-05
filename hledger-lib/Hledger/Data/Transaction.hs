@@ -174,7 +174,7 @@ showTransactionHelper onelineamounts t =
       ++ [""]
   where
     descriptionline = T.stripEnd $ T.concat [date, status, code, desc, samelinecomment]
-    date = T.pack $ showDate (tdate t) ++ maybe "" (("="++) . showDate) (tdate2 t)
+    date = showDate (tdate t) <> maybe "" (("="<>) . showDate) (tdate2 t)
     status | tstatus t == Cleared = " *"
            | tstatus t == Pending = " !"
            | otherwise            = ""

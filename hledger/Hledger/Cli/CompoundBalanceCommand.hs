@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-|
 
 Common helpers for making multi-section balance report commands
@@ -105,11 +107,11 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
     ropts' = ropts{balancetype_=balancetype}
 
     title =
-      cbctitle
-      ++ " "
-      ++ titledatestr
-      ++ maybe "" (' ':) mtitleclarification
-      ++ valuationdesc
+      T.pack cbctitle
+      <> " "
+      <> titledatestr
+      <> maybe "" (" "<>) mtitleclarification
+      <> valuationdesc
       where
 
         -- XXX #1078 the title of ending balance reports
@@ -138,7 +140,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
           Just (AtEnd _mc) | changingValuation -> ""
           Just (AtEnd _mc)        -> ", valued at period ends"
           Just (AtNow _mc)        -> ", current value"
-          Just (AtDate today _mc) -> ", valued at "++showDate today
+          Just (AtDate today _mc) -> ", valued at " <> showDate today
           Nothing                 -> ""
 
         changingValuation = case (balancetype_, value_) of
@@ -147,7 +149,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
 
     -- make a CompoundBalanceReport.
     cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
-    cbr  = cbr'{cbrTitle=title}
+    cbr  = cbr'{cbrTitle=T.unpack title}
 
     -- render appropriately
     render = case outputFormatFromOpts opts of
@@ -160,14 +162,12 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
 -- | Summarise one or more (inclusive) end dates, in a way that's
 -- visually different from showDateSpan, suggesting discrete end dates
 -- rather than a continuous span.
-showEndDates :: [Day] -> String
+showEndDates :: [Day] -> T.Text
 showEndDates es = case es of
   -- cf showPeriod
-  (e:_:_) -> showdate e ++ ".." ++ showdate (last es)
-  [e]     -> showdate e
+  (e:_:_) -> showDate e <> ".." <> showDate (last es)
+  [e]     -> showDate e
   []      -> ""
-  where
-    showdate = show
 
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:
@@ -232,7 +232,7 @@ compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName M
 compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
   addtotals $
   padRow title :
-  ("Account" :
+  map T.unpack ("Account" :
    map showDateSpanMonthAbbrev colspans
    ++ (if row_total_ ropts then ["Total"] else [])
    ++ (if average_ ropts then ["Average"] else [])
@@ -283,7 +283,7 @@ compoundBalanceReportAsHtml ropts cbr =
           ++ (if average_ ropts then ["Average"] else [])
           ]
 
-    thRow :: [String] -> Html ()
+    thRow :: [T.Text] -> Html ()
     thRow = tr_ . mconcat . map (th_ . toHtml)
 
     -- Make rows for a subreport: its title row, not the headings row,
