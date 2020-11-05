@@ -110,19 +110,19 @@ import Hledger.Utils
 
 -- Help ppShow parse and line-wrap DateSpans better in debug output.
 instance Show DateSpan where
-    show s = "DateSpan " ++ showDateSpan s
+    show s = "DateSpan " ++ T.unpack (showDateSpan s)
 
-showDate :: Day -> String
-showDate = show
+showDate :: Day -> Text
+showDate = T.pack . show
 
 -- | Render a datespan as a display string, abbreviating into a
 -- compact form if possible.
-showDateSpan :: DateSpan -> String
+showDateSpan :: DateSpan -> Text
 showDateSpan = showPeriod . dateSpanAsPeriod
 
 -- | Like showDateSpan, but show month spans as just the abbreviated month name
 -- in the current locale.
-showDateSpanMonthAbbrev :: DateSpan -> String
+showDateSpanMonthAbbrev :: DateSpan -> Text
 showDateSpanMonthAbbrev = showPeriodMonthAbbrev . dateSpanAsPeriod
 
 -- | Get the current local date.
@@ -388,13 +388,13 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
 
 -- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
 -- the provided reference date, or raise an error.
-fixSmartDateStr :: Day -> Text -> String
+fixSmartDateStr :: Day -> Text -> Text
 fixSmartDateStr d s =
   either (error' . printf "could not parse date %s %s" (show s) . show) id $  -- PARTIAL:
-  (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text CustomErr) String)
+  (fixSmartDateStrEither d s :: Either (ParseErrorBundle Text CustomErr) Text)
 
 -- | A safe version of fixSmartDateStr.
-fixSmartDateStrEither :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) String
+fixSmartDateStrEither :: Day -> Text -> Either (ParseErrorBundle Text CustomErr) Text
 fixSmartDateStrEither d = fmap showDate . fixSmartDateStrEither' d
 
 fixSmartDateStrEither'

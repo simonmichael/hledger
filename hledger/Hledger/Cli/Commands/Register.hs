@@ -78,9 +78,9 @@ postingsReportItemAsCsvRecord :: PostingsReportItem -> CsvRecord
 postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal]
   where
     idx  = show $ maybe 0 tindex $ ptransaction p
-    date = showDate $ postingDate p -- XXX csv should show date2 with --date2
+    date = T.unpack . showDate $ postingDate p -- XXX csv should show date2 with --date2
     code = maybe "" (T.unpack . tcode) $ ptransaction p
-    desc = T.unpack $ maybe "" tdescription $ ptransaction p
+    desc = T.unpack . maybe "" tdescription $ ptransaction p
     acct = T.unpack . bracket $ paccount p
       where
         bracket = case ptype p of
@@ -146,9 +146,9 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
       -- calculate widths
       (totalwidth,mdescwidth) = registerWidthsFromOpts opts
       (datewidth, date) = case (mdate,menddate) of
-                            (Just _, Just _)   -> (21, T.pack $ showDateSpan (DateSpan mdate menddate))
+                            (Just _, Just _)   -> (21, showDateSpan (DateSpan mdate menddate))
                             (Nothing, Just _)  -> (21, "")
-                            (Just d, Nothing)  -> (10, T.pack $ showDate d)
+                            (Just d, Nothing)  -> (10, showDate d)
                             _                  -> (10, "")
       (amtwidth, balwidth)
         | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)

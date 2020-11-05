@@ -156,8 +156,8 @@ transactionToCSV t =
   where
     idx = tindex t
     description = T.unpack $ tdescription t
-    date = showDate (tdate t)
-    date2 = maybe "" showDate (tdate2 t)
+    date = T.unpack $ showDate (tdate t)
+    date2 = maybe "" (T.unpack . showDate) (tdate2 t)
     status = show $ tstatus t
     code = T.unpack $ tcode t
     comment = chomp $ strip $ T.unpack $ tcomment t

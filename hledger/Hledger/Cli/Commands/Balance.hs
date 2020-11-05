@@ -446,7 +446,7 @@ multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
     (PeriodicReport colspans items (PeriodicReportRow _ coltotals tot avg)) =
   maybetranspose $
-  ("Account" : map showDateSpan colspans
+  ("Account" : map (T.unpack . showDateSpan) colspans
    ++ ["Total"   | row_total_]
    ++ ["Average" | average_]
   ) :
@@ -561,7 +561,7 @@ multiBalanceReportHtmlFootRow ropts (acct:rest) =
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText ropts@ReportOpts{..} r =
-    title ++ "\n\n" ++ (balanceReportTableAsText ropts $ balanceReportAsTable ropts r)
+      T.unpack title <> "\n\n" <> (balanceReportTableAsText ropts $ balanceReportAsTable ropts r)
   where
     title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
 
@@ -576,7 +576,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
         Just (AtEnd _mc) | changingValuation -> ""
         Just (AtEnd _mc)     -> ", valued at period ends"
         Just (AtNow _mc)     -> ", current value"
-        Just (AtDate d _mc)  -> ", valued at "++showDate d
+        Just (AtDate d _mc)  -> ", valued at " <> showDate d
         Nothing              -> ""
 
     changingValuation = case (balancetype_, value_) of
@@ -595,7 +595,7 @@ balanceReportAsTable opts@ReportOpts{average_, row_total_, balancetype_}
      (map rowvals items)
   where
     totalscolumn = row_total_ && balancetype_ `notElem` [CumulativeChange, HistoricalBalance]
-    colheadings = map (reportPeriodName balancetype_ spans) spans
+    colheadings = map (T.unpack . reportPeriodName balancetype_ spans) spans
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     accts = map renderacct items

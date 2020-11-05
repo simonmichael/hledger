@@ -267,7 +267,7 @@ similarTransaction EntryState{..} desc =
   in bestmatch
 
 dateAndCodeWizard PrevInput{..} EntryState{..} = do
-  let def = headDef (showDate esDefDate) esArgs
+  let def = headDef (T.unpack $ showDate esDefDate) esArgs
   retryMsg "A valid hledger smart date is required. Eg: 2014/2/14, 14, yesterday." $
    parser (parseSmartDateAndCode esToday) $
    withCompletion (dateCompleter def) $

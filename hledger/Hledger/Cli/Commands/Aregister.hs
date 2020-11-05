@@ -133,7 +133,7 @@ accountTransactionsReportItemAsCsvRecord
   = [idx,date,code,desc,T.unpack otheracctsstr,amt,bal]
   where
     idx  = show tindex
-    date = showDate $ transactionRegisterDate reportq thisacctq t
+    date = T.unpack . showDate $ transactionRegisterDate reportq thisacctq t
     code = T.unpack tcode
     desc = T.unpack tdescription
     amt  = showMixedAmountOneLineWithoutPrice False change
@@ -199,7 +199,7 @@ accountTransactionsReportItemAsText
   where
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts copts
-    (datewidth, date) = (10, T.pack . showDate $ transactionRegisterDate reportq thisacctq t)
+    (datewidth, date) = (10, showDate $ transactionRegisterDate reportq thisacctq t)
     (amtwidth, balwidth)
       | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
       | otherwise      = (adjustedamtwidth, adjustedbalwidth)

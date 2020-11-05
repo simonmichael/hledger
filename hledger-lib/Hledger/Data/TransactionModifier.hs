@@ -26,7 +26,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Query
 import Hledger.Data.Posting (commentJoin, commentAddTag)
-import Hledger.Utils.Debug
+import Hledger.Utils
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -137,7 +137,7 @@ postingRuleMultiplier p =
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }
     where
-        dates = T.concat $ catMaybes [T.pack . showDate <$> pdate p, ("=" <>) . T.pack . showDate <$> pdate2 p]
+        dates = T.concat $ catMaybes [showDate <$> pdate p, ("=" <>) . showDate <$> pdate2 p]
         comment'
             | T.null dates = pcomment p
-            | otherwise    = ("[" <> dates <> "]") `commentJoin` pcomment p
+            | otherwise    = (wrap "[" "]" dates) `commentJoin` pcomment p
