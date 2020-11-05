@@ -2680,11 +2680,8 @@ $ hledger balance
 .fi
 .PP
 By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent.
-At each level of the tree, accounts are sorted by account code if any,
-then by account name.
-Or with \f[C]-S/--sort-amount\f[R], by their balance amount, largest
-first.
+indented below their parent, with accounts at each level of the tree
+sorted by declaration order if declared, then by account name.
 .PP
 \[dq]Boring\[dq] accounts, which contain a single interesting subaccount
 and no balance of their own, are elided into the following line for more
@@ -2856,6 +2853,19 @@ accounts.
 If there are mixed commodity accounts in the report be sure to use
 \f[C]-V\f[R] or \f[C]-B\f[R] to coerce the report into using a single
 commodity.
+.SS Sorting by amount
+.PP
+With \f[C]-S\f[R]/\f[C]--sort-amount\f[R], accounts with the largest
+(most positive) balances are shown first.
+For example, \f[C]hledger bal expenses -MAS\f[R] shows your biggest
+averaged monthly expenses first.
+.PP
+Revenues and liability balances are typically negative, however, so
+\f[C]-S\f[R] shows these in reverse order (largest last).
+To work around this, you can add \f[C]--invert\f[R] to flip the signs.
+Or, use one of the sign-flipping report like \f[C]balancesheet\f[R] or
+\f[C]incomestatement\f[R], which also support \f[C]-S\f[R].
+Eg: \f[C]hledger is -MAS\f[R].
 .SS Multicolumn balance report
 .PP
 Multicolumn or tabular balance reports are a very useful hledger

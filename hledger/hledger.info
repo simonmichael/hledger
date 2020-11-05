@@ -2183,6 +2183,7 @@ is used to ensure this (more below).
 * Flat mode::
 * Depth limited balance reports::
 * Percentages::
+* Sorting by amount::
 * Multicolumn balance report::
 * Budget report::
 * Output format::
@@ -2211,9 +2212,8 @@ $ hledger balance
                    0
 
    By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent.  At each level of the tree, accounts are
-sorted by account code if any, then by account name.  Or with
-'-S/--sort-amount', by their balance amount, largest first.
+indented below their parent, with accounts at each level of the tree
+sorted by declaration order if declared, then by account name.
 
    "Boring" accounts, which contain a single interesting subaccount and
 no balance of their own, are elided into the following line for more
@@ -2341,7 +2341,7 @@ $ hledger balance -N -1
 show inclusive balances at the depth limit.
 
 
-File: hledger.info,  Node: Percentages,  Next: Multicolumn balance report,  Prev: Depth limited balance reports,  Up: balance
+File: hledger.info,  Node: Percentages,  Next: Sorting by amount,  Prev: Depth limited balance reports,  Up: balance
 
 3.5.6 Percentages
 -----------------
@@ -2373,9 +2373,25 @@ accounts.  If there are mixed commodity accounts in the report be sure
 to use '-V' or '-B' to coerce the report into using a single commodity.
 
 
-File: hledger.info,  Node: Multicolumn balance report,  Next: Budget report,  Prev: Percentages,  Up: balance
+File: hledger.info,  Node: Sorting by amount,  Next: Multicolumn balance report,  Prev: Percentages,  Up: balance
 
-3.5.7 Multicolumn balance report
+3.5.7 Sorting by amount
+-----------------------
+
+With '-S'/'--sort-amount', accounts with the largest (most positive)
+balances are shown first.  For example, 'hledger bal expenses -MAS'
+shows your biggest averaged monthly expenses first.
+
+   Revenues and liability balances are typically negative, however, so
+'-S' shows these in reverse order (largest last).  To work around this,
+you can add '--invert' to flip the signs.  Or, use one of the
+sign-flipping report like 'balancesheet' or 'incomestatement', which
+also support '-S'.  Eg: 'hledger is -MAS'.
+
+
+File: hledger.info,  Node: Multicolumn balance report,  Next: Budget report,  Prev: Sorting by amount,  Up: balance
+
+3.5.8 Multicolumn balance report
 --------------------------------
 
 Multicolumn or tabular balance reports are a very useful hledger
@@ -2496,7 +2512,7 @@ bal -D --color=yes | less -RS'.
 
 File: hledger.info,  Node: Budget report,  Next: ,  Prev: Multicolumn balance report,  Up: balance
 
-3.5.8 Budget report
+3.5.9 Budget report
 -------------------
 
 With '--budget', extra columns are displayed showing budget goals for
@@ -2619,7 +2635,7 @@ Budget performance in 2017/11/01-2017/12/31:
 
 File: hledger.info,  Node: Nested budgets,  Up: Budget report
 
-3.5.8.1 Nested budgets
+3.5.9.1 Nested budgets
 ......................
 
 You can add budgets to any account in your account hierarchy.  If you
@@ -2704,8 +2720,8 @@ Budget performance in 2019/01:
 ----------------------------------------++-------------------------------
                                         ||        0 [                 0] 
 
-3.5.9 Output format
--------------------
+3.5.10 Output format
+--------------------
 
 This command also supports the output destination and output format
 options The output formats supported are 'txt', 'csv', (multicolumn
@@ -4159,107 +4175,109 @@ Ref: #aregister-and-custom-posting-dates72410
 Ref: #output-format-173003
 Node: balance73408
 Ref: #balance73525
-Node: Classic balance report74983
-Ref: #classic-balance-report75156
-Node: Customising the classic balance report76540
-Ref: #customising-the-classic-balance-report76768
-Node: Colour support78844
-Ref: #colour-support79011
-Node: Flat mode79107
-Ref: #flat-mode79255
-Node: Depth limited balance reports79668
-Ref: #depth-limited-balance-reports79853
-Node: Percentages80309
-Ref: #percentages80475
-Node: Multicolumn balance report81612
-Ref: #multicolumn-balance-report81792
-Node: Budget report87389
-Ref: #budget-report87532
-Node: Nested budgets92798
-Ref: #nested-budgets92910
-Ref: #output-format-296391
-Node: balancesheet96588
-Ref: #balancesheet96724
-Node: balancesheetequity98236
-Ref: #balancesheetequity98385
-Node: cashflow99461
-Ref: #cashflow99589
-Node: check-dates100805
-Ref: #check-dates100932
-Node: check-dupes101211
-Ref: #check-dupes101337
-Node: close101630
-Ref: #close101738
-Node: close usage103260
-Ref: #close-usage103353
-Node: codes106166
-Ref: #codes106274
-Node: commodities106986
-Ref: #commodities107113
-Node: descriptions107195
-Ref: #descriptions107323
-Node: diff107627
-Ref: #diff107733
-Node: files108780
-Ref: #files108880
-Node: help109027
-Ref: #help109127
-Node: import110208
-Ref: #import110322
-Node: Importing balance assignments111215
-Ref: #importing-balance-assignments111363
-Node: incomestatement112012
-Ref: #incomestatement112145
-Node: notes113490
-Ref: #notes113603
-Node: payees113971
-Ref: #payees114077
-Node: prices114497
-Ref: #prices114603
-Node: print114944
-Ref: #print115054
-Node: print-unique119850
-Ref: #print-unique119976
-Node: register120261
-Ref: #register120388
-Node: Custom register output124837
-Ref: #custom-register-output124966
-Node: register-match126303
-Ref: #register-match126437
-Node: rewrite126788
-Ref: #rewrite126903
-Node: Re-write rules in a file128758
-Ref: #re-write-rules-in-a-file128892
-Node: Diff output format130102
-Ref: #diff-output-format130271
-Node: rewrite vs print --auto131363
-Ref: #rewrite-vs.-print---auto131542
-Node: roi132098
-Ref: #roi132196
-Node: stats133208
-Ref: #stats133307
-Node: tags134095
-Ref: #tags134193
-Node: test134712
-Ref: #test134820
-Node: Add-on commands135567
-Ref: #add-on-commands135684
-Node: ui137027
-Ref: #ui137115
-Node: web137169
-Ref: #web137272
-Node: iadd137388
-Ref: #iadd137499
-Node: interest137581
-Ref: #interest137688
-Node: ENVIRONMENT137928
-Ref: #environment138040
-Node: FILES139025
-Ref: #files-1139128
-Node: LIMITATIONS139341
-Ref: #limitations139460
-Node: TROUBLESHOOTING140202
-Ref: #troubleshooting140315
+Node: Classic balance report75005
+Ref: #classic-balance-report75178
+Node: Customising the classic balance report76502
+Ref: #customising-the-classic-balance-report76730
+Node: Colour support78806
+Ref: #colour-support78973
+Node: Flat mode79069
+Ref: #flat-mode79217
+Node: Depth limited balance reports79630
+Ref: #depth-limited-balance-reports79815
+Node: Percentages80271
+Ref: #percentages80428
+Node: Sorting by amount81565
+Ref: #sorting-by-amount81731
+Node: Multicolumn balance report82239
+Ref: #multicolumn-balance-report82425
+Node: Budget report88022
+Ref: #budget-report88165
+Node: Nested budgets93431
+Ref: #nested-budgets93543
+Ref: #output-format-297026
+Node: balancesheet97223
+Ref: #balancesheet97359
+Node: balancesheetequity98871
+Ref: #balancesheetequity99020
+Node: cashflow100096
+Ref: #cashflow100224
+Node: check-dates101440
+Ref: #check-dates101567
+Node: check-dupes101846
+Ref: #check-dupes101972
+Node: close102265
+Ref: #close102373
+Node: close usage103895
+Ref: #close-usage103988
+Node: codes106801
+Ref: #codes106909
+Node: commodities107621
+Ref: #commodities107748
+Node: descriptions107830
+Ref: #descriptions107958
+Node: diff108262
+Ref: #diff108368
+Node: files109415
+Ref: #files109515
+Node: help109662
+Ref: #help109762
+Node: import110843
+Ref: #import110957
+Node: Importing balance assignments111850
+Ref: #importing-balance-assignments111998
+Node: incomestatement112647
+Ref: #incomestatement112780
+Node: notes114125
+Ref: #notes114238
+Node: payees114606
+Ref: #payees114712
+Node: prices115132
+Ref: #prices115238
+Node: print115579
+Ref: #print115689
+Node: print-unique120485
+Ref: #print-unique120611
+Node: register120896
+Ref: #register121023
+Node: Custom register output125472
+Ref: #custom-register-output125601
+Node: register-match126938
+Ref: #register-match127072
+Node: rewrite127423
+Ref: #rewrite127538
+Node: Re-write rules in a file129393
+Ref: #re-write-rules-in-a-file129527
+Node: Diff output format130737
+Ref: #diff-output-format130906
+Node: rewrite vs print --auto131998
+Ref: #rewrite-vs.-print---auto132177
+Node: roi132733
+Ref: #roi132831
+Node: stats133843
+Ref: #stats133942
+Node: tags134730
+Ref: #tags134828
+Node: test135347
+Ref: #test135455
+Node: Add-on commands136202
+Ref: #add-on-commands136319
+Node: ui137662
+Ref: #ui137750
+Node: web137804
+Ref: #web137907
+Node: iadd138023
+Ref: #iadd138134
+Node: interest138216
+Ref: #interest138323
+Node: ENVIRONMENT138563
+Ref: #environment138675
+Node: FILES139660
+Ref: #files-1139763
+Node: LIMITATIONS139976
+Ref: #limitations140095
+Node: TROUBLESHOOTING140837
+Ref: #troubleshooting140950
 
 End Tag Table
 
