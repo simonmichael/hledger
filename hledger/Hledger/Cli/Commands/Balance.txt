@@ -45,9 +45,8 @@ $ hledger balance
                    0
 
 By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent. At each level of the tree, accounts are
-sorted by account code if any, then by account name. Or with
--S/--sort-amount, by their balance amount, largest first.
+indented below their parent, with accounts at each level of the tree
+sorted by declaration order if declared, then by account name.
 
 "Boring" accounts, which contain a single interesting subaccount and no
 balance of their own, are elided into the following line for more
@@ -185,6 +184,18 @@ hledger balance -B) all percentage values will be zero.
 This flag does not work if the report contains any mixed commodity
 accounts. If there are mixed commodity accounts in the report be sure to
 use -V or -B to coerce the report into using a single commodity.
+
+Sorting by amount
+
+With -S/--sort-amount, accounts with the largest (most positive)
+balances are shown first. For example, hledger bal expenses -MAS shows
+your biggest averaged monthly expenses first.
+
+Revenues and liability balances are typically negative, however, so -S
+shows these in reverse order (largest last). To work around this, you
+can add --invert to flip the signs. Or, use one of the sign-flipping
+report like balancesheet or incomestatement, which also support -S. Eg:
+hledger is -MAS.
 
 Multicolumn balance report
 
