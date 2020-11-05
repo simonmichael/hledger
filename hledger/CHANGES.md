@@ -3,8 +3,11 @@ User-visible changes in the hledger command line tool and library.
 
 # 093c11ec
 
-- Console rendering is more efficient, speeding up most reports by
-  around 30% (Stephen Morgan)
+- Query terms containing quotes (eg to match account names containing quotes)
+  now work properly (#1368, Stephen Morgan)
+
+- Console rendering is more efficient, speeding up some reports by
+  10% or more (Stephen Morgan)
 
 - Amount eliding no longer displays corrupted ANSI codes (#1352, Stephen Morgan)
 
