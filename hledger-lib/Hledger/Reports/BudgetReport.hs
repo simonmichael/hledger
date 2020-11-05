@@ -351,13 +351,13 @@ budgetReportAsCsv
 
   -- heading row
   ("Account" :
-   concatMap (\span -> [T.unpack $ showDateSpan span, "budget"]) colspans
+   concatMap (\span -> [showDateSpan span, "budget"]) colspans
    ++ concat [["Total"  ,"budget"] | row_total_]
    ++ concat [["Average","budget"] | average_]
   ) :
 
   -- account rows
-  [T.unpack (displayFull a) :
+  [displayFull a :
    map showmamt (flattentuples abamts)
    ++ concat [[showmamt mactualrowtot, showmamt mbudgetrowtot] | row_total_]
    ++ concat [[showmamt mactualrowavg, showmamt mbudgetrowavg] | average_]
@@ -377,7 +377,7 @@ budgetReportAsCsv
 
   where
     flattentuples abs = concat [[a,b] | (a,b) <- abs]
-    showmamt = maybe "" (showMixedAmountOneLineWithoutPrice False)
+    showmamt = maybe "" (T.pack . showMixedAmountOneLineWithoutPrice False)
 
 -- tests
 

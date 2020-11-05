@@ -154,7 +154,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
     -- render appropriately
     render = case outputFormatFromOpts opts of
         "txt"  -> TL.pack . compoundBalanceReportAsText ropts'
-        "csv"  -> TL.pack . printCSV . compoundBalanceReportAsCsv ropts'
+        "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
         "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
         "json" -> toJsonText
         x      -> error' $ unsupportedOutputFormatError x
@@ -230,18 +230,18 @@ concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
 -- optional overall totals row is added.
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
 compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
-  addtotals $
-  padRow title :
-  map T.unpack ("Account" :
-   map showDateSpanMonthAbbrev colspans
-   ++ (if row_total_ ropts then ["Total"] else [])
-   ++ (if average_ ropts then ["Average"] else [])
-   ) :
-  concatMap (subreportAsCsv ropts) subreports
+    addtotals $
+      padRow (T.pack title)
+      : ( "Account"
+        : map showDateSpanMonthAbbrev colspans
+        ++ (if row_total_ ropts then ["Total"] else [])
+        ++ (if average_ ropts then ["Average"] else [])
+        )
+      : concatMap (subreportAsCsv ropts) subreports
   where
     -- | Add a subreport title row and drop the heading row.
     subreportAsCsv ropts (subreporttitle, multibalreport, _) =
-      padRow subreporttitle :
+      padRow (T.pack subreporttitle) :
       tail (multiBalanceReportAsCsv ropts multibalreport)
     padRow s = take numcols $ s : repeat ""
       where
@@ -257,7 +257,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
       | no_total_ ropts || length subreports == 1 = id
       | otherwise = (++
           ["Net:" :
-           map (showMixedAmountOneLineWithoutPrice False) (
+           map (T.pack . showMixedAmountOneLineWithoutPrice False) (
              coltotals
              ++ (if row_total_ ropts then [grandtotal] else [])
              ++ (if average_ ropts   then [grandavg]   else [])

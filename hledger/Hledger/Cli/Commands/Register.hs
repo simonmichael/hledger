@@ -64,7 +64,7 @@ register opts@CliOpts{reportspec_=rspec} j =
   where
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"  = postingsReportAsText opts
-           | fmt=="csv"  = TL.pack . printCSV . postingsReportAsCsv
+           | fmt=="csv"  = printCSV . postingsReportAsCsv
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
@@ -77,18 +77,18 @@ postingsReportAsCsv is =
 postingsReportItemAsCsvRecord :: PostingsReportItem -> CsvRecord
 postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal]
   where
-    idx  = show $ maybe 0 tindex $ ptransaction p
-    date = T.unpack . showDate $ postingDate p -- XXX csv should show date2 with --date2
-    code = maybe "" (T.unpack . tcode) $ ptransaction p
-    desc = T.unpack . maybe "" tdescription $ ptransaction p
-    acct = T.unpack . bracket $ paccount p
+    idx  = T.pack . show . maybe 0 tindex $ ptransaction p
+    date = showDate $ postingDate p -- XXX csv should show date2 with --date2
+    code = maybe "" tcode $ ptransaction p
+    desc = maybe "" tdescription $ ptransaction p
+    acct = bracket $ paccount p
       where
         bracket = case ptype p of
                              BalancedVirtualPosting -> wrap "[" "]"
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
-    amt = showMixedAmountOneLineWithoutPrice False $ pamount p
-    bal = showMixedAmountOneLineWithoutPrice False b
+    amt = T.pack $ showMixedAmountOneLineWithoutPrice False $ pamount p
+    bal = T.pack $ showMixedAmountOneLineWithoutPrice False b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
