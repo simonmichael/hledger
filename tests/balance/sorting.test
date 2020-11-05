@@ -148,3 +148,35 @@ $ hledger -f- bal -N -S --cumulative --flat
                    2  b
                    1  a:aa
 
+# #1283 most-negative amounts are sorted last, so eg largest revenues/liabilities are last:
+<
+2020-01-01
+  (revenues:a)  -1
+  (revenues:b)  -3
+  (revenues:c)  -2
+
+$ hledger -f- bal -N -S
+                  -1  revenues:a
+                  -2  revenues:c
+                  -3  revenues:b
+
+# This can be worked around by using --invert (sorting happens after sign-flipping):
+$ hledger -f- bal -N -S --invert
+                   3  revenues:b
+                   2  revenues:c
+                   1  revenues:a
+
+# Or a sign-flipping command like incomestatement:
+$ hledger -f- is -N -S
+Income Statement 2020-01-01
+
+            || 2020-01-01 
+============++============
+ Revenues   ||            
+------------++------------
+ revenues:b ||          3 
+ revenues:c ||          2 
+ revenues:a ||          1 
+============++============
+ Expenses   ||            
+------------++------------
