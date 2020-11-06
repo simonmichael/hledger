@@ -1024,55 +1024,64 @@ getAmount rules record currency p1IsVirtual n =
              "\t=> value: " ++ showMixedAmount a -- XXX not sure this is showing all the right info
            | (f,a) <- fs]
 
-  where
-    -- | Given a non-empty amount string to parse, along with a possibly
-    -- non-empty currency symbol to prepend, parse as a hledger amount (as
-    -- in journal format), or raise an error.
-    -- The CSV rules and record are provided for the error message.
-    parseAmount :: CsvRules -> CsvRecord -> String -> String -> MixedAmount
-    parseAmount rules record currency amountstr =
-      either mkerror (Mixed . (:[])) $  -- PARTIAL:
-      runParser (evalStateT (amountp <* eof) nulljournal) "" $
-      T.pack $ (currency++) $ simplifySign amountstr
-      where
-        mkerror e = error' $ unlines
-          ["error: could not parse \""++amountstr++"\" as an amount"
-          ,showRecord record
-          ,showRules rules record
-          -- ,"the default-currency is: "++fromMaybe "unspecified" (getDirective "default-currency" rules)
-          ,"the parse error is:      "++customErrorBundlePretty e
-          ,"you may need to "
-           ++"change your amount*, balance*, or currency* rules, "
-           ++"or add or change your skip rule"
-          ]
-
 -- | Figure out the expected balance (assertion or assignment) specified for posting N,
 -- if any (and its parse position).
 getBalance :: CsvRules -> CsvRecord -> String -> Int -> Maybe (Amount, GenericSourcePos)
-getBalance rules record currency n =
-  (fieldval ("balance"++show n)
-    -- for posting 1, also recognise the old field name
-    <|> if n==1 then fieldval "balance" else Nothing)
-  >>= parsebalance currency n . strip
+getBalance rules record currency n = do
+  v <- (fieldval ("balance"++show n)
+        -- for posting 1, also recognise the old field name
+        <|> if n==1 then fieldval "balance" else Nothing)
+  case v of
+    "" -> Nothing
+    s  -> Just (
+            parseBalanceAmount rules record currency n s
+           ,nullsourcepos  -- parse position to show when assertion fails,
+           )               -- XXX the csv record's line number would be good
+  
   where
-    parsebalance currency n s
-      | null s    = Nothing
-      | otherwise = Just
-          (either (mkerror n s) id $
-            runParser (evalStateT (amountp <* eof) nulljournal) "" $
-            T.pack $ (currency++) $ simplifySign s
-          ,nullsourcepos)  -- XXX parse position to show when assertion fails,
-                           -- the csv record's line number would be good
-      where
-        mkerror n s e = error' $ unlines
-          ["error: could not parse \""++s++"\" as balance"++show n++" amount"
-          ,showRecord record
-          ,showRules rules record
-          -- ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
-          ,"the parse error is:      "++customErrorBundlePretty e
-          ]
-    -- mdefaultcurrency = rule "default-currency"
-    fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
+    fieldval = fmap strip . hledgerFieldValue rules record :: HledgerFieldName -> Maybe String
+
+-- | Given a non-empty amount string (from CSV) to parse, along with a
+-- possibly non-empty currency symbol to prepend,
+-- parse as a hledger MixedAmount (as in journal format), or raise an error.
+-- The whole CSV record is provided for the error message.
+parseAmount :: CsvRules -> CsvRecord -> String -> String -> MixedAmount
+parseAmount rules record currency s =
+  either mkerror (Mixed . (:[])) $  -- PARTIAL:
+  runParser (evalStateT (amountp <* eof) nulljournal) "" $
+  T.pack $ (currency++) $ simplifySign s
+  where
+    mkerror e = error' $ unlines
+      ["error: could not parse \""++s++"\" as an amount"
+      ,showRecord record
+      ,showRules rules record
+      -- ,"the default-currency is: "++fromMaybe "unspecified" (getDirective "default-currency" rules)
+      ,"the parse error is:      "++customErrorBundlePretty e
+      ,"you may need to "
+        ++"change your amount*, balance*, or currency* rules, "
+        ++"or add or change your skip rule"
+      ]
+
+-- XXX unify these
+-- | Almost but not quite the same as parseAmount.
+-- Given a non-empty amount string (from CSV) to parse, along with a
+-- possibly non-empty currency symbol to prepend,
+-- parse as a hledger Amount (as in journal format), or raise an error.
+-- The CSV record and the field's numeric suffix are provided for the error message.
+parseBalanceAmount :: CsvRules -> CsvRecord -> String -> Int -> String -> Amount
+parseBalanceAmount rules record currency n s =
+  either (mkerror n s) id $
+    runParser (evalStateT (amountp <* eof) nulljournal) "" $
+    T.pack $ (currency++) $ simplifySign s
+                  -- the csv record's line number would be good
+  where
+    mkerror n s e = error' $ unlines
+      ["error: could not parse \""++s++"\" as balance"++show n++" amount"
+      ,showRecord record
+      ,showRules rules record
+      -- ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
+      ,"the parse error is:      "++customErrorBundlePretty e
+      ]
 
 -- | Make a balance assertion for the given amount, with the given parse
 -- position (to be shown in assertion failures), with the assertion type
