@@ -374,10 +374,10 @@ Balance changes in 2000Q1, valued at cost:
  a || 6 B  7 B  8 B     21 B      7 B 
 ---++---------------------------------
    || 6 B  7 B  8 B     21 B      7 B 
- 
-# 35. multicolumn balance report valued at period end
+
+# 35. multicolumn balance report showing changes in period-end values
 $ hledger -f- bal -M --value=end
-Balance changes in 2000Q1, valued at period ends:
+Period-end value changes in 2000Q1:
 
    || Jan   Feb  Mar 
 ===++================
@@ -385,9 +385,9 @@ Balance changes in 2000Q1, valued at period ends:
 ---++----------------
    || 5 B  -1 B  5 B 
 
-# 36. multicolumn balance report valued at period end with -T or -A
+# 36. multicolumn balance report showing changes in period-end values with -T or -A
 $ hledger -f- bal -MTA --value=end
-Balance changes in 2000Q1, valued at period ends:
+Period-end value changes in 2000Q1:
 
    || Jan   Feb  Mar    Total  Average 
 ===++==================================
@@ -415,9 +415,9 @@ Balance changes in 2000Q1, current value:
 ---++---------------
    || 4 B  4 B  4 B 
 
-# 39. multicolumn balance report valued at default date (same as --value=end)
+# 39. multicolumn balance report showing changes in period-end values (same as --value=end)
 $ hledger -f- bal -M -V
-Balance changes in 2000Q1, valued at period ends:
+Period-end value changes in 2000Q1:
 
    || Jan   Feb  Mar 
 ===++================
@@ -547,7 +547,7 @@ Budget performance in 2000Q1, valued at cost:
 ---++------------------------------------------------------------------------------------------------
    || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  21 B [350% of 6 B]  7 B [350% of 2 B] 
 
-# 48. budget report, valued at period ends.
+# 48. budget report, showing changes in period-end values.
 $ hledger -f- bal -MTA --budget --value=e
 Budget performance in 2000Q1, valued at period ends:
 

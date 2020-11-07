@@ -125,22 +125,29 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
                                   `spanDefaultsFrom` journalDateSpan date2_ j
 
           -- when user overrides, add an indication to the report title
-          mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
-            case t of
-              PeriodChange      -> "(Balance Changes)"
-              CumulativeChange  -> "(Cumulative Ending Balances)"
-              HistoricalBalance -> "(Historical Ending Balances)"
+          mtitleclarification = flip fmap mBalanceTypeOverride $ \case
+              PeriodChange | changingValuation -> "(Period-End Value Changes)"
+              PeriodChange                     -> "(Balance Changes)"
+              CumulativeChange                 -> "(Cumulative Ending Balances)"
+              HistoricalBalance                -> "(Historical Ending Balances)"
 
           valuationdesc = case value_ of
             Just (AtCost _mc)       -> ", valued at cost"
             Just (AtThen _mc)       -> error' unsupportedValueThenError  -- TODO
+            Just (AtEnd _mc) | changingValuation -> ""
             Just (AtEnd _mc)        -> ", valued at period ends"
             Just (AtNow _mc)        -> ", current value"
-            Just (AtDefault _mc) | multiperiod   -> ", valued at period ends"
+            Just (AtDefault _mc) | changingValuation -> ""
+            Just (AtDefault _mc) | multiperiod       -> ", valued at period ends"
             Just (AtDefault _mc)    -> ", current value"
             Just (AtDate today _mc) -> ", valued at "++showDate today
             Nothing                 -> ""
-            where multiperiod = interval_ /= NoInterval
+
+          multiperiod = interval_ /= NoInterval
+          changingValuation
+            | PeriodChange <- balancetype_, Just (AtEnd _mc)     <- value_ = multiperiod
+            | PeriodChange <- balancetype_, Just (AtDefault _mc) <- value_ = multiperiod
+            | otherwise                                                    = False
 
       -- make a CompoundBalanceReport.
       cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries

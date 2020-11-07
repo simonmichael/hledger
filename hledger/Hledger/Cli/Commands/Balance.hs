@@ -232,12 +232,13 @@ Currently, empty cells show 0.
 
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedFieldPuns       #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE RecordWildCards      #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TemplateHaskell      #-}
 
 module Hledger.Cli.Commands.Balance (
   balancemode
@@ -257,12 +258,14 @@ import Data.Default (def)
 import Data.List (intercalate, transpose)
 import Data.Maybe (fromMaybe, maybeToList)
 --import qualified Data.Map as Map
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import Data.Time (fromGregorian)
 import System.Console.CmdArgs.Explicit as C
 import Lucid as L
-import Text.Printf (printf)
 import Text.Tabular as T
 import Text.Tabular.AsciiWide as T
 
@@ -555,23 +558,31 @@ multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText ropts@ReportOpts{..} r =
     title ++ "\n\n" ++ (balanceReportTableAsText ropts $ balanceReportAsTable ropts r)
   where
-    multiperiod = interval_ /= NoInterval
-    title = printf "%s in %s%s:"
-      (case balancetype_ of
-        PeriodChange       -> "Balance changes"
-        CumulativeChange   -> "Ending balances (cumulative)"
-        HistoricalBalance  -> "Ending balances (historical)")
-      (showDateSpan $ periodicReportSpan r)
-      (case value_ of
-        Just (AtCost _mc)   -> ", valued at cost"
-        Just (AtThen _mc)   -> error' unsupportedValueThenError  -- TODO -- ", valued at period ends"  -- handled like AtEnd for now  -- PARTIAL:
-        Just (AtEnd _mc)    -> ", valued at period ends"
-        Just (AtNow _mc)    -> ", current value"
+    title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
+
+    mtitle = case balancetype_ of
+        PeriodChange     | changingValuation -> "Period-end value changes"
+        PeriodChange                         -> "Balance changes"
+        CumulativeChange                     -> "Ending balances (cumulative)"
+        HistoricalBalance                    -> "Ending balances (historical)"
+    valuationdesc = case value_ of
+        Just (AtCost _mc)    -> ", valued at cost"
+        Just (AtThen _mc)    -> error' unsupportedValueThenError  -- TODO -- ", valued at period ends"  -- handled like AtEnd for now  -- PARTIAL:
+        Just (AtEnd _mc) | changingValuation -> ""
+        Just (AtEnd _mc)     -> ", valued at period ends"
+        Just (AtNow _mc)     -> ", current value"
         -- XXX duplicates the above
-        Just (AtDefault _mc) | multiperiod -> ", valued at period ends"
+        Just (AtDefault _mc) | changingValuation -> ""
+        Just (AtDefault _mc) | multiperiod       -> ", valued at period ends"
         Just (AtDefault _mc) -> ", current value"
-        Just (AtDate d _mc) -> ", valued at "++showDate d
-        Nothing             -> "")
+        Just (AtDate d _mc)  -> ", valued at "++showDate d
+        Nothing              -> ""
+
+    multiperiod = interval_ /= NoInterval
+    changingValuation
+      | PeriodChange <- balancetype_, Just (AtEnd _mc)     <- value_ = multiperiod
+      | PeriodChange <- balancetype_, Just (AtDefault _mc) <- value_ = multiperiod
+      | otherwise                                                    = False
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
