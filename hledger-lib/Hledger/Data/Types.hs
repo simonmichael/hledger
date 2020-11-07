@@ -159,6 +159,12 @@ data AccountAlias = BasicAlias AccountName AccountName
 
 data Side = L | R deriving (Eq,Show,Read,Ord,Generic)
 
+-- | One of the decimal marks we support: either period or comma.
+type DecimalMark = Char
+
+isDecimalMark :: Char -> Bool
+isDecimalMark c = c == '.' || c == ','
+
 -- | The basic numeric type used in amounts.
 type Quantity = Decimal
 -- The following is for hledger-web, and requires blaze-markup.
@@ -440,6 +446,7 @@ data Journal = Journal {
   -- parsing-related data
    jparsedefaultyear      :: Maybe Year                            -- ^ the current default year, specified by the most recent Y directive (or current date)
   ,jparsedefaultcommodity :: Maybe (CommoditySymbol,AmountStyle)   -- ^ the current default commodity and its format, specified by the most recent D directive
+  ,jparsedecimalmark      :: Maybe DecimalMark                     -- ^ the character to always parse as decimal point, if set by CsvReader's decimal-mark (or a future journal directive)
   ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
   ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)

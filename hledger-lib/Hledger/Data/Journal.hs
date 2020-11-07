@@ -175,6 +175,7 @@ instance Semigroup Journal where
   j1 <> j2 = Journal {
      jparsedefaultyear          = jparsedefaultyear          j2
     ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
+    ,jparsedecimalmark          = jparsedecimalmark          j2
     ,jparseparentaccounts       = jparseparentaccounts       j2
     ,jparsealiases              = jparsealiases              j2
     -- ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
@@ -201,6 +202,7 @@ nulljournal :: Journal
 nulljournal = Journal {
    jparsedefaultyear          = Nothing
   ,jparsedefaultcommodity     = Nothing
+  ,jparsedecimalmark          = Nothing
   ,jparseparentaccounts       = []
   ,jparsealiases              = []
   -- ,jparsetransactioncount     = 0

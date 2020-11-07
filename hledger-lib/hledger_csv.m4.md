@@ -45,7 +45,8 @@ these are described more fully below, after the examples:
 | [**`if` block**](#if-block)               | apply some rules to CSV records matched by patterns     |
 | [**`if` table**](#if-table)               | apply some rules to CSV records matched by patterns, alternate syntax |
 | [**`end`**](#end)                         | skip the remaining CSV records                          |
-| [**`date-format`**](#date-format)         | describe the format of CSV dates                        |
+| [**`date-format`**](#date-format)         | how to parse dates in CSV records                       |
+| [**`decimal-mark`**](#decimal-mark)       | the decimal mark used in CSV amounts, if ambiguous      |
 | [**`newest-first`**](#newest-first)       | disambiguate record order when there's only one date    |
 | [**`include`**](#include)                 | inline another CSV rules file                           |
 | [**`balance-type`**](#balance-type)       | choose which type of balance assignments to use         |
@@ -715,6 +716,21 @@ date-format %-m/%-d/%Y %l:%M %p some other junk
 For the supported strptime syntax, see:\
 <https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime>
 
+
+## `decimal-mark`
+
+```rules
+decimal-mark .
+```
+or:
+```rules
+decimal-mark ,
+```
+
+hledger automatically accepts either period or comma as a decimal mark when parsing numbers
+(cf [Amounts](journal.html#amounts)).
+However if any numbers in the CSV contain digit group marks, such as thousand-separating commas,
+you should declare the decimal mark explicitly with this rule, to avoid misparsed numbers.
 
 ## `newest-first`
 
