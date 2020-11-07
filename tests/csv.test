@@ -906,6 +906,46 @@ $  ./csvtest.sh
 
 >=0
 
+# 45. decimal-mark helps parse ambiguous decimals correctly
+<
+2020-01-01,"1,000"
+2020-01-02,"1.000"
+
+RULES
+fields date,amount
+decimal-mark .
+
+$  ./csvtest.sh
+2020-01-01
+    expenses:unknown       1,000.000
+    income:unknown        -1,000.000
+
+2020-01-02
+    expenses:unknown           1.000
+    income:unknown            -1.000
+
+>=
+
+# 46. 
+<
+2020-01-01,"1,000"
+2020-01-02,"1.000"
+
+RULES
+fields date,amount
+decimal-mark ,
+
+$  ./csvtest.sh
+2020-01-01
+    expenses:unknown           1,000
+    income:unknown            -1,000
+
+2020-01-02
+    expenses:unknown       1.000,000
+    income:unknown        -1.000,000
+
+>=
+
 
 ## . 
 #<

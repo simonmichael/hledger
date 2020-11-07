@@ -349,6 +349,15 @@ setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
 getYear :: JournalParser m (Maybe Year)
 getYear = fmap jparsedefaultyear get
 
+-- | Get the decimal mark that has been specified for parsing, if any
+-- (eg by the CSV decimal-mark rule, or possibly a future journal directive).
+-- Return it as an AmountStyle that amount parsers can use.
+getDecimalMarkStyle :: JournalParser m (Maybe AmountStyle)
+getDecimalMarkStyle = do
+  Journal{jparsedecimalmark} <- get
+  let mdecmarkStyle = maybe Nothing (\c -> Just $ amountstyle{asdecimalpoint=Just c}) jparsedecimalmark
+  return mdecmarkStyle
+
 setDefaultCommodityAndStyle :: (CommoditySymbol,AmountStyle) -> JournalParser m ()
 setDefaultCommodityAndStyle cs = modify' (\j -> j{jparsedefaultcommodity=Just cs})
 
@@ -640,9 +649,26 @@ spaceandamountormissingp =
 -- or right, followed by, in any order: an optional transaction price,
 -- an optional ledger-style lot price, and/or an optional ledger-style
 -- lot date. A lot price and lot date will be ignored.
+--
+-- To parse the amount's quantity (number) we need to know which character 
+-- represents a decimal mark. We find it in one of three ways:
+--
+-- 1. If a decimal mark has been set explicitly in the journal parse state, 
+--    we use that
+--
+-- 2. Or if the journal has a commodity declaration for the amount's commodity,
+--    we get the decimal mark from  that
+--
+-- 3. Otherwise we will parse any valid decimal mark appearing in the
+--    number, as long as the number appears well formed.
+--
+-- Note 3 is the default zero-config case; it means we automatically handle
+-- files with any supported decimal mark, but it also allows different decimal marks
+-- in  different amounts, which is a bit too loose. There's an open issue.
 amountp :: JournalParser m Amount
 amountp = label "amount" $ do
-  let spaces = lift $ skipNonNewlineSpaces
+  let 
+    spaces = lift $ skipNonNewlineSpaces
   amount <- amountwithoutpricep <* spaces
   (mprice, _elotprice, _elotdate) <- runPermutation $
     (,,) <$> toPermutationWithDefault Nothing (Just <$> priceamountp <* spaces)
@@ -650,9 +676,8 @@ amountp = label "amount" $ do
          <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
   pure $ amount { aprice = mprice }
 
--- XXX Just like amountp but don't allow lot prices. Needed for balanceassertionp.
-amountpnolotprices :: JournalParser m Amount
-amountpnolotprices = label "amount" $ do
+amountpnolotpricesp :: JournalParser m Amount
+amountpnolotpricesp = label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amount <- amountwithoutpricep
   spaces
@@ -669,7 +694,9 @@ amountwithoutpricep = do
   leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
   leftsymbolamountp mult sign = label "amount" $ do
     c <- lift commoditysymbolp
-    suggestedStyle <- getAmountStyle c
+    mdecmarkStyle <- getDecimalMarkStyle
+    mcommodityStyle <- getAmountStyle c
+    let suggestedStyle = mdecmarkStyle <|> mcommodityStyle
     commodityspaced <- lift skipNonNewlineSpaces'
     sign2 <- lift $ signp
     offBeforeNum <- getOffset
@@ -692,14 +719,18 @@ amountwithoutpricep = do
     case mSpaceAndCommodity of
       -- right symbol amount
       Just (commodityspaced, c) -> do
-        suggestedStyle <- getAmountStyle c
-        (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+        mdecmarkStyle <- getDecimalMarkStyle
+        mcommodityStyle <- getAmountStyle c
+        let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle
+        (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
         return $ nullamt{acommodity=c, aquantity=sign q, aismultiplier=mult, astyle=s, aprice=Nothing}
       -- no symbol amount
       Nothing -> do
-        suggestedStyle <- getDefaultAmountStyle
-        (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+        mdecmarkStyle <- getDecimalMarkStyle
+        mcommodityStyle <- getDefaultAmountStyle
+        let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle
+        (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
         -- if a default commodity has been set, apply it and its style to this amount
         -- (unless it's a multiplier in an automated posting)
         defcs <- getDefaultCommodityAndStyle
@@ -716,8 +747,8 @@ amountwithoutpricep = do
     -> Either AmbiguousNumber RawNumber
     -> Maybe Integer
     -> TextParser m (Quantity, AmountPrecision, Maybe Char, Maybe DigitGroupStyle)
-  interpretNumber posRegion suggestedStyle ambiguousNum mExp =
-    let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
+  interpretNumber posRegion msuggestedStyle ambiguousNum mExp =
+    let rawNum = either (disambiguateNumber msuggestedStyle) id ambiguousNum
     in  case fromRawNumber rawNum mExp of
           Left errMsg -> customFailure $
                            uncurry parseErrorAtRegion posRegion errMsg
@@ -776,7 +807,7 @@ balanceassertionp = do
   lift skipNonNewlineSpaces
   -- this amount can have a price; balance assertions ignore it,
   -- but balance assignments will use it
-  a <- amountpnolotprices <?> "amount (for a balance assertion or assignment)"
+  a <- amountpnolotpricesp <?> "amount (for a balance assertion or assignment)"
   return BalanceAssertion
     { baamount    = a
     , batotal     = istotal
@@ -884,13 +915,12 @@ fromRawNumber raw mExp = do
       (a:b:cs) | a < b -> b:cs
       gs               -> gs
 
-
 disambiguateNumber :: Maybe AmountStyle -> AmbiguousNumber -> RawNumber
-disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
+disambiguateNumber msuggestedStyle (AmbiguousNumber grp1 sep grp2) =
   -- If present, use the suggested style to disambiguate;
   -- otherwise, assume that the separator is a decimal point where possible.
-  if isDecimalPointChar sep &&
-     maybe True (sep `isValidDecimalBy`) suggestedStyle
+  if isDecimalMark sep &&
+     maybe True (sep `isValidDecimalBy`) msuggestedStyle
   then NoSeparators grp1 (Just (sep, grp2))
   else WithSeparators sep [grp1, grp2] Nothing
   where
@@ -925,7 +955,7 @@ rawnumberp = label "number" $ do
   rawNumber <- fmap Right leadingDecimalPt <|> leadingDigits
 
   -- Guard against mistyped numbers
-  mExtraDecimalSep <- optional $ lookAhead $ satisfy isDecimalPointChar
+  mExtraDecimalSep <- optional $ lookAhead $ satisfy isDecimalMark
   when (isJust mExtraDecimalSep) $
     Fail.fail "invalid number (invalid use of separator)"
 
@@ -941,7 +971,7 @@ rawnumberp = label "number" $ do
 
   leadingDecimalPt :: TextParser m RawNumber
   leadingDecimalPt = do
-    decPt <- satisfy isDecimalPointChar
+    decPt <- satisfy isDecimalMark
     decGrp <- digitgroupp
     pure $ NoSeparators mempty (Just (decPt, decGrp))
 
@@ -962,7 +992,7 @@ rawnumberp = label "number" $ do
 
   withDecimalPt :: Char -> [DigitGrp] -> TextParser m RawNumber
   withDecimalPt digitSep digitGroups = do
-    decPt <- satisfy $ \c -> isDecimalPointChar c && c /= digitSep
+    decPt <- satisfy $ \c -> isDecimalMark c && c /= digitSep
     decDigitGrp <- option mempty digitgroupp
 
     pure $ WithSeparators digitSep digitGroups (Just (decPt, decDigitGrp))
@@ -974,21 +1004,17 @@ rawnumberp = label "number" $ do
     -> [DigitGrp]
     -> Either AmbiguousNumber RawNumber
   withoutDecimalPt grp1 sep grp2 grps
-    | null grps && isDecimalPointChar sep =
+    | null grps && isDecimalMark sep =
         Left $ AmbiguousNumber grp1 sep grp2
     | otherwise = Right $ WithSeparators sep (grp1:grp2:grps) Nothing
 
   trailingDecimalPt :: DigitGrp -> TextParser m RawNumber
   trailingDecimalPt grp1 = do
-    decPt <- satisfy isDecimalPointChar
+    decPt <- satisfy isDecimalMark
     pure $ NoSeparators grp1 (Just (decPt, mempty))
 
-
-isDecimalPointChar :: Char -> Bool
-isDecimalPointChar c = c == '.' || c == ','
-
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalPointChar c || c == ' '
+isDigitSeparatorChar c = isDecimalMark c || c == ' '
 
 -- | Some kinds of number literal we might parse.
 data RawNumber

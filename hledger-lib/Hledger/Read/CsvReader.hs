@@ -78,7 +78,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos, journalFinalise)
+import Hledger.Read.Common ( Reader(..),InputOpts(..), amountp, statusp, genericSourcePos, journalFinalise )
 
 --- ** doctest setup
 -- $setup
@@ -364,7 +364,7 @@ Grammar for the CSV conversion rules, more or less:
 
 RULES: RULE*
 
-RULE: ( FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | NEWEST-FIRST | DATE-FORMAT | COMMENT | BLANK ) NEWLINE
+RULE: ( FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | NEWEST-FIRST | DATE-FORMAT | DECIMAL-MARK | COMMENT | BLANK ) NEWLINE
 
 FIELD-LIST: fields SPACE FIELD-NAME ( SPACE? , SPACE? FIELD-NAME )*
 
@@ -462,6 +462,7 @@ directivep = (do
 directives :: [String]
 directives =
   ["date-format"
+  ,"decimal-mark"
   ,"separator"
   -- ,"default-account"
   -- ,"default-currency"
@@ -1048,9 +1049,10 @@ getBalance rules record currency n = do
 parseAmount :: CsvRules -> CsvRecord -> String -> String -> MixedAmount
 parseAmount rules record currency s =
   either mkerror (Mixed . (:[])) $  -- PARTIAL:
-  runParser (evalStateT (amountp <* eof) nulljournal) "" $
+  runParser (evalStateT (amountp <* eof) journalparsestate) "" $
   T.pack $ (currency++) $ simplifySign s
   where
+    journalparsestate = nulljournal{jparsedecimalmark=parseDecimalMark rules}
     mkerror e = error' $ unlines
       ["error: could not parse \""++s++"\" as an amount"
       ,showRecord record
@@ -1062,7 +1064,8 @@ parseAmount rules record currency s =
         ++"or add or change your skip rule"
       ]
 
--- XXX unify these
+-- XXX unify these ^v
+
 -- | Almost but not quite the same as parseAmount.
 -- Given a non-empty amount string (from CSV) to parse, along with a
 -- possibly non-empty currency symbol to prepend,
@@ -1071,10 +1074,11 @@ parseAmount rules record currency s =
 parseBalanceAmount :: CsvRules -> CsvRecord -> String -> Int -> String -> Amount
 parseBalanceAmount rules record currency n s =
   either (mkerror n s) id $
-    runParser (evalStateT (amountp <* eof) nulljournal) "" $
+    runParser (evalStateT (amountp <* eof) journalparsestate) "" $
     T.pack $ (currency++) $ simplifySign s
                   -- the csv record's line number would be good
   where
+    journalparsestate = nulljournal{jparsedecimalmark=parseDecimalMark rules}
     mkerror n s e = error' $ unlines
       ["error: could not parse \""++s++"\" as balance"++show n++" amount"
       ,showRecord record
@@ -1082,6 +1086,15 @@ parseBalanceAmount rules record currency n s =
       -- ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
       ,"the parse error is:      "++customErrorBundlePretty e
       ]
+
+-- Read a valid decimal mark from the decimal-mark rule, if any.
+-- If the rule is present with an invalid argument, raise an error.
+parseDecimalMark :: CsvRules -> Maybe DecimalMark
+parseDecimalMark rules =
+  case rules `csvRule` "decimal-mark" of
+    Nothing -> Nothing
+    Just [c] | isDecimalMark c -> Just c
+    Just s -> error' $ "decimal-mark's argument should be \".\" or \",\" (not \""++s++"\")"
 
 -- | Make a balance assertion for the given amount, with the given parse
 -- position (to be shown in assertion failures), with the assertion type
