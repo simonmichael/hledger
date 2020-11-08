@@ -1006,7 +1006,8 @@ commodityStylesFromAmounts amts =
     commamts = groupSort [(acommodity as, as) | as <- amts]
     commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
 
--- TODO: should probably detect and report inconsistencies here
+-- TODO: should probably detect and report inconsistencies here.
+-- Though, we don't have the info for a good error message, so maybe elsewhere.
 -- | Given a list of amount styles (assumed to be from parsed amounts
 -- in a single commodity), in parse order, choose a canonical style.
 -- Traditionally it's "the style of the first, with the maximum precision of all".

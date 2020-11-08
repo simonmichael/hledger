@@ -305,11 +305,11 @@ parseAndFinaliseJournal' parser iopts f txt = do
 --
 -- - infer transaction-implied market prices from transaction prices
 --
-journalFinalise :: InputOpts -> FilePath -> Text -> Journal -> ExceptT String IO Journal
+journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
 journalFinalise iopts f txt pj = do
   t <- liftIO getClockTime
   d <- liftIO getCurrentDay
-  -- Infer and apply canonical styles for each commodity (or fail).
+  -- Infer and apply canonical styles for each commodity (or throw an error).
   -- This affects transaction balancing/assertions/assignments, so needs to be done early.
   -- (TODO: since #903's refactoring for hledger 1.12,
   -- journalApplyCommodityStyles here is seeing the
