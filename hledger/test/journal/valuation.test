@@ -90,7 +90,7 @@ $ hledger -f- balance -V
             150.48 H  a
            -150.00 H  b
 --------------------
-              0.48 H
+              0.48 H  
 
 
 # 7. register -V affects posting amounts and total.

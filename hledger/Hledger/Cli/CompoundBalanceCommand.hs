@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
@@ -16,8 +17,12 @@ module Hledger.Cli.CompoundBalanceCommand (
 
 import Data.List (foldl')
 import Data.Maybe (fromMaybe, mapMaybe)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvReader (CSV, printCSV)
@@ -153,7 +158,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
 
     -- render appropriately
     render = case outputFormatFromOpts opts of
-        "txt"  -> TL.pack . compoundBalanceReportAsText ropts'
+        "txt"  -> compoundBalanceReportAsText ropts'
         "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
         "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
         "json" -> toJsonText
@@ -189,11 +194,12 @@ Balance Sheet
  Total       ||           1        1        1
 
 -}
-compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> String
+compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
 compoundBalanceReportAsText ropts
   (CompoundPeriodicReport title _colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
-    T.unpack title ++ "\n\n" ++
-    balanceReportTableAsText ropts bigtable'
+    TB.toLazyText $
+      TB.fromText title <> TB.fromText "\n\n" <>
+      balanceReportTableAsText ropts bigtable'
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
@@ -218,7 +224,7 @@ compoundBalanceReportAsText ropts
         -- convert to table
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
-        t = Table (Tab.Group SingleLine [Header $ T.unpack title, lefthdrs]) tophdrs ([]:cells)
+        t = Table (Tab.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
 
 -- | Add the second table below the first, discarding its column headings.
 concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =

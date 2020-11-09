@@ -19,11 +19,11 @@ $ hledger -f bcexample.hledger bal -t -1 --color=always
        [31m-337.26 VACHR[m  Income
         [31m-2891.85 USD[m  Liabilities
 --------------------
-             70.00 GLD
-            17.00 ITOT
-489.957000000000 RGAGX
-        [31m-104412.76 USD[m
-309.950000000000 VBMPX
-             36.00 VEA
-            294.00 VHT
+             70.00 GLD          
+            17.00 ITOT          
+489.957000000000 RGAGX          
+        [31m-104412.76 USD[m  
+309.950000000000 VBMPX          
+             36.00 VEA          
+            294.00 VHT          
 >=0

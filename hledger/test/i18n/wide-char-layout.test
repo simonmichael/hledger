@@ -54,7 +54,7 @@ hledger -f chinese.journal balance --tree
                    0      㐃
                  1 A        㐄
 --------------------
-                   0
+                   0  
 >>>2
 >>>=0
 

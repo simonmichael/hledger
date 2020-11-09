@@ -31,7 +31,7 @@ module Hledger.Utils.Text
  -- -- * single-line layout
  -- elideLeft,
   textElideRight,
- -- formatString,
+  formatText,
  -- -- * multi-line layout
   textConcatTopPadded,
  -- concatBottomPadded,
@@ -97,15 +97,15 @@ wrap start end x = start <> x <> end
 textChomp :: Text -> Text
 textChomp = T.dropWhileEnd (`elem` ['\r', '\n'])
 
--- -- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
--- -- Works on multi-line strings too (but will rewrite non-unix line endings).
--- formatString :: Bool -> Maybe Int -> Maybe Int -> String -> String
--- formatString leftJustified minwidth maxwidth s = intercalate "\n" $ map (printf fmt) $ lines s
---     where
---       justify = if leftJustified then "-" else ""
---       minwidth' = maybe "" show minwidth
---       maxwidth' = maybe "" (("."++).show) maxwidth
---       fmt = "%" ++ justify ++ minwidth' ++ maxwidth' ++ "s"
+-- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
+-- Works on multi-line strings too (but will rewrite non-unix line endings).
+formatText :: Bool -> Maybe Int -> Maybe Int -> Text -> Text
+formatText leftJustified minwidth maxwidth =
+    T.intercalate "\n" . map (pad . clip) . T.lines
+  where
+    pad  = maybe id justify minwidth
+    clip = maybe id T.take maxwidth
+    justify n = if leftJustified then T.justifyLeft n ' ' else T.justifyRight n ' '
 
 -- underline :: String -> String
 -- underline s = s' ++ replicate (length s) '-' ++ "\n"

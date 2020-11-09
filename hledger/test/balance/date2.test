@@ -1,4 +1,4 @@
-hledger -f - balance -p 'in 2009' --date2
+hledger -f - balance -p 'in 2009' --date2 -N
 <<<
 2009/1/1 x
   a  1
@@ -10,6 +10,4 @@ hledger -f - balance -p 'in 2009' --date2
 >>>
                    1  a
                   -1  b
---------------------
-                   0
 >>>=0
