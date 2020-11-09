@@ -1588,10 +1588,12 @@ T}
 If you want intervals that start on arbitrary day of your choosing and
 span a week, month or year, you need to use any of the following:
 .PP
-\f[C]every Nth day of week\f[R], \f[C]every <weekday>\f[R],
+\f[C]every Nth day of week\f[R], \f[C]every WEEKDAYNAME\f[R] (eg
+\f[C]mon|tue|wed|thu|fri|sat|sun\f[R]),
 \f[C]every Nth day [of month]\f[R],
-\f[C]every Nth weekday [of month]\f[R], \f[C]every MM/DD [of year]\f[R],
-\f[C]every Nth MMM [of year]\f[R], \f[C]every MMM Nth [of year]\f[R].
+\f[C]every Nth WEEKDAYNAME [of month]\f[R],
+\f[C]every MM/DD [of year]\f[R], \f[C]every Nth MMM [of year]\f[R],
+\f[C]every MMM Nth [of year]\f[R].
 .PP
 Examples:
 .PP
@@ -2113,7 +2115,7 @@ Related: #329, #1083.
 .PP
 .TS
 tab(@);
-lw(11.7n) lw(11.2n) lw(11.9n) lw(13.1n) lw(12.4n) lw(9.8n).
+lw(7.4n) lw(11.7n) lw(19.6n) lw(6.8n) lw(19.6n) lw(5.0n).
 T{
 Report type
 T}@T{
@@ -2258,15 +2260,35 @@ T}@T{
 value at DATE/today of sums of postings
 T}
 T{
-balances (with report interval)
+balances changes (with report interval)
 T}@T{
-sums of costs
+sums of costs of postings in interval
 T}@T{
-value at period ends of sums of postings
+value at period ends of sums of postings before period end minus value
+at period starts of sums of all postings before period start
 T}@T{
 not supported
 T}@T{
-value at period ends of sums of postings
+value at period ends of sums of postings before period end minus value
+at period starts of sums of all postings before period start
+T}@T{
+value at DATE/today of sums of postings
+T}
+T{
+end balances (with report interval and --cumulative or -H)
+T}@T{
+sums of costs of postings from report start (or before report start with
+-H) and interval end
+T}@T{
+value at period ends of sums of all postings before period end (minus
+value at report start of of sums of all postings before report start
+with --cumulative)
+T}@T{
+not supported
+T}@T{
+value at period ends of sums of all postings before period end (minus
+value at report start of of sums of all postings before report start
+with --cumulative)
 T}@T{
 value at DATE/today of sums of postings
 T}
@@ -2275,11 +2297,11 @@ starting balances (with report interval and -H)
 T}@T{
 sums of costs of postings before report start
 T}@T{
-sums of postings before report start
+value at report start of sums of all postings before report start
 T}@T{
 not supported
 T}@T{
-sums of postings before report start
+value at report start of sums of all postings before report start
 T}@T{
 sums of postings before report start
 T}

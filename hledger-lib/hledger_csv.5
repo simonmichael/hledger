@@ -75,7 +75,12 @@ T}
 T{
 \f[B]\f[CB]date-format\f[B]\f[R]
 T}@T{
-describe the format of CSV dates
+how to parse dates in CSV records
+T}
+T{
+\f[B]\f[CB]decimal-mark\f[B]\f[R]
+T}@T{
+the decimal mark used in CSV amounts, if ambiguous
 T}
 T{
 \f[B]\f[CB]newest-first\f[B]\f[R]
@@ -866,6 +871,27 @@ For the supported strptime syntax, see:
 .P
 .PD
 https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime
+.SS \f[C]decimal-mark\f[R]
+.IP
+.nf
+\f[C]
+decimal-mark .
+\f[R]
+.fi
+.PP
+or:
+.IP
+.nf
+\f[C]
+decimal-mark ,
+\f[R]
+.fi
+.PP
+hledger automatically accepts either period or comma as a decimal mark
+when parsing numbers (cf Amounts).
+However if any numbers in the CSV contain digit group marks, such as
+thousand-separating commas, you should declare the decimal mark
+explicitly with this rule, to avoid misparsed numbers.
 .SS \f[C]newest-first\f[R]
 .PP
 hledger always sorts the generated transactions by date.

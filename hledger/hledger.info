@@ -1305,9 +1305,10 @@ end on the last one, as described above.
    If you want intervals that start on arbitrary day of your choosing
 and span a week, month or year, you need to use any of the following:
 
-   'every Nth day of week', 'every <weekday>', 'every Nth day [of
-month]', 'every Nth weekday [of month]', 'every MM/DD [of year]', 'every
-Nth MMM [of year]', 'every MMM Nth [of year]'.
+   'every Nth day of week', 'every WEEKDAYNAME' (eg
+'mon|tue|wed|thu|fri|sat|sun'), 'every Nth day [of month]', 'every Nth
+WEEKDAYNAME [of month]', 'every MM/DD [of year]', 'every Nth MMM [of
+year]', 'every MMM Nth [of year]'.
 
    Examples:
 
@@ -1785,76 +1786,103 @@ sideways.)  It may be useful when troubleshooting.  If you find
 problems, please report them, ideally with a reproducible example.
 Related: #329, #1083.
 
-Report       '-B',        '-V', '-X'   '--value=then' '--value=end' '--value=DATE',
-type         '--value=cost'                                         '--value=now'
--------------------------------------------------------------------------------
+Report   '-B',        '-V', '-X'           '--value=then''--value=end'  '--value=DATE',
+type     '--value=cost'                                                 '--value=now'
+------------------------------------------------------------------------------
 *print*
-posting      cost         value at     value at       value at      value at
-amounts                   report end   posting date   report or     DATE/today
-                          or today                    journal end
-balance      unchanged    unchanged    unchanged      unchanged     unchanged
+posting  cost         value at report      value   value at report or   value
+amounts               end or today         at      journal end          at
+                                           posting                      DATE/today
+                                           date
+balance  unchanged    unchanged            unchangedunchanged           unchanged
 assertions
 /
 assignments
 *register*
-starting     cost         value at     not            value at      value at
-balance                   day before   supported      day before    DATE/today
-(with -H)                 report or                   report or
-                          journal                     journal
-                          start                       start
-posting      cost         value at     value at       value at      value at
-amounts                   report end   posting date   report or     DATE/today
-(no report                or today                    journal end
+starting cost         value at day         not     value at day         value
+balance               before report or     supportedbefore report or    at
+(with                 journal start                journal start        DATE/today
+-H)
+posting  cost         value at report      value   value at report or   value
+amounts               end or today         at      journal end          at
+(no                                        posting                      DATE/today
+report                                     date
 interval)
-summary      summarised   value at     sum of         value at      value at
-posting      cost         period       postings in    period ends   DATE/today
-amounts                   ends         interval,
-(with                                  valued at
-report                                 interval
-interval)                              start
-running      sum/average  sum/average  sum/average    sum/average   sum/average
-total/averageof           of           of displayed   of            of
-             displayed    displayed    values         displayed     displayed
-             values       values                      values        values
+summary  summarised   value at period      sum     value at period      value
+posting  cost         ends                 of      ends                 at
+amounts                                    postings                     DATE/today
+(with                                      in
+report                                     interval,
+interval)                                  valued
+                                           at
+                                           interval
+                                           start
+running  sum/average  sum/average of       sum/averagesum/average of    sum/average
+total/averageof       displayed values     of      displayed values     of
+         displayed                         displayed                    displayed
+         values                            values                       values
 *balance
-(bs, bse,
-cf, is..)*
-balances     sums of      value at     not            value at      value at
-(no report   costs        report end   supported      report or     DATE/today
-interval)                 or today                    journal end   of sums
-                          of sums of                  of sums of    of
-                          postings                    postings      postings
-balances     sums of      value at     not            value at      value at
-(with        costs        period       supported      period ends   DATE/today
-report                    ends of                     of sums of    of sums
-interval)                 sums of                     postings      of
-                          postings                                  postings
-starting     sums of      sums of      not            sums of       sums of
-balances     costs of     postings     supported      postings      postings
-(with        postings     before                      before        before
-report       before       report                      report        report
-interval     report       start                       start         start
-and -H)      start
-budget       like         like         not            like          like
-amounts      balances     balances     supported      balances      balances
+(bs,
+bse,
+cf,
+is..)*
+balances sums of      value at report      not     value at report or   value
+(no      costs        end or today of      supportedjournal end of      at
+report                sums of postings             sums of postings     DATE/today
+interval)                                                               of
+                                                                        sums
+                                                                        of
+                                                                        postings
+balances sums of      value at period      not     value at period      value
+changes  costs of     ends of sums of      supportedends of sums of     at
+(with    postings     postings before              postings before      DATE/today
+report   in           period end minus             period end minus     of
+interval)interval     value at period              value at period      sums
+                      starts of sums of            starts of sums of    of
+                      all postings                 all postings         postings
+                      before period                before period
+                      start                        start
+end      sums of      value at period      not     value at period      value
+balances costs of     ends of sums of      supportedends of sums of     at
+(with    postings     all postings                 all postings         DATE/today
+report   from         before period end            before period end    of
+interval report       (minus value at              (minus value at      sums
+and      start (or    report start of of           report start of of   of
+-cumulativebefore     sums of all                  sums of all          postings
+or -H)   report       postings before              postings before
+         start with   report start with            report start with
+         -H) and      -cumulative)                 -cumulative)
+         interval
+         end
+starting sums of      value at report      not     value at report      sums
+balances costs of     start of sums of     supportedstart of sums of    of
+(with    postings     all postings                 all postings         postings
+report   before       before report                before report        before
+interval report       start                        start                report
+and      start                                                          start
+-H)
+budget   like         like balances        not     like balances        like
+amounts  balances                          supported                    balances
 with
 -budget
-grand        sum of       sum of       not            sum of        sum of
-total (no    displayed    displayed    supported      displayed     displayed
-report       values       values                      values        values
+grand    sum of       sum of displayed     not     sum of displayed     sum
+total    displayed    values               supportedvalues              of
+(no      values                                                         displayed
+report                                                                  values
 interval)
-row          sums/averagessums/averagesnot            sums/averages sums/averages
-totals/averagesof         of           supported      of            of
-(with        displayed    displayed                   displayed     displayed
-report       values       values                      values        values
+row      sums/averagessums/averages of     not     sums/averages of     sums/averages
+totals/averagesof     displayed values     supporteddisplayed values    of
+(with    displayed                                                      displayed
+report   values                                                         values
 interval)
-column       sums of      sums of      not            sums of       sums of
-totals       displayed    displayed    supported      displayed     displayed
-             values       values                      values        values
-grand        sum/average  sum/average  not            sum/average   sum/average
-total/averageof column    of column    supported      of column     of
-             totals       totals                      totals        column
-                                                                    totals
+column   sums of      sums of displayed    not     sums of displayed    sums
+totals   displayed    values               supportedvalues              of
+         values                                                         displayed
+                                                                        values
+grand    sum/average  sum/average of       not     sum/average of       sum/average
+total/averageof columncolumn totals        supportedcolumn totals       of
+         totals                                                         column
+                                                                        totals
 
    *Glossary:*
 
@@ -4132,152 +4160,152 @@ Node: Report intervals40873
 Ref: #report-intervals41038
 Node: Period expressions41428
 Ref: #period-expressions41588
-Node: Depth limiting45920
-Ref: #depth-limiting46064
-Node: Pivoting46396
-Ref: #pivoting46519
-Node: Valuation48195
-Ref: #valuation48297
-Node: -B Cost48986
-Ref: #b-cost49090
-Node: -V Value49223
-Ref: #v-value49369
-Node: -X Value in specified commodity49564
-Ref: #x-value-in-specified-commodity49763
-Node: Valuation date49912
-Ref: #valuation-date50080
-Node: Market prices50490
-Ref: #market-prices50670
-Node: --infer-value market prices from transactions51447
-Ref: #infer-value-market-prices-from-transactions51696
-Node: Valuation commodity52978
-Ref: #valuation-commodity53187
-Node: Simple valuation examples54413
-Ref: #simple-valuation-examples54615
-Node: --value Flexible valuation55274
-Ref: #value-flexible-valuation55482
-Node: More valuation examples57429
-Ref: #more-valuation-examples57638
-Node: Effect of valuation on reports59643
-Ref: #effect-of-valuation-on-reports59831
-Node: COMMANDS65352
-Ref: #commands65460
-Node: accounts66568
-Ref: #accounts66666
-Node: activity67365
-Ref: #activity67475
-Node: add67858
-Ref: #add67959
-Node: aregister70752
-Ref: #aregister70864
-Node: aregister and custom posting dates72237
-Ref: #aregister-and-custom-posting-dates72410
-Ref: #output-format-173003
-Node: balance73408
-Ref: #balance73525
-Node: Classic balance report75005
-Ref: #classic-balance-report75178
-Node: Customising the classic balance report76502
-Ref: #customising-the-classic-balance-report76730
-Node: Colour support78806
-Ref: #colour-support78973
-Node: Flat mode79069
-Ref: #flat-mode79217
-Node: Depth limited balance reports79630
-Ref: #depth-limited-balance-reports79815
-Node: Percentages80271
-Ref: #percentages80428
-Node: Sorting by amount81565
-Ref: #sorting-by-amount81731
-Node: Multicolumn balance report82225
-Ref: #multicolumn-balance-report82411
-Node: Budget report88008
-Ref: #budget-report88151
-Node: Nested budgets93417
-Ref: #nested-budgets93529
-Ref: #output-format-297012
-Node: balancesheet97209
-Ref: #balancesheet97345
-Node: balancesheetequity98857
-Ref: #balancesheetequity99006
-Node: cashflow100082
-Ref: #cashflow100210
-Node: check-dates101426
-Ref: #check-dates101553
-Node: check-dupes101832
-Ref: #check-dupes101958
-Node: close102251
-Ref: #close102359
-Node: close usage103881
-Ref: #close-usage103974
-Node: codes106787
-Ref: #codes106895
-Node: commodities107607
-Ref: #commodities107734
-Node: descriptions107816
-Ref: #descriptions107944
-Node: diff108248
-Ref: #diff108354
-Node: files109401
-Ref: #files109501
-Node: help109648
-Ref: #help109748
-Node: import110829
-Ref: #import110943
-Node: Importing balance assignments111836
-Ref: #importing-balance-assignments111984
-Node: incomestatement112633
-Ref: #incomestatement112766
-Node: notes114111
-Ref: #notes114224
-Node: payees114592
-Ref: #payees114698
-Node: prices115118
-Ref: #prices115224
-Node: print115565
-Ref: #print115675
-Node: print-unique120471
-Ref: #print-unique120597
-Node: register120882
-Ref: #register121009
-Node: Custom register output125458
-Ref: #custom-register-output125587
-Node: register-match126924
-Ref: #register-match127058
-Node: rewrite127409
-Ref: #rewrite127524
-Node: Re-write rules in a file129379
-Ref: #re-write-rules-in-a-file129513
-Node: Diff output format130723
-Ref: #diff-output-format130892
-Node: rewrite vs print --auto131984
-Ref: #rewrite-vs.-print---auto132163
-Node: roi132719
-Ref: #roi132817
-Node: stats133829
-Ref: #stats133928
-Node: tags134716
-Ref: #tags134814
-Node: test135333
-Ref: #test135441
-Node: Add-on commands136188
-Ref: #add-on-commands136305
-Node: ui137648
-Ref: #ui137736
-Node: web137790
-Ref: #web137893
-Node: iadd138009
-Ref: #iadd138120
-Node: interest138202
-Ref: #interest138309
-Node: ENVIRONMENT138549
-Ref: #environment138661
-Node: FILES139646
-Ref: #files-1139749
-Node: LIMITATIONS139962
-Ref: #limitations140081
-Node: TROUBLESHOOTING140823
-Ref: #troubleshooting140936
+Node: Depth limiting45961
+Ref: #depth-limiting46105
+Node: Pivoting46437
+Ref: #pivoting46560
+Node: Valuation48236
+Ref: #valuation48338
+Node: -B Cost49027
+Ref: #b-cost49131
+Node: -V Value49264
+Ref: #v-value49410
+Node: -X Value in specified commodity49605
+Ref: #x-value-in-specified-commodity49804
+Node: Valuation date49953
+Ref: #valuation-date50121
+Node: Market prices50531
+Ref: #market-prices50711
+Node: --infer-value market prices from transactions51488
+Ref: #infer-value-market-prices-from-transactions51737
+Node: Valuation commodity53019
+Ref: #valuation-commodity53228
+Node: Simple valuation examples54454
+Ref: #simple-valuation-examples54656
+Node: --value Flexible valuation55315
+Ref: #value-flexible-valuation55523
+Node: More valuation examples57470
+Ref: #more-valuation-examples57679
+Node: Effect of valuation on reports59684
+Ref: #effect-of-valuation-on-reports59872
+Node: COMMANDS67137
+Ref: #commands67245
+Node: accounts68353
+Ref: #accounts68451
+Node: activity69150
+Ref: #activity69260
+Node: add69643
+Ref: #add69744
+Node: aregister72537
+Ref: #aregister72649
+Node: aregister and custom posting dates74022
+Ref: #aregister-and-custom-posting-dates74195
+Ref: #output-format-174788
+Node: balance75193
+Ref: #balance75310
+Node: Classic balance report76790
+Ref: #classic-balance-report76963
+Node: Customising the classic balance report78287
+Ref: #customising-the-classic-balance-report78515
+Node: Colour support80591
+Ref: #colour-support80758
+Node: Flat mode80854
+Ref: #flat-mode81002
+Node: Depth limited balance reports81415
+Ref: #depth-limited-balance-reports81600
+Node: Percentages82056
+Ref: #percentages82213
+Node: Sorting by amount83350
+Ref: #sorting-by-amount83516
+Node: Multicolumn balance report84010
+Ref: #multicolumn-balance-report84196
+Node: Budget report89793
+Ref: #budget-report89936
+Node: Nested budgets95202
+Ref: #nested-budgets95314
+Ref: #output-format-298797
+Node: balancesheet98994
+Ref: #balancesheet99130
+Node: balancesheetequity100642
+Ref: #balancesheetequity100791
+Node: cashflow101867
+Ref: #cashflow101995
+Node: check-dates103211
+Ref: #check-dates103338
+Node: check-dupes103617
+Ref: #check-dupes103743
+Node: close104036
+Ref: #close104144
+Node: close usage105666
+Ref: #close-usage105759
+Node: codes108572
+Ref: #codes108680
+Node: commodities109392
+Ref: #commodities109519
+Node: descriptions109601
+Ref: #descriptions109729
+Node: diff110033
+Ref: #diff110139
+Node: files111186
+Ref: #files111286
+Node: help111433
+Ref: #help111533
+Node: import112614
+Ref: #import112728
+Node: Importing balance assignments113621
+Ref: #importing-balance-assignments113769
+Node: incomestatement114418
+Ref: #incomestatement114551
+Node: notes115896
+Ref: #notes116009
+Node: payees116377
+Ref: #payees116483
+Node: prices116903
+Ref: #prices117009
+Node: print117350
+Ref: #print117460
+Node: print-unique122256
+Ref: #print-unique122382
+Node: register122667
+Ref: #register122794
+Node: Custom register output127243
+Ref: #custom-register-output127372
+Node: register-match128709
+Ref: #register-match128843
+Node: rewrite129194
+Ref: #rewrite129309
+Node: Re-write rules in a file131164
+Ref: #re-write-rules-in-a-file131298
+Node: Diff output format132508
+Ref: #diff-output-format132677
+Node: rewrite vs print --auto133769
+Ref: #rewrite-vs.-print---auto133948
+Node: roi134504
+Ref: #roi134602
+Node: stats135614
+Ref: #stats135713
+Node: tags136501
+Ref: #tags136599
+Node: test137118
+Ref: #test137226
+Node: Add-on commands137973
+Ref: #add-on-commands138090
+Node: ui139433
+Ref: #ui139521
+Node: web139575
+Ref: #web139678
+Node: iadd139794
+Ref: #iadd139905
+Node: interest139987
+Ref: #interest140094
+Node: ENVIRONMENT140334
+Ref: #environment140446
+Node: FILES141431
+Ref: #files-1141534
+Node: LIMITATIONS141747
+Ref: #limitations141866
+Node: TROUBLESHOOTING142608
+Ref: #troubleshooting142721
 
 End Tag Table
 
