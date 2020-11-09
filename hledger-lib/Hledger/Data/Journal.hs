@@ -183,6 +183,7 @@ instance Semigroup Journal where
     ,jincludefilestack          = jincludefilestack j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
     ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
+    ,jglobalcommoditystyles     = jglobalcommoditystyles     j1 <> jglobalcommoditystyles     j2
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
     ,jpricedirectives           = jpricedirectives           j1 <> jpricedirectives           j2
@@ -210,6 +211,7 @@ nulljournal = Journal {
   ,jincludefilestack          = []
   ,jdeclaredaccounts          = []
   ,jdeclaredaccounttypes      = M.empty
+  ,jglobalcommoditystyles     = M.empty
   ,jcommodities               = M.empty
   ,jinferredcommodities       = M.empty
   ,jpricedirectives           = []
@@ -940,10 +942,8 @@ checkBalanceAssignmentUnassignableAccountB p = do
 --
 
 -- | Choose and apply a consistent display style to the posting
--- amounts in each commodity. Each commodity's style is specified by a
--- commodity (or D) directive, or otherwise inferred from posting
--- amounts. Can return an error message eg if inconsistent number
--- formats are found.
+-- amounts in each commodity (see journalCommodityStyles).
+-- Can return an error message eg if inconsistent number formats are found.
 journalApplyCommodityStyles :: Journal -> Either String Journal
 journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
   case journalInferCommodityStyles j of
@@ -960,18 +960,20 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jpricedirectives=pds} =
         fixbalanceassertion ba = ba{baamount=styleAmount styles $ baamount ba}
         fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmountExceptPrecision styles a}
 
--- | Get the canonical amount styles for this journal, whether
--- declared by commodity directives, by the last default commodity (D)
--- directive, or inferred from posting amounts, as a map from symbol
--- to style. Styles declared by directives take precedence (and
--- commodity takes precedence over D). Styles from directives are
--- guaranteed to specify the decimal mark character.
+-- | Get the canonical amount styles for this journal, whether (in order of precedence):
+-- set globally in InputOpts,
+-- declared by commodity directives, 
+-- declared by a default commodity (D) directive, 
+-- or inferred from posting amounts, 
+-- as a map from symbol to style. 
+-- Styles from directives are assumed to specify the decimal mark.
 journalCommodityStyles :: Journal -> M.Map CommoditySymbol AmountStyle
 journalCommodityStyles j =
   -- XXX could be some redundancy here, cf journalStyleInfluencingAmounts
-  commoditystyles <> defaultcommoditystyle <> inferredstyles
+  globalstyles <> declaredstyles <> defaultcommoditystyle <> inferredstyles
   where
-    commoditystyles       = M.mapMaybe cformat $ jcommodities j
+    globalstyles          = jglobalcommoditystyles j
+    declaredstyles        = M.mapMaybe cformat $ jcommodities j
     defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
     inferredstyles        = jinferredcommodities j
 

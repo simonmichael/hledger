@@ -194,6 +194,7 @@ data InputOpts = InputOpts {
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed
+    ,commoditystyles_   :: Maybe (M.Map CommoditySymbol AmountStyle) -- ^ optional commodity display styles affecting all files
  } deriving (Show)
 
 instance Default InputOpts where def = definputopts
@@ -209,6 +210,7 @@ definputopts = InputOpts
     , new_save_          = True
     , pivot_             = ""
     , auto_              = False
+    , commoditystyles_   = Nothing
     }
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
@@ -223,6 +225,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,new_save_          = True
   ,pivot_             = stringopt "pivot" rawopts
   ,auto_              = boolopt "auto" rawopts
+  ,commoditystyles_   = Nothing
   }
 
 --- ** parsing utilities
@@ -306,26 +309,28 @@ parseAndFinaliseJournal' parser iopts f txt = do
 -- - infer transaction-implied market prices from transaction prices
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise iopts f txt pj = do
+journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_} f txt pj = do
   t <- liftIO getClockTime
   d <- liftIO getCurrentDay
+  -- Set any global commodity styles that have been provided via InputOpts
+  let pj' = pj{jglobalcommoditystyles=fromMaybe M.empty commoditystyles_}
   -- Infer and apply canonical styles for each commodity (or throw an error).
   -- This affects transaction balancing/assertions/assignments, so needs to be done early.
   -- (TODO: since #903's refactoring for hledger 1.12,
   -- journalApplyCommodityStyles here is seeing the
   -- transactions before they get reversesd to normal order.)
-  case journalApplyCommodityStyles pj of
+  case journalApplyCommodityStyles pj' of
     Left e    -> throwError e
     Right pj' -> either throwError return $
       pj'
       & journalAddFile (f, txt)  -- save the file path and content
       & journalSetLastReadTime t -- save the last read time
       & journalReverse           -- convert all lists to parse order
-      & (if not (auto_ iopts) || null (jtxnmodifiers pj)
+      & (if not auto_ || null (jtxnmodifiers pj)
          then
            -- Auto postings are not active.
            -- Balance all transactions and maybe check balance assertions.
-           journalBalanceTransactions (not $ ignore_assertions_ iopts)
+           journalBalanceTransactions (not ignore_assertions_)
          else \j -> do  -- Either monad
            -- Auto postings are active.
            -- Balance all transactions without checking balance assertions,
@@ -339,7 +344,7 @@ journalFinalise iopts f txt pj = do
                -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
                j''' <- journalApplyCommodityStyles j''
                -- then check balance assertions.
-               journalBalanceTransactions (not $ ignore_assertions_ iopts) j'''
+               journalBalanceTransactions (not ignore_assertions_) j'''
         )
      & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
 
