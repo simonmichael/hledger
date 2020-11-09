@@ -53,14 +53,16 @@ uiShowStatus copts ss =
     showstatus Unmarked = "unmarked"
 
 reportSpecToggleStatusSomehow :: Status -> CliOpts -> ReportSpec -> ReportSpec
-reportSpecToggleStatusSomehow s copts rspec = rspec{rsOpts=ropts}
+reportSpecToggleStatusSomehow s copts =
+    either (error "reportSpecToggleStatusSomehow: updating Status should not result in an error") id  -- PARTIAL:
+    . updateReportSpecFromOpts update
   where
-    ropts = case maybeposintopt "status-toggles" $ rawopts_ copts of
-      Just 2 -> reportOptsToggleStatus2 s ropts
-      Just 3 -> reportOptsToggleStatus3 s ropts
---      Just 4 -> reportOptsToggleStatus4 s ropts
---      Just 5 -> reportOptsToggleStatus5 s ropts
-      _      -> reportOptsToggleStatus1 s ropts
+    update = case maybeposintopt "status-toggles" $ rawopts_ copts of
+      Just 2 -> reportOptsToggleStatus2 s
+      Just 3 -> reportOptsToggleStatus3 s
+--      Just 4 -> reportOptsToggleStatus4 s
+--      Just 5 -> reportOptsToggleStatus5 s
+      _      -> reportOptsToggleStatus1 s
 
 -- 1 UPC toggles only X/all
 reportOptsToggleStatus1 s ropts@ReportOpts{statuses_=ss}
@@ -186,10 +188,11 @@ toggleForecast d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec
 
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
-toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=toggleReal ropts}}}}
+toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
+    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
   where
-    toggleReal ropts = ropts{real_=not $ real_ ropts}
+    update = either (error "toggleReal: updating Real should not result in an error") id  -- PARTIAL:
+           . updateReportSpecFromOpts (\ropts -> ropts{real_=not $ real_ ropts})
 
 -- | Toggle the ignoring of balance assertions.
 toggleIgnoreBalanceAssertions :: UIState -> UIState
@@ -198,52 +201,53 @@ toggleIgnoreBalanceAssertions ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOp
 
 -- | Step through larger report periods, up to all.
 growReportPeriod :: Day -> UIState -> UIState
-growReportPeriod _d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{period_=periodGrow $ period_ ropts}}}}}
+growReportPeriod _d = updateReportPeriod periodGrow
 
 -- | Step through smaller report periods, down to a day.
 shrinkReportPeriod :: Day -> UIState -> UIState
-shrinkReportPeriod d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{period_=periodShrink d $ period_ ropts}}}}}
+shrinkReportPeriod d = updateReportPeriod (periodShrink d)
 
 -- | Step the report start/end dates to the next period of same duration,
 -- remaining inside the given enclosing span.
 nextReportPeriod :: DateSpan -> UIState -> UIState
-nextReportPeriod enclosingspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts@ReportOpts{period_=p}}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{period_=periodNextIn enclosingspan p}}}}}
+nextReportPeriod enclosingspan = updateReportPeriod (periodNextIn enclosingspan)
 
 -- | Step the report start/end dates to the next period of same duration,
 -- remaining inside the given enclosing span.
 previousReportPeriod :: DateSpan -> UIState -> UIState
-previousReportPeriod enclosingspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts@ReportOpts{period_=p}}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{period_=periodPreviousIn enclosingspan p}}}}}
+previousReportPeriod enclosingspan = updateReportPeriod (periodPreviousIn enclosingspan)
 
 -- | If a standard report period is set, step it forward/backward if needed so that
 -- it encloses the given date.
 moveReportPeriodToDate :: Day -> UIState -> UIState
-moveReportPeriodToDate d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts@ReportOpts{period_=p}}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{period_=periodMoveTo d p}}}}}
+moveReportPeriodToDate d = updateReportPeriod (periodMoveTo d)
 
 -- | Get the report period.
 reportPeriod :: UIState -> Period
-reportPeriod UIState{aopts=UIOpts{cliopts_=CliOpts{reportspec_=ReportSpec{rsOpts=ReportOpts{period_=p}}}}} =
-  p
+reportPeriod = period_ . rsOpts . reportspec_ . cliopts_ . aopts
 
 -- | Set the report period.
 setReportPeriod :: Period -> UIState -> UIState
-setReportPeriod p ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{period_=p}}}}}
+setReportPeriod p = updateReportPeriod (const p)
 
 -- | Clear any report period limits.
 resetReportPeriod :: UIState -> UIState
 resetReportPeriod = setReportPeriod PeriodAll
 
+-- | Update report period by a applying a function.
+updateReportPeriod :: (Period -> Period) -> UIState -> UIState
+updateReportPeriod updatePeriod ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
+    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
+  where
+    update = either (error "updateReportPeriod: updating period should not result in an error") id  -- PARTIAL:
+           . updateReportSpecFromOpts (\ropts -> ropts{period_=updatePeriod $ period_ ropts})
+
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
-setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-    ui{aopts=uopts{cliopts_=copts{reportspec_=newrspec}}}
+setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
+    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
   where
-    newrspec = either (const rspec) id $ reportOptsToSpec (rsToday rspec) ropts{querystring_=querystring}
+    update = either (const rspec) id . updateReportSpecFromOpts (\ropts -> ropts{querystring_=querystring})
     querystring = words'' prefixes $ T.pack s
 
 -- | Reset some filters & toggles.
@@ -266,8 +270,7 @@ resetOpts :: UIState -> UIState
 resetOpts ui@UIState{astartupopts} = ui{aopts=astartupopts}
 
 resetDepth :: UIState -> UIState
-resetDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{depth_=Nothing}}}}}
+resetDepth = updateReportDepth (const Nothing)
 
 -- | Get the maximum account depth in the current journal.
 maxDepth :: UIState -> Int
@@ -276,8 +279,7 @@ maxDepth UIState{ajournal=j} = maximum $ map accountNameLevel $ journalAccountNa
 -- | Decrement the current depth limit towards 0. If there was no depth limit,
 -- set it to one less than the maximum account depth.
 decDepth :: UIState -> UIState
-decDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}}}}}
-  = ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{depth_=dec depth_}}}}}
+decDepth ui = updateReportDepth dec ui
   where
     dec (Just d) = Just $ max 0 (d-1)
     dec Nothing  = Just $ maxDepth ui - 1
@@ -285,28 +287,29 @@ decDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@
 -- | Increment the current depth limit. If this makes it equal to the
 -- the maximum account depth, remove the depth limit.
 incDepth :: UIState -> UIState
-incDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}}}}}
-  = ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{depth_=inc depth_}}}}}
-  where
-    inc (Just d) | d < (maxDepth ui - 1) = Just $ d+1
-    inc _ = Nothing
+incDepth = updateReportDepth (fmap succ)
 
 -- | Set the current depth limit to the specified depth, or remove the depth limit.
 -- Also remove the depth limit if the specified depth is greater than the current
 -- maximum account depth. If the specified depth is negative, reset the depth limit
 -- to whatever was specified at uiartup.
 setDepth :: Maybe Int -> UIState -> UIState
-setDepth mdepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}}}
-  = ui{aopts=uopts{cliopts_=copts{reportspec_=rspec{rsOpts=ropts{depth_=mdepth'}}}}}
-  where
-    mdepth' = case mdepth of
-                Nothing                   -> Nothing
-                Just d | d < 0            -> depth_ ropts
-                       | d >= maxDepth ui -> Nothing
-                       | otherwise        -> mdepth
+setDepth mdepth = updateReportDepth (const mdepth)
 
 getDepth :: UIState -> Maybe Int
-getDepth UIState{aopts=UIOpts{cliopts_=CliOpts{reportspec_=rspec}}} = depth_ $ rsOpts rspec
+getDepth = depth_ . rsOpts . reportspec_ . cliopts_ . aopts
+
+-- | Update report depth by a applying a function. If asked to set a depth less
+-- than zero, it will leave it unchanged.
+updateReportDepth :: (Maybe Int -> Maybe Int) -> UIState -> UIState
+updateReportDepth updateDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
+    ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
+  where
+    update = either (error "updateReportDepth: updating depth should not result in an error") id  -- PARTIAL:
+           . updateReportSpecFromOpts (\ropts -> ropts{depth_=updateDepth (depth_ ropts) >>= clipDepth ropts})
+    clipDepth ropts d | d < 0            = depth_ ropts
+                      | d >= maxDepth ui = Nothing
+                      | otherwise        = Just d
 
 -- | Open the minibuffer, setting its content to the current query with the cursor at the end.
 showMinibuffer :: UIState -> UIState

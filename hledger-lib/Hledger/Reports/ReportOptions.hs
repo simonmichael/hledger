@@ -18,6 +18,7 @@ module Hledger.Reports.ReportOptions (
   rawOptsToReportOpts,
   defreportspec,
   reportOptsToSpec,
+  updateReportSpecFromOpts,
   rawOptsToReportSpec,
   flat_,
   tree_,
@@ -243,6 +244,10 @@ reportOptsToSpec day ropts = do
       , rsQuery = simplifyQuery $ And [queryFromFlags ropts, argsquery]
       , rsQueryOpts = queryopts
       }
+
+-- | Regenerate a ReportSpec after updating ReportOpts.
+updateReportSpecFromOpts :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
+updateReportSpecFromOpts f rspec = reportOptsToSpec (rsToday rspec) . f $ rsOpts rspec
 
 -- | Generate a ReportSpec from RawOpts and the current date.
 rawOptsToReportSpec :: RawOpts -> IO ReportSpec
