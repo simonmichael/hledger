@@ -465,7 +465,6 @@ queryFromFlags :: ReportOpts -> Query
 queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
   where
     flagsq = consIf   Real  real_
-           . consIf   Empty empty_
            . consJust Depth depth_
            $   [ (if date2_ then Date2 else Date) $ periodAsDateSpan period_
                , Or $ map StatusQ statuses_
