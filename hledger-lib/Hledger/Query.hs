@@ -35,7 +35,6 @@ module Hledger.Query (
   queryIsSym,
   queryIsReal,
   queryIsStatus,
-  queryIsEmpty,
   queryStartDate,
   queryEndDate,
   queryDateSpan,
@@ -98,8 +97,6 @@ data Query = Any              -- ^ always match
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
            | Sym Regexp       -- ^ match if the entire commodity symbol is matched by this regexp
-           | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
-                              --   more of a query option than a query criteria ?
            | Depth Int        -- ^ match if account depth is less than or equal to this value.
                               --   Depth is sometimes used like a query (for filtering report data)
                               --   and sometimes like a query option (for controlling display)
@@ -281,7 +278,6 @@ parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
                               Right st -> Right $ Left $ StatusQ st
 parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Right $ Left $ Real $ parseBool s || T.null s
 parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Right $ Left $ Amt ord q where (ord, q) = either error id $ parseAmountQueryTerm s  -- PARTIAL:
-parseQueryTerm _ (T.stripPrefix "empty:" -> Just s) = Right $ Left $ Empty $ parseBool s
 parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
   | n >= 0    = Right $ Left $ Depth n
   | otherwise = Left "depth: should have a positive number"
@@ -443,10 +439,6 @@ queryIsReal _ = False
 queryIsStatus :: Query -> Bool
 queryIsStatus (StatusQ _) = True
 queryIsStatus _ = False
-
-queryIsEmpty :: Query -> Bool
-queryIsEmpty (Empty _) = True
-queryIsEmpty _ = False
 
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
@@ -621,11 +613,6 @@ matchesPosting (StatusQ s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
--- matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
--- matchesPosting (Empty v) Posting{pamount=a} = v == mixedAmountLooksZero a
--- matchesPosting (Empty False) Posting{pamount=a} = True
--- matchesPosting (Empty True) Posting{pamount=a} = mixedAmountLooksZero a
-matchesPosting (Empty _) _ = True
 matchesPosting (Sym r) Posting{pamount=Mixed as} = any (matchesCommodity (Sym r)) $ map acommodity as
 matchesPosting (Tag n v) p = case (reString n, v) of
   ("payee", Just v) -> maybe False (regexMatch v . T.unpack . transactionPayee) $ ptransaction p
@@ -647,7 +634,6 @@ matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
 matchesTransaction (StatusQ s) t = tstatus t == s
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
-matchesTransaction (Empty _) _ = True
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
 matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Tag n v) t = case (reString n, v) of
