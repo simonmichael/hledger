@@ -29,7 +29,7 @@ hledger -f - balance --flat
                    1  b
                    1  b:bb:bbb
 --------------------
-                   5
+                   5  
 >>>= 0
 
 # --flat --depth shows the same accounts, but clipped and aggregated at the depth limit
@@ -47,5 +47,5 @@ hledger -f - balance --flat --depth 2
                    1  b
                    1  b:bb
 --------------------
-                   5
+                   5  
 >>>= 0

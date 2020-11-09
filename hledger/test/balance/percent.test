@@ -6,7 +6,7 @@ hledger -f sample.journal balance expenses -% --tree
               50.0 %    food
               50.0 %    supplies
 --------------------
-             100.0 %
+             100.0 %  
 >>>= 0
 
 # 2. Multi column percent

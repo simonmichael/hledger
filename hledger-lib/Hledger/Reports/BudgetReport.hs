@@ -27,6 +27,7 @@ module Hledger.Reports.BudgetReport (
 )
 where
 
+import Control.Arrow (first)
 import Data.Decimal
 import Data.Default (def)
 import Data.HashMap.Strict (HashMap)
@@ -42,12 +43,12 @@ import Safe
 --import Data.Maybe
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.Text (Text)
 import qualified Data.Text as T
---import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
-
-import Text.Printf (printf)
 import Text.Tabular as T
 import Text.Tabular.AsciiWide as T
 
@@ -68,7 +69,7 @@ type BudgetCell = (Maybe Change, Maybe BudgetGoal)
 type BudgetReportRow = PeriodicReportRow DisplayName BudgetCell
 type BudgetReport    = PeriodicReport    DisplayName BudgetCell
 
-type BudgetDisplayCell = ((String, Int), Maybe ((String, Int), Maybe (String, Int)))
+type BudgetDisplayCell = ((Text, Int), Maybe ((Text, Int), Maybe (Text, Int)))
 
 -- | Calculate per-account, per-period budget (balance change) goals
 -- from all periodic transactions, calculate actual balance changes 
@@ -219,23 +220,23 @@ combineBudgetAndActual ropts j
         totActualByPeriod = Map.fromList $ zip actualperiods actualtots :: Map DateSpan Change
 
 -- | Render a budget report as plain text suitable for console output.
-budgetReportAsText :: ReportOpts -> BudgetReport -> String
-budgetReportAsText ropts@ReportOpts{..} budgetr =
-    title ++ "\n\n" ++
-    renderTable def{tableBorders=False,prettyTable=pretty_tables_}
+budgetReportAsText :: ReportOpts -> BudgetReport -> TL.Text
+budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
+    TB.fromText title <> TB.fromText "\n\n" <>
+      renderTableB def{tableBorders=False,prettyTable=pretty_tables_}
         (alignCell TopLeft) (alignCell TopRight) (uncurry showcell) displayTableWithWidths
   where
-    title = printf "Budget performance in %s%s:"
-      (showDateSpan $ periodicReportSpan budgetr)
-      (case value_ of
-        Just (AtCost _mc)   -> ", valued at cost"
-        Just (AtThen _mc)   -> error' unsupportedValueThenError  -- PARTIAL:
-        Just (AtEnd _mc)    -> ", valued at period ends"
-        Just (AtNow _mc)    -> ", current value"
-        Just (AtDate d _mc) -> ", valued at " ++ T.unpack (showDate d)
-        Nothing             -> "")
+    title = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
+           <> (case value_ of
+                 Just (AtCost _mc)   -> ", valued at cost"
+                 Just (AtThen _mc)   -> error' unsupportedValueThenError  -- PARTIAL:
+                 Just (AtEnd _mc)    -> ", valued at period ends"
+                 Just (AtNow _mc)    -> ", current value"
+                 Just (AtDate d _mc) -> ", valued at " <> showDate d
+                 Nothing             -> "")
+           <> ":"
 
-    displayTableWithWidths :: Table String String ((Int, Int, Int), BudgetDisplayCell)
+    displayTableWithWidths :: Table Text Text ((Int, Int, Int), BudgetDisplayCell)
     displayTableWithWidths = Table rh ch $ map (zipWith (,) widths) displaycells
     Table rh ch displaycells = case budgetReportAsTable ropts budgetr of
         Table rh' ch' vals -> maybetranspose . Table rh' ch' $ map (map displayCell) vals
@@ -244,8 +245,8 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
       where
         actual' = fromMaybe 0 actual
         budgetAndPerc b = (showamt b, showper <$> percentage actual' b)
-        showamt = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) color_
-        showper p = let str = show (roundTo 0 p) in (str, length str)
+        showamt = first T.pack . showMixedOneLine showAmountWithoutPrice Nothing (Just 32) color_
+        showper p = let str = T.pack (show $ roundTo 0 p) in (str, T.length str)
     cellWidth ((_,wa), Nothing)                    = (wa,  0,  0)
     cellWidth ((_,wa), Just ((_,wb), Nothing))     = (wa, wb,  0)
     cellWidth ((_,wa), Just ((_,wb), Just (_,wp))) = (wa, wb, wp)
@@ -259,14 +260,14 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
     showcell :: (Int, Int, Int) -> BudgetDisplayCell -> Cell
     showcell (actualwidth, budgetwidth, percentwidth) ((actual,wa), mbudget) =
-        Cell TopRight [(replicate (actualwidth - wa) ' ' ++ actual ++ budgetstr, actualwidth + totalbudgetwidth)]
+        Cell TopRight [(T.replicate (actualwidth - wa) " " <> actual <> budgetstr, actualwidth + totalbudgetwidth)]
       where
         totalpercentwidth = if percentwidth == 0 then 0 else percentwidth + 5
         totalbudgetwidth  = if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth + 3
         budgetstr = case mbudget of
-          Nothing                             -> replicate totalbudgetwidth ' '
-          Just ((budget, wb), Nothing)        -> " [" ++ replicate totalpercentwidth ' ' ++ replicate (budgetwidth - wb) ' ' ++ budget ++ "]"
-          Just ((budget, wb), Just (pct, wp)) -> " [" ++ replicate (percentwidth - wp) ' ' ++ pct ++ "% of " ++ replicate (budgetwidth - wb) ' ' ++ budget ++ "]"
+          Nothing                             -> T.replicate totalbudgetwidth " "
+          Just ((budget, wb), Nothing)        -> " [" <> T.replicate totalpercentwidth " " <> T.replicate (budgetwidth - wb) " " <> budget <> "]"
+          Just ((budget, wb), Just (pct, wp)) -> " [" <> T.replicate (percentwidth - wp) " " <> pct <> "% of " <> T.replicate (budgetwidth - wb) " " <> budget <> "]"
 
     -- | Calculate the percentage of actual change to budget goal to show, if any.
     -- If valuing at cost, both amounts are converted to cost before comparing.
@@ -289,7 +290,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
                    | otherwise  = id
 
 -- | Build a 'Table' from a multi-column balance report.
-budgetReportAsTable :: ReportOpts -> BudgetReport -> Table String String (Maybe MixedAmount, Maybe MixedAmount)
+budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text (Maybe MixedAmount, Maybe MixedAmount)
 budgetReportAsTable
   ropts@ReportOpts{balancetype_}
   (PeriodicReport spans rows (PeriodicReportRow _ coltots grandtot grandavg)) =
@@ -299,7 +300,7 @@ budgetReportAsTable
       (T.Group NoLine $ map Header colheadings)
       (map rowvals rows)
   where
-    colheadings = map (T.unpack . reportPeriodName balancetype_ spans) spans
+    colheadings = map (reportPeriodName balancetype_ spans) spans
                   ++ ["  Total" | row_total_ ropts]
                   ++ ["Average" | average_ ropts]
 
@@ -308,8 +309,8 @@ budgetReportAsTable
     -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
     -- this.
     renderacct row = case accountlistmode_ ropts of
-        ALTree -> replicate ((prrDepth row - 1)*2) ' ' ++ T.unpack (prrDisplayName row)
-        ALFlat -> T.unpack . accountNameDrop (drop_ ropts) $ prrFullName row
+        ALTree -> T.replicate ((prrDepth row - 1)*2) " " <> prrDisplayName row
+        ALFlat -> accountNameDrop (drop_ ropts) $ prrFullName row
     rowvals (PeriodicReportRow _ as rowtot rowavg) =
         as ++ [rowtot | row_total_ ropts] ++ [rowavg | average_ ropts]
     addtotalrow

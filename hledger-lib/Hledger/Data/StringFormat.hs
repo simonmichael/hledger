@@ -2,7 +2,10 @@
 -- hledger's report item fields. The formats are used by
 -- report-specific renderers like renderBalanceReportItem.
 
-{-# LANGUAGE FlexibleContexts, OverloadedStrings, TypeFamilies, PackageImports #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports    #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 module Hledger.Data.StringFormat (
           parseStringFormat
@@ -21,12 +24,13 @@ import Numeric (readDec)
 import Data.Char (isPrint)
 import Data.Default (Default(..))
 import Data.Maybe (isJust)
--- import qualified Data.Text as T
+import Data.Text (Text)
+import qualified Data.Text as T
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, digitChar, string)
 
-import Hledger.Utils.Parse (SimpleStringParser)
-import Hledger.Utils.String (formatString)
+import Hledger.Utils.Parse (SimpleTextParser)
+import Hledger.Utils.Text (formatText)
 import Hledger.Utils.Test
 
 -- | A format specification/template to use when rendering a report line item as text.
@@ -53,7 +57,7 @@ data StringFormat =
   deriving (Show, Eq)
 
 data StringFormatComponent =
-    FormatLiteral String        -- ^ Literal text to be rendered as-is
+    FormatLiteral Text          -- ^ Literal text to be rendered as-is
   | FormatField Bool
                 (Maybe Int)
                 (Maybe Int)
@@ -102,14 +106,14 @@ defaultBalanceLineFormat = BottomAligned (Just 20) [
 ----------------------------------------------------------------------
 
 -- | Parse a string format specification, or return a parse error.
-parseStringFormat :: String -> Either String StringFormat
+parseStringFormat :: Text -> Either String StringFormat
 parseStringFormat input = case (runParser (stringformatp <* eof) "(unknown)") input of
     Left y -> Left $ show y
     Right x -> Right x
 
 defaultStringFormatStyle = BottomAligned
 
-stringformatp :: SimpleStringParser StringFormat
+stringformatp :: SimpleTextParser StringFormat
 stringformatp = do
   alignspec <- optional (try $ char '%' >> oneOf ("^_,"::String))
   let constructor =
@@ -120,19 +124,19 @@ stringformatp = do
           _        -> defaultStringFormatStyle Nothing
   constructor <$> many componentp
 
-componentp :: SimpleStringParser StringFormatComponent
+componentp :: SimpleTextParser StringFormatComponent
 componentp = formatliteralp <|> formatfieldp
 
-formatliteralp :: SimpleStringParser StringFormatComponent
+formatliteralp :: SimpleTextParser StringFormatComponent
 formatliteralp = do
-    s <- some c
+    s <- T.pack <$> some c
     return $ FormatLiteral s
     where
       isPrintableButNotPercentage x = isPrint x && x /= '%'
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatfieldp :: SimpleStringParser StringFormatComponent
+formatfieldp :: SimpleTextParser StringFormatComponent
 formatfieldp = do
     char '%'
     leftJustified <- optional (char '-')
@@ -147,7 +151,7 @@ formatfieldp = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-fieldp :: SimpleStringParser ReportItemField
+fieldp :: SimpleTextParser ReportItemField
 fieldp = do
         try (string "account" >> return AccountField)
     <|> try (string "depth_spacer" >> return DepthSpacerField)
@@ -161,8 +165,8 @@ fieldp = do
 formatStringTester fs value expected = actual @?= expected
   where
     actual = case fs of
-      FormatLiteral l                   -> formatString False Nothing Nothing l
-      FormatField leftJustify min max _ -> formatString leftJustify min max value
+      FormatLiteral l                   -> formatText False Nothing Nothing l
+      FormatField leftJustify min max _ -> formatText leftJustify min max value
 
 tests_StringFormat = tests "StringFormat" [
 
@@ -176,7 +180,7 @@ tests_StringFormat = tests "StringFormat" [
       formatStringTester (FormatField True (Just 20) (Just 20) DescriptionField) "description" "description         "
       formatStringTester (FormatField True Nothing (Just 3) DescriptionField)    "description" "des"
 
-  ,let s `gives` expected = test s $ parseStringFormat s @?= Right expected
+  ,let s `gives` expected = test s $ parseStringFormat (T.pack s) @?= Right expected
    in tests "parseStringFormat" [
       ""                           `gives` (defaultStringFormatStyle Nothing [])
     , "D"                          `gives` (defaultStringFormatStyle Nothing [FormatLiteral "D"])

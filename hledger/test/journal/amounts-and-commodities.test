@@ -43,7 +43,7 @@ $ hledger -f- balance
  10 "DE 0002 635307"  a
 -10 "DE 0002 635307"  b
 --------------------
-                   0
+                   0  
 
 # 5. autobalance with prices
 <
@@ -163,7 +163,7 @@ $ hledger -f- print
 	a 	 1 EUR	
 $ hledger -f- bal a
 --------------------
-                   0
+                   0  
 >=
 
 # 12. Example of surprising decimal mark parsing behaviour.

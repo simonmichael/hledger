@@ -55,6 +55,8 @@ module Hledger.Utils.String (
 import Data.Char (isSpace, toLower, toUpper)
 import Data.Default (def)
 import Data.List (intercalate)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Text.Megaparsec ((<|>), between, many, noneOf, sepBy)
 import Text.Megaparsec.Char (char)
 import Text.Printf (printf)
@@ -63,7 +65,7 @@ import Hledger.Utils.Parse
 import Hledger.Utils.Regex (toRegex', regexReplace)
 import Text.Tabular (Header(..), Properties(..))
 import Text.Tabular.AsciiWide (Align(..), Cell(..), TableOpts(..), renderRow)
-import Text.WideString (strWidth, charWidth)
+import Text.WideString (charWidth, strWidth, textWidth)
 
 
 -- | Take elements from the end of a list.
@@ -184,16 +186,16 @@ unbracket s
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 -- Treats wide characters as double width.
 concatTopPadded :: [String] -> String
-concatTopPadded = renderRow def{tableBorders=False, borderSpaces=False}
+concatTopPadded = TL.unpack . renderRow def{tableBorders=False, borderSpaces=False}
                 . Group NoLine . map (Header . cell)
-  where cell = Cell BottomLeft . map (\x -> (x, strWidth x)) . lines
+  where cell = Cell BottomLeft . map (\x -> (x, textWidth x)) . T.lines . T.pack
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
 -- Treats wide characters as double width.
 concatBottomPadded :: [String] -> String
-concatBottomPadded = renderRow def{tableBorders=False, borderSpaces=False}
+concatBottomPadded = TL.unpack . renderRow def{tableBorders=False, borderSpaces=False}
                    . Group NoLine . map (Header . cell)
-  where cell = Cell TopLeft . map (\x -> (x, strWidth x)) . lines
+  where cell = Cell TopLeft . map (\x -> (x, textWidth x)) . T.lines . T.pack
 
 
 -- | Join multi-line strings horizontally, after compressing each of
