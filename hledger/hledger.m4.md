@@ -1062,9 +1062,9 @@ Examples:
 If you want intervals that start on arbitrary day of your choosing and span a week, month or year, you need to use any of the following:
 
 `every Nth day of week`,
-`every <weekday>`,
+`every WEEKDAYNAME` (eg `mon|tue|wed|thu|fri|sat|sun`),
 `every Nth day [of month]`,
-`every Nth weekday [of month]`,
+`every Nth WEEKDAYNAME [of month]`,
 `every MM/DD [of year]`,
 `every Nth MMM [of year]`,
 `every MMM Nth [of year]`.
