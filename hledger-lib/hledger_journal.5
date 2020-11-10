@@ -584,7 +584,8 @@ commodity INR 9,99,99,999.00
 commodity       1 000 000.9455
 \f[R]
 .fi
-.SS Amount display style
+.PP
+.SS Commodity display style
 .PP
 For each commodity, hledger chooses a consistent format to use when
 displaying amounts.
@@ -613,11 +614,10 @@ journal, with the max observed number of decimal places.
 If you want to see fewer decimal places in reports, use a commodity
 directive to override that.
 .PP
-hledger uses banker\[aq]s rounding: it rounds to the nearest even
+Note, hledger uses banker\[aq]s rounding: it rounds to the nearest even
 number, eg 0.5 displayed with zero decimal places is \[dq]0\[dq]).
-(Note, prior to hledger 1.17.1 this could vary if hledger happened to be
-built with an old version of Decimal (<0.5.1); since 1.17.1 it\[aq]s
-guaranteed.)
+(Guaranteed since hledger 1.17.1; in older versions this could vary if
+hledger was built with Decimal < 0.5.1.)
 .SS Transaction prices
 .PP
 Within a transaction, you can note an amount\[aq]s price in another
@@ -1198,7 +1198,7 @@ your data.
 (Without this, hledger will parse both \f[C]1,000\f[R] and
 \f[C]1.000\f[R] as 1).
 .IP "3." 3
-It declares the amount display style to use in output - decimal and
+It declares a commodity\[aq]s display style in output - decimal and
 digit group marks, number of decimal places, symbol placement etc.
 .PP
 You are likely to run into one of the problems solved by commodity
@@ -1244,7 +1244,7 @@ followed by 0 or more decimal digits.
 .PP
 Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
 zero decimal digits is \[dq]0\[dq].
-(More at Amount display style.)
+(More at Commodity display style.)
 .SS Default commodity
 .PP
 The \f[C]D\f[R] directive sets a default commodity, to be used for

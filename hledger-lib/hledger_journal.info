@@ -487,10 +487,10 @@ EUR 1E3
 * Menu:
 
 * Digit group marks::
-* Amount display style::
+* Commodity display style::
 
 
-File: hledger_journal.info,  Node: Digit group marks,  Next: Amount display style,  Up: Amounts
+File: hledger_journal.info,  Node: Digit group marks,  Next: Commodity display style,  Up: Amounts
 
 1.8.1 Digit group marks
 -----------------------
@@ -523,10 +523,10 @@ commodity INR 9,99,99,999.00
 commodity       1 000 000.9455
 
 
-File: hledger_journal.info,  Node: Amount display style,  Prev: Digit group marks,  Up: Amounts
+File: hledger_journal.info,  Node: Commodity display style,  Prev: Digit group marks,  Up: Amounts
 
-1.8.2 Amount display style
---------------------------
+1.8.2 Commodity display style
+-----------------------------
 
 For each commodity, hledger chooses a consistent format to use when
 displaying amounts.  (Except price amounts, which are always displayed
@@ -553,10 +553,10 @@ journal, with the max observed number of decimal places.  If you want to
 see fewer decimal places in reports, use a commodity directive to
 override that.
 
-   hledger uses banker's rounding: it rounds to the nearest even number,
-eg 0.5 displayed with zero decimal places is "0").  (Note, prior to
-hledger 1.17.1 this could vary if hledger happened to be built with an
-old version of Decimal (<0.5.1); since 1.17.1 it's guaranteed.)
+   Note, hledger uses banker's rounding: it rounds to the nearest even
+number, eg 0.5 displayed with zero decimal places is "0").  (Guaranteed
+since hledger 1.17.1; in older versions this could vary if hledger was
+built with Decimal < 0.5.1.)
 
 
 File: hledger_journal.info,  Node: Transaction prices,  Next: Lot prices and lot dates,  Prev: Amounts,  Up: Transactions
@@ -1079,7 +1079,7 @@ The 'commodity' directive has several functions:
      formats in your data.  (Without this, hledger will parse both
      '1,000' and '1.000' as 1).
 
-  3. It declares the amount display style to use in output - decimal and
+  3. It declares a commodity's display style in output - decimal and
      digit group marks, number of decimal places, symbol placement etc.
 
    You are likely to run into one of the problems solved by commodity
@@ -1114,7 +1114,7 @@ significant.  The number must include a decimal mark: either a period or
 a comma, followed by 0 or more decimal digits.
 
    Note hledger normally uses banker's rounding, so 0.5 displayed with
-zero decimal digits is "0".  (More at Amount display style.)
+zero decimal digits is "0".  (More at Commodity display style.)
 
 
 File: hledger_journal.info,  Node: Default commodity,  Next: Declaring market prices,  Prev: Declaring commodities,  Up: Directives
@@ -1889,96 +1889,96 @@ Node: Account names15177
 Ref: #account-names15318
 Node: Amounts15805
 Ref: #amounts15944
-Node: Digit group marks17052
-Ref: #digit-group-marks17200
-Node: Amount display style18138
-Ref: #amount-display-style18292
-Node: Transaction prices19729
-Ref: #transaction-prices19901
-Node: Lot prices and lot dates22332
-Ref: #lot-prices-and-lot-dates22529
-Node: Balance assertions23017
-Ref: #balance-assertions23203
-Node: Assertions and ordering24236
-Ref: #assertions-and-ordering24424
-Node: Assertions and included files25124
-Ref: #assertions-and-included-files25367
-Node: Assertions and multiple -f options25700
-Ref: #assertions-and-multiple--f-options25956
-Node: Assertions and commodities26088
-Ref: #assertions-and-commodities26320
-Node: Assertions and prices27477
-Ref: #assertions-and-prices27691
-Node: Assertions and subaccounts28131
-Ref: #assertions-and-subaccounts28360
-Node: Assertions and virtual postings28684
-Ref: #assertions-and-virtual-postings28926
-Node: Assertions and precision29068
-Ref: #assertions-and-precision29261
-Node: Balance assignments29528
-Ref: #balance-assignments29702
-Node: Balance assignments and prices30866
-Ref: #balance-assignments-and-prices31038
-Node: Directives31262
-Ref: #directives31421
-Node: Directives and multiple files36919
-Ref: #directives-and-multiple-files37102
-Node: Comment blocks37766
-Ref: #comment-blocks37949
-Node: Including other files38125
-Ref: #including-other-files38305
-Node: Default year39229
-Ref: #default-year39398
-Node: Declaring commodities39805
-Ref: #declaring-commodities39988
-Node: Default commodity41794
-Ref: #default-commodity41980
-Node: Declaring market prices42869
-Ref: #declaring-market-prices43064
-Node: Declaring accounts43921
-Ref: #declaring-accounts44107
-Node: Account comments45032
-Ref: #account-comments45195
-Node: Account subdirectives45619
-Ref: #account-subdirectives45814
-Node: Account types46127
-Ref: #account-types46311
-Node: Account display order49357
-Ref: #account-display-order49527
-Node: Rewriting accounts50678
-Ref: #rewriting-accounts50863
-Node: Basic aliases51620
-Ref: #basic-aliases51766
-Node: Regex aliases52470
-Ref: #regex-aliases52642
-Node: Combining aliases53361
-Ref: #combining-aliases53554
-Node: Aliases and multiple files54830
-Ref: #aliases-and-multiple-files55039
-Node: end aliases55618
-Ref: #end-aliases55775
-Node: Default parent account55876
-Ref: #default-parent-account56044
-Node: Periodic transactions56928
-Ref: #periodic-transactions57103
-Node: Periodic rule syntax58975
-Ref: #periodic-rule-syntax59181
-Node: Two spaces between period expression and description!59885
-Ref: #two-spaces-between-period-expression-and-description60204
-Node: Forecasting with periodic transactions60888
-Ref: #forecasting-with-periodic-transactions61193
-Node: Budgeting with periodic transactions63248
-Ref: #budgeting-with-periodic-transactions63487
-Node: Auto postings63896
-Ref: #auto-postings64036
-Node: Auto postings and multiple files66215
-Ref: #auto-postings-and-multiple-files66419
-Node: Auto postings and dates66628
-Ref: #auto-postings-and-dates66902
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions67077
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions67428
-Node: Auto posting tags67770
-Ref: #auto-posting-tags67985
+Node: Digit group marks17055
+Ref: #digit-group-marks17206
+Node: Commodity display style18144
+Ref: #commodity-display-style18307
+Node: Transaction prices19711
+Ref: #transaction-prices19883
+Node: Lot prices and lot dates22314
+Ref: #lot-prices-and-lot-dates22511
+Node: Balance assertions22999
+Ref: #balance-assertions23185
+Node: Assertions and ordering24218
+Ref: #assertions-and-ordering24406
+Node: Assertions and included files25106
+Ref: #assertions-and-included-files25349
+Node: Assertions and multiple -f options25682
+Ref: #assertions-and-multiple--f-options25938
+Node: Assertions and commodities26070
+Ref: #assertions-and-commodities26302
+Node: Assertions and prices27459
+Ref: #assertions-and-prices27673
+Node: Assertions and subaccounts28113
+Ref: #assertions-and-subaccounts28342
+Node: Assertions and virtual postings28666
+Ref: #assertions-and-virtual-postings28908
+Node: Assertions and precision29050
+Ref: #assertions-and-precision29243
+Node: Balance assignments29510
+Ref: #balance-assignments29684
+Node: Balance assignments and prices30848
+Ref: #balance-assignments-and-prices31020
+Node: Directives31244
+Ref: #directives31403
+Node: Directives and multiple files36901
+Ref: #directives-and-multiple-files37084
+Node: Comment blocks37748
+Ref: #comment-blocks37931
+Node: Including other files38107
+Ref: #including-other-files38287
+Node: Default year39211
+Ref: #default-year39380
+Node: Declaring commodities39787
+Ref: #declaring-commodities39970
+Node: Default commodity41775
+Ref: #default-commodity41961
+Node: Declaring market prices42850
+Ref: #declaring-market-prices43045
+Node: Declaring accounts43902
+Ref: #declaring-accounts44088
+Node: Account comments45013
+Ref: #account-comments45176
+Node: Account subdirectives45600
+Ref: #account-subdirectives45795
+Node: Account types46108
+Ref: #account-types46292
+Node: Account display order49338
+Ref: #account-display-order49508
+Node: Rewriting accounts50659
+Ref: #rewriting-accounts50844
+Node: Basic aliases51601
+Ref: #basic-aliases51747
+Node: Regex aliases52451
+Ref: #regex-aliases52623
+Node: Combining aliases53342
+Ref: #combining-aliases53535
+Node: Aliases and multiple files54811
+Ref: #aliases-and-multiple-files55020
+Node: end aliases55599
+Ref: #end-aliases55756
+Node: Default parent account55857
+Ref: #default-parent-account56025
+Node: Periodic transactions56909
+Ref: #periodic-transactions57084
+Node: Periodic rule syntax58956
+Ref: #periodic-rule-syntax59162
+Node: Two spaces between period expression and description!59866
+Ref: #two-spaces-between-period-expression-and-description60185
+Node: Forecasting with periodic transactions60869
+Ref: #forecasting-with-periodic-transactions61174
+Node: Budgeting with periodic transactions63229
+Ref: #budgeting-with-periodic-transactions63468
+Node: Auto postings63877
+Ref: #auto-postings64017
+Node: Auto postings and multiple files66196
+Ref: #auto-postings-and-multiple-files66400
+Node: Auto postings and dates66609
+Ref: #auto-postings-and-dates66883
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions67058
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions67409
+Node: Auto posting tags67751
+Ref: #auto-posting-tags67966
 
 End Tag Table
 

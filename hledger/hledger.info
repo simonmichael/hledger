@@ -3218,9 +3218,10 @@ $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 * Menu:
 
 * Importing balance assignments::
+* Commodity display styles::
 
 
-File: hledger.info,  Node: Importing balance assignments,  Up: import
+File: hledger.info,  Node: Importing balance assignments,  Next: Commodity display styles,  Up: import
 
 3.18.1 Importing balance assignments
 ------------------------------------
@@ -3237,6 +3238,15 @@ $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
 
    (If you think import should leave amounts implicit like print does,
 please test it and send a pull request.)
+
+
+File: hledger.info,  Node: Commodity display styles,  Prev: Importing balance assignments,  Up: import
+
+3.18.2 Commodity display styles
+-------------------------------
+
+Imported amounts will be formatted according to the canonical commodity
+styles (declared or inferred) in the main journal file.
 
 
 File: hledger.info,  Node: incomestatement,  Next: notes,  Prev: import,  Up: COMMANDS
@@ -4252,60 +4262,62 @@ Node: help111433
 Ref: #help111533
 Node: import112614
 Ref: #import112728
-Node: Importing balance assignments113621
-Ref: #importing-balance-assignments113769
-Node: incomestatement114418
-Ref: #incomestatement114551
-Node: notes115896
-Ref: #notes116009
-Node: payees116377
-Ref: #payees116483
-Node: prices116903
-Ref: #prices117009
-Node: print117350
-Ref: #print117460
-Node: print-unique122256
-Ref: #print-unique122382
-Node: register122667
-Ref: #register122794
-Node: Custom register output127243
-Ref: #custom-register-output127372
-Node: register-match128709
-Ref: #register-match128843
-Node: rewrite129194
-Ref: #rewrite129309
-Node: Re-write rules in a file131164
-Ref: #re-write-rules-in-a-file131298
-Node: Diff output format132508
-Ref: #diff-output-format132677
-Node: rewrite vs print --auto133769
-Ref: #rewrite-vs.-print---auto133948
-Node: roi134504
-Ref: #roi134602
-Node: stats135614
-Ref: #stats135713
-Node: tags136501
-Ref: #tags136599
-Node: test137118
-Ref: #test137226
-Node: Add-on commands137973
-Ref: #add-on-commands138090
-Node: ui139433
-Ref: #ui139521
-Node: web139575
-Ref: #web139678
-Node: iadd139794
-Ref: #iadd139905
-Node: interest139987
-Ref: #interest140094
-Node: ENVIRONMENT140334
-Ref: #environment140446
-Node: FILES141431
-Ref: #files-1141534
-Node: LIMITATIONS141747
-Ref: #limitations141866
-Node: TROUBLESHOOTING142608
-Ref: #troubleshooting142721
+Node: Importing balance assignments113650
+Ref: #importing-balance-assignments113831
+Node: Commodity display styles114480
+Ref: #commodity-display-styles114651
+Node: incomestatement114780
+Ref: #incomestatement114913
+Node: notes116258
+Ref: #notes116371
+Node: payees116739
+Ref: #payees116845
+Node: prices117265
+Ref: #prices117371
+Node: print117712
+Ref: #print117822
+Node: print-unique122618
+Ref: #print-unique122744
+Node: register123029
+Ref: #register123156
+Node: Custom register output127605
+Ref: #custom-register-output127734
+Node: register-match129071
+Ref: #register-match129205
+Node: rewrite129556
+Ref: #rewrite129671
+Node: Re-write rules in a file131526
+Ref: #re-write-rules-in-a-file131660
+Node: Diff output format132870
+Ref: #diff-output-format133039
+Node: rewrite vs print --auto134131
+Ref: #rewrite-vs.-print---auto134310
+Node: roi134866
+Ref: #roi134964
+Node: stats135976
+Ref: #stats136075
+Node: tags136863
+Ref: #tags136961
+Node: test137480
+Ref: #test137588
+Node: Add-on commands138335
+Ref: #add-on-commands138452
+Node: ui139795
+Ref: #ui139883
+Node: web139937
+Ref: #web140040
+Node: iadd140156
+Ref: #iadd140267
+Node: interest140349
+Ref: #interest140456
+Node: ENVIRONMENT140696
+Ref: #environment140808
+Node: FILES141793
+Ref: #files-1141896
+Node: LIMITATIONS142109
+Ref: #limitations142228
+Node: TROUBLESHOOTING142970
+Ref: #troubleshooting143083
 
 End Tag Table
 
