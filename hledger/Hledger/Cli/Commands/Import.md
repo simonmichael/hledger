@@ -37,3 +37,8 @@ $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
 
 (If you think import should leave amounts implicit like print does,
 please test it and send a pull request.)
+
+### Commodity display styles
+
+Imported amounts will be formatted according to the canonical [commodity styles](journal.html#commodity-display-style)
+(declared or inferred) in the main journal file.
