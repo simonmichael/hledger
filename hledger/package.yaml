@@ -126,7 +126,6 @@ dependencies:
 - mtl >=2.2.1
 - old-time
 - parsec >=3
-- pretty-show >=1.6.4
 - process
 - regex-tdfa
 - safe >=0.2

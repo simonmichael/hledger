@@ -42,3 +42,5 @@ extra-deps:
 - streaming-commons-0.2.1.2
 - network-2.7.0.0
 - math-functions-0.3.3.0
+- pretty-simple-4.0.0.0
+- prettyprinter-1.7.0

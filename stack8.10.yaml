@@ -12,4 +12,6 @@ packages:
 - hledger-ui
 - hledger-web
 
-#extra-deps:
+extra-deps:
+- pretty-simple-4.0.0.0
+- prettyprinter-1.7.0

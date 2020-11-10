@@ -69,7 +69,7 @@ dependencies:
 - old-time
 - parsec >=3
 - parser-combinators >=0.4.0
-- pretty-show >=1.6.4
+- pretty-simple >4 && <5
 - regex-tdfa
 - safe >=0.2
 - split >=0.1

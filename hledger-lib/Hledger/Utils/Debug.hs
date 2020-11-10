@@ -89,6 +89,7 @@ import           Control.Monad (when)
 import           Control.Monad.IO.Class
 import           Data.List hiding (uncons)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import           Debug.Trace
 import           Hledger.Utils.Parse
 import           Safe (readDef)
@@ -97,17 +98,27 @@ import           System.Exit
 import           System.IO.Unsafe (unsafePerformIO)
 import           Text.Megaparsec
 import           Text.Printf
-import           Text.Show.Pretty (ppShow, pPrint)
+import           Text.Pretty.Simple  -- (defaultOutputOptionsDarkBg, OutputOptions(..), pShowOpt, pPrintOpt)
 
--- | Pretty print. Easier alias for pretty-show's pPrint.
+prettyopts = 
+    defaultOutputOptionsDarkBg
+    -- defaultOutputOptionsLightBg
+    -- defaultOutputOptionsNoColor
+    { outputOptionsIndentAmount=2
+    , outputOptionsCompact=True
+    }
+
+-- | Pretty print. Generic alias for pretty-simple's pPrint.
 pprint :: Show a => a -> IO ()
-pprint = pPrint
+pprint = pPrintOpt CheckColorTty prettyopts
 
--- | Pretty show. Easier alias for pretty-show's ppShow.
+-- | Pretty show. Generic alias for pretty-simple's pShow.
 pshow :: Show a => a -> String
-pshow = ppShow
+pshow = TL.unpack . pShowOpt prettyopts
 
--- | Pretty trace. Easier alias for traceShowId + ppShow.
+-- XXX some of the below can be improved with pretty-simple, https://github.com/cdepillabout/pretty-simple#readme
+
+-- | Pretty trace. Easier alias for traceShowId + pShow.
 ptrace :: Show a => a -> a
 ptrace = traceWith pshow
 
@@ -157,7 +168,7 @@ traceAtWith f a = trace (f a) a
 ptraceAt :: Show a => Int -> String -> a -> a
 ptraceAt level
     | level > 0 && debugLevel < level = flip const
-    | otherwise = \s a -> let p = ppShow a
+    | otherwise = \s a -> let p = pshow a
                               ls = lines p
                               nlorspace | length ls > 1 = "\n"
                                         | otherwise     = " " ++ take (10 - length s) (repeat ' ')
@@ -303,7 +314,7 @@ plogAt :: Show a => Int -> String -> a -> a
 plogAt lvl
     | lvl > 0 && debugLevel < lvl = flip const
     | otherwise = \s a ->
-        let p = ppShow a
+        let p = pshow a
             ls = lines p
             nlorspace | length ls > 1 = "\n"
                       | otherwise     = " " ++ take (10 - length s) (repeat ' ')

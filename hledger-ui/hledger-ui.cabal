@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 057371c2b8cf46c32339a64339eaf98ac7247396cf8bb2dad13e99a5931cd62f
+-- hash: 4e0beb8ffb64276b8f69f1bc9cf738199248509c23193799370132f748a74612
 
 name:           hledger-ui
 version:        1.19.99
@@ -83,7 +83,6 @@ executable hledger-ui
     , megaparsec >=7.0.0 && <9.1
     , microlens >=0.4
     , microlens-platform >=0.2.3.1
-    , pretty-show >=1.6.4
     , process >=1.2
     , safe >=0.2
     , split >=0.1

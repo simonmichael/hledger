@@ -78,3 +78,5 @@ extra-deps:
 - resourcet-1.2.4
 - http-conduit-1.3.0
 - monad-logger-0.3.28
+- pretty-simple-4.0.0.0
+- prettyprinter-1.7.0

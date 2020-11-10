@@ -111,7 +111,6 @@ import Hledger.Utils
 -- Help ppShow parse and line-wrap DateSpans better in debug output.
 instance Show DateSpan where
     show s = "DateSpan " ++ showDateSpan s
-    -- show s = "DateSpan \"" ++ showDateSpan s ++ "\"" -- quotes to help pretty-show
 
 showDate :: Day -> String
 showDate = show
