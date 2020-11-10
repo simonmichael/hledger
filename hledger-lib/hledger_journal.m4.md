@@ -481,33 +481,44 @@ commodity       1 000 000.9455
 
 ### Commodity display style
 
-For each commodity, hledger chooses a consistent format to use when
+For each commodity, hledger chooses a consistent style to use when
 displaying amounts. (Except [price amounts](#prices), which are always
 displayed as written). The display style is chosen as follows:
 
 - If there is a [commodity directive](#declaring-commodities) (or
   [default commodity directive](#default-commodity)) for the
-  commodity, that format is used (see examples above).
+  commodity, its style is used (see examples above).
 
-- Otherwise the format of the first posting amount in that commodity
-  seen in the journal is used.
-  But the number of decimal places ("precision") will be the maximum
-  from all posting amounts in that commodity.
+- Otherwise the style is inferred from the amounts in that commodity
+  seen in the journal.
 
-- Or if there are no such amounts in the journal, a default format is
+- Or if there are no such amounts in the journal, a default style is
   used (like `$1000.00`).
 
-Transaction prices don't affect the amount display style directly, but
-occasionally they can do so indirectly (eg when an posting's amount is
+A style is inferred from the journal amounts in a commodity as follows:
+
+- Use the general style (decimal mark, symbol placement) of the first amount
+- Use the first-seen digit group style (digit group mark, digit group sizes), if any
+- Use the maximum number of decimal places of all.
+
+Transaction price amounts don't affect the commodity display style directly,
+but occasionally they can do so indirectly (eg when a posting's amount is
 inferred using a transaction price). If you find this causing
 problems, use a commodity directive to fix the display style.
 
-In summary: amounts will be displayed much as they appear in your
-journal, with the max observed number of decimal places. If you want
-to see fewer decimal places in reports, use a 
-[commodity directive](#declaring-commodities)
-to override that.
+In summary, each commodity's amounts will be normalised to 
 
+- the style declared by a `commodity` directive
+- or, the style of the first posting amount in the journal,
+  with the first-seen digit group style and the maximum-seen number of decimal places.
+
+If reports are showing amounts in a way you don't like (eg, with too many decimal places), 
+use a [commodity directive](#declaring-commodities) to set your preferred style.
+
+### Rounding
+
+Amounts are stored internally as decimal numbers with up to 255 decimal places,
+and displayed with the number of decimal places specified by the commodity display style.
 Note, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding): 
 it rounds to the nearest even number, eg 0.5 displayed with zero decimal places is "0").
 (Guaranteed since hledger 1.17.1; in older versions this could vary  if hledger was built with Decimal < 0.5.1.)

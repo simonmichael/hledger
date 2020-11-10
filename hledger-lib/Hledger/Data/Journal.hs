@@ -1010,7 +1010,10 @@ commodityStylesFromAmounts amts =
 -- Though, we don't have the info for a good error message, so maybe elsewhere.
 -- | Given a list of amount styles (assumed to be from parsed amounts
 -- in a single commodity), in parse order, choose a canonical style.
--- Traditionally it's "the style of the first, with the maximum precision of all".
+-- This is:
+-- the general style of the first amount, 
+-- with the first digit group style seen,
+-- with the maximum precision of all.
 --
 canonicalStyleFrom :: [AmountStyle] -> AmountStyle
 canonicalStyleFrom [] = amountstyle
