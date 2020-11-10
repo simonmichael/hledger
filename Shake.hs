@@ -503,7 +503,12 @@ main = do
 
       -- regenerate .cabal files from package.yaml's, using stack (also installs deps)
       phony "cabalfiles" $ do
-        cmd Shell "stack build --dry-run --silent" :: Action ()
+        -- can fail to update cabal files, with zero exit status; need
+        -- to check stderr, and only for error message since all
+        -- output goes there
+        err <- fromStderr <$> (cmd Shell "stack build --dry-run" :: Action (Stderr String))
+        when ("was generated with a newer version of hpack" `isInfixOf` err) $
+          liftIO $ putStr err >> exitFailure
         when commit $ do
           let msg = ";update cabal files"
           cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
