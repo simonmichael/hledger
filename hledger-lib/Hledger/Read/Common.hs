@@ -312,21 +312,19 @@ journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT Str
 journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_} f txt pj = do
   t <- liftIO getClockTime
   d <- liftIO getCurrentDay
-  -- Set any global commodity styles that have been provided via InputOpts
-  let pj' = pj{jglobalcommoditystyles=fromMaybe M.empty commoditystyles_}
+  let pj' =
+        pj{jglobalcommoditystyles=fromMaybe M.empty commoditystyles_}  -- save any global commodity styles
+        & journalAddFile (f, txt)  -- save the main file's info
+        & journalSetLastReadTime t -- save the last read time
+        & journalReverse -- convert all lists to the order they were parsed
+
   -- Infer and apply canonical styles for each commodity (or throw an error).
   -- This affects transaction balancing/assertions/assignments, so needs to be done early.
-  -- (TODO: since #903's refactoring for hledger 1.12,
-  -- journalApplyCommodityStyles here is seeing the
-  -- transactions before they get reversesd to normal order.)
   case journalApplyCommodityStyles pj' of
-    Left e    -> throwError e
-    Right pj' -> either throwError return $
-      pj'
-      & journalAddFile (f, txt)  -- save the file path and content
-      & journalSetLastReadTime t -- save the last read time
-      & journalReverse           -- convert all lists to parse order
-      & (if not auto_ || null (jtxnmodifiers pj)
+    Left e     -> throwError e
+    Right pj'' -> either throwError return $
+      pj''
+      & (if not auto_ || null (jtxnmodifiers pj')
          then
            -- Auto postings are not active.
            -- Balance all transactions and maybe check balance assertions.

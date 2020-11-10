@@ -178,3 +178,20 @@ $ hledger -f- bal a
 # 2000-01-01
 #     a        $-10,000
 #     b     $10,000,000
+
+# 13. A commodity's display style should come from the first-parsed amount
+<
+2020-01-01
+    (a)            1.00 $
+
+2020-01-02
+    (b)            $2,00
+
+$ hledger -f - print
+2020-01-01
+    (a)          1.00 $
+
+2020-01-02
+    (b)          2.00 $
+
+>=
