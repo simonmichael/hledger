@@ -712,7 +712,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
     else
       return $ defaultRulesText rulesfile
   rules <- either throwerr return $ parseAndValidateCsvRules rulesfile rulestext
-  dbg6IO "rules" rules
+  dbg6IO "csv rules" rules
 
   -- parse the skip directive's value, if any
   let skiplines = case getDirective "skip" rules of
@@ -745,7 +745,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   let
     -- convert CSV records to transactions
-    txns = snd $ mapAccumL
+    txns = dbg7 "csv txns" $ snd $ mapAccumL
                    (\pos r ->
                       let
                         SourcePos name line col = pos
@@ -762,7 +762,9 @@ readJournalFromCsv mrulesfile csvfile csvdata =
     -- than one date and the first date is more recent than the last):
     -- reverse them to get same-date transactions ordered chronologically.
     txns' =
-      (if newestfirst || mdataseemsnewestfirst == Just True then reverse else id) txns
+      (if newestfirst || mdataseemsnewestfirst == Just True 
+        then dbg7 "reversed csv txns" . reverse else id) 
+        txns
       where
         newestfirst = dbg6 "newestfirst" $ isJust $ getDirective "newest-first" rules
         mdataseemsnewestfirst = dbg6 "mdataseemsnewestfirst" $
@@ -770,7 +772,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
             ds | length ds > 1 -> Just $ head ds > last ds
             _                  -> Nothing
     -- Second, sort by date.
-    txns'' = sortBy (comparing tdate) txns'
+    txns'' = dbg7 "date-sorted csv txns" $ sortBy (comparing tdate) txns'
 
   when (not rulesfileexists) $ do
     dbg1IO "creating conversion rules file" rulesfile
@@ -1190,7 +1192,7 @@ getEffectiveAssignment :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Fie
 getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
   where
     -- all active assignments to field f, in order
-    assignments = dbg7 "assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
+    assignments = dbg9 "csv assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
       where
         -- all top level field assignments
         toplevelassignments    = rassignments rules

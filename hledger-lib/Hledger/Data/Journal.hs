@@ -566,7 +566,7 @@ journalReverse j =
     ,jtxns             = reverse $ jtxns j
     ,jtxnmodifiers     = reverse $ jtxnmodifiers j
     ,jperiodictxns     = reverse $ jperiodictxns j
-    ,jpricedirectives     = reverse $ jpricedirectives j
+    ,jpricedirectives  = reverse $ jpricedirectives j
     }
 
 -- | Set this journal's last read time, ie when its files were last read.
@@ -982,14 +982,12 @@ journalCommodityStyles j =
 -- "the format of the first amount, adjusted to the highest precision of all amounts".
 -- Can return an error message eg if inconsistent number formats are found.
 journalInferCommodityStyles :: Journal -> Either String Journal
-journalInferCommodityStyles j =
+journalInferCommodityStyles j = 
   case
-    commodityStylesFromAmounts $
-    dbg7 "journalInferCommodityStyles using amounts" $
-    journalStyleInfluencingAmounts j
+    commodityStylesFromAmounts $ journalStyleInfluencingAmounts j
   of
     Left e   -> Left e
-    Right cs -> Right j{jinferredcommodities = cs}
+    Right cs -> Right j{jinferredcommodities = dbg7 "journalInferCommodityStyles" cs}
 
 -- | Given a list of amounts, in parse order (roughly speaking; see journalStyleInfluencingAmounts),
 -- build a map from their commodity names to standard commodity
@@ -1119,7 +1117,9 @@ journalToCost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost styles) ts}
 -- Transaction price amounts (posting amounts' aprice field) are not included.
 --
 journalStyleInfluencingAmounts :: Journal -> [Amount]
-journalStyleInfluencingAmounts j = catMaybes $ concat [
+journalStyleInfluencingAmounts j = 
+  dbg7 "journalStyleInfluencingAmounts" $
+  catMaybes $ concat [
    [mdefaultcommodityamt]
   ,map (Just . pdamount) $ jpricedirectives j
   ,map Just $ concatMap amounts $ map pamount $ journalPostings j
