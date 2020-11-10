@@ -254,6 +254,7 @@ module Hledger.Cli.Commands.Balance (
  ,tests_Balance
 ) where
 
+import Control.Arrow (first)
 import Data.Default (def)
 import Data.List (intersperse, transpose)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -366,18 +367,22 @@ balanceReportAsCsv opts (items, total) =
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
 balanceReportAsText opts ((items, total)) =
-    unlinesB lines <> unlinesB (if no_total_ opts then [] else [overline, totallines])
+    unlinesB lines
+    <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
   where
     unlinesB [] = mempty
     unlinesB xs = mconcat (intersperse (TB.singleton '\n') xs) <> TB.singleton '\n'
 
-    lines = map (balanceReportItemAsText opts) items
+    (lines, sizes) = unzip $ map (balanceReportItemAsText opts) items
     -- abuse renderBalanceReportItem to render the total with similar format
-    totallines = renderBalanceReportItem opts ("", 0, total)
+    (totalLines, _) = renderBalanceReportItem opts ("",0,total)
     -- with a custom format, extend the line to the full report width;
     -- otherwise show the usual 20-char line for compatibility
-    overlinewidth = fromMaybe 22 . overlineWidth $ format_ opts
-    --overlinewidth = fromMaybe (maximum' . map length $ concat lines) . overlineWidth $ format_ opts
+    overlinewidth = case format_ opts of
+        OneLine       ((FormatField _ _ _ TotalField):_) -> 20
+        TopAligned    ((FormatField _ _ _ TotalField):_) -> 20
+        BottomAligned ((FormatField _ _ _ TotalField):_) -> 20
+        _ -> sum (map maximum' $ transpose sizes)
     overline   = TB.fromText $ T.replicate overlinewidth "-"
 
 {-
@@ -395,7 +400,7 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- whatever string format is specified). Note, prices will not be rendered, and
 -- differently-priced quantities of the same commodity will appear merged.
 -- The output will be one or more lines depending on the format and number of commodities.
-balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> TB.Builder
+balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> (TB.Builder, [Int])
 balanceReportItemAsText opts (_, accountName, depth, amt) =
   renderBalanceReportItem opts (
     accountName,
@@ -404,46 +409,36 @@ balanceReportItemAsText opts (_, accountName, depth, amt) =
     )
 
 -- | Render a balance report item using the given StringFormat, generating one or more lines of text.
-renderBalanceReportItem :: ReportOpts -> (AccountName, Int, MixedAmount) -> TB.Builder
+renderBalanceReportItem :: ReportOpts -> (AccountName, Int, MixedAmount) -> (TB.Builder, [Int])
 renderBalanceReportItem opts (acctname, depth, total) =
   case format_ opts of
-      OneLine       _ comps -> foldMap (TB.fromText . T.intercalate ", ") $ render1 comps
-      TopAligned    _ comps -> renderRow' TopLeft    $ render comps
-      BottomAligned _ comps -> renderRow' BottomLeft $ render comps
+      OneLine       comps -> renderRow' $ render True  True  comps
+      TopAligned    comps -> renderRow' $ render True  False comps
+      BottomAligned comps -> renderRow' $ render False False comps
   where
-    renderRow' align = renderRowB def{tableBorders=False, borderSpaces=False}
-                     . Tab.Group NoLine . map (Header . cell)
-      where cell = Cell align . map (\x -> (x, textWidth x))
+    renderRow' is = ( renderRowB def{tableBorders=False, borderSpaces=False}
+                      . Tab.Group NoLine $ map Header is
+                    , map cellWidth is )
 
-    render1 = map (T.lines . renderComponent1 opts (acctname, depth, total))
-    render  = map (T.lines . renderComponent  opts (acctname, depth, total))
+    render topaligned oneline = map (maybeConcat . renderComponent topaligned opts (acctname, depth, total))
+      where maybeConcat (Cell a xs) = if oneline then Cell a [(T.intercalate ", " strs, width)]
+                                                 else Cell a xs
+              where
+                (strs, ws) = unzip xs
+                width = sumStrict (map (+2) ws) -2
 
--- | Render one StringFormat component for a balance report item.
-renderComponent :: ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> T.Text
-renderComponent _ _ (FormatLiteral s) = s
-renderComponent opts (acctname, depth, total) (FormatField ljust min max field) = case field of
-  DepthSpacerField -> formatText ljust Nothing max $ T.replicate d " "
-                      where d = case min of
-                                 Just m  -> depth * m
-                                 Nothing -> depth
-  AccountField     -> formatText ljust min max acctname
-  TotalField       -> T.pack . fst $ showMixed showAmountWithoutPrice min max (color_ opts) total
-  _                -> ""
 
 -- | Render one StringFormat component for a balance report item.
--- This variant is for use with OneLine string formats; it squashes
--- any multi-line rendered values onto one line, comma-and-space separated,
--- while still complying with the width spec.
-renderComponent1 :: ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> T.Text
-renderComponent1 _ _ (FormatLiteral s) = s
-renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field) = case field of
-  AccountField     -> formatText ljust min max . T.intercalate ", " . T.lines $ indented acctname
-                      where
-                        -- better to indent the account name here rather than use a DepthField component
-                        -- so that it complies with width spec. Uses a fixed indent step size.
-                        indented = ((T.replicate (depth*2) " ")<>)
-  TotalField       -> T.pack . fst $ showMixedOneLine showAmountWithoutPrice min max (color_ opts) total
-  _                -> ""
+renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
+renderComponent _ _ _ (FormatLiteral s) = Cell TopLeft . map (\x -> (x, textWidth x)) $ T.lines s
+renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
+    DepthSpacerField -> Cell align [(T.replicate d " ", d)]
+                        where d = maybe id min mmax $ depth * fromMaybe 1 mmin
+    AccountField     -> Cell align [(t, textWidth t)] where t = formatText ljust mmin mmax acctname
+    TotalField       -> Cell align . pure . first T.pack $ showMixed showAmountWithoutPrice mmin mmax (color_ opts) total
+    _                -> Cell align [("", 0)]
+  where align = if topaligned then (if ljust then TopLeft    else TopRight)
+                              else (if ljust then BottomLeft else BottomRight)
 
 -- rendering multi-column balance reports
 

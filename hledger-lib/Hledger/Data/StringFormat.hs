@@ -13,7 +13,6 @@ module Hledger.Data.StringFormat (
         , StringFormat(..)
         , StringFormatComponent(..)
         , ReportItemField(..)
-        , overlineWidth
         , defaultBalanceLineFormat
         , tests_StringFormat
         ) where
@@ -35,12 +34,9 @@ import Hledger.Utils.Test
 
 -- | A format specification/template to use when rendering a report line item as text.
 --
--- A format is an optional width, along with a sequence of components;
--- each is either a literal string, or a hledger report item field with
--- specified width and justification whose value will be interpolated
--- at render time. The optional width determines the length of the
--- overline to draw above the totals row; if it is Nothing, then the
--- maximum width of all lines is used.
+-- A format is a sequence of components; each is either a literal
+-- string, or a hledger report item field with specified width and
+-- justification whose value will be interpolated at render time.
 --
 -- A component's value may be a multi-line string (or a
 -- multi-commodity amount), in which case the final string will be
@@ -51,9 +47,9 @@ import Hledger.Utils.Test
 -- mode, which provides a limited StringFormat renderer.
 --
 data StringFormat =
-    OneLine       (Maybe Int) [StringFormatComponent] -- ^ multi-line values will be rendered on one line, comma-separated
-  | TopAligned    (Maybe Int) [StringFormatComponent] -- ^ values will be top-aligned (and bottom-padded to the same height)
-  | BottomAligned (Maybe Int) [StringFormatComponent] -- ^ values will be bottom-aligned (and top-padded)
+    OneLine       [StringFormatComponent] -- ^ multi-line values will be rendered on one line, comma-separated
+  | TopAligned    [StringFormatComponent] -- ^ values will be top-aligned (and bottom-padded to the same height)
+  | BottomAligned [StringFormatComponent] -- ^ values will be bottom-aligned (and top-padded)
   deriving (Show, Eq)
 
 data StringFormatComponent =
@@ -85,14 +81,9 @@ data ReportItemField =
 
 instance Default StringFormat where def = defaultBalanceLineFormat
 
-overlineWidth :: StringFormat -> Maybe Int
-overlineWidth (OneLine       w _) = w
-overlineWidth (TopAligned    w _) = w
-overlineWidth (BottomAligned w _) = w
-
 -- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
 defaultBalanceLineFormat :: StringFormat
-defaultBalanceLineFormat = BottomAligned (Just 20) [
+defaultBalanceLineFormat = BottomAligned [
       FormatField False (Just 20) Nothing TotalField
     , FormatLiteral "  "
     , FormatField True (Just 2) Nothing DepthSpacerField
@@ -118,10 +109,10 @@ stringformatp = do
   alignspec <- optional (try $ char '%' >> oneOf ("^_,"::String))
   let constructor =
         case alignspec of
-          Just '^' -> TopAligned Nothing
-          Just '_' -> BottomAligned Nothing
-          Just ',' -> OneLine Nothing
-          _        -> defaultStringFormatStyle Nothing
+          Just '^' -> TopAligned
+          Just '_' -> BottomAligned
+          Just ',' -> OneLine
+          _        -> defaultStringFormatStyle
   constructor <$> many componentp
 
 componentp :: SimpleTextParser StringFormatComponent
@@ -182,23 +173,23 @@ tests_StringFormat = tests "StringFormat" [
 
   ,let s `gives` expected = test s $ parseStringFormat (T.pack s) @?= Right expected
    in tests "parseStringFormat" [
-      ""                           `gives` (defaultStringFormatStyle Nothing [])
-    , "D"                          `gives` (defaultStringFormatStyle Nothing [FormatLiteral "D"])
-    , "%(date)"                    `gives` (defaultStringFormatStyle Nothing [FormatField False Nothing Nothing DescriptionField])
-    , "%(total)"                   `gives` (defaultStringFormatStyle Nothing [FormatField False Nothing Nothing TotalField])
+      ""                           `gives` (defaultStringFormatStyle [])
+    , "D"                          `gives` (defaultStringFormatStyle [FormatLiteral "D"])
+    , "%(date)"                    `gives` (defaultStringFormatStyle [FormatField False Nothing Nothing DescriptionField])
+    , "%(total)"                   `gives` (defaultStringFormatStyle [FormatField False Nothing Nothing TotalField])
     -- TODO
     -- , "^%(total)"                  `gives` (TopAligned [FormatField False Nothing Nothing TotalField])
     -- , "_%(total)"                  `gives` (BottomAligned [FormatField False Nothing Nothing TotalField])
     -- , ",%(total)"                  `gives` (OneLine [FormatField False Nothing Nothing TotalField])
-    , "Hello %(date)!"             `gives` (defaultStringFormatStyle Nothing [FormatLiteral "Hello ", FormatField False Nothing Nothing DescriptionField, FormatLiteral "!"])
-    , "%-(date)"                   `gives` (defaultStringFormatStyle Nothing [FormatField True Nothing Nothing DescriptionField])
-    , "%20(date)"                  `gives` (defaultStringFormatStyle Nothing [FormatField False (Just 20) Nothing DescriptionField])
-    , "%.10(date)"                 `gives` (defaultStringFormatStyle Nothing [FormatField False Nothing (Just 10) DescriptionField])
-    , "%20.10(date)"               `gives` (defaultStringFormatStyle Nothing [FormatField False (Just 20) (Just 10) DescriptionField])
-    , "%20(account) %.10(total)"   `gives` (defaultStringFormatStyle Nothing [FormatField False (Just 20) Nothing AccountField
-                                                                             ,FormatLiteral " "
-                                                                             ,FormatField False Nothing (Just 10) TotalField
-                                                                             ])
+    , "Hello %(date)!"             `gives` (defaultStringFormatStyle [FormatLiteral "Hello ", FormatField False Nothing Nothing DescriptionField, FormatLiteral "!"])
+    , "%-(date)"                   `gives` (defaultStringFormatStyle [FormatField True Nothing Nothing DescriptionField])
+    , "%20(date)"                  `gives` (defaultStringFormatStyle [FormatField False (Just 20) Nothing DescriptionField])
+    , "%.10(date)"                 `gives` (defaultStringFormatStyle [FormatField False Nothing (Just 10) DescriptionField])
+    , "%20.10(date)"               `gives` (defaultStringFormatStyle [FormatField False (Just 20) (Just 10) DescriptionField])
+    , "%20(account) %.10(total)"   `gives` (defaultStringFormatStyle [FormatField False (Just 20) Nothing AccountField
+                                                                     ,FormatLiteral " "
+                                                                     ,FormatField False Nothing (Just 10) TotalField
+                                                                     ])
     , test "newline not parsed" $ assertLeft $ parseStringFormat "\n"
     ]
  ]
