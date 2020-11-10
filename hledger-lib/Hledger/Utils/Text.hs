@@ -100,8 +100,8 @@ textChomp = T.dropWhileEnd (`elem` ['\r', '\n'])
 -- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
 -- Works on multi-line strings too (but will rewrite non-unix line endings).
 formatText :: Bool -> Maybe Int -> Maybe Int -> Text -> Text
-formatText leftJustified minwidth maxwidth =
-    T.intercalate "\n" . map (pad . clip) . T.lines
+formatText leftJustified minwidth maxwidth t =
+    T.intercalate "\n" . map (pad . clip) $ if T.null t then [""] else T.lines t
   where
     pad  = maybe id justify minwidth
     clip = maybe id T.take maxwidth
