@@ -477,7 +477,9 @@ commodity INR 9,99,99,999.00
 commodity       1 000 000.9455
 ```
 
-### Amount display style
+<a name="amount-display-style"></a>
+
+### Commodity display style
 
 For each commodity, hledger chooses a consistent format to use when
 displaying amounts. (Except [price amounts](#prices), which are always
@@ -506,12 +508,9 @@ to see fewer decimal places in reports, use a
 [commodity directive](#declaring-commodities)
 to override that.
 
-hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding): 
-it rounds to the nearest even number, eg 0.5 displayed with zero
-decimal places is "0").
-(Note, prior to hledger 1.17.1 this could vary if hledger happened to
-be built with an old version of Decimal (<0.5.1); since 1.17.1 it's
-guaranteed.)
+Note, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding): 
+it rounds to the nearest even number, eg 0.5 displayed with zero decimal places is "0").
+(Guaranteed since hledger 1.17.1; in older versions this could vary  if hledger was built with Decimal < 0.5.1.)
 
 
 ## Transaction prices
@@ -939,9 +938,9 @@ The `commodity` directive has several functions:
    data. (Without this, hledger will parse both `1,000` and `1.000`
    as 1).
 
-3. It declares the [amount display style](#amount-display-style) to
-   use in output - decimal and digit group marks, number of decimal
-   places, symbol placement etc.
+3. It declares a commodity's [display style](#commodity-display-style)
+   in output - decimal and digit group marks, number of decimal places, 
+   symbol placement etc.
 
 You are likely to run into one of the problems solved by commodity
 directives, sooner or later, so it's a good idea to just always use
@@ -980,7 +979,7 @@ or a comma, followed by 0 or more decimal digits.
 Note hledger normally uses 
 [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding), 
 so 0.5 displayed with zero decimal digits is "0". 
-(More at [Amount display style](#amount-display-style).)
+(More at [Commodity display style](#commodity-display-style).)
 
 ### Default commodity
 
