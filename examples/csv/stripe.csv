@@ -1,0 +1,3 @@
+"balance_transaction_id","created_utc","available_on_utc","currency","gross","fee","net","reporting_category","description"
+"txn_14G11HjubSIHf9IKrvJdwN","2020-01-23 08:26:29","2020-01-27 00:00:00","usd","12.00","0.00","12.00","charge",
+"txn_14G11HjHgubIH9ZvbPgYO7","2020-01-23 08:26:31","2020-01-27 00:00:00","usd","-0.77","0.00","-0.77","refund","REFUND FOR PAYMENT"
