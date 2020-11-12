@@ -1,0 +1,4 @@
+#!/bin/sh
+# Convert hledger-ui's output to plain text. Extracted from uitest.sh, see comments there.
+exec perl -pe 's/\e\[\d+;1H/\n/g; s/\e\[?.*?[\@-~]//g; s/$/\n/;' | \
+    perl -ne 's/(─)+/---/; s/(─)+//; s/ +$//; print unless /^$/'  # or /\?:help/'

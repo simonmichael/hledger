@@ -1,0 +1,15 @@
+#!/usr/bin/env expect
+
+# Run uitest.empty-ui in the background without needing an interactive
+# shell, passing through any arguments. It's pretty stupid to be using
+# both expect AND empty, but so far this is the only way I've got it
+# to work. The empty script is reasonably reliable at producing the
+# output, but can't itself run in a non-interactive script; expect is
+# able to make it do that.
+
+
+# TODO: kill (our) empty process if this script is interrupted
+trap {puts {open "|ls"}} {INT TERM}
+
+spawn ./uitest.empty $argv
+expect eof

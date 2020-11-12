@@ -1,0 +1,28 @@
+# 1. The accounts screen is shown on startup, with the top item selected.
+$  ./uitest -f ../../examples/sample.journal
+--- sample.journal account balances (1/8)
+ assets:bank:checking    0
+ assets:bank:saving     $1
+ assets:cash           $-2
+ expenses:food          $1
+ expenses:supplies      $1
+ income:gifts          $-1
+ income:salary         $-1
+ liabilities:debts      $1
+
+# 2. It can be depth-limited at startup.
+$  ./uitest -f ../../examples/sample.journal -1
+--- sample.journal account balances to depth 1 (1/4)
+ assets       $-1
+ expenses      $2
+ income       $-2
+ liabilities   $1
+
+# 3. When an account is depth clipped, register should show the transactions of it and its subs (#1208)
+$  ./uitest -f ../../examples/sample.journal -1 --register assets:bank:checking
+--- assets:bank:checking transactions (4/4)
+ 2008/01/01   income                      in:salary                     $1   $1
+ 2008/06/01   gift                        in:gifts                      $1   $2
+ 2008/06/02   save                        as:ba:saving                 $-1   $1
+ 2008/12/31 * pay off                     li:debts                     $-1    0
+>=

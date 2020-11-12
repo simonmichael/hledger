@@ -1,0 +1,46 @@
+#!/usr/bin/env expect
+
+# Run hledger-ui in the background without needing an interactive
+# shell, passing through any arguments, and dump its first screen* as
+# cleaned up plain text. This allows hledger-ui's output to be tested.
+#
+# * Or multiple screens, from processing the inputs below.
+
+
+set timeout 1
+log_user 0
+# we'll pipe what we capture through hledgerui2txt
+set filter [open |./hledgerui2txt w]
+
+spawn hledger-ui $argv
+
+# warning: expect-ing output of a brick app is tricky.
+# It draws parts of the screen, in layers, with embedded
+# escape codes.
+
+# wait for the first screen to draw (to the bottom line)
+# expect "account balances"
+# expect timeout
+# expect -re ":quit ─+"
+#expect ":quit"
+puts $filter $expect_out(buffer)
+
+# send 1
+# expect -re ":quit ─+"
+# puts $expect_out(buffer)
+
+# send 2
+# expect -re ":quit ─+"
+# # the last output must be handled differently
+# set out $expect_out(buffer)
+
+# send q
+# expect eof
+
+# # send 2
+# # expect -re ":quit"
+
+# puts $filter $out
+close $filter
+
+# interact
