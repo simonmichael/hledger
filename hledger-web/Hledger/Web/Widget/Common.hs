@@ -21,12 +21,12 @@ module Hledger.Web.Widget.Common
 
 import Data.Default (def)
 import Data.Foldable (find, for_)
+import Data.List (elemIndex)
 #if !(MIN_VERSION_base(4,13,0))
 import Data.Semigroup ((<>))
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.HashMap.Strict as HashMap
 import System.FilePath (takeFileName)
 import Text.Blaze ((!), textValue)
 import qualified Text.Blaze.Html5 as H
@@ -110,12 +110,15 @@ mixedAmountAsHtml b _ =
       Just True -> "negative amount"
       _ -> "positive amount"
 
+-- Make a slug to uniquely identify this transaction
+-- in hyperlinks (as far as possible).
 transactionFragment :: Journal -> Transaction -> String
-transactionFragment j =
-    let hm = HashMap.fromList $ zip (map fst $ jfiles j) [(1::Integer) ..]
-    in  \t ->
-            printf "transaction-%d-%d"
-                (hm HashMap.! sourceFilePath (tsourcepos t)) (tindex t)
+transactionFragment j Transaction{tindex, tsourcepos} = 
+  printf "transaction-%d-%d" tfileindex tindex
+  where
+    -- the numeric index of this txn's file within all the journal files,
+    -- or 0 if this txn has no known file (eg a forecasted txn)
+    tfileindex = maybe 0 (+1) $ elemIndex (sourceFilePath tsourcepos) (journalFilePaths j)
 
 removeInacct :: Text -> [Text]
 removeInacct =
