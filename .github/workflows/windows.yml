@@ -153,7 +153,7 @@ jobs:
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     ## - export PATH=~/.local/bin:$PATH
-    #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
+    #- COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /_ -x /bin -x /addons
 
     # artifacts:
 
