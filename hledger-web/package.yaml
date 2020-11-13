@@ -166,6 +166,8 @@ tests:
     cpp-options: -DVERSION="1.19.99"
     dependencies:
     - base
+    - hledger-lib
+    - hledger
     - hledger-web
     - hspec
     - yesod
