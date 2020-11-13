@@ -158,15 +158,15 @@ executables:
     - condition: flag(threaded)
       ghc-options: -threaded
 
-# 2018/06 not building and not testing anything useful, disabled for now
-# tests:
-#   test:
-#     source-dirs: test
-#     main: test.hs
-#     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-#     cpp-options: -DVERSION="1.19.99"
-#     dependencies:
-#     - base
-#     - hledger-web
-#     - hspec
-#     - yesod-test
+tests:
+  test:
+    source-dirs: test
+    main: test.hs
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
+    cpp-options: -DVERSION="1.19.99"
+    dependencies:
+    - base
+    - hledger-web
+    - hspec
+    - yesod
+    - yesod-test
