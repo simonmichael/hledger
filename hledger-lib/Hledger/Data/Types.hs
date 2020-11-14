@@ -467,6 +467,8 @@ data Journal = Journal {
   ,jfiles                 :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
                                                                     --   any included journal files. The main file is first,
                                                                     --   followed by any included files in the order encountered.
+                                                                    --   TODO: FilePath is a sloppy type here, don't assume it's a
+                                                                    --   real file; values like "", "-", "(string)" can be seen
   ,jlastreadtime          :: ClockTime                              -- ^ when this journal was last read from its file(s)
   } deriving (Eq, Generic)
 

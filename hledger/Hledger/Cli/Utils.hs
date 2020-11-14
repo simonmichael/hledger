@@ -18,14 +18,13 @@ module Hledger.Cli.Utils
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
-     journalSpecifiedFileIsNewer,
-     fileModificationTime,
      openBrowserOn,
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
      readFileStrictly,
      pivotByOpts,
      anonymiseByOpts,
+     utcTimeToClockTime,
      tests_Cli_Utils,
     )
 where
@@ -35,15 +34,15 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Time (Day, addDays)
+import Data.Time (UTCTime, Day, addDays)
 import Safe (readMay)
 import System.Console.CmdArgs
-import System.Directory (getModificationTime, getDirectoryContents, copyFile)
+import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
 import System.Exit
 import System.FilePath ((</>), splitFileName, takeDirectory)
 import System.Info (os)
 import System.Process (readProcessWithExitCode)
-import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
+import System.Time (diffClockTimes, TimeDiff(TimeDiff))
 import Text.Printf
 import Text.Regex.TDFA ((=~))
 
@@ -56,6 +55,7 @@ import Hledger.Data
 import Hledger.Read
 import Hledger.Reports
 import Hledger.Utils
+import Control.Monad (when)
 
 -- | Standard error message for a bad output format specified with -O/-o.
 unsupportedOutputFormatError :: String -> String
@@ -163,15 +163,6 @@ writeOutput opts s = do
 -- readJournal :: CliOpts -> String -> IO Journal
 -- readJournal opts s = readJournal def Nothing s >>= either error' return
 
--- | Re-read the journal file(s) specified by options, applying any
--- transformations specified by options. Or return an error string.
--- Reads the full journal, without filtering.
-journalReload :: CliOpts -> IO (Either String Journal)
-journalReload opts = do
-  journalpaths <- journalFilePathFromOpts opts
-  files <- readJournalFiles (inputopts_ opts) journalpaths
-  return $ journalTransform opts <$> files
-
 -- | Re-read the option-specified journal file(s), but only if any of
 -- them has changed since last read. (If the file is standard input,
 -- this will either do nothing or give an error, not tested yet).
@@ -180,43 +171,59 @@ journalReload opts = do
 -- the full journal, without filtering.
 journalReloadIfChanged :: CliOpts -> Day -> Journal -> IO (Either String Journal, Bool)
 journalReloadIfChanged opts _d j = do
-  let maybeChangedFilename f = do newer <- journalSpecifiedFileIsNewer j f
+  let maybeChangedFilename f = do newer <- journalFileIsNewer j f
                                   return $ if newer then Just f else Nothing
   changedfiles <- catMaybes `fmap` mapM maybeChangedFilename (journalFilePaths j)
   if not $ null changedfiles
    then do
-     whenLoud $ printf "%s has changed, reloading\n" (head changedfiles)
+     -- XXX not sure why we use cmdarg's verbosity here, but keep it for now
+     verbose <- isLoud
+     when (verbose || debugLevel >= 6) $ printf "%s has changed, reloading\n" (head changedfiles)
      ej <- journalReload opts
      return (ej, True)
    else
      return (Right j, False)
 
--- | Has the journal's main data file changed since the journal was last
--- read ?
-journalFileIsNewer :: Journal -> IO Bool
-journalFileIsNewer j@Journal{jlastreadtime=tread} = do
-  tmod <- fileModificationTime $ journalFilePath j
-  return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
+-- | Re-read the journal file(s) specified by options, applying any
+-- transformations specified by options. Or return an error string.
+-- Reads the full journal, without filtering.
+journalReload :: CliOpts -> IO (Either String Journal)
+journalReload opts = do
+  journalpaths <- dbg6 "reloading files" <$> journalFilePathFromOpts opts
+  files <- readJournalFiles (inputopts_ opts) journalpaths
+  return $ journalTransform opts <$> files
 
--- | Has the specified file (presumably one of journal's data files)
--- changed since journal was last read ?
-journalSpecifiedFileIsNewer :: Journal -> FilePath -> IO Bool
-journalSpecifiedFileIsNewer Journal{jlastreadtime=tread} f = do
-  tmod <- fileModificationTime f
-  return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
+-- | Has the specified file changed since the journal was last read ?
+-- Typically this is one of the journal's journalFilePaths. These are
+-- not always real files, so the file's existence is tested first;
+-- for non-files the answer is always no.
+journalFileIsNewer :: Journal -> FilePath -> IO Bool
+journalFileIsNewer Journal{jlastreadtime=tread} f = do
+  mtmod <- maybeFileModificationTime f
+  return $
+    case mtmod of
+      Just tmod -> diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
+      Nothing   -> False
 
--- | Get the last modified time of the specified file, or if it does not
--- exist or there is some other error, the current time.
-fileModificationTime :: FilePath -> IO ClockTime
-fileModificationTime f
-    | null f = getClockTime
-    | otherwise = (do
-        utc <- getModificationTime f
-        let nom = utcTimeToPOSIXSeconds utc
-        let clo = TOD (read $ takeWhile (`elem` ("0123456789"::String)) $ show nom) 0 -- XXX read
-        return clo
-        )
-        `C.catch` \(_::C.IOException) -> getClockTime
+-- | Get the last modified time of the specified file, if it exists.
+-- Any IO exception is converted to a Nothing.
+maybeFileModificationTime :: FilePath -> IO (Maybe ClockTime)
+maybeFileModificationTime f = do
+  exists <- doesFileExist f
+  if exists
+  then (do
+    utc <- getModificationTime f
+    return $ Just $ utcTimeToClockTime utc
+    ) `C.catch` \(_::C.IOException) -> return Nothing
+  else
+    return Nothing
+
+utcTimeToClockTime :: UTCTime -> ClockTime
+utcTimeToClockTime utc = TOD posixsecs picosecs
+  where
+    (posixsecs, frac) = properFraction $ utcTimeToPOSIXSeconds utc
+    picosecs = round $ frac * 1e12
+
 -- | Attempt to open a web browser on the given url, all platforms.
 openBrowserOn :: String -> IO ExitCode
 openBrowserOn u = trybrowsers browsers u
