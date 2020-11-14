@@ -170,5 +170,6 @@ tests:
     - hledger
     - hledger-web
     - hspec
+    - text
     - yesod
     - yesod-test

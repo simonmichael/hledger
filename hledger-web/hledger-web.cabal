@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 80d248f9e183a9f4f099aab192fd5041fe081ed554baa8ba48b8a3fc4ed777c3
+-- hash: 0c023ce93e25342762ee67e15231e3d07bff45c813ae6ad729c8b3823ab45a3e
 
 name:           hledger-web
 version:        1.19.99
@@ -236,6 +236,7 @@ test-suite test
     , hledger-lib
     , hledger-web
     , hspec
+    , text
     , yesod
     , yesod-test
   if (flag(dev)) || (flag(library-only))

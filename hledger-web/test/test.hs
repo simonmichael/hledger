@@ -1,75 +1,75 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-
-module Main where
-
 -- cabal missing-home-modules workaround from hledger-lib needed here ?
 -- {-# LANGUAGE PackageImports #-}
 
+module Main where
+
+import qualified Data.Text as T
 import Test.Hspec (hspec)
 import Yesod.Default.Config
 import Yesod.Test
 
-import Hledger.Web.Application (makeFoundation)
-import Hledger.Web.Foundation
-import Hledger.Web.Settings (parseExtra)
-import Hledger.Web.WebOptions -- (defwebopts, cliopts_)
--- import Hledger.Cli.CliOptions -- (defcliopts, reportspec_)
--- import Hledger  -- .Reports.ReportOptions (defreportopts, forecast_)
+import Hledger.Web
+import Hledger.Web.Application
+-- import Hledger.Web.Foundation
+import Hledger.Web.Import hiding (get, j)
+import Hledger.Cli hiding (tests)
+
+
+runTestsWith :: AppConfig DefaultEnv Extra -> WebOpts -> Journal -> YesodSpec App -> IO ()
+runTestsWith yesodconf hledgerwebopts j specs = do
+  app <- makeFoundationWith j yesodconf hledgerwebopts
+  hspec $ yesodSpec app specs
 
 main :: IO ()
 main = do
-  conf <- Yesod.Default.Config.loadConfig $ 
-            (configSettings Testing){ csParseExtra = parseExtra }
 
-  foundation <- makeFoundation conf defwebopts
-  hspec $ yesodSpec foundation specs
+  -- https://hackage.haskell.org/package/yesod-test-1.6.10/docs/Yesod-Test.html
+  -- http://hspec.github.io/writing-specs.html
 
-  -- run hledger-web with some forecasted transactions
-  -- XXX problem: these tests use makeFoundation, bypassing the journal setup in Hledger.Web.Main
-  -- d <- getCurrentDay
-  -- let
-  --   ropts = defreportopts{forecast_=Just nulldatespan}
-  --   rspec = case reportOptsToSpec d ropts of
-  --             Left e   -> error $ "failed to set up report options for tests, shouldn't happen: " ++ show e
-  --             Right rs -> rs
-  -- foundationForecast <- makeFoundation conf 
-  --   defwebopts{cliopts_=defcliopts{file_=["hledger-web/tests/forecast.j"], reportspec_=rspec}}
-  -- hspec $ yesodSpec foundationForecast specsForecast
+  -- XXX these tests use makeFoundation, bypassing the startup code in Hledger.Web.Main
+  
+  -- Be careful about the opts/files provided here, unusual combinations might cause problems.
+  -- Eg journalReload can reload the user's default journal if cliopts{file_} is left empty.
 
--- https://hackage.haskell.org/package/yesod-test/docs/Yesod-Test.html
+  conf <- Yesod.Default.Config.loadConfig $ (configSettings Testing){ csParseExtra = parseExtra }
 
-specs :: YesodSpec App
-specs = do
-  ydescribe "hledger-web basic functionality" $ do
+  -- basic tests
+  runTestsWith conf defwebopts nulljournal $ do
+    ydescribe "hledger-web" $ do
 
-    yit "serves a reasonable-looking journal page" $ do
-      get JournalR
-      statusIs 200
-      bodyContains "Add a transaction"
+      yit "serves a reasonable-looking journal page" $ do
+        get JournalR
+        statusIs 200
+        bodyContains "Add a transaction"
 
-    yit "serves a reasonable-looking register page" $ do
-      get RegisterR
-      statusIs 200
-      bodyContains "accounts"
+      yit "serves a reasonable-looking register page" $ do
+        get RegisterR
+        statusIs 200
+        bodyContains "accounts"
 
--- specsForecast :: YesodSpec App
--- specsForecast = do
---   ydescribe "hledger-web --forecast" $ do
---     yit "serves a reasonable-looking journal page" $ do
---       get JournalR
---       statusIs 200
---       bodyContains "Add a transaction"
+  -- test with forecasted transactions
+  d <- getCurrentDay
+  let
+    ropts = defreportopts{forecast_=Just nulldatespan}
+    rspec = case reportOptsToSpec d ropts of
+              Left e   -> error $ "failed to set up report options for tests, shouldn't happen: " ++ show e
+              Right rs -> rs
+    copts = defcliopts{reportspec_=rspec, file_=[""]}  -- non-empty, see file_ note above
+    wopts = defwebopts{cliopts_=copts}
+  j <- fmap (journalTransform copts) $ readJournal' (T.unlines  -- PARTIAL: readJournal' should not fail
+    ["~ monthly"
+    ,"    assets    10"
+    ,"    income"
+    ])
+  runTestsWith conf wopts j $ do
+    ydescribe "hledger-web --forecast" $ do
 
+      yit "serves a journal page showing forecasted transactions" $ do
+        get JournalR
+        statusIs 200
+        bodyContains "id=\"transaction-0-1\""  -- 0 indicates a fileless (forecasted) txn
+        bodyContains "id=\"transaction-0-2\""  -- etc.
 
-
-
--- post "/" $ do
---   addNonce
---   fileByLabel "Choose a file" "tests/main.hs" "text/plain" -- talk about self-reference
---   byLabel "What's on the file?" "Some Content"
--- statusIs 200
--- htmlCount ".message" 1
--- htmlAllContain ".message" "Some Content"
--- htmlAllContain ".message" "text/plain"

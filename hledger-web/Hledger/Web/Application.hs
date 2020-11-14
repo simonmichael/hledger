@@ -6,6 +6,7 @@
 module Hledger.Web.Application
   ( makeApplication
   , makeFoundation
+  , makeFoundationWith
   ) where
 
 import Data.IORef (newIORef, writeIORef)
@@ -49,4 +50,12 @@ makeFoundation conf opts' = do
     manager <- newManager defaultManagerSettings
     s <- staticSite
     jref <- newIORef nulljournal
+    return $ App conf s manager opts' jref
+
+-- Make a Foundation with the given Journal as its state.
+makeFoundationWith :: Journal -> AppConfig DefaultEnv Extra -> WebOpts -> IO App
+makeFoundationWith j' conf opts' = do
+    manager <- newManager defaultManagerSettings
+    s <- staticSite
+    jref <- newIORef j'
     return $ App conf s manager opts' jref
