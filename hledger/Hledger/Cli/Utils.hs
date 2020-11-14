@@ -206,15 +206,13 @@ journalFileIsNewer Journal{jlastreadtime=tread} f = do
       Nothing   -> False
 
 -- | Get the last modified time of the specified file, if it exists.
--- Any IO exception is converted to a Nothing.
 maybeFileModificationTime :: FilePath -> IO (Maybe ClockTime)
 maybeFileModificationTime f = do
   exists <- doesFileExist f
   if exists
-  then (do
+  then do
     utc <- getModificationTime f
     return $ Just $ utcTimeToClockTime utc
-    ) `C.catch` \(_::C.IOException) -> return Nothing
   else
     return Nothing
 
