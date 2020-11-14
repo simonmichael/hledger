@@ -69,6 +69,7 @@ module Hledger.Data.Amount (
   amountstyle,
   styleAmount,
   styleAmountExceptPrecision,
+  amountUnstyled,
   showAmount,
   cshowAmount,
   showAmountWithZeroCommodity,
@@ -108,6 +109,7 @@ module Hledger.Data.Amount (
   mixedAmountTotalPriceToUnitPrice,
   -- ** rendering
   styleMixedAmount,
+  mixedAmountUnstyled,
   showMixedAmount,
   showMixedAmountOneLine,
   showMixedAmountDebug,
@@ -350,6 +352,10 @@ styleAmountExceptPrecision styles a@Amount{astyle=AmountStyle{asprecision=origp}
   case M.lookup (acommodity a) styles of
     Just s  -> a{astyle=s{asprecision=origp}}
     Nothing -> a
+
+-- | Reset this amount's display style to the default.
+amountUnstyled :: Amount -> Amount
+amountUnstyled a = a{astyle=amountstyle}
 
 -- | Get the string representation of an amount, based on its
 -- commodity's display settings. String representations equivalent to
@@ -608,6 +614,10 @@ mixedAmountIsZero = all amountIsZero . amounts . normaliseMixedAmountSquashPrice
 -- appropriate one to each individual amount.
 styleMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 styleMixedAmount styles (Mixed as) = Mixed $ map (styleAmount styles) as
+
+-- | Reset each individual amount's display style to the default.
+mixedAmountUnstyled :: MixedAmount -> MixedAmount
+mixedAmountUnstyled = mapMixedAmount amountUnstyled
 
 -- | Get the string representation of a mixed amount, after
 -- normalising it to one amount per commodity. Assumes amounts have

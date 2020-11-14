@@ -333,8 +333,12 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
       (mhistoricalp,followedhistoricalsofar) =
           case esSimilarTransaction of
             Nothing                        -> (Nothing,False)
-            Just Transaction{tpostings=ps} -> (if length ps >= pnum then Just (ps !! (pnum-1)) else Nothing
-                                              ,all (\(a,b) -> pamount a == pamount b) $ zip esPostings ps)
+            Just Transaction{tpostings=ps} -> 
+              ( if length ps >= pnum then Just (ps !! (pnum-1)) else Nothing
+              , all sameamount $ zip esPostings ps
+              )
+              where
+                sameamount (p1,p2) = mixedAmountUnstyled (pamount p1) == mixedAmountUnstyled (pamount p2)
       def = case (esArgs, mhistoricalp, followedhistoricalsofar) of
               (d:_,_,_)                                             -> d
               (_,Just hp,True)                                      -> showamt $ pamount hp
@@ -343,7 +347,8 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
   retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
    parser parseAmountAndComment $
    withCompletion (amountCompleter def) $
-   defaultTo' def $ nonEmpty $
+   defaultTo' def $ 
+   nonEmpty $
    linePrewritten (green $ printf "Amount  %d%s: " pnum (showDefault def)) (fromMaybe "" $ prevAmountAndCmnt `atMay` length esPostings) ""
     where
       parseAmountAndComment s = if s == "<" then return Nothing else either (const Nothing) (return . Just) $
