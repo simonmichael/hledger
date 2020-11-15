@@ -101,13 +101,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rsp
     -- these can be combined to make the full query when needed, eg when
     -- hledger-ui screens are generating their data. (TODO)
 
-    -- hledger-ui provides special UI for controlling different parts of the query.
-    -- Eg the number/+/- keys for depth, the shift-up/down/left/right keys
-    -- for report period (date), the R and UPC keys for toggling realness
-    -- and status filters, and the / key for entering extra freeform query terms.
-    -- We generally store and show these parts separately, since it's cleaner
-    -- and less redundant/conflicting not to have date: and depth: terms in 
-    -- the query text users edit with the / key.
+    -- Some parts of the query are also kept separate for UI reasons.
+    -- hledger-ui provides special UI for controlling depth (number keys), 
+    -- the report period (shift arrow keys), realness/status filters (RUPC keys) etc.
+    -- There is also a freeform text area for extra query terms (/ key).
+    -- It's cleaner and less conflicting to keep the former out of the latter.
 
     uopts' = uopts{
       cliopts_=copts{
