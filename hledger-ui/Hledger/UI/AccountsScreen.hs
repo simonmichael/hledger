@@ -81,8 +81,9 @@ asInit d reset ui@UIState{
                         as = map asItemAccountName displayitems
 
     uopts' = uopts{cliopts_=copts{reportspec_=rspec'}}
-    rspec' = rspec{rsQuery=simplifyQuery $ And [rsQuery rspec, excludeforecastq (forecast_ ropts)]}
+    rspec' = rspec{rsQuery=simplifyQuery $ And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]}
       where
+        periodq = Date $ periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq (Just _) = Any
         excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction

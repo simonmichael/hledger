@@ -67,8 +67,9 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     inclusive = tree_ ropts || rsForceInclusive
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
     rspec' = rspec{rsOpts=ropts{depth_=Nothing}}
-    q = And [rsQuery rspec, excludeforecastq (forecast_ ropts)]
+    q = And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]
       where
+        periodq = Date $ periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
         excludeforecastq (Just _) = Any
         excludeforecastq Nothing  =  -- not:date:tomorrow- not:tag:generated-transaction
