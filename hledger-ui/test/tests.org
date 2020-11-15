@@ -1,0 +1,75 @@
+* Manual tests for hledger-ui
+When you want to check that hledger-ui is working correctly, 
+try some or all of these things. Updates welcome.
+If you can't easily view org files, view this on the web.
+
+Expected output is shown below each step, at least the first part, 
+copied from an 80x25 terminal.
+
+** hledger-ui -f sample.journal (shows all accounts in list mode)
+───────────────────── sample.journal account balances (1/8) ────────────────────
+ assets:bank:checking    0
+ assets:bank:saving     $1
+ assets:cash           $-2
+ expenses:food          $1
+ expenses:supplies      $1
+ income:gifts          $-1
+ income:salary         $-1
+ liabilities:debts      $1
+
+** t (switches to tree mode)
+──────────────────── sample.journal account balances (3/13) ────────────────────
+ assets       $-1
+  bank         $1
+   checking     0
+   saving      $1
+  cash        $-2
+ expenses      $2
+  food         $1
+  supplies     $1
+ income       $-2
+  gifts       $-1
+  salary      $-1
+ liabilities   $1
+  debts        $1
+
+** 1 (clips accounts to depth 1)
+─────────────── sample.journal account balances to depth 1 (1/4) ───────────────
+ assets       $-1
+ expenses      $2
+ income       $-2
+ liabilities   $1
+
+** RIGHT (expected failure: shows lots of periods instead of an empty register)
+────────────────────────── assets transactions (100/0) ─────────────────────────
+                       ..   ..
+                       ..   ..
+                       ..   ..
+                       ..   ..
+
+** ESC (reset UI state: shows initial screen in list mode)
+───────────────────── sample.journal account balances (1/8) ────────────────────
+ assets:bank:checking    0
+ assets:bank:saving     $1
+ assets:cash           $-2
+ expenses:food          $1
+ expenses:supplies      $1
+ income:gifts          $-1
+ income:salary         $-1
+ liabilities:debts      $1
+
+** RIGHT (shows assets:bank:checking register, 2008-12-31 transaction selected)
+──────────────────── assets:bank:checking transactions (4/4) ───────────────────
+ 2008-01-01   income                      in:salary                     $1   $1
+ 2008-06-01   gift                        in:gifts                      $1   $2
+ 2008-06-02   save                        as:ba:saving                 $-1   $1
+ 2008-12-31 * pay off                     li:debts                     $-1    0
+
+** RIGHT (shows transaction detail)
+──────────────── Transaction #5 (4 of 4 in assets:bank:checking) ───────────────
+ 2008-12-31 * pay off
+     liabilities:debts                 $1
+     assets:bank:checking             $-1
+
+** q (exits app, terminal looks as at the start)
+
