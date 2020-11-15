@@ -21,3 +21,6 @@ It will compute and display the internalized rate of return (IRR) and
 time-weighted rate of return (TWR) for your investments for the time
 period requested. Both rates of return are annualized before display,
 regardless of the length of reporting interval.
+
+An example: 
+https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger
