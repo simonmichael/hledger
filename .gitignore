@@ -70,7 +70,6 @@ old
 !/bin/*.sh
 !/bin/*.md
 /.latest.*
-test.hs
 hledger/test/addons/hledger-*
 tools/generatejournal
 tools/simplebench

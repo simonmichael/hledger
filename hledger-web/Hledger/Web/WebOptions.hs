@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Web.WebOptions where
 
 import Data.ByteString (ByteString)
@@ -78,6 +79,10 @@ webflags =
       (\s opts -> Right $ setopt "capabilities-header" s opts)
       "HTTPHEADER"
       "read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)"
+  , flagNone
+      ["test"]
+      (setboolopt "test")
+      "run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help"
   ]
 
 webmode :: Mode RawOpts

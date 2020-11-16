@@ -1,11 +1,14 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-|
 
 hledger-web - a hledger add-on providing a web interface.
-Copyright (c) 2007-2012 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2020 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 -}
+
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Web.Main where
 
@@ -19,6 +22,7 @@ import Network.Wai.Handler.Warp (runSettings, runSettingsSocket, defaultSettings
 import Network.Wai.Handler.Launch (runHostPortFullUrl)
 import Prelude hiding (putStrLn)
 import System.Directory (removeFile)
+import System.Environment ( getArgs, withArgs )
 import System.Exit (exitSuccess, exitFailure)
 import System.IO (hFlush, stdout)
 import System.PosixCompat.Files (getFileStatus, isSocket)
@@ -31,15 +35,10 @@ import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Web.Application (makeApplication)
 import Hledger.Web.Settings (Extra(..), parseExtra)
+import Hledger.Web.Test (hledgerWebTest)
 import Hledger.Web.WebOptions
 
-
-hledgerWebMain :: IO ()
-hledgerWebMain = do
-  opts <- getHledgerWebOpts
-  when (debug_ (cliopts_ opts) > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-  runWith opts
-
+-- Run in fast reloading mode for yesod devel.
 hledgerWebDev :: IO (Int, Application)
 hledgerWebDev =
   withJournalDo (cliopts_ defwebopts) (defaultDevelApp loader . makeApplication defwebopts)
@@ -48,14 +47,21 @@ hledgerWebDev =
       Yesod.Default.Config.loadConfig
         (configSettings Development) {csParseExtra = parseExtra}
 
-runWith :: WebOpts -> IO ()
-runWith opts
-  | "help"            `inRawOpts` rawopts_ (cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
-  | "version"         `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
-  | "binary-filename" `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn (binaryfilename progname)
-  | otherwise = withJournalDo (cliopts_ opts) (web opts)
+-- Run normally.
+hledgerWebMain :: IO ()
+hledgerWebMain = do
+  wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
+  when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
+  if
+    | "help"            `inRawOpts` rawopts_ -> putStr (showModeUsage webmode) >> exitSuccess
+    | "version"         `inRawOpts` rawopts_ -> putStrLn prognameandversion >> exitSuccess
+    | "binary-filename" `inRawOpts` rawopts_ -> putStrLn (binaryfilename progname)
+    | "test"            `inRawOpts` rawopts_ -> do
+      -- remove --test and --, leaving other args for hspec
+      filter (not . (`elem` ["--test","--"])) <$> getArgs >>= flip withArgs hledgerWebTest
+    | otherwise                              -> withJournalDo copts (web wopts)
 
--- | The web command.
+-- | The hledger web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
   let initq = rsQuery . reportspec_ $ cliopts_ opts

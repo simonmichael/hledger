@@ -91,6 +91,9 @@ serve them from another server for efficiency, you would set the url with this.
 `--capabilities-header=HTTPHEADER`
 : read capabilities to enable from a HTTP header, like X-Sandstorm-Permissions (default: disabled)
 
+`--test`
+: run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help
+
 hledger input options:
 
 _inputoptions_

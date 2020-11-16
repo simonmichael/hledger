@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0c023ce93e25342762ee67e15231e3d07bff45c813ae6ad729c8b3823ab45a3e
+-- hash: 08ced666fbf9ade30534a40547c91f9787478e157c9aa55c401e83aca852803e
 
 name:           hledger-web
 version:        1.19.99
@@ -143,6 +143,7 @@ library
       Hledger.Web.Main
       Hledger.Web.Settings
       Hledger.Web.Settings.StaticFiles
+      Hledger.Web.Test
       Hledger.Web.WebOptions
       Hledger.Web.Widget.AddForm
       Hledger.Web.Widget.Common
@@ -172,6 +173,7 @@ library
     , hjsmin
     , hledger >=1.19.99 && <1.20
     , hledger-lib >=1.19.99 && <1.20
+    , hspec
     , http-client
     , http-conduit
     , http-types
@@ -196,6 +198,7 @@ library
     , yesod-core >=1.4 && <1.7
     , yesod-form >=1.4 && <1.7
     , yesod-static >=1.4 && <1.7
+    , yesod-test
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
