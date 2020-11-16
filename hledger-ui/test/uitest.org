@@ -48,7 +48,7 @@ copied from an 80x25 terminal.
                        ..   ..
                        ..   ..
 
-** ESC (reset UI state: shows initial screen in list mode)
+** ESC (reset UI state to initial screen in list mode)
 ───────────────────── sample.journal account balances (1/8) ────────────────────
  assets:bank:checking    0
  assets:bank:saving     $1
@@ -72,13 +72,48 @@ copied from an 80x25 terminal.
      liabilities:debts                 $1
      assets:bank:checking             $-1
 
-** q (exits app, terminal looks as at the start)
+** ? (shows help dialog over current screen; all content fits unclipped in 80x25, including the last q quit line)
+┌──────────────────────Help (LEFT/ESC/?/q to close help)──────────────────────┐─
+│ Navigation                             Filtering                            │
+│ UP/DOWN/PUP/PDN/HOME/END/k/j/C-p/C-n   /    set a filter query              │
+│      move selection up/down            F    show future & periodic txns     │
+│ RIGHT/l/C-f show txns, or txn detail   R    show real/all postings          │
+│ LEFT/h/C-b  go back                    Z    show nonzero/all amounts        │
+│ ESC  cancel, or reset app state        U/P/C  show unmarked/pending/cleared │
+│                                        S-DOWN /S-UP   shrink/grow period    │
+│ Accounts screen                        S-RIGHT/S-LEFT next/previous period  │
+│ 1234567890-+  set/adjust depth limit   T              set period to today   │
+│ t  toggle accounts tree/list mode      DEL  reset filters                   │
+│ H  toggle historical balance/change                                         │
+│                                        Other                                │
+│ Register screen                        a    add transaction (hledger add)   │
+│ t  toggle subaccount txns              A    add transaction (hledger-iadd)  │
+│    (and accounts tree/list mode)       B    show amounts/costs              │
+│ H  toggle historical/period total      E    open editor                     │
+│                                        I    toggle balance assertions       │
+│ Help                                   V    show amounts/market values      │
+│ ?     toggle this help                 g    reload data                     │
+│ p/m/i while help is open:              C-l  redraw & recenter               │
+│       show manual in pager/man/info    C-z  suspend                         │
+│                                        q    quit                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+──── ?:help t:list/tree -+:depth H:end-bals/changes F:forecast a:add q:quit ────
 
-** hledger-ui -f sample.journal --register checking date:200812  (date: query argument)
+** q (q with help dialog open closes it)
+──────────────── Transaction #5 (4 of 4 in assets:bank:checking) ───────────────
+ 2008-12-31 * pay off
+     liabilities:debts                 $1
+     assets:bank:checking             $-1
+
+** q (q elsewhere exits the app, restoring the terminal to its previous state)
+~/src/hledger/hledger-ui/test$ hledger-ui -f sample.journal
+~/src/hledger/hledger-ui/test$ 
+
+** hledger-ui -f sample.journal --register checking date:200812  (date query at startup)
 ──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
  2008-12-31 * pay off                     li:debts                      $-1   0
 
-** hledger-ui -f sample.journal --register checking date:200812 --change  (--change flag)
+** hledger-ui -f sample.journal --register checking date:200812 --change  (total is now $-1)
 ──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
  2008-12-31 * pay off                    li:debts                     $-1   $-1
 
