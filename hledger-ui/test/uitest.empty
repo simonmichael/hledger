@@ -6,7 +6,7 @@
 # capture its output.
 # * Or, all output from inputs hard-coded below.
 #
-# Here's some sample output for "tests/hledgeruicapture -f examples/sample.journal"
+# Here's some sample output for "test/hledgeruicapture -f examples/sample.journal"
 # showing the initial output (accounts screen) then the outputs from four inputs: 
 # RIGHT (draws register screen)
 # UP    (moves selection up one row; only the heading and old/new rows are redrawn)

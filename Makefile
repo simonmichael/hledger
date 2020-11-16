@@ -483,32 +483,32 @@ unittest: $(call def-help,unittest, run the unit tests in hledger-lib )
 builtintest: $(call def-help,builtintest, run hledgers built in test command)
 	@($(STACK) exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
-#functest: addons tests/addons/hledger-addon 
-functest: tests/addons/hledger-addon \
+#functest: addons hledger/test/addons/hledger-addon 
+functest: hledger/test/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
 	@$(STACK) build --fast hledger
-	@($(SHELLTESTSTK) -w `$(STACK) exec -- which hledger` tests \
+	@($(SHELLTESTSTK) -w `$(STACK) exec -- which hledger` hledger/test/ \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
-functest-%: tests/addons/hledger-addon \
+functest-%: hledger/test/addons/hledger-addon \
 	$(call def-help,functest-PAT, build hledger quickly and run just the functional tests matching PAT )
 	@stack build --fast hledger
-	@($(SHELLTESTSTK) -w `stack exec -- which hledger` tests -i "$*" \
+	@($(SHELLTESTSTK) -w `stack exec -- which hledger` hledger/test/ -i "$*" \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
-tests/addons/hledger-addon: \
-	$(call def-help,tests/addons/hledger-addon,\
+hledger/test/addons/hledger-addon: \
+	$(call def-help,hledger/test/addons/hledger-addon,\
 	generate dummy add-ons for testing (hledger-addon the rest)\
 	)
-	rm -rf tests/addons/hledger-*
-	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >tests/addons/hledger-addon
+	rm -rf hledger/test/addons/hledger-*
+	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >hledger/test/addons/hledger-addon
 	for E in '' $(ADDONEXTS); do \
-		cp tests/addons/hledger-addon tests/addons/hledger-addon.$$E; done
+		cp hledger/test/addons/hledger-addon hledger/test/addons/hledger-addon.$$E; done
 	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
-		cp tests/addons/hledger-addon tests/addons/hledger-$$F; done
-	mkdir tests/addons/hledger-addondir
-	chmod +x tests/addons/hledger-*
+		cp hledger/test/addons/hledger-addon hledger/test/addons/hledger-$$F; done
+	mkdir hledger/test/addons/hledger-addondir
+	chmod +x hledger/test/addons/hledger-*
 
 # hlinttest hlint: $(call def-help,hlinttest (or hlint),generate a hlint report)
 # 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)

@@ -1,4 +1,4 @@
-; A sample journal for testing multi-column balance report. See tests/balance-multicol.test.
+; A sample journal for testing multi-column balance report. See hledger/test/r/test/balance-multicol.test.
 
 2012/12/31
   (assets:checking)  10

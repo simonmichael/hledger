@@ -980,7 +980,7 @@ getAmount :: CsvRules -> CsvRecord -> String -> Bool -> Int -> Maybe MixedAmount
 getAmount rules record currency p1IsVirtual n =
   -- Warning, many tricky corner cases here.
   -- docs: hledger_csv.m4.md #### amount
-  -- tests: tests/csv.test ~ 13, 31-34
+  -- tests: hledger/test/csv.test ~ 13, 31-34
   let
     unnumberedfieldnames = ["amount","amount-in","amount-out"]
 

@@ -1,11 +1,19 @@
-hledger's functional tests.
-See also [Contributor Guide: Tests].
+hledger test-related files. See also [Contributor Guide: Tests].
 
-These mainly test the hledger CLI and (indirectly) hledger-lib.
+unittest.hs - main file for a cabal test suite in the hledger package
+(run by "cabal test" or "stack test"). Runs the unit tests built in to
+all hledger modules. Not used much, we usually run them via hledger's
+builtin "test" command instead.
+
+doctest.hs - main file for another cabal test suite. Runs the doctests
+embedded in haddock comments in some hledger modules.
+
+The rest of the files here are functional tests, run with [shelltestrunner].
+These test the hledger CLI and (indirectly) the hledger-lib package.
 They are organised roughly by [component].
 
-Running these requires [shelltestrunner].
-Older test files are in [format 1]; newer ones use [format 3] (preferred).
+Older test files are in shelltestrunner's [format 1]; 
+newer ones use [format 3] (preferred).
 Some tests invoke unix commands so will not run in a Windows CMD shell.
 
 [Contributor Guide: Tests]: https://hledger.org/CONTRIBUTING.html#tests
@@ -36,7 +44,7 @@ These are the most important:
 Run only the tests matching a regular expression:
 
     $ COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` tests -i balance-assertions.*19
-    :tests/journal/balance-assertions.test:19: [OK]
+    :hledger/test/journal/balance-assertions.test:19: [OK]
 
              Test Cases  Total      
      Passed  1           1          
@@ -45,10 +53,10 @@ Run only the tests matching a regular expression:
 
 Run only the tests in one file:
 
-    $ COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` tests/cli/query-args.test
-    :tests/cli/query-args.test:1: [OK]
-    :tests/cli/query-args.test:2: [OK]
-    :tests/cli/query-args.test:3: [OK]
+    $ COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` hledger/test/cli/query-args.test
+    :hledger/test/cli/query-args.test:1: [OK]
+    :hledger/test/cli/query-args.test:2: [OK]
+    :hledger/test/cli/query-args.test:3: [OK]
 
              Test Cases  Total      
      Passed  3           3          
@@ -57,14 +65,14 @@ Run only the tests in one file:
 
 Run a test [repeatedly](http://eradman.com/entrproject/) as its file is changed:
 
-    $ ls tests/cli/query-args.test | entr bash -c "COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` tests/cli/query-args.test -i1"
-    :tests/cli/query-args.test:1: [OK]
+    $ ls hledger/test/cli/query-args.test | entr bash -c "COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` hledger/test/cli/query-args.test -i1"
+    :hledger/test/cli/query-args.test:1: [OK]
 
              Test Cases  Total      
      Passed  1           1          
      Failed  0           0          
      Total   1           1          
-    :tests/cli/query-args.test:1: [OK]
+    :hledger/test/cli/query-args.test:1: [OK]
 
              Test Cases  Total      
      Passed  1           1          

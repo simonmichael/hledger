@@ -71,7 +71,7 @@ old
 !/bin/*.md
 /.latest.*
 test.hs
-tests/addons/hledger-*
+hledger/test/addons/hledger-*
 tools/generatejournal
 tools/simplebench
 /examples/10*.journal

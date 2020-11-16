@@ -15,7 +15,7 @@ on:
       - 'hledger/**'
       - 'hledger-ui/**'
       - 'hledger-web/**'
-      - 'tests/**'
+      - 'hledger/test/**'
       - '!**.md'
       - '!**.1'
       - '!**.5'

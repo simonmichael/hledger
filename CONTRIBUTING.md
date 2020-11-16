@@ -762,8 +762,8 @@ About testing in the hledger project, as of 201809.
     functionality in the hledger and hledger-lib packages. We do this
     with
     [shelltestrunner](http://hackage.haskell.org/package/shelltestrunner).
-    Tests are defined in files under
-    [tests/](https://github.com/simonmichael/hledger/tree/master/tests),
+    Tests are defined in files named `*.test` under
+    [hledger/test/](https://github.com/simonmichael/hledger/tree/master/hledger/test),
     grouped by *component* (command or topic name).
     For more about these, see the README there.
 
@@ -1418,9 +1418,8 @@ Times the end-user commands in `bench.sh` using quickbench.
 
 ### Run functional tests
 
-Runs the shelltestrunner tests defined in tests/, which test the hledger CLI.
+Runs the shelltestrunner tests defined in hledger/test/, which test the hledger CLI.
 
-    stack build hledger
     make functest
 
 ### Run haddock tests
@@ -1559,4 +1558,4 @@ If you find that adding --fast makes this any faster, please update this.
 
 #### Rerun a single functional test as you change it:
 
-    ls tests/budget/budget.test | entr bash -c 'clear; COLUMNS=80 stack exec -- shelltest --execdir tests/budget/budget.test -i12'
+    ls hledger/test/budget/budget.test | entr bash -c 'clear; COLUMNS=80 stack exec -- shelltest --execdir hledger/test/budget/budget.test -i12'
