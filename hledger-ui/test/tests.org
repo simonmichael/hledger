@@ -73,3 +73,11 @@ copied from an 80x25 terminal.
 
 ** q (exits app, terminal looks as at the start)
 
+** hledger-ui -f sample.journal --register checking date:200812  (date: query argument)
+──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
+ 2008-12-31 * pay off                     li:debts                      $-1   0
+
+** hledger-ui -f sample.journal --register checking date:200812 --change  (--change flag)
+──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
+ 2008-12-31 * pay off                    li:debts                     $-1   $-1
+
