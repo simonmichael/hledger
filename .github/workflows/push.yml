@@ -144,4 +144,4 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        COLUMNS=80 $stack exec -- shelltest --execdir -j16 tests -x /_ -x /bin -x /addons
+        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /bin -x /addons
