@@ -29,3 +29,10 @@ extra-deps:
 # tell GHC to write hie files, eg for weeder. Rumoured to be slow.
 # ghc-options:
 #   "$locals": -fwrite-ide-info
+
+# ghc-options:
+#   "$locals": -ddump-timings
+#  "$targets": -Werror
+#  "$everything": -O2
+#  some-package: -DSOME_CPP_FLAG
+  
