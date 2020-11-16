@@ -1,4 +1,5 @@
 * Manual tests for hledger-ui
+
 When you want to check that hledger-ui is working correctly, 
 try some or all of these things. Updates welcome.
 If you can't easily view org files, view this on the web.
