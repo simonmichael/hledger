@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Web.Test (
   hledgerWebTest
 ) where
@@ -23,7 +25,18 @@ hledgerWebTest :: IO ()
 hledgerWebTest = do
   putStrLn $ "Running tests for " ++ prognameandversion -- ++ " (--test --help for options)"
 
-  conf <- Yesod.Default.Config.loadConfig $ (configSettings Testing){ csParseExtra = parseExtra }
+  -- loadConfig fails without ./config/settings.yml; use a hard-coded one
+  let conf = AppConfig{
+               appEnv = Testing
+              ,appPort = 3000  -- will it clash with a production instance ? doesn't seem to
+              ,appRoot = "http://localhost:3000"
+              ,appHost = "*4"
+              ,appExtra = Extra
+                          { extraCopyright  = ""
+                          , extraAnalytics  = Nothing
+                          , extraStaticRoot = Nothing
+                          }
+                  }
 
   -- https://hackage.haskell.org/package/yesod-test-1.6.10/docs/Yesod-Test.html
   -- http://hspec.github.io/writing-specs.html
