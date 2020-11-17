@@ -1,11 +1,12 @@
-* Manual tests for hledger-ui
+* Human-powered tests for hledger-ui
 
 When you want to check that hledger-ui is working correctly, 
-try some or all of these things. Updates welcome.
-If you can't easily view org files, view this on the web.
+try some or all of these things. Additions welcome.
+Expected output is shown below each step, at least the first part,
+as copied from an 80x25 terminal.
 
-Expected output is shown below each step, at least the first part, 
-copied from an 80x25 terminal.
+Another source of tests is the tutorial at https://hledger.org/ui.html,
+which has nice screenshots, but might be less up to date.
 
 ** hledger-ui -f sample.journal (shows all accounts in list mode)
 ───────────────────── sample.journal account balances (1/8) ────────────────────
