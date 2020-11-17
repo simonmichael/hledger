@@ -78,4 +78,4 @@ SEE ALSO
 
 
 
-hledger 1.19.99                  October 2020             hledger_timeclock(5)
+hledger 1.19.99                  November 2020            hledger_timeclock(5)

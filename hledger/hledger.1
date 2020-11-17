@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "October 2020" "hledger 1.19.99" "hledger User Manuals"
+.TH "hledger" "1" "November 2020" "hledger 1.19.99" "hledger User Manuals"
 
 
 
@@ -2115,7 +2115,7 @@ Related: #329, #1083.
 .PP
 .TS
 tab(@);
-lw(7.4n) lw(11.7n) lw(19.6n) lw(6.8n) lw(19.6n) lw(5.0n).
+lw(10.6n) lw(13.2n) lw(13.4n) lw(11.0n) lw(13.4n) lw(8.2n).
 T{
 Report type
 T}@T{
@@ -2152,7 +2152,7 @@ T}@T{
 value at DATE/today
 T}
 T{
-balance assertions / assignments
+balance assertions/assignments
 T}@T{
 unchanged
 T}@T{
@@ -2180,7 +2180,7 @@ T}@T{
 T}@T{
 T}
 T{
-starting balance (with -H)
+starting balance (-H)
 T}@T{
 cost
 T}@T{
@@ -2193,7 +2193,7 @@ T}@T{
 value at DATE/today
 T}
 T{
-posting amounts (no report interval)
+posting amounts
 T}@T{
 cost
 T}@T{
@@ -2206,7 +2206,7 @@ T}@T{
 value at DATE/today
 T}
 T{
-summary posting amounts (with report interval)
+summary posting amounts with report interval
 T}@T{
 summarised cost
 T}@T{
@@ -2239,7 +2239,7 @@ T}@T{
 T}@T{
 T}
 T{
-\f[B]balance (bs, bse, cf, is..)\f[R]
+\f[B]balance (bs, bse, cf, is)\f[R]
 T}@T{
 T}@T{
 T}@T{
@@ -2247,7 +2247,7 @@ T}@T{
 T}@T{
 T}
 T{
-balances (no report interval)
+balance changes
 T}@T{
 sums of costs
 T}@T{
@@ -2260,40 +2260,48 @@ T}@T{
 value at DATE/today of sums of postings
 T}
 T{
-balances changes (with report interval)
+budget amounts (--budget)
 T}@T{
-sums of costs of postings in interval
+like balance changes
 T}@T{
-value at period ends of sums of postings before period end minus value
-at period starts of sums of all postings before period start
-T}@T{
-not supported
-T}@T{
-value at period ends of sums of postings before period end minus value
-at period starts of sums of all postings before period start
-T}@T{
-value at DATE/today of sums of postings
-T}
-T{
-end balances (with report interval and --cumulative or -H)
-T}@T{
-sums of costs of postings from report start (or before report start with
--H) and interval end
-T}@T{
-value at period ends of sums of all postings before period end (minus
-value at report start of of sums of all postings before report start
-with --cumulative)
+like balance changes
 T}@T{
 not supported
 T}@T{
-value at period ends of sums of all postings before period end (minus
-value at report start of of sums of all postings before report start
-with --cumulative)
+like balances
 T}@T{
-value at DATE/today of sums of postings
+like balance changes
 T}
 T{
-starting balances (with report interval and -H)
+grand total
+T}@T{
+sum of displayed values
+T}@T{
+sum of displayed values
+T}@T{
+not supported
+T}@T{
+sum of displayed values
+T}@T{
+sum of displayed values
+T}
+T{
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+T}
+T{
+\f[B]balance (bs, bse, cf, is) with report interval\f[R]
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+T}
+T{
+starting balances (-H)
 T}@T{
 sums of costs of postings before report start
 T}@T{
@@ -2306,43 +2314,56 @@ T}@T{
 sums of postings before report start
 T}
 T{
-budget amounts with --budget
+balance changes (bal, is, bs --change, cf --change)
 T}@T{
-like balances
+sums of costs of postings in period
 T}@T{
-like balances
+same as --value=end
 T}@T{
 not supported
 T}@T{
-like balances
+balance change in each period, valued at period ends
 T}@T{
-like balances
+value at DATE/today of sums of postings
 T}
 T{
-grand total (no report interval)
+end balances (bal -H, is --H, bs, cf)
 T}@T{
-sum of displayed values
+sums of costs of postings from before report start to period end
 T}@T{
-sum of displayed values
+same as --value=end
 T}@T{
 not supported
 T}@T{
-sum of displayed values
+period end balances, valued at period ends
 T}@T{
-sum of displayed values
+value at DATE/today of sums of postings
 T}
 T{
-row totals/averages (with report interval)
+budget amounts (--budget)
 T}@T{
-sums/averages of displayed values
+like balance changes/end balances
 T}@T{
-sums/averages of displayed values
+like balance changes/end balances
 T}@T{
 not supported
 T}@T{
-sums/averages of displayed values
+like balances
 T}@T{
-sums/averages of displayed values
+like balance changes/end balances
+T}
+T{
+row totals, row averages (-T, -A)
+T}@T{
+sums, averages of displayed values
+T}@T{
+sums, averages of displayed values
+T}@T{
+not supported
+T}@T{
+sums, averages of displayed values
+T}@T{
+sums, averages of displayed values
 T}
 T{
 column totals
@@ -2358,17 +2379,17 @@ T}@T{
 sums of displayed values
 T}
 T{
-grand total/average
+grand total, grand average
 T}@T{
-sum/average of column totals
+sum, average of column totals
 T}@T{
-sum/average of column totals
+sum, average of column totals
 T}@T{
 not supported
 T}@T{
-sum/average of column totals
+sum, average of column totals
 T}@T{
-sum/average of column totals
+sum, average of column totals
 T}
 T{
 T}@T{
@@ -2378,6 +2399,9 @@ T}@T{
 T}@T{
 T}
 .TE
+.PP
+\f[C]--cumulative\f[R] is omitted to save space, it works like
+\f[C]-H\f[R] but with a zero starting balance.
 .PP
 \f[B]Glossary:\f[R]
 .TP
@@ -4451,6 +4475,9 @@ time-weighted rate of return (TWR) for your investments for the time
 period requested.
 Both rates of return are annualized before display, regardless of the
 length of reporting interval.
+.PP
+An example:
+https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger
 .SS stats
 .PP
 stats

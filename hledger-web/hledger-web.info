@@ -97,6 +97,10 @@ before options, as shown in the synopsis above.
 
      read capabilities to enable from a HTTP header, like
      X-Sandstorm-Permissions (default: disabled)
+'--test'
+
+     run hledger-web's tests and exit.  hspec test runner args may
+     follow a -, eg: hledger-web -test - -help
 
    hledger input options:
 
@@ -583,20 +587,20 @@ Tag Table:
 Node: Top72
 Node: OPTIONS1752
 Ref: #options1857
-Node: PERMISSIONS8737
-Ref: #permissions8876
-Node: EDITING UPLOADING DOWNLOADING10088
-Ref: #editing-uploading-downloading10269
-Node: RELOADING11103
-Ref: #reloading11237
-Node: JSON API11670
-Ref: #json-api11784
-Node: ENVIRONMENT17274
-Ref: #environment17390
-Node: FILES18123
-Ref: #files18223
-Node: BUGS18436
-Ref: #bugs18514
+Node: PERMISSIONS8861
+Ref: #permissions9000
+Node: EDITING UPLOADING DOWNLOADING10212
+Ref: #editing-uploading-downloading10393
+Node: RELOADING11227
+Ref: #reloading11361
+Node: JSON API11794
+Ref: #json-api11908
+Node: ENVIRONMENT17398
+Ref: #environment17514
+Node: FILES18247
+Ref: #files18347
+Node: BUGS18560
+Ref: #bugs18638
 
 End Tag Table
 

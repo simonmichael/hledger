@@ -1,5 +1,5 @@
 
-.TH "hledger-web" "1" "October 2020" "hledger-web 1.19.99" "hledger User Manuals"
+.TH "hledger-web" "1" "November 2020" "hledger-web 1.19.99" "hledger User Manuals"
 
 
 
@@ -88,6 +88,10 @@ enable the view, add, and/or manage capabilities (default: view,add)
 \f[B]\f[CB]--capabilities-header=HTTPHEADER\f[B]\f[R]
 read capabilities to enable from a HTTP header, like
 X-Sandstorm-Permissions (default: disabled)
+.TP
+\f[B]\f[CB]--test\f[B]\f[R]
+run hledger-web\[aq]s tests and exit.
+hspec test runner args may follow a --, eg: hledger-web --test -- --help
 .PP
 hledger input options:
 .TP

@@ -1533,112 +1533,90 @@ OPTIONS
        problems, please report them, ideally with a reproducible example.  Re-
        lated: #329, #1083.
 
-       Report     -B,            -V, -X                 --value=then   --value=end            --value=DATE,
-       type       --value=cost                                                                --value=now
-       -----------------------------------------------------------------------------------------------------
+       Report type   -B,             -V, -X           --value=then   --value=end     --value=DATE,
+                     --value=cost                                                    --value=now
+       --------------------------------------------------------------------------------------------
        print
-       posting    cost           value  at report end   value     at   value  at  report or   value      at
-       amounts                   or today               posting date   journal end            DATE/today
-       balance    unchanged      unchanged              unchanged      unchanged              unchanged
-       asser-
-       tions /
-       assign-
-       ments
+       posting       cost            value at  re-    value     at   value  at re-   value      at
+       amounts                       port  end  or    posting date   port or jour-   DATE/today
+                                     today                           nal end
+       balance as-   unchanged       unchanged        unchanged      unchanged       unchanged
+       ser-
+       tions/as-
+       signments
 
-       regis-
-       ter
-       start-     cost           value at day  before   not     sup-   value  at day before   value      at
-       ing                       report   or  journal   ported         report  or   journal   DATE/today
-       balance                   start                                 start
-       (with
-       -H)
+       register
+       starting      cost            value  at day    not     sup-   value  at day   value      at
+       balance                       before report    ported         before report   DATE/today
+       (-H)                          or    journal                   or    journal
+                                     start                           start
+       posting       cost            value at  re-    value     at   value  at re-   value      at
+       amounts                       port  end  or    posting date   port or jour-   DATE/today
+                                     today                           nal end
 
 
-
-       posting    cost           value  at report end   value     at   value  at  report or   value      at
-       amounts                   or today               posting date   journal end            DATE/today
-       (no re-
-       port
-       inter-
-       val)
-       summary    summarised     value at period ends   sum of post-   value at period ends   value      at
-       posting    cost                                  ings  in in-                          DATE/today
-       amounts                                          terval, val-
-       (with                                            ued  at  in-
-       report                                           terval start
-       inter-
-       val)
-       running    sum/average    sum/average of  dis-   sum/average    sum/average  of dis-   sum/average
-       to-        of displayed   played values          of displayed   played values          of  displayed
-       tal/av-    values                                values                                values
-       erage
+       summary       summarised      value  at pe-    sum of post-   value at  pe-   value      at
+       posting       cost            riod ends        ings  in in-   riod ends       DATE/today
+       amounts                                        terval, val-
+       with report                                    ued  at  in-
+       interval                                       terval start
+       running to-   sum/average     sum/average      sum/average    sum/average     sum/average
+       tal/average   of  displayed   of  displayed    of displayed   of  displayed   of  displayed
+                     values          values           values         values          values
 
        balance
-       (bs,
-       bse,
-       cf,
-       is..)
-       bal-       sums      of   value at report  end   not     sup-   value  at  report or   value      at
-       ances      costs          or  today of sums of   ported         journal end of  sums   DATE/today of
-       (no re-                   postings                              of postings            sums of post-
-       port                                                                                   ings
-       inter-
-       val)
-       bal-       sums      of   value at period ends   not     sup-   value at period ends   value      at
-       ances      costs     of   of sums of  postings   ported         of  sums of postings   DATE/today of
-       changes    postings  in   before   period  end                  before  period   end   sums of post-
-       (with      interval       minus value  at  pe-                  minus  value  at pe-   ings
-       report                    riod  starts of sums                  riod starts of  sums
-       inter-                    of all postings  be-                  of  all postings be-
-       val)                      fore period start                     fore period start
-       end        sums      of   value at period ends   not     sup-   value at period ends   value      at
-       bal-       costs     of   of sums of all post-   ported         of sums of all post-   DATE/today of
-       ances      postings       ings  before  period                  ings  before  period   sums of post-
-       (with      from  report   end  (minus value at                  end  (minus value at   ings
-       report     start    (or   report start  of  of                  report start  of  of
-       inter-     before   re-   sums of all postings                  sums of all postings
-       val and    port   start   before report  start                  before report  start
-       --cumu-    with -H) and   with --cumulative)                    with --cumulative)
-       lative     interval end
-       or -H)
-       start-     sums      of   value   at    report   not     sup-   value   at    report   sums of post-
-       ing        costs     of   start of sums of all   ported         start of sums of all   ings   before
-       bal-       postings be-   postings before  re-                  postings before  re-   report start
-       ances      fore  report   port start                            port start
-       (with      start
-       report
-       inter-
-       val and
-       -H)
-       budget     like    bal-   like balances          not     sup-   like balances          like balances
-       amounts    ances                                 ported
-       with
-       --bud-
-       get
-       grand      sum of  dis-   sum   of   displayed   not     sup-   sum   of   displayed   sum  of  dis-
-       total      played  val-   values                 ported         values                 played values
-       (no re-    ues
-       port
-       inter-
-       val)
+       (bs,   bse,
+       cf, is)
+       balance       sums of costs   value at  re-    not     sup-   value at  re-   value      at
+       changes                       port  end  or    ported         port or jour-   DATE/today of
+                                     today of sums                   nal  end   of   sums of post-
+                                     of postings                     sums of post-   ings
+                                                                     ings
+       budget        like  balance   like  balance    not     sup-   like balances   like  balance
+       amounts       changes         changes          ported                         changes
+       (--budget)
+       grand total   sum  of  dis-   sum  of  dis-    not     sup-   sum  of  dis-   sum  of  dis-
+                     played values   played values    ported         played values   played values
+
+       balance
+       (bs,   bse,
+       cf,     is)
+       with report
+       interval
+       starting      sums of costs   value  at re-    not     sup-   value  at re-   sums of post-
+       balances      of   postings   port start of    ported         port start of   ings   before
+       (-H)          before report   sums  of  all                   sums  of  all   report start
+                     start           postings  be-                   postings  be-
+                                     fore   report                   fore   report
+                                     start                           start
+       balance       sums of costs   same       as    not     sup-   balance         value      at
+       changes       of   postings   --value=end      ported         change     in   DATE/today of
+       (bal,   is,   in period                                       each  period,   sums of post-
+       bs                                                            valued at pe-   ings
+       --change,                                                     riod ends
+       cf
+       --change)
+       end    bal-   sums of costs   same       as    not     sup-   period    end   value      at
+       ances  (bal   of   postings   --value=end      ported         balances,       DATE/today of
+       -H, is --H,   from   before                                   valued at pe-   sums of post-
+       bs, cf)       report  start                                   riod ends       ings
+                     to period end
+       budget        like  balance   like  balance    not     sup-   like balances   like  balance
+       amounts       changes/end     changes/end      ported                         changes/end
+       (--budget)    balances        balances                                        balances
+       row totals,   sums,   aver-   sums,   aver-    not     sup-   sums,   aver-   sums,   aver-
+       row   aver-   ages  of dis-   ages  of dis-    ported         ages of  dis-   ages of  dis-
+       ages   (-T,   played values   played values                   played values   played values
+       -A)
+       column  to-   sums of  dis-   sums  of dis-    not     sup-   sums  of dis-   sums of  dis-
+       tals          played values   played values    ported         played values   played values
+       grand   to-   sum,  average   sum,  average    not     sup-   sum,  average   sum,  average
+       tal,  grand   of column to-   of column to-    ported         of column to-   of column to-
+       average       tals            tals                            tals            tals
 
 
-
-       row to-    sums/aver-     sums/averages     of   not     sup-   sums/averages     of   sums/averages
-       tals/av-   ages of dis-   displayed values       ported         displayed values       of  displayed
-       erages     played  val-                                                                values
-       (with      ues
-       report
-       inter-
-       val)
-       column     sums of dis-   sums   of  displayed   not     sup-   sums   of  displayed   sums of  dis-
-       totals     played  val-   values                 ported         values                 played values
-                  ues
-       grand      sum/average    sum/average of  col-   not     sup-   sum/average of  col-   sum/average
-       to-        of    column   umn totals             ported         umn totals             of column to-
-       tal/av-    totals                                                                      tals
-       erage
-
+       --cumulative is omitted to save space, it works like -H but with a zero
+       starting balance.
 
        Glossary:
 
@@ -3257,12 +3235,15 @@ COMMANDS
        period  requested.  Both rates of return are annualized before display,
        regardless of the length of reporting interval.
 
+       An  example:  https://github.com/simonmichael/hledger/blob/master/exam-
+       ples/roi-unrealised.ledger
+
    stats
        stats
        Show some journal statistics.
 
-       The stats command displays summary information for the  whole  journal,
-       or  a matched part of it.  With a reporting interval, it shows a report
+       The  stats  command displays summary information for the whole journal,
+       or a matched part of it.  With a reporting interval, it shows a  report
        for each report period.
 
        Example:
@@ -3280,35 +3261,35 @@ COMMANDS
               Commodities              : 1 ($)
               Market prices            : 12 ($)
 
-       This command also supports output destination and output format  selec-
+       This  command also supports output destination and output format selec-
        tion.
 
    tags
        tags
-       List  the  unique tag names used in the journal.  With a TAGREGEX argu-
+       List the unique tag names used in the journal.  With a  TAGREGEX  argu-
        ment, only tag names matching the regular expression (case insensitive)
-       are  shown.  With QUERY arguments, only transactions matching the query
+       are shown.  With QUERY arguments, only transactions matching the  query
        are considered.
 
        With the --values flag, the tags' unique values are listed instead.
 
-       With --parsed flag, all tags or values are shown in the order they  are
+       With  --parsed flag, all tags or values are shown in the order they are
        parsed from the input data, including duplicates.
 
-       With  -E/--empty,  any blank/empty values will also be shown, otherwise
+       With -E/--empty, any blank/empty values will also be  shown,  otherwise
        they are omitted.
 
    test
        test
        Run built-in unit tests.
 
-       This command runs the unit tests built in to hledger  and  hledger-lib,
-       printing  the results on stdout.  If any test fails, the exit code will
+       This  command  runs the unit tests built in to hledger and hledger-lib,
+       printing the results on stdout.  If any test fails, the exit code  will
        be non-zero.
 
-       This is mainly used by hledger developers, but you can also use  it  to
-       sanity-check  the  installed  hledger executable on your platform.  All
-       tests are expected to pass - if you ever see a failure,  please  report
+       This  is  mainly used by hledger developers, but you can also use it to
+       sanity-check the installed hledger executable on  your  platform.   All
+       tests  are  expected to pass - if you ever see a failure, please report
        as a bug!
 
        This command also accepts tasty test runner options, written after a --
@@ -3317,35 +3298,35 @@ COMMANDS
 
               $ hledger test -- -pData.Amount --color=never
 
-       For  help  on these, see https://github.com/feuerbach/tasty#options (--
+       For help on these, see  https://github.com/feuerbach/tasty#options  (--
        --help currently doesn't show them).
 
    Add-on commands
-       hledger also searches for external add-on commands,  and  will  include
+       hledger  also  searches  for external add-on commands, and will include
        these in the commands list.  These are programs or scripts in your PATH
-       whose name starts with hledger- and ends with a recognised file  exten-
+       whose  name starts with hledger- and ends with a recognised file exten-
        sion (currently: no extension, bat,com,exe, hs,lhs,pl,py,rb,rkt,sh).
 
-       Add-ons  can  be  invoked like any hledger command, but there are a few
+       Add-ons can be invoked like any hledger command, but there  are  a  few
        things to be aware of.  Eg if the hledger-web add-on is installed,
 
-       o hledger -h web shows hledger's  help,  while  hledger  web  -h  shows
+       o hledger  -h  web  shows  hledger's  help,  while hledger web -h shows
          hledger-web's help.
 
-       o Flags  specific  to  the add-on must have a preceding -- to hide them
-         from hledger.  So hledger web --serve --port 9000 will  be  rejected;
+       o Flags specific to the add-on must have a preceding --  to  hide  them
+         from  hledger.   So hledger web --serve --port 9000 will be rejected;
          you must use hledger web -- --serve --port 9000.
 
        o You can always run add-ons directly if preferred: hledger-web --serve
          --port 9000.
 
-       Add-ons are a relatively easy way to add local features  or  experiment
-       with  new  ideas.   They  can  be  written in any language, but haskell
-       scripts have a big advantage:  they  can  use  the  same  hledger  (and
-       haskell)  library functions that built-in commands do, for command-line
+       Add-ons  are  a relatively easy way to add local features or experiment
+       with new ideas.  They can be  written  in  any  language,  but  haskell
+       scripts  have  a  big  advantage:  they  can  use the same hledger (and
+       haskell) library functions that built-in commands do, for  command-line
        options, journal parsing, reporting, etc.
 
-       Two important add-ons are the hledger-ui and  hledger-web  user  inter-
+       Two  important  add-ons  are the hledger-ui and hledger-web user inter-
        faces.  These are maintained and released along with hledger:
 
    ui
@@ -3364,20 +3345,20 @@ COMMANDS
        hledger-interest generates interest transactions for an account accord-
        ing to various schemes.
 
-       A  few  more experimental or old add-ons can be found in hledger's bin/
+       A few more experimental or old add-ons can be found in  hledger's  bin/
        directory.  These are typically prototypes and not guaranteed to work.
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-       A typical value is ~/DIR/YYYY.journal,  where  DIR  is  a  version-con-
-       trolled  finance directory and YYYY is the current year.  Or ~/DIR/cur-
+       A  typical  value  is  ~/DIR/YYYY.journal,  where DIR is a version-con-
+       trolled finance directory and YYYY is the current year.  Or  ~/DIR/cur-
        rent.journal, where current.journal is a symbolic link to YYYY.journal.
 
        On Mac computers, you can set this and other environment variables in a
-       more  thorough  way that also affects applications started from the GUI
+       more thorough way that also affects applications started from  the  GUI
        (say, an Emacs dock icon).  Eg on MacOS Catalina I have a ~/.MacOSX/en-
        vironment.plist file containing
 
@@ -3387,21 +3368,21 @@ ENVIRONMENT
 
        To see the effect you may need to killall Dock, or reboot.
 
-       COLUMNS  The  screen  width used by the register command.  Default: the
+       COLUMNS The screen width used by the register  command.   Default:  the
        full terminal width.
 
-       NO_COLOR If this variable exists with any value, hledger will  not  use
-       ANSI   color   codes   in   terminal   output.    This   overrides  the
+       NO_COLOR  If  this variable exists with any value, hledger will not use
+       ANSI  color   codes   in   terminal   output.    This   overrides   the
        --color/--colour option.
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 LIMITATIONS
-       The  need  to  precede  addon command options with -- when invoked from
+       The need to precede addon command options with  --  when  invoked  from
        hledger is awkward.
 
        When input data contains non-ascii characters, a suitable system locale
@@ -3417,36 +3398,36 @@ LIMITATIONS
        In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
        add.
 
-       Not  all of Ledger's journal file syntax is supported.  See file format
+       Not all of Ledger's journal file syntax is supported.  See file  format
        differences.
 
-       On large data files, hledger  is  slower  and  uses  more  memory  than
+       On  large  data  files,  hledger  is  slower  and uses more memory than
        Ledger.
 
 TROUBLESHOOTING
-       Here  are some issues you might encounter when you run hledger (and re-
-       member you can also seek help from the IRC channel, mail  list  or  bug
+       Here are some issues you might encounter when you run hledger (and  re-
+       member  you  can  also seek help from the IRC channel, mail list or bug
        tracker):
 
        Successfully installed, but "No command 'hledger' found"
        stack and cabal install binaries into a special directory, which should
-       be added to your PATH environment variable.  Eg on  unix-like  systems,
+       be  added  to your PATH environment variable.  Eg on unix-like systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        I set a custom LEDGER_FILE, but hledger is still using the default file
-       LEDGER_FILE  should  be  a  real environment variable, not just a shell
-       variable.  The command env | grep LEDGER_FILE should show it.  You  may
+       LEDGER_FILE should be a real environment variable,  not  just  a  shell
+       variable.   The command env | grep LEDGER_FILE should show it.  You may
        need to use export.  Here's an explanation.
 
-       Getting  errors  like "Illegal byte sequence" or "Invalid or incomplete
-       multibyte or wide character" or "commitAndReleaseBuffer: invalid  argu-
+       Getting errors like "Illegal byte sequence" or "Invalid  or  incomplete
+       multibyte  or wide character" or "commitAndReleaseBuffer: invalid argu-
        ment (invalid character)"
        Programs compiled with GHC (hledger, haskell build tools, etc.) need to
        have a UTF-8-aware locale configured in the environment, otherwise they
-       will  fail  with  these  kinds  of errors when they encounter non-ascii
+       will fail with these kinds of  errors  when  they  encounter  non-ascii
        characters.
 
-       To fix it, set the LANG environment variable to some locale which  sup-
+       To  fix it, set the LANG environment variable to some locale which sup-
        ports UTF-8.  The locale you choose must be installed on your system.
 
        Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
@@ -3461,8 +3442,8 @@ TROUBLESHOOTING
               POSIX
               $ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
 
-       If  available,  C.UTF-8 will also work.  If your preferred locale isn't
-       listed by locale -a, you might need to install it.   Eg  on  Ubuntu/De-
+       If available, C.UTF-8 will also work.  If your preferred  locale  isn't
+       listed  by  locale  -a, you might need to install it.  Eg on Ubuntu/De-
        bian:
 
               $ apt-get install language-pack-fr
@@ -3482,8 +3463,8 @@ TROUBLESHOOTING
               $ echo "export LANG=en_US.utf8" >>~/.bash_profile
               $ bash --login
 
-       Exact  spelling  and capitalisation may be important.  Note the differ-
-       ence on MacOS (UTF-8, not utf8).   Some  platforms  (eg  ubuntu)  allow
+       Exact spelling and capitalisation may be important.  Note  the  differ-
+       ence  on  MacOS  (UTF-8,  not  utf8).  Some platforms (eg ubuntu) allow
        variant spellings, but others (eg macos) require it to be exact:
 
               $ locale -a | grep -iE en_us.*utf
@@ -3493,7 +3474,7 @@ TROUBLESHOOTING
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -3507,7 +3488,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -3515,4 +3496,4 @@ SEE ALSO
 
 
 
-hledger 1.19.99                  October 2020                       hledger(1)
+hledger 1.19.99                  November 2020                      hledger(1)

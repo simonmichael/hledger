@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "October 2020" "hledger 1.19.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "November 2020" "hledger 1.19.99" "hledger User Manuals"
 
 
 
@@ -587,33 +587,52 @@ commodity       1 000 000.9455
 .PP
 .SS Commodity display style
 .PP
-For each commodity, hledger chooses a consistent format to use when
+For each commodity, hledger chooses a consistent style to use when
 displaying amounts.
 (Except price amounts, which are always displayed as written).
 The display style is chosen as follows:
 .IP \[bu] 2
 If there is a commodity directive (or default commodity directive) for
-the commodity, that format is used (see examples above).
+the commodity, its style is used (see examples above).
 .IP \[bu] 2
-Otherwise the format of the first posting amount in that commodity seen
-in the journal is used.
-But the number of decimal places (\[dq]precision\[dq]) will be the
-maximum from all posting amounts in that commodity.
+Otherwise the style is inferred from the amounts in that commodity seen
+in the journal.
 .IP \[bu] 2
-Or if there are no such amounts in the journal, a default format is used
+Or if there are no such amounts in the journal, a default style is used
 (like \f[C]$1000.00\f[R]).
 .PP
-Transaction prices don\[aq]t affect the amount display style directly,
-but occasionally they can do so indirectly (eg when an posting\[aq]s
-amount is inferred using a transaction price).
+A style is inferred from the journal amounts in a commodity as follows:
+.IP \[bu] 2
+Use the general style (decimal mark, symbol placement) of the first
+amount
+.IP \[bu] 2
+Use the first-seen digit group style (digit group mark, digit group
+sizes), if any
+.IP \[bu] 2
+Use the maximum number of decimal places of all.
+.PP
+Transaction price amounts don\[aq]t affect the commodity display style
+directly, but occasionally they can do so indirectly (eg when a
+posting\[aq]s amount is inferred using a transaction price).
 If you find this causing problems, use a commodity directive to fix the
 display style.
 .PP
-In summary: amounts will be displayed much as they appear in your
-journal, with the max observed number of decimal places.
-If you want to see fewer decimal places in reports, use a commodity
-directive to override that.
+In summary, each commodity\[aq]s amounts will be normalised to
+.IP \[bu] 2
+the style declared by a \f[C]commodity\f[R] directive
+.IP \[bu] 2
+or, the style of the first posting amount in the journal, with the
+first-seen digit group style and the maximum-seen number of decimal
+places.
 .PP
+If reports are showing amounts in a way you don\[aq]t like (eg, with too
+many decimal places), use a commodity directive to set your preferred
+style.
+.SS Rounding
+.PP
+Amounts are stored internally as decimal numbers with up to 255 decimal
+places, and displayed with the number of decimal places specified by the
+commodity display style.
 Note, hledger uses banker\[aq]s rounding: it rounds to the nearest even
 number, eg 0.5 displayed with zero decimal places is \[dq]0\[dq]).
 (Guaranteed since hledger 1.17.1; in older versions this could vary if
