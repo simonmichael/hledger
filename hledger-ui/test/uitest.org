@@ -118,3 +118,13 @@ which has nice screenshots, but might be less up to date.
 ──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
  2008-12-31 * pay off                    li:debts                     $-1   $-1
 
+** hledger-ui -f bcexample.hledger --tree --register assets
+──────────────────────── Assets transactions (518/518) ────────────────────────
+ 2014-07-26 * ..  ..   16.00 GLD, -1515.83 USD   ..0 GLD, 17.00 ITOT, 6 more..
+ 2014-07-31 * ..  ..   2550.60 USD, 4.62 VACHR   ..0 GLD, 17.00 ITOT, 6 more..
+ 2014-08-03 * ..  ..              -2400.00 USD   ..0 GLD, 17.00 ITOT, 6 more..
+ 2014-08-04 * ..  ..                 -4.00 USD   ..0 GLD, 17.00 ITOT, 6 more..
+ 2014-08-08 * ..  ..                -65.00 USD   ..0 GLD, 17.00 ITOT, 6 more..
+ 2014-08-09 * ..  ..               -560.82 USD   ..0 GLD, 17.00 ITOT, 6 more..
+ 2014-08-14 * ..  ..   2550.60 USD, 4.62 VACHR   ..0 GLD, 17.00 ITOT, 6 more..
+ 2014-08-15 * ..  ..   -16.00 GLD, 1481.29 USD   ..0 GLD, 17.00 ITOT, 6 more..
