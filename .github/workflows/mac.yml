@@ -19,7 +19,13 @@ on:
       - 'hledger/**'
       - 'hledger-ui/**'
       - 'hledger-web/**'
-      - 'hledger/test/**'
+      # ignore changes to example files, though currently some func tests depend on them
+      - 'examples/**'
+      - '!**.journal'
+      - '!**.j'
+      - '!**.ledger'
+      - '!**.csv'
+      # ignore changes to doc source files
       - '!**.m4'
       - '!**.md'
       - '!**.1'

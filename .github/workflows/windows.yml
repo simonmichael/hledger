@@ -1,7 +1,6 @@
 # Runs on notable pushes to ci-windows, and weekly on master.
 
 # Builds all modules optimised on windows,
-# using GHC 8.8.2 to avoid https://gitlab.haskell.org/ghc/ghc/issues/17926,
 # and uploads a binaries artifact.
 
 name: windows CI
@@ -19,13 +18,20 @@ on:
       - 'hledger/**'
       - 'hledger-ui/**'
       - 'hledger-web/**'
-      # - 'hledger/test/**'
+      # ignore changes to example files, though currently some func tests depend on them
+      - 'examples/**'
+      - '!**.journal'
+      - '!**.j'
+      - '!**.ledger'
+      - '!**.csv'
+      # ignore changes to doc source files
       - '!**.m4'
       - '!**.md'
       - '!**.1'
       - '!**.5'
       - '!**.info'
       - '!**.txt'
+
 
 jobs:
   build:
