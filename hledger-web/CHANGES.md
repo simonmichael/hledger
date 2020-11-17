@@ -1,18 +1,19 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 093c11ec
+# 3662977c
 
+- Re-enable hledger-web's test suite, and include it in the main executable.
+  hledger-web --test [-- HSPECARGS] runs it.
 
+- Fix --forecast, broken in hledger-web since 1.18 (#1390)
 
-- Fix hledger-web description (TANIGUCHI Kohei)
-  Slashes need to be escaped or they introduce unexpected italic style
-  due to Haddock markup.
+- Fix unescaped slashes in hledger-web description on hackage  (TANIGUCHI Kohei)
 
-- The hledger version string, as JSON, is provided at /version (#1152)
+- The hledger-web version string is now provided at /version, as JSON (#1152)
 
-- Write the session file (hledger-web_client_session_key.aes) in 
-  $XDG_DATA_DIR rather than in the current directory.
+- The session file (hledger-web_client_session_key.aes) is now written in 
+  $XDG_DATA_DIR rather than the current directory.
   Eg on non-Windows systems this is ~/.cache/ by default (cf
   https://hackage.haskell.org/package/directory/docs/System-Directory.html#t:XdgDirectory).
   (#1344) (Félix Sipma)

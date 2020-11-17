@@ -1,25 +1,69 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 093c11ec
+# 3662977c
 
-- Query terms containing quotes (eg to match account names containing quotes)
-  now work properly (#1368, Stephen Morgan)
+## general
 
-- Console rendering is more efficient, speeding up some reports by
-  10% or more (Stephen Morgan)
+- Reverted a stripAnsi change in 1.19.1 that caused a 3x slowdown of amount rendering
+  in terminal reports. (#1350)
+
+- Amount and table rendering has been improved, so that stripAnsi is no longer needed.
+  This speeds up amount rendering in the terminal, speeding up some reports by 10% or more since 1.19.
+  (Stephen Morgan)
 
 - Amount eliding no longer displays corrupted ANSI codes (#1352, Stephen Morgan)
 
 - Eliding of multicommodity amounts now makes better use of available space,
-  avoiding unnecessary eliding. (Stephen Morgan)
+  avoiding unnecessary eliding (showing as many amounts as possible within
+  32 characters). (Stephen Morgan)
 
-- --no-elide's help now mentions that it also disables eliding of
+- Command line help for --no-elide now mentions that it also disables eliding of
   multicommodity amounts.
 
-- bal: --budget reports no longer insert an extra space inside the brackets (Stephen Morgan)
+- Query terms containing quotes (eg to match account names containing quotes)
+  now work properly. (#1368, Stephen Morgan)
 
-- journal: forecasted transactions are now affected by commodity styles (#1371)
+- cli, journal: Date range parsing is more robust, fixing failing/incorrect cases such as: (Stephen Morgan)
+
+  - a hyphenated range with just years (`2017-2018`)
+  - a hyphenated date with no day in a hyphenated range (`2017-07-2018`)
+  - a dotted date with no day in a dotted range (`2017.07..2018.02`)
+ 
+- Debug output is prettier (eg, in colour), using pretty-simple instead of pretty-show.
+
+## commands
+
+- add: number style (eg thousands separators) no longer disturbs the value
+  that is offered as default. (#1378)
+
+- bal: --invert now affects -S/--sort-amount, reversing the order. (#1283, #1379) (Stephen Morgan)
+
+- bal: --budget reports no longer insert an extra space inside the brackets. (Stephen Morgan)
+
+- bal, is, bs --change: 
+  Valued multiperiod balance change reports now show changes of value, 
+  rather than the value of changes. (#1353, Stephen Morgan)
+
+- import: The journal's commodity styles (declared or inferred) are now applied
+  to imported amounts, overriding their original number format.
+
+## journal format
+
+- The journal's commodity styles are now applied to forecasted transactions. (#1371)
+
+- journal, csv: commodity style is now inferred from the first amount, as documented,
+  not the last. This was "working wrongly" since hledger 1.12..
+
+- A zero market price no longer causes "Ratio has zero denominator" error
+  in valued reports. (#1373)
+
+## csv format
+
+- The new `decimal-mark` rule allows reliable number parsing
+  when CSV numbers contain digit group marks (eg thousands separators).
+
+- The CSV reader's verbose "assignment" debug output is now at level 9.
 
 
 # 1.19.1 2020-09-07

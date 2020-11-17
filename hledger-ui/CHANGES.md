@@ -1,13 +1,21 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 093c11ec
+# 3662977c
+
+- When entering a query with `/`, malformed queries/regular expressions
+  no longer cause the program to exit. (Stephen Morgan)
 
 - Eliding of multicommodity amounts now makes better use of available space. (Stephen Morgan)
 
-- E ignores file extension, should help positioning on windows
+- `E` now parses the `HLEDGER_UI_EDITOR` or `EDITOR` environment variable
+  correctly on Windows (ignoring the file extension), so if you have that set
+  it should be better at opening your editor at the correct line.
 
-- E supports positioning when EDITOR is code (VS Code) (#1359)
+- `E` now supports positioning when `HLEDGER_UI_EDITOR` or `EDITOR` 
+  is VS Code ("`code`") (#1359)
+
+- hledger-ui now has a (human-powered) test suite.
 
 
 # 1.19.1 2020-09-07

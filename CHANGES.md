@@ -1,15 +1,21 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 093c11ec
+# f39938d7
 
+- examples: stripe csv
 
+- The functional tests in tests/ have been moved into the respective
+  packages, eg hledger/test/ and hledger-ui/test/.
 
-- benchmarks: run just the slowest commands; add some large tabular reports
+- Shake cabalfiles: now gives an error when it fails
 
-- tools: use pretty-simple for ghci output
+- make bench: add some large tabular reports; 
+  run just the slowest commands by default;
+  run after make (func)test
 
-- tools: add hie.yaml, hls now works with hledger
+- a hie.yaml file has been added, so hledger source loads
+  easily in IDEs supporting haskell-language-server
 
 
 # 1.19.1 2020-09-07

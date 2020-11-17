@@ -1,7 +1,24 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 093c11ec
+# 3662977c
+
+- Reverted a stripAnsi change in 1.19.1 that caused a 3x slowdown of amount rendering 
+  in terminal reports. (#1350)
+
+- Amount and table rendering has been improved, so that stripAnsi is no longer needed.
+  This speeds up amount rendering in the terminal, speeding up some reports by 10% or more since 1.19.
+  (Stephen Morgan)
+
+- global commodity display styles can now be set in InputOpts or Journal,
+  overriding all others (declared or inferred). This is used by the import
+  command and probably command-line options in future.
+
+- Journal keeps a new piece of parsing state, a decimal mark character,
+  which can optionally be set to force the number format expected by all
+  amount parsers.
+
+- Remove Empty Query constructor, which does nothing and has done so for a very long time. (Stephen Morgan)
 
 - In ReportOpts, store query terms term-by-term in a list in querystring_. (Stephen Morgan)
   This helps deal with tricky quoting issues, as we no longer have to make
@@ -25,73 +42,81 @@ For user-visible changes, see the hledger package changelog.
 
 - Export some MultiBalanceReport helper functions. (Stephen Morgan)
 
-- Introduce ReportSpec, which holds ReportOpts, the day of the report, and the parsed Query. (Stephen Morgan)
-
-- Remove old impure ReportOpts date functions. (Stephen Morgan)
-
 - Make Default instances clearer, remove Default instance for Bool. (Stephen Morgan)
 
-- Store the original query string in ReportOpts, provide a function for regenerating ReportOpts. (Stephen Morgan)
+- Many ReportOpts-related changes, such as the addition of ReportSpec, aimed
+  at preventing runtime errors (from parsing: regexps, dates, format strings;
+  from not having today's date set; etc.)
+  ReportSpec holds a ReportOpts, the day of the report, and the Query generated from these.
 
-- Ensure ReportOpts always has today_ set. (Stephen Morgan)
-
-- Make sure reportspan doesn't interfere with correctly determining valuation date. (Stephen Morgan)
-
-- Store parsed Query in ReportOpts, rather than an unparsed String. (Stephen Morgan)
-
-- Store StringFormat in ReportOpts, rather than unparsed String. (Stephen Morgan)
-  StringFormat now also takes an optional overline width, which is
-  currently only used by defaultBalanceLineFormat.
-
-- Remove checkReportOpts and checkRawOpts. (Stephen Morgan)
-  checkRawOpts has been a no-op for at least four years, and
-  checkReportOpts only makes sure that depth_ is positive, which is taken
-  care of by the maybeposintopt parser.
-
-- For ymd date parsing, don't consume invalid date components. (Stephen Morgan)
+- StringFormat now takes an optional overline width, which is
+  currently only used by defaultBalanceLineFormat. (Stephen Morgan)
 
 - quoteIfNeeded should not escape the backslashes in unicode code points. (Stephen Morgan)
 
-- fix error when P directive has a zero price  (#1373)
-
 - Export OrdPlus and constructors. (Stephen Morgan)
 
-- fix a slowdown with report rendering in 1.19.1 (#1350)
-  stripAnsi is called many times during rendering (by strWidth), so
-  should be fast. It was originally a regex replacement, and more
-  recently a custom parser. The parser was slower, particularly the one
-  in 1.19.1. See #1350, and this rough test:
+- Debug output now uses pretty-simple instead pretty-show.
+  This hopefully gives overall nicer debug output (eg in colour), 
+  including for values which don't have Read-able Show output.
+  This means that we can start removing custom Show instances 
+  that were a workaround for pretty-show. Eg account names
+  in debug output no longer show their colons as underscores.
 
-  time118ish = timeIt $ print $ length $ concat $ map (fromRight undefined . regexReplace (toRegex' "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]") "") testdata
-  time119    = timeparser (many (takeWhile1P Nothing (/='\ESC') <|> "" <$ ansi))
-  time1191   = timeparser (many ("" <$ try ansi <|> pure <$> anySingle))
-  timeparser p = timeIt $ print $ length $ concat $ map (concat . fromJust . parseMaybe p) testdata
-  testdata = concat $ replicate 10000
-      [ "2008-01-01 income               assets:bank:checking            $1            $1"
-      , "2008-06-01 gift                 assets:bank:checking            $1            $2"
-      , "2008-06-02 save                 assets:bank:saving              $1            $3"
-      , "                                assets:bank:checking  ..m$-1\ESC[m\ESC[m            $2"
-      , "2008-06-03 eat & shop           assets:cash           ..m$-2\ESC[m\ESC[m             0"
-      , "2008-12-31 pay off              assets:bank:checking  ..m$-1\ESC[m\ESC[m  ..m$-1\ESC[m\ESC[m"
-      ]
+  Here's some old pretty-show output:
 
-  ghci> time118ish
-  4560000
-  CPU time:   0.17s
-  ghci> time119
-  4560000
-  CPU time:   0.91s
-  ghci> time1191
-  4560000
-  CPU time:   2.76s
+   CsvRules
+     { rdirectives = [ ( "skip" , "1" ) ]
+     , rcsvfieldindexes = [ ( "date" , 1 ) , ( "amount" , 2 ) ]
+     , rassignments = [ ( "amount" , "%2" ) , ( "date" , "%1" ) ]
+     , rconditionalblocks = []
+     }
 
-  Possibly a more careful parser could beat regexReplace. Note the
-  latter does memoisation, which could be faster and/or could also use
-  more resident memory in some situations.
+  And the new pretty-simple output:
 
-  Ideally we would calculate all widths before adding ANSI colour codes,
-  so we wouldn't have to wastefully strip them.
+   CsvRules
+     { rdirectives=
+       [ ( "skip", "1" ) ]
+     , rcsvfieldindexes=
+       [ ( "date", 1 ), ( "amount", 2 ) ]
+     , rassignments=
+       [ ( "amount", "%2" ), ( "date", "%1" ) ]
+     , rconditionalblocks= []
+     }
 
+  We require pretty-simple 4.0.0.0 to get this compact output.
+  It's a little less compact than pretty-show, but not too bad.
+  Non-compact pretty-simple output would be:
+
+   CsvRules
+       { rdirectives=
+           [
+               ( "skip"
+               , "1B"
+               )
+           ]
+       , rcsvfieldindexes=
+           [
+               ( "date"
+               , 1
+               )
+           ,
+               ( "amount"
+               , 2
+               )
+           ]
+       , rassignments=
+           [
+               ( "amount"
+               , "%2"
+               )
+           ,
+               ( "date"
+               , "%1"
+               )
+           ]
+       , rconditionalblocks=[]
+       }
 
 
 # 1.19.1 2020-09-07
