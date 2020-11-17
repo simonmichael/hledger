@@ -1187,7 +1187,7 @@ For single period reports, if an explicit
 used as the valuation date; otherwise the valuation date is "today".
 
 For [multiperiod reports](#report-intervals), each column/period is
-valued on the last day of the period.
+valued on the last day of the period, by default.
 
 ### Market prices
 

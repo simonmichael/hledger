@@ -3,7 +3,7 @@
 ; By adding some fake transactions you can make it show unrealised gains.
 
 comment
-$ hledger -f jr-stocks-sample.ledger roi --inv Assets -b 2015-01-01 -e 2019-01-01 --pnl  Income --yearly
+$ hledger -f examples/roi-unrealised.ledger roi --inv Assets -b 2015-01-01 -e 2019-01-01 --pnl  Income --yearly
 +---++------------+------------++---------------+----------+-------------+--------++--------+--------+
 |   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |    PnL ||    IRR |    TWR |
 +===++============+============++===============+==========+=============+========++========+========+
