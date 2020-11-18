@@ -263,12 +263,12 @@ instance Eq CsvRules where
   r1 == r2 = (rdirectives r1, rcsvfieldindexes r1, rassignments r1) ==
              (rdirectives r2, rcsvfieldindexes r2, rassignments r2) 
 
--- It is used for debug output only
+-- Custom Show instance used for debug output: omit the rblocksassigning field, which isn't showable.
 instance Show CsvRules where
-  show r = "CsvRules { rdirectives=" ++ show (rdirectives r) ++
-           ", rcsvfieldindexes=" ++ show (rcsvfieldindexes r) ++
-           ", rassignments=" ++ show (rassignments r) ++
-           ", rconditionalblocks="++ show (rconditionalblocks r) ++
+  show r = "CsvRules { rdirectives = " ++ show (rdirectives r) ++
+           ", rcsvfieldindexes = "     ++ show (rcsvfieldindexes r) ++
+           ", rassignments = "         ++ show (rassignments r) ++
+           ", rconditionalblocks = "   ++ show (rconditionalblocks r) ++
            " }"
 
 type CsvRulesParser a = StateT CsvRulesParsed SimpleTextParser a
