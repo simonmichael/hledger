@@ -1,0 +1,210 @@
+; An example of YNAB-ish envelope budgetting with hledger/ledger
+; cf https://github.com/simonmichael/hledger/issues/315
+
+; Using accounts like the following:
+;
+; assets                <- parent accounts, organising the chart of accounts
+;   business            
+;     bank              
+;       wf              
+;         bchecking     <- a real-world checking account
+;           available   <- imaginary subaccounts of checking. This one represents unallocated/buffer funds.
+;           month       <- a parent which groups the short-term, spending-control "envelopes"
+;             autosave  <- an envelope account. Holds funds to cover automated monthly transfer to a savings account.
+;             banking   <- envelope for banking-related expenses
+;             books     <- envelope for books/periodicals expenses. Etc.
+;             dues
+;             equipment
+;             online
+;             research
+;             software
+;             supplies
+;           year        <- parent for longer-term, spending/savings-goal envelopes
+;             conferences
+;             education
+;             legal/accounting
+; XXX missing savings
+;   personal
+;     bank
+;       wf
+;         checking      <- a second real-world checking account
+;           available
+;           month
+;             autosave
+;             clothing
+;             food
+;             gifts
+;             health
+;             home
+;             personal care
+;             phone
+;             recreation
+;             spiritual
+;             transport
+;           year
+;             vacation
+;         savings
+;           reserve
+; expenses
+;   business
+;     books/periodicals <- expense accounts, representing spending categories
+;     online            <-
+;       hosting         <-
+;   personal
+;     food              <-
+;       dining          <-
+;       snacks          <-
+;     gifts             <-
+
+2016/1/1 * set up some balances for this example
+    (assets:business:bank:wf:bchecking:month:books)       $-9.42
+    (assets:business:bank:wf:bchecking:available)           $500
+    (assets:personal:bank:wf:checking:month:food)        $-24.28
+    (assets:personal:bank:wf:checking:month:gifts)       $-16.30
+    (assets:personal:bank:wf:checking:available)           $2100
+
+; at the start of each month, zero out any overspending from last month:
+
+2016/1/1 * refill negative budget envelopes (business)
+    [assets:business:bank:wf:bchecking:month:books]        $9.42 = $0
+    [assets:business:bank:wf:bchecking:available]         $-9.42
+
+2016/1/1 * refill negative budget envelopes (personal)
+    [assets:personal:bank:wf:checking:month:food]         $24.28 = $0
+    [assets:personal:bank:wf:checking:month:gifts]        $16.30 = $0
+    [assets:personal:bank:wf:checking:available]         $-40.58
+
+; and transfer funds to various envelopes (books, etc.) for this month's
+; spending, and longer-term saving goals:
+
+2016/1/1 * budget for this month's business expenses
+    [assets:business:bank:wf:bchecking:month:autosave]      $100
+    [assets:business:bank:wf:bchecking:month:banking]          0
+    [assets:business:bank:wf:bchecking:month:books]          $10
+    [assets:business:bank:wf:bchecking:month:dues]           $10
+    [assets:business:bank:wf:bchecking:month:equipment]      $40
+    [assets:business:bank:wf:bchecking:month:online]         $70
+    [assets:business:bank:wf:bchecking:month:research]       $20
+    [assets:business:bank:wf:bchecking:month:software]       $20
+    [assets:business:bank:wf:bchecking:month:supplies]       $10
+    [assets:business:bank:wf:bchecking:year:conferences]     $20
+    [assets:business:bank:wf:bchecking:year:education]       $10
+    [assets:business:bank:wf:bchecking:year:legal/accounting]  $40
+    [assets:business:bank:wf:bchecking:available]          $-350
+
+2016/1/1 * budget for this month's personal expenses
+    [assets:personal:bank:wf:checking:month:autosave]       $100
+    [assets:personal:bank:wf:checking:month:clothing]        $30
+    [assets:personal:bank:wf:checking:month:food]           $300
+    [assets:personal:bank:wf:checking:month:gifts]           $30
+    [assets:personal:bank:wf:checking:month:health]         $300
+    [assets:personal:bank:wf:checking:month:home]          $1000
+    [assets:personal:bank:wf:checking:month:personal care]   $20
+    [assets:personal:bank:wf:checking:month:phone]           $80
+    [assets:personal:bank:wf:checking:month:recreation]      $20
+    [assets:personal:bank:wf:checking:month:spiritual]       $20
+    [assets:personal:bank:wf:checking:month:transport]       $50
+    [assets:personal:bank:wf:checking:year:vacation]         $50
+    [assets:personal:bank:wf:checking:available]          $-2000
+
+; Update appropriate envelopes as transactions are made:
+
+2016/1/1 * automatic savings transfer
+    assets:business:bank:wf:bchecking:month:autosave
+    assets:business:bank:wf:savings:reserve                 $100
+
+2016/1/1 * automatic savings transfer
+    assets:personal:bank:wf:checking:month:autosave
+    assets:personal:bank:wf:savings:reserve                 $100
+
+2016/1/2 * linode
+    expenses:business:online:hosting                         $50
+    assets:business:bank:wf:bchecking:month:online
+
+2016/1/3 * market
+    expenses:personal:food:dining                            $10
+    expenses:personal:food:snacks                             $2
+    assets:personal:bank:wf:checking:month:food             $-12
+    expenses:personal:gifts                                   $3
+    assets:personal:bank:wf:checking:month:gifts             $-3
+
+2016/1/4 * amazon  open source everything
+    ; a business purchase from personal account - use available
+    expenses:business:books/periodicals                   $12.33
+    assets:personal:bank:wf:checking:available           -$12.33
+    ; and adjust the appropriate business envelope
+    [assets:business:bank:wf:bchecking:available]         $12.33
+    [assets:business:bank:wf:bchecking:month:books]      -$12.33
+
+; Check your envelope balances periodically:
+;
+; $ hledger bal checking:
+;             $2272.67  assets
+;              $340.58    business:bank:wf:bchecking
+;              $152.91      available
+;              $117.67      month
+;               $-2.33        books      <- overspent already
+;               $10.00        dues
+;               $40.00        equipment
+;               $20.00        online
+;               $20.00        research
+;               $20.00        software
+;               $10.00        supplies
+;               $70.00      year
+;               $20.00        conferences
+;               $10.00        education
+;               $40.00        legal/accounting
+;             $1932.09    personal:bank:wf:checking
+;               $47.09      available
+;             $1835.00      month
+;               $30.00        clothing
+;              $288.00        food
+;               $27.00        gifts
+;              $300.00        health
+;             $1000.00        home
+;               $20.00        personal care
+;               $80.00        phone
+;               $20.00        recreation
+;               $20.00        spiritual
+;               $50.00        transport
+;               $50.00      year:vacation
+; --------------------
+;             $2272.67
+;
+; $ hledger bal checking: --weekly --historical --drop 4
+; Ending balances (historical) in 2015/12/28-2016/01/10:
+;
+;                                  ||  2016/01/03  2016/01/10 
+; =================================++=========================
+;  bchecking:available             ||     $140.58     $152.91 
+;  bchecking:month:books           ||      $10.00      $-2.33 
+;  bchecking:month:dues            ||      $10.00      $10.00 
+;  bchecking:month:equipment       ||      $40.00      $40.00 
+;  bchecking:month:online          ||      $20.00      $20.00 
+;  bchecking:month:research        ||      $20.00      $20.00 
+;  bchecking:month:software        ||      $20.00      $20.00 
+;  bchecking:month:supplies        ||      $10.00      $10.00 
+;  bchecking:year:conferences      ||      $20.00      $20.00 
+;  bchecking:year:education        ||      $10.00      $10.00 
+;  bchecking:year:legal/accounting ||      $40.00      $40.00 
+;  checking:available              ||      $59.42      $47.09 
+;  checking:month:clothing         ||      $30.00      $30.00 
+;  checking:month:food             ||     $288.00     $288.00 
+;  checking:month:gifts            ||      $27.00      $27.00 
+;  checking:month:health           ||     $300.00     $300.00 
+;  checking:month:home             ||    $1000.00    $1000.00 
+;  checking:month:personal care    ||      $20.00      $20.00 
+;  checking:month:phone            ||      $80.00      $80.00 
+;  checking:month:recreation       ||      $20.00      $20.00 
+;  checking:month:spiritual        ||      $20.00      $20.00 
+;  checking:month:transport        ||      $50.00      $50.00 
+;  checking:year:vacation          ||      $50.00      $50.00 
+; ---------------------------------++-------------------------
+;                                  ||    $2285.00    $2272.67 
+;
+; or (good for reviewing transactions):
+;
+; $ hledger-ui checking:
+
+; Try to keep spending envelopes above zero, and to
+; avoid unplanned withdrawals from savings envelopes.

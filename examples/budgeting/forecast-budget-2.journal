@@ -1,3 +1,8 @@
+; A budget defined by periodic transaction rules :
+; one recurring monthly, one yearly, and one non-recurring.
+; This would show up in a report like:
+; $ hledger balance --budget Income Expenses -M
+
 ~ monthly from 2013/01
   Expenses:Food    500 USD
   Expenses:Health  200 USD

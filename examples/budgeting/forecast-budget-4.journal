@@ -1,0 +1,127 @@
+;; A main journal file, including budget goals from a separate file:
+include forecast-budget-4.budget.journal
+
+;; and containing some actual transactions:
+
+;; Regular income
+2017-01-25 Salary
+  income:work   £-999
+  assets:current
+
+2017-02-25 Salary
+  income:work   £-1000
+  assets:current
+
+2017-03-25 Salary
+  income:work   £-1000
+  assets:current
+
+2017-04-25 Salary
+  income:work   £-1000
+  assets:current
+
+2017-05-25 Salary
+  income:work   £-1000
+  assets:current
+
+2017-06-25 Salary
+  income:work   £-1000
+  assets:current
+
+;; Irregular income
+2017-01-25 Bonus
+   income:work   £-1345  
+   assets:current
+
+2017-03-28
+    income:investments         £-1010
+    assets:current
+
+2017-06-29
+    income:investments         £-970
+    assets:current
+
+2017-01-14
+    expenses:council tax        £101
+    assets:current
+
+2017-04-24
+    expenses:council tax        £99
+    assets:current
+
+2017-01-26 Capital gains tax
+   expenses:tax office    £101 ; capital gains tax
+   assets:current
+
+; other
+2017-05-28
+   expenses:car:insurance    £100
+   assets:current
+
+2017-03-01
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-02
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-03
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-04
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-05
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-06
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-06
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-07
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-03-07
+  expenses:home:renovations   £10 ; renovations 1
+  assets:current 
+
+2017-01-03
+  expenses:travel:commute   £2
+  assets:current
+
+2017-01-04
+  expenses:travel:commute   £2
+  assets:current
+
+2017-01-06
+  expenses:travel:commute   £2
+  assets:current
+
+2017-01-09
+  expenses:travel:commute   £2
+  assets:current
+
+2017-01-10
+  expenses:travel:commute   £2
+  assets:current
+
+2017-01-11
+  expenses:travel:commute   £2
+  assets:current
+
+2017-01-12
+  expenses:travel:commute   £2
+  assets:current
+
+2017-01-13
+  expenses:travel:commute   £2
+  assets:current 

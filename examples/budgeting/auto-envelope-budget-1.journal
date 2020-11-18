@@ -1,0 +1,80 @@
+; An "envelope budget" assisted by auto postings.
+; From the "Planning/allocating budget" example at https://gist.github.com/ony/bbec599c0893e676b772559909b81de6.
+
+; Envelope balances, representing the currently available funds in each budget category, 
+; are tracked as pseudo-accounts under "budget". 
+; Here we allocate some funds to the envelopes. These are imaginary, so unbalanced postings are fine:
+
+2008/4/1 Budget for 2008q2
+    (budget:food)                 $1000
+    (budget:clothes)               $200
+    (budget:misc)                 $1000
+
+; When you spend, a corresponding amount should be removed from the appropriate budget envelope.
+; You can record this manually, eg:
+;
+; 2008-04-15
+;   expenses:food     $10
+;   assets:checking  -$10
+;   (budget:food)    -$10
+
+; Or you can do it automatically with auto postings, activated with --auto.
+; This is often recommended, as a labour saver.
+; Auto posting rules:
+
+; for each posting to a clothes expense account,
+; add an auto posting removing the same amount from the clothes budget envelope.
+= expenses.*clothes
+    (budget:clothes)               *-1
+
+; for each posting to a food or supplies expense account, 
+; remove the same amount from the food budget envelope.
+= expenses.*(food|supplies)
+    (budget:food)                  *-1
+
+; for each posting to any other expense account,
+; remove the same amount from the misc budget envelope.
+= expenses: not:expenses.*(clothes|food|supplies)
+    (budget:misc)                  *-1
+
+; Some transactions:
+
+2008-04-15
+  expenses:food     $400
+  expenses:clothes  $300
+  assets:checking
+
+2008-06-15
+  expenses:food     $600
+  assets:checking
+
+
+; Some reports:
+comment
+
+Monthly changes in budget envelopes during the quarter:
+
+$ hledger -f examples/budgeting/budget2.journal bal budget date:2008q2 --auto -M
+Balance changes in 2008Q2:
+
+                ||   Apr  May    Jun 
+================++===================
+ budget:clothes || $-100    0      0 
+ budget:food    ||  $600    0  $-600 
+ budget:misc    || $1000    0      0 
+----------------++-------------------
+                || $1500    0  $-600 
+
+Month-end balances of budget envelopes:
+
+$ hledger -f examples/budgeting/budget2.journal bal budget date:2008q2 --auto -M -H
+Ending balances (historical) in 2008Q2:
+
+                || 2008-04-30  2008-05-31  2008-06-30 
+================++====================================
+ budget:clothes ||      $-100       $-100       $-100 
+ budget:food    ||       $600        $600           0 
+ budget:misc    ||      $1000       $1000       $1000 
+----------------++------------------------------------
+                ||      $1500       $1500        $900 
+

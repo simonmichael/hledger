@@ -1,0 +1,86 @@
+; A detailed forecast budget, defined with periodic transaction rules.
+
+; all amount are imaginary and will be either 1000 or 100 or 10
+
+; monthly wages and monthy expenses (which get deducted as a single transaction per month)
+~ every 1st day of month from 2017-01-01
+    income:work                 £-1000
+    liabilities:mortgage        £100
+    expenses:bills              £100
+    assets:current
+
+; regular expenses that either occur once per week (groceries, car
+; fuel), or could be expressed as a weekly total easier than a daily
+; spending - like commute on weekdays (but not on weekends!)
+~ weekly from 2017-01-02
+    expenses:travel:commute     £10
+    expenses:food:groceries     £10
+    expenses:car:fuel           £10
+    expenses:misc               £10
+    assets:current
+
+; tax that is deducted quarterly in four installments
+~ every 90 days from 2017-01-15
+    expenses:council tax        £100
+    assets:current
+
+; investment that pays out almost quartery, roughly on last day on quarter
+~ every 90 days from 2017/03/30
+    income:investments         £-1000
+    assets:current
+
+; School-related expenses are collected every 2 month, but not when the school is out
+~ every 60 days from 2017/01/01 to 2017/05/30
+  expenses:school              £100 
+  assets:current
+
+~ every 60 days from 2017/08/01 to 2017/12/31
+  expenses:school              £100 
+  assets:current
+  
+
+; Big once-per-year expenses
+~ every 15th Aug
+    expenses:fun                  £100 ;  birthday 1
+    assets:current
+
+~ every 15th Sep
+    expenses:fun                  £100 ;  birthday 2
+    assets:current
+
+~ every 25th Dec
+    expenses:fun                  £100 ;  Christmas and New Year
+    assets:current
+
+~ every 15th Feb
+    expenses:fun                  £100 ;  birthday 3
+    assets:current
+
+~ every 1st Apr
+    expenses:fun                  £100 ;  birthday 4
+    assets:current
+
+~ every 1st Jun
+   expenses:car:insurance    £100
+   assets:current
+
+;; Events that happen once
+~ 2017-01-29
+   income:work   £-1234  ; bonus
+   assets:current
+
+~ 2017-01-20
+   expenses:tax office    £100 ; capital gains tax
+   assets:current
+
+~ 2017-03-15
+  expenses:home:renovations   £100 ; renovations 1
+  assets:current 
+
+~ 2017-05-15
+  expenses:home:renovations   £100 ; renovations 2
+  assets:current 
+
+2017-01-01
+  expenses:misc   £1
+  assets:current
