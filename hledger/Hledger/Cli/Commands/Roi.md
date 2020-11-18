@@ -22,5 +22,38 @@ time-weighted rate of return (TWR) for your investments for the time
 period requested. Both rates of return are annualized before display,
 regardless of the length of reporting interval.
 
-An example: 
+Examples:
+
+- Using roi to report unrealised gains:
 https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledger
+
+More background:
+
+ROI is return on investment. There are various ways to compute it.
+IRR (internal/money-weighted rate of return) is one strategy.
+TWR (time-weighted rate of return) is another.
+hledger's "roi" command computes both IRR and TWR.
+
+If you have a single "incoming" cash flow (e.g. you put money in a savings account) 
+and a single "outgoing" flow (you extracted money + interest at the end of term) 
+then both IRR and TWR will be the same, and will be equal to the rate of return of your saving account.
+
+But if you keep paying into your account at irregular intervals, then IRR and TWR will be different.
+IRR assumes that periods between cash flows are equal, the more this assumption is violated the more "off" it will be. 
+TWR does not require time intervals to be equal and gives a much better estimate of how much your "average dollar" of investment grew.
+However, IRR is wildly popular (possibly because Excel initially only had IRR, but not TWR), so it is included for completeness.
+
+Now, what about unrealized gains reporting ?
+In order to compute IRR or TWR, you need to know (1) how much you paid in, (2) how much you withdrew, and (3) how much the investment has grown in value.
+1 and 2 are your transactions (regular ones) and 3 is in "unrealized gains" transactions.
+So 1, 2 and 3 together are the cashflows of your investment that could be used to compute IRR and TWR.
+So "unrealized gains" transactions are one of the inputs for "roi".
+
+https://blog.commonwealth.com/measuring-portfolio-performance-twr-vs.-irr has good small examples.
+It also explains why both numbers can be problematic.
+But in layman's terms:
+
+- TWR will show you how well your investment is performing (even though you might be adding and removing cash from your investment along the way); so if you have different investments or investment strategies, you can use TWR to compare them.
+- IRR will show you how much money you are actually making. So if you are comparing different pay-in/withdrawal schedules into the same investment trying to find one that is best for you, IRR is your tool.
+
+If you squint just the right way, your pay-ins/withdrawals will have effect on IRR, and growth of investment will have effect on TWR.
