@@ -22,6 +22,13 @@ time-weighted rate of return (TWR) for your investments for the time
 period requested. Both rates of return are annualized before display,
 regardless of the length of reporting interval.
 
+Note, in some cases this report can fail, for these reasons:
+
+- Error (NotBracketed): No solution for Internal Rate of Return (IRR).
+  Possible causes: IRR is huge (>1000000%), balance of investment becomes negative at some point in time.
+- Error (SearchFailed): Failed to find solution for Internal Rate of Return (IRR).
+  Either search does not converge to a solution, or converges too slowly.
+
 Examples:
 
 - Using roi to report unrealised gains:
