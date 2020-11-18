@@ -216,8 +216,10 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
                       (0.000000000001,10000)
                       (interestSum spanEnd totalCF) of
         Root rate    -> return ((rate-1)*100)
-        NotBracketed -> error' "Error: No solution -- not bracketed."  -- PARTIAL:
-        SearchFailed -> error' "Error: Failed to find solution."
+        NotBracketed -> error' "Error (NotBracketed): No solution for Internal Rate of Return (IRR).\n"
+                        ++     "  Possible causes: IRR is huge (>1000000%), balance of investment becomes negative at some point in time."
+        SearchFailed -> error' "Error (SearchFailed): Failed to find solution for Internal Rate of Return (IRR).\n"
+                        ++     "  Either search does not converge to a solution, or converges too slowly."
 
 type CashFlow = [(Day, Quantity)]
 
