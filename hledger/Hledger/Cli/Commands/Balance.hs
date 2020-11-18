@@ -273,6 +273,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Read.CsvReader (CSV, printCSV)
+import Hledger.Reports.BudgetReport (budgetReportAsCsv)
 
 
 -- | Command line options for this command.
@@ -322,6 +323,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
           render = case fmt of
             "txt"  -> budgetReportAsText ropts
             "json" -> (++"\n") . TL.unpack . toJsonText
+            "csv"  -> (++"\n") . printCSV . budgetReportAsCsv ropts
             _      -> const $ error' $ unsupportedOutputFormatError fmt
       writeOutput opts $ render budgetreport
 
@@ -344,6 +346,10 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
               "json" -> const $ (++"\n") . TL.unpack . toJsonText
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutput opts $ render ropts report
+
+
+-- XXX should all the per-report, per-format rendering code live in the command module,
+-- like the below, or in the report module, like budgetReportAsText/budgetReportAsCsv ?
 
 -- rendering single-column balance reports
 

@@ -18,6 +18,7 @@ module Hledger.Reports.BudgetReport (
   budgetReport,
   budgetReportAsTable,
   budgetReportAsText,
+  budgetReportAsCsv,
   -- * Helpers
   reportPeriodName,
   -- * Tests
@@ -44,12 +45,14 @@ import qualified Data.Text as T
 --import qualified Data.Text.Lazy as TL
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
+
 import Text.Printf (printf)
 import Text.Tabular as T
 import Text.Tabular.AsciiWide as T
 
 import Hledger.Data
 import Hledger.Utils
+import Hledger.Read.CsvReader (CSV)
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.MultiBalanceReport
@@ -334,6 +337,45 @@ reportPeriodName balancetype spans =
       where
         multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
     _ -> maybe "" (showDate . prevday) . spanEnd
+
+-- XXX generalise this with multiBalanceReportAsCsv ?
+-- | Render a budget report as CSV. Like multiBalanceReportAsCsv,
+-- but includes alternating actual and budget amount columns.
+budgetReportAsCsv :: ReportOpts -> BudgetReport -> CSV
+budgetReportAsCsv 
+  ReportOpts{average_, row_total_, no_total_, transpose_}
+  (PeriodicReport colspans items (PeriodicReportRow _ abtotals (magrandtot,mbgrandtot) (magrandavg,mbgrandavg)))
+  = (if transpose_ then transpose else id) $
+
+  -- heading row
+  ("Account" : 
+   concatMap (\span -> [showDateSpan span, "budget"]) colspans
+   ++ concat [["Total"  ,"budget"] | row_total_]
+   ++ concat [["Average","budget"] | average_]
+  ) :
+
+  -- account rows
+  [T.unpack (displayFull a) :
+   map showmamt (flattentuples abamts)
+   ++ concat [[showmamt mactualrowtot, showmamt mbudgetrowtot] | row_total_]
+   ++ concat [[showmamt mactualrowavg, showmamt mbudgetrowavg] | average_]
+  | PeriodicReportRow a abamts (mactualrowtot,mbudgetrowtot) (mactualrowavg,mbudgetrowavg) <- items
+  ]
+
+  -- totals row
+  ++ concat [
+    [
+    "Total:" :
+    map showmamt (flattentuples abtotals)
+    ++ concat [[showmamt magrandtot,showmamt mbgrandtot] | row_total_] 
+    ++ concat [[showmamt magrandavg,showmamt mbgrandavg] | average_]
+    ]
+  | not no_total_
+  ]
+
+  where
+    flattentuples abs = concat [[a,b] | (a,b) <- abs]
+    showmamt = maybe "" (showMixedAmountOneLineWithoutPrice False)
 
 -- tests
 

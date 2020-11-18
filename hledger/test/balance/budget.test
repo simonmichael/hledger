@@ -515,7 +515,7 @@ Budget performance in 2019-01-01..2019-01-02:
 ------------------++------------------------
                   ||       0 [           0] 
 
-# 25. -E shows d
+# 25. -E shows d and e
 $ hledger bal -f- --budget -E
 Budget performance in 2019-01-01..2019-01-02:
 
@@ -532,3 +532,27 @@ Budget performance in 2019-01-01..2019-01-02:
 ------------------++------------------------
                   ||       0 [           0] 
 
+# 26. The totals row shows correct totals.
+# -T/--total and -A/--average adds those columns.
+$ hledger bal -f- --budget -TA not:income
+Budget performance in 2019-01-01..2019-01-02:
+
+                  || 2019-01-01..2019-01-02              Total            Average 
+==================++==============================================================
+ expenses:bills   ||      $80 [22% of $370]  $80 [22% of $370]  $80 [22% of $370] 
+ expenses:bills:a ||      $10 [50% of  $20]  $10 [50% of  $20]  $10 [50% of  $20] 
+ expenses:bills:b ||      $40 [20% of $200]  $40 [20% of $200]  $40 [20% of $200] 
+ expenses:bills:c ||        0 [ 0% of  $50]    0 [ 0% of  $50]    0 [ 0% of  $50] 
+ expenses:bills:f ||      $10 [          0]  $10 [          0]  $10 [          0] 
+------------------++--------------------------------------------------------------
+                  ||      $80 [22% of $370]  $80 [22% of $370]  $80 [22% of $370] 
+
+# 27. CSV output works.
+$ hledger bal -f- --budget -TA not:income -O csv
+"Account","2019-01-01..2019-01-02","budget","Total","budget","Average","budget"
+"expenses:bills","$80","$370","$80","$370","$80","$370"
+"expenses:bills:a","$10","$20","$10","$20","$10","$20"
+"expenses:bills:b","$40","$200","$40","$200","$40","$200"
+"expenses:bills:c","","$50","","$50","","$50"
+"expenses:bills:f","$10","0","$10","0","$10","0"
+"Total:","$80","$370","$80","$370","$80","$370"
