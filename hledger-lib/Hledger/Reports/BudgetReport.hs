@@ -72,7 +72,7 @@ type BudgetDisplayCell = ((String, Int), Maybe ((String, Int), Maybe (String, In
 -- | Calculate budget goals from all periodic transactions,
 -- actual balance changes from the regular transactions,
 -- and compare these to get a 'BudgetReport'.
--- Unbudgeted accounts may be hidden or renamed (see budgetRollup).
+-- Unbudgeted accounts may be hidden or renamed (see journalWithBudgetAccountNames).
 budgetReport :: ReportSpec -> Bool -> DateSpan -> Journal -> BudgetReport
 budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
   where
@@ -88,12 +88,8 @@ budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
       concatMap tpostings $
       concatMap (`runPeriodicTransaction` reportspan) $
       jperiodictxns j
-    actualj = 
-      dbg5With (("account names adjusted for budget report:\n"++).pshow.journalAccountNamesUsed)  $ 
-      budgetRollUp budgetedaccts showunbudgeted j
-    budgetj = 
-      -- dbg5With (("actual txns:\n"++).pshow.jtxns)  $ 
-      budgetJournal assrt ropts reportspan j
+    actualj = journalWithBudgetAccountNames budgetedaccts showunbudgeted j
+    budgetj = journalAddBudgetGoalTransactions assrt ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
         dbg5 "actualreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
@@ -107,11 +103,12 @@ budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
     budgetreport = combineBudgetAndActual ropts j budgetgoalreport' actualreport
 
 -- | Use all periodic transactions in the journal to generate
--- budget transactions in the specified report period.
--- Budget transactions are similar to forecast transactions except
--- their purpose is to define balance change goals, per account and period.
-budgetJournal :: Bool -> ReportOpts -> DateSpan -> Journal -> Journal
-budgetJournal assrt _ropts reportspan j =
+-- budget goal transactions in the specified report period.
+-- Budget goal transactions are similar to forecast transactions except
+-- their purpose and effect is to define balance change goals, per account and period,
+-- for BudgetReport.
+journalAddBudgetGoalTransactions :: Bool -> ReportOpts -> DateSpan -> Journal -> Journal
+journalAddBudgetGoalTransactions assrt _ropts reportspan j =
   either error' id $ journalBalanceTransactions assrt j{ jtxns = budgetts }  -- PARTIAL:
   where
     budgetspan = dbg3 "budget span" $ reportspan
@@ -130,10 +127,12 @@ budgetJournal assrt _ropts reportspan j =
 --
 -- 2. subaccounts with no budget goal are merged with their closest parent account
 --    with a budget goal, so that only budgeted accounts are shown.
---    This can be disabled by --empty.
+--    This can be disabled by -E/--empty.
 --
-budgetRollUp :: [AccountName] -> Bool -> Journal -> Journal
-budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
+journalWithBudgetAccountNames :: [AccountName] -> Bool -> Journal -> Journal
+journalWithBudgetAccountNames budgetedaccts showunbudgeted j = 
+  dbg5With (("budget account names: "++).pshow.journalAccountNamesUsed) $ 
+  j { jtxns = remapTxn <$> jtxns j }
   where
     remapTxn = mapPostings (map remapPosting)
       where

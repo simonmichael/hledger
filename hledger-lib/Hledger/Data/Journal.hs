@@ -612,7 +612,7 @@ journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTran
 -- WARN tricky algorithm and code ahead. 
 --
 -- Code overview as of 20190219, this could/should be simplified/documented more:
---  parseAndFinaliseJournal['] (Cli/Utils.hs), journalAddForecast (Common.hs), budgetJournal (BudgetReport.hs), tests (BalanceReport.hs)
+--  parseAndFinaliseJournal['] (Cli/Utils.hs), journalAddForecast (Common.hs), journalAddBudgetGoalTransactions (BudgetReport.hs), tests (BalanceReport.hs)
 --   journalBalanceTransactions
 --    runST
 --     runExceptT
