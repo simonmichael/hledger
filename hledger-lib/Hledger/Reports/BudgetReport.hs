@@ -74,26 +74,30 @@ type BudgetDisplayCell = ((String, Int), Maybe ((String, Int), Maybe (String, In
 -- and compare these to get a 'BudgetReport'.
 -- Unbudgeted accounts may be hidden or renamed (see budgetRollup).
 budgetReport :: ReportSpec -> Bool -> DateSpan -> Journal -> BudgetReport
-budgetReport rspec assrt reportspan j = dbg1 "sortedbudgetreport" budgetreport
+budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
   where
     -- Budget report demands ALTree mode to ensure subaccounts and subaccount budgets are properly handled
     -- and that reports with and without --empty make sense when compared side by side
     ropts = (rsOpts rspec){ accountlistmode_ = ALTree }
     showunbudgeted = empty_ ropts
     budgetedaccts =
-      dbg2 "budgetedacctsinperiod" $
+      dbg3 "budgetedacctsinperiod" $
       nub $
       concatMap expandAccountName $
       accountNamesFromPostings $
       concatMap tpostings $
       concatMap (`runPeriodicTransaction` reportspan) $
       jperiodictxns j
-    actualj = dbg1With (("actualj"++).show.jtxns)  $ budgetRollUp budgetedaccts showunbudgeted j
-    budgetj = dbg1With (("budgetj"++).show.jtxns)  $ budgetJournal assrt ropts reportspan j
+    actualj = 
+      dbg5With (("account names adjusted for budget report:\n"++).pshow.journalAccountNamesUsed)  $ 
+      budgetRollUp budgetedaccts showunbudgeted j
+    budgetj = 
+      -- dbg5With (("actual txns:\n"++).pshow.jtxns)  $ 
+      budgetJournal assrt ropts reportspan j
     actualreport@(PeriodicReport actualspans _ _) =
-        dbg1 "actualreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} actualj
+        dbg5 "actualreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} actualj
     budgetgoalreport@(PeriodicReport _ budgetgoalitems budgetgoaltotals) =
-        dbg1 "budgetgoalreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} budgetj
+        dbg5 "budgetgoalreport" $ multiBalanceReport rspec{rsOpts=ropts{empty_=True}} budgetj
     budgetgoalreport'
       -- If no interval is specified:
       -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
@@ -105,14 +109,14 @@ budgetReport rspec assrt reportspan j = dbg1 "sortedbudgetreport" budgetreport
 -- | Use all periodic transactions in the journal to generate
 -- budget transactions in the specified report period.
 -- Budget transactions are similar to forecast transactions except
--- their purpose is to set goal amounts (of change) per account and period.
+-- their purpose is to define balance change goals, per account and period.
 budgetJournal :: Bool -> ReportOpts -> DateSpan -> Journal -> Journal
 budgetJournal assrt _ropts reportspan j =
   either error' id $ journalBalanceTransactions assrt j{ jtxns = budgetts }  -- PARTIAL:
   where
-    budgetspan = dbg2 "budgetspan" $ reportspan
+    budgetspan = dbg3 "budget span" $ reportspan
     budgetts =
-      dbg1 "budgetts" $
+      dbg5 "budget goal txns" $
       [makeBudgetTxn t
       | pt <- jperiodictxns j
       , t <- runPeriodicTransaction pt budgetspan

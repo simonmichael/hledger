@@ -316,7 +316,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
 
     if budget then do  -- single or multi period budget report
       let reportspan = reportSpan j rspec
-          budgetreport = dbg4 "budgetreport" $ budgetReport rspec assrt reportspan j
+          budgetreport = budgetReport rspec assrt reportspan j
             where
               assrt = not $ ignore_assertions_ $ inputopts_ opts
           render = case fmt of
