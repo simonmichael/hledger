@@ -273,7 +273,6 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Read.CsvReader (CSV, printCSV)
-import Hledger.Reports.BudgetReport (budgetReportAsCsv)
 
 
 -- | Command line options for this command.
