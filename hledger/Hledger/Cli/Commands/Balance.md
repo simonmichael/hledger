@@ -530,5 +530,5 @@ Budget performance in 2019/01:
 This command also supports the
 [output destination](hledger.html#output-destination) and
 [output format](hledger.html#output-format) options
-The output formats supported are
+The output formats supported are (in most modes):
 `txt`, `csv`, `html`, and `json`.

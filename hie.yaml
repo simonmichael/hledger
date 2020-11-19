@@ -43,3 +43,6 @@ cradle:
       component: "hledger-web:exe:hledger-web"
     - path: "hledger-web/test/"
       component: "hledger-web:test:test"
+
+    - path: "bin/"
+      component: "hledger:lib"
