@@ -1257,7 +1257,7 @@ OPTIONS
        is "today".
 
        For  multiperiod  reports, each column/period is valued on the last day
-       of the period.
+       of the period, by default.
 
    Market prices
        (experimental)
@@ -2354,8 +2354,8 @@ COMMANDS
 
    Output format
        This command also supports the output destination and output format op-
-       tions  The output formats supported are txt, csv, (multicolumn non-bud-
-       get reports only) html, and (experimental) json.
+       tions The output formats supported are (in most modes): txt, csv, html,
+       and json.
 
    balancesheet
        balancesheet, bs
