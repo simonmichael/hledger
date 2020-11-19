@@ -17,7 +17,7 @@ At a minimum, you need to supply a query (which could be just an
 account name) to select your investments with `--inv`, and another
 query to identify your profit and loss transactions with `--pnl`.
 
-It will compute and display the internalized rate of return (IRR) and
+This command will compute and display the internalized rate of return (IRR) and
 time-weighted rate of return (TWR) for your investments for the time
 period requested. Both rates of return are annualized before display,
 regardless of the length of reporting interval.
@@ -36,31 +36,222 @@ https://github.com/simonmichael/hledger/blob/master/examples/roi-unrealised.ledg
 
 More background:
 
-ROI is return on investment. There are various ways to compute it.
-IRR (internal/money-weighted rate of return) is one strategy.
-TWR (time-weighted rate of return) is another.
-hledger's "roi" command computes both IRR and TWR.
+"ROI" stands for "return on investment". Traditionally this was
+computed as a difference between current value of investment and its
+initial value, expressed in percentage of the initial value.
 
-If you have a single "incoming" cash flow (e.g. you put money in a savings account) 
-and a single "outgoing" flow (you extracted money + interest at the end of term) 
-then both IRR and TWR will be the same, and will be equal to the rate of return of your saving account.
+However, this approach is only practical in simple cases, where
+investments receives no in-flows or out-flows of money, and where rate
+of growth is fixed over time. For more complex scenarios you need
+different ways to compute rate of return, and this command implements
+two of them: IRR and TWR.
 
-But if you keep paying into your account at irregular intervals, then IRR and TWR will be different.
-IRR assumes that periods between cash flows are equal, the more this assumption is violated the more "off" it will be. 
-TWR does not require time intervals to be equal and gives a much better estimate of how much your "average dollar" of investment grew.
-However, IRR is wildly popular (possibly because Excel initially only had IRR, but not TWR), so it is included for completeness.
+Internal rate of return, or "IRR" (also called "money-weighted rate of
+return") takes into account effects of in-flows and out-flows.
+Naively, if you are withdrawing from your investment, your future
+gains would be smaller (in absolute numbers), and will be a smaller
+percentage of your initial investment, and if you are adding to your
+investment, you will receive bigger absolute gains (but probably at
+the same rate of return). IRR is a way to compute rate of return for
+each period between in-flow or out-flow of money, and then combine
+them in a way that gives you an annual rate of return that investment
+is expected to generate.
 
-Now, what about unrealized gains reporting ?
-In order to compute IRR or TWR, you need to know (1) how much you paid in, (2) how much you withdrew, and (3) how much the investment has grown in value.
-1 and 2 are your transactions (regular ones) and 3 is in "unrealized gains" transactions.
-So 1, 2 and 3 together are the cashflows of your investment that could be used to compute IRR and TWR.
-So "unrealized gains" transactions are one of the inputs for "roi".
+As mentioned before, in-flows and out-flows would be any cash that you
+personally put in or withdraw, and for the "roi" command, these are
+transactions that involve account(s) matching `--inv` argument and NOT
+involve account(s) matching `--pnl` argument.
 
-https://blog.commonwealth.com/measuring-portfolio-performance-twr-vs.-irr has good small examples.
-It also explains why both numbers can be problematic.
-But in layman's terms:
+Presumably, you will also record changes in the value of your
+investment, and balance them against "profit and loss" (or "unrealized
+gains") account. Note that in order for IRR to compute the precise
+effect of your in-flows and out-flows on the rate of return, you will
+need to record the value of your investement on or close to the days
+when in- or out-flows occur.
 
-- TWR will show you how well your investment is performing (even though you might be adding and removing cash from your investment along the way); so if you have different investments or investment strategies, you can use TWR to compare them.
-- IRR will show you how much money you are actually making. So if you are comparing different pay-in/withdrawal schedules into the same investment trying to find one that is best for you, IRR is your tool.
+Implementation of IRR in hledger should match the `XIRR` formula in
+Excel.
 
-If you squint just the right way, your pay-ins/withdrawals will have effect on IRR, and growth of investment will have effect on TWR.
+Second way to compute rate of return that `roi` command implements is
+called "time-weighted rate of return" or "TWR". Like IRR, it will also
+break the history of your investment into periods between in-flows and
+out-flows to compute rate of return per each period and then a
+compound rate of return. However, internal workings of TWR are quite
+different.
+
+In technical terms, IRR uses the same approach as computation of net
+present value, and tries to find a discount rate that makes net
+present value of all the cash flows of your investment to add up to
+zero. This could be hard to wrap your head around, especially if you haven't
+done discounted cash flow analysis before.
+
+TWR represents your investment as an imaginary "unit fund" where in-flows/
+out-flows lead to buying or selling "units" of your investment and changes in
+its value change the value of "investment unit". Change in "unit price" over the
+reporting period gives you rate of return of your investment.
+
+References:
+* [Explanation of rate of return](https://www.investopedia.com/terms/r/rateofreturn.asp)
+* [Explanation of IRR](https://www.investopedia.com/terms/i/irr.asp)
+* [Explanation of TWR](https://www.investopedia.com/terms/t/time-weightedror.asp)
+* [Examples of computing IRR and TWR and discussion of the limitations of both metrics](https://blog.commonwealth.com/measuring-portfolio-performance-twr-vs.-irr)
+
+More examples:
+
+Lets say that we found an investment in Snake Oil that is proising to give us 10% annually:
+```hledger
+2019-01-01 Investing in Snake Oil
+  assets:cash  -$100
+  investment:snake oil
+
+2019-12-24 Recording the growth of Snake Oil
+  investment:snake oil   = $110
+  equity:unrealized gains
+```
+
+For now, basic computation of the rate of return, as well as IRR and TWR, gives us the expected 10%:
+
+```
+$ hledger roi -Y --inv investment --pnl "unrealized"
++---++------------+------------++---------------+----------+-------------+-----++--------+--------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||    IRR |    TWR |
++===++============+============++===============+==========+=============+=====++========+========+
+| 1 || 2019-01-01 | 2019-12-31 ||             0 |      100 |         110 |  10 || 10.00% | 10.00% |
++---++------------+------------++---------------+----------+-------------+-----++--------+--------+
+```
+
+However, lets say that shorty after investing in the Snake Oil we started to have second thoughs, so we prompty withdrew $90, leaving only $10 in.
+Before Christmas, though, we started to get the "fear of mission out", so we put the $90 back in. So for most of the year, our investment was just $10 dollars,
+and it gave us just $1 in growth:
+
+```hledger
+2019-01-01 Investing in Snake Oil
+  assets:cash  -$100
+  investment:snake oil
+
+2019-01-02 Buyers remorse
+  assets:cash  $90
+  investment:snake oil
+       
+2019-12-30 Fear of missing out
+  assets:cash  -$90
+  investment:snake oil
+
+2019-12-31 Recording the growth of Snake Oil
+  investment:snake oil   = $101
+  equity:unrealized gains
+```
+
+Now IRR and TWR are drastically different:
+```
+$ hledger roi -Y --inv investment --pnl "unrealized"
++---++------------+------------++---------------+----------+-------------+-----++-------+-------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||   IRR |   TWR |
++===++============+============++===============+==========+=============+=====++=======+=======+
+| 1 || 2019-01-01 | 2019-12-31 ||             0 |      100 |         101 |   1 || 9.32% | 1.00% |
++---++------------+------------++---------------+----------+-------------+-----++-------+-------+
+```
+
+Here, IRR tells us that we made close to 10% on the $10 dollars that
+we had in the account most of the time. And TWR is ... just 1%? Why?
+
+Based on the transactions in our journal, TWR "think" that we are buying back $90 worst of Snake Oil
+at the same price that it had at the beginning of they year, and then after that our $100 investment
+gets $1 increase in value, or 1% of $100. Let's take a closer look at what is happening here by
+asking for quarterly reports instead of annual:
+
+```
+$ hledger roi -Q --inv investment --pnl "unrealized"
++---++------------+------------++---------------+----------+-------------+-----++--------+-------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||    IRR |   TWR |
++===++============+============++===============+==========+=============+=====++========+=======+
+| 1 || 2019-01-01 | 2019-03-31 ||             0 |       10 |          10 |   0 ||  0.00% | 0.00% |
+| 2 || 2019-04-01 | 2019-06-30 ||            10 |        0 |          10 |   0 ||  0.00% | 0.00% |
+| 3 || 2019-07-01 | 2019-09-30 ||            10 |        0 |          10 |   0 ||  0.00% | 0.00% |
+| 4 || 2019-10-01 | 2019-12-31 ||            10 |       90 |         101 |   1 || 37.80% | 4.03% |
++---++------------+------------++---------------+----------+-------------+-----++--------+-------+
+```
+
+Now both IRR and TWR are thrown off by the fact that all of the growth for our investment happens in
+Q4 2019. This happes because IRR computation is still yielding 9.32% and TWR is still 1%, but
+this time these are rates for three month period instead of twelve, so in order to get an annual rate
+they should be multiplied by four!
+
+Let's try to keep a better record of how Snake Oil grew in value:
+```hledger
+2019-01-01 Investing in Snake Oil
+  assets:cash  -$100
+  investment:snake oil
+
+2019-01-02 Buyers remorse
+  assets:cash  $90
+  investment:snake oil
+
+2019-02-28 Recording the growth of Snake Oil
+  investment:snake oil  
+  equity:unrealized gains  -$0.25
+
+2019-06-30 Recording the growth of Snake Oil
+  investment:snake oil  
+  equity:unrealized gains  -$0.25
+
+2019-09-30 Recording the growth of Snake Oil
+  investment:snake oil  
+  equity:unrealized gains  -$0.25
+
+2019-12-30 Fear of missing out
+  assets:cash  -$90
+  investment:snake oil
+
+2019-12-31 Recording the growth of Snake Oil
+  investment:snake oil
+  equity:unrealized gains  -$0.25
+```
+
+Would our quartery report look better now? Almost:
+```
+$ hledger roi -Q --inv investment --pnl "unrealized"
++---++------------+------------++---------------+----------+-------------+------++--------+--------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||    IRR |    TWR |
++===++============+============++===============+==========+=============+======++========+========+
+| 1 || 2019-01-01 | 2019-03-31 ||             0 |       10 |       10.25 | 0.25 ||  9.53% | 10.53% |
+| 2 || 2019-04-01 | 2019-06-30 ||         10.25 |        0 |       10.50 | 0.25 || 10.15% | 10.15% |
+| 3 || 2019-07-01 | 2019-09-30 ||         10.50 |        0 |       10.75 | 0.25 ||  9.79% |  9.78% |
+| 4 || 2019-10-01 | 2019-12-31 ||         10.75 |       90 |      101.00 | 0.25 ||  8.05% |  1.00% |
++---++------------+------------++---------------+----------+-------------+------++--------+--------+
+```
+
+Something is still wrong with TWR computation for Q4, and if you have been paying attention you know
+what it is already: big $90 buy-back is recorded prior to the only transaction that captures the
+change of value of Snake Oil that happened in this time period. Lets combine transactions from 30th
+and 31st of Dec into one:
+
+```hledger
+2019-12-30 Fear of missing out and growth of Snake Oil
+  assets:cash  -$90
+  investment:snake oil
+  equity:unrealized gains  -$0.25
+```
+
+Now growth of investment properly affects its price at the time of buy-back:
+```
+$ hledger roi -Q --inv investment --pnl "unrealized"
++---++------------+------------++---------------+----------+-------------+------++--------+--------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||    IRR |    TWR |
++===++============+============++===============+==========+=============+======++========+========+
+| 1 || 2019-01-01 | 2019-03-31 ||             0 |       10 |       10.25 | 0.25 ||  9.53% | 10.53% |
+| 2 || 2019-04-01 | 2019-06-30 ||         10.25 |        0 |       10.50 | 0.25 || 10.15% | 10.15% |
+| 3 || 2019-07-01 | 2019-09-30 ||         10.50 |        0 |       10.75 | 0.25 ||  9.79% |  9.78% |
+| 4 || 2019-10-01 | 2019-12-31 ||         10.75 |       90 |      101.00 | 0.25 ||  8.05% |  9.57% |
++---++------------+------------++---------------+----------+-------------+------++--------+--------+
+```
+
+And for annual report, TWR now reports the exact profitability of our investment:
+```
+$ hledger roi -Y --inv investment --pnl "unrealized"
++---++------------+------------++---------------+----------+-------------+------++-------+--------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||   IRR |    TWR |
++===++============+============++===============+==========+=============+======++=======+========+
+| 1 || 2019-01-01 | 2019-12-31 ||             0 |      100 |      101.00 | 1.00 || 9.32% | 10.00% |
++---++------------+------------++---------------+----------+-------------+------++-------+--------+
+```
