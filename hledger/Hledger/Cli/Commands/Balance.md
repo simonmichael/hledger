@@ -448,12 +448,14 @@ For more examples and notes, see [Budgeting](budgeting.html).
 
 #### Budget report start date
 
-When making budget reports, it's a good idea to explicitly set the
+This might be a bug, but for now:
+when making budget reports, it's a good idea to explicitly set the
 report's start date to the first day of a reporting period, because
 a periodic rule like `~ monthly` generates its transactions on the 1st
 of each month, and if your journal has no regular transactions on the 1st,
 the default report start date could exclude that budget goal, which can
-be a little surprising:
+be a little surprising. Eg here the default report period is just the
+day of 2020-01-15:
 
 ```journal
 ~ monthly in 2020
@@ -464,29 +466,29 @@ be a little surprising:
   assets:checking
 ```
 ```shell
-$ hledger -f- bal --budget -M
-Budget performance in 2020-01:
+$ hledger bal expenses --budget
+Budget performance in 2020-01-15:
 
-              || Jan
-==============++=====
- <unbudgeted> ||   0
---------------++-----
-              ||   0
+              || 2020-01-15 
+==============++============
+ <unbudgeted> ||       $400 
+--------------++------------
+              ||       $400 
 ```
 
-To avoid this, specify the report period, or at least the start date, 
-with `-b`/`-p`/`date:`. Eg:
+To avoid this, specify the budget report's period, or at least the start date,
+with `-b`/`-e`/`-p`/`date:`, to ensure it includes the budget goal transactions
+(periodic transactions) that you want. Eg, adding `-b 2020/1/1` to the above:
 
 ```shell
-$ hledger -f a.j bal --budget -M -b 2020/1/1
-Budget performance in 2020-01:
+$ hledger bal expenses --budget -b 2020/1/1
+Budget performance in 2020-01-01..2020-01-15:
 
-               ||                 Jan 
-===============++=====================
- <unbudgeted>  || $-400               
- expenses:food ||  $400 [80% of $500] 
----------------++---------------------
-               ||     0 [ 0% of $500] 
+               || 2020-01-01..2020-01-15 
+===============++========================
+ expenses:food ||     $400 [80% of $500] 
+---------------++------------------------
+               ||     $400 [80% of $500] 
 ```
 
 #### Nested budgets
