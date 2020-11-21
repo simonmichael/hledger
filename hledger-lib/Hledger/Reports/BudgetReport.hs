@@ -69,9 +69,9 @@ type BudgetReport    = PeriodicReport    DisplayName BudgetCell
 
 type BudgetDisplayCell = ((String, Int), Maybe ((String, Int), Maybe (String, Int)))
 
--- | Calculate budget goals from all periodic transactions,
--- actual balance changes from the regular transactions,
--- and compare these to get a 'BudgetReport'.
+-- | Calculate per-account, per-period budget (balance change) goals
+-- from all periodic transactions, calculate actual balance changes 
+-- from the regular transactions, and compare these to get a 'BudgetReport'.
 -- Unbudgeted accounts may be hidden or renamed (see journalWithBudgetAccountNames).
 budgetReport :: ReportSpec -> Bool -> DateSpan -> Journal -> BudgetReport
 budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
@@ -103,7 +103,7 @@ budgetReport rspec assrt reportspan j = dbg4 "sortedbudgetreport" budgetreport
     budgetreport = combineBudgetAndActual ropts j budgetgoalreport' actualreport
 
 -- | Use all periodic transactions in the journal to generate
--- budget goal transactions in the specified report period.
+-- budget goal transactions in the specified date span.
 -- Budget goal transactions are similar to forecast transactions except
 -- their purpose and effect is to define balance change goals, per account and period,
 -- for BudgetReport.

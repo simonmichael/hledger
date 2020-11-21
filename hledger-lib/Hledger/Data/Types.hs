@@ -89,7 +89,7 @@ type MonthDay = Int  -- 1-31
 type WeekDay = Int   -- 1-7
 
 -- Typical report periods (spans of time), both finite and open-ended.
--- A richer abstraction than DateSpan.
+-- A higher-level abstraction than DateSpan.
 data Period =
     DayPeriod Day
   | WeekPeriod Day

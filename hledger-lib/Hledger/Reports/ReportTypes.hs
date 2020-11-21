@@ -105,7 +105,7 @@ instance Num b => Semigroup (PeriodicReportRow a b) where
       sumPadded as     []     = as
       sumPadded []     bs     = bs
 
--- | Figure out the overall date span of a PeridicReport
+-- | Figure out the overall date span of a PeriodicReport
 periodicReportSpan :: PeriodicReport a b -> DateSpan
 periodicReportSpan (PeriodicReport [] _ _)       = DateSpan Nothing Nothing
 periodicReportSpan (PeriodicReport colspans _ _) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
