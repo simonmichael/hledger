@@ -278,3 +278,15 @@ $ hledger -f- bal -N -V
 $ hledger -f- bal -N -V --infer-value
                   D3  a
 
+# 28. #1402 It should pick the A 5 price for B here.
+# <
+# 2020-11-10
+#     (a)  B 1.00
+
+# P 2020-11-01 B C 2
+# P 2020-11-02 C A 3
+# P 2020-11-03 B A 5
+
+# $ hledger -f- bal -N -X A
+#                  A 5  a
+
