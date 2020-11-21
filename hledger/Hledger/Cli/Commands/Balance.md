@@ -444,7 +444,50 @@ Budget performance in 2017/11/01-2017/12/31:
                       ||      0 [              0]       0 [              0] 
 ```
 
-For more examples, see [Budgeting and Forecasting](budgeting-and-forecasting.html).
+For more examples and notes, see [Budgeting](budgeting.html).
+
+### Budget report start date
+
+When making budget reports, it's a good idea to explicitly set the
+report's start date to the first day of a reporting period, because
+a periodic rule like `~ monthly` generates its transactions on the 1st
+of each month, and if your journal has no regular transactions on the 1st,
+the default report start date could exclude that budget goal, which can
+be a little surprising:
+
+```journal
+~ monthly in 2020
+  (expenses:food)  $500
+
+2020-01-15
+  expenses:food    $400
+  assets:checking
+```
+```shell
+$ hledger -f- bal --budget -M
+Budget performance in 2020-01:
+
+              || Jan
+==============++=====
+ <unbudgeted> ||   0
+--------------++-----
+              ||   0
+```
+
+To avoid this, specify the report period, or at least the start date, 
+with `-b`/`-p`/`date:`. Eg:
+
+```shell
+$ hledger -f a.j bal --budget -M -b 2020/1/1
+Budget performance in 2020-01:
+
+               ||                 Jan 
+===============++=====================
+ <unbudgeted>  || $-400               
+ expenses:food ||  $400 [80% of $500] 
+---------------++---------------------
+               ||     0 [ 0% of $500] 
+```
 
 #### Nested budgets
 
