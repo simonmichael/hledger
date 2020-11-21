@@ -446,7 +446,7 @@ Budget performance in 2017/11/01-2017/12/31:
 
 For more examples and notes, see [Budgeting](budgeting.html).
 
-### Budget report start date
+#### Budget report start date
 
 When making budget reports, it's a good idea to explicitly set the
 report's start date to the first day of a reporting period, because
