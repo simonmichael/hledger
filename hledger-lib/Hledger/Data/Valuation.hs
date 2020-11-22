@@ -34,6 +34,7 @@ import Data.Graph.Inductive  (Gr, Node, NodeMap, mkMapGraph, mkNode, lab, out, s
 import Data.List
 import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian)
@@ -250,7 +251,7 @@ priceLookup makepricegraph d from mto =
           tonode = node m to
           mindirectprice :: Maybe Quantity =
             -- Find the shortest path, if any, between from and to.
-            case sp fromnode tonode g :: Maybe [Node] of
+            case dbg9 "shortest price path" $ sp fromnode tonode g :: Maybe [Node] of
               Nothing    -> Nothing
               Just nodes ->
                 dbg ("market price for "++intercalate " -> " (map T.unpack comms)) $
@@ -325,14 +326,17 @@ makePriceGraph alldeclaredprices allinferredprices d =
   PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests}
   where
     -- prices in effect on date d, either declared or inferred
-    visibledeclaredprices = filter ((<=d).mpdate) alldeclaredprices
-    visibleinferredprices = filter ((<=d).mpdate) allinferredprices
-    declaredandinferredprices = dbg2 "declaredandinferredprices" $
-      effectiveMarketPrices visibledeclaredprices visibleinferredprices
+    visibledeclaredprices = dbg2 "visibledeclaredprices" $ filter ((<=d).mpdate) alldeclaredprices
+    visibleinferredprices = dbg2 "visibleinferredprices" $ filter ((<=d).mpdate) allinferredprices
+    declaredandinferredprices = effectiveMarketPrices visibledeclaredprices visibleinferredprices
 
     -- infer any additional reverse prices not already declared or inferred
-    reverseprices = dbg2 "reverseprices" $
-      map marketPriceReverse declaredandinferredprices \\ declaredandinferredprices
+    reverseprices = dbg2 "additional reverse prices" $
+      [p | p@MarketPrice{..} <- map marketPriceReverse declaredandinferredprices
+         , not $ (mpfrom,mpto) `S.member` forwardpairs
+      ]
+      where
+        forwardpairs = S.fromList [(mpfrom,mpto) | MarketPrice{..} <- declaredandinferredprices]
 
     -- build the graph and associated node map
     (g, m) =
@@ -341,7 +345,7 @@ makePriceGraph alldeclaredprices allinferredprices d =
       (dbg9 "price graph edges" $ [(mpfrom, mpto, mprate) | MarketPrice{..} <- prices])
       :: (Gr CommoditySymbol Quantity, NodeMap CommoditySymbol)
       where
-        prices   = declaredandinferredprices ++ reverseprices
+        prices   = dbg2 "prices used as price graph edges" $ declaredandinferredprices ++ reverseprices
         allcomms = map mpfrom prices
 
     -- determine a default valuation commodity for each source commodity
@@ -371,6 +375,7 @@ effectiveMarketPrices declaredprices inferredprices =
     declaredprices' = [(1, i, p) | (i,p) <- zip [1..] declaredprices]
     inferredprices' = [(0, i, p) | (i,p) <- zip [1..] inferredprices]
   in
+    dbg2 "effective forward prices" $
     -- combine
     declaredprices' ++ inferredprices'
     -- sort by decreasing date then decreasing precedence then decreasing parse order
