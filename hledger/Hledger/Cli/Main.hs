@@ -19,7 +19,7 @@ You can use the command line:
 or ghci:
 
 > $ ghci hledger
-> > j <- readJournalFile def "examples/sample.journal"
+> > Right j <- readJournalFile definputopts "examples/sample.journal"
 > > register [] ["income","expenses"] j
 > 2008/01/01 income               income:salary                   $-1          $-1
 > 2008/06/01 gift                 income:gifts                    $-1          $-2
@@ -30,9 +30,9 @@ or ghci:
 >                   $2  expenses
 >                  $-2  income
 >                   $1  liabilities
-> > l <- myLedger
+> > j <- defaultJournal
 
-See "Hledger.Data.Ledger" for more examples.
+etc.
 
 -}
 
