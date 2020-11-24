@@ -1489,14 +1489,18 @@ this order of preference :
 
   1. A _declared market price_ or _inferred market price_: A's latest
      market price in B on or before the valuation date as declared by a
-     P directive, or (if the '--infer-value' flag is used) inferred from
+     P directive, or (with the '--infer-value' flag) inferred from
      transaction prices.
 
   2. A _reverse market price_: the inverse of a declared or inferred
      market price from B to A.
 
-  3. A _chained market price_: a synthetic price formed by combining the
-     shortest chain of market prices (any of the above types) leading
+  3. A _a forward chain of market prices_: a synthetic price formed by
+     combining the shortest chain of "forward" (only 1 above) market
+     prices, leading from A to B.
+
+  4. A _any chain of market prices_: a chain of any market prices,
+     including both forward and reverse prices (1 and 2 above), leading
      from A to B.
 
    Amounts for which no applicable market price can be found, are not
@@ -2647,16 +2651,61 @@ Budget performance in 2017/11/01-2017/12/31:
 ----------------------++----------------------------------------------------
                       ||      0 [              0]       0 [              0] 
 
-   For more examples, see Budgeting and Forecasting.
+   For more examples and notes, see Budgeting.
 
 * Menu:
 
+* Budget report start date::
 * Nested budgets::
 
 
-File: hledger.info,  Node: Nested budgets,  Up: Budget report
+File: hledger.info,  Node: Budget report start date,  Next: Nested budgets,  Up: Budget report
 
-3.5.9.1 Nested budgets
+3.5.9.1 Budget report start date
+................................
+
+This might be a bug, but for now: when making budget reports, it's a
+good idea to explicitly set the report's start date to the first day of
+a reporting period, because a periodic rule like '~ monthly' generates
+its transactions on the 1st of each month, and if your journal has no
+regular transactions on the 1st, the default report start date could
+exclude that budget goal, which can be a little surprising.  Eg here the
+default report period is just the day of 2020-01-15:
+
+~ monthly in 2020
+  (expenses:food)  $500
+
+2020-01-15
+  expenses:food    $400
+  assets:checking
+
+$ hledger bal expenses --budget
+Budget performance in 2020-01-15:
+
+              || 2020-01-15 
+==============++============
+ <unbudgeted> ||       $400 
+--------------++------------
+              ||       $400 
+
+   To avoid this, specify the budget report's period, or at least the
+start date, with '-b'/'-e'/'-p'/'date:', to ensure it includes the
+budget goal transactions (periodic transactions) that you want.  Eg,
+adding '-b 2020/1/1' to the above:
+
+$ hledger bal expenses --budget -b 2020/1/1
+Budget performance in 2020-01-01..2020-01-15:
+
+               || 2020-01-01..2020-01-15 
+===============++========================
+ expenses:food ||     $400 [80% of $500] 
+---------------++------------------------
+               ||     $400 [80% of $500] 
+
+
+File: hledger.info,  Node: Nested budgets,  Prev: Budget report start date,  Up: Budget report
+
+3.5.9.2 Nested budgets
 ......................
 
 You can add budgets to any account in your account hierarchy.  If you
@@ -4407,138 +4456,140 @@ Node: Valuation date49953
 Ref: #valuation-date50121
 Node: Market prices50543
 Ref: #market-prices50723
-Node: --infer-value market prices from transactions51500
-Ref: #infer-value-market-prices-from-transactions51749
-Node: Valuation commodity53031
-Ref: #valuation-commodity53240
-Node: Simple valuation examples54466
-Ref: #simple-valuation-examples54668
-Node: --value Flexible valuation55327
-Ref: #value-flexible-valuation55535
-Node: More valuation examples57482
-Ref: #more-valuation-examples57691
-Node: Effect of valuation on reports59696
-Ref: #effect-of-valuation-on-reports59884
-Node: COMMANDS66903
-Ref: #commands67011
-Node: accounts68119
-Ref: #accounts68217
-Node: activity68916
-Ref: #activity69026
-Node: add69409
-Ref: #add69510
-Node: aregister72303
-Ref: #aregister72415
-Node: aregister and custom posting dates73788
-Ref: #aregister-and-custom-posting-dates73961
-Ref: #output-format-174554
-Node: balance74959
-Ref: #balance75076
-Node: Classic balance report76556
-Ref: #classic-balance-report76729
-Node: Customising the classic balance report78053
-Ref: #customising-the-classic-balance-report78281
-Node: Colour support80357
-Ref: #colour-support80524
-Node: Flat mode80620
-Ref: #flat-mode80768
-Node: Depth limited balance reports81181
-Ref: #depth-limited-balance-reports81366
-Node: Percentages81822
-Ref: #percentages81979
-Node: Sorting by amount83116
-Ref: #sorting-by-amount83282
-Node: Multicolumn balance report83776
-Ref: #multicolumn-balance-report83962
-Node: Budget report89559
-Ref: #budget-report89702
-Node: Nested budgets94968
-Ref: #nested-budgets95080
-Ref: #output-format-298563
-Node: balancesheet98724
-Ref: #balancesheet98860
-Node: balancesheetequity100372
-Ref: #balancesheetequity100521
-Node: cashflow101597
-Ref: #cashflow101725
-Node: check-dates102941
-Ref: #check-dates103068
-Node: check-dupes103347
-Ref: #check-dupes103473
-Node: close103766
-Ref: #close103874
-Node: close usage105396
-Ref: #close-usage105489
-Node: codes108302
-Ref: #codes108410
-Node: commodities109122
-Ref: #commodities109249
-Node: descriptions109331
-Ref: #descriptions109459
-Node: diff109763
-Ref: #diff109869
-Node: files110916
-Ref: #files111016
-Node: help111163
-Ref: #help111263
-Node: import112344
-Ref: #import112458
-Node: Importing balance assignments113380
-Ref: #importing-balance-assignments113561
-Node: Commodity display styles114210
-Ref: #commodity-display-styles114381
-Node: incomestatement114510
-Ref: #incomestatement114643
-Node: notes115988
-Ref: #notes116101
-Node: payees116469
-Ref: #payees116575
-Node: prices116995
-Ref: #prices117101
-Node: print117442
-Ref: #print117552
-Node: print-unique122348
-Ref: #print-unique122474
-Node: register122759
-Ref: #register122886
-Node: Custom register output127335
-Ref: #custom-register-output127464
-Node: register-match128801
-Ref: #register-match128935
-Node: rewrite129286
-Ref: #rewrite129401
-Node: Re-write rules in a file131256
-Ref: #re-write-rules-in-a-file131390
-Node: Diff output format132600
-Ref: #diff-output-format132769
-Node: rewrite vs print --auto133861
-Ref: #rewrite-vs.-print---auto134040
-Node: roi134596
-Ref: #roi134694
-Node: stats146904
-Ref: #stats147003
-Node: tags147791
-Ref: #tags147889
-Node: test148408
-Ref: #test148516
-Node: Add-on commands149263
-Ref: #add-on-commands149380
-Node: ui150723
-Ref: #ui150811
-Node: web150865
-Ref: #web150968
-Node: iadd151084
-Ref: #iadd151195
-Node: interest151277
-Ref: #interest151384
-Node: ENVIRONMENT151624
-Ref: #environment151736
-Node: FILES152721
-Ref: #files-1152824
-Node: LIMITATIONS153037
-Ref: #limitations153156
-Node: TROUBLESHOOTING153898
-Ref: #troubleshooting154011
+Node: --infer-value market prices from transactions51665
+Ref: #infer-value-market-prices-from-transactions51914
+Node: Valuation commodity53196
+Ref: #valuation-commodity53405
+Node: Simple valuation examples54631
+Ref: #simple-valuation-examples54833
+Node: --value Flexible valuation55492
+Ref: #value-flexible-valuation55700
+Node: More valuation examples57647
+Ref: #more-valuation-examples57856
+Node: Effect of valuation on reports59861
+Ref: #effect-of-valuation-on-reports60049
+Node: COMMANDS67068
+Ref: #commands67176
+Node: accounts68284
+Ref: #accounts68382
+Node: activity69081
+Ref: #activity69191
+Node: add69574
+Ref: #add69675
+Node: aregister72468
+Ref: #aregister72580
+Node: aregister and custom posting dates73953
+Ref: #aregister-and-custom-posting-dates74126
+Ref: #output-format-174719
+Node: balance75124
+Ref: #balance75241
+Node: Classic balance report76721
+Ref: #classic-balance-report76894
+Node: Customising the classic balance report78218
+Ref: #customising-the-classic-balance-report78446
+Node: Colour support80522
+Ref: #colour-support80689
+Node: Flat mode80785
+Ref: #flat-mode80933
+Node: Depth limited balance reports81346
+Ref: #depth-limited-balance-reports81531
+Node: Percentages81987
+Ref: #percentages82144
+Node: Sorting by amount83281
+Ref: #sorting-by-amount83447
+Node: Multicolumn balance report83941
+Ref: #multicolumn-balance-report84127
+Node: Budget report89724
+Ref: #budget-report89867
+Node: Budget report start date95156
+Ref: #budget-report-start-date95321
+Node: Nested budgets96653
+Ref: #nested-budgets96798
+Ref: #output-format-2100281
+Node: balancesheet100442
+Ref: #balancesheet100578
+Node: balancesheetequity102090
+Ref: #balancesheetequity102239
+Node: cashflow103315
+Ref: #cashflow103443
+Node: check-dates104659
+Ref: #check-dates104786
+Node: check-dupes105065
+Ref: #check-dupes105191
+Node: close105484
+Ref: #close105592
+Node: close usage107114
+Ref: #close-usage107207
+Node: codes110020
+Ref: #codes110128
+Node: commodities110840
+Ref: #commodities110967
+Node: descriptions111049
+Ref: #descriptions111177
+Node: diff111481
+Ref: #diff111587
+Node: files112634
+Ref: #files112734
+Node: help112881
+Ref: #help112981
+Node: import114062
+Ref: #import114176
+Node: Importing balance assignments115098
+Ref: #importing-balance-assignments115279
+Node: Commodity display styles115928
+Ref: #commodity-display-styles116099
+Node: incomestatement116228
+Ref: #incomestatement116361
+Node: notes117706
+Ref: #notes117819
+Node: payees118187
+Ref: #payees118293
+Node: prices118713
+Ref: #prices118819
+Node: print119160
+Ref: #print119270
+Node: print-unique124066
+Ref: #print-unique124192
+Node: register124477
+Ref: #register124604
+Node: Custom register output129053
+Ref: #custom-register-output129182
+Node: register-match130519
+Ref: #register-match130653
+Node: rewrite131004
+Ref: #rewrite131119
+Node: Re-write rules in a file132974
+Ref: #re-write-rules-in-a-file133108
+Node: Diff output format134318
+Ref: #diff-output-format134487
+Node: rewrite vs print --auto135579
+Ref: #rewrite-vs.-print---auto135758
+Node: roi136314
+Ref: #roi136412
+Node: stats148622
+Ref: #stats148721
+Node: tags149509
+Ref: #tags149607
+Node: test150126
+Ref: #test150234
+Node: Add-on commands150981
+Ref: #add-on-commands151098
+Node: ui152441
+Ref: #ui152529
+Node: web152583
+Ref: #web152686
+Node: iadd152802
+Ref: #iadd152913
+Node: interest152995
+Ref: #interest153102
+Node: ENVIRONMENT153342
+Ref: #environment153454
+Node: FILES154439
+Ref: #files-1154542
+Node: LIMITATIONS154755
+Ref: #limitations154874
+Node: TROUBLESHOOTING155616
+Ref: #troubleshooting155729
 
 End Tag Table
 

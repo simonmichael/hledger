@@ -1774,15 +1774,19 @@ this order of preference :
 .IP "1." 3
 A \f[I]declared market price\f[R] or \f[I]inferred market price\f[R]:
 A\[aq]s latest market price in B on or before the valuation date as
-declared by a P directive, or (if the \f[C]--infer-value\f[R] flag is
-used) inferred from transaction prices.
+declared by a P directive, or (with the \f[C]--infer-value\f[R] flag)
+inferred from transaction prices.
 .IP "2." 3
 A \f[I]reverse market price\f[R]: the inverse of a declared or inferred
 market price from B to A.
 .IP "3." 3
-A \f[I]chained market price\f[R]: a synthetic price formed by combining
-the shortest chain of market prices (any of the above types) leading
-from A to B.
+A \f[I]a forward chain of market prices\f[R]: a synthetic price formed
+by combining the shortest chain of \[dq]forward\[dq] (only 1 above)
+market prices, leading from A to B.
+.IP "4." 3
+A \f[I]any chain of market prices\f[R]: a chain of any market prices,
+including both forward and reverse prices (1 and 2 above), leading from
+A to B.
 .PP
 Amounts for which no applicable market price can be found, are not
 converted.
@@ -3189,7 +3193,60 @@ Budget performance in 2017/11/01-2017/12/31:
 \f[R]
 .fi
 .PP
-For more examples, see Budgeting and Forecasting.
+For more examples and notes, see Budgeting.
+.SS Budget report start date
+.PP
+This might be a bug, but for now: when making budget reports, it\[aq]s a
+good idea to explicitly set the report\[aq]s start date to the first day
+of a reporting period, because a periodic rule like
+\f[C]\[ti] monthly\f[R] generates its transactions on the 1st of each
+month, and if your journal has no regular transactions on the 1st, the
+default report start date could exclude that budget goal, which can be a
+little surprising.
+Eg here the default report period is just the day of 2020-01-15:
+.IP
+.nf
+\f[C]
+\[ti] monthly in 2020
+  (expenses:food)  $500
+
+2020-01-15
+  expenses:food    $400
+  assets:checking
+\f[R]
+.fi
+.IP
+.nf
+\f[C]
+$ hledger bal expenses --budget
+Budget performance in 2020-01-15:
+
+              || 2020-01-15 
+==============++============
+ <unbudgeted> ||       $400 
+--------------++------------
+              ||       $400 
+\f[R]
+.fi
+.PP
+To avoid this, specify the budget report\[aq]s period, or at least the
+start date, with \f[C]-b\f[R]/\f[C]-e\f[R]/\f[C]-p\f[R]/\f[C]date:\f[R],
+to ensure it includes the budget goal transactions (periodic
+transactions) that you want.
+Eg, adding \f[C]-b 2020/1/1\f[R] to the above:
+.IP
+.nf
+\f[C]
+$ hledger bal expenses --budget -b 2020/1/1
+Budget performance in 2020-01-01..2020-01-15:
+
+               || 2020-01-01..2020-01-15 
+===============++========================
+ expenses:food ||     $400 [80% of $500] 
+---------------++------------------------
+               ||     $400 [80% of $500] 
+\f[R]
+.fi
 .SS Nested budgets
 .PP
 You can add budgets to any account in your account hierarchy.
