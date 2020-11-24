@@ -1,7 +1,27 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 3662977c
+# 255d4753
+
+- csv, timedot, timeclock files now respect command line --alias options,
+  like journal files.  (#859)
+
+- Market price lookup for value reports is now more robust, fixing several bugs
+  (and debug output is more informative).
+  There has been a slight change in functionality: when chaining prices,
+  we now prefer chains of all "forward" prices, even if longer, with chains
+  involving reverse prices being the last resort.
+  (#1402)
+
+- bal: improve budget, MultiBalanceReport debug output
+  Comply with debug levels policy, clarify some labels.
+
+- bal: support CSV output for --budget reports (#1155)
+
+- roi: TWR now handles same-day pnl changes and cashflows,
+  calculation failure messages have been improved, and
+  the documentation includes more detail and examples.
+  (#1398) (Dmitry Astapov)
 
 ## general
 

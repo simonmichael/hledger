@@ -1,7 +1,11 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 3662977c
+# 255d4753
+
+- added: journalApplyAliases, transactionApplyAliases, postingApplyAliases
+
+- a new more robust price lookup implementation, fgl library dropped (#1402)
 
 - Reverted a stripAnsi change in 1.19.1 that caused a 3x slowdown of amount rendering 
   in terminal reports. (#1350)

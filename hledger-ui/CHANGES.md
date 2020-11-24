@@ -1,7 +1,9 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 3662977c
+# 9730b69a
+
+
 
 - When entering a query with `/`, malformed queries/regular expressions
   no longer cause the program to exit. (Stephen Morgan)
