@@ -162,13 +162,20 @@ regexMatch = matchTest
 
 -- | A memoising version of regexReplace. Caches the result for each
 -- search pattern, replacement pattern, target string tuple.
+-- This won't generate a regular expression parsing error since that
+-- is pre-compiled nowadays, but there can still be a runtime error 
+-- from the replacement pattern, eg with a backreference referring 
+-- to a nonexistent match group.
 regexReplace :: Regexp -> Replacement -> String -> Either RegexError String
 regexReplace re repl = memo $ regexReplaceUnmemo re repl
 
 -- helpers:
 
 -- Replace this regular expression with this replacement pattern in this
--- string, or return an error message.
+-- string, or return an error message. (There should be no regexp
+-- parsing errors these days since Regexp's compiled form is used,
+-- but there can still be a runtime error from the replacement
+-- pattern, eg a backreference referring to a nonexistent match group.)
 regexReplaceUnmemo :: Regexp -> Replacement -> String -> Either RegexError String
 regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reCompiled re) s :: [MatchText String])
   where
@@ -190,7 +197,7 @@ regexReplaceUnmemo re repl s = foldM (replaceMatch repl) s (reverse $ match (reC
             -- return the referenced group text, or an error message.
             lookupMatchGroup :: MatchText String -> String -> Either RegexError String
             lookupMatchGroup grps ('\\':s@(_:_)) | all isDigit s =
-              case read s of n | n `elem` indices grps -> Right $ fst (grps ! n)
+              case read s of n | n `elem` indices grps -> Right $ fst (grps ! n)  -- PARTIAL: should not fail, all digits
                              _                         -> Left $ "no match group exists for backreference \"\\"++s++"\""
             lookupMatchGroup _ s = Left $ "lookupMatchGroup called on non-numeric-backreference \""++s++"\", shouldn't happen"
     backrefRegex = toRegex' "\\\\[0-9]+"  -- PARTIAL: should not fail
