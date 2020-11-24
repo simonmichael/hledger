@@ -28,19 +28,18 @@ module Hledger.Data.Valuation (
 where
 
 import Control.Applicative ((<|>))
-import Data.Decimal (roundTo)
+import Data.Foldable (asum)
 import Data.Function ((&), on)
-import Data.Graph.Inductive  (Gr, Node, NodeMap, mkMapGraph, mkNode, lab, out, sp)
-import Data.List
+import Data.List ( (\\), sortBy )
 import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Maybe
+import Data.Maybe ( fromMaybe )
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian)
 import Data.MemoUgly (memo)
 import GHC.Generics (Generic)
-import Safe (headMay)
+import Safe (lastMay)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -61,31 +60,6 @@ data ValuationType =
   | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices on some date
   | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
   deriving (Show,Eq)
-
--- | A snapshot of the known exchange rates between commodity pairs at a given date,
--- as a graph allowing fast lookup and path finding, along with some helper data.
-data PriceGraph = PriceGraph {
-   prGraph   :: Gr CommoditySymbol Quantity
-    -- ^ A directed graph of exchange rates between commodity pairs.
-    -- Node labels are commodities and edge labels are exchange rates,
-    -- which were either:
-    -- declared by P directives,
-    -- inferred from transaction prices,
-    -- inferred by reversing a declared rate,
-    -- or inferred by reversing a transaction-inferred rate.
-    -- There will be at most one edge between each directed pair of commodities,
-    -- eg there can be one USD->EUR and one EUR->USD.
-  ,prNodemap :: NodeMap CommoditySymbol
-    -- ^ Mapping of graph node ids to commodity symbols.
-  ,prDefaultValuationCommodities :: M.Map CommoditySymbol CommoditySymbol
-    -- ^ The default valuation commodity for each source commodity.
-    --   These are used when a valuation commodity is not specified
-    --   (-V). They are the destination commodity of the latest
-    --   (declared or inferred, but not reverse) each
-    --   source commodity's latest market price (on the date of this
-    --   graph).
-  }
-  deriving (Show,Generic)
 
 -- | A price oracle is a magic memoising function that efficiently
 -- looks up market prices (exchange rates) from one commodity to
@@ -229,11 +203,11 @@ priceLookup :: (Day -> PriceGraph) -> Day -> CommoditySymbol -> Maybe CommodityS
 priceLookup makepricegraph d from mto =
   -- trace ("priceLookup ("++show d++", "++show from++", "++show mto++")") $
   let
-    -- build a graph of the commodity exchange rates in effect on this day
-    -- XXX should hide these fgl details better
-    PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests} =
+    PriceGraph{pgEdges=forwardprices
+              ,pgEdgesRev=allprices
+              ,pgDefaultValuationCommodities=defaultdests
+              } =
       traceAt 1 ("valuation date: "++show d) $ makepricegraph d
-    fromnode = node m from
     mto' = mto <|> mdefaultto
       where
         mdefaultto = dbg1 ("default valuation commodity for "++T.unpack from) $
@@ -243,25 +217,15 @@ priceLookup makepricegraph d from mto =
       Nothing            -> Nothing
       Just to | to==from -> Nothing
       Just to            ->
-        -- We have a commodity to convert to. Find the most direct price available.
-        case mindirectprice of
+        -- We have a commodity to convert to. Find the most direct price available,
+        -- according to the rules described in makePriceGraph.
+        case 
+          pricesShortestPath forwardprices from to <|> 
+          pricesShortestPath allprices     from to 
+        of
           Nothing -> Nothing
-          Just q  -> Just (to, q)
-        where
-          tonode = node m to
-          mindirectprice :: Maybe Quantity =
-            -- Find the shortest path, if any, between from and to.
-            case dbg9 "shortest price path" $ sp fromnode tonode g :: Maybe [Node] of
-              Nothing    -> Nothing
-              Just nodes ->
-                dbg ("market price for "++intercalate " -> " (map T.unpack comms)) $
-                  -- TODO: it would be nice to include price date as part of the label
-                  -- in PriceGraph, so we could show the dates of market prices here
-                Just $ product $ pathEdgeLabels g nodes  -- convert to a single exchange rate
-                where comms = catMaybes $ map (lab g) nodes
-
-          -- log a message and a Maybe Quantity, hiding Just/Nothing and limiting decimal places
-          dbg msg = dbg1With (((msg++": ")++) . maybe "" (show . roundTo 8))
+          Just [] -> Nothing
+          Just ps -> Just (mpto $ last ps, product $ map mprate ps)
 
 tests_priceLookup =
   let
@@ -280,13 +244,85 @@ tests_priceLookup =
     priceLookup makepricegraph (fromGregorian 2000 01 01) "B" (Just "A") @?= Just ("A",0.1)
     priceLookup makepricegraph (fromGregorian 2000 01 01) "A" (Just "E") @?= Just ("E",500)
 
+------------------------------------------------------------------------------
+-- Market price graph
+
+type Edge = MarketPrice
+type Path = [Edge]
+
+data PriceGraph = PriceGraph {
+   pgDate :: Day
+    -- ^ The date on which these prices are in effect.
+  ,pgEdges :: [Edge]
+    -- ^ "Forward" exchange rates between commodity pairs, either
+    --   declared by P directives or inferred from transaction prices,
+    --   forming the edges of a directed graph.  
+  ,pgEdgesRev :: [Edge]
+    -- ^ The same edges, plus any additional edges that can be
+    --   inferred by reversing them and inverting the rates.
+    --
+    --   In both of these there will be at most one edge between each
+    --   directed pair of commodities, eg there can be one USD->EUR and one EUR->USD.
+  ,pgDefaultValuationCommodities :: M.Map CommoditySymbol CommoditySymbol
+    -- ^ The default valuation commodity for each source commodity.
+    --   These are used when a valuation commodity is not specified
+    --   (-V). They are the destination commodity of each source commodity's
+    --   latest (declared or inferred, but not reverse) market price
+    --   (on the date of this graph).
+  }
+  deriving (Show,Generic)
+
+-- | Find the shortest path and corresponding conversion rate, if any, 
+-- from one commodity to another using the provided market prices which
+-- form the edges of a directed graph. There should be at most one edge
+-- between each directed pair of commodities, eg there can be one
+-- USD->EUR price and one EUR->USD price.
+pricesShortestPath :: [Edge] -> CommoditySymbol -> CommoditySymbol -> Maybe Path
+pricesShortestPath edges start end =
+  dbg1 ("shortest price path for "++T.unpack start++" -> "++T.unpack end) $ 
+  asum $ map (findPath end edgesremaining) initialpaths
+  where
+    initialpaths = dbg9 "initial price paths" $ [[p] | p <- edges, mpfrom p == start]
+    edgesremaining = dbg9 "initial edges remaining" $ edges \\ concat initialpaths
+
+-- Helper: breadth-first search for a continuation of the given path
+-- using zero or more of the given edges, to the specified end commodity.
+-- Returns the first & shortest complete path found, or Nothing.
+findPath :: CommoditySymbol -> [Edge] -> Path -> Maybe Path
+findPath end _ path | mpathend == Just end = Just path  -- path is complete
+  where 
+    mpathend = mpto <$> lastMay path
+findPath _ [] _ = Nothing   -- no more edges are available
+findPath end edgesremaining path =   -- try continuing with all the remaining edges
+  asum [ 
+      findPath end edgesremaining' path'
+    | e <- nextedges
+    , let path' = path++[e]
+    , let edgesremaining' = filter (/=e) edgesremaining
+    ]
+  where
+    nextedges = [ e | e <- edgesremaining, Just (mpfrom e) == mpathend ]
+      where
+        mpathend = mpto <$> lastMay path
+
+-- | A snapshot of the known exchange rates between commodity pairs at a given date.
+-- This is a home-made version, more tailored to our needs.
 -- | Build the graph of commodity conversion prices for a given day.
 -- Converts a list of declared market prices in parse order, and a
--- list of transaction-inferred market prices in parse order, to a
--- graph of all known exchange rates between commodity pairs in effect
--- on that day. Cf hledger.m4.md -> Valuation:
+-- list of transaction-inferred market prices in parse order, to:
 --
--- hledger looks for a market price (exchange rate) from commodity A
+-- 1. a graph of all known exchange rates declared or inferred from 
+-- one commodity to another in effect on that day
+--
+-- 2. a second graph which includes any additional exchange rates
+-- that can be inferred by reversing known rates
+--
+-- 3. a map of each commodity's default valuation commodity, if any.
+--
+-- These allow price lookup and valuation to be performed as
+-- described in hledger.m4.md -> Valuation:
+--
+-- "hledger looks for a market price (exchange rate) from commodity A
 -- to commodity B in one or more of these ways, in this order of
 -- preference:
 --
@@ -298,15 +334,15 @@ tests_priceLookup =
 -- 2. A *reverse market price*:
 --    the inverse of a declared or inferred market price from B to A.
 -- 
--- 3. A *chained market price*:
---    a synthetic price formed by combining the shortest chain of market
---    prices (any of the above types) leading from A to B.
+-- 3. A *a forward chain of market prices*:
+--    a synthetic price formed by combining the shortest chain of
+--    "forward" (only 1 above) market prices, leading from A to B.
 --
--- 1 and 2 form the edges of the price graph, and we can query it for
--- 3 (which is the reason we use a graph).
+-- 4. A *any chain of market prices*:
+--    a chain of any market prices, including both forward and
+--    reverse prices (1 and 2 above), leading from A to B."
 --
--- We also identify each commodity's default valuation commodity, if
--- any. For each commodity A, hledger picks a default valuation
+-- and: "For each commodity A, hledger picks a default valuation
 -- commodity as follows, in this order of preference:
 --
 -- 1. The price commodity from the latest declared market price for A
@@ -318,35 +354,31 @@ tests_priceLookup =
 --
 -- 3. If there are no P directives at all (any commodity or date), and
 --    the `--infer-value` flag is used, then the price commodity from
---    the latest transaction price for A on or before valuation date.
+--    the latest transaction price for A on or before valuation date."
 --
 makePriceGraph :: [MarketPrice] -> [MarketPrice] -> Day -> PriceGraph
 makePriceGraph alldeclaredprices allinferredprices d =
   dbg9 ("makePriceGraph "++show d) $
-  PriceGraph{prGraph=g, prNodemap=m, prDefaultValuationCommodities=defaultdests}
+  PriceGraph{
+     pgDate = d
+    ,pgEdges=forwardprices
+    ,pgEdgesRev=allprices
+    ,pgDefaultValuationCommodities=defaultdests
+    }
   where
     -- prices in effect on date d, either declared or inferred
     visibledeclaredprices = dbg2 "visibledeclaredprices" $ filter ((<=d).mpdate) alldeclaredprices
     visibleinferredprices = dbg2 "visibleinferredprices" $ filter ((<=d).mpdate) allinferredprices
-    declaredandinferredprices = effectiveMarketPrices visibledeclaredprices visibleinferredprices
+    forwardprices = effectiveMarketPrices visibledeclaredprices visibleinferredprices
 
     -- infer any additional reverse prices not already declared or inferred
     reverseprices = dbg2 "additional reverse prices" $
-      [p | p@MarketPrice{..} <- map marketPriceReverse declaredandinferredprices
+      [p | p@MarketPrice{..} <- map marketPriceReverse forwardprices
          , not $ (mpfrom,mpto) `S.member` forwardpairs
       ]
       where
-        forwardpairs = S.fromList [(mpfrom,mpto) | MarketPrice{..} <- declaredandinferredprices]
-
-    -- build the graph and associated node map
-    (g, m) =
-      mkMapGraph
-      (dbg9 "price graph labels" $ sort allcomms) -- this must include all nodes mentioned in edges
-      (dbg9 "price graph edges" $ [(mpfrom, mpto, mprate) | MarketPrice{..} <- prices])
-      :: (Gr CommoditySymbol Quantity, NodeMap CommoditySymbol)
-      where
-        prices   = dbg2 "prices used as price graph edges" $ declaredandinferredprices ++ reverseprices
-        allcomms = map mpfrom prices
+        forwardpairs = S.fromList [(mpfrom,mpto) | MarketPrice{..} <- forwardprices]
+    allprices = forwardprices ++ reverseprices
 
     -- determine a default valuation commodity for each source commodity
     -- somewhat but not quite like effectiveMarketPrices
@@ -388,31 +420,6 @@ effectiveMarketPrices declaredprices inferredprices =
 marketPriceReverse :: MarketPrice -> MarketPrice
 marketPriceReverse mp@MarketPrice{..} = 
   mp{mpfrom=mpto, mpto=mpfrom, mprate=if mprate==0 then 0 else 1/mprate}  -- PARTIAL: /
-
-------------------------------------------------------------------------------
--- fgl helpers
-
--- | Look up an existing graph node by its label.
--- (If the node does not exist, a new one will be generated, but not
--- persisted in the nodemap.)
-node :: Ord a => NodeMap a -> a -> Node
-node m = fst . fst . mkNode m
-
--- | Convert a valid path within the given graph to the corresponding
--- edge labels. When there are multiple edges between two nodes, the
--- lowest-sorting label is used.
-pathEdgeLabels :: (Show b, Ord b) => Gr a b -> [Node] -> [b]
-pathEdgeLabels g = map frommaybe . map (nodesEdgeLabel g) . pathEdges
-  where frommaybe = fromMaybe (error' "pathEdgeLabels: expected no Nothings here")  -- PARTIAL:
-
--- | Convert a path to node pairs representing the path's edges.
-pathEdges :: [Node] -> [(Node,Node)]
-pathEdges p = [(f,t) | f:t:_ <- tails p]
-
--- | Get the label of a graph edge from one node to another.
--- When there are multiple such edges, the lowest-sorting label is used.
-nodesEdgeLabel :: Ord b => Gr a b -> (Node, Node) -> Maybe b
-nodesEdgeLabel g (from,to) = headMay $ sort [l | (_,t,l) <- out g from, t==to]
 
 nullmarketprice :: MarketPrice
 nullmarketprice = MarketPrice {

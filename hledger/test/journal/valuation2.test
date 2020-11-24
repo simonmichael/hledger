@@ -291,13 +291,13 @@ $ hledger -f- bal -N -e 2020-11-20 -X A
               A 3.00  a
 
 # 29. #1402 It should pick the direct B->A price here, not the indirect B->C->A price.
-# <
-# 2020-11-10
-#     (a)  B 1.00
+<
+2020-11-10
+    (a)  B 1.00
 
-# P 2020-11-01 B C 2
-# P 2020-11-02 C A 3
-# P 2020-11-03 B A 5
+P 2020-11-01 B C 2
+P 2020-11-02 C A 3
+P 2020-11-03 B A 5
 
-# $ hledger -f- bal -N -e 2020-11-20 -X A
-#                  A 5  a
+$ hledger -f- bal -N -e 2020-11-20 -X A
+                 A 5  a

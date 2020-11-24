@@ -1196,23 +1196,27 @@ valued on the last day of the period, by default.
 To convert a commodity A to its market value in another commodity B,
 hledger looks for a suitable market price (exchange rate) as follows,
 in this order of preference
-<!-- (-X tries all of these; -V tries only 1) -->
+<!-- (-X tries all of these; -V tries only 1) (really ?) -->
 :
 
 1. A *declared market price* or *inferred market price*:
    A's latest market price in B on or before the valuation date
-   as declared by a [P directive](journal.html#declaring-market-prices),
-   or (if the `--infer-value` flag is used)
+   as declared by a [P directive](journal.html#declaring-market-prices), 
+   or (with the `--infer-value` flag)
    inferred from [transaction prices](journal.html#transaction-prices).
    <!-- (Latest by date, then parse order.) -->
    <!-- (A declared price overrides an inferred price on the same date.) -->
-
+  
 2. A *reverse market price*:
    the inverse of a declared or inferred market price from B to A.
 
-3. A *chained market price*:
-   a synthetic price formed by combining the shortest chain of market
-   prices (any of the above types) leading from A to B.
+3. A *a forward chain of market prices*:
+   a synthetic price formed by combining the shortest chain of
+   "forward" (only 1 above) market prices, leading from A to B.
+
+4. A *any chain of market prices*:
+   a chain of any market prices, including both forward and
+   reverse prices (1 and 2 above), leading from A to B.
 
 Amounts for which no applicable market price can be found, are not converted.
 
