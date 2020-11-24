@@ -926,7 +926,7 @@ $  ./csvtest.sh
 
 >=
 
-# 46. 
+# 46. decimal-mark again
 <
 2020-01-01,"1,000"
 2020-01-02,"1.000"
@@ -946,6 +946,19 @@ $  ./csvtest.sh
 
 >=
 
+# 47. Account aliases work when reading from CSV.
+<
+2020-01-01,10
+
+RULES
+fields date,amount
+
+$  ./csvtest.sh --alias expenses=FOO
+2020-01-01
+    FOO:unknown                 10
+    income:unknown             -10
+
+>=
 
 ## . 
 #<

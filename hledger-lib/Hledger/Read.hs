@@ -32,7 +32,6 @@ module Hledger.Read (
   readJournal',
 
   -- * Re-exported
-  JournalReader.accountaliasp,
   JournalReader.postingp,
   findReader,
   splitReaderPrefix,

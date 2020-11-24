@@ -179,11 +179,6 @@ parse iopts = parseAndFinaliseJournal journalp' iopts
       mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts)
       journalp
 
--- | Get the account name aliases from options, if any.
-aliasesFromOpts :: InputOpts -> [AccountAlias]
-aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
-                  . aliases_
-
 --- ** parsers
 --- *** journal
 
@@ -504,34 +499,6 @@ aliasdirectivep = do
   lift skipNonNewlineSpaces1
   alias <- lift accountaliasp
   addAccountAlias alias
-
-accountaliasp :: TextParser m AccountAlias
-accountaliasp = regexaliasp <|> basicaliasp
-
-basicaliasp :: TextParser m AccountAlias
-basicaliasp = do
-  -- dbgparse 0 "basicaliasp"
-  old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
-  char '='
-  skipNonNewlineSpaces
-  new <- rstrip <$> anySingle `manyTill` eolof  -- eol in journal, eof in command lines, normally
-  return $ BasicAlias (T.pack old) (T.pack new)
-
-regexaliasp :: TextParser m AccountAlias
-regexaliasp = do
-  -- dbgparse 0 "regexaliasp"
-  char '/'
-  off1 <- getOffset
-  re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
-  off2 <- getOffset
-  char '/'
-  skipNonNewlineSpaces
-  char '='
-  skipNonNewlineSpaces
-  repl <- anySingle `manyTill` eolof
-  case toRegexCI re of
-    Right r -> return $! RegexAlias r repl
-    Left e  -> customFailure $! parseErrorAtRegion off1 off2 e
 
 endaliasesdirectivep :: JournalParser m ()
 endaliasesdirectivep = do

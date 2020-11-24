@@ -75,6 +75,9 @@ module Hledger.Read.Common (
   modifiedaccountnamep,
   accountnamep,
 
+  -- ** account aliases
+  accountaliasp,
+
   -- ** amounts
   spaceandamountormissingp,
   amountp,
@@ -103,9 +106,9 @@ module Hledger.Read.Common (
   singlespacedtextp,
   singlespacedtextsatisfyingp,
   singlespacep,
-
   skipNonNewlineSpaces,
   skipNonNewlineSpaces1,
+  aliasesFromOpts,
 
   -- * tests
   tests_Common,
@@ -279,6 +282,7 @@ parseAndFinaliseJournal parser iopts f txt = do
                   Right pj -> journalFinalise iopts f txt pj
 
 -- | Like parseAndFinaliseJournal but takes a (non-Erroring) JournalParser.
+-- Also, applies command-line account aliases before finalising.
 -- Used for timeclock/timedot.
 -- TODO: get rid of this, use parseAndFinaliseJournal instead
 parseAndFinaliseJournal' :: JournalParser IO ParsedJournal -> InputOpts
@@ -292,7 +296,10 @@ parseAndFinaliseJournal' parser iopts f txt = do
   -- see notes above
   case ep of
     Left e   -> throwError $ customErrorBundlePretty e
-    Right pj -> journalFinalise iopts f txt pj
+    Right pj -> journalFinalise iopts f txt $
+                -- apply any command line account aliases. Can fail with a bad replacement pattern.
+                journalApplyAliases (aliasesFromOpts iopts) $  -- PARTIAL:
+                pj
 
 -- | Post-process a Journal that has just been parsed or generated, in this order:
 --
@@ -1370,6 +1377,39 @@ bracketeddatetagsp mYear1 = do
     isBracketedDateChar c = isDigit c || isDateSepChar c || c == '='
 
 {-# INLINABLE bracketeddatetagsp #-}
+
+-- | Get the account name aliases from options, if any.
+aliasesFromOpts :: InputOpts -> [AccountAlias]
+aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
+                  . aliases_
+
+accountaliasp :: TextParser m AccountAlias
+accountaliasp = regexaliasp <|> basicaliasp
+
+basicaliasp :: TextParser m AccountAlias
+basicaliasp = do
+  -- dbgparse 0 "basicaliasp"
+  old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
+  char '='
+  skipNonNewlineSpaces
+  new <- rstrip <$> anySingle `manyTill` eolof  -- eol in journal, eof in command lines, normally
+  return $ BasicAlias (T.pack old) (T.pack new)
+
+regexaliasp :: TextParser m AccountAlias
+regexaliasp = do
+  -- dbgparse 0 "regexaliasp"
+  char '/'
+  off1 <- getOffset
+  re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
+  off2 <- getOffset
+  char '/'
+  skipNonNewlineSpaces
+  char '='
+  skipNonNewlineSpaces
+  repl <- anySingle `manyTill` eolof
+  case toRegexCI re of
+    Right r -> return $! RegexAlias r repl
+    Left e  -> customFailure $! parseErrorAtRegion off1 off2 e
 
 --- ** tests
 

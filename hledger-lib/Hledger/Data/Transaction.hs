@@ -33,6 +33,7 @@ module Hledger.Data.Transaction (
   transactionTransformPostings,
   transactionApplyValuation,
   transactionToCost,
+  transactionApplyAliases,
   -- nonzerobalanceerror,
   -- * date operations
   transactionDate2,
@@ -590,6 +591,12 @@ transactionApplyValuation priceoracle styles periodlast mreportlast today ismult
 -- | Convert this transaction's amounts to cost, and apply the appropriate amount styles.
 transactionToCost :: M.Map CommoditySymbol AmountStyle -> Transaction -> Transaction
 transactionToCost styles t@Transaction{tpostings=ps} = t{tpostings=map (postingToCost styles) ps}
+
+-- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
+-- This can raise an error arising from a bad replacement pattern in a regular expression alias.
+transactionApplyAliases :: [AccountAlias] -> Transaction -> Transaction
+transactionApplyAliases aliases t =
+  txnTieKnot $ t{tpostings = map (postingApplyAliases aliases) $ tpostings t}  -- PARTIAL:
 
 -- tests
 

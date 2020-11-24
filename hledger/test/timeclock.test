@@ -22,6 +22,19 @@ $ hledger -f timeclock:- print
 >2
 >= 0
 
+# Command-line account aliases are applied.
+$ hledger -ftimeclock:- print --alias '/account/=FOO'
+2009-01-01 * 08:00-09:00
+    ()           1.00h
+
+2009-01-02 * 08:00-09:00
+    (FOO name)           1.00h
+
+2009-01-03 * and a description
+    (some:FOO name)           1.00h
+
+>= 0
+
 # For a missing clock-out, now is implied
 <
 i 2020/1/1 08:00

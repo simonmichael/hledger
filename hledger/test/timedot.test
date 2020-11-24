@@ -29,3 +29,9 @@ $ hledger -ftimedot:- print
 
 >=0
 
+# 3. Command-line account aliases are applied.
+$ hledger -ftimedot:- print --alias a=b
+2020-01-01 *
+    (b:aa)            1.00
+
+>=0

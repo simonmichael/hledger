@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 {-|
 
 A 'Posting' represents a change (by some 'MixedAmount') of the balance in
@@ -37,6 +38,7 @@ module Hledger.Data.Posting (
   transactionAllTags,
   relatedPostings,
   removePrices,
+  postingApplyAliases,
   -- * date operations
   postingDate,
   postingDate2,
@@ -287,6 +289,16 @@ joinAccountNames a b = concatAccountNames $ filter (not . T.null) [a,b]
 concatAccountNames :: [AccountName] -> AccountName
 concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map accountNameWithoutPostingType as
     where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
+
+-- | Apply some account aliases to the posting's account name, as described by accountNameApplyAliases.
+-- This can raise an error arising from a bad replacement pattern in a regular expression alias.
+postingApplyAliases :: [AccountAlias] -> Posting -> Posting
+postingApplyAliases aliases p@Posting{paccount} =
+  case accountNameApplyAliases aliases paccount of
+    Right a -> p{paccount=a}
+    Left e  -> error' err  -- PARTIAL:
+      where
+        err = "problem in account aliases:\n" ++ pshow aliases ++ "\n applied to account name: "++T.unpack paccount++"\n "++e
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
 -- Each alias sees the result of applying the previous aliases.

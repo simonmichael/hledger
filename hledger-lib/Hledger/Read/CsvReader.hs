@@ -78,7 +78,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common ( Reader(..),InputOpts(..), amountp, statusp, genericSourcePos, journalFinalise )
+import Hledger.Read.Common (aliasesFromOpts,  Reader(..),InputOpts(..), amountp, statusp, genericSourcePos, journalFinalise )
 
 --- ** doctest setup
 -- $setup
@@ -108,13 +108,15 @@ parse iopts f t = do
   let rulesfile = mrules_file_ iopts
   r <- liftIO $ readJournalFromCsv rulesfile f t
   case r of Left e   -> throwError e
-            Right pj -> journalFinalise iopts{ignore_assertions_=True} f t pj'
+            Right pj -> journalFinalise iopts{ignore_assertions_=True} f t pj''
               where
                 -- journalFinalise assumes the journal's items are
                 -- reversed, as produced by JournalReader's parser.
                 -- But here they are already properly ordered. So we'd
                 -- better preemptively reverse them once more. XXX inefficient
                 pj' = journalReverse pj
+                -- apply any command line account aliases. Can fail with a bad replacement pattern.
+                pj'' = journalApplyAliases (aliasesFromOpts iopts)  pj'  -- PARTIAL:
 
 --- ** reading rules files
 --- *** rules utilities

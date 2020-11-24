@@ -79,6 +79,7 @@ module Hledger.Data.Journal (
   journalNumberAndTieTransactions,
   journalUntieTransactions,
   journalModifyTransactions,
+  journalApplyAliases,
   -- * Tests
   samplejournal,
   tests_Journal,
@@ -1226,6 +1227,11 @@ postingPivot fieldortagname p = p{paccount = pivotedacct, poriginal = Just $ ori
 postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
 
+-- | Apply some account aliases to all posting account names in the journal, as described by accountNameApplyAliases.
+-- This can raise an error arising from a bad replacement pattern in a regular expression alias.
+journalApplyAliases :: [AccountAlias] -> Journal -> Journal
+journalApplyAliases aliases j = j{jtxns = map (transactionApplyAliases aliases) $ jtxns j}  -- PARTIAL:
+  
 -- -- | Build a database of market prices in effect on the given date,
 -- -- from the journal's price directives.
 -- journalPrices :: Day -> Journal -> Prices

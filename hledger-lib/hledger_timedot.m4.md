@@ -147,7 +147,7 @@ fos.hledger.timedot  4
 fos.ledger           ..
 ```
 ```shell
-$ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
+$ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4 --tree
                 4.50  fos
                 4.00    hledger:timedot
                 0.50    ledger
