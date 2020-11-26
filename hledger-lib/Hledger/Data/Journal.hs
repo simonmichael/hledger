@@ -1230,6 +1230,8 @@ postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
 -- | Apply some account aliases to all posting account names in the journal, as described by accountNameApplyAliases.
 -- This can fail due to a bad replacement pattern in a regular expression alias.
 journalApplyAliases :: [AccountAlias] -> Journal -> Either RegexError Journal
+-- short circuit the common case, just in case there's a performance impact from txnTieKnot etc.
+journalApplyAliases [] j = Right j
 journalApplyAliases aliases j = 
   case mapM (transactionApplyAliases aliases) $ jtxns j of
     Right ts -> Right j{jtxns = ts}
