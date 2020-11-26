@@ -761,6 +761,22 @@ If you need either of those things, you can
 - use a single parent file which [includes](journal.html#including-other-files) the others
 - or concatenate the files into one before reading, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
+## Strict mode
+
+hledger checks input files for valid data.
+By default, the most important errors are detected, while still accepting
+easy journal files without a lot of declarations:
+
+- Are the input files parseable, with valid syntax ?
+- Are all transactions balanced ?
+- Do all balance assertions pass ?
+
+With the `-s`/`--strict` flag, additional checks are performed:
+
+- Are all accounts referenced by transactions declared with an account directive ?
+
+*experimental.*
+
 ## Output destination
 
 hledger commands send their output to the terminal by default.

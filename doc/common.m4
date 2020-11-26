@@ -90,6 +90,9 @@ m4_define({{_inputoptions_}}, {{
 `-I --ignore-assertions`
 : disable balance assertion checks (note: does not disable balance assignments)
 
+`-s --strict`
+: do extra error checking (check that all posted accounts are declared)
+
 }} )m4_dnl
 m4_dnl
 m4_define({{_reportingoptions_}}, {{

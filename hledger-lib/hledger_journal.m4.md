@@ -1046,23 +1046,44 @@ in another commodity. See [Valuation](hledger.html#valuation).
 
 ### Declaring accounts
 
-`account` directives can be used to pre-declare accounts.
-Though not required, they can provide several benefits:
+`account` directives can be used to declare accounts 
+(ie, the places that amounts are transferred from and to).
+Though not required, these declarations can provide several benefits:
 
 - They can document your intended chart of accounts, providing a reference.
-- They can store extra information about accounts (account numbers, notes, etc.)
 - They can help hledger know your accounts' types (asset, liability, equity, revenue, expense),
   useful for reports like balancesheet and incomestatement.
 - They control account display order in reports, allowing non-alphabetic sorting
   (eg Revenues to appear above Expenses).
+- They can store extra information about accounts (account numbers, notes, etc.)
 - They help with account name completion
   in the add command, hledger-iadd, hledger-web, ledger-mode etc.
+- In [strict mode], they restrict which accounts may be posted to by transactions,
+  which helps detect typos.
+
+[strict mode]: hledger.html#strict-mode
 
 The simplest form is just the word `account` followed by a hledger-style
-[account name](journal.html#account-names), eg:
+[account name](journal.html#account-names), eg this account directive declares the `assets:bank:checking` account: 
+
 ```journal
 account assets:bank:checking
 ```
+
+#### Account existence
+
+By default, accounts come into existence when a transaction references them. 
+This is convenient, but when you mis-spell an account name in a transaction, 
+hledger won't be able to detect it. Usually this isn't a big problem, as you'll 
+notice the error in balance reports, or when reconciling account balances.
+
+When you want more error checking, you can enable [strict mode] with the `-s`/`--strict` flag. Then hledger will will report an error if any transaction references
+an account that has not been declared by an account directive. Some things to note:
+
+- The declaration is case-sensitive; transactions must use the correct account name capitalisation.
+- The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
+- Accounts can only be declared in `journal` files (but will affect included files in other formats).
+- It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
 
 #### Account comments
 

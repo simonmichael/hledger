@@ -125,6 +125,7 @@ inputflags = [
  ,flagNone ["anon"]          (setboolopt "anon") "anonymize accounts and payees"
  ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use some other field/tag for account names"
  ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "ignore any balance assertions"
+ ,flagNone ["strict","s"]    (setboolopt "strict") "do extra error checking (check that all posted accounts are declared)"
  ]
 
 -- | Common report-related flags: --period, --cost, etc.
