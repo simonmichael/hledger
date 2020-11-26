@@ -566,6 +566,9 @@ use some other field or tag for the account name
 \f[B]\f[CB]-I --ignore-assertions\f[B]\f[R]
 disable balance assertion checks (note: does not disable balance
 assignments)
+.TP
+\f[B]\f[CB]-s --strict\f[B]\f[R]
+do extra error checking (check that all posted accounts are declared)
 .PP
 General reporting options:
 .TP
@@ -1060,6 +1063,25 @@ use a single parent file which includes the others
 .IP \[bu] 2
 or concatenate the files into one before reading, eg:
 \f[C]cat a.journal b.journal | hledger -f- CMD\f[R].
+.SS Strict mode
+.PP
+hledger checks input files for valid data.
+By default, the most important errors are detected, while still
+accepting easy journal files without a lot of declarations:
+.IP \[bu] 2
+Are the input files parseable, with valid syntax ?
+.IP \[bu] 2
+Are all transactions balanced ?
+.IP \[bu] 2
+Do all balance assertions pass ?
+.PP
+With the \f[C]-s\f[R]/\f[C]--strict\f[R] flag, additional checks are
+performed:
+.IP \[bu] 2
+Are all accounts referenced by transactions declared with an account
+directive ?
+.PP
+\f[I]experimental.\f[R]
 .SS Output destination
 .PP
 hledger commands send their output to the terminal by default.

@@ -1202,37 +1202,71 @@ File: hledger_journal.info,  Node: Declaring accounts,  Next: Rewriting accounts
 1.13.8 Declaring accounts
 -------------------------
 
-'account' directives can be used to pre-declare accounts.  Though not
-required, they can provide several benefits:
+'account' directives can be used to declare accounts (ie, the places
+that amounts are transferred from and to).  Though not required, these
+declarations can provide several benefits:
 
    * They can document your intended chart of accounts, providing a
      reference.
-   * They can store extra information about accounts (account numbers,
-     notes, etc.)
    * They can help hledger know your accounts' types (asset, liability,
      equity, revenue, expense), useful for reports like balancesheet and
      incomestatement.
    * They control account display order in reports, allowing
      non-alphabetic sorting (eg Revenues to appear above Expenses).
+   * They can store extra information about accounts (account numbers,
+     notes, etc.)
    * They help with account name completion in the add command,
      hledger-iadd, hledger-web, ledger-mode etc.
+   * In strict mode, they restrict which accounts may be posted to by
+     transactions, which helps detect typos.
 
    The simplest form is just the word 'account' followed by a
-hledger-style account name, eg:
+hledger-style account name, eg this account directive declares the
+'assets:bank:checking' account:
 
 account assets:bank:checking
 
 * Menu:
 
+* Account existence::
 * Account comments::
 * Account subdirectives::
 * Account types::
 * Account display order::
 
 
-File: hledger_journal.info,  Node: Account comments,  Next: Account subdirectives,  Up: Declaring accounts
+File: hledger_journal.info,  Node: Account existence,  Next: Account comments,  Up: Declaring accounts
 
-1.13.8.1 Account comments
+1.13.8.1 Account existence
+..........................
+
+By default, accounts come into existence when a transaction references
+them.  This is convenient, but when you mis-spell an account name in a
+transaction, hledger won't be able to detect it.  Usually this isn't a
+big problem, as you'll notice the error in balance reports, or when
+reconciling account balances.
+
+   When you want more error checking, you can enable strict mode with
+the '-s'/'--strict' flag.  Then hledger will will report an error if any
+transaction references an account that has not been declared by an
+account directive.  Some things to note:
+
+   * The declaration is case-sensitive; transactions must use the
+     correct account name capitalisation.
+   * The account directive's scope is "whole file and below" (see
+     directives).  This means it affects all of the current file, and
+     any files it includes, but not parent or sibling files.  The
+     position of account directives within the file does not matter,
+     though it's usual to put them at the top.
+   * Accounts can only be declared in 'journal' files (but will affect
+     included files in other formats).
+   * It's currently not possible to declare "all possible subaccounts"
+     with a wildcard; every account posted to must be declared.
+
+
+File: hledger_journal.info,  Node: Account comments,  Next: Account subdirectives,  Prev: Account existence,  Up: Declaring accounts
+
+1.13.8.2 Account comments
 .........................
 
 Comments, beginning with a semicolon, can be added:
@@ -1252,7 +1286,7 @@ account assets:bank:checking  ; same-line comment, note 2+ spaces before ;
 
 File: hledger_journal.info,  Node: Account subdirectives,  Next: Account types,  Prev: Account comments,  Up: Declaring accounts
 
-1.13.8.2 Account subdirectives
+1.13.8.3 Account subdirectives
 ..............................
 
 We also allow (and ignore) Ledger-style indented subdirectives, just for
@@ -1270,7 +1304,7 @@ account ACCTNAME  [ACCTTYPE] [;COMMENT]
 
 File: hledger_journal.info,  Node: Account types,  Next: Account display order,  Prev: Account subdirectives,  Up: Declaring accounts
 
-1.13.8.3 Account types
+1.13.8.4 Account types
 ......................
 
 hledger recognises five main types of account, corresponding to the
@@ -1349,7 +1383,7 @@ account expenses     X
 
 File: hledger_journal.info,  Node: Account display order,  Prev: Account types,  Up: Declaring accounts
 
-1.13.8.4 Account display order
+1.13.8.5 Account display order
 ..............................
 
 Account directives also set the order in which accounts are displayed,
@@ -1962,48 +1996,50 @@ Node: Declaring market prices43555
 Ref: #declaring-market-prices43750
 Node: Declaring accounts44607
 Ref: #declaring-accounts44793
-Node: Account comments45718
-Ref: #account-comments45881
-Node: Account subdirectives46305
-Ref: #account-subdirectives46500
-Node: Account types46813
-Ref: #account-types46997
-Node: Account display order50043
-Ref: #account-display-order50213
-Node: Rewriting accounts51364
-Ref: #rewriting-accounts51549
-Node: Basic aliases52306
-Ref: #basic-aliases52452
-Node: Regex aliases53156
-Ref: #regex-aliases53328
-Node: Combining aliases54047
-Ref: #combining-aliases54240
-Node: Aliases and multiple files55516
-Ref: #aliases-and-multiple-files55725
-Node: end aliases56304
-Ref: #end-aliases56461
-Node: Default parent account56562
-Ref: #default-parent-account56730
-Node: Periodic transactions57614
-Ref: #periodic-transactions57789
-Node: Periodic rule syntax59661
-Ref: #periodic-rule-syntax59867
-Node: Two spaces between period expression and description!60571
-Ref: #two-spaces-between-period-expression-and-description60890
-Node: Forecasting with periodic transactions61574
-Ref: #forecasting-with-periodic-transactions61879
-Node: Budgeting with periodic transactions63934
-Ref: #budgeting-with-periodic-transactions64173
-Node: Auto postings64582
-Ref: #auto-postings64722
-Node: Auto postings and multiple files66901
-Ref: #auto-postings-and-multiple-files67105
-Node: Auto postings and dates67314
-Ref: #auto-postings-and-dates67588
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions67763
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions68114
-Node: Auto posting tags68456
-Ref: #auto-posting-tags68671
+Node: Account existence45990
+Ref: #account-existence46151
+Node: Account comments47387
+Ref: #account-comments47576
+Node: Account subdirectives48000
+Ref: #account-subdirectives48195
+Node: Account types48508
+Ref: #account-types48692
+Node: Account display order51738
+Ref: #account-display-order51908
+Node: Rewriting accounts53059
+Ref: #rewriting-accounts53244
+Node: Basic aliases54001
+Ref: #basic-aliases54147
+Node: Regex aliases54851
+Ref: #regex-aliases55023
+Node: Combining aliases55742
+Ref: #combining-aliases55935
+Node: Aliases and multiple files57211
+Ref: #aliases-and-multiple-files57420
+Node: end aliases57999
+Ref: #end-aliases58156
+Node: Default parent account58257
+Ref: #default-parent-account58425
+Node: Periodic transactions59309
+Ref: #periodic-transactions59484
+Node: Periodic rule syntax61356
+Ref: #periodic-rule-syntax61562
+Node: Two spaces between period expression and description!62266
+Ref: #two-spaces-between-period-expression-and-description62585
+Node: Forecasting with periodic transactions63269
+Ref: #forecasting-with-periodic-transactions63574
+Node: Budgeting with periodic transactions65629
+Ref: #budgeting-with-periodic-transactions65868
+Node: Auto postings66277
+Ref: #auto-postings66417
+Node: Auto postings and multiple files68596
+Ref: #auto-postings-and-multiple-files68800
+Node: Auto postings and dates69009
+Ref: #auto-postings-and-dates69283
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions69458
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions69809
+Node: Auto posting tags70151
+Ref: #auto-posting-tags70366
 
 End Tag Table
 

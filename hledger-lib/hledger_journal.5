@@ -1332,14 +1332,12 @@ market prices to show amount values in another commodity.
 See Valuation.
 .SS Declaring accounts
 .PP
-\f[C]account\f[R] directives can be used to pre-declare accounts.
-Though not required, they can provide several benefits:
+\f[C]account\f[R] directives can be used to declare accounts (ie, the
+places that amounts are transferred from and to).
+Though not required, these declarations can provide several benefits:
 .IP \[bu] 2
 They can document your intended chart of accounts, providing a
 reference.
-.IP \[bu] 2
-They can store extra information about accounts (account numbers, notes,
-etc.)
 .IP \[bu] 2
 They can help hledger know your accounts\[aq] types (asset, liability,
 equity, revenue, expense), useful for reports like balancesheet and
@@ -1348,17 +1346,55 @@ incomestatement.
 They control account display order in reports, allowing non-alphabetic
 sorting (eg Revenues to appear above Expenses).
 .IP \[bu] 2
+They can store extra information about accounts (account numbers, notes,
+etc.)
+.IP \[bu] 2
 They help with account name completion in the add command, hledger-iadd,
 hledger-web, ledger-mode etc.
+.IP \[bu] 2
+In strict mode, they restrict which accounts may be posted to by
+transactions, which helps detect typos.
 .PP
 The simplest form is just the word \f[C]account\f[R] followed by a
-hledger-style account name, eg:
+hledger-style account name, eg this account directive declares the
+\f[C]assets:bank:checking\f[R] account:
 .IP
 .nf
 \f[C]
 account assets:bank:checking
 \f[R]
 .fi
+.SS Account existence
+.PP
+By default, accounts come into existence when a transaction references
+them.
+This is convenient, but when you mis-spell an account name in a
+transaction, hledger won\[aq]t be able to detect it.
+Usually this isn\[aq]t a big problem, as you\[aq]ll notice the error in
+balance reports, or when reconciling account balances.
+.PP
+When you want more error checking, you can enable strict mode with the
+\f[C]-s\f[R]/\f[C]--strict\f[R] flag.
+Then hledger will will report an error if any transaction references an
+account that has not been declared by an account directive.
+Some things to note:
+.IP \[bu] 2
+The declaration is case-sensitive; transactions must use the correct
+account name capitalisation.
+.IP \[bu] 2
+The account directive\[aq]s scope is \[dq]whole file and below\[dq] (see
+directives).
+This means it affects all of the current file, and any files it
+includes, but not parent or sibling files.
+The position of account directives within the file does not matter,
+though it\[aq]s usual to put them at the top.
+.IP \[bu] 2
+Accounts can only be declared in \f[C]journal\f[R] files (but will
+affect included files in other formats).
+.IP \[bu] 2
+It\[aq]s currently not possible to declare \[dq]all possible
+subaccounts\[dq] with a wildcard; every account posted to must be
+declared.
 .SS Account comments
 .PP
 Comments, beginning with a semicolon, can be added:

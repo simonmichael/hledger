@@ -127,6 +127,10 @@ before options, as shown in the synopsis above.
 
      disable balance assertion checks (note: does not disable balance
      assignments)
+'-s --strict'
+
+     do extra error checking (check that all posted accounts are
+     declared)
 
    hledger reporting options:
 
@@ -587,20 +591,20 @@ Tag Table:
 Node: Top72
 Node: OPTIONS1752
 Ref: #options1857
-Node: PERMISSIONS8861
-Ref: #permissions9000
-Node: EDITING UPLOADING DOWNLOADING10212
-Ref: #editing-uploading-downloading10393
-Node: RELOADING11227
-Ref: #reloading11361
-Node: JSON API11794
-Ref: #json-api11908
-Node: ENVIRONMENT17398
-Ref: #environment17514
-Node: FILES18247
-Ref: #files18347
-Node: BUGS18560
-Ref: #bugs18638
+Node: PERMISSIONS8956
+Ref: #permissions9095
+Node: EDITING UPLOADING DOWNLOADING10307
+Ref: #editing-uploading-downloading10488
+Node: RELOADING11322
+Ref: #reloading11456
+Node: JSON API11889
+Ref: #json-api12003
+Node: ENVIRONMENT17493
+Ref: #environment17609
+Node: FILES18342
+Ref: #files18442
+Node: BUGS18655
+Ref: #bugs18733
 
 End Tag Table
 

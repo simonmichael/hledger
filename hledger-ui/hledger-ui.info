@@ -99,6 +99,10 @@ the data.
 
      disable balance assertion checks (note: does not disable balance
      assignments)
+'-s --strict'
+
+     do extra error checking (check that all posted accounts are
+     declared)
 
    hledger reporting options:
 
@@ -517,24 +521,24 @@ Tag Table:
 Node: Top71
 Node: OPTIONS1476
 Ref: #options1573
-Node: keys5545
-Ref: #keys5640
-Node: screens9972
-Ref: #screens10077
-Node: accounts screen10167
-Ref: #accounts-screen10295
-Node: Register screen12510
-Ref: #register-screen12665
-Node: Transaction screen14662
-Ref: #transaction-screen14820
-Node: Error screen15690
-Ref: #error-screen15812
-Node: ENVIRONMENT16056
-Ref: #environment16170
-Node: FILES16977
-Ref: #files17076
-Node: BUGS17289
-Ref: #bugs17366
+Node: keys5640
+Ref: #keys5735
+Node: screens10067
+Ref: #screens10172
+Node: accounts screen10262
+Ref: #accounts-screen10390
+Node: Register screen12605
+Ref: #register-screen12760
+Node: Transaction screen14757
+Ref: #transaction-screen14915
+Node: Error screen15785
+Ref: #error-screen15907
+Node: ENVIRONMENT16151
+Ref: #environment16265
+Node: FILES17072
+Ref: #files17171
+Node: BUGS17384
+Ref: #bugs17461
 
 End Tag Table
 

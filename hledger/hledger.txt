@@ -464,6 +464,10 @@ OPTIONS
               disable balance assertion checks (note: does not disable balance
               assignments)
 
+       -s --strict
+              do extra error checking (check that all posted accounts are  de-
+              clared)
+
        General reporting options:
 
        -b --begin=DATE
@@ -488,7 +492,7 @@ OPTIONS
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set start date, end date, and/or reporting interval all at  once
+              set  start date, end date, and/or reporting interval all at once
               using period expressions syntax
 
        --date2
@@ -511,21 +515,21 @@ OPTIONS
               hide/aggregate accounts or postings more than NUM levels deep
 
        -E --empty
-              show items with zero amount, normally hidden (and vice-versa  in
+              show  items with zero amount, normally hidden (and vice-versa in
               hledger-ui/hledger-web)
 
        -B --cost
               convert amounts to their cost/selling amount at transaction time
 
        -V --market
-              convert  amounts to their market value in default valuation com-
+              convert amounts to their market value in default valuation  com-
               modities
 
        -X --exchange=COMM
               convert amounts to their market value in commodity COMM
 
        --value
-              convert amounts to cost or  market  value,  more  flexibly  than
+              convert  amounts  to  cost  or  market value, more flexibly than
               -B/-V/-X
 
        --infer-value
@@ -534,15 +538,15 @@ OPTIONS
        --auto apply automated posting rules to modify transactions.
 
        --forecast
-              generate  future  transactions  from periodic transaction rules,
-              for the next 6 months or till report end date.   In  hledger-ui,
+              generate future transactions from  periodic  transaction  rules,
+              for  the  next 6 months or till report end date.  In hledger-ui,
               also make ordinary future transactions visible.
 
        --color=WHEN (or --colour=WHEN)
-              Should  color-supporting  commands  use ANSI color codes in text
-              output.  'auto' (default): whenever stdout seems to be a  color-
-              supporting  terminal.  'always' or 'yes': always, useful eg when
-              piping output into  'less  -R'.   'never'  or  'no':  never.   A
+              Should color-supporting commands use ANSI color  codes  in  text
+              output.   'auto' (default): whenever stdout seems to be a color-
+              supporting terminal.  'always' or 'yes': always, useful eg  when
+              piping  output  into  'less  -R'.   'never'  or  'no': never.  A
               NO_COLOR environment variable overrides this.
 
        When a reporting option appears more than once in the command line, the
@@ -554,26 +558,26 @@ OPTIONS
        To see options for a particular command, including command-specific op-
        tions, run: hledger COMMAND -h.
 
-       Command-specific  options  must  be written after the command name, eg:
+       Command-specific options must be written after the  command  name,  eg:
        hledger print -x.
 
-       Additionally, if the command is an addon, you may need to put  its  op-
-       tions  after  a  double-hyphen, eg: hledger ui -- --watch.  Or, you can
+       Additionally,  if  the command is an addon, you may need to put its op-
+       tions after a double-hyphen, eg: hledger ui -- --watch.   Or,  you  can
        run the addon executable directly: hledger-ui --watch.
 
    Command arguments
-       Most hledger commands accept arguments after the  command  name,  which
+       Most  hledger  commands  accept arguments after the command name, which
        are often a query, filtering the data in some way.
 
-       You  can  save  a  set of command line options/arguments in a file, and
-       then reuse them by writing @FILENAME as a command line  argument.   Eg:
-       hledger  bal  @foo.args.   (To prevent this, eg if you have an argument
-       that begins with a literal @, precede it with --, eg:  hledger  bal  --
+       You can save a set of command line options/arguments  in  a  file,  and
+       then  reuse  them by writing @FILENAME as a command line argument.  Eg:
+       hledger bal @foo.args.  (To prevent this, eg if you  have  an  argument
+       that  begins  with  a literal @, precede it with --, eg: hledger bal --
        @ARG).
 
-       Inside  the  argument file, each line should contain just one option or
+       Inside the argument file, each line should contain just one  option  or
        argument.  Avoid the use of spaces, except inside quotes (or you'll see
-       a  confusing  error).  Between a flag and its argument, use = (or noth-
+       a confusing error).  Between a flag and its argument, use =  (or  noth-
        ing).  Bad:
 
               assets depth:2
@@ -585,7 +589,7 @@ OPTIONS
               depth:2
               -X=USD
 
-       For special characters (see below), use one less level of quoting  than
+       For  special characters (see below), use one less level of quoting than
        you would at the command prompt.  Bad:
 
               -X"$"
@@ -597,16 +601,16 @@ OPTIONS
        See also: Save frequently used options.
 
    Queries
-       One  of  hledger's strengths is being able to quickly report on precise
-       subsets of your data.  Most commands accept an optional  query  expres-
-       sion,  written  as arguments after the command name, to filter the data
-       by date, account name or other criteria.  The syntax is  similar  to  a
+       One of hledger's strengths is being able to quickly report  on  precise
+       subsets  of  your data.  Most commands accept an optional query expres-
+       sion, written as arguments after the command name, to filter  the  data
+       by  date,  account  name or other criteria.  The syntax is similar to a
        web search: one or more space-separated search terms, quotes to enclose
-       whitespace, prefixes to match specific fields, a not: prefix to  negate
+       whitespace,  prefixes to match specific fields, a not: prefix to negate
        the match.
 
-       We  do  not yet support arbitrary boolean combinations of search terms;
-       instead most commands show transactions/postings/accounts  which  match
+       We do not yet support arbitrary boolean combinations of  search  terms;
+       instead  most  commands show transactions/postings/accounts which match
        (or negatively match):
 
        o any of the description terms AND
@@ -627,31 +631,31 @@ OPTIONS
 
        o match all the other terms.
 
-       The  following  kinds  of search terms can be used.  Remember these can
+       The following kinds of search terms can be used.   Remember  these  can
        also be prefixed with not:, eg to exclude a particular subaccount.
 
        REGEX, acct:REGEX
-              match account names by this regular expression.  (With  no  pre-
+              match  account  names by this regular expression.  (With no pre-
               fix, acct: is assumed.)  same as above
 
        amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N
-              match  postings with a single-commodity amount that is equal to,
-              less than, or greater than N.  (Multi-commodity amounts are  not
+              match postings with a single-commodity amount that is equal  to,
+              less  than, or greater than N.  (Multi-commodity amounts are not
               tested, and will always match.) The comparison has two modes: if
               N is preceded by a + or - sign (or is 0), the two signed numbers
-              are  compared.  Otherwise, the absolute magnitudes are compared,
+              are compared.  Otherwise, the absolute magnitudes are  compared,
               ignoring sign.
 
        code:REGEX
               match by transaction code (eg check number)
 
        cur:REGEX
-              match postings or transactions including any amounts whose  cur-
-              rency/commodity  symbol  is fully matched by REGEX.  (For a par-
+              match  postings or transactions including any amounts whose cur-
+              rency/commodity symbol is fully matched by REGEX.  (For  a  par-
               tial match, use .*REGEX.*).  Note, to match characters which are
               regex-significant, like the dollar sign ($), you need to prepend
-              \.  And when using the command line you need  to  add  one  more
-              level  of  quoting  to hide it from the shell, so eg do: hledger
+              \.   And  when  using  the command line you need to add one more
+              level of quoting to hide it from the shell, so  eg  do:  hledger
               print cur:'\$' or hledger print cur:\\$.
 
        desc:REGEX
@@ -659,20 +663,20 @@ OPTIONS
 
        date:PERIODEXPR
               match dates within the specified period.  PERIODEXPR is a period
-              expression  (with  no  report  interval).   Examples: date:2016,
-              date:thismonth,  date:2000/2/1-2/15,  date:lastweek-.   If   the
-              --date2  command  line  flag  is present, this matches secondary
+              expression (with  no  report  interval).   Examples:  date:2016,
+              date:thismonth,   date:2000/2/1-2/15,  date:lastweek-.   If  the
+              --date2 command line flag is  present,  this  matches  secondary
               dates instead.
 
        date2:PERIODEXPR
               match secondary dates within the specified period.
 
        depth:N
-              match (or display, depending on command) accounts  at  or  above
+              match  (or  display,  depending on command) accounts at or above
               this depth
 
        note:REGEX
-              match  transaction  notes  (part  of  description right of |, or
+              match transaction notes (part of  description  right  of  |,  or
               whole description when there's no |)
 
        payee:REGEX
@@ -686,35 +690,35 @@ OPTIONS
               match unmarked, pending, or cleared transactions respectively
 
        tag:REGEX[=REGEX]
-              match  by  tag  name,  and optionally also by tag value.  Note a
-              tag: query is considered to match a transaction  if  it  matches
-              any  of  the  postings.  Also remember that postings inherit the
+              match by tag name, and optionally also by  tag  value.   Note  a
+              tag:  query  is  considered to match a transaction if it matches
+              any of the postings.  Also remember that  postings  inherit  the
               tags of their parent transaction.
 
        The following special search term is used automatically in hledger-web,
        only:
 
        inacct:ACCTNAME
-              tells  hledger-web to show the transaction register for this ac-
+              tells hledger-web to show the transaction register for this  ac-
               count.  Can be filtered further with acct etc.
 
        Some of these can also be expressed as command-line options (eg depth:2
-       is  equivalent  to --depth 2).  Generally you can mix options and query
-       arguments, and the resulting query will be their intersection  (perhaps
+       is equivalent to --depth 2).  Generally you can mix options  and  query
+       arguments,  and the resulting query will be their intersection (perhaps
        excluding the -p/--period option).
 
    Special characters in arguments and queries
        In shell command lines, option and argument values which contain "prob-
        lematic" characters, ie spaces, and also characters significant to your
-       shell  such as <, >, (, ), | and $, should be escaped by enclosing them
+       shell such as <, >, (, ), | and $, should be escaped by enclosing  them
        in quotes or by writing backslashes before the characters.  Eg:
 
-       hledger  register  -p  'last  year'   "accounts   receivable   (receiv-
+       hledger   register   -p   'last  year'  "accounts  receivable  (receiv-
        able|payable)" amt:\>100.
 
    More escaping
        Characters significant both to the shell and in regular expressions may
-       need one extra level of escaping.  These include parentheses, the  pipe
+       need  one extra level of escaping.  These include parentheses, the pipe
        symbol and the dollar sign.  Eg, to match the dollar symbol, bash users
        should do:
 
@@ -725,9 +729,9 @@ OPTIONS
        hledger balance cur:\\$
 
    Even more escaping
-       When hledger runs an addon executable (eg you type hledger ui,  hledger
-       runs  hledger-ui),  it  de-escapes  command-line  options and arguments
-       once, so you might need to triple-escape.  Eg in bash, running  the  ui
+       When  hledger runs an addon executable (eg you type hledger ui, hledger
+       runs hledger-ui), it  de-escapes  command-line  options  and  arguments
+       once,  so  you might need to triple-escape.  Eg in bash, running the ui
        command and matching the dollar sign, it's:
 
        hledger ui cur:'\\$'
@@ -752,8 +756,8 @@ OPTIONS
        hledger-ui cur:\\$
 
    Less escaping
-       Inside  an  argument  file,  or  in  the  search field of hledger-ui or
-       hledger-web, or at a GHCI prompt, you need one less level  of  escaping
+       Inside an argument file, or  in  the  search  field  of  hledger-ui  or
+       hledger-web,  or  at a GHCI prompt, you need one less level of escaping
        than at the command line.  And backslashes may work better than quotes.
        Eg:
 
@@ -762,41 +766,41 @@ OPTIONS
    Unicode characters
        hledger is expected to handle non-ascii characters correctly:
 
-       o they should be parsed correctly in input files  and  on  the  command
-         line,  by all hledger tools (add, iadd, hledger-web's search/add/edit
+       o they  should  be  parsed  correctly in input files and on the command
+         line, by all hledger tools (add, iadd, hledger-web's  search/add/edit
          forms, etc.)
 
-       o they should be displayed correctly by  all  hledger  tools,  and  on-
+       o they  should  be  displayed  correctly  by all hledger tools, and on-
          screen alignment should be preserved.
 
        This requires a well-configured environment.  Here are some tips:
 
-       o A  system  locale must be configured, and it must be one that can de-
-         code the characters being used.  In bash, you can set a  locale  like
-         this:  export LANG=en_US.UTF-8.  There are some more details in Trou-
-         bleshooting.  This step is essential - without it, hledger will  quit
-         on  encountering a non-ascii character (as with all GHC-compiled pro-
+       o A system locale must be configured, and it must be one that  can  de-
+         code  the  characters being used.  In bash, you can set a locale like
+         this: export LANG=en_US.UTF-8.  There are some more details in  Trou-
+         bleshooting.   This step is essential - without it, hledger will quit
+         on encountering a non-ascii character (as with all GHC-compiled  pro-
          grams).
 
-       o your terminal software (eg  Terminal.app,  iTerm,  CMD.exe,  xterm..)
+       o your  terminal  software  (eg  Terminal.app, iTerm, CMD.exe, xterm..)
          must support unicode
 
        o the terminal must be using a font which includes the required unicode
          glyphs
 
-       o the terminal should be configured to display wide characters as  dou-
+       o the  terminal should be configured to display wide characters as dou-
          ble width (for report alignment)
 
-       o on  Windows, for best results you should run hledger in the same kind
-         of environment in which it was built.  Eg hledger built in the  stan-
-         dard  CMD.EXE  environment  (like  the binaries on our download page)
-         might show display problems when run in a cygwin  or  msys  terminal,
+       o on Windows, for best results you should run hledger in the same  kind
+         of  environment in which it was built.  Eg hledger built in the stan-
+         dard CMD.EXE environment (like the binaries  on  our  download  page)
+         might  show  display  problems when run in a cygwin or msys terminal,
          and vice versa.  (See eg #961).
 
    Input files
        hledger reads transactions from a data file (and the add command writes
        to it).  By default this file is $HOME/.hledger.journal (or on Windows,
-       something  like C:/Users/USER/.hledger.journal).  You can override this
+       something like C:/Users/USER/.hledger.journal).  You can override  this
        with the $LEDGER_FILE environment variable:
 
               $ setenv LEDGER_FILE ~/finance/2016.journal
@@ -810,48 +814,66 @@ OPTIONS
 
               $ cat some.journal | hledger -f-
 
-       Usually the data file is in hledger's journal format, but it can be  in
+       Usually  the data file is in hledger's journal format, but it can be in
        any of the supported file formats, which currently are:
 
        Reader:    Reads:                                    Used  for  file  exten-
                                                             sions:
        -----------------------------------------------------------------------------
-       journal    hledger journal files and  some  Ledger   .journal   .j  .hledger
+       journal    hledger  journal  files and some Ledger   .journal  .j   .hledger
                   journals, for transactions                .ledger
-       time-      timeclock  files, for precise time log-   .timeclock
+       time-      timeclock files, for precise time  log-   .timeclock
        clock      ging
        timedot    timedot  files,  for  approximate  time   .timedot
                   logging
        csv        comma/semicolon/tab/other-separated       .csv .ssv .tsv
                   values, for data import
 
-       hledger detects the format automatically based on the  file  extensions
-       shown  above.   If  it  can't  recognise the file extension, it assumes
-       journal format.  So for non-journal files,  it's  important  to  use  a
+       hledger  detects  the format automatically based on the file extensions
+       shown above.  If it can't recognise  the  file  extension,  it  assumes
+       journal  format.   So  for  non-journal  files, it's important to use a
        recognised file extension, so as to either read successfully or to show
        relevant error messages.
 
-       When you can't ensure the right file extension, not to worry:  you  can
+       When  you  can't ensure the right file extension, not to worry: you can
        force a specific reader/format by prefixing the file path with the for-
        mat and a colon.  Eg to read a .dat file as csv:
 
               $ hledger -f csv:/some/csv-file.dat stats
               $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 
-       You can specify multiple -f options, to read multiple files as one  big
+       You  can specify multiple -f options, to read multiple files as one big
        journal.  There are some limitations with this:
 
        o directives in one file will not affect the other files
 
-       o balance  assertions  will  not see any account balances from previous
+       o balance assertions will not see any account  balances  from  previous
          files
 
        If you need either of those things, you can
 
        o use a single parent file which includes the others
 
-       o or concatenate the files into one before reading, eg:  cat  a.journal
+       o or  concatenate  the files into one before reading, eg: cat a.journal
          b.journal | hledger -f- CMD.
+
+   Strict mode
+       hledger checks input files for valid data.  By default, the most impor-
+       tant  errors  are  detected,  while  still accepting easy journal files
+       without a lot of declarations:
+
+       o Are the input files parseable, with valid syntax ?
+
+       o Are all transactions balanced ?
+
+       o Do all balance assertions pass ?
+
+       With the -s/--strict flag, additional checks are performed:
+
+       o Are all accounts referenced by transactions declared with an  account
+         directive ?
+
+       experimental.
 
    Output destination
        hledger commands send their output to the terminal by default.  You can
@@ -981,6 +1003,7 @@ OPTIONS
        last/this/next             -1, 0, 1 periods from the current period
        day/week/month/quar-
        ter/year
+
        20181201                   8 digit YYYYMMDD with valid year month and day
        201812                     6 digit YYYYMM with valid year and month
 
@@ -1071,7 +1094,6 @@ OPTIONS
                             1, 2009
        -p "from 2009/1"     the same
        -p "from 2009"       the same
-
        -p "to 2009"         everything  before january
                             1, 2009
 
@@ -1117,6 +1139,7 @@ OPTIONS
        2008/11/25"
        -p    "quarterly     from   starts  on  2009/04/01,  ends on 2009/06/30,
        2009-05-05 to 2009-06-01"   which are first and last days of Q2 2009
+
        -p      "yearly      from   starts on 2009/01/01, first day of 2009
        2009-12-29"
 
@@ -1569,8 +1592,6 @@ OPTIONS
        balance
        (bs,   bse,
        cf, is)
-
-
        balance       sums of costs   value at  re-    not     sup-   value at  re-   value      at
        changes                       port  end  or    ported         port or jour-   DATE/today of
                                      today of sums                   nal  end   of   sums of post-
@@ -1593,6 +1614,8 @@ OPTIONS
                      start           postings  be-                   postings  be-
                                      fore   report                   fore   report
                                      start                           start
+
+
        balance       sums of costs   same       as    not     sup-   balance         value      at
        changes       of   postings   --value=end      ported         change     in   DATE/today of
        (bal,   is,   in period                                       each  period,   sums of post-
