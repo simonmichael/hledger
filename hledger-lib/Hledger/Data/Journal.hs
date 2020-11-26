@@ -1228,9 +1228,12 @@ postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
 
 -- | Apply some account aliases to all posting account names in the journal, as described by accountNameApplyAliases.
--- This can raise an error arising from a bad replacement pattern in a regular expression alias.
-journalApplyAliases :: [AccountAlias] -> Journal -> Journal
-journalApplyAliases aliases j = j{jtxns = map (transactionApplyAliases aliases) $ jtxns j}  -- PARTIAL:
+-- This can fail due to a bad replacement pattern in a regular expression alias.
+journalApplyAliases :: [AccountAlias] -> Journal -> Either RegexError Journal
+journalApplyAliases aliases j = 
+  case mapM (transactionApplyAliases aliases) $ jtxns j of
+    Right ts -> Right j{jtxns = ts}
+    Left err -> Left err
   
 -- -- | Build a database of market prices in effect on the given date,
 -- -- from the journal's price directives.

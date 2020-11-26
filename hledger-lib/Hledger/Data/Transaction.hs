@@ -593,10 +593,12 @@ transactionToCost :: M.Map CommoditySymbol AmountStyle -> Transaction -> Transac
 transactionToCost styles t@Transaction{tpostings=ps} = t{tpostings=map (postingToCost styles) ps}
 
 -- | Apply some account aliases to all posting account names in the transaction, as described by accountNameApplyAliases.
--- This can raise an error arising from a bad replacement pattern in a regular expression alias.
-transactionApplyAliases :: [AccountAlias] -> Transaction -> Transaction
+-- This can fail due to a bad replacement pattern in a regular expression alias.
+transactionApplyAliases :: [AccountAlias] -> Transaction -> Either RegexError Transaction
 transactionApplyAliases aliases t =
-  txnTieKnot $ t{tpostings = map (postingApplyAliases aliases) $ tpostings t}  -- PARTIAL:
+  case mapM (postingApplyAliases aliases) $ tpostings t of
+    Right ps -> Right $ txnTieKnot $ t{tpostings=ps}
+    Left err -> Left err
 
 -- tests
 

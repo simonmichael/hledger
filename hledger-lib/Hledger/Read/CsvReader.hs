@@ -108,15 +108,16 @@ parse iopts f t = do
   let rulesfile = mrules_file_ iopts
   r <- liftIO $ readJournalFromCsv rulesfile f t
   case r of Left e   -> throwError e
-            Right pj -> journalFinalise iopts{ignore_assertions_=True} f t pj''
-              where
-                -- journalFinalise assumes the journal's items are
-                -- reversed, as produced by JournalReader's parser.
-                -- But here they are already properly ordered. So we'd
-                -- better preemptively reverse them once more. XXX inefficient
-                pj' = journalReverse pj
-                -- apply any command line account aliases. Can fail with a bad replacement pattern.
-                pj'' = journalApplyAliases (aliasesFromOpts iopts)  pj'  -- PARTIAL:
+            Right pj ->
+              -- journalFinalise assumes the journal's items are
+              -- reversed, as produced by JournalReader's parser.
+              -- But here they are already properly ordered. So we'd
+              -- better preemptively reverse them once more. XXX inefficient
+              let pj' = journalReverse pj
+              -- apply any command line account aliases. Can fail with a bad replacement pattern.
+              in case journalApplyAliases (aliasesFromOpts iopts) pj' of
+                  Left e -> throwError e
+                  Right pj'' -> journalFinalise iopts{ignore_assertions_=True} f t pj''
 
 --- ** reading rules files
 --- *** rules utilities

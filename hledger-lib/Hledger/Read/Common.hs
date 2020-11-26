@@ -296,10 +296,11 @@ parseAndFinaliseJournal' parser iopts f txt = do
   -- see notes above
   case ep of
     Left e   -> throwError $ customErrorBundlePretty e
-    Right pj -> journalFinalise iopts f txt $
-                -- apply any command line account aliases. Can fail with a bad replacement pattern.
-                journalApplyAliases (aliasesFromOpts iopts) $  -- PARTIAL:
-                pj
+    Right pj -> 
+      -- apply any command line account aliases. Can fail with a bad replacement pattern.
+      case journalApplyAliases (aliasesFromOpts iopts) pj of
+        Left e    -> throwError e
+        Right pj' -> journalFinalise iopts f txt pj'
 
 -- | Post-process a Journal that has just been parsed or generated, in this order:
 --

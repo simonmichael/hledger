@@ -291,14 +291,15 @@ concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map a
     where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
 
 -- | Apply some account aliases to the posting's account name, as described by accountNameApplyAliases.
--- This can raise an error arising from a bad replacement pattern in a regular expression alias.
-postingApplyAliases :: [AccountAlias] -> Posting -> Posting
+-- This can fail due to a bad replacement pattern in a regular expression alias.
+postingApplyAliases :: [AccountAlias] -> Posting -> Either RegexError Posting
 postingApplyAliases aliases p@Posting{paccount} =
   case accountNameApplyAliases aliases paccount of
-    Right a -> p{paccount=a}
-    Left e  -> error' err  -- PARTIAL:
+    Right a -> Right p{paccount=a}
+    Left e  -> Left err
       where
-        err = "problem in account aliases:\n" ++ pshow aliases ++ "\n applied to account name: "++T.unpack paccount++"\n "++e
+        err = "problem while applying account aliases:\n" ++ pshow aliases 
+          ++ "\n to account name: "++T.unpack paccount++"\n "++e
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
 -- Each alias sees the result of applying the previous aliases.

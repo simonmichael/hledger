@@ -147,7 +147,9 @@ toRegexCI' = either error' id . toRegexCI
 -- | A replacement pattern. May include numeric backreferences (\N).
 type Replacement = String
 
--- | An regular expression compilation/processing error message.
+-- | An error message arising during a regular expression operation.
+-- Eg: trying to compile a malformed regular expression, or
+-- trying to apply a malformed replacement pattern.
 type RegexError = String
 
 -- helpers
