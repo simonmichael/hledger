@@ -14,14 +14,14 @@ ghc, if you take care of the dependencies yourself.)
 
 Scripts overview, simplest first:
 
-- hledger-check-tag-files.hs        - check that all tag values containing / exist as file paths
-- hledger-check-tag-files.cabal.hs  - the above as a cabal script
+- hledger-check-tagfiles.hs         - check that all tag values containing / exist as file paths
+- hledger-check-tagfiles.cabal.hs   - the above as a cabal script
 - hledger-swap-dates.hs             - print transactions with their date and date2 fields swapped
 - hledger-print-location.hs         - add file path/line number tags to the print command
 - hledger-balance-as-budget.hs      - use one balance report as budget goals for another one
 - hledger-combine-balances.hs       - show balance reports for two different periods side by side
 - hledger-smooth.hs                 - incomplete attempt at automatically splitting infrequent/irregular transactions
-- hledger-check.hs                  - check more complex account balance assertions
+- hledger-check-fancyassertions.hs  - check more complex account balance assertions
 
 
 [add-on commands]: http://hledger.org/hledger.html#add-on-commands

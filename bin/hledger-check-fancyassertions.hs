@@ -3,7 +3,8 @@
 
 {-
 ```
-Usage: hledger-check [-f|--file FILE] [--alias OLD=NEW] [--ignore-assertions]
+Usage: hledger-check-fancyassertions
+                     [-f|--file FILE] [--alias OLD=NEW] [--ignore-assertions]
                      [-b|--begin DATE] [-e|--end DATE] [-C|--cleared]
                      [--pending] [-U|--unmarked] [-R|--real] [--sunday]
                      [-D|--daily ASSERT] [-W|--weekly ASSERT]
@@ -45,7 +46,7 @@ to the sum of the values in both that account and its subaccounts.
 
 **Example:**
 ```
-hledger-check -D "budget:books  >= £0"
+hledger-check-fancyassertions -D "budget:books  >= £0"
 ```
 
 "At the end of every day, the books budget is greater than or equal to
@@ -62,7 +63,7 @@ Assertions can also be wrapped inside parentheses.
 
 **Example:**
 ```
-hledger-check "(assets:overdraft  < £2000) ==> (*assets:checking  == £0)"
+hledger-check-fancyassertions "(assets:overdraft  < £2000) ==> (*assets:checking  == £0)"
 ```
 
 "If I have taken money from my overdraft, then I must have no money in

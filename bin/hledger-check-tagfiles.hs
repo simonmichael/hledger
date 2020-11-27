@@ -1,18 +1,17 @@
-#!/usr/bin/env cabal
-{- cabal:
-build-depends: base, directory, hledger, text
--}
+#!/usr/bin/env stack
+-- stack script --compile --resolver lts-16.3
+
 {-
-hledger-check-tag-files cabal script (requires cabal 3+).
+hledger-check-tagfiles stack script.
 Read the default journal and give an error if any tag values
 containing '/' do not exist as file paths.
 Usage:
 
-$ hledger-check-tag-files.hs    # compiles every time (?)
+$ hledger-check-tagfiles.hs    # compiles if needed
 
 or:
 
-$ hledger check-tag-files       # compiles every time (?)
+$ hledger check-tagfiles       # compiles if there's no compiled version
 -}
 
 import Control.Monad
