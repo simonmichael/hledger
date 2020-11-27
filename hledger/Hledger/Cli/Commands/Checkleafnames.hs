@@ -1,8 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hledger.Cli.Commands.Checkdupes (
-  checkdupesmode
- ,checkdupes
+module Hledger.Cli.Commands.Checkleafnames (
+  checkleafnamesmode
+ ,checkleafnames
 )
 where
 
@@ -15,15 +15,15 @@ import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
 import Text.Printf
 
-checkdupesmode :: Mode RawOpts
-checkdupesmode = hledgerCommandMode
-  $(embedFileRelative "Hledger/Cli/Commands/Checkdupes.txt")
+checkleafnamesmode :: Mode RawOpts
+checkleafnamesmode = hledgerCommandMode
+  $(embedFileRelative "Hledger/Cli/Commands/Checkleafnames.txt")
   []
   [generalflagsgroup1]
   hiddenflags
   ([], Nothing)
 
-checkdupes _opts j = mapM_ render $ checkdupes' $ accountsNames j
+checkleafnames _opts j = mapM_ render $ checkleafnames' $ accountsNames j
 
 accountsNames :: Journal -> [(String, AccountName)]
 accountsNames j = map leafAndAccountName as
@@ -31,8 +31,8 @@ accountsNames j = map leafAndAccountName as
         ps = journalPostings j
         as = nubSort $ map paccount ps
 
-checkdupes' :: (Ord k, Eq k) => [(k, v)] -> [(k, [v])]
-checkdupes' l = zip dupLeafs dupAccountNames
+checkleafnames' :: (Ord k, Eq k) => [(k, v)] -> [(k, [v])]
+checkleafnames' l = zip dupLeafs dupAccountNames
   where dupLeafs = map (fst . head) d
         dupAccountNames = map (map snd) d
         d = dupes' l

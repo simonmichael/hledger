@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4517e1a53a08aa05c53bb06d8591b5591f3ae6f688bf39f809c8f774fbd1d41c
+-- hash: a72cc42826939244f2ed9ce667f947ba98a85ac38914cf605de7413ade202776
 
 name:           hledger
 version:        1.19.99
@@ -67,7 +67,7 @@ extra-source-files:
     Hledger/Cli/Commands/Balancesheetequity.txt
     Hledger/Cli/Commands/Cashflow.txt
     Hledger/Cli/Commands/Checkdates.txt
-    Hledger/Cli/Commands/Checkdupes.txt
+    Hledger/Cli/Commands/Checkleafnames.txt
     Hledger/Cli/Commands/Close.txt
     Hledger/Cli/Commands/Codes.txt
     Hledger/Cli/Commands/Commodities.txt
@@ -123,7 +123,7 @@ library
       Hledger.Cli.Commands.Balancesheetequity
       Hledger.Cli.Commands.Cashflow
       Hledger.Cli.Commands.Checkdates
-      Hledger.Cli.Commands.Checkdupes
+      Hledger.Cli.Commands.Checkleafnames
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Codes
       Hledger.Cli.Commands.Commodities

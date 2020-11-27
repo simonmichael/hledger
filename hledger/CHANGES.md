@@ -1268,7 +1268,7 @@ Migration notes:
 -   new tags command: lists tags in matched transactions
 
 -   most addons formerly shipped in bin/ are now builtin commands. These
-    include: check-dates, check-dupes, equity, prices, print-unique,
+    include: check-dates, check-leafnames, equity, prices, print-unique,
     register-match, rewrite.
 
 -   refactor: new Commands module and subdirectory.
@@ -1385,7 +1385,7 @@ New addons added/included:
 -   budget - experimental budget reporting command supporting Ledger-like periodic transactions and automated transactions (Mykola Orliuk)
 -   chart - pie-chart-generating prototype, a repackaging of the old hledger-chart tool
 -   check - more powerful balance assertions (Michael Walker)
--   check-dupes - find accounts sharing the same leaf name (Stefano Rodighiero)
+-   check-leafnames - find accounts sharing the same leaf name (Stefano Rodighiero)
 -   prices - show all market price records (Mykola Orliuk)
 -   register-match - a helper for ledger-autosync's deduplication, finds best match for a transaction description
 

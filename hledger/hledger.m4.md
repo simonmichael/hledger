@@ -1620,9 +1620,9 @@ _include_({{Hledger/Cli/Commands/Cashflow.md}})
 
 _include_({{Hledger/Cli/Commands/Checkdates.md}})
 
-## check-dupes
+## check-leafnames
 
-_include_({{Hledger/Cli/Commands/Checkdupes.md}})
+_include_({{Hledger/Cli/Commands/Checkleafnames.md}})
 
 ## close
 
