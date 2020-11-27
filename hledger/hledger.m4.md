@@ -774,6 +774,9 @@ easy journal files without a lot of declarations:
 With the `-s`/`--strict` flag, additional checks are performed:
 
 - Are all accounts referenced by transactions declared with an account directive ?
+  ([Account existence](journal.html#account-existence))
+
+See also: <https://hledger.org/checking-for-errors.html>
 
 *experimental.*
 
