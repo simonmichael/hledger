@@ -52,6 +52,7 @@ module Hledger.Data.Journal (
   -- overJournalAmounts,
   -- traverseJournalAmounts,
   -- journalCanonicalCommodities,
+  journalCommoditiesDeclared,
   journalDateSpan,
   journalStartDate,
   journalEndDate,
@@ -267,6 +268,10 @@ journalDescriptions = nubSort . map tdescription . jtxns
 -- | All postings from this journal's transactions, in order.
 journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
+
+-- | Sorted unique commodity symbols declared by commodity directives in this journal.
+journalCommoditiesDeclared :: Journal -> [AccountName]
+journalCommoditiesDeclared = nubSort . M.keys . jcommodities
 
 -- | Sorted unique account names posted to by this journal's transactions.
 journalAccountNamesUsed :: Journal -> [AccountName]

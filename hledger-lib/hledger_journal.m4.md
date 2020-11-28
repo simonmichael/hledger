@@ -992,6 +992,11 @@ Note hledger normally uses
 so 0.5 displayed with zero decimal digits is "0". 
 (More at [Commodity display style](#commodity-display-style).)
 
+#### Commodity error checking
+
+In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if a
+commodity symbol is used that has not been declared by a [`commodity` directive](#declaring-commodities). This works similarly to [account error checking](#account-error-checking), see the notes there for more details.
+
 ### Default commodity
 
 The `D` directive sets a default commodity, to be used for amounts without a commodity symbol (ie, plain numbers).
@@ -1070,16 +1075,14 @@ The simplest form is just the word `account` followed by a hledger-style
 account assets:bank:checking
 ```
 
-#### Account existence
+#### Account error checking
 
-By default, accounts come into existence when a transaction references them. 
-This is convenient, but when you mis-spell an account name in a transaction, 
-hledger won't be able to detect it. Usually this isn't a big problem, as you'll 
-notice the error in balance reports, or when reconciling account balances.
+By default, accounts come into existence when a transaction references them by name.
+This is convenient, but it means hledger can't warn you when you mis-spell an account name in the journal.
+Usually you'll find the error later, as an extra account in balance reports, 
+or an incorrect balance when reconciling.
 
-When you want more error checking, you can enable [strict mode] with the `-s`/`--strict` flag. Then hledger will will report an error if any transaction references
-an account that has not been declared by an [account directive](#declaring-accounts). 
-Some things to note:
+In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if any transaction uses an account name that has not been declared by an [account directive](#declaring-accounts). Some notes:
 
 - The declaration is case-sensitive; transactions must use the correct account name capitalisation.
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.

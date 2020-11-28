@@ -773,8 +773,10 @@ easy journal files without a lot of declarations:
 
 With the `-s`/`--strict` flag, additional checks are performed:
 
-- Are all accounts referenced by transactions declared with an account directive ?
-  ([Account existence](journal.html#account-existence))
+- Are all accounts posted to, declared with an `account` directive ?
+  ([Account error checking](journal.html#account-error-checking))
+- Are all commodities declared with a `commodity` directive ?
+  ([Commodity error checking](journal.html#commodity-error-checking))
 
 See also: <https://hledger.org/checking-for-errors.html>
 

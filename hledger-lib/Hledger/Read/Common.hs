@@ -148,6 +148,7 @@ import Text.Megaparsec.Custom
 
 import Hledger.Data
 import Hledger.Utils
+import Safe (headMay)
 
 --- ** doctest setup
 -- $setup
@@ -334,33 +335,38 @@ journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_} f t
     Left e   -> throwError e
     Right () ->
 
-      -- Infer and apply canonical styles for each commodity (or throw an error).
-      -- This affects transaction balancing/assertions/assignments, so needs to be done early.
-      case journalApplyCommodityStyles pj' of
-        Left e     -> throwError e
-        Right pj'' -> either throwError return $
-          pj''
-          & (if not auto_ || null (jtxnmodifiers pj'')
-            then
-              -- Auto postings are not active.
-              -- Balance all transactions and maybe check balance assertions.
-              journalBalanceTransactions (not ignore_assertions_)
-            else \j -> do  -- Either monad
-              -- Auto postings are active.
-              -- Balance all transactions without checking balance assertions,
-              j' <- journalBalanceTransactions False j
-              -- then add the auto postings
-              -- (Note adding auto postings after balancing means #893b fails;
-              -- adding them before balancing probably means #893a, #928, #938 fail.)
-              case journalModifyTransactions d j' of
-                Left e -> throwError e
-                Right j'' -> do
-                  -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
-                  j''' <- journalApplyCommodityStyles j''
-                  -- then check balance assertions.
-                  journalBalanceTransactions (not ignore_assertions_) j'''
-            )
-        & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
+      -- and using declared commodities
+      case if strict_ then journalCheckCommoditiesDeclared pj' else Right () of
+        Left e   -> throwError e
+        Right () ->
+
+          -- Infer and apply canonical styles for each commodity (or throw an error).
+          -- This affects transaction balancing/assertions/assignments, so needs to be done early.
+          case journalApplyCommodityStyles pj' of
+            Left e     -> throwError e
+            Right pj'' -> either throwError return $
+              pj''
+              & (if not auto_ || null (jtxnmodifiers pj'')
+                then
+                  -- Auto postings are not active.
+                  -- Balance all transactions and maybe check balance assertions.
+                  journalBalanceTransactions (not ignore_assertions_)
+                else \j -> do  -- Either monad
+                  -- Auto postings are active.
+                  -- Balance all transactions without checking balance assertions,
+                  j' <- journalBalanceTransactions False j
+                  -- then add the auto postings
+                  -- (Note adding auto postings after balancing means #893b fails;
+                  -- adding them before balancing probably means #893a, #928, #938 fail.)
+                  case journalModifyTransactions d j' of
+                    Left e -> throwError e
+                    Right j'' -> do
+                      -- then apply commodity styles once more, to style the auto posting amounts. (XXX inefficient ?)
+                      j''' <- journalApplyCommodityStyles j''
+                      -- then check balance assertions.
+                      journalBalanceTransactions (not ignore_assertions_) j'''
+                )
+            & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
 
 -- | Check that all the journal's postings are to accounts declared with
 -- account directives, returning an error message otherwise.
@@ -370,12 +376,33 @@ journalCheckAccountsDeclared j = sequence_ $ map checkacct $ journalPostings j
     checkacct Posting{paccount,ptransaction}
       | paccount `elem` as = Right ()
       | otherwise          = 
-          Left $ "\nstrict mode: undeclared account \""++T.unpack paccount++"\" is posted to"
+          Left $ "\nstrict mode: undeclared account \""++T.unpack paccount++"\""
             ++ case ptransaction of
-                Just Transaction{tsourcepos} -> "\n at: "++showGenericSourcePos tsourcepos
+                Just Transaction{tsourcepos} -> "\nin transaction at: "++showGenericSourcePos tsourcepos
                 Nothing -> ""
       where
         as = journalAccountNamesDeclared j
+
+-- | Check that all the commodities used in this journal's postings have been declared
+-- by commodity directives, returning an error message otherwise.
+journalCheckCommoditiesDeclared :: Journal -> Either String ()
+journalCheckCommoditiesDeclared j = 
+  sequence_ $ map checkcommodities $ journalPostings j
+  where
+    checkcommodities Posting{..} =
+      case mfirstundeclaredcomm of
+        Nothing -> Right ()
+        Just c  -> Left $ 
+          "\nstrict mode: undeclared commodity \""++T.unpack c++"\""
+          ++ case ptransaction of
+                Just Transaction{tsourcepos} -> "\nin transaction at: "++showGenericSourcePos tsourcepos
+                Nothing -> ""      
+      where
+        mfirstundeclaredcomm = 
+          headMay $ filter (not . (`elem` cs)) $ catMaybes $
+          (acommodity . baamount <$> pbalanceassertion) :
+          (map (Just . acommodity) $ amounts pamount)
+        cs = journalCommoditiesDeclared j
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
