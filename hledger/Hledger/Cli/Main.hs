@@ -155,7 +155,7 @@ main = do
   dbgIO "interval from opts" (interval_ . rsOpts $ reportspec_ opts)
   dbgIO "query from opts & args" (rsQuery $ reportspec_ opts)
   let
-    journallesserror = error "journal-less command tried to use the journal"
+    journallesserror = error $ cmd++" tried to read the journal but is not supposed to"
     runHledgerCommand
       -- high priority flags and situations. -h, then --help, then --info are highest priority.
       | hasHelpFlag argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
