@@ -60,6 +60,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Balancesheet.txt
 - Hledger/Cli/Commands/Balancesheetequity.txt
 - Hledger/Cli/Commands/Cashflow.txt
+- Hledger/Cli/Commands/Check.txt
 - Hledger/Cli/Commands/Checkdates.txt
 - Hledger/Cli/Commands/Checkdupes.txt
 - Hledger/Cli/Commands/Close.txt
@@ -168,6 +169,7 @@ library:
   - Hledger.Cli.Commands.Balancesheet
   - Hledger.Cli.Commands.Balancesheetequity
   - Hledger.Cli.Commands.Cashflow
+  - Hledger.Cli.Commands.Check
   - Hledger.Cli.Commands.Checkdates
   - Hledger.Cli.Commands.Checkdupes
   - Hledger.Cli.Commands.Close

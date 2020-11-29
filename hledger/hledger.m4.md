@@ -1618,13 +1618,9 @@ _include_({{Hledger/Cli/Commands/Balancesheetequity.md}})
 
 _include_({{Hledger/Cli/Commands/Cashflow.md}})
 
-## check-dates
+## check
 
-_include_({{Hledger/Cli/Commands/Checkdates.md}})
-
-## check-dupes
-
-_include_({{Hledger/Cli/Commands/Checkdupes.md}})
+_include_({{Hledger/Cli/Commands/Check.md}})
 
 ## close
 

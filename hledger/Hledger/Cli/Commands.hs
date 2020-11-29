@@ -72,6 +72,7 @@ import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Balancesheet
 import Hledger.Cli.Commands.Balancesheetequity
 import Hledger.Cli.Commands.Cashflow
+import Hledger.Cli.Commands.Check
 import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Close
@@ -109,6 +110,7 @@ builtinCommands = [
   ,(balancesheetequitymode , balancesheetequity)
   ,(balancesheetmode       , balancesheet)
   ,(cashflowmode           , cashflow)
+  ,(checkmode              , check)
   ,(checkdatesmode         , checkdates)
   ,(checkdupesmode         , checkdupes)
   ,(closemode              , close)
@@ -166,9 +168,7 @@ commandsList progversion othercmds = [
   ,""
   ,"Data management:"
   ,"+autosync                 download/deduplicate/convert OFX data"
-  ,"+check                    check more powerful balance assertions"
-  ," check-dates              check transactions are ordered by date"
-  ," check-dupes              check for accounts with the same leaf name"
+  ," check                    check for various kinds of issue in the data"
   ," close (equity)           generate balance-resetting transactions"
   ," diff                     compare account transactions in two journal files"
   ,"+interest                 generate interest transactions"
