@@ -32,8 +32,8 @@ checkdates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
         then date a <  date b
         else date a <= date b
   case checkTransactions compare ts of
-   FoldAcc{fa_previous=Nothing} -> putStrLn "ok (empty journal)" >> exitSuccess
-   FoldAcc{fa_error=Nothing}    -> putStrLn "ok" >> exitSuccess
+   FoldAcc{fa_previous=Nothing} -> return ()
+   FoldAcc{fa_error=Nothing}    -> return ()
    FoldAcc{fa_error=Just error, fa_previous=Just previous} ->
     (putStrLn $ printf ("ERROR: transaction out of%s date order"
      ++ "\nPrevious date: %s"
