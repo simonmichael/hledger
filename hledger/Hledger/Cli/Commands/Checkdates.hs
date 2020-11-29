@@ -15,7 +15,7 @@ import Text.Printf
 checkdatesmode :: Mode RawOpts
 checkdatesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Checkdates.txt")
-  [flagNone ["strict"] (setboolopt "strict") "makes date comparing strict"]
+  [flagNone ["unique"] (setboolopt "unique") "require that dates are unique"]
   [generalflagsgroup1]
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
@@ -25,26 +25,24 @@ checkdates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   let ropts = (rsOpts rspec){accountlistmode_=ALFlat}
   let ts = filter (rsQuery rspec `matchesTransaction`) $
            jtxns $ journalSelectingAmountFromOpts ropts j
-  let strict = boolopt "strict" rawopts
+  let unique = boolopt "unique" rawopts
   let date = transactionDateFn ropts
   let compare a b =
-        if strict
+        if unique
         then date a <  date b
         else date a <= date b
   case checkTransactions compare ts of
-   FoldAcc{fa_previous=Nothing} -> return ()
-   FoldAcc{fa_error=Nothing}    -> return ()
-   FoldAcc{fa_error=Just error, fa_previous=Just previous} ->
-    (putStrLn $ printf ("ERROR: transaction out of%s date order"
-     ++ "\nPrevious date: %s"
-     ++ "\nDate: %s"
-     ++ "\nLocation: %s"
-     ++ "\nTransaction:\n\n%s")
-     (if strict then " STRICT" else "")
-     (show $ date previous)
-     (show $ date error)
-     (show $ tsourcepos error)
-     (showTransaction error)) >> exitFailure
+    FoldAcc{fa_previous=Nothing} -> return ()
+    FoldAcc{fa_error=Nothing}    -> return ()
+    FoldAcc{fa_error=Just error, fa_previous=Just previous} -> do
+      putStrLn $ printf 
+          ("Error: transaction's date is not in date order%s,\n"
+        ++ "at %s:\n\n%sPrevious transaction's date was: %s")
+        (if unique then " and/or not unique" else "")
+        (showGenericSourcePos $ tsourcepos error)
+        (showTransaction error)
+        (show $ date previous)
+      exitFailure
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a
