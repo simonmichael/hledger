@@ -169,6 +169,8 @@ commandsList progversion othercmds = [
   ,"Data management:"
   ,"+autosync                 download/deduplicate/convert OFX data"
   ," check                    check for various kinds of issue in the data"
+  ,"+check-fancyassertions    check more powerful balance assertions"
+  ,"+check-tagfiles           check file paths in tag values exist"
   ," close (equity)           generate balance-resetting transactions"
   ," diff                     compare account transactions in two journal files"
   ,"+interest                 generate interest transactions"
