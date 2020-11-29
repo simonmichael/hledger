@@ -14,6 +14,8 @@ import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
 import Text.Printf
+import System.Exit (exitFailure)
+import Control.Monad (when)
 
 checkdupesmode :: Mode RawOpts
 checkdupesmode = hledgerCommandMode
@@ -23,7 +25,11 @@ checkdupesmode = hledgerCommandMode
   hiddenflags
   ([], Nothing)
 
-checkdupes _opts j = mapM_ render $ checkdupes' $ accountsNames j
+checkdupes _opts j = do
+  let dupes = checkdupes' $ accountsNames j
+  when (not $ null dupes) $ do
+    mapM_ render dupes
+    exitFailure
 
 accountsNames :: Journal -> [(String, AccountName)]
 accountsNames j = map leafAndAccountName as
