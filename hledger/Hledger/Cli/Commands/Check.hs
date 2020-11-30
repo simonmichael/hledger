@@ -41,9 +41,18 @@ check copts@CliOpts{rawopts_} j = do
       
 -- | A type of error check that we can perform on the data.
 data Check =
-    Dates
-  | Leafnames
+    Ordereddates
+  | Uniqueleafnames
   deriving (Read,Show,Eq)
+
+-- | Parse the name of an error check, or return the name unparsed.
+-- Names are conventionally all lower case, but this parses case insensitively.
+parseCheck :: String -> Either String Check
+parseCheck s = maybe (Left s) Right $ readMay $ capitalise s
+
+capitalise :: String -> String
+capitalise (c:cs) = toUpper c : cs
+capitalise s = s
 
 -- | Parse a check argument: a string which is the lower-case name of an error check,
 -- followed by zero or more space-separated arguments for that check.
@@ -54,21 +63,13 @@ parseCheckArgument s =
   where
     (checkname:checkargs) = words' s
 
--- | Parse the lower-case name of an error check, or return the name unparsed.
-parseCheck :: String -> Either String Check
-parseCheck s = maybe (Left s) Right $ readMay $ capitalise s
-
-capitalise :: String -> String
-capitalise (c:cs) = toUpper c : cs
-capitalise s = s
-
 -- | Run the named error check, possibly with some arguments, 
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
 runCheck copts@CliOpts{rawopts_} j (check,args) = 
   case check of
-    Dates     -> checkdates copts' j
-    Leafnames -> checkdupes copts' j
+    Ordereddates     -> checkdates copts' j
+    Uniqueleafnames -> checkdupes copts' j
   where
     -- Hack: append the provided args to the raw opts,
     -- in case the check can use them (like checkdates --unique). 
