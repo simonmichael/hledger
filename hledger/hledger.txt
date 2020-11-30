@@ -2600,14 +2600,10 @@ COMMANDS
        o uniqueleafnames - all account leaf names are unique (similar  to  the
          old check-dupes command)
 
-       This command would run all of the checks above:
-
-              $ hledger check -s ordereddates uniqueleafnames
-
    Addon checks
        Some checks are not yet integrated with this command, but are available
-       as      [addon       commands]       in       https://github.com/simon-
-       michael/hledger/tree/master/bin:
+       as add-on commands in https://github.com/simonmichael/hledger/tree/mas-
+       ter/bin:
 
        o hledger-check-tagfiles  -  all  tag  values  containing  / (a forward
          slash) exist as file paths
@@ -3845,4 +3841,4 @@ SEE ALSO
 
 
 
-hledger 1.19.99                  November 2020                      hledger(1)
+hledger 1.20                     November 2020                      hledger(1)

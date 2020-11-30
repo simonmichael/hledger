@@ -553,4 +553,4 @@ SEE ALSO
 
 
 
-hledger-web 1.19.99              November 2020                  hledger-web(1)
+hledger-web 1.20                 November 2020                  hledger-web(1)
