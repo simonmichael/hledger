@@ -52,15 +52,10 @@ These checks can be run by specifying their names as arguments to the check comm
 
 - **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command)
 
-This command would run all of the checks above:
-```shell
-$ hledger check -s ordereddates uniqueleafnames
-```
-
 ### Addon checks
 
 Some checks are not yet integrated with this command, but are available as
-[addon commands] in <https://github.com/simonmichael/hledger/tree/master/bin>:
+[add-on commands] in <https://github.com/simonmichael/hledger/tree/master/bin>:
 
 - **hledger-check-tagfiles** - all tag values containing / (a forward slash) exist as file paths
 
@@ -73,4 +68,4 @@ Cookbook -> [Scripting](scripting.html) may be helpful.
 [transaction prices]: journal.html#transaction-prices
 [balance assertions]: journal.html#balance-assertions
 [strict mode]: hledger.html#strict-mode
-[addon]: hledger.html#addon-commands
+[add-on commands]: hledger.html#add-on-commands
