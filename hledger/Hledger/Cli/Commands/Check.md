@@ -1,44 +1,74 @@
 check\
-Check for various kinds of errors in your data.
+Check for various kinds of errors in your data. 
+*experimental*
 
 _FLAGS
 
 hledger provides a number of built-in error checks to help
-prevent problems in your data. Some, but not all, of these are run
-automatically before all commands. You can also use this `check`
-command to run any of the available tests. They are named, 
-and run, as follows:
+prevent problems in your data. 
+Some of these are run automatically; or,
+you can use this `check` command to run them on demand,
+with no output and a zero exit code if all is well.
+Use it as follows:
 
-`hledger check` runs the basic checks, like all other commands,
-but with no output unless there is a problem. These are:
+- `hledger check` - runs the basic checks
+- `hledger check -s`  - runs the basic + strict checks
+- `hledger check CHECK1 CHECK2 ..` - runs the basic + specified checks.
 
-- **parseable** - data files are well-formed and can be [successfully parsed](hledger.html#input-files)
-- **autobalanced** - all transactions are [balanced](journal.html#postings), inferring missing amounts where necessary, and possibly converting commodities using [transaction prices] or automatically-inferred transaction prices
-- **assertions** - all [balance assertions] are passing (except with `-I`/`--ignore-assertions`)
+Here are the checks currently available:
+
+### Basic checks
+
+These are always run by this command and other commands:
+
+- **parseable** - data files are well-formed and can be 
+  [successfully parsed](hledger.html#input-files)
+
+- **autobalanced** - all transactions are [balanced](journal.html#postings), 
+  inferring missing amounts where necessary, and possibly converting commodities 
+  using [transaction prices] or automatically-inferred transaction prices
+
+- **assertions** - all [balance assertions] in the journal are passing. 
+  This can be disabled with `-I`/`--ignore-assertions`.
+
+### Strict checks
+
+These are always run by this and other commands when `-s`/`--strict` is used
+([strict mode]):
+
+- **accounts** - all account names used by transactions 
+  [have been declared](journal.html#account-error-checking)
+
+- **commodities** - all commodity symbols used 
+  [have been declared](journal.html#commodity-error-checking)
+
+### Other checks
+
+These checks can be run by specifying their names as arguments to the check command:
+
+- **ordereddates** - transactions are ordered by date (similar to the old `check-dates` command)
+
+- **uniqueleafnames** - all account leaf names are unique ((similar to the old `check-dupes` command)
+
+This command would run all of the checks above:
+```shell
+$ hledger check -s ordereddates uniqueleafnames
+```
+
+### Addon checks
+
+Some checks are not yet integrated with this command, but are available as
+[addon commands] in <https://github.com/simonmichael/hledger/tree/master/bin>:
+
+- **hledger-check-tagfiles** - all tag values containing / (a forward slash) exist as file paths
+
+- **hledger-check-fancyassertions** - more complex balance assertions are passing
+
+You could make your own similar scripts to perform custom checks;
+Cookbook -> [Scripting](scripting.html) may be helpful.
+
 
 [transaction prices]: journal.html#transaction-prices
 [balance assertions]: journal.html#balance-assertions
 [strict mode]: hledger.html#strict-mode
-
-`hledger check --strict` also runs the additional "strict mode" checks,
-which are:
-
-- **accounts** - all account names used by transactions [have been declared](journal.html#account-error-checking)
-- **commodities** - all commodity symbols used [have been declared](journal.html#commodity-error-checking)
-
-`hledger check CHECK1 CHECK2 ...` runs all of the named checks, in turn. 
-This may be useful when neither the default nor strict checks are exactly
-what you want, or when you want to focus on a single check of interest. 
-The arguments are standard lowercase names for the checks. Currently
-only these checks can be run in this way:
-
-- **dates** - transactions are ordered by date (similar to the old `check-dates` command)
-- **leafnames** - all account leaf names are unique ((similar to the old `check-dupes` command)
-
-See also: 
-
-Some checks are shipped as addon scripts for now
-(cf <https://github.com/simonmichael/hledger/tree/master/bin>, and Cookbook -> [Scripting](scripting.html)):
-
-- **tagfiles** - all tag values containing / (a forward slash) exist as file paths
-- **fancyassertions** - more complex balance assertions are passing
+[addon]: hledger.html#addon-commands
