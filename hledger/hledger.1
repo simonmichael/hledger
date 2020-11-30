@@ -1078,8 +1078,14 @@ Do all balance assertions pass ?
 With the \f[C]-s\f[R]/\f[C]--strict\f[R] flag, additional checks are
 performed:
 .IP \[bu] 2
-Are all accounts referenced by transactions declared with an account
-directive ?
+Are all accounts posted to, declared with an \f[C]account\f[R] directive
+?
+(Account error checking)
+.IP \[bu] 2
+Are all commodities declared with a \f[C]commodity\f[R] directive ?
+(Commodity error checking)
+.PP
+See also: https://hledger.org/checking-for-errors.html
 .PP
 \f[I]experimental.\f[R]
 .SS Output destination
@@ -3530,28 +3536,67 @@ Instead of absolute values percentages can be displayed with
 This command also supports the output destination and output format
 options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
 \f[C]html\f[R], and (experimental) \f[C]json\f[R].
-.SS check-dates
+.SS check
 .PP
-check-dates
+check
 .PD 0
 .P
 .PD
-Check that transactions are sorted by increasing date.
-With --date2, checks secondary dates instead.
-With --strict, dates must also be unique.
-With a query, only matched transactions\[aq] dates are checked.
-Reads the default journal file, or another specified with -f.
-.SS check-dupes
+Check for various kinds of errors in your data.
 .PP
-check-dupes
-.PD 0
-.P
-.PD
-Reports account names having the same leaf but different prefixes.
-In other words, two or more leaves that are categorized differently.
-Reads the default journal file, or another specified as an argument.
+hledger provides a number of built-in error checks to help prevent
+problems in your data.
+Some, but not all, of these are run automatically before all commands.
+You can also use this \f[C]check\f[R] command to run any of the
+available tests.
+They are named, and run, as follows:
 .PP
-An example: http://stefanorodighiero.net/software/hledger-dupes.html
+\f[C]hledger check\f[R] runs the basic checks, like all other commands,
+but with no output unless there is a problem.
+These are:
+.IP \[bu] 2
+\f[B]parseable\f[R] - data files are well-formed and can be successfully
+parsed
+.IP \[bu] 2
+\f[B]autobalanced\f[R] - all transactions are balanced, inferring
+missing amounts where necessary, and possibly converting commodities
+using transaction prices or automatically-inferred transaction prices
+.IP \[bu] 2
+\f[B]assertions\f[R] - all balance assertions are passing (except with
+\f[C]-I\f[R]/\f[C]--ignore-assertions\f[R])
+.PP
+\f[C]hledger check --strict\f[R] also runs the additional \[dq]strict
+mode\[dq] checks, which are:
+.IP \[bu] 2
+\f[B]accounts\f[R] - all account names used by transactions have been
+declared
+.IP \[bu] 2
+\f[B]commodities\f[R] - all commodity symbols used have been declared
+.PP
+\f[C]hledger check CHECK1 CHECK2 ...\f[R] runs all of the named checks,
+in turn.
+This may be useful when neither the default nor strict checks are
+exactly what you want, or when you want to focus on a single check of
+interest.
+The arguments are standard lowercase names for the checks.
+Currently only these checks can be run in this way:
+.IP \[bu] 2
+\f[B]dates\f[R] - transactions are ordered by date (similar to the old
+\f[C]check-dates\f[R] command)
+.IP \[bu] 2
+\f[B]leafnames\f[R] - all account leaf names are unique ((similar to the
+old \f[C]check-dupes\f[R] command)
+.PP
+See also:
+.PP
+Some checks are shipped as addon scripts for now (cf
+https://github.com/simonmichael/hledger/tree/master/bin, and Cookbook ->
+Scripting):
+.IP \[bu] 2
+\f[B]tagfiles\f[R] - all tag values containing / (a forward slash) exist
+as file paths
+.IP \[bu] 2
+\f[B]fancyassertions\f[R] - more complex balance assertions are passing
 .SS close
 .PP
 close, equity

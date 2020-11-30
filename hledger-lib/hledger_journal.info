@@ -1139,6 +1139,21 @@ a comma, followed by 0 or more decimal digits.
    Note hledger normally uses banker's rounding, so 0.5 displayed with
 zero decimal digits is "0".  (More at Commodity display style.)
 
+* Menu:
+
+* Commodity error checking::
+
+
+File: hledger_journal.info,  Node: Commodity error checking,  Up: Declaring commodities
+
+1.13.5.1 Commodity error checking
+.................................
+
+In strict mode, enabled with the '-s'/'--strict' flag, hledger will
+report an error if a commodity symbol is used that has not been declared
+by a 'commodity' directive.  This works similarly to account error
+checking, see the notes there for more details.
+
 
 File: hledger_journal.info,  Node: Default commodity,  Next: Declaring market prices,  Prev: Declaring commodities,  Up: Directives
 
@@ -1228,28 +1243,27 @@ account assets:bank:checking
 
 * Menu:
 
-* Account existence::
+* Account error checking::
 * Account comments::
 * Account subdirectives::
 * Account types::
 * Account display order::
 
 
-File: hledger_journal.info,  Node: Account existence,  Next: Account comments,  Up: Declaring accounts
+File: hledger_journal.info,  Node: Account error checking,  Next: Account comments,  Up: Declaring accounts
 
-1.13.8.1 Account existence
-..........................
+1.13.8.1 Account error checking
+...............................
 
 By default, accounts come into existence when a transaction references
-them.  This is convenient, but when you mis-spell an account name in a
-transaction, hledger won't be able to detect it.  Usually this isn't a
-big problem, as you'll notice the error in balance reports, or when
-reconciling account balances.
+them by name.  This is convenient, but it means hledger can't warn you
+when you mis-spell an account name in the journal.  Usually you'll find
+the error later, as an extra account in balance reports, or an incorrect
+balance when reconciling.
 
-   When you want more error checking, you can enable strict mode with
-the '-s'/'--strict' flag.  Then hledger will will report an error if any
-transaction references an account that has not been declared by an
-account directive.  Some things to note:
+   In strict mode, enabled with the '-s'/'--strict' flag, hledger will
+report an error if any transaction uses an account name that has not
+been declared by an account directive.  Some notes:
 
    * The declaration is case-sensitive; transactions must use the
      correct account name capitalisation.
@@ -1264,7 +1278,7 @@ account directive.  Some things to note:
      with a wildcard; every account posted to must be declared.
 
 
-File: hledger_journal.info,  Node: Account comments,  Next: Account subdirectives,  Prev: Account existence,  Up: Declaring accounts
+File: hledger_journal.info,  Node: Account comments,  Next: Account subdirectives,  Prev: Account error checking,  Up: Declaring accounts
 
 1.13.8.2 Account comments
 .........................
@@ -1990,56 +2004,58 @@ Node: Default year39916
 Ref: #default-year40085
 Node: Declaring commodities40492
 Ref: #declaring-commodities40675
-Node: Default commodity42480
-Ref: #default-commodity42666
-Node: Declaring market prices43555
-Ref: #declaring-market-prices43750
-Node: Declaring accounts44607
-Ref: #declaring-accounts44793
-Node: Account existence45990
-Ref: #account-existence46151
-Node: Account comments47387
-Ref: #account-comments47576
-Node: Account subdirectives48000
-Ref: #account-subdirectives48195
-Node: Account types48508
-Ref: #account-types48692
-Node: Account display order51738
-Ref: #account-display-order51908
-Node: Rewriting accounts53059
-Ref: #rewriting-accounts53244
-Node: Basic aliases54001
-Ref: #basic-aliases54147
-Node: Regex aliases54851
-Ref: #regex-aliases55023
-Node: Combining aliases55742
-Ref: #combining-aliases55935
-Node: Aliases and multiple files57211
-Ref: #aliases-and-multiple-files57420
-Node: end aliases57999
-Ref: #end-aliases58156
-Node: Default parent account58257
-Ref: #default-parent-account58425
-Node: Periodic transactions59309
-Ref: #periodic-transactions59484
-Node: Periodic rule syntax61356
-Ref: #periodic-rule-syntax61562
-Node: Two spaces between period expression and description!62266
-Ref: #two-spaces-between-period-expression-and-description62585
-Node: Forecasting with periodic transactions63269
-Ref: #forecasting-with-periodic-transactions63574
-Node: Budgeting with periodic transactions65629
-Ref: #budgeting-with-periodic-transactions65868
-Node: Auto postings66277
-Ref: #auto-postings66417
-Node: Auto postings and multiple files68596
-Ref: #auto-postings-and-multiple-files68800
-Node: Auto postings and dates69009
-Ref: #auto-postings-and-dates69283
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions69458
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions69809
-Node: Auto posting tags70151
-Ref: #auto-posting-tags70366
+Node: Commodity error checking42519
+Ref: #commodity-error-checking42679
+Node: Default commodity42936
+Ref: #default-commodity43122
+Node: Declaring market prices44011
+Ref: #declaring-market-prices44206
+Node: Declaring accounts45063
+Ref: #declaring-accounts45249
+Node: Account error checking46451
+Ref: #account-error-checking46627
+Node: Account comments47806
+Ref: #account-comments48000
+Node: Account subdirectives48424
+Ref: #account-subdirectives48619
+Node: Account types48932
+Ref: #account-types49116
+Node: Account display order52162
+Ref: #account-display-order52332
+Node: Rewriting accounts53483
+Ref: #rewriting-accounts53668
+Node: Basic aliases54425
+Ref: #basic-aliases54571
+Node: Regex aliases55275
+Ref: #regex-aliases55447
+Node: Combining aliases56166
+Ref: #combining-aliases56359
+Node: Aliases and multiple files57635
+Ref: #aliases-and-multiple-files57844
+Node: end aliases58423
+Ref: #end-aliases58580
+Node: Default parent account58681
+Ref: #default-parent-account58849
+Node: Periodic transactions59733
+Ref: #periodic-transactions59908
+Node: Periodic rule syntax61780
+Ref: #periodic-rule-syntax61986
+Node: Two spaces between period expression and description!62690
+Ref: #two-spaces-between-period-expression-and-description63009
+Node: Forecasting with periodic transactions63693
+Ref: #forecasting-with-periodic-transactions63998
+Node: Budgeting with periodic transactions66053
+Ref: #budgeting-with-periodic-transactions66292
+Node: Auto postings66701
+Ref: #auto-postings66841
+Node: Auto postings and multiple files69020
+Ref: #auto-postings-and-multiple-files69224
+Node: Auto postings and dates69433
+Ref: #auto-postings-and-dates69707
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions69882
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions70233
+Node: Auto posting tags70575
+Ref: #auto-posting-tags70790
 
 End Tag Table
 

@@ -1264,6 +1264,13 @@ followed by 0 or more decimal digits.
 Note hledger normally uses banker\[aq]s rounding, so 0.5 displayed with
 zero decimal digits is \[dq]0\[dq].
 (More at Commodity display style.)
+.SS Commodity error checking
+.PP
+In strict mode, enabled with the \f[C]-s\f[R]/\f[C]--strict\f[R] flag,
+hledger will report an error if a commodity symbol is used that has not
+been declared by a \f[C]commodity\f[R] directive.
+This works similarly to account error checking, see the notes there for
+more details.
 .SS Default commodity
 .PP
 The \f[C]D\f[R] directive sets a default commodity, to be used for
@@ -1364,20 +1371,19 @@ hledger-style account name, eg this account directive declares the
 account assets:bank:checking
 \f[R]
 .fi
-.SS Account existence
+.SS Account error checking
 .PP
 By default, accounts come into existence when a transaction references
-them.
-This is convenient, but when you mis-spell an account name in a
-transaction, hledger won\[aq]t be able to detect it.
-Usually this isn\[aq]t a big problem, as you\[aq]ll notice the error in
-balance reports, or when reconciling account balances.
+them by name.
+This is convenient, but it means hledger can\[aq]t warn you when you
+mis-spell an account name in the journal.
+Usually you\[aq]ll find the error later, as an extra account in balance
+reports, or an incorrect balance when reconciling.
 .PP
-When you want more error checking, you can enable strict mode with the
-\f[C]-s\f[R]/\f[C]--strict\f[R] flag.
-Then hledger will will report an error if any transaction references an
-account that has not been declared by an account directive.
-Some things to note:
+In strict mode, enabled with the \f[C]-s\f[R]/\f[C]--strict\f[R] flag,
+hledger will report an error if any transaction uses an account name
+that has not been declared by an account directive.
+Some notes:
 .IP \[bu] 2
 The declaration is case-sensitive; transactions must use the correct
 account name capitalisation.
