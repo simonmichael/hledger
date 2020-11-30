@@ -2557,54 +2557,66 @@ COMMANDS
 
    check
        check
-       Check for various kinds of errors in your data.
+       Check for various kinds of errors in your data.  experimental
 
        hledger  provides  a  number  of  built-in error checks to help prevent
-       problems in your data.  Some, but not all, of these are  run  automati-
-       cally  before all commands.  You can also use this check command to run
-       any of the available tests.  They are named, and run, as follows:
+       problems in your data.  Some of these are run  automatically;  or,  you
+       can  use this check command to run them on demand, with no output and a
+       zero exit code if all is well.  Some examples:
 
-       hledger check runs the basic checks, like all other commands, but  with
-       no output unless there is a problem.  These are:
+              hledger check      # basic checks
+              hledger check -s   # basic + strict checks
+              hledger check ordereddates uniqueleafnames  # basic + specified checks
+
+       Here are the checks currently available:
+
+   Basic checks
+       These are always run by this command and other commands:
 
        o parseable - data files are well-formed and can be successfully parsed
 
-       o autobalanced  -  all  transactions  are  balanced,  inferring missing
-         amounts where necessary, and possibly  converting  commodities  using
+       o autobalanced -  all  transactions  are  balanced,  inferring  missing
+         amounts  where  necessary,  and possibly converting commodities using
          transaction prices or automatically-inferred transaction prices
 
-       o assertions - all balance assertions are passing (except with -I/--ig-
-         nore-assertions)
+       o assertions - all balance  assertions  in  the  journal  are  passing.
+         (This check can be disabled with -I/--ignore-assertions.)
 
-       hledger check --strict also runs the additional "strict  mode"  checks,
-       which are:
+   Strict checks
+       These  are  always  run  by this and other commands when -s/--strict is
+       used (strict mode):
 
        o accounts - all account names used by transactions have been declared
 
        o commodities - all commodity symbols used have been declared
 
-       hledger  check CHECK1 CHECK2 ... runs all of the named checks, in turn.
-       This may be useful when neither the default nor strict checks  are  ex-
-       actly what you want, or when you want to focus on a single check of in-
-       terest.  The arguments are standard lowercase  names  for  the  checks.
-       Currently only these checks can be run in this way:
+   Other checks
+       These checks can be run by specifying their names as arguments  to  the
+       check command:
 
-       o dates  -  transactions are ordered by date (similar to the old check-
-         dates command)
+       o ordereddates  -  transactions are ordered by date (similar to the old
+         check-dates command)
 
-       o leafnames - all account leaf names are unique ((similar  to  the  old
-         check-dupes command)
+       o uniqueleafnames - all account leaf names are unique (similar  to  the
+         old check-dupes command)
 
-       See also:
+       This command would run all of the checks above:
 
-       Some    checks   are   shipped   as   addon   scripts   for   now   (cf
-       https://github.com/simonmichael/hledger/tree/master/bin,  and  Cookbook
-       -> Scripting):
+              $ hledger check -s ordereddates uniqueleafnames
 
-       o tagfiles  -  all  tag  values containing / (a forward slash) exist as
-         file paths
+   Addon checks
+       Some checks are not yet integrated with this command, but are available
+       as      [addon       commands]       in       https://github.com/simon-
+       michael/hledger/tree/master/bin:
 
-       o fancyassertions - more complex balance assertions are passing
+       o hledger-check-tagfiles  -  all  tag  values  containing  / (a forward
+         slash) exist as file paths
+
+       o hledger-check-fancyassertions - more complex balance  assertions  are
+         passing
+
+       You could make your own similar scripts to perform custom checks; Cook-
+       book -> Scripting may be helpful.
 
    close
        close, equity

@@ -2972,52 +2972,95 @@ File: hledger.info,  Node: check,  Next: close,  Prev: cashflow,  Up: COMMANDS
 =========
 
 check
-Check for various kinds of errors in your data.
+Check for various kinds of errors in your data.  _experimental_
 
    hledger provides a number of built-in error checks to help prevent
-problems in your data.  Some, but not all, of these are run
-automatically before all commands.  You can also use this 'check'
-command to run any of the available tests.  They are named, and run, as
-follows:
+problems in your data.  Some of these are run automatically; or, you can
+use this 'check' command to run them on demand, with no output and a
+zero exit code if all is well.  Some examples:
 
-   'hledger check' runs the basic checks, like all other commands, but
-with no output unless there is a problem.  These are:
+hledger check      # basic checks
+hledger check -s   # basic + strict checks
+hledger check ordereddates uniqueleafnames  # basic + specified checks
+
+   Here are the checks currently available:
+
+* Menu:
+
+* Basic checks::
+* Strict checks::
+* Other checks::
+* Addon checks::
+
+
+File: hledger.info,  Node: Basic checks,  Next: Strict checks,  Up: check
+
+3.9.1 Basic checks
+------------------
+
+These are always run by this command and other commands:
 
    * *parseable* - data files are well-formed and can be successfully
      parsed
+
    * *autobalanced* - all transactions are balanced, inferring missing
      amounts where necessary, and possibly converting commodities using
      transaction prices or automatically-inferred transaction prices
-   * *assertions* - all balance assertions are passing (except with
-     '-I'/'--ignore-assertions')
 
-   'hledger check --strict' also runs the additional "strict mode"
-checks, which are:
+   * *assertions* - all balance assertions in the journal are passing.
+     (This check can be disabled with '-I'/'--ignore-assertions'.)
+
+
+File: hledger.info,  Node: Strict checks,  Next: Other checks,  Prev: Basic checks,  Up: check
+
+3.9.2 Strict checks
+-------------------
+
+These are always run by this and other commands when '-s'/'--strict' is
+used (strict mode):
 
    * *accounts* - all account names used by transactions have been
      declared
+
    * *commodities* - all commodity symbols used have been declared
 
-   'hledger check CHECK1 CHECK2 ...' runs all of the named checks, in
-turn.  This may be useful when neither the default nor strict checks are
-exactly what you want, or when you want to focus on a single check of
-interest.  The arguments are standard lowercase names for the checks.
-Currently only these checks can be run in this way:
+
+File: hledger.info,  Node: Other checks,  Next: Addon checks,  Prev: Strict checks,  Up: check
 
-   * *dates* - transactions are ordered by date (similar to the old
-     'check-dates' command)
-   * *leafnames* - all account leaf names are unique ((similar to the
-     old 'check-dupes' command)
+3.9.3 Other checks
+------------------
 
-   See also:
+These checks can be run by specifying their names as arguments to the
+check command:
 
-   Some checks are shipped as addon scripts for now (cf
-https://github.com/simonmichael/hledger/tree/master/bin, and Cookbook ->
-Scripting):
+   * *ordereddates* - transactions are ordered by date (similar to the
+     old 'check-dates' command)
 
-   * *tagfiles* - all tag values containing / (a forward slash) exist as
-     file paths
-   * *fancyassertions* - more complex balance assertions are passing
+   * *uniqueleafnames* - all account leaf names are unique (similar to
+     the old 'check-dupes' command)
+
+   This command would run all of the checks above:
+
+$ hledger check -s ordereddates uniqueleafnames
+
+
+File: hledger.info,  Node: Addon checks,  Prev: Other checks,  Up: check
+
+3.9.4 Addon checks
+------------------
+
+Some checks are not yet integrated with this command, but are available
+as [addon commands] in
+https://github.com/simonmichael/hledger/tree/master/bin:
+
+   * *hledger-check-tagfiles* - all tag values containing / (a forward
+     slash) exist as file paths
+
+   * *hledger-check-fancyassertions* - more complex balance assertions
+     are passing
+
+   You could make your own similar scripts to perform custom checks;
+Cookbook -> Scripting may be helpful.
 
 
 File: hledger.info,  Node: close,  Next: codes,  Prev: check,  Up: COMMANDS
@@ -4574,80 +4617,88 @@ Node: cashflow104183
 Ref: #cashflow104305
 Node: check105521
 Ref: #check105624
-Node: close107565
-Ref: #close107667
-Node: close usage109189
-Ref: #close-usage109282
-Node: codes112095
-Ref: #codes112203
-Node: commodities112915
-Ref: #commodities113042
-Node: descriptions113124
-Ref: #descriptions113252
-Node: diff113556
-Ref: #diff113662
-Node: files114709
-Ref: #files114809
-Node: help114956
-Ref: #help115056
-Node: import116137
-Ref: #import116251
-Node: Importing balance assignments117173
-Ref: #importing-balance-assignments117354
-Node: Commodity display styles118003
-Ref: #commodity-display-styles118174
-Node: incomestatement118303
-Ref: #incomestatement118436
-Node: notes119781
-Ref: #notes119894
-Node: payees120262
-Ref: #payees120368
-Node: prices120788
-Ref: #prices120894
-Node: print121235
-Ref: #print121345
-Node: print-unique126141
-Ref: #print-unique126267
-Node: register126552
-Ref: #register126679
-Node: Custom register output131128
-Ref: #custom-register-output131257
-Node: register-match132594
-Ref: #register-match132728
-Node: rewrite133079
-Ref: #rewrite133194
-Node: Re-write rules in a file135049
-Ref: #re-write-rules-in-a-file135183
-Node: Diff output format136393
-Ref: #diff-output-format136562
-Node: rewrite vs print --auto137654
-Ref: #rewrite-vs.-print---auto137833
-Node: roi138389
-Ref: #roi138487
-Node: stats150697
-Ref: #stats150796
-Node: tags151584
-Ref: #tags151682
-Node: test152201
-Ref: #test152309
-Node: Add-on commands153056
-Ref: #add-on-commands153173
-Node: ui154516
-Ref: #ui154604
-Node: web154658
-Ref: #web154761
-Node: iadd154877
-Ref: #iadd154988
-Node: interest155070
-Ref: #interest155177
-Node: ENVIRONMENT155417
-Ref: #environment155529
-Node: FILES156514
-Ref: #files-1156617
-Node: LIMITATIONS156830
-Ref: #limitations156949
-Node: TROUBLESHOOTING157691
-Ref: #troubleshooting157804
+Node: Basic checks106228
+Ref: #basic-checks106344
+Node: Strict checks106837
+Ref: #strict-checks106976
+Node: Other checks107219
+Ref: #other-checks107356
+Node: Addon checks107755
+Ref: #addon-checks107870
+Node: close108324
+Ref: #close108426
+Node: close usage109948
+Ref: #close-usage110041
+Node: codes112854
+Ref: #codes112962
+Node: commodities113674
+Ref: #commodities113801
+Node: descriptions113883
+Ref: #descriptions114011
+Node: diff114315
+Ref: #diff114421
+Node: files115468
+Ref: #files115568
+Node: help115715
+Ref: #help115815
+Node: import116896
+Ref: #import117010
+Node: Importing balance assignments117932
+Ref: #importing-balance-assignments118113
+Node: Commodity display styles118762
+Ref: #commodity-display-styles118933
+Node: incomestatement119062
+Ref: #incomestatement119195
+Node: notes120540
+Ref: #notes120653
+Node: payees121021
+Ref: #payees121127
+Node: prices121547
+Ref: #prices121653
+Node: print121994
+Ref: #print122104
+Node: print-unique126900
+Ref: #print-unique127026
+Node: register127311
+Ref: #register127438
+Node: Custom register output131887
+Ref: #custom-register-output132016
+Node: register-match133353
+Ref: #register-match133487
+Node: rewrite133838
+Ref: #rewrite133953
+Node: Re-write rules in a file135808
+Ref: #re-write-rules-in-a-file135942
+Node: Diff output format137152
+Ref: #diff-output-format137321
+Node: rewrite vs print --auto138413
+Ref: #rewrite-vs.-print---auto138592
+Node: roi139148
+Ref: #roi139246
+Node: stats151456
+Ref: #stats151555
+Node: tags152343
+Ref: #tags152441
+Node: test152960
+Ref: #test153068
+Node: Add-on commands153815
+Ref: #add-on-commands153932
+Node: ui155275
+Ref: #ui155363
+Node: web155417
+Ref: #web155520
+Node: iadd155636
+Ref: #iadd155747
+Node: interest155829
+Ref: #interest155936
+Node: ENVIRONMENT156176
+Ref: #environment156288
+Node: FILES157273
+Ref: #files-1157376
+Node: LIMITATIONS157589
+Ref: #limitations157708
+Node: TROUBLESHOOTING158450
+Ref: #troubleshooting158563
 
 End Tag Table
 

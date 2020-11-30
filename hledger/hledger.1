@@ -3543,17 +3543,27 @@ check
 .P
 .PD
 Check for various kinds of errors in your data.
+\f[I]experimental\f[R]
 .PP
 hledger provides a number of built-in error checks to help prevent
 problems in your data.
-Some, but not all, of these are run automatically before all commands.
-You can also use this \f[C]check\f[R] command to run any of the
-available tests.
-They are named, and run, as follows:
+Some of these are run automatically; or, you can use this
+\f[C]check\f[R] command to run them on demand, with no output and a zero
+exit code if all is well.
+Some examples:
+.IP
+.nf
+\f[C]
+hledger check      # basic checks
+hledger check -s   # basic + strict checks
+hledger check ordereddates uniqueleafnames  # basic + specified checks
+\f[R]
+.fi
 .PP
-\f[C]hledger check\f[R] runs the basic checks, like all other commands,
-but with no output unless there is a problem.
-These are:
+Here are the checks currently available:
+.SS Basic checks
+.PP
+These are always run by this command and other commands:
 .IP \[bu] 2
 \f[B]parseable\f[R] - data files are well-formed and can be successfully
 parsed
@@ -3562,41 +3572,51 @@ parsed
 missing amounts where necessary, and possibly converting commodities
 using transaction prices or automatically-inferred transaction prices
 .IP \[bu] 2
-\f[B]assertions\f[R] - all balance assertions are passing (except with
-\f[C]-I\f[R]/\f[C]--ignore-assertions\f[R])
+\f[B]assertions\f[R] - all balance assertions in the journal are
+passing.
+(This check can be disabled with
+\f[C]-I\f[R]/\f[C]--ignore-assertions\f[R].)
+.SS Strict checks
 .PP
-\f[C]hledger check --strict\f[R] also runs the additional \[dq]strict
-mode\[dq] checks, which are:
+These are always run by this and other commands when
+\f[C]-s\f[R]/\f[C]--strict\f[R] is used (strict mode):
 .IP \[bu] 2
 \f[B]accounts\f[R] - all account names used by transactions have been
 declared
 .IP \[bu] 2
 \f[B]commodities\f[R] - all commodity symbols used have been declared
+.SS Other checks
 .PP
-\f[C]hledger check CHECK1 CHECK2 ...\f[R] runs all of the named checks,
-in turn.
-This may be useful when neither the default nor strict checks are
-exactly what you want, or when you want to focus on a single check of
-interest.
-The arguments are standard lowercase names for the checks.
-Currently only these checks can be run in this way:
+These checks can be run by specifying their names as arguments to the
+check command:
 .IP \[bu] 2
-\f[B]dates\f[R] - transactions are ordered by date (similar to the old
-\f[C]check-dates\f[R] command)
+\f[B]ordereddates\f[R] - transactions are ordered by date (similar to
+the old \f[C]check-dates\f[R] command)
 .IP \[bu] 2
-\f[B]leafnames\f[R] - all account leaf names are unique ((similar to the
-old \f[C]check-dupes\f[R] command)
+\f[B]uniqueleafnames\f[R] - all account leaf names are unique (similar
+to the old \f[C]check-dupes\f[R] command)
 .PP
-See also:
+This command would run all of the checks above:
+.IP
+.nf
+\f[C]
+$ hledger check -s ordereddates uniqueleafnames
+\f[R]
+.fi
+.SS Addon checks
 .PP
-Some checks are shipped as addon scripts for now (cf
-https://github.com/simonmichael/hledger/tree/master/bin, and Cookbook ->
-Scripting):
+Some checks are not yet integrated with this command, but are available
+as [addon commands] in
+https://github.com/simonmichael/hledger/tree/master/bin:
 .IP \[bu] 2
-\f[B]tagfiles\f[R] - all tag values containing / (a forward slash) exist
-as file paths
+\f[B]hledger-check-tagfiles\f[R] - all tag values containing / (a
+forward slash) exist as file paths
 .IP \[bu] 2
-\f[B]fancyassertions\f[R] - more complex balance assertions are passing
+\f[B]hledger-check-fancyassertions\f[R] - more complex balance
+assertions are passing
+.PP
+You could make your own similar scripts to perform custom checks;
+Cookbook -> Scripting may be helpful.
 .SS close
 .PP
 close, equity
