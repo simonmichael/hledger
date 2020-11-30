@@ -1,7 +1,7 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 255d4753
+# 16a212af
 
 - added: journalApplyAliases, transactionApplyAliases, postingApplyAliases
 

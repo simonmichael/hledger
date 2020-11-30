@@ -1,9 +1,7 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 5f9635c7
-
-
+# d40d53ae
 
 - Re-enable hledger-web's test suite, and include it in the main executable.
   hledger-web --test [-- HSPECARGS] runs it.

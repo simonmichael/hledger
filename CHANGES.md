@@ -1,10 +1,9 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 5eb69785
+# ee026f54
 
 - examples: clean up & add more budgeting examples
-
 
 - examples: stripe csv
 

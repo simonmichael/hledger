@@ -1,7 +1,20 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 255d4753
+# 26dc66e1
+
+- strict mode: the new -s/--strict common flag requires that 
+  all accounts and commodities are declared with directives.
+
+- check: A new command which consolidating the various check-* commands.
+  It runs the default, strict, or specified checks and produces
+  no output and a zero exit code if all is well.
+
+- check-dates: this command is deprecated and will be removed
+  in next release; use "hledger check ordereddates" instead.
+
+- check-dupes: this command is deprecated and will be removed
+  in next release; use "hledger check uniqueleafnames" instead.
 
 - csv, timedot, timeclock files now respect command line --alias options,
   like journal files.  (#859)
