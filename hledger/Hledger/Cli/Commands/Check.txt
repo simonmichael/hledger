@@ -48,14 +48,10 @@ check command:
 -   uniqueleafnames - all account leaf names are unique (similar to the
     old check-dupes command)
 
-This command would run all of the checks above:
-
-$ hledger check -s ordereddates uniqueleafnames
-
 Addon checks
 
 Some checks are not yet integrated with this command, but are available
-as [addon commands] in
+as add-on commands in
 https://github.com/simonmichael/hledger/tree/master/bin:
 
 -   hledger-check-tagfiles - all tag values containing / (a forward
