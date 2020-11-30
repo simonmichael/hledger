@@ -245,7 +245,10 @@ reportOptsToSpec day ropts = do
       , rsQueryOpts = queryopts
       }
 
--- | Regenerate a ReportSpec after updating ReportOpts.
+-- | Regenerate a ReportSpec after updating ReportOpts, or return an error
+-- message if there is a problem such as missing or unparseable options data.
+-- This helps keep the ReportSpec, its underlying ReportOpts, and the ReportOpts'
+-- data fields like querystring_ all in sync.
 updateReportSpecFromOpts :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
 updateReportSpecFromOpts f rspec = reportOptsToSpec (rsToday rspec) . f $ rsOpts rspec
 

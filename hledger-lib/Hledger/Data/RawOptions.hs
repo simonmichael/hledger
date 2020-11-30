@@ -11,6 +11,7 @@ module Hledger.Data.RawOptions (
   RawOpts,
   setopt,
   setboolopt,
+  appendopts,
   inRawOpts,
   boolopt,
   choiceopt,
@@ -22,7 +23,8 @@ module Hledger.Data.RawOptions (
   posintopt,
   maybeintopt,
   maybeposintopt,
-  maybecharopt
+  maybecharopt,
+  overRawOpts
 )
 where
 
@@ -46,6 +48,9 @@ setopt name val = overRawOpts (++ [(name, val)])
 
 setboolopt :: String -> RawOpts -> RawOpts
 setboolopt name = overRawOpts (++ [(name,"")])
+
+appendopts :: [(String,String)] -> RawOpts -> RawOpts
+appendopts new = overRawOpts $ \old -> concat [old,new]
 
 -- | Is the named option present ?
 inRawOpts :: String -> RawOpts -> Bool
