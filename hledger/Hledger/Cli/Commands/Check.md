@@ -9,11 +9,13 @@ prevent problems in your data.
 Some of these are run automatically; or,
 you can use this `check` command to run them on demand,
 with no output and a zero exit code if all is well.
-Use it as follows:
+Some examples:
 
-- `hledger check` - runs the basic checks
-- `hledger check -s`  - runs the basic + strict checks
-- `hledger check CHECK1 CHECK2 ..` - runs the basic + specified checks.
+```shell
+hledger check      # basic checks
+hledger check -s   # basic + strict checks
+hledger check ordereddates uniqueleafnames  # basic + specified checks
+```
 
 Here are the checks currently available:
 
@@ -29,7 +31,7 @@ These are always run by this command and other commands:
   using [transaction prices] or automatically-inferred transaction prices
 
 - **assertions** - all [balance assertions] in the journal are passing. 
-  This can be disabled with `-I`/`--ignore-assertions`.
+  (This check can be disabled with `-I`/`--ignore-assertions`.)
 
 ### Strict checks
 
@@ -48,7 +50,7 @@ These checks can be run by specifying their names as arguments to the check comm
 
 - **ordereddates** - transactions are ordered by date (similar to the old `check-dates` command)
 
-- **uniqueleafnames** - all account leaf names are unique ((similar to the old `check-dupes` command)
+- **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command)
 
 This command would run all of the checks above:
 ```shell
