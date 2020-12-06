@@ -4,10 +4,16 @@
 set -o errexit -o pipefail -o nounset
 
 main() {
-    declare tmp
-    tmp=$(mktemp)
+    declare tmpdir="_options.tmp"
+    declare tmp="${tmpdir}/${1:-generic}"
+
+    mkdir -p "$tmpdir"
     cat > "$tmp"
-    sed -rn 's/.* (-[a-zA-Z0-9]).*/\1/gp' < "$tmp"
+
+    # Do not propose single letter completions. It's not useful, it's noisy
+    # and it makes completion slower:
+    # Display all 200 possibilities? (y or n)
+    # sed -rn 's/.* (-[a-zA-Z0-9]).*/\1/gp' < "$tmp"
 
     # Do not print '=' after long options with arg because it makes completion
     # for option arguments harder.

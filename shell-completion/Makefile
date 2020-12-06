@@ -10,7 +10,7 @@ generic-options.txt:
 	hledger -h | ./output-options.sh | sort -u > $@
 
 commands.txt:
-	hledger | ./output-commands.sh | grep -v ^hledger > $@
+	hledger | ./output-commands.sh | grep -v ^hledger | sort -u > $@
 	echo ui  >> $@
 	echo web >> $@
 	echo api >> $@
@@ -23,8 +23,9 @@ commands-list.txt: commands.txt
 	# hledger help --cat hledger | sed -n '/^QUERIES/,/^[A-Z]/p'
 
 command-options: commands.txt
-	parallel -j8 'hledger {} -h | ./output-options.sh | sort -u > options-{}.txt' < commands.txt
+	parallel -j8 'hledger {} -h | ./output-options.sh {} | sort -u > options-{}.txt' < commands.txt
 
 clean:
 	rm -f commands*.txt generic-options.txt options-*.txt
 	rm -f hledger-completion.bash
+	rm -rf _{commands,options}.tmp

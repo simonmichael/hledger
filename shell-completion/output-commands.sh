@@ -4,20 +4,16 @@
 set -o errexit -o pipefail -o nounset
 
 main() {
-    declare tmp
-    tmp=$(mktemp)
+    declare tmp="_commands.tmp"
     cat > "$tmp"
 
-    # Do not output mistaken commands that start with a dash (e.g. -h)
-    sed -rn 's/^ ([-a-z]+).*/\1/gp' "$tmp" \
-	| grep -v ^-
+    sed -rn 's/^\s+([a-z][-a-z]+)\s+.*/\1/p' "$tmp"
 
-    # Output single command aliases in parenthesis:
+    # Output command aliases in parenthesis:
     # Do not output single letter command aliases, it's not useful.
-    sed -rn 's/^ .*\(([a-z]+)\).*/\1/gp' "$tmp" \
-	| grep -v ^.$
-
-    # TODO missing: (reg, r)  (multiple aliases)
+    sed -rn 's/^\s+[a-z][-a-z]+\s+\(([a-z][ ,a-z]+)\).*/\1/p' "$tmp" |
+        sed 's/\s*,\s*/\n/g' |
+        sed '/^.$/d'
 }
 
 main "$@"

@@ -1,102 +1,99 @@
-
 # Completion script for hledger.
 # Created using a Makefile and real hledger.
 
-# No set -e because this file is sourced and is not supposed to quit the current shell.
-set -o pipefail
-
-# Note: grep "^$wordToComplete" is (functional) not safe to use if the word
-# contains regex special chars. But it might be no problem because of
-# COMP_WORDBREAKS.
-
-# Note: compgen and compopt is pretty complicated. Piping to
-# grep "^$wordToComplete"
-# seems like a hack - I'd rather use
-# compgen ... -- "$wordToComplete"
-# But what options to use? I don't want to use -W because it may exceed the
-# maximum command line length. -C "cat file" is not working either. It would be
-# best if compgen could read from stdin but it does not.
-
-# Note: Working with bash arrays is nasty compared to editing a text file.
-# Consider for example grepping an array or mapping a substitution on it.
-# Therefore, we create temp files in RAM for completion suggestions (see below).
-
-readonly _HLEDGER_COMPLETION_TEMPDIR=$(mktemp -d)
+# This script is sourced by an interactive shell, so do NOT do things like
+# 'set -o pipefail' or mangle the global environment in any other way!
+# That said, we *do* remove colon (:) from COMP_WORDBREAKS which impacts
+# the rest of the session and completion for other programs.
 
 _hledger_completion_function() {
-    #declare cmd=$1
-    declare wordToComplete=$2
-    declare precedingWord=$3
+    # Current treatment for special characters:
+    # - exclude colon (:) from COMP_WORDBREAKS
+    # - use comptop -o filenames to escape the rest
+    COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+    compopt -o filenames
 
-    declare subcommand
-    for subcommand in "${COMP_WORDS[@]}"; do
-	if grep -Fxqe "$subcommand" "$_HLEDGER_COMPLETION_TEMPDIR/commands.txt"; then
-	    COMPREPLY+=( $(grep -h "^$wordToComplete" -- "$_HLEDGER_COMPLETION_TEMPDIR/options-$subcommand.txt") )
-	    break
-	fi
-	subcommand=
+    local wordToComplete=$2
+    local subcommand
+    local subcommandOptions
+    local i
+
+    for (( i=1; i<${#COMP_WORDS[@]}; i++ )); do
+        subcommand=${COMP_WORDS[i]}
+        if ! grep -Fxqe "$subcommand" <<< "$_hledger_complist_commands"; then
+            subcommand=
+            continue
+        fi
+        # There could be other commands begining with $subcommand, e.g.:
+        # $subcommand == reg --> register, register-match,
+        # $subcommand == bal --> balance, balancesheet, balancesheetequity, etc.
+        # Do not ignore them!
+        if [[ $subcommand == "$wordToComplete" ]] && ((i == COMP_CWORD)); then
+            local subcommandMatches
+            subcommandMatches=$(grep -c "^$wordToComplete" <<< "$_hledger_complist_commands")
+            if ((subcommandMatches > 1)); then
+                subcommand=
+                break
+            else
+                _hledger_compreply "$subcommand"
+                return 0
+            fi
+        fi
+        # Replace dashes with underscores and use indirect expansion
+        subcommandOptions=_hledger_complist_options_${subcommand//-/_}
+        _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
+        break
     done
 
     if [[ -z $subcommand ]]; then
+        _hledger_compreply_optarg && return
 
-	declare completeFiles filenameSoFar
-	case $precedingWord in
-	    -f|--file|--rules-file)
-		completeFiles=1
-		filenameSoFar=$wordToComplete
-		;;
-	    =)
-		completeFiles=1
-		filenameSoFar=$wordToComplete
-		;;
-	esac
+        # Completion lists are already sorted at build-time
+        # This keeps commands and options grouped separately
+        compopt -o nosort
+        _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
+        _hledger_compreply_append "$(_hledger_compgen "$_hledger_complist_generic_options")"
 
-	if [[ -n $completeFiles ]]; then
-	    #COMP_WORDBREAKS='= '
-	    declare -a files
-	    # This does not work because assignment to 'files' in the "pipe
-	    # subshell" has no effect!
-	    #compgen -df | grep "^$filenameSoFar" | readarray -t files
-
-	    compopt -o filenames -o dirnames
-	    readarray -t files < <(compgen -f -- "$filenameSoFar")
-	    COMPREPLY=( "${files[@]}" )
-
-	else
-	    COMPREPLY+=( $(grep -h "^$wordToComplete" -- "$_HLEDGER_COMPLETION_TEMPDIR/commands.txt" "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt") )
-	fi
-
-    else
-
-	# Almost all subcommands accept [QUERY]
-	# -> always add accounts to completion list
-
-	# TODO Get ledger file from -f --file arguments from COMP_WORDS and pass it to
-	# the 'hledger accounts' call. Note that --rules-file - if present - must also
-	# be passed!
-
-	declare -a accounts
-	readarray -t accounts < <({ cat "$_HLEDGER_COMPLETION_TEMPDIR/query-filters.txt"; hledger accounts --flat; } | grep "^$wordToComplete")
-	compopt -o nospace
-	COMPREPLY+=( "${accounts[@]}" )
-	# Special characters (e.g. '-', ':') are allowed in account names.
-	# Account names with spaces must be still be quoted (e.g. '"Expens')
-	# for completion. Setting COMP_WORDBREAKS='' would not help here!
-	COMP_WORDBREAKS=' '
-
+        return 0
     fi
 
+    # Option argument completion after subcommand too
+    _hledger_compreply_optarg && return
+
+    # Avoid setting compopt bellow if completing an option
+    [[ $wordToComplete == -* ]] && return
+
+    # Almost all subcommands accept [QUERY]
+    # -> always add accounts to completion list
+    # Except for those few that will complain
+    local noQuery=(files help test)
+    [[ " ${noQuery[*]} " =~ " $subcommand " ]] && return
+    # Add any other subcommand special treatment here, or if it becomes unwieldy
+    # move it out in say _hledger_compreply_subcommand() and return on success.
+
+    # Query specific completions
+    _hledger_compreply_query && return
+
+    # Do not sort, keep accounts and query filters grouped separately
+    compopt -o nosort -o nospace
+    _hledger_compreply_append "$(_hledger_compgen "$_hledger_complist_query_filters")"
+    if [[ -z $wordToComplete ]]; then
+        _hledger_compreply_append "$(_hledger_compgen "$(_hledger accounts --flat --depth 1)")"
+    else
+        _hledger_compreply_append "$(_hledger_compgen "$(_hledger accounts --flat)")"
+    fi
+
+    return 0
 }
 
 _hledger_extension_completion_function() {
-    declare cmd=$1
+    local cmd=$1
+    shift
 
     # Change parameters and arguments and call the
     # normal hledger completion function.
-    declare extensionName=${cmd#*-}
-    export -a COMP_WORDS=( "hledger" "$extensionName" "${COMP_WORDS[@]:1}" )
-    #echo; echo "debug: ${COMP_WORDS[@]}"
-    shift
+    local extensionName=${cmd#*-}
+    COMP_WORDS=( "hledger" "$extensionName" "${COMP_WORDS[@]:1}" )
     _hledger_completion_function "hledger" "$@"
 }
 
@@ -107,79 +104,270 @@ complete -F _hledger_completion_function hledger
 complete -F _hledger_extension_completion_function hledger-ui
 complete -F _hledger_extension_completion_function hledger-web
 
+# Helpers
+
+# Comment out when done
+_hledger_debug() {
+    ((HLEDGER_DEBUG)) || return 0
+    local var=${1:-COMP_WORDS}
+    printf '\ndebug: %s\n' "$(declare -p "$var")" >&2
+}
+
+# Stolen from bash-completion
+# This function quotes the argument in a way so that readline dequoting
+# results in the original argument.  This is necessary for at least
+# `compgen' which requires its arguments quoted/escaped:
+_hledger_quote_by_ref()
+{
+    printf -v $2 %q "$1"
+
+    # If result becomes quoted like this: $'string', re-evaluate in order to
+    # drop the additional quoting.  See also: http://www.mail-archive.com/
+    # bash-completion-devel@lists.alioth.debian.org/msg01942.html
+    [[ ${!2} == \$* ]] && eval $2=${!2}
+}
+
+_hledger_quote()
+{
+    local quoted
+    _hledger_quote_by_ref "$1" quoted
+    printf %s "$quoted"
+}
+
+# Set the value of COMPREPLY from newline delimited completion candidates
+_hledger_compreply() {
+    local IFS=$'\n'
+    COMPREPLY=($1)
+}
+
+# Append the value of COMPREPLY from newline delimited completion candidates
+_hledger_compreply_append() {
+    local IFS=$'\n'
+    COMPREPLY+=($1)
+}
+
+# Generate input suitable for _hledger_compreply() from newline delimited
+# completion candidates. It doesn't seem there is a way to feed a literal
+# wordlist to compgen -- it will eat your quotes, drink your booze and...
+# Completion candidates are quoted accordingly first and then we leave it to
+# compgen to deal with readline.
+_hledger_compgen() {
+    local wordlist=$1
+    local quoted=()
+    local word
+    local i=0
+
+    while IFS= read -r word; do
+        _hledger_quote_by_ref "$word" word
+        quoted[i++]=$word
+    done <<< "$wordlist"
+
+    local IFS=$'\n'
+    compgen -W "${quoted[*]}" -- "$wordToComplete"
+}
+
+# Try required option argument completion. Set COMPREPLY and return 0 on
+# success, 1 if option doesn't require an argument or out of context
+_hledger_compreply_optarg() {
+    local optionIndex=${1:-$((COMP_CWORD - 1))}
+    local recursionLevel=${2:-0}
+    local wordlist
+    local error=0
+
+    case ${COMP_WORDS[optionIndex]} in
+        --alias)
+            compopt -o nospace
+            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)")"
+            ;;
+        -f|--file|--rules-file|-o|--output-file)
+            _hledger_compreply "$(compgen -f -- "$wordToComplete")"
+            ;;
+        --pivot)
+            compopt -o nosort
+            wordlist="code description note payee"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$wordToComplete")"
+            _hledger_compreply_append "$(_hledger_compgen "$(_hledger tags)")"
+            ;;
+        --value)
+            wordlist="cost then end now"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$wordToComplete")"
+            ;;
+        -X|--exchange)
+            _hledger_compreply "$(_hledger_compgen "$(_hledger commodities)")"
+            ;;
+        --color|--colour)
+            compopt -o nosort
+            wordlist="auto always yes never no"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$wordToComplete")"
+            ;;
+        # Argument required, but no handler (yet)
+        -b|--begin|-e|--end|-p|--period|--depth)
+            _hledger_compreply ""
+            ;;
+        =)
+            # Recurse only once!
+            ((recursionLevel > 1)) && return 1
+            if [[ ${COMP_WORDS[optionIndex - 1]} == -* ]]; then
+                _hledger_compreply_optarg $((optionIndex - 1)) $((recursionLevel + 1))
+                error=$?
+            fi
+            ;;
+        *)
+            error=1
+            ;;
+    esac
+
+    return $error
+}
+
+# Query filter completion through introspection
+_hledger_compreply_query() {
+    [[ $wordToComplete =~ .: ]] || return
+    local query=${wordToComplete%%:*}:
+    grep -Fxqe "$query" <<< "$_hledger_complist_query_filters" || return
+
+    local hledgerArgs=()
+    case $query in
+        acct:)
+            hledgerArgs=(accounts --flat)
+            ;;
+        code:)
+            hledgerArgs=(codes)
+            ;;
+        cur:)
+            hledgerArgs=(commodities)
+            ;;
+        desc:)
+            hledgerArgs=(descriptions)
+            ;;
+        note:)
+            hledgerArgs=(notes)
+            ;;
+        payee:)
+            hledgerArgs=(payees)
+            ;;
+        tag:)
+            hledgerArgs=(tags)
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+
+    _hledger_compreply "$(
+        _hledger_compgen "$(
+            _hledger "${hledgerArgs[@]}" | sed "s/^/$query/g"
+        )"
+    )"
+
+    return 0
+}
+
+# Get ledger file from -f --file arguments from COMP_WORDS and pass it to the
+# 'hledger' call. Note that --rules-file - if present - must also be passed!
+_hledger() {
+    local hledgerArgs=("$@")
+    local hledgerFile
+    local hledgerRulesFile
+    local i
+
+    # hledger balance --file ~/ledger _
+    # 0       1       2      3        4
+    for (( i=1; i < ${#COMP_WORDS[@]} - 2; i++ )); do
+        case ${COMP_WORDS[i]} in
+            -f|--file)
+                if [[ ${COMP_WORDS[i+1]} == '=' ]]; then
+                    hledgerFile=${COMP_WORDS[i+2]}
+                else
+                    hledgerFile=${COMP_WORDS[i+1]}
+                fi
+                ;;
+            --rules-file)
+                if [[ ${COMP_WORDS[i+1]} == '=' ]]; then
+                    hledgerRulesFile=${COMP_WORDS[i+2]}
+                else
+                    hledgerRulesFile=${COMP_WORDS[i+1]}
+                fi
+                ;;
+        esac
+    done
+
+    [[ -f $hledgerFile ]] && hledgerArgs+=(--file "$hledgerFile")
+    [[ -f $hledgerRulesFile ]] && hledgerArgs+=(--rules-file "$hledgerRulesFile")
+
+    # Discard errors. Is there a way to validate files before using them?
+    hledger "${hledgerArgs[@]}" 2>/dev/null
+}
+
 # Include lists of commands and options generated by the Makefile using the
 # m4 macro processor.
 # Included files must have exactly one newline at EOF to prevent weired errors.
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/commands.txt"
+read -r -d "" _hledger_complist_commands <<TEXT
+accounts
+activity
 add
-import
+areg
+aregister
+bal
+balance
+balancesheet
+balancesheetequity
+bs
+bse
+cashflow
+cf
 check-dates
 check-dupes
 close
-diff
-rewrite
-aregister
-balancesheet
-balancesheetequity
-cashflow
-incomestatement
-roi
-accounts
-activity
-balance
 codes
 commodities
 descriptions
+diff
+equity
 files
+help
+import
+incomestatement
+is
 notes
 payees
 prices
 print
 print-unique
+reg
 register
 register-match
+rewrite
+roi
 stats
 tags
 test
-help
-equity
-areg
-bs
-bse
-cf
-is
+txns
 ui
 web
 api
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/query-filters.txt"
-not:
+read -r -d "" _hledger_complist_query_filters <<TEXT
 acct:
 amt:
-amt:<
-amt:<=
-amt:>
-amt:>=
 code:
 cur:
-desc:
 date:
 date2:
 depth:
+desc:
+inacct:
+not:
 note:
 payee:
 real:
-real:0
 status:
-status:!
-status:*
 tag:
-inacct:
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
+read -r -d "" _hledger_complist_generic_options <<TEXT
 --alias
 --anon
 --auto
@@ -213,32 +401,89 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/generic-options.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
+# Dashes are replaced by m4 with underscores to form valid identifiers
+# Referenced by indirect expansion of $subcommandOptions
 
+read -r -d "" _hledger_complist_options_accounts <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--declared
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--tree
+--unmarked
+--used
+--value
+--version
+--weekly
+--yearly
+TEXT
 
+read -r -d "" _hledger_complist_options_activity <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-add.txt"
+read -r -d "" _hledger_complist_options_add <<TEXT
 --alias
 --anon
 --debug
@@ -249,328 +494,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-add.txt"
 --pivot
 --rules-file
 --version
--I
--f
--h
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-import.txt"
---alias
---anon
---auto
---aux-date
---begin
---catchup
---cleared
---colour
---cost
---daily
---date2
---debug
---depth
---dry-run
---empty
---end
---exchange
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---market
---monthly
---new
---pending
---period
---pivot
---quarterly
---real
---rules-file
---unmarked
---value
---version
---weekly
---yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
--x
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dates.txt"
---alias
---anon
---auto
---aux-date
---begin
---cleared
---colour
---cost
---daily
---date2
---debug
---depth
---empty
---end
---exchange
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---market
---monthly
---pending
---period
---pivot
---quarterly
---real
---rules-file
---strict
---unmarked
---value
---version
---weekly
---yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-check-dupes.txt"
---alias
---anon
---auto
---aux-date
---begin
---cleared
---colour
---cost
---daily
---date2
---debug
---depth
---empty
---end
---exchange
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---market
---monthly
---pending
---period
---pivot
---quarterly
---real
---rules-file
---unmarked
---value
---version
---weekly
---yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-close.txt"
---alias
---anon
---auto
---aux-date
---begin
---cleared
---close
---close-acct
---close-desc
---colour
---cost
---daily
---date2
---debug
---depth
---empty
---end
---exchange
---explicit
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---interleaved
---market
---monthly
---open
---open-acct
---open-desc
---pending
---period
---pivot
---quarterly
---real
---rules-file
---show-costs
---unmarked
---value
---version
---weekly
---x
---yearly
--5
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
--x
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-diff.txt"
---alias
---anon
---debug
---file
---help
---ignore-assertions
---pivot
---rules-file
---version
--I
--f
--h
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-rewrite.txt"
---add-posting
---alias
---anon
---auto
---aux-date
---begin
---cleared
---colour
---cost
---daily
---date2
---debug
---depth
---diff
---empty
---end
---exchange
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---market
---monthly
---pending
---period
---pivot
---quarterly
---real
---rules-file
---unmarked
---value
---version
---weekly
---yearly
--1
--2
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-aregister.txt"
+read -r -d "" _hledger_complist_options_areg <<TEXT
 --alias
 --anon
 --auto
@@ -609,532 +535,50 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-aregister.txt"
 --weekly
 --width
 --yearly
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--o
--p
--w
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheet.txt"
+read -r -d "" _hledger_complist_options_aregister <<TEXT
 --alias
 --anon
 --auto
 --aux-date
---average
 --begin
---change
 --cleared
 --colour
 --cost
---cumulative
 --daily
 --date2
 --debug
 --depth
---drop
 --empty
 --end
 --exchange
 --file
---flat
 --forecast
---format
 --help
---historical
 --ignore-assertions
 --infer-market-price
 --market
 --monthly
 --no-elide
---no-total
 --output-file
 --output-format
 --pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
---unmarked
---value
---version
---weekly
---yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balancesheetequity.txt"
---alias
---anon
---auto
---aux-date
---average
---begin
---change
---cleared
---colour
---cost
---cumulative
---daily
---date2
---debug
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---format
---help
---historical
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
---no-total
---output-file
---output-format
---pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
---unmarked
---value
---version
---weekly
---yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cashflow.txt"
---alias
---anon
---auto
---aux-date
---average
---begin
---change
---cleared
---colour
---cost
---cumulative
---daily
---date2
---debug
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---format
---help
---historical
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
---no-total
---output-file
---output-format
---pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
---unmarked
---value
---version
---weekly
---yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-incomestatement.txt"
---alias
---anon
---auto
---aux-date
---average
---begin
---change
---cleared
---colour
---cost
---cumulative
---daily
---date2
---debug
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---format
---help
---historical
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
---no-total
---output-file
---output-format
---pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
---unmarked
---value
---version
---weekly
---yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-roi.txt"
---alias
---anon
---auto
---aux-date
---begin
---cashflow
---cleared
---colour
---cost
---daily
---date2
---debug
---depth
---empty
---end
---exchange
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---inv
---investment
---market
---monthly
---pending
---period
---pivot
---pnl
---quarterly
---real
---rules-file
---unmarked
---value
---version
---weekly
---yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-accounts.txt"
---alias
---anon
---auto
---aux-date
---begin
---cleared
---colour
---cost
---daily
---date2
---debug
---declared
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---help
---ignore-assertions
---infer-market-price
---market
---monthly
---pending
 --period
 --pivot
 --quarterly
 --real
 --rules-file
---tree
---unmarked
---used
---value
---version
---weekly
---yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-activity.txt"
---alias
---anon
---auto
---aux-date
---begin
---cleared
---colour
---cost
---daily
---date2
---debug
---depth
---empty
---end
---exchange
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---market
---monthly
---pending
---period
---pivot
---quarterly
---real
---rules-file
+--txn-dates
 --unmarked
 --value
 --version
 --weekly
+--width
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
+read -r -d "" _hledger_complist_options_bal <<TEXT
 --alias
 --anon
 --auto
@@ -1163,7 +607,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-value
 --invert
 --market
 --monthly
@@ -1188,38 +632,414 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-balance.txt"
 --version
 --weekly
 --yearly
--1
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-codes.txt"
+read -r -d "" _hledger_complist_options_balance <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--budget
+--change
+--cleared
+--color
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-value
+--invert
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--transpose
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_balancesheet <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_balancesheetequity <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_bs <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_bse <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_cashflow <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_cf <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_check_dates <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--strict
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_check_dupes <<TEXT
 --alias
 --anon
 --auto
@@ -1253,29 +1073,91 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-codes.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-commodities.txt"
+read -r -d "" _hledger_complist_options_close <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--close
+--close-acct
+--close-desc
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--explicit
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--interleaved
+--market
+--monthly
+--open
+--open-acct
+--open-desc
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--show-costs
+--unmarked
+--value
+--version
+--weekly
+--x
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_codes <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_commodities <<TEXT
 --alias
 --anon
 --debug
@@ -1285,12 +1167,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-commodities.txt"
 --pivot
 --rules-file
 --version
--I
--f
--h
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-descriptions.txt"
+read -r -d "" _hledger_complist_options_descriptions <<TEXT
 --alias
 --anon
 --auto
@@ -1324,29 +1203,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-descriptions.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-files.txt"
+read -r -d "" _hledger_complist_options_diff <<TEXT
 --alias
 --anon
 --debug
@@ -1356,12 +1215,218 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-files.txt"
 --pivot
 --rules-file
 --version
--I
--f
--h
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-notes.txt"
+read -r -d "" _hledger_complist_options_equity <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--close
+--close-acct
+--close-desc
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--explicit
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--interleaved
+--market
+--monthly
+--open
+--open-acct
+--open-desc
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--show-costs
+--unmarked
+--value
+--version
+--weekly
+--x
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_files <<TEXT
+--alias
+--anon
+--debug
+--file
+--help
+--ignore-assertions
+--pivot
+--rules-file
+--version
+TEXT
+
+read -r -d "" _hledger_complist_options_help <<TEXT
+--cat
+--help
+--info
+--man
+--pager
+TEXT
+
+read -r -d "" _hledger_complist_options_import <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--catchup
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--dry-run
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--new
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_incomestatement <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_is <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--change
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--drop
+--empty
+--end
+--exchange
+--file
+--flat
+--forecast
+--format
+--help
+--historical
+--ignore-assertions
+--infer-value
+--market
+--monthly
+--no-elide
+--no-total
+--output-file
+--output-format
+--pending
+--percent
+--period
+--pivot
+--pretty-tables
+--quarterly
+--real
+--row-total
+--rules-file
+--sort-amount
+--tree
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_notes <<TEXT
 --alias
 --anon
 --auto
@@ -1395,29 +1460,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-notes.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-payees.txt"
+read -r -d "" _hledger_complist_options_payees <<TEXT
 --alias
 --anon
 --auto
@@ -1451,29 +1496,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-payees.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
+read -r -d "" _hledger_complist_options_prices <<TEXT
 --alias
 --anon
 --auto
@@ -1494,7 +1519,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
 --forecast
 --help
 --ignore-assertions
---infer-market-price
+--infer-value
 --inverted-costs
 --market
 --monthly
@@ -1509,29 +1534,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-prices.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print.txt"
+read -r -d "" _hledger_complist_options_print <<TEXT
 --alias
 --anon
 --auto
@@ -1570,33 +1575,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--O
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--m
--o
--p
--x
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print-unique.txt"
+read -r -d "" _hledger_complist_options_print_unique <<TEXT
 --alias
 --anon
 --auto
@@ -1630,29 +1611,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-print-unique.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register.txt"
+read -r -d "" _hledger_complist_options_reg <<TEXT
 --alias
 --anon
 --auto
@@ -1675,7 +1636,7 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register.txt"
 --help
 --historical
 --ignore-assertions
---infer-market-price
+--infer-value
 --invert
 --market
 --monthly
@@ -1694,35 +1655,53 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register.txt"
 --weekly
 --width
 --yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--o
--p
--r
--w
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register-match.txt"
+read -r -d "" _hledger_complist_options_register <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--average
+--begin
+--cleared
+--colour
+--cost
+--cumulative
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--historical
+--ignore-assertions
+--infer-value
+--invert
+--market
+--monthly
+--output-file
+--output-format
+--pending
+--period
+--pivot
+--quarterly
+--real
+--related
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--width
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_register_match <<TEXT
 --alias
 --anon
 --auto
@@ -1756,29 +1735,87 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-register-match.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-stats.txt"
+read -r -d "" _hledger_complist_options_rewrite <<TEXT
+--add-posting
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--diff
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-market-price
+--market
+--monthly
+--pending
+--period
+--pivot
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_roi <<TEXT
+--alias
+--anon
+--auto
+--aux-date
+--begin
+--cashflow
+--cleared
+--colour
+--cost
+--daily
+--date2
+--debug
+--depth
+--empty
+--end
+--exchange
+--file
+--forecast
+--help
+--ignore-assertions
+--infer-value
+--inv
+--investment
+--market
+--monthly
+--pending
+--period
+--pivot
+--pnl
+--quarterly
+--real
+--rules-file
+--unmarked
+--value
+--version
+--weekly
+--yearly
+TEXT
+
+read -r -d "" _hledger_complist_options_stats <<TEXT
 --alias
 --anon
 --auto
@@ -1813,30 +1850,9 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-stats.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--o
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-tags.txt"
+read -r -d "" _hledger_complist_options_tags <<TEXT
 --alias
 --anon
 --auto
@@ -1872,56 +1888,22 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-tags.txt"
 --version
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-test.txt"
+read -r -d "" _hledger_complist_options_test <<TEXT
 --color
 --debug
 --help
 --version
--h
--p
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-help.txt"
---cat
---help
---info
---man
---pager
--h
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-equity.txt"
+read -r -d "" _hledger_complist_options_txns <<TEXT
 --alias
 --anon
 --auto
 --aux-date
 --begin
 --cleared
---close
---close-acct
---close-desc
 --colour
 --cost
 --daily
@@ -1937,73 +1919,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-equity.txt"
 --help
 --ignore-assertions
 --infer-market-price
---interleaved
 --market
+--match
 --monthly
---open
---open-acct
---open-desc
---pending
---period
---pivot
---quarterly
---real
---rules-file
---show-costs
---unmarked
---value
---version
---weekly
---x
---yearly
--5
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
--x
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-areg.txt"
---alias
---anon
---auto
---aux-date
---begin
---cleared
---colour
---cost
---daily
---date2
---debug
---depth
---empty
---end
---exchange
---file
---forecast
---help
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
+--new
 --output-file
 --output-format
 --pending
@@ -2012,360 +1931,14 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-areg.txt"
 --quarterly
 --real
 --rules-file
---txn-dates
---unmarked
---value
---version
---weekly
---width
---yearly
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--o
--p
--w
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bs.txt"
---alias
---anon
---auto
---aux-date
---average
---begin
---change
---cleared
---colour
---cost
---cumulative
---daily
---date2
---debug
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---format
---help
---historical
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
---no-total
---output-file
---output-format
---pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
 --unmarked
 --value
 --version
 --weekly
 --yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-bse.txt"
---alias
---anon
---auto
---aux-date
---average
---begin
---change
---cleared
---colour
---cost
---cumulative
---daily
---date2
---debug
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---format
---help
---historical
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
---no-total
---output-file
---output-format
---pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
---unmarked
---value
---version
---weekly
---yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-cf.txt"
---alias
---anon
---auto
---aux-date
---average
---begin
---change
---cleared
---colour
---cost
---cumulative
---daily
---date2
---debug
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---format
---help
---historical
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
---no-total
---output-file
---output-format
---pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
---unmarked
---value
---version
---weekly
---yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-is.txt"
---alias
---anon
---auto
---aux-date
---average
---begin
---change
---cleared
---colour
---cost
---cumulative
---daily
---date2
---debug
---depth
---drop
---empty
---end
---exchange
---file
---flat
---forecast
---format
---help
---historical
---ignore-assertions
---infer-market-price
---market
---monthly
---no-elide
---no-total
---output-file
---output-format
---pending
---percent
---period
---pivot
---pretty-tables
---quarterly
---real
---row-total
---rules-file
---sort-amount
---tree
---unmarked
---value
---version
---weekly
---yearly
--A
--B
--C
--D
--E
--H
--I
--M
--N
--O
--P
--Q
--R
--S
--T
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--o
--p
--t
-TEXT
-
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
+read -r -d "" _hledger_complist_options_ui <<TEXT
 --alias
 --anon
 --auto
@@ -2405,107 +1978,10 @@ cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-ui.txt"
 --watch
 --weekly
 --yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--l
--p
--t
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-web.txt"
---alias
---anon
---auto
---aux-date
---base-url
---begin
---capabilities
---capabilities-header
---cleared
---colour
---cors
---cost
---daily
---date2
---debug
---depth
---empty
---end
---exchange
---file
---file-url
---forecast
---help
---host
---ignore-assertions
---infer-market-price
---market
---monthly
---pending
---period
---pivot
---port
---quarterly
---real
---rules-file
---serve
---server
---socket
---unmarked
---value
---version
---weekly
---yearly
--B
--C
--D
--E
--I
--M
--N
--P
--Q
--R
--U
--V
--W
--X
--Y
--b
--e
--f
--h
--p
+read -r -d "" _hledger_complist_options_web <<TEXT
 TEXT
 
-cat <<TEXT > "$_HLEDGER_COMPLETION_TEMPDIR/options-api.txt"
---file
---help
---host
---port
---static-dir
---swagger
---version
--d
--f
--h
--p
+read -r -d "" _hledger_complist_options_api <<TEXT
 TEXT
-
