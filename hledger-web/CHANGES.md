@@ -1,9 +1,9 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# d40d53ae
+# 1.20 2020-12-05
 
-- Re-enable hledger-web's test suite, and include it in the main executable.
+- hledger-web's test suite is re-enabled, now included in the main executable.
   hledger-web --test [-- HSPECARGS] runs it.
 
 - Fix --forecast, broken in hledger-web since 1.18 (#1390)

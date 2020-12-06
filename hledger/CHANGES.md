@@ -1,42 +1,12 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 26dc66e1
-
-- strict mode: the new -s/--strict common flag requires that 
-  all accounts and commodities are declared with directives.
-
-- check: A new command which consolidating the various check-* commands.
-  It runs the default, strict, or specified checks and produces
-  no output and a zero exit code if all is well.
-
-- check-dates: this command is deprecated and will be removed
-  in next release; use "hledger check ordereddates" instead.
-
-- check-dupes: this command is deprecated and will be removed
-  in next release; use "hledger check uniqueleafnames" instead.
-
-- csv, timedot, timeclock files now respect command line --alias options,
-  like journal files.  (#859)
-
-- Market price lookup for value reports is now more robust, fixing several bugs
-  (and debug output is more informative).
-  There has been a slight change in functionality: when chaining prices,
-  we now prefer chains of all "forward" prices, even if longer, with chains
-  involving reverse prices being the last resort.
-  (#1402)
-
-- bal: improve budget, MultiBalanceReport debug output
-  Comply with debug levels policy, clarify some labels.
-
-- bal: support CSV output for --budget reports (#1155)
-
-- roi: TWR now handles same-day pnl changes and cashflows,
-  calculation failure messages have been improved, and
-  the documentation includes more detail and examples.
-  (#1398) (Dmitry Astapov)
+# 1.20 2020-12-05
 
 ## general
+
+- strict mode: with -s/--strict, hledger requires that
+  all accounts and commodities are declared with directives.
 
 - Reverted a stripAnsi change in 1.19.1 that caused a 3x slowdown of amount rendering
   in terminal reports. (#1350)
@@ -65,6 +35,16 @@ User-visible changes in the hledger command line tool and library.
  
 - Debug output is prettier (eg, in colour), using pretty-simple instead of pretty-show.
 
+- csv, timedot, timeclock files now respect command line --alias options,
+  like journal files.  (#859)
+
+- Market price lookup for value reports is now more robust, fixing several bugs
+  (and debug output is more informative).
+  There has been a slight change in functionality: when chaining prices,
+  we now prefer chains of all "forward" prices, even if longer, with chains
+  involving reverse prices being the last resort.
+  (#1402)
+
 ## commands
 
 - add: number style (eg thousands separators) no longer disturbs the value
@@ -78,8 +58,28 @@ User-visible changes in the hledger command line tool and library.
   Valued multiperiod balance change reports now show changes of value, 
   rather than the value of changes. (#1353, Stephen Morgan)
 
+- bal: improve budget, MultiBalanceReport debug output
+  Comply with debug levels policy, clarify some labels.
+
+- bal: support CSV output for --budget reports (#1155)
+
+- check: A new command which consolidating the various check-* commands.
+  It runs the default, strict, or specified checks and produces
+  no output and a zero exit code if all is well.
+
+- check-dates: this command is deprecated and will be removed
+  in next release; use "hledger check ordereddates" instead.
+
+- check-dupes: this command is deprecated and will be removed
+  in next release; use "hledger check uniqueleafnames" instead.
+
 - import: The journal's commodity styles (declared or inferred) are now applied
   to imported amounts, overriding their original number format.
+
+- roi: TWR now handles same-day pnl changes and cashflows,
+  calculation failure messages have been improved, and
+  the documentation includes more detail and examples.
+  (#1398) (Dmitry Astapov)
 
 ## journal format
 

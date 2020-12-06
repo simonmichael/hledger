@@ -1,7 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 16a212af
+# 1.20 2020-12-05
+
+
 
 - added: journalApplyAliases, transactionApplyAliases, postingApplyAliases
 

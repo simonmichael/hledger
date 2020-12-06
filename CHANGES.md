@@ -1,7 +1,7 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# ee026f54
+# 1.20 2020-12-05
 
 - examples: clean up & add more budgeting examples
 
