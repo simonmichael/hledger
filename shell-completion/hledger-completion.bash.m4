@@ -281,6 +281,8 @@ _hledger() {
                 else
                     hledgerFile=${COMP_WORDS[i+1]}
                 fi
+                # Pass it through compgen to unescape it
+                hledgerFile=$(compgen -W "$hledgerFile")
                 ;;
             --rules-file)
                 if [[ ${COMP_WORDS[i+1]} == '=' ]]; then
@@ -288,6 +290,7 @@ _hledger() {
                 else
                     hledgerRulesFile=${COMP_WORDS[i+1]}
                 fi
+                hledgerRulesFile=$(compgen -W "$hledgerRulesFile")
                 ;;
         esac
     done
