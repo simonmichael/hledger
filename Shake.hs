@@ -276,20 +276,14 @@ main = do
                 ]
           cmd Shell gitcommit ("-m '"++msg++"' --") specifiedversionfiles dependents
 
-      -- PKG/defs.m4 <- PKG/.version
+      -- PKG/defs.m4 <- PKG/.version, just updates the _version_ macro
       "hledger*/defs.m4" %> \out -> do
         let versionfile = takeDirectory out </> ".version"
         need [versionfile]
         version <- ((head . words) <$>) $ liftIO $ readFile versionfile
-        date    <- liftIO getCurrentDay
-        let manualdate = formatTime defaultTimeLocale "%B %Y" date
-        cmd_ Shell sed "-i -e" (
-            "'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/;"
-          ++" s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++manualdate++"/;"
-          ++"'")
-          out
+        cmd_ Shell sed "-i -e" ("'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/;'") out
 
-      -- PKG/package.yaml <- PKG/.version
+      -- PKG/package.yaml <- PKG/.version, just updates version strings
       "hledger*/package.yaml" %> \out -> do
         let versionfile = takeDirectory out </> ".version"
         need [versionfile]
@@ -369,6 +363,7 @@ main = do
           cmd Shell gitcommit ("-m '"++msg++"' --") packagem4s nroffmanuals infomanuals txtmanuals
 
       -- Generate nroff man pages suitable for man output, from the .m4.md source.
+      -- Also sets the _monthyear_ macro to current month and year in hledger*/defs.m4.
       phony "nroffmanuals" $ need nroffmanuals
       nroffmanuals |%> \out -> do -- hledger/hledger.1
         let src       = manpageNameToManualName out <.> "m4.md"
@@ -376,10 +371,12 @@ main = do
             dir       = takeDirectory out
             packagem4 = dir </> "defs.m4"
             tmpl      = "doc/manpage.nroff"
+        mandate <- formatTime defaultTimeLocale "%B %Y" <$> liftIO getCurrentDay
         -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
         need $ [src, commonm4, packagem4, tmpl] ++ deps
         when (dir=="hledger") $ need commandmds
+        cmd_ Shell sed "-i -e" (" s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;") packagem4
         cmd Shell
           "m4 -P -DMAN -I" dir commonm4 packagem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
