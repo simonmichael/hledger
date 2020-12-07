@@ -1,6 +1,11 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.20.1 2020-12-06
+
+- don't hang when reloading the journal, eg after adding a transaction
+  or editing the file. (#1409)
+
 # 1.20 2020-12-05
 
 - hledger-web's test suite is re-enabled, now included in the main executable.
