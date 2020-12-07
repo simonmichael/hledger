@@ -205,17 +205,14 @@ instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = do
-  App {appOpts = opts, appJournal} <- getYesod
+  App{appOpts=opts@WebOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts}}}, appJournal} <- getYesod
   today <- liftIO getCurrentDay
-  let copts = cliopts_ opts
-      rspec = (reportspec_ copts){rsOpts=ropts}
-      ropts = (rsOpts rspec){no_elide_ = True}
 
   -- try to read the latest journal content, keeping the old content
   -- if there's an error
   (j, mjerr) <- getCurrentJournal
                 appJournal
-                copts {reportspec_ = rspec}
+                copts{reportspec_=rspec{rsOpts=rsOpts{no_elide_=True}}}
                 today
 
   -- try to parse the query param, assuming no query if there's an error
