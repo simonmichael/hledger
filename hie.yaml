@@ -46,3 +46,7 @@ cradle:
 
     - path: "bin/"
       component: "hledger:lib"
+
+    # silences hls error for Shake.hs, but I think also ignores actual errors
+    - path: "Shake.hs"
+      component: "hledger:lib"
