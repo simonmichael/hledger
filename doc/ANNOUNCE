@@ -4,43 +4,37 @@ I'm pleased to announce hledger 1.20 ! Changes include:
 - check command
 - rendering, speed, and valuation fixes.
 
-See the details at https://hledger.org/release-notes .
+https://hledger.org/release-notes has the full details.
 Thanks to release contributors Stephen Morgan, Dmitry Astapov,
 TANIGUCHI Kohei, and legrostdg.
 
 
-hledger is a robust, cross-platform, plain text accounting tool, with
-command-line, terminal and web UIs. It is a modern and largely
-compatible reimplementation of Ledger CLI with many improvements.
-You can use it to track time, money, investments, cryptocurrencies,
-inventory and more. See: 
-
-http://hledger.org
-http://plaintextaccounting.org
+hledger (http://hledger.org) is a robust, cross-platform, plain text
+accounting tool, with command-line, terminal and web UIs. It is an
+actively maintained, largely compatible reimplementation of Ledger CLI
+with many improvements. You can use it to track money, time,
+investments, cryptocurrencies, inventory and more.
+See also the Plain Text Accounting site (http://plaintextaccounting.org).
 
 
-Here are three ways to build this release
-(see also http://hledger.org/download for other install methods):
+http://hledger.org/download shows all the ways to install hledger on
+mac, windows or unix (stack, cabal, brew, nix, CI binaries, your
+package manager..). Or, run this bash script to install or upgrade to
+the latest release:
 
-  stack update; stack install --resolver=lts hledger-lib-1.20 hledger-1.20 hledger-ui-1.20 hledger-web-1.20.1 --silent
-
-or:
-
-  cabal v2-update; cabal v2-install hledger-1.20 hledger-web-1.20 hledger-ui-1.20
-
-or:
-
-  curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh
-  less hledger-install.sh
-  bash hledger-install.sh
+$ curl -sO https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh
+$ less hledger-install.sh   # security review
+$ bash hledger-install.sh
 
 
-While building, you could read https://hledger.org/start.
-For help, see http://hledger.org#help-feedback
-and join us on Freenode (#hledger, http://irc.hledger.org)
-or via Matrix (#freenode_#hledger:matrix.org, http://riot.hledger.org).
-New and old users, contributors, sponsors, and all feedback are most welcome!
+New users, check out https://hledger.org/quickstart.
+
+To get help, see http://hledger.org#help-feedback,
+and join our chat channel via Freenode (#hledger, http://irc.hledger.org)
+or Matrix (#freenode_#hledger:matrix.org, http://riot.hledger.org).
+Beginners and experts, contributors, sponsors, and all feedback are most welcome!
 
 
-Good health,
+Be safe and well,
+
 -Simon
