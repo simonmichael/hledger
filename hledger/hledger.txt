@@ -3841,4 +3841,4 @@ SEE ALSO
 
 
 
-hledger 1.20                     November 2020                      hledger(1)
+hledger 1.20                     December 2020                      hledger(1)
