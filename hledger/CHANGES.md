@@ -54,14 +54,13 @@ User-visible changes in the hledger command line tool and library.
 
 - bal: --budget reports no longer insert an extra space inside the brackets. (Stephen Morgan)
 
+- bal: --budget reports now support CSV output (#1155)
+
 - bal, is, bs --change: 
   Valued multiperiod balance change reports now show changes of value, 
   rather than the value of changes. (#1353, Stephen Morgan)
 
-- bal: improve budget, MultiBalanceReport debug output
-  Comply with debug levels policy, clarify some labels.
-
-- bal: support CSV output for --budget reports (#1155)
+- bal: clearer debug output, following debug levels policy
 
 - check: A new command which consolidating the various check-* commands.
   It runs the default, strict, or specified checks and produces
