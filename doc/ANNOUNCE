@@ -1,4 +1,13 @@
-I'm pleased to announce hledger 1.19 !
+I'm pleased to announce hledger 1.20 ! Changes include:
+
+- Strict mode
+- check command
+- rendering, speed, and valuation fixes.
+
+See the details at https://hledger.org/release-notes .
+Thanks to release contributors Stephen Morgan, Dmitry Astapov,
+TANIGUCHI Kohei, and legrostdg.
+
 
 hledger is a robust, cross-platform, plain text accounting tool, with
 command-line, terminal and web UIs. It is a modern and largely
@@ -9,31 +18,15 @@ inventory and more. See:
 http://hledger.org
 http://plaintextaccounting.org
 
-HIGHLIGHTS:
 
-New aregister and codes commands,
-more powerful CSV conditional rules, 
-new sql output format,
-consistently default to flat mode,
-better colour control,
-cashflow report customisable like the others,
-more number/date/regexp parsing/validation,
-more speed.
+Here are three ways to build this release
+(see also http://hledger.org/download for other install methods):
 
-See all changes at https://hledger.org/release-notes .
-Thanks to release contributors Stephen Morgan, Dmitry Astapov, 
-Michael Sanders, Henning Thielemann, Martin Michlmayr, and Colin Woodbury.
-
-GETTING STARTED:
-
-Many install methods are described at http://hledger.org/download. 
-Here are three ways to build from source:
-
-  stack update; stack install --resolver=lts hledger-lib-1.19 hledger-1.19 hledger-ui-1.19 hledger-web-1.19 --silent
+  stack update; stack install --resolver=lts hledger-lib-1.20 hledger-1.20 hledger-ui-1.20 hledger-web-1.20.1 --silent
 
 or:
 
-  cabal v2-update; cabal v2-install hledger-1.19 hledger-web-1.19 hledger-ui-1.19
+  cabal v2-update; cabal v2-install hledger-1.20 hledger-web-1.20 hledger-ui-1.20
 
 or:
 
@@ -41,13 +34,13 @@ or:
   less hledger-install.sh
   bash hledger-install.sh
 
-While building, peruse https://hledger.org/start
 
+While building, you could read https://hledger.org/start.
 For help, see http://hledger.org#help-feedback
 and join us on Freenode (#hledger, http://irc.hledger.org)
 or via Matrix (#freenode_#hledger:matrix.org, http://riot.hledger.org).
-
 New and old users, contributors, sponsors, and all feedback are most welcome!
 
-Best,
+
+Good health,
 -Simon
