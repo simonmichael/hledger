@@ -853,12 +853,15 @@ manuals: Shake $(call def-help,manuals, regenerate and commit CLI help and manua
 	./Shake manuals
 	git commit -m ";doc: regen manuals" -m "[ci skip]" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
 
-tag-all: $(call def-help,tag-all, make git release tags and for the project and all packages )
+tag: $(call def-help,tag, make git release tags and for the project and all packages )
 	for p in $(PACKAGES); do make -s tag-$$p; done
-	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/release-notes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
+	make -s tag-project
 
 tag-%: $(call def-help,tag-PKG, make a git release tag for PKG )
 	git tag -fs $*-`cat $*/.version` -m "Release $*-`cat $*/.version`"
+
+tag-project: $(call def-help,tag-project, make a git release tag for the project as a whole )
+	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/release-notes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
 
 # hackageupload-dry: \
 # 	$(call def-help,hackageupload-dry,\
