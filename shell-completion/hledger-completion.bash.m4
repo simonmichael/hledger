@@ -1,3 +1,5 @@
+# shellcheck disable=2034
+
 # Completion script for hledger.
 # Created using a Makefile and real hledger.
 
@@ -67,6 +69,7 @@ _hledger_completion_function() {
     # -> always add accounts to completion list
     # Except for those few that will complain
     local noQuery=(files help test)
+    # shellcheck disable=2076
     [[ " ${noQuery[*]} " =~ " $subcommand " ]] && return
     # Add any other subcommand special treatment here, or if it becomes unwieldy
     # move it out in say _hledger_compreply_subcommand() and return on success.
@@ -119,12 +122,12 @@ _hledger_debug() {
 # `compgen' which requires its arguments quoted/escaped:
 _hledger_quote_by_ref()
 {
-    printf -v $2 %q "$1"
+    printf -v "$2" %q "$1"
 
     # If result becomes quoted like this: $'string', re-evaluate in order to
     # drop the additional quoting.  See also: http://www.mail-archive.com/
     # bash-completion-devel@lists.alioth.debian.org/msg01942.html
-    [[ ${!2} == \$* ]] && eval $2=${!2}
+    [[ ${!2} == \$* ]] && eval "$2=${!2}"
 }
 
 _hledger_quote()
@@ -137,12 +140,14 @@ _hledger_quote()
 # Set the value of COMPREPLY from newline delimited completion candidates
 _hledger_compreply() {
     local IFS=$'\n'
+    # shellcheck disable=2206
     COMPREPLY=($1)
 }
 
 # Append the value of COMPREPLY from newline delimited completion candidates
 _hledger_compreply_append() {
     local IFS=$'\n'
+    # shellcheck disable=2206
     COMPREPLY+=($1)
 }
 
