@@ -174,7 +174,6 @@ commandsList progversion othercmds = [
   ," close (equity)           generate balance-resetting transactions"
   ," diff                     compare account transactions in two journal files"
   ,"+interest                 generate interest transactions"
-  ," rewrite                  generate automated postings/diffs (old, use --auto)"
   ,""
   ,"Financial reports:"
   ," aregister (areg)         show transactions in a particular account"
@@ -182,7 +181,6 @@ commandsList progversion othercmds = [
   ," balancesheetequity (bse) show assets, liabilities and equity"
   ," cashflow (cf)            show changes in liquid assets"
   ," incomestatement (is)     show revenues and expenses"
-  ,"+irr                      calculate internal rate of return (old, use roi)"
   ," roi                      show return on investments"
   ,""
   ,"Low-level reports:"
@@ -207,7 +205,6 @@ commandsList progversion othercmds = [
   ,"Alternate user interfaces:"
   ,"+ui                       run curses ui"
   ,"+web                      run web ui"
-  ,"+api                      run http api server"
   ,""
   ,"Other:"
   ] ++
