@@ -52,7 +52,7 @@ These checks can be run by specifying their names as arguments to the check comm
 
 - **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command)
 
-### Addon checks
+### Add-on checks
 
 Some checks are not yet integrated with this command, but are available as
 [add-on commands] in <https://github.com/simonmichael/hledger/tree/master/bin>:

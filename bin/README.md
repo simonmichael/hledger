@@ -30,7 +30,7 @@ Scripts overview, simplest first:
 
 How to:
 
-### Install all scripts as addon commands
+### Install all scripts as add-on commands
 
     $ git clone https://github.com/simonmichael/hledger
     # add hledger/bin/ to your $PATH

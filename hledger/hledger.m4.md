@@ -472,9 +472,9 @@ To see options for a particular command, including command-specific options, run
 
 Command-specific options must be written after the command name, eg: `hledger print -x`.
 
-Additionally, if the command is an [addon](#commands),
+Additionally, if the command is an [add-on](#commands),
 you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
-Or, you can run the addon executable directly: `hledger-ui --watch`.
+Or, you can run the add-on executable directly: `hledger-ui --watch`.
 
 ## Command arguments
 
@@ -636,7 +636,7 @@ or:
 
 ### Even more escaping
 
-When hledger runs an addon executable (eg you type `hledger ui`, hledger runs `hledger-ui`),
+When hledger runs an add-on executable (eg you type `hledger ui`, hledger runs `hledger-ui`),
 it de-escapes command-line options and arguments once, so you might need to *triple*-escape.
 Eg in bash, running the ui command and matching the dollar sign, it's:
 
@@ -657,7 +657,7 @@ If you asked why *four* slashes above, this may help:
 
 (The number of backslashes in fish shell is left as an exercise for the reader.)
 
-You can always avoid the extra escaping for addons by running the addon directly:
+You can always avoid the extra escaping for add-ons by running the add-on directly:
 
 `hledger-ui cur:\\$`
 
@@ -1759,6 +1759,12 @@ generates interest transactions for an account according to various schemes.
 <!-- and can also download the data  -->
 <!-- [if your bank offers OFX Direct Connect](http://wiki.gnucash.org/wiki/OFX_Direct_Connect_Bank_Settings).  -->
 
+### stockquotes
+
+[hledger-stockquotes](http://hackage.haskell.org/package/hledger-stockquotes)
+downloads market prices for the commodities in your journal from AlphaVantage.
+
+
 A few more experimental or old add-ons can be found in hledger's bin/
 directory. These are typically prototypes and not guaranteed to work.
 
@@ -1783,7 +1789,7 @@ Reads _files_
 
 # LIMITATIONS
 
-The need to precede addon command options with `--` when invoked from hledger is awkward.
+The need to precede add-on command options with `--` when invoked from hledger is awkward.
 
 When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
 Eg on POSIX, set LANG to something other than C.
