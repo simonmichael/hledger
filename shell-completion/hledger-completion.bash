@@ -1997,3 +1997,9 @@ TEXT
 
 read -r -d "" _hledger_complist_options_api <<TEXT
 TEXT
+
+# Local Variables:
+# sh-basic-offset: 4
+# indent-tabs-mode: nil
+# End:
+# ex: ts=4 sw=4 et

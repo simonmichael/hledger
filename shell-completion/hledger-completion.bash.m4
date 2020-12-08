@@ -336,3 +336,9 @@ read -r -d "" _hledger_complist_options_`'translit(cmd, -, _) <<TEXT
 include(options-cmd.txt)dnl
 TEXT
 ')dnl
+
+# Local Variables:
+# sh-basic-offset: 4
+# indent-tabs-mode: nil
+# End:
+# ex: ts=4 sw=4 et
