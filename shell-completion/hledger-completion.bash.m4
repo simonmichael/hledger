@@ -263,40 +263,49 @@ _hledger_compreply_query() {
     return 0
 }
 
-# Get ledger file from -f --file arguments from COMP_WORDS and pass it to the
-# 'hledger' call. Note that --rules-file - if present - must also be passed!
-_hledger() {
-    local hledgerArgs=("$@")
-    local hledgerFile
-    local hledgerRulesFile
-    local i
+# Parse the command line so far and fill the array $optarg with the arguments to
+# given options. $optarg should be declared by the caller
+_hledger_optarg() {
+    local options=("$@")
+    local i j offset
+    optarg=()
 
     # hledger balance --file ~/ledger _
     # 0       1       2      3        4
     for (( i=1; i < ${#COMP_WORDS[@]} - 2; i++ )); do
-        case ${COMP_WORDS[i]} in
-            -f|--file)
+        offset=0
+        for j in "${!options[@]}"; do
+            if [[ ${COMP_WORDS[i]} == "${options[j]}" ]]; then
                 if [[ ${COMP_WORDS[i+1]} == '=' ]]; then
-                    hledgerFile=${COMP_WORDS[i+2]}
+                    offset=2
                 else
-                    hledgerFile=${COMP_WORDS[i+1]}
+                    offset=1
                 fi
                 # Pass it through compgen to unescape it
-                hledgerFile=$(compgen -W "$hledgerFile")
-                ;;
-            --rules-file)
-                if [[ ${COMP_WORDS[i+1]} == '=' ]]; then
-                    hledgerRulesFile=${COMP_WORDS[i+2]}
-                else
-                    hledgerRulesFile=${COMP_WORDS[i+1]}
-                fi
-                hledgerRulesFile=$(compgen -W "$hledgerRulesFile")
-                ;;
-        esac
+                optarg+=("$(compgen -W "${COMP_WORDS[i + offset]}")")
+            fi
+        done
+        ((i += offset))
+    done
+}
+
+# Get ledger file from -f --file arguments from COMP_WORDS and pass it to the
+# 'hledger' call. Note that --rules-file - if present - must also be passed!
+# Multiple files are allowed so pass them all in the order of appearance.
+_hledger() {
+    local hledgerArgs=("$@")
+    local file
+    local -a optarg
+
+    _hledger_optarg -f --file
+    for file in "${optarg[@]}"; do
+        [[ -f $file ]] && hledgerArgs+=(--file "$file")
     done
 
-    [[ -f $hledgerFile ]] && hledgerArgs+=(--file "$hledgerFile")
-    [[ -f $hledgerRulesFile ]] && hledgerArgs+=(--rules-file "$hledgerRulesFile")
+    _hledger_optarg --rules-file
+    for file in "${optarg[@]}"; do
+        [[ -f $file ]] && hledgerArgs+=(--rules-file "$file")
+    done
 
     # Discard errors. Is there a way to validate files before using them?
     hledger "${hledgerArgs[@]}" 2>/dev/null
