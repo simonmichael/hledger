@@ -228,29 +228,24 @@ _hledger_compreply_query() {
 
     local hledgerArgs=()
     case $query in
-        acct:)
-            hledgerArgs=(accounts --flat)
-            ;;
-        code:)
-            hledgerArgs=(codes)
-            ;;
-        cur:)
-            hledgerArgs=(commodities)
-            ;;
-        desc:)
-            hledgerArgs=(descriptions)
-            ;;
-        note:)
-            hledgerArgs=(notes)
-            ;;
-        payee:)
-            hledgerArgs=(payees)
-            ;;
-        tag:)
-            hledgerArgs=(tags)
-            ;;
+        acct:)  hledgerArgs=(accounts --flat) ;;
+        code:)  hledgerArgs=(codes) ;;
+        cur:)   hledgerArgs=(commodities) ;;
+        desc:)  hledgerArgs=(descriptions) ;;
+        note:)  hledgerArgs=(notes) ;;
+        payee:) hledgerArgs=(payees) ;;
+        tag:)   hledgerArgs=(tags) ;;
         *)
-            return 1
+            local wordlist
+            case $query in
+                amt:)    wordlist="< <= > >=" ;;
+                real:)   wordlist="\  0" ;;
+                status:) wordlist="\  * !" ;;
+                *)       return 1 ;;
+            esac
+            _get_comp_words_by_ref -n '<=>' -c wordToComplete
+            _hledger_compreply "$(compgen -P "$query" -W "$wordlist" -- "${wordToComplete#*:}")"
+            return 0
             ;;
     esac
 
