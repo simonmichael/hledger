@@ -8,6 +8,8 @@ as copied from an 80x25 terminal.
 Another source of tests is the tutorial at https://hledger.org/ui.html,
 which has nice screenshots, but might be less up to date.
 
+Run these in the examples directory.
+
 ** hledger-ui -f sample.journal (shows all accounts in list mode)
 ───────────────────── sample.journal account balances (1/8) ────────────────────
  assets:bank:checking    0
