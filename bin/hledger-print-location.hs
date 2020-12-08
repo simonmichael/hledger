@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --compile --resolver lts-16.3
+{- stack script --compile --resolver lts-16.25
 -}
 {-
 Quick script that adds file/line number tags to print output.

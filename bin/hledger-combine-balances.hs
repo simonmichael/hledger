@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack script --compile --resolver lts-16.3
+-- stack script --compile --resolver lts-16.25
 
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 

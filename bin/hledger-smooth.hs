@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack script --compile --resolver lts-16.3
+-- stack script --compile --resolver lts-16.25
 
 -- This is an unfinished prototype, see https://github.com/simonmichael/hledger/issues/1171
 -- Requires a contemporaneous version of the hledger package.
