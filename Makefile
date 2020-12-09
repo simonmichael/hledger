@@ -740,14 +740,18 @@ HADDOCKFLAGS= \
 
 haddock: \
 	$(call def-help,haddock, generate haddock docs for the hledger packages )
-	$(STACK) haddock --no-haddock-deps --no-keep-going
-#	$(STACK) -v haddock --no-haddock-deps --no-keep-going # && echo OK
+	$(STACK) haddock --no-haddock-deps --fast --no-keep-going
+#	$(STACK) -v
 
-# view-haddock: \
-# 	$(call def-help,view-haddock-cli,\
-# 	view the haddock generated for the hledger package\
-# 	)
-# 	$(VIEWHTML) hledger/dist/doc/html/hledger/index.html
+haddock-watch: \
+	$(call def-help,haddock-watch, regenerate haddock docs )
+	$(STACK) haddock --no-haddock-deps --fast --file-watch
+
+haddock-open: \
+	$(call def-help,haddock-open,\
+	browse the haddock generated for hledger-lib\
+	)
+	$(VIEWHTML) hledger/dist/doc/html/hledger-lib/index.html
 
 # sourcegraph: \
 # 	$(call def-help,sourcegraph,\
