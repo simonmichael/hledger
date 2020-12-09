@@ -217,8 +217,19 @@ _hledger_compreply_optarg() {
             wordlist="auto always yes never no"
             _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
             ;;
+        -O|--output-format)
+            wordlist="txt csv json sql"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
+            ;;
+        --close-acct|--open-acct)
+            compopt -o nospace
+            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)")"
+            ;;
+        --debug)
+            _hledger_compreply "$(compgen -W "{1..9}" -- "$cur")"
+            ;;
         # Argument required, but no handler (yet)
-        -b|--begin|-e|--end|-p|--period|--depth)
+        -b|--begin|-e|--end|-p|--period|--depth|--drop)
             _hledger_compreply ""
             ;;
         =)
