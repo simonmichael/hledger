@@ -561,9 +561,9 @@ OPTIONS
        Command-specific options must be written after the  command  name,  eg:
        hledger print -x.
 
-       Additionally,  if  the command is an addon, you may need to put its op-
+       Additionally,  if the command is an add-on, you may need to put its op-
        tions after a double-hyphen, eg: hledger ui -- --watch.   Or,  you  can
-       run the addon executable directly: hledger-ui --watch.
+       run the add-on executable directly: hledger-ui --watch.
 
    Command arguments
        Most  hledger  commands  accept arguments after the command name, which
@@ -729,7 +729,7 @@ OPTIONS
        hledger balance cur:\\$
 
    Even more escaping
-       When  hledger runs an addon executable (eg you type hledger ui, hledger
+       When hledger runs an add-on executable (eg you type hledger ui, hledger
        runs hledger-ui), it  de-escapes  command-line  options  and  arguments
        once,  so  you might need to triple-escape.  Eg in bash, running the ui
        command and matching the dollar sign, it's:
@@ -750,8 +750,8 @@ OPTIONS
        (The number of backslashes in fish shell is left as an exercise for the
        reader.)
 
-       You can always avoid the extra escaping for addons by running the addon
-       directly:
+       You can always avoid the extra escaping for add-ons by running the add-
+       on directly:
 
        hledger-ui cur:\\$
 
@@ -2600,7 +2600,7 @@ COMMANDS
        o uniqueleafnames - all account leaf names are unique (similar  to  the
          old check-dupes command)
 
-   Addon checks
+   Add-on checks
        Some checks are not yet integrated with this command, but are available
        as add-on commands in https://github.com/simonmichael/hledger/tree/mas-
        ter/bin:
@@ -3690,20 +3690,24 @@ COMMANDS
        hledger-interest generates interest transactions for an account accord-
        ing to various schemes.
 
-       A  few  more experimental or old add-ons can be found in hledger's bin/
+   stockquotes
+       hledger-stockquotes downloads market prices for the commodities in your
+       journal from AlphaVantage.
+
+       A few more experimental or old add-ons can be found in  hledger's  bin/
        directory.  These are typically prototypes and not guaranteed to work.
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-       A typical value is ~/DIR/YYYY.journal,  where  DIR  is  a  version-con-
-       trolled  finance directory and YYYY is the current year.  Or ~/DIR/cur-
+       A  typical  value  is  ~/DIR/YYYY.journal,  where DIR is a version-con-
+       trolled finance directory and YYYY is the current year.  Or  ~/DIR/cur-
        rent.journal, where current.journal is a symbolic link to YYYY.journal.
 
        On Mac computers, you can set this and other environment variables in a
-       more  thorough  way that also affects applications started from the GUI
+       more thorough way that also affects applications started from  the  GUI
        (say, an Emacs dock icon).  Eg on MacOS Catalina I have a ~/.MacOSX/en-
        vironment.plist file containing
 
@@ -3713,21 +3717,21 @@ ENVIRONMENT
 
        To see the effect you may need to killall Dock, or reboot.
 
-       COLUMNS  The  screen  width used by the register command.  Default: the
+       COLUMNS The screen width used by the register  command.   Default:  the
        full terminal width.
 
-       NO_COLOR If this variable exists with any value, hledger will  not  use
-       ANSI   color   codes   in   terminal   output.    This   overrides  the
+       NO_COLOR  If  this variable exists with any value, hledger will not use
+       ANSI  color   codes   in   terminal   output.    This   overrides   the
        --color/--colour option.
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 LIMITATIONS
-       The  need  to  precede  addon command options with -- when invoked from
+       The need to precede add-on command options with --  when  invoked  from
        hledger is awkward.
 
        When input data contains non-ascii characters, a suitable system locale
@@ -3743,36 +3747,36 @@ LIMITATIONS
        In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
        add.
 
-       Not  all of Ledger's journal file syntax is supported.  See file format
+       Not all of Ledger's journal file syntax is supported.  See file  format
        differences.
 
-       On large data files, hledger  is  slower  and  uses  more  memory  than
+       On  large  data  files,  hledger  is  slower  and uses more memory than
        Ledger.
 
 TROUBLESHOOTING
-       Here  are some issues you might encounter when you run hledger (and re-
-       member you can also seek help from the IRC channel, mail  list  or  bug
+       Here are some issues you might encounter when you run hledger (and  re-
+       member  you  can  also seek help from the IRC channel, mail list or bug
        tracker):
 
        Successfully installed, but "No command 'hledger' found"
        stack and cabal install binaries into a special directory, which should
-       be added to your PATH environment variable.  Eg on  unix-like  systems,
+       be  added  to your PATH environment variable.  Eg on unix-like systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        I set a custom LEDGER_FILE, but hledger is still using the default file
-       LEDGER_FILE  should  be  a  real environment variable, not just a shell
-       variable.  The command env | grep LEDGER_FILE should show it.  You  may
+       LEDGER_FILE should be a real environment variable,  not  just  a  shell
+       variable.   The command env | grep LEDGER_FILE should show it.  You may
        need to use export.  Here's an explanation.
 
-       Getting  errors  like "Illegal byte sequence" or "Invalid or incomplete
-       multibyte or wide character" or "commitAndReleaseBuffer: invalid  argu-
+       Getting errors like "Illegal byte sequence" or "Invalid  or  incomplete
+       multibyte  or wide character" or "commitAndReleaseBuffer: invalid argu-
        ment (invalid character)"
        Programs compiled with GHC (hledger, haskell build tools, etc.) need to
        have a UTF-8-aware locale configured in the environment, otherwise they
-       will  fail  with  these  kinds  of errors when they encounter non-ascii
+       will fail with these kinds of  errors  when  they  encounter  non-ascii
        characters.
 
-       To fix it, set the LANG environment variable to some locale which  sup-
+       To  fix it, set the LANG environment variable to some locale which sup-
        ports UTF-8.  The locale you choose must be installed on your system.
 
        Here's an example of setting LANG temporarily, on Ubuntu GNU/Linux:
@@ -3787,8 +3791,8 @@ TROUBLESHOOTING
               POSIX
               $ LANG=en_US.utf8 hledger -f my.journal print   # ensure it is used for this command
 
-       If  available,  C.UTF-8 will also work.  If your preferred locale isn't
-       listed by locale -a, you might need to install it.   Eg  on  Ubuntu/De-
+       If available, C.UTF-8 will also work.  If your preferred  locale  isn't
+       listed  by  locale  -a, you might need to install it.  Eg on Ubuntu/De-
        bian:
 
               $ apt-get install language-pack-fr
@@ -3808,8 +3812,8 @@ TROUBLESHOOTING
               $ echo "export LANG=en_US.utf8" >>~/.bash_profile
               $ bash --login
 
-       Exact  spelling  and capitalisation may be important.  Note the differ-
-       ence on MacOS (UTF-8, not utf8).   Some  platforms  (eg  ubuntu)  allow
+       Exact spelling and capitalisation may be important.  Note  the  differ-
+       ence  on  MacOS  (UTF-8,  not  utf8).  Some platforms (eg ubuntu) allow
        variant spellings, but others (eg macos) require it to be exact:
 
               $ locale -a | grep -iE en_us.*utf
@@ -3819,7 +3823,7 @@ TROUBLESHOOTING
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -3828,16 +3832,13 @@ AUTHORS
 
 
 COPYRIGHT
-       Copyright (C) 2007-2019 Simon Michael.
+       Copyright (C) 2007-2020 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
-       hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
-       dot(5), ledger(1)
-
-       http://hledger.org
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger_csv(5),
+       hledger_journal(5), hledger_timeclock(5), hledger_timedot(5), ledger(1)
 
 
 

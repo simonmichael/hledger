@@ -663,9 +663,9 @@ options, run: \f[C]hledger COMMAND -h\f[R].
 Command-specific options must be written after the command name, eg:
 \f[C]hledger print -x\f[R].
 .PP
-Additionally, if the command is an addon, you may need to put its
+Additionally, if the command is an add-on, you may need to put its
 options after a double-hyphen, eg: \f[C]hledger ui -- --watch\f[R].
-Or, you can run the addon executable directly:
+Or, you can run the add-on executable directly:
 \f[C]hledger-ui --watch\f[R].
 .SS Command arguments
 .PP
@@ -861,9 +861,10 @@ or:
 \f[C]hledger balance cur:\[rs]\[rs]$\f[R]
 .SS Even more escaping
 .PP
-When hledger runs an addon executable (eg you type \f[C]hledger ui\f[R],
-hledger runs \f[C]hledger-ui\f[R]), it de-escapes command-line options
-and arguments once, so you might need to \f[I]triple\f[R]-escape.
+When hledger runs an add-on executable (eg you type
+\f[C]hledger ui\f[R], hledger runs \f[C]hledger-ui\f[R]), it de-escapes
+command-line options and arguments once, so you might need to
+\f[I]triple\f[R]-escape.
 Eg in bash, running the ui command and matching the dollar sign,
 it\[aq]s:
 .PP
@@ -903,8 +904,8 @@ T}
 (The number of backslashes in fish shell is left as an exercise for the
 reader.)
 .PP
-You can always avoid the extra escaping for addons by running the addon
-directly:
+You can always avoid the extra escaping for add-ons by running the
+add-on directly:
 .PP
 \f[C]hledger-ui cur:\[rs]\[rs]$\f[R]
 .SS Less escaping
@@ -3595,7 +3596,7 @@ the old \f[C]check-dates\f[R] command)
 .IP \[bu] 2
 \f[B]uniqueleafnames\f[R] - all account leaf names are unique (similar
 to the old \f[C]check-dupes\f[R] command)
-.SS Addon checks
+.SS Add-on checks
 .PP
 Some checks are not yet integrated with this command, but are available
 as add-on commands in
@@ -5026,6 +5027,10 @@ command.
 .PP
 hledger-interest generates interest transactions for an account
 according to various schemes.
+.SS stockquotes
+.PP
+hledger-stockquotes downloads market prices for the commodities in your
+journal from AlphaVantage.
 .PP
 A few more experimental or old add-ons can be found in hledger\[aq]s
 bin/ directory.
@@ -5072,8 +5077,8 @@ timedot, or CSV format specified with \f[C]-f\f[R], or
 perhaps \f[C]C:/Users/USER/.hledger.journal\f[R]).
 .SH LIMITATIONS
 .PP
-The need to precede addon command options with \f[C]--\f[R] when invoked
-from hledger is awkward.
+The need to precede add-on command options with \f[C]--\f[R] when
+invoked from hledger is awkward.
 .PP
 When input data contains non-ascii characters, a suitable system locale
 must be configured (or there will be an unhelpful error).
@@ -5204,13 +5209,11 @@ Simon Michael <simon@joyful.com> and contributors
 
 .SH COPYRIGHT
 
-Copyright (C) 2007-2019 Simon Michael.
+Copyright (C) 2007-2020 Simon Michael.
 .br
 Released under GNU GPL v3 or later.
 
 .SH SEE ALSO
-hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),
+hledger(1), hledger\-ui(1), hledger\-web(1),
 hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_timedot(5),
 ledger(1)
-
-http://hledger.org

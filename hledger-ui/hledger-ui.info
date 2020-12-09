@@ -38,6 +38,10 @@ enable "forecast mode".
 * OPTIONS::
 * keys::
 * screens::
+* accounts screen::
+* Register screen::
+* Transaction screen::
+* Error screen::
 * ENVIRONMENT::
 * FILES::
 * BUGS::
@@ -306,23 +310,16 @@ exit the transaction screen.
    additional screen-specific keys are described below.
 
 
-File: hledger-ui.info,  Node: screens,  Next: ENVIRONMENT,  Prev: keys,  Up: Top
+File: hledger-ui.info,  Node: screens,  Next: accounts screen,  Prev: keys,  Up: Top
 
 3 screens
 *********
 
-* Menu:
-
-* accounts screen::
-* Register screen::
-* Transaction screen::
-* Error screen::
-
 
-File: hledger-ui.info,  Node: accounts screen,  Next: Register screen,  Up: screens
+File: hledger-ui.info,  Node: accounts screen,  Next: Register screen,  Prev: screens,  Up: Top
 
-3.1 accounts screen
-===================
+4 accounts screen
+*****************
 
 this is normally the first screen displayed.  it lists accounts and
 their balances, like hledger's balance command.  by default, it shows
@@ -368,10 +365,10 @@ command-line hledger).
    Press 'right' or 'enter' to view an account's transactions register.
 
 
-File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: accounts screen,  Up: screens
+File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: accounts screen,  Up: Top
 
-3.2 Register screen
-===================
+5 Register screen
+*****************
 
 This screen shows the transactions affecting a particular account, like
 a check register.  Each line represents one transaction and shows:
@@ -415,10 +412,10 @@ command-line hledger).
 detail.
 
 
-File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: screens
+File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: Top
 
-3.3 Transaction screen
-======================
+6 Transaction screen
+********************
 
 This screen shows a single transaction, as a general journal entry,
 similar to hledger's print command and journal format
@@ -439,10 +436,10 @@ unfiltered journal, which is a more stable id (at least until the next
 reload).
 
 
-File: hledger-ui.info,  Node: Error screen,  Prev: Transaction screen,  Up: screens
+File: hledger-ui.info,  Node: Error screen,  Next: ENVIRONMENT,  Prev: Transaction screen,  Up: Top
 
-3.4 Error screen
-================
+7 Error screen
+**************
 
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload.  Once you have fixed the problem, press g
@@ -450,9 +447,9 @@ again to reload and resume normal operation.  (Or, you can press escape
 to cancel the reload attempt.)
 
 
-File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: screens,  Up: Top
+File: hledger-ui.info,  Node: ENVIRONMENT,  Next: FILES,  Prev: Error screen,  Up: Top
 
-4 ENVIRONMENT
+8 ENVIRONMENT
 *************
 
 *COLUMNS* The screen width to use.  Default: the full terminal width.
@@ -480,7 +477,7 @@ a more thorough way that also affects applications started from the GUI
 
 File: hledger-ui.info,  Node: FILES,  Next: BUGS,  Prev: ENVIRONMENT,  Up: Top
 
-5 FILES
+9 FILES
 *******
 
 Reads data from one or more files in hledger journal, timeclock,
@@ -491,8 +488,8 @@ timedot, or CSV format specified with '-f', or '$LEDGER_FILE', or
 
 File: hledger-ui.info,  Node: BUGS,  Prev: FILES,  Up: Top
 
-6 BUGS
-******
+10 BUGS
+*******
 
 The need to precede options with '--' when invoked from hledger is
 awkward.
@@ -519,26 +516,26 @@ program is restarted.
 
 Tag Table:
 Node: Top71
-Node: OPTIONS1470
-Ref: #options1567
-Node: keys5634
-Ref: #keys5729
-Node: screens10061
-Ref: #screens10166
-Node: accounts screen10256
-Ref: #accounts-screen10384
-Node: Register screen12599
-Ref: #register-screen12754
-Node: Transaction screen14751
-Ref: #transaction-screen14909
-Node: Error screen15779
-Ref: #error-screen15901
-Node: ENVIRONMENT16145
-Ref: #environment16259
-Node: FILES17066
-Ref: #files17165
-Node: BUGS17378
-Ref: #bugs17455
+Node: OPTIONS1550
+Ref: #options1647
+Node: keys5714
+Ref: #keys5809
+Node: screens10141
+Ref: #screens10250
+Node: accounts screen10250
+Ref: #accounts-screen10386
+Node: Register screen12601
+Ref: #register-screen12748
+Node: Transaction screen14745
+Ref: #transaction-screen14895
+Node: Error screen15765
+Ref: #error-screen15899
+Node: ENVIRONMENT16143
+Ref: #environment16262
+Node: FILES17069
+Ref: #files17168
+Node: BUGS17381
+Ref: #bugs17460
 
 End Tag Table
 
