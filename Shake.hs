@@ -376,7 +376,7 @@ main = do
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
         need $ [src, commonm4, packagem4, tmpl] ++ deps
         when (dir=="hledger") $ need commandmds
-        cmd_ Shell sed "-i -e" (" s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;") packagem4
+        cmd_ Shell sed "-i -e" ("'s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;'") packagem4
         cmd Shell
           "m4 -P -DMAN -I" dir commonm4 packagem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
