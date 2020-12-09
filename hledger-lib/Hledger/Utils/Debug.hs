@@ -1,31 +1,23 @@
 {-# LANGUAGE FlexibleContexts, TypeFamilies #-}
-{- | Debugging helpers.
+{- | 
 
-You can enable increasingly verbose debug output by adding --debug [1-9]
-to a hledger command line. --debug with no argument means --debug 1.
-This is implemented by calling dbgN or similar helpers, defined below.
-These calls can be found throughout hledger code; they have been added
-organically where it seemed likely they would be needed again.
-The choice of debug level has not been very systematic.
-202006 Here's a start at some guidelines, not yet applied project-wide:
+Helpers for debug output and pretty-printing 
+(using pretty-simple, with which there may be some overlap).
 
-Debug level:  What to show:
-------------  ---------------------------------------------------------
-0             normal command output only (no warnings, eg)
-1 (--debug)   useful warnings, most common troubleshooting info, eg valuation
-2             common troubleshooting info, more detail
-3             report options selection
-4             report generation
-5             report generation, more detail
-6             input file reading
-7             input file reading, more detail
-8             command line parsing
-9             any other rarely needed / more in-depth info
+@dbg0@-@dbg9@ will pretty-print values to stderr
+if the program was run with a sufficiently high @--debug=N@ argument. 
+(@--debug@ with no argument means @--debug=1@; @dbg0@ always prints).
 
-Tip: when debugging with GHCI, the first run after loading Debug.hs sets the
-debug level. If you need to change it, you must touch Debug.hs, :reload in GHCI,
-then run the command with a new --debug value. Or, often it's more convenient
-to add a temporary dbg0 and :reload (dbg0 always prints).
+The @debugLevel@ global is set once at startup using unsafePerformIO. 
+In GHCI, this happens only on the first run of :main, so if you want
+to change the debug level without restarting GHCI,
+save a dummy change in Debug.hs and do a :reload.
+(Sometimes it's more convenient to temporarily add dbg0's and :reload.)
+
+@traceParse@ and @dbgparse@ print current status of hledger's parsers
+(similar to megaparsec's dbg, which was added later).
+
+This module also exports Debug.Trace.
 
 -}
 
