@@ -158,8 +158,18 @@ _hledger_compreply_append() {
 # wordlist to compgen -- it will eat your quotes, drink your booze and...
 # Completion candidates are quoted accordingly first and then we leave it to
 # compgen to deal with readline.
+#
+# Arguments:
+# $1: a newline separated wordlist with completion cadidates
+# $2: (optional) a prefix string to add to generated completions
+# $3: (optional) a word to match instead of $cur, the default.
+# If $match is null and $prefix is defined the match is done against $cur
+# stripped of $prefix. If both $prefix and $match are null we match against
+# $cur and no prefix is added to completions.
 _hledger_compgen() {
     local wordlist=$1
+    local prefix=$2
+    local match=$3
     local quoted=()
     local word
     local i=0
@@ -170,7 +180,7 @@ _hledger_compgen() {
     done <<< "$wordlist"
 
     local IFS=$'\n'
-    compgen -W "${quoted[*]}" -- "$cur"
+    compgen -P "$prefix" -W "${quoted[*]}" -- "${match:-${cur:${#prefix}}}"
 }
 
 # Try required option argument completion. Set COMPREPLY and return 0 on
@@ -258,8 +268,8 @@ _hledger_compreply_query() {
 
     _hledger_compreply "$(
         _hledger_compgen "$(
-            _hledger "${hledgerArgs[@]}" | sed "s/^/$query/g"
-        )"
+            _hledger "${hledgerArgs[@]}"
+        )" "$query"
     )"
 
     return 0
