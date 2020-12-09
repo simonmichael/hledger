@@ -3,6 +3,7 @@
 
 Helpers for debug output and pretty-printing 
 (using pretty-simple, with which there may be some overlap).
+This module also exports Debug.Trace.
 
 @dbg0@-@dbg9@ will pretty-print values to stderr
 if the program was run with a sufficiently high @--debug=N@ argument. 
@@ -14,11 +15,6 @@ to change the debug level without restarting GHCI,
 save a dummy change in Debug.hs and do a :reload.
 (Sometimes it's more convenient to temporarily add dbg0's and :reload.)
 
-@traceParse@ and @dbgparse@ print current status of hledger's parsers
-(similar to megaparsec's dbg, which was added later).
-
-This module also exports Debug.Trace.
-
 -}
 
 -- more:
@@ -28,15 +24,20 @@ This module also exports Debug.Trace.
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 
 module Hledger.Utils.Debug (
+  -- * Pretty printing
    pprint
   ,pshow
-  ,ptrace
+  -- * Tracing
   ,traceWith
+  -- * Pretty tracing
+  ,ptrace
+  -- ** Debug-level-aware tracing
+  ,debugLevel
   ,traceAt
   ,traceAtWith
-  ,debugLevel
   ,ptraceAt
   ,ptraceAtWith
+  -- ** Easiest form (recommended)
   ,dbg0
   ,dbg1
   ,dbg2
@@ -47,6 +48,8 @@ module Hledger.Utils.Debug (
   ,dbg7
   ,dbg8
   ,dbg9
+  ,dbgExit
+  -- ** More control
   ,dbg0With
   ,dbg1With
   ,dbg2With
@@ -57,7 +60,7 @@ module Hledger.Utils.Debug (
   ,dbg7With
   ,dbg8With
   ,dbg9With
-  ,dbgExit
+  -- ** For standalone lines in IO blocks
   ,ptraceAtIO
   ,dbg0IO
   ,dbg1IO
@@ -69,8 +72,10 @@ module Hledger.Utils.Debug (
   ,dbg7IO
   ,dbg8IO
   ,dbg9IO
+  -- ** Trace to a file
   ,plog
   ,plogAt
+  -- ** Trace the state of hledger parsers
   ,traceParse
   ,dbgparse
   ,module Debug.Trace
@@ -126,8 +131,6 @@ traceWith f a = trace (f a) a
 -- unsafePerformIO and can be accessed from anywhere and before normal
 -- command-line processing. When running with :main in GHCI, you must
 -- touch and reload this module to see the effect of a new --debug option.
--- After command-line processing, it is also available as the @debug_@
--- field of 'Hledger.Cli.CliOptions.CliOpts'.
 -- {-# OPTIONS_GHC -fno-cse #-}
 -- {-# NOINLINE debugLevel #-}
 debugLevel :: Int
@@ -215,6 +218,10 @@ dbg8 = ptraceAt 8
 dbg9 :: Show a => String -> a -> a
 dbg9 = ptraceAt 9
 
+-- | Like dbg0, but also exit the program. Uses unsafePerformIO.
+dbgExit :: Show a => String -> a -> a
+dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
+
 -- | Like dbg0, but takes a custom show function instead of a label.
 dbg0With :: Show a => (a -> String) -> a -> a
 dbg0With = ptraceAtWith 0
@@ -245,10 +252,6 @@ dbg8With = ptraceAtWith 8
 
 dbg9With :: Show a => (a -> String) -> a -> a
 dbg9With = ptraceAtWith 9
-
--- | Like dbg0, but also exit the program. Uses unsafePerformIO.
-dbgExit :: Show a => String -> a -> a
-dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
 
 -- | Like ptraceAt, but convenient to insert in an IO monad and
 -- enforces monadic sequencing (plus convenience aliases).
@@ -301,7 +304,7 @@ plog = plogAt 0
 -- if the global debug level is at or above the specified level.
 -- At level 0, always logs. Otherwise, uses unsafePerformIO.
 -- Tends to fail if called more than once, at least when built with -threaded
--- (Exception: debug.log: openFile: resource busy (file is locked)).
+-- (Eg "Exception: debug.log: openFile: resource busy (file is locked)").
 plogAt :: Show a => Int -> String -> a -> a
 plogAt lvl
     | lvl > 0 && debugLevel < lvl = flip const
@@ -324,7 +327,7 @@ plogAt lvl
 --   `seq` a
 
 -- | Print the provided label (if non-null) and current parser state
--- (position and next input) to the console. (See also megaparsec's dbg.)
+-- (position and next input) to the console. See also megaparsec's dbg.
 traceParse :: String -> TextParser m ()
 traceParse msg = do
   pos <- getSourcePos
