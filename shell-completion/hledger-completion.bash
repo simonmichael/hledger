@@ -9,19 +9,21 @@
 # the rest of the session and completion for other programs.
 
 _hledger_completion_function() {
+    local cur prev words cword
+    _init_completion -n : || return 0
+
     # Current treatment for special characters:
     # - exclude colon (:) from COMP_WORDBREAKS
     # - use comptop -o filenames to escape the rest
     COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
     compopt -o filenames
 
-    local wordToComplete=$2
     local subcommand
     local subcommandOptions
     local i
 
-    for (( i=1; i<${#COMP_WORDS[@]}; i++ )); do
-        subcommand=${COMP_WORDS[i]}
+    for (( i=1; i<${#words[@]}; i++ )); do
+        subcommand=${words[i]}
         if ! grep -Fxqe "$subcommand" <<< "$_hledger_complist_commands"; then
             subcommand=
             continue
@@ -30,9 +32,9 @@ _hledger_completion_function() {
         # $subcommand == reg --> register, register-match,
         # $subcommand == bal --> balance, balancesheet, balancesheetequity, etc.
         # Do not ignore them!
-        if [[ $subcommand == "$wordToComplete" ]] && ((i == COMP_CWORD)); then
+        if [[ $subcommand == "$cur" ]] && ((i == cword)); then
             local subcommandMatches
-            subcommandMatches=$(grep -c "^$wordToComplete" <<< "$_hledger_complist_commands")
+            subcommandMatches=$(grep -c "^$cur" <<< "$_hledger_complist_commands")
             if ((subcommandMatches > 1)); then
                 subcommand=
                 break
@@ -63,7 +65,7 @@ _hledger_completion_function() {
     _hledger_compreply_optarg && return
 
     # Avoid setting compopt bellow if completing an option
-    [[ $wordToComplete == -* ]] && return
+    [[ $cur == -* ]] && return
 
     # Almost all subcommands accept [QUERY]
     # -> always add accounts to completion list
@@ -80,7 +82,7 @@ _hledger_completion_function() {
     # Do not sort, keep accounts and query filters grouped separately
     compopt -o nosort -o nospace
     _hledger_compreply_append "$(_hledger_compgen "$_hledger_complist_query_filters")"
-    if [[ -z $wordToComplete ]]; then
+    if [[ -z $cur ]]; then
         _hledger_compreply_append "$(_hledger_compgen "$(_hledger accounts --flat --depth 1)")"
     else
         _hledger_compreply_append "$(_hledger_compgen "$(_hledger accounts --flat)")"
@@ -112,7 +114,7 @@ complete -F _hledger_extension_completion_function hledger-web
 # Comment out when done
 _hledger_debug() {
     ((HLEDGER_DEBUG)) || return 0
-    local var=${1:-COMP_WORDS}
+    local var=${1:-words}
     printf '\ndebug: %s\n' "$(declare -p "$var")" >&2
 }
 
@@ -168,34 +170,34 @@ _hledger_compgen() {
     done <<< "$wordlist"
 
     local IFS=$'\n'
-    compgen -W "${quoted[*]}" -- "$wordToComplete"
+    compgen -W "${quoted[*]}" -- "$cur"
 }
 
 # Try required option argument completion. Set COMPREPLY and return 0 on
 # success, 1 if option doesn't require an argument or out of context
 _hledger_compreply_optarg() {
-    local optionIndex=${1:-$((COMP_CWORD - 1))}
+    local optionIndex=${1:-$((cword - 1))}
     local recursionLevel=${2:-0}
     local wordlist
     local error=0
 
-    case ${COMP_WORDS[optionIndex]} in
+    case ${words[optionIndex]} in
         --alias)
             compopt -o nospace
             _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)")"
             ;;
         -f|--file|--rules-file|-o|--output-file)
-            _hledger_compreply "$(compgen -f -- "$wordToComplete")"
+            _hledger_compreply "$(compgen -f -- "$cur")"
             ;;
         --pivot)
             compopt -o nosort
             wordlist="code description note payee"
-            _hledger_compreply "$(compgen -W "$wordlist" -- "$wordToComplete")"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
             _hledger_compreply_append "$(_hledger_compgen "$(_hledger tags)")"
             ;;
         --value)
             wordlist="cost then end now"
-            _hledger_compreply "$(compgen -W "$wordlist" -- "$wordToComplete")"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
             ;;
         -X|--exchange)
             _hledger_compreply "$(_hledger_compgen "$(_hledger commodities)")"
@@ -203,7 +205,7 @@ _hledger_compreply_optarg() {
         --color|--colour)
             compopt -o nosort
             wordlist="auto always yes never no"
-            _hledger_compreply "$(compgen -W "$wordlist" -- "$wordToComplete")"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
             ;;
         # Argument required, but no handler (yet)
         -b|--begin|-e|--end|-p|--period|--depth)
@@ -212,7 +214,7 @@ _hledger_compreply_optarg() {
         =)
             # Recurse only once!
             ((recursionLevel > 1)) && return 1
-            if [[ ${COMP_WORDS[optionIndex - 1]} == -* ]]; then
+            if [[ ${words[optionIndex - 1]} == -* ]]; then
                 _hledger_compreply_optarg $((optionIndex - 1)) $((recursionLevel + 1))
                 error=$?
             fi
@@ -227,8 +229,8 @@ _hledger_compreply_optarg() {
 
 # Query filter completion through introspection
 _hledger_compreply_query() {
-    [[ $wordToComplete =~ .: ]] || return
-    local query=${wordToComplete%%:*}:
+    [[ $cur =~ .: ]] || return
+    local query=${cur%%:*}:
     grep -Fxqe "$query" <<< "$_hledger_complist_query_filters" || return
 
     local hledgerArgs=()
@@ -248,8 +250,8 @@ _hledger_compreply_query() {
                 status:) wordlist="\  * !" ;;
                 *)       return 1 ;;
             esac
-            _get_comp_words_by_ref -n '<=>' -c wordToComplete
-            _hledger_compreply "$(compgen -P "$query" -W "$wordlist" -- "${wordToComplete#*:}")"
+            _get_comp_words_by_ref -n '<=>' -c cur
+            _hledger_compreply "$(compgen -P "$query" -W "$wordlist" -- "${cur#*:}")"
             return 0
             ;;
     esac
@@ -272,17 +274,17 @@ _hledger_optarg() {
 
     # hledger balance --file ~/ledger _
     # 0       1       2      3        4
-    for (( i=1; i < ${#COMP_WORDS[@]} - 2; i++ )); do
+    for (( i=1; i < ${#words[@]} - 2; i++ )); do
         offset=0
         for j in "${!options[@]}"; do
-            if [[ ${COMP_WORDS[i]} == "${options[j]}" ]]; then
-                if [[ ${COMP_WORDS[i+1]} == '=' ]]; then
+            if [[ ${words[i]} == "${options[j]}" ]]; then
+                if [[ ${words[i+1]} == '=' ]]; then
                     offset=2
                 else
                     offset=1
                 fi
                 # Pass it through compgen to unescape it
-                optarg+=("$(compgen -W "${COMP_WORDS[i + offset]}")")
+                optarg+=("$(compgen -W "${words[i + offset]}")")
             fi
         done
         ((i += offset))
