@@ -1436,7 +1436,6 @@ Periodic transaction rules describe transactions that recur.
 They allow hledger to generate temporary future transactions to help with forecasting,
 so you don't have to write out each one in the journal,
 and it's easy to try out different forecasts.
-Secondly, they are also used to define the budgets shown in budget reports.
 
 Periodic transactions can be a little tricky, so before you use them,
 read this whole section - or at least these tips:
@@ -1453,6 +1452,10 @@ read this whole section - or at least these tips:
    Eg: <br>
    `~ every 10th day of month from 2020/01`, which is equivalent to <br>
    `~ every 10th day of month from 2020/01/01`, will be adjusted to start on 2019/12/10.
+
+Periodic transaction rules also have a second meaning:
+they are used to define budget goals, shown in [budget reports](hledger.html#budget-report).
+
 
 ### Periodic rule syntax
 
