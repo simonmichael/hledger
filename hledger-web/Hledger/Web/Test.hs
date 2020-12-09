@@ -38,9 +38,12 @@ hledgerWebTest = do
                           }
                   }
 
-  -- https://hackage.haskell.org/package/yesod-test-1.6.10/docs/Yesod-Test.html
   -- http://hspec.github.io/writing-specs.html
-  --
+  -- https://hackage.haskell.org/package/yesod-test-1.6.10/docs/Yesod-Test.html
+  -- "The best way to see an example project using yesod-test is to create a scaffolded Yesod project:
+  -- stack new projectname yesodweb/sqlite
+  -- (See https://github.com/commercialhaskell/stack-templates/wiki#yesod for the full list of Yesod templates)"
+
   -- Since these tests use makeFoundation, the startup code in Hledger.Web.Main is not tested. XXX
   --
   -- Be aware that unusual combinations of opts/files here could cause problems,
@@ -59,6 +62,22 @@ hledgerWebTest = do
         get RegisterR
         statusIs 200
         bodyContains "accounts"
+
+      -- WIP
+      -- yit "shows the add form" $ do
+      --   get JournalR
+      --   -- printBody
+      --   -- let addbutton = "button:contains('add')"
+      --   -- bodyContains addbutton
+      --   -- htmlAnyContain "button:visible" "add"
+      --   printMatches "div#addmodal:visible"
+      --   htmlCount "div#addmodal:visible" 0
+
+      --   -- clickOn "a#addformlink"
+      --   -- printBody
+      --   -- bodyContains addbutton
+
+      -- yit "can add transactions" $ do
 
   -- test with forecasted transactions
   d <- getCurrentDay
