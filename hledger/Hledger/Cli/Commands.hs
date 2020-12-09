@@ -174,6 +174,7 @@ commandsList progversion othercmds = [
   ," close (equity)           generate balance-resetting transactions"
   ," diff                     compare account transactions in two journal files"
   ,"+interest                 generate interest transactions"
+  ," rewrite                  generate extra postings, similar to print --auto"
   ,""
   ,"Financial reports:"
   ," aregister (areg)         show transactions in a particular account"
