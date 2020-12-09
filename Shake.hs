@@ -412,6 +412,7 @@ main = do
         when (dir=="hledger") $ need commandmds
         cmd Shell
           "m4 -P -DINFO -I" dir commonm4 packagem4 src "|"
+          sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
           "--lua-filter tools/pandoc-drop-html-inlines.lua"
