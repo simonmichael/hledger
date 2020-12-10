@@ -34,7 +34,7 @@ _hledger_completion_function() {
         # Do not ignore them!
         if [[ $subcommand == "$cur" ]] && ((i == cword)); then
             local subcommandMatches
-            subcommandMatches=$(grep -c "^$cur" <<< "$_hledger_complist_commands")
+            subcommandMatches=$(grep -c "^$subcommand" <<< "$_hledger_complist_commands")
             if ((subcommandMatches > 1)); then
                 subcommand=
                 break
