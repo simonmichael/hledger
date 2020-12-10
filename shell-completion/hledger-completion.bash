@@ -97,6 +97,7 @@ _hledger_extension_completion_function() {
     # normal hledger completion function.
     local extensionName=${cmd#*-}
     COMP_WORDS=( "hledger" "$extensionName" "${COMP_WORDS[@]:1}" )
+    COMP_CWORD=$((COMP_CWORD + 1))
     _hledger_completion_function "hledger" "$@"
 }
 
