@@ -114,8 +114,11 @@ complete -F _hledger_extension_completion_function hledger-web
 # Comment out when done
 _hledger_debug() {
     ((HLEDGER_DEBUG)) || return 0
-    local var=${1:-words}
-    printf '\ndebug: %s\n' "$(declare -p "$var")" >&2
+    local var vars=(words)
+    (($#)) && vars=("$@")
+    for var in "${vars[@]}"; do
+        printf '\ndebug: %s\n' "$(declare -p "$var")" >&2
+    done
 }
 
 # Stolen from bash-completion
