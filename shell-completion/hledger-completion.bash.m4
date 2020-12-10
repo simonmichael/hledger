@@ -179,8 +179,12 @@ _hledger_compgen() {
         quoted[i++]=$word
     done <<< "$wordlist"
 
+    if (( $# < 3 )); then
+        match=${cur:${#prefix}}
+    fi
+
     local IFS=$'\n'
-    compgen -P "$prefix" -W "${quoted[*]}" -- "${match:-${cur:${#prefix}}}"
+    compgen -P "$prefix" -W "${quoted[*]}" -- "$match"
 }
 
 # Try required option argument completion. Set COMPREPLY and return 0 on
@@ -190,43 +194,47 @@ _hledger_compreply_optarg() {
     local recursionLevel=${2:-0}
     local wordlist
     local error=0
+    local match
+
+    # Match the empty string on --file=<TAB>
+    [[ $cur == = ]] || match=$cur
 
     case ${words[optionIndex]} in
         --alias)
             compopt -o nospace
-            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)")"
+            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)" "" "$match")"
             ;;
         -f|--file|--rules-file|-o|--output-file)
-            _hledger_compreply "$(compgen -f -- "$cur")"
+            _hledger_compreply "$(compgen -f -- "$match")"
             ;;
         --pivot)
             compopt -o nosort
             wordlist="code description note payee"
-            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
-            _hledger_compreply_append "$(_hledger_compgen "$(_hledger tags)")"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
+            _hledger_compreply_append "$(_hledger_compgen "$(_hledger tags)" "" "$match")"
             ;;
         --value)
             wordlist="cost then end now"
-            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         -X|--exchange)
-            _hledger_compreply "$(_hledger_compgen "$(_hledger commodities)")"
+            _hledger_compreply "$(_hledger_compgen "$(_hledger commodities)" "" "$match")"
             ;;
         --color|--colour)
             compopt -o nosort
             wordlist="auto always yes never no"
-            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         -O|--output-format)
             wordlist="txt csv json sql"
-            _hledger_compreply "$(compgen -W "$wordlist" -- "$cur")"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         --close-acct|--open-acct)
             compopt -o nospace
-            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)")"
+            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)" "" "$match")"
             ;;
         --debug)
-            _hledger_compreply "$(compgen -W "{1..9}" -- "$cur")"
+            _hledger_compreply "$(compgen -W "{1..9}" -- "$match")"
             ;;
         # Argument required, but no handler (yet)
         -b|--begin|-e|--end|-p|--period|--depth|--drop)
