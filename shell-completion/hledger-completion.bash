@@ -49,9 +49,10 @@ _hledger_completion_function() {
         break
     done
 
-    if [[ -z $subcommand ]]; then
-        _hledger_compreply_optarg && return
+    # Option argument completion
+    _hledger_compreply_optarg && return
 
+    if [[ -z $subcommand ]]; then
         # Completion lists are already sorted at build-time
         # This keeps commands and options grouped separately
         compopt -o nosort +o filenames
@@ -60,9 +61,6 @@ _hledger_completion_function() {
 
         return 0
     fi
-
-    # Option argument completion after subcommand too
-    _hledger_compreply_optarg && return
 
     # Avoid setting compopt bellow if completing an option
     [[ $cur == -* ]] && return
