@@ -54,7 +54,7 @@ _hledger_completion_function() {
 
         # Completion lists are already sorted at build-time
         # This keeps commands and options grouped separately
-        compopt -o nosort
+        compopt -o nosort +o filenames
         _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
         _hledger_compreply_append "$(_hledger_compgen "$_hledger_complist_generic_options")"
 
