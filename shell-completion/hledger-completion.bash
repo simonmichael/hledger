@@ -188,16 +188,12 @@ _hledger_compgen() {
 # Try required option argument completion. Set COMPREPLY and return 0 on
 # success, 1 if option doesn't require an argument or out of context
 _hledger_compreply_optarg() {
-    local optionIndex=${1:-$((cword - 1))}
-    local recursionLevel=${2:-0}
-    local wordlist
-    local error=0
-    local match
+    local match wordlist
 
     # Match the empty string on --file=<TAB>
     [[ $cur == = ]] || match=$cur
 
-    case ${words[optionIndex]} in
+    case $prev in
         --alias)
             compopt -o nospace
             _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)" "" "$match")"
@@ -238,20 +234,12 @@ _hledger_compreply_optarg() {
         -b|--begin|-e|--end|-p|--period|--depth|--drop)
             _hledger_compreply ""
             ;;
-        =)
-            # Recurse only once!
-            ((recursionLevel > 1)) && return 1
-            if [[ ${words[optionIndex - 1]} == -* ]]; then
-                _hledger_compreply_optarg $((optionIndex - 1)) $((recursionLevel + 1))
-                error=$?
-            fi
-            ;;
         *)
-            error=1
+            return 1
             ;;
     esac
 
-    return $error
+    return 0
 }
 
 # Query filter completion through introspection
