@@ -8,7 +8,7 @@ as copied from an 80x25 terminal, is shown below each step.
 Another source of tests is the tutorial at https://hledger.org/ui.html,
 which has nice screenshots, but might be less up to date.
 
-** hledger-ui -f sample.journal : shows all accounts in list mode
+** hledger-ui -f sample.journal  # shows all accounts in list mode
 ───────────────────── sample.journal account balances (1/8) ────────────────────
  assets:bank:checking    0
  assets:bank:saving     $1
@@ -19,7 +19,7 @@ which has nice screenshots, but might be less up to date.
  income:salary         $-1
  liabilities:debts      $1
 
-** t : switches to tree mode
+** t  # switches to tree mode
 ──────────────────── sample.journal account balances (3/13) ────────────────────
  assets       $-1
   bank         $1
@@ -35,21 +35,21 @@ which has nice screenshots, but might be less up to date.
  liabilities   $1
   debts        $1
 
-** 1 : clips accounts to depth 1
+** 1  # clips accounts to depth 1
 ─────────────── sample.journal account balances to depth 1 (1/4) ───────────────
  assets       $-1
  expenses      $2
  income       $-2
  liabilities   $1
 
-** RIGHT : expected failure: shows lots of periods instead of an empty register
+** RIGHT  # expected failure: shows lots of periods instead of an empty register
 ────────────────────────── assets transactions (100/0) ─────────────────────────
                        ..   ..
                        ..   ..
                        ..   ..
                        ..   ..
 
-** ESC : reset UI state to initial screen in list mode
+** ESC  # reset UI state to initial screen in list mode
 ───────────────────── sample.journal account balances (1/8) ────────────────────
  assets:bank:checking    0
  assets:bank:saving     $1
@@ -60,20 +60,20 @@ which has nice screenshots, but might be less up to date.
  income:salary         $-1
  liabilities:debts      $1
 
-** RIGHT : shows assets:bank:checking register, 2008-12-31 transaction selected
+** RIGHT  # shows assets:bank:checking register, 2008-12-31 transaction selected
 ──────────────────── assets:bank:checking transactions (4/4) ───────────────────
  2008-01-01   income                      in:salary                     $1   $1
  2008-06-01   gift                        in:gifts                      $1   $2
  2008-06-02   save                        as:ba:saving                 $-1   $1
  2008-12-31 * pay off                     li:debts                     $-1    0
 
-** RIGHT : shows transaction detail
+** RIGHT  # shows transaction detail
 ──────────────── Transaction #5 (4 of 4 in assets:bank:checking) ───────────────
  2008-12-31 * pay off
      liabilities:debts                 $1
      assets:bank:checking             $-1
 
-** ? : shows help dialog over current screen; all content fits unclipped in 80x25, including the last q quit line
+** ?  # shows help dialog over current screen; all content fits unclipped in 80x25, including the last q quit line
 ┌──────────────────────Help (LEFT/ESC/?/q to close help)──────────────────────┐─
 │ Navigation                             Filtering                            │
 │ UP/DOWN/PUP/PDN/HOME/END/k/j/C-p/C-n   /    set a filter query              │
@@ -100,25 +100,25 @@ which has nice screenshots, but might be less up to date.
 └─────────────────────────────────────────────────────────────────────────────┘
 ──── ?:help t:list/tree -+:depth H:end-bals/changes F:forecast a:add q:quit ────
 
-** q : q with help dialog open closes it
+** q  # q with help dialog open closes it
 ──────────────── Transaction #5 (4 of 4 in assets:bank:checking) ───────────────
  2008-12-31 * pay off
      liabilities:debts                 $1
      assets:bank:checking             $-1
 
-** q : q elsewhere exits the app, restoring the terminal to its previous state
+** q  # q elsewhere exits the app, restoring the terminal to its previous state
 ~/src/hledger/hledger-ui/test$ hledger-ui -f sample.journal
 ~/src/hledger/hledger-ui/test$ 
 
-** hledger-ui -f sample.journal --register checking date:200812 : date query at startup
+** hledger-ui -f sample.journal --register checking date:200812  # date query at startup
 ──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
  2008-12-31 * pay off                     li:debts                      $-1   0
 
-** hledger-ui -f sample.journal --register checking date:200812 --change : total is now $-1
+** hledger-ui -f sample.journal --register checking date:200812 --change  # total is now $-1
 ──── assets:bank:checking transactions matching date:200812 in 2008-12 (1/1) ───
  2008-12-31 * pay off                    li:debts                     $-1   $-1
 
-** hledger-ui -f bcexample.hledger --tree --register assets : elides wide content as shown
+** hledger-ui -f bcexample.hledger --tree --register assets  # wide content is elided as shown
 ──────────────────────── Assets transactions (518/518) ────────────────────────
  2014-07-26 * ..  ..   16.00 GLD, -1515.83 USD   ..0 GLD, 17.00 ITOT, 6 more..
  2014-07-31 * ..  ..   2550.60 USD, 4.62 VACHR   ..0 GLD, 17.00 ITOT, 6 more..
@@ -129,17 +129,35 @@ which has nice screenshots, but might be less up to date.
  2014-08-14 * ..  ..   2550.60 USD, 4.62 VACHR   ..0 GLD, 17.00 ITOT, 6 more..
  2014-08-15 * ..  ..   -16.00 GLD, 1481.29 USD   ..0 GLD, 17.00 ITOT, 6 more..
 
-** hledger-ui -f forecast.journal --register a --forecast : 
+** hledger-ui -f forecast.journal --register a   # future and forecasted txns are hidden by default
 ───────────────────────── a transactions (1/1) ─────────────────────────
- 2020-01-01   regular transaction     a                         $1   $1 
+ 2020-01-01   past transaction        a                         $1   $1 
 
-** F (shows future/forecast transactions)
-──────────────────────── a transactions (1/6) ─────────────────────────
- 2020-01-01   regular transaction     a                         $1   $1 
- 2020-04-01                           a                         $1   $2 
- 2020-07-01                           a                         $1   $3 
- 2020-10-01                           a                         $1   $4 
- 2021-01-01                           a                         $1   $5 
- 2021-04-01                           a                         $1   $6 
+** hledger-ui -f forecast.journal --register a --forecast  # future txn is shown, and sets the start of default forecast period
+───────────────────────── a transactions (1/2) ─────────────────────────
+ 2020-01-01   past transaction  a                         $1         $1 
+ 3000-01-01   future transac..  a                   $1000000   $1000001 
 
-** press F at least twice more (toggles future/forecast transactions every time)
+** hledger-ui -f forecast.journal --register a --forecast=2020  # explicit forecast period shows forecasted txns also
+───────────────────────── a transactions (6/6) ─────────────────────────
+ 2020-01-01   past transaction  a                         $1         $1 
+ 2020-01-01   forecasted tra..  a                         $1         $2 
+ 2020-04-01   forecasted tra..  a                         $1         $3 
+ 2020-07-01   forecasted tra..  a                         $1         $4 
+ 2020-10-01   forecasted tra..  a                         $1         $5 
+ 3000-01-01   future transac..  a                   $1000000   $1000005 
+
+** press F at least three times  # future & forecasted txns are toggled every time (#1411)
+
+** hledger-ui -f forecast.journal --register a --forecast=2020 --watch, press F once
+───────────────────────── a transactions (1/1) ─────────────────────────
+ 2020-01-01   past transaction        a                         $1   $1 
+
+** touch forecast.journal, press F again  # forecast txns can still be enabled if file modification time changed while disabled (#1204)
+───────────────────────── a transactions (6/6) ─────────────────────────
+ 2020-01-01   past transaction  a                         $1         $1 
+ 2020-01-01   forecasted tra..  a                         $1         $2 
+ 2020-04-01   forecasted tra..  a                         $1         $3 
+ 2020-07-01   forecasted tra..  a                         $1         $4 
+ 2020-10-01   forecasted tra..  a                         $1         $5 
+ 3000-01-01   future transac..  a                   $1000000   $1000005 

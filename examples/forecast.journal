@@ -1,37 +1,13 @@
-~ quarterly
+2020-01-01 past transaction
+   (a)   $1
+
+3000-01-01 future transaction
+   (a)   $1000000
+
+~ quarterly  forecasted transaction
    (a)   $1
 
 ;~ every 15th day of month
 ;   (b)   $10
 
-2020-01-01 regular transaction
-   (a)   $1
-
-comment
-
-~/src/hledger/examples$ date
-Thu Dec 10 14:29:49 PST 2020
-~/src/hledger/examples$ hledger -f forecast.journal print --forecast
-2020-01-01 regular transaction
-    (a)              $1
-
-2020-04-01
-    ; generated-transaction: ~ quarterly
-    (a)              $1
-
-2020-07-01
-    ; generated-transaction: ~ quarterly
-    (a)              $1
-
-2020-10-01
-    ; generated-transaction: ~ quarterly
-    (a)              $1
-
-2021-01-01
-    ; generated-transaction: ~ quarterly
-    (a)              $1
-
-2021-04-01
-    ; generated-transaction: ~ quarterly
-    (a)              $1
 
