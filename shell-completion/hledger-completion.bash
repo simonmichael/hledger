@@ -90,15 +90,11 @@ _hledger_completion_function() {
 }
 
 _hledger_extension_completion_function() {
-    local cmd=$1
-    shift
-
     # Change parameters and arguments and call the
     # normal hledger completion function.
-    local extensionName=${cmd#*-}
-    COMP_WORDS=( "hledger" "$extensionName" "${COMP_WORDS[@]:1}" )
+    COMP_WORDS=("hledger" "${1#*-}" "${COMP_WORDS[@]:1}")
     COMP_CWORD=$((COMP_CWORD + 1))
-    _hledger_completion_function "hledger" "$@"
+    _hledger_completion_function "hledger" "${@:1}"
 }
 
 # Register completion function for hledger:
