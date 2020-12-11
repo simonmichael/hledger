@@ -234,7 +234,8 @@ _hledger_compreply_optarg() {
             _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)" "" "$match")"
             ;;
         --debug)
-            _hledger_compreply "$(compgen -W "{1..9}" -- "$match")"
+            wordlist="{1..9}"
+            _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         # Argument required, but no handler (yet)
         -b|--begin|-e|--end|-p|--period|--depth|--drop)
