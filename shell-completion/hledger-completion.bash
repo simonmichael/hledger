@@ -90,8 +90,8 @@ _hledger_completion_function() {
 }
 
 _hledger_extension_completion_function() {
-    # Change parameters and arguments and call the
-    # normal hledger completion function.
+    # Pretend that hledger is called with given extension
+    # as first argument and call main completion function
     COMP_WORDS=("hledger" "${1#*-}" "${COMP_WORDS[@]:1}")
     COMP_CWORD=$((COMP_CWORD + 1))
     _hledger_completion_function "hledger" "${@:1}"
