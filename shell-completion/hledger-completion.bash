@@ -32,7 +32,7 @@ _hledger_completion_function() {
         # $subcommand == reg --> register, register-match,
         # $subcommand == bal --> balance, balancesheet, balancesheetequity, etc.
         # Do not ignore them!
-        if [[ $subcommand == "$cur" ]] && ((i == cword)); then
+        if ((i == cword)); then
             local subcommandMatches
             subcommandMatches=$(grep -c "^$subcommand" <<< "$_hledger_complist_commands")
             if ((subcommandMatches > 1)); then
