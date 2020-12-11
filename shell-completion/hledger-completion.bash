@@ -14,8 +14,13 @@ _hledger_completion_function() {
 
     # Current treatment for special characters:
     # - exclude colon (:) from COMP_WORDBREAKS
+    # - option processing assumes that `=` is in COMP_WORDBREAKS
     # - use comptop -o filenames to escape the rest
     COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+    case "$COMP_WORDBREAKS" in
+        *=*) : ;;
+        *)   COMP_WORDBREAKS="$COMP_WORDBREAKS=" ;;
+    esac
     compopt -o filenames
 
     local subcommand
