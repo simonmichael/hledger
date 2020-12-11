@@ -160,19 +160,19 @@ _hledger_compreply_append() {
 
 # Generate input suitable for _hledger_compreply() from newline delimited
 # completion candidates. It doesn't seem there is a way to feed a literal
-# wordlist to compgen -- it will eat your quotes, drink your booze and...
+# word list to compgen -- it will eat your quotes, drink your booze and...
 # Completion candidates are quoted accordingly first and then we leave it to
 # compgen to deal with readline.
 #
 # Arguments:
-# $1: a newline separated wordlist with completion cadidates
+# $1: a newline separated list with completion cadidates
 # $2: (optional) a prefix string to add to generated completions
 # $3: (optional) a word to match instead of $cur, the default.
 # If $match is null and $prefix is defined the match is done against $cur
 # stripped of $prefix. If both $prefix and $match are null we match against
 # $cur and no prefix is added to completions.
 _hledger_compgen() {
-    local wordlist=$1
+    local complist=$1
     local prefix=$2
     local match=$3
     local quoted=()
@@ -182,7 +182,7 @@ _hledger_compgen() {
     while IFS= read -r word; do
         _hledger_quote_by_ref "$word" word
         quoted[i++]=$word
-    done <<< "$wordlist"
+    done <<< "$complist"
 
     if (( $# < 3 )); then
         match=${cur:${#prefix}}
