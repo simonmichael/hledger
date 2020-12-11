@@ -65,19 +65,21 @@ _hledger_completion_function() {
     # Avoid setting compopt bellow if completing an option
     [[ $cur == -* ]] && return
 
-    # Almost all subcommands accept [QUERY]
-    # -> always add accounts to completion list
-    # Except for those few that will complain
-    local noQuery=(files help test)
-    # shellcheck disable=2076
-    [[ " ${noQuery[*]} " =~ " $subcommand " ]] && return
-    # Add any other subcommand special treatment here, or if it becomes unwieldy
-    # move it out in say _hledger_compreply_subcommand() and return on success.
-
-    # Query specific completions
+    # Query completion
     _hledger_compreply_query && return
 
-    # Do not sort, keep accounts and query filters grouped separately
+    # Subcommand specific
+    case $subcommand in
+        files|test) return 0 ;;
+        help)
+            compopt -o nosort +o filenames
+            _hledger_compreply_append "$(compgen -W "$(hledger help | tail -n 1)" -- "$cur")"
+            return 0
+            ;;
+    esac
+
+    # Offer query filters and accounts for the rest
+    # Do not sort. Keep options, accounts and query filters grouped separately
     compopt -o nosort -o nospace
     _hledger_compreply_append "$(_hledger_compgen "$_hledger_complist_query_filters")"
     if [[ -z $cur ]]; then
