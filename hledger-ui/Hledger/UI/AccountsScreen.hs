@@ -53,11 +53,11 @@ accountsScreen = AccountsScreen{
 
 asInit :: Day -> Bool -> UIState -> UIState
 asInit d reset ui@UIState{
-  aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}},
+  aopts=UIOpts{cliopts_=CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}}},
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
-  ui{aopts=uopts', aScreen=s & asList .~ newitems'}
+  ui{aScreen=s & asList .~ newitems'}
    where
     newitems = list AccountsList (V.fromList $ displayitems ++ blankitems) 1
 
@@ -80,7 +80,7 @@ asInit d reset ui@UIState{
                       where
                         as = map asItemAccountName displayitems
 
-    uopts' = uopts{cliopts_=copts{reportspec_=rspec'}}
+    -- Further restrict the query based on the current period and future/forecast mode.
     rspec' = rspec{rsQuery=simplifyQuery $ And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]}
       where
         periodq = Date $ periodAsDateSpan $ period_ ropts
@@ -106,7 +106,8 @@ asInit d reset ui@UIState{
         Mixed amts = normaliseMixedAmountSquashPricesForDisplay $ stripPrices bal
         stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=Nothing}
     displayitems = map displayitem items
-    -- blanks added for scrolling control, cf RegisterScreen
+    -- blanks added for scrolling control, cf RegisterScreen.
+    -- XXX Ugly. Changing to 0 helps when debugging.
     blankitems = replicate 100
       AccountsScreenItem{asItemIndentLevel        = 0
                         ,asItemAccountName        = ""
