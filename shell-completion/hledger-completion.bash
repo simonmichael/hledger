@@ -479,9 +479,7 @@ read -r -d "" _hledger_complist_options_accounts <<TEXT
 --date2
 --debug=
 --declared
---depth
 --depth=
---drop
 --drop=
 --empty
 --end=
@@ -651,16 +649,13 @@ read -r -d "" _hledger_complist_options_bal <<TEXT
 --budget
 --change
 --cleared
---color=
 --colour
 --cost
 --cumulative
 --daily
 --date2
 --debug=
---depth
 --depth=
---drop
 --drop=
 --empty
 --end=
@@ -668,7 +663,6 @@ read -r -d "" _hledger_complist_options_bal <<TEXT
 --file=
 --flat
 --forecast
---format
 --format=
 --help
 --historical
@@ -711,16 +705,13 @@ read -r -d "" _hledger_complist_options_balance <<TEXT
 --budget
 --change
 --cleared
---color=
 --colour
 --cost
 --cumulative
 --daily
 --date2
 --debug=
---depth
 --depth=
---drop
 --drop=
 --empty
 --end=
@@ -728,7 +719,6 @@ read -r -d "" _hledger_complist_options_balance <<TEXT
 --file=
 --flat
 --forecast
---format
 --format=
 --help
 --historical
@@ -1154,7 +1144,6 @@ read -r -d "" _hledger_complist_options_close <<TEXT
 --cleared
 --close
 --close-acct=
---close-desc
 --close-desc=
 --colour
 --cost
@@ -1175,9 +1164,7 @@ read -r -d "" _hledger_complist_options_close <<TEXT
 --market
 --monthly
 --open
---open-acct
 --open-acct=
---open-desc
 --open-desc=
 --pending
 --period=
@@ -1190,7 +1177,6 @@ read -r -d "" _hledger_complist_options_close <<TEXT
 --value=
 --version
 --weekly
---x
 --yearly
 TEXT
 
@@ -1299,7 +1285,6 @@ read -r -d "" _hledger_complist_options_equity <<TEXT
 --cleared
 --close
 --close-acct=
---close-desc
 --close-desc=
 --colour
 --cost
@@ -1320,9 +1305,7 @@ read -r -d "" _hledger_complist_options_equity <<TEXT
 --market
 --monthly
 --open
---open-acct
 --open-acct=
---open-desc
 --open-desc=
 --pending
 --period=
@@ -1335,7 +1318,6 @@ read -r -d "" _hledger_complist_options_equity <<TEXT
 --value=
 --version
 --weekly
---x
 --yearly
 TEXT
 
@@ -1384,7 +1366,6 @@ read -r -d "" _hledger_complist_options_import <<TEXT
 --infer-market-price
 --market
 --monthly
---new
 --pending
 --period=
 --pivot=
@@ -1703,7 +1684,6 @@ read -r -d "" _hledger_complist_options_reg <<TEXT
 --daily
 --date2
 --debug=
---depth
 --depth=
 --empty
 --end=
@@ -1730,7 +1710,6 @@ read -r -d "" _hledger_complist_options_reg <<TEXT
 --value=
 --version
 --weekly
---width
 --width=
 --yearly
 TEXT
@@ -1749,7 +1728,6 @@ read -r -d "" _hledger_complist_options_register <<TEXT
 --daily
 --date2
 --debug=
---depth
 --depth=
 --empty
 --end=
@@ -1776,7 +1754,6 @@ read -r -d "" _hledger_complist_options_register <<TEXT
 --value=
 --version
 --weekly
---width
 --width=
 --yearly
 TEXT
@@ -1836,7 +1813,6 @@ read -r -d "" _hledger_complist_options_rewrite <<TEXT
 --empty
 --end=
 --exchange=
---file
 --file=
 --forecast
 --help
@@ -1879,7 +1855,6 @@ read -r -d "" _hledger_complist_options_roi <<TEXT
 --help
 --ignore-assertions
 --infer-value
---inv
 --investment=
 --market
 --monthly
@@ -1973,7 +1948,6 @@ read -r -d "" _hledger_complist_options_tags <<TEXT
 TEXT
 
 read -r -d "" _hledger_complist_options_test <<TEXT
---color=
 --debug=
 --help
 --version
