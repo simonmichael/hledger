@@ -22,17 +22,17 @@ import Hledger.UI.UIOptions
 -- | Toggle between showing only unmarked items or all items.
 toggleUnmarked :: UIState -> UIState
 toggleUnmarked ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatusSomehow Unmarked copts rspec}}}
+  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatus Unmarked copts rspec}}}
 
 -- | Toggle between showing only pending items or all items.
 togglePending :: UIState -> UIState
 togglePending ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatusSomehow Pending copts rspec}}}
+  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatus Pending copts rspec}}}
 
 -- | Toggle between showing only cleared items or all items.
 toggleCleared :: UIState -> UIState
 toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
-  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatusSomehow Cleared copts rspec}}}
+  ui{aopts=uopts{cliopts_=copts{reportspec_=reportSpecToggleStatus Cleared copts rspec}}}
 
 -- TODO testing different status toggle styles
 
@@ -52,17 +52,12 @@ uiShowStatus copts ss =
     showstatus Pending  = "pending"
     showstatus Unmarked = "unmarked"
 
-reportSpecToggleStatusSomehow :: Status -> CliOpts -> ReportSpec -> ReportSpec
-reportSpecToggleStatusSomehow s copts =
-    either (error "reportSpecToggleStatusSomehow: updating Status should not result in an error") id  -- PARTIAL:
-    . updateReportSpecWith update
-  where
-    update = case maybeposintopt "status-toggles" $ rawopts_ copts of
-      Just 2 -> reportOptsToggleStatus2 s
-      Just 3 -> reportOptsToggleStatus3 s
---      Just 4 -> reportOptsToggleStatus4 s
---      Just 5 -> reportOptsToggleStatus5 s
-      _      -> reportOptsToggleStatus1 s
+reportSpecToggleStatus :: Status -> CliOpts -> ReportSpec -> ReportSpec
+reportSpecToggleStatus s _copts =
+    either (error "reportSpecToggleStatus: changing status should not have caused this error") id  -- PARTIAL:
+    . updateReportSpecWith (reportOptsToggleStatus1 s)
+
+-- various toggle behaviours:
 
 -- 1 UPC toggles only X/all
 reportOptsToggleStatus1 s ropts@ReportOpts{statuses_=ss}
@@ -77,21 +72,21 @@ reportOptsToggleStatus1 s ropts@ReportOpts{statuses_=ss}
 -- pressing Y after first or second step starts new cycle:
 -- [u] P [p]
 -- [pc] P [p]
-reportOptsToggleStatus2 s ropts@ReportOpts{statuses_=ss}
-  | ss == [s]            = ropts{statuses_=complement [s]}
-  | ss == complement [s] = ropts{statuses_=[]}
-  | otherwise            = ropts{statuses_=[s]}  -- XXX assume only three values
+-- reportOptsToggleStatus2 s ropts@ReportOpts{statuses_=ss}
+--   | ss == [s]            = ropts{statuses_=complement [s]}
+--   | ss == complement [s] = ropts{statuses_=[]}
+--   | otherwise            = ropts{statuses_=[s]}  -- XXX assume only three values
 
 -- 3 UPC toggles each X
-reportOptsToggleStatus3 s ropts@ReportOpts{statuses_=ss}
-  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
-  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+-- reportOptsToggleStatus3 s ropts@ReportOpts{statuses_=ss}
+--   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
+--   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
 -- 4 upc sets X, UPC sets not-X
 --reportOptsToggleStatus4 s ropts@ReportOpts{statuses_=ss}
 --  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
 --  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
---
+
 -- 5 upc toggles X, UPC toggles not-X
 --reportOptsToggleStatus5 s ropts@ReportOpts{statuses_=ss}
 --  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
