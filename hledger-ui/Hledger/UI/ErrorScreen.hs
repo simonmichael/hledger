@@ -30,6 +30,7 @@ import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.Editor
+import Data.Foldable (asum)
 
 errorScreen :: Screen
 errorScreen = ErrorScreen{
@@ -137,36 +138,60 @@ hledgerparseerrorpositionp = do
       ]
 
 
--- Unconditionally reload the journal, regenerating the current screen
--- and all previous screens in the history.
+-- | Unconditionally reload the journal, regenerating the current screen
+-- and all previous screens in the history as of the provided today-date.
 -- If reloading fails, enter the error screen, or if we're already
 -- on the error screen, update the error displayed.
--- The provided CliOpts are used for reloading, and then saved
--- in the UIState if reloading is successful (otherwise the
--- ui state keeps its old cli opts.)
 -- Defined here so it can reference the error screen.
+--
+-- The provided CliOpts are used for reloading, and then saved in the
+-- UIState if reloading is successful (otherwise the UIState keeps its old
+-- CliOpts.) (XXX needed for.. ?)
+--
+-- Forecasted transactions are always generated, as at hledger-ui startup.
+-- If a forecast period is specified in the provided opts, or was specified
+-- at startup, it is preserved.
+--
 uiReloadJournal :: CliOpts -> Day -> UIState -> IO UIState
 uiReloadJournal copts d ui = do
-  ej <- journalReload copts
+  ej <-
+    let copts' = enableForecastPreservingPeriod ui copts
+    in journalReload copts'
   return $ case ej of
-    Right j  -> regenerateScreens j d ui{aopts=(aopts ui){cliopts_=copts}}
+    Right j  -> regenerateScreens j d ui
     Left err ->
       case ui of
         UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
         _                                -> screenEnter d errorScreen{esError=err} ui
 
--- Like uiReloadJournal, but does not bother re-parsing the journal if
--- the file(s) have not changed since last loaded. Always regenerates
--- the current and previous screens though, since opts or date may have changed.
+-- | Like uiReloadJournal, but does not re-parse the journal if the file(s)
+-- have not changed since last loaded. Always regenerates the screens though,
+-- since the provided options or today-date may have changed.
 uiReloadJournalIfChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadJournalIfChanged copts d j ui = do
-  (ej, _changed) <- journalReloadIfChanged copts d j
+  (ej, _changed) <-
+    let copts' = enableForecastPreservingPeriod ui copts
+    in journalReloadIfChanged copts' d j
   return $ case ej of
-    Right j' -> regenerateScreens j' d ui{aopts=(aopts ui){cliopts_=copts}}
+    Right j' -> regenerateScreens j' d ui
     Left err ->
       case ui of
         UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
         _                                -> screenEnter d errorScreen{esError=err} ui
+
+-- | Ensure this CliOpts enables forecasted transactions.
+-- If a forecast period was specified in the old CliOpts,
+-- or in the provided UIState's startup options,
+-- it is preserved.
+enableForecastPreservingPeriod :: UIState -> CliOpts -> CliOpts
+enableForecastPreservingPeriod ui copts@CliOpts{reportspec_=rspec@ReportSpec{rsOpts=ropts}} =
+  copts{reportspec_=rspec{rsOpts=ropts{forecast_=mforecast}}}
+  where
+    mforecast = asum [mprovidedforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
+      where
+        mprovidedforecastperiod = forecast_ ropts
+        mstartupforecastperiod  = forecast_ $ rsOpts $ reportspec_ $ cliopts_ $ astartupopts ui
+        mdefaultforecastperiod  = Just nulldatespan
 
 -- Re-check any balance assertions in the current journal, and if any
 -- fail, enter (or update) the error screen. Or if balance assertions
