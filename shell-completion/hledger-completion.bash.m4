@@ -48,9 +48,11 @@ _hledger_completion_function() {
                 return 0
             fi
         fi
-        # Replace dashes with underscores and use indirect expansion
-        subcommandOptions=_hledger_complist_options_${subcommand//-/_}
-        _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
+        if [[ $cur == -* ]]; then
+            # Replace dashes with underscores and use indirect expansion
+            subcommandOptions=_hledger_complist_options_${subcommand//-/_}
+            _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
+        fi
         break
     done
 
@@ -58,11 +60,12 @@ _hledger_completion_function() {
     _hledger_compreply_optarg && return
 
     if [[ -z $subcommand ]]; then
-        # Completion lists are already sorted at build-time
-        # This keeps commands and options grouped separately
-        compopt -o nosort +o filenames
-        _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
-        _hledger_compreply_append "$(_hledger_compgen "$_hledger_complist_generic_options")"
+        compopt +o filenames
+        if [[ $cur == -* ]]; then
+            _hledger_compreply "$(_hledger_compgen "$_hledger_complist_generic_options")"
+        else
+            _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
+        fi
 
         return 0
     fi
@@ -261,11 +264,18 @@ _hledger_compreply_optarg() {
 _hledger_compreply_query() {
     [[ $cur =~ .: ]] || return
     local query=${cur%%:*}:
+    local match=${cur#*:}
     grep -Fxqe "$query" <<< "$_hledger_complist_query_filters" || return
 
     local hledgerArgs=()
     case $query in
-        acct:)  hledgerArgs=(accounts --flat) ;;
+        acct:)
+                if (( ${#match} )); then
+                    hledgerArgs=(accounts --flat)
+                else
+                    hledgerArgs=(accounts --flat --depth 1)
+                fi
+                ;;
         code:)  hledgerArgs=(codes) ;;
         cur:)   hledgerArgs=(commodities) ;;
         desc:)  hledgerArgs=(descriptions) ;;
