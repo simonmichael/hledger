@@ -54,8 +54,7 @@ main = do
   opts@UIOpts{cliopts_=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{rsOpts=ropts},rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
-  -- always include forecasted periodic transactions when loading data;
-  -- they will be toggled on and off in the UI.
+  -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
   let copts' = copts{reportspec_=rspec{rsOpts=ropts{forecast_=Just $ fromMaybe nulldatespan (forecast_ ropts)}}}
 
   case True of

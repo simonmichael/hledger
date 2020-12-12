@@ -66,8 +66,10 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     -- XXX temp
     inclusive = tree_ ropts || rsForceInclusive
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
+
     rspec' = rspec{rsOpts=ropts{depth_=Nothing}}
-    q = And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]
+    -- Further restrict the query based on the current period and future/forecast mode.
+    q = simplifyQuery $ And [rsQuery rspec, periodq, excludeforecastq (forecast_ ropts)]
       where
         periodq = Date $ periodAsDateSpan $ period_ ropts
         -- Except in forecast mode, exclude future/forecast transactions.
@@ -98,8 +100,9 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                             ,rsItemBalanceAmount = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) False bal
                             ,rsItemTransaction   = t
                             }
-    -- blank items are added to allow more control of scroll position; we won't allow movement over these
-    blankitems = replicate 100  -- 100 ought to be enough for anyone
+    -- blank items are added to allow more control of scroll position; we won't allow movement over these.
+    -- XXX Ugly. Changing to 0 helps when debugging.
+    blankitems = replicate 100  -- "100 ought to be enough for anyone"
           RegisterScreenItem{rsItemDate          = ""
                             ,rsItemStatus        = Unmarked
                             ,rsItemDescription   = ""
