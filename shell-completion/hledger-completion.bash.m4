@@ -52,6 +52,7 @@ _hledger_completion_function() {
             # Replace dashes with underscores and use indirect expansion
             subcommandOptions=_hledger_complist_options_${subcommand//-/_}
             _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
+            return 0
         fi
         break
     done
@@ -70,9 +71,6 @@ _hledger_completion_function() {
         return 0
     fi
 
-    # Avoid setting compopt bellow if completing an option
-    [[ $cur == -* ]] && return
-
     # Query completion
     _hledger_compreply_query && return
 
@@ -81,7 +79,7 @@ _hledger_completion_function() {
         files|test) return 0 ;;
         help)
             compopt -o nosort +o filenames
-            _hledger_compreply_append "$(compgen -W "$(hledger help | tail -n 1)" -- "$cur")"
+            _hledger_compreply "$(compgen -W "$(hledger help | tail -n 1)" -- "$cur")"
             return 0
             ;;
     esac
@@ -89,7 +87,7 @@ _hledger_completion_function() {
     # Offer query filters and accounts for the rest
     # Do not sort. Keep options, accounts and query filters grouped separately
     compopt -o nosort -o nospace
-    _hledger_compreply_append "$(_hledger_compgen "$_hledger_complist_query_filters")"
+    _hledger_compreply "$(_hledger_compgen "$_hledger_complist_query_filters")"
     if [[ -z $cur ]]; then
         _hledger_compreply_append "$(_hledger_compgen "$(_hledger accounts --flat --depth 1)")"
     else
