@@ -433,7 +433,7 @@ read -r -d "" _hledger_complist_generic_options <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -471,7 +471,7 @@ read -r -d "" _hledger_complist_options_accounts <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -511,7 +511,7 @@ read -r -d "" _hledger_complist_options_activity <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -559,7 +559,7 @@ read -r -d "" _hledger_complist_options_areg <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -599,7 +599,7 @@ read -r -d "" _hledger_complist_options_aregister <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -642,7 +642,7 @@ read -r -d "" _hledger_complist_options_bal <<TEXT
 --budget
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -696,7 +696,7 @@ read -r -d "" _hledger_complist_options_balance <<TEXT
 --budget
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -749,7 +749,7 @@ read -r -d "" _hledger_complist_options_balancesheet <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -800,7 +800,7 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -851,7 +851,7 @@ read -r -d "" _hledger_complist_options_bs <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -902,7 +902,7 @@ read -r -d "" _hledger_complist_options_bse <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -953,7 +953,7 @@ read -r -d "" _hledger_complist_options_cashflow <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -1004,7 +1004,7 @@ read -r -d "" _hledger_complist_options_cf <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -1053,7 +1053,7 @@ read -r -d "" _hledger_complist_options_check_dates <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1089,7 +1089,7 @@ read -r -d "" _hledger_complist_options_check_dupes <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1127,7 +1127,7 @@ read -r -d "" _hledger_complist_options_close <<TEXT
 --close
 --close-acct=
 --close-desc=
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1168,7 +1168,7 @@ read -r -d "" _hledger_complist_options_codes <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1215,7 +1215,7 @@ read -r -d "" _hledger_complist_options_descriptions <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1265,7 +1265,7 @@ read -r -d "" _hledger_complist_options_equity <<TEXT
 --close
 --close-acct=
 --close-desc=
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1327,7 +1327,7 @@ read -r -d "" _hledger_complist_options_import <<TEXT
 --begin=
 --catchup
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1365,7 +1365,7 @@ read -r -d "" _hledger_complist_options_incomestatement <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -1416,7 +1416,7 @@ read -r -d "" _hledger_complist_options_is <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -1465,7 +1465,7 @@ read -r -d "" _hledger_complist_options_notes <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1500,7 +1500,7 @@ read -r -d "" _hledger_complist_options_payees <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1535,7 +1535,7 @@ read -r -d "" _hledger_complist_options_prices <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --costs
 --daily
@@ -1572,7 +1572,7 @@ read -r -d "" _hledger_complist_options_print <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1612,7 +1612,7 @@ read -r -d "" _hledger_complist_options_print_unique <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1648,7 +1648,7 @@ read -r -d "" _hledger_complist_options_reg <<TEXT
 --average
 --begin=
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -1691,7 +1691,7 @@ read -r -d "" _hledger_complist_options_register <<TEXT
 --average
 --begin=
 --cleared
---colour
+--color=
 --cost
 --cumulative
 --daily
@@ -1733,7 +1733,7 @@ read -r -d "" _hledger_complist_options_register_match <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1763,14 +1763,13 @@ read -r -d "" _hledger_complist_options_register_match <<TEXT
 TEXT
 
 read -r -d "" _hledger_complist_options_rewrite <<TEXT
---add-posting
 --add-posting=
 --alias=
 --anon
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1804,11 +1803,10 @@ read -r -d "" _hledger_complist_options_roi <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cashflow
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1828,7 +1826,7 @@ read -r -d "" _hledger_complist_options_roi <<TEXT
 --pending
 --period=
 --pivot=
---pnl
+--profit-loss=
 --quarterly
 --real
 --rules-file=
@@ -1845,7 +1843,7 @@ read -r -d "" _hledger_complist_options_stats <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1881,7 +1879,7 @@ read -r -d "" _hledger_complist_options_tags <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1924,7 +1922,7 @@ read -r -d "" _hledger_complist_options_txns <<TEXT
 --auto
 --begin=
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
@@ -1965,7 +1963,7 @@ read -r -d "" _hledger_complist_options_ui <<TEXT
 --begin=
 --change
 --cleared
---colour
+--color=
 --cost
 --daily
 --date2
