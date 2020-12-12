@@ -431,7 +431,6 @@ read -r -d "" _hledger_complist_generic_options <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -470,7 +469,6 @@ read -r -d "" _hledger_complist_options_accounts <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -511,7 +509,6 @@ read -r -d "" _hledger_complist_options_activity <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -560,7 +557,6 @@ read -r -d "" _hledger_complist_options_areg <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -601,7 +597,6 @@ read -r -d "" _hledger_complist_options_aregister <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -642,9 +637,7 @@ read -r -d "" _hledger_complist_options_bal <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
---begin
 --begin=
 --budget
 --change
@@ -698,9 +691,7 @@ read -r -d "" _hledger_complist_options_balance <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
---begin
 --begin=
 --budget
 --change
@@ -754,7 +745,6 @@ read -r -d "" _hledger_complist_options_balancesheet <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -806,7 +796,6 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -858,7 +847,6 @@ read -r -d "" _hledger_complist_options_bs <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -910,7 +898,6 @@ read -r -d "" _hledger_complist_options_bse <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -962,7 +949,6 @@ read -r -d "" _hledger_complist_options_cashflow <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -1014,7 +1000,6 @@ read -r -d "" _hledger_complist_options_cf <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -1066,7 +1051,6 @@ read -r -d "" _hledger_complist_options_check_dates <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1103,7 +1087,6 @@ read -r -d "" _hledger_complist_options_check_dupes <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1139,7 +1122,6 @@ read -r -d "" _hledger_complist_options_close <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --close
@@ -1184,7 +1166,6 @@ read -r -d "" _hledger_complist_options_codes <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1232,7 +1213,6 @@ read -r -d "" _hledger_complist_options_descriptions <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1280,7 +1260,6 @@ read -r -d "" _hledger_complist_options_equity <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --close
@@ -1345,7 +1324,6 @@ read -r -d "" _hledger_complist_options_import <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --catchup
 --cleared
@@ -1383,7 +1361,6 @@ read -r -d "" _hledger_complist_options_incomestatement <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -1435,7 +1412,6 @@ read -r -d "" _hledger_complist_options_is <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --change
@@ -1487,7 +1463,6 @@ read -r -d "" _hledger_complist_options_notes <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1523,7 +1498,6 @@ read -r -d "" _hledger_complist_options_payees <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1559,7 +1533,6 @@ read -r -d "" _hledger_complist_options_prices <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1597,7 +1570,6 @@ read -r -d "" _hledger_complist_options_print <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1638,7 +1610,6 @@ read -r -d "" _hledger_complist_options_print_unique <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1674,7 +1645,6 @@ read -r -d "" _hledger_complist_options_reg <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --cleared
@@ -1718,7 +1688,6 @@ read -r -d "" _hledger_complist_options_register <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --average
 --begin=
 --cleared
@@ -1762,7 +1731,6 @@ read -r -d "" _hledger_complist_options_register_match <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1800,7 +1768,6 @@ read -r -d "" _hledger_complist_options_rewrite <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1876,7 +1843,6 @@ read -r -d "" _hledger_complist_options_stats <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1913,7 +1879,6 @@ read -r -d "" _hledger_complist_options_tags <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1957,7 +1922,6 @@ read -r -d "" _hledger_complist_options_txns <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --cleared
 --colour
@@ -1998,7 +1962,6 @@ read -r -d "" _hledger_complist_options_ui <<TEXT
 --alias=
 --anon
 --auto
---aux-date
 --begin=
 --change
 --cleared

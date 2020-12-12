@@ -17,7 +17,8 @@ main() {
 
     # Options requiring an argument make that explicit by appending
     # the equal sign (=)
-    sed -rn 's/^\s+.*\s+(--[a-zA-Z][-_a-zA-Z0-9]*=?).*/\1/gp' < "$tmp"
+    sed -rn '/^\s+-/p' "$tmp" |
+      sed -rn 's/.*\s+(--[a-zA-Z][-_a-zA-Z0-9]+=?).*/\1/p'
 }
 
 main "$@"
