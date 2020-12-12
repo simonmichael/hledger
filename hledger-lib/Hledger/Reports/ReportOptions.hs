@@ -18,7 +18,8 @@ module Hledger.Reports.ReportOptions (
   rawOptsToReportOpts,
   defreportspec,
   reportOptsToSpec,
-  updateReportSpecFromOpts,
+  updateReportSpec,
+  updateReportSpecWith,
   rawOptsToReportSpec,
   flat_,
   tree_,
@@ -245,12 +246,16 @@ reportOptsToSpec day ropts = do
       , rsQueryOpts = queryopts
       }
 
--- | Regenerate a ReportSpec after updating ReportOpts, or return an error
--- message if there is a problem such as missing or unparseable options data.
--- This helps keep the ReportSpec, its underlying ReportOpts, and the ReportOpts'
--- data fields like querystring_ all in sync.
-updateReportSpecFromOpts :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
-updateReportSpecFromOpts f rspec = reportOptsToSpec (rsToday rspec) . f $ rsOpts rspec
+-- | Update the ReportOpts and the fields derived from it in a ReportSpec,
+-- or return an error message if there is a problem such as missing or 
+-- unparseable options data. This is the safe way to change a ReportSpec, 
+-- ensuring that all fields (rsQuery, rsOpts, querystring_, etc.) are in sync.
+updateReportSpec :: ReportOpts -> ReportSpec -> Either String ReportSpec
+updateReportSpec ropts rspec = reportOptsToSpec (rsToday rspec) ropts
+
+-- | Like updateReportSpec, but takes a ReportOpts-modifying function.
+updateReportSpecWith :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
+updateReportSpecWith f rspec = reportOptsToSpec (rsToday rspec) . f $ rsOpts rspec
 
 -- | Generate a ReportSpec from RawOpts and the current date.
 rawOptsToReportSpec :: RawOpts -> IO ReportSpec

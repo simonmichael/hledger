@@ -55,7 +55,7 @@ uiShowStatus copts ss =
 reportSpecToggleStatusSomehow :: Status -> CliOpts -> ReportSpec -> ReportSpec
 reportSpecToggleStatusSomehow s copts =
     either (error "reportSpecToggleStatusSomehow: updating Status should not result in an error") id  -- PARTIAL:
-    . updateReportSpecFromOpts update
+    . updateReportSpecWith update
   where
     update = case maybeposintopt "status-toggles" $ rawopts_ copts of
       Just 2 -> reportOptsToggleStatus2 s
@@ -189,7 +189,7 @@ toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspe
     ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
   where
     update = either (error "toggleReal: updating Real should not result in an error") id  -- PARTIAL:
-           . updateReportSpecFromOpts (\ropts -> ropts{real_=not $ real_ ropts})
+           . updateReportSpecWith (\ropts -> ropts{real_=not $ real_ ropts})
 
 -- | Toggle the ignoring of balance assertions.
 toggleIgnoreBalanceAssertions :: UIState -> UIState
@@ -237,14 +237,14 @@ updateReportPeriod updatePeriod ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@Cli
     ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
   where
     update = either (error "updateReportPeriod: updating period should not result in an error") id  -- PARTIAL:
-           . updateReportSpecFromOpts (\ropts -> ropts{period_=updatePeriod $ period_ ropts})
+           . updateReportSpecWith (\ropts -> ropts{period_=updatePeriod $ period_ ropts})
 
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}} =
     ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
   where
-    update = either (const rspec) id . updateReportSpecFromOpts (\ropts -> ropts{querystring_=querystring})
+    update = either (const rspec) id . updateReportSpecWith (\ropts -> ropts{querystring_=querystring})
     querystring = words'' prefixes $ T.pack s
 
 -- | Reset some filters & toggles.
@@ -303,7 +303,7 @@ updateReportDepth updateDepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOp
     ui{aopts=uopts{cliopts_=copts{reportspec_=update rspec}}}
   where
     update = either (error "updateReportDepth: updating depth should not result in an error") id  -- PARTIAL:
-           . updateReportSpecFromOpts (\ropts -> ropts{depth_=updateDepth (depth_ ropts) >>= clipDepth ropts})
+           . updateReportSpecWith (\ropts -> ropts{depth_=updateDepth (depth_ ropts) >>= clipDepth ropts})
     clipDepth ropts d | d < 0            = depth_ ropts
                       | d >= maxDepth ui = Nothing
                       | otherwise        = Just d
