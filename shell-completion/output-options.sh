@@ -15,8 +15,8 @@ main() {
     # Display all 200 possibilities? (y or n)
     # sed -rn 's/.* (-[a-zA-Z0-9]).*/\1/gp' < "$tmp"
 
-    # Do not print '=' after long options with arg because it makes completion
-    # for option arguments harder.
+    # Options requiring an argument make that explicit by appending
+    # the equal sign (=)
     sed -rn 's/.* (--[a-zA-Z][-_a-zA-Z0-9]*=?).*/\1/gp' < "$tmp"
 }
 
