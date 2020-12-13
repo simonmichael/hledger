@@ -24,10 +24,8 @@ _hledger_completion_function() {
     compopt -o filenames
 
     local subcommand
-    local subcommandOptions
     local i
-
-    for (( i=1; i<${#words[@]}; i++ )); do
+    for ((i=1; i<${#words[@]}; i++)); do
         subcommand=${words[i]}
         if ! grep -Fxqe "$subcommand" <<< "$_hledger_complist_commands"; then
             subcommand=
@@ -48,17 +46,6 @@ _hledger_completion_function() {
                 return 0
             fi
         fi
-        if [[ $cur == -* ]]; then
-            # Replace dashes with underscores and use indirect expansion
-            subcommandOptions=_hledger_complist_options_${subcommand//-/_}
-            _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
-
-            # Suspend space on completion of long options requiring an argument
-            [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
-            compopt +o filenames
-
-            return 0
-        fi
         break
     done
 
@@ -75,6 +62,19 @@ _hledger_completion_function() {
         else
             _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
         fi
+
+        return 0
+    fi
+
+    if [[ $cur == -* ]]; then
+        local subcommandOptions
+        # Replace dashes with underscores and use indirect expansion
+        subcommandOptions=_hledger_complist_options_${subcommand//-/_}
+        _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
+
+        # Suspend space on completion of long options requiring an argument
+        [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
+        compopt +o filenames
 
         return 0
     fi
