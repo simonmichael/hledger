@@ -315,9 +315,7 @@ _hledger_compreply_query() {
     esac
 
     _hledger_compreply "$(
-        _hledger_compgen "$(
-            _hledger "${hledgerArgs[@]}"
-        )" "$query"
+        _hledger_compgen "$(_hledger "${hledgerArgs[@]}")" "$query"
     )"
 
     return 0
