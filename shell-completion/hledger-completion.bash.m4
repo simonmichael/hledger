@@ -17,9 +17,9 @@ _hledger_completion_function() {
     # - option processing assumes that `=` is in COMP_WORDBREAKS
     # - use compopt -o filenames to escape the rest
     COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
-    case "$COMP_WORDBREAKS" in
+    case $COMP_WORDBREAKS in
         *=*) : ;;
-        *)   COMP_WORDBREAKS="$COMP_WORDBREAKS=" ;;
+        *)   COMP_WORDBREAKS=$COMP_WORDBREAKS= ;;
     esac
     compopt -o filenames
 
