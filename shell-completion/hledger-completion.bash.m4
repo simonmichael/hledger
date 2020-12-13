@@ -37,7 +37,9 @@ _hledger_completion_function() {
         # Do not ignore them!
         if ((i == cword)); then
             compopt +o filenames
-            _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
+            _hledger_compreply "$(
+                _hledger_compgen "$_hledger_complist_commands"
+            )"
             return 0
         fi
         break
@@ -49,12 +51,16 @@ _hledger_completion_function() {
     if [[ -z $subcommand ]]; then
         compopt +o filenames
         if [[ $cur == -* ]]; then
-            _hledger_compreply "$(_hledger_compgen "$_hledger_complist_generic_options")"
+            _hledger_compreply "$(
+                _hledger_compgen "$_hledger_complist_generic_options"
+            )"
 
             # Suspend space on completion of long options requiring an argument
             [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
         else
-            _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
+            _hledger_compreply "$(
+                _hledger_compgen "$_hledger_complist_commands"
+            )"
         fi
 
         return 0
@@ -80,7 +86,9 @@ _hledger_completion_function() {
     case $subcommand in
         help)
             compopt -o nosort +o filenames
-            _hledger_compreply "$(compgen -W "$(hledger help | tail -n 1)" -- "$cur")"
+            _hledger_compreply "$(
+                compgen -W "$(hledger help | tail -n 1)" -- "$cur"
+            )"
             return 0
             ;;
         # These do not expect or support any query arguments
@@ -94,9 +102,13 @@ _hledger_completion_function() {
     compopt -o nosort -o nospace
     _hledger_compreply "$(_hledger_compgen "$_hledger_complist_query_filters")"
     if [[ -z $cur ]]; then
-        _hledger_compreply_append "$(_hledger_compgen "$(_hledger accounts --flat --depth 1)")"
+        _hledger_compreply_append "$(
+            _hledger_compgen "$(_hledger accounts --flat --depth 1)"
+        )"
     else
-        _hledger_compreply_append "$(_hledger_compgen "$(_hledger accounts --flat)")"
+        _hledger_compreply_append "$(
+            _hledger_compgen "$(_hledger accounts --flat)"
+        )"
     fi
 
     return 0
@@ -211,7 +223,9 @@ _hledger_compreply_optarg() {
     case ${words[optionIndex]} in
         --alias)
             compopt -o nospace
-            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)" "" "$match")"
+            _hledger_compreply "$(
+                _hledger_compgen "$(_hledger accounts --flat)" "" "$match"
+            )"
             ;;
         -f|--file|--rules-file|-o|--output-file)
             _hledger_compreply "$(compgen -f -- "$match")"
@@ -220,14 +234,18 @@ _hledger_compreply_optarg() {
             compopt -o nosort
             wordlist="code description note payee"
             _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
-            _hledger_compreply_append "$(_hledger_compgen "$(_hledger tags)" "" "$match")"
+            _hledger_compreply_append "$(
+                _hledger_compgen "$(_hledger tags)" "" "$match"
+            )"
             ;;
         --value)
             wordlist="cost then end now"
             _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         -X|--exchange)
-            _hledger_compreply "$(_hledger_compgen "$(_hledger commodities)" "" "$match")"
+            _hledger_compreply "$(
+                _hledger_compgen "$(_hledger commodities)" "" "$match"
+            )"
             ;;
         --color|--colour)
             compopt -o nosort
@@ -240,7 +258,9 @@ _hledger_compreply_optarg() {
             ;;
         --close-acct|--open-acct)
             compopt -o nospace
-            _hledger_compreply "$(_hledger_compgen "$(_hledger accounts --flat)" "" "$match")"
+            _hledger_compreply "$(
+                _hledger_compgen "$(_hledger accounts --flat)" "" "$match"
+            )"
             ;;
         --debug)
             wordlist="{1..9}"
@@ -289,7 +309,9 @@ _hledger_compreply_query() {
                 *)       return 1 ;;
             esac
             _get_comp_words_by_ref -n '<=>' -c cur
-            _hledger_compreply "$(compgen -P "$query" -W "$wordlist" -- "$match")"
+            _hledger_compreply "$(
+                compgen -P "$query" -W "$wordlist" -- "$match"
+            )"
             return 0
             ;;
     esac
