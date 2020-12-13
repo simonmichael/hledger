@@ -110,6 +110,11 @@ PACKAGES=\
 	hledger-ui \
 	hledger-web \
 
+BINARIES=\
+	hledger \
+	hledger-ui \
+	hledger-web \
+
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger-lib/other/ledger-parse \
@@ -419,6 +424,8 @@ ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib docte
 ghci-shake: $(call def-help,ghci-shake, start ghci REPL on Shake.hs)
 	stack exec $(SHAKEDEPS) -- ghci Shake.hs
 
+copy-bins-to-%: $(call def-help,copy-bins-to-VER, save ~/.local/bin/hledger* as hledger*-VER)
+	V=$*; for B in $(BINARIES); do cp ~/.local/bin/$$B ~/.local/bin/$$B-$$V; done
 
 ###############################################################################
 $(call def-help-subheading,TESTING:)
