@@ -213,6 +213,8 @@ _hledger_compreply_optarg() {
         optionIndex=$((cword - 2))
     fi
 
+    [[ ${words[optionIndex]} == -* ]] || return
+
     case ${words[optionIndex]} in
         --alias)
             compopt -o nospace
