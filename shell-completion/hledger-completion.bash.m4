@@ -190,7 +190,7 @@ _hledger_compgen() {
         quoted[i++]=$word
     done <<< "$complist"
 
-    if (( $# < 3 )); then
+    if (($# < 3)); then
         match=${cur:${#prefix}}
     fi
 
@@ -317,7 +317,7 @@ _hledger_optarg() {
 
     # hledger balance --file ~/ledger _
     # 0       1       2      3        4
-    for (( i=1; i < ${#words[@]} - 2; i++ )); do
+    for ((i=1; i < ${#words[@]} - 2; i++)); do
         offset=0
         for j in "${!options[@]}"; do
             if [[ ${words[i]} == "${options[j]}" ]]; then
