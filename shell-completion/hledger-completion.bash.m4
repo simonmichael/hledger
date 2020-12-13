@@ -287,12 +287,12 @@ _hledger_compreply_query() {
     local hledgerArgs=()
     case $query in
         acct:)
-                if (( ${#match} )); then
-                    hledgerArgs=(accounts --flat)
-                else
-                    hledgerArgs=(accounts --flat --depth 1)
-                fi
-                ;;
+            if (( ${#match} )); then
+                hledgerArgs=(accounts --flat)
+            else
+                hledgerArgs=(accounts --flat --depth 1)
+            fi
+            ;;
         code:)  hledgerArgs=(codes) ;;
         cur:)   hledgerArgs=(commodities) ;;
         desc:)  hledgerArgs=(descriptions) ;;
