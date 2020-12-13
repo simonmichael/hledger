@@ -36,15 +36,9 @@ _hledger_completion_function() {
         # $subcommand == bal --> balance, balancesheet, balancesheetequity, etc.
         # Do not ignore them!
         if ((i == cword)); then
-            local subcommandMatches
-            subcommandMatches=$(grep -c "^$subcommand" <<< "$_hledger_complist_commands")
-            if ((subcommandMatches > 1)); then
-                subcommand=
-                break
-            else
-                _hledger_compreply "$subcommand"
-                return 0
-            fi
+            compopt +o filenames
+            _hledger_compreply "$(_hledger_compgen "$_hledger_complist_commands")"
+            return 0
         fi
         break
     done
