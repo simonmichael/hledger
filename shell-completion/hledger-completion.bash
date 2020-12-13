@@ -54,7 +54,6 @@ _hledger_completion_function() {
             _hledger_compreply "$(
                 _hledger_compgen "$_hledger_complist_generic_options"
             )"
-
             # Suspend space on completion of long options requiring an argument
             [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
         else
@@ -98,7 +97,7 @@ _hledger_completion_function() {
     esac
 
     # Offer query filters and accounts for the rest
-    # Do not sort. Keep options, accounts and query filters grouped separately
+    # Do not sort. Keep accounts and query filters grouped separately
     compopt -o nosort -o nospace
     _hledger_compreply "$(_hledger_compgen "$_hledger_complist_query_filters")"
     if [[ -z $cur ]]; then
