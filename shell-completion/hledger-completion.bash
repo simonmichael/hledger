@@ -300,7 +300,7 @@ _hledger_compreply_query() {
                 *)       return 1 ;;
             esac
             _get_comp_words_by_ref -n '<=>' -c cur
-            _hledger_compreply "$(compgen -P "$query" -W "$wordlist" -- "${cur#*:}")"
+            _hledger_compreply "$(compgen -P "$query" -W "$wordlist" -- "$match")"
             return 0
             ;;
     esac
