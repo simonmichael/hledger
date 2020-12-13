@@ -84,10 +84,13 @@ _hledger_completion_function() {
 
     # Subcommand specific
     case $subcommand in
-        files|test) return 0 ;;
         help)
             compopt -o nosort +o filenames
             _hledger_compreply "$(compgen -W "$(hledger help | tail -n 1)" -- "$cur")"
+            return 0
+            ;;
+        # These do not expect or support any query arguments
+        commodities|check-dupes|files|import|print-unique|test)
             return 0
             ;;
     esac
