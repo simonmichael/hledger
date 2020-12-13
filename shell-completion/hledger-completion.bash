@@ -143,13 +143,6 @@ _hledger_quote_by_ref()
     [[ ${!2} == \$* ]] && eval "$2=${!2}"
 }
 
-_hledger_quote()
-{
-    local quoted
-    _hledger_quote_by_ref "$1" quoted
-    printf %s "$quoted"
-}
-
 # Set the value of COMPREPLY from newline delimited completion candidates
 _hledger_compreply() {
     local IFS=$'\n'
