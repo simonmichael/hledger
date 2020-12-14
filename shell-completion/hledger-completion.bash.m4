@@ -97,8 +97,6 @@ _hledger_completion_function() {
     esac
 
     # Offer query filters and accounts for the rest
-    # Do not sort. Keep accounts and query filters grouped separately
-    compopt -o nosort -o nospace
     _hledger_compreply "$(_hledger_compgen "$_hledger_complist_query_filters")"
     if [[ -z $cur ]]; then
         _hledger_compreply_append "$(
@@ -109,6 +107,11 @@ _hledger_completion_function() {
             _hledger_compgen "$(_hledger accounts --flat)"
         )"
     fi
+
+    # Suspend space on completion of query prefix
+    # Do not sort, keep accounts and query filters grouped separately
+    [[ ${COMPREPLY[0]} == *: ]] && compopt -o nospace
+    compopt -o nosort
 
     return 0
 }
