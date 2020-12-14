@@ -641,7 +641,7 @@ bench: quickbench
 
 quickbench: samplejournals bench.sh $(call def-help,quickbench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
 	@echo; echo "run quick performance benchmarks in bench.sh (approximate, can be skewed):"
-	quickbench -w $(BENCHEXES)  # -v
+	@which -s quickbench && quickbench -w $(BENCHEXES) || echo "quickbench not installed, skipping"
 
 # bench: samplejournals tests/bench.tests tools/simplebench \
 # 	$(call def-help,bench,\
