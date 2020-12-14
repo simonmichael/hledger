@@ -1184,16 +1184,22 @@ journalStyleInfluencingAmounts j =
 -- | The fully specified date span enclosing the dates (primary or secondary)
 -- of all this journal's transactions and postings, or DateSpan Nothing Nothing
 -- if there are none.
+--
+-- This will include the dates of any price directives that come after the last
+-- posting/transaction, but not those that come before the first.
 journalDateSpan :: Bool -> Journal -> DateSpan
 journalDateSpan secondary j
     | null ts   = DateSpan Nothing Nothing
     | otherwise = DateSpan (Just earliest) (Just $ addDays 1 latest)
     where
       earliest = minimumStrict dates
-      latest   = maximumStrict dates
+      latest   = case ddates of
+                      [] -> maximumStrict dates
+                      _  -> max (maximumStrict ddates) (maximumStrict dates)  -- Include commodity price directives in journal end
       dates    = pdates ++ tdates
       tdates   = map (if secondary then transactionDate2 else tdate) ts
       pdates   = concatMap (mapMaybe (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
+      ddates   = map pddate $ jpricedirectives j
       ts       = jtxns j
 
 -- | The earliest of this journal's transaction and posting dates, or

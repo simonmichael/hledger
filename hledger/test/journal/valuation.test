@@ -14,7 +14,7 @@ $ hledger -f- bal -NB
                 €100  expenses:foreign
 
 
-# 2. Market prices are used by bal -V. 
+# 2. Market prices are used by bal -V.
 # Market prices for other commodities are not used.
 # Nor are transaction prices.
 <
@@ -172,16 +172,16 @@ $ hledger -f- print --value=end date:2000/01-2000/03
 >=0
 
 # 12. print value using prices on last day of report period (no period specified)
-# specified - uses last day of journal (2000-03-01)
+# specified - uses last day of journal, noting that price directives are included (2000-04-01)
 $ hledger -f- print --value=end
 2000-01-01
-    (a)             3 B
+    (a)             4 B
 
 2000-02-01
-    (a)             3 B
+    (a)             4 B
 
 2000-03-01
-    (a)             3 B
+    (a)             4 B
 
 >=0
 
@@ -226,11 +226,11 @@ $ hledger -f- reg --value=then
 2000-02-01                      (a)                            2 B           3 B
 2000-03-01                      (a)                            3 B           6 B
 
-# 17. register report valued at period end
+# 17. register report valued at period end (including price directives)
 $ hledger -f- reg --value=end
-2000-01-01                      (a)                            3 B           3 B
-2000-02-01                      (a)                            3 B           6 B
-2000-03-01                      (a)                            3 B           9 B
+2000-01-01                      (a)                            4 B           4 B
+2000-02-01                      (a)                            4 B           8 B
+2000-03-01                      (a)                            4 B          12 B
 
 # 18. register report valued at specified date
 $ hledger -f- reg --value=2000-01-15
@@ -256,13 +256,14 @@ $ hledger -f- reg -V
 $ hledger -f- reg --value=cost -b 200002 -H
 2000-02-01                      (a)                            7 B          13 B
 2000-03-01                      (a)                            8 B          21 B
- 
+
 # 22. register with starting balance, valued at period end.
-# That is unspecified so the last posting date is used, ie 2000/3/1, so the price is 3 B.
+# That is unspecified so the last posting date (or price directive date) is used,
+# ie 2000/4/1, so the price is 4 B.
 # Starting balance is 5 B as above.
 $ hledger -f- reg --value=end -b 200002 -H
-2000-02-01                      (a)                            3 B           8 B
-2000-03-01                      (a)                            3 B          11 B
+2000-02-01                      (a)                            4 B           9 B
+2000-03-01                      (a)                            4 B          13 B
 
 # 23. register with starting balance, valued at specified date (when the price is 5 B).
 # Starting balance is 5 B as above.
@@ -529,43 +530,43 @@ P 2000/04/01 A  4 B
 
 # 46. budget report, unvalued (for reference).
 $ hledger -f- bal -M --budget
-Budget performance in 2000Q1:
+Budget performance in 2000-01-01..2000-04-30:
 
-   ||              Jan               Feb               Mar 
-===++======================================================
- a || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A] 
----++------------------------------------------------------
-   || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A] 
+   ||              Jan               Feb               Mar            Apr 
+===++=====================================================================
+ a || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A]  0 [0% of 2 A] 
+---++---------------------------------------------------------------------
+   || 1 A [50% of 2 A]  1 A [50% of 2 A]  1 A [50% of 2 A]  0 [0% of 2 A] 
 
-# 47. budget report, valued at cost. 
+# 47. budget report, valued at cost.
 $ hledger -f- bal -MTA --budget --value=c
-Budget performance in 2000Q1, valued at cost:
+Budget performance in 2000-01-01..2000-04-30, valued at cost:
 
-   ||               Jan                Feb                Mar               Total            Average 
-===++================================================================================================
- a || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  21 B [350% of 6 B]  7 B [350% of 2 B] 
----++------------------------------------------------------------------------------------------------
-   || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  21 B [350% of 6 B]  7 B [350% of 2 B] 
+   ||               Jan                Feb                Mar            Apr               Total            Average 
+===++===============================================================================================================
+ a || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  0 [0% of 2 B]  21 B [262% of 8 B]  5 B [262% of 2 B] 
+---++---------------------------------------------------------------------------------------------------------------
+   || 6 B [300% of 2 B]  7 B [350% of 2 B]  8 B [400% of 2 B]  0 [0% of 2 B]  21 B [262% of 8 B]  5 B [262% of 2 B] 
 
 # 48. budget report, showing changes in period-end values.
 $ hledger -f- bal -MTA --budget --value=e
-Budget performance in 2000Q1, valued at period ends:
+Budget performance in 2000-01-01..2000-04-30, valued at period ends:
 
-   ||               Jan                 Feb                Mar              Total           Average 
-===++===============================================================================================
- a || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  9 B [50% of 18 B]  3 B [50% of 6 B] 
----++-----------------------------------------------------------------------------------------------
-   || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  9 B [50% of 18 B]  3 B [50% of 6 B] 
+   ||               Jan                 Feb                Mar                Apr               Total           Average 
+===++===================================================================================================================
+ a || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  3 B [21% of 14 B]  12 B [38% of 32 B]  3 B [38% of 8 B] 
+---++-------------------------------------------------------------------------------------------------------------------
+   || 5 B [50% of 10 B]  -1 B [50% of -2 B]  5 B [50% of 10 B]  3 B [21% of 14 B]  12 B [38% of 32 B]  3 B [38% of 8 B] 
 
 # 49. budget report, valued at other date.
 $ hledger -f- bal -MTA --budget --value=2000-01-15
-Budget performance in 2000Q1, valued at 2000-01-15:
+Budget performance in 2000-01-01..2000-04-30, valued at 2000-01-15:
 
-   ||               Jan                Feb                Mar               Total            Average 
-===++================================================================================================
- a || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  15 B [50% of 30 B]  5 B [50% of 10 B] 
----++------------------------------------------------------------------------------------------------
-   || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  15 B [50% of 30 B]  5 B [50% of 10 B] 
+   ||               Jan                Feb                Mar             Apr               Total            Average 
+===++================================================================================================================
+ a || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  0 [0% of 10 B]  15 B [38% of 40 B]  4 B [38% of 10 B] 
+---++----------------------------------------------------------------------------------------------------------------
+   || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  0 [0% of 10 B]  15 B [38% of 40 B]  4 B [38% of 10 B] 
 
 # 50. --value=then with --historical. How is the starting total valued ?
 # Currently not supported.
