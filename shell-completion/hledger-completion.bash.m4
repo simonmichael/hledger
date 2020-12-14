@@ -415,6 +415,8 @@ include(options-cmd.txt)dnl
 TEXT
 ')dnl
 
+return 0
+
 # Local Variables:
 # sh-basic-offset: 4
 # indent-tabs-mode: nil

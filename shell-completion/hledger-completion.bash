@@ -2033,6 +2033,8 @@ TEXT
 read -r -d "" _hledger_complist_options_api <<TEXT
 TEXT
 
+return 0
+
 # Local Variables:
 # sh-basic-offset: 4
 # indent-tabs-mode: nil
