@@ -23,6 +23,7 @@ _hledger_completion_function() {
     esac
 
     local subcommand
+    local subcommandOptions
     local i
     for ((i=1; i<${#words[@]}; i++)); do
         subcommand=${words[i]}
@@ -38,6 +39,16 @@ _hledger_completion_function() {
             _hledger_compreply "$(
                 _hledger_compgen "$_hledger_complist_commands"
             )"
+            return 0
+        fi
+        if [[ $cur == -* ]]; then
+            # Replace dashes with underscores and use indirect expansion
+            subcommandOptions=_hledger_complist_options_${subcommand//-/_}
+            _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
+
+            # Suspend space on completion of long options requiring an argument
+            [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
+
             return 0
         fi
         break
@@ -58,18 +69,6 @@ _hledger_completion_function() {
                 _hledger_compgen "$_hledger_complist_commands"
             )"
         fi
-
-        return 0
-    fi
-
-    if [[ $cur == -* ]]; then
-        local subcommandOptions
-        # Replace dashes with underscores and use indirect expansion
-        subcommandOptions=_hledger_complist_options_${subcommand//-/_}
-        _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
-
-        # Suspend space on completion of long options requiring an argument
-        [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
 
         return 0
     fi
@@ -208,7 +207,7 @@ _hledger_compgen() {
 # Try required option argument completion. Set COMPREPLY and return 0 on
 # success, 1 if option doesn't require an argument or out of context
 _hledger_compreply_optarg() {
-    local optionIndex=$((cword - 1))
+    local option=${words[cword - 1]}
     local match=$cur
     local wordlist
 
@@ -217,12 +216,12 @@ _hledger_compreply_optarg() {
         match=""
     # Once input is present, cword is incremented so we compensate
     elif [[ $prev == = ]]; then
-        optionIndex=$((cword - 2))
+        option=${words[cword - 2]}
     fi
 
-    [[ ${words[optionIndex]} == -* ]] || return
+    [[ $option == -* ]] || return
 
-    case ${words[optionIndex]} in
+    case $option in
         --alias)
             compopt -o nospace -o filenames
             _hledger_compreply "$(
@@ -270,10 +269,26 @@ _hledger_compreply_optarg() {
             _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         # Argument required, but no handler (yet)
-        -b|--begin|-e|--end|-p|--period|--depth|--drop)
+        -b|-e|-p)
             _hledger_compreply ""
             ;;
+        # Check if an unhandled long option requires an argument
         *)
+            local optionList argRequired
+
+            if [[ -n $subcommandOptions ]]; then
+                optionList=${!subcommandOptions}
+            else
+                optionList=$_hledger_complist_generic_options
+            fi
+
+            while IFS= read -r argRequired; do
+                if [[ $argRequired == "$option=" ]]; then
+                    _hledger_compreply ""
+                    return 0
+                fi
+            done <<< "$optionList"
+
             return 1
             ;;
     esac
