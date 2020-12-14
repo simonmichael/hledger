@@ -434,19 +434,20 @@ generateMultiBalanceReport rspec@ReportSpec{rsOpts=ropts} j valuation colspans c
     report = reportPercent ropts $ PeriodicReport colspans sortedrows totalsrow
 
 -- | Build the report rows.
---
 -- One row per account, with account name info, row amounts, row total and row average.
+-- Rows are unsorted.
 buildReportRows :: ReportOpts
                 -> HashMap AccountName DisplayName
                 -> HashMap AccountName (Map DateSpan Account)
                 -> [MultiBalanceReportRow]
-buildReportRows ropts displaynames = toList . HM.mapMaybeWithKey mkRow
+buildReportRows ropts displaynames = 
+  toList . HM.mapMaybeWithKey mkRow  -- toList of HashMap's Foldable instance - does not sort consistently
   where
     mkRow name accts = do
         displayname <- HM.lookup name displaynames
         return $ PeriodicReportRow displayname rowbals rowtot rowavg
       where
-        rowbals = map balance $ toList accts
+        rowbals = map balance $ toList accts  -- toList of Map's Foldable instance - does sort by key
         -- The total and average for the row.
         -- These are always simply the sum/average of the displayed row amounts.
         -- Total for a cumulative/historical report is always the last column.
@@ -526,7 +527,7 @@ sortRows ropts j
         sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
         sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
 
-    -- Sort the report rows, representing a flat account list, by row total.
+    -- Sort the report rows, representing a flat account list, by row total (and then account name).
     sortFlatMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
     sortFlatMBRByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortOn (\r -> (Down $ amt r, prrFullName r))
