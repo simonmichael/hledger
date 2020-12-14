@@ -10,16 +10,16 @@ hledger -f sample.journal balance expenses -% --tree
 >>>= 0
 
 # 2. Multi column percent
-hledger -f sample.journal balance expenses -% -p daily
+hledger -f sample.journal balance expenses -% -p quarterly
 >>>
-Balance changes in 2008-06-03:
+Balance changes in 2008:
 
-                   || 2008-06-03 
-===================++============
- expenses:food     ||     50.0 % 
- expenses:supplies ||     50.0 % 
--------------------++------------
-                   ||    100.0 % 
+                   || 2008Q1   2008Q2  2008Q3  2008Q4 
+===================++=================================
+ expenses:food     ||      0   50.0 %       0       0 
+ expenses:supplies ||      0   50.0 %       0       0 
+-------------------++---------------------------------
+                   ||      0  100.0 %       0       0 
 >>>= 0
 
 # 3. In a balanced ledger everything should sum up to zero, therefore all percentages should be zero.
