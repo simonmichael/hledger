@@ -41,11 +41,12 @@ _hledger_completion_function() {
             )"
             return 0
         fi
-        if [[ $cur == -* ]]; then
-            # Replace dashes with underscores and use indirect expansion
-            subcommandOptions=_hledger_complist_options_${subcommand//-/_}
-            _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
 
+        # Replace dashes with underscores and use indirect expansion
+        subcommandOptions=_hledger_complist_options_${subcommand//-/_}
+
+        if [[ $cur == -* ]]; then
+            _hledger_compreply "$(_hledger_compgen "${!subcommandOptions}")"
             # Suspend space on completion of long options requiring an argument
             [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
 
