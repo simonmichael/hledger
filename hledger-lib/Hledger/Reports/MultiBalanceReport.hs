@@ -27,7 +27,6 @@ module Hledger.Reports.MultiBalanceReport (
   makeReportQuery,
   getPostingsByColumn,
   getPostings,
-  calculateColSpans,
   startingBalances,
   generateMultiBalanceReport,
 
@@ -150,7 +149,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
                                                      -- so the reportspan isn't used for valuation
 
     -- Group postings into their columns.
-    colps    = dbg5 "colps"  $ getPostingsByColumn rspec{rsOpts=(rsOpts rspec){empty_=True}} j reportspan
+    colps    = dbg5 "colps"  $ getPostingsByColumn rspec j reportspan
     colspans = dbg3 "colspans" $ M.keys colps
 
     -- The matched accounts with a starting balance. All of these should appear
@@ -222,7 +221,7 @@ calculateReportSpan ReportSpec{rsQuery=query,rsOpts=ropts} j = reportspan
   where
     -- The date span specified by -b/-e/-p options and query args if any.
     requestedspan  = dbg3 "requestedspan" $ queryDateSpan (date2_ ropts) query
-    -- If the requested span is open-ended, close it using the journal's end dates.
+    -- If the requested span is open-ended, close it using the journal's start and end dates.
     -- This can still be the null (open) span if the journal is empty.
     requestedspan' = dbg3 "requestedspan'" $
         requestedspan `spanDefaultsFrom` journalDateSpan (date2_ ropts) j
@@ -267,10 +266,9 @@ getPostingsByColumn rspec j reportspan = columns
   where
     -- Postings matching the query within the report period.
     ps :: [(Posting, Day)] = dbg5 "getPostingsByColumn" $ getPostings rspec j
-    days = map snd ps
 
     -- The date spans to be included as report columns.
-    colspans = calculateColSpans (rsOpts rspec) reportspan days
+    colspans = dbg3 "displayspan" $ splitSpan (interval_ $ rsOpts rspec) reportspan
     addPosting (p, d) = maybe id (M.adjust (p:)) $ latestSpanContaining colspans d
     emptyMap = M.fromList . zip colspans $ repeat []
 
@@ -295,16 +293,6 @@ getPostings ReportSpec{rsQuery=query,rsOpts=ropts} =
     date = case whichDateFromOpts ropts of
         PrimaryDate   -> postingDate
         SecondaryDate -> postingDate2
-
--- | Calculate the DateSpans to be used for the columns of the report.
-calculateColSpans :: ReportOpts -> DateSpan -> [Day] -> [DateSpan]
-calculateColSpans ropts reportspan days =
-    splitSpan (interval_ ropts) displayspan
-  where
-    displayspan
-      | empty_ ropts = dbg3 "displayspan (-E)" reportspan                        -- all the requested intervals
-      | otherwise = dbg3 "displayspan" $ reportspan `spanIntersect` matchedspan  -- exclude leading/trailing empty intervals
-    matchedspan = dbg3 "matchedspan" $ daysSpan days
 
 
 -- | Gather the account balance changes into a regular matrix
