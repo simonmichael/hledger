@@ -260,7 +260,7 @@ _hledger_compreply_optarg() {
             _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         --close-acct|--open-acct)
-            compopt -o nospace -o filenames
+            compopt -o filenames
             _hledger_compreply "$(
                 _hledger_compgen "$(_hledger accounts --flat)" "" "$match"
             )"
