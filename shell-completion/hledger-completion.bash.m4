@@ -15,13 +15,12 @@ _hledger_completion_function() {
     # Current treatment for special characters:
     # - exclude colon (:) from COMP_WORDBREAKS
     # - option processing assumes that `=` is in COMP_WORDBREAKS
-    # - use compopt -o filenames to escape the rest
+    # - use compopt -o filenames selectively to escape the rest
     COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
     case $COMP_WORDBREAKS in
         *=*) : ;;
         *)   COMP_WORDBREAKS=$COMP_WORDBREAKS= ;;
     esac
-    compopt -o filenames
 
     local subcommand
     local i
@@ -36,7 +35,6 @@ _hledger_completion_function() {
         # $subcommand == bal --> balance, balancesheet, balancesheetequity, etc.
         # Do not ignore them!
         if ((i == cword)); then
-            compopt +o filenames
             _hledger_compreply "$(
                 _hledger_compgen "$_hledger_complist_commands"
             )"
@@ -49,7 +47,6 @@ _hledger_completion_function() {
     _hledger_compreply_optarg && return
 
     if [[ -z $subcommand ]]; then
-        compopt +o filenames
         if [[ $cur == -* ]]; then
             _hledger_compreply "$(
                 _hledger_compgen "$_hledger_complist_generic_options"
@@ -73,10 +70,13 @@ _hledger_completion_function() {
 
         # Suspend space on completion of long options requiring an argument
         [[ ${COMPREPLY[0]} == --*= ]] && compopt -o nospace
-        compopt +o filenames
 
         return 0
     fi
+
+    # Set this from here on because queries tend to have lots of special chars
+    # TODO: better handling of special characters
+    compopt -o filenames
 
     # Query completion
     _hledger_compreply_query && return
@@ -224,12 +224,13 @@ _hledger_compreply_optarg() {
 
     case ${words[optionIndex]} in
         --alias)
-            compopt -o nospace
+            compopt -o nospace -o filenames
             _hledger_compreply "$(
                 _hledger_compgen "$(_hledger accounts --flat)" "" "$match"
             )"
             ;;
         -f|--file|--rules-file|-o|--output-file)
+            compopt -o filenames
             _hledger_compreply "$(compgen -f -- "$match")"
             ;;
         --pivot)
@@ -259,7 +260,7 @@ _hledger_compreply_optarg() {
             _hledger_compreply "$(compgen -W "$wordlist" -- "$match")"
             ;;
         --close-acct|--open-acct)
-            compopt -o nospace
+            compopt -o nospace -o filenames
             _hledger_compreply "$(
                 _hledger_compgen "$(_hledger accounts --flat)" "" "$match"
             )"
