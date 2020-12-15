@@ -11,7 +11,7 @@ After changing md files, regenerating and committing the txt files is
 optional. If you don't do it, it will get done later (before release).
 It can be done by:
 
-    ./Shake commandtxts
+    ./Shake cmdhelp
 
 Or, by you can regenerate them while also building packages:
 
