@@ -93,8 +93,7 @@ usage =
 --  ,"./Shake releasebranch      create a new release branch, bump master to next dev version (.99)" 
 --  ,"./Shake majorversion       bump to the next major version project-wide, update affected files"
 --  ,"./Shake minorversion PKGS  bump one or more packages to their next minor version project-wide, update affected files"
---  ,"./Shake docs               update program docs: help, manuals, changelogs"
---  ,"./Shake relnotes           finalise changelogs, create draft release notes"
+--  ,"./Shake relnotes           create draft release notes"
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
 makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
@@ -592,7 +591,8 @@ main = do
       -- - the changelog's topmost markdown heading, which can be a
       --   dev heading (first word is a git revision like 4fffe6e7) or
       --   a release heading (first word is a release version & tag
-      --   like 1.18.1, second word is a date like 2020-06-21).
+      --   like 1.18.1, second word is a date like 2020-06-21) or a
+      --   package release heading (hledger-ui-1.18.1).
       --
       -- - the package version, in the adjacent .version file, which
       --   can be a dev version like 1.18.99 (first two digits of last
@@ -611,38 +611,51 @@ main = do
       phonys (\out -> if
         | not $ out `elem` changelogs -> Nothing
         | otherwise -> Just $ do
+          tags <- lines . fromStdout <$> (cmd Shell "git tag" :: Action (Stdout String))
           oldlines <- liftIO $ lines <$> readFileStrictly out
           let
+            dir = takeDirectory out
+            mpkg | dir=="."  = Nothing
+                 | otherwise = Just dir
             (preamble, oldheading:rest) = span isnotheading oldlines
               where isnotheading = not . ("#" `isPrefixOf`)
+            -- changelog version: a hash or the last release version of this package (or the project)
             changelogversion = headDef err $ drop 1 $ words oldheading
               where err = error $ "could not parse changelog heading: "++oldheading
-            dir = takeDirectory out
+            -- prepend the package name if we are in a package (not the top-level project directory)
+            maybePrependPackage s = maybe s (++("-"++s)) mpkg
+            toTag = maybePrependPackage
+            isOldRelease rev = isReleaseVersion rev && toTag rev `elem` tags
+            isNewRelease rev = isReleaseVersion rev && not (toTag rev `elem` tags)
+            -- git revision corresponding to the changelog version:
+            -- a hash (a3f19c15), package release tag (hledger-ui-1.20), or project release tag (1.20)
+            lastrev
+              | isOldRelease changelogversion = toTag changelogversion  -- package release tag
+              | otherwise = changelogversion
+                
+          -- interesting commit messages between lastrev and HEAD, cleaned up
+          let
+            interestingpaths = fromMaybe projectChangelogExcludeDirs mpkg
+            interestingmessages = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
+          newitems <- fromStdout <$>
+                        (cmd Shell gitlog changelogGitFormat (lastrev++"..") interestingmessages "--" interestingpaths
+                         "|" changelogCleanupCmd :: Action (Stdout String))
 
+          -- git revision of current HEAD
+          headrev <- unwords . words . fromStdout <$>
+                     (cmd Shell gitlog "-1 --pretty=%h -- " interestingpaths :: Action (Stdout String))
+          -- package version: the version number currently configured for this package (or the project)
           packageversion <-
             let versionfile = dir </> ".version"
                 err = error $ "could not parse a version in "++versionfile
-            in (liftIO $ headDef err . words <$> readFileStrictly versionfile)
-          let
-            mpkg | dir=="."  = Nothing
-                 | otherwise = Just dir
-            gitlogpaths = fromMaybe projectChangelogExcludeDirs mpkg
-            maybeTagName versionorhash
-              | isReleaseVersion versionorhash = maybe versionorhash (++("-"++versionorhash)) mpkg
-              | otherwise                      = versionorhash
-            lastrev = maybeTagName changelogversion
-          headrev <- unwords . words . fromStdout <$>
-                     (cmd Shell gitlog "-1 --pretty=%h -- " gitlogpaths :: Action (Stdout String))
-          let excludeboring = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
-          newitems <- fromStdout <$>
-                        (cmd Shell gitlog changelogGitFormat (lastrev++"..") excludeboring "--" gitlogpaths
-                         "|" changelogCleanupCmd :: Action (Stdout String))
+            in liftIO $ headDef err . words <$> readFileStrictly versionfile
           date <- liftIO getCurrentDay
-
           let
+            -- the new changelog heading will be a final (dated, versioned) heading if
+            -- the configured package version is a new release version (non-dev & non-tagged)
             (newrev, newheading)
-              | isReleaseVersion packageversion = (maybeTagName packageversion, unwords [packageversion, show date])
-              | otherwise                       = (headrev, headrev)
+              | isNewRelease packageversion = (toTag packageversion, unwords [packageversion, show date])
+              | otherwise                   = (headrev, headrev)
             newcontent = "# "++newheading++"\n\n" ++ newitems
             newchangelog = unlines $ concat [
                preamble
