@@ -553,7 +553,7 @@ main = do
 
         -- git log formats suitable for changelogs/release notes
         -- %s=subject, %an=author name, %n=newline if needed, %w=width/indent1/indent2, %b=body, %h=hash
-        changelogGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b'"
+        changelogGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b\n'"
         -- changelogVerboseGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b%h' --stat"
 
         -- Format a git log message, with one of the formats above, as a changelog item
@@ -605,7 +605,7 @@ main = do
       -- the package version looks like a release version, otherwise 
       -- a dev heading with the current HEAD revision.
       -- 
-      -- With --dry-run, print new content to stdout instead of
+      -- With -n/--dry-run, print new content to stdout instead of
       -- updating the changelog.
       --
       phonys (\out -> if
@@ -624,10 +624,13 @@ main = do
                 err = error $ "could not parse a version in "++versionfile
             in (liftIO $ headDef err . words <$> readFileStrictly versionfile)
           let
-            pkg | dir=="."  = Nothing
-                | otherwise = Just dir
-            gitlogpaths = fromMaybe projectChangelogExcludeDirs pkg
-            lastrev = changelogversion
+            mpkg | dir=="."  = Nothing
+                 | otherwise = Just dir
+            gitlogpaths = fromMaybe projectChangelogExcludeDirs mpkg
+            maybeTagName versionorhash
+              | isReleaseVersion versionorhash = maybe versionorhash (++("-"++versionorhash)) mpkg
+              | otherwise                      = versionorhash
+            lastrev = maybeTagName changelogversion
           headrev <- unwords . words . fromStdout <$>
                      (cmd Shell gitlog "-1 --pretty=%h -- " gitlogpaths :: Action (Stdout String))
           let excludeboring = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
@@ -638,7 +641,7 @@ main = do
 
           let
             (newrev, newheading)
-              | isReleaseVersion packageversion = (packageversion, unwords [packageversion, show date])
+              | isReleaseVersion packageversion = (maybeTagName packageversion, unwords [packageversion, show date])
               | otherwise                       = (headrev, headrev)
             newcontent = "# "++newheading++"\n\n" ++ newitems
             newchangelog = unlines $ concat [
