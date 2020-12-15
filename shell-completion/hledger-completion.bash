@@ -8,7 +8,7 @@
 # That said, we *do* remove colon (:) from COMP_WORDBREAKS which impacts
 # the rest of the session and completion for other programs.
 
-_hledger_completion_function() {
+_hledger_completion() {
     local cur prev words cword
     _init_completion -n : || return 0
 
@@ -116,22 +116,21 @@ _hledger_completion_function() {
     return 0
 }
 
-_hledger_extension_completion_function() {
+_hledger_extension_completion() {
     local cmd=${1##*/}
     local ext=${cmd#hledger-}
     # Pretend that hledger is called with the given extension
     # as the first argument and call main completion function
     COMP_WORDS=("hledger" "$ext" "${COMP_WORDS[@]:1}")
     COMP_CWORD=$((COMP_CWORD + 1))
-    _hledger_completion_function "hledger" "${@:1}"
+    _hledger_completion "hledger" "${@:1}"
 }
 
 # Register completion function for hledger:
-complete -F _hledger_completion_function hledger
+complete -F _hledger_completion hledger
 
 # Register completion functions for hledger extensions:
-complete -F _hledger_extension_completion_function hledger-ui
-complete -F _hledger_extension_completion_function hledger-web
+complete -F _hledger_extension_completion hledger-ui hledger-web
 
 # Helpers
 
