@@ -66,7 +66,6 @@ dependencies:
 - megaparsec >=7.0.0 && <9.1
 - mtl >=2.2.1
 - old-time
-- parsec >=3
 - parser-combinators >=0.4.0
 - pretty-simple >4 && <5
 - regex-tdfa
