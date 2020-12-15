@@ -117,9 +117,11 @@ _hledger_completion_function() {
 }
 
 _hledger_extension_completion_function() {
-    # Pretend that hledger is called with given extension
-    # as first argument and call main completion function
-    COMP_WORDS=("hledger" "${1#*-}" "${COMP_WORDS[@]:1}")
+    local cmd=${1##*/}
+    local ext=${cmd#hledger-}
+    # Pretend that hledger is called with the given extension
+    # as the first argument and call main completion function
+    COMP_WORDS=("hledger" "$ext" "${COMP_WORDS[@]:1}")
     COMP_CWORD=$((COMP_CWORD + 1))
     _hledger_completion_function "hledger" "${@:1}"
 }
