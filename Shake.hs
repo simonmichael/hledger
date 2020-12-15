@@ -101,12 +101,13 @@ makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment ou
 pandoc   = "pandoc --strip-comments"
 gitcommit = "git commit --allow-empty"
 
--- Must support both BSD sed and GNU sed. Tips:
--- BSD:
+-- We should work with both BSD and GNU sed. Tips:
 -- use [a-z] [0-9] instead of \w \d etc.
--- GNU:
--- backslash-escape {
-sed      = "sed -E"
+-- backslash-escape things like: { &
+sed = "sed -E"
+
+-- We should work with both BSD and GNU grep.
+grep = "grep -E"
 
 -- The kind of markdown used in our doc source files.
 fromsrcmd = "-f markdown-smart-tex_math_dollars"
@@ -370,9 +371,11 @@ main = do
           arg = "'s/"++pat++"/"++rpl++"/'"
         cmd_ Shell sed "-i -e" arg out
 
-        -- tagrelease: \
-        --   $(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
-        --   for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
+        let pkg = takeDirectory out
+        when (pkg /= "hledger-lib") $ liftIO $ do
+          putStrLn $ out++": hledger bounds are now (improve if needed):"
+          cmd_ Shell grep "'^ *- +hledger.*[<>=]'" out 
+            " || [[ $? == 1 ]]"  -- ignore no matches, https://unix.stackexchange.com/a/427598
 
       phony "cabalfiles" $ docabalfiles
 
