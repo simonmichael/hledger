@@ -1122,8 +1122,9 @@ Current process:
     propagated to `PKG/PKG.cabal` on the next stack or Shake build, or
     by `make gencabal`.
 
-  - `PKG/defs.m4` contains the _version_ macro used in documentation
-    source files (*.m4.md).
+  - `PKG/.version.m4` contains the _version_ macro used in  documentation source files (*.m4.md). It is updated by `./Shake setversion`.
+
+  - `PKG/.date.m4` contains the _monthyear_ macro used in  man pages. It is updated by `./Shake manuals`.
 
 - At release time:
 

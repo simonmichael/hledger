@@ -175,7 +175,8 @@ main = do
         pkgandprojdirs = "" : pkgdirs
         cabalfiles = [p </> p <.> "cabal" | p <- packages]
         changelogs = map (</> "CHANGES.md") pkgandprojdirs
-        packagem4s = [p </> "defs.m4" | p <- packages]
+        packagemanversionm4s = [p </> ".version.m4" | p <- packages]
+        packagemandatem4s = [p </> ".date.m4" | p <- packages]
 
         -- doc files (or related targets) that should be generated
         -- before building hledger packages.
@@ -263,9 +264,9 @@ main = do
           Just v  -> liftIO $ forM_ specifiedversionfiles $ \f -> writeFile f (v++"\n")
           Nothing -> return ()
 
-        -- update all files depending on .version in the specified packages
+        -- update "source" files depending on .version in the specified packages
         let dependents = concat [
-               map (</> "defs.m4")      specifiedpkgs
+               map (</> ".version.m4")  specifiedpkgs
               ,map (</> "package.yaml") specifiedpkgs
               ]
         need dependents
@@ -283,8 +284,8 @@ main = do
                 ]
           cmd Shell gitcommit ("-m '"++msg++"' --") specifiedversionfiles dependents
 
-      -- PKG/defs.m4 <- PKG/.version, just updates the _version_ macro
-      "hledger*/defs.m4" %> \out -> do
+      -- PKG/.version.m4 <- PKG/.version, just updates the _version_ macro
+      "hledger*/.version.m4" %> \out -> do
         let versionfile = takeDirectory out </> ".version"
         need [versionfile]
         version <- ((head . words) <$>) $ liftIO $ readFile versionfile
@@ -367,25 +368,26 @@ main = do
               ]
         when commit $ do
           let msg = ";update manuals"
-          cmd Shell gitcommit ("-m '"++msg++"' --") packagem4s nroffmanuals infomanuals txtmanuals
+          cmd Shell gitcommit ("-m '"++msg++"' --") packagemandatem4s nroffmanuals infomanuals txtmanuals
 
       -- Generate nroff man pages suitable for man output, from the .m4.md source.
-      -- Also sets the _monthyear_ macro to current month and year in hledger*/defs.m4.
+      -- Also updates the _monthyear_ macro to current month and year in hledger*/.date.m4.
       phony "nroffmanuals" $ need nroffmanuals
       nroffmanuals |%> \out -> do -- hledger/hledger.1
         let src       = manpageNameToManualName out <.> "m4.md"
             commonm4  = "doc/common.m4"
             dir       = takeDirectory out
-            packagem4 = dir </> "defs.m4"
+            packagemanversionm4 = dir </> ".version.m4"
+            packagemandatem4 = dir </> ".date.m4"
             tmpl      = "doc/manpage.nroff"
         mandate <- formatTime defaultTimeLocale "%B %Y" <$> liftIO getCurrentDay
         -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        need $ [src, commonm4, packagem4, tmpl] ++ deps
+        need $ [src, commonm4, packagemanversionm4, packagemandatem4, tmpl] ++ deps
         when (dir=="hledger") $ need commandmds
-        cmd_ Shell sed "-i -e" ("'s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;'") packagem4  -- forces a rebuild, only when month has changed ?
+        -- cmd_ Shell sed "-i -e" ("'s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;'") packagem4  -- forces a rebuild, only when month has changed ?
         cmd Shell
-          "m4 -P -DMAN -I" dir commonm4 packagem4 src "|"
+          "m4 -P -DMAN -I" dir commonm4 packagemanversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
           "--lua-filter tools/pandoc-drop-html-inlines.lua"
@@ -412,13 +414,13 @@ main = do
         let src       = out -<.> "m4.md"
             commonm4  = "doc/common.m4"
             dir       = takeDirectory out
-            packagem4 = dir </> "defs.m4"
+            packagemanversionm4 = dir </> ".version.m4"
         -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        need $ [src, commonm4, packagem4] ++ deps
+        need $ [src, commonm4, packagemanversionm4] ++ deps
         when (dir=="hledger") $ need commandmds
         cmd Shell
-          "m4 -P -DINFO -I" dir commonm4 packagem4 src "|"
+          "m4 -P -DINFO -I" dir commonm4 packagemanversionm4 src "|"
           sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
@@ -440,14 +442,14 @@ main = do
             manual    = manpageNameToManualName manpage -- hledger, hledger_journal
             src       = dir </> manual <.> "m4.md"
             commonm4  = "doc/common.m4"
-            packagem4 = dir </> "defs.m4"
+            packageversionm4 = dir </> ".version.m4"
             heading   = let h = manual
                         in if "hledger_" `isPrefixOf` h
                            then drop 8 h ++ " format"
                            else h
         -- assume any other m4 files in dir are included by this one XXX not true in hledger-lib
         subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        let deps = [src, commonm4, packagem4] ++ subfiles
+        let deps = [src, commonm4, packageversionm4] ++ subfiles
         need deps
         when (manual=="hledger") $ need commandmds
         -- add the web page's heading.
@@ -461,7 +463,7 @@ main = do
           ,""
           ]
         cmd Shell
-          "m4 -P -DWEB -I" dir commonm4 packagem4 src "|"
+          "m4 -P -DWEB -I" dir commonm4 packageversionm4 src "|"
           pandoc fromsrcmd towebmd
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" out
