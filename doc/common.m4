@@ -1,6 +1,6 @@
 m4_dnl m4 macro definitions used in all hledger package docs.
-m4_dnl m4 commands in Shake.hs always load this file first.
-m4_dnl PACKAGE/defs.m4 can add to/override these definitions.
+m4_dnl m4 commands in Shake.hs always load this file first;
+m4_dnl m4 macros in package directories could override these.
 m4_dnl
 m4_dnl "m4_dnl" ignores the rest of the line (including newline).
 m4_dnl
