@@ -76,7 +76,7 @@ usage =
   -- ,"./Shake webmanuals       update just the web manuals"
   ,"./Shake changelogs [-c] [-n/--dry-run]"
   ,"                         update CHANGES.md files, adding new commits & headings"
-  ,"./Shake update [-c]      update all the above, eg after setversion"
+  ,"./Shake docs [-c]        update all program docs (CLI help, manuals, changelogs)"
   ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
   ,"./Shake clean            remove generated texts, manuals"
   ,"./Shake Clean            also remove object files, Shake's cache"
@@ -657,16 +657,14 @@ main = do
 
           )
 
-      -- MISC
-
-      -- update
-      -- Update all that needs updating.
-      phony "update" $ need [
-         "cabalfiles"
-        ,"cmdhelp"
+      -- Update all program-specific docs, eg after setversion.
+      phony "docs" $ need [
+         "cmdhelp"
         ,"manuals"
         ,"changelogs"
         ]
+
+      -- MISC
 
       -- Generate the web manuals based on the current checkout and save
       -- them as the specified versioned snapshot in site/doc/VER/ .
