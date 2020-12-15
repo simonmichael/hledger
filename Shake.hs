@@ -69,8 +69,8 @@ usage =
   ,"./Shake [help]           show this help"
   ,"./Shake setversion [VER] [PKGS] [--commit]"
   ,"                         update version strings from */.version (or VER)"
-  ,"./Shake commandtxts [--commit]"
-  ,"                         update usage texts for hledger CLI commands"
+  ,"./Shake cmdhelp [--commit]"
+  ,"                         update help text for hledger CLI commands"
   ,"./Shake manuals [--commit]"
   ,"                         update txt/man/info/web manuals for all packages"
   -- ,"./Shake webmanuals       update just the web manuals"
@@ -87,6 +87,13 @@ usage =
   ,"./Shake --help           list Shake's options (--color, --rebuild, etc.)"
   ,"Keep Shake option arguments adjacent to their flag."
   ]
+-- TODO
+--  setversion: update cabal files
+--  ,"./Shake releasebranch    create a new release branch, bump master to next dev version (.99)" 
+--  ,"./Shake majorversion     bump to the next major version project-wide, update affected files"
+--  ,"./Shake minorversion PKGS..  bump one or more packages to their next minor version project-wide, update affected files"
+--  ,"./Shake docs            update program docs: help, manuals, changelogs"
+--  ,"./Shake relnotes [PKGS]  finalise changelogs, create draft release notes"
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
 makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
@@ -376,7 +383,7 @@ main = do
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
         need $ [src, commonm4, packagem4, tmpl] ++ deps
         when (dir=="hledger") $ need commandmds
-        cmd_ Shell sed "-i -e" ("'s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;'") packagem4  -- XXX forces a rebuild every time
+        cmd_ Shell sed "-i -e" ("'s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;'") packagem4  -- forces a rebuild, only when month has changed ?
         cmd Shell
           "m4 -P -DMAN -I" dir commonm4 packagem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
@@ -512,7 +519,7 @@ main = do
           cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
 
       -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
-      phony "commandtxts" $ do
+      phony "cmdhelp" $ do
         need commandtxts
         when commit $ do
           let msg = ";update CLI usage texts"
@@ -642,7 +649,7 @@ main = do
       -- Update all that needs updating.
       phony "update" $ need [
          "cabalfiles"
-        ,"commandtxts"
+        ,"cmdhelp"
         ,"manuals"
         ,"changelogs"
         ]
