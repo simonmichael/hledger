@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --compile --resolver lts-16.25
+{- stack script --resolver lts-16.25 --compile
    --package base-prelude
    --package directory
    --package extra
@@ -67,33 +67,34 @@ usage =
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
   ,"./Shake [help]           show this help"
-  ,"./Shake setversion [VER] [PKGS] [--commit]"
-  ,"                         update version strings from */.version (or VER)"
-  ,"./Shake cmdhelp [--commit]"
-  ,"                         update help text for hledger CLI commands"
-  ,"./Shake manuals [--commit]"
-  ,"                         update txt/man/info/web manuals for all packages"
+  ,"./Shake cabalfiles [-c]  update */*.cabal files from */package.yaml"
+  ,"./Shake setversion [VER] [PKGS] [-c]"
+  ,"                         update versions in source files to */.version or VER"
+  ,"                         and update */*.cabal files"
+  ,"./Shake cmdhelp [-c]     update hledger CLI commands' help texts"
+  ,"./Shake manuals [-c]     update all packages' txt/man/info/web manuals"
   -- ,"./Shake webmanuals       update just the web manuals"
-  ,"./Shake changelogs [--commit] [--dry-run]"
-  ,"                         update */CHANGES.md, adding new commits & headings"
-  ,"./Shake cabalfiles [--commit]"
-  ,"                         update */*.cabal from */package.yaml"
-  ,"./Shake update [--commit]"
-  ,"                         update all the above, eg after setversion"
+  ,"./Shake changelogs [-c] [-n/--dry-run]"
+  ,"                         update CHANGES.md files, adding new commits & headings"
+  ,"./Shake update [-c]      update all the above, eg after setversion"
   ,"./Shake build [PKGS]     build hledger packages and their embedded docs"
   ,"./Shake clean            remove generated texts, manuals"
   ,"./Shake Clean            also remove object files, Shake's cache"
   ,"./Shake FILE             build any individual file"
-  ,"./Shake --help           list Shake's options (--color, --rebuild, etc.)"
-  ,"Keep Shake option arguments adjacent to their flag."
+  ,"./Shake --help           list shake build options (--color, --rebuild, etc."
+  ,"                         Keep shake option arguments adjacent to their flag.)"
+  ,""
+  ,"See comments in Shake.hs for more detailed descriptions."
+  ,"Add -c/--commit to have commands commit their changes."
+  ,"Add -V/-VV/-VVV to see more verbose output."
+  ,"Add -B, with nothing immediately after it, to force rebuilding."
   ]
 -- TODO
---  setversion: update cabal files
---  ,"./Shake releasebranch    create a new release branch, bump master to next dev version (.99)" 
---  ,"./Shake majorversion     bump to the next major version project-wide, update affected files"
---  ,"./Shake minorversion PKGS..  bump one or more packages to their next minor version project-wide, update affected files"
---  ,"./Shake docs            update program docs: help, manuals, changelogs"
---  ,"./Shake relnotes [PKGS]  finalise changelogs, create draft release notes"
+--  ,"./Shake releasebranch      create a new release branch, bump master to next dev version (.99)" 
+--  ,"./Shake majorversion       bump to the next major version project-wide, update affected files"
+--  ,"./Shake minorversion PKGS  bump one or more packages to their next minor version project-wide, update affected files"
+--  ,"./Shake docs               update program docs: help, manuals, changelogs"
+--  ,"./Shake relnotes           finalise changelogs, create draft release notes"
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
 makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
@@ -149,6 +150,7 @@ main = do
     (shakearg, ruleargs) = splitAt 1 args
     shakeargs = shakeopts ++ shakearg
   -- print (opts,args,shakeopts,shakearg,shakeargs,ruleopts,ruleargs)
+
   withArgs shakeargs $ shakeArgs shakeOptions{
     shakeVerbosity=Quiet
     -- ,shakeReport=[".shake.html"]
@@ -247,9 +249,23 @@ main = do
 
       -- VERSION NUMBERS
 
-      -- Update all packages' version strings based on the version saved in PKG/.version.
-      -- If a version number is provided as first argument, save that in the .version files first.
+      -- Regenerate .cabal files from package.yaml files, using stack build --dry-run.
+      -- (used by "cabalfiles" and "setversion")
+      let docabalfiles = do
+          -- stack can fail to update cabal files with zero exit status,
+          -- so we need to to check stderr, and specifically for the error message 
+          -- since all output goes there
+          err <- fromStderr <$> (cmd Shell "stack build --dry-run" :: Action (Stderr String))
+          when ("was generated with a newer version of hpack" `isInfixOf` err) $
+            liftIO $ putStr err >> exitFailure
+          when commit $ do
+            let msg = ";update cabal files"
+            cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
+
+      -- Update version strings in most "source" files to match what's in PKG/.version.
+      -- If a version number is provided as first argument, save that in PKG/.version files first.
       -- If one or more subdirectories are provided as arguments, save/update only those.
+      -- Also regenerates .cabal files from package.yaml files.
       -- See also CONTRIBUTING.md > Version numbers.
       phony "setversion" $ do
         let
@@ -261,7 +277,7 @@ main = do
         -- if a version was provided, update .version files in the specified directories
         let specifiedversionfiles = map (</> ".version") specifieddirs
         case mver of
-          Just v  -> liftIO $ forM_ specifiedversionfiles $ \f -> writeFile f (v++"\n")
+          Just v  -> liftIO $ forM_ specifiedversionfiles $ flip maybeWriteFile (v++"\n")
           Nothing -> return ()
 
         -- update "source" files depending on .version in the specified packages
@@ -283,6 +299,8 @@ main = do
                    Just v  -> "to " ++ v
                 ]
           cmd Shell gitcommit ("-m '"++msg++"' --") specifiedversionfiles dependents
+
+        docabalfiles
 
       -- PKG/.version.m4 <- PKG/.version, just updates the _version_ macro
       "hledger*/.version.m4" %> \out -> do
@@ -355,6 +373,8 @@ main = do
         -- tagrelease: \
         --   $(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
         --   for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
+
+      phony "cabalfiles" $ docabalfiles
 
       -- MANUALS
 
@@ -498,6 +518,7 @@ main = do
       -- build [PKGS]
       -- Build some or all hledger packages, after generating any doc
       -- files they embed or import.
+      -- This may also update .cabal files from package.yaml files, and/or install haskell deps.
       phony "build" $ do
         let
           pkgs | null args = packages
@@ -507,18 +528,6 @@ main = do
           cmd Shell "stack build " pkg :: Action ()
           | pkg <- pkgs
           ]
-
-      -- regenerate .cabal files from package.yaml's, using stack (also installs deps)
-      phony "cabalfiles" $ do
-        -- can fail to update cabal files, with zero exit status; need
-        -- to check stderr, and only for error message since all
-        -- output goes there
-        err <- fromStderr <$> (cmd Shell "stack build --dry-run" :: Action (Stderr String))
-        when ("was generated with a newer version of hpack" `isInfixOf` err) $
-          liftIO $ putStr err >> exitFailure
-        when commit $ do
-          let msg = ";update cabal files"
-          cmd Shell gitcommit ("-m '"++msg++"' --") cabalfiles
 
       -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
       phony "cmdhelp" $ do
@@ -589,9 +598,9 @@ main = do
       --
       -- The old changelog heading is removed if it was a dev heading;
       -- new commits in PKG not prefixed with semicolon are added;
-      -- and a suitable new heading is added (a release heading if the
-      -- package has a release version set, otherwise a dev heading
-      -- with the current HEAD revision).
+      -- and a suitable new heading is added: a release heading if
+      -- the package version looks like a release version, otherwise 
+      -- a dev heading with the current HEAD revision.
       -- 
       -- With --dry-run, print new content to stdout instead of
       -- updating the changelog.
@@ -702,6 +711,12 @@ dropDirectory2 = dropDirectory1 . dropDirectory1
 
 readFileStrictly :: FilePath -> IO String
 readFileStrictly f = readFile f >>= \s -> C.evaluate (length s) >> return s
+
+-- Write new content to a file, only if it's different.
+maybeWriteFile :: FilePath -> String -> IO ()
+maybeWriteFile f new = do
+  old <- readFileStrictly f
+  when (old /= new) $ writeFile f new
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
