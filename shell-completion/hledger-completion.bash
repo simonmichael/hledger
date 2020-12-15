@@ -10,13 +10,13 @@
 
 # INSTALLATION:
 # To install you can simply source this file from your shell's startup files.
-
+#
 # Alternatively, copy/symlink it into `${BASH_COMPLETION_USER_DIR}/completions`
 # or `${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions`, rename
 # it to either `hledger`, `_hledger` or `hledger.bash`, and it will be loaded
 # dynamically the first time you use the `hledger` command. Optionally, create
 # symlinks to this file for any extensions used e.g.:
-
+#
 # mkdir -p "${BASH_COMPLETION_USER_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion}/completions" &&
 # cd "${BASH_COMPLETION_USER_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion}/completions" &&
 # cp /path/to/hledger-completion.bash hledger &&
