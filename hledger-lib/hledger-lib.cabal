@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e5d51e607ec91cb5f8ed8629d1f96b77526246cd98bdf9500d781da51ec2ddfb
+-- hash: 722f0efd461d91750b3292c6fa975dcae940268ae9bde3e062afa2f2514be904
 
 name:           hledger-lib
 version:        1.20.99
@@ -133,7 +133,6 @@ library
     , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
     , old-time
-    , parsec >=3
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
@@ -185,7 +184,6 @@ test-suite doctest
     , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
     , old-time
-    , parsec >=3
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
@@ -239,7 +237,6 @@ test-suite unittest
     , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
     , old-time
-    , parsec >=3
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
