@@ -373,7 +373,7 @@ main = do
 
         let pkg = takeDirectory out
         when (pkg /= "hledger-lib") $ liftIO $ do
-          putStrLn $ out++": hledger bounds are now (improve if needed):"
+          putStrLn $ out++": hledger bounds are (improve if needed):"
           cmd_ Shell grep "'^ *- +hledger.*[<>=]'" out 
             " || [[ $? == 1 ]]"  -- ignore no matches, https://unix.stackexchange.com/a/427598
 
