@@ -1316,39 +1316,41 @@ FILE FORMAT
        Periodic  transaction rules describe transactions that recur.  They al-
        low hledger to generate temporary  future  transactions  to  help  with
        forecasting,  so  you  don't have to write out each one in the journal,
-       and it's easy to try out different forecasts.  Secondly, they are  also
-       used to define the budgets shown in budget reports.
+       and it's easy to try out different forecasts.
 
-       Periodic  transactions  can be a little tricky, so before you use them,
+       Periodic transactions can be a little tricky, so before you  use  them,
        read this whole section - or at least these tips:
 
-       1. Two spaces accidentally added or omitted will cause  you  trouble  -
+       1. Two  spaces  accidentally  added or omitted will cause you trouble -
           read about this below.
 
-       2. For  troubleshooting,  show  the generated transactions with hledger
-          print  --forecast  tag:generated  or  hledger  register   --forecast
+       2. For troubleshooting, show the generated  transactions  with  hledger
+          print   --forecast  tag:generated  or  hledger  register  --forecast
           tag:generated.
 
-       3. Forecasted  transactions  will  begin  only after the last non-fore-
+       3. Forecasted transactions will begin only  after  the  last  non-fore-
           casted transaction's date.
 
-       4. Forecasted transactions will end 6 months from  today,  by  default.
+       4. Forecasted  transactions  will  end 6 months from today, by default.
           See below for the exact start/end rules.
 
-       5. period  expressions  can  be  tricky.  Their documentation needs im-
+       5. period expressions can be tricky.   Their  documentation  needs  im-
           provement, but is worth studying.
 
-       6. Some period expressions with a repeating interval must  begin  on  a
-          natural  boundary  of  that  interval.  Eg in weekly from DATE, DATE
-          must be a monday.  ~ weekly from 2019/10/1 (a tuesday) will give  an
+       6. Some  period  expressions  with a repeating interval must begin on a
+          natural boundary of that interval.  Eg in  weekly  from  DATE,  DATE
+          must  be a monday.  ~ weekly from 2019/10/1 (a tuesday) will give an
           error.
 
        7. Other period expressions with an interval are automatically expanded
-          to cover a whole number of that interval.  (This is done to  improve
+          to  cover a whole number of that interval.  (This is done to improve
           reports, but it also affects periodic transactions.  Yes, it's a bit
-          inconsistent with the above.) Eg: ~ every 10th  day  of  month  from
-          2020/01,  which  is  equivalent  to  ~  every 10th day of month from
+          inconsistent  with  the  above.)  Eg: ~ every 10th day of month from
+          2020/01, which is equivalent to ~  every  10th  day  of  month  from
           2020/01/01, will be adjusted to start on 2019/12/10.
+
+       Periodic transaction rules also have a second meaning: they are used to
+       define budget goals, shown in budget reports.
 
    Periodic rule syntax
        A periodic transaction rule looks like a normal journal entry, with the
@@ -1573,4 +1575,4 @@ SEE ALSO
 
 
 
-hledger 1.20                     December 2020              hledger_journal(5)
+hledger 1.20.99                  December 2020              hledger_journal(5)

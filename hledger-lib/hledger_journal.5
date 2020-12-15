@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "December 2020" "hledger 1.20" "hledger User Manuals"
+.TH "hledger_journal" "5" "December 2020" "hledger 1.20.99" "hledger User Manuals"
 
 
 
@@ -1856,8 +1856,6 @@ Periodic transaction rules describe transactions that recur.
 They allow hledger to generate temporary future transactions to help
 with forecasting, so you don\[aq]t have to write out each one in the
 journal, and it\[aq]s easy to try out different forecasts.
-Secondly, they are also used to define the budgets shown in budget
-reports.
 .PP
 Periodic transactions can be a little tricky, so before you use them,
 read this whole section - or at least these tips:
@@ -1891,6 +1889,9 @@ Yes, it\[aq]s a bit inconsistent with the above.) Eg:
 \f[C]\[ti] every 10th day of month from 2020/01\f[R], which is
 equivalent to \f[C]\[ti] every 10th day of month from 2020/01/01\f[R],
 will be adjusted to start on 2019/12/10.
+.PP
+Periodic transaction rules also have a second meaning: they are used to
+define budget goals, shown in budget reports.
 .SS Periodic rule syntax
 .PP
 A periodic transaction rule looks like a normal journal entry, with the

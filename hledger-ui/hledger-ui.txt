@@ -457,4 +457,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.20                  December 2020                   hledger-ui(1)
+hledger-ui 1.20.99               December 2020                   hledger-ui(1)
