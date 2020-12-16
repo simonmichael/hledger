@@ -3,8 +3,6 @@ For user-visible changes, see the hledger package changelog.
 
 # 1.20.1 2020-12-15
 
-
-
 - renamed: updateReportSpecFromOpts -> updateReportSpec[With]
 
 

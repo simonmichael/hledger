@@ -3,8 +3,6 @@ User-visible changes in the hledger command line tool and library.
 
 # 1.20.1 2020-12-15
 
-
-
 - bal, bs, cf, is: In amount-sorted balance reports, equal-balance accounts 
   are now reliably sorted by name. (Simon Michael, Stephen Morgan)
 
