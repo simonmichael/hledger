@@ -1,6 +1,14 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 2bce2d9f1
+
+- Fix the F key (toggle future/forecast transactions), which in 1.20 
+  would only work twice. (#1411)
+
+- Fix loss of forecasted transactions when the journal was reloaded
+  while they were hidden. (#1204)
+
 # 1.20 2020-12-05
 
 - When entering a query with `/`, malformed queries/regular expressions
