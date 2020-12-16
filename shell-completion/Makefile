@@ -1,9 +1,9 @@
 
 .PHONY: command-options clean
 
-all: command-options hledger-completion.bash
+all: hledger-completion.bash
 
-hledger-completion.bash: hledger-completion.bash.m4 commands-list.txt query-filters.txt generic-options.txt
+hledger-completion.bash: hledger-completion.bash.m4 commands-list.txt query-filters.txt generic-options.txt command-options
 	m4 hledger-completion.bash.m4 > $@
 
 generic-options.txt:
