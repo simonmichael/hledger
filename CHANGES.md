@@ -1,6 +1,11 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
+# 0261a2bfd
+
+- Fix the topic hierarchy in Info manuals.
+
+
 # 1.20 2020-12-05
 
 - examples: clean up & add more budgeting examples
