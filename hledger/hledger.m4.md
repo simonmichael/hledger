@@ -934,8 +934,9 @@ Counterexamples - malformed digit sequences might give surprising results:
 
 ## Report start & end date
 
-Most hledger reports show the full span of time represented by the journal data, by default.
-So, the effective report start and end dates will be the earliest and latest transaction or posting dates found in the journal.
+By default, most hledger reports will show the full span of time represented by the journal data.
+The report start date will be the earliest transaction or posting date, and the report end date
+will be the latest transaction, posting, or market price date.
 
 Often you will want to see a shorter time span, such as the current month.
 You can specify a start and/or end date using
