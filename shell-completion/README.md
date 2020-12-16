@@ -69,8 +69,10 @@ cd shell-completion/
 make
 ```
 
-Hint: GNU make, GNU m4, and GNU parallel must be installed to call `make`.
-The first two usually are.
+Hint: GNU make and  GNU m4 must be installed to call `make`.
+These are present on most systems anyway.
+Additionally the build will run a lot faster with parallell jobs.
+Use `make -j$(nproc)` for best effect.
 
 The generated completion script must be installed. The package maintainer for
 your distribution should be responsible for this.
