@@ -4,8 +4,6 @@ See also the hledger changelog.
 # 42bc7465e
 
 
-
-
 # 1.20.1 2020-12-06
 
 - don't hang when reloading the journal, eg after adding a transaction

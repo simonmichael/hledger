@@ -3,8 +3,6 @@ See also the hledger changelog.
 
 # 1.20.1 2020-12-15
 
-
-
 - Fix the F key (toggle future/forecast transactions), which in 1.20 
   would only work twice. (#1411)
 
