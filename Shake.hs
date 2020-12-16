@@ -90,6 +90,7 @@ usage =
   ,"Add -B, with nothing immediately after it, to force rebuilding."
   ]
 -- TODO
+--  changelogs: too many blank lines after final heading
 --  ,"./Shake releasebranch      create a new release branch, bump master to next dev version (.99)" 
 --  ,"./Shake majorversion       bump to the next major version project-wide, update affected files"
 --  ,"./Shake minorversion PKGS  bump one or more packages to their next minor version project-wide, update affected files"
