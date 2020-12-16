@@ -1,7 +1,9 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 2bce2d9f1
+# 1.20.1 2020-12-15
+
+
 
 - renamed: updateReportSpecFromOpts -> updateReportSpec[With]
 

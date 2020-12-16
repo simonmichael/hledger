@@ -1,10 +1,14 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 2bce2d9f1
+# 1.20.1 2020-12-15
 
-- In amount-sorted balance reports, equal-balance accounts are now reliably sorted 
-  by name. (Simon Michael, Stephen Morgan)
+
+
+- bal, bs, cf, is: In amount-sorted balance reports, equal-balance accounts 
+  are now reliably sorted by name. (Simon Michael, Stephen Morgan)
+
+- help: Fix the topic hierarchy in Info manuals.
 
 
 # 1.20 2020-12-05
