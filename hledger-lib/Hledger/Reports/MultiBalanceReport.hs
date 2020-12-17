@@ -145,7 +145,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
     -- Queries, report/column dates.
     reportspan = dbg3 "reportspan" $ calculateReportSpan rspec' j
     rspec      = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
-    valuation  = makeValuation rspec' j priceoracle  -- Must use ropts' instead of ropts,
+    valuation  = makeValuation rspec' j priceoracle  -- Must use rspec' instead of rspec,
                                                      -- so the reportspan isn't used for valuation
 
     -- Group postings into their columns.
@@ -257,7 +257,7 @@ makeValuation rspec j priceoracle day = case value_ (rsOpts rspec) of
   where
     -- Some things needed if doing valuation.
     styles = journalCommodityStyles j
-    mreportlast = reportPeriodLastDay rspec
+    mreportlast = reportPeriodOrJournalLastDay rspec j
     multiperiod = interval_ (rsOpts rspec) /= NoInterval
 
 -- | Group postings, grouped by their column

@@ -46,7 +46,7 @@ $ hledger -f- bal -N -V a
 
 
 # 4. Market prices in the future are ignored when the valuation date
-# is today, which is the default with -V. #453, #683
+# is today. #453, #683
 <
 P 2000/1/1 $ €1.20
 P 3000/1/1 $ €1.30
@@ -54,7 +54,7 @@ P 3000/1/1 $ €1.30
 3000/01/01
   (a)    $100
 
-$ hledger -f- bal -N -V
+$ hledger -f- bal -N --value=now
              €120.00  a
 
 
@@ -300,7 +300,7 @@ $ hledger -f- reg --value=cost -M
 2000-01                 a                                     13 B          13 B
 2000-02                 a                                      8 B          21 B
 2000-03                 a                                      9 B          30 B
- 
+
 # back to the original test journal:
 <
 P 2000/01/01 A  1 B
@@ -360,7 +360,7 @@ $ hledger -f- bal -N --value=2000-01-15
 $ hledger -f- bal -N --value=now
                 12 B  a
 
-# 33. single column balance report valued at default date (same as --value=now)
+# 33. single column balance report valued at default date (same as --value=end)
 $ hledger -f- bal -N -V
                 12 B  a
 

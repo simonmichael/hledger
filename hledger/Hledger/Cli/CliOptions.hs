@@ -156,9 +156,8 @@ reportflags = [
    "show amounts converted to their cost/selling amount, using the transaction price. Equivalent to --value=cost."
  ,flagNone ["V","market"]    (setboolopt "V")
    (unwords
-     ["show amounts converted to current market value (single period reports)"
-     ,"or period-end market value (multiperiod reports) in their default valuation commodity."
-     ,"Equivalent to --value=now / --value=end."
+     ["show amounts converted to period-end market value in their default valuation commodity."
+     ,"Equivalent to --value=end."
      ])
  ,flagReq ["X","exchange"]   (\s opts -> Right $ setopt "X" s opts) "COMM"
    (unwords
