@@ -284,7 +284,9 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
         _   -> -- trace (pshow $ (maybecost actual, maybecost budget))  -- debug missing percentage
                Nothing
       where
-        maybecost = if valuationTypeIsCost ropts then mixedAmountCost else id
+        maybecost = case value_ of
+            Just (AtCost _) -> mixedAmountCost
+            _               -> id
 
     maybetranspose | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise  = id

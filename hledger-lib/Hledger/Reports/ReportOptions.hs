@@ -39,8 +39,6 @@ module Hledger.Reports.ReportOptions (
   reportPeriodOrJournalStart,
   reportPeriodLastDay,
   reportPeriodOrJournalLastDay,
-  valuationTypeIsCost,
-  valuationTypeIsDefaultValue,
 )
 where
 
@@ -428,18 +426,6 @@ valuationTypeFromRawOpts = lastMay . collectopts valuationfromrawopt
         mc     = case drop 1 c' of
                    "" -> Nothing
                    c  -> Just $ T.pack c
-
-valuationTypeIsCost :: ReportOpts -> Bool
-valuationTypeIsCost ropts =
-  case value_ ropts of
-    Just (AtCost _) -> True
-    _               -> False
-
-valuationTypeIsDefaultValue :: ReportOpts -> Bool
-valuationTypeIsDefaultValue ropts =
-  case value_ ropts of
-    Just (AtDefault _) -> True
-    _                  -> False
 
 -- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
