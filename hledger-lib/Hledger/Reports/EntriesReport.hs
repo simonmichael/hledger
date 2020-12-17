@@ -41,11 +41,10 @@ entriesReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j@Journal{..} =
     tvalue t@Transaction{..} = t{tpostings=map pvalue tpostings}
       where
         pvalue p = maybe p
-          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast mreportlast (rsToday rspec) False p)
+          (postingApplyValuation (journalPriceOracle infer_value_ j) (journalCommodityStyles j) periodlast (rsToday rspec) p)
           value_
           where
             periodlast  = fromMaybe (rsToday rspec) $ reportPeriodOrJournalLastDay rspec j
-            mreportlast = reportPeriodLastDay rspec
 
 tests_EntriesReport = tests "EntriesReport" [
   tests "entriesReport" [

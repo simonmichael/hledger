@@ -34,7 +34,6 @@ import Data.List ( (\\), sortBy )
 import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Maybe ( fromMaybe )
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian)
 import Data.MemoUgly (memo)
@@ -98,9 +97,9 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- provided price oracle, commodity styles, reference dates, and
 -- whether this is for a multiperiod report or not.
 -- See amountApplyValuation.
-mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> ValuationType -> MixedAmount -> MixedAmount
-mixedAmountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v (Mixed as) =
-  Mixed $ map (amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v) as
+mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> ValuationType -> MixedAmount -> MixedAmount
+mixedAmountApplyValuation priceoracle styles periodlast today v (Mixed as) =
+  Mixed $ map (amountApplyValuation priceoracle styles periodlast today v) as
 
 -- | Apply a specified valuation to this amount, using the provided
 -- price oracle, reference dates, and whether this is for a
@@ -133,18 +132,17 @@ mixedAmountApplyValuation priceoracle styles periodlast mreportlast today ismult
 -- https://hledger.org/hledger.html#effect-of-valuation-on-reports
 -- (hledger_options.m4.md "Effect of valuation on reports"), and #1083.
 --
-amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> ValuationType -> Amount -> Amount
-amountApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod v a =
+amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> ValuationType -> Amount -> Amount
+amountApplyValuation priceoracle styles periodlast today v a =
   case v of
-    AtCost    Nothing            -> styleAmount styles $ amountCost a
-    AtCost    mc                 -> amountValueAtDate priceoracle styles mc periodlast $ styleAmount styles $ amountCost a
-    AtThen    _mc                -> error' unsupportedValueThenError  -- PARTIAL:
-                                 -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
-    AtEnd     mc                 -> amountValueAtDate priceoracle styles mc periodlast a
-    AtNow     mc                 -> amountValueAtDate priceoracle styles mc today a
-    AtDefault mc | ismultiperiod -> amountValueAtDate priceoracle styles mc periodlast a
-    AtDefault mc                 -> amountValueAtDate priceoracle styles mc (fromMaybe today mreportlast) a
-    AtDate d  mc                 -> amountValueAtDate priceoracle styles mc d a
+    AtCost    Nothing -> styleAmount styles $ amountCost a
+    AtCost    mc      -> amountValueAtDate priceoracle styles mc periodlast $ styleAmount styles $ amountCost a
+    AtThen    _mc     -> error' unsupportedValueThenError  -- PARTIAL:
+                      -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
+    AtEnd     mc      -> amountValueAtDate priceoracle styles mc periodlast a
+    AtNow     mc      -> amountValueAtDate priceoracle styles mc today a
+    AtDefault mc      -> amountValueAtDate priceoracle styles mc periodlast a
+    AtDate d  mc      -> amountValueAtDate priceoracle styles mc d a
 
 -- | Standard error message for a report not supporting --value=then.
 unsupportedValueThenError :: String

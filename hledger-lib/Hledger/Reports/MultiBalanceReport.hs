@@ -253,12 +253,9 @@ makeReportQuery rspec reportspan
 makeValuation :: ReportSpec -> Journal -> PriceOracle -> (Day -> MixedAmount -> MixedAmount)
 makeValuation rspec j priceoracle day = case value_ (rsOpts rspec) of
     Nothing -> id
-    Just v  -> mixedAmountApplyValuation priceoracle styles day mreportlast (rsToday rspec) multiperiod v
+    Just v  -> mixedAmountApplyValuation priceoracle styles day (rsToday rspec) v
   where
-    -- Some things needed if doing valuation.
     styles = journalCommodityStyles j
-    mreportlast = reportPeriodOrJournalLastDay rspec j
-    multiperiod = interval_ (rsOpts rspec) /= NoInterval
 
 -- | Group postings, grouped by their column
 getPostingsByColumn :: ReportSpec -> Journal -> DateSpan -> Map DateSpan [Posting]

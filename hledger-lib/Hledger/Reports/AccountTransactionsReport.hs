@@ -116,14 +116,12 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = (
     periodlast =
       fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
       reportPeriodOrJournalLastDay rspec j
-    mreportlast = reportPeriodLastDay rspec
-    multiperiod = interval_ ropts /= NoInterval
     tval = case value_ ropts of
-             Just v  -> \t -> transactionApplyValuation prices styles periodlast mreportlast (rsToday rspec) multiperiod t v
+             Just v  -> \t -> transactionApplyValuation prices styles periodlast (rsToday rspec) t v
              Nothing -> id
     ts4 =
       ptraceAtWith 5 (("ts4:\n"++).pshowTransactions) $
-      map tval ts3 
+      map tval ts3
 
     -- sort by the transaction's register date, for accurate starting balance
     -- these are not yet filtered by tdate, we want to search them all for priorps

@@ -334,17 +334,16 @@ aliasReplace (RegexAlias re repl) a =
 -- provided price oracle, commodity styles, reference dates, and
 -- whether this is for a multiperiod report or not. See
 -- amountApplyValuation.
-postingApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Maybe Day -> Day -> Bool -> Posting -> ValuationType -> Posting
-postingApplyValuation priceoracle styles periodlast mreportlast today ismultiperiod p v =
+postingApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Posting -> ValuationType -> Posting
+postingApplyValuation priceoracle styles periodlast today p v =
   case v of
-    AtCost    Nothing            -> postingToCost styles p
-    AtCost    mc                 -> postingValueAtDate priceoracle styles mc periodlast $ postingToCost styles p
-    AtThen    mc                 -> postingValueAtDate priceoracle styles mc (postingDate p) p
-    AtEnd     mc                 -> postingValueAtDate priceoracle styles mc periodlast p
-    AtNow     mc                 -> postingValueAtDate priceoracle styles mc today p
-    AtDefault mc | ismultiperiod -> postingValueAtDate priceoracle styles mc periodlast p
-    AtDefault mc                 -> postingValueAtDate priceoracle styles mc (fromMaybe today mreportlast) p
-    AtDate d  mc                 -> postingValueAtDate priceoracle styles mc d p
+    AtCost    Nothing -> postingToCost styles p
+    AtCost    mc      -> postingValueAtDate priceoracle styles mc periodlast $ postingToCost styles p
+    AtThen    mc      -> postingValueAtDate priceoracle styles mc (postingDate p) p
+    AtEnd     mc      -> postingValueAtDate priceoracle styles mc periodlast p
+    AtNow     mc      -> postingValueAtDate priceoracle styles mc today p
+    AtDefault mc      -> postingValueAtDate priceoracle styles mc periodlast p
+    AtDate d  mc      -> postingValueAtDate priceoracle styles mc d p
 
 -- | Convert this posting's amount to cost, and apply the appropriate amount styles.
 postingToCost :: M.Map CommoditySymbol AmountStyle -> Posting -> Posting
