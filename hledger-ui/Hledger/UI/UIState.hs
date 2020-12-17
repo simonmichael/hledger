@@ -128,8 +128,8 @@ valuationToggleCost _                 = Just $ AtCost Nothing
 
 -- | Basic toggling of -V, for hledger-ui.
 valuationToggleValue :: Maybe ValuationType -> Maybe ValuationType
-valuationToggleValue (Just (AtDefault _)) = Nothing
-valuationToggleValue _                    = Just $ AtDefault Nothing
+valuationToggleValue (Just (AtEnd _)) = Nothing
+valuationToggleValue _                = Just $ AtEnd Nothing
 
 -- | Set hierarchic account tree mode.
 setTree :: UIState -> UIState

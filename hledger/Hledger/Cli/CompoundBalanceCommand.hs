@@ -137,17 +137,12 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
             Just (AtEnd _mc) | changingValuation -> ""
             Just (AtEnd _mc)        -> ", valued at period ends"
             Just (AtNow _mc)        -> ", current value"
-            Just (AtDefault _mc) | changingValuation -> ""
-            Just (AtDefault _mc) | multiperiod       -> ", valued at period ends"
-            Just (AtDefault _mc)    -> ", current value"
             Just (AtDate today _mc) -> ", valued at "++showDate today
             Nothing                 -> ""
 
-          multiperiod = interval_ /= NoInterval
-          changingValuation
-            | PeriodChange <- balancetype_, Just (AtEnd _mc)     <- value_ = multiperiod
-            | PeriodChange <- balancetype_, Just (AtDefault _mc) <- value_ = multiperiod
-            | otherwise                                                    = False
+          changingValuation = case (balancetype_, value_) of
+              (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
+              _                              -> False
 
       -- make a CompoundBalanceReport.
       cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
