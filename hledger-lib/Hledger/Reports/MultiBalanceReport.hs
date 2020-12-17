@@ -360,7 +360,6 @@ accumValueAmounts ropts valuation colspans startbals acctchanges =  -- PARTIAL:
         fixedValuationDate = case value_ ropts of
             Just (AtCost (Just _)) -> singleperiod
             Just (AtEnd  _)        -> singleperiod
-            Just (AtDefault _)     -> singleperiod
             _                      -> True
           where singleperiod = interval_ ropts == NoInterval
 

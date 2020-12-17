@@ -57,7 +57,6 @@ data ValuationType =
   | AtEnd      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices at period end(s)
   | AtNow      (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using current market prices
   | AtDate Day (Maybe CommoditySymbol)  -- ^ convert to default or given valuation commodity, using market prices on some date
-  | AtDefault  (Maybe CommoditySymbol)  -- ^ works like AtNow in single period reports, like AtEnd in multiperiod reports
   deriving (Show,Eq)
 
 -- | A price oracle is a magic memoising function that efficiently
@@ -141,7 +140,6 @@ amountApplyValuation priceoracle styles periodlast today v a =
                       -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
     AtEnd     mc      -> amountValueAtDate priceoracle styles mc periodlast a
     AtNow     mc      -> amountValueAtDate priceoracle styles mc today a
-    AtDefault mc      -> amountValueAtDate priceoracle styles mc periodlast a
     AtDate d  mc      -> amountValueAtDate priceoracle styles mc d a
 
 -- | Standard error message for a report not supporting --value=then.

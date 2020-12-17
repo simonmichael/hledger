@@ -224,7 +224,6 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
     renderTable def{tableBorders=False,prettyTable=pretty_tables_}
         (alignCell TopLeft) (alignCell TopRight) (uncurry showcell) displayTableWithWidths
   where
-    multiperiod = interval_ /= NoInterval
     title = printf "Budget performance in %s%s:"
       (showDateSpan $ periodicReportSpan budgetr)
       (case value_ of
@@ -232,9 +231,6 @@ budgetReportAsText ropts@ReportOpts{..} budgetr =
         Just (AtThen _mc)   -> error' unsupportedValueThenError  -- PARTIAL:
         Just (AtEnd _mc)    -> ", valued at period ends"
         Just (AtNow _mc)    -> ", current value"
-        -- XXX duplicates the above
-        Just (AtDefault _mc) | multiperiod -> ", valued at period ends"
-        Just (AtDefault _mc)  -> ", current value"
         Just (AtDate d _mc) -> ", valued at "++showDate d
         Nothing             -> "")
 

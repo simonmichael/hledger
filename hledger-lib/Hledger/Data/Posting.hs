@@ -342,7 +342,6 @@ postingApplyValuation priceoracle styles periodlast today p v =
     AtThen    mc      -> postingValueAtDate priceoracle styles mc (postingDate p) p
     AtEnd     mc      -> postingValueAtDate priceoracle styles mc periodlast p
     AtNow     mc      -> postingValueAtDate priceoracle styles mc today p
-    AtDefault mc      -> postingValueAtDate priceoracle styles mc periodlast p
     AtDate d  mc      -> postingValueAtDate priceoracle styles mc d p
 
 -- | Convert this posting's amount to cost, and apply the appropriate amount styles.

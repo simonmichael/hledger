@@ -566,28 +566,22 @@ multiBalanceReportAsText ropts@ReportOpts{..} r =
     title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
 
     mtitle = case balancetype_ of
-        PeriodChange     | changingValuation -> "Period-end value changes"
-        PeriodChange                         -> "Balance changes"
-        CumulativeChange                     -> "Ending balances (cumulative)"
-        HistoricalBalance                    -> "Ending balances (historical)"
+        PeriodChange | changingValuation -> "Period-end value changes"
+        PeriodChange                     -> "Balance changes"
+        CumulativeChange                 -> "Ending balances (cumulative)"
+        HistoricalBalance                -> "Ending balances (historical)"
     valuationdesc = case value_ of
         Just (AtCost _mc)    -> ", valued at cost"
         Just (AtThen _mc)    -> error' unsupportedValueThenError  -- TODO -- ", valued at period ends"  -- handled like AtEnd for now  -- PARTIAL:
         Just (AtEnd _mc) | changingValuation -> ""
         Just (AtEnd _mc)     -> ", valued at period ends"
         Just (AtNow _mc)     -> ", current value"
-        -- XXX duplicates the above
-        Just (AtDefault _mc) | changingValuation -> ""
-        Just (AtDefault _mc) | multiperiod       -> ", valued at period ends"
-        Just (AtDefault _mc) -> ", current value"
         Just (AtDate d _mc)  -> ", valued at "++showDate d
         Nothing              -> ""
 
-    multiperiod = interval_ /= NoInterval
-    changingValuation
-      | PeriodChange <- balancetype_, Just (AtEnd _mc)     <- value_ = multiperiod
-      | PeriodChange <- balancetype_, Just (AtDefault _mc) <- value_ = multiperiod
-      | otherwise                                                    = False
+    changingValuation = case (balancetype_, value_) of
+        (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
+        _                              -> False
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
