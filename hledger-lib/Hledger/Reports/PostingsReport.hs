@@ -89,9 +89,7 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j =
         where
           showempty = empty_ || average_
           -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-          pvalue p periodlast = maybe p (postingApplyValuation priceoracle styles periodlast mreportlast (rsToday rspec) multiperiod p) value_
-            where
-              mreportlast = reportPeriodLastDay rspec
+          pvalue p periodlast = maybe p (postingApplyValuation priceoracle styles periodlast (rsToday rspec) p) value_
           reportorjournallast =
             fromMaybe (error' "postingsReport: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
             reportPeriodOrJournalLastDay rspec j
@@ -112,7 +110,7 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j =
               precedingsum = sumPostings precedingps
               precedingavg | null precedingps = 0
                            | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
-              bvalue = maybe id (mixedAmountApplyValuation priceoracle styles daybeforereportstart Nothing (rsToday rspec) multiperiod) value_
+              bvalue = maybe id (mixedAmountApplyValuation priceoracle styles daybeforereportstart $ rsToday rspec) value_
                   -- XXX constrain valuation type to AtDate daybeforereportstart here ?
                 where
                   daybeforereportstart =

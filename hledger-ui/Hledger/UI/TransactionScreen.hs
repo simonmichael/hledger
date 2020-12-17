@@ -78,13 +78,11 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
         periodlast =
           fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
           reportPeriodOrJournalLastDay rspec j
-        mreportlast = reportPeriodLastDay rspec
-        multiperiod = interval_ ropts /= NoInterval
 
       render $ defaultLayout toplabel bottomlabel $ str $
         showTransactionOneLineAmounts $
         (if valuationTypeIsCost ropts then transactionToCost (journalCommodityStyles j) else id) $
-        (if valuationTypeIsDefaultValue ropts then (\t -> transactionApplyValuation prices styles periodlast mreportlast (rsToday rspec) multiperiod t (AtDefault Nothing)) else id) $
+        (if valuationTypeIsDefaultValue ropts then (\t -> transactionApplyValuation prices styles periodlast (rsToday rspec) t (AtDefault Nothing)) else id) $
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
         t
       where
