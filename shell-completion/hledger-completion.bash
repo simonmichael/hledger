@@ -1,4 +1,6 @@
-# shellcheck disable=2034
+# -*- mode: sh; sh-basic-offset: 4; indent-tabs-mode: nil -*-
+# ex: ts=4 sw=4 et
+# shellcheck disable=2034,2154
 
 # Completion script for hledger.
 # Created using a Makefile and real hledger.
@@ -415,6 +417,7 @@ read -r -d "" _hledger_complist_commands <<TEXT
 accounts
 activity
 add
+api
 areg
 aregister
 bal
@@ -454,7 +457,6 @@ test
 txns
 ui
 web
-api
 TEXT
 
 read -r -d "" _hledger_complist_query_filters <<TEXT
@@ -599,6 +601,9 @@ read -r -d "" _hledger_complist_options_add <<TEXT
 --pivot=
 --rules-file=
 --version
+TEXT
+
+read -r -d "" _hledger_complist_options_api <<TEXT
 TEXT
 
 read -r -d "" _hledger_complist_options_areg <<TEXT
@@ -2048,13 +2053,4 @@ TEXT
 read -r -d "" _hledger_complist_options_web <<TEXT
 TEXT
 
-read -r -d "" _hledger_complist_options_api <<TEXT
-TEXT
-
 return 0
-
-# Local Variables:
-# sh-basic-offset: 4
-# indent-tabs-mode: nil
-# End:
-# ex: ts=4 sw=4 et
