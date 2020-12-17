@@ -1206,7 +1206,7 @@ market prices will be used.
 
 For single period reports, if an explicit
 [report end date](#report-start-end-date) is specified, that will be
-used as the valuation date; otherwise the valuation date is "today".
+used as the valuation date; otherwise the valuation date is the journal's end date.
 
 For [multiperiod reports](#report-intervals), each column/period is
 valued on the last day of the period, by default.

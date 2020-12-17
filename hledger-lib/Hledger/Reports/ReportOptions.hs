@@ -409,8 +409,8 @@ valuationTypeFromRawOpts = lastMay . collectopts valuationfromrawopt
   where
     valuationfromrawopt (n,v)  -- option name, value
       | n == "B"     = Just $ AtCost Nothing
-      | n == "V"     = Just $ AtDefault Nothing
-      | n == "X"     = Just $ AtDefault (Just $ T.pack v)
+      | n == "V"     = Just $ AtEnd Nothing
+      | n == "X"     = Just $ AtEnd (Just $ T.pack v)
       | n == "value" = Just $ valuation v
       | otherwise    = Nothing
     valuation v
