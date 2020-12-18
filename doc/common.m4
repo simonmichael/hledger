@@ -13,16 +13,14 @@ m4_dnl
 m4_dnl Author to show in man pages.
 m4_define({{_author_}}, {{}})m4_dnl
 m4_dnl
-m4_dnl Macros for conditionally including format-specific content
-m4_dnl $1 is the manual's web slug: hledger, hledger-ui, journal, csv etc.
-m4_dnl include in man pages only
-m4_define({{_man_}},         m4_ifdef({{MAN}},{{$1}})             )m4_dnl
-m4_dnl include in web manuals only
-m4_define({{_web_}},         m4_ifdef({{WEB}},{{$1}})             )m4_dnl
-m4_dnl include in info manuals only
-m4_define({{_info_}},         m4_ifdef({{INFO}},{{$1}})             )m4_dnl
-m4_dnl include in text manuals only - not implemented
-m4_dnl m4_define({{_txt_}},         m4_ifdef({{TXT}},{{$1}})             )m4_dnl
+m4_dnl Macros for conditionally including or excluding content based on the format
+m4_dnl (man, web or info).
+m4_define({{_man_}},         m4_ifdef({{MAN}},{{$1}})    )m4_dnl
+m4_define({{_notman_}},      m4_ifdef({{MAN}},,{{$1}})   )m4_dnl
+m4_define({{_web_}},         m4_ifdef({{WEB}},{{$1}})    )m4_dnl
+m4_define({{_notweb_}},      m4_ifdef({{WEB}},,{{$1}})   )m4_dnl
+m4_define({{_info_}},        m4_ifdef({{INFO}},{{$1}})   )m4_dnl
+m4_define({{_notinfo_}},     m4_ifdef({{INFO}},,{{$1}})  )m4_dnl
 m4_dnl
 m4_dnl Two side-by-side columns.
 m4_define({{_col2_}},
