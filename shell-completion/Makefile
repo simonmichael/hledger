@@ -98,12 +98,14 @@ clean:
 	rm -f hledger-completion.bash
 
 
-# Basic REGEX debugging targets
-.PHONY: debug-commands debug-options
+# Basic REGEX debugging targets. Example usage:
+# diff <(make -s debug-options) <(make -s debug-options CMD=reg)
 
+.PHONY: debug-commands
 debug-commands:
 	$(PARSE_COMMANDS)
 
+.PHONY: debug-options
 debug-options: CMD :=
 debug-options:
 	hledger $(CMD) -h | $(PARSE_OPTIONS)
