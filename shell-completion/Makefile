@@ -9,7 +9,17 @@ all: hledger-completion.bash
 COMMANDS := $(sort $(shell hledger | ./output-commands.sh | grep -v ^hledger | sort -u) ui web api)
 CMDOPTFILES := $(foreach CMD,$(COMMANDS),options-$(CMD).txt)
 
-hledger-completion.bash: hledger-completion.bash.m4 commands.txt commands-list.txt query-filters.txt generic-options.txt $(CMDOPTFILES)
+define M4DEPS :=
+hledger-completion.bash.m4 \
+hledger-completion.bash.stub \
+commands.txt \
+commands-list.txt \
+query-filters.txt \
+generic-options.txt \
+$(CMDOPTFILES)
+endef
+
+hledger-completion.bash: $(M4DEPS)
 	m4 hledger-completion.bash.m4 > $@
 
 generic-options.txt:
