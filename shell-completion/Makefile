@@ -94,7 +94,7 @@ options-%.txt:
 
 .PHONY: clean
 clean:
-	rm -f commands*.{txt,tmp} generic-options.txt options-*.txt
+	rm -f $(COMMANDS_TMP) commands*.txt generic-options.txt options-*.txt
 	rm -f hledger-completion.bash
 
 
