@@ -4,6 +4,22 @@
 # get parallel jobs.
 MAKEFLAGS += --jobs=$(shell nproc 2>/dev/null || printf 8)
 
+EUID := $(shell id -u)
+
+ifeq ($(EUID),0)
+PREFIX := /usr/local
+endif
+
+ifdef PREFIX
+BASHCOMPDIR := $(PREFIX)/share/bash-completion/completions
+else
+XDG_DATA_HOME ?= $(HOME)/.local/share
+BASH_COMPLETION_USER_DIR ?= $(XDG_DATA_HOME)/bash-completion
+BASHCOMPDIR := $(BASH_COMPLETION_USER_DIR)/completions
+endif
+
+DESTDIR ?=
+
 # Parse hledger's help and output all commands and command aliases in
 # parenthesis. Do not output single letter command aliases, it's not useful.
 COMMANDS_TMP := commands.tmp
@@ -28,9 +44,28 @@ sort -u
 endef
 
 EXTENSIONS := ui web api
+INSTALLED_EXTENSIONS := $(foreach EXT,$(EXTENSIONS),$(shell type hledger-$(EXT) >/dev/null 2>&1 && echo $(EXT)))
 
-COMMANDS := $(sort $(shell $(PARSE_COMMANDS)) $(EXTENSIONS))
+COMMANDS := $(sort $(shell $(PARSE_COMMANDS)) $(INSTALLED_EXTENSIONS))
 CMDOPTFILES := $(foreach CMD,$(COMMANDS),options-$(CMD).txt)
+
+all: hledger-completion.bash
+
+.PHONY: install
+install:
+	@install -v -d "$(DESTDIR)$(BASHCOMPDIR)"
+	@install -v -m 0644 hledger-completion.bash "$(DESTDIR)$(BASHCOMPDIR)/hledger"
+	@for ext in $(INSTALLED_EXTENSIONS); do \
+		printf "symlink " ; \
+		ln -sfv hledger "$(DESTDIR)$(BASHCOMPDIR)/hledger-$$ext" ; \
+	done
+
+.PHONY: uninstall
+uninstall:
+	@rm -vf "$(DESTDIR)$(BASHCOMPDIR)/hledger"
+	@for ext in $(INSTALLED_EXTENSIONS); do \
+		rm -vf "$(DESTDIR)$(BASHCOMPDIR)/hledger-$$ext" ; \
+	done
 
 define M4DEPS :=
 hledger-completion.bash.m4 \
@@ -41,8 +76,6 @@ query-filters.txt \
 generic-options.txt \
 $(CMDOPTFILES)
 endef
-
-all: hledger-completion.bash
 
 hledger-completion.bash: $(M4DEPS)
 	m4 hledger-completion.bash.m4 > $@

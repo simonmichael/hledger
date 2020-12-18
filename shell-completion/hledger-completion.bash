@@ -417,7 +417,6 @@ read -r -d "" _hledger_complist_commands <<TEXT
 accounts
 activity
 add
-api
 areg
 aregister
 bal
@@ -456,7 +455,6 @@ tags
 test
 txns
 ui
-web
 TEXT
 
 read -r -d "" _hledger_complist_query_filters <<TEXT
@@ -601,9 +599,6 @@ read -r -d "" _hledger_complist_options_add <<TEXT
 --pivot=
 --rules-file=
 --version
-TEXT
-
-read -r -d "" _hledger_complist_options_api <<TEXT
 TEXT
 
 read -r -d "" _hledger_complist_options_areg <<TEXT
@@ -2048,9 +2043,6 @@ read -r -d "" _hledger_complist_options_ui <<TEXT
 --watch
 --weekly
 --yearly
-TEXT
-
-read -r -d "" _hledger_complist_options_web <<TEXT
 TEXT
 
 return 0
