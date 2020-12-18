@@ -9,6 +9,13 @@ declare hledgerArgs=(--help)
 [[ -n $subcommand ]] && hledgerArgs=("$subcommand" "${hledgerArgs[@]}")
 
 hledger "${hledgerArgs[@]}" |
-  sed -rn '/^\s+-/p' |
-  sed -rn 's/^\s{1,4}(-.)?\s{1,4}(--[a-zA-Z][-_a-zA-Z0-9]+=?).*/\2/p' |
-  sort -u
+    sed -rn '/^\s+-/p' |
+    sed -rn 's/^\s{1,4}(-.)?\s{1,4}(--[a-zA-Z][-_a-zA-Z0-9]+=?).*/\2/p' |
+    sort -u
+
+# Local Variables:
+# mode: sh
+# sh-basic-offset: 4
+# indent-tabs-mode: nil
+# End:
+# ex: ts=4 sw=4 et

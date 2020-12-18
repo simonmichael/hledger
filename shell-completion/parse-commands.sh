@@ -11,3 +11,10 @@ commands_help=$(hledger)
     sed 's/\s*,\s*/\n/g' |
     sed '/^.$/d'
 } | sed '/^hledger/d' | sort -u
+
+# Local Variables:
+# mode: sh
+# sh-basic-offset: 4
+# indent-tabs-mode: nil
+# End:
+# ex: ts=4 sw=4 et
