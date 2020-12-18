@@ -20,28 +20,8 @@ endif
 
 DESTDIR ?=
 
-# Parse hledger's help and output all commands and command aliases in
-# parenthesis. Do not output single letter command aliases, it's not useful.
-COMMANDS_TMP := commands.tmp
-
-define PARSE_COMMANDS :=
-hledger > $(COMMANDS_TMP) ;
-{ \
-	sed -rn 's/^\s+([a-z][-a-z]+)\s+.*/\1/p' $(COMMANDS_TMP) ; \
-	sed -rn 's/^\s+[a-z][-a-z]+\s+\(([a-z][ ,a-z]+)\).*/\1/p' $(COMMANDS_TMP) | \
-	sed 's/\s*,\s*/\n/g' | \
-	sed '/^.$$/d' ; \
-} | sed '/^hledger/d' | sort -u
-endef
-
-# Parse hledger's help and output long options. Do not propose single letter
-# completions. Options requiring an argument make that explicit by appending the
-# equal sign (=)
-define PARSE_OPTIONS :=
-sed -rn '/^\s+-/p' | \
-sed -rn 's/^\s{1,4}(-.)?\s{1,4}(--[a-zA-Z][-_a-zA-Z0-9]+=?).*/\2/p' | \
-sort -u
-endef
+PARSE_COMMANDS := ./parse-commands.sh
+PARSE_OPTIONS := ./parse-options.sh
 
 EXTENSIONS := ui web api
 INSTALLED_EXTENSIONS := $(foreach EXT,$(EXTENSIONS),$(shell type hledger-$(EXT) >/dev/null 2>&1 && echo $(EXT)))
@@ -87,25 +67,12 @@ commands-list.txt:
 	printf "%s,"  $(COMMANDS) | sed 's/,$$//' > $@
 
 generic-options.txt:
-	hledger -h | $(PARSE_OPTIONS) > $@
+	$(PARSE_OPTIONS) > $@
 
 options-%.txt:
-	hledger $* -h | $(PARSE_OPTIONS) > $@
+	$(PARSE_OPTIONS) $* > $@
 
 .PHONY: clean
 clean:
-	rm -f $(COMMANDS_TMP) commands*.txt generic-options.txt options-*.txt
+	rm -f commands*.txt generic-options.txt options-*.txt
 	rm -f hledger-completion.bash
-
-
-# Basic REGEX debugging targets. Example usage:
-# diff <(make -s debug-options) <(make -s debug-options CMD=reg)
-
-.PHONY: debug-commands
-debug-commands:
-	$(PARSE_COMMANDS)
-
-.PHONY: debug-options
-debug-options: CMD :=
-debug-options:
-	hledger $(CMD) -h | $(PARSE_OPTIONS)
