@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-Timedot - hledger's human-friendly time logging format
+_info_({{
+# hledger timedot format
+}})
+
+hledger's human-friendly time logging format.
 
 _man_({{
 # DESCRIPTION

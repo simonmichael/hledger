@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-CSV - how hledger reads CSV data, and the CSV rules file format
+_info_({{
+# hledger csv format
+}})
+
+How hledger reads CSV data, and the CSV rules file format.
 
 _man_({{
 # DESCRIPTION

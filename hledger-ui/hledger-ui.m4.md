@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-hledger-ui - terminal interface for the hledger accounting tool
+_info_({{
+# hledger-ui
+}})
+
+A terminal interface (TUI) for the hledger accounting tool.
 
 _man_({{
 # SYNOPSIS

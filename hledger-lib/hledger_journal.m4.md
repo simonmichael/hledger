@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-Journal - hledger's default file format, representing a General Journal
+_info_({{
+# hledger journal format
+}})
+
+hledger's default file format, representing a General Journal.
 
 _man_({{
 # DESCRIPTION

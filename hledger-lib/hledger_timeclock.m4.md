@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-Timeclock - the time logging format of timeclock.el, as read by hledger
+_info_({{
+# hledger timeclock format
+}})
+
+The time logging format of timeclock.el, as read by hledger.
 
 _man_({{
 # DESCRIPTION

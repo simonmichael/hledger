@@ -17,7 +17,11 @@ _man_({{
 # NAME
 }})
 
-hledger - a command-line accounting tool
+_info_({{
+# hledger
+}})
+
+A command-line accounting tool for both power users and folks new to accounting.
 
 _man_({{
 # SYNOPSIS
