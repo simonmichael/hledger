@@ -1574,60 +1574,102 @@ Related:
 hledger provides a number of commands for producing reports and managing your data. 
 Run `hledger` with no arguments to list the commands available.
 
-To run a command, write its name as hledger's first argument (eg: `hledger balance`). 
-Or, you can write one of the standard short aliases which are
-shown in parentheses in the command list (eg: `hledger bal`); 
-or, any unambiguous prefix of a command name.
+To run a command, write its name (or its abbreviation shown in the commands list,
+or any unambiguous prefix of the name) as hledger's first argument.
+Eg: `hledger balance` or `hledger bal`.
 
-Each command's detailed help is available as one or more of:
+## Built-in commands
+<!-- keep synced with Hledger.Cli.Commands.commandsList -->
+
+**Data entry (these modify the journal file):**
+
+- [add](#add)                                      - add transactions using guided prompts
+- [import](#import)                                - add any new transactions from other files (eg csv)
+
+**Data management**:
+
+- [check](#check)                                  - check for various kinds of issue in the data
+- [close](#close) (equity)                         - generate balance-resetting transactions
+- [diff](#diff)                                    - compare account transactions in two journal files
+- [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
+
+**Financial statements:**
+
+- [aregister](#aregister) (areg)                   - show transactions in a particular account
+- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
+- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
+- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
+- [incomestatement](#incomestatement) (is)         - show revenues and expenses
+- [roi](#roi)                                      - show return on investments
+
+**Miscellaneous reports:**
+
+- [accounts](#accounts) (a)                        - show account names
+- [activity](#activity)                            - show postings-per-interval bar charts
+- [balance](#balance) (b, bal)                     - show balance changes/end balances/budgets in accounts
+- [codes](#codes)                                  - show transaction codes
+- [commodities](#commodities)                      - show commodity/currency symbols
+- [descriptions](#descriptions)                    - show unique transaction descriptions
+- [files](#files)                                  - show input file paths
+- [notes](#notes)                                  - show unique note segments of transaction descriptions
+- [payees](#payees)                                - show unique payee segments of transaction descriptions
+- [prices](#prices)                                - show market price records
+- [print](#print) (p, txns)                        - show transactions (journal entries)
+- [print-unique](#print-unique)                    - show only transactions with unique descriptions
+- [register](#register) (r, reg)                   - show postings in one or more accounts & running total
+- [register-match](#register-match)                - show a recent posting that best matches a description
+- [stats](#stats)                                  - show journal statistics
+- [tags](#tags)                                    - show tag names
+- [test](#test)                                    - run self tests
+
+## Command documentation
+
+Each command's detailed docs are available as one or more of:
 
 - command line help, eg: `hledger balance --help`
 <!-- - man pages, eg: `man hledger-balance` -->
 - info manuals, eg: `hledger help --info hledger` -> Commands -> balance
 - web manuals, eg: <https://hledger.org/hledger.html#balance>
 
-## Built-in commands
+_man_({{
+(Detailed command docs are omitted here for brevity;
+if you need them please use one of the above.)
+}})
+_notman_({{
+Here are the detailed command docs, in alphabetical order:
 
-**Data entry (these modify the journal file):**
-
-- [add](#add)                     add transactions using guided prompts
-- [import](#import)                  add any new transactions from other files (eg csv)
-
-**Data management**:
-
-- [check](#check)                   check for various kinds of issue in the data
-- [close](#close) (equity)           generate balance-resetting transactions
-- [diff](#diff)                    compare account transactions in two journal files
-- [rewrite](#rewrite)                 generate extra postings, similar to print --auto
-
-**Financial statements:**
-
-- [aregister](#aregister) (areg)         show transactions in a particular account
-- [balancesheet](#balancesheet) (bs)        show assets, liabilities and net worth
-- [balancesheetequity](#balancesheetequity) (bse) show assets, liabilities and equity
-- [cashflow](#cashflow) (cf)            show changes in liquid assets
-- [incomestatement](#incomestatement) (is)     show revenues and expenses
-- [roi](#roi)                     show return on investments
-
-**Miscellaneous reports:**
-
-- [accounts](#accounts) (a)             show account names
-- [activity](#activity)                show postings-per-interval bar charts
-- [balance](#balance) (b, bal)         show balance changes/end balances/budgets in accounts
-- [codes](#codes)                   show transaction codes
-- [commodities](#commodities)             show commodity/currency symbols
-- [descriptions](#descriptions)            show unique transaction descriptions
-- [files](#files)                   show input file paths
-- [notes](#notes)                   show unique note segments of transaction descriptions
-- [payees](#payees)                  show unique payee segments of transaction descriptions
-- [prices](#prices)                  show market price records
-- [print](#print) (p, txns)          show transactions (journal entries)
-- [print-unique](#print-unique)            show only transactions with unique descriptions
-- [register](#register) (r, reg)        show postings in one or more accounts & running total
-- [register-match](#register-match)          show a recent posting that best matches a description
-- [stats](#stats)                   show journal statistics
-- [tags](#tags)                    show tag names
-- [test](#test)                    run self tests
+m4_dnl    commandnameheading:     Commandmdfile:
+_command_({{### accounts}}           ,{{Accounts}})
+_command_({{### activity}}           ,{{Activity}})
+_command_({{### add}}                ,{{Add}})
+_command_({{### aregister}}          ,{{Aregister}})
+_command_({{### balance}}            ,{{Balance}})
+_command_({{### balancesheet}}       ,{{Balancesheet}})
+_command_({{### balancesheetequity}} ,{{Balancesheetequity}})
+_command_({{### cashflow}}           ,{{Cashflow}})
+_command_({{### check}}              ,{{Check}})
+_command_({{### close}}              ,{{Close}})
+_command_({{### codes}}              ,{{Codes}})
+_command_({{### commodities}}        ,{{Commodities}})
+_command_({{### descriptions}}       ,{{Descriptions}})
+_command_({{### diff}}               ,{{Diff}})
+_command_({{### files}}              ,{{Files}})
+_command_({{### help}}               ,{{Help}})
+_command_({{### import}}             ,{{Import}})
+_command_({{### incomestatement}}    ,{{Incomestatement}})
+_command_({{### notes}}              ,{{Notes}})
+_command_({{### payees}}             ,{{Payees}}) 
+_command_({{### prices}}             ,{{Prices}})
+_command_({{### print}}              ,{{Print}})
+_command_({{### print-unique}}       ,{{Printunique}})
+_command_({{### register}}           ,{{Register}})
+_command_({{### register-match}}     ,{{Registermatch}})
+_command_({{### rewrite}}            ,{{Rewrite}})
+_command_({{### roi}}                ,{{Roi}})
+_command_({{### stats}}              ,{{Stats}})
+_command_({{### tags}}               ,{{Tags}})
+_command_({{### test}}               ,{{Test}})
+}})
 
 ## Add-on commands
 
@@ -1694,133 +1736,6 @@ Add-on commands are programs or scripts in your PATH
 Add-ons are a relatively easy way to add local features or experiment with new ideas.
 They can be written in any language, but haskell scripts have a big advantage:
 they can use the same hledger library functions that built-in commands use for command-line options, parsing and reporting.
-
-_notman_({{
-## Detailed command help
-
-Here are the detailed command docs, in alphabetical order.
-
-## accounts
-
-_include_(Hledger/Cli/Commands/Accounts.md)
-
-## activity
-
-_include_(Hledger/Cli/Commands/Activity.md)
-
-## add
-
-_include_(Hledger/Cli/Commands/Add.md)
-
-## aregister
-
-_include_(Hledger/Cli/Commands/Aregister.md)
-
-## balance
-
-_include_({{Hledger/Cli/Commands/Balance.md}})
-
-## balancesheet
-
-_include_({{Hledger/Cli/Commands/Balancesheet.md}})
-
-## balancesheetequity
-
-_include_({{Hledger/Cli/Commands/Balancesheetequity.md}})
-
-## cashflow
-
-_include_({{Hledger/Cli/Commands/Cashflow.md}})
-
-## check
-
-_include_({{Hledger/Cli/Commands/Check.md}})
-
-## close
-
-_include_({{Hledger/Cli/Commands/Close.md}})
-
-## codes
-
-_include_({{Hledger/Cli/Commands/Codes.md}})
-
-## commodities
-
-_include_({{Hledger/Cli/Commands/Commodities.md}})
-
-## descriptions
-
-_include_({{Hledger/Cli/Commands/Descriptions.md}})
-
-## diff
-
-_include_({{Hledger/Cli/Commands/Diff.md}})
-
-## files
-
-_include_({{Hledger/Cli/Commands/Files.md}})
-
-## help
-
-_include_({{Hledger/Cli/Commands/Help.md}})
-
-## import
-
-_include_({{Hledger/Cli/Commands/Import.md}})
-
-## incomestatement
-
-_include_({{Hledger/Cli/Commands/Incomestatement.md}})
-
-## notes
-
-_include_({{Hledger/Cli/Commands/Notes.md}})
-
-## payees
-
-_include_({{Hledger/Cli/Commands/Payees.md}})
-
-## prices
-
-_include_({{Hledger/Cli/Commands/Prices.md}})
-
-## print
-
-_include_({{Hledger/Cli/Commands/Print.md}})
-
-## print-unique
-
-_include_({{Hledger/Cli/Commands/Printunique.md}})
-
-## register
-
-_include_({{Hledger/Cli/Commands/Register.md}})
-
-## register-match
-
-_include_({{Hledger/Cli/Commands/Registermatch.md}})
-
-## rewrite
-
-_include_({{Hledger/Cli/Commands/Rewrite.md}})
-
-## roi
-
-_include_({{Hledger/Cli/Commands/Roi.md}})
-
-## stats
-
-_include_({{Hledger/Cli/Commands/Stats.md}})
-
-## tags
-
-_include_({{Hledger/Cli/Commands/Tags.md}})
-
-## test
-
-_include_({{Hledger/Cli/Commands/Test.md}})
-
-}})
 
 
 # ENVIRONMENT
