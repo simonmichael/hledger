@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Parse hledger's help and output all commands and command aliases in
 # parenthesis. Do not output single letter command aliases, it's not useful.
-set -euo pipefail
+set -uo pipefail
 
 declare commands_help
 commands_help=$(hledger)

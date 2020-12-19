@@ -2,7 +2,7 @@
 # Parse hledger's help and output long options. Do not propose single letter
 # completions. Options requiring an argument make that explicit by appending the
 # equal sign (=)
-set -euo pipefail
+set -uo pipefail
 
 declare subcommand=${1:-}
 declare hledgerArgs=(--help)
