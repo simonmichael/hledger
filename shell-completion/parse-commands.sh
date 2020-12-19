@@ -4,7 +4,7 @@
 set -uo pipefail
 
 declare commands_help
-commands_help=$(hledger)
+commands_help=$(hledger) || exit
 {
     sed -rn 's/^\s+([a-z][-a-z]+)\s+.*/\1/p' <<< "$commands_help"
     sed -rn 's/^\s+[a-z][-a-z]+\s+\(([a-z][ ,a-z]+)\).*/\1/p' <<< "$commands_help" |

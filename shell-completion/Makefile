@@ -27,6 +27,11 @@ EXTENSIONS := ui web
 INSTALLED_EXTENSIONS := $(foreach EXT,$(EXTENSIONS),$(shell type hledger-$(EXT) >/dev/null 2>&1 && echo $(EXT)))
 
 COMMANDS := $(sort $(shell $(PARSE_COMMANDS)) $(INSTALLED_EXTENSIONS))
+
+ifneq ($(.SHELLSTATUS),0)
+$(error Error running $(PARSE_COMMANDS))
+endif
+
 CMDOPTFILES := $(foreach CMD,$(COMMANDS),options-$(CMD).txt)
 
 all: hledger-completion.bash
