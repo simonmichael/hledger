@@ -40,7 +40,7 @@ all: hledger-completion.bash
 install:
 	@install -v -d "$(DESTDIR)$(BASHCOMPDIR)"
 	@install -v -m 0644 hledger-completion.bash "$(DESTDIR)$(BASHCOMPDIR)/hledger"
-	@for ext in $(INSTALLED_EXTENSIONS); do \
+	@for ext in $(EXTENSIONS); do \
 		printf "symlink " ; \
 		ln -sfv hledger "$(DESTDIR)$(BASHCOMPDIR)/hledger-$$ext" ; \
 	done
@@ -48,7 +48,7 @@ install:
 .PHONY: uninstall
 uninstall:
 	@rm -vf "$(DESTDIR)$(BASHCOMPDIR)/hledger"
-	@for ext in $(INSTALLED_EXTENSIONS); do \
+	@for ext in $(EXTENSIONS); do \
 		rm -vf "$(DESTDIR)$(BASHCOMPDIR)/hledger-$$ext" ; \
 	done
 
