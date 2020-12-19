@@ -6,9 +6,9 @@ set -euo pipefail
 declare commands_help
 commands_help=$(hledger)
 {
-    sed -rn 's/^\s+([a-z][-a-z]+)\s+.*/\1/p' <<< "$commands_help"
-    sed -rn 's/^\s+[a-z][-a-z]+\s+\(([a-z][ ,a-z]+)\).*/\1/p' <<< "$commands_help" |
-    sed 's/\s*,\s*/\n/g' |
+    sed -rn 's/^[[:space:]]+([a-z][-a-z]+)[[:space:]]+.*/\1/p' <<< "$commands_help"
+    sed -rn 's/^[[:space:]]+[a-z][-a-z]+[[:space:]]+\(([a-z][ ,a-z]+)\).*/\1/p' <<< "$commands_help" |
+    sed 's/[[:space:]]*,[[:space:]]*/\n/g' |
     sed '/^.$/d'
 } | sed '/^hledger/d' | sort -u
 

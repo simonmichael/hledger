@@ -9,8 +9,8 @@ declare hledgerArgs=(--help)
 [[ -n $subcommand ]] && hledgerArgs=("$subcommand" "${hledgerArgs[@]}")
 
 hledger "${hledgerArgs[@]}" |
-    sed -rn '/^\s+-/p' |
-    sed -rn 's/^\s{1,4}(-.)?\s{1,4}(--[a-zA-Z][-_a-zA-Z0-9]+=?).*/\2/p' |
+    sed -rn '/^[[:space:]]+-/p' |
+    sed -rn 's/^[[:space:]]{1,4}(-.)?[[:space:]]{1,4}(--[a-zA-Z][-_a-zA-Z0-9]+=?).*/\2/p' |
     sort -u
 
 # Local Variables:
