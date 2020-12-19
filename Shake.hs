@@ -97,7 +97,7 @@ usage =
 --  ,"./Shake relnotes           create draft release notes"
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
-makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
+makeinfo = "makeinfo --no-split --force --no-warn --no-validate"  -- silence makeinfo warnings, comment these to see them
 pandoc   = "pandoc --strip-comments"
 gitcommit = "git commit --allow-empty"
 
@@ -408,7 +408,6 @@ main = do
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
         need $ [src, commonm4, packagemanversionm4, packagemandatem4, tmpl] ++ deps
         when (dir=="hledger") $ need commandmds
-        -- cmd_ Shell sed "-i -e" ("'s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;'") packagem4  -- forces a rebuild, only when month has changed ?
         cmd Shell
           "m4 -P -DMAN -I" dir commonm4 packagemanversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
@@ -444,13 +443,13 @@ main = do
         when (dir=="hledger") $ need commandmds
         cmd Shell
           "m4 -P -DINFO -I" dir commonm4 packagemanversionm4 src "|"
-          sed "-e 's/^#(#+)/\\1/'" "|"
+          -- sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
           "--lua-filter tools/pandoc-drop-html-inlines.lua"
           "--lua-filter tools/pandoc-drop-links.lua"
-          "-t texinfo |"
-          makeinfo "--force --no-split -o" out
+          "-t texinfo -s |"
+          makeinfo "-o" out
 
 
       -- WEBSITE MARKDOWN SOURCE
