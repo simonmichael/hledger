@@ -23,7 +23,7 @@ DESTDIR ?=
 PARSE_COMMANDS := ./parse-commands.sh
 PARSE_OPTIONS := ./parse-options.sh
 
-EXTENSIONS := ui web api
+EXTENSIONS := ui web
 INSTALLED_EXTENSIONS := $(foreach EXT,$(EXTENSIONS),$(shell type hledger-$(EXT) >/dev/null 2>&1 && echo $(EXT)))
 
 COMMANDS := $(sort $(shell $(PARSE_COMMANDS)) $(INSTALLED_EXTENSIONS))
