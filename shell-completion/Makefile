@@ -34,6 +34,17 @@ endif
 
 CMDOPTFILES := $(foreach CMD,$(COMMANDS),options-$(CMD).txt)
 
+define M4DEPS :=
+hledger-completion.bash.m4 \
+hledger-completion.bash.stub \
+commands.txt \
+commands-list.txt \
+query-filters.txt \
+generic-options.txt \
+$(CMDOPTFILES)
+endef
+
+
 all: hledger-completion.bash
 
 .PHONY: install
@@ -51,16 +62,6 @@ uninstall:
 	@for ext in $(EXTENSIONS); do \
 		rm -vf "$(DESTDIR)$(BASHCOMPDIR)/hledger-$$ext" ; \
 	done
-
-define M4DEPS :=
-hledger-completion.bash.m4 \
-hledger-completion.bash.stub \
-commands.txt \
-commands-list.txt \
-query-filters.txt \
-generic-options.txt \
-$(CMDOPTFILES)
-endef
 
 hledger-completion.bash: $(M4DEPS)
 	m4 -g hledger-completion.bash.m4 > $@
