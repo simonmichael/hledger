@@ -1582,7 +1582,16 @@ To run a command, write its name (or its abbreviation shown in the commands list
 or any unambiguous prefix of the name) as hledger's first argument.
 Eg: `hledger balance` or `hledger bal`.
 
-## Built-in commands
+m4_dnl XXX maybe later
+m4_dnl Each command's detailed docs are available :
+m4_dnl 
+m4_dnl - command line help, eg: `hledger balance --help`
+m4_dnl - 
+m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
+m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
+m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
+
+Here are the built-in commands:
 <!-- keep synced with Hledger.Cli.Commands.commandsList -->
 
 **Data entry (these modify the journal file):**
@@ -1626,54 +1635,41 @@ Eg: `hledger balance` or `hledger bal`.
 - [tags](#tags)                                    - show tag names
 - [test](#test)                                    - run self tests
 
-## Command documentation
-
-Each command's detailed docs are available as one or more of:
-
-- command line help, eg: `hledger balance --help`
-<!-- - man pages, eg: `man hledger-balance` -->
-- info manuals, eg: `hledger help --info hledger` -> Commands -> balance
-- web manuals, eg: <https://hledger.org/hledger.html#balance>
-
-_man_({{
-(Detailed command docs are omitted here for brevity;
-if you need them please use one of the above.)
-}})
-_notman_({{
-Here are the detailed command docs, in alphabetical order:
+m4_dnl XXX maybe later
+m4_dnl _man_({{
+m4_dnl (Detailed command docs are omitted here for brevity,
+m4_dnl if you need them please use one of the other doc formats mentioned above.)
+m4_dnl }})
+m4_dnl _notman_({{
+m4_dnl Here are the detailed command docs, in alphabetical order:
 
 m4_dnl    commandnameheading:     Commandmdfile:
-_command_({{### accounts}}           ,{{Accounts}})
-_command_({{### activity}}           ,{{Activity}})
-_command_({{### add}}                ,{{Add}})
-_command_({{### aregister}}          ,{{Aregister}})
-_command_({{### balance}}            ,{{Balance}})
-_command_({{### balancesheet}}       ,{{Balancesheet}})
-_command_({{### balancesheetequity}} ,{{Balancesheetequity}})
-_command_({{### cashflow}}           ,{{Cashflow}})
-_command_({{### check}}              ,{{Check}})
-_command_({{### close}}              ,{{Close}})
-_command_({{### codes}}              ,{{Codes}})
-_command_({{### commodities}}        ,{{Commodities}})
-_command_({{### descriptions}}       ,{{Descriptions}})
-_command_({{### diff}}               ,{{Diff}})
-_command_({{### files}}              ,{{Files}})
-_command_({{### help}}               ,{{Help}})
-_command_({{### import}}             ,{{Import}})
-_command_({{### incomestatement}}    ,{{Incomestatement}})
-_command_({{### notes}}              ,{{Notes}})
-_command_({{### payees}}             ,{{Payees}}) 
-_command_({{### prices}}             ,{{Prices}})
-_command_({{### print}}              ,{{Print}})
-_command_({{### print-unique}}       ,{{Printunique}})
-_command_({{### register}}           ,{{Register}})
-_command_({{### register-match}}     ,{{Registermatch}})
-_command_({{### rewrite}}            ,{{Rewrite}})
-_command_({{### roi}}                ,{{Roi}})
-_command_({{### stats}}              ,{{Stats}})
-_command_({{### tags}}               ,{{Tags}})
-_command_({{### test}}               ,{{Test}})
-}})
+_command_({{## accounts}}           ,{{Accounts}})
+_command_({{## activity}}           ,{{Activity}})
+_command_({{## add}}                ,{{Add}})
+_command_({{## aregister}}          ,{{Aregister}})
+_command_({{## balance}}            ,{{Balance}})
+_command_({{## balancesheet}}       ,{{Balancesheet}})
+_command_({{## balancesheetequity}} ,{{Balancesheetequity}})
+_command_({{## cashflow}}           ,{{Cashflow}})
+_command_({{## check}}              ,{{Check}})
+_command_({{## close}}              ,{{Close}})
+_command_({{## codes}}              ,{{Codes}})
+_command_({{## commodities}}        ,{{Commodities}})
+_command_({{## descriptions}}       ,{{Descriptions}})
+_command_({{## diff}}               ,{{Diff}})
+_command_({{## files}}              ,{{Files}})
+_command_({{## help}}               ,{{Help}})
+_command_({{## import}}             ,{{Import}})
+_command_({{## incomestatement}}    ,{{Incomestatement}})
+_command_({{## notes}}              ,{{Notes}})
+_command_({{## rewrite}}            ,{{Rewrite}})
+_command_({{## roi}}                ,{{Roi}})
+_command_({{## stats}}              ,{{Stats}})
+_command_({{## tags}}               ,{{Tags}})
+_command_({{## test}}               ,{{Test}})
+
+m4_dnl }})
 
 ## Add-on commands
 
