@@ -63,7 +63,7 @@ $(CMDOPTFILES)
 endef
 
 hledger-completion.bash: $(M4DEPS)
-	m4 hledger-completion.bash.m4 > $@
+	m4 -g hledger-completion.bash.m4 > $@
 
 commands.txt:
 	printf "%s\n" $(COMMANDS) > $@
