@@ -21,6 +21,12 @@ transaction setting the correct starting balance on that date.
 Then the balance command will show real-world account balances.
 In some cases the -H/--historical flag is used to ensure this (more below).
 
+This command also supports the
+[output destination](hledger.html#output-destination) and
+[output format](hledger.html#output-format) options
+The output formats supported are (in most modes):
+`txt`, `csv`, `html`, and `json`.
+
 The balance command can produce several styles of report:
 
 ### Classic balance report
@@ -570,10 +576,3 @@ Budget performance in 2019/01:
                                         ||        0 [                 0] 
 ```
 
-### Output format
-
-This command also supports the
-[output destination](hledger.html#output-destination) and
-[output format](hledger.html#output-format) options
-The output formats supported are (in most modes):
-`txt`, `csv`, `html`, and `json`.
