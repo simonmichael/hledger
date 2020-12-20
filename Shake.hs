@@ -448,7 +448,10 @@ main = do
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
           "--lua-filter tools/pandoc-drop-html-inlines.lua"
           "--lua-filter tools/pandoc-drop-links.lua"
-          "-t texinfo -s |"
+          -- add "standalone" headers ? sounds good for setting text encoding,
+          -- but messes up quotes ('a' becomes ^Xa^Y)
+          -- "-s"
+          "-t texinfo |"
           makeinfo "-o" out
 
 
