@@ -27,9 +27,11 @@ _man_({{
 # SYNOPSIS
 }})
 
-`hledger [-f FILE] COMMAND [OPTIONS] [ARGS]`\
-`hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`\
 `hledger`
+
+`hledger [-f FILE] COMMAND [OPTIONS] [ARGS]`
+
+`hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`
 
 _man_({{
 # DESCRIPTION
