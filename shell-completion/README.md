@@ -29,7 +29,7 @@ distribution. Refer to the last paragraph of this section for how to test that.
 
 To install from the repository, do:
 
-``` sh
+```sh
 cd /path-to-repo/shell-completion
 make install
 ```
@@ -38,9 +38,9 @@ Completions installed this way will be loaded dynamically after you use the hled
 command. Upon the first invocation of a command that has no predefined completion
 bash looks for a file with the same name in a set of predefined locations in this order:
 
-- $BASH_COMPLETION_USER_DIR/completions
-- $XDG_DATA_HOME/bash-completion/completions
-- $HOME/.local/share/bash-completion/completions
+- `$BASH_COMPLETION_USER_DIR/completions`
+- `$XDG_DATA_HOME/bash-completion/completions`
+- `$HOME/.local/share/bash-completion/completions`
 - etc.
 
 You can manually achieve the effects of `make install` by copying
@@ -48,7 +48,7 @@ You can manually achieve the effects of `make install` by copying
 to `hledger`, `_hledger` or `hledger.bash`. For the gory details, type this in a
 bash shell:
 
-``` sh
+```sh
 type __load_completion
 ```
 
@@ -59,7 +59,7 @@ eagerly and that adds a delay to shell start up time.
 
 Example:
 
-```
+```sh
 cp hledger-completion.bash ~/.bash_completion.d/hledger
 echo 'source ~/.bash_completion.d/hledger' >> ~/.bashrc
 # Restart shell
@@ -86,7 +86,7 @@ Information for developers
 
 Generate the completion script for Bash:
 
-```
+```sh
 # change into this folder:
 cd shell-completion/
 make
@@ -102,7 +102,7 @@ your distribution should be responsible for this.
 
 For now, or to live-test the script, you can use these two commands:
 
-```
+```sh
 ln -s hledger-completion.bash ~/.hledger-completion.bash
 echo 'source ~/.hledger-completion.bash' >> ~/.bashrc
 ```
