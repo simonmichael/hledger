@@ -1,13 +1,12 @@
 .\"t
 
-.TH "hledger_journal" "5" "December 2020" "hledger 1.20.99" "hledger User Manuals"
+.TH "HLEDGER_JOURNAL" "5" "December 2020" "hledger-lib-1.20.99 " "hledger User Manuals"
 
 
 
 .SH NAME
 .PP
-Journal - hledger\[aq]s default file format, representing a General
-Journal
+hledger\[aq]s default file format, representing a General Journal.
 .SH DESCRIPTION
 .PP
 hledger\[aq]s usual data source is a plain text file containing journal
@@ -34,7 +33,6 @@ Editor addons such as ledger-mode or hledger-mode for Emacs, vim-ledger
 for Vim, and hledger-vscode for Visual Studio Code, make this easier,
 adding colour, formatting, tab completion, and useful commands.
 See Editor configuration at hledger.org for the full list.
-.SH FILE FORMAT
 .PP
 Here\[aq]s a description of each part of the file format (and
 hledger\[aq]s data model).
@@ -42,7 +40,7 @@ These are mostly in the order you\[aq]ll use them, but in some cases
 related concepts have been grouped together for easy reference, or
 linked before they are introduced, so feel free to skip over anything
 that looks unnecessary right now.
-.SS Transactions
+.SH TRANSACTIONS
 .PP
 Transactions are the main unit of information in a journal file.
 They represent events, typically a movement of some quantity of
@@ -75,7 +73,7 @@ Here\[aq]s a simple journal file containing one transaction:
   income:salary         $-1
 \f[R]
 .fi
-.SS Dates
+.SH DATES
 .SS Simple dates
 .PP
 Dates in the journal file use \f[I]simple dates\f[R] format:
@@ -181,7 +179,7 @@ hledger will attempt to parse any square-bracketed sequence of the
 \f[C]0123456789/-.=\f[R] characters in this way.
 With this syntax, DATE infers its year from the transaction and DATE2
 infers its year from DATE.
-.SS Status
+.SH STATUS
 .PP
 Transactions, or individual postings within a transaction, can have a
 status mark, which is a single character before the transaction
@@ -268,7 +266,7 @@ With this scheme, you would use \f[C]-PC\f[R] to see the current balance
 at your bank, \f[C]-U\f[R] to see things which will probably hit your
 bank soon (like uncashed checks), and no flags to see the most
 up-to-date state of your finances.
-.SS Description
+.SH DESCRIPTION
 .PP
 A transaction\[aq]s description is the rest of the line following the
 date and status mark (or until a comment begins).
@@ -283,7 +281,7 @@ payee/payer name on the left (up to the first \f[C]|\f[R]) and an
 additional note field on the right (after the first \f[C]|\f[R]).
 This may be worthwhile if you need to do more precise querying and
 pivoting by payee or by note.
-.SS Comments
+.SH COMMENTS
 .PP
 Lines in the journal beginning with a semicolon (\f[C];\f[R]) or hash
 (\f[C]#\f[R]) or star (\f[C]*\f[R]) are comments, and will be ignored.
@@ -324,7 +322,7 @@ end comment
 .PP
 You can also comment larger regions of a file using \f[C]comment\f[R]
 and \f[C]end comment\f[R] directives.
-.SS Tags
+.SH TAGS
 .PP
 Tags are a way to add extra labels or labelled data to postings and
 transactions, which you can then search or pivot on.
@@ -383,7 +381,7 @@ plus \f[C]posting-tag\f[R]):
 .PP
 Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
 values are simple strings.
-.SS Postings
+.SH POSTINGS
 .PP
 A posting is an addition of some amount to, or removal of some amount
 from, an account.
@@ -454,7 +452,7 @@ Ordinary non-parenthesised, non-bracketed postings are called \f[I]real
 postings\f[R].
 You can exclude virtual postings from reports with the
 \f[C]-R/--real\f[R] flag or \f[C]real:1\f[R] query.
-.SS Account names
+.SH ACCOUNT NAMES
 .PP
 Account names typically have several parts separated by a full colon,
 from which hledger derives a hierarchical chart of accounts.
@@ -468,7 +466,7 @@ Because of this, they must always be followed by \f[B]two or more
 spaces\f[R] (or newline).
 .PP
 Account names can be aliased.
-.SS Amounts
+.SH AMOUNTS
 .PP
 After the account name, there is usually an amount.
 (Important: between account name and amount, there must be \f[B]two or
@@ -637,7 +635,7 @@ Note, hledger uses banker\[aq]s rounding: it rounds to the nearest even
 number, eg 0.5 displayed with zero decimal places is \[dq]0\[dq]).
 (Guaranteed since hledger 1.17.1; in older versions this could vary if
 hledger was built with Decimal < 0.5.1.)
-.SS Transaction prices
+.SH TRANSACTION PRICES
 .PP
 Within a transaction, you can note an amount\[aq]s price in another
 commodity.
@@ -734,7 +732,7 @@ $ hledger bal -N --flat -B
                 \[Eu]100  assets:euros
 \f[R]
 .fi
-.SS Lot prices and lot dates
+.SH LOT PRICES, LOT DATES
 .PP
 Ledger allows another kind of price, lot price (four variants:
 \f[C]{UNITPRICE}\f[R], \f[C]{{TOTALPRICE}}\f[R],
@@ -745,7 +743,7 @@ hledger will parse these, for compatibility with Ledger journals, but
 currently ignores them.
 A transaction price, lot price and/or lot date may appear in any order,
 after the posting amount and before the balance assertion if any.
-.SS Balance assertions
+.SH BALANCE ASSERTIONS
 .PP
 hledger supports Ledger-style balance assertions in journal files.
 These look like, for example, \f[C]= EXPECTEDBALANCE\f[R] following a
@@ -901,7 +899,7 @@ always what is shown by reports.
 Eg a commodity directive may limit the display precision, but this will
 not affect balance assertions.
 Balance assertion failure messages show exact amounts.
-.SS Balance assignments
+.SH BALANCE ASSIGNMENTS
 .PP
 Ledger-style balance assignments are also supported.
 These are like balance assertions, but with no posting amount on the
@@ -958,7 +956,7 @@ $ hledger print --explicit
     (a)         $1 \[at] \[Eu]2 = $1 \[at] \[Eu]2
 \f[R]
 .fi
-.SS Directives
+.SH DIRECTIVES
 .PP
 A directive is a line in the journal beginning with a special keyword,
 that influences how the journal is processed.
@@ -1850,7 +1848,7 @@ It does not affect account names being entered via hledger add or
 hledger-web.
 If account aliases are present, they are applied after the default
 parent account.
-.SS Periodic transactions
+.SH PERIODIC TRANSACTIONS
 .PP
 Periodic transaction rules describe transactions that recur.
 They allow hledger to generate temporary future transactions to help
@@ -2004,7 +2002,7 @@ Goals and actual performance can then be compared in budget reports.
 .PP
 See also: Budgeting and Forecasting.
 .PP
-.SS Auto postings
+.SH AUTO POSTINGS
 .PP
 \[dq]Automated postings\[dq] or \[dq]auto postings\[dq] are extra
 postings which get added automatically to transactions which match
@@ -2150,6 +2148,6 @@ Copyright (C) 2007-2020 Simon Michael.
 Released under GNU GPL v3 or later.
 
 .SH SEE ALSO
-hledger(1), hledger\-ui(1), hledger\-web(1),
-hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_timedot(5),
-ledger(1)
+hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
+
+hledger_journal(5), hledger_csv(5), hledger_timeclock(5), hledger_timedot(5)
