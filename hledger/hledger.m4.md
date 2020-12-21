@@ -1639,7 +1639,8 @@ m4_dnl (Detailed command docs are omitted here for brevity,
 m4_dnl if you need them please use one of the other doc formats mentioned above.)
 m4_dnl }})
 m4_dnl _notman_({{
-m4_dnl Here are the detailed command docs, in alphabetical order:
+
+Next, the detailed command docs, in alphabetical order.
 
 m4_dnl    commandnameheading:     Commandmdfile:
 _command_({{## accounts}}           ,{{Accounts}})
