@@ -4,10 +4,10 @@ stdin.
 
 File: hledger_timeclock.info,  Node: Top,  Up: (dir)
 
-hledger_timeclock(5) hledger 1.20.99
-************************************
+hledger_timeclock(5)
+********************
 
-Timeclock - the time logging format of timeclock.el, as read by hledger
+The time logging format of timeclock.el, as read by hledger.
 
    hledger can read timeclock files.  As with Ledger, these are (a
 subset of) timeclock.el's format, containing clock-in and clock-out
@@ -61,8 +61,3 @@ Tag Table:
 Node: Top78
 
 End Tag Table
-
-
-Local Variables:
-coding: utf-8
-End:

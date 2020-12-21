@@ -3,10 +3,10 @@ This is hledger_csv.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger_csv(5) hledger 1.20.99
-******************************
+hledger_csv(5)
+**************
 
-CSV - how hledger reads CSV data, and the CSV rules file format
+How hledger reads CSV data, and the CSV rules file format.
 
    hledger can read CSV files (Character Separated Value - usually
 comma, semicolon, or tab) containing dated records as if they were
@@ -60,37 +60,11 @@ below.
 * Menu:
 
 * EXAMPLES::
-* Basic::
-* Bank of Ireland::
-* Amazon::
-* Paypal::
 * CSV RULES::
-* skip::
-* fields::
-* field assignment::
-* separator::
-* if block::
-* if table::
-* end::
-* date-format::
-* decimal-mark::
-* newest-first::
-* include::
-* balance-type::
 * TIPS::
-* Rapid feedback::
-* Valid CSV::
-* File Extension::
-* Reading multiple CSV files::
-* Valid transactions::
-* Deduplicating importing::
-* Setting amounts::
-* Setting currency/commodity::
-* Referencing other fields::
-* How CSV rules are evaluated::
 
 
-File: hledger_csv.info,  Node: EXAMPLES,  Next: Basic,  Prev: Top,  Up: Top
+File: hledger_csv.info,  Node: EXAMPLES,  Next: CSV RULES,  Prev: Top,  Up: Top
 
 1 EXAMPLES
 **********
@@ -99,11 +73,18 @@ Here are some sample hledger CSV rules files.  See also the full
 collection at:
 https://github.com/simonmichael/hledger/tree/master/examples/csv
 
-
-File: hledger_csv.info,  Node: Basic,  Next: Bank of Ireland,  Prev: EXAMPLES,  Up: Top
+* Menu:
 
-2 Basic
-*******
+* Basic::
+* Bank of Ireland::
+* Amazon::
+* Paypal::
+
+
+File: hledger_csv.info,  Node: Basic,  Next: Bank of Ireland,  Up: EXAMPLES
+
+1.1 Basic
+=========
 
 At minimum, the rules file must identify the date and amount fields, and
 often it also specifies the date format and how many header lines there
@@ -125,10 +106,10 @@ $ hledger print -f basic.csv
    Default account names are chosen, since we didn't set them.
 
 
-File: hledger_csv.info,  Node: Bank of Ireland,  Next: Amazon,  Prev: Basic,  Up: Top
+File: hledger_csv.info,  Node: Bank of Ireland,  Next: Amazon,  Prev: Basic,  Up: EXAMPLES
 
-3 Bank of Ireland
-*****************
+1.2 Bank of Ireland
+===================
 
 Here's a CSV with two amount fields (Debit and Credit), and a balance
 field, which we can use to add balance assertions, which is not
@@ -178,10 +159,10 @@ reading directly from CSV, but they will be checked if these entries are
 imported into a journal file.
 
 
-File: hledger_csv.info,  Node: Amazon,  Next: Paypal,  Prev: Bank of Ireland,  Up: Top
+File: hledger_csv.info,  Node: Amazon,  Next: Paypal,  Prev: Bank of Ireland,  Up: EXAMPLES
 
-4 Amazon
-********
+1.3 Amazon
+==========
 
 Here we convert amazon.com order history, and use an if block to
 generate a third posting if there's a fee.  (In practice you'd probably
@@ -236,10 +217,10 @@ $ hledger -f amazon-orders.csv print
     expenses:fees           $1.00
 
 
-File: hledger_csv.info,  Node: Paypal,  Next: CSV RULES,  Prev: Amazon,  Up: Top
+File: hledger_csv.info,  Node: Paypal,  Prev: Amazon,  Up: EXAMPLES
 
-5 Paypal
-********
+1.4 Paypal
+==========
 
 Here's a real-world rules file for (customised) Paypal CSV, with some
 Paypal-specific rules, and a second rules file included:
@@ -390,19 +371,34 @@ $ hledger -f paypal-custom.csv  print
     expenses:banking:paypal                    $0.59  ; business:
 
 
-File: hledger_csv.info,  Node: CSV RULES,  Next: skip,  Prev: Paypal,  Up: Top
+File: hledger_csv.info,  Node: CSV RULES,  Next: TIPS,  Prev: EXAMPLES,  Up: Top
 
-6 CSV RULES
+2 CSV RULES
 ***********
 
 The following kinds of rule can appear in the rules file, in any order.
 Blank lines and lines beginning with '#' or ';' are ignored.
 
-
-File: hledger_csv.info,  Node: skip,  Next: fields,  Prev: CSV RULES,  Up: Top
+* Menu:
 
-7 'skip'
-********
+* skip::
+* fields::
+* field assignment::
+* separator::
+* if block::
+* if table::
+* end::
+* date-format::
+* decimal-mark::
+* newest-first::
+* include::
+* balance-type::
+
+
+File: hledger_csv.info,  Node: skip,  Next: fields,  Up: CSV RULES
+
+2.1 'skip'
+==========
 
 skip N
 
@@ -415,10 +411,10 @@ whenever your CSV data contains header lines.
 ignore certain CSV records (described below).
 
 
-File: hledger_csv.info,  Node: fields,  Next: field assignment,  Prev: skip,  Up: Top
+File: hledger_csv.info,  Node: fields,  Next: field assignment,  Prev: skip,  Up: CSV RULES
 
-8 'fields'
-**********
+2.2 'fields'
+============
 
 fields FIELDNAME1, FIELDNAME2, ...
 
@@ -457,8 +453,8 @@ journal format.
 
 File: hledger_csv.info,  Node: Transaction field names,  Next: Posting field names,  Up: fields
 
-8.1 Transaction field names
-===========================
+2.2.1 Transaction field names
+-----------------------------
 
 'date', 'date2', 'status', 'code', 'description', 'comment' can be used
 to form the transaction's first line.
@@ -466,8 +462,8 @@ to form the transaction's first line.
 
 File: hledger_csv.info,  Node: Posting field names,  Prev: Transaction field names,  Up: fields
 
-8.2 Posting field names
-=======================
+2.2.2 Posting field names
+-------------------------
 
 * Menu:
 
@@ -480,8 +476,8 @@ File: hledger_csv.info,  Node: Posting field names,  Prev: Transaction field nam
 
 File: hledger_csv.info,  Node: account,  Next: amount,  Up: Posting field names
 
-8.2.1 account
--------------
+2.2.2.1 account
+...............
 
 'accountN', where N is 1 to 99, causes a posting to be generated, with
 that account name.
@@ -498,8 +494,8 @@ or "income:unknown").
 
 File: hledger_csv.info,  Node: amount,  Next: currency,  Prev: account,  Up: Posting field names
 
-8.2.2 amount
-------------
+2.2.2.2 amount
+..............
 
 'amountN' sets posting N's amount.  If the CSV uses separate fields for
 inflows and outflows, you can use 'amountN-in' and 'amountN-out'
@@ -525,8 +521,8 @@ avoiding conflicts.
 
 File: hledger_csv.info,  Node: currency,  Next: balance,  Prev: amount,  Up: Posting field names
 
-8.2.3 currency
---------------
+2.2.2.3 currency
+................
 
 If the CSV has the currency symbol in a separate field (ie, not part of
 the amount field), you can use 'currencyN' to prepend it to posting N's
@@ -535,8 +531,8 @@ amount.  Or, 'currency' with no number affects all postings.
 
 File: hledger_csv.info,  Node: balance,  Next: comment,  Prev: currency,  Up: Posting field names
 
-8.2.4 balance
--------------
+2.2.2.4 balance
+...............
 
 'balanceN' sets a balance assertion amount (or if the posting amount is
 left empty, a balance assignment) on posting N.
@@ -550,8 +546,8 @@ is equivalent to 'balance1'.
 
 File: hledger_csv.info,  Node: comment,  Prev: balance,  Up: Posting field names
 
-8.2.5 comment
--------------
+2.2.2.5 comment
+...............
 
 Finally, 'commentN' sets a comment on the Nth posting.  Comments can
 also contain tags, as usual.
@@ -559,10 +555,10 @@ also contain tags, as usual.
    See TIPS below for more about setting amounts and currency.
 
 
-File: hledger_csv.info,  Node: field assignment,  Next: separator,  Prev: fields,  Up: Top
+File: hledger_csv.info,  Node: field assignment,  Next: separator,  Prev: fields,  Up: CSV RULES
 
-9 field assignment
-******************
+2.3 field assignment
+====================
 
 HLEDGERFIELDNAME FIELDVALUE
 
@@ -584,10 +580,10 @@ becomes '1' when interpolated) (#1051).  See TIPS below for more about
 referencing other fields.
 
 
-File: hledger_csv.info,  Node: separator,  Next: if block,  Prev: field assignment,  Up: Top
+File: hledger_csv.info,  Node: separator,  Next: if block,  Prev: field assignment,  Up: CSV RULES
 
-10 'separator'
-**************
+2.4 'separator'
+===============
 
 You can use the 'separator' rule to read other kinds of
 character-separated data.  The argument is any single separator
@@ -609,10 +605,10 @@ separator TAB
 inferred automatically, and you won't need this rule.
 
 
-File: hledger_csv.info,  Node: if block,  Next: if table,  Prev: separator,  Up: Top
+File: hledger_csv.info,  Node: if block,  Next: if table,  Prev: separator,  Up: CSV RULES
 
-11 'if' block
-*************
+2.5 'if' block
+==============
 
 if MATCHER
  RULE
@@ -639,8 +635,8 @@ descriptions.
 
 File: hledger_csv.info,  Node: Matching the whole record,  Next: Matching individual fields,  Up: if block
 
-11.1 Matching the whole record
-==============================
+2.5.1 Matching the whole record
+-------------------------------
 
 Each MATCHER can be a record matcher, which looks like this:
 
@@ -662,8 +658,8 @@ actually see '2020-01-01,Acme, Inc., 1,000').
 
 File: hledger_csv.info,  Node: Matching individual fields,  Next: Combining matchers,  Prev: Matching the whole record,  Up: if block
 
-11.2 Matching individual fields
-===============================
+2.5.2 Matching individual fields
+--------------------------------
 
 Or, MATCHER can be a field matcher, like this:
 
@@ -676,8 +672,8 @@ is a percent sign followed by the field's name or column number, like
 
 File: hledger_csv.info,  Node: Combining matchers,  Next: Rules applied on successful match,  Prev: Matching individual fields,  Up: if block
 
-11.3 Combining matchers
-=======================
+2.5.3 Combining matchers
+------------------------
 
 A single matcher can be written on the same line as the "if"; or
 multiple matchers can be written on the following lines, non-indented.
@@ -693,8 +689,8 @@ MATCHER
 
 File: hledger_csv.info,  Node: Rules applied on successful match,  Prev: Combining matchers,  Up: if block
 
-11.4 Rules applied on successful match
-======================================
+2.5.4 Rules applied on successful match
+---------------------------------------
 
 After the patterns there should be one or more rules to apply, all
 indented by at least one space.  Three kinds of rule are allowed in
@@ -719,10 +715,10 @@ banking thru software
  comment  XXX deductible ? check it
 
 
-File: hledger_csv.info,  Node: if table,  Next: end,  Prev: if block,  Up: Top
+File: hledger_csv.info,  Node: if table,  Next: end,  Prev: if block,  Up: CSV RULES
 
-12 'if' table
-*************
+2.6 'if' table
+==============
 
 if,CSVFIELDNAME1,CSVFIELDNAME2,...,CSVFIELDNAMEn
 MATCHER1,VALUE11,VALUE12,...,VALUE1n
@@ -780,10 +776,10 @@ atm transaction fee,expenses:business:banking,deductible? check it
 2020/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
 
 
-File: hledger_csv.info,  Node: end,  Next: date-format,  Prev: if table,  Up: Top
+File: hledger_csv.info,  Node: end,  Next: date-format,  Prev: if table,  Up: CSV RULES
 
-13 'end'
-********
+2.7 'end'
+=========
 
 This rule can be used inside if blocks (only), to make hledger stop
 reading this CSV file and move on to the next input file, or to command
@@ -794,10 +790,10 @@ if ,,,,
  end
 
 
-File: hledger_csv.info,  Node: date-format,  Next: decimal-mark,  Prev: end,  Up: Top
+File: hledger_csv.info,  Node: date-format,  Next: decimal-mark,  Prev: end,  Up: CSV RULES
 
-14 'date-format'
-****************
+2.8 'date-format'
+=================
 
 date-format DATEFMT
 
@@ -825,10 +821,10 @@ date-format %-m/%-d/%Y %l:%M %p some other junk
 https://hackage.haskell.org/package/time/docs/Data-Time-Format.html#v:formatTime
 
 
-File: hledger_csv.info,  Node: decimal-mark,  Next: newest-first,  Prev: date-format,  Up: Top
+File: hledger_csv.info,  Node: decimal-mark,  Next: newest-first,  Prev: date-format,  Up: CSV RULES
 
-15 'decimal-mark'
-*****************
+2.9 'decimal-mark'
+==================
 
 decimal-mark .
 
@@ -843,10 +839,10 @@ should declare the decimal mark explicitly with this rule, to avoid
 misparsed numbers.
 
 
-File: hledger_csv.info,  Node: newest-first,  Next: include,  Prev: decimal-mark,  Up: Top
+File: hledger_csv.info,  Node: newest-first,  Next: include,  Prev: decimal-mark,  Up: CSV RULES
 
-16 'newest-first'
-*****************
+2.10 'newest-first'
+===================
 
 hledger always sorts the generated transactions by date.  Transactions
 on the same date should appear in the same order as their CSV records,
@@ -865,10 +861,10 @@ oldest first or newest first.  But if all of the following are true:
 newest-first
 
 
-File: hledger_csv.info,  Node: include,  Next: balance-type,  Prev: newest-first,  Up: Top
+File: hledger_csv.info,  Node: include,  Next: balance-type,  Prev: newest-first,  Up: CSV RULES
 
-17 'include'
-************
+2.11 'include'
+==============
 
 include RULESFILE
 
@@ -879,19 +875,19 @@ several rules files, eg:
 
 # someaccount.csv.rules
 
-# someaccount-specific rules
+## someaccount-specific rules
 fields   date,description,amount
 account1 assets:someaccount
 account2 expenses:misc
 
-# common rules
+## common rules
 include categorisation.rules
 
 
-File: hledger_csv.info,  Node: balance-type,  Next: TIPS,  Prev: include,  Up: Top
+File: hledger_csv.info,  Node: balance-type,  Prev: include,  Up: CSV RULES
 
-18 'balance-type'
-*****************
+2.12 'balance-type'
+===================
 
 Balance assertions generated by assigning to balanceN are of the simple
 '=' type by default, which is a single-commodity, subaccount-excluding
@@ -911,16 +907,29 @@ balance-type ==*
 ==*  multi commodity,  include subaccounts
 
 
-File: hledger_csv.info,  Node: TIPS,  Next: Rapid feedback,  Prev: balance-type,  Up: Top
+File: hledger_csv.info,  Node: TIPS,  Prev: CSV RULES,  Up: Top
 
-19 TIPS
-*******
+3 TIPS
+******
+
+* Menu:
+
+* Rapid feedback::
+* Valid CSV::
+* File Extension::
+* Reading multiple CSV files::
+* Valid transactions::
+* Deduplicating importing::
+* Setting amounts::
+* Setting currency/commodity::
+* Referencing other fields::
+* How CSV rules are evaluated::
 
 
-File: hledger_csv.info,  Node: Rapid feedback,  Next: Valid CSV,  Prev: TIPS,  Up: Top
+File: hledger_csv.info,  Node: Rapid feedback,  Next: Valid CSV,  Up: TIPS
 
-20 Rapid feedback
-*****************
+3.1 Rapid feedback
+==================
 
 It's a good idea to get rapid feedback while creating/troubleshooting
 CSV rules.  Here's a good way, using entr from
@@ -934,10 +943,10 @@ a separator each time the command re-runs, making it easier to read the
 output.
 
 
-File: hledger_csv.info,  Node: Valid CSV,  Next: File Extension,  Prev: Rapid feedback,  Up: Top
+File: hledger_csv.info,  Node: Valid CSV,  Next: File Extension,  Prev: Rapid feedback,  Up: TIPS
 
-21 Valid CSV
-************
+3.2 Valid CSV
+=============
 
 hledger accepts CSV conforming to RFC 4180.  When CSV values are
 enclosed in quotes, note:
@@ -946,10 +955,10 @@ enclosed in quotes, note:
    * spaces outside the quotes are not allowed
 
 
-File: hledger_csv.info,  Node: File Extension,  Next: Reading multiple CSV files,  Prev: Valid CSV,  Up: Top
+File: hledger_csv.info,  Node: File Extension,  Next: Reading multiple CSV files,  Prev: Valid CSV,  Up: TIPS
 
-22 File Extension
-*****************
+3.3 File Extension
+==================
 
 To help hledger identify the format and show the right error messages,
 CSV/SSV/TSV files should normally be named with a '.csv', '.ssv' or
@@ -966,10 +975,10 @@ $ cat foo | hledger -f ssv:- foo
 See also: Input files in the hledger manual.
 
 
-File: hledger_csv.info,  Node: Reading multiple CSV files,  Next: Valid transactions,  Prev: File Extension,  Up: Top
+File: hledger_csv.info,  Node: Reading multiple CSV files,  Next: Valid transactions,  Prev: File Extension,  Up: TIPS
 
-23 Reading multiple CSV files
-*****************************
+3.4 Reading multiple CSV files
+==============================
 
 If you use multiple '-f' options to read multiple CSV files at once,
 hledger will look for a correspondingly-named rules file for each CSV
@@ -977,10 +986,10 @@ file.  But if you use the '--rules-file' option, that rules file will be
 used for all the CSV files.
 
 
-File: hledger_csv.info,  Node: Valid transactions,  Next: Deduplicating importing,  Prev: Reading multiple CSV files,  Up: Top
+File: hledger_csv.info,  Node: Valid transactions,  Next: Deduplicating importing,  Prev: Reading multiple CSV files,  Up: TIPS
 
-24 Valid transactions
-*********************
+3.5 Valid transactions
+======================
 
 After reading a CSV file, hledger post-processes and validates the
 generated journal entries as it would for a journal file - balancing
@@ -996,10 +1005,10 @@ assertions generated from CSV right away, pipe into another hledger:
 $ hledger -f file.csv print | hledger -f- print
 
 
-File: hledger_csv.info,  Node: Deduplicating importing,  Next: Setting amounts,  Prev: Valid transactions,  Up: Top
+File: hledger_csv.info,  Node: Deduplicating importing,  Next: Setting amounts,  Prev: Valid transactions,  Up: TIPS
 
-25 Deduplicating, importing
-***************************
+3.6 Deduplicating, importing
+============================
 
 When you download a CSV file periodically, eg to get your latest bank
 transactions, the new file may overlap with the old one, containing some
@@ -1026,10 +1035,10 @@ CSV data.  See:
    * https://plaintextaccounting.org -> data import/conversion
 
 
-File: hledger_csv.info,  Node: Setting amounts,  Next: Setting currency/commodity,  Prev: Deduplicating importing,  Up: Top
+File: hledger_csv.info,  Node: Setting amounts,  Next: Setting currency/commodity,  Prev: Deduplicating importing,  Up: TIPS
 
-26 Setting amounts
-******************
+3.7 Setting amounts
+===================
 
 A posting amount can be set in one of these ways:
 
@@ -1055,10 +1064,10 @@ A posting amount can be set in one of these ways:
    * If an amount value begins with a plus sign, that will be removed
 
 
-File: hledger_csv.info,  Node: Setting currency/commodity,  Next: Referencing other fields,  Prev: Setting amounts,  Up: Top
+File: hledger_csv.info,  Node: Setting currency/commodity,  Next: Referencing other fields,  Prev: Setting amounts,  Up: TIPS
 
-27 Setting currency/commodity
-*****************************
+3.8 Setting currency/commodity
+==============================
 
 If the currency/commodity symbol is included in the CSV's amount
 field(s):
@@ -1103,10 +1112,10 @@ amount %amt %cur
 that would trigger the prepending effect, which we don't want here.
 
 
-File: hledger_csv.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Setting currency/commodity,  Up: Top
+File: hledger_csv.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Setting currency/commodity,  Up: TIPS
 
-28 Referencing other fields
-***************************
+3.9 Referencing other fields
+============================
 
 In field assignments, you can interpolate only CSV fields, not hledger
 fields.  In the example below, there's both a CSV field and a hledger
@@ -1140,10 +1149,10 @@ if something
  comment C
 
 
-File: hledger_csv.info,  Node: How CSV rules are evaluated,  Prev: Referencing other fields,  Up: Top
+File: hledger_csv.info,  Node: How CSV rules are evaluated,  Prev: Referencing other fields,  Up: TIPS
 
-29 How CSV rules are evaluated
-******************************
+3.10 How CSV rules are evaluated
+================================
 
 Here's how to think of CSV rules being evaluated (if you really need
 to).  First,
@@ -1183,90 +1192,85 @@ command the user specified.
 
 Tag Table:
 Node: Top72
-Node: EXAMPLES3259
-Ref: #examples3361
-Node: Basic3507
-Ref: #basic3615
-Node: Bank of Ireland4157
-Ref: #bank-of-ireland4283
-Node: Amazon5745
-Ref: #amazon5854
-Node: Paypal7573
-Ref: #paypal7676
-Node: CSV RULES15320
-Ref: #csv-rules15427
-Node: skip15561
-Ref: #skip15662
-Node: fields16037
-Ref: #fields16149
-Node: Transaction field names17314
-Ref: #transaction-field-names17470
-Node: Posting field names17581
-Ref: #posting-field-names17729
-Node: account17799
-Ref: #account17911
-Node: amount18448
-Ref: #amount18575
-Node: currency19682
-Ref: #currency19813
-Node: balance20019
-Ref: #balance20149
-Node: comment20466
-Ref: #comment20579
-Node: field assignment20742
-Ref: #field-assignment20875
-Node: separator21693
-Ref: #separator21820
-Node: if block22360
-Ref: #if-block22477
-Node: Matching the whole record22878
-Ref: #matching-the-whole-record23051
-Node: Matching individual fields23855
-Ref: #matching-individual-fields24057
-Node: Combining matchers24281
-Ref: #combining-matchers24475
-Node: Rules applied on successful match24788
-Ref: #rules-applied-on-successful-match24977
-Node: if table25631
-Ref: #if-table25742
-Node: end27480
-Ref: #end27584
-Node: date-format27808
-Ref: #date-format27932
-Node: decimal-mark28681
-Ref: #decimal-mark28816
-Node: newest-first29155
-Ref: #newest-first29286
-Node: include29969
-Ref: #include30090
-Node: balance-type30532
-Ref: #balance-type30655
-Node: TIPS31355
-Ref: #tips31465
-Node: Rapid feedback31465
-Ref: #rapid-feedback31592
-Node: Valid CSV32052
-Ref: #valid-csv32179
-Node: File Extension32371
-Ref: #file-extension32520
-Node: Reading multiple CSV files32949
-Ref: #reading-multiple-csv-files33131
-Node: Valid transactions33372
-Ref: #valid-transactions33547
-Node: Deduplicating importing34175
-Ref: #deduplicating-importing34351
-Node: Setting amounts35384
-Ref: #setting-amounts35550
-Node: Setting currency/commodity36537
-Ref: #setting-currencycommodity36726
-Node: Referencing other fields37900
-Ref: #referencing-other-fields38097
-Node: How CSV rules are evaluated38994
-Ref: #how-csv-rules-are-evaluated39162
+Node: EXAMPLES2756
+Ref: #examples2862
+Node: Basic3070
+Ref: #basic3170
+Node: Bank of Ireland3712
+Ref: #bank-of-ireland3847
+Node: Amazon5309
+Ref: #amazon5427
+Node: Paypal7146
+Ref: #paypal7240
+Node: CSV RULES14884
+Ref: #csv-rules14993
+Node: skip15305
+Ref: #skip15398
+Node: fields15773
+Ref: #fields15895
+Node: Transaction field names17060
+Ref: #transaction-field-names17220
+Node: Posting field names17331
+Ref: #posting-field-names17483
+Node: account17553
+Ref: #account17669
+Node: amount18206
+Ref: #amount18337
+Node: currency19444
+Ref: #currency19579
+Node: balance19785
+Ref: #balance19919
+Node: comment20236
+Ref: #comment20353
+Node: field assignment20516
+Ref: #field-assignment20659
+Node: separator21477
+Ref: #separator21612
+Node: if block22152
+Ref: #if-block22277
+Node: Matching the whole record22678
+Ref: #matching-the-whole-record22853
+Node: Matching individual fields23657
+Ref: #matching-individual-fields23861
+Node: Combining matchers24085
+Ref: #combining-matchers24281
+Node: Rules applied on successful match24594
+Ref: #rules-applied-on-successful-match24785
+Node: if table25439
+Ref: #if-table25558
+Node: end27296
+Ref: #end27408
+Node: date-format27632
+Ref: #date-format27764
+Node: decimal-mark28513
+Ref: #decimal-mark28656
+Node: newest-first28995
+Ref: #newest-first29136
+Node: include29819
+Ref: #include29950
+Node: balance-type30394
+Ref: #balance-type30514
+Node: TIPS31214
+Ref: #tips31296
+Node: Rapid feedback31552
+Ref: #rapid-feedback31669
+Node: Valid CSV32129
+Ref: #valid-csv32259
+Node: File Extension32451
+Ref: #file-extension32603
+Node: Reading multiple CSV files33032
+Ref: #reading-multiple-csv-files33217
+Node: Valid transactions33458
+Ref: #valid-transactions33636
+Node: Deduplicating importing34264
+Ref: #deduplicating-importing34443
+Node: Setting amounts35476
+Ref: #setting-amounts35645
+Node: Setting currency/commodity36632
+Ref: #setting-currencycommodity36824
+Node: Referencing other fields37998
+Ref: #referencing-other-fields38198
+Node: How CSV rules are evaluated39095
+Ref: #how-csv-rules-are-evaluated39268
 
 End Tag Table
-
-
-Local Variables:
-coding: utf-8
-End:

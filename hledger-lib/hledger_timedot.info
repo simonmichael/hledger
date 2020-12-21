@@ -4,10 +4,10 @@ stdin.
 
 File: hledger_timedot.info,  Node: Top,  Up: (dir)
 
-hledger_timedot(5) hledger 1.20.99
-**********************************
+hledger_timedot(5)
+******************
 
-Timedot - hledger's human-friendly time logging format
+hledger's human-friendly time logging format.
 
    Timedot is a plain text format for logging dated, categorised
 quantities (of time, usually), supported by hledger.  It is convenient
@@ -143,8 +143,3 @@ Tag Table:
 Node: Top76
 
 End Tag Table
-
-
-Local Variables:
-coding: utf-8
-End:

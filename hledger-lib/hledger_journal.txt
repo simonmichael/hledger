@@ -1,10 +1,10 @@
 
-hledger_journal(5)           hledger User Manuals           hledger_journal(5)
+HLEDGER_JOURNAL(5)           hledger User Manuals           HLEDGER_JOURNAL(5)
 
 
 
 NAME
-       Journal - hledger's default file format, representing a General Journal
+       hledger's default file format, representing a General Journal.
 
 DESCRIPTION
        hledger's usual data source is a plain text file containing journal en-
@@ -31,14 +31,13 @@ DESCRIPTION
        formatting, tab completion, and useful commands.  See Editor configura-
        tion at hledger.org for the full list.
 
-FILE FORMAT
        Here's  a  description  of  each part of the file format (and hledger's
        data model).  These are mostly in the order you'll  use  them,  but  in
        some  cases related concepts have been grouped together for easy refer-
        ence, or linked before they are introduced, so feel free to  skip  over
        anything that looks unnecessary right now.
 
-   Transactions
+TRANSACTIONS
        Transactions  are the main unit of information in a journal file.  They
        represent events, typically a movement of some quantity of  commodities
        between two or more named accounts.
@@ -66,7 +65,7 @@ FILE FORMAT
                 assets:bank:checking   $1
                 income:salary         $-1
 
-   Dates
+DATES
    Simple dates
        Dates in the journal  file  use  simple  dates  format:  YYYY-MM-DD  or
        YYYY/MM/DD or YYYY.MM.DD, with leading zeros optional.  The year may be
@@ -139,7 +138,7 @@ FILE FORMAT
        With this syntax, DATE infers its year from the transaction  and  DATE2
        infers its year from DATE.
 
-   Status
+STATUS
        Transactions,  or  individual postings within a transaction, can have a
        status mark, which is a single character  before  the  transaction  de-
        scription  or posting account name, separated from it by a space, indi-
@@ -183,7 +182,7 @@ FILE FORMAT
        cashed  checks),  and no flags to see the most up-to-date state of your
        finances.
 
-   Description
+DESCRIPTION
        A transaction's description is the rest of the line following the  date
        and  status  mark  (or  until  a comment begins).  Sometimes called the
        "narration" in traditional bookkeeping, it can be used for whatever you
@@ -197,7 +196,7 @@ FILE FORMAT
        ter  the  first |).  This may be worthwhile if you need to do more pre-
        cise querying and pivoting by payee or by note.
 
-   Comments
+COMMENTS
        Lines in the journal beginning with a semicolon (;) or hash (#) or star
        (*)  are  comments, and will be ignored.  (Star comments cause org-mode
        nodes to be ignored, allowing emacs users to fold  and  navigate  their
@@ -232,7 +231,7 @@ FILE FORMAT
        You  can  also  comment  larger regions of a file using comment and end
        comment directives.
 
-   Tags
+TAGS
        Tags are a way to add extra labels or labelled  data  to  postings  and
        transactions, which you can then search or pivot on.
 
@@ -272,7 +271,7 @@ FILE FORMAT
        Tags are like Ledger's metadata feature, except  hledger's  tag  values
        are simple strings.
 
-   Postings
+POSTINGS
        A  posting  is an addition of some amount to, or removal of some amount
        from, an account.  Each posting line begins with at least one space  or
        tab (2 or 4 spaces is common), followed by:
@@ -326,7 +325,7 @@ FILE FORMAT
        postings.  You can exclude  virtual  postings  from  reports  with  the
        -R/--real flag or real:1 query.
 
-   Account names
+ACCOUNT NAMES
        Account  names  typically have several parts separated by a full colon,
        from which hledger derives a hierarchical chart of accounts.  They  can
        be  anything you like, but in finance there are traditionally five top-
@@ -338,7 +337,7 @@ FILE FORMAT
 
        Account names can be aliased.
 
-   Amounts
+AMOUNTS
        After the account name, there is usually an  amount.   (Important:  be-
        tween account name and amount, there must be two or more spaces.)
 
@@ -460,7 +459,7 @@ FILE FORMAT
        places  is  "0").   (Guaranteed since hledger 1.17.1; in older versions
        this could vary if hledger was built with Decimal < 0.5.1.)
 
-   Transaction prices
+TRANSACTION PRICES
        Within a transaction, you can note an amount's price in another commod-
        ity.   This can be used to document the cost (in a purchase) or selling
        price (in a sale).  For  example,  transaction  prices  are  useful  to
@@ -521,7 +520,7 @@ FILE FORMAT
                              EUR-100  assets:dollars  # <- the dollars' selling price
                               EUR100  assets:euros
 
-   Lot prices and lot dates
+LOT PRICES, LOT DATES
        Ledger  allows  another kind of price, lot price (four variants: {UNIT-
        PRICE},   {{TOTALPRICE}},   {=FIXEDUNITPRICE},   {{=FIXEDTOTALPRICE}}),
        and/or a lot date ([DATE]) to be specified.  These are normally used to
@@ -530,7 +529,7 @@ FILE FORMAT
        transaction price, lot price and/or lot date may appear in  any  order,
        after the posting amount and before the balance assertion if any.
 
-   Balance assertions
+BALANCE ASSERTIONS
        hledger  supports  Ledger-style  balance  assertions  in journal files.
        These look like, for example, = EXPECTEDBALANCE following  a  posting's
        amount.   Eg  here  we assert the expected dollar balance in accounts a
@@ -653,7 +652,7 @@ FILE FORMAT
        limit the display precision, but this will not  affect  balance  asser-
        tions.  Balance assertion failure messages show exact amounts.
 
-   Balance assignments
+BALANCE ASSIGNMENTS
        Ledger-style  balance  assignments  are also supported.  These are like
        balance assertions, but with no posting amount on the left side of  the
        equals  sign;  instead  it is calculated automatically so as to satisfy
@@ -692,7 +691,7 @@ FILE FORMAT
               2019-01-01
                   (a)         $1 @ EUR2 = $1 @ EUR2
 
-   Directives
+DIRECTIVES
        A  directive is a line in the journal beginning with a special keyword,
        that influences how the journal is processed.  hledger's directives are
        based on a subset of Ledger's, but there are many differences (and also
@@ -729,8 +728,6 @@ FILE FORMAT
                                                                        play style: amounts
                                                                        of  that  commodity
                                                                        in reports
-
-
        D                                declare a  commodity  to  be   default  commodity:
                                         used    for    commodityless   following   commod-
                                         amounts, and its number  no-   ityless entries un-
@@ -743,6 +740,8 @@ FILE FORMAT
                                                                        play style: amounts
                                                                        of  that  commodity
                                                                        in reports
+
+
        include                          include   entries/directives   what  the  included
                                         from another file              directives affect
        P                                declare a market price for a   amounts   of   that
@@ -1075,7 +1074,6 @@ FILE FORMAT
        ^(debts?|lia-                Liability
        bilit(y|ies))(:|$)
        ^equity(:|$)                 Equity
-
        ^(income|revenue)s?(:|$)     Revenue
        ^expenses?(:|$)              Expense
 
@@ -1312,7 +1310,7 @@ FILE FORMAT
        account aliases are present, they are applied after the default  parent
        account.
 
-   Periodic transactions
+PERIODIC TRANSACTIONS
        Periodic  transaction rules describe transactions that recur.  They al-
        low hledger to generate temporary  future  transactions  to  help  with
        forecasting,  so  you  don't have to write out each one in the journal,
@@ -1443,7 +1441,7 @@ FILE FORMAT
 
        See also: Budgeting and Forecasting.
 
-   Auto postings
+AUTO POSTINGS
        "Automated postings" or "auto postings" are extra  postings  which  get
        added  automatically  to  transactions which match certain queries, de-
        fined by "auto posting rules", when you use the --auto flag.
@@ -1570,9 +1568,11 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger_csv(5),
-       hledger_journal(5), hledger_timeclock(5), hledger_timedot(5), ledger(1)
+       hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
+
+       hledger_journal(5), hledger_csv(5), hledger_timeclock(5), hledger_time-
+       dot(5)
 
 
 
-hledger 1.20.99                  December 2020              hledger_journal(5)
+hledger-lib-1.20.99              December 2020              HLEDGER_JOURNAL(5)
