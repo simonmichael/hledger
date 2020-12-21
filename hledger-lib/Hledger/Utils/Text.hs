@@ -46,6 +46,8 @@ module Hledger.Utils.Text
  -- fitto,
   fitText,
  -- -- * wide-character-aware layout
+  WideBuilder(..),
+  wbUnpack,
   textWidth,
   textTakeWidth,
  -- fitString,
@@ -66,6 +68,8 @@ import Data.Monoid
 #endif
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 -- import Text.Parsec
 -- import Text.Printf (printf)
 
@@ -73,6 +77,24 @@ import qualified Data.Text as T
 -- import Hledger.Utils.Regex
 import Hledger.Utils.Test
 import Text.WideString (charWidth, textWidth)
+
+
+-- | Helper for constructing Builders while keeping track of text width.
+data WideBuilder = WideBuilder
+  { wbBuilder :: !TB.Builder
+  , wbWidth   :: !Int
+  }
+
+instance Semigroup WideBuilder where
+  WideBuilder x i <> WideBuilder y j = WideBuilder (x <> y) (i + j)
+
+instance Monoid WideBuilder where
+  mempty = WideBuilder mempty 0
+
+-- | Unpack a WideBuilder to a String.
+wbUnpack :: WideBuilder -> String
+wbUnpack = TL.unpack . TB.toLazyText . wbBuilder
+
 
 -- lowercase, uppercase :: String -> String
 -- lowercase = map toLower
