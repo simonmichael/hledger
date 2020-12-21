@@ -130,15 +130,16 @@ module Hledger.Data.Amount (
 ) where
 
 import Control.Monad (foldM)
-import Data.Char (isDigit)
-import Data.Decimal (decimalPlaces, normalizeDecimal, roundTo)
+import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
 import Data.Function (on)
 import Data.List (genericSplitAt, groupBy, intercalate, mapAccumL,
                   partition, sortBy)
+import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map as M
 import Data.Map (findWithDefault)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy.Builder as TB
 import Data.Word (Word8)
 import Safe (lastDef, lastMay)
 import Text.Printf (printf)
@@ -155,7 +156,6 @@ deriving instance Show MarketPrice
 
 -- | Default amount style
 amountstyle = AmountStyle L False (Precision 0) (Just '.') Nothing
-
 
 -------------------------------------------------------------------------------
 -- Amount
@@ -386,7 +386,7 @@ showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=mp, astyle=Amou
       L -> printf "%s%s%s%s" (T.unpack c') space quantity' price
       R -> printf "%s%s%s%s" quantity' space (T.unpack c') price
     where
-      quantity = showamountquantity a
+      quantity = wbUnpack $ showamountquantity a
       (quantity',c') | amountLooksZero a && not showzerocommodity = ("0","")
                      | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
       space = if not (T.null c') && ascommodityspaced then " " else "" :: String
@@ -402,35 +402,40 @@ showAmountDebug :: Amount -> String
 showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
 showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showAmountPriceDebug aprice) (show astyle)
 
--- | Get the string representation of the number part of of an amount,
--- using the display settings from its commodity.
-showamountquantity :: Amount -> String
+-- | Get a Text Builder for the string representation of the number part of of an amount,
+-- using the display settings from its commodity. Also returns the width of the
+-- number.
+showamountquantity :: Amount -> WideBuilder
 showamountquantity amt@Amount{astyle=AmountStyle{asdecimalpoint=mdec, asdigitgroups=mgrps}} =
-    punctuatenumber (fromMaybe '.' mdec) mgrps . show $ amountRoundedQuantity amt
-
--- | Replace a number string's decimal mark with the specified
--- character, and add the specified digit group marks. The last digit
--- group will be repeated as needed.
-punctuatenumber :: Char -> Maybe DigitGroupStyle -> String -> String
-punctuatenumber dec mgrps s = sign ++ reverse (applyDigitGroupStyle mgrps (reverse int)) ++ frac''
-    where
-      (sign,num) = break isDigit s
-      (int,frac) = break (=='.') num
-      frac' = dropWhile (=='.') frac
-      frac'' | null frac' = ""
-             | otherwise  = dec:frac'
-
-applyDigitGroupStyle :: Maybe DigitGroupStyle -> String -> String
-applyDigitGroupStyle Nothing s = s
-applyDigitGroupStyle (Just (DigitGroups c gs)) s = addseps (repeatLast gs) s
+    signB <> intB <> fracB
   where
-    addseps [] s = s
-    addseps (g:gs) s
-      | toInteger (length s) <= toInteger g = s
-      | otherwise     = let (part,rest) = genericSplitAt g s
-                        in part ++ c : addseps gs rest
-    repeatLast [] = []
-    repeatLast gs = init gs ++ repeat (last gs)
+    Decimal e n = amountRoundedQuantity amt
+
+    strN = show $ abs n
+    len = length strN
+    intLen = max 1 $ len - fromIntegral e
+    dec = fromMaybe '.' mdec
+    padded = replicate (fromIntegral e + 1 - len) '0' ++ strN
+    (intPart, fracPart) = splitAt intLen padded
+
+    intB = applyDigitGroupStyle mgrps intLen $ if e == 0 then strN else intPart
+    signB = if n < 0 then WideBuilder (TB.singleton '-') 1 else mempty
+    fracB = if e > 0 then WideBuilder (TB.singleton dec <> TB.fromString fracPart) (fromIntegral e + 1) else mempty
+
+-- | Split a string representation into chunks according to DigitGroupStyle,
+-- returning a Text builder and the number of separators used.
+applyDigitGroupStyle :: Maybe DigitGroupStyle -> Int -> String -> WideBuilder
+applyDigitGroupStyle Nothing                       l s = WideBuilder (TB.fromString s) l
+applyDigitGroupStyle (Just (DigitGroups _ []))     l s = WideBuilder (TB.fromString s) l
+applyDigitGroupStyle (Just (DigitGroups c (g:gs))) l s = addseps (g:|gs) (toInteger l) s
+  where
+    addseps (g:|gs) l s
+        | l' > 0    = addseps gs' l' rest <> WideBuilder (TB.singleton c <> TB.fromString part) (fromIntegral g + 1)
+        | otherwise = WideBuilder (TB.fromString s) (fromInteger l)
+      where
+        (rest, part) = genericSplitAt l' s
+        gs' = fromMaybe (g:|[]) $ nonEmpty gs
+        l' = l - toInteger g
 
 -- like journalCanonicaliseAmounts
 -- | Canonicalise an amount's display style using the provided commodity style map.
