@@ -1,5 +1,5 @@
 # -*- mode: sh; sh-basic-offset: 4; indent-tabs-mode: nil -*-
-# ex: ts=4 sw=4 et
+# ex: ft=sh ts=4 sw=4 et
 # shellcheck disable=2034,2154
 
 # Completion script for hledger.

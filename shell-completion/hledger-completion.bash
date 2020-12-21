@@ -1,5 +1,5 @@
 # -*- mode: sh; sh-basic-offset: 4; indent-tabs-mode: nil -*-
-# ex: ts=4 sw=4 et
+# ex: ft=sh ts=4 sw=4 et
 # shellcheck disable=2034,2154
 
 # Completion script for hledger.
@@ -413,7 +413,7 @@ _hledger() {
 # m4 macro processor.
 # Included files must have exactly one newline at EOF to prevent weired errors.
 
-read -r -d "" _hledger_complist_commands <<TEXT
+read -r -d "" _hledger_complist_commands <<"__TEXT__"
 accounts
 activity
 add
@@ -455,9 +455,9 @@ tags
 test
 txns
 ui
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_query_filters <<TEXT
+read -r -d "" _hledger_complist_query_filters <<"__TEXT__"
 acct:
 amt:
 code:
@@ -473,9 +473,9 @@ payee:
 real:
 status:
 tag:
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_generic_options <<TEXT
+read -r -d "" _hledger_complist_generic_options <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -508,12 +508,12 @@ read -r -d "" _hledger_complist_generic_options <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
 # Dashes are replaced by m4 with underscores to form valid identifiers
 # Referenced by indirect expansion of $subcommandOptions
 
-read -r -d "" _hledger_complist_options_accounts <<TEXT
+read -r -d "" _hledger_complist_options_accounts <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -551,9 +551,9 @@ read -r -d "" _hledger_complist_options_accounts <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_activity <<TEXT
+read -r -d "" _hledger_complist_options_activity <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -586,9 +586,9 @@ read -r -d "" _hledger_complist_options_activity <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_add <<TEXT
+read -r -d "" _hledger_complist_options_add <<"__TEXT__"
 --alias=
 --anon
 --debug=
@@ -599,9 +599,9 @@ read -r -d "" _hledger_complist_options_add <<TEXT
 --pivot=
 --rules-file=
 --version
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_areg <<TEXT
+read -r -d "" _hledger_complist_options_areg <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -639,9 +639,9 @@ read -r -d "" _hledger_complist_options_areg <<TEXT
 --weekly
 --width=
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_aregister <<TEXT
+read -r -d "" _hledger_complist_options_aregister <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -679,9 +679,9 @@ read -r -d "" _hledger_complist_options_aregister <<TEXT
 --weekly
 --width=
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_bal <<TEXT
+read -r -d "" _hledger_complist_options_bal <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -733,9 +733,9 @@ read -r -d "" _hledger_complist_options_bal <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_balance <<TEXT
+read -r -d "" _hledger_complist_options_balance <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -787,9 +787,9 @@ read -r -d "" _hledger_complist_options_balance <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_balancesheet <<TEXT
+read -r -d "" _hledger_complist_options_balancesheet <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -838,9 +838,9 @@ read -r -d "" _hledger_complist_options_balancesheet <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_balancesheetequity <<TEXT
+read -r -d "" _hledger_complist_options_balancesheetequity <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -889,9 +889,9 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_bs <<TEXT
+read -r -d "" _hledger_complist_options_bs <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -940,9 +940,9 @@ read -r -d "" _hledger_complist_options_bs <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_bse <<TEXT
+read -r -d "" _hledger_complist_options_bse <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -991,9 +991,9 @@ read -r -d "" _hledger_complist_options_bse <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_cashflow <<TEXT
+read -r -d "" _hledger_complist_options_cashflow <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1042,9 +1042,9 @@ read -r -d "" _hledger_complist_options_cashflow <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_cf <<TEXT
+read -r -d "" _hledger_complist_options_cf <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1093,9 +1093,9 @@ read -r -d "" _hledger_complist_options_cf <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_check_dates <<TEXT
+read -r -d "" _hledger_complist_options_check_dates <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1129,9 +1129,9 @@ read -r -d "" _hledger_complist_options_check_dates <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_check_dupes <<TEXT
+read -r -d "" _hledger_complist_options_check_dupes <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1164,9 +1164,9 @@ read -r -d "" _hledger_complist_options_check_dupes <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_close <<TEXT
+read -r -d "" _hledger_complist_options_close <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1208,9 +1208,9 @@ read -r -d "" _hledger_complist_options_close <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_codes <<TEXT
+read -r -d "" _hledger_complist_options_codes <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1243,9 +1243,9 @@ read -r -d "" _hledger_complist_options_codes <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_commodities <<TEXT
+read -r -d "" _hledger_complist_options_commodities <<"__TEXT__"
 --alias=
 --anon
 --debug=
@@ -1255,9 +1255,9 @@ read -r -d "" _hledger_complist_options_commodities <<TEXT
 --pivot=
 --rules-file=
 --version
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_descriptions <<TEXT
+read -r -d "" _hledger_complist_options_descriptions <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1290,9 +1290,9 @@ read -r -d "" _hledger_complist_options_descriptions <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_diff <<TEXT
+read -r -d "" _hledger_complist_options_diff <<"__TEXT__"
 --alias=
 --anon
 --debug=
@@ -1302,9 +1302,9 @@ read -r -d "" _hledger_complist_options_diff <<TEXT
 --pivot=
 --rules-file=
 --version
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_equity <<TEXT
+read -r -d "" _hledger_complist_options_equity <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1346,9 +1346,9 @@ read -r -d "" _hledger_complist_options_equity <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_files <<TEXT
+read -r -d "" _hledger_complist_options_files <<"__TEXT__"
 --alias=
 --anon
 --debug=
@@ -1358,17 +1358,17 @@ read -r -d "" _hledger_complist_options_files <<TEXT
 --pivot=
 --rules-file=
 --version
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_help <<TEXT
+read -r -d "" _hledger_complist_options_help <<"__TEXT__"
 --cat
 --help
 --info
 --man
 --pager
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_import <<TEXT
+read -r -d "" _hledger_complist_options_import <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1403,9 +1403,9 @@ read -r -d "" _hledger_complist_options_import <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_incomestatement <<TEXT
+read -r -d "" _hledger_complist_options_incomestatement <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1454,9 +1454,9 @@ read -r -d "" _hledger_complist_options_incomestatement <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_is <<TEXT
+read -r -d "" _hledger_complist_options_is <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1505,9 +1505,9 @@ read -r -d "" _hledger_complist_options_is <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_notes <<TEXT
+read -r -d "" _hledger_complist_options_notes <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1540,9 +1540,9 @@ read -r -d "" _hledger_complist_options_notes <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_payees <<TEXT
+read -r -d "" _hledger_complist_options_payees <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1575,9 +1575,9 @@ read -r -d "" _hledger_complist_options_payees <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_prices <<TEXT
+read -r -d "" _hledger_complist_options_prices <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1612,9 +1612,9 @@ read -r -d "" _hledger_complist_options_prices <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_print <<TEXT
+read -r -d "" _hledger_complist_options_print <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1652,9 +1652,9 @@ read -r -d "" _hledger_complist_options_print <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_print_unique <<TEXT
+read -r -d "" _hledger_complist_options_print_unique <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1687,9 +1687,9 @@ read -r -d "" _hledger_complist_options_print_unique <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_reg <<TEXT
+read -r -d "" _hledger_complist_options_reg <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1730,9 +1730,9 @@ read -r -d "" _hledger_complist_options_reg <<TEXT
 --weekly
 --width=
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_register <<TEXT
+read -r -d "" _hledger_complist_options_register <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1773,9 +1773,9 @@ read -r -d "" _hledger_complist_options_register <<TEXT
 --weekly
 --width=
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_register_match <<TEXT
+read -r -d "" _hledger_complist_options_register_match <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1808,9 +1808,9 @@ read -r -d "" _hledger_complist_options_register_match <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_rewrite <<TEXT
+read -r -d "" _hledger_complist_options_rewrite <<"__TEXT__"
 --add-posting=
 --alias=
 --anon
@@ -1845,9 +1845,9 @@ read -r -d "" _hledger_complist_options_rewrite <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_roi <<TEXT
+read -r -d "" _hledger_complist_options_roi <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1883,9 +1883,9 @@ read -r -d "" _hledger_complist_options_roi <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_stats <<TEXT
+read -r -d "" _hledger_complist_options_stats <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1919,9 +1919,9 @@ read -r -d "" _hledger_complist_options_stats <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_tags <<TEXT
+read -r -d "" _hledger_complist_options_tags <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -1956,15 +1956,15 @@ read -r -d "" _hledger_complist_options_tags <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_test <<TEXT
+read -r -d "" _hledger_complist_options_test <<"__TEXT__"
 --debug=
 --help
 --version
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_txns <<TEXT
+read -r -d "" _hledger_complist_options_txns <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -2002,9 +2002,9 @@ read -r -d "" _hledger_complist_options_txns <<TEXT
 --version
 --weekly
 --yearly
-TEXT
+__TEXT__
 
-read -r -d "" _hledger_complist_options_ui <<TEXT
+read -r -d "" _hledger_complist_options_ui <<"__TEXT__"
 --alias=
 --anon
 --auto
@@ -2043,6 +2043,6 @@ read -r -d "" _hledger_complist_options_ui <<TEXT
 --watch
 --weekly
 --yearly
-TEXT
+__TEXT__
 
 return 0
