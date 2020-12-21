@@ -1,4 +1,4 @@
-% hledger_timeclock(5) hledger _version_
+% hledger_timeclock(5)
 % _author_
 % _monthyear_
 
@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-Timeclock - the time logging format of timeclock.el, as read by hledger
+m4_dnl _info_({{
+m4_dnl # hledger timeclock format
+m4_dnl }})
+
+The time logging format of timeclock.el, as read by hledger.
 
 _man_({{
 # DESCRIPTION

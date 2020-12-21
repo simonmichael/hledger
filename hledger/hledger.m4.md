@@ -1,4 +1,4 @@
-% hledger(1) hledger _version_
+% hledger(1)
 % _author_
 % _monthyear_
 
@@ -17,15 +17,17 @@ _man_({{
 # NAME
 }})
 
-hledger - a command-line accounting tool
+A command-line accounting tool for both power users and folks new to accounting.
 
 _man_({{
 # SYNOPSIS
 }})
 
-`hledger [-f FILE] COMMAND [OPTIONS] [ARGS]`\
-`hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`\
 `hledger`
+
+`hledger [-f FILE] COMMAND [OPTIONS] [ARGS]`
+
+`hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`
 
 _man_({{
 # DESCRIPTION
@@ -1571,185 +1573,122 @@ Related:
 
 # COMMANDS
 
-hledger provides a number of subcommands; `hledger` with no arguments
-shows a list.
-
-If you install additional `hledger-*` packages, or if you put programs
-or scripts named `hledger-NAME` in your PATH, these will also be
-listed as subcommands.
-
-Run a subcommand by writing its name as first argument (eg `hledger
-incomestatement`). You can also write one of the standard short aliases
-displayed in parentheses in the command list (`hledger b`), or any
-any unambiguous prefix of a command name (`hledger inc`).
-
-Here are all the builtin commands in alphabetical order.
-See also `hledger` for a more organised command list,
-and `hledger CMD -h` for detailed command help.
-
-## accounts
-
-_include_(Hledger/Cli/Commands/Accounts.md)
-
-## activity
-
-_include_(Hledger/Cli/Commands/Activity.md)
-
-## add
-
-_include_(Hledger/Cli/Commands/Add.md)
-
-## aregister
-
-_include_(Hledger/Cli/Commands/Aregister.md)
-
-## balance
-
-_include_({{Hledger/Cli/Commands/Balance.md}})
-
-## balancesheet
-
-_include_({{Hledger/Cli/Commands/Balancesheet.md}})
-
-## balancesheetequity
-
-_include_({{Hledger/Cli/Commands/Balancesheetequity.md}})
-
-## cashflow
-
-_include_({{Hledger/Cli/Commands/Cashflow.md}})
-
-## check
-
-_include_({{Hledger/Cli/Commands/Check.md}})
-
-## close
-
-_include_({{Hledger/Cli/Commands/Close.md}})
-
-## codes
-
-_include_({{Hledger/Cli/Commands/Codes.md}})
-
-## commodities
-
-_include_({{Hledger/Cli/Commands/Commodities.md}})
-
-## descriptions
-
-_include_({{Hledger/Cli/Commands/Descriptions.md}})
-
-## diff
-
-_include_({{Hledger/Cli/Commands/Diff.md}})
-
-## files
-
-_include_({{Hledger/Cli/Commands/Files.md}})
-
-## help
-
-_include_({{Hledger/Cli/Commands/Help.md}})
-
-## import
-
-_include_({{Hledger/Cli/Commands/Import.md}})
-
-## incomestatement
-
-_include_({{Hledger/Cli/Commands/Incomestatement.md}})
-
-## notes
-
-_include_({{Hledger/Cli/Commands/Notes.md}})
-
-## payees
-
-_include_({{Hledger/Cli/Commands/Payees.md}})
-
-## prices
-
-_include_({{Hledger/Cli/Commands/Prices.md}})
-
-## print
-
-_include_({{Hledger/Cli/Commands/Print.md}})
-
-## print-unique
-
-_include_({{Hledger/Cli/Commands/Printunique.md}})
-
-## register
-
-_include_({{Hledger/Cli/Commands/Register.md}})
-
-## register-match
-
-_include_({{Hledger/Cli/Commands/Registermatch.md}})
-
-## rewrite
-
-_include_({{Hledger/Cli/Commands/Rewrite.md}})
-
-## roi
-
-_include_({{Hledger/Cli/Commands/Roi.md}})
-
-## stats
-
-_include_({{Hledger/Cli/Commands/Stats.md}})
-
-## tags
-
-_include_({{Hledger/Cli/Commands/Tags.md}})
-
-## test
-
-_include_({{Hledger/Cli/Commands/Test.md}})
-
+hledger provides a number of commands for producing reports and managing your data. 
+Run `hledger` with no arguments to list the commands available.
+
+To run a command, write its name (or its abbreviation shown in the commands list,
+or any unambiguous prefix of the name) as hledger's first argument.
+Eg: `hledger balance` or `hledger bal`.
+
+m4_dnl XXX maybe later
+m4_dnl Each command's detailed docs are available :
+m4_dnl 
+m4_dnl - command line help, eg: `hledger balance --help`
+m4_dnl - 
+m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
+m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
+m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
+
+Here are the built-in commands:
+<!-- keep synced with Hledger.Cli.Commands.commandsList -->
+
+**Data entry (these modify the journal file):**
+
+- [add](#add)                                      - add transactions using guided prompts
+- [import](#import)                                - add any new transactions from other files (eg csv)
+
+**Data management**:
+
+- [check](#check)                                  - check for various kinds of issue in the data
+- [close](#close) (equity)                         - generate balance-resetting transactions
+- [diff](#diff)                                    - compare account transactions in two journal files
+- [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
+
+**Financial statements:**
+
+- [aregister](#aregister) (areg)                   - show transactions in a particular account
+- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
+- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
+- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
+- [incomestatement](#incomestatement) (is)         - show revenues and expenses
+- [roi](#roi)                                      - show return on investments
+
+**Miscellaneous reports:**
+
+- [accounts](#accounts) (a)                        - show account names
+- [activity](#activity)                            - show postings-per-interval bar charts
+- [balance](#balance) (b, bal)                     - show balance changes/end balances/budgets in accounts
+- [codes](#codes)                                  - show transaction codes
+- [commodities](#commodities)                      - show commodity/currency symbols
+- [descriptions](#descriptions)                    - show unique transaction descriptions
+- [files](#files)                                  - show input file paths
+- [notes](#notes)                                  - show unique note segments of transaction descriptions
+- [payees](#payees)                                - show unique payee segments of transaction descriptions
+- [prices](#prices)                                - show market price records
+- [print](#print) (p, txns)                        - show transactions (journal entries)
+- [print-unique](#print-unique)                    - show only transactions with unique descriptions
+- [register](#register) (r, reg)                   - show postings in one or more accounts & running total
+- [register-match](#register-match)                - show a recent posting that best matches a description
+- [stats](#stats)                                  - show journal statistics
+- [tags](#tags)                                    - show tag names
+- [test](#test)                                    - run self tests
+
+m4_dnl XXX maybe later
+m4_dnl _man_({{
+m4_dnl (Detailed command docs are omitted here for brevity,
+m4_dnl if you need them please use one of the other doc formats mentioned above.)
+m4_dnl }})
+m4_dnl _notman_({{
+
+Next, the detailed command docs, in alphabetical order.
+
+m4_dnl    commandnameheading:     Commandmdfile:
+_command_({{## accounts}}           ,{{Accounts}})
+_command_({{## activity}}           ,{{Activity}})
+_command_({{## add}}                ,{{Add}})
+_command_({{## aregister}}          ,{{Aregister}})
+_command_({{## balance}}            ,{{Balance}})
+_command_({{## balancesheet}}       ,{{Balancesheet}})
+_command_({{## balancesheetequity}} ,{{Balancesheetequity}})
+_command_({{## cashflow}}           ,{{Cashflow}})
+_command_({{## check}}              ,{{Check}})
+_command_({{## close}}              ,{{Close}})
+_command_({{## codes}}              ,{{Codes}})
+_command_({{## commodities}}        ,{{Commodities}})
+_command_({{## descriptions}}       ,{{Descriptions}})
+_command_({{## diff}}               ,{{Diff}})
+_command_({{## files}}              ,{{Files}})
+_command_({{## help}}               ,{{Help}})
+_command_({{## import}}             ,{{Import}})
+_command_({{## incomestatement}}    ,{{Incomestatement}})
+_command_({{## notes}}              ,{{Notes}})
+_command_({{## rewrite}}            ,{{Rewrite}})
+_command_({{## roi}}                ,{{Roi}})
+_command_({{## stats}}              ,{{Stats}})
+_command_({{## tags}}               ,{{Tags}})
+_command_({{## test}}               ,{{Test}})
+
+m4_dnl }})
 
 ## Add-on commands
 
-hledger also searches for external add-on commands, and will include these in the commands list.
-These are programs or scripts in your PATH whose name starts with `hledger-`
-and ends with a recognised file extension
-(currently: no extension, `bat`,`com`,`exe`, `hs`,`lhs`,`pl`,`py`,`rb`,`rkt`,`sh`).
+Any programs or scripts in your PATH named named `hledger-SOMETHING` 
+will also appear in the commands list (with a `+` mark). 
+These are called add-on commands.
 
-Add-ons can be invoked like any hledger command, but there are a few things to be aware of.
-Eg if the `hledger-web` add-on is installed,
+These offical add-ons are maintained and released along with hledger:
 
-- `hledger -h web` shows hledger's help, while `hledger web -h` shows hledger-web's help.
+- [ui](hledger-ui.html)    an efficient terminal interface for hledger (TUI)
+- [web](hledger-web.html)  a simple web interface for hledger (WUI)
 
-- Flags specific to the add-on must have a preceding `--` to hide them from hledger.
-  So `hledger web --serve --port 9000` will be rejected; you must use `hledger web -- --serve --port 9000`.
+These add-ons are maintained separately:
 
-- You can always run add-ons directly if preferred: `hledger-web --serve --port 9000`.
-
-Add-ons are a relatively easy way to add local features or experiment with new ideas.
-They can be written in any language, but haskell scripts have a big advantage:
-they can use the same hledger (and haskell) library functions that built-in commands do,
-for command-line options, journal parsing, reporting, etc.
-
-Two important add-ons are the hledger-ui and hledger-web user interfaces.
-These are maintained and released along with hledger:
-
-### ui
-[hledger-ui](hledger-ui.html) provides an efficient terminal interface.
-
-### web
-[hledger-web](hledger-web.html) provides a simple web interface.
-
-Third party add-ons, maintained separately from hledger, include:
-
-### iadd
-
-[hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
-is a more interactive, terminal UI replacement for the [add command](hledger.html#add).
-
-### interest
-
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-generates interest transactions for an account according to various schemes.
+- [iadd](http://hackage.haskell.org/package/hledger-iadd)
+   a more interactive alternative for the [add](hledger.html#add) command
+- [interest](http://hackage.haskell.org/package/hledger-interest)
+  generates interest transactions according to various schemes
+- [stockquotes](http://hackage.haskell.org/package/hledger-stockquotes)
+  downloads market prices for your commodities from AlphaVantage *(experimental)*
 
 <!-- ### autosync -->
 
@@ -1760,14 +1699,43 @@ generates interest transactions for an account according to various schemes.
 <!-- and can also download the data  -->
 <!-- [if your bank offers OFX Direct Connect](http://wiki.gnucash.org/wiki/OFX_Direct_Connect_Bank_Settings).  -->
 
-### stockquotes
+Additional experimental add-ons, which may not be in a working state, 
+can be found in the bin/ directory in the hledger repo.
 
-[hledger-stockquotes](http://hackage.haskell.org/package/hledger-stockquotes)
-downloads market prices for the commodities in your journal from AlphaVantage.
+## Add-on command flags
 
+In a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
+Eg you must write:
+```shell
+$ hledger web -- --serve
+```
+and not:
+```shell
+$ hledger web --serve
+```
+(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
 
-A few more experimental or old add-ons can be found in hledger's bin/
-directory. These are typically prototypes and not guaranteed to work.
+The `-h/--help` and `--version` flags work without `--`, with their position deciding which program they refer to. 
+Eg `hledger -h web` shows hledger's help, `hledger web -h` shows hledger-web's help.
+
+If you have any trouble with this, remember you can always run the add-on program directly, eg:
+```shell
+$ hledger-web --serve
+```
+
+## Making add-on commands
+
+Add-on commands are programs or scripts in your PATH 
+
+- whose name starts with `hledger-`
+- whose name ends with a recognised file extension:
+  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
+- and (on unix, mac) which are executable by the current user.
+
+Add-ons are a relatively easy way to add local features or experiment with new ideas.
+They can be written in any language, but haskell scripts have a big advantage:
+they can use the same hledger library functions that built-in commands use for command-line options, parsing and reporting.
+
 
 # ENVIRONMENT
 

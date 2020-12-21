@@ -97,7 +97,7 @@ usage =
 --  ,"./Shake relnotes           create draft release notes"
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
-makeinfo = "makeinfo" ++ " --no-warn"  -- silence makeinfo warnings - comment out to see them
+makeinfo = "makeinfo --no-split --force --no-warn --no-validate"  -- silence makeinfo warnings, comment these to see them
 pandoc   = "pandoc --strip-comments"
 gitcommit = "git commit --allow-empty"
 
@@ -400,18 +400,20 @@ main = do
         let src       = manpageNameToManualName out <.> "m4.md"
             commonm4  = "doc/common.m4"
             dir       = takeDirectory out
+            pkg       = dir
             packagemanversionm4 = dir </> ".version.m4"
             packagemandatem4 = dir </> ".date.m4"
             tmpl      = "doc/manpage.nroff"
-        mandate <- formatTime defaultTimeLocale "%B %Y" <$> liftIO getCurrentDay
+        pkgversion <- liftIO $ readFile $ dir </> ".version"
+        -- mandate <- formatTime defaultTimeLocale "%B %Y" <$> liftIO getCurrentDay  -- XXX not using this.. compare with .date.m4
         -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
         need $ [src, commonm4, packagemanversionm4, packagemandatem4, tmpl] ++ deps
         when (dir=="hledger") $ need commandmds
-        -- cmd_ Shell sed "-i -e" ("'s/(_monthyear_}}, *)\\{\\{[^}]+/\\1{{"++mandate++"/;'") packagem4  -- forces a rebuild, only when month has changed ?
         cmd Shell
           "m4 -P -DMAN -I" dir commonm4 packagemanversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
+          ("-V footer='"++pkg++"-"++pkgversion++"'")
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
           "--lua-filter tools/pandoc-drop-html-inlines.lua"
           "--lua-filter tools/pandoc-drop-links.lua"
@@ -419,6 +421,7 @@ main = do
 
       -- Generate plain text manuals suitable for embedding in
       -- executables and viewing with a pager, from the man pages.
+      -- (Depends on the nroffmanuals.)
       phony "txtmanuals" $ need txtmanuals
       txtmanuals |%> \out -> do  -- hledger/hledger.txt
         let src = manualNameToManpageName $ dropExtension out
@@ -444,13 +447,16 @@ main = do
         when (dir=="hledger") $ need commandmds
         cmd Shell
           "m4 -P -DINFO -I" dir commonm4 packagemanversionm4 src "|"
-          sed "-e 's/^#(#+)/\\1/'" "|"
+          -- sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
           "--lua-filter tools/pandoc-drop-html-inlines.lua"
           "--lua-filter tools/pandoc-drop-links.lua"
+          -- add "standalone" headers ? sounds good for setting text encoding,
+          -- but messes up quotes ('a' becomes ^Xa^Y)
+          -- "-s"
           "-t texinfo |"
-          makeinfo "--force --no-split -o" out
+          makeinfo "-o" out
 
 
       -- WEBSITE MARKDOWN SOURCE

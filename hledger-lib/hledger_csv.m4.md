@@ -1,4 +1,4 @@
-% hledger_csv(5) hledger _version_
+% hledger_csv(5)
 % _author_
 % _monthyear_
 
@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-CSV - how hledger reads CSV data, and the CSV rules file format
+m4_dnl _info_({{
+m4_dnl # hledger csv format
+m4_dnl }})
+
+How hledger reads CSV data, and the CSV rules file format.
 
 _man_({{
 # DESCRIPTION
