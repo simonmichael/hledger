@@ -421,6 +421,7 @@ main = do
 
       -- Generate plain text manuals suitable for embedding in
       -- executables and viewing with a pager, from the man pages.
+      -- (Depends on the nroffmanuals.)
       phony "txtmanuals" $ need txtmanuals
       txtmanuals |%> \out -> do  -- hledger/hledger.txt
         let src = manualNameToManpageName $ dropExtension out
