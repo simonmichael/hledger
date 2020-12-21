@@ -1,4 +1,4 @@
-% hledger_timedot(5) hledger _version_
+% hledger_timedot(5)
 % _author_
 % _monthyear_
 
@@ -6,7 +6,11 @@ _man_({{
 # NAME
 }})
 
-Timedot - hledger's human-friendly time logging format
+m4_dnl _info_({{
+m4_dnl # hledger timedot format
+m4_dnl }})
+
+hledger's human-friendly time logging format.
 
 _man_({{
 # DESCRIPTION

@@ -32,6 +32,11 @@ transactions shown.
 Transactions making a net change of zero are not shown by default;
 add the `-E/--empty` flag to show them.
 
+This command also supports the
+[output destination](hledger.html#output-destination) and
+[output format](hledger.html#output-format) options
+The output formats supported are `txt`, `csv`, and `json`.
+
 ### aregister and custom posting dates
 
 Transactions whose date is outside the report period can still be
@@ -44,13 +49,6 @@ arguments.
 To filter strictly by transaction date instead, add the `--txn-dates`
 flag. If you use this flag and some of your postings have custom
 dates, it's probably best to assume the running balance is wrong.
-
-### Output format
-
-This command also supports the
-[output destination](hledger.html#output-destination) and
-[output format](hledger.html#output-format) options
-The output formats supported are `txt`, `csv`, and `json`.
 
 Examples:
 

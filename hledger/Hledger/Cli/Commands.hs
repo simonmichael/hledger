@@ -156,6 +156,7 @@ builtinCommands = [
 -- 
 commandsList :: String -> [String] -> [String]
 commandsList progversion othercmds = [
+  -- keep synced with hledger.m4.md -> Commands -->
    "-------------------------------------------------------------------------------"
   ,progversion
   ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]"

@@ -1,4 +1,4 @@
-% hledger-web(1) hledger-web _version_
+% hledger-web(1)
 % _author_
 % _monthyear_
 
@@ -6,7 +6,7 @@ _man_({{
 # NAME
 }})
 
-hledger-web - web interface for the hledger accounting tool
+A web interface (WUI) for the hledger accounting tool.
 
 _man_({{
 # SYNOPSIS
