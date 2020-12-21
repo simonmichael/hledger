@@ -1,4 +1,4 @@
-% hledger(1) hledger _version_
+% hledger(1)
 % _author_
 % _monthyear_
 

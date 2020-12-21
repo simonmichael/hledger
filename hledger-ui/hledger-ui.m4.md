@@ -1,4 +1,4 @@
-% hledger-ui(1) hledger-ui _version_
+% hledger-ui(1)
 % _author_
 % _monthyear_
 

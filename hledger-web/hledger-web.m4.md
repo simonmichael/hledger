@@ -1,4 +1,4 @@
-% hledger-web(1) hledger-web _version_
+% hledger-web(1)
 % _author_
 % _monthyear_
 

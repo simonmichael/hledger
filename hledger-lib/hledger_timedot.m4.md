@@ -1,4 +1,4 @@
-% hledger_timedot(5) hledger _version_
+% hledger_timedot(5)
 % _author_
 % _monthyear_
 

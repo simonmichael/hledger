@@ -1,4 +1,4 @@
-% hledger_journal(5) hledger _version_
+% hledger_journal(5)
 % _author_
 % _monthyear_
 
