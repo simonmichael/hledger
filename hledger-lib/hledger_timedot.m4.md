@@ -6,9 +6,9 @@ _man_({{
 # NAME
 }})
 
-_info_({{
-# hledger timedot format
-}})
+m4_dnl _info_({{
+m4_dnl # hledger timedot format
+m4_dnl }})
 
 hledger's human-friendly time logging format.
 

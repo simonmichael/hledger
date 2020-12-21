@@ -6,9 +6,9 @@ _man_({{
 # NAME
 }})
 
-_info_({{
-# hledger journal format
-}})
+m4_dnl _info_({{
+m4_dnl # hledger journal format
+m4_dnl }})
 
 hledger's default file format, representing a General Journal.
 

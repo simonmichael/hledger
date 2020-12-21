@@ -17,10 +17,6 @@ _man_({{
 # NAME
 }})
 
-_info_({{
-# hledger
-}})
-
 A command-line accounting tool for both power users and folks new to accounting.
 
 _man_({{

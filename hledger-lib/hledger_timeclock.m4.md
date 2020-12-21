@@ -6,9 +6,9 @@ _man_({{
 # NAME
 }})
 
-_info_({{
-# hledger timeclock format
-}})
+m4_dnl _info_({{
+m4_dnl # hledger timeclock format
+m4_dnl }})
 
 The time logging format of timeclock.el, as read by hledger.
 
