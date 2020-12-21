@@ -400,10 +400,12 @@ main = do
         let src       = manpageNameToManualName out <.> "m4.md"
             commonm4  = "doc/common.m4"
             dir       = takeDirectory out
+            pkg       = dir
             packagemanversionm4 = dir </> ".version.m4"
             packagemandatem4 = dir </> ".date.m4"
             tmpl      = "doc/manpage.nroff"
-        mandate <- formatTime defaultTimeLocale "%B %Y" <$> liftIO getCurrentDay
+        pkgversion <- liftIO $ readFile $ dir </> ".version"
+        -- mandate <- formatTime defaultTimeLocale "%B %Y" <$> liftIO getCurrentDay  -- XXX not using this.. compare with .date.m4
         -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
         deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
         need $ [src, commonm4, packagemanversionm4, packagemandatem4, tmpl] ++ deps
@@ -411,6 +413,7 @@ main = do
         cmd Shell
           "m4 -P -DMAN -I" dir commonm4 packagemanversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
+          ("-V footer='"++pkg++"-"++pkgversion++"'")
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
           "--lua-filter tools/pandoc-drop-html-inlines.lua"
           "--lua-filter tools/pandoc-drop-links.lua"
