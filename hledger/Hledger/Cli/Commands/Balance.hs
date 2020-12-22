@@ -254,7 +254,6 @@ module Hledger.Cli.Commands.Balance (
  ,tests_Balance
 ) where
 
-import Control.Arrow (first)
 import Data.Default (def)
 import Data.List (intersperse, transpose)
 import Data.Maybe (fromMaybe, maybeToList)
@@ -435,10 +434,13 @@ renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin
     DepthSpacerField -> Cell align [(T.replicate d " ", d)]
                         where d = maybe id min mmax $ depth * fromMaybe 1 mmin
     AccountField     -> Cell align [(t, textWidth t)] where t = formatText ljust mmin mmax acctname
-    TotalField       -> Cell align . pure . first T.pack $ showMixed showAmountWithoutPrice mmin mmax (color_ opts) total
+    TotalField       -> Cell align . pure $ showamt total
     _                -> Cell align [("", 0)]
-  where align = if topaligned then (if ljust then TopLeft    else TopRight)
-                              else (if ljust then BottomLeft else BottomRight)
+  where
+    align = if topaligned then (if ljust then TopLeft    else TopRight)
+                          else (if ljust then BottomLeft else BottomRight)
+    showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w))
+            . showMixed noPrice{displayColour=color_ opts, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports
 
@@ -627,7 +629,7 @@ balanceReportTableAsText ReportOpts{..} =
     Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_}
         (Tab.alignCell TopLeft) (Tab.alignCell TopRight) showamt
   where
-    showamt = Cell TopRight . (\(a,w) -> [(T.pack a,w)]) . showMixedOneLine showAmountWithoutPrice Nothing mmax color_
+    showamt = Cell TopRight . (\(WideBuilder b w) -> [(TL.toStrict $ TB.toLazyText b, w)]) . showMixed oneLine{displayColour=color_, displayMaxWidth=mmax}
     mmax = if no_elide_ then Nothing else Just 32
 
 

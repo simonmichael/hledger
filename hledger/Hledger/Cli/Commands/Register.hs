@@ -18,8 +18,8 @@ module Hledger.Cli.Commands.Register (
  ,tests_Register
 ) where
 
-import Data.List
-import Data.Maybe
+import Data.List (intersperse)
+import Data.Maybe (fromMaybe, isJust)
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -96,12 +96,13 @@ postingsReportAsText opts items =
     TB.toLazyText . unlinesB $
       map (postingsReportItemAsText opts amtwidth balwidth) items
   where
-    amtwidth = maximumStrict $ map (snd . showMixed showAmount (Just 12) Nothing False . itemamt) items
-    balwidth = maximumStrict $ map (snd . showMixed showAmount (Just 12) Nothing False . itembal) items
+    amtwidth = maximumStrict $ map (wbWidth . showAmt . itemamt) items
+    balwidth = maximumStrict $ map (wbWidth . showAmt . itembal) items
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
     unlinesB [] = mempty
     unlinesB xs = mconcat (intersperse (TB.fromText "\n") xs) <> TB.fromText "\n"
+    showAmt = showMixed noColour{displayMinWidth=Just 12,displayColour=False}
 
 -- | Render one register report line item as plain text. Layout is like so:
 -- @
@@ -179,8 +180,9 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
               VirtualPosting         -> (\s -> wrap "(" ")" s, acctwidth-2)
               _                      -> (id,acctwidth)
           wrap a b x = a <> x <> b
-      amt = T.pack . fst $ showMixed showAmountWithoutPrice (Just amtwidth) (Just amtwidth) (color_ . rsOpts $ reportspec_ opts) $ pamount p
-      bal = T.pack . fst $ showMixed showAmountWithoutPrice (Just balwidth) (Just balwidth) (color_ . rsOpts $ reportspec_ opts) b
+      amt = TL.toStrict . TB.toLazyText . wbBuilder . showamt amtwidth $ pamount p
+      bal = TL.toStrict . TB.toLazyText . wbBuilder $ showamt balwidth b
+      showamt w = showMixed noPrice{displayColour=color_ . rsOpts $ reportspec_ opts, displayMinWidth=Just w, displayMaxWidth=Just w}
       -- alternate behaviour, show null amounts as 0 instead of blank
       -- amt = if null amt' then "0" else amt'
       -- bal = if null bal' then "0" else bal'

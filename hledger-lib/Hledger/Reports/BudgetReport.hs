@@ -27,18 +27,17 @@ module Hledger.Reports.BudgetReport (
 )
 where
 
-import Control.Arrow (first)
-import Data.Decimal
+import Data.Decimal (roundTo)
 import Data.Default (def)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import Data.List
+import Data.List (nub, partition, transpose)
 import Data.List.Extra (nubSort)
-import Data.Maybe
+import Data.Maybe (fromMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
-import Safe
+import Safe (headDef)
 --import Data.List
 --import Data.Maybe
 import qualified Data.Map as Map
@@ -245,7 +244,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
       where
         actual' = fromMaybe 0 actual
         budgetAndPerc b = (showamt b, showper <$> percentage actual' b)
-        showamt = first T.pack . showMixedOneLine showAmountWithoutPrice Nothing (Just 32) color_
+        showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w)) . showMixed oneLine{displayColour=color_, displayMaxWidth=Just 32}
         showper p = let str = T.pack (show $ roundTo 0 p) in (str, T.length str)
     cellWidth ((_,wa), Nothing)                    = (wa,  0,  0)
     cellWidth ((_,wa), Just ((_,wb), Nothing))     = (wa, wb,  0)

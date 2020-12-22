@@ -57,12 +57,13 @@ module Hledger.Data.Transaction (
   tests_Transaction
 )
 where
-import Data.List
+
+import Data.List (intercalate, partition)
 import Data.List.Extra (nubSort)
-import Data.Maybe
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar
+import Data.Time.Calendar (Day, fromGregorian)
 import qualified Data.Map as M
 
 import Hledger.Utils
@@ -258,12 +259,11 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
 
     -- currently prices are considered part of the amount string when right-aligning amounts
     shownAmounts
-      | elideamount    = [""]
-      | onelineamounts = [fst . showMixedOneLineUnnormalised showAmount (Just amtwidth) Nothing False $ pamount p]
-      | null (amounts $ pamount p) = [""]
-      | otherwise      = lines . fst . showMixedUnnormalised showAmount (Just amtwidth) Nothing False $ pamount p
+      | elideamount || null (amounts $ pamount p) = [""]
+      | otherwise = lines . wbUnpack . showMixed displayopts $ pamount p
       where
-        amtwidth = maximum $ 12 : map (snd . showMixedUnnormalised showAmount Nothing Nothing False . pamount) pstoalignwith  -- min. 12 for backwards compatibility
+        displayopts = noColour{displayOneLine=onelineamounts, displayMinWidth = Just amtwidth, displayNormalised=False}
+        amtwidth = maximum $ 12 : map (wbWidth . showMixed displayopts{displayMinWidth=Nothing} . pamount) pstoalignwith  -- min. 12 for backwards compatibility
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
