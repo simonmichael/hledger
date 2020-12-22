@@ -327,10 +327,10 @@ setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
 withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
 
-showAmountPrice :: Maybe AmountPrice -> String
-showAmountPrice Nothing                = ""
-showAmountPrice (Just (UnitPrice pa))  = " @ "  ++ showAmount pa
-showAmountPrice (Just (TotalPrice pa)) = " @@ " ++ showAmount pa
+showAmountPrice :: Maybe AmountPrice -> WideBuilder
+showAmountPrice Nothing                = mempty
+showAmountPrice (Just (UnitPrice pa))  = WideBuilder (TB.fromString " @ ")  3 <> showAmountHelper False pa
+showAmountPrice (Just (TotalPrice pa)) = WideBuilder (TB.fromString " @@ ") 4 <> showAmountHelper False pa
 
 showAmountPriceDebug :: Maybe AmountPrice -> String
 showAmountPriceDebug Nothing                = ""
@@ -362,13 +362,13 @@ amountUnstyled a = a{astyle=amountstyle}
 -- zero are converted to just \"0\". The special "missing" amount is
 -- displayed as the empty string.
 showAmount :: Amount -> String
-showAmount = showAmountHelper False
+showAmount = wbUnpack . showAmountHelper False
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
 cshowAmount :: Amount -> String
-cshowAmount a = (if isNegativeAmount a then color Dull Red else id) $
-                showAmountHelper False a
+cshowAmount a = (if isNegativeAmount a then color Dull Red else id) . wbUnpack
+                $ showAmountHelper False a
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
@@ -379,22 +379,23 @@ showAmountWithoutPrice a = showAmount a{aprice=Nothing}
 showAmountWithPrecision :: AmountPrecision -> Amount -> String
 showAmountWithPrecision p = showAmount . setAmountPrecision p
 
-showAmountHelper :: Bool -> Amount -> String
-showAmountHelper _ Amount{acommodity="AUTO"} = ""
+showAmountHelper :: Bool -> Amount -> WideBuilder
+showAmountHelper _ Amount{acommodity="AUTO"} = mempty
 showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=mp, astyle=AmountStyle{..}} =
     case ascommodityside of
-      L -> printf "%s%s%s%s" (T.unpack c') space quantity' price
-      R -> printf "%s%s%s%s" quantity' space (T.unpack c') price
+      L -> c'' <> space <> quantity' <> price
+      R -> quantity' <> space <> c'' <> price
     where
-      quantity = wbUnpack $ showamountquantity a
-      (quantity',c') | amountLooksZero a && not showzerocommodity = ("0","")
+      quantity = showamountquantity a
+      (quantity',c') | amountLooksZero a && not showzerocommodity = (WideBuilder (TB.singleton '0') 1,"")
                      | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
-      space = if not (T.null c') && ascommodityspaced then " " else "" :: String
+      space = if not (T.null c') && ascommodityspaced then WideBuilder (TB.singleton ' ') 1 else mempty
+      c'' = WideBuilder (TB.fromText c') (textWidth c')
       price = showAmountPrice mp
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 showAmountWithZeroCommodity :: Amount -> String
-showAmountWithZeroCommodity = showAmountHelper True
+showAmountWithZeroCommodity = wbUnpack . showAmountHelper True
 
 -- | Get a string representation of an amount for debugging,
 -- appropriate to the current debug level. 9 shows maximum detail.
