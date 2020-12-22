@@ -40,7 +40,9 @@ exchange rates.
 
 -}
 
-{-# LANGUAGE StandaloneDeriving, RecordWildCards, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Hledger.Data.Amount (
   -- * Amount
@@ -131,6 +133,7 @@ module Hledger.Data.Amount (
 
 import Control.Monad (foldM)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
+import Data.Default (Default(..))
 import Data.Function (on)
 import Data.List (genericSplitAt, groupBy, intercalate, mapAccumL,
                   partition, sortBy)
@@ -150,6 +153,22 @@ import Hledger.Utils
 
 deriving instance Show MarketPrice
 
+
+data AmountDisplayOpts = AmountDisplayOpts
+  { displayPrice         :: Bool  -- ^ Whether to display the Price of an Amount.
+  , displayZeroCommodity :: Bool  -- ^ If the Amount rounds to 0, whether to display its commodity string.
+  , displayColour        :: Bool  -- ^ Whether to colourise negative Amounts.
+  , displayNormalised    :: Bool  -- ^ Whether to normalise MixedAmounts before displaying.
+  , displayOneLine       :: Bool  -- ^ Whether to display on one line.
+  } deriving (Show)
+
+instance Default AmountDisplayOpts where
+  def = AmountDisplayOpts { displayPrice         = True
+                          , displayColour        = True
+                          , displayZeroCommodity = False
+                          , displayNormalised    = True
+                          , displayOneLine       = False
+                          }
 
 -------------------------------------------------------------------------------
 -- Amount styles
@@ -328,9 +347,9 @@ withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
 
 showAmountPrice :: Maybe AmountPrice -> WideBuilder
-showAmountPrice Nothing                = mempty
-showAmountPrice (Just (UnitPrice pa))  = WideBuilder (TB.fromString " @ ")  3 <> showAmountHelper False pa
-showAmountPrice (Just (TotalPrice pa)) = WideBuilder (TB.fromString " @@ ") 4 <> showAmountHelper False pa
+showAmountPrice Nothing      = mempty
+showAmountPrice (Just (UnitPrice  pa)) = WideBuilder (TB.fromString " @ ")  3 <> showAmountB def{displayColour=False} pa
+showAmountPrice (Just (TotalPrice pa)) = WideBuilder (TB.fromString " @@ ") 4 <> showAmountB def{displayColour=False} pa
 
 showAmountPriceDebug :: Maybe AmountPrice -> String
 showAmountPriceDebug Nothing                = ""
@@ -362,40 +381,43 @@ amountUnstyled a = a{astyle=amountstyle}
 -- zero are converted to just \"0\". The special "missing" amount is
 -- displayed as the empty string.
 showAmount :: Amount -> String
-showAmount = wbUnpack . showAmountHelper False
+showAmount = wbUnpack . showAmountB def{displayColour=False}
+
+-- | Get the string representation of an amount, based on its
+-- commodity's display settings and the display options. The
+-- special "missing" amount is displayed as the empty string.
+showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
+showAmountB _ Amount{acommodity="AUTO"} = mempty
+showAmountB opts a@Amount{astyle=style} =
+    color $ case ascommodityside style of
+      L -> c' <> space <> quantity' <> price
+      R -> quantity' <> space <> c' <> price
+  where
+    quantity = showamountquantity a
+    (quantity',c) | amountLooksZero a && not (displayZeroCommodity opts) = (WideBuilder (TB.singleton '0') 1,"")
+                   | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
+    space = if not (T.null c) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
+    c' = WideBuilder (TB.fromText c) (textWidth c)
+    price = if displayPrice opts then showAmountPrice (aprice a) else mempty
+    color = if displayColour opts && isNegativeAmount a then colorB Dull Red else id
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
 cshowAmount :: Amount -> String
-cshowAmount a = (if isNegativeAmount a then color Dull Red else id) . wbUnpack
-                $ showAmountHelper False a
+cshowAmount = wbUnpack . showAmountB def
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice a = showAmount a{aprice=Nothing}
+showAmountWithoutPrice = wbUnpack . showAmountB def{displayColour=False, displayPrice=False}
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings except using the specified precision.
 showAmountWithPrecision :: AmountPrecision -> Amount -> String
 showAmountWithPrecision p = showAmount . setAmountPrecision p
 
-showAmountHelper :: Bool -> Amount -> WideBuilder
-showAmountHelper _ Amount{acommodity="AUTO"} = mempty
-showAmountHelper showzerocommodity a@Amount{acommodity=c, aprice=mp, astyle=AmountStyle{..}} =
-    case ascommodityside of
-      L -> c'' <> space <> quantity' <> price
-      R -> quantity' <> space <> c'' <> price
-    where
-      quantity = showamountquantity a
-      (quantity',c') | amountLooksZero a && not showzerocommodity = (WideBuilder (TB.singleton '0') 1,"")
-                     | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
-      space = if not (T.null c') && ascommodityspaced then WideBuilder (TB.singleton ' ') 1 else mempty
-      c'' = WideBuilder (TB.fromText c') (textWidth c')
-      price = showAmountPrice mp
-
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 showAmountWithZeroCommodity :: Amount -> String
-showAmountWithZeroCommodity = wbUnpack . showAmountHelper True
+showAmountWithZeroCommodity = wbUnpack . showAmountB def{displayColour=False, displayZeroCommodity=True}
 
 -- | Get a string representation of an amount for debugging,
 -- appropriate to the current debug level. 9 shows maximum detail.
