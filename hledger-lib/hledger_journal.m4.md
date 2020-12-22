@@ -481,8 +481,8 @@ commodity       1 000 000.9455
 
 ## Commodity display style
 
-For each commodity, hledger chooses a consistent style to use when
-displaying amounts. (Except [price amounts](#prices), which are always
+For the amounts in each commodity, hledger chooses a consistent display style.
+(Excluding [price amounts](#prices), which are always
 displayed as written). The display style is chosen as follows:
 
 - If there is a [commodity directive](#declaring-commodities) (or
@@ -512,8 +512,16 @@ In summary, each commodity's amounts will be normalised to
 - or, the style of the first posting amount in the journal,
   with the first-seen digit group style and the maximum-seen number of decimal places.
 
-If reports are showing amounts in a way you don't like (eg, with too many decimal places), 
-use a [commodity directive](#declaring-commodities) to set your preferred style.
+So if your reports are showing amounts in a way you don't like, eg 
+with too many decimal places,
+use a [commodity directive](#declaring-commodities) to set the commodity's display style.
+For example:
+```journal
+# declare euro, dollar and bitcoin commodities and set their display styles:
+commodity EUR 1.000,
+commodity $1000.00
+commodity 1000.00000000 BTC
+```
 
 ## Rounding
 
