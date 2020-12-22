@@ -12,6 +12,10 @@ with the `Asset` or `Cash` or `Liability` type, or otherwise all
 accounts under a top-level `asset` or `liability` account (case
 insensitive, plurals allowed).
 
+(This report is essentially similar to 
+"hledger balance --historical assets liabilities", 
+with liabilities sign-flipped.)
+
 Example:
 
 ```shell

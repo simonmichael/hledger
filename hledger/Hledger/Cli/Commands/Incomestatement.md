@@ -13,6 +13,10 @@ with the `Revenue` or `Expense` type, or otherwise all accounts under
 a top-level `revenue` or `income` or `expense` account (case
 insensitive, plurals allowed).
 
+(This report is essentially similar to 
+"hledger balance --change revenues expenses", 
+with revenues sign-flipped.)
+
 Example:
 ```shell
 $ hledger incomestatement
