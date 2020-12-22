@@ -144,9 +144,9 @@ accountTransactionsReportAsText copts reportq thisacctq items
     title :
     map (accountTransactionsReportItemAsText copts reportq thisacctq amtwidth balwidth) items
   where
-    amtwidth = maximumStrict $ 12 : map (snd . showamt . itemamt) items
-    balwidth = maximumStrict $ 12 : map (snd . showamt . itembal) items
-    showamt = showMixedOneLine showAmountWithoutPrice (Just 12) mmax False  -- color_
+    amtwidth = maximumStrict $ 12 : map (wbWidth . showamt . itemamt) items
+    balwidth = maximumStrict $ 12 : map (wbWidth . showamt . itembal) items
+    showamt = showMixed oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax, displayColour=False}  -- color_
       where mmax = if no_elide_ . rsOpts . reportspec_ $ copts then Nothing else Just 32
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
@@ -216,8 +216,9 @@ accountTransactionsReportItemAsText
     -- gather content
     accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
             otheracctsstr
-    amt = T.pack . fst $ showMixed showAmountWithoutPrice (Just amtwidth) (Just balwidth) color_ change
-    bal = T.pack . fst $ showMixed showAmountWithoutPrice (Just balwidth) (Just balwidth) color_ balance
+    amt = TL.toStrict . TB.toLazyText . wbBuilder $ showamt amtwidth change
+    bal = TL.toStrict . TB.toLazyText . wbBuilder $ showamt balwidth balance
+    showamt w = showMixed noPrice{displayColour=color_, displayMinWidth=Just w, displayMaxWidth=Just w}
     -- alternate behaviour, show null amounts as 0 instead of blank
     -- amt = if null amt' then "0" else amt'
     -- bal = if null bal' then "0" else bal'

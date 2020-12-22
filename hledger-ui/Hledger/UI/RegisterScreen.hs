@@ -93,10 +93,12 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                             ,rsItemDescription   = T.unpack $ tdescription t
                             ,rsItemOtherAccounts = T.unpack otheracctsstr
                                                      -- _   -> "<split>"  -- should do this if accounts field width < 30
-                            ,rsItemChangeAmount  = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) False change
-                            ,rsItemBalanceAmount = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) False bal
+                            ,rsItemChangeAmount  = showamt change
+                            ,rsItemBalanceAmount = showamt bal
                             ,rsItemTransaction   = t
                             }
+            where showamt = \((WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w))
+                          . showMixed oneLine{displayMaxWidth=Just 32}
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
     blankitems = replicate 100  -- "100 ought to be enough for anyone"
