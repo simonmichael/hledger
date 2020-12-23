@@ -71,6 +71,1284 @@ To get started, you can either save some entries like the above in
 try some commands like `hledger print` or `hledger balance`.
 Run `hledger` with no arguments for a list of commands.
 
+# OPTIONS
+
+## General options
+
+To see general usage help, including general options
+which are supported by most hledger commands, run `hledger -h`.
+
+General help options:
+
+_helpoptions_
+
+General input options:
+
+_inputoptions_
+
+General reporting options:
+
+_reportingoptions_
+
+## Command options
+
+To see options for a particular command, including command-specific options, run: `hledger COMMAND -h`.
+
+Command-specific options must be written after the command name, eg: `hledger print -x`.
+
+Additionally, if the command is an [add-on](#commands),
+you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
+Or, you can run the add-on executable directly: `hledger-ui --watch`.
+
+## Command arguments
+
+Most hledger commands accept arguments after the command name,
+which are often a [query](#queries), filtering the data in some way.
+
+You can save a set of command line options/arguments in a file,
+and then reuse them by writing `@FILENAME` as a command line argument.
+Eg: `hledger bal @foo.args`.
+(To prevent this, eg if you have an argument that begins with a literal `@`,
+precede it with `--`, eg: `hledger bal -- @ARG`).
+
+Inside the argument file, each line should contain just one option or argument.
+Avoid the use of spaces, except inside quotes (or you'll see a confusing error).
+Between a flag and its argument, use = (or nothing).
+Bad:
+
+    assets depth:2
+    -X USD
+
+Good:
+
+    assets
+    depth:2
+    -X=USD
+
+For special characters (see below), use one less level of quoting than
+you would at the command prompt.
+Bad:
+
+    -X"$"
+
+Good:
+
+    -X$
+
+See also: [Save frequently used options](save-frequently-used-options.html).
+
+## Special characters
+
+### Single escaping (shell metacharacters)
+
+In shell command lines, characters significant to your shell - such as
+spaces, `<`, `>`, `(`, `)`, `|`, `$` and `\` - should be
+"shell-escaped" if you want hledger to see them. This is done by
+enclosing them in single or double quotes, or by writing a backslash
+before them. Eg to match an account name containing a space:
+
+```shell
+$ hledger register 'credit card'
+```
+
+or:
+
+```shell
+$ hledger register credit\ card
+```
+
+### Double escaping (regular expression metacharacters)
+
+Characters significant in [regular expressions](#regular-expressions)
+(described below) - such as `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`,
+and `\` - may need to be "regex-escaped" if you don't want them to be
+interpreted by hledger's regular expression engine. This is done by
+writing backslashes before them, but since backslash is typically also
+a shell metacharacter, both shell-escaping and regex-escaping will be
+needed. Eg to match a literal `$` sign while using the bash shell:
+
+```shell
+$ hledger balance cur:'\$'
+```
+
+or:
+
+```shell
+$ hledger balance cur:\\$
+```
+
+### Triple escaping (for add-on commands)
+
+When you use hledger to run an external add-on command (described
+below), one level of shell-escaping is lost from any options or
+arguments intended for by the add-on command, so those need an extra
+level of shell-escaping. Eg to match a literal `$` sign while using
+the bash shell and running an add-on command (`ui`):
+
+```shell
+$ hledger ui cur:'\\$'
+```
+
+or:
+
+```shell
+$ hledger ui cur:\\\\$
+```
+
+If you wondered why *four* backslashes, perhaps this helps:
+
+|                 |         |
+|-----------------|---------|
+| unescaped:      | `$`     |
+| escaped:        | `\$`    |
+| double-escaped: | `\\$`   |
+| triple-escaped: | `\\\\$` |
+
+Or, you can avoid the extra escaping by running the add-on executable directly:
+
+```shell
+$ hledger-ui cur:\\$
+```
+
+### Less escaping
+
+Options and arguments are sometimes used in places other than the
+shell command line, where shell-escaping is not needed, so there you
+should use one less level of escaping. Those places include:
+
+- an @argumentfile
+- hledger-ui's filter field
+- hledger-web's search form
+- GHCI's prompt (used by developers).
+
+
+## Unicode characters
+
+hledger is expected to handle non-ascii characters correctly:
+
+- they should be parsed correctly in input files and on the command
+line, by all hledger tools (add, iadd, hledger-web's search/add/edit
+forms, etc.)
+
+- they should be displayed correctly by all hledger tools,
+  and on-screen alignment should be preserved.
+
+This requires a well-configured environment. Here are some tips:
+
+- A system locale must be configured, and it must be one that can
+  decode the characters being used.
+  In bash, you can set a locale like this: `export LANG=en_US.UTF-8`.
+  There are some more details in [Troubleshooting](#troubleshooting).
+  This step is essential - without it, hledger will quit on encountering
+  a non-ascii character (as with all GHC-compiled programs).
+
+- your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)  must support unicode
+
+- the terminal must be using a font which includes the required unicode glyphs
+
+- the terminal should be configured to display wide characters as double width (for report alignment)
+
+- on Windows, for best results you should run hledger in the same kind of environment in which it was built.
+  Eg hledger built in the standard CMD.EXE environment (like the binaries on our download page)
+  might show display problems when run in a cygwin or msys terminal, and vice versa.
+  (See eg [#961](https://github.com/simonmichael/hledger/issues/961#issuecomment-471229644)).
+
+## Regular expressions
+
+hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
+
+- [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
+- [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
+- [account alias](#rewriting-accounts) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
+
+hledger's regular expressions come from the
+[regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
+library. 
+If they're not doing what you expect, it's important to know exactly what they support:
+
+#. they are case insensitive
+#. they are infix matching (they do not need to match the entire thing being matched)
+#. they are [POSIX ERE][] (extended regular expressions)
+#. they also support [GNU word boundaries][] (`\b`, `\B`, `\<`, `\>`)
+#. they do not support [backreferences][]; if you write `\1`, it will match the digit `1`.
+   Except when doing text replacement, eg in [account aliases](journal.html#regex-aliases),
+   where [backreferences][] can be used in the replacement string to reference [capturing groups][] in the search regexp.
+#. they do not support [mode modifiers][] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
+
+[POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
+[backreferences]: https://www.regular-expressions.info/backref.html
+[capturing groups]: http://www.regular-expressions.info/refcapture.html
+[mode modifiers]: http://www.regular-expressions.info/modifiers.html
+[GNU word boundaries]: http://www.regular-expressions.info/wordboundaries.html
+
+Some things to note:
+
+- In the `alias` directive and `--alias` option, regular expressions
+must be enclosed in forward slashes (`/REGEX/`). Elsewhere in hledger,
+these are not required.
+
+- In queries, to match a regular expression metacharacter like `$`
+as a literal character, prepend a backslash. Eg to search for amounts with the
+dollar sign in hledger-web, write `cur:\$`.
+
+- On the command line, some metacharacters like `$` have a special
+meaning to the shell and so must be escaped at least once more.
+See [Special characters](#special-characters-in-arguments-and-queries).
+
+# DATA FILES
+
+hledger reads transactions from one or more data files.
+The default data file is `$HOME/.hledger.journal`
+(or on Windows, something like `C:/Users/USER/.hledger.journal`).
+
+You can override this with the `$LEDGER_FILE` environment variable:
+
+```shell
+$ setenv LEDGER_FILE ~/finance/2016.journal
+$ hledger stats
+```
+
+or with one or more `-f/--file` options:
+
+```shell
+$ hledger -f /some/file -f another_file stats
+```
+
+The file name `-` means standard input:
+
+```shell
+$ cat some.journal | hledger -f-
+```
+
+## Data formats
+
+Usually the data file is in hledger's journal format, but it can be in
+any of the supported file formats, which currently are:
+
+| Reader:     | Reads:                                                           | Used for file extensions:            |
+|-------------|------------------------------------------------------------------|--------------------------------------|
+| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
+| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
+| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
+| `csv`       | comma/semicolon/tab/other-separated values, for data import      | `.csv` `.ssv` `.tsv`                 |
+
+hledger detects the format automatically based on the file extensions
+shown above. If it can't recognise the file extension, it assumes
+`journal` format. So for non-journal files, it's important to use a
+recognised file extension, so as to either read successfully or to
+show relevant error messages.
+
+You can also force a specific reader/format by prefixing the file path
+with the format and a colon. Eg to read a .dat file as csv:
+
+```shell
+$ hledger -f csv:/some/csv-file.dat stats
+$ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
+```
+
+## Multiple files
+
+You can specify multiple `-f` options, to read multiple files as one big journal.
+There are some limitations with this:
+
+- most directives do not affect sibling files
+- [balance assertions](journal.html#balance-assertions) will not see any account balances from previous files
+
+If you need either of those things, you can 
+
+- use a single parent file which [includes](journal.html#including-other-files) the others
+- or concatenate the files into one before reading, eg: `cat a.journal b.journal | hledger -f- CMD`.
+
+## Strict mode
+
+hledger checks input files for valid data.
+By default, the most important errors are detected, while still accepting
+easy journal files without a lot of declarations:
+
+- Are the input files parseable, with valid syntax ?
+- Are all transactions balanced ?
+- Do all balance assertions pass ?
+
+With the `-s`/`--strict` flag, additional checks are performed:
+
+- Are all accounts posted to, declared with an `account` directive ?
+  ([Account error checking](journal.html#account-error-checking))
+- Are all commodities declared with a `commodity` directive ?
+  ([Commodity error checking](journal.html#commodity-error-checking))
+
+See also: <https://hledger.org/checking-for-errors.html>
+
+*experimental.*
+
+# TIME PERIODS
+## Smart dates
+
+hledger's user interfaces accept a flexible "smart date" syntax.
+Smart dates allow some english words, can be relative to today's date,
+and can have less-significant date parts omitted (defaulting to 1).
+
+Examples:
+
+|                                              |                                                                                       |
+|----------------------------------------------|---------------------------------------------------------------------------------------|
+| `2004/10/1`, `2004-01-01`, `2004.9.1`        | exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31 |
+| `2004`                                       | start of year                                                                         |
+| `2004/10`                                    | start of month                                                                        |
+| `10/1`                                       | month and day in current year                                                         |
+| `21`                                         | day in current month                                                                  |
+| `october, oct`                               | start of month in current year                                                        |
+| `yesterday, today, tomorrow`                 | -1, 0, 1 days from today                                                              |
+| `last/this/next day/week/month/quarter/year` | -1, 0, 1 periods from the current period                                              |
+| `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
+| `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
+
+Counterexamples - malformed digit sequences might give surprising results:
+
+|             |                                                                   |
+|-------------|-------------------------------------------------------------------|
+| `201813`    | 6 digits with an invalid month is parsed as start of 6-digit year |
+| `20181301`  | 8 digits with an invalid month is parsed as start of 8-digit year |
+| `20181232`  | 8 digits with an invalid day gives an error                       |
+| `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
+
+## Report start & end date
+
+By default, most hledger reports will show the full span of time represented by the journal data.
+The report start date will be the earliest transaction or posting date, and the report end date
+will be the latest transaction, posting, or market price date.
+
+Often you will want to see a shorter time span, such as the current month.
+You can specify a start and/or end date using
+[`-b/--begin`](#reporting-options),
+[`-e/--end`](#reporting-options),
+[`-p/--period`](#period-expressions)
+or a [`date:` query](#queries) (described below).
+All of these accept the [smart date](#smart-dates) syntax.
+
+Some notes:
+
+- As in Ledger, end dates are exclusive, so you need to write the date *after*
+  the last day you want to include.
+- As noted in [reporting options](#general-options):
+  among start/end dates specified with *options*, the last (i.e. right-most)
+  option takes precedence.
+- The effective report start and end dates are the intersection of the
+  start/end dates from options and that from `date:` queries.
+  That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
+  smallest common time span.
+
+Examples:
+
+|                    |                                                                                             |
+|--------------------|---------------------------------------------------------------------------------------------|
+| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
+| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
+| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
+| `-p thismonth`     | all transactions in the current month                                                       |
+| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
+| `date:..12/1`      |                                                                                             |
+| `date:thismonth..` |                                                                                             |
+| `date:thismonth`   |                                                                                             |
+
+## Report intervals
+
+A report interval can be specified so that commands like
+[register](#register), [balance](#balance) and [activity](#activity) will divide their
+reports into multiple subperiods.  The basic intervals can be
+selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
+`-Q/--quarterly`, or `-Y/--yearly`.  More complex intervals may be
+specified with a [period expression](#period-expressions).
+Report intervals can not be specified with a [query](#queries).
+
+## Period expressions
+
+The `-p/--period` option accepts period expressions, a shorthand way
+of expressing a start date, end date, and/or report interval all at
+once.
+
+Here's a basic period expression specifying the first quarter of 2009. Note,
+hledger always treats start dates as inclusive and end dates as exclusive:
+
+`-p "from 2009/1/1 to 2009/4/1"`
+
+Keywords like "from" and "to" are optional, and so are the spaces, as long
+as you don't run two dates together. "to" can also be written as ".." or "-".
+These are equivalent to the above:
+
+|                           |
+|---------------------------|
+| `-p "2009/1/1 2009/4/1"`  |
+| `-p2009/1/1to2009/4/1`    |
+| `-p2009/1/1..2009/4/1`    |
+
+Dates are [smart dates](#smart-dates), so if the current year is 2009, the
+above can also be written as:
+
+|                         |
+|-------------------------|
+| `-p "1/1 4/1"`          |
+| `-p "january-apr"`      |
+| `-p "this year to 4/1"` |
+
+If you specify only one date, the missing start or end date will be the
+earliest or latest transaction in your journal:
+
+|                      |                                   |
+|----------------------|-----------------------------------|
+| `-p "from 2009/1/1"` | everything after january 1, 2009  |
+| `-p "from 2009/1"`   | the same                          |
+| `-p "from 2009"`     | the same                          |
+| `-p "to 2009"`       | everything before january 1, 2009 |
+
+A single date with no "from" or "to" defines both the start and end date
+like so:
+
+|                 |                                                             |
+|-----------------|-------------------------------------------------------------|
+| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”         |
+| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1”      |
+| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”         |
+
+Or you can specify a single quarter like so:
+
+|                 |                                                             |
+|-----------------|-------------------------------------------------------------|
+| `-p "2009Q1"`   | first quarter of 2009, equivalent to “2009/1/1 to 2009/4/1” |
+| `-p "q4"`       | fourth quarter of the current year                          |
+
+The argument of `-p` can also begin with, or be, a [report interval](#report-intervals) expression.
+The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`,
+which have the same effect as the `-D`,`-W`,`-M`,`-Q`, or `-Y` flags.
+Between report interval and start/end dates (if any), the word `in` is optional.
+Examples:
+
+|                                         |
+|-----------------------------------------|
+| `-p "weekly from 2009/1/1 to 2009/4/1"` |
+| `-p "monthly in 2008"`                  |
+| `-p "quarterly"`                        |
+
+Note that `weekly`, `monthly`, `quarterly` and `yearly` intervals will
+always start on the first day on week, month, quarter or year
+accordingly, and will end on the last day of same period, even if
+associated period expression specifies different explicit start and end date.
+
+For example:
+
+|                                                |                                                                                    |
+|------------------------------------------------|------------------------------------------------------------------------------------|
+| `-p "weekly from 2009/1/1 to 2009/4/1"`        | starts on 2008/12/29, closest preceding Monday                                     |
+| `-p "monthly in 2008/11/25"`                   | starts on 2018/11/01                                                               |
+| `-p "quarterly from 2009-05-05 to 2009-06-01"` | starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 |
+| `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
+
+The following more complex report intervals are also supported:
+`biweekly`,
+`fortnightly`,
+`bimonthly`,
+`every day|week|month|quarter|year`,
+`every N days|weeks|months|quarters|years`.
+
+
+All of these will start on the first day of the requested period and end on the last one, as described above.
+
+Examples:
+
+|                                   |                                                             |
+|-----------------------------------|-------------------------------------------------------------|
+| `-p "bimonthly from 2008"`        | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
+| `-p "every 2 weeks"`              | starts on closest preceding Monday                          |
+| `-p "every 5 month from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
+
+If you want intervals that start on arbitrary day of your choosing and span a week, month or year, you need to use any of the following:
+
+`every Nth day of week`,
+`every WEEKDAYNAME` (eg `mon|tue|wed|thu|fri|sat|sun`),
+`every Nth day [of month]`,
+`every Nth WEEKDAYNAME [of month]`,
+`every MM/DD [of year]`,
+`every Nth MMM [of year]`,
+`every MMM Nth [of year]`.
+
+Examples:
+
+|                              |                                                          |
+|------------------------------|----------------------------------------------------------|
+| `-p "every 2nd day of week"` | periods will go from Tue to Tue                          |
+| `-p "every Tue"`             | same                                                     |
+| `-p "every 15th day"`        | period boundaries will be on 15th of each month          |
+| `-p "every 2nd Monday"`      | period boundaries will be on second Monday of each month |
+| `-p "every 11/05"`           | yearly periods with boundaries on 5th of Nov             |
+| `-p "every 5th Nov"`         | same                                                     |
+| `-p "every Nov 5th"`         | same                                                     |
+
+Show historical balances at end of 15th each month (N is exclusive end date):
+
+`hledger balance -H -p "every 16th day"`
+
+Group postings from start of wednesday to end of next tuesday (N is start date and exclusive end date):
+
+`hledger register checking -p "every 3rd day of week"`
+
+# DEPTH
+
+With the `--depth N` option (short form: `-N`), commands like [account](#account), [balance](#balance)
+and [register](#register) will show only the uppermost accounts in the account
+tree, down to level N. Use this when you want a summary with less detail.
+This flag has the same effect as a `depth:` query argument
+(so `-2`, `--depth=2` or `depth:2` are equivalent).
+
+# QUERIES
+
+One of hledger's strengths is being able to quickly report on precise subsets of your data.
+Most commands accept an optional query expression, written as arguments after the command name,
+to filter the data by date, account name or other criteria.
+The syntax is similar to a web search:
+one or more space-separated search terms,
+quotes to enclose whitespace,
+prefixes to match specific fields,
+a not: prefix to negate the match.
+
+We do not yet support arbitrary boolean combinations of search terms;
+instead most commands show transactions/postings/accounts which match (or negatively match):
+
+- any of the description terms AND
+- any of the account terms AND
+- any of the status terms AND
+- all the other terms.
+
+The [print](hledger.html#print) command instead shows transactions which:
+
+- match any of the description terms AND
+- have any postings matching any of the positive account terms AND
+- have no postings matching any of the negative account terms AND
+- match all the other terms.
+
+The following kinds of search terms can be used.
+Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
+
+**`REGEX`, `acct:REGEX`**
+: match account names by this regular expression. (With no prefix, `acct:` is assumed.)
+
+: same as above
+
+**`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**
+: match postings with a single-commodity amount that is equal to, less
+than, or greater than N.  (Multi-commodity amounts are not tested, and
+will always match.)  The comparison has two modes: if N is preceded by
+a + or - sign (or is 0), the two signed numbers are
+compared. Otherwise, the absolute magnitudes are compared, ignoring
+sign.
+
+**`code:REGEX`**
+: match by transaction code (eg check number)
+
+**`cur:REGEX`**
+: match postings or transactions including any amounts whose
+currency/commodity symbol is fully matched by REGEX. (For a partial
+match, use `.*REGEX.*`). Note, to match characters which are
+regex-significant, like the dollar sign (`$`), you need to prepend `\`.
+And when using the command line you need to add one more level of
+quoting to hide it from the shell, so eg do: `hledger print cur:'\$'`
+or `hledger print cur:\\$`.
+
+**`desc:REGEX`**
+: match transaction descriptions.
+
+**`date:PERIODEXPR`**
+: match dates within the specified period.
+PERIODEXPR is a [period expression](hledger.html#period-expressions) (with no report interval).
+Examples: `date:2016`, `date:thismonth`, `date:2000/2/1-2/15`, `date:lastweek-`.
+If the `--date2` command line flag is present, this matches [secondary dates](journal.html#secondary-dates) instead.
+
+**`date2:PERIODEXPR`**
+: match secondary dates within the specified period.
+
+**`depth:N`**
+: match (or display, depending on command) accounts at or above this depth
+
+**`note:REGEX`**
+: match transaction [notes](journal.html#payee-and-note)
+(part of description right of `|`, or whole description when there's no `|`)
+
+**`payee:REGEX`**
+: match transaction [payee/payer names](journal.html#payee-and-note)
+(part of description left of `|`, or whole description when there's no `|`)
+
+**`real:, real:0`**
+: match real or virtual postings respectively
+
+**`status:, status:!, status:*`**
+: match unmarked, pending, or cleared transactions respectively
+
+**`tag:REGEX[=REGEX]`**
+: match by tag name, and optionally also by tag value.  Note a
+tag: query is considered to match a transaction if it matches any of
+the postings.  Also remember that postings inherit the tags of their
+parent transaction.
+
+The following special search term is used automatically in hledger-web, only:
+
+**`inacct:ACCTNAME`**
+: tells hledger-web to show the transaction register for this account.
+Can be filtered further with `acct` etc.
+
+Some of these can also be expressed as command-line options (eg `depth:2` is equivalent to `--depth 2`).
+Generally you can mix options and query arguments, and the resulting query will be their intersection
+(perhaps excluding the `-p/--period` option).
+
+# VALUATION
+
+Instead of reporting amounts in their original commodity,
+hledger can convert them to
+cost/sale amount (using the conversion rate recorded in the transaction),
+or to market value (using some market price on a certain date).
+This is controlled by the `--value=TYPE[,COMMODITY]` option,
+but we also provide the simpler `-B`/`-V`/`-X` flags,
+and usually one of those is all you need.
+
+## -B: Cost
+
+The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
+if they have a [transaction price](journal.html#transaction-prices) specified.
+
+## -V: Value
+
+The `-V/--market` flag converts amounts to market value in their
+default *valuation commodity*, using the
+[market prices](#market-prices) in effect on the *valuation date(s)*, if any. 
+More on these in a minute.
+
+## -X: Value in specified commodity
+
+The `-X/--exchange=COMM` option is like `-V`, except you tell it which
+currency you want to convert to, and it tries to convert everything to that.
+
+## Valuation date
+
+Since market prices can change from day to day, market value reports
+have a valuation date (or more than one), which determines which
+market prices will be used.
+
+For single period reports, if an explicit
+[report end date](#report-start-end-date) is specified, that will be
+used as the valuation date; otherwise the valuation date is the journal's end date.
+
+For [multiperiod reports](#report-intervals), each column/period is
+valued on the last day of the period, by default.
+
+## Market prices
+
+To convert a commodity A to its market value in another commodity B,
+hledger looks for a suitable market price (exchange rate) as follows,
+in this order of preference
+<!-- (-X tries all of these; -V tries only 1) (really ?) -->
+:
+
+1. A *declared market price* or *inferred market price*:
+   A's latest market price in B on or before the valuation date
+   as declared by a [P directive](journal.html#declaring-market-prices), 
+   or (with the `--infer-value` flag)
+   inferred from [transaction prices](journal.html#transaction-prices).
+   <!-- (Latest by date, then parse order.) -->
+   <!-- (A declared price overrides an inferred price on the same date.) -->
+  
+2. A *reverse market price*:
+   the inverse of a declared or inferred market price from B to A.
+
+3. A *a forward chain of market prices*:
+   a synthetic price formed by combining the shortest chain of
+   "forward" (only 1 above) market prices, leading from A to B.
+
+4. A *any chain of market prices*:
+   a chain of any market prices, including both forward and
+   reverse prices (1 and 2 above), leading from A to B.
+
+Amounts for which no applicable market price can be found, are not converted.
+
+## --infer-value: market prices from transactions
+
+Normally, market value in hledger is fully controlled by, and requires,
+[P directives](journal.html#declaring-market-prices) in your journal.
+Since adding and updating those can be a chore,
+and since transactions usually take place at close to market value,
+why not use the recorded [transaction prices](journal.html#transaction-prices)
+as additional market prices (as Ledger does) ?
+We could produce value reports without needing P directives at all.
+
+Adding the `--infer-value` flag to `-V`, `-X` or `--value` enables
+this. So for example, `hledger bs -V --infer-value` will get market
+prices both from P directives and from transactions.
+
+There is a downside: value reports can sometimes  be affected in
+confusing/undesired ways by your journal entries. If this happens to
+you, read all of this [Valuation](#valuation) section carefully,
+and try adding `--debug` or `--debug=2` to troubleshoot.
+
+`--infer-value` can infer market prices from:
+
+- multicommodity transactions with explicit prices (`@`/`@@`)
+
+- multicommodity transactions with implicit prices (no `@`, two commodities, unbalanced).
+  (With these, the order of postings matters. `hledger print -x` can be useful for troubleshooting.)
+
+- but not, currently, from
+  "[more correct](investments.html#a-more-correct-entry)" multicommodity transactions
+  (no `@`, multiple commodities, balanced).
+
+## Valuation commodity
+
+**When you specify a valuation commodity (`-X COMM` or `--value TYPE,COMM`):**\
+hledger will convert all amounts to COMM,
+wherever it can find a suitable market price (including by reversing or chaining prices).
+
+**When you leave the valuation commodity unspecified (`-V` or `--value TYPE`):**\
+For each commodity A, hledger picks a default valuation commodity as
+follows, in this order of preference:
+
+1. The price commodity from the latest P-declared market price for A
+   on or before valuation date.
+
+2. The price commodity from the latest P-declared market price for A on
+   any date. (Allows conversion to proceed when there are inferred
+   prices before the valuation date.)
+
+3. If there are no P directives at all (any commodity or date) and the
+   `--infer-value` flag is used: the price commodity from the latest
+   transaction-inferred price for A on or before valuation date.
+
+This means:
+
+- If you have [P directives](journal.html#declaring-market-prices), 
+  they determine which commodities `-V` will convert, and to what.
+
+- If you have no P directives, and use the `--infer-value` flag, 
+  [transaction prices](journal.html#transaction-prices) determine it.
+
+Amounts for which no valuation commodity can be found are not converted.
+
+## Simple valuation examples
+
+Here are some quick examples of `-V`:
+
+```journal
+; one euro is worth this many dollars from nov 1
+P 2016/11/01 € $1.10
+
+; purchase some euros on nov 3
+2016/11/3
+    assets:euros        €100
+    assets:checking
+
+; the euro is worth fewer dollars by dec 21
+P 2016/12/21 € $1.03
+```
+How many euros do I have ?
+```shell
+$ hledger -f t.j bal -N euros
+                €100  assets:euros
+```
+What are they worth at end of nov 3 ?
+```shell
+$ hledger -f t.j bal -N euros -V -e 2016/11/4
+             $110.00  assets:euros
+```
+What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
+```shell
+$ hledger -f t.j bal -N euros -V
+             $103.00  assets:euros
+```
+
+## --value: Flexible valuation
+
+`-B`, `-V` and `-X` are special cases of the more general `--value` option:
+
+     --value=TYPE[,COMM]  TYPE is cost, then, end, now or YYYY-MM-DD.
+                          COMM is an optional commodity symbol.
+                          Shows amounts converted to:
+                          - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
+                          - default valuation commodity (or COMM) using market prices at posting dates
+                          - default valuation commodity (or COMM) using market prices at period end(s)
+                          - default valuation commodity (or COMM) using current market prices
+                          - default valuation commodity (or COMM) using market prices at some date
+
+The TYPE part selects cost or value and valuation date:
+
+`--value=cost`
+: Convert amounts to cost, using the prices recorded in transactions.
+
+`--value=then`
+: Convert amounts to their value in the [default valuation commodity](#valuation-commodity), 
+  using market prices on each posting's date. This is currently
+  supported only by the [print](#print) and [register](#register)
+  commands.
+
+`--value=end`
+: Convert amounts to their value in the default valuation commodity, using market prices
+  on the last day of the report period (or if unspecified, the journal's end date);
+  or in multiperiod reports, market prices on the last day of each subperiod.
+
+`--value=now`
+: Convert amounts to their value in the default valuation commodity
+  using current market prices (as of when report is generated).
+
+`--value=YYYY-MM-DD`
+: Convert amounts to their value in the default valuation commodity
+  using market prices on this date.
+
+To select a different valuation commodity, add the optional `,COMM` part:
+a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
+hledger will do its best to convert amounts to this commodity, deducing
+[market prices](#market-prices) as described above.
+
+## More valuation examples
+
+Here are some examples showing the effect of `--value`, as seen with `print`:
+
+```journal
+P 2000-01-01 A  1 B
+P 2000-02-01 A  2 B
+P 2000-03-01 A  3 B
+P 2000-04-01 A  4 B
+
+2000-01-01
+  (a)      1 A @ 5 B
+
+2000-02-01
+  (a)      1 A @ 6 B
+
+2000-03-01
+  (a)      1 A @ 7 B
+```
+
+Show the cost of each posting:
+```shell
+$ hledger -f- print --value=cost
+2000-01-01
+    (a)             5 B
+
+2000-02-01
+    (a)             6 B
+
+2000-03-01
+    (a)             7 B
+
+```
+
+Show the value as of the last day of the report period (2000-02-29):
+```shell
+$ hledger -f- print --value=end date:2000/01-2000/03
+2000-01-01
+    (a)             2 B
+
+2000-02-01
+    (a)             2 B
+
+```
+
+With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
+```shell
+$ hledger -f- print --value=end
+2000-01-01
+    (a)             3 B
+
+2000-02-01
+    (a)             3 B
+
+2000-03-01
+    (a)             3 B
+
+```
+
+Show the current value (the 2000-04-01 price is still in effect today):
+```shell
+$ hledger -f- print --value=now
+2000-01-01
+    (a)             4 B
+
+2000-02-01
+    (a)             4 B
+
+2000-03-01
+    (a)             4 B
+
+```
+
+Show the value on 2000/01/15:
+```shell
+$ hledger -f- print --value=2000-01-15
+2000-01-01
+    (a)             1 B
+
+2000-02-01
+    (a)             1 B
+
+2000-03-01
+    (a)             1 B
+
+```
+
+You may need to explicitly set a commodity's display style, when reverse prices are used.
+Eg this output might be surprising:
+```journal
+P 2000-01-01 A 2B
+
+2000-01-01
+  a  1B
+  b
+```
+```shell
+$ hledger print -x -X A
+2000-01-01
+    a               0
+    b               0
+
+```
+Explanation: because there's no amount or commodity directive specifying a display style
+for A, 0.5A gets the default style, which shows no decimal digits. Because the displayed
+amount looks like zero, the commodity symbol and minus sign are not displayed either.
+Adding a commodity directive sets a more useful display style for A:
+```journal
+P 2000-01-01 A 2B
+commodity 0.00A
+
+2000-01-01
+  a  1B
+  b
+```
+```shell
+$ hledger print -X A
+2000-01-01
+    a           0.50A
+    b          -0.50A
+
+```
+
+## Effect of valuation on reports
+
+Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).
+(It's wide, you'll have to scroll sideways.)
+It may be useful when troubleshooting.
+If you find problems, please report them, ideally with a reproducible example.
+Related:
+[#329](https://github.com/simonmichael/hledger/issues/329),
+[#1083](https://github.com/simonmichael/hledger/issues/1083).
+
+| Report type                                         | `-B`, `--value=cost`                                             | `-V`, `-X`                                                        | `--value=then`                                        | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
+|-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|-------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
+| **print**                                           |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+| posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                 | value at report or journal end                                    | value at DATE/today                     |
+| balance assertions/assignments                      | unchanged                                                        | unchanged                                                         | unchanged                                             | unchanged                                                         | unchanged                               |
+| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+| **register**                                        |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+| starting balance (-H)                               | cost                                                             | value at day before report or journal start                       | not supported                                         | value at day before report or journal start                       | value at DATE/today                     |
+| posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                 | value at report or journal end                                    | value at DATE/today                     |
+| summary posting amounts with report interval        | summarised cost                                                  | value at period ends                                              | sum of postings in interval, valued at interval start | value at period ends                                              | value at DATE/today                     |
+| running total/average                               | sum/average of displayed values                                  | sum/average of displayed values                                   | sum/average of displayed values                       | sum/average of displayed values                                   | sum/average of displayed values         |
+| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+| **balance (bs, bse, cf, is)**                       |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+| balance changes                                     | sums of costs                                                    | value at report end or today of sums of postings                  | not supported                                         | value at report or journal end of sums of postings                | value at DATE/today of sums of postings |
+| budget amounts (--budget)                           | like balance changes                                             | like balance changes                                              | not supported                                         | like balances                                                     | like balance changes                    |
+| grand total                                         | sum of displayed values                                          | sum of displayed values                                           | not supported                                         | sum of displayed values                                           | sum of displayed values                 |
+| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+| **balance (bs, bse, cf, is) with report interval**  |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+| starting balances (-H)                              | sums of costs of postings before report start                    | value at report start of sums of all postings before report start | not supported                                         | value at report start of sums of all postings before report start | sums of postings before report start    |
+| balance changes (bal, is, bs --change, cf --change) | sums of costs of postings in period                              | same as --value=end                                               | not supported                                         | balance change in each period, valued at period ends              | value at DATE/today of sums of postings |
+| end balances (bal -H, is --H, bs, cf)               | sums of costs of postings from before report start to period end | same as --value=end                                               | not supported                                         | period end balances, valued at period ends                        | value at DATE/today of sums of postings |
+| budget amounts (--budget)                           | like balance changes/end balances                                | like balance changes/end balances                                 | not supported                                         | like balances                                                     | like balance changes/end balances       |
+| row totals, row averages (-T, -A)                   | sums, averages of displayed values                               | sums, averages of displayed values                                | not supported                                         | sums, averages of displayed values                                | sums, averages of displayed values      |
+| column totals                                       | sums of displayed values                                         | sums of displayed values                                          | not supported                                         | sums of displayed values                                          | sums of displayed values                |
+| grand total, grand average                          | sum, average of column totals                                    | sum, average of column totals                                     | not supported                                         | sum, average of column totals                                     | sum, average of column totals           |
+| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
+
+`--cumulative` is omitted to save space, it works like `-H` but with a zero starting balance.
+
+**Glossary:**
+
+*cost*
+: calculated using price(s) recorded in the transaction(s).
+
+*value*
+: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
+
+*report start*
+: the first day of the report period specified with -b or -p or date:, otherwise today.
+
+*report or journal start*
+: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
+
+*report end*
+: the last day of the report period specified with -e or -p or date:, otherwise today.
+
+*report or journal end*
+: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
+
+*report interval*
+: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
+
+
+
+
+# PIVOTING
+
+Normally hledger sums amounts, and organizes them in a hierarchy, based on account name.
+The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
+FIELD can be:
+`code`, `description`, `payee`, `note`,
+or the full name (case insensitive) of any [tag](journal.html#tags).
+As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
+
+`--pivot` is a general option affecting all reports; you can think of hledger transforming
+the journal before any other processing, replacing every posting's account name with
+the value of the specified field on that posting, inheriting it from the transaction
+or using a blank value if it's not present.
+
+An example:
+
+```journal
+2016/02/16 Member Fee Payment
+    assets:bank account                    2 EUR
+    income:member fees                    -2 EUR  ; member: John Doe
+```
+Normal balance report showing account names:
+```shell
+$ hledger balance
+               2 EUR  assets:bank account
+              -2 EUR  income:member fees
+--------------------
+                   0
+```
+Pivoted balance report, using member: tag values instead:
+```shell
+$ hledger balance --pivot member
+               2 EUR
+              -2 EUR  John Doe
+--------------------
+                   0
+```
+One way to show only amounts with a member: value (using a [query](#queries), described below):
+```shell
+$ hledger balance --pivot member tag:member=.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+Another way (the acct: query matches against the pivoted "account name"):
+```shell
+$ hledger balance --pivot member acct:.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+
+# OUTPUT
+
+## Output destination
+
+hledger commands send their output to the terminal by default.
+You can of course redirect this, eg into a file, using standard shell syntax:
+```shell
+$ hledger print > foo.txt
+```
+
+Some commands (print, register, stats, the balance commands) also
+provide the `-o/--output-file` option, which does the same thing
+without needing the shell. Eg:
+```shell
+$ hledger print -o foo.txt
+$ hledger print -o -        # write to stdout (the default)
+```
+
+## Output format
+
+Some commands (print, register, the balance commands) offer a choice of output format. 
+In addition to the usual plain text format (`txt`), there are
+CSV (`csv`), HTML (`html`), JSON (`json`) and SQL (`sql`).
+This is controlled by the `-O/--output-format` option:
+```shell
+$ hledger print -O csv
+```
+or, by a file extension specified with `-o/--output-file`:
+```shell
+$ hledger balancesheet -o foo.html   # write HTML to foo.html
+```
+The `-O` option can be used to override the file extension if needed:
+```shell
+$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
+```
+
+Some notes about JSON output:
+
+- This feature is marked experimental, and not yet much used; you
+  should expect our JSON to evolve. Real-world feedback is welcome.
+
+- Our JSON is rather large and verbose, as it is quite a faithful
+  representation of hledger's internal data types. To understand the
+  JSON, read the Haskell type definitions, which are mostly in
+  https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
+
+<!--
+- The JSON output from hledger commands is essentially the same as the
+  JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
+  but pretty printed, using line breaks and indentation.
+  Our pretty printer has the ability to elide data in certain cases -
+  rendering non-strings as if they were strings, or displaying "FOO.."
+  instead of FOO's full details. This should never happen in hledger's
+  JSON output; if you see otherwise, please report as a bug.
+-->
+
+- hledger represents quantities as Decimal values storing up to 255
+  significant digits, eg for repeating decimals. Such numbers can
+  arise in practice (from automatically-calculated transaction
+  prices), and would break most JSON consumers. So in JSON, we show
+  quantities as simple Numbers with at most 10 decimal places. We
+  don't limit the number of integer digits, but that part is under
+  your control.
+  We hope this approach will not cause problems in practice; if you
+  find otherwise, please let us know. 
+  (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
+
+Notes about SQL output:
+
+- SQL output is also marked experimental, and much like JSON could use
+real-world feedback.
+
+- SQL output is expected to work with sqlite, MySQL and PostgreSQL
+
+- SQL output is structured with the expectations that statements will
+  be executed in the empty database. If you already have tables created
+  via SQL output of hledger, you would probably want to either clear tables
+  of existing data (via `delete` or `truncate` SQL statements) or drop
+  tables completely as otherwise your postings will be duped.
+
+# COMMANDS
+
+hledger provides a number of commands for producing reports and managing your data. 
+Run `hledger` with no arguments to list the commands available,
+and `hledger CMD` to run a command. CMD can be the full command name,
+or its standard abbreviation shown in the commands list,
+or any unambiguous prefix of the name.
+Eg: `hledger bal`.
+
+m4_dnl XXX maybe later
+m4_dnl Each command's detailed docs are available :
+m4_dnl 
+m4_dnl - command line help, eg: `hledger balance --help`
+m4_dnl - 
+m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
+m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
+m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
+
+Here are the built-in commands, with the most often-used in bold:
+<!-- keep synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
+
+**Data entry:**
+
+These data entry commands are the only ones which can modify your journal file.
+ 
+- **[add](#add)**                                  - add transactions using guided prompts
+- **[import](#import)**                            - add any new transactions from other files (eg csv)
+
+**Data management:**
+
+- [check](#check)                                  - check for various kinds of issue in the data
+- [close](#close) (equity)                         - generate balance-resetting transactions
+- [diff](#diff)                                    - compare account transactions in two journal files
+- [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
+
+**Financial statements:**
+
+- **[aregister](#aregister) (areg)**               - show transactions in a particular account
+- **[balancesheet](#balancesheet) (bs)**           - show assets, liabilities and net worth
+- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
+- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
+- **[incomestatement](#incomestatement) (is)**     - show revenues and expenses
+- [roi](#roi)                                      - show return on investments
+
+**Miscellaneous reports:**
+
+- [accounts](#accounts) (a)                        - show account names
+- [activity](#activity)                            - show postings-per-interval bar charts
+- **[balance](#balance) (b, bal)**                 - show balance changes/end balances/budgets in any accounts
+- [codes](#codes)                                  - show transaction codes
+- [commodities](#commodities)                      - show commodity/currency symbols
+- [descriptions](#descriptions)                    - show unique transaction descriptions
+- [files](#files)                                  - show input file paths
+- [help](#help)                                    - show hledger user manuals in several formats
+- [notes](#notes)                                  - show unique note segments of transaction descriptions
+- [payees](#payees)                                - show unique payee segments of transaction descriptions
+- [prices](#prices)                                - show market price records
+- **[print](#print) (p, txns)**                    - show transactions (journal entries)
+- [print-unique](#print-unique)                    - show only transactions with unique descriptions
+- **[register](#register) (r, reg)**               - show postings in one or more accounts & running total
+- [register-match](#register-match)                - show a recent posting that best matches a description
+- [stats](#stats)                                  - show journal statistics
+- [tags](#tags)                                    - show tag names
+- [test](#test)                                    - run self tests
+
+<a name="addons"></a>
+**Add-on commands:**
+
+Programs or scripts named `hledger-SOMETHING` in your PATH are 
+[add-on commands](#about-add-on-commands); these appear in the
+commands list with a `+` mark. 
+Two of these are maintained and released with hledger:
+
+- **[ui](hledger-ui.html)**                        - an efficient terminal interface (TUI) for hledger
+- **[web](hledger-web.html)**                      - a simple web interface (WUI) for hledger
+
+And these add-ons are maintained separately:
+
+- [iadd](http://hackage.haskell.org/package/hledger-iadd) - a more interactive alternative for the add command
+- [interest](http://hackage.haskell.org/package/hledger-interest) - generates interest transactions according to various schemes
+- [stockquotes](http://hackage.haskell.org/package/hledger-stockquotes) - downloads market prices for your commodities from AlphaVantage *(experimental)*
+
+m4_dnl XXX maybe later
+m4_dnl _man_({{
+m4_dnl For detailed command docs please see the appropriate man page (eg `man hledger-print`), 
+m4_dnl or the info or web format of this manual.
+m4_dnl }})
+m4_dnl _notman_({{
+
+Next, the detailed command docs, in alphabetical order.
+
+m4_dnl cf Hledger/Cli/Commands/commands.m4:
+_commands_({{##}})
+
+## About add-on commands
+
+Add-on commands are programs or scripts in your PATH 
+
+- whose name starts with `hledger-`
+- whose name ends with a recognised file extension:
+  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
+- and (on unix, mac) which are executable by the current user.
+
+Add-ons are a relatively easy way to add local features or experiment with new ideas.
+They can be written in any language, but haskell scripts have a big advantage:
+they can use the same hledger library functions that built-in commands use for command-line options, parsing and reporting.
+Some experimental/example add-on scripts can be found in the hledger repo's
+[bin/ directory](https://github.com/simonmichael/hledger/tree/master/bin).
+
+Note in a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
+Eg you must write:
+```shell
+$ hledger web -- --serve
+```
+and not:
+```shell
+$ hledger web --serve
+```
+(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
+
+The `-h/--help` and `--version` flags work without `--`, with their position deciding which program they refer to. 
+Eg `hledger -h web` shows hledger's help, `hledger web -h` shows hledger-web's help.
+
+If you have any trouble with this, remember you can always run the add-on program directly, eg:
+```shell
+$ hledger-web --serve
+```
+
 # COMMON TASKS
 
 Here are some quick examples of how to do some basic tasks with hledger.
@@ -449,1269 +1727,6 @@ See the [close command](#close).
 
 If using version control, don't forget to `git add` the new file.
 
-# OPTIONS
-
-## General options
-
-To see general usage help, including general options
-which are supported by most hledger commands, run `hledger -h`.
-
-General help options:
-
-_helpoptions_
-
-General input options:
-
-_inputoptions_
-
-General reporting options:
-
-_reportingoptions_
-
-## Command options
-
-To see options for a particular command, including command-specific options, run: `hledger COMMAND -h`.
-
-Command-specific options must be written after the command name, eg: `hledger print -x`.
-
-Additionally, if the command is an [add-on](#commands),
-you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
-Or, you can run the add-on executable directly: `hledger-ui --watch`.
-
-## Command arguments
-
-Most hledger commands accept arguments after the command name,
-which are often a [query](#queries), filtering the data in some way.
-
-You can save a set of command line options/arguments in a file,
-and then reuse them by writing `@FILENAME` as a command line argument.
-Eg: `hledger bal @foo.args`.
-(To prevent this, eg if you have an argument that begins with a literal `@`,
-precede it with `--`, eg: `hledger bal -- @ARG`).
-
-Inside the argument file, each line should contain just one option or argument.
-Avoid the use of spaces, except inside quotes (or you'll see a confusing error).
-Between a flag and its argument, use = (or nothing).
-Bad:
-
-    assets depth:2
-    -X USD
-
-Good:
-
-    assets
-    depth:2
-    -X=USD
-
-For special characters (see below), use one less level of quoting than
-you would at the command prompt.
-Bad:
-
-    -X"$"
-
-Good:
-
-    -X$
-
-See also: [Save frequently used options](save-frequently-used-options.html).
-
-## Queries
-
-One of hledger's strengths is being able to quickly report on precise subsets of your data.
-Most commands accept an optional query expression, written as arguments after the command name,
-to filter the data by date, account name or other criteria.
-The syntax is similar to a web search:
-one or more space-separated search terms,
-quotes to enclose whitespace,
-prefixes to match specific fields,
-a not: prefix to negate the match.
-
-We do not yet support arbitrary boolean combinations of search terms;
-instead most commands show transactions/postings/accounts which match (or negatively match):
-
-- any of the description terms AND
-- any of the account terms AND
-- any of the status terms AND
-- all the other terms.
-
-The [print](hledger.html#print) command instead shows transactions which:
-
-- match any of the description terms AND
-- have any postings matching any of the positive account terms AND
-- have no postings matching any of the negative account terms AND
-- match all the other terms.
-
-The following kinds of search terms can be used.
-Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
-
-**`REGEX`, `acct:REGEX`**
-: match account names by this regular expression. (With no prefix, `acct:` is assumed.)
-
-: same as above
-
-**`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**
-: match postings with a single-commodity amount that is equal to, less
-than, or greater than N.  (Multi-commodity amounts are not tested, and
-will always match.)  The comparison has two modes: if N is preceded by
-a + or - sign (or is 0), the two signed numbers are
-compared. Otherwise, the absolute magnitudes are compared, ignoring
-sign.
-
-**`code:REGEX`**
-: match by transaction code (eg check number)
-
-**`cur:REGEX`**
-: match postings or transactions including any amounts whose
-currency/commodity symbol is fully matched by REGEX. (For a partial
-match, use `.*REGEX.*`). Note, to match characters which are
-regex-significant, like the dollar sign (`$`), you need to prepend `\`.
-And when using the command line you need to add one more level of
-quoting to hide it from the shell, so eg do: `hledger print cur:'\$'`
-or `hledger print cur:\\$`.
-
-**`desc:REGEX`**
-: match transaction descriptions.
-
-**`date:PERIODEXPR`**
-: match dates within the specified period.
-PERIODEXPR is a [period expression](hledger.html#period-expressions) (with no report interval).
-Examples: `date:2016`, `date:thismonth`, `date:2000/2/1-2/15`, `date:lastweek-`.
-If the `--date2` command line flag is present, this matches [secondary dates](journal.html#secondary-dates) instead.
-
-**`date2:PERIODEXPR`**
-: match secondary dates within the specified period.
-
-**`depth:N`**
-: match (or display, depending on command) accounts at or above this depth
-
-**`note:REGEX`**
-: match transaction [notes](journal.html#payee-and-note)
-(part of description right of `|`, or whole description when there's no `|`)
-
-**`payee:REGEX`**
-: match transaction [payee/payer names](journal.html#payee-and-note)
-(part of description left of `|`, or whole description when there's no `|`)
-
-**`real:, real:0`**
-: match real or virtual postings respectively
-
-**`status:, status:!, status:*`**
-: match unmarked, pending, or cleared transactions respectively
-
-**`tag:REGEX[=REGEX]`**
-: match by tag name, and optionally also by tag value.  Note a
-tag: query is considered to match a transaction if it matches any of
-the postings.  Also remember that postings inherit the tags of their
-parent transaction.
-
-The following special search term is used automatically in hledger-web, only:
-
-**`inacct:ACCTNAME`**
-: tells hledger-web to show the transaction register for this account.
-Can be filtered further with `acct` etc.
-
-Some of these can also be expressed as command-line options (eg `depth:2` is equivalent to `--depth 2`).
-Generally you can mix options and query arguments, and the resulting query will be their intersection
-(perhaps excluding the `-p/--period` option).
-
-## Special characters in arguments and queries
-
-In shell command lines, option and argument values which contain "problematic" characters,
-ie spaces,
-and also characters significant to your shell such as `<`, `>`, `(`, `)`, `|` and `$`,
-should be escaped by enclosing them in quotes or by writing backslashes before the characters.
-Eg:
-
-`hledger register -p 'last year' "accounts receivable (receivable|payable)" amt:\>100`.
-
-### More escaping
-
-Characters significant both to the shell and in [regular expressions](#regular-expressions)
-may need one extra level of escaping. These include parentheses, the pipe symbol and the dollar sign.
-Eg, to match the dollar symbol, bash users should do:
-
-`hledger balance cur:'\$'`
-
-or:
-
-`hledger balance cur:\\$`
-
-### Even more escaping
-
-When hledger runs an add-on executable (eg you type `hledger ui`, hledger runs `hledger-ui`),
-it de-escapes command-line options and arguments once, so you might need to *triple*-escape.
-Eg in bash, running the ui command and matching the dollar sign, it's:
-
-`hledger ui cur:'\\$'`
-
-or:
-
-`hledger ui cur:\\\\$`
-
-If you asked why *four* slashes above, this may help:
-
-|                 |         |
-|-----------------|---------|
-| unescaped:      | `$`     |
-| escaped:        | `\$`    |
-| double-escaped: | `\\$`   |
-| triple-escaped: | `\\\\$` |
-
-(The number of backslashes in fish shell is left as an exercise for the reader.)
-
-You can always avoid the extra escaping for add-ons by running the add-on directly:
-
-`hledger-ui cur:\\$`
-
-### Less escaping
-
-Inside an [argument file](#argument-expansion),
-or in the search field of hledger-ui or hledger-web,
-or at a GHCI prompt,
-you need one less level of escaping than at the command line.
-And backslashes may work better than quotes.
-Eg:
-
-`ghci> :main balance cur:\$`
-
-## Unicode characters
-
-hledger is expected to handle non-ascii characters correctly:
-
-- they should be parsed correctly in input files and on the command
-line, by all hledger tools (add, iadd, hledger-web's search/add/edit
-forms, etc.)
-
-- they should be displayed correctly by all hledger tools,
-  and on-screen alignment should be preserved.
-
-This requires a well-configured environment. Here are some tips:
-
-- A system locale must be configured, and it must be one that can
-  decode the characters being used.
-  In bash, you can set a locale like this: `export LANG=en_US.UTF-8`.
-  There are some more details in [Troubleshooting](#troubleshooting).
-  This step is essential - without it, hledger will quit on encountering
-  a non-ascii character (as with all GHC-compiled programs).
-
-- your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)  must support unicode
-
-- the terminal must be using a font which includes the required unicode glyphs
-
-- the terminal should be configured to display wide characters as double width (for report alignment)
-
-- on Windows, for best results you should run hledger in the same kind of environment in which it was built.
-  Eg hledger built in the standard CMD.EXE environment (like the binaries on our download page)
-  might show display problems when run in a cygwin or msys terminal, and vice versa.
-  (See eg [#961](https://github.com/simonmichael/hledger/issues/961#issuecomment-471229644)).
-
-
-
-## Input files
-
-hledger reads transactions from a data file (and the add command writes to it).
-By default this file is `$HOME/.hledger.journal`
-(or on Windows, something like `C:/Users/USER/.hledger.journal`).
-You can override this with the `$LEDGER_FILE` environment variable:
-```shell
-$ setenv LEDGER_FILE ~/finance/2016.journal
-$ hledger stats
-```
-or with the `-f/--file` option:
-```shell
-$ hledger -f /some/file stats
-```
-
-The file name `-` (hyphen) means standard input:
-```shell
-$ cat some.journal | hledger -f-
-```
-
-Usually the data file is in hledger's journal format, but it can be in
-any of the supported file formats, which currently are:
-
-| Reader:     | Reads:                                                           | Used for file extensions:            |
-|-------------|------------------------------------------------------------------|--------------------------------------|
-| `journal`   | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger` |
-| `timeclock` | timeclock files, for precise time logging                        | `.timeclock`                         |
-| `timedot`   | timedot files, for approximate time logging                      | `.timedot`                           |
-| `csv`       | comma/semicolon/tab/other-separated values, for data import      | `.csv` `.ssv` `.tsv`                 |
-
-hledger detects the format automatically based on the file extensions
-shown above. If it can't recognise the file extension, it assumes
-`journal` format. So for non-journal files, it's important to use a
-recognised file extension, so as to either read successfully or to
-show relevant error messages.
-
-When you can't ensure the right file extension, not to worry: you can
-force a specific reader/format by prefixing the file path with the
-format and a colon. Eg to read a .dat file as csv:
-
-```shell
-$ hledger -f csv:/some/csv-file.dat stats
-$ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
-```
-
-You can specify multiple `-f` options, to read multiple files as one big journal.
-There are some limitations with this:
-
-- directives in one file will not affect the other files
-- [balance assertions](journal.html#balance-assertions) will not see any account balances from previous files
-
-If you need either of those things, you can 
-
-- use a single parent file which [includes](journal.html#including-other-files) the others
-- or concatenate the files into one before reading, eg: `cat a.journal b.journal | hledger -f- CMD`.
-
-## Strict mode
-
-hledger checks input files for valid data.
-By default, the most important errors are detected, while still accepting
-easy journal files without a lot of declarations:
-
-- Are the input files parseable, with valid syntax ?
-- Are all transactions balanced ?
-- Do all balance assertions pass ?
-
-With the `-s`/`--strict` flag, additional checks are performed:
-
-- Are all accounts posted to, declared with an `account` directive ?
-  ([Account error checking](journal.html#account-error-checking))
-- Are all commodities declared with a `commodity` directive ?
-  ([Commodity error checking](journal.html#commodity-error-checking))
-
-See also: <https://hledger.org/checking-for-errors.html>
-
-*experimental.*
-
-## Output destination
-
-hledger commands send their output to the terminal by default.
-You can of course redirect this, eg into a file, using standard shell syntax:
-```shell
-$ hledger print > foo.txt
-```
-
-Some commands (print, register, stats, the balance commands) also
-provide the `-o/--output-file` option, which does the same thing
-without needing the shell. Eg:
-```shell
-$ hledger print -o foo.txt
-$ hledger print -o -        # write to stdout (the default)
-```
-
-## Output format
-
-Some commands (print, register, the balance commands) offer a choice of output format. 
-In addition to the usual plain text format (`txt`), there are
-CSV (`csv`), HTML (`html`), JSON (`json`) and SQL (`sql`).
-This is controlled by the `-O/--output-format` option:
-```shell
-$ hledger print -O csv
-```
-or, by a file extension specified with `-o/--output-file`:
-```shell
-$ hledger balancesheet -o foo.html   # write HTML to foo.html
-```
-The `-O` option can be used to override the file extension if needed:
-```shell
-$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
-```
-
-Some notes about JSON output:
-
-- This feature is marked experimental, and not yet much used; you
-  should expect our JSON to evolve. Real-world feedback is welcome.
-
-- Our JSON is rather large and verbose, as it is quite a faithful
-  representation of hledger's internal data types. To understand the
-  JSON, read the Haskell type definitions, which are mostly in
-  https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
-
-<!--
-- The JSON output from hledger commands is essentially the same as the
-  JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
-  but pretty printed, using line breaks and indentation.
-  Our pretty printer has the ability to elide data in certain cases -
-  rendering non-strings as if they were strings, or displaying "FOO.."
-  instead of FOO's full details. This should never happen in hledger's
-  JSON output; if you see otherwise, please report as a bug.
--->
-
-- hledger represents quantities as Decimal values storing up to 255
-  significant digits, eg for repeating decimals. Such numbers can
-  arise in practice (from automatically-calculated transaction
-  prices), and would break most JSON consumers. So in JSON, we show
-  quantities as simple Numbers with at most 10 decimal places. We
-  don't limit the number of integer digits, but that part is under
-  your control.
-  We hope this approach will not cause problems in practice; if you
-  find otherwise, please let us know. 
-  (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
-
-Notes about SQL output:
-
-- SQL output is also marked experimental, and much like JSON could use
-real-world feedback.
-
-- SQL output is expected to work with sqlite, MySQL and PostgreSQL
-
-- SQL output is structured with the expectations that statements will
-  be executed in the empty database. If you already have tables created
-  via SQL output of hledger, you would probably want to either clear tables
-  of existing data (via `delete` or `truncate` SQL statements) or drop
-  tables completely as otherwise your postings will be duped.
-
-## Regular expressions
-
-hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
-
-- [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
-- [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
-- [account alias](#rewriting-accounts) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
-
-hledger's regular expressions come from the
-[regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
-library. 
-If they're not doing what you expect, it's important to know exactly what they support:
-
-#. they are case insensitive
-#. they are infix matching (they do not need to match the entire thing being matched)
-#. they are [POSIX ERE][] (extended regular expressions)
-#. they also support [GNU word boundaries][] (`\b`, `\B`, `\<`, `\>`)
-#. they do not support [backreferences][]; if you write `\1`, it will match the digit `1`.
-   Except when doing text replacement, eg in [account aliases](journal.html#regex-aliases),
-   where [backreferences][] can be used in the replacement string to reference [capturing groups][] in the search regexp.
-#. they do not support [mode modifiers][] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
-
-[POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
-[backreferences]: https://www.regular-expressions.info/backref.html
-[capturing groups]: http://www.regular-expressions.info/refcapture.html
-[mode modifiers]: http://www.regular-expressions.info/modifiers.html
-[GNU word boundaries]: http://www.regular-expressions.info/wordboundaries.html
-
-Some things to note:
-
-- In the `alias` directive and `--alias` option, regular expressions
-must be enclosed in forward slashes (`/REGEX/`). Elsewhere in hledger,
-these are not required.
-
-- In queries, to match a regular expression metacharacter like `$`
-as a literal character, prepend a backslash. Eg to search for amounts with the
-dollar sign in hledger-web, write `cur:\$`.
-
-- On the command line, some metacharacters like `$` have a special
-meaning to the shell and so must be escaped at least once more.
-See [Special characters](#special-characters-in-arguments-and-queries).
-
-## Smart dates
-
-hledger's user interfaces accept a flexible "smart date" syntax (unlike dates in the journal file).
-Smart dates allow some english words, can be relative to today's date,
-and can have less-significant date parts omitted (defaulting to 1).
-
-Examples:
-
-|                                              |                                                                                       |
-|----------------------------------------------|---------------------------------------------------------------------------------------|
-| `2004/10/1`, `2004-01-01`, `2004.9.1`        | exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31 |
-| `2004`                                       | start of year                                                                         |
-| `2004/10`                                    | start of month                                                                        |
-| `10/1`                                       | month and day in current year                                                         |
-| `21`                                         | day in current month                                                                  |
-| `october, oct`                               | start of month in current year                                                        |
-| `yesterday, today, tomorrow`                 | -1, 0, 1 days from today                                                              |
-| `last/this/next day/week/month/quarter/year` | -1, 0, 1 periods from the current period                                              |
-| `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
-| `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
-
-Counterexamples - malformed digit sequences might give surprising results:
-
-|             |                                                                   |
-|-------------|-------------------------------------------------------------------|
-| `201813`    | 6 digits with an invalid month is parsed as start of 6-digit year |
-| `20181301`  | 8 digits with an invalid month is parsed as start of 8-digit year |
-| `20181232`  | 8 digits with an invalid day gives an error                       |
-| `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
-
-## Report start & end date
-
-By default, most hledger reports will show the full span of time represented by the journal data.
-The report start date will be the earliest transaction or posting date, and the report end date
-will be the latest transaction, posting, or market price date.
-
-Often you will want to see a shorter time span, such as the current month.
-You can specify a start and/or end date using
-[`-b/--begin`](#reporting-options),
-[`-e/--end`](#reporting-options),
-[`-p/--period`](#period-expressions)
-or a [`date:` query](#queries) (described below).
-All of these accept the [smart date](#smart-dates) syntax.
-
-Some notes:
-
-- As in Ledger, end dates are exclusive, so you need to write the date *after*
-  the last day you want to include.
-- As noted in [reporting options](#general-options):
-  among start/end dates specified with *options*, the last (i.e. right-most)
-  option takes precedence.
-- The effective report start and end dates are the intersection of the
-  start/end dates from options and that from `date:` queries.
-  That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
-  smallest common time span.
-
-Examples:
-
-|                    |                                                                                             |
-|--------------------|---------------------------------------------------------------------------------------------|
-| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
-| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
-| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
-| `-p thismonth`     | all transactions in the current month                                                       |
-| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
-| `date:..12/1`      |                                                                                             |
-| `date:thismonth..` |                                                                                             |
-| `date:thismonth`   |                                                                                             |
-
-## Report intervals
-
-A report interval can be specified so that commands like
-[register](#register), [balance](#balance) and [activity](#activity) will divide their
-reports into multiple subperiods.  The basic intervals can be
-selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
-`-Q/--quarterly`, or `-Y/--yearly`.  More complex intervals may be
-specified with a [period expression](#period-expressions).
-Report intervals can not be specified with a [query](#queries).
-
-## Period expressions
-
-The `-p/--period` option accepts period expressions, a shorthand way
-of expressing a start date, end date, and/or report interval all at
-once.
-
-Here's a basic period expression specifying the first quarter of 2009. Note,
-hledger always treats start dates as inclusive and end dates as exclusive:
-
-`-p "from 2009/1/1 to 2009/4/1"`
-
-Keywords like "from" and "to" are optional, and so are the spaces, as long
-as you don't run two dates together. "to" can also be written as ".." or "-".
-These are equivalent to the above:
-
-|                           |
-|---------------------------|
-| `-p "2009/1/1 2009/4/1"`  |
-| `-p2009/1/1to2009/4/1`    |
-| `-p2009/1/1..2009/4/1`    |
-
-Dates are [smart dates](#smart-dates), so if the current year is 2009, the
-above can also be written as:
-
-|                         |
-|-------------------------|
-| `-p "1/1 4/1"`          |
-| `-p "january-apr"`      |
-| `-p "this year to 4/1"` |
-
-If you specify only one date, the missing start or end date will be the
-earliest or latest transaction in your journal:
-
-|                      |                                   |
-|----------------------|-----------------------------------|
-| `-p "from 2009/1/1"` | everything after january 1, 2009  |
-| `-p "from 2009/1"`   | the same                          |
-| `-p "from 2009"`     | the same                          |
-| `-p "to 2009"`       | everything before january 1, 2009 |
-
-A single date with no "from" or "to" defines both the start and end date
-like so:
-
-|                 |                                                             |
-|-----------------|-------------------------------------------------------------|
-| `-p "2009"`     | the year 2009; equivalent to “2009/1/1 to 2010/1/1”         |
-| `-p "2009/1"`   | the month of jan; equivalent to “2009/1/1 to 2009/2/1”      |
-| `-p "2009/1/1"` | just that day; equivalent to “2009/1/1 to 2009/1/2”         |
-
-Or you can specify a single quarter like so:
-
-|                 |                                                             |
-|-----------------|-------------------------------------------------------------|
-| `-p "2009Q1"`   | first quarter of 2009, equivalent to “2009/1/1 to 2009/4/1” |
-| `-p "q4"`       | fourth quarter of the current year                          |
-
-The argument of `-p` can also begin with, or be, a [report interval](#report-intervals) expression.
-The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`,
-which have the same effect as the `-D`,`-W`,`-M`,`-Q`, or `-Y` flags.
-Between report interval and start/end dates (if any), the word `in` is optional.
-Examples:
-
-|                                         |
-|-----------------------------------------|
-| `-p "weekly from 2009/1/1 to 2009/4/1"` |
-| `-p "monthly in 2008"`                  |
-| `-p "quarterly"`                        |
-
-Note that `weekly`, `monthly`, `quarterly` and `yearly` intervals will
-always start on the first day on week, month, quarter or year
-accordingly, and will end on the last day of same period, even if
-associated period expression specifies different explicit start and end date.
-
-For example:
-
-|                                                |                                                                                    |
-|------------------------------------------------|------------------------------------------------------------------------------------|
-| `-p "weekly from 2009/1/1 to 2009/4/1"`        | starts on 2008/12/29, closest preceding Monday                                     |
-| `-p "monthly in 2008/11/25"`                   | starts on 2018/11/01                                                               |
-| `-p "quarterly from 2009-05-05 to 2009-06-01"` | starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 |
-| `-p "yearly from 2009-12-29"`                  | starts on 2009/01/01, first day of 2009                                            |
-
-The following more complex report intervals are also supported:
-`biweekly`,
-`fortnightly`,
-`bimonthly`,
-`every day|week|month|quarter|year`,
-`every N days|weeks|months|quarters|years`.
-
-
-All of these will start on the first day of the requested period and end on the last one, as described above.
-
-Examples:
-
-|                                   |                                                             |
-|-----------------------------------|-------------------------------------------------------------|
-| `-p "bimonthly from 2008"`        | periods will have boundaries on 2008/01/01, 2008/03/01, ... |
-| `-p "every 2 weeks"`              | starts on closest preceding Monday                          |
-| `-p "every 5 month from 2009/03"` | periods will have boundaries on 2009/03/01, 2009/08/01, ... |
-
-If you want intervals that start on arbitrary day of your choosing and span a week, month or year, you need to use any of the following:
-
-`every Nth day of week`,
-`every WEEKDAYNAME` (eg `mon|tue|wed|thu|fri|sat|sun`),
-`every Nth day [of month]`,
-`every Nth WEEKDAYNAME [of month]`,
-`every MM/DD [of year]`,
-`every Nth MMM [of year]`,
-`every MMM Nth [of year]`.
-
-Examples:
-
-|                              |                                                          |
-|------------------------------|----------------------------------------------------------|
-| `-p "every 2nd day of week"` | periods will go from Tue to Tue                          |
-| `-p "every Tue"`             | same                                                     |
-| `-p "every 15th day"`        | period boundaries will be on 15th of each month          |
-| `-p "every 2nd Monday"`      | period boundaries will be on second Monday of each month |
-| `-p "every 11/05"`           | yearly periods with boundaries on 5th of Nov             |
-| `-p "every 5th Nov"`         | same                                                     |
-| `-p "every Nov 5th"`         | same                                                     |
-
-Show historical balances at end of 15th each month (N is exclusive end date):
-
-`hledger balance -H -p "every 16th day"`
-
-Group postings from start of wednesday to end of next tuesday (N is start date and exclusive end date):
-
-`hledger register checking -p "every 3rd day of week"`
-
-## Depth limiting
-
-With the `--depth N` option (short form: `-N`), commands like [account](#account), [balance](#balance)
-and [register](#register) will show only the uppermost accounts in the account
-tree, down to level N. Use this when you want a summary with less detail.
-This flag has the same effect as a `depth:` query argument
-(so `-2`, `--depth=2` or `depth:2` are equivalent).
-
-## Pivoting
-
-Normally hledger sums amounts, and organizes them in a hierarchy, based on account name.
-The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
-FIELD can be:
-`code`, `description`, `payee`, `note`,
-or the full name (case insensitive) of any [tag](journal.html#tags).
-As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
-
-`--pivot` is a general option affecting all reports; you can think of hledger transforming
-the journal before any other processing, replacing every posting's account name with
-the value of the specified field on that posting, inheriting it from the transaction
-or using a blank value if it's not present.
-
-An example:
-
-```journal
-2016/02/16 Member Fee Payment
-    assets:bank account                    2 EUR
-    income:member fees                    -2 EUR  ; member: John Doe
-```
-Normal balance report showing account names:
-```shell
-$ hledger balance
-               2 EUR  assets:bank account
-              -2 EUR  income:member fees
---------------------
-                   0
-```
-Pivoted balance report, using member: tag values instead:
-```shell
-$ hledger balance --pivot member
-               2 EUR
-              -2 EUR  John Doe
---------------------
-                   0
-```
-One way to show only amounts with a member: value (using a [query](#queries), described below):
-```shell
-$ hledger balance --pivot member tag:member=.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
-Another way (the acct: query matches against the pivoted "account name"):
-```shell
-$ hledger balance --pivot member acct:.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-```
-
-## Valuation
-
-Instead of reporting amounts in their original commodity,
-hledger can convert them to
-cost/sale amount (using the conversion rate recorded in the transaction),
-or to market value (using some market price on a certain date).
-This is controlled by the `--value=TYPE[,COMMODITY]` option,
-but we also provide the simpler `-B`/`-V`/`-X` flags,
-and usually one of those is all you need.
-
-### -B: Cost
-
-The `-B/--cost` flag converts amounts to their cost or sale amount at transaction time,
-if they have a [transaction price](journal.html#transaction-prices) specified.
-
-### -V: Value
-
-The `-V/--market` flag converts amounts to market value in their
-default *valuation commodity*, using the
-[market prices](#market-prices) in effect on the *valuation date(s)*, if any. 
-More on these in a minute.
-
-### -X: Value in specified commodity
-
-The `-X/--exchange=COMM` option is like `-V`, except you tell it which
-currency you want to convert to, and it tries to convert everything to that.
-
-### Valuation date
-
-Since market prices can change from day to day, market value reports
-have a valuation date (or more than one), which determines which
-market prices will be used.
-
-For single period reports, if an explicit
-[report end date](#report-start-end-date) is specified, that will be
-used as the valuation date; otherwise the valuation date is the journal's end date.
-
-For [multiperiod reports](#report-intervals), each column/period is
-valued on the last day of the period, by default.
-
-### Market prices
-
-*(experimental)*
-
-To convert a commodity A to its market value in another commodity B,
-hledger looks for a suitable market price (exchange rate) as follows,
-in this order of preference
-<!-- (-X tries all of these; -V tries only 1) (really ?) -->
-:
-
-1. A *declared market price* or *inferred market price*:
-   A's latest market price in B on or before the valuation date
-   as declared by a [P directive](journal.html#declaring-market-prices), 
-   or (with the `--infer-value` flag)
-   inferred from [transaction prices](journal.html#transaction-prices).
-   <!-- (Latest by date, then parse order.) -->
-   <!-- (A declared price overrides an inferred price on the same date.) -->
-  
-2. A *reverse market price*:
-   the inverse of a declared or inferred market price from B to A.
-
-3. A *a forward chain of market prices*:
-   a synthetic price formed by combining the shortest chain of
-   "forward" (only 1 above) market prices, leading from A to B.
-
-4. A *any chain of market prices*:
-   a chain of any market prices, including both forward and
-   reverse prices (1 and 2 above), leading from A to B.
-
-Amounts for which no applicable market price can be found, are not converted.
-
-### --infer-value: market prices from transactions
-
-*(experimental)*
-
-Normally, market value in hledger is fully controlled by, and requires,
-[P directives](journal.html#declaring-market-prices) in your journal.
-Since adding and updating those can be a chore,
-and since transactions usually take place at close to market value,
-why not use the recorded [transaction prices](journal.html#transaction-prices)
-as additional market prices (as Ledger does) ?
-We could produce value reports without needing P directives at all.
-
-Adding the `--infer-value` flag to `-V`, `-X` or `--value` enables
-this. So for example, `hledger bs -V --infer-value` will get market
-prices both from P directives and from transactions.
-
-There is a downside: value reports can sometimes  be affected in
-confusing/undesired ways by your journal entries. If this happens to
-you, read all of this [Valuation](#valuation) section carefully,
-and try adding `--debug` or `--debug=2` to troubleshoot.
-
-`--infer-value` can infer market prices from:
-
-- multicommodity transactions with explicit prices (`@`/`@@`)
-
-- multicommodity transactions with implicit prices (no `@`, two commodities, unbalanced).
-  (With these, the order of postings matters. `hledger print -x` can be useful for troubleshooting.)
-
-- but not, currently, from
-  "[more correct](investments.html#a-more-correct-entry)" multicommodity transactions
-  (no `@`, multiple commodities, balanced).
-
-### Valuation commodity
-
-*(experimental)*
-
-**When you specify a valuation commodity (`-X COMM` or `--value TYPE,COMM`):**\
-hledger will convert all amounts to COMM,
-wherever it can find a suitable market price (including by reversing or chaining prices).
-
-**When you leave the valuation commodity unspecified (`-V` or `--value TYPE`):**\
-For each commodity A, hledger picks a default valuation commodity as
-follows, in this order of preference:
-
-1. The price commodity from the latest P-declared market price for A
-   on or before valuation date.
-
-2. The price commodity from the latest P-declared market price for A on
-   any date. (Allows conversion to proceed when there are inferred
-   prices before the valuation date.)
-
-3. If there are no P directives at all (any commodity or date) and the
-   `--infer-value` flag is used: the price commodity from the latest
-   transaction-inferred price for A on or before valuation date.
-
-This means:
-
-- If you have [P directives](journal.html#declaring-market-prices), 
-  they determine which commodities `-V` will convert, and to what.
-
-- If you have no P directives, and use the `--infer-value` flag, 
-  [transaction prices](journal.html#transaction-prices) determine it.
-
-Amounts for which no valuation commodity can be found are not converted.
-
-### Simple valuation examples
-
-Here are some quick examples of `-V`:
-
-```journal
-; one euro is worth this many dollars from nov 1
-P 2016/11/01 € $1.10
-
-; purchase some euros on nov 3
-2016/11/3
-    assets:euros        €100
-    assets:checking
-
-; the euro is worth fewer dollars by dec 21
-P 2016/12/21 € $1.03
-```
-How many euros do I have ?
-```shell
-$ hledger -f t.j bal -N euros
-                €100  assets:euros
-```
-What are they worth at end of nov 3 ?
-```shell
-$ hledger -f t.j bal -N euros -V -e 2016/11/4
-             $110.00  assets:euros
-```
-What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
-```shell
-$ hledger -f t.j bal -N euros -V
-             $103.00  assets:euros
-```
-
-### --value: Flexible valuation
-
-`-B`, `-V` and `-X` are special cases of the more general `--value` option:
-
-     --value=TYPE[,COMM]  TYPE is cost, then, end, now or YYYY-MM-DD.
-                          COMM is an optional commodity symbol.
-                          Shows amounts converted to:
-                          - cost commodity using transaction prices (then optionally to COMM using market prices at period end(s))
-                          - default valuation commodity (or COMM) using market prices at posting dates
-                          - default valuation commodity (or COMM) using market prices at period end(s)
-                          - default valuation commodity (or COMM) using current market prices
-                          - default valuation commodity (or COMM) using market prices at some date
-
-The TYPE part selects cost or value and valuation date:
-
-`--value=cost`
-: Convert amounts to cost, using the prices recorded in transactions.
-
-`--value=then`
-: Convert amounts to their value in the [default valuation commodity](#valuation-commodity), 
-  using market prices on each posting's date. This is currently
-  supported only by the [print](#print) and [register](#register)
-  commands.
-
-`--value=end`
-: Convert amounts to their value in the default valuation commodity, using market prices
-  on the last day of the report period (or if unspecified, the journal's end date);
-  or in multiperiod reports, market prices on the last day of each subperiod.
-
-`--value=now`
-: Convert amounts to their value in the default valuation commodity
-  using current market prices (as of when report is generated).
-
-`--value=YYYY-MM-DD`
-: Convert amounts to their value in the default valuation commodity
-  using market prices on this date.
-
-To select a different valuation commodity, add the optional `,COMM` part:
-a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
-hledger will do its best to convert amounts to this commodity, deducing
-[market prices](#market-prices) as described above.
-
-### More valuation examples
-
-Here are some examples showing the effect of `--value`, as seen with `print`:
-
-```journal
-P 2000-01-01 A  1 B
-P 2000-02-01 A  2 B
-P 2000-03-01 A  3 B
-P 2000-04-01 A  4 B
-
-2000-01-01
-  (a)      1 A @ 5 B
-
-2000-02-01
-  (a)      1 A @ 6 B
-
-2000-03-01
-  (a)      1 A @ 7 B
-```
-
-Show the cost of each posting:
-```shell
-$ hledger -f- print --value=cost
-2000-01-01
-    (a)             5 B
-
-2000-02-01
-    (a)             6 B
-
-2000-03-01
-    (a)             7 B
-
-```
-
-Show the value as of the last day of the report period (2000-02-29):
-```shell
-$ hledger -f- print --value=end date:2000/01-2000/03
-2000-01-01
-    (a)             2 B
-
-2000-02-01
-    (a)             2 B
-
-```
-
-With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
-```shell
-$ hledger -f- print --value=end
-2000-01-01
-    (a)             3 B
-
-2000-02-01
-    (a)             3 B
-
-2000-03-01
-    (a)             3 B
-
-```
-
-Show the current value (the 2000-04-01 price is still in effect today):
-```shell
-$ hledger -f- print --value=now
-2000-01-01
-    (a)             4 B
-
-2000-02-01
-    (a)             4 B
-
-2000-03-01
-    (a)             4 B
-
-```
-
-Show the value on 2000/01/15:
-```shell
-$ hledger -f- print --value=2000-01-15
-2000-01-01
-    (a)             1 B
-
-2000-02-01
-    (a)             1 B
-
-2000-03-01
-    (a)             1 B
-
-```
-
-You may need to explicitly set a commodity's display style, when reverse prices are used.
-Eg this output might be surprising:
-```journal
-P 2000-01-01 A 2B
-
-2000-01-01
-  a  1B
-  b
-```
-```shell
-$ hledger print -x -X A
-2000-01-01
-    a               0
-    b               0
-
-```
-Explanation: because there's no amount or commodity directive specifying a display style
-for A, 0.5A gets the default style, which shows no decimal digits. Because the displayed
-amount looks like zero, the commodity symbol and minus sign are not displayed either.
-Adding a commodity directive sets a more useful display style for A:
-```journal
-P 2000-01-01 A 2B
-commodity 0.00A
-
-2000-01-01
-  a  1B
-  b
-```
-```shell
-$ hledger print -X A
-2000-01-01
-    a           0.50A
-    b          -0.50A
-
-```
-
-### Effect of valuation on reports
-
-Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).
-(It's wide, you'll have to scroll sideways.)
-It may be useful when troubleshooting.
-If you find problems, please report them, ideally with a reproducible example.
-Related:
-[#329](https://github.com/simonmichael/hledger/issues/329),
-[#1083](https://github.com/simonmichael/hledger/issues/1083).
-
-| Report type                                         | `-B`, `--value=cost`                                             | `-V`, `-X`                                                        | `--value=then`                                        | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
-|-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|-------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
-| **print**                                           |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-| posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                 | value at report or journal end                                    | value at DATE/today                     |
-| balance assertions/assignments                      | unchanged                                                        | unchanged                                                         | unchanged                                             | unchanged                                                         | unchanged                               |
-| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-| **register**                                        |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-| starting balance (-H)                               | cost                                                             | value at day before report or journal start                       | not supported                                         | value at day before report or journal start                       | value at DATE/today                     |
-| posting amounts                                     | cost                                                             | value at report end or today                                      | value at posting date                                 | value at report or journal end                                    | value at DATE/today                     |
-| summary posting amounts with report interval        | summarised cost                                                  | value at period ends                                              | sum of postings in interval, valued at interval start | value at period ends                                              | value at DATE/today                     |
-| running total/average                               | sum/average of displayed values                                  | sum/average of displayed values                                   | sum/average of displayed values                       | sum/average of displayed values                                   | sum/average of displayed values         |
-| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-| **balance (bs, bse, cf, is)**                       |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-| balance changes                                     | sums of costs                                                    | value at report end or today of sums of postings                  | not supported                                         | value at report or journal end of sums of postings                | value at DATE/today of sums of postings |
-| budget amounts (--budget)                           | like balance changes                                             | like balance changes                                              | not supported                                         | like balances                                                     | like balance changes                    |
-| grand total                                         | sum of displayed values                                          | sum of displayed values                                           | not supported                                         | sum of displayed values                                           | sum of displayed values                 |
-| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-| **balance (bs, bse, cf, is) with report interval**  |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-| starting balances (-H)                              | sums of costs of postings before report start                    | value at report start of sums of all postings before report start | not supported                                         | value at report start of sums of all postings before report start | sums of postings before report start    |
-| balance changes (bal, is, bs --change, cf --change) | sums of costs of postings in period                              | same as --value=end                                               | not supported                                         | balance change in each period, valued at period ends              | value at DATE/today of sums of postings |
-| end balances (bal -H, is --H, bs, cf)               | sums of costs of postings from before report start to period end | same as --value=end                                               | not supported                                         | period end balances, valued at period ends                        | value at DATE/today of sums of postings |
-| budget amounts (--budget)                           | like balance changes/end balances                                | like balance changes/end balances                                 | not supported                                         | like balances                                                     | like balance changes/end balances       |
-| row totals, row averages (-T, -A)                   | sums, averages of displayed values                               | sums, averages of displayed values                                | not supported                                         | sums, averages of displayed values                                | sums, averages of displayed values      |
-| column totals                                       | sums of displayed values                                         | sums of displayed values                                          | not supported                                         | sums of displayed values                                          | sums of displayed values                |
-| grand total, grand average                          | sum, average of column totals                                    | sum, average of column totals                                     | not supported                                         | sum, average of column totals                                     | sum, average of column totals           |
-| <br>                                                |                                                                  |                                                                   |                                                       |                                                                   |                                         |
-
-`--cumulative` is omitted to save space, it works like `-H` but with a zero starting balance.
-
-**Glossary:**
-
-*cost*
-: calculated using price(s) recorded in the transaction(s).
-
-*value*
-: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
-
-*report start*
-: the first day of the report period specified with -b or -p or date:, otherwise today.
-
-*report or journal start*
-: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
-
-*report end*
-: the last day of the report period specified with -e or -p or date:, otherwise today.
-
-*report or journal end*
-: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
-
-*report interval*
-: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
-
-
-
-
-# COMMANDS
-
-hledger provides a number of commands for producing reports and managing your data. 
-Run `hledger` with no arguments to list the commands available.
-
-To run a command, write its name (or its abbreviation shown in the commands list,
-or any unambiguous prefix of the name) as hledger's first argument.
-Eg: `hledger balance` or `hledger bal`.
-
-m4_dnl XXX maybe later
-m4_dnl Each command's detailed docs are available :
-m4_dnl 
-m4_dnl - command line help, eg: `hledger balance --help`
-m4_dnl - 
-m4_dnl - info manuals, eg: `hledger help --info hledger` (or possibly `info hledger`) <!-- -> m4_dnl Commands -> balance -->
-m4_dnl - web manuals, eg: <https://hledger.org/hledger.html#balance>
-m4_dnl <!-- - man pages, eg: `man hledger-balance` -->
-
-Here are the built-in commands:
-<!-- keep synced with Hledger.Cli.Commands.commandsList -->
-
-**Data entry (these modify the journal file):**
-
-- [add](#add)                                      - add transactions using guided prompts
-- [import](#import)                                - add any new transactions from other files (eg csv)
-
-**Data management**:
-
-- [check](#check)                                  - check for various kinds of issue in the data
-- [close](#close) (equity)                         - generate balance-resetting transactions
-- [diff](#diff)                                    - compare account transactions in two journal files
-- [rewrite](#rewrite)                              - generate extra postings, similar to print --auto
-
-**Financial statements:**
-
-- [aregister](#aregister) (areg)                   - show transactions in a particular account
-- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
-- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
-- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
-- [incomestatement](#incomestatement) (is)         - show revenues and expenses
-- [roi](#roi)                                      - show return on investments
-
-**Miscellaneous reports:**
-
-- [accounts](#accounts) (a)                        - show account names
-- [activity](#activity)                            - show postings-per-interval bar charts
-- [balance](#balance) (b, bal)                     - show balance changes/end balances/budgets in accounts
-- [codes](#codes)                                  - show transaction codes
-- [commodities](#commodities)                      - show commodity/currency symbols
-- [descriptions](#descriptions)                    - show unique transaction descriptions
-- [files](#files)                                  - show input file paths
-- [notes](#notes)                                  - show unique note segments of transaction descriptions
-- [payees](#payees)                                - show unique payee segments of transaction descriptions
-- [prices](#prices)                                - show market price records
-- [print](#print) (p, txns)                        - show transactions (journal entries)
-- [print-unique](#print-unique)                    - show only transactions with unique descriptions
-- [register](#register) (r, reg)                   - show postings in one or more accounts & running total
-- [register-match](#register-match)                - show a recent posting that best matches a description
-- [stats](#stats)                                  - show journal statistics
-- [tags](#tags)                                    - show tag names
-- [test](#test)                                    - run self tests
-
-m4_dnl XXX maybe later
-m4_dnl _man_({{
-m4_dnl (Detailed command docs are omitted here for brevity,
-m4_dnl if you need them please use one of the other doc formats mentioned above.)
-m4_dnl }})
-m4_dnl _notman_({{
-
-Next, the detailed command docs, in alphabetical order.
-
-m4_dnl cf Hledger/Cli/Commands/commands.m4:
-_commands_({{##}})
-
-## Add-on commands
-
-Any programs or scripts in your PATH named named `hledger-SOMETHING` 
-will also appear in the commands list (with a `+` mark). 
-These are called add-on commands.
-
-These offical add-ons are maintained and released along with hledger:
-
-- [ui](hledger-ui.html)    an efficient terminal interface for hledger (TUI)
-- [web](hledger-web.html)  a simple web interface for hledger (WUI)
-
-These add-ons are maintained separately:
-
-- [iadd](http://hackage.haskell.org/package/hledger-iadd)
-   a more interactive alternative for the [add](hledger.html#add) command
-- [interest](http://hackage.haskell.org/package/hledger-interest)
-  generates interest transactions according to various schemes
-- [stockquotes](http://hackage.haskell.org/package/hledger-stockquotes)
-  downloads market prices for your commodities from AlphaVantage *(experimental)*
-
-<!-- ### autosync -->
-
-<!-- [hledger-autosync](https://github.com/simonmichael/hledger/blob/master/bin/hledger-autosync)  -->
-<!-- is a symbolic link for easily running  -->
-<!-- [ledger-autosync](https://pypi.python.org/pypi/ledger-autosync) if you make a symbolic -->
-<!-- ledger-autosync does deduplicating conversion of OFX data and some CSV formats, -->
-<!-- and can also download the data  -->
-<!-- [if your bank offers OFX Direct Connect](http://wiki.gnucash.org/wiki/OFX_Direct_Connect_Bank_Settings).  -->
-
-Additional experimental add-ons, which may not be in a working state, 
-can be found in the bin/ directory in the hledger repo.
-
-## Add-on command flags
-
-In a hledger command line, add-on command flags must have a double dash (`--`) preceding them.
-Eg you must write:
-```shell
-$ hledger web -- --serve
-```
-and not:
-```shell
-$ hledger web --serve
-```
-(because the `--serve` flag belongs to `hledger-web`, not `hledger`).
-
-The `-h/--help` and `--version` flags work without `--`, with their position deciding which program they refer to. 
-Eg `hledger -h web` shows hledger's help, `hledger web -h` shows hledger-web's help.
-
-If you have any trouble with this, remember you can always run the add-on program directly, eg:
-```shell
-$ hledger-web --serve
-```
-
-## Making add-on commands
-
-Add-on commands are programs or scripts in your PATH 
-
-- whose name starts with `hledger-`
-- whose name ends with a recognised file extension:
-  `.bat`,`.com`,`.exe`, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh` or none
-- and (on unix, mac) which are executable by the current user.
-
-Add-ons are a relatively easy way to add local features or experiment with new ideas.
-They can be written in any language, but haskell scripts have a big advantage:
-they can use the same hledger library functions that built-in commands use for command-line options, parsing and reporting.
-
-
 # ENVIRONMENT
 
 m4_dnl Standard LEDGER_FILE description:
@@ -1725,11 +1740,6 @@ Default: the full terminal width.
 If this variable exists with any value, 
 hledger will not use ANSI color codes in terminal output.
 This overrides the --color/--colour option.
-
-# FILES
-
-m4_dnl Standard input files description:
-Reads _files_
 
 # LIMITATIONS
 
