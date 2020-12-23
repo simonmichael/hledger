@@ -172,7 +172,7 @@ commandsList progversion othercmds = [
   ," check                    check for various kinds of issue in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"
   ,"+check-tagfiles           check file paths in tag values exist"
-  ," close (equity)           generate balance-resetting transactions"
+  ," close                    generate balance-resetting transactions"
   ," diff                     compare account transactions in two journal files"
   ,"+interest                 generate interest transactions"
   ," rewrite                  generate extra postings, similar to print --auto"
@@ -187,9 +187,9 @@ commandsList progversion othercmds = [
   ," roi                      show return on investments"
   ,""
   ,"Low-level reports:"
-  ," accounts (a)             show account names"
+  ," accounts                 show account names"
   ," activity                 show postings-per-interval bar charts"
-  ," balance (b, bal)         show balance changes/end balances/budgets in accounts"
+  ," balance (bal)            show balance changes/end balances/budgets in accounts"
   ," codes                    show transaction codes"
   ," commodities              show commodity/currency symbols"
   ," descriptions             show unique transaction descriptions"
@@ -197,9 +197,9 @@ commandsList progversion othercmds = [
   ," notes                    show unique note segments of transaction descriptions"
   ," payees                   show unique payee segments of transaction descriptions"
   ," prices                   show market price records"
-  ," print (p, txns)          show transactions (journal entries)"
+  ," print                    show transactions (journal entries)"
   ," print-unique             show only transactions with unique descriptions"
-  ," register (r, reg)        show postings in one or more accounts & running total"
+  ," register (reg)           show postings in one or more accounts & running total"
   ," register-match           show a recent posting that best matches a description"
   ," stats                    show journal statistics"
   ," tags                     show tag names"
@@ -221,9 +221,7 @@ commandsList progversion othercmds = [
   ," help [MANUAL]            show hledger manuals in various formats"
   ,""
   ]
--- commands                 show brief commands list
 -- edit                     open a text editor on some part of the journal
--- aregister (ar, areg)     show transactions in a single account
 
 
 -- | All names and aliases of builtin commands.
