@@ -1,8 +1,8 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1dc5454dd
-
+# 1.20.2 2020-12-23
+# 1.20.2 2020-12-23
 - Fix loss of capitalisation in part of the manual. 
 
 - Fix the info manual's node structure.

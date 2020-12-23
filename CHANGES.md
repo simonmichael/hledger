@@ -1,7 +1,7 @@
 General/project-related changes in the hledger project. 
 For package-specific changes, see the package changelogs.
 
-# 5d85a918e
+# 7c4068235
 
 - Fix the topic hierarchy in Info manuals.
 
