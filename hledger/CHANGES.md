@@ -1,8 +1,8 @@
 User-visible changes in the hledger command line tool and library.
 
 
-# 1dc5454dd
-
+# 1.20.2 2020-12-23
+# 1.20.2 2020-12-23
 - help: Fix loss of capitalisation in part of the hledger-ui manual. 
 
 - Fix the info manuals' node structure.
