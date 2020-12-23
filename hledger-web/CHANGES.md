@@ -1,8 +1,11 @@
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 42bc7465e
+# 1dc5454dd
 
+- Fix the info manual's node structure.
+
+- Use hledger 1.20.2.
 
 # 1.20.1 2020-12-06
 
@@ -25,7 +28,6 @@ See also the hledger changelog.
   Eg on non-Windows systems this is ~/.cache/ by default (cf
   https://hackage.haskell.org/package/directory/docs/System-Directory.html#t:XdgDirectory).
   (#1344) (Félix Sipma)
-
 
 # 1.19.1 2020-09-07
 

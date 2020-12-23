@@ -1,14 +1,17 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1dc5454dd
+
+- Fix the info manuals' node structure.
+
+- Drop unused parsec dependency.
+
 # 1.20.1 2020-12-15
 
 - renamed: updateReportSpecFromOpts -> updateReportSpec[With]
 
-
 # 1.20 2020-12-05
-
-
 
 - added: journalApplyAliases, transactionApplyAliases, postingApplyAliases
 

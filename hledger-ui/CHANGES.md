@@ -1,6 +1,14 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1dc5454dd
+
+- Fix loss of capitalisation in part of the manual. 
+
+- Fix the info manual's node structure.
+
+- Use hledger 1.20.2.
+
 # 1.20.1 2020-12-15
 
 - Fix the F key (toggle future/forecast transactions), which in 1.20 

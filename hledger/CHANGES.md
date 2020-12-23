@@ -1,13 +1,20 @@
 User-visible changes in the hledger command line tool and library.
 
 
+# 1dc5454dd
+
+- help: Fix loss of capitalisation in part of the hledger-ui manual. 
+
+- Fix the info manuals' node structure.
+
+- Drop unused parsec dependency.
+
 # 1.20.1 2020-12-15
 
 - bal, bs, cf, is: In amount-sorted balance reports, equal-balance accounts 
   are now reliably sorted by name. (Simon Michael, Stephen Morgan)
 
 - help: Fix the topic hierarchy in Info manuals.
-
 
 # 1.20 2020-12-05
 
