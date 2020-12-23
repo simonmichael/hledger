@@ -1,4 +1,4 @@
-print, txns, p\
+print\
 Show transaction journal entries, sorted by date. 
 
 _FLAGS

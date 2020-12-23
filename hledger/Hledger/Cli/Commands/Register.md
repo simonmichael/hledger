@@ -1,4 +1,4 @@
-register, reg, r\
+register, reg\
 Show postings and their running total.
 
 _FLAGS
