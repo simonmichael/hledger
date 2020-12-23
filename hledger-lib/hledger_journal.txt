@@ -411,9 +411,9 @@ AMOUNTS
               commodity       1 000 000.9455
 
    Commodity display style
-       For each commodity, hledger chooses a consistent style to use when dis-
-       playing amounts.  (Except price amounts, which are always displayed  as
-       written).  The display style is chosen as follows:
+       For the amounts in each commodity, hledger chooses a consistent display
+       style.  (Excluding price amounts, which are always displayed  as  writ-
+       ten).  The display style is chosen as follows:
 
        o If  there  is  a commodity directive (or default commodity directive)
          for the commodity, its style is used (see examples above).
@@ -447,9 +447,14 @@ AMOUNTS
          first-seen digit group style and the maximum-seen number  of  decimal
          places.
 
-       If  reports  are  showing amounts in a way you don't like (eg, with too
-       many decimal places), use a commodity directive to set  your  preferred
-       style.
+       So if your reports are showing amounts in a way you don't like, eg with
+       too many decimal places, use a commodity directive to set  the  commod-
+       ity's display style.  For example:
+
+              # declare euro, dollar and bitcoin commodities and set their display styles:
+              commodity EUR 1.000,
+              commodity $1000.00
+              commodity 1000.00000000 BTC
 
    Rounding
        Amounts are stored internally as decimal numbers with up to 255 decimal
@@ -721,6 +726,12 @@ DIRECTIVES
                   ment                                                 until  end  of cur-
                                                                        rent  file  or  end
                                                                        directive
+
+
+
+
+
+
        commod-                format    declare a commodity and  its   number    notation:
        ity                              number  notation  &  display   following   entries
                                         style                          in  that  commodity
@@ -740,8 +751,6 @@ DIRECTIVES
                                                                        play style: amounts
                                                                        of  that  commodity
                                                                        in reports
-
-
        include                          include   entries/directives   what  the  included
                                         from another file              directives affect
        P                                declare a market price for a   amounts   of   that

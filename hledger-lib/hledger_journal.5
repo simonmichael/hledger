@@ -585,9 +585,9 @@ commodity       1 000 000.9455
 .PP
 .SS Commodity display style
 .PP
-For each commodity, hledger chooses a consistent style to use when
-displaying amounts.
-(Except price amounts, which are always displayed as written).
+For the amounts in each commodity, hledger chooses a consistent display
+style.
+(Excluding price amounts, which are always displayed as written).
 The display style is chosen as follows:
 .IP \[bu] 2
 If there is a commodity directive (or default commodity directive) for
@@ -623,9 +623,19 @@ or, the style of the first posting amount in the journal, with the
 first-seen digit group style and the maximum-seen number of decimal
 places.
 .PP
-If reports are showing amounts in a way you don\[aq]t like (eg, with too
-many decimal places), use a commodity directive to set your preferred
-style.
+So if your reports are showing amounts in a way you don\[aq]t like, eg
+with too many decimal places, use a commodity directive to set the
+commodity\[aq]s display style.
+For example:
+.IP
+.nf
+\f[C]
+# declare euro, dollar and bitcoin commodities and set their display styles:
+commodity EUR 1.000,
+commodity $1000.00
+commodity 1000.00000000 BTC
+\f[R]
+.fi
 .SS Rounding
 .PP
 Amounts are stored internally as decimal numbers with up to 255 decimal
