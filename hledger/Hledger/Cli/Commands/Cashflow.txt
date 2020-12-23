@@ -10,6 +10,9 @@ type, or otherwise all accounts under a top-level asset account (case
 insensitive, plural allowed) which do not have fixed, investment,
 receivable or A/R in their name.
 
+(This report is essentially similar to "hledger balance --change assets
+not:fixed not:investment not:receivable".)
+
 Example:
 
 $ hledger cashflow
