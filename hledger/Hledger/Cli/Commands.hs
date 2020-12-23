@@ -156,7 +156,7 @@ builtinCommands = [
 -- 
 commandsList :: String -> [String] -> [String]
 commandsList progversion othercmds = [
-  -- keep synced with hledger.m4.md -> Commands -->
+  -- keep synced with hledger.m4.md -> Commands, commands.m4 -->
    "-------------------------------------------------------------------------------"
   ,progversion
   ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONCMDOPTIONS]"
@@ -176,6 +176,7 @@ commandsList progversion othercmds = [
   ," diff                     compare account transactions in two journal files"
   ,"+interest                 generate interest transactions"
   ," rewrite                  generate extra postings, similar to print --auto"
+  ,"+stockquotes              download market prices from AlphaVantage"
   ,""
   ,"Financial reports:"
   ," aregister (areg)         show transactions in a particular account"
@@ -205,14 +206,15 @@ commandsList progversion othercmds = [
   ," test                     run self tests"
   ,""
   ,"Alternate user interfaces:"
-  ,"+ui                       run curses ui"
-  ,"+web                      run web ui"
+  ,"+ui                       run terminal UI"
+  ,"+web                      run web UI"
   ,""
   ,"Other:"
   ] ++
   othercmds
   ++
-  ["Help:"
+  [""
+  ,"Help:"
   ," (no arguments)           show this commands list"
   ," -h                       show general flags"
   ," COMMAND -h               show flags & docs for COMMAND"
