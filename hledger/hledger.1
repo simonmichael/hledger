@@ -65,462 +65,6 @@ follow the prompts.
 Then try some commands like \f[C]hledger print\f[R] or
 \f[C]hledger balance\f[R].
 Run \f[C]hledger\f[R] with no arguments for a list of commands.
-.SH COMMON TASKS
-.PP
-Here are some quick examples of how to do some basic tasks with hledger.
-For more details, see the reference section below, the
-hledger_journal(5) manual, or the more extensive docs at
-https://hledger.org.
-.SS Getting help
-.IP
-.nf
-\f[C]
-$ hledger                 # show available commands
-$ hledger --help          # show common options
-$ hledger CMD --help      # show common and command options, and command help
-$ hledger help            # show available manuals/topics
-$ hledger help hledger    # show hledger manual as info/man/text (auto-chosen)
-$ hledger help journal --man  # show the journal manual as a man page
-$ hledger help --help     # show more detailed help for the help command
-\f[R]
-.fi
-.PP
-Find more docs, chat, mail list, reddit, issue tracker:
-https://hledger.org#help-feedback
-.SS Constructing command lines
-.PP
-hledger has an extensive and powerful command line interface.
-We strive to keep it simple and ergonomic, but you may run into one of
-the confusing real world details described in OPTIONS, below.
-If that happens, here are some tips that may help:
-.IP \[bu] 2
-command-specific options must go after the command (it\[aq]s fine to put
-all options there) (\f[C]hledger CMD OPTS ARGS\f[R])
-.IP \[bu] 2
-running add-on executables directly simplifies command line parsing
-(\f[C]hledger-ui OPTS ARGS\f[R])
-.IP \[bu] 2
-enclose \[dq]problematic\[dq] args in single quotes
-.IP \[bu] 2
-if needed, also add a backslash to hide regular expression
-metacharacters from the shell
-.IP \[bu] 2
-to see how a misbehaving command is being parsed, add
-\f[C]--debug=2\f[R].
-.SS Starting a journal file
-.PP
-hledger looks for your accounting data in a journal file,
-\f[C]$HOME/.hledger.journal\f[R] by default:
-.IP
-.nf
-\f[C]
-$ hledger stats
-The hledger journal file \[dq]/Users/simon/.hledger.journal\[dq] was not found.
-Please create it first, eg with \[dq]hledger add\[dq] or a text editor.
-Or, specify an existing journal file with -f or LEDGER_FILE.
-\f[R]
-.fi
-.PP
-You can override this by setting the \f[C]LEDGER_FILE\f[R] environment
-variable.
-It\[aq]s a good practice to keep this important file under version
-control, and to start a new file each year.
-So you could do something like this:
-.IP
-.nf
-\f[C]
-$ mkdir \[ti]/finance
-$ cd \[ti]/finance
-$ git init
-Initialized empty Git repository in /Users/simon/finance/.git/
-$ touch 2020.journal
-$ echo \[dq]export LEDGER_FILE=$HOME/finance/2020.journal\[dq] >> \[ti]/.bashrc
-$ source \[ti]/.bashrc
-$ hledger stats
-Main file                : /Users/simon/finance/2020.journal
-Included files           : 
-Transactions span        :  to  (0 days)
-Last transaction         : none
-Transactions             : 0 (0.0 per day)
-Transactions last 30 days: 0 (0.0 per day)
-Transactions last 7 days : 0 (0.0 per day)
-Payees/descriptions      : 0
-Accounts                 : 0 (depth 0)
-Commodities              : 0 ()
-Market prices            : 0 ()
-\f[R]
-.fi
-.SS Setting opening balances
-.PP
-Pick a starting date for which you can look up the balances of some
-real-world assets (bank accounts, wallet..) and liabilities (credit
-cards..).
-.PP
-To avoid a lot of data entry, you may want to start with just one or two
-accounts, like your checking account or cash wallet; and pick a recent
-starting date, like today or the start of the week.
-You can always come back later and add more accounts and older
-transactions, eg going back to january 1st.
-.PP
-Add an opening balances transaction to the journal, declaring the
-balances on this date.
-Here are two ways to do it:
-.IP \[bu] 2
-The first way: open the journal in any text editor and save an entry
-like this:
-.RS 2
-.IP
-.nf
-\f[C]
-2020-01-01 * opening balances
-    assets:bank:checking                $1000   = $1000
-    assets:bank:savings                 $2000   = $2000
-    assets:cash                          $100   = $100
-    liabilities:creditcard               $-50   = $-50
-    equity:opening/closing balances
-\f[R]
-.fi
-.PP
-These are start-of-day balances, ie whatever was in the account at the
-end of the previous day.
-.PP
-The * after the date is an optional status flag.
-Here it means \[dq]cleared & confirmed\[dq].
-.PP
-The currency symbols are optional, but usually a good idea as you\[aq]ll
-be dealing with multiple currencies sooner or later.
-.PP
-The = amounts are optional balance assertions, providing extra error
-checking.
-.RE
-.IP \[bu] 2
-The second way: run \f[C]hledger add\f[R] and follow the prompts to
-record a similar transaction:
-.RS 2
-.IP
-.nf
-\f[C]
-$ hledger add
-Adding transactions to journal file /Users/simon/finance/2020.journal
-Any command line arguments will be used as defaults.
-Use tab key to complete, readline keys to edit, enter to accept defaults.
-An optional (CODE) may follow transaction dates.
-An optional ; COMMENT may follow descriptions or amounts.
-If you make a mistake, enter < at any prompt to go one step backward.
-To end a transaction, enter . when prompted.
-To quit, enter . at a date prompt or press control-d or control-c.
-Date [2020-02-07]: 2020-01-01
-Description: * opening balances
-Account 1: assets:bank:checking
-Amount  1: $1000
-Account 2: assets:bank:savings
-Amount  2 [$-1000]: $2000
-Account 3: assets:cash
-Amount  3 [$-3000]: $100
-Account 4: liabilities:creditcard
-Amount  4 [$-3100]: $-50
-Account 5: equity:opening/closing balances
-Amount  5 [$-3050]: 
-Account 6 (or . or enter to finish this transaction): .
-2020-01-01 * opening balances
-    assets:bank:checking                      $1000
-    assets:bank:savings                       $2000
-    assets:cash                                $100
-    liabilities:creditcard                     $-50
-    equity:opening/closing balances          $-3050
-
-Save this transaction to the journal ? [y]: 
-Saved.
-Starting the next transaction (. or ctrl-D/ctrl-C to quit)
-Date [2020-01-01]: .
-\f[R]
-.fi
-.RE
-.PP
-If you\[aq]re using version control, this could be a good time to commit
-the journal.
-Eg:
-.IP
-.nf
-\f[C]
-$ git commit -m \[aq]initial balances\[aq] 2020.journal
-\f[R]
-.fi
-.SS Recording transactions
-.PP
-As you spend or receive money, you can record these transactions using
-one of the methods above (text editor, hledger add) or by using the
-hledger-iadd or hledger-web add-ons, or by using the import command to
-convert CSV data downloaded from your bank.
-.PP
-Here are some simple transactions, see the hledger_journal(5) manual and
-hledger.org for more ideas:
-.IP
-.nf
-\f[C]
-2020/1/10 * gift received
-  assets:cash   $20
-  income:gifts
-
-2020.1.12 * farmers market
-  expenses:food    $13
-  assets:cash
-
-2020-01-15 paycheck
-  income:salary
-  assets:bank:checking    $1000
-\f[R]
-.fi
-.SS Reconciling
-.PP
-Periodically you should reconcile - compare your hledger-reported
-balances against external sources of truth, like bank statements or your
-bank\[aq]s website - to be sure that your ledger accurately represents
-the real-world balances (and, that the real-world institutions have not
-made a mistake!).
-This gets easy and fast with (1) practice and (2) frequency.
-If you do it daily, it can take 2-10 minutes.
-If you let it pile up, expect it to take longer as you hunt down errors
-and discrepancies.
-.PP
-A typical workflow:
-.IP "1." 3
-Reconcile cash.
-Count what\[aq]s in your wallet.
-Compare with what hledger reports (\f[C]hledger bal cash\f[R]).
-If they are different, try to remember the missing transaction, or look
-for the error in the already-recorded transactions.
-A register report can be helpful (\f[C]hledger reg cash\f[R]).
-If you can\[aq]t find the error, add an adjustment transaction.
-Eg if you have $105 after the above, and can\[aq]t explain the missing
-$2, it could be:
-.RS 4
-.IP
-.nf
-\f[C]
-2020-01-16 * adjust cash
-    assets:cash    $-2 = $105
-    expenses:misc
-\f[R]
-.fi
-.RE
-.IP "2." 3
-Reconcile checking.
-Log in to your bank\[aq]s website.
-Compare today\[aq]s (cleared) balance with hledger\[aq]s cleared balance
-(\f[C]hledger bal checking -C\f[R]).
-If they are different, track down the error or record the missing
-transaction(s) or add an adjustment transaction, similar to the above.
-Unlike the cash case, you can usually compare the transaction history
-and running balance from your bank with the one reported by
-\f[C]hledger reg checking -C\f[R].
-This will be easier if you generally record transaction dates quite
-similar to your bank\[aq]s clearing dates.
-.IP "3." 3
-Repeat for other asset/liability accounts.
-.PP
-Tip: instead of the register command, use hledger-ui to see a
-live-updating register while you edit the journal:
-\f[C]hledger-ui --watch --register checking -C\f[R]
-.PP
-After reconciling, it could be a good time to mark the reconciled
-transactions\[aq] status as \[dq]cleared and confirmed\[dq], if you want
-to track that, by adding the \f[C]*\f[R] marker.
-Eg in the paycheck transaction above, insert \f[C]*\f[R] between
-\f[C]2020-01-15\f[R] and \f[C]paycheck\f[R]
-.PP
-If you\[aq]re using version control, this can be another good time to
-commit:
-.IP
-.nf
-\f[C]
-$ git commit -m \[aq]txns\[aq] 2020.journal
-\f[R]
-.fi
-.SS Reporting
-.PP
-Here are some basic reports.
-.PP
-Show all transactions:
-.IP
-.nf
-\f[C]
-$ hledger print
-2020-01-01 * opening balances
-    assets:bank:checking                      $1000
-    assets:bank:savings                       $2000
-    assets:cash                                $100
-    liabilities:creditcard                     $-50
-    equity:opening/closing balances          $-3050
-
-2020-01-10 * gift received
-    assets:cash              $20
-    income:gifts
-
-2020-01-12 * farmers market
-    expenses:food             $13
-    assets:cash
-
-2020-01-15 * paycheck
-    income:salary
-    assets:bank:checking           $1000
-
-2020-01-16 * adjust cash
-    assets:cash               $-2 = $105
-    expenses:misc
-\f[R]
-.fi
-.PP
-Show account names, and their hierarchy:
-.IP
-.nf
-\f[C]
-$ hledger accounts --tree
-assets
-  bank
-    checking
-    savings
-  cash
-equity
-  opening/closing balances
-expenses
-  food
-  misc
-income
-  gifts
-  salary
-liabilities
-  creditcard
-\f[R]
-.fi
-.PP
-Show all account totals:
-.IP
-.nf
-\f[C]
-$ hledger balance
-               $4105  assets
-               $4000    bank
-               $2000      checking
-               $2000      savings
-                $105    cash
-              $-3050  equity:opening/closing balances
-                 $15  expenses
-                 $13    food
-                  $2    misc
-              $-1020  income
-                $-20    gifts
-              $-1000    salary
-                $-50  liabilities:creditcard
---------------------
-                   0
-\f[R]
-.fi
-.PP
-Show only asset and liability balances, as a flat list, limited to depth
-2:
-.IP
-.nf
-\f[C]
-$ hledger bal assets liabilities --flat -2
-               $4000  assets:bank
-                $105  assets:cash
-                $-50  liabilities:creditcard
---------------------
-               $4055
-\f[R]
-.fi
-.PP
-Show the same thing without negative numbers, formatted as a simple
-balance sheet:
-.IP
-.nf
-\f[C]
-$ hledger bs --flat -2
-Balance Sheet 2020-01-16
-
-                        || 2020-01-16 
-========================++============
- Assets                 ||            
-------------------------++------------
- assets:bank            ||      $4000 
- assets:cash            ||       $105 
-------------------------++------------
-                        ||      $4105 
-========================++============
- Liabilities            ||            
-------------------------++------------
- liabilities:creditcard ||        $50 
-------------------------++------------
-                        ||        $50 
-========================++============
- Net:                   ||      $4055 
-\f[R]
-.fi
-.PP
-The final total is your \[dq]net worth\[dq] on the end date.
-(Or use \f[C]bse\f[R] for a full balance sheet with equity.)
-.PP
-Show income and expense totals, formatted as an income statement:
-.IP
-.nf
-\f[C]
-hledger is 
-Income Statement 2020-01-01-2020-01-16
-
-               || 2020-01-01-2020-01-16 
-===============++=======================
- Revenues      ||                       
----------------++-----------------------
- income:gifts  ||                   $20 
- income:salary ||                 $1000 
----------------++-----------------------
-               ||                 $1020 
-===============++=======================
- Expenses      ||                       
----------------++-----------------------
- expenses:food ||                   $13 
- expenses:misc ||                    $2 
----------------++-----------------------
-               ||                   $15 
-===============++=======================
- Net:          ||                 $1005 
-\f[R]
-.fi
-.PP
-The final total is your net income during this period.
-.PP
-Show transactions affecting your wallet, with running total:
-.IP
-.nf
-\f[C]
-$ hledger register cash
-2020-01-01 opening balances     assets:cash                   $100          $100
-2020-01-10 gift received        assets:cash                    $20          $120
-2020-01-12 farmers market       assets:cash                   $-13          $107
-2020-01-16 adjust cash          assets:cash                    $-2          $105
-\f[R]
-.fi
-.PP
-Show weekly posting counts as a bar chart:
-.IP
-.nf
-\f[C]
-$ hledger activity -W
-2019-12-30 *****
-2020-01-06 ****
-2020-01-13 ****
-\f[R]
-.fi
-.SS Migrating to a new file
-.PP
-At the end of the year, you may want to continue your journal in a new
-file, so that old transactions don\[aq]t slow down or clutter your
-reports, and to help ensure the integrity of your accounting history.
-See the close command.
-.PP
-If using version control, don\[aq]t forget to \f[C]git add\f[R] the new
-file.
 .SH OPTIONS
 .SS General options
 .PP
@@ -720,158 +264,79 @@ Good:
 .fi
 .PP
 See also: Save frequently used options.
-.SS Queries
+.SS Special characters
+.SS Single escaping (shell metacharacters)
 .PP
-One of hledger\[aq]s strengths is being able to quickly report on
-precise subsets of your data.
-Most commands accept an optional query expression, written as arguments
-after the command name, to filter the data by date, account name or
-other criteria.
-The syntax is similar to a web search: one or more space-separated
-search terms, quotes to enclose whitespace, prefixes to match specific
-fields, a not: prefix to negate the match.
-.PP
-We do not yet support arbitrary boolean combinations of search terms;
-instead most commands show transactions/postings/accounts which match
-(or negatively match):
-.IP \[bu] 2
-any of the description terms AND
-.IP \[bu] 2
-any of the account terms AND
-.IP \[bu] 2
-any of the status terms AND
-.IP \[bu] 2
-all the other terms.
-.PP
-The print command instead shows transactions which:
-.IP \[bu] 2
-match any of the description terms AND
-.IP \[bu] 2
-have any postings matching any of the positive account terms AND
-.IP \[bu] 2
-have no postings matching any of the negative account terms AND
-.IP \[bu] 2
-match all the other terms.
-.PP
-The following kinds of search terms can be used.
-Remember these can also be prefixed with \f[B]\f[CB]not:\f[B]\f[R], eg
-to exclude a particular subaccount.
-.TP
-\f[B]\f[R]\f[C]REGEX\f[R]\f[B], \f[R]\f[C]acct:REGEX\f[R]\f[B]\f[R]
-match account names by this regular expression.
-(With no prefix, \f[C]acct:\f[R] is assumed.)
-same as above
-.TP
-\f[B]\f[R]\f[C]amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N\f[R]\f[B]\f[R]
-match postings with a single-commodity amount that is equal to, less
-than, or greater than N.
-(Multi-commodity amounts are not tested, and will always match.) The
-comparison has two modes: if N is preceded by a + or - sign (or is 0),
-the two signed numbers are compared.
-Otherwise, the absolute magnitudes are compared, ignoring sign.
-.TP
-\f[B]\f[R]\f[C]code:REGEX\f[R]\f[B]\f[R]
-match by transaction code (eg check number)
-.TP
-\f[B]\f[R]\f[C]cur:REGEX\f[R]\f[B]\f[R]
-match postings or transactions including any amounts whose
-currency/commodity symbol is fully matched by REGEX.
-(For a partial match, use \f[C].*REGEX.*\f[R]).
-Note, to match characters which are regex-significant, like the dollar
-sign (\f[C]$\f[R]), you need to prepend \f[C]\[rs]\f[R].
-And when using the command line you need to add one more level of
-quoting to hide it from the shell, so eg do:
-\f[C]hledger print cur:\[aq]\[rs]$\[aq]\f[R] or
-\f[C]hledger print cur:\[rs]\[rs]$\f[R].
-.TP
-\f[B]\f[R]\f[C]desc:REGEX\f[R]\f[B]\f[R]
-match transaction descriptions.
-.TP
-\f[B]\f[R]\f[C]date:PERIODEXPR\f[R]\f[B]\f[R]
-match dates within the specified period.
-PERIODEXPR is a period expression (with no report interval).
-Examples: \f[C]date:2016\f[R], \f[C]date:thismonth\f[R],
-\f[C]date:2000/2/1-2/15\f[R], \f[C]date:lastweek-\f[R].
-If the \f[C]--date2\f[R] command line flag is present, this matches
-secondary dates instead.
-.TP
-\f[B]\f[R]\f[C]date2:PERIODEXPR\f[R]\f[B]\f[R]
-match secondary dates within the specified period.
-.TP
-\f[B]\f[R]\f[C]depth:N\f[R]\f[B]\f[R]
-match (or display, depending on command) accounts at or above this depth
-.TP
-\f[B]\f[R]\f[C]note:REGEX\f[R]\f[B]\f[R]
-match transaction notes (part of description right of \f[C]|\f[R], or
-whole description when there\[aq]s no \f[C]|\f[R])
-.TP
-\f[B]\f[R]\f[C]payee:REGEX\f[R]\f[B]\f[R]
-match transaction payee/payer names (part of description left of
-\f[C]|\f[R], or whole description when there\[aq]s no \f[C]|\f[R])
-.TP
-\f[B]\f[R]\f[C]real:, real:0\f[R]\f[B]\f[R]
-match real or virtual postings respectively
-.TP
-\f[B]\f[R]\f[C]status:, status:!, status:*\f[R]\f[B]\f[R]
-match unmarked, pending, or cleared transactions respectively
-.TP
-\f[B]\f[R]\f[C]tag:REGEX[=REGEX]\f[R]\f[B]\f[R]
-match by tag name, and optionally also by tag value.
-Note a tag: query is considered to match a transaction if it matches any
-of the postings.
-Also remember that postings inherit the tags of their parent
-transaction.
-.PP
-The following special search term is used automatically in hledger-web,
-only:
-.TP
-\f[B]\f[R]\f[C]inacct:ACCTNAME\f[R]\f[B]\f[R]
-tells hledger-web to show the transaction register for this account.
-Can be filtered further with \f[C]acct\f[R] etc.
-.PP
-Some of these can also be expressed as command-line options (eg
-\f[C]depth:2\f[R] is equivalent to \f[C]--depth 2\f[R]).
-Generally you can mix options and query arguments, and the resulting
-query will be their intersection (perhaps excluding the
-\f[C]-p/--period\f[R] option).
-.SS Special characters in arguments and queries
-.PP
-In shell command lines, option and argument values which contain
-\[dq]problematic\[dq] characters, ie spaces, and also characters
-significant to your shell such as \f[C]<\f[R], \f[C]>\f[R], \f[C](\f[R],
-\f[C])\f[R], \f[C]|\f[R] and \f[C]$\f[R], should be escaped by enclosing
-them in quotes or by writing backslashes before the characters.
-Eg:
-.PP
-\f[C]hledger register -p \[aq]last year\[aq] \[dq]accounts receivable (receivable|payable)\[dq] amt:\[rs]>100\f[R].
-.SS More escaping
-.PP
-Characters significant both to the shell and in regular expressions may
-need one extra level of escaping.
-These include parentheses, the pipe symbol and the dollar sign.
-Eg, to match the dollar symbol, bash users should do:
-.PP
-\f[C]hledger balance cur:\[aq]\[rs]$\[aq]\f[R]
+In shell command lines, characters significant to your shell - such as
+spaces, \f[C]<\f[R], \f[C]>\f[R], \f[C](\f[R], \f[C])\f[R], \f[C]|\f[R],
+\f[C]$\f[R] and \f[C]\[rs]\f[R] - should be \[dq]shell-escaped\[dq] if
+you want hledger to see them.
+This is done by enclosing them in single or double quotes, or by writing
+a backslash before them.
+Eg to match an account name containing a space:
+.IP
+.nf
+\f[C]
+$ hledger register \[aq]credit card\[aq]
+\f[R]
+.fi
 .PP
 or:
+.IP
+.nf
+\f[C]
+$ hledger register credit\[rs] card
+\f[R]
+.fi
+.SS Double escaping (regular expression metacharacters)
 .PP
-\f[C]hledger balance cur:\[rs]\[rs]$\f[R]
-.SS Even more escaping
-.PP
-When hledger runs an add-on executable (eg you type
-\f[C]hledger ui\f[R], hledger runs \f[C]hledger-ui\f[R]), it de-escapes
-command-line options and arguments once, so you might need to
-\f[I]triple\f[R]-escape.
-Eg in bash, running the ui command and matching the dollar sign,
-it\[aq]s:
-.PP
-\f[C]hledger ui cur:\[aq]\[rs]\[rs]$\[aq]\f[R]
+Characters significant in regular expressions (described below) - such
+as \f[C].\f[R], \f[C]\[ha]\f[R], \f[C]$\f[R], \f[C][\f[R], \f[C]]\f[R],
+\f[C](\f[R], \f[C])\f[R], \f[C]|\f[R], and \f[C]\[rs]\f[R] - may need to
+be \[dq]regex-escaped\[dq] if you don\[aq]t want them to be interpreted
+by hledger\[aq]s regular expression engine.
+This is done by writing backslashes before them, but since backslash is
+typically also a shell metacharacter, both shell-escaping and
+regex-escaping will be needed.
+Eg to match a literal \f[C]$\f[R] sign while using the bash shell:
+.IP
+.nf
+\f[C]
+$ hledger balance cur:\[aq]\[rs]$\[aq]
+\f[R]
+.fi
 .PP
 or:
+.IP
+.nf
+\f[C]
+$ hledger balance cur:\[rs]\[rs]$
+\f[R]
+.fi
+.SS Triple escaping (for add-on commands)
 .PP
-\f[C]hledger ui cur:\[rs]\[rs]\[rs]\[rs]$\f[R]
+When you use hledger to run an external add-on command (described
+below), one level of shell-escaping is lost from any options or
+arguments intended for by the add-on command, so those need an extra
+level of shell-escaping.
+Eg to match a literal \f[C]$\f[R] sign while using the bash shell and
+running an add-on command (\f[C]ui\f[R]):
+.IP
+.nf
+\f[C]
+$ hledger ui cur:\[aq]\[rs]\[rs]$\[aq]
+\f[R]
+.fi
 .PP
-If you asked why \f[I]four\f[R] slashes above, this may help:
+or:
+.IP
+.nf
+\f[C]
+$ hledger ui cur:\[rs]\[rs]\[rs]\[rs]$
+\f[R]
+.fi
+.PP
+If you wondered why \f[I]four\f[R] backslashes, perhaps this helps:
 .PP
 .TS
 tab(@);
@@ -898,22 +363,28 @@ T}@T{
 T}
 .TE
 .PP
-(The number of backslashes in fish shell is left as an exercise for the
-reader.)
-.PP
-You can always avoid the extra escaping for add-ons by running the
-add-on directly:
-.PP
-\f[C]hledger-ui cur:\[rs]\[rs]$\f[R]
+Or, you can avoid the extra escaping by running the add-on executable
+directly:
+.IP
+.nf
+\f[C]
+$ hledger-ui cur:\[rs]\[rs]$
+\f[R]
+.fi
 .SS Less escaping
 .PP
-Inside an argument file, or in the search field of hledger-ui or
-hledger-web, or at a GHCI prompt, you need one less level of escaping
-than at the command line.
-And backslashes may work better than quotes.
-Eg:
-.PP
-\f[C]ghci> :main balance cur:\[rs]$\f[R]
+Options and arguments are sometimes used in places other than the shell
+command line, where shell-escaping is not needed, so there you should
+use one less level of escaping.
+Those places include:
+.IP \[bu] 2
+an \[at]argumentfile
+.IP \[bu] 2
+hledger-ui\[aq]s filter field
+.IP \[bu] 2
+hledger-web\[aq]s search form
+.IP \[bu] 2
+GHCI\[aq]s prompt (used by developers).
 .SS Unicode characters
 .PP
 hledger is expected to handle non-ascii characters correctly:
@@ -951,12 +422,64 @@ Eg hledger built in the standard CMD.EXE environment (like the binaries
 on our download page) might show display problems when run in a cygwin
 or msys terminal, and vice versa.
 (See eg #961).
-.SS Input files
+.SS Regular expressions
 .PP
-hledger reads transactions from a data file (and the add command writes
-to it).
-By default this file is \f[C]$HOME/.hledger.journal\f[R] (or on Windows,
-something like \f[C]C:/Users/USER/.hledger.journal\f[R]).
+hledger uses regular expressions in a number of places:
+.IP \[bu] 2
+query terms, on the command line and in the hledger-web search form:
+\f[C]REGEX\f[R], \f[C]desc:REGEX\f[R], \f[C]cur:REGEX\f[R],
+\f[C]tag:...=REGEX\f[R]
+.IP \[bu] 2
+CSV rules conditional blocks: \f[C]if REGEX ...\f[R]
+.IP \[bu] 2
+account alias directives and options:
+\f[C]alias /REGEX/ = REPLACEMENT\f[R],
+\f[C]--alias /REGEX/=REPLACEMENT\f[R]
+.PP
+hledger\[aq]s regular expressions come from the regex-tdfa library.
+If they\[aq]re not doing what you expect, it\[aq]s important to know
+exactly what they support:
+.IP "1." 3
+they are case insensitive
+.IP "2." 3
+they are infix matching (they do not need to match the entire thing
+being matched)
+.IP "3." 3
+they are POSIX ERE (extended regular expressions)
+.IP "4." 3
+they also support GNU word boundaries (\f[C]\[rs]b\f[R],
+\f[C]\[rs]B\f[R], \f[C]\[rs]<\f[R], \f[C]\[rs]>\f[R])
+.IP "5." 3
+they do not support backreferences; if you write \f[C]\[rs]1\f[R], it
+will match the digit \f[C]1\f[R].
+Except when doing text replacement, eg in account aliases, where
+backreferences can be used in the replacement string to reference
+capturing groups in the search regexp.
+.IP "6." 3
+they do not support mode modifiers (\f[C](?s)\f[R]), character classes
+(\f[C]\[rs]w\f[R], \f[C]\[rs]d\f[R]), or anything else not mentioned
+above.
+.PP
+Some things to note:
+.IP \[bu] 2
+In the \f[C]alias\f[R] directive and \f[C]--alias\f[R] option, regular
+expressions must be enclosed in forward slashes (\f[C]/REGEX/\f[R]).
+Elsewhere in hledger, these are not required.
+.IP \[bu] 2
+In queries, to match a regular expression metacharacter like \f[C]$\f[R]
+as a literal character, prepend a backslash.
+Eg to search for amounts with the dollar sign in hledger-web, write
+\f[C]cur:\[rs]$\f[R].
+.IP \[bu] 2
+On the command line, some metacharacters like \f[C]$\f[R] have a special
+meaning to the shell and so must be escaped at least once more.
+See Special characters.
+.SH DATA FILES
+.PP
+hledger reads transactions from one or more data files.
+The default data file is \f[C]$HOME/.hledger.journal\f[R] (or on
+Windows, something like \f[C]C:/Users/USER/.hledger.journal\f[R]).
+.PP
 You can override this with the \f[C]$LEDGER_FILE\f[R] environment
 variable:
 .IP
@@ -967,21 +490,22 @@ $ hledger stats
 \f[R]
 .fi
 .PP
-or with the \f[C]-f/--file\f[R] option:
+or with one or more \f[C]-f/--file\f[R] options:
 .IP
 .nf
 \f[C]
-$ hledger -f /some/file stats
+$ hledger -f /some/file -f another_file stats
 \f[R]
 .fi
 .PP
-The file name \f[C]-\f[R] (hyphen) means standard input:
+The file name \f[C]-\f[R] means standard input:
 .IP
 .nf
 \f[C]
 $ cat some.journal | hledger -f-
 \f[R]
 .fi
+.SS Data formats
 .PP
 Usually the data file is in hledger\[aq]s journal format, but it can be
 in any of the supported file formats, which currently are:
@@ -1035,9 +559,8 @@ So for non-journal files, it\[aq]s important to use a recognised file
 extension, so as to either read successfully or to show relevant error
 messages.
 .PP
-When you can\[aq]t ensure the right file extension, not to worry: you
-can force a specific reader/format by prefixing the file path with the
-format and a colon.
+You can also force a specific reader/format by prefixing the file path
+with the format and a colon.
 Eg to read a .dat file as csv:
 .IP
 .nf
@@ -1046,12 +569,13 @@ $ hledger -f csv:/some/csv-file.dat stats
 $ echo \[aq]i 2009/13/1 08:00:00\[aq] | hledger print -ftimeclock:-
 \f[R]
 .fi
+.SS Multiple files
 .PP
 You can specify multiple \f[C]-f\f[R] options, to read multiple files as
 one big journal.
 There are some limitations with this:
 .IP \[bu] 2
-directives in one file will not affect the other files
+most directives do not affect sibling files
 .IP \[bu] 2
 balance assertions will not see any account balances from previous files
 .PP
@@ -1086,154 +610,11 @@ Are all commodities declared with a \f[C]commodity\f[R] directive ?
 See also: https://hledger.org/checking-for-errors.html
 .PP
 \f[I]experimental.\f[R]
-.SS Output destination
-.PP
-hledger commands send their output to the terminal by default.
-You can of course redirect this, eg into a file, using standard shell
-syntax:
-.IP
-.nf
-\f[C]
-$ hledger print > foo.txt
-\f[R]
-.fi
-.PP
-Some commands (print, register, stats, the balance commands) also
-provide the \f[C]-o/--output-file\f[R] option, which does the same thing
-without needing the shell.
-Eg:
-.IP
-.nf
-\f[C]
-$ hledger print -o foo.txt
-$ hledger print -o -        # write to stdout (the default)
-\f[R]
-.fi
-.SS Output format
-.PP
-Some commands (print, register, the balance commands) offer a choice of
-output format.
-In addition to the usual plain text format (\f[C]txt\f[R]), there are
-CSV (\f[C]csv\f[R]), HTML (\f[C]html\f[R]), JSON (\f[C]json\f[R]) and
-SQL (\f[C]sql\f[R]).
-This is controlled by the \f[C]-O/--output-format\f[R] option:
-.IP
-.nf
-\f[C]
-$ hledger print -O csv
-\f[R]
-.fi
-.PP
-or, by a file extension specified with \f[C]-o/--output-file\f[R]:
-.IP
-.nf
-\f[C]
-$ hledger balancesheet -o foo.html   # write HTML to foo.html
-\f[R]
-.fi
-.PP
-The \f[C]-O\f[R] option can be used to override the file extension if
-needed:
-.IP
-.nf
-\f[C]
-$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
-\f[R]
-.fi
-.PP
-Some notes about JSON output:
-.IP \[bu] 2
-This feature is marked experimental, and not yet much used; you should
-expect our JSON to evolve.
-Real-world feedback is welcome.
-.IP \[bu] 2
-Our JSON is rather large and verbose, as it is quite a faithful
-representation of hledger\[aq]s internal data types.
-To understand the JSON, read the Haskell type definitions, which are
-mostly in
-https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
-.IP \[bu] 2
-hledger represents quantities as Decimal values storing up to 255
-significant digits, eg for repeating decimals.
-Such numbers can arise in practice (from automatically-calculated
-transaction prices), and would break most JSON consumers.
-So in JSON, we show quantities as simple Numbers with at most 10 decimal
-places.
-We don\[aq]t limit the number of integer digits, but that part is under
-your control.
-We hope this approach will not cause problems in practice; if you find
-otherwise, please let us know.
-(Cf #1195)
-.PP
-Notes about SQL output:
-.IP \[bu] 2
-SQL output is also marked experimental, and much like JSON could use
-real-world feedback.
-.IP \[bu] 2
-SQL output is expected to work with sqlite, MySQL and PostgreSQL
-.IP \[bu] 2
-SQL output is structured with the expectations that statements will be
-executed in the empty database.
-If you already have tables created via SQL output of hledger, you would
-probably want to either clear tables of existing data (via
-\f[C]delete\f[R] or \f[C]truncate\f[R] SQL statements) or drop tables
-completely as otherwise your postings will be duped.
-.SS Regular expressions
-.PP
-hledger uses regular expressions in a number of places:
-.IP \[bu] 2
-query terms, on the command line and in the hledger-web search form:
-\f[C]REGEX\f[R], \f[C]desc:REGEX\f[R], \f[C]cur:REGEX\f[R],
-\f[C]tag:...=REGEX\f[R]
-.IP \[bu] 2
-CSV rules conditional blocks: \f[C]if REGEX ...\f[R]
-.IP \[bu] 2
-account alias directives and options:
-\f[C]alias /REGEX/ = REPLACEMENT\f[R],
-\f[C]--alias /REGEX/=REPLACEMENT\f[R]
-.PP
-hledger\[aq]s regular expressions come from the regex-tdfa library.
-If they\[aq]re not doing what you expect, it\[aq]s important to know
-exactly what they support:
-.IP "1." 3
-they are case insensitive
-.IP "2." 3
-they are infix matching (they do not need to match the entire thing
-being matched)
-.IP "3." 3
-they are POSIX ERE (extended regular expressions)
-.IP "4." 3
-they also support GNU word boundaries (\f[C]\[rs]b\f[R],
-\f[C]\[rs]B\f[R], \f[C]\[rs]<\f[R], \f[C]\[rs]>\f[R])
-.IP "5." 3
-they do not support backreferences; if you write \f[C]\[rs]1\f[R], it
-will match the digit \f[C]1\f[R].
-Except when doing text replacement, eg in account aliases, where
-backreferences can be used in the replacement string to reference
-capturing groups in the search regexp.
-.IP "6." 3
-they do not support mode modifiers (\f[C](?s)\f[R]), character classes
-(\f[C]\[rs]w\f[R], \f[C]\[rs]d\f[R]), or anything else not mentioned
-above.
-.PP
-Some things to note:
-.IP \[bu] 2
-In the \f[C]alias\f[R] directive and \f[C]--alias\f[R] option, regular
-expressions must be enclosed in forward slashes (\f[C]/REGEX/\f[R]).
-Elsewhere in hledger, these are not required.
-.IP \[bu] 2
-In queries, to match a regular expression metacharacter like \f[C]$\f[R]
-as a literal character, prepend a backslash.
-Eg to search for amounts with the dollar sign in hledger-web, write
-\f[C]cur:\[rs]$\f[R].
-.IP \[bu] 2
-On the command line, some metacharacters like \f[C]$\f[R] have a special
-meaning to the shell and so must be escaped at least once more.
-See Special characters.
+.SH TIME PERIODS
 .SS Smart dates
 .PP
 hledger\[aq]s user interfaces accept a flexible \[dq]smart date\[dq]
-syntax (unlike dates in the journal file).
+syntax.
 Smart dates allow some english words, can be relative to today\[aq]s
 date, and can have less-significant date parts omitted (defaulting to
 1).
@@ -1673,7 +1054,7 @@ Group postings from start of wednesday to end of next tuesday (N is
 start date and exclusive end date):
 .PP
 \f[C]hledger register checking -p \[dq]every 3rd day of week\[dq]\f[R]
-.SS Depth limiting
+.SH DEPTH
 .PP
 With the \f[C]--depth N\f[R] option (short form: \f[C]-N\f[R]), commands
 like account, balance and register will show only the uppermost accounts
@@ -1681,81 +1062,121 @@ in the account tree, down to level N.
 Use this when you want a summary with less detail.
 This flag has the same effect as a \f[C]depth:\f[R] query argument (so
 \f[C]-2\f[R], \f[C]--depth=2\f[R] or \f[C]depth:2\f[R] are equivalent).
-.SS Pivoting
+.SH QUERIES
 .PP
-Normally hledger sums amounts, and organizes them in a hierarchy, based
-on account name.
-The \f[C]--pivot FIELD\f[R] option causes it to sum and organize
-hierarchy based on the value of some other field instead.
-FIELD can be: \f[C]code\f[R], \f[C]description\f[R], \f[C]payee\f[R],
-\f[C]note\f[R], or the full name (case insensitive) of any tag.
-As with account names, values containing \f[C]colon:separated:parts\f[R]
-will be displayed hierarchically in reports.
+One of hledger\[aq]s strengths is being able to quickly report on
+precise subsets of your data.
+Most commands accept an optional query expression, written as arguments
+after the command name, to filter the data by date, account name or
+other criteria.
+The syntax is similar to a web search: one or more space-separated
+search terms, quotes to enclose whitespace, prefixes to match specific
+fields, a not: prefix to negate the match.
 .PP
-\f[C]--pivot\f[R] is a general option affecting all reports; you can
-think of hledger transforming the journal before any other processing,
-replacing every posting\[aq]s account name with the value of the
-specified field on that posting, inheriting it from the transaction or
-using a blank value if it\[aq]s not present.
+We do not yet support arbitrary boolean combinations of search terms;
+instead most commands show transactions/postings/accounts which match
+(or negatively match):
+.IP \[bu] 2
+any of the description terms AND
+.IP \[bu] 2
+any of the account terms AND
+.IP \[bu] 2
+any of the status terms AND
+.IP \[bu] 2
+all the other terms.
 .PP
-An example:
-.IP
-.nf
-\f[C]
-2016/02/16 Member Fee Payment
-    assets:bank account                    2 EUR
-    income:member fees                    -2 EUR  ; member: John Doe
-\f[R]
-.fi
+The print command instead shows transactions which:
+.IP \[bu] 2
+match any of the description terms AND
+.IP \[bu] 2
+have any postings matching any of the positive account terms AND
+.IP \[bu] 2
+have no postings matching any of the negative account terms AND
+.IP \[bu] 2
+match all the other terms.
 .PP
-Normal balance report showing account names:
-.IP
-.nf
-\f[C]
-$ hledger balance
-               2 EUR  assets:bank account
-              -2 EUR  income:member fees
---------------------
-                   0
-\f[R]
-.fi
+The following kinds of search terms can be used.
+Remember these can also be prefixed with \f[B]\f[CB]not:\f[B]\f[R], eg
+to exclude a particular subaccount.
+.TP
+\f[B]\f[R]\f[C]REGEX\f[R]\f[B], \f[R]\f[C]acct:REGEX\f[R]\f[B]\f[R]
+match account names by this regular expression.
+(With no prefix, \f[C]acct:\f[R] is assumed.)
+same as above
+.TP
+\f[B]\f[R]\f[C]amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N\f[R]\f[B]\f[R]
+match postings with a single-commodity amount that is equal to, less
+than, or greater than N.
+(Multi-commodity amounts are not tested, and will always match.) The
+comparison has two modes: if N is preceded by a + or - sign (or is 0),
+the two signed numbers are compared.
+Otherwise, the absolute magnitudes are compared, ignoring sign.
+.TP
+\f[B]\f[R]\f[C]code:REGEX\f[R]\f[B]\f[R]
+match by transaction code (eg check number)
+.TP
+\f[B]\f[R]\f[C]cur:REGEX\f[R]\f[B]\f[R]
+match postings or transactions including any amounts whose
+currency/commodity symbol is fully matched by REGEX.
+(For a partial match, use \f[C].*REGEX.*\f[R]).
+Note, to match characters which are regex-significant, like the dollar
+sign (\f[C]$\f[R]), you need to prepend \f[C]\[rs]\f[R].
+And when using the command line you need to add one more level of
+quoting to hide it from the shell, so eg do:
+\f[C]hledger print cur:\[aq]\[rs]$\[aq]\f[R] or
+\f[C]hledger print cur:\[rs]\[rs]$\f[R].
+.TP
+\f[B]\f[R]\f[C]desc:REGEX\f[R]\f[B]\f[R]
+match transaction descriptions.
+.TP
+\f[B]\f[R]\f[C]date:PERIODEXPR\f[R]\f[B]\f[R]
+match dates within the specified period.
+PERIODEXPR is a period expression (with no report interval).
+Examples: \f[C]date:2016\f[R], \f[C]date:thismonth\f[R],
+\f[C]date:2000/2/1-2/15\f[R], \f[C]date:lastweek-\f[R].
+If the \f[C]--date2\f[R] command line flag is present, this matches
+secondary dates instead.
+.TP
+\f[B]\f[R]\f[C]date2:PERIODEXPR\f[R]\f[B]\f[R]
+match secondary dates within the specified period.
+.TP
+\f[B]\f[R]\f[C]depth:N\f[R]\f[B]\f[R]
+match (or display, depending on command) accounts at or above this depth
+.TP
+\f[B]\f[R]\f[C]note:REGEX\f[R]\f[B]\f[R]
+match transaction notes (part of description right of \f[C]|\f[R], or
+whole description when there\[aq]s no \f[C]|\f[R])
+.TP
+\f[B]\f[R]\f[C]payee:REGEX\f[R]\f[B]\f[R]
+match transaction payee/payer names (part of description left of
+\f[C]|\f[R], or whole description when there\[aq]s no \f[C]|\f[R])
+.TP
+\f[B]\f[R]\f[C]real:, real:0\f[R]\f[B]\f[R]
+match real or virtual postings respectively
+.TP
+\f[B]\f[R]\f[C]status:, status:!, status:*\f[R]\f[B]\f[R]
+match unmarked, pending, or cleared transactions respectively
+.TP
+\f[B]\f[R]\f[C]tag:REGEX[=REGEX]\f[R]\f[B]\f[R]
+match by tag name, and optionally also by tag value.
+Note a tag: query is considered to match a transaction if it matches any
+of the postings.
+Also remember that postings inherit the tags of their parent
+transaction.
 .PP
-Pivoted balance report, using member: tag values instead:
-.IP
-.nf
-\f[C]
-$ hledger balance --pivot member
-               2 EUR
-              -2 EUR  John Doe
---------------------
-                   0
-\f[R]
-.fi
+The following special search term is used automatically in hledger-web,
+only:
+.TP
+\f[B]\f[R]\f[C]inacct:ACCTNAME\f[R]\f[B]\f[R]
+tells hledger-web to show the transaction register for this account.
+Can be filtered further with \f[C]acct\f[R] etc.
 .PP
-One way to show only amounts with a member: value (using a query,
-described below):
-.IP
-.nf
-\f[C]
-$ hledger balance --pivot member tag:member=.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-\f[R]
-.fi
-.PP
-Another way (the acct: query matches against the pivoted \[dq]account
-name\[dq]):
-.IP
-.nf
-\f[C]
-$ hledger balance --pivot member acct:.
-              -2 EUR  John Doe
---------------------
-              -2 EUR
-\f[R]
-.fi
-.SS Valuation
+Some of these can also be expressed as command-line options (eg
+\f[C]depth:2\f[R] is equivalent to \f[C]--depth 2\f[R]).
+Generally you can mix options and query arguments, and the resulting
+query will be their intersection (perhaps excluding the
+\f[C]-p/--period\f[R] option).
+.SH VALUATION
 .PP
 Instead of reporting amounts in their original commodity, hledger can
 convert them to cost/sale amount (using the conversion rate recorded in
@@ -1793,8 +1214,6 @@ For multiperiod reports, each column/period is valued on the last day of
 the period, by default.
 .SS Market prices
 .PP
-\f[I](experimental)\f[R]
-.PP
 To convert a commodity A to its market value in another commodity B,
 hledger looks for a suitable market price (exchange rate) as follows, in
 this order of preference :
@@ -1818,8 +1237,6 @@ A to B.
 Amounts for which no applicable market price can be found, are not
 converted.
 .SS --infer-value: market prices from transactions
-.PP
-\f[I](experimental)\f[R]
 .PP
 Normally, market value in hledger is fully controlled by, and requires,
 P directives in your journal.
@@ -1851,8 +1268,6 @@ two commodities, unbalanced).
 but not, currently, from \[dq]more correct\[dq] multicommodity
 transactions (no \f[C]\[at]\f[R], multiple commodities, balanced).
 .SS Valuation commodity
-.PP
-\f[I](experimental)\f[R]
 .PP
 \f[B]When you specify a valuation commodity (\f[CB]-X COMM\f[B] or
 \f[CB]--value TYPE,COMM\f[B]):\f[R]
@@ -2462,26 +1877,195 @@ otherwise the latest transaction date in the journal, otherwise today.
 \f[I]report interval\f[R]
 a flag (-D/-W/-M/-Q/-Y) or period expression that activates the
 report\[aq]s multi-period mode (whether showing one or many subperiods).
+.SH PIVOTING
+.PP
+Normally hledger sums amounts, and organizes them in a hierarchy, based
+on account name.
+The \f[C]--pivot FIELD\f[R] option causes it to sum and organize
+hierarchy based on the value of some other field instead.
+FIELD can be: \f[C]code\f[R], \f[C]description\f[R], \f[C]payee\f[R],
+\f[C]note\f[R], or the full name (case insensitive) of any tag.
+As with account names, values containing \f[C]colon:separated:parts\f[R]
+will be displayed hierarchically in reports.
+.PP
+\f[C]--pivot\f[R] is a general option affecting all reports; you can
+think of hledger transforming the journal before any other processing,
+replacing every posting\[aq]s account name with the value of the
+specified field on that posting, inheriting it from the transaction or
+using a blank value if it\[aq]s not present.
+.PP
+An example:
+.IP
+.nf
+\f[C]
+2016/02/16 Member Fee Payment
+    assets:bank account                    2 EUR
+    income:member fees                    -2 EUR  ; member: John Doe
+\f[R]
+.fi
+.PP
+Normal balance report showing account names:
+.IP
+.nf
+\f[C]
+$ hledger balance
+               2 EUR  assets:bank account
+              -2 EUR  income:member fees
+--------------------
+                   0
+\f[R]
+.fi
+.PP
+Pivoted balance report, using member: tag values instead:
+.IP
+.nf
+\f[C]
+$ hledger balance --pivot member
+               2 EUR
+              -2 EUR  John Doe
+--------------------
+                   0
+\f[R]
+.fi
+.PP
+One way to show only amounts with a member: value (using a query,
+described below):
+.IP
+.nf
+\f[C]
+$ hledger balance --pivot member tag:member=.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+\f[R]
+.fi
+.PP
+Another way (the acct: query matches against the pivoted \[dq]account
+name\[dq]):
+.IP
+.nf
+\f[C]
+$ hledger balance --pivot member acct:.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+\f[R]
+.fi
+.SH OUTPUT
+.SS Output destination
+.PP
+hledger commands send their output to the terminal by default.
+You can of course redirect this, eg into a file, using standard shell
+syntax:
+.IP
+.nf
+\f[C]
+$ hledger print > foo.txt
+\f[R]
+.fi
+.PP
+Some commands (print, register, stats, the balance commands) also
+provide the \f[C]-o/--output-file\f[R] option, which does the same thing
+without needing the shell.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger print -o foo.txt
+$ hledger print -o -        # write to stdout (the default)
+\f[R]
+.fi
+.SS Output format
+.PP
+Some commands (print, register, the balance commands) offer a choice of
+output format.
+In addition to the usual plain text format (\f[C]txt\f[R]), there are
+CSV (\f[C]csv\f[R]), HTML (\f[C]html\f[R]), JSON (\f[C]json\f[R]) and
+SQL (\f[C]sql\f[R]).
+This is controlled by the \f[C]-O/--output-format\f[R] option:
+.IP
+.nf
+\f[C]
+$ hledger print -O csv
+\f[R]
+.fi
+.PP
+or, by a file extension specified with \f[C]-o/--output-file\f[R]:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.html   # write HTML to foo.html
+\f[R]
+.fi
+.PP
+The \f[C]-O\f[R] option can be used to override the file extension if
+needed:
+.IP
+.nf
+\f[C]
+$ hledger balancesheet -o foo.txt -O html   # write HTML to foo.txt
+\f[R]
+.fi
+.PP
+Some notes about JSON output:
+.IP \[bu] 2
+This feature is marked experimental, and not yet much used; you should
+expect our JSON to evolve.
+Real-world feedback is welcome.
+.IP \[bu] 2
+Our JSON is rather large and verbose, as it is quite a faithful
+representation of hledger\[aq]s internal data types.
+To understand the JSON, read the Haskell type definitions, which are
+mostly in
+https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs.
+.IP \[bu] 2
+hledger represents quantities as Decimal values storing up to 255
+significant digits, eg for repeating decimals.
+Such numbers can arise in practice (from automatically-calculated
+transaction prices), and would break most JSON consumers.
+So in JSON, we show quantities as simple Numbers with at most 10 decimal
+places.
+We don\[aq]t limit the number of integer digits, but that part is under
+your control.
+We hope this approach will not cause problems in practice; if you find
+otherwise, please let us know.
+(Cf #1195)
+.PP
+Notes about SQL output:
+.IP \[bu] 2
+SQL output is also marked experimental, and much like JSON could use
+real-world feedback.
+.IP \[bu] 2
+SQL output is expected to work with sqlite, MySQL and PostgreSQL
+.IP \[bu] 2
+SQL output is structured with the expectations that statements will be
+executed in the empty database.
+If you already have tables created via SQL output of hledger, you would
+probably want to either clear tables of existing data (via
+\f[C]delete\f[R] or \f[C]truncate\f[R] SQL statements) or drop tables
+completely as otherwise your postings will be duped.
 .SH COMMANDS
 .PP
 hledger provides a number of commands for producing reports and managing
 your data.
-Run \f[C]hledger\f[R] with no arguments to list the commands available.
+Run \f[C]hledger\f[R] with no arguments to list the commands available,
+and \f[C]hledger CMD\f[R] to run a command.
+CMD can be the full command name, or its standard abbreviation shown in
+the commands list, or any unambiguous prefix of the name.
+Eg: \f[C]hledger bal\f[R].
 .PP
-To run a command, write its name (or its abbreviation shown in the
-commands list, or any unambiguous prefix of the name) as hledger\[aq]s
-first argument.
-Eg: \f[C]hledger balance\f[R] or \f[C]hledger bal\f[R].
+Here are the built-in commands, with the most often-used in bold:
 .PP
-Here are the built-in commands:
+\f[B]Data entry:\f[R]
 .PP
-\f[B]Data entry (these modify the journal file):\f[R]
+These data entry commands are the only ones which can modify your
+journal file.
 .IP \[bu] 2
-add - add transactions using guided prompts
+\f[B]add\f[R] - add transactions using guided prompts
 .IP \[bu] 2
-import - add any new transactions from other files (eg csv)
+\f[B]import\f[R] - add any new transactions from other files (eg csv)
 .PP
-\f[B]Data management\f[R]:
+\f[B]Data management:\f[R]
 .IP \[bu] 2
 check - check for various kinds of issue in the data
 .IP \[bu] 2
@@ -2493,15 +2077,15 @@ rewrite - generate extra postings, similar to print --auto
 .PP
 \f[B]Financial statements:\f[R]
 .IP \[bu] 2
-aregister (areg) - show transactions in a particular account
+\f[B]aregister (areg)\f[R] - show transactions in a particular account
 .IP \[bu] 2
-balancesheet (bs) - show assets, liabilities and net worth
+\f[B]balancesheet (bs)\f[R] - show assets, liabilities and net worth
 .IP \[bu] 2
 balancesheetequity (bse) - show assets, liabilities and equity
 .IP \[bu] 2
 cashflow (cf) - show changes in liquid assets
 .IP \[bu] 2
-incomestatement (is) - show revenues and expenses
+\f[B]incomestatement (is)\f[R] - show revenues and expenses
 .IP \[bu] 2
 roi - show return on investments
 .PP
@@ -2511,7 +2095,8 @@ accounts (a) - show account names
 .IP \[bu] 2
 activity - show postings-per-interval bar charts
 .IP \[bu] 2
-balance (b, bal) - show balance changes/end balances/budgets in accounts
+\f[B]balance (b, bal)\f[R] - show balance changes/end balances/budgets
+in any accounts
 .IP \[bu] 2
 codes - show transaction codes
 .IP \[bu] 2
@@ -2521,18 +2106,20 @@ descriptions - show unique transaction descriptions
 .IP \[bu] 2
 files - show input file paths
 .IP \[bu] 2
+help - show hledger user manuals in several formats
+.IP \[bu] 2
 notes - show unique note segments of transaction descriptions
 .IP \[bu] 2
 payees - show unique payee segments of transaction descriptions
 .IP \[bu] 2
 prices - show market price records
 .IP \[bu] 2
-print (p, txns) - show transactions (journal entries)
+\f[B]print (p, txns)\f[R] - show transactions (journal entries)
 .IP \[bu] 2
 print-unique - show only transactions with unique descriptions
 .IP \[bu] 2
-register (r, reg) - show postings in one or more accounts & running
-total
+\f[B]register (r, reg)\f[R] - show postings in one or more accounts &
+running total
 .IP \[bu] 2
 register-match - show a recent posting that best matches a description
 .IP \[bu] 2
@@ -2541,6 +2128,26 @@ stats - show journal statistics
 tags - show tag names
 .IP \[bu] 2
 test - run self tests
+.PP
+\f[B]Add-on commands:\f[R]
+.PP
+Programs or scripts named \f[C]hledger-SOMETHING\f[R] in your PATH are
+add-on commands; these appear in the commands list with a \f[C]+\f[R]
+mark.
+Two of these are maintained and released with hledger:
+.IP \[bu] 2
+\f[B]ui\f[R] - an efficient terminal interface (TUI) for hledger
+.IP \[bu] 2
+\f[B]web\f[R] - a simple web interface (WUI) for hledger
+.PP
+And these add-ons are maintained separately:
+.IP \[bu] 2
+iadd - a more interactive alternative for the add command
+.IP \[bu] 2
+interest - generates interest transactions according to various schemes
+.IP \[bu] 2
+stockquotes - downloads market prices for your commodities from
+AlphaVantage \f[I](experimental)\f[R]
 .PP
 Next, the detailed command docs, in alphabetical order.
 .SS accounts
@@ -3459,6 +3066,9 @@ the \f[C]Asset\f[R] or \f[C]Cash\f[R] or \f[C]Liability\f[R] type, or
 otherwise all accounts under a top-level \f[C]asset\f[R] or
 \f[C]liability\f[R] account (case insensitive, plurals allowed).
 .PP
+(This report is essentially similar to \[dq]hledger balance --historical
+assets liabilities\[dq], with liabilities sign-flipped.)
+.PP
 Example:
 .IP
 .nf
@@ -3515,6 +3125,10 @@ or \f[C]Equity\f[R] type, or otherwise all accounts under a top-level
 \f[C]asset\f[R], \f[C]liability\f[R] or \f[C]equity\f[R] account (case
 insensitive, plurals allowed).
 .PP
+(This report is essentially similar to \[dq]hledger balance --historical
+assets liabilities equity\[dq], with liabilities and equity
+sign-flipped.)
+.PP
 Example:
 .IP
 .nf
@@ -3564,6 +3178,9 @@ The \[dq]cash\[dq] accounts shown are those accounts declared with the
 \f[C]asset\f[R] account (case insensitive, plural allowed) which do not
 have \f[C]fixed\f[R], \f[C]investment\f[R], \f[C]receivable\f[R] or
 \f[C]A/R\f[R] in their name.
+.PP
+(This report is essentially similar to \[dq]hledger balance --change
+assets not:fixed not:investment not:receivable\[dq].)
 .PP
 Example:
 .IP
@@ -4045,6 +3662,9 @@ the \f[C]Revenue\f[R] or \f[C]Expense\f[R] type, or otherwise all
 accounts under a top-level \f[C]revenue\f[R] or \f[C]income\f[R] or
 \f[C]expense\f[R] account (case insensitive, plurals allowed).
 .PP
+(This report is essentially similar to \[dq]hledger balance --change
+revenues expenses\[dq], with revenues sign-flipped.)
+.PP
 Example:
 .IP
 .nf
@@ -4106,6 +3726,371 @@ Petrol
 Snacks
 \f[R]
 .fi
+.SS payees
+.PP
+payees
+.PD 0
+.P
+.PD
+List the unique payee/payer names that appear in transactions.
+.PP
+This command lists the unique payee/payer names that appear in
+transactions, in alphabetic order.
+You can add a query to select a subset of transactions.
+The payee/payer is the part of the transaction description before a |
+character (or if there is no |, the whole description).
+.PP
+Example:
+.IP
+.nf
+\f[C]
+$ hledger payees
+Store Name
+Gas Station
+Person A
+\f[R]
+.fi
+.SS prices
+.PP
+prices
+.PD 0
+.P
+.PD
+Print market price directives from the journal.
+With --costs, also print synthetic market prices based on transaction
+prices.
+With --inverted-costs, also print inverse prices based on transaction
+prices.
+Prices (and postings providing prices) can be filtered by a query.
+Price amounts are always displayed with their full precision.
+.SS print
+.PP
+print, txns, p
+.PD 0
+.P
+.PD
+Show transaction journal entries, sorted by date.
+.PP
+The print command displays full journal entries (transactions) from the
+journal file in date order, tidily formatted.
+With --date2, transactions are sorted by secondary date instead.
+.PP
+print\[aq]s output is always a valid hledger journal.
+.PD 0
+.P
+.PD
+It preserves all transaction information, but it does not preserve
+directives or inter-transaction comments
+.IP
+.nf
+\f[C]
+$ hledger print
+2008/01/01 income
+    assets:bank:checking            $1
+    income:salary                  $-1
+
+2008/06/01 gift
+    assets:bank:checking            $1
+    income:gifts                   $-1
+
+2008/06/02 save
+    assets:bank:saving              $1
+    assets:bank:checking           $-1
+
+2008/06/03 * eat & shop
+    expenses:food                $1
+    expenses:supplies            $1
+    assets:cash                 $-2
+
+2008/12/31 * pay off
+    liabilities:debts               $1
+    assets:bank:checking           $-1
+\f[R]
+.fi
+.PP
+Normally, the journal entry\[aq]s explicit or implicit amount style is
+preserved.
+For example, when an amount is omitted in the journal, it will not
+appear in the output.
+Similarly, when a transaction price is implied but not written, it will
+not appear in the output.
+You can use the \f[C]-x\f[R]/\f[C]--explicit\f[R] flag to make all
+amounts and transaction prices explicit, which can be useful for
+troubleshooting or for making your journal more readable and robust
+against data entry errors.
+\f[C]-x\f[R] is also implied by using any of
+\f[C]-B\f[R],\f[C]-V\f[R],\f[C]-X\f[R],\f[C]--value\f[R].
+.PP
+Note, \f[C]-x\f[R]/\f[C]--explicit\f[R] will cause postings with a
+multi-commodity amount (these can arise when a multi-commodity
+transaction has an implicit amount) to be split into multiple
+single-commodity postings, keeping the output parseable.
+.PP
+With \f[C]-B\f[R]/\f[C]--cost\f[R], amounts with transaction prices are
+converted to cost using that price.
+This can be used for troubleshooting.
+.PP
+With \f[C]-m\f[R]/\f[C]--match\f[R] and a STR argument, print will show
+at most one transaction: the one one whose description is most similar
+to STR, and is most recent.
+STR should contain at least two characters.
+If there is no similar-enough match, no transaction will be shown.
+.PP
+With \f[C]--new\f[R], for each FILE being read, hledger reads (and
+writes) a special state file (\f[C].latest.FILE\f[R] in the same
+directory), containing the latest transaction date(s) that were seen
+last time FILE was read.
+When this file is found, only transactions with newer dates (and new
+transactions on the latest date) are printed.
+This is useful for ignoring already-seen entries in import data, such as
+downloaded CSV files.
+Eg:
+.IP
+.nf
+\f[C]
+$ hledger -f bank1.csv print --new
+(shows transactions added since last print --new on this file)
+\f[R]
+.fi
+.PP
+This assumes that transactions added to FILE always have same or
+increasing dates, and that transactions on the same day do not get
+reordered.
+See also the import command.
+.PP
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+and (experimental) \f[C]json\f[R] and \f[C]sql\f[R].
+.PP
+Here\[aq]s an example of print\[aq]s CSV output:
+.IP
+.nf
+\f[C]
+$ hledger print -Ocsv
+\[dq]txnidx\[dq],\[dq]date\[dq],\[dq]date2\[dq],\[dq]status\[dq],\[dq]code\[dq],\[dq]description\[dq],\[dq]comment\[dq],\[dq]account\[dq],\[dq]amount\[dq],\[dq]commodity\[dq],\[dq]credit\[dq],\[dq]debit\[dq],\[dq]posting-status\[dq],\[dq]posting-comment\[dq]
+\[dq]1\[dq],\[dq]2008/01/01\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]income\[dq],\[dq]\[dq],\[dq]assets:bank:checking\[dq],\[dq]1\[dq],\[dq]$\[dq],\[dq]\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]1\[dq],\[dq]2008/01/01\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]income\[dq],\[dq]\[dq],\[dq]income:salary\[dq],\[dq]-1\[dq],\[dq]$\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]2\[dq],\[dq]2008/06/01\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]gift\[dq],\[dq]\[dq],\[dq]assets:bank:checking\[dq],\[dq]1\[dq],\[dq]$\[dq],\[dq]\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]2\[dq],\[dq]2008/06/01\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]gift\[dq],\[dq]\[dq],\[dq]income:gifts\[dq],\[dq]-1\[dq],\[dq]$\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]3\[dq],\[dq]2008/06/02\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]save\[dq],\[dq]\[dq],\[dq]assets:bank:saving\[dq],\[dq]1\[dq],\[dq]$\[dq],\[dq]\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]3\[dq],\[dq]2008/06/02\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]save\[dq],\[dq]\[dq],\[dq]assets:bank:checking\[dq],\[dq]-1\[dq],\[dq]$\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]4\[dq],\[dq]2008/06/03\[dq],\[dq]\[dq],\[dq]*\[dq],\[dq]\[dq],\[dq]eat & shop\[dq],\[dq]\[dq],\[dq]expenses:food\[dq],\[dq]1\[dq],\[dq]$\[dq],\[dq]\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]4\[dq],\[dq]2008/06/03\[dq],\[dq]\[dq],\[dq]*\[dq],\[dq]\[dq],\[dq]eat & shop\[dq],\[dq]\[dq],\[dq]expenses:supplies\[dq],\[dq]1\[dq],\[dq]$\[dq],\[dq]\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]4\[dq],\[dq]2008/06/03\[dq],\[dq]\[dq],\[dq]*\[dq],\[dq]\[dq],\[dq]eat & shop\[dq],\[dq]\[dq],\[dq]assets:cash\[dq],\[dq]-2\[dq],\[dq]$\[dq],\[dq]2\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]5\[dq],\[dq]2008/12/31\[dq],\[dq]\[dq],\[dq]*\[dq],\[dq]\[dq],\[dq]pay off\[dq],\[dq]\[dq],\[dq]liabilities:debts\[dq],\[dq]1\[dq],\[dq]$\[dq],\[dq]\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq]
+\[dq]5\[dq],\[dq]2008/12/31\[dq],\[dq]\[dq],\[dq]*\[dq],\[dq]\[dq],\[dq]pay off\[dq],\[dq]\[dq],\[dq]assets:bank:checking\[dq],\[dq]-1\[dq],\[dq]$\[dq],\[dq]1\[dq],\[dq]\[dq],\[dq]\[dq],\[dq]\[dq]
+\f[R]
+.fi
+.IP \[bu] 2
+There is one CSV record per posting, with the parent transaction\[aq]s
+fields repeated.
+.IP \[bu] 2
+The \[dq]txnidx\[dq] (transaction index) field shows which postings
+belong to the same transaction.
+(This number might change if transactions are reordered within the file,
+files are parsed/included in a different order, etc.)
+.IP \[bu] 2
+The amount is separated into \[dq]commodity\[dq] (the symbol) and
+\[dq]amount\[dq] (numeric quantity) fields.
+.IP \[bu] 2
+The numeric amount is repeated in either the \[dq]credit\[dq] or
+\[dq]debit\[dq] column, for convenience.
+(Those names are not accurate in the accounting sense; it just puts
+negative amounts under credit and zero or greater amounts under debit.)
+.SS print-unique
+.PP
+print-unique
+.PD 0
+.P
+.PD
+Print transactions which do not reuse an already-seen description.
+.PP
+Example:
+.IP
+.nf
+\f[C]
+$ cat unique.journal
+1/1 test
+ (acct:one)  1
+2/2 test
+ (acct:two)  2
+$ LEDGER_FILE=unique.journal hledger print-unique
+(-f option not supported)
+2015/01/01 test
+    (acct:one)             1
+\f[R]
+.fi
+.SS register
+.PP
+register, reg, r
+.PD 0
+.P
+.PD
+Show postings and their running total.
+.PP
+The register command displays matched postings, across all accounts, in
+date order, with their running total or running historical balance.
+(See also the \f[C]aregister\f[R] command, which shows matched
+transactions in a specific account.)
+.PP
+register normally shows line per posting, but note that multi-commodity
+amounts will occupy multiple lines (one line per commodity).
+.PP
+It is typically used with a query selecting a particular account, to see
+that account\[aq]s activity:
+.IP
+.nf
+\f[C]
+$ hledger register checking
+2008/01/01 income               assets:bank:checking            $1           $1
+2008/06/01 gift                 assets:bank:checking            $1           $2
+2008/06/02 save                 assets:bank:checking           $-1           $1
+2008/12/31 pay off              assets:bank:checking           $-1            0
+\f[R]
+.fi
+.PP
+With --date2, it shows and sorts by secondary date instead.
+.PP
+The \f[C]--historical\f[R]/\f[C]-H\f[R] flag adds the balance from any
+undisplayed prior postings to the running total.
+This is useful when you want to see only recent activity, with a
+historically accurate running balance:
+.IP
+.nf
+\f[C]
+$ hledger register checking -b 2008/6 --historical
+2008/06/01 gift                 assets:bank:checking            $1           $2
+2008/06/02 save                 assets:bank:checking           $-1           $1
+2008/12/31 pay off              assets:bank:checking           $-1            0
+\f[R]
+.fi
+.PP
+The \f[C]--depth\f[R] option limits the amount of sub-account detail
+displayed.
+.PP
+The \f[C]--average\f[R]/\f[C]-A\f[R] flag shows the running average
+posting amount instead of the running total (so, the final number
+displayed is the average for the whole report period).
+This flag implies \f[C]--empty\f[R] (see below).
+It is affected by \f[C]--historical\f[R].
+It works best when showing just one account and one commodity.
+.PP
+The \f[C]--related\f[R]/\f[C]-r\f[R] flag shows the \f[I]other\f[R]
+postings in the transactions of the postings which would normally be
+shown.
+.PP
+The \f[C]--invert\f[R] flag negates all amounts.
+For example, it can be used on an income account where amounts are
+normally displayed as negative numbers.
+It\[aq]s also useful to show postings on the checking account together
+with the related account:
+.IP
+.nf
+\f[C]
+$ hledger register --related --invert assets:checking
+\f[R]
+.fi
+.PP
+With a reporting interval, register shows summary postings, one per
+interval, aggregating the postings to each account:
+.IP
+.nf
+\f[C]
+$ hledger register --monthly income
+2008/01                 income:salary                          $-1          $-1
+2008/06                 income:gifts                           $-1          $-2
+\f[R]
+.fi
+.PP
+Periods with no activity, and summary postings with a zero amount, are
+not shown by default; use the \f[C]--empty\f[R]/\f[C]-E\f[R] flag to see
+them:
+.IP
+.nf
+\f[C]
+$ hledger register --monthly income -E
+2008/01                 income:salary                          $-1          $-1
+2008/02                                                          0          $-1
+2008/03                                                          0          $-1
+2008/04                                                          0          $-1
+2008/05                                                          0          $-1
+2008/06                 income:gifts                           $-1          $-2
+2008/07                                                          0          $-2
+2008/08                                                          0          $-2
+2008/09                                                          0          $-2
+2008/10                                                          0          $-2
+2008/11                                                          0          $-2
+2008/12                                                          0          $-2
+\f[R]
+.fi
+.PP
+Often, you\[aq]ll want to see just one line per interval.
+The \f[C]--depth\f[R] option helps with this, causing subaccounts to be
+aggregated:
+.IP
+.nf
+\f[C]
+$ hledger register --monthly assets --depth 1h
+2008/01                 assets                                  $1           $1
+2008/06                 assets                                 $-1            0
+2008/12                 assets                                 $-1          $-1
+\f[R]
+.fi
+.PP
+Note when using report intervals, if you specify start/end dates these
+will be adjusted outward if necessary to contain a whole number of
+intervals.
+This ensures that the first and last intervals are full length and
+comparable to the others in the report.
+.SS Custom register output
+.PP
+register uses the full terminal width by default, except on windows.
+You can override this by setting the \f[C]COLUMNS\f[R] environment
+variable (not a bash shell variable) or by using the
+\f[C]--width\f[R]/\f[C]-w\f[R] option.
+.PP
+The description and account columns normally share the space equally
+(about half of (width - 40) each).
+You can adjust this by adding a description width as part of
+--width\[aq]s argument, comma-separated: \f[C]--width W,D\f[R] .
+Here\[aq]s a diagram (won\[aq]t display correctly in --help):
+.IP
+.nf
+\f[C]
+<--------------------------------- width (W) ---------------------------------->
+date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
+DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+\f[R]
+.fi
+.PP
+and some examples:
+.IP
+.nf
+\f[C]
+$ hledger reg                     # use terminal width (or 80 on windows)
+$ hledger reg -w 100              # use width 100
+$ COLUMNS=100 hledger reg         # set with one-time environment variable
+$ export COLUMNS=100; hledger reg # set till session end (or window resize)
+$ hledger reg -w 100,40           # set overall width 100, description width 40
+$ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
+\f[R]
+.fi
+.PP
+This command also supports the output destination and output format
+options The output formats supported are \f[C]txt\f[R], \f[C]csv\f[R],
+and (experimental) \f[C]json\f[R].
+.SS register-match
+.PP
+register-match
+.PD 0
+.P
+.PD
+Print the one posting whose transaction description is closest to DESC,
+in the style of the register command.
+If there are multiple equally good matches, it shows the most recent.
+Query options (options, not arguments) can be used to restrict the
+search space.
+Helps ledger-autosync detect already-seen transactions when importing.
 .SS rewrite
 .PP
 rewrite
@@ -4671,34 +4656,29 @@ $ hledger test -- -pData.Amount --color=never
 .PP
 For help on these, see https://github.com/feuerbach/tasty#options
 (\f[C]-- --help\f[R] currently doesn\[aq]t show them).
-.SS Add-on commands
+.SS About add-on commands
 .PP
-Any programs or scripts in your PATH named named
-\f[C]hledger-SOMETHING\f[R] will also appear in the commands list (with
-a \f[C]+\f[R] mark).
-These are called add-on commands.
+Add-on commands are programs or scripts in your PATH
+.IP \[bu] 2
+whose name starts with \f[C]hledger-\f[R]
+.IP \[bu] 2
+whose name ends with a recognised file extension:
+\f[C].bat\f[R],\f[C].com\f[R],\f[C].exe\f[R],
+\f[C].hs\f[R],\f[C].lhs\f[R],\f[C].pl\f[R],\f[C].py\f[R],\f[C].rb\f[R],\f[C].rkt\f[R],\f[C].sh\f[R]
+or none
+.IP \[bu] 2
+and (on unix, mac) which are executable by the current user.
 .PP
-These offical add-ons are maintained and released along with hledger:
-.IP \[bu] 2
-ui an efficient terminal interface for hledger (TUI)
-.IP \[bu] 2
-web a simple web interface for hledger (WUI)
+Add-ons are a relatively easy way to add local features or experiment
+with new ideas.
+They can be written in any language, but haskell scripts have a big
+advantage: they can use the same hledger library functions that built-in
+commands use for command-line options, parsing and reporting.
+Some experimental/example add-on scripts can be found in the hledger
+repo\[aq]s bin/ directory.
 .PP
-These add-ons are maintained separately:
-.IP \[bu] 2
-iadd a more interactive alternative for the add command
-.IP \[bu] 2
-interest generates interest transactions according to various schemes
-.IP \[bu] 2
-stockquotes downloads market prices for your commodities from
-AlphaVantage \f[I](experimental)\f[R]
-.PP
-Additional experimental add-ons, which may not be in a working state,
-can be found in the bin/ directory in the hledger repo.
-.SS Add-on command flags
-.PP
-In a hledger command line, add-on command flags must have a double dash
-(\f[C]--\f[R]) preceding them.
+Note in a hledger command line, add-on command flags must have a double
+dash (\f[C]--\f[R]) preceding them.
 Eg you must write:
 .IP
 .nf
@@ -4731,24 +4711,462 @@ add-on program directly, eg:
 $ hledger-web --serve
 \f[R]
 .fi
-.SS Making add-on commands
+.SH COMMON TASKS
 .PP
-Add-on commands are programs or scripts in your PATH
-.IP \[bu] 2
-whose name starts with \f[C]hledger-\f[R]
-.IP \[bu] 2
-whose name ends with a recognised file extension:
-\f[C].bat\f[R],\f[C].com\f[R],\f[C].exe\f[R],
-\f[C].hs\f[R],\f[C].lhs\f[R],\f[C].pl\f[R],\f[C].py\f[R],\f[C].rb\f[R],\f[C].rkt\f[R],\f[C].sh\f[R]
-or none
-.IP \[bu] 2
-and (on unix, mac) which are executable by the current user.
+Here are some quick examples of how to do some basic tasks with hledger.
+For more details, see the reference section below, the
+hledger_journal(5) manual, or the more extensive docs at
+https://hledger.org.
+.SS Getting help
+.IP
+.nf
+\f[C]
+$ hledger                 # show available commands
+$ hledger --help          # show common options
+$ hledger CMD --help      # show common and command options, and command help
+$ hledger help            # show available manuals/topics
+$ hledger help hledger    # show hledger manual as info/man/text (auto-chosen)
+$ hledger help journal --man  # show the journal manual as a man page
+$ hledger help --help     # show more detailed help for the help command
+\f[R]
+.fi
 .PP
-Add-ons are a relatively easy way to add local features or experiment
-with new ideas.
-They can be written in any language, but haskell scripts have a big
-advantage: they can use the same hledger library functions that built-in
-commands use for command-line options, parsing and reporting.
+Find more docs, chat, mail list, reddit, issue tracker:
+https://hledger.org#help-feedback
+.SS Constructing command lines
+.PP
+hledger has an extensive and powerful command line interface.
+We strive to keep it simple and ergonomic, but you may run into one of
+the confusing real world details described in OPTIONS, below.
+If that happens, here are some tips that may help:
+.IP \[bu] 2
+command-specific options must go after the command (it\[aq]s fine to put
+all options there) (\f[C]hledger CMD OPTS ARGS\f[R])
+.IP \[bu] 2
+running add-on executables directly simplifies command line parsing
+(\f[C]hledger-ui OPTS ARGS\f[R])
+.IP \[bu] 2
+enclose \[dq]problematic\[dq] args in single quotes
+.IP \[bu] 2
+if needed, also add a backslash to hide regular expression
+metacharacters from the shell
+.IP \[bu] 2
+to see how a misbehaving command is being parsed, add
+\f[C]--debug=2\f[R].
+.SS Starting a journal file
+.PP
+hledger looks for your accounting data in a journal file,
+\f[C]$HOME/.hledger.journal\f[R] by default:
+.IP
+.nf
+\f[C]
+$ hledger stats
+The hledger journal file \[dq]/Users/simon/.hledger.journal\[dq] was not found.
+Please create it first, eg with \[dq]hledger add\[dq] or a text editor.
+Or, specify an existing journal file with -f or LEDGER_FILE.
+\f[R]
+.fi
+.PP
+You can override this by setting the \f[C]LEDGER_FILE\f[R] environment
+variable.
+It\[aq]s a good practice to keep this important file under version
+control, and to start a new file each year.
+So you could do something like this:
+.IP
+.nf
+\f[C]
+$ mkdir \[ti]/finance
+$ cd \[ti]/finance
+$ git init
+Initialized empty Git repository in /Users/simon/finance/.git/
+$ touch 2020.journal
+$ echo \[dq]export LEDGER_FILE=$HOME/finance/2020.journal\[dq] >> \[ti]/.bashrc
+$ source \[ti]/.bashrc
+$ hledger stats
+Main file                : /Users/simon/finance/2020.journal
+Included files           : 
+Transactions span        :  to  (0 days)
+Last transaction         : none
+Transactions             : 0 (0.0 per day)
+Transactions last 30 days: 0 (0.0 per day)
+Transactions last 7 days : 0 (0.0 per day)
+Payees/descriptions      : 0
+Accounts                 : 0 (depth 0)
+Commodities              : 0 ()
+Market prices            : 0 ()
+\f[R]
+.fi
+.SS Setting opening balances
+.PP
+Pick a starting date for which you can look up the balances of some
+real-world assets (bank accounts, wallet..) and liabilities (credit
+cards..).
+.PP
+To avoid a lot of data entry, you may want to start with just one or two
+accounts, like your checking account or cash wallet; and pick a recent
+starting date, like today or the start of the week.
+You can always come back later and add more accounts and older
+transactions, eg going back to january 1st.
+.PP
+Add an opening balances transaction to the journal, declaring the
+balances on this date.
+Here are two ways to do it:
+.IP \[bu] 2
+The first way: open the journal in any text editor and save an entry
+like this:
+.RS 2
+.IP
+.nf
+\f[C]
+2020-01-01 * opening balances
+    assets:bank:checking                $1000   = $1000
+    assets:bank:savings                 $2000   = $2000
+    assets:cash                          $100   = $100
+    liabilities:creditcard               $-50   = $-50
+    equity:opening/closing balances
+\f[R]
+.fi
+.PP
+These are start-of-day balances, ie whatever was in the account at the
+end of the previous day.
+.PP
+The * after the date is an optional status flag.
+Here it means \[dq]cleared & confirmed\[dq].
+.PP
+The currency symbols are optional, but usually a good idea as you\[aq]ll
+be dealing with multiple currencies sooner or later.
+.PP
+The = amounts are optional balance assertions, providing extra error
+checking.
+.RE
+.IP \[bu] 2
+The second way: run \f[C]hledger add\f[R] and follow the prompts to
+record a similar transaction:
+.RS 2
+.IP
+.nf
+\f[C]
+$ hledger add
+Adding transactions to journal file /Users/simon/finance/2020.journal
+Any command line arguments will be used as defaults.
+Use tab key to complete, readline keys to edit, enter to accept defaults.
+An optional (CODE) may follow transaction dates.
+An optional ; COMMENT may follow descriptions or amounts.
+If you make a mistake, enter < at any prompt to go one step backward.
+To end a transaction, enter . when prompted.
+To quit, enter . at a date prompt or press control-d or control-c.
+Date [2020-02-07]: 2020-01-01
+Description: * opening balances
+Account 1: assets:bank:checking
+Amount  1: $1000
+Account 2: assets:bank:savings
+Amount  2 [$-1000]: $2000
+Account 3: assets:cash
+Amount  3 [$-3000]: $100
+Account 4: liabilities:creditcard
+Amount  4 [$-3100]: $-50
+Account 5: equity:opening/closing balances
+Amount  5 [$-3050]: 
+Account 6 (or . or enter to finish this transaction): .
+2020-01-01 * opening balances
+    assets:bank:checking                      $1000
+    assets:bank:savings                       $2000
+    assets:cash                                $100
+    liabilities:creditcard                     $-50
+    equity:opening/closing balances          $-3050
+
+Save this transaction to the journal ? [y]: 
+Saved.
+Starting the next transaction (. or ctrl-D/ctrl-C to quit)
+Date [2020-01-01]: .
+\f[R]
+.fi
+.RE
+.PP
+If you\[aq]re using version control, this could be a good time to commit
+the journal.
+Eg:
+.IP
+.nf
+\f[C]
+$ git commit -m \[aq]initial balances\[aq] 2020.journal
+\f[R]
+.fi
+.SS Recording transactions
+.PP
+As you spend or receive money, you can record these transactions using
+one of the methods above (text editor, hledger add) or by using the
+hledger-iadd or hledger-web add-ons, or by using the import command to
+convert CSV data downloaded from your bank.
+.PP
+Here are some simple transactions, see the hledger_journal(5) manual and
+hledger.org for more ideas:
+.IP
+.nf
+\f[C]
+2020/1/10 * gift received
+  assets:cash   $20
+  income:gifts
+
+2020.1.12 * farmers market
+  expenses:food    $13
+  assets:cash
+
+2020-01-15 paycheck
+  income:salary
+  assets:bank:checking    $1000
+\f[R]
+.fi
+.SS Reconciling
+.PP
+Periodically you should reconcile - compare your hledger-reported
+balances against external sources of truth, like bank statements or your
+bank\[aq]s website - to be sure that your ledger accurately represents
+the real-world balances (and, that the real-world institutions have not
+made a mistake!).
+This gets easy and fast with (1) practice and (2) frequency.
+If you do it daily, it can take 2-10 minutes.
+If you let it pile up, expect it to take longer as you hunt down errors
+and discrepancies.
+.PP
+A typical workflow:
+.IP "1." 3
+Reconcile cash.
+Count what\[aq]s in your wallet.
+Compare with what hledger reports (\f[C]hledger bal cash\f[R]).
+If they are different, try to remember the missing transaction, or look
+for the error in the already-recorded transactions.
+A register report can be helpful (\f[C]hledger reg cash\f[R]).
+If you can\[aq]t find the error, add an adjustment transaction.
+Eg if you have $105 after the above, and can\[aq]t explain the missing
+$2, it could be:
+.RS 4
+.IP
+.nf
+\f[C]
+2020-01-16 * adjust cash
+    assets:cash    $-2 = $105
+    expenses:misc
+\f[R]
+.fi
+.RE
+.IP "2." 3
+Reconcile checking.
+Log in to your bank\[aq]s website.
+Compare today\[aq]s (cleared) balance with hledger\[aq]s cleared balance
+(\f[C]hledger bal checking -C\f[R]).
+If they are different, track down the error or record the missing
+transaction(s) or add an adjustment transaction, similar to the above.
+Unlike the cash case, you can usually compare the transaction history
+and running balance from your bank with the one reported by
+\f[C]hledger reg checking -C\f[R].
+This will be easier if you generally record transaction dates quite
+similar to your bank\[aq]s clearing dates.
+.IP "3." 3
+Repeat for other asset/liability accounts.
+.PP
+Tip: instead of the register command, use hledger-ui to see a
+live-updating register while you edit the journal:
+\f[C]hledger-ui --watch --register checking -C\f[R]
+.PP
+After reconciling, it could be a good time to mark the reconciled
+transactions\[aq] status as \[dq]cleared and confirmed\[dq], if you want
+to track that, by adding the \f[C]*\f[R] marker.
+Eg in the paycheck transaction above, insert \f[C]*\f[R] between
+\f[C]2020-01-15\f[R] and \f[C]paycheck\f[R]
+.PP
+If you\[aq]re using version control, this can be another good time to
+commit:
+.IP
+.nf
+\f[C]
+$ git commit -m \[aq]txns\[aq] 2020.journal
+\f[R]
+.fi
+.SS Reporting
+.PP
+Here are some basic reports.
+.PP
+Show all transactions:
+.IP
+.nf
+\f[C]
+$ hledger print
+2020-01-01 * opening balances
+    assets:bank:checking                      $1000
+    assets:bank:savings                       $2000
+    assets:cash                                $100
+    liabilities:creditcard                     $-50
+    equity:opening/closing balances          $-3050
+
+2020-01-10 * gift received
+    assets:cash              $20
+    income:gifts
+
+2020-01-12 * farmers market
+    expenses:food             $13
+    assets:cash
+
+2020-01-15 * paycheck
+    income:salary
+    assets:bank:checking           $1000
+
+2020-01-16 * adjust cash
+    assets:cash               $-2 = $105
+    expenses:misc
+\f[R]
+.fi
+.PP
+Show account names, and their hierarchy:
+.IP
+.nf
+\f[C]
+$ hledger accounts --tree
+assets
+  bank
+    checking
+    savings
+  cash
+equity
+  opening/closing balances
+expenses
+  food
+  misc
+income
+  gifts
+  salary
+liabilities
+  creditcard
+\f[R]
+.fi
+.PP
+Show all account totals:
+.IP
+.nf
+\f[C]
+$ hledger balance
+               $4105  assets
+               $4000    bank
+               $2000      checking
+               $2000      savings
+                $105    cash
+              $-3050  equity:opening/closing balances
+                 $15  expenses
+                 $13    food
+                  $2    misc
+              $-1020  income
+                $-20    gifts
+              $-1000    salary
+                $-50  liabilities:creditcard
+--------------------
+                   0
+\f[R]
+.fi
+.PP
+Show only asset and liability balances, as a flat list, limited to depth
+2:
+.IP
+.nf
+\f[C]
+$ hledger bal assets liabilities --flat -2
+               $4000  assets:bank
+                $105  assets:cash
+                $-50  liabilities:creditcard
+--------------------
+               $4055
+\f[R]
+.fi
+.PP
+Show the same thing without negative numbers, formatted as a simple
+balance sheet:
+.IP
+.nf
+\f[C]
+$ hledger bs --flat -2
+Balance Sheet 2020-01-16
+
+                        || 2020-01-16 
+========================++============
+ Assets                 ||            
+------------------------++------------
+ assets:bank            ||      $4000 
+ assets:cash            ||       $105 
+------------------------++------------
+                        ||      $4105 
+========================++============
+ Liabilities            ||            
+------------------------++------------
+ liabilities:creditcard ||        $50 
+------------------------++------------
+                        ||        $50 
+========================++============
+ Net:                   ||      $4055 
+\f[R]
+.fi
+.PP
+The final total is your \[dq]net worth\[dq] on the end date.
+(Or use \f[C]bse\f[R] for a full balance sheet with equity.)
+.PP
+Show income and expense totals, formatted as an income statement:
+.IP
+.nf
+\f[C]
+hledger is 
+Income Statement 2020-01-01-2020-01-16
+
+               || 2020-01-01-2020-01-16 
+===============++=======================
+ Revenues      ||                       
+---------------++-----------------------
+ income:gifts  ||                   $20 
+ income:salary ||                 $1000 
+---------------++-----------------------
+               ||                 $1020 
+===============++=======================
+ Expenses      ||                       
+---------------++-----------------------
+ expenses:food ||                   $13 
+ expenses:misc ||                    $2 
+---------------++-----------------------
+               ||                   $15 
+===============++=======================
+ Net:          ||                 $1005 
+\f[R]
+.fi
+.PP
+The final total is your net income during this period.
+.PP
+Show transactions affecting your wallet, with running total:
+.IP
+.nf
+\f[C]
+$ hledger register cash
+2020-01-01 opening balances     assets:cash                   $100          $100
+2020-01-10 gift received        assets:cash                    $20          $120
+2020-01-12 farmers market       assets:cash                   $-13          $107
+2020-01-16 adjust cash          assets:cash                    $-2          $105
+\f[R]
+.fi
+.PP
+Show weekly posting counts as a bar chart:
+.IP
+.nf
+\f[C]
+$ hledger activity -W
+2019-12-30 *****
+2020-01-06 ****
+2020-01-13 ****
+\f[R]
+.fi
+.SS Migrating to a new file
+.PP
+At the end of the year, you may want to continue your journal in a new
+file, so that old transactions don\[aq]t slow down or clutter your
+reports, and to help ensure the integrity of your accounting history.
+See the close command.
+.PP
+If using version control, don\[aq]t forget to \f[C]git add\f[R] the new
+file.
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[R] The journal file path when not specified with
@@ -4783,12 +5201,6 @@ Default: the full terminal width.
 \f[B]NO_COLOR\f[R] If this variable exists with any value, hledger will
 not use ANSI color codes in terminal output.
 This overrides the --color/--colour option.
-.SH FILES
-.PP
-Reads data from one or more files in hledger journal, timeclock,
-timedot, or CSV format specified with \f[C]-f\f[R], or
-\f[C]$LEDGER_FILE\f[R], or \f[C]$HOME/.hledger.journal\f[R] (on windows,
-perhaps \f[C]C:/Users/USER/.hledger.journal\f[R]).
 .SH LIMITATIONS
 .PP
 The need to precede add-on command options with \f[C]--\f[R] when
