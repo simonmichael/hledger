@@ -1,4 +1,4 @@
-balance, bal, b\
+balance, bal\
 Show accounts and their balances.
 
 _FLAGS
