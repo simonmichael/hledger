@@ -1267,9 +1267,9 @@ These data entry commands are the only ones which can modify your journal file.
 
 **Miscellaneous reports:**
 
-- [accounts](#accounts) (a)                        - show account names
+- [accounts](#accounts)                            - show account names
 - [activity](#activity)                            - show postings-per-interval bar charts
-- **[balance](#balance) (b, bal)**                 - show balance changes/end balances/budgets in any accounts
+- **[balance](#balance) (bal)**                    - show balance changes/end balances/budgets in any accounts
 - [codes](#codes)                                  - show transaction codes
 - [commodities](#commodities)                      - show commodity/currency symbols
 - [descriptions](#descriptions)                    - show unique transaction descriptions
@@ -1278,9 +1278,9 @@ These data entry commands are the only ones which can modify your journal file.
 - [notes](#notes)                                  - show unique note segments of transaction descriptions
 - [payees](#payees)                                - show unique payee segments of transaction descriptions
 - [prices](#prices)                                - show market price records
-- **[print](#print) (p, txns)**                    - show transactions (journal entries)
+- **[print](#print)**                              - show transactions (journal entries)
 - [print-unique](#print-unique)                    - show only transactions with unique descriptions
-- **[register](#register) (r, reg)**               - show postings in one or more accounts & running total
+- **[register](#register) (reg)**                  - show postings in one or more accounts & running total
 - [register-match](#register-match)                - show a recent posting that best matches a description
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags)                                    - show tag names
