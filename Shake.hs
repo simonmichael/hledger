@@ -90,7 +90,6 @@ usage =
   ,"Add -B, with nothing immediately after it, to force rebuilding."
   ]
 -- TODO
---  changelogs: too many blank lines after final heading
 --  ,"./Shake releasebranch      create a new release branch, bump master to next dev version (.99)" 
 --  ,"./Shake majorversion       bump to the next major version project-wide, update affected files"
 --  ,"./Shake minorversion PKGS  bump one or more packages to their next minor version project-wide, update affected files"
@@ -665,13 +664,12 @@ main = do
             (newrev, newheading)
               | isNewRelease packageversion = (toTag packageversion, unwords [packageversion, show date])
               | otherwise                   = (headrev, headrev)
-            newcontent = "# "++newheading++"\n\n" ++ newitems
-            newchangelog = unlines $ concat [
-               preamble
-              ,[newcontent]
-              ,if isCommitHash changelogversion then [] else [oldheading]
-              ,rest
-              ]
+            newcontent = "# "++newheading++"\n" ++ newitems
+            newchangelog =
+                 unlines preamble
+              ++ newcontent
+              ++ (if isCommitHash changelogversion then "" else oldheading)
+              ++ unlines rest
 
           liftIO $ if
             | lastrev == newrev -> pure ()  -- putStrLn $ out ++ ": up to date"
