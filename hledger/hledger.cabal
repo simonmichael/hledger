@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 505283438035ccbfa4a15c37e88f779e11f0a732ef1411e5f0b76e891afd9fb3
+-- hash: dca1e9c2b2f3e690ccfc6a9b754ad06c5c7d43f1c0bd5ee04d6e1937ede8d08b
 
 name:           hledger
-version:        1.20.1
+version:        1.20.2
 synopsis:       Command-line interface for the hledger accounting system
 description:    The command-line interface for the hledger accounting system.
                 Its basic function is to read a plain text file describing
@@ -150,7 +150,7 @@ library
   other-modules:
       Paths_hledger
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.20.1"
+  cpp-options: -DVERSION="1.20.2"
   build-depends:
       Decimal >=0.5.1
     , Diff
@@ -167,7 +167,7 @@ library
     , filepath
     , hashable >=1.2.4
     , haskeline >=0.6
-    , hledger-lib >=1.20.1 && <1.21
+    , hledger-lib >=1.20.2 && <1.21
     , lucid
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.1
@@ -201,7 +201,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.20.1"
+  cpp-options: -DVERSION="1.20.2"
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
@@ -217,7 +217,7 @@ executable hledger
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.20.1 && <1.21
+    , hledger-lib >=1.20.2 && <1.21
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
@@ -251,7 +251,7 @@ test-suite unittest
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
-  cpp-options: -DVERSION="1.20.1"
+  cpp-options: -DVERSION="1.20.2"
   build-depends:
       Decimal >=0.5.1
     , aeson >=1
@@ -267,7 +267,7 @@ test-suite unittest
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.20.1 && <1.21
+    , hledger-lib >=1.20.2 && <1.21
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.1
     , mtl >=2.2.1
@@ -315,7 +315,7 @@ benchmark bench
     , filepath
     , haskeline >=0.6
     , hledger
-    , hledger-lib >=1.20.1 && <1.21
+    , hledger-lib >=1.20.2 && <1.21
     , html
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.1
