@@ -3,10 +3,10 @@ This is hledger-web.info, produced by makeinfo version 6.7 from stdin.
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.20.1
-*********************************
+hledger-web(1)
+**************
 
-hledger-web - web interface for the hledger accounting tool
+A web interface (WUI) for the hledger accounting tool.
 
    'hledger-web [OPTIONS]'
 'hledger web -- [OPTIONS]'
@@ -589,26 +589,21 @@ awkward.
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1750
-Ref: #options1855
-Node: PERMISSIONS8954
-Ref: #permissions9093
-Node: EDITING UPLOADING DOWNLOADING10305
-Ref: #editing-uploading-downloading10486
-Node: RELOADING11320
-Ref: #reloading11454
-Node: JSON API11887
-Ref: #json-api12001
-Node: ENVIRONMENT17491
-Ref: #environment17607
-Node: FILES18340
-Ref: #files18440
-Node: BUGS18653
-Ref: #bugs18731
+Node: OPTIONS1707
+Ref: #options1812
+Node: PERMISSIONS8911
+Ref: #permissions9050
+Node: EDITING UPLOADING DOWNLOADING10262
+Ref: #editing-uploading-downloading10443
+Node: RELOADING11277
+Ref: #reloading11411
+Node: JSON API11844
+Ref: #json-api11958
+Node: ENVIRONMENT17448
+Ref: #environment17564
+Node: FILES18297
+Ref: #files18397
+Node: BUGS18610
+Ref: #bugs18688
 
 End Tag Table
-
-
-Local Variables:
-coding: utf-8
-End:
