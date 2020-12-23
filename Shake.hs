@@ -639,6 +639,9 @@ main = do
             -- a hash (a3f19c15), package release tag (hledger-ui-1.20), or project release tag (1.20)
             lastrev
               | isOldRelease changelogversion = toTag changelogversion  -- package release tag
+              | isNewRelease changelogversion =
+                  trace (out ++ "'s version \""++changelogversion++"\" is not yet tagged, can't list changes")
+                  "HEAD"
               | otherwise = changelogversion
                 
           -- interesting commit messages between lastrev and HEAD, cleaned up
