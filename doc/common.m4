@@ -21,13 +21,6 @@ m4_define({{_web_}},         m4_ifdef({{WEB}},{{$1}})    )m4_dnl
 m4_define({{_notweb_}},      m4_ifdef({{WEB}},,{{$1}})   )m4_dnl
 m4_define({{_info_}},        m4_ifdef({{INFO}},{{$1}})   )m4_dnl
 m4_define({{_notinfo_}},     m4_ifdef({{INFO}},,{{$1}})  )m4_dnl
-m4_dnl
-m4_dnl A command's heading and included doc source.
-m4_dnl Usage: _command_(## commandname, Markdownfilebasename)
-m4_define({{_command_}}, 
-{{$1
-_include_(Hledger/Cli/Commands/$2.md)
-}})m4_dnl
 m4_dnl 
 m4_dnl Two side-by-side columns.
 m4_define({{_col2_}},

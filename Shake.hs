@@ -97,6 +97,7 @@ usage =
 --  ,"./Shake relnotes           create draft release notes"
 
 -- groff    = "groff -c" ++ " -Wall"  -- see "groff" below
+m4 = "m4 -P"
 makeinfo = "makeinfo --no-split --force --no-warn --no-validate"  -- silence makeinfo warnings, comment these to see them
 pandoc   = "pandoc --strip-comments"
 gitcommit = "git commit --allow-empty"
@@ -399,6 +400,7 @@ main = do
       nroffmanuals |%> \out -> do -- hledger/hledger.1
         let src       = manpageNameToManualName out <.> "m4.md"
             commonm4  = "doc/common.m4"
+            commandsm4 = "hledger/Hledger/Cli/Commands/commands.m4"
             dir       = takeDirectory out
             pkg       = dir
             packagemanversionm4 = dir </> ".version.m4"
@@ -406,12 +408,12 @@ main = do
             tmpl      = "doc/manpage.nroff"
         pkgversion <- liftIO $ readFile $ dir </> ".version"
         -- mandate <- formatTime defaultTimeLocale "%B %Y" <$> liftIO getCurrentDay  -- XXX not using this.. compare with .date.m4
-        -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
-        deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        need $ [src, commonm4, packagemanversionm4, packagemandatem4, tmpl] ++ deps
+        -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
+        subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
+        need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4, tmpl] ++ subfiles
         when (dir=="hledger") $ need commandmds
         cmd Shell
-          "m4 -P -DMAN -I" dir commonm4 packagemanversionm4 packagemandatem4 src "|"
+          m4 "-DMAN -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd "-s" "--template" tmpl
           ("-V footer='"++pkg++"-"++pkgversion++"'")
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
@@ -439,14 +441,15 @@ main = do
       infomanuals |%> \out -> do -- hledger/hledger.info
         let src       = out -<.> "m4.md"
             commonm4  = "doc/common.m4"
+            commandsm4 = "hledger/Hledger/Cli/Commands/commands.m4"
             dir       = takeDirectory out
             packagemanversionm4 = dir </> ".version.m4"
-        -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
-        deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        need $ [src, commonm4, packagemanversionm4] ++ deps
+        -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
+        subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
+        need $ [src, commonm4, commandsm4, packagemanversionm4] ++ subfiles
         when (dir=="hledger") $ need commandmds
         cmd Shell
-          "m4 -P -DINFO -I" dir commonm4 packagemanversionm4 src "|"
+          m4 "-DINFO -I" dir commonm4 commandsm4 packagemanversionm4 src "|"
           -- sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
@@ -471,14 +474,15 @@ main = do
             manual    = manpageNameToManualName manpage -- hledger, hledger_journal
             src       = dir </> manual <.> "m4.md"
             commonm4  = "doc/common.m4"
+            commandsm4 = "hledger/Hledger/Cli/Commands/commands.m4"
             packageversionm4 = dir </> ".version.m4"
             heading   = let h = manual
                         in if "hledger_" `isPrefixOf` h
                            then drop 8 h ++ " format"
                            else h
-        -- assume any other m4 files in dir are included by this one XXX not true in hledger-lib
+        -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
         subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        let deps = [src, commonm4, packageversionm4] ++ subfiles
+        let deps = [src, commonm4, commandsm4, packageversionm4] ++ subfiles
         need deps
         when (manual=="hledger") $ need commandmds
         -- add the web page's heading.
@@ -492,7 +496,7 @@ main = do
           ,""
           ]
         cmd Shell
-          "m4 -P -DWEB -I" dir commonm4 packageversionm4 src "|"
+          m4 "-DWEB -I" dir commonm4 commandsm4 packageversionm4 src "|"
           pandoc fromsrcmd towebmd
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" out

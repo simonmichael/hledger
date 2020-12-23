@@ -1642,33 +1642,8 @@ m4_dnl _notman_({{
 
 Next, the detailed command docs, in alphabetical order.
 
-m4_dnl    commandnameheading:     Commandmdfile:
-_command_({{## accounts}}           ,{{Accounts}})
-_command_({{## activity}}           ,{{Activity}})
-_command_({{## add}}                ,{{Add}})
-_command_({{## aregister}}          ,{{Aregister}})
-_command_({{## balance}}            ,{{Balance}})
-_command_({{## balancesheet}}       ,{{Balancesheet}})
-_command_({{## balancesheetequity}} ,{{Balancesheetequity}})
-_command_({{## cashflow}}           ,{{Cashflow}})
-_command_({{## check}}              ,{{Check}})
-_command_({{## close}}              ,{{Close}})
-_command_({{## codes}}              ,{{Codes}})
-_command_({{## commodities}}        ,{{Commodities}})
-_command_({{## descriptions}}       ,{{Descriptions}})
-_command_({{## diff}}               ,{{Diff}})
-_command_({{## files}}              ,{{Files}})
-_command_({{## help}}               ,{{Help}})
-_command_({{## import}}             ,{{Import}})
-_command_({{## incomestatement}}    ,{{Incomestatement}})
-_command_({{## notes}}              ,{{Notes}})
-_command_({{## rewrite}}            ,{{Rewrite}})
-_command_({{## roi}}                ,{{Roi}})
-_command_({{## stats}}              ,{{Stats}})
-_command_({{## tags}}               ,{{Tags}})
-_command_({{## test}}               ,{{Test}})
-
-m4_dnl }})
+m4_dnl cf Hledger/Cli/Commands/commands.m4:
+_commands_({{##}})
 
 ## Add-on commands
 
