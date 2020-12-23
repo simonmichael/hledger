@@ -1,4 +1,4 @@
-accounts, a\
+accounts\
 Show account names.
 
 _FLAGS
