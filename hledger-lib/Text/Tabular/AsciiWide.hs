@@ -15,7 +15,7 @@ import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Builder (Builder, fromString, fromText, singleton, toLazyText)
 import Safe (maximumMay)
 import Text.Tabular
-import Text.WideString (textWidth)
+import Text.WideString (WideBuilder(..), textWidth)
 
 
 -- | The options to use for rendering a table.
@@ -32,8 +32,7 @@ instance Default TableOpts where
                   }
 
 -- | Cell contents along an alignment
-data Cell = Cell Align [(Text, Int)]
-    deriving (Show)
+data Cell = Cell Align [WideBuilder]
 
 -- | How to align text in a cell
 data Align = TopRight | BottomRight | BottomLeft | TopLeft
@@ -44,11 +43,11 @@ emptyCell = Cell TopRight []
 
 -- | Create a single-line cell from the given contents with its natural width.
 alignCell :: Align -> Text -> Cell
-alignCell a x = Cell a [(x, textWidth x)]
+alignCell a x = Cell a . map (\x -> WideBuilder (fromText x) (textWidth x)) $ if T.null x then [""] else T.lines x
 
 -- | Return the width of a Cell.
 cellWidth :: Cell -> Int
-cellWidth (Cell _ xs) = fromMaybe 0 . maximumMay $ map snd xs
+cellWidth (Cell _ xs) = fromMaybe 0 . maximumMay $ map wbWidth xs
 
 
 -- | Render a table according to common options, for backwards compatibility
@@ -57,7 +56,7 @@ render pretty fr fc f = renderTable def{prettyTable=pretty} (cell . fr) (cell . 
   where cell = alignCell TopRight
 
 -- | Render a table according to various cell specifications>
-renderTable :: TableOpts         -- ^ Options controlling Table rendering
+renderTable :: TableOpts       -- ^ Options controlling Table rendering
             -> (rh -> Cell)  -- ^ Rendering function for row headers
             -> (ch -> Cell)  -- ^ Rendering function for column headers
             -> (a -> Cell)   -- ^ Function determining the string and width of a cell
@@ -66,7 +65,7 @@ renderTable :: TableOpts         -- ^ Options controlling Table rendering
 renderTable topts fr fc f = toLazyText . renderTableB topts fr fc f
 
 -- | A version of renderTable which returns the underlying Builder.
-renderTableB :: TableOpts         -- ^ Options controlling Table rendering
+renderTableB :: TableOpts       -- ^ Options controlling Table rendering
              -> (rh -> Cell)  -- ^ Rendering function for row headers
              -> (ch -> Cell)  -- ^ Rendering function for column headers
              -> (a -> Cell)   -- ^ Function determining the string and width of a cell
@@ -109,7 +108,7 @@ renderRow topts = toLazyText . renderRowB topts
 -- | A version of renderRow which returns the underlying Builder.
 renderRowB:: TableOpts -> Header Cell -> Builder
 renderRowB topts h = renderColumns topts is h
-  where is = map (\(Cell _ xs) -> fromMaybe 0 . maximumMay $ map snd xs) $ headerContents h
+  where is = map cellWidth $ headerContents h
 
 
 verticalBar :: Bool -> Char
@@ -143,16 +142,16 @@ renderColumns TableOpts{prettyTable=pretty, tableBorders=borders, borderSpaces=s
     . zipHeader 0 is $ padRow <$> h  -- Pad cell height and add width marker
   where
     -- Pad each cell to have the appropriate width
-    padCell (w, Cell TopLeft     ls) = map (\(x,xw) -> fromText x <> fromText (T.replicate (w - xw) " ")) ls
-    padCell (w, Cell BottomLeft  ls) = map (\(x,xw) -> fromText x <> fromText (T.replicate (w - xw) " ")) ls
-    padCell (w, Cell TopRight    ls) = map (\(x,xw) -> fromText (T.replicate (w - xw) " ") <> fromText x) ls
-    padCell (w, Cell BottomRight ls) = map (\(x,xw) -> fromText (T.replicate (w - xw) " ") <> fromText x) ls
+    padCell (w, Cell TopLeft     ls) = map (\x -> wbBuilder x <> fromText (T.replicate (w - wbWidth x) " ")) ls
+    padCell (w, Cell BottomLeft  ls) = map (\x -> wbBuilder x <> fromText (T.replicate (w - wbWidth x) " ")) ls
+    padCell (w, Cell TopRight    ls) = map (\x -> fromText (T.replicate (w - wbWidth x) " ") <> wbBuilder x) ls
+    padCell (w, Cell BottomRight ls) = map (\x -> fromText (T.replicate (w - wbWidth x) " ") <> wbBuilder x) ls
 
     -- Pad each cell to have the same number of lines
-    padRow (Cell TopLeft     ls) = Cell TopLeft     $ ls ++ replicate (nLines - length ls) ("",0)
-    padRow (Cell TopRight    ls) = Cell TopRight    $ ls ++ replicate (nLines - length ls) ("",0)
-    padRow (Cell BottomLeft  ls) = Cell BottomLeft  $ replicate (nLines - length ls) ("",0) ++ ls
-    padRow (Cell BottomRight ls) = Cell BottomRight $ replicate (nLines - length ls) ("",0) ++ ls
+    padRow (Cell TopLeft     ls) = Cell TopLeft     $ ls ++ replicate (nLines - length ls) mempty
+    padRow (Cell TopRight    ls) = Cell TopRight    $ ls ++ replicate (nLines - length ls) mempty
+    padRow (Cell BottomLeft  ls) = Cell BottomLeft  $ replicate (nLines - length ls) mempty ++ ls
+    padRow (Cell BottomRight ls) = Cell BottomRight $ replicate (nLines - length ls) mempty ++ ls
 
     hsep :: Properties -> [Builder]
     hsep NoLine     = replicate nLines $ if spaces then "  " else ""

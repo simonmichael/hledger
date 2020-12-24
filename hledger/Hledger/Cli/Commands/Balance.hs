@@ -420,27 +420,25 @@ renderBalanceReportItem opts (acctname, depth, total) =
                     , map cellWidth is )
 
     render topaligned oneline = map (maybeConcat . renderComponent topaligned opts (acctname, depth, total))
-      where maybeConcat (Cell a xs) = if oneline then Cell a [(T.intercalate ", " strs, width)]
-                                                 else Cell a xs
-              where
-                (strs, ws) = unzip xs
-                width = sumStrict (map (+2) ws) -2
+      where maybeConcat (Cell a xs) =
+                if oneline then Cell a [WideBuilder (mconcat . intersperse (TB.fromText ", ") $ map wbBuilder xs) width]
+                           else Cell a xs
+              where width = sumStrict (map ((+2) . wbWidth) xs) -2
 
 
 -- | Render one StringFormat component for a balance report item.
 renderComponent :: Bool -> ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> Cell
-renderComponent _ _ _ (FormatLiteral s) = Cell TopLeft . map (\x -> (x, textWidth x)) $ T.lines s
+renderComponent _ _ _ (FormatLiteral s) = alignCell TopLeft s
 renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin mmax field) = case field of
-    DepthSpacerField -> Cell align [(T.replicate d " ", d)]
+    DepthSpacerField -> Cell align [WideBuilder (TB.fromText $ T.replicate d " ") d]
                         where d = maybe id min mmax $ depth * fromMaybe 1 mmin
-    AccountField     -> Cell align [(t, textWidth t)] where t = formatText ljust mmin mmax acctname
+    AccountField     -> alignCell align $ formatText ljust mmin mmax acctname
     TotalField       -> Cell align . pure $ showamt total
-    _                -> Cell align [("", 0)]
+    _                -> Cell align [mempty]
   where
     align = if topaligned then (if ljust then TopLeft    else TopRight)
                           else (if ljust then BottomLeft else BottomRight)
-    showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w))
-            . showMixed noPrice{displayColour=color_ opts, displayMinWidth=mmin, displayMaxWidth=mmax}
+    showamt = showMixed noPrice{displayColour=color_ opts, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports
 
@@ -629,7 +627,7 @@ balanceReportTableAsText ReportOpts{..} =
     Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_}
         (Tab.alignCell TopLeft) (Tab.alignCell TopRight) showamt
   where
-    showamt = Cell TopRight . (\(WideBuilder b w) -> [(TL.toStrict $ TB.toLazyText b, w)]) . showMixed oneLine{displayColour=color_, displayMaxWidth=mmax}
+    showamt = Cell TopRight . pure . showMixed oneLine{displayColour=color_, displayMaxWidth=mmax}
     mmax = if no_elide_ then Nothing else Just 32
 
 
