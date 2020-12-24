@@ -156,10 +156,10 @@ m4_define({{_reportingoptions_}}, {{
 : with -V/-X/--value, also infer market prices from transactions
 
 `--auto`
-: apply [automated posting rules](journal.html#auto-postings) to modify transactions.
+: apply [automated posting rules](hledger.html#auto-postings) to modify transactions.
 
 `--forecast`
-: generate future transactions from [periodic transaction](journal.html#periodic-transactions) rules, for the next 6 months or till report end date.
+: generate future transactions from [periodic transaction](hledger.html#periodic-transactions) rules, for the next 6 months or till report end date.
 In hledger-ui, also make ordinary future transactions visible.
 
 `--color=WHEN (or --colour=WHEN)`
