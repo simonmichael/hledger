@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 722f0efd461d91750b3292c6fa975dcae940268ae9bde3e062afa2f2514be904
+-- hash: c7f376a0b462db44f7093369e6ab091114858a0f25e0ea7440c0d9390583eb44
 
 name:           hledger-lib
 version:        1.20.99
@@ -34,18 +34,6 @@ extra-source-files:
     README.md
     test/unittest.hs
     test/doctests.hs
-    hledger_csv.5
-    hledger_csv.txt
-    hledger_csv.info
-    hledger_journal.5
-    hledger_journal.txt
-    hledger_journal.info
-    hledger_timedot.5
-    hledger_timedot.txt
-    hledger_timedot.info
-    hledger_timeclock.5
-    hledger_timeclock.txt
-    hledger_timeclock.info
 
 source-repository head
   type: git

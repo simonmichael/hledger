@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 44fd73321f6fe9ff63e27ff2d1782526ddcda78ac24038cb68f6e905be269705
+-- hash: c5c37c98adc27ac9dd90d038498e748990dfdac397b308bf35463f722a823045
 
 name:           hledger
 version:        1.20.99
@@ -46,18 +46,6 @@ extra-source-files:
     embeddedfiles/hledger-web.1
     embeddedfiles/hledger-web.txt
     embeddedfiles/hledger-web.info
-    embeddedfiles/hledger_journal.5
-    embeddedfiles/hledger_journal.txt
-    embeddedfiles/hledger_journal.info
-    embeddedfiles/hledger_csv.5
-    embeddedfiles/hledger_csv.txt
-    embeddedfiles/hledger_csv.info
-    embeddedfiles/hledger_timeclock.5
-    embeddedfiles/hledger_timeclock.txt
-    embeddedfiles/hledger_timeclock.info
-    embeddedfiles/hledger_timedot.5
-    embeddedfiles/hledger_timedot.txt
-    embeddedfiles/hledger_timedot.info
     Hledger/Cli/Commands/Accounts.txt
     Hledger/Cli/Commands/Activity.txt
     Hledger/Cli/Commands/Add.txt
