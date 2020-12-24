@@ -96,7 +96,7 @@ To see options for a particular command, including command-specific options, run
 
 Command-specific options must be written after the command name, eg: `hledger print -x`.
 
-Additionally, if the command is an [add-on](#commands),
+Additionally, if the command is an [add-on](#addons),
 you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
 Or, you can run the add-on executable directly: `hledger-ui --watch`.
 
@@ -293,7 +293,7 @@ dollar sign in hledger-web, write `cur:\$`.
 
 - On the command line, some metacharacters like `$` have a special
 meaning to the shell and so must be escaped at least once more.
-See [Special characters](#special-characters-in-arguments-and-queries).
+See [Special characters](#special-characters).
 
 # ENVIRONMENT
 
