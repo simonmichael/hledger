@@ -276,7 +276,7 @@ Most of the JSON corresponds to hledger's data types; for details of what the fi
 [Hledger.Data.Json haddock docs](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Json.html)
 and click on the various data types, eg 
 [Transaction](http://hackage.haskell.org/package/hledger-lib-1.17.1/docs/Hledger-Data-Types.html#t:Transaction).
-And for a higher level understanding, see the [journal manual](journal.html).
+And for a higher level understanding, see the [journal manual](hledger.html).
 
 In some cases there is outer JSON corresponding to a "Report" type.
 To understand that, go to the

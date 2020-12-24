@@ -1815,7 +1815,7 @@ print:
 
     When a transaction posts to two commodities without specifying the
     conversion price, we generate a price which makes it balance (cf
-    http://hledger.org/manual.html#prices). The print command showed
+    http://hledger.org/hledger.html#prices). The print command showed
     this with full precision (so that manual calculations with the
     displayed numbers would look right), but this sometimes meant we
     showed 255 digits (when there are multiple postings in the

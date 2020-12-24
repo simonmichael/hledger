@@ -388,7 +388,7 @@ Amount -- AmountStyle
 
 [package](http://hackage.haskell.org/package/hledger),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger),
-[manual](http://hledger.org/manual.html#hledger)
+[manual](http://hledger.org/hledger.html)
 
 hledger's command line interface, and command line options and utilities for other hledger tools.
 
@@ -414,7 +414,7 @@ and [hledger-lib:Hledger.Utils](https://github.com/simonmichael/hledger/blob/mas
 
 [package](http://hackage.haskell.org/package/hledger-ui),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-ui),
-[manual](http://hledger.org/manual.html#hledger-ui)
+[manual](http://hledger.org/hledger-ui.html)
 
 A terminal interface.
 
@@ -422,7 +422,7 @@ A terminal interface.
 
 [package](http://hackage.haskell.org/package/hledger-web),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-web),
-[manual](http://hledger.org/manual.html#hledger-web)
+[manual](http://hledger.org/hledger-web.html)
 
 A web interface.
 hledger-web starts a web server built with the yesod framework,
@@ -431,13 +431,13 @@ It reads the journal file(s) at startup and again whenever they change.
 It can also write (append) new transactions to the journal file.
 
 There are two main views, which can be filtered with
-[queries](http://hledger.org/manual.html#queries):
+[queries](http://hledger.org/hledger.html#queries):
 
 - [/journal](http://demo.hledger.org/journal), showing general journal entries (like `hledger print`)
 
 - [/register](http://demo.hledger.org/register?q=inacct:Expenses:Food),
   showing transactions affecting an account (slightly different from
-  hledger's [register](http://hledger.org/manual.html#register) command, which shows postings).
+  hledger's [register](http://hledger.org/hledger.html#register) command, which shows postings).
 
 There is also:
 
@@ -487,15 +487,6 @@ ghci> :main --serve
 ```
 (This rule also creates symbolic links to hledger-web's `config`, `messages`, `static` and `templates`
 directories, needed in developer mode, so it can run from the top directory. This may not work on Windows.)
-
-#### hledger-api (old)
-
-[package](http://hackage.haskell.org/package/hledger-api),
-[code](https://github.com/simonmichael/hledger/tree/master/hledger-api),
-[manual](http://hledger.org/manual.html#hledger-api)
-
-A web API server. Uses the servant framework.
-Retired as of 2019-09; use hledger-web instead.
 
 ### Quality
 

@@ -24,7 +24,7 @@ $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 ### Importing balance assignments
 
 Entries added by import will have their posting amounts made explicit (like `hledger print -x`).
-This means that any [balance assignments](/journal.html#balance-assignments) in imported files must be evaluated;
+This means that any [balance assignments](/hledger.html#balance-assignments) in imported files must be evaluated;
 but, imported files don't get to see the main file's account balances.
 As a result, importing entries with balance assignments
 (eg from an institution that provides only balances and not posting amounts)
@@ -40,5 +40,5 @@ please test it and send a pull request.)
 
 ### Commodity display styles
 
-Imported amounts will be formatted according to the canonical [commodity styles](journal.html#commodity-display-style)
+Imported amounts will be formatted according to the canonical [commodity styles](hledger.html#commodity-display-style)
 (declared or inferred) in the main journal file.

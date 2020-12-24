@@ -117,7 +117,7 @@ m4_define({{_reportingoptions_}}, {{
 : multiperiod/multicolumn report by year
 
 `-p --period=PERIODEXP`
-: set start date, end date, and/or reporting interval all at once using [period expressions](manual.html#period-expressions) syntax
+: set start date, end date, and/or reporting interval all at once using [period expressions](#period-expressions) syntax
 
 `--date2`
 : match the secondary date instead (see command help for other effects)

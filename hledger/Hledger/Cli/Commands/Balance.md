@@ -51,7 +51,7 @@ $ hledger balance
 
 By default, accounts are displayed hierarchically, 
 with subaccounts indented below their parent,
-with accounts at each level of the tree sorted by [declaration order](/journal.html#declaring-accounts) if declared, then by account name.
+with accounts at each level of the tree sorted by [declaration order](/hledger.html#declaring-accounts) if declared, then by account name.
 
 "Boring" accounts, which contain a single interesting subaccount and 
 no balance of their own, are elided into the following line for more compact output.
@@ -339,7 +339,7 @@ Eg: `hledger bal -D --color=yes | less -RS`.
 ### Budget report
 
 With `--budget`, extra columns are displayed showing budget goals for each account and period, if any.
-Budget goals are defined by [periodic transactions](journal.html#periodic-transactions).
+Budget goals are defined by [periodic transactions](hledger.html#periodic-transactions).
 This is very useful for comparing planned and actual income, expenses, time usage, etc.
 --budget is most often combined with a [report interval](hledger.html#report-intervals).
 

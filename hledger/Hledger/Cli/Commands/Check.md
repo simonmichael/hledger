@@ -26,7 +26,7 @@ These are always run by this command and other commands:
 - **parseable** - data files are well-formed and can be 
   [successfully parsed](hledger.html#input-files)
 
-- **autobalanced** - all transactions are [balanced](journal.html#postings), 
+- **autobalanced** - all transactions are [balanced](hledger.html#postings), 
   inferring missing amounts where necessary, and possibly converting commodities 
   using [transaction prices] or automatically-inferred transaction prices
 
@@ -39,10 +39,10 @@ These are always run by this and other commands when `-s`/`--strict` is used
 ([strict mode]):
 
 - **accounts** - all account names used by transactions 
-  [have been declared](journal.html#account-error-checking)
+  [have been declared](hledger.html#account-error-checking)
 
 - **commodities** - all commodity symbols used 
-  [have been declared](journal.html#commodity-error-checking)
+  [have been declared](hledger.html#commodity-error-checking)
 
 ### Other checks
 
@@ -65,7 +65,7 @@ You could make your own similar scripts to perform custom checks;
 Cookbook -> [Scripting](scripting.html) may be helpful.
 
 
-[transaction prices]: journal.html#transaction-prices
-[balance assertions]: journal.html#balance-assertions
+[transaction prices]: hledger.html#transaction-prices
+[balance assertions]: hledger.html#balance-assertions
 [strict mode]: hledger.html#strict-mode
 [add-on commands]: hledger.html#add-on-commands
