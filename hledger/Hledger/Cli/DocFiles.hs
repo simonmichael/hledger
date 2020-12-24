@@ -53,26 +53,6 @@ docFiles = [
     ,$(embedFileRelative "embeddedfiles/hledger-web.txt")
     ,$(embedFileRelative "embeddedfiles/hledger-web.info")
     ))
-  ,("journal",
-    ($(embedFileRelative "embeddedfiles/hledger_journal.5")
-    ,$(embedFileRelative "embeddedfiles/hledger_journal.txt")
-    ,$(embedFileRelative "embeddedfiles/hledger_journal.info")
-    ))
-  ,("csv",
-    ($(embedFileRelative "embeddedfiles/hledger_csv.5")
-    ,$(embedFileRelative "embeddedfiles/hledger_csv.txt")
-    ,$(embedFileRelative "embeddedfiles/hledger_csv.info")
-    ))
-  ,("timeclock",
-    ($(embedFileRelative "embeddedfiles/hledger_timeclock.5")
-    ,$(embedFileRelative "embeddedfiles/hledger_timeclock.txt")
-    ,$(embedFileRelative "embeddedfiles/hledger_timeclock.info")
-    ))
-  ,("timedot",
-    ($(embedFileRelative "embeddedfiles/hledger_timedot.5")
-    ,$(embedFileRelative "embeddedfiles/hledger_timedot.txt")
-    ,$(embedFileRelative "embeddedfiles/hledger_timedot.info")
-    ))
   ]
 
 docTopics :: [Topic]

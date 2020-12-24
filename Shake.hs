@@ -197,10 +197,6 @@ main = do
            "hledger.1"
           ,"hledger-ui.1"
           ,"hledger-web.1"
-          ,"hledger_journal.5"
-          ,"hledger_csv.5"
-          ,"hledger_timeclock.5"
-          ,"hledger_timedot.5"
           ]
 
         -- basic manual names, without numbers

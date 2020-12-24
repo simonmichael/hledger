@@ -28,18 +28,6 @@ extra-source-files:
 - README.md
 - test/unittest.hs
 - test/doctests.hs
-- hledger_csv.5
-- hledger_csv.txt
-- hledger_csv.info
-- hledger_journal.5
-- hledger_journal.txt
-- hledger_journal.info
-- hledger_timedot.5
-- hledger_timedot.txt
-- hledger_timedot.info
-- hledger_timeclock.5
-- hledger_timeclock.txt
-- hledger_timeclock.info
 
 #data-files:
 
