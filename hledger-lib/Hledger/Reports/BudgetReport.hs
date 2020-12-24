@@ -259,11 +259,14 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
     -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
     showcell :: (Int, Int, Int) -> BudgetDisplayCell -> Cell
     showcell (actualwidth, budgetwidth, percentwidth) ((actual,wa), mbudget) =
-        Cell TopRight [(T.replicate (actualwidth - wa) " " <> actual <> budgetstr, actualwidth + totalbudgetwidth)]
+        Cell TopRight [WideBuilder ( TB.fromText (T.replicate (actualwidth - wa) " ")
+                                   <> TB.fromText actual
+                                   <> budgetstr
+                                   ) (actualwidth + totalbudgetwidth)]
       where
         totalpercentwidth = if percentwidth == 0 then 0 else percentwidth + 5
         totalbudgetwidth  = if budgetwidth == 0 then 0 else budgetwidth + totalpercentwidth + 3
-        budgetstr = case mbudget of
+        budgetstr = TB.fromText $ case mbudget of
           Nothing                             -> T.replicate totalbudgetwidth " "
           Just ((budget, wb), Nothing)        -> " [" <> T.replicate totalpercentwidth " " <> T.replicate (budgetwidth - wb) " " <> budget <> "]"
           Just ((budget, wb), Just (pct, wp)) -> " [" <> T.replicate (percentwidth - wp) " " <> pct <> "% of " <> T.replicate (budgetwidth - wb) " " <> budget <> "]"

@@ -97,7 +97,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                             ,rsItemBalanceAmount = showamt bal
                             ,rsItemTransaction   = t
                             }
-            where showamt = \((WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w))
+            where showamt = (\wb -> (wbUnpack wb, wbWidth wb))
                           . showMixed oneLine{displayMaxWidth=Just 32}
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
