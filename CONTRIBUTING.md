@@ -606,7 +606,7 @@ though it's welcome (may be in a different repo).
 
 hledger follows documentation-driven design.
 It is in fact highly effective, and highly recommended,
-to write the new docs (help text/reference manual/haddocks/developer README..) before writing any code.
+to write the new docs (help text/user manual/haddocks/developer README..) before writing any code.
 You can share a rough draft on IRC, on the mail list, in an issue comment,
 or in a "WIP" PR starting with just the proposed docs commit.
 

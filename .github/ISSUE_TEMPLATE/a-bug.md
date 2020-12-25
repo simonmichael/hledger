@@ -12,9 +12,9 @@ Some things to check before reporting:
 - If you're not sure this is a bug, or if some discussion would help,
   contact us on chat or the mail list first: https://hledger.org#help-feedback
 
-- Have you looked at (the right version of) the reference manual ? 
+- Have you looked at (the right version of) the user manual ? 
   Use `hledger help [--help]` to view the built-in manuals,
-  or view the hledger.org -> REFERENCE MANUALS and choose the right version
+  or view the hledger.org -> USER MANUALS and choose the right version
   at the top of the page.
 
 Things that can help us resolve your issue faster:
