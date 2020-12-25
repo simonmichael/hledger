@@ -156,7 +156,7 @@ What is the hledger project's current mission ?
 ## Getting started
 
 New contributors are always welcome in the hledger project. 
-Jump in! Or [ask us](http://hledger.org/docs.html#helpfeedback) to help you find a task.
+Jump in! Or [ask us](index.html#helpfeedback) to help you find a task.
 
 ### Funder
 
@@ -187,7 +187,7 @@ When reporting bugs, don't forget to search the tracker for a similar bug report
 Otherwise, open a new bug by clicking "New issue", or <http://bugs.hledger.org/new>.
 
 Enhancement requests are sometimes added to the tracker,but for these consider using
-the IRC channel and mail list (see [Getting help](/docs.html#getting-help)).
+the IRC channel and mail list (see [Getting help](index.html#getting-help)).
 Both are archived and linkable, so the idea won't be lost.
 There is also a collection of wishes at the old [trello board](http://trello.hledger.org).
 
@@ -388,7 +388,7 @@ Amount -- AmountStyle
 
 [package](http://hackage.haskell.org/package/hledger),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger),
-[manual](http://hledger.org/hledger.html)
+[manual](https://hledger.org/hledger.html)
 
 hledger's command line interface, and command line options and utilities for other hledger tools.
 
@@ -414,7 +414,7 @@ and [hledger-lib:Hledger.Utils](https://github.com/simonmichael/hledger/blob/mas
 
 [package](http://hackage.haskell.org/package/hledger-ui),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-ui),
-[manual](http://hledger.org/hledger-ui.html)
+[manual](https://hledger.org/hledger-ui.html)
 
 A terminal interface.
 
@@ -422,7 +422,7 @@ A terminal interface.
 
 [package](http://hackage.haskell.org/package/hledger-web),
 [code](https://github.com/simonmichael/hledger/tree/master/hledger-web),
-[manual](http://hledger.org/hledger-web.html)
+[manual](https://hledger.org/hledger-web.html)
 
 A web interface.
 hledger-web starts a web server built with the yesod framework,
@@ -431,13 +431,13 @@ It reads the journal file(s) at startup and again whenever they change.
 It can also write (append) new transactions to the journal file.
 
 There are two main views, which can be filtered with
-[queries](http://hledger.org/hledger.html#queries):
+[queries](https://hledger.org/hledger.html#queries):
 
 - [/journal](http://demo.hledger.org/journal), showing general journal entries (like `hledger print`)
 
 - [/register](http://demo.hledger.org/register?q=inacct:Expenses:Food),
   showing transactions affecting an account (slightly different from
-  hledger's [register](http://hledger.org/hledger.html#register) command, which shows postings).
+  hledger's [register](https://hledger.org/hledger.html#register) command, which shows postings).
 
 There is also:
 
@@ -504,7 +504,7 @@ Relevant tools include:
 
 - Code review party 2014/7/21-25:
   [discussion](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1070)<!-- missing ,
-  [log](http://hledger.org/static/irc-20140725-code-review.html) -->
+  [log](https://hledger.org/static/irc-20140725-code-review.html) -->
 - Dev sprint/party 2015/10/10:
   [discussion](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1254)<!-- ircbrowse down ,
   [pre-chat](http://ircbrowse.net/day/hledger/2015/10/10),
@@ -724,7 +724,7 @@ About testing in the hledger project, as of 201809.
     [examples](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Read/JournalReader.hs#L579).
 
     The unit tests are shipped as part of the hledger executable, and
-    can always be run via the [test](http://hledger.org/manual#test)
+    can always be run via the [test](https://hledger.org/manual#test)
     command (`hledger test`).
 
     Here\'s the quick way to run unit tests while developing:\
@@ -1358,11 +1358,11 @@ Eg:
 - review and discuss new [pull requests](http://prs.hledger.org) and commits on github
 - build hledger and test the latest changes in your own repo
 - read the existing [code docs and source](#quick-links)
-- send feedback or discuss via [IRC or mail list](/docs.html#helpfeedback)
+- send feedback or discuss via [IRC or mail list](index.html#helpfeedback)
 
 ### Build in place
 
-See also http://hledger.org/download.html#c.-build-the-development-version .
+See also https://hledger.org/download.html#c.-build-the-development-version .
 
     stack build    # hledger hledger-ui ...
 
@@ -1500,7 +1500,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 ### Add yourself to the contributor list
 
-- after getting something into the master branch, read and sign the [contributor list & agreement](https://hledger.org/contributors.html). Or, [ask](/index.html#help-feedback) to be added.
+- after getting something into the master branch, read and sign the [contributor list & agreement](https://hledger.org/contributors.html). Or, [ask](index.html#help-feedback) to be added.
 - give yourself a high five!
 
 ### Work on docs

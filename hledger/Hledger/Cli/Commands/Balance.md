@@ -51,7 +51,7 @@ $ hledger balance
 
 By default, accounts are displayed hierarchically, 
 with subaccounts indented below their parent,
-with accounts at each level of the tree sorted by [declaration order](/hledger.html#declaring-accounts) if declared, then by account name.
+with accounts at each level of the tree sorted by [declaration order](https://hledger.org/hledger.html#declaring-accounts) if declared, then by account name.
 
 "Boring" accounts, which contain a single interesting subaccount and 
 no balance of their own, are elided into the following line for more compact output.

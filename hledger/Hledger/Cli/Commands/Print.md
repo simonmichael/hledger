@@ -7,7 +7,7 @@ The print command displays full journal entries (transactions) from
 the journal file in date order, tidily formatted.
 With --date2, transactions are sorted by secondary date instead.
 
-print's output is always a valid [hledger journal](/hledger.html).  
+print's output is always a valid [hledger journal](https://hledger.org/hledger.html).  
 It preserves all transaction information, but it does not preserve
 directives or inter-transaction comments
 
@@ -48,7 +48,7 @@ Note, `-x`/`--explicit` will cause postings with a multi-commodity amount
 to be split into multiple single-commodity postings, 
 keeping the output parseable.
 
-With `-B`/`--cost`, amounts with [transaction prices](/hledger.html#transaction-prices)
+With `-B`/`--cost`, amounts with [transaction prices](https://hledger.org/hledger.html#transaction-prices)
 are converted to cost using that price. This can be used for troubleshooting.
 
 With `-m`/`--match` and a STR argument, print will show at most one transaction: the one 
