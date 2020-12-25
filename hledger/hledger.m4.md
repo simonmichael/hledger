@@ -2113,7 +2113,7 @@ flag or `real:` query.
 
 Balance assertions compare the exactly calculated amounts,
 which are not always what is shown by reports.
-Eg a [commodity directive](http://hledger.org/hledger.html#declaring-commodities)
+Eg a [commodity directive](https://hledger.org/hledger.html#declaring-commodities)
 may limit the display precision, but this will not affect balance assertions.
 Balance assertion failure messages show exact amounts.
 

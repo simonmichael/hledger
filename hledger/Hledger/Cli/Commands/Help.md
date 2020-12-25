@@ -3,7 +3,7 @@ Show any of the hledger manuals.
 
 _FLAGS
 
-The `help` command displays any of the main [hledger manuals](/docs.html), in one of several ways.
+The `help` command displays any of the main [hledger user manuals](https://hledger.org/index.html), in one of several ways.
 Run it with no argument to list the manuals, or provide a full or partial manual name to select one.
 
 hledger manuals are available in several formats.
