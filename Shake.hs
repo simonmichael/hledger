@@ -440,12 +440,13 @@ main = do
             commandsm4 = "hledger/Hledger/Cli/Commands/commands.m4"
             dir       = takeDirectory out
             packagemanversionm4 = dir </> ".version.m4"
+            packagemandatem4 = dir </> ".date.m4"
         -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
         subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        need $ [src, commonm4, commandsm4, packagemanversionm4] ++ subfiles
+        need $ [src, commonm4, commandsm4, packagemanversionm4, packagemandatem4] ++ subfiles
         when (dir=="hledger") $ need commandmds
         cmd Shell
-          m4 "-DINFO -I" dir commonm4 commandsm4 packagemanversionm4 src "|"
+          m4 "-DINFO -I" dir commonm4 commandsm4 packagemanversionm4 packagemandatem4 src "|"
           -- sed "-e 's/^#(#+)/\\1/'" "|"
           pandoc fromsrcmd
           "--lua-filter tools/pandoc-drop-html-blocks.lua"
@@ -472,13 +473,14 @@ main = do
             commonm4  = "doc/common.m4"
             commandsm4 = "hledger/Hledger/Cli/Commands/commands.m4"
             packageversionm4 = dir </> ".version.m4"
+            packagemandatem4 = dir </> ".date.m4"
             heading   = let h = manual
                         in if "hledger_" `isPrefixOf` h
                            then drop 8 h ++ " format"
                            else h
         -- assume any other .m4.md files in dir are included by this one XXX not true in hledger-lib
         subfiles <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-        let deps = [src, commonm4, commandsm4, packageversionm4] ++ subfiles
+        let deps = [src, commonm4, commandsm4, packageversionm4, packagemandatem4] ++ subfiles
         need deps
         when (manual=="hledger") $ need commandmds
         -- add the web page's heading.
@@ -492,7 +494,7 @@ main = do
           ,""
           ]
         cmd Shell
-          m4 "-DWEB -I" dir commonm4 commandsm4 packageversionm4 src "|"
+          m4 "-DWEB -I" dir commonm4 commandsm4 packageversionm4 packagemandatem4 src "|"
           pandoc fromsrcmd towebmd
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" out

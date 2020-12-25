@@ -6,7 +6,8 @@ _man_({{
 # NAME
 }})
 
-A web interface (WUI) for the hledger accounting tool.
+hledger-web is a web interface (WUI) for the hledger accounting tool.
+This manual is for hledger-web _version_.
 
 _man_({{
 # SYNOPSIS

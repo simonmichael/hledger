@@ -12,12 +12,13 @@ m4_dnl  In Emacs:
 m4_dnl   markdown-mode S-TAB cycles visibility, TAB toggles one section.
 m4_dnl   C-x n s on a heading narrows to that section (C-x n w to widen again).
 
-m4_dnl Show these first headings only in man pages:
 _man_({{
 # NAME
 }})
 
-A command-line accounting tool for both power users and folks new to accounting.
+
+hledger is a command-line accounting tool for both power users and folks new to accounting.
+This manual is for hledger _version_.
 
 _man_({{
 # SYNOPSIS
