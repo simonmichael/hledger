@@ -469,7 +469,7 @@ ensureOneNewlineTerminated :: Text -> Text
 ensureOneNewlineTerminated = (<>"\n") . T.dropWhileEnd (=='\n')
 
 -- | Convert a string of journal data into a register report.
-registerFromString :: Text -> IO TL.Text
+registerFromString :: T.Text -> IO TL.Text
 registerFromString s = do
   j <- readJournal' s
   return . postingsReportAsText opts $ postingsReport rspec j

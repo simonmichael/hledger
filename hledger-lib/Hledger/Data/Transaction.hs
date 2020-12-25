@@ -44,8 +44,6 @@ module Hledger.Data.Transaction (
   -- * rendering
   showTransaction,
   showTransactionOneLineAmounts,
-  showTransactionUnelided,
-  showTransactionUnelidedOneLineAmounts,
   -- showPostingLine,
   showPostingLines,
   -- * GenericSourcePos
@@ -58,11 +56,14 @@ module Hledger.Data.Transaction (
 )
 where
 
+import Data.Default (def)
 import Data.List (intercalate, partition)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, fromGregorian)
 import qualified Data.Map as M
 
@@ -72,6 +73,8 @@ import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
 import Hledger.Data.Valuation
+import Text.Tabular
+import Text.Tabular.AsciiWide
 
 sourceFilePath :: GenericSourcePos -> FilePath
 sourceFilePath = \case
@@ -149,30 +152,21 @@ are displayed as multiple similar postings, one per commodity.
 (Normally does not happen with this function).
 -}
 showTransaction :: Transaction -> Text
-showTransaction = showTransactionHelper False
-
--- | Deprecated alias for 'showTransaction'
-showTransactionUnelided :: Transaction -> Text
-showTransactionUnelided = showTransaction  -- TODO: drop it
+showTransaction = TL.toStrict . TB.toLazyText . showTransactionHelper False
 
 -- | Like showTransaction, but explicit multi-commodity amounts
 -- are shown on one line, comma-separated. In this case the output will
 -- not be parseable journal syntax.
 showTransactionOneLineAmounts :: Transaction -> Text
-showTransactionOneLineAmounts = showTransactionHelper True
-
--- | Deprecated alias for 'showTransactionOneLineAmounts'
-showTransactionUnelidedOneLineAmounts :: Transaction -> Text
-showTransactionUnelidedOneLineAmounts = showTransactionOneLineAmounts  -- TODO: drop it
+showTransactionOneLineAmounts = TL.toStrict . TB.toLazyText . showTransactionHelper True
 
 -- | Helper for showTransaction*.
-showTransactionHelper :: Bool -> Transaction -> Text
+showTransactionHelper :: Bool -> Transaction -> TB.Builder
 showTransactionHelper onelineamounts t =
-    T.unlines $
-      descriptionline
-      : newlinecomments
-      ++ (postingsAsLines onelineamounts (tpostings t))
-      ++ [""]
+      TB.fromText descriptionline <> newline
+    <> foldMap ((<> newline) . TB.fromText) newlinecomments
+    <> foldMap ((<> newline) . TB.fromText) (postingsAsLines onelineamounts $ tpostings t)
+    <> newline
   where
     descriptionline = T.stripEnd $ T.concat [date, status, code, desc, samelinecomment]
     date = showDate (tdate t) <> maybe "" (("="<>) . showDate) (tdate2 t)
@@ -184,6 +178,7 @@ showTransactionHelper onelineamounts t =
     (samelinecomment, newlinecomments) =
       case renderCommentLines (tcomment t) of []   -> ("",[])
                                               c:cs -> (c,cs)
+    newline = TB.singleton '\n'
 
 -- | Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
 -- The first line (unless empty) will have leading space, subsequent lines will have a larger indent.
@@ -238,15 +233,24 @@ postingsAsLines onelineamounts ps = concatMap (postingAsLines False onelineamoun
 -- This is used to align the amounts of a transaction's postings.
 --
 postingAsLines :: Bool -> Bool -> [Posting] -> Posting -> [Text]
-postingAsLines elideamount onelineamounts pstoalignwith p = concat [
-    postingblock
-    ++ newlinecomments
-    | postingblock <- postingblocks]
+postingAsLines elideamount onelineamounts pstoalignwith p =
+    concatMap (++ newlinecomments) postingblocks
   where
-    postingblocks = [map (T.stripEnd . T.pack) . lines $
-                       concatTopPadded [T.unpack statusandaccount, "  ", amt, assertion, T.unpack samelinecomment]
+    -- This needs to be converted to strict Text in order to strip trailing
+    -- spaces. This adds a small amount of inefficiency, and the only difference
+    -- is whether there are trailing spaces in print (and related) reports. This
+    -- could be removed and we could just keep everything as a Text Builder, but
+    -- would require adding trailing spaces to 42 failing tests.
+    postingblocks = [map T.stripEnd . T.lines . TL.toStrict $
+                       render [ alignCell BottomLeft statusandaccount
+                              , alignCell BottomLeft "  "
+                              , Cell BottomLeft [amt]
+                              , Cell BottomLeft [assertion]
+                              , alignCell BottomLeft samelinecomment
+                              ]
                     | amt <- shownAmounts]
-    assertion = maybe "" ((' ':).showBalanceAssertion) $ pbalanceassertion p
+    render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
+    assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
     statusandaccount = lineIndent . fitText (Just $ minwidth) Nothing False True $ pstatusandacct p
       where
         -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
@@ -259,8 +263,8 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
 
     -- currently prices are considered part of the amount string when right-aligning amounts
     shownAmounts
-      | elideamount || null (amounts $ pamount p) = [""]
-      | otherwise = lines . wbUnpack . showMixed displayopts $ pamount p
+      | elideamount || null (amounts $ pamount p) = [mempty]
+      | otherwise = showMixedLines displayopts $ pamount p
       where
         displayopts = noColour{displayOneLine=onelineamounts, displayMinWidth = Just amtwidth, displayNormalised=False}
         amtwidth = maximum $ 12 : map (wbWidth . showMixed displayopts{displayMinWidth=Nothing} . pamount) pstoalignwith  -- min. 12 for backwards compatibility
@@ -270,9 +274,13 @@ postingAsLines elideamount onelineamounts pstoalignwith p = concat [
                                               c:cs -> (c,cs)
 
 -- | Render a balance assertion, as the =[=][*] symbol and expected amount.
-showBalanceAssertion :: BalanceAssertion -> [Char]
+showBalanceAssertion :: BalanceAssertion -> WideBuilder
 showBalanceAssertion BalanceAssertion{..} =
-  "=" ++ ['=' | batotal] ++ ['*' | bainclusive] ++ " " ++ showAmountWithZeroCommodity baamount
+    singleton '=' <> eq <> ast <> singleton ' ' <> showAmountB def{displayZeroCommodity=True} baamount
+  where
+    eq  = if batotal     then singleton '=' else mempty
+    ast = if bainclusive then singleton '*' else mempty
+    singleton c = WideBuilder (TB.singleton c) 1
 
 -- | Render a posting, simply. Used in balance assertion errors.
 -- showPostingLine p =
@@ -423,7 +431,9 @@ transactionBalanceError t errs =
 
 annotateErrorWithTransaction :: Transaction -> String -> String
 annotateErrorWithTransaction t s =
-  unlines [showGenericSourcePos $ tsourcepos t, s, T.unpack . T.stripEnd $ showTransaction t]
+  unlines [ showGenericSourcePos $ tsourcepos t, s
+          , T.unpack . T.stripEnd $ showTransaction t
+          ]
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -769,7 +779,7 @@ tests_Transaction =
                 [posting {paccount = "expenses:food:groceries", pamount = missingmixedamt}])) @?=
           (T.unlines ["2007-01-28 coopportunity", "    expenses:food:groceries", ""])
         , test "show a transaction with a priced commodityless amount" $
-          (T.unpack $ showTransaction
+          (showTransaction
              (txnTieKnot $
               Transaction
                 0
@@ -785,7 +795,7 @@ tests_Transaction =
                 [ posting {paccount = "a", pamount = Mixed [num 1 `at` (usd 2 `withPrecision` Precision 0)]}
                 , posting {paccount = "b", pamount = missingmixedamt}
                 ])) @?=
-          (unlines ["2010-01-01 x", "    a          1 @ $2", "    b", ""])
+          (T.unlines ["2010-01-01 x", "    a          1 @ $2", "    b", ""])
         ]
     , tests "balanceTransaction" [
          test "detect unbalanced entry, sign error" $

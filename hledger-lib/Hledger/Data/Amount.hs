@@ -125,6 +125,7 @@ module Hledger.Data.Amount (
   showMixedAmountElided,
   showMixedAmountWithZeroCommodity,
   showMixed,
+  showMixedLines,
   setMixedAmountPrecision,
   canonicaliseMixedAmount,
   -- * misc.

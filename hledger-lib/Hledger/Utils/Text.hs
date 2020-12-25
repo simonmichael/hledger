@@ -45,6 +45,8 @@ module Hledger.Utils.Text
  -- cliptopleft,
  -- fitto,
   fitText,
+  linesPrepend,
+  linesPrepend2,
  -- -- * wide-character-aware layout
   WideBuilder(..),
   wbToText,
@@ -357,6 +359,17 @@ textTakeWidth w t | not (T.null t),
                 cw <= w
                 = T.cons c $ textTakeWidth (w-cw) (T.tail t)
               | otherwise = ""
+
+-- | Add a prefix to each line of a string.
+linesPrepend :: Text -> Text -> Text
+linesPrepend prefix = T.unlines . map (prefix<>) . T.lines
+
+-- | Add a prefix to the first line of a string, 
+-- and a different prefix to the remaining lines.
+linesPrepend2 :: Text -> Text -> Text -> Text
+linesPrepend2 prefix1 prefix2 s = T.unlines $ case T.lines s of
+    []   -> []
+    l:ls -> (prefix1<>l) : map (prefix2<>) ls
 
 
 -- | Read a decimal number from a Text. Assumes the input consists only of digit

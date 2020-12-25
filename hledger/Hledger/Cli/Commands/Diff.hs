@@ -12,15 +12,15 @@ module Hledger.Cli.Commands.Diff (
  ,diff
 ) where
 
-import Data.List
-import Data.Function
-import Data.Ord
-import Data.Maybe
-import Data.Time
-import Data.Either
+import Data.List ((\\), groupBy, nubBy, sortBy)
+import Data.Function (on)
+import Data.Ord (comparing)
+import Data.Maybe (fromJust)
+import Data.Time (diffDays)
+import Data.Either (partitionEithers)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import System.Exit
+import System.Exit (exitFailure)
 
 import Hledger
 import Prelude hiding (putStrLn)

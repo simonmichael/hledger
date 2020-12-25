@@ -10,10 +10,10 @@ where
 import Control.Monad (when)
 import Data.Function (on)
 import Data.List (groupBy)
-import Data.Maybe
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Time.Calendar
+import Data.Time.Calendar (addDays)
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
