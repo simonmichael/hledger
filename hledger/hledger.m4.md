@@ -16,8 +16,8 @@ _man_({{
 # NAME
 }})
 
-
-hledger is a command-line accounting tool for both power users and folks new to accounting.
+This is the command-line interface (CLI) for the hledger accounting tool.
+Here we also describe hledger's concepts and file formats.
 This manual is for hledger _version_.
 
 _man_({{
@@ -37,8 +37,7 @@ _man_({{
 m4_dnl Include the standard description:
 _hledgerdescription_
 
-This is hledger’s command-line interface (there are also terminal and web
-interfaces). Its basic function is to read a plain text file describing
+The basic function of the hledger CLI is to read a plain text file describing
 financial transactions (in accounting terms, a general journal) and
 print useful reports on standard output, or export them as CSV. hledger
 can also read some other file formats such as CSV files, translating
