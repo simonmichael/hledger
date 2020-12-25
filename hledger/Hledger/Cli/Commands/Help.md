@@ -9,7 +9,7 @@ Run it with no argument to list the manuals, or provide a full or partial manual
 hledger manuals are available in several formats.
 hledger help will use the first of these display methods that it finds: 
 info, man, $PAGER, less, stdout (or when non-interactive, just stdout). 
-You can force a particular viewer with the `--info`, `--man`, `--pager`, `--cat` flags.
+You can force a particular viewer with the `--info`, `--man`, `--pager` flags.
 
 Examples:
 

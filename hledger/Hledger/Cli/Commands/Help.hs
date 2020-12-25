@@ -39,7 +39,6 @@ helpmode = hledgerCommandMode
   [flagNone ["info"]  (setboolopt "info")  "show the manual with info"
   ,flagNone ["man"]   (setboolopt "man")   "show the manual with man"
   ,flagNone ["pager"] (setboolopt "pager") "show the manual with $PAGER or less"
-  ,flagNone ["cat"]   (setboolopt "cat")   "show the manual on stdout"
   ,flagNone ["help","h"]  (setboolopt "help")  "show this help"
   ]
   []
@@ -47,7 +46,7 @@ helpmode = hledgerCommandMode
   ([], Just $ argsFlag "[MANUAL]")
 
 -- | List or display one of the hledger manuals in various formats.
--- You can select a docs viewer with one of the `--info`, `--man`, `--pager`, `--cat` flags.
+-- You can select a docs viewer with one of the `--info`, `--man`, `--pager` flags.
 -- Otherwise it will use the first available of: info, man, $PAGER, less, stdout
 -- (and always stdout if output is non-interactive).
 help' :: CliOpts -> Journal -> IO ()
@@ -66,7 +65,6 @@ help' opts _ = do
       | boolopt "info"  $ rawopts_ opts = info
       | boolopt "man"   $ rawopts_ opts = man
       | boolopt "pager" $ rawopts_ opts = pager
-      | boolopt "cat"   $ rawopts_ opts = cat
       | not interactive                 = cat
       | "info"    `elem` exes           = info
       | "man"     `elem` exes           = man
@@ -75,7 +73,7 @@ help' opts _ = do
   case topic of
     Nothing -> putStrLn $ unlines [
        "Please choose a manual by typing \"hledger help MANUAL\" (any substring is ok)."
-      ,"A viewer (info, man, a pager, or stdout) will be auto-selected,"
+      ,"A viewer (info, man, $PAGER, or stdout) will be auto-selected,"
       ,"or type \"hledger help -h\" to see options. Manuals available:"
       ]
       ++ "\n " ++ unwords docTopics
