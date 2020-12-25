@@ -13,9 +13,9 @@ Some things to check before requesting:
   Often it's best to discuss and attract interest on chat or the mail list first;
   use your best judgement. https://hledger.org#help-feedback
 
-- Have you looked for related features in (the right version of) the reference manual ? 
+- Have you looked for related features in (the right version of) the user manual ? 
   Use `hledger help [--help]` to view the built-in manuals,
-  or view the hledger.org -> REFERENCE MANUALS and choose the proper version
+  or view the hledger.org -> USER MANUALS and choose the proper version
   at the top of the page.
 
 Things that will move your request along faster:
