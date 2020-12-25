@@ -6,7 +6,8 @@ File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-ui(1)
 *************
 
-A terminal interface (TUI) for the hledger accounting tool.
+hledger-ui is a terminal interface (TUI) for the hledger accounting
+tool.  This manual is for hledger-ui 1.20.99.
 
    'hledger-ui [OPTIONS] [QUERYARGS]'
 'hledger ui -- [OPTIONS] [QUERYARGS]'
@@ -519,25 +520,25 @@ program is restarted.
 
 Tag Table:
 Node: Top71
-Node: OPTIONS1434
-Ref: #options1531
-Node: KEYS5598
-Ref: #keys5693
-Node: SCREENS10012
-Ref: #screens10117
-Node: Accounts screen10207
-Ref: #accounts-screen10335
-Node: Register screen12550
-Ref: #register-screen12705
-Node: Transaction screen14702
-Ref: #transaction-screen14860
-Node: Error screen15730
-Ref: #error-screen15852
-Node: ENVIRONMENT16096
-Ref: #environment16210
-Node: FILES17017
-Ref: #files17116
-Node: BUGS17329
-Ref: #bugs17406
+Node: OPTIONS1488
+Ref: #options1585
+Node: KEYS5652
+Ref: #keys5747
+Node: SCREENS10066
+Ref: #screens10171
+Node: Accounts screen10261
+Ref: #accounts-screen10389
+Node: Register screen12604
+Ref: #register-screen12759
+Node: Transaction screen14756
+Ref: #transaction-screen14914
+Node: Error screen15784
+Ref: #error-screen15906
+Node: ENVIRONMENT16150
+Ref: #environment16264
+Node: FILES17071
+Ref: #files17170
+Node: BUGS17383
+Ref: #bugs17460
 
 End Tag Table
