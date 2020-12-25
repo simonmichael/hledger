@@ -38,8 +38,6 @@ module Hledger.Utils.String (
  padright,
  cliptopleft,
  fitto,
- linesPrepend,
- linesPrepend2,
  -- * wide-character-aware layout
  charWidth,
  strWidth,
@@ -352,14 +350,3 @@ stripAnsi s = either err id $ regexReplace ansire "" s
  where
    err    = error "stripAnsi: invalid replacement pattern"      -- PARTIAL, shouldn't happen
    ansire = toRegex' "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]"  -- PARTIAL, should succeed
-
--- | Add a prefix to each line of a string.
-linesPrepend :: String -> String -> String
-linesPrepend prefix = unlines . map (prefix++) . lines
-
--- | Add a prefix to the first line of a string, 
--- and a different prefix to the remaining lines.
-linesPrepend2 :: String -> String -> String -> String
-linesPrepend2 prefix1 prefix2 s =
-  unlines $ (prefix1++l) : map (prefix2++) ls
-  where l:ls = lines s

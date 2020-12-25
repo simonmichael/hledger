@@ -62,7 +62,8 @@ modifyTransactions d tmods ts = do
 -- postings when certain other postings are present.
 --
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
--- >>> test = either putStr (putStr.T.unpack.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
+-- >>> import qualified Data.Text.IO as T
+-- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
 -- >>> test $ TransactionModifier "" ["pong" `post` usd 2]
 -- 0000-01-01
 --     ping           $1.00

@@ -14,14 +14,15 @@ module Hledger.Data.Timeclock (
 )
 where
 
-import Data.Maybe
+import Data.Maybe (fromMaybe)
 -- import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar
-import Data.Time.Clock
-import Data.Time.Format
-import Data.Time.LocalTime
-import Text.Printf
+import Data.Time.Calendar (addDays)
+import Data.Time.Clock (addUTCTime, getCurrentTime)
+import Data.Time.Format (defaultTimeLocale, formatTime, parseTimeM)
+import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..), getCurrentTimeZone,
+                            localTimeToUTC, midnight, utc, utcToLocalTime)
+import Text.Printf (printf)
 
 import Hledger.Utils
 import Hledger.Data.Types

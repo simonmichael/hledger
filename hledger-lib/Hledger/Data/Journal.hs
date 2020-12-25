@@ -87,20 +87,20 @@ module Hledger.Data.Journal (
   tests_Journal,
 )
 where
-import Control.Monad
-import Control.Monad.Except
-import Control.Monad.Extra
+
+import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
+import Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
-import Control.Monad.ST
-import Data.Array.ST
+import Control.Monad.ST (ST, runST)
+import Data.Array.ST (STArray, getElems, newListArray, writeArray)
 import Data.Default (Default(..))
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
-import Data.List
+import Data.List (find, sortOn)
 import Data.List.Extra (groupSort, nubSort)
 import qualified Data.Map as M
-import Data.Maybe
+import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup (Semigroup(..))
 #endif
@@ -108,10 +108,10 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (headMay, headDef)
-import Data.Time.Calendar
-import Data.Tree
+import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Data.Tree (Tree, flatten)
 import System.Time (ClockTime(TOD))
-import Text.Printf
+import Text.Printf (printf)
 
 import Hledger.Utils
 import Hledger.Data.Types
