@@ -1,40 +1,16 @@
 help\
-Show any of the hledger manuals.
+Show the hledger user manual in one of several formats.
 
 _FLAGS
 
-The `help` command displays any of the main [hledger user manuals](https://hledger.org/index.html), 
-in one of several ways.
-Run it with no argument to list the manuals, or provide a full or partial manual name to select one.
+This command shows the user manual built in to this hledger version,
+using the best viewer it can find.
+It can be useful if the correct version of the hledger manual,
+or the usual viewing tools, are not installed on your system.
 
-hledger manuals are available in several formats.
-hledger help will use the first of these display methods that it finds: 
-info, man, $PAGER, less, stdout (or when non-interactive, just stdout). 
-You can force a particular viewer with the `--info/-i`, `--man/-m`, 
-`--pager/-p` flags.
+It will use the first of these viewers that it finds in $PATH: 
+`info`, `man`, $PAGER, `less`, or stdout.
+When run non-interactively, it always uses stdout.
+Or you can force a particular viewer with the 
+`--info/-i`, `--man/-m`, or `--pager/-p` flags.
 
-Examples:
-
-```shell
-$ hledger help
-Please choose a manual by typing "hledger help MANUAL" (a substring is ok).
-Manuals: hledger hledger-ui hledger-web
-```
-
-```shell
-$ hledger help h --man
-
-hledger(1)                    hledger User Manuals                    hledger(1)
-
-NAME
-       hledger - a command-line accounting tool
-
-SYNOPSIS
-       hledger [-f FILE] COMMAND [OPTIONS] [ARGS]
-       hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]
-       hledger
-
-DESCRIPTION
-       hledger  is  a  cross-platform  program  for tracking money, time, or any
-...
-```
