@@ -164,12 +164,14 @@ main = do
     journallesserror = error $ cmd++" tried to read the journal but is not supposed to"
     runHledgerCommand
       -- high priority flags and situations. -h, then --help, then --info are highest priority.
-      | hasHelpFlag argsbeforecmd = dbgIO "" "-h/--help before command, showing general usage" >> printUsage
-      | hasInfoFlag argsbeforecmd = dbgIO "" "--info before command, showing general info manual" >> runInfoForTopic "hledger" Nothing
-      | hasManFlag argsbeforecmd  = dbgIO "" "--man before command, showing general man page" >> runManForTopic "hledger" Nothing
-      | not (hasHelpFlag argsaftercmd || hasInfoFlag argsaftercmd || hasManFlag argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
+      | isNullCommand && hasHelpFlag args = dbgIO "" "-h/--help with no command, showing general help" >> printUsage
+      | isNullCommand && hasInfoFlag args = dbgIO "" "--info with no command, showing general info manual" >> runInfoForTopic "hledger" Nothing
+      | isNullCommand && hasManFlag args  = dbgIO "" "--man with no command, showing general man page" >> runManForTopic "hledger" Nothing
+      | not (isExternalCommand || hasHelpFlag args || hasInfoFlag args || hasManFlag args)
+        && (hasVersion args) --  || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
-      | not (hasHelpFlag argsaftercmd || hasInfoFlag argsaftercmd || hasManFlag argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
+      | not (isExternalCommand || hasHelpFlag args || hasInfoFlag args || hasManFlag args) 
+        && (hasDetailedVersion argsbeforecmd)  --  || (hasDetailedVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
