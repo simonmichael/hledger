@@ -87,8 +87,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              BalancedVirtualPosting -> wrap "[" "]"
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
-    amt = T.pack $ showMixedAmountOneLineWithoutPrice False $ pamount p
-    bal = T.pack $ showMixedAmountOneLineWithoutPrice False b
+    amt = wbToText . showMixed oneLine $ pamount p
+    bal = wbToText $ showMixed oneLine b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
@@ -102,7 +102,7 @@ postingsReportAsText opts items =
     itembal (_,_,_,_,a) = a
     unlinesB [] = mempty
     unlinesB xs = mconcat (intersperse (TB.fromText "\n") xs) <> TB.fromText "\n"
-    showAmt = showMixed noColour{displayMinWidth=Just 12,displayColour=False}
+    showAmt = showMixed noColour{displayMinWidth=Just 12}
 
 -- | Render one register report line item as plain text. Layout is like so:
 -- @

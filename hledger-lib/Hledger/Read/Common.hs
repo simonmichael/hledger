@@ -1144,7 +1144,7 @@ digitgroupp :: TextParser m DigitGrp
 digitgroupp = label "digits"
             $ makeGroup <$> takeWhile1P (Just "digit") isDigit
   where
-    makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
+    makeGroup = uncurry DigitGrp . T.foldl' step (0, 0)
     step (!l, !a) c = (l+1, a*10 + fromIntegral (digitToInt c))
 
 --- *** comments
@@ -1483,7 +1483,7 @@ regexaliasp = do
   char '='
   skipNonNewlineSpaces
   repl <- anySingle `manyTill` eolof
-  case toRegexCI re of
+  case toRegexCI $ T.pack re of
     Right r -> return $! RegexAlias r repl
     Left e  -> customFailure $! parseErrorAtRegion off1 off2 e
 

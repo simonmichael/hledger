@@ -66,6 +66,7 @@ import Data.Maybe (fromMaybe, isJust, mapMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian )
 import Safe (readDef, readMay, maximumByMay, maximumMay, minimumMay)
@@ -107,11 +108,11 @@ data Query = Any              -- ^ always match
 instance Default Query where def = Any
 
 -- | Construct a payee tag
-payeeTag :: Maybe String -> Either RegexError Query
+payeeTag :: Maybe Text -> Either RegexError Query
 payeeTag = fmap (Tag (toRegexCI' "payee")) . maybe (pure Nothing) (fmap Just . toRegexCI)
 
 -- | Construct a note tag
-noteTag :: Maybe String -> Either RegexError Query
+noteTag :: Maybe Text -> Either RegexError Query
 noteTag = fmap (Tag (toRegexCI' "note")) . maybe (pure Nothing) (fmap Just . toRegexCI)
 
 -- | Construct a generated-transaction tag
@@ -262,11 +263,11 @@ parseQueryTerm d (T.stripPrefix "not:" -> Just s) =
     Right (Left m)  -> Right $ Left $ Not m
     Right (Right _) -> Right $ Left Any -- not:somequeryoption will be ignored
     Left err        -> Left err
-parseQueryTerm _ (T.stripPrefix "code:" -> Just s) = Left . Code <$> toRegexCI (T.unpack s)
-parseQueryTerm _ (T.stripPrefix "desc:" -> Just s) = Left . Desc <$> toRegexCI (T.unpack s)
-parseQueryTerm _ (T.stripPrefix "payee:" -> Just s) = Left <$> payeeTag (Just $ T.unpack s)
-parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = Left <$> noteTag (Just $ T.unpack s)
-parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Left . Acct <$> toRegexCI (T.unpack s)
+parseQueryTerm _ (T.stripPrefix "code:" -> Just s) = Left . Code <$> toRegexCI s
+parseQueryTerm _ (T.stripPrefix "desc:" -> Just s) = Left . Desc <$> toRegexCI s
+parseQueryTerm _ (T.stripPrefix "payee:" -> Just s) = Left <$> payeeTag (Just s)
+parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = Left <$> noteTag (Just s)
+parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Left . Acct <$> toRegexCI s
 parseQueryTerm d (T.stripPrefix "date2:" -> Just s) =
         case parsePeriodExpr d s of Left e         -> Left $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
                                     Right (_,span) -> Right $ Left $ Date2 span
@@ -283,7 +284,7 @@ parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
   | otherwise = Left "depth: should have a positive number"
   where n = readDef 0 (T.unpack s)
 
-parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = Left . Sym <$> toRegexCI ('^' : T.unpack s ++ "$") -- support cur: as an alias
+parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = Left . Sym <$> toRegexCI ("^" <> s <> "$") -- support cur: as an alias
 parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Left <$> parseTag s
 parseQueryTerm _ "" = Right $ Left $ Any
 parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
@@ -322,20 +323,19 @@ parseAmountQueryTerm amtarg =
     (parse ">"   -> Just q) -> Right (AbsGt   ,q)
     (parse "="   -> Just q) -> Right (AbsEq   ,q)
     (parse ""    -> Just q) -> Right (AbsEq   ,q)
-    _ -> Left $
-         "could not parse as a comparison operator followed by an optionally-signed number: "
-         ++ T.unpack amtarg
+    _ -> Left . T.unpack $
+         "could not parse as a comparison operator followed by an optionally-signed number: " <> amtarg
   where
     -- Strip outer whitespace from the text, require and remove the
     -- specified prefix, remove all whitespace from the remainder, and
     -- read it as a simple integer or decimal if possible.
     parse :: T.Text -> T.Text -> Maybe Quantity
-    parse p s = (T.stripPrefix p . T.strip) s >>= readMay . filter (not.(==' ')) . T.unpack
+    parse p s = (T.stripPrefix p . T.strip) s >>= readMay . T.unpack . T.filter (/=' ')
 
 parseTag :: T.Text -> Either RegexError Query
 parseTag s = do
-    tag <- toRegexCI . T.unpack $ if T.null v then s else n
-    body <- if T.null v then pure Nothing else Just <$> toRegexCI (tail $ T.unpack v)
+    tag <- toRegexCI $ if T.null v then s else n
+    body <- if T.null v then pure Nothing else Just <$> toRegexCI (T.tail v)
     return $ Tag tag body
   where (n,v) = T.break (=='=') s
 
@@ -554,7 +554,7 @@ matchesAccount (None) _ = False
 matchesAccount (Not m) a = not $ matchesAccount m a
 matchesAccount (Or ms) a = any (`matchesAccount` a) ms
 matchesAccount (And ms) a = all (`matchesAccount` a) ms
-matchesAccount (Acct r) a = regexMatch r $ T.unpack a -- XXX pack
+matchesAccount (Acct r) a = regexMatchText r a
 matchesAccount (Depth d) a = accountNameLevel a <= d
 matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
@@ -564,7 +564,7 @@ matchesMixedAmount q (Mixed []) = q `matchesAmount` nullamt
 matchesMixedAmount q (Mixed as) = any (q `matchesAmount`) as
 
 matchesCommodity :: Query -> CommoditySymbol -> Bool
-matchesCommodity (Sym r) = regexMatch r . T.unpack
+matchesCommodity (Sym r) = regexMatchText r
 matchesCommodity _ = const True
 
 -- | Does the match expression match this (simple) amount ?
@@ -603,10 +603,10 @@ matchesPosting (Any) _ = True
 matchesPosting (None) _ = False
 matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
-matchesPosting (Code r) p = regexMatch r $ maybe "" (T.unpack . tcode) $ ptransaction p
-matchesPosting (Desc r) p = regexMatch r $ maybe "" (T.unpack . tdescription) $ ptransaction p
+matchesPosting (Code r) p = maybe False (regexMatchText r . tcode) $ ptransaction p
+matchesPosting (Desc r) p = maybe False (regexMatchText r . tdescription) $ ptransaction p
 matchesPosting (Acct r) p = matches p || matches (originalPosting p)
-  where matches p = regexMatch r . T.unpack $ paccount p -- XXX pack
+  where matches = regexMatchText r . paccount
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (StatusQ s) p = postingStatus p == s
@@ -615,8 +615,8 @@ matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
 matchesPosting (Sym r) Posting{pamount=Mixed as} = any (matchesCommodity (Sym r)) $ map acommodity as
 matchesPosting (Tag n v) p = case (reString n, v) of
-  ("payee", Just v) -> maybe False (regexMatch v . T.unpack . transactionPayee) $ ptransaction p
-  ("note", Just v) -> maybe False (regexMatch v . T.unpack . transactionNote) $ ptransaction p
+  ("payee", Just v) -> maybe False (regexMatchText v . transactionPayee) $ ptransaction p
+  ("note", Just v) -> maybe False (regexMatchText v . transactionNote) $ ptransaction p
   (_, v) -> matchesTags n v $ postingAllTags p
 
 -- | Does the match expression match this transaction ?
@@ -626,8 +626,8 @@ matchesTransaction (Any) _ = True
 matchesTransaction (None) _ = False
 matchesTransaction (Or qs) t = any (`matchesTransaction` t) qs
 matchesTransaction (And qs) t = all (`matchesTransaction` t) qs
-matchesTransaction (Code r) t = regexMatch r $ T.unpack $ tcode t
-matchesTransaction (Desc r) t = regexMatch r $ T.unpack $ tdescription t
+matchesTransaction (Code r) t = regexMatchText r $ tcode t
+matchesTransaction (Desc r) t = regexMatchText r $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Date span) t = spanContainsDate span $ tdate t
 matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
@@ -637,15 +637,15 @@ matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
 matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Tag n v) t = case (reString n, v) of
-  ("payee", Just v) -> regexMatch v . T.unpack . transactionPayee $ t
-  ("note", Just v) -> regexMatch v . T.unpack . transactionNote $ t
+  ("payee", Just v) -> regexMatchText v $ transactionPayee t
+  ("note", Just v) -> regexMatchText v $ transactionNote t
   (_, v) -> matchesTags n v $ transactionAllTags t
 
 -- | Does the query match the name and optionally the value of any of these tags ?
 matchesTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
 matchesTags namepat valuepat = not . null . filter (matches namepat valuepat)
   where
-    matches npat vpat (n,v) = regexMatch npat (T.unpack n) && maybe (const True) regexMatch vpat (T.unpack v)
+    matches npat vpat (n,v) = regexMatchText npat n && maybe (const True) regexMatchText vpat v
 
 -- | Does the query match this market price ?
 matchesPriceDirective :: Query -> PriceDirective -> Bool

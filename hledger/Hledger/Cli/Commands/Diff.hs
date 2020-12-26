@@ -18,7 +18,6 @@ import Data.Ord (comparing)
 import Data.Maybe (fromJust)
 import Data.Time (diffDays)
 import Data.Either (partitionEithers)
-import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import System.Exit (exitFailure)
 
@@ -107,7 +106,7 @@ diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{rsQuery=Acct acctRe}} _ = do
   j1 <- readJournalFile' f1
   j2 <- readJournalFile' f2
 
-  let acct = T.pack $ reString acctRe
+  let acct = reString acctRe
   let pp1 = matchingPostings acct j1
   let pp2 = matchingPostings acct j2
 

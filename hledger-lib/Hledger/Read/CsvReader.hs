@@ -206,7 +206,7 @@ expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return 
       case line of
         (T.stripPrefix "include " -> Just f) -> expandIncludes dir' =<< T.readFile f'
           where
-            f' = dir </> dropWhile isSpace (T.unpack f)
+            f' = dir </> T.unpack (T.dropWhile isSpace f)
             dir' = takeDirectory f'
         _ -> return line
 
@@ -653,8 +653,7 @@ csvfieldreferencep :: CsvRulesParser CsvFieldReference
 csvfieldreferencep = do
   lift $ dbgparse 8 "trying csvfieldreferencep"
   char '%'
-  f <- T.unpack <$> fieldnamep  -- XXX unpack and then pack
-  return . T.pack $ '%' : quoteIfNeeded f
+  T.cons '%' . textQuoteIfNeeded <$> fieldnamep
 
 -- A single regular expression
 regexp :: CsvRulesParser () -> CsvRulesParser Regexp
@@ -663,7 +662,7 @@ regexp end = do
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anySingle `manyTill` end
-  case toRegexCI . strip $ c:cs of
+  case toRegexCI . T.strip . T.pack $ c:cs of
        Left x -> Fail.fail $ "CSV parser: " ++ x
        Right x -> return x
 
@@ -777,7 +776,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   when (not rulesfileexists) $ do
     dbg1IO "creating conversion rules file" rulesfile
-    writeFile rulesfile $ T.unpack rulestext
+    T.writeFile rulesfile rulestext
 
   return $ Right nulljournal{jtxns=txns''}
 
@@ -920,9 +919,9 @@ transactionFromCsvRecord sourcepos rules record = t
         Nothing -> Unmarked
         Just s  -> either statuserror id $ runParser (statusp <* eof) "" s
           where
-            statuserror err = error' $ unlines
-              ["error: could not parse \""<>T.unpack s<>"\" as a cleared status (should be *, ! or empty)"
-              ,"the parse error is:      "++customErrorBundlePretty err
+            statuserror err = error' . T.unpack $ T.unlines
+              ["error: could not parse \""<>s<>"\" as a cleared status (should be *, ! or empty)"
+              ,"the parse error is:      "<>T.pack (customErrorBundlePretty err)
               ]
     code        = maybe "" singleline $ fieldval "code"
     description = maybe "" singleline $ fieldval "description"
@@ -1025,7 +1024,7 @@ getAmount rules record currency p1IsVirtual n =
         ]
         ++ ["  assignment: " <> f <> " " <>
              fromMaybe "" (hledgerField rules record f) <>
-             "\t=> value: " <> T.pack (showMixedAmount a) -- XXX not sure this is showing all the right info
+             "\t=> value: " <> wbToText (showMixed noColour a) -- XXX not sure this is showing all the right info
            | (f,a) <- fs]
 
 -- | Figure out the expected balance (assertion or assignment) specified for posting N,
@@ -1207,7 +1206,7 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
               where
                 -- does this individual matcher match the current csv record ?
                 matcherMatches :: Matcher -> Bool
-                matcherMatches (RecordMatcher _ pat) = regexMatch pat' wholecsvline
+                matcherMatches (RecordMatcher _ pat) = regexMatchText pat' wholecsvline
                   where
                     pat' = dbg7 "regex" pat
                     -- A synthetic whole CSV record to match against. Note, this can be
@@ -1216,8 +1215,8 @@ getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
                     -- - any quotes enclosing field values are removed
                     -- - and the field separator is always comma
                     -- which means that a field containing a comma will look like two fields.
-                    wholecsvline = dbg7 "wholecsvline" . T.unpack $ T.intercalate "," record
-                matcherMatches (FieldMatcher _ csvfieldref pat) = regexMatch pat $ T.unpack csvfieldvalue
+                    wholecsvline = dbg7 "wholecsvline" $ T.intercalate "," record
+                matcherMatches (FieldMatcher _ csvfieldref pat) = regexMatchText pat csvfieldvalue
                   where
                     -- the value of the referenced CSV field to match against.
                     csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref

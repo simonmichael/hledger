@@ -4,7 +4,6 @@ The @files@ command lists included files.
 
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Files (
@@ -12,8 +11,8 @@ module Hledger.Cli.Commands.Files (
  ,files
 ) where
 
-import Data.List
-import Safe
+import qualified Data.Text as T
+import Safe (headMay)
 
 import Hledger
 import Prelude hiding (putStrLn)
@@ -33,7 +32,7 @@ filesmode = hledgerCommandMode
 files :: CliOpts -> Journal -> IO ()
 files CliOpts{rawopts_=rawopts} j = do
   let args = listofstringopt "args" rawopts
-  regex <- mapM (either fail pure . toRegex) $ headMay args
+  regex <- mapM (either fail pure . toRegex . T.pack) $ headMay args
   let files = maybe id (filter . regexMatch) regex
               $ map fst
               $ jfiles j

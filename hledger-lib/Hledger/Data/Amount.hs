@@ -167,19 +167,19 @@ data AmountDisplayOpts = AmountDisplayOpts
   , displayMaxWidth      :: Maybe Int  -- ^ Maximum width to clip to
   } deriving (Show)
 
-instance Default AmountDisplayOpts where
-  def = AmountDisplayOpts { displayPrice         = True
-                          , displayColour        = True
-                          , displayZeroCommodity = False
-                          , displayNormalised    = True
-                          , displayOneLine       = False
-                          , displayMinWidth      = Nothing
-                          , displayMaxWidth      = Nothing
-                          }
+-- | Display Amount and MixedAmount with no colour.
+instance Default AmountDisplayOpts where def = noColour
 
 -- | Display Amount and MixedAmount with no colour.
 noColour :: AmountDisplayOpts
-noColour = def{displayColour=False}
+noColour = AmountDisplayOpts { displayPrice         = True
+                             , displayColour        = False
+                             , displayZeroCommodity = False
+                             , displayNormalised    = True
+                             , displayOneLine       = False
+                             , displayMinWidth      = Nothing
+                             , displayMaxWidth      = Nothing
+                             }
 
 -- | Display Amount and MixedAmount with no prices.
 noPrice :: AmountDisplayOpts
@@ -427,7 +427,7 @@ cshowAmount = wbUnpack . showAmountB def
 
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice = wbUnpack . showAmountB noPrice{displayColour=False}
+showAmountWithoutPrice = wbUnpack . showAmountB noPrice
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 showAmountWithZeroCommodity :: Amount -> String
@@ -669,7 +669,7 @@ showMixedAmount = wbUnpack . showMixed noColour
 
 -- | Get the one-line string representation of a mixed amount.
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = wbUnpack . showMixed oneLine{displayColour=False}
+showMixedAmountOneLine = wbUnpack . showMixed oneLine
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
