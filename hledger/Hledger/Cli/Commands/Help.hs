@@ -19,10 +19,7 @@ module Hledger.Cli.Commands.Help (
 
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat
-import Data.Char
-import Data.List
 import Data.Maybe
-import Safe
 import System.Console.CmdArgs.Explicit
 import System.Environment
 import System.IO
@@ -43,9 +40,9 @@ helpmode = hledgerCommandMode
   ]
   []
   []
-  ([], Just $ argsFlag "[MANUAL]")
+  ([], Nothing)  -- Just $ argsFlag "[TOPIC]"
 
--- | List or display one of the hledger manuals in various formats.
+-- | Display the hledger manual in various formats.
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager` flags.
 -- Otherwise it will use the first available of: info, man, $PAGER, less, stdout
 -- (and always stdout if output is non-interactive).
@@ -55,10 +52,10 @@ help' opts _ = do
   pagerprog <- fromMaybe "less" <$> lookupEnv "PAGER"
   interactive <- hIsTerminalDevice stdout
   let
-    args = take 1 $ listofstringopt "args" $ rawopts_ opts
-    topic = case args of
-              [pat] -> headMay [t | t <- docTopics, map toLower pat `isInfixOf` t]
-              _   -> Nothing
+    -- args = take 1 $ listofstringopt "args" $ rawopts_ opts
+    -- topic = case args of
+    --           [pat] -> headMay [t | t <- docTopics, map toLower pat `isInfixOf` t]
+    --           _   -> Nothing
     [info, man, pager, cat] =
       [runInfoForTopic, runManForTopic, runPagerForTopic pagerprog, printHelpForTopic]
     viewer
@@ -70,11 +67,12 @@ help' opts _ = do
       | "man"     `elem` exes           = man
       | pagerprog `elem` exes           = pager
       | otherwise                       = cat
-  case topic of
-    Nothing -> putStrLn $ unlines [
-       "Please choose a manual by typing \"hledger help MANUAL\" (any substring is ok)."
-      ,"A viewer (info, man, $PAGER, or stdout) will be auto-selected,"
-      ,"or type \"hledger help -h\" to see options. Manuals available:"
-      ]
-      ++ "\n " ++ unwords docTopics
-    Just t  -> viewer t
+  viewer "hledger"
+  -- case topic of
+  --   Nothing -> putStrLn $ unlines [
+  --      "Please choose a manual by typing \"hledger help MANUAL\" (any substring is ok)."
+  --     ,"A viewer (info, man, $PAGER, or stdout) will be auto-selected,"
+  --     ,"or type \"hledger help -h\" to see options. Manuals available:"
+  --     ]
+  --     ++ "\n " ++ unwords docTopics
+  --   Just t  -> viewer t
