@@ -106,7 +106,10 @@ import Hledger.Cli.Version
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["help","h"] (setboolopt "help") "show general usage (or after CMD, command usage)"
+  -- XXX why are these duplicated in defCommandMode below ?
+  flagNone ["help","h"] (setboolopt "help") "show general help (or after CMD, command help)"
+ ,flagNone ["man"] (setboolopt "man") "Show user manual with man"
+ ,flagNone ["info"] (setboolopt "info") "Show info manual with info"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
@@ -273,8 +276,10 @@ defCommandMode names = defMode {
   ,modeGroupFlags  = Group {
      groupNamed   = []
     ,groupUnnamed = [
-       flagNone ["help"] (setboolopt "help") "Show usage."
+        flagNone ["help"] (setboolopt "help") "Show command-line help"
       -- ,flagNone ["help"] (setboolopt "help") "Show long help."
+       ,flagNone ["man"] (setboolopt "man") "Show user manual with man"
+       ,flagNone ["info"] (setboolopt "info") "Show info manual with info"
       ]
     ,groupHidden  = []             --  flags not displayed in the usage
     }

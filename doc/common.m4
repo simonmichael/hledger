@@ -55,7 +55,13 @@ m4_dnl Should be kept synced with CliOptions.hs etc.
 m4_define({{_helpoptions_}}, {{
 
 `-h --help`
-: show general usage (or after COMMAND, command usage)
+: show general help (or after COMMAND, command help)
+
+`--man`
+: show user manual with man
+
+`--info`
+: show user manual with info
 
 `--version`
 : show version
