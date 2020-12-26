@@ -1,16 +1,17 @@
 help\
-Show the hledger user manual in one of several formats.
+Show the hledger user manual in one of several formats,
+optionally positioned at a given TOPIC (if possible).
+TOPIC is any heading, or heading prefix, in the manual.
+Some examples: commands, print, 'auto postings', periodic.
 
 _FLAGS
 
-This command shows the user manual built in to this hledger version,
-using the best viewer it can find.
+This command shows the user manual built in to this hledger version.
 It can be useful if the correct version of the hledger manual,
 or the usual viewing tools, are not installed on your system.
 
-It will use the first of these viewers that it finds in $PATH: 
-`info`, `man`, $PAGER, `less`, or stdout.
+By default it uses the best viewer it can find in $PATH, in this order:
+`info`, `man`, $PAGER (unless a topic is specified), `less`, or stdout.
 When run non-interactively, it always uses stdout.
-Or you can force a particular viewer with the 
-`--info/-i`, `--man/-m`, or `--pager/-p` flags.
-
+Or you can select a particular viewer with the 
+`-i` (info), `-m` (man), or `-p` (pager) flags.
