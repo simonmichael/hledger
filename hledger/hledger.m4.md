@@ -1357,8 +1357,7 @@ $ hledger web --serve
 ```
 (because the `--serve` flag belongs to `hledger-web`, not `hledger`).
 
-The `-h/--help` and `--version` flags work without `--`, with their position deciding which program they refer to. 
-Eg `hledger -h web` shows hledger's help, `hledger web -h` shows hledger-web's help.
+The `-h/--help` and `--version` flags don't require `--`.
 
 If you have any trouble with this, remember you can always run the add-on program directly, eg:
 ```shell
