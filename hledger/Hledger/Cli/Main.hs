@@ -146,8 +146,8 @@ main = do
     hasInfoFlag args     = any (`elem` args) ["--info"]
     f `orShowHelp` mode
       | hasHelpFlag args = putStr $ showModeUsage mode
-      | hasInfoFlag args = runInfoForTopic "hledger"
-      | hasManFlag args  = runManForTopic "hledger"
+      | hasInfoFlag args = runInfoForTopic "hledger" (headMay $ modeNames mode)
+      | hasManFlag args  = runManForTopic "hledger" (headMay $ modeNames mode)
       | otherwise        = f
       -- where
       --   lastdocflag
@@ -165,8 +165,8 @@ main = do
     runHledgerCommand
       -- high priority flags and situations. -h, then --help, then --info are highest priority.
       | hasHelpFlag argsbeforecmd = dbgIO "" "-h/--help before command, showing general usage" >> printUsage
-      | hasInfoFlag argsbeforecmd = dbgIO "" "--info before command, showing general info manual" >> runInfoForTopic "hledger"
-      | hasManFlag argsbeforecmd  = dbgIO "" "--man before command, showing general man page" >> runManForTopic "hledger"
+      | hasInfoFlag argsbeforecmd = dbgIO "" "--info before command, showing general info manual" >> runInfoForTopic "hledger" Nothing
+      | hasManFlag argsbeforecmd  = dbgIO "" "--man before command, showing general man page" >> runManForTopic "hledger" Nothing
       | not (hasHelpFlag argsaftercmd || hasInfoFlag argsaftercmd || hasManFlag argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
       | not (hasHelpFlag argsaftercmd || hasInfoFlag argsaftercmd || hasManFlag argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
