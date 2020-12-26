@@ -167,7 +167,8 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
             { esArgs = drop 1 esArgs
             , esDefDate = date
             }
-          dateAndCodeString = formatTime defaultTimeLocale yyyymmddFormat date ++ (if T.null code then "" else " (" ++ T.unpack code ++ ")")
+          dateAndCodeString = formatTime defaultTimeLocale yyyymmddFormat date
+                            ++ T.unpack (if T.null code then "" else " (" <> code <> ")")
           yyyymmddFormat = iso8601DateFormat Nothing
       confirmedTransactionWizard prevInput{prevDateAndCode=Just dateAndCodeString} es' (EnterDescAndComment (date, code) : stack)
     Nothing ->
@@ -237,7 +238,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
                                ,pcomment=comment
                                ,ptype=accountNamePostingType $ T.pack account
                                }
-          amountAndCommentString = showAmount amount ++ (if T.null comment then "" else "  ;" ++ T.unpack comment)
+          amountAndCommentString = showAmount amount ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
           prevAmountAndCmnt' = replaceNthOrAppend (length esPostings) amountAndCommentString (prevAmountAndCmnt prevInput)
           es' = es{esPostings=esPostings++[posting], esArgs=drop 2 esArgs}
       confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)

@@ -80,8 +80,8 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   let
     acct = headDef (error' $ show apat++" did not match any account")   -- PARTIAL:
            . filterAccts $ journalAccountNames j
-    filterAccts = case toRegexCI apat of
-        Right re -> filter (regexMatch re . T.unpack)
+    filterAccts = case toRegexCI $ T.pack apat of
+        Right re -> filter (regexMatchText re)
         Left  _  -> const []
     -- gather report options
     inclusive = True  -- tree_ ropts
@@ -134,8 +134,8 @@ accountTransactionsReportItemAsCsvRecord
   where
     idx  = T.pack $ show tindex
     date = showDate $ transactionRegisterDate reportq thisacctq t
-    amt  = T.pack $ showMixedAmountOneLineWithoutPrice False change
-    bal  = T.pack $ showMixedAmountOneLineWithoutPrice False balance
+    amt  = wbToText $ showMixed oneLine change
+    bal  = wbToText $ showMixed oneLine balance
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
@@ -146,7 +146,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
   where
     amtwidth = maximumStrict $ 12 : map (wbWidth . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (wbWidth . showamt . itembal) items
-    showamt = showMixed oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax, displayColour=False}  -- color_
+    showamt = showMixed oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax}  -- color_
       where mmax = if no_elide_ . rsOpts . reportspec_ $ copts then Nothing else Just 32
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
@@ -155,7 +155,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
       where
         -- XXX temporary hack ? recover the account name from the query
         macct = case filterQuery queryIsAcct thisacctq of
-                  Acct r -> Just . T.drop 1 . T.dropEnd 5 . T.pack $ reString r  -- Acct "^JS:expenses(:|$)"
+                  Acct r -> Just . T.drop 1 . T.dropEnd 5 $ reString r  -- Acct "^JS:expenses(:|$)"
                   _      -> Nothing  -- shouldn't happen
 
 -- | Render one account register report line item as plain text. Layout is like so:

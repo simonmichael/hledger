@@ -203,7 +203,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
           <+> togglefilters
           <+> str " transactions"
           -- <+> str (if ishistorical then " historical total" else " period total")
-          <+> borderQueryStr (unwords . map (quoteIfNeeded . T.unpack) $ querystring_ ropts)
+          <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
           -- <+> str " and subs"
           <+> borderPeriodStr "in" (period_ ropts)
           <+> str " ("

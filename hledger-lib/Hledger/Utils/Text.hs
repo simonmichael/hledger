@@ -124,7 +124,7 @@ formatText leftJustified minwidth maxwidth t =
 -- double-quoted.
 quoteIfSpaced :: T.Text -> T.Text
 quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
-                | not $ any (`elem` (T.unpack s)) whitespacechars = s
+                | not $ any (\c -> T.any (==c) s) whitespacechars = s
                 | otherwise = textQuoteIfNeeded s
 
 -- -- | Wrap a string in double quotes, and \-prefix any embedded single
@@ -138,7 +138,7 @@ quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
 -- -- | Double-quote this string if it contains whitespace, single quotes
 -- -- or double-quotes, escaping the quotes as needed.
 textQuoteIfNeeded :: T.Text -> T.Text
-textQuoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
+textQuoteIfNeeded s | any (\c -> T.any (==c) s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
                     | otherwise = s
 
 -- -- | Single-quote this string if it contains whitespace or double-quotes.
@@ -375,7 +375,7 @@ linesPrepend2 prefix1 prefix2 s = T.unlines $ case T.lines s of
 -- | Read a decimal number from a Text. Assumes the input consists only of digit
 -- characters.
 readDecimal :: Text -> Integer
-readDecimal = foldl' step 0 . T.unpack
+readDecimal = T.foldl' step 0
   where step a c = a * 10 + toInteger (digitToInt c)
 
 

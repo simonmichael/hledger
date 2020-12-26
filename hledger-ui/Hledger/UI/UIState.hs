@@ -308,7 +308,7 @@ showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui
   where
     e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
-    oldq = unwords . map (quoteIfNeeded . T.unpack)
+    oldq = T.unpack . T.unwords . map textQuoteIfNeeded
          . querystring_ . rsOpts . reportspec_ . cliopts_ $ aopts ui
 
 -- | Close the minibuffer, discarding any edit in progress.

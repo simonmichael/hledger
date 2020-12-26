@@ -357,11 +357,11 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[a, T.pack $ showMixedAmountOneLineWithoutPrice False b] | (a, _, _, b) <- items]
+  [[a, wbToText $ showMixed oneLine b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
-  else [["total", T.pack $ showMixedAmountOneLineWithoutPrice False total]]
+  else [["total", wbToText $ showMixed oneLine total]]
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
@@ -454,7 +454,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["Average" | average_]
   ) :
   [displayFull a :
-   map (T.pack . showMixedAmountOneLineWithoutPrice False)
+   map (wbToText . showMixed oneLine)
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
@@ -463,7 +463,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
   if no_total_ opts
   then []
   else ["Total:" :
-        map (T.pack . showMixedAmountOneLineWithoutPrice False) (
+        map (wbToText . showMixed oneLine) (
           coltotals
           ++ [tot | row_total_]
           ++ [avg | average_]
@@ -637,9 +637,9 @@ tests_Balance = tests "Balance" [
     test "unicode in balance layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let rspec = defreportspec{rsOpts=defreportopts{no_total_=True}}
-      TL.unpack (TB.toLazyText $ balanceReportAsText (rsOpts rspec) (balanceReport rspec{rsToday=fromGregorian 2008 11 26} j))
+      TB.toLazyText (balanceReportAsText (rsOpts rspec) (balanceReport rspec{rsToday=fromGregorian 2008 11 26} j))
         @?=
-        unlines
+        TL.unlines
         ["                -100  актив:наличные"
         ,"                 100  расходы:покупки"
         ]

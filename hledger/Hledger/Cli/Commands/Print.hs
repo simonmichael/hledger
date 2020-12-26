@@ -166,9 +166,10 @@ postingToCSV p =
     -- commodity goes into separate column, so we suppress it, along with digit group
     -- separators and prices
     let a_ = a{acommodity="",astyle=(astyle a){asdigitgroups=Nothing},aprice=Nothing} in
-    let amount = T.pack $ showAmount a_ in
-    let credit = if q < 0 then T.pack . showAmount $ negate a_ else "" in
-    let debit  = if q >= 0 then T.pack $ showAmount a_ else "" in
+    let showamt = TL.toStrict . TB.toLazyText . wbBuilder . showAmountB noColour in
+    let amount = showamt a_ in
+    let credit = if q < 0 then showamt $ negate a_ else "" in
+    let debit  = if q >= 0 then showamt a_ else "" in
     [account, amount, c, credit, debit, status, comment])
    amounts
   where

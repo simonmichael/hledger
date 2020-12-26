@@ -380,7 +380,7 @@ budgetReportAsCsv
 
   where
     flattentuples abs = concat [[a,b] | (a,b) <- abs]
-    showmamt = maybe "" (T.pack . showMixedAmountOneLineWithoutPrice False)
+    showmamt = maybe "" (wbToText . showMixed oneLine)
 
 -- tests
 

@@ -161,7 +161,7 @@ originalPosting p = fromMaybe p $ poriginal p
 -- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
 showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
-    unlines $ [concatTopPadded [show (postingDate p) ++ " ", showaccountname a ++ " ", showamount amt, showComment (pcomment p)]]
+    unlines $ [concatTopPadded [show (postingDate p) ++ " ", showaccountname a ++ " ", showamount amt, T.unpack . showComment $ pcomment p]]
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
@@ -173,8 +173,8 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
       showamount = wbUnpack . showMixed noColour{displayMinWidth=Just 12}
 
 
-showComment :: Text -> String
-showComment t = if T.null t then "" else "  ;" ++ T.unpack t
+showComment :: Text -> Text
+showComment t = if T.null t then "" else "  ;" <> t
 
 isReal :: Posting -> Bool
 isReal p = ptype p == RegularPosting

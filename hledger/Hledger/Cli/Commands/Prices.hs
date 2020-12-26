@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Cli.Commands.Prices (
   pricesmode
@@ -10,6 +11,7 @@ import qualified Data.Map as M
 import Data.Maybe
 import Data.List
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Time
 import Hledger
 import Hledger.Cli.CliOptions
@@ -33,7 +35,7 @@ prices opts j = do
     cprices    = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts ps
     icprices   = map (stylePriceDirectiveExceptPrecision styles) $ concatMap postingsPriceDirectivesFromCosts $ mapAmount invertPrice ps
     allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
-  mapM_ (putStrLn . showPriceDirective) $
+  mapM_ (T.putStrLn . showPriceDirective) $
     sortOn pddate $
     filter (matchesPriceDirective q) $
     allprices
@@ -41,8 +43,8 @@ prices opts j = do
     ifBoolOpt opt | boolopt opt $ rawopts_ opts = id
                   | otherwise = const []
 
-showPriceDirective :: PriceDirective -> String
-showPriceDirective mp = unwords ["P", show $ pddate mp, T.unpack . quoteCommoditySymbolIfNeeded $ pdcommodity mp, showAmountWithZeroCommodity $ pdamount mp]
+showPriceDirective :: PriceDirective -> T.Text
+showPriceDirective mp = T.unwords ["P", T.pack . show $ pddate mp, quoteCommoditySymbolIfNeeded $ pdcommodity mp, wbToText . showAmountB noColour{displayZeroCommodity=True} $ pdamount mp]
 
 divideAmount' :: Quantity -> Amount -> Amount
 divideAmount' n a = a' where
