@@ -3,13 +3,15 @@ Show any of the hledger manuals.
 
 _FLAGS
 
-The `help` command displays any of the main [hledger user manuals](https://hledger.org/index.html), in one of several ways.
+The `help` command displays any of the main [hledger user manuals](https://hledger.org/index.html), 
+in one of several ways.
 Run it with no argument to list the manuals, or provide a full or partial manual name to select one.
 
 hledger manuals are available in several formats.
 hledger help will use the first of these display methods that it finds: 
 info, man, $PAGER, less, stdout (or when non-interactive, just stdout). 
-You can force a particular viewer with the `--info`, `--man`, `--pager` flags.
+You can force a particular viewer with the `--info/-i`, `--man/-m`, 
+`--pager/-p` flags.
 
 Examples:
 

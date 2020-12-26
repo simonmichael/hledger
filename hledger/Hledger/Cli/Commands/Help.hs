@@ -36,9 +36,9 @@ import Hledger.Cli.DocFiles
 
 helpmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Help.txt")
-  [flagNone ["info"]  (setboolopt "info")  "show the manual with info"
-  ,flagNone ["man"]   (setboolopt "man")   "show the manual with man"
-  ,flagNone ["pager"] (setboolopt "pager") "show the manual with $PAGER or less"
+  [flagNone ["info","i"]  (setboolopt "info")  "show the manual with info"
+  ,flagNone ["man","m"]   (setboolopt "man")   "show the manual with man"
+  ,flagNone ["pager","p"] (setboolopt "pager") "show the manual with $PAGER or less"
   ,flagNone ["help","h"]  (setboolopt "help")  "show this help"
   ]
   []
