@@ -6,8 +6,9 @@
 
 .SH NAME
 .PP
-hledger is a command-line accounting tool for both power users and folks
-new to accounting.
+This is the command-line interface (CLI) for the hledger accounting
+tool.
+Here we also describe hledger\[aq]s concepts and file formats.
 This manual is for hledger 1.20.99.
 .SH SYNOPSIS
 .PP
@@ -23,11 +24,10 @@ money, time, or any other commodity, using double-entry accounting and a
 simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 .PP
-This is hledger\[cq]s command-line interface (there are also terminal
-and web interfaces).
-Its basic function is to read a plain text file describing financial
-transactions (in accounting terms, a general journal) and print useful
-reports on standard output, or export them as CSV.
+The basic function of the hledger CLI is to read a plain text file
+describing financial transactions (in accounting terms, a general
+journal) and print useful reports on standard output, or export them as
+CSV.
 hledger can also read some other file formats such as CSV files,
 translating them to journal format.
 Additionally, hledger lists other hledger-* executables found in the
@@ -75,10 +75,16 @@ by most hledger commands, run \f[C]hledger -h\f[R].
 General help options:
 .TP
 \f[B]\f[CB]-h --help\f[B]\f[R]
-show general usage (or after COMMAND, command usage)
+show general or COMMAND help
+.TP
+\f[B]\f[CB]--man\f[B]\f[R]
+show general or COMMAND user manual with man
+.TP
+\f[B]\f[CB]--info\f[B]\f[R]
+show general or COMMAND user manual with info
 .TP
 \f[B]\f[CB]--version\f[B]\f[R]
-show version
+show general or ADDONCOMMAND version
 .TP
 \f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
@@ -2189,7 +2195,7 @@ AlphaVantage \f[I](experimental)\f[R]
 Next, the detailed command docs, in alphabetical order.
 .SS accounts
 .PP
-accounts, a
+accounts
 .PD 0
 .P
 .PD
@@ -2408,7 +2414,7 @@ $ hledger areg assets date:jul
 .fi
 .SS balance
 .PP
-balance, bal, b
+balance, bal
 .PD 0
 .P
 .PD
@@ -3587,48 +3593,21 @@ help
 .PD 0
 .P
 .PD
-Show any of the hledger manuals.
+Show the hledger user manual in one of several formats, optionally
+positioned at a given TOPIC (if possible).
+TOPIC is any heading, or heading prefix, in the manual.
+Some examples: commands, print, \[aq]auto postings\[aq], periodic.
 .PP
-The \f[C]help\f[R] command displays any of the main hledger manuals, in
-one of several ways.
-Run it with no argument to list the manuals, or provide a full or
-partial manual name to select one.
+This command shows the user manual built in to this hledger version.
+It can be useful if the correct version of the hledger manual, or the
+usual viewing tools, are not installed on your system.
 .PP
-hledger manuals are available in several formats.
-hledger help will use the first of these display methods that it finds:
-info, man, $PAGER, less, stdout (or when non-interactive, just stdout).
-You can force a particular viewer with the \f[C]--info\f[R],
-\f[C]--man\f[R], \f[C]--pager\f[R], \f[C]--cat\f[R] flags.
-.PP
-Examples:
-.IP
-.nf
-\f[C]
-$ hledger help
-Please choose a manual by typing \[dq]hledger help MANUAL\[dq] (a substring is ok).
-Manuals: hledger hledger-ui hledger-web
-\f[R]
-.fi
-.IP
-.nf
-\f[C]
-$ hledger help h --man
-
-hledger(1)                    hledger User Manuals                    hledger(1)
-
-NAME
-       hledger - a command-line accounting tool
-
-SYNOPSIS
-       hledger [-f FILE] COMMAND [OPTIONS] [ARGS]
-       hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]
-       hledger
-
-DESCRIPTION
-       hledger  is  a  cross-platform  program  for tracking money, time, or any
-\&...
-\f[R]
-.fi
+By default it uses the best viewer it can find in $PATH, in this order:
+\f[C]info\f[R], \f[C]man\f[R], $PAGER (unless a topic is specified),
+\f[C]less\f[R], or stdout.
+When run non-interactively, it always uses stdout.
+Or you can select a particular viewer with the \f[C]-i\f[R] (info),
+\f[C]-m\f[R] (man), or \f[C]-p\f[R] (pager) flags.
 .SS import
 .PP
 import
@@ -3802,7 +3781,7 @@ Prices (and postings providing prices) can be filtered by a query.
 Price amounts are always displayed with their full precision.
 .SS print
 .PP
-print, txns, p
+print
 .PD 0
 .P
 .PD
@@ -3959,7 +3938,7 @@ $ LEDGER_FILE=unique.journal hledger print-unique
 .fi
 .SS register
 .PP
-register, reg, r
+register, reg
 .PD 0
 .P
 .PD
@@ -4735,10 +4714,8 @@ $ hledger web --serve
 (because the \f[C]--serve\f[R] flag belongs to \f[C]hledger-web\f[R],
 not \f[C]hledger\f[R]).
 .PP
-The \f[C]-h/--help\f[R] and \f[C]--version\f[R] flags work without
-\f[C]--\f[R], with their position deciding which program they refer to.
-Eg \f[C]hledger -h web\f[R] shows hledger\[aq]s help,
-\f[C]hledger web -h\f[R] shows hledger-web\[aq]s help.
+The \f[C]-h/--help\f[R] and \f[C]--version\f[R] flags don\[aq]t require
+\f[C]--\f[R].
 .PP
 If you have any trouble with this, remember you can always run the
 add-on program directly, eg:
