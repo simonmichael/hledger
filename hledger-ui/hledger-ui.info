@@ -197,10 +197,16 @@ the last one takes precedence.
 
 '-h --help'
 
-     show general usage (or after COMMAND, command usage)
+     show general or COMMAND help
+'--man'
+
+     show general or COMMAND user manual with man
+'--info'
+
+     show general or COMMAND user manual with info
 '--version'
 
-     show version
+     show general or ADDONCOMMAND version
 '--debug[=N]'
 
      show debug output (levels 1-9, default: 1)
@@ -522,23 +528,23 @@ Tag Table:
 Node: Top71
 Node: OPTIONS1488
 Ref: #options1585
-Node: KEYS5652
-Ref: #keys5747
-Node: SCREENS10066
-Ref: #screens10171
-Node: Accounts screen10261
-Ref: #accounts-screen10389
-Node: Register screen12604
-Ref: #register-screen12759
-Node: Transaction screen14756
-Ref: #transaction-screen14914
-Node: Error screen15784
-Ref: #error-screen15906
-Node: ENVIRONMENT16150
-Ref: #environment16264
-Node: FILES17071
-Ref: #files17170
-Node: BUGS17383
-Ref: #bugs17460
+Node: KEYS5772
+Ref: #keys5867
+Node: SCREENS10186
+Ref: #screens10291
+Node: Accounts screen10381
+Ref: #accounts-screen10509
+Node: Register screen12724
+Ref: #register-screen12879
+Node: Transaction screen14876
+Ref: #transaction-screen15034
+Node: Error screen15904
+Ref: #error-screen16026
+Node: ENVIRONMENT16270
+Ref: #environment16384
+Node: FILES17191
+Ref: #files17290
+Node: BUGS17503
+Ref: #bugs17580
 
 End Tag Table

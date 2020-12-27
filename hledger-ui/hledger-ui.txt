@@ -178,10 +178,14 @@ OPTIONS
        hledger help options:
 
        -h --help
-              show general usage (or after COMMAND, command usage)
+              show general or COMMAND help
+
+       --man  show general or COMMAND user manual with man
+
+       --info show general or COMMAND user manual with info
 
        --version
-              show version
+              show general or ADDONCOMMAND version
 
        --debug[=N]
               show debug output (levels 1-9, default: 1)

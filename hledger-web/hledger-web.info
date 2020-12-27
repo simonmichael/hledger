@@ -225,10 +225,16 @@ the last one takes precedence.
 
 '-h --help'
 
-     show general usage (or after COMMAND, command usage)
+     show general or COMMAND help
+'--man'
+
+     show general or COMMAND user manual with man
+'--info'
+
+     show general or COMMAND user manual with info
 '--version'
 
-     show version
+     show general or ADDONCOMMAND version
 '--debug[=N]'
 
      show debug output (levels 1-9, default: 1)
@@ -592,19 +598,19 @@ Tag Table:
 Node: Top72
 Node: OPTIONS1762
 Ref: #options1867
-Node: PERMISSIONS8966
-Ref: #permissions9105
-Node: EDITING UPLOADING DOWNLOADING10317
-Ref: #editing-uploading-downloading10498
-Node: RELOADING11332
-Ref: #reloading11466
-Node: JSON API11899
-Ref: #json-api12013
-Node: ENVIRONMENT17503
-Ref: #environment17619
-Node: FILES18352
-Ref: #files18452
-Node: BUGS18665
-Ref: #bugs18743
+Node: PERMISSIONS9086
+Ref: #permissions9225
+Node: EDITING UPLOADING DOWNLOADING10437
+Ref: #editing-uploading-downloading10618
+Node: RELOADING11452
+Ref: #reloading11586
+Node: JSON API12019
+Ref: #json-api12133
+Node: ENVIRONMENT17623
+Ref: #environment17739
+Node: FILES18472
+Ref: #files18572
+Node: BUGS18785
+Ref: #bugs18863
 
 End Tag Table
