@@ -15,6 +15,21 @@ to change the debug level without restarting GHCI,
 save a dummy change in Debug.hs and do a :reload.
 (Sometimes it's more convenient to temporarily add dbg0's and :reload.)
 
+In hledger, debug levels are used as follows:
+
+Debug level:  What to show:
+------------  ---------------------------------------------------------
+0             normal command output only (no warnings, eg)
+1 (--debug)   useful warnings, most common troubleshooting info, eg valuation
+2             common troubleshooting info, more detail
+3             report options selection
+4             report generation
+5             report generation, more detail
+6             input file reading
+7             input file reading, more detail
+8             command line parsing
+9             any other rarely needed / more in-depth info
+
 -}
 
 -- more:
