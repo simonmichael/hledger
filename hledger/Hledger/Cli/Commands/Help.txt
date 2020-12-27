@@ -1,35 +1,16 @@
 help
-Show any of the hledger manuals.
+Show the hledger user manual in one of several formats, optionally
+positioned at a given TOPIC (if possible). TOPIC is any heading, or
+heading prefix, in the manual. Some examples: commands, print, 'auto
+postings', periodic.
 
 _FLAGS
 
-The help command displays any of the main hledger manuals, in one of
-several ways. Run it with no argument to list the manuals, or provide a
-full or partial manual name to select one.
+This command shows the user manual built in to this hledger version. It
+can be useful if the correct version of the hledger manual, or the usual
+viewing tools, are not installed on your system.
 
-hledger manuals are available in several formats. hledger help will use
-the first of these display methods that it finds: info, man, $PAGER,
-less, stdout (or when non-interactive, just stdout). You can force a
-particular viewer with the --info, --man, --pager, --cat flags.
-
-Examples:
-
-$ hledger help
-Please choose a manual by typing "hledger help MANUAL" (a substring is ok).
-Manuals: hledger hledger-ui hledger-web
-
-$ hledger help h --man
-
-hledger(1)                    hledger User Manuals                    hledger(1)
-
-NAME
-       hledger - a command-line accounting tool
-
-SYNOPSIS
-       hledger [-f FILE] COMMAND [OPTIONS] [ARGS]
-       hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]
-       hledger
-
-DESCRIPTION
-       hledger  is  a  cross-platform  program  for tracking money, time, or any
-...
+By default it uses the best viewer it can find in $PATH, in this order:
+info, man, $PAGER (unless a topic is specified), less, or stdout. When
+run non-interactively, it always uses stdout. Or you can select a
+particular viewer with the -i (info), -m (man), or -p (pager) flags.
