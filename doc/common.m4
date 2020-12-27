@@ -64,7 +64,7 @@ m4_define({{_helpoptions_}}, {{
 : show general or COMMAND user manual with info
 
 `--version`
-: show general or ADDONCOMMAND version
+: show general or ADDONCMD version
 
 `--debug[=N]`
 : show debug output (levels 1-9, default: 1)

@@ -35,7 +35,6 @@ import Brick.Widgets.Edit
 import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL)
 import Control.Monad.IO.Class
 import Data.List
-import Data.Maybe
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
@@ -44,7 +43,6 @@ import Graphics.Vty
   -- ,Output(displayBounds,mkDisplayContext),DisplayContext(..)
   )
 import Lens.Micro.Platform
-import System.Environment
 
 import Hledger hiding (Color)
 import Hledger.Cli (CliOpts)
@@ -165,12 +163,11 @@ helpDialog _copts =
 -- May invoke $PAGER, less, man or info, which is likely to fail on MS Windows, TODO.
 helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 helpHandle ui ev = do
-  pagerprog <- liftIO $ fromMaybe "less" <$> lookupEnv "PAGER"
   case ev of
     VtyEvent e | e `elem` closeHelpEvents -> continue $ setMode Normal ui
-    VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic pagerprog "hledger-ui" >> return ui'
-    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic             "hledger-ui" >> return ui'
-    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic            "hledger-ui" >> return ui'
+    VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic "hledger-ui" Nothing >> return ui'
+    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic   "hledger-ui" Nothing >> return ui'
+    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic  "hledger-ui" Nothing >> return ui'
     _ -> continue ui
   where
     ui' = setMode Normal ui
