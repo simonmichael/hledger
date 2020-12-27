@@ -40,6 +40,7 @@ exchange rates.
 
 -}
 
+{-# LANGUAGE CPP                #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -143,6 +144,9 @@ import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map as M
 import Data.Map (findWithDefault)
 import Data.Maybe (fromMaybe)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Word (Word8)

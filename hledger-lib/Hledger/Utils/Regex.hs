@@ -132,11 +132,11 @@ instance RegexContext Regexp String String where
 
 -- Convert a Regexp string to a compiled Regex, or return an error message.
 toRegex :: Text -> Either RegexError Regexp
-toRegex = memo $ \s -> mkRegexErr s (Regexp s <$> makeRegexM s)
+toRegex = memo $ \s -> mkRegexErr s (Regexp s <$> makeRegexM (T.unpack s))  -- Have to unpack here because Text instance in regex-tdfa only appears in 1.3.1
 
 -- Like toRegex, but make a case-insensitive Regex.
 toRegexCI :: Text -> Either RegexError Regexp
-toRegexCI = memo $ \s -> mkRegexErr s (RegexpCI s <$> makeRegexOptsM defaultCompOpt{caseSensitive=False} defaultExecOpt s)
+toRegexCI = memo $ \s -> mkRegexErr s (RegexpCI s <$> makeRegexOptsM defaultCompOpt{caseSensitive=False} defaultExecOpt (T.unpack s))  -- Have to unpack here because Text instance in regex-tdfa only appears in 1.3.1
 
 -- | Make a nice error message for a regexp error.
 mkRegexErr :: Text -> Maybe a -> Either RegexError a
