@@ -1,4 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# POSIX sh would be better for folks on BSD, but unfortunately it has
+# a hard time doing the stderr filtering below.
+#
 #
 # This scripts expects stdin formatted like this:
 # <multi-line csv file>
