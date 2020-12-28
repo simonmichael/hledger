@@ -197,6 +197,7 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         $stack install --test --bench --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --ghc-options=-split-sections --no-terminal
+        # build quicker when tweaking ci: $stack install --ghc-options=-Werror --ghc-options=-split-sections --no-terminal
         # -split-sections shrinks binaries by 30% on average here
         # --pedantic --no-run-benchmarks
 
@@ -227,6 +228,7 @@ jobs:
     # XXX unreliable, and we don't need this for every PR; disable for now
 
     - name: Gather executables
+      id: exes
       run: |
         mkdir tmp
         cd tmp
@@ -235,11 +237,15 @@ jobs:
         cp ~/.local/bin/hledger .
         cp ~/.local/bin/hledger-ui .
         cp ~/.local/bin/hledger-web .
+    # example of setting a context variable, and an attempt to make a nice artifact version suffix.
+    # But a constant name is easier in some ways.
+    #   echo "::set-output name=version::$(git branch --show-current | sed 's/-.*//')-$(git rev-parse --short HEAD)"
 
     # XXX intermittent upload failures
     - name: Upload executables artifact
       uses: actions/upload-artifact@v2
       with:
+    #    name: hledger-ubuntu-${{ steps.exes.outputs.version }}
         name: hledger-ubuntu
         path: tmp/hledger
 
@@ -250,6 +256,34 @@ jobs:
     # - name: show stuff
     #   run: |
     #     if [[ -e ~/.local/bin ]]; then ls -lFRa ~/.local/bin; fi
+
+    # inspect available context info, per
+    # https://docs.github.com/en/free-pro-team@latest/actions/reference/context-and-expression-syntax-for-github-actions.
+    # sample output: https://github.com/simonmichael/hledger/runs/1619227104
+    # - name: Dump GitHub context
+    #   env:
+    #     GITHUB_CONTEXT: ${{ toJson(github) }}
+    #   run: echo "$GITHUB_CONTEXT"
+    # - name: Dump job context
+    #   env:
+    #     JOB_CONTEXT: ${{ toJson(job) }}
+    #   run: echo "$JOB_CONTEXT"
+    # - name: Dump steps context
+    #   env:
+    #     STEPS_CONTEXT: ${{ toJson(steps) }}
+    #   run: echo "$STEPS_CONTEXT"
+    # - name: Dump runner context
+    #   env:
+    #     RUNNER_CONTEXT: ${{ toJson(runner) }}
+    #   run: echo "$RUNNER_CONTEXT"
+    # - name: Dump strategy context
+    #   env:
+    #     STRATEGY_CONTEXT: ${{ toJson(strategy) }}
+    #   run: echo "$STRATEGY_CONTEXT"
+    # - name: Dump matrix context
+    #   env:
+    #     MATRIX_CONTEXT: ${{ toJson(matrix) }}
+    #   run: echo "$MATRIX_CONTEXT"
 
 
 
