@@ -494,7 +494,7 @@ builtintest: $(call def-help,builtintest, run hledgers built in test command)
 functest: hledger/test/addons/hledger-addon \
 	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
 	@$(STACK) build --fast hledger
-	@($(SHELLTESTSTK) -w `$(STACK) exec -- which hledger` hledger/test/ \
+	@($(SHELLTESTSTK) -w `$(STACK) exec -- which hledger` hledger/test/ bin/ \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 functest-%: hledger/test/addons/hledger-addon \
