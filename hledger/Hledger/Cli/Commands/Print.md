@@ -4,12 +4,11 @@ Show transaction journal entries, sorted by date.
 _FLAGS
 
 The print command displays full journal entries (transactions) from
-the journal file in date order, tidily formatted.
-With --date2, transactions are sorted by secondary date instead.
-
-print's output is always a valid [hledger journal](https://hledger.org/hledger.html).  
-It preserves all transaction information, but it does not preserve
-directives or inter-transaction comments
+the journal file, sorted by date
+(or with `--date2`, by [secondary date](#secondary-dates)).
+Amounts are shown right-aligned within each transaction (but not across all transactions). 
+Directives and inter-transaction comments are not shown.
+Eg:
 
 ```shell
 $ hledger print
@@ -34,6 +33,20 @@ $ hledger print
     liabilities:debts               $1
     assets:bank:checking           $-1
 ```
+
+print's output is usually a valid [hledger journal](https://hledger.org/hledger.html), and you can process it again with a second hledger command. This can be useful for certain kinds of search, eg:
+
+```shell
+# Show running total of food expenses paid from cash.
+# -f- reads from stdin. -I/--ignore-assertions is sometimes needed.
+$ hledger print assets:cash | hledger -f- -I reg expenses:food
+```
+
+There are some situations where print's output can become unparseable:
+
+- [Rounding](#rounding) amounts according to [commodity display styles](#commodity-display-style) can cause transactions to appear [unbalanced](https://github.com/simonmichael/hledger/issues/931).
+- [Valuation](#valuation) affects posting amounts but not [balance assertion](#balance-assertions) or [balance assignment](#balance-assignments) amounts, potentially causing those to [fail](https://github.com/simonmichael/hledger/issues/1429).
+- [Auto postings](#auto-postings) can generate postings with [too many missing amounts](https://github.com/simonmichael/hledger/issues/1276).
 
 Normally, the journal entry's explicit or implicit amount style is preserved.
 For example, when an amount is omitted in the journal, it will not appear in the output.
