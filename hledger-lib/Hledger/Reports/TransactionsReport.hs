@@ -35,10 +35,8 @@ import Hledger.Utils
 
 -- | A transactions report includes a list of transactions touching multiple accounts
 -- (posting-filtered and unfiltered variants), a running balance, and some
--- other information helpful for rendering a register view (a flag
--- indicating multiple other accounts and a display string describing
--- them) with or without a notion of current account(s).
--- Two kinds of report use this data structure, see transactionsReport
+-- other information helpful for rendering a register view with or without a notion
+-- of current account(s). Two kinds of report use this data structure, see transactionsReport
 -- and accountTransactionsReport below for details.
 type TransactionsReport = [TransactionsReportItem] -- line items, one per transaction
 type TransactionsReportItem = (Transaction -- the original journal transaction, unmodified
