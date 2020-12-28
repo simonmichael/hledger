@@ -97,13 +97,13 @@ hledger -h --version -f /dev/null
 >>>2
 >>>=0
 
-# 7. with -h before COMMAND, show general usage
+# 7. with -h before a COMMAND, show command usage
 hledger -h balance --cost
->>> /^hledger \[CMD\]/
+>>> /balance \[OPTIONS\]/
 >>>2
 >>>=0
 
-# 8. with -h after command, show command usage
+# 8. with -h after a command, show command usage
 hledger balance -h
 >>> /balance \[OPTIONS\]/
 >>>2
@@ -118,8 +118,8 @@ hledger nosuchcommand
 # flag positions
 
 # 10. general flags can go before command
-hledger -f /dev/null --alias somealiases --rules-file -h --help --version --debug 1 --daily register
->>> /^hledger \[CMD\]/
+hledger -f /dev/null --alias somealiases --rules-file --debug 1 --daily register
+>>>
 >>>2
 >>>=0
 
