@@ -1,20 +1,18 @@
-#!/usr/bin/env bash
-# POSIX sh would be better for folks on BSD, but unfortunately it has
-# a hard time doing the stderr filtering below.
-#
+#!/bin/sh
 #
 # This scripts expects stdin formatted like this:
 # <multi-line csv file>
 # RULES
 # <multi-line rules>
 #
-awk -v CSV="t.$$.csv" -v RULES="t.$$.csv.rules" '
-BEGIN{output=CSV}
-/^RULES/{output=RULES}
-!/^RULES/{print $0 >output}'
+cat > t.$$.input
+sed '1,/^RULES/d' t.$$.input > t.$$.csv.rules
+sed '/^RULES/,$d' t.$$.input > t.$$.csv
 
-trap "rm -f t.$$.csv t.$$.csv.rules" EXIT ERR
+trap 'rm -f t.$$.input t.$$.csv t.$$.csv.rules t.$$.stderr' EXIT
 
 # Remove variable file name from error messages
-:; ( hledger -f csv:t.$$.csv --rules-file t.$$.csv.rules print "$@" ) \
-       2> >( sed -Ee "s/t.*.csv/input/" >&2 )
+mkfifo t.$$.stderr
+sed -Ee "s/t\.$$\.csv/input/" t.$$.stderr >&2 &
+
+hledger -f csv:t.$$.csv --rules-file t.$$.csv.rules print "$@" 2> t.$$.stderr
