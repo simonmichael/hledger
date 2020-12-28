@@ -34,8 +34,8 @@ import Hledger.Utils
 import Hledger.Reports.ReportOptions
 
 
--- | A postings report is a list of postings with a running total, a label
--- for the total field, and a little extra transaction info to help with rendering.
+-- | A postings report is a list of postings with a running total, and a little extra
+-- transaction info to help with rendering.
 -- This is used eg for the register command.
 type PostingsReport = [PostingsReportItem] -- line items, one per posting
 type PostingsReportItem = (Maybe Day    -- The posting date, if this is the first posting in a
