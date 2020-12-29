@@ -870,7 +870,7 @@ manuals: Shake $(call def-help,manuals, regenerate and commit CLI help and manua
 
 tag: $(call def-help,tag, make git release tags and for the project and all packages )
 	for p in $(PACKAGES); do make -s tag-$$p; done
-	make -s tag-project
+	@echo "Also consider make -s tag-project (needs babysitting)"
 
 tag-%: $(call def-help,tag-PKG, make a git release tag for PKG )
 	git tag -fs $*-`cat $*/.version` -m "Release $*-`cat $*/.version`"
