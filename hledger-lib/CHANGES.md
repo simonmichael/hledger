@@ -1,8 +1,8 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 1.20.2 2020-12-23
-# 1.20.2 2020-12-23
+# 1.20.2 2020-12-28
+
 - Fix the info manuals' node structure.
 
 - Drop unused parsec dependency.

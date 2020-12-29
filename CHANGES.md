@@ -1,13 +1,9 @@
-General/project-related changes in the hledger project. 
-For package-specific changes, see the package changelogs.
+General project-related changes and major/notable all-package releases.
+For package-specific changes and minor releases, see the package changelogs.
 
-# 7c4068235
-
-- Fix the topic hierarchy in Info manuals.
-
+# 3728ac2e9
 
 # 1.20 2020-12-05
-
 - examples: clean up & add more budgeting examples
 
 - examples: stripe csv
@@ -24,8 +20,7 @@ For package-specific changes, see the package changelogs.
 - a hie.yaml file has been added, so hledger source loads
   easily in IDEs supporting haskell-language-server
 
-
-# 1.19.1 2020-09-07
+# 2020-09-07
 
 - Update shell completions (Jakob Schöttl)
 
