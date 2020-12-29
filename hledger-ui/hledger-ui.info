@@ -206,7 +206,7 @@ the last one takes precedence.
      show general or COMMAND user manual with info
 '--version'
 
-     show general or ADDONCOMMAND version
+     show general or ADDONCMD version
 '--debug[=N]'
 
      show debug output (levels 1-9, default: 1)
@@ -528,23 +528,23 @@ Tag Table:
 Node: Top71
 Node: OPTIONS1488
 Ref: #options1585
-Node: KEYS5772
-Ref: #keys5867
-Node: SCREENS10186
-Ref: #screens10291
-Node: Accounts screen10381
-Ref: #accounts-screen10509
-Node: Register screen12724
-Ref: #register-screen12879
-Node: Transaction screen14876
-Ref: #transaction-screen15034
-Node: Error screen15904
-Ref: #error-screen16026
-Node: ENVIRONMENT16270
-Ref: #environment16384
-Node: FILES17191
-Ref: #files17290
-Node: BUGS17503
-Ref: #bugs17580
+Node: KEYS5768
+Ref: #keys5863
+Node: SCREENS10182
+Ref: #screens10287
+Node: Accounts screen10377
+Ref: #accounts-screen10505
+Node: Register screen12720
+Ref: #register-screen12875
+Node: Transaction screen14872
+Ref: #transaction-screen15030
+Node: Error screen15900
+Ref: #error-screen16022
+Node: ENVIRONMENT16266
+Ref: #environment16380
+Node: FILES17187
+Ref: #files17286
+Node: BUGS17499
+Ref: #bugs17576
 
 End Tag Table

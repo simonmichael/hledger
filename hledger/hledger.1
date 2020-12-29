@@ -84,7 +84,7 @@ show general or COMMAND user manual with man
 show general or COMMAND user manual with info
 .TP
 \f[B]\f[CB]--version\f[B]\f[R]
-show general or ADDONCOMMAND version
+show general or ADDONCMD version
 .TP
 \f[B]\f[CB]--debug[=N]\f[B]\f[R]
 show debug output (levels 1-9, default: 1)
@@ -3788,15 +3788,12 @@ print
 Show transaction journal entries, sorted by date.
 .PP
 The print command displays full journal entries (transactions) from the
-journal file in date order, tidily formatted.
-With --date2, transactions are sorted by secondary date instead.
-.PP
-print\[aq]s output is always a valid hledger journal.
-.PD 0
-.P
-.PD
-It preserves all transaction information, but it does not preserve
-directives or inter-transaction comments
+journal file, sorted by date (or with \f[C]--date2\f[R], by secondary
+date).
+Amounts are shown right-aligned within each transaction (but not across
+all transactions).
+Directives and inter-transaction comments are not shown.
+Eg:
 .IP
 .nf
 \f[C]
@@ -3823,6 +3820,29 @@ $ hledger print
     assets:bank:checking           $-1
 \f[R]
 .fi
+.PP
+print\[aq]s output is usually a valid hledger journal, and you can
+process it again with a second hledger command.
+This can be useful for certain kinds of search, eg:
+.IP
+.nf
+\f[C]
+# Show running total of food expenses paid from cash.
+# -f- reads from stdin. -I/--ignore-assertions is sometimes needed.
+$ hledger print assets:cash | hledger -f- -I reg expenses:food
+\f[R]
+.fi
+.PP
+There are some situations where print\[aq]s output can become
+unparseable:
+.IP \[bu] 2
+Rounding amounts according to commodity display styles can cause
+transactions to appear unbalanced.
+.IP \[bu] 2
+Valuation affects posting amounts but not balance assertion or balance
+assignment amounts, potentially causing those to fail.
+.IP \[bu] 2
+Auto postings can generate postings with too many missing amounts.
 .PP
 Normally, the journal entry\[aq]s explicit or implicit amount style is
 preserved.
