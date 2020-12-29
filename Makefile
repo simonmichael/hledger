@@ -483,7 +483,7 @@ doctest: $(call def-help,doctest, run the doctests in hledger-lib module/functio
 	@($(STACKTEST) hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 unittest: $(call def-help,unittest, run the unit tests in hledger-lib )
-	@($(STACKTEST) hledger-lib:test:unittests && echo $@ PASSED) || (echo $@ FAILED; false)
+	@($(STACKTEST) hledger-lib:test:unittest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # assumes an up to date hledger executable is built.
 # I think we don't do it automatically to minimise unnecessary rebuilding.
