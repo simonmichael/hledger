@@ -1,9 +1,15 @@
 General project-related changes and major/notable all-package releases.
 For package-specific changes and minor releases, see the package changelogs.
 
-# 3728ac2e9
+# a5f9f8ce0
+
+- doc: merge file format manuals into the hledger manual
+  Also flatten the journal manual topics a bit.
+
+- doc: rewrite commands intro
 
 # 1.20 2020-12-05
+
 - examples: clean up & add more budgeting examples
 
 - examples: stripe csv

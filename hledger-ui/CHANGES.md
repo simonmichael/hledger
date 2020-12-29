@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# a5f9f8ce0
+
+- Do valuation for all valuation types, not just AtCost and AtDefault. (Stephen Morgan)
+
 # 1.20.2 2020-12-28
 
 - Fix loss of capitalisation in part of the manual. 

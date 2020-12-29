@@ -1,6 +1,16 @@
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# a5f9f8ce0
+
+- Removed: 
+  valuationTypeIsCost
+  valuationTypeIsDefaultValue
+  ValuationType's AtDefault constructor
+  
+- Changed:
+  *ApplyValuation functions take two less arguments
+
 # 1.20.2 2020-12-28
 
 - Fix the info manuals' node structure.
