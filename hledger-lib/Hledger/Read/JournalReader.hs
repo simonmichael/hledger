@@ -226,6 +226,7 @@ directivep = (do
    ,applyaccountdirectivep
    ,commoditydirectivep
    ,endapplyaccountdirectivep
+   ,payeedirectivep
    ,tagdirectivep
    ,endtagdirectivep
    ,defaultyeardirectivep
@@ -516,6 +517,14 @@ tagdirectivep = do
 endtagdirectivep :: JournalParser m ()
 endtagdirectivep = do
   (keywordsp "end tag" <|> keywordp "pop") <?> "end tag or pop directive"
+  lift restofline
+  return ()
+
+payeedirectivep :: JournalParser m ()
+payeedirectivep = do
+  string "payee" <?> "payee directive"
+  lift skipNonNewlineSpaces1
+  _ <- lift $ some nonspace
   lift restofline
   return ()
 
@@ -984,6 +993,11 @@ tests_JournalReader = tests "JournalReader" [
       pdcommodity = "BTC",
       pdamount    = usd 922.83
       }
+
+  ,tests "payeedirectivep" [
+       test "simple"             $ assertParse payeedirectivep "payee foo\n"
+       ,test "with-comment"       $ assertParse payeedirectivep "payee foo ; comment\n"
+       ]
 
   ,test "tagdirectivep" $ do
      assertParse tagdirectivep "tag foo \n"
