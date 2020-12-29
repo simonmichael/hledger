@@ -234,7 +234,7 @@ the last one takes precedence.
      show general or COMMAND user manual with info
 '--version'
 
-     show general or ADDONCOMMAND version
+     show general or ADDONCMD version
 '--debug[=N]'
 
      show debug output (levels 1-9, default: 1)
@@ -598,19 +598,19 @@ Tag Table:
 Node: Top72
 Node: OPTIONS1762
 Ref: #options1867
-Node: PERMISSIONS9086
-Ref: #permissions9225
-Node: EDITING UPLOADING DOWNLOADING10437
-Ref: #editing-uploading-downloading10618
-Node: RELOADING11452
-Ref: #reloading11586
-Node: JSON API12019
-Ref: #json-api12133
-Node: ENVIRONMENT17623
-Ref: #environment17739
-Node: FILES18472
-Ref: #files18572
-Node: BUGS18785
-Ref: #bugs18863
+Node: PERMISSIONS9082
+Ref: #permissions9221
+Node: EDITING UPLOADING DOWNLOADING10433
+Ref: #editing-uploading-downloading10614
+Node: RELOADING11448
+Ref: #reloading11582
+Node: JSON API12015
+Ref: #json-api12129
+Node: ENVIRONMENT17619
+Ref: #environment17735
+Node: FILES18468
+Ref: #files18568
+Node: BUGS18781
+Ref: #bugs18859
 
 End Tag Table
