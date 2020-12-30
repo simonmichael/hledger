@@ -18,7 +18,7 @@ import Data.Either (partitionEithers)
 import Data.Char (toUpper)
 import Safe (readMay)
 import Control.Monad (forM_)
-import System.IO (stderr, hPutStr)
+import System.IO (stderr, hPutStrLn)
 import System.Exit (exitFailure)
 
 checkmode :: Mode RawOpts
@@ -79,7 +79,7 @@ runCheck copts@CliOpts{rawopts_} j (check,args) =
     Payees          ->
       case journalCheckPayeesDeclared j of
         Right () -> return ()
-        Left err -> hPutStr stderr err >> exitFailure
+        Left err -> hPutStrLn stderr err >> exitFailure
   where
     -- Hack: append the provided args to the raw opts,
     -- in case the check can use them (like checkdates --unique). 
