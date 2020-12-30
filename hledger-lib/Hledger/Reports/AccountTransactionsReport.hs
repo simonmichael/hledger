@@ -111,9 +111,7 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = i
     periodlast =
       fromMaybe (error' "journalApplyValuation: expected a non-empty journal") $ -- XXX shouldn't happen
       reportPeriodOrJournalLastDay rspec j
-    tval = case value_ ropts of
-             Just v  -> \t -> transactionApplyValuation prices styles periodlast (rsToday rspec) t v
-             Nothing -> id
+    tval = maybe id (transactionApplyValuation prices styles periodlast (rsToday rspec)) $ value_ ropts
     ts4 =
       ptraceAtWith 5 (("ts4:\n"++).pshowTransactions) $
       map tval ts3
