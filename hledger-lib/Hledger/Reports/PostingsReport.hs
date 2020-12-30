@@ -75,17 +75,18 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring rspec j reportspan
 
+      -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
+      pvalue periodlast = maybe id (postingApplyValuation priceoracle styles periodlast (rsToday rspec)) value_
+
       -- Postings, or summary postings with their subperiod's end date, to be displayed.
       displayps :: [(Posting, Maybe Day)]
         | multiperiod =
             let summaryps = summarisePostingsByInterval interval_ whichdate mdepth showempty reportspan reportps
-            in [(pvalue p lastday, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
+            in [(pvalue lastday p, Just periodend) | (p, periodend) <- summaryps, let lastday = addDays (-1) periodend]
         | otherwise =
-            [(pvalue p reportorjournallast, Nothing) | p <- reportps]
+            [(pvalue reportorjournallast p, Nothing) | p <- reportps]
         where
           showempty = empty_ || average_
-          -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
-          pvalue p periodlast = maybe p (postingApplyValuation priceoracle styles periodlast (rsToday rspec) p) value_
           reportorjournallast =
             fromMaybe (error' "postingsReport: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
             reportPeriodOrJournalLastDay rspec j
@@ -100,19 +101,16 @@ postingsReport rspec@ReportSpec{rsOpts=ropts@ReportOpts{..}} j = items
           -- of --value on reports".
           -- XXX balance report doesn't value starting balance.. should this ?
           historical = balancetype_ == HistoricalBalance
-          startbal | average_  = if historical then bvalue precedingavg else 0
-                   | otherwise = if historical then bvalue precedingsum else 0
+          startbal | average_  = if historical then precedingavg else 0
+                   | otherwise = if historical then precedingsum else 0
             where
-              precedingsum = sumPostings precedingps
+              precedingsum = sumPostings $ map (pvalue daybeforereportstart) precedingps
               precedingavg | null precedingps = 0
                            | otherwise        = divideMixedAmount (fromIntegral $ length precedingps) precedingsum
-              bvalue = maybe id (mixedAmountApplyValuation priceoracle styles daybeforereportstart $ rsToday rspec) value_
-                  -- XXX constrain valuation type to AtDate daybeforereportstart here ?
-                where
-                  daybeforereportstart =
-                    maybe (error' "postingsReport: expected a non-empty journal")  -- PARTIAL: shouldn't happen
-                    (addDays (-1))
-                    $ reportPeriodOrJournalStart rspec j
+              daybeforereportstart =
+                maybe (error' "postingsReport: expected a non-empty journal")  -- PARTIAL: shouldn't happen
+                (addDays (-1))
+                $ reportPeriodOrJournalStart rspec j
 
           runningcalc = registerRunningCalculationFn ropts
           startnum = if historical then length precedingps + 1 else 1
