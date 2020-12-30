@@ -25,13 +25,13 @@ _FLAGS
 
 main :: IO ()
 main = do
-  opts@CliOpts{reportopts_=ropts} <- getHledgerCliOpts cmdmode
+  opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
   withJournalDo opts $
    \j -> do
     d <- getCurrentDay
     let
-      q = queryFromOpts d ropts
-      ts = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts ropts j
+      q = rsQuery rspec
+      ts = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts (rsOpts rspec) j
       ts' = map transactionSwapDates ts
     mapM_ (putStrLn . showTransaction) ts'
 

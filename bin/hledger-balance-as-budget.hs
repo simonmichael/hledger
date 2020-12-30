@@ -31,13 +31,13 @@ main = do
   args <- getArgs
   let report1args = takeWhile (/= "--") args
   let report2args = drop 1 $ dropWhile (/= "--") args
-  (_,report1) <- mbReport report1args
-  (ropts2,report2) <- mbReport report2args
-  let pastAsBudget = combineBudgetAndActual report1{prDates=prDates report2} report2 
+  (_,_,report1) <- mbReport report1args
+  (ropts2,j,report2) <- mbReport report2args
+  let pastAsBudget = combineBudgetAndActual ropts2 j report1{prDates=prDates report2} report2
   putStrLn $ budgetReportAsText ropts2 pastAsBudget
   where
     mbReport args = do
-      opts@CliOpts{reportopts_=ropts} <- getHledgerCliOpts' cmdmode args
+      opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' cmdmode args
       d <- getCurrentDay
-      report <- withJournalDo opts (return . multiBalanceReport d ropts)
-      return (ropts,report)
+      (report,j) <- withJournalDo opts $ \j -> return (multiBalanceReport rspec j, j)
+      return (rsOpts rspec,j,report)
