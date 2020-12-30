@@ -45,6 +45,7 @@ module Hledger.Read.Common (
   parseAndFinaliseJournal,
   parseAndFinaliseJournal',
   journalFinalise,
+  journalCheckPayeesDeclared,
   setYear,
   getYear,
   setDefaultCommodityAndStyle,
@@ -367,6 +368,20 @@ journalFinalise InputOpts{auto_,ignore_assertions_,commoditystyles_,strict_} f t
                       journalBalanceTransactions (not ignore_assertions_) j'''
                 )
             & fmap journalInferMarketPricesFromTransactions  -- infer market prices from commodity-exchanging transactions
+
+-- | Check that all the journal's transactions have payees declared with
+-- payee directives, returning an error message otherwise.
+journalCheckPayeesDeclared :: Journal -> Either String ()
+journalCheckPayeesDeclared j = sequence_ $ map checkpayee $ jtxns j
+  where
+    checkpayee t
+      | p `elem` ps = Right ()
+      | otherwise          = 
+          Left $ "\nundeclared payee \""++T.unpack p++"\""
+            ++ "\nin transaction at: "++showGenericSourcePos (tsourcepos t)
+      where
+        p  = transactionPayee t
+        ps = journalPayeesDeclared j
 
 -- | Check that all the journal's postings are to accounts declared with
 -- account directives, returning an error message otherwise.

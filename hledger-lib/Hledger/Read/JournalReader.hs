@@ -397,6 +397,17 @@ addAccountDeclaration (a,cmt,tags) =
              in
                j{jdeclaredaccounts = d:decls})
 
+-- Add a payee declaration to the journal.
+addPayeeDeclaration :: (Payee,Text,[Tag]) -> JournalParser m ()
+addPayeeDeclaration (p, cmt, tags) =
+  modify' (\j@Journal{jdeclaredpayees} -> j{jdeclaredpayees=d:jdeclaredpayees})
+             where
+               d = (p
+                   ,nullpayeedeclarationinfo{
+                     pdicomment = cmt
+                    ,pditags    = tags
+                    })
+
 indentedlinep :: JournalParser m String
 indentedlinep = lift skipNonNewlineSpaces1 >> (rstrip <$> lift restofline)
 
@@ -524,8 +535,9 @@ payeedirectivep :: JournalParser m ()
 payeedirectivep = do
   string "payee" <?> "payee directive"
   lift skipNonNewlineSpaces1
-  _ <- lift $ some nonspace
-  lift restofline
+  payee <- lift descriptionp  -- all text until ; or \n
+  (comment, tags) <- lift transactioncommentp
+  addPayeeDeclaration (payee, comment, tags)
   return ()
 
 defaultyeardirectivep :: JournalParser m ()
