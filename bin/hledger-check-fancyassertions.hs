@@ -335,7 +335,7 @@ data Opts = Opts
     , assertionsAlways :: [(String, Predicate)]
     -- ^ Account assertions that must hold after each txn.
     }
-  deriving (Eq, Ord, Show)
+  deriving (Show)
 
 -- | Command-line arguments.
 args :: ParserInfo Opts
