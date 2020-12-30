@@ -376,7 +376,7 @@ journalCheckPayeesDeclared j = sequence_ $ map checkpayee $ jtxns j
   where
     checkpayee t
       | p `elem` ps = Right ()
-      | otherwise          = 
+      | otherwise          =
           Left $ "\nundeclared payee \""++T.unpack p++"\""
             ++ "\nin transaction at: "++showGenericSourcePos (tsourcepos t)
       where
