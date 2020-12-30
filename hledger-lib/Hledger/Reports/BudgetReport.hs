@@ -21,6 +21,7 @@ module Hledger.Reports.BudgetReport (
   budgetReportAsCsv,
   -- * Helpers
   reportPeriodName,
+  combineBudgetAndActual,
   -- * Tests
   tests_BudgetReport
 )

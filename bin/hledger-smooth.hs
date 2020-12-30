@@ -51,22 +51,22 @@ _FLAGS
 
 main :: IO ()
 main = do
-  copts@CliOpts{reportopts_=ropts, rawopts_} <- getHledgerCliOpts cmdmode
-  let copts' = copts{
+  copts@CliOpts{reportspec_=rspec, rawopts_} <- getHledgerCliOpts cmdmode
+  let ropts = rsOpts rspec
+      copts' = copts{
         -- One of our postings will probably have a missing amount; this ensures it's
         -- explicit on all the others.
-        rawopts_=setboolopt "explicit" rawopts_
+        rawopts_ = setboolopt "explicit" rawopts_
         -- Don't let our ACCT argument be interpreted as a query by print
-        ,reportopts_=ropts{query_=""}
+        ,reportspec_ = rspec{rsOpts=ropts{querystring_=[]}}
         }
   withJournalDo copts' $ \j -> do
     today <- getCurrentDay
     let
-      menddate = reportPeriodLastDay ropts
-      args = words' $ query_ ropts
-      q = queryFromOpts today ropts
-      acct = T.pack $ headDef (error' "Please provide an account name argument") args
-      pr = postingsReport ropts (And [Acct $ accountNameToAccountRegexCI acct, q]) j
+      menddate = reportPeriodLastDay rspec
+      q = rsQuery rspec
+      acct = headDef (error' "Please provide an account name argument") $ querystring_ ropts
+      pr = postingsReport rspec{rsQuery = And [Acct $ accountNameToAccountRegexCI acct, q]} j
 
       -- dates of postings to acct (in report)
       pdates = map (postingDate . fourth5) (snd pr)
