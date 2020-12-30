@@ -569,8 +569,7 @@ Budget performance in 2000-01-01..2000-04-30, valued at 2000-01-15:
 ---++----------------------------------------------------------------------------------------------------------------
    || 5 B [50% of 10 B]  5 B [50% of 10 B]  5 B [50% of 10 B]  0 [0% of 10 B]  15 B [38% of 40 B]  4 B [38% of 10 B] 
 
-# 50. --value=then with --historical. How is the starting total valued ?
-# Currently not supported.
+# 50. --value=then with --historical. The starting total is valued individually for each posting at its posting time.
 <
 P 2020-01-01 A 1 B
 P 2020-02-01 A 2 B
@@ -590,8 +589,9 @@ P 2020-04-01 A 4 B
    (a)  1 A
 
 $ hledger -f- reg --value=then -b 2020-03 -H
->2 /not yet supported/
->=1
+2020-03-01                      (a)                            3 B           6 B
+2020-04-01                      (a)                            4 B          10 B
+>=0
 
 # 51. --value=then with a report interval. How are the summary amounts valued ?
 # Currently each interval's unvalued sum is valued on its first day.

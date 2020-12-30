@@ -577,7 +577,7 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
         HistoricalBalance                -> "Ending balances (historical)"
     valuationdesc = case value_ of
         Just (AtCost _mc)    -> ", valued at cost"
-        Just (AtThen _mc)    -> error' unsupportedValueThenError  -- TODO -- ", valued at period ends"  -- handled like AtEnd for now  -- PARTIAL:
+        Just (AtThen _mc)    -> ", valued at posting date"
         Just (AtEnd _mc) | changingValuation -> ""
         Just (AtEnd _mc)     -> ", valued at period ends"
         Just (AtNow _mc)     -> ", current value"

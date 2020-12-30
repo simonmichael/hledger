@@ -16,7 +16,6 @@ module Hledger.Data.Valuation (
    ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
-  ,unsupportedValueThenError
   -- ,amountApplyValuation
   -- ,amountValueAtDate
   ,mixedAmountApplyValuation
@@ -98,9 +97,9 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- provided price oracle, commodity styles, reference dates, and
 -- whether this is for a multiperiod report or not.
 -- See amountApplyValuation.
-mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> ValuationType -> MixedAmount -> MixedAmount
-mixedAmountApplyValuation priceoracle styles periodlast today v (Mixed as) =
-  Mixed $ map (amountApplyValuation priceoracle styles periodlast today v) as
+mixedAmountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> ValuationType -> MixedAmount -> MixedAmount
+mixedAmountApplyValuation priceoracle styles periodlast today postingdate v =
+  mapMixedAmount (amountApplyValuation priceoracle styles periodlast today postingdate v)
 
 -- | Apply a specified valuation to this amount, using the provided
 -- price oracle, reference dates, and whether this is for a
@@ -126,27 +125,19 @@ mixedAmountApplyValuation priceoracle styles periodlast today v (Mixed as) =
 -- - the provided "today" date - (--value=now, or -V/X with no report
 --   end date).
 -- 
--- Note --value=then is not supported by this function, and will cause an error;
--- use postingApplyValuation for that.
--- 
 -- This is all a bit complicated. See the reference doc at
 -- https://hledger.org/hledger.html#effect-of-valuation-on-reports
 -- (hledger_options.m4.md "Effect of valuation on reports"), and #1083.
 --
-amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> ValuationType -> Amount -> Amount
-amountApplyValuation priceoracle styles periodlast today v a =
+amountApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Day -> ValuationType -> Amount -> Amount
+amountApplyValuation priceoracle styles periodlast today postingdate v a =
   case v of
     AtCost    Nothing -> styleAmount styles $ amountCost a
-    AtCost    mc      -> amountValueAtDate priceoracle styles mc periodlast $ styleAmount styles $ amountCost a
-    AtThen    _mc     -> error' unsupportedValueThenError  -- PARTIAL:
-                      -- amountValueAtDate priceoracle styles mc periodlast a  -- posting date unknown, handle like AtEnd
+    AtCost    mc      -> amountValueAtDate priceoracle styles mc periodlast . styleAmount styles $ amountCost a
+    AtThen    mc      -> amountValueAtDate priceoracle styles mc postingdate a
     AtEnd     mc      -> amountValueAtDate priceoracle styles mc periodlast a
     AtNow     mc      -> amountValueAtDate priceoracle styles mc today a
     AtDate d  mc      -> amountValueAtDate priceoracle styles mc d a
-
--- | Standard error message for a report not supporting --value=then.
-unsupportedValueThenError :: String
-unsupportedValueThenError = "Sorry, --value=then is not yet supported for this kind of report."
 
 -- | Find the market value of each component amount in the given
 -- commodity, or its default valuation commodity, at the given
@@ -154,7 +145,7 @@ unsupportedValueThenError = "Sorry, --value=then is not yet supported for this k
 -- When market prices available on that date are not sufficient to
 -- calculate the value, amounts are left unchanged.
 mixedAmountValueAtDate :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Maybe CommoditySymbol -> Day -> MixedAmount -> MixedAmount
-mixedAmountValueAtDate priceoracle styles mc d (Mixed as) = Mixed $ map (amountValueAtDate priceoracle styles mc d) as
+mixedAmountValueAtDate priceoracle styles mc d = mapMixedAmount (amountValueAtDate priceoracle styles mc d)
 
 -- | Find the market value of this amount in the given valuation
 -- commodity if any, otherwise the default valuation commodity, at the

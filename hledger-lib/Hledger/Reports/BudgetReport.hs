@@ -228,7 +228,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
     title = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
            <> (case value_ of
                  Just (AtCost _mc)   -> ", valued at cost"
-                 Just (AtThen _mc)   -> error' unsupportedValueThenError  -- PARTIAL:
+                 Just (AtThen _mc)   -> ", valued at posting date"
                  Just (AtEnd _mc)    -> ", valued at period ends"
                  Just (AtNow _mc)    -> ", current value"
                  Just (AtDate d _mc) -> ", valued at " <> showDate d

@@ -594,9 +594,9 @@ transactionTransformPostings f t@Transaction{tpostings=ps} = t{tpostings=map f p
 -- the provided price oracle, commodity styles, reference dates, and
 -- whether this is for a multiperiod report or not. See
 -- amountApplyValuation.
-transactionApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> Transaction -> ValuationType -> Transaction
-transactionApplyValuation priceoracle styles periodlast today t v =
-  transactionTransformPostings (\p -> postingApplyValuation priceoracle styles periodlast today p v) t
+transactionApplyValuation :: PriceOracle -> M.Map CommoditySymbol AmountStyle -> Day -> Day -> ValuationType -> Transaction -> Transaction
+transactionApplyValuation priceoracle styles periodlast today v =
+  transactionTransformPostings (postingApplyValuation priceoracle styles periodlast today v)
 
 -- | Convert this transaction's amounts to cost, and apply the appropriate amount styles.
 transactionToCost :: M.Map CommoditySymbol AmountStyle -> Transaction -> Transaction
