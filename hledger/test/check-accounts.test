@@ -1,0 +1,14 @@
+# check accounts succeeds when all accounts are declared
+<
+account a
+2020-01-01
+  (a)  1
+$ hledger -f- check accounts
+
+# and otherwise fails:
+<
+2020-01-01
+  (a)  1
+$ hledger -f- check accounts
+>2 /undeclared account "a"/
+>=1

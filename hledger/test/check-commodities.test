@@ -1,0 +1,14 @@
+# check commodities succeeds when all commodities are declared
+<
+commodity $1.
+2020-01-01
+  (a)  $1
+$ hledger -f- check commodities
+
+# and otherwise fails
+<
+2020-01-01
+  (a)  $1
+$ hledger -f- check commodities
+>2 /undeclared commodity "\$"/
+>=1
