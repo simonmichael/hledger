@@ -70,7 +70,8 @@ hledger-check-fancyassertions "(assets:overdraft  < £2000) ==> (*assets:checkin
 my checking account (including subaccounts)."
 -}
 
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports    #-}
 
 module Main where
 
@@ -86,7 +87,9 @@ import Data.List.NonEmpty (NonEmpty(..), nonEmpty, toList)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Calendar.OrdinalDate (mondayStartWeek, sundayStartWeek, toOrdinalDate)
-import Data.Text (isPrefixOf, pack, unpack)
+import Data.Text (Text, isPrefixOf, pack, unpack)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Hledger.Data as H
 import qualified Hledger.Query as H
 import qualified Hledger.Read as H
@@ -124,17 +127,17 @@ main = do
 -- | Check assertions against a collection of grouped postings:
 -- assertions must hold when all postings in the group have been
 -- applied. Print out errors as they are found.
-checkAssertions :: [(H.AccountName, H.MixedAmount)] -> [(String, Predicate)] -> [NonEmpty H.Posting] -> IO Bool
+checkAssertions :: [(H.AccountName, H.MixedAmount)] -> [(Text, Predicate)] -> [NonEmpty H.Posting] -> IO Bool
 checkAssertions balances0 asserts0 postingss
     | null failed = pure True
-    | otherwise = putStrLn (intercalate "\n\n" failed) >> pure False
+    | otherwise = T.putStrLn (T.intercalate "\n\n" failed) >> pure False
   where
     (_, _, failed) = foldl' applyAndCheck (balances0, asserts0, []) postingss
 
     -- Apply a collection of postings and check the assertions.
-    applyAndCheck :: ([(H.AccountName, H.MixedAmount)], [(String, Predicate)], [String])
+    applyAndCheck :: ([(H.AccountName, H.MixedAmount)], [(Text, Predicate)], [Text])
                   -> NonEmpty H.Posting
-                  -> ([(H.AccountName, H.MixedAmount)], [(String, Predicate)], [String])
+                  -> ([(H.AccountName, H.MixedAmount)], [(Text, Predicate)], [Text])
     applyAndCheck (starting, asserts, errs) ps =
       let ps' = toList ps
           closing  = starting `addAccounts` closingBalances' ps'
@@ -145,25 +148,25 @@ checkAssertions balances0 asserts0 postingss
 
     -- Check an assertion against a collection of account balances,
     -- and return an error on failure.
-    check :: H.Posting -> [(H.AccountName, H.MixedAmount)] -> (String, Predicate) -> Maybe String
+    check :: H.Posting -> [(H.AccountName, H.MixedAmount)] -> (Text, Predicate) -> Maybe Text
     check lastp balances (pstr, p)
       | checkAssertion balances p = Nothing
-      | otherwise = Just . unlines $
+      | otherwise = Just . T.unlines $
           let after = case H.ptransaction lastp of
                 Just t  ->
-                  "after transaction:\n" ++ H.showTransaction t ++
-                  "(after posting: " ++ init (H.showPosting lastp) ++ ")\n\n"
+                  "after transaction:\n" <> H.showTransaction t <>
+                  "(after posting: " <> T.pack (init $ H.showPosting lastp) <> ")\n\n"
                 Nothing ->
-                  "after posting:\n" ++ H.showPosting lastp
+                  "after posting:\n" <> T.pack (H.showPosting lastp)
 
               -- Restrict to accounts mentioned in the predicate, and pretty-print balances
-              balances' = map (first unpack) $ filter (flip inAssertion p . fst) balances
-              maxalen   = maximum $ map (length . fst) balances'
-              accounts = [ a <> padding <> show m
+              balances' = filter (flip inAssertion p . fst) balances
+              maxalen   = maximum $ map (T.length . fst) balances'
+              accounts = [ a <> padding <> T.pack (show m)
                          | (a,m) <- balances'
-                         , let padding = replicate (2 + maxalen - length a) ' '
+                         , let padding = T.replicate (2 + maxalen - T.length a) " "
                          ]
-          in [ "assertion '" ++ pstr ++ "' violated", after ++ "relevant balances:"] ++ map ("    "++) accounts
+          in [ "assertion '" <> pstr <> "' violated", after <> "relevant balances:"] ++ map ("    "<>) accounts
 
 -- | Check an assertion holds for a collection of account balances.
 checkAssertion :: [(H.AccountName, H.MixedAmount)] -> Predicate -> Bool
@@ -322,17 +325,17 @@ data Opts = Opts
     -- ^ Include only non-virtual postings.
     , sunday :: Bool
     -- ^ Week starts on Sunday.
-    , assertionsDaily :: [(String, Predicate)]
+    , assertionsDaily :: [(Text, Predicate)]
     -- ^ Account assertions that must hold at the end of each day.
-    , assertionsWeekly :: [(String, Predicate)]
+    , assertionsWeekly :: [(Text, Predicate)]
     -- ^ Account assertions that must hold at the end of each week.
-    , assertionsMonthly :: [(String, Predicate)]
+    , assertionsMonthly :: [(Text, Predicate)]
     -- ^ Account assertions that must hold at the end of each month.
-    , assertionsQuarterly :: [(String, Predicate)]
+    , assertionsQuarterly :: [(Text, Predicate)]
     -- ^ Account assertions that must hold at the end of each quarter.
-    , assertionsYearly :: [(String, Predicate)]
+    , assertionsYearly :: [(Text, Predicate)]
     -- ^ Account assertions that must hold at the end of each year.
-    , assertionsAlways :: [(String, Predicate)]
+    , assertionsAlways :: [(Text, Predicate)]
     -- ^ Account assertions that must hold after each txn.
     }
   deriving (Show)
@@ -388,13 +391,13 @@ args = info (helper <*> parser) $ mconcat
 
     -- Turn a Parsec parser into a ReadM parser that also returns the
     -- input.
-    readParsec :: H.JournalParser ReadM a -> ReadM (String, a)
+    readParsec :: H.JournalParser ReadM a -> ReadM (Text, a)
     readParsec p = do
       s <- str
-      parsed <- P.runParserT (runStateT p H.nulljournal) "" (pack s)
+      parsed <- P.runParserT (runStateT p H.nulljournal) "" s
       case parsed of
         Right (a, _) -> pure (s, a)
-        Left err -> fail ("failed to parse input '" ++ s ++ "': " ++ show err)
+        Left err -> fail ("failed to parse input '" ++ unpack s ++ "': " ++ show err)
 
     readParsec' :: H.SimpleTextParser a -> ReadM (String, a)
     readParsec' p = do

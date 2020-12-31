@@ -7,6 +7,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 import Data.String.QQ (s)
+import qualified Data.Text.IO as T
 import Hledger
 import Hledger.Cli
 
@@ -33,7 +34,7 @@ main = do
       q = rsQuery rspec
       ts = filter (q `matchesTransaction`) $ jtxns $ journalSelectingAmountFromOpts (rsOpts rspec) j
       ts' = map transactionSwapDates ts
-    mapM_ (putStrLn . showTransaction) ts'
+    mapM_ (T.putStrLn . showTransaction) ts'
 
 transactionSwapDates :: Transaction -> Transaction
 transactionSwapDates t@Transaction{tdate2=Nothing} = t
