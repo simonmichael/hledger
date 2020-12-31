@@ -60,7 +60,7 @@ $ hledger -f- print
 # including limiting the display precision, like a commodity directive (#1187).
 <
 D 1,000.0 A
-1/1
+2020/1/1
   (a)  1000.123
 
 $ hledger -f- print
