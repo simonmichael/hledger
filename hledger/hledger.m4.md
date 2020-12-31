@@ -355,10 +355,13 @@ recognised file extension, so as to either read successfully or to
 show relevant error messages.
 
 You can also force a specific reader/format by prefixing the file path
-with the format and a colon. Eg to read a .dat file as csv:
+with the format and a colon. Eg, to read a .dat file as csv format:
 
 ```shell
 $ hledger -f csv:/some/csv-file.dat stats
+```
+Or to read stdin (`-`) as timeclock format:
+```shell
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 ```
 
