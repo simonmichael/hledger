@@ -51,7 +51,7 @@ They are more specialised and not desirable for everyone, therefore optional:
 
 - **ordereddates** - transactions are ordered by date (similar to the old `check-dates` command)
 
-- **payees** - all payees used by transactions have been declared
+- **payees** - all payees used by transactions [have been declared](#declaring-payees)
 
 - **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command).
 
