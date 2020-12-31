@@ -90,8 +90,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              BalancedVirtualPosting -> wrap "[" "]"
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
-    amt = wbToText . showMixed oneLine $ pamount p
-    bal = wbToText $ showMixed oneLine b
+    amt = wbToText . showMixedAmountB oneLine $ pamount p
+    bal = wbToText $ showMixedAmountB oneLine b
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
@@ -105,7 +105,7 @@ postingsReportAsText opts items =
     itembal (_,_,_,_,a) = a
     unlinesB [] = mempty
     unlinesB xs = mconcat (intersperse (TB.fromText "\n") xs) <> TB.fromText "\n"
-    showAmt = showMixed noColour{displayMinWidth=Just 12}
+    showAmt = showMixedAmountB noColour{displayMinWidth=Just 12}
 
 -- | Render one register report line item as plain text. Layout is like so:
 -- @
@@ -185,7 +185,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
           wrap a b x = a <> x <> b
       amt = TL.toStrict . TB.toLazyText . wbBuilder . showamt amtwidth $ pamount p
       bal = TL.toStrict . TB.toLazyText . wbBuilder $ showamt balwidth b
-      showamt w = showMixed noPrice{displayColour=color_ . rsOpts $ reportspec_ opts, displayMinWidth=Just w, displayMaxWidth=Just w}
+      showamt w = showMixedAmountB noPrice{displayColour=color_ . rsOpts $ reportspec_ opts, displayMinWidth=Just w, displayMaxWidth=Just w}
       -- alternate behaviour, show null amounts as 0 instead of blank
       -- amt = if null amt' then "0" else amt'
       -- bal = if null bal' then "0" else bal'

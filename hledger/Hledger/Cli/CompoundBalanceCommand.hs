@@ -263,7 +263,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
       | no_total_ ropts || length subreports == 1 = id
       | otherwise = (++
           ["Net:" :
-           map (wbToText . showMixed oneLine) (
+           map (wbToText . showMixedAmountB oneLine) (
              coltotals
              ++ (if row_total_ ropts then [grandtotal] else [])
              ++ (if average_ ropts   then [grandavg]   else [])
@@ -309,9 +309,9 @@ compoundBalanceReportAsHtml ropts cbr =
                   let defstyle = style_ "text-align:right"
                       orEmpty b x = if b then x else mempty
                   in [tr_ $ th_ [class_ "", style_ "text-align:left"] "Net:"
-                         <> foldMap (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack . showMixed oneLine) coltotals
-                         <> orEmpty (row_total_ ropts) (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack $ showMixed oneLine grandtotal)
-                         <> orEmpty (average_ ropts) (th_ [class_ "amount colaverage", defstyle] . toHtml . wbUnpack $ showMixed oneLine grandavg)
+                         <> foldMap (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack . showMixedAmountB oneLine) coltotals
+                         <> orEmpty (row_total_ ropts) (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack $ showMixedAmountB oneLine grandtotal)
+                         <> orEmpty (average_ ropts) (th_ [class_ "amount colaverage", defstyle] . toHtml . wbUnpack $ showMixedAmountB oneLine grandavg)
                     ]
   in do
     style_ (T.unlines [""

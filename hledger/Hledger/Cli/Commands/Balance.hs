@@ -357,11 +357,11 @@ balance opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[a, wbToText $ showMixed oneLine b] | (a, _, _, b) <- items]
+  [[a, wbToText $ showMixedAmountB oneLine b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
-  else [["total", wbToText $ showMixed oneLine total]]
+  else [["total", wbToText $ showMixedAmountB oneLine total]]
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
@@ -438,7 +438,7 @@ renderComponent topaligned opts (acctname, depth, total) (FormatField ljust mmin
   where
     align = if topaligned then (if ljust then TopLeft    else TopRight)
                           else (if ljust then BottomLeft else BottomRight)
-    showamt = showMixed noPrice{displayColour=color_ opts, displayMinWidth=mmin, displayMaxWidth=mmax}
+    showamt = showMixedAmountB noPrice{displayColour=color_ opts, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports
 
@@ -454,7 +454,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
    ++ ["Average" | average_]
   ) :
   [displayFull a :
-   map (wbToText . showMixed oneLine)
+   map (wbToText . showMixedAmountB oneLine)
    (amts
     ++ [rowtot | row_total_]
     ++ [rowavg | average_])
@@ -463,7 +463,7 @@ multiBalanceReportAsCsv opts@ReportOpts{average_, row_total_}
   if no_total_ opts
   then []
   else ["Total:" :
-        map (wbToText . showMixed oneLine) (
+        map (wbToText . showMixedAmountB oneLine) (
           coltotals
           ++ [tot | row_total_]
           ++ [avg | average_]
@@ -627,7 +627,7 @@ balanceReportTableAsText ReportOpts{..} =
     Tab.renderTableB def{tableBorders=False, prettyTable=pretty_tables_}
         (Tab.alignCell TopLeft) (Tab.alignCell TopRight) showamt
   where
-    showamt = Cell TopRight . pure . showMixed oneLine{displayColour=color_, displayMaxWidth=mmax}
+    showamt = Cell TopRight . pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=mmax}
     mmax = if no_elide_ then Nothing else Just 32
 
 

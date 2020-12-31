@@ -125,8 +125,10 @@ module Hledger.Data.Amount (
   showMixedAmountOneLineWithoutPrice,
   showMixedAmountElided,
   showMixedAmountWithZeroCommodity,
-  showMixed,
-  showMixedLines,
+  showMixedAmountB,
+  showMixedAmountLinesB,
+  wbToText,
+  wbUnpack,
   setMixedAmountPrecision,
   canonicaliseMixedAmount,
   -- * misc.
@@ -403,12 +405,16 @@ amountUnstyled a = a{astyle=amountstyle}
 -- commodity's display settings. String representations equivalent to
 -- zero are converted to just \"0\". The special "missing" amount is
 -- displayed as the empty string.
+--
+-- > showAmount = wbUnpack . showAmountB noColour
 showAmount :: Amount -> String
 showAmount = wbUnpack . showAmountB noColour
 
--- | Get the string representation of an amount, based on its
--- commodity's display settings and the display options. The
--- special "missing" amount is displayed as the empty string.
+-- | General function to generate a WideBuilder for an Amount, according the
+-- supplied AmountDisplayOpts. The special "missing" amount is displayed as
+-- the empty string. This is the main function to use for showing
+-- Amounts, constructing a builder; it can then be converted to a Text with
+-- wbToText, or to a String with wbUnpack.
 showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB opts a@Amount{astyle=style} =
@@ -426,14 +432,20 @@ showAmountB opts a@Amount{astyle=style} =
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
+--
+-- > cshowAmount = wbUnpack . showAmountB def{displayColour=True}
 cshowAmount :: Amount -> String
-cshowAmount = wbUnpack . showAmountB def
+cshowAmount = wbUnpack . showAmountB def{displayColour=True}
 
 -- | Get the string representation of an amount, without any \@ price.
+--
+-- > showAmountWithoutPrice = wbUnpack . showAmountB noPrice
 showAmountWithoutPrice :: Amount -> String
 showAmountWithoutPrice = wbUnpack . showAmountB noPrice
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
+--
+-- > showAmountWithZeroCommodity = wbUnpack . showAmountB noColour{displayZeryCommodity=True}
 showAmountWithZeroCommodity :: Amount -> String
 showAmountWithZeroCommodity = wbUnpack . showAmountB noColour{displayZeroCommodity=True}
 
@@ -668,34 +680,46 @@ mixedAmountUnstyled = mapMixedAmount amountUnstyled
 -- | Get the string representation of a mixed amount, after
 -- normalising it to one amount per commodity. Assumes amounts have
 -- no or similar prices, otherwise this can show misleading prices.
+--
+-- > showMixedAmount = wbUnpack . showMixedAmountB noColour
 showMixedAmount :: MixedAmount -> String
-showMixedAmount = wbUnpack . showMixed noColour
+showMixedAmount = wbUnpack . showMixedAmountB noColour
 
 -- | Get the one-line string representation of a mixed amount.
+--
+-- > showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = wbUnpack . showMixed oneLine
+showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
+--
+-- > showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB noColour{displayZeroCommodity=True}
 showMixedAmountWithZeroCommodity :: MixedAmount -> String
-showMixedAmountWithZeroCommodity = wbUnpack . showMixed noColour{displayZeroCommodity=True}
+showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB noColour{displayZeroCommodity=True}
 
 -- | Get the string representation of a mixed amount, without showing any transaction prices.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
+--
+-- > showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noPrice{displayColour=c}
 showMixedAmountWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountWithoutPrice c = wbUnpack . showMixed noPrice{displayColour=c}
+showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noPrice{displayColour=c}
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
+--
+-- > showMixedAmountOneLineWithoutPrice c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
 showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountOneLineWithoutPrice c = wbUnpack . showMixed oneLine{displayColour=c}
+showMixedAmountOneLineWithoutPrice c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
 
 -- | Like showMixedAmountOneLineWithoutPrice, but show at most the given width,
 -- with an elision indicator if there are more.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
+--
+-- > showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
 showMixedAmountElided :: Int -> Bool -> MixedAmount -> String
-showMixedAmountElided w c = wbUnpack . showMixed oneLine{displayColour=c, displayMaxWidth=Just w}
+showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLine{displayColour=c, displayMaxWidth=Just w}
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String
@@ -703,29 +727,32 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
                        | otherwise       = printf "Mixed [%s]" as
     where as = intercalate "\n       " $ map showAmountDebug $ amounts m
 
--- | General function to generate a WideBuilder for a MixedAmount,
--- according the supplied AmountDisplayOpts. If a maximum width is
--- given then:
+-- | General function to generate a WideBuilder for a MixedAmount, according the
+-- supplied AmountDisplayOpts. This is the main function to use for showing
+-- MixedAmounts, constructing a builder; it can then be converted to a Text with
+-- wbToText, or to a String with wbUnpack.
+--
+-- If a maximum width is given then:
 -- - If displayed on one line, it will display as many Amounts as can
 --   fit in the given width, and further Amounts will be elided.
 -- - If displayed on multiple lines, any Amounts longer than the
 --   maximum width will be elided.
-showMixed :: AmountDisplayOpts -> MixedAmount -> WideBuilder
-showMixed opts ma
-    | displayOneLine opts = showMixedOneLine opts ma
+showMixedAmountB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
+showMixedAmountB opts ma
+    | displayOneLine opts = showMixedAmountOneLineB opts ma
     | otherwise           = WideBuilder (wbBuilder . mconcat $ intersperse sep lines) width
   where
-    lines = showMixedLines opts ma
+    lines = showMixedAmountLinesB opts ma
     width = headDef 0 $ map wbWidth lines
     sep = WideBuilder (TB.singleton '\n') 0
 
--- | Helper for showMixed to show a MixedAmount on multiple lines. This returns
+-- | Helper for showMixedAmountB to show a MixedAmount on multiple lines. This returns
 -- the list of WideBuilders: one for each Amount in the MixedAmount (possibly
 -- normalised), and padded/elided to the appropriate width. This does not
 -- honour displayOneLine: all amounts will be displayed as if displayOneLine
 -- were False.
-showMixedLines :: AmountDisplayOpts -> MixedAmount -> [WideBuilder]
-showMixedLines opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
+showMixedAmountLinesB :: AmountDisplayOpts -> MixedAmount -> [WideBuilder]
+showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
     map (adBuilder . pad) elided
   where
     Mixed amts = if displayNormalised opts then normaliseMixedAmountSquashPricesForDisplay ma else ma
@@ -743,11 +770,11 @@ showMixedLines opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin}
         elisionStr = elisionDisplay (Just m) (wbWidth sep) (length long) $ lastDef nullAmountDisplay short
         (short, long) = partition ((m>=) . wbWidth . adBuilder) xs
 
--- | Helper for showMixed to deal with single line displays. This does not
+-- | Helper for showMixedAmountB to deal with single line displays. This does not
 -- honour displayOneLine: all amounts will be displayed as if displayOneLine
 -- were True.
-showMixedOneLine :: AmountDisplayOpts -> MixedAmount -> WideBuilder
-showMixedOneLine opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
+showMixedAmountOneLineB :: AmountDisplayOpts -> MixedAmount -> WideBuilder
+showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
     WideBuilder (wbBuilder . pad . mconcat . intersperse sep $ map adBuilder elided) . max width $ fromMaybe 0 mmin
   where
     Mixed amts = if displayNormalised opts then normaliseMixedAmountSquashPricesForDisplay ma else ma

@@ -244,7 +244,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
       where
         actual' = fromMaybe 0 actual
         budgetAndPerc b = (showamt b, showper <$> percentage actual' b)
-        showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w)) . showMixed oneLine{displayColour=color_, displayMaxWidth=Just 32}
+        showamt = (\(WideBuilder b w) -> (TL.toStrict $ TB.toLazyText b, w)) . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=Just 32}
         showper p = let str = T.pack (show $ roundTo 0 p) in (str, T.length str)
     cellWidth ((_,wa), Nothing)                    = (wa,  0,  0)
     cellWidth ((_,wa), Just ((_,wb), Nothing))     = (wa, wb,  0)
@@ -380,7 +380,7 @@ budgetReportAsCsv
 
   where
     flattentuples abs = concat [[a,b] | (a,b) <- abs]
-    showmamt = maybe "" (wbToText . showMixed oneLine)
+    showmamt = maybe "" (wbToText . showMixedAmountB oneLine)
 
 -- tests
 

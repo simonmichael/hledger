@@ -1024,7 +1024,7 @@ getAmount rules record currency p1IsVirtual n =
         ]
         ++ ["  assignment: " <> f <> " " <>
              fromMaybe "" (hledgerField rules record f) <>
-             "\t=> value: " <> wbToText (showMixed noColour a) -- XXX not sure this is showing all the right info
+             "\t=> value: " <> wbToText (showMixedAmountB noColour a) -- XXX not sure this is showing all the right info
            | (f,a) <- fs]
 
 -- | Figure out the expected balance (assertion or assignment) specified for posting N,
