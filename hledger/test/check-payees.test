@@ -1,5 +1,3 @@
-# check payees
-
 # check payees succeeds when all payees are declared:
 <
 payee foo
@@ -7,7 +5,7 @@ payee foo
 2020-01-02 foo | some description
 $ hledger -f - check payees
 
-# and otherwise fails, eg:
+# and otherwise fails:
 <
 2020-01-01 foo
 $ hledger -f - check payees

@@ -1,0 +1,16 @@
+# check uniqueleafnames succeeds when all account leaf names are unique
+<
+2020-01-01
+  (a)     1
+  (a:aa)  1
+$ hledger -f- check uniqueleafnames
+
+# and otherwise fails
+<
+2020-01-01
+  (a)     1
+  (b:a)   1
+$ hledger -f- check uniqueleafnames
+> /a as a, b:a/
+>=1
+# XXX make it >2; improve message
