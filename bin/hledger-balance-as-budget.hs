@@ -5,7 +5,8 @@
 
 {-| Construct two balance reports for two different time periods and use one of the as "budget" for
     the other, thus comparing them
--}  
+-}
+import Data.Text.Lazy.IO as TL
 import System.Environment (getArgs)
 import Hledger.Cli
 
@@ -34,7 +35,7 @@ main = do
   (_,_,report1) <- mbReport report1args
   (ropts2,j,report2) <- mbReport report2args
   let pastAsBudget = combineBudgetAndActual ropts2 j report1{prDates=prDates report2} report2
-  putStrLn $ budgetReportAsText ropts2 pastAsBudget
+  TL.putStrLn $ budgetReportAsText ropts2 pastAsBudget
   where
     mbReport args = do
       opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' cmdmode args

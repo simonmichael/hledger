@@ -69,7 +69,7 @@ main = do
       pr = postingsReport rspec{rsQuery = And [Acct $ accountNameToAccountRegexCI acct, q]} j
 
       -- dates of postings to acct (in report)
-      pdates = map (postingDate . fourth5) (snd pr)
+      pdates = map (postingDate . fourth5) pr
       -- the specified report end date or today's date
       enddate = fromMaybe today menddate
       dates = pdates ++ [enddate]
