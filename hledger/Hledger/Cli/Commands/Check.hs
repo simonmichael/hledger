@@ -11,8 +11,8 @@ module Hledger.Cli.Commands.Check (
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Commands.Checkdupes (checkdupes)
-import Hledger.Cli.Commands.Checkdates (checkdates)
+import Hledger.Cli.Commands.Check.Ordereddates (journalCheckOrdereddates)
+import Hledger.Cli.Commands.Check.Uniqueleafnames (journalCheckUniqueleafnames)
 import System.Console.CmdArgs.Explicit
 import Data.Either (partitionEithers)
 import Data.Char (toUpper)
@@ -82,11 +82,11 @@ runCheck copts@CliOpts{rawopts_} j (check,args) =
     Commodities -> case journalCheckCommoditiesDeclared j of
       Right () -> return ()
       Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
-    Ordereddates -> checkdates copts' j
+    Ordereddates -> journalCheckOrdereddates copts' j
     Payees -> case journalCheckPayeesDeclared j of
       Right () -> return ()
       Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
-    Uniqueleafnames -> checkdupes copts' j
+    Uniqueleafnames -> journalCheckUniqueleafnames j
   where
     -- Hack: append the provided args to the raw opts,
     -- in case the check can use them (like checkdates --unique). 

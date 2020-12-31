@@ -1,8 +1,5 @@
-{-# LANGUAGE TemplateHaskell #-}
-
-module Hledger.Cli.Commands.Checkdupes (
-  checkdupesmode
- ,checkdupes
+module Hledger.Cli.Commands.Check.Uniqueleafnames (
+  journalCheckUniqueleafnames
 )
 where
 
@@ -11,21 +8,11 @@ import Data.List
 import Data.List.Extra (nubSort)
 import qualified Data.Text as T
 import Hledger
-import Hledger.Cli.CliOptions
-import System.Console.CmdArgs.Explicit
 import Text.Printf
 import System.Exit (exitFailure)
 import Control.Monad (when)
 
-checkdupesmode :: Mode RawOpts
-checkdupesmode = hledgerCommandMode
-  $(embedFileRelative "Hledger/Cli/Commands/Checkdupes.txt")
-  []
-  [generalflagsgroup1]
-  hiddenflags
-  ([], Nothing)
-
-checkdupes _opts j = do
+journalCheckUniqueleafnames j = do
   let dupes = checkdupes' $ accountsNames j
   when (not $ null dupes) $ do
     -- XXX make output more like Checkdates.hs, Check.hs etc.

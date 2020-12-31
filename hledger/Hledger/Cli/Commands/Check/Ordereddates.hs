@@ -1,31 +1,18 @@
-{-# LANGUAGE NoOverloadedStrings #-} -- prevent trouble if turned on in ghci
-{-# LANGUAGE TemplateHaskell #-}
-
-module Hledger.Cli.Commands.Checkdates (
-  checkdatesmode
- ,checkdates
-) where
+module Hledger.Cli.Commands.Check.Ordereddates (
+  journalCheckOrdereddates
+)
+where
 
 import Hledger
 import Hledger.Cli.CliOptions
-import System.Console.CmdArgs.Explicit
 import System.Exit
 import Text.Printf
 
-checkdatesmode :: Mode RawOpts
-checkdatesmode = hledgerCommandMode
-  $(embedFileRelative "Hledger/Cli/Commands/Checkdates.txt")
-  [flagNone ["unique"] (setboolopt "unique") "require that dates are unique"]
-  [generalflagsgroup1]
-  hiddenflags
-  ([], Just $ argsFlag "[QUERY]")
-
-checkdates :: CliOpts -> Journal -> IO ()
-checkdates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
+journalCheckOrdereddates :: CliOpts -> Journal -> IO ()
+journalCheckOrdereddates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   let ropts = (rsOpts rspec){accountlistmode_=ALFlat}
   let ts = filter (rsQuery rspec `matchesTransaction`) $
            jtxns $ journalSelectingAmountFromOpts ropts j
-  -- pprint rawopts
   let unique = boolopt "--unique" rawopts  -- TEMP: it's this for hledger check dates
             || boolopt "unique" rawopts    -- and this for hledger check-dates (for some reason)
   let date = transactionDateFn ropts

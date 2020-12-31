@@ -14,4 +14,8 @@ $ hledger -f- check ordereddates
 $ hledger -f- check ordereddates
 > /transaction date is out of order/
 >=1
-# XXX make it >2
+# XXX 
+# make it >2
+# With --date2, it checks secondary dates instead.
+# With --strict, dates must also be unique.
+# With a query, only matched transactions' dates are checked.

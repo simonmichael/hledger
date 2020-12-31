@@ -49,8 +49,6 @@ extra-source-files:
 - Hledger/Cli/Commands/Balancesheetequity.txt
 - Hledger/Cli/Commands/Cashflow.txt
 - Hledger/Cli/Commands/Check.txt
-- Hledger/Cli/Commands/Checkdates.txt
-- Hledger/Cli/Commands/Checkdupes.txt
 - Hledger/Cli/Commands/Close.txt
 - Hledger/Cli/Commands/Codes.txt
 - Hledger/Cli/Commands/Commodities.txt
@@ -157,8 +155,8 @@ library:
   - Hledger.Cli.Commands.Balancesheetequity
   - Hledger.Cli.Commands.Cashflow
   - Hledger.Cli.Commands.Check
-  - Hledger.Cli.Commands.Checkdates
-  - Hledger.Cli.Commands.Checkdupes
+  - Hledger.Cli.Commands.Check.Ordereddates
+  - Hledger.Cli.Commands.Check.Uniqueleafnames
   - Hledger.Cli.Commands.Close
   - Hledger.Cli.Commands.Codes
   - Hledger.Cli.Commands.Commodities
