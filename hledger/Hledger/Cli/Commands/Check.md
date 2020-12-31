@@ -13,7 +13,7 @@ Some examples:
 ```shell
 hledger check      # basic checks
 hledger check -s   # basic + strict checks
-hledger check ordereddates uniqueleafnames  # basic + specified checks
+hledger check ordereddates payees  # basic + two other checks
 ```
 
 Here are the checks currently available:
@@ -36,7 +36,7 @@ including `check`:
 ### Strict checks
 
 These additional checks are run when the `-s`/`--strict` ([strict mode]) flag is used.
-They can also be run by specifying their names as arguments to `check`:
+Or, they can be run by giving their names as arguments to `check`:
 
 - **accounts** - all account names used by transactions 
   [have been declared](hledger.html#account-error-checking)
@@ -46,25 +46,26 @@ They can also be run by specifying their names as arguments to `check`:
 
 ### Other checks
 
-These checks can be run only by specifying their names as arguments to `check`:
+These checks can be run only by giving their names as arguments to `check`.
+They are more specialised and not desirable for everyone, therefore optional:
 
 - **ordereddates** - transactions are ordered by date (similar to the old `check-dates` command)
 
 - **payees** - all payees used by transactions have been declared
 
-- **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command)
+- **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command).
 
-### Add-on checks
+### Custom checks
 
-These checks are not yet integrated with `check`, but are available as
-[add-on commands] in <https://github.com/simonmichael/hledger/tree/master/bin>:
+A few more checks are are available as separate [add-on commands],
+in <https://github.com/simonmichael/hledger/tree/master/bin>:
 
 - **hledger-check-tagfiles** - all tag values containing / (a forward slash) exist as file paths
 
 - **hledger-check-fancyassertions** - more complex balance assertions are passing
 
-You could make your own similar scripts to perform custom checks;
-Cookbook -> [Scripting](scripting.html) may be helpful.
+You could make similar scripts to perform your own custom checks.
+See: Cookbook -> [Scripting](scripting.html).
 
 
 [transaction prices]: hledger.html#transaction-prices
