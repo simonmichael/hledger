@@ -1,6 +1,5 @@
 Miscellaneous hledger add-ons, bash scripts, example make rules, etc. 
-Note, things in this directory are not continually tested and can be
-incomplete or out of date.
+Things in this directory can be unfinished or out of date.
 
 ## hledger scripts
 
