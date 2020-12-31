@@ -13,4 +13,9 @@ $ hledger -f- check uniqueleafnames
 $ hledger -f- check uniqueleafnames
 > /a as a, b:a/
 >=1
-# XXX make it >2; improve message
+# XXX
+# make it >2; improve message
+# Reports account names having the same leaf but different prefixes. 
+# In other words, two or more leaves that are categorized differently.
+# Reads the default journal file, or another specified as an argument.
+# An example: <http://stefanorodighiero.net/software/hledger-dupes.html>

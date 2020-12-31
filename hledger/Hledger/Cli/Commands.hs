@@ -25,8 +25,6 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Balancesheet
   ,module Hledger.Cli.Commands.Balancesheetequity
   ,module Hledger.Cli.Commands.Cashflow
-  ,module Hledger.Cli.Commands.Checkdates
-  ,module Hledger.Cli.Commands.Checkdupes
   ,module Hledger.Cli.Commands.Close
   ,module Hledger.Cli.Commands.Codes
   ,module Hledger.Cli.Commands.Commodities
@@ -73,8 +71,6 @@ import Hledger.Cli.Commands.Balancesheet
 import Hledger.Cli.Commands.Balancesheetequity
 import Hledger.Cli.Commands.Cashflow
 import Hledger.Cli.Commands.Check
-import Hledger.Cli.Commands.Checkdates
-import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Close
 import Hledger.Cli.Commands.Codes
 import Hledger.Cli.Commands.Commodities
@@ -111,8 +107,6 @@ builtinCommands = [
   ,(balancesheetmode       , balancesheet)
   ,(cashflowmode           , cashflow)
   ,(checkmode              , check)
-  ,(checkdatesmode         , checkdates)
-  ,(checkdupesmode         , checkdupes)
   ,(closemode              , close)
   ,(codesmode              , codes)
   ,(commoditiesmode        , commodities)
