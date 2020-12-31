@@ -28,6 +28,7 @@ checkdupesmode = hledgerCommandMode
 checkdupes _opts j = do
   let dupes = checkdupes' $ accountsNames j
   when (not $ null dupes) $ do
+    -- XXX make output more like Checkdates.hs, Check.hs etc.
     mapM_ render dupes
     exitFailure
 

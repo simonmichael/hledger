@@ -79,7 +79,7 @@ runCheck copts@CliOpts{rawopts_} j (check,args) =
     Payees          ->
       case journalCheckPayeesDeclared j of
         Right () -> return ()
-        Left err -> hPutStrLn stderr err >> exitFailure
+        Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
   where
     -- Hack: append the provided args to the raw opts,
     -- in case the check can use them (like checkdates --unique). 

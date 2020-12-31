@@ -14,8 +14,17 @@
 ;   salary
 ; liabilities
 ;   debts
+account assets:bank:checking
+account income:salary
+account income:gifts
+account assets:bank:saving
+account assets:cash
+account expenses:food
+account expenses:supplies
+account liabilities:debts
+commodity $
 
-2008/01/01 income
+2018/01/01 income
     assets:bank:checking  $1
     income:salary
 
