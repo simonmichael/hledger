@@ -48,7 +48,7 @@ $ hledger -f - balance --tree --no-total
 >=0
 
 <
-1/1
+2020/1/1
  (a)          1
  (a:aa)       1
  (a:aa)      -1
