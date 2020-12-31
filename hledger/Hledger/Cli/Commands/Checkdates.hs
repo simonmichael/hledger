@@ -37,13 +37,15 @@ checkdates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     FoldAcc{fa_previous=Nothing} -> return ()
     FoldAcc{fa_error=Nothing}    -> return ()
     FoldAcc{fa_error=Just error, fa_previous=Just previous} -> do
-      putStrLn $ printf 
-          ("Error: transaction's date is not in date order%s,\n"
-        ++ "at %s:\n\n%sPrevious transaction's date was: %s")
-        (if unique then " and/or not unique" else "")
-        (showGenericSourcePos $ tsourcepos error)
-        (showTransaction error)
-        (show $ date previous)
+      let 
+        uniquestr = if unique then " and/or not unique" else ""
+        positionstr = showGenericSourcePos $ tsourcepos error
+        txn1str = linesPrepend  "  "      $ showTransaction previous
+        txn2str = linesPrepend2 "> " "  " $ showTransaction error
+      printf "Error: transaction date is out of order%s\nat %s:\n\n%s"
+        uniquestr
+        positionstr
+        (txn1str ++ txn2str)
       exitFailure
 
 data FoldAcc a b = FoldAcc

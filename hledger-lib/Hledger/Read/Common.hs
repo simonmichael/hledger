@@ -150,6 +150,7 @@ import Text.Megaparsec.Custom
 import Hledger.Data
 import Hledger.Utils
 import Safe (headMay)
+import Text.Printf (printf)
 
 --- ** doctest setup
 -- $setup
@@ -376,9 +377,11 @@ journalCheckPayeesDeclared j = sequence_ $ map checkpayee $ jtxns j
   where
     checkpayee t
       | p `elem` ps = Right ()
-      | otherwise          =
-          Left $ "undeclared payee \""++T.unpack p++"\""
-            ++ "\nin transaction at: "++showGenericSourcePos (tsourcepos t)
+      | otherwise = Left $ 
+          printf "undeclared payee \"%s\"\nat: %s\n\n%s"
+            (T.unpack p) 
+            (showGenericSourcePos $ tsourcepos t)
+            (linesPrepend2 "> " "  " $ chomp1 $ showTransaction t)
       where
         p  = transactionPayee t
         ps = journalPayeesDeclared j
@@ -390,11 +393,13 @@ journalCheckAccountsDeclared j = sequence_ $ map checkacct $ journalPostings j
   where
     checkacct Posting{paccount,ptransaction}
       | paccount `elem` as = Right ()
-      | otherwise          = 
-          Left $ "undeclared account \""++T.unpack paccount++"\""
-            ++ case ptransaction of
-                Just Transaction{tsourcepos} -> "\nin transaction at: "++showGenericSourcePos tsourcepos
-                Nothing -> ""
+      | otherwise = Left $
+          (printf "undeclared account \"%s\"\n" (T.unpack paccount))
+          ++ case ptransaction of 
+              Nothing -> ""
+              Just t  -> printf "in transaction at: %s\n\n%s"
+                          (showGenericSourcePos $ tsourcepos t)
+                          (linesPrepend "  " $ chomp1 $ showTransaction t)
       where
         as = journalAccountNamesDeclared j
 
@@ -407,16 +412,20 @@ journalCheckCommoditiesDeclared j =
     checkcommodities Posting{..} =
       case mfirstundeclaredcomm of
         Nothing -> Right ()
-        Just c  -> Left $ "undeclared commodity \""++T.unpack c++"\""
-          ++ case ptransaction of
-                Just Transaction{tsourcepos} -> "\nin transaction at: "++showGenericSourcePos tsourcepos
-                Nothing -> ""      
+        Just c  -> Left $
+          (printf "undeclared commodity \"%s\"\n" (T.unpack c))
+          ++ case ptransaction of 
+              Nothing -> ""
+              Just t  -> printf "in transaction at: %s\n\n%s"
+                          (showGenericSourcePos $ tsourcepos t)
+                          (linesPrepend "  " $ chomp1 $ showTransaction t)
       where
         mfirstundeclaredcomm = 
           headMay $ filter (not . (`elem` cs)) $ catMaybes $
           (acommodity . baamount <$> pbalanceassertion) :
           (map (Just . acommodity) $ amounts pamount)
         cs = journalCommoditiesDeclared j
+
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
