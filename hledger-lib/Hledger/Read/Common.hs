@@ -377,7 +377,7 @@ journalCheckPayeesDeclared j = sequence_ $ map checkpayee $ jtxns j
     checkpayee t
       | p `elem` ps = Right ()
       | otherwise          =
-          Left $ "\nundeclared payee \""++T.unpack p++"\""
+          Left $ "undeclared payee \""++T.unpack p++"\""
             ++ "\nin transaction at: "++showGenericSourcePos (tsourcepos t)
       where
         p  = transactionPayee t
@@ -391,7 +391,7 @@ journalCheckAccountsDeclared j = sequence_ $ map checkacct $ journalPostings j
     checkacct Posting{paccount,ptransaction}
       | paccount `elem` as = Right ()
       | otherwise          = 
-          Left $ "\nstrict mode: undeclared account \""++T.unpack paccount++"\""
+          Left $ "undeclared account \""++T.unpack paccount++"\""
             ++ case ptransaction of
                 Just Transaction{tsourcepos} -> "\nin transaction at: "++showGenericSourcePos tsourcepos
                 Nothing -> ""
@@ -407,8 +407,7 @@ journalCheckCommoditiesDeclared j =
     checkcommodities Posting{..} =
       case mfirstundeclaredcomm of
         Nothing -> Right ()
-        Just c  -> Left $ 
-          "\nstrict mode: undeclared commodity \""++T.unpack c++"\""
+        Just c  -> Left $ "undeclared commodity \""++T.unpack c++"\""
           ++ case ptransaction of
                 Just Transaction{tsourcepos} -> "\nin transaction at: "++showGenericSourcePos tsourcepos
                 Nothing -> ""      
