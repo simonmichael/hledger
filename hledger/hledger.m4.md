@@ -2188,6 +2188,7 @@ Note part of this table is hidden when viewed in a web browser - scroll it sidew
 | [`commodity`]     |                     | `format`        | declare a commodity and its number notation & display style        | number notation: following entries in that commodity in all files <!-- or until end of current file ? -->; <br>display style: amounts of that commodity in reports
 | [`D`]             |                     |                 | declare a commodity to be used for commodityless amounts, and its number notation & display style  | default commodity: following commodityless entries until end of current file; <br>number notation: following entries in that commodity until end of current file; <br>display style: amounts of that commodity in reports
 | [`include`]       |                     |                 | include entries/directives from another file                       | what the included directives affect
+| [`payee`]         |                     |                 | declare a payee name                                               | following entries until end of current file
 | [`P`]             |                     |                 | declare a market price for a commodity                             | amounts of that commodity in reports, when -V is used
 | [`Y`]             |                     |                 | declare a year for yearless dates                                  | following entries until end of current file
 | [`=`]             |                     |                 | declare an auto posting rule, adding postings to other transactions | all entries in parent/current/child files (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212))
@@ -2298,6 +2299,16 @@ Y2010  ; change default year to 2010
 1/31   ; equivalent to 2010/1/31
   expenses  1
   assets
+```
+
+## Declaring payees
+
+The `payee` directive can be used to declare a limited set of payees which may appear in transaction descriptions.
+The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
+Eg:
+
+```journal
+payee Whole Foods
 ```
 
 ## Declaring commodities
