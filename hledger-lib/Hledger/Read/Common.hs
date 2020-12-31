@@ -45,6 +45,8 @@ module Hledger.Read.Common (
   parseAndFinaliseJournal,
   parseAndFinaliseJournal',
   journalFinalise,
+  journalCheckAccountsDeclared,
+  journalCheckCommoditiesDeclared,
   journalCheckPayeesDeclared,
   setYear,
   getYear,

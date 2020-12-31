@@ -21,7 +21,8 @@ Here are the checks currently available:
 
 ### Basic checks
 
-These are always run by this command and other commands:
+These checks are always run automatically, by (almost) all hledger commands,
+including `check`:
 
 - **parseable** - data files are well-formed and can be 
   [successfully parsed](hledger.html#input-files)
@@ -35,8 +36,8 @@ These are always run by this command and other commands:
 
 ### Strict checks
 
-These are always run by this and other commands when `-s`/`--strict` is used
-([strict mode]):
+These additional checks are run when the `-s`/`--strict` ([strict mode]) flag is used.
+They can also be run by specifying their names as arguments to `check`:
 
 - **accounts** - all account names used by transactions 
   [have been declared](hledger.html#account-error-checking)
@@ -46,7 +47,7 @@ These are always run by this and other commands when `-s`/`--strict` is used
 
 ### Other checks
 
-These checks can be run by specifying their names as arguments to the check command:
+These checks can be run only by specifying their names as arguments to `check`:
 
 - **ordereddates** - transactions are ordered by date (similar to the old `check-dates` command)
 
@@ -56,7 +57,7 @@ These checks can be run by specifying their names as arguments to the check comm
 
 ### Add-on checks
 
-Some checks are not yet integrated with this command, but are available as
+These checks are not yet integrated with `check`, but are available as
 [add-on commands] in <https://github.com/simonmichael/hledger/tree/master/bin>:
 
 - **hledger-check-tagfiles** - all tag values containing / (a forward slash) exist as file paths
