@@ -45,7 +45,9 @@ check copts@CliOpts{rawopts_} j = do
 -- (Currently, just the optional checks that only the check command
 -- can do; not the checks done by default or with --strict.)
 data Check =
-    Ordereddates
+    Accounts
+  | Commodities
+  | Ordereddates
   | Payees
   | Uniqueleafnames
   deriving (Read,Show,Eq)
@@ -74,12 +76,17 @@ parseCheckArgument s =
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
 runCheck copts@CliOpts{rawopts_} j (check,args) = 
   case check of
-    Ordereddates    -> checkdates copts' j
+    Accounts -> case journalCheckAccountsDeclared j of
+      Right () -> return ()
+      Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
+    Commodities -> case journalCheckCommoditiesDeclared j of
+      Right () -> return ()
+      Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
+    Ordereddates -> checkdates copts' j
+    Payees -> case journalCheckPayeesDeclared j of
+      Right () -> return ()
+      Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
     Uniqueleafnames -> checkdupes copts' j
-    Payees          ->
-      case journalCheckPayeesDeclared j of
-        Right () -> return ()
-        Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
   where
     -- Hack: append the provided args to the raw opts,
     -- in case the check can use them (like checkdates --unique). 
