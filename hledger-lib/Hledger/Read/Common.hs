@@ -425,7 +425,7 @@ journalCheckCommoditiesDeclared j =
         mfirstundeclaredcomm = 
           headMay $ filter (not . (`elem` cs)) $ catMaybes $
           (acommodity . baamount <$> pbalanceassertion) :
-          (map (Just . acommodity) $ amounts pamount)
+          (map (Just . acommodity) . filter (/= missingamt) $ amounts pamount)
         cs = journalCommoditiesDeclared j
 
 
