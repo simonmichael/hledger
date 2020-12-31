@@ -8,26 +8,27 @@ import Hledger.Cli.CliOptions
 import Text.Printf
 
 journalCheckOrdereddates :: CliOpts -> Journal -> Either String ()
-journalCheckOrdereddates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
+journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
   let ropts = (rsOpts rspec){accountlistmode_=ALFlat}
   let ts = filter (rsQuery rspec `matchesTransaction`) $
            jtxns $ journalSelectingAmountFromOpts ropts j
-  let unique = boolopt "--unique" rawopts
-  let date = transactionDateFn ropts
+  let checkunique = False -- boolopt "unique" rawopts  XXX was supported by checkdates command
+  let getdate = transactionDateFn ropts
   let compare a b =
-        if unique
-        then date a <  date b
-        else date a <= date b
+        if checkunique
+        then getdate a <  getdate b
+        else getdate a <= getdate b
   case checkTransactions compare ts of
     FoldAcc{fa_previous=Nothing} -> return ()
     FoldAcc{fa_error=Nothing}    -> return ()
     FoldAcc{fa_error=Just error, fa_previous=Just previous} -> do
       let 
-        uniquestr = if unique then " and/or not unique" else ""
+        uniquestr = if checkunique then " and/or not unique" else ""
         positionstr = showGenericSourcePos $ tsourcepos error
         txn1str = linesPrepend  "  "      $ showTransaction previous
         txn2str = linesPrepend2 "> " "  " $ showTransaction error
-      Left $ printf "transaction date is out of order%s\nat %s:\n\n%s"
+      Left $ printf "transaction date%s is out of order%s\nat %s:\n\n%s"
+        (if date2_ ropts then "2" else "")
         uniquestr
         positionstr
         (txn1str ++ txn2str)

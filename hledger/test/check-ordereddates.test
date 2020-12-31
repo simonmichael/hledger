@@ -14,7 +14,32 @@ $ hledger -f- check ordereddates
 $ hledger -f- check ordereddates
 >2 /transaction date is out of order/
 >=1
-# XXX 
-# With --date2, it checks secondary dates instead.
-# With --strict, dates must also be unique.
-# With a query, only matched transactions' dates are checked.
+
+# With --date2, it checks secondary dates instead
+<
+2020-01-02
+2020-01-01=2020-01-03
+$ hledger -f- check ordereddates --date2
+
+# 
+<
+2020-01-01=2020-01-03
+2020-01-02
+$ hledger -f- check ordereddates --date2
+>2 /transaction date2 is out of order/
+>=1
+
+# XXX not supported: With a query, only matched transactions' dates are checked.
+# <
+# 2020-01-01 a
+# 2020-01-03 b
+# 2020-01-02 a
+# $ hledger -f- check ordereddates
+
+# XXX not supported: With --unique, dates must also be unique.
+# <
+# 2020-01-01
+# 2020-01-01
+# $ hledger -f- check ordereddates --unique
+# >2 /transaction date is out of order and/or not unique/
+# >=1
