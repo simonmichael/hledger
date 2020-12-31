@@ -5,16 +5,14 @@ where
 
 import Hledger
 import Hledger.Cli.CliOptions
-import System.Exit
 import Text.Printf
 
-journalCheckOrdereddates :: CliOpts -> Journal -> IO ()
+journalCheckOrdereddates :: CliOpts -> Journal -> Either String ()
 journalCheckOrdereddates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   let ropts = (rsOpts rspec){accountlistmode_=ALFlat}
   let ts = filter (rsQuery rspec `matchesTransaction`) $
            jtxns $ journalSelectingAmountFromOpts ropts j
-  let unique = boolopt "--unique" rawopts  -- TEMP: it's this for hledger check dates
-            || boolopt "unique" rawopts    -- and this for hledger check-dates (for some reason)
+  let unique = boolopt "--unique" rawopts
   let date = transactionDateFn ropts
   let compare a b =
         if unique
@@ -29,26 +27,18 @@ journalCheckOrdereddates CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
         positionstr = showGenericSourcePos $ tsourcepos error
         txn1str = linesPrepend  "  "      $ showTransaction previous
         txn2str = linesPrepend2 "> " "  " $ showTransaction error
-      printf "Error: transaction date is out of order%s\nat %s:\n\n%s"
+      Left $ printf "transaction date is out of order%s\nat %s:\n\n%s"
         uniquestr
         positionstr
         (txn1str ++ txn2str)
-      exitFailure
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a
  , fa_previous :: Maybe b
  }
 
-foldWhile :: (a -> FoldAcc a b -> FoldAcc a b) -> FoldAcc a b -> [a] -> FoldAcc a b
-foldWhile _ acc [] = acc
-foldWhile fold acc (a:as) =
-  case fold a acc of
-   acc@FoldAcc{fa_error=Just _} -> acc
-   acc -> foldWhile fold acc as
-
 checkTransactions :: (Transaction -> Transaction -> Bool)
- -> [Transaction] -> FoldAcc Transaction Transaction
+  -> [Transaction] -> FoldAcc Transaction Transaction
 checkTransactions compare = foldWhile f FoldAcc{fa_error=Nothing, fa_previous=Nothing}
   where
     f current acc@FoldAcc{fa_previous=Nothing} = acc{fa_previous=Just current}
@@ -56,3 +46,10 @@ checkTransactions compare = foldWhile f FoldAcc{fa_error=Nothing, fa_previous=No
       if compare previous current
       then acc{fa_previous=Just current}
       else acc{fa_error=Just current}
+
+foldWhile :: (a -> FoldAcc a b -> FoldAcc a b) -> FoldAcc a b -> [a] -> FoldAcc a b
+foldWhile _ acc [] = acc
+foldWhile fold acc (a:as) =
+  case fold a acc of
+   acc@FoldAcc{fa_error=Just _} -> acc
+   acc -> foldWhile fold acc as

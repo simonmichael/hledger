@@ -41,6 +41,16 @@ check copts@CliOpts{rawopts_} j = do
     (unknowns@(_:_), _) -> error' $ "These checks are unknown: "++unwords unknowns
     ([], checks) -> forM_ checks $ runCheck copts' j
       
+-- | Regenerate this CliOpts' report specification, after updating its
+-- underlying report options with the given update function.
+-- This can raise an error if there is a problem eg due to missing or
+-- unparseable options data. See also updateReportSpecFromOpts.
+cliOptsUpdateReportSpecWith :: (ReportOpts -> ReportOpts) -> CliOpts -> CliOpts
+cliOptsUpdateReportSpecWith roptsupdate copts@CliOpts{reportspec_} =
+  case updateReportSpecWith roptsupdate reportspec_ of
+    Left e   -> error' e  -- PARTIAL:
+    Right rs -> copts{reportspec_=rs}
+
 -- | A type of error check that we can perform on the data.
 -- (Currently, just the optional checks that only the check command
 -- can do; not the checks done by default or with --strict.)
@@ -74,32 +84,23 @@ parseCheckArgument s =
 -- | Run the named error check, possibly with some arguments, 
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
-runCheck copts@CliOpts{rawopts_} j (check,args) = 
-  case check of
-    Accounts -> case journalCheckAccountsDeclared j of
-      Right () -> return ()
-      Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
-    Commodities -> case journalCheckCommoditiesDeclared j of
-      Right () -> return ()
-      Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
-    Ordereddates -> journalCheckOrdereddates copts' j
-    Payees -> case journalCheckPayeesDeclared j of
-      Right () -> return ()
-      Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
-    Uniqueleafnames -> journalCheckUniqueleafnames j
-  where
-    -- Hack: append the provided args to the raw opts,
-    -- in case the check can use them (like checkdates --unique). 
+runCheck copts@CliOpts{rawopts_} j (check,args) = do
+  let
+    -- XXX drop this ?
+    -- Hack: append the provided args to the raw opts, for checks 
+    -- which can use them (just journalCheckOrdereddates rignt now
+    -- which has some flags from the old checkdates command). 
     -- Does not bother to regenerate the derived data (ReportOpts, ReportSpec..), 
     -- so those may be inconsistent.
     copts' = copts{rawopts_=appendopts (map (,"") args) rawopts_}
 
--- | Regenerate this CliOpts' report specification, after updating its
--- underlying report options with the given update function.
--- This can raise an error if there is a problem eg due to missing or
--- unparseable options data. See also updateReportSpecFromOpts.
-cliOptsUpdateReportSpecWith :: (ReportOpts -> ReportOpts) -> CliOpts -> CliOpts
-cliOptsUpdateReportSpecWith roptsupdate copts@CliOpts{reportspec_} =
-  case updateReportSpecWith roptsupdate reportspec_ of
-    Left e   -> error' e  -- PARTIAL:
-    Right rs -> copts{reportspec_=rs}
+    results = case check of
+      Accounts        -> journalCheckAccountsDeclared j
+      Commodities     -> journalCheckCommoditiesDeclared j
+      Ordereddates    -> journalCheckOrdereddates copts' j
+      Payees          -> journalCheckPayeesDeclared j
+      Uniqueleafnames -> journalCheckUniqueleafnames j
+
+  case results of
+    Right () -> return ()
+    Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
