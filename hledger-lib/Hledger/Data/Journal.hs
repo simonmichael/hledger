@@ -52,6 +52,7 @@ module Hledger.Data.Journal (
   -- overJournalAmounts,
   -- traverseJournalAmounts,
   -- journalCanonicalCommodities,
+  journalPayeesDeclared,
   journalCommoditiesDeclared,
   journalDateSpan,
   journalStartDate,
@@ -183,6 +184,7 @@ instance Semigroup Journal where
     -- ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
     ,jparsetimeclockentries     = jparsetimeclockentries     j1 <> jparsetimeclockentries     j2
     ,jincludefilestack          = jincludefilestack j2
+    ,jdeclaredpayees            = jdeclaredpayees            j1 <> jdeclaredpayees            j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
     ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
     ,jglobalcommoditystyles     = jglobalcommoditystyles     j1 <> jglobalcommoditystyles     j2
@@ -211,6 +213,7 @@ nulljournal = Journal {
   -- ,jparsetransactioncount     = 0
   ,jparsetimeclockentries     = []
   ,jincludefilestack          = []
+  ,jdeclaredpayees            = []
   ,jdeclaredaccounts          = []
   ,jdeclaredaccounttypes      = M.empty
   ,jglobalcommoditystyles     = M.empty
@@ -272,6 +275,10 @@ journalPostings = concatMap tpostings . jtxns
 -- | Sorted unique commodity symbols declared by commodity directives in this journal.
 journalCommoditiesDeclared :: Journal -> [AccountName]
 journalCommoditiesDeclared = nubSort . M.keys . jcommodities
+
+-- | Sorted unique payees declared by payee directives in this journal.
+journalPayeesDeclared :: Journal -> [Payee]
+journalPayeesDeclared = nubSort . map fst . jdeclaredpayees
 
 -- | Sorted unique account names posted to by this journal's transactions.
 journalAccountNamesUsed :: Journal -> [AccountName]

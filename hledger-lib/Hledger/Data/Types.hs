@@ -132,6 +132,8 @@ data Interval =
 
 instance Default Interval where def = NoInterval
 
+type Payee = Text
+
 type AccountName = Text
 
 data AccountType =
@@ -453,6 +455,7 @@ data Journal = Journal {
   ,jparsetimeclockentries :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
   ,jincludefilestack      :: [FilePath]
   -- principal data
+  ,jdeclaredpayees        :: [(Payee,PayeeDeclarationInfo)]         -- ^ Payees declared by payee directives, in parse order (after journal finalisation)
   ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation)
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been declared in account directives (usually 5 top-level accounts)
   ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ per-commodity display styles declared globally, eg by command line option or import command
@@ -481,6 +484,17 @@ type ParsedJournal = Journal
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
 -- The --output-format option selects one of these for output.
 type StorageFormat = String
+
+-- | Extra information found in a payee directive.
+data PayeeDeclarationInfo = PayeeDeclarationInfo {
+   pdicomment :: Text   -- ^ any comment lines following the payee directive
+  ,pditags    :: [Tag]  -- ^ tags extracted from the comment, if any
+} deriving (Eq,Show,Generic)
+
+nullpayeedeclarationinfo = PayeeDeclarationInfo {
+   pdicomment          = ""
+  ,pditags             = []
+}
 
 -- | Extra information about an account that can be derived from
 -- its account directive (and the other account directives).

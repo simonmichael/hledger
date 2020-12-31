@@ -226,6 +226,7 @@ directivep = (do
    ,applyaccountdirectivep
    ,commoditydirectivep
    ,endapplyaccountdirectivep
+   ,payeedirectivep
    ,tagdirectivep
    ,endtagdirectivep
    ,defaultyeardirectivep
@@ -396,6 +397,17 @@ addAccountDeclaration (a,cmt,tags) =
              in
                j{jdeclaredaccounts = d:decls})
 
+-- Add a payee declaration to the journal.
+addPayeeDeclaration :: (Payee,Text,[Tag]) -> JournalParser m ()
+addPayeeDeclaration (p, cmt, tags) =
+  modify' (\j@Journal{jdeclaredpayees} -> j{jdeclaredpayees=d:jdeclaredpayees})
+             where
+               d = (p
+                   ,nullpayeedeclarationinfo{
+                     pdicomment = cmt
+                    ,pditags    = tags
+                    })
+
 indentedlinep :: JournalParser m String
 indentedlinep = lift skipNonNewlineSpaces1 >> (rstrip <$> lift restofline)
 
@@ -517,6 +529,15 @@ endtagdirectivep :: JournalParser m ()
 endtagdirectivep = do
   (keywordsp "end tag" <|> keywordp "pop") <?> "end tag or pop directive"
   lift restofline
+  return ()
+
+payeedirectivep :: JournalParser m ()
+payeedirectivep = do
+  string "payee" <?> "payee directive"
+  lift skipNonNewlineSpaces1
+  payee <- lift descriptionp  -- all text until ; or \n
+  (comment, tags) <- lift transactioncommentp
+  addPayeeDeclaration (payee, comment, tags)
   return ()
 
 defaultyeardirectivep :: JournalParser m ()
@@ -984,6 +1005,11 @@ tests_JournalReader = tests "JournalReader" [
       pdcommodity = "BTC",
       pdamount    = usd 922.83
       }
+
+  ,tests "payeedirectivep" [
+       test "simple"             $ assertParse payeedirectivep "payee foo\n"
+       ,test "with-comment"       $ assertParse payeedirectivep "payee foo ; comment\n"
+       ]
 
   ,test "tagdirectivep" $ do
      assertParse tagdirectivep "tag foo \n"

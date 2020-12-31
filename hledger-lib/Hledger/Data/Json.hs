@@ -126,6 +126,7 @@ instance ToJSON AccountAlias
 instance ToJSON AccountType
 instance ToJSONKey AccountType
 instance ToJSON AccountDeclarationInfo
+instance ToJSON PayeeDeclarationInfo
 instance ToJSON Commodity
 instance ToJSON TimeclockCode
 instance ToJSON TimeclockEntry

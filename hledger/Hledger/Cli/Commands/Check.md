@@ -50,6 +50,8 @@ These checks can be run by specifying their names as arguments to the check comm
 
 - **ordereddates** - transactions are ordered by date (similar to the old `check-dates` command)
 
+- **payees** - all payees used by transactions have been declared
+
 - **uniqueleafnames** - all account leaf names are unique (similar to the old `check-dupes` command)
 
 ### Add-on checks

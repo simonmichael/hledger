@@ -1,0 +1,23 @@
+# check payees
+
+# check payees succeeds when all payees are declared:
+<
+payee foo
+2020-01-01 foo
+2020-01-02 foo | some description
+$ hledger -f - check payees
+
+# and otherwise fails, eg:
+<
+2020-01-01 foo
+$ hledger -f - check payees
+>2 /undeclared payee "foo"/
+>=1
+
+# or:
+<
+payee foo
+2020-01-01 the payee | foo
+$ hledger -f - check payees
+>2 /undeclared payee "the payee"/
+>=1

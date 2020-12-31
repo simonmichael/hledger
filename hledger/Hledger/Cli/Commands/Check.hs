@@ -18,6 +18,8 @@ import Data.Either (partitionEithers)
 import Data.Char (toUpper)
 import Safe (readMay)
 import Control.Monad (forM_)
+import System.IO (stderr, hPutStrLn)
+import System.Exit (exitFailure)
 
 checkmode :: Mode RawOpts
 checkmode = hledgerCommandMode
@@ -40,8 +42,11 @@ check copts@CliOpts{rawopts_} j = do
     ([], checks) -> forM_ checks $ runCheck copts' j
       
 -- | A type of error check that we can perform on the data.
+-- (Currently, just the optional checks that only the check command
+-- can do; not the checks done by default or with --strict.)
 data Check =
     Ordereddates
+  | Payees
   | Uniqueleafnames
   deriving (Read,Show,Eq)
 
@@ -63,13 +68,18 @@ parseCheckArgument s =
   where
     (checkname:checkargs) = words' s
 
+-- XXX do all of these print on stderr ?
 -- | Run the named error check, possibly with some arguments, 
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
 runCheck copts@CliOpts{rawopts_} j (check,args) = 
   case check of
-    Ordereddates     -> checkdates copts' j
+    Ordereddates    -> checkdates copts' j
     Uniqueleafnames -> checkdupes copts' j
+    Payees          ->
+      case journalCheckPayeesDeclared j of
+        Right () -> return ()
+        Left err -> hPutStrLn stderr ("Error: "++err) >> exitFailure
   where
     -- Hack: append the provided args to the raw opts,
     -- in case the check can use them (like checkdates --unique). 
