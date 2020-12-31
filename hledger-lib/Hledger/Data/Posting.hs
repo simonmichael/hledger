@@ -170,7 +170,7 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
                           BalancedVirtualPosting -> (wrap "[" "]", acctnamewidth-2)
                           VirtualPosting         -> (wrap "(" ")", acctnamewidth-2)
                           _                      -> (id,acctnamewidth)
-      showamount = wbUnpack . showMixed noColour{displayMinWidth=Just 12}
+      showamount = wbUnpack . showMixedAmountB noColour{displayMinWidth=Just 12}
 
 
 showComment :: Text -> Text

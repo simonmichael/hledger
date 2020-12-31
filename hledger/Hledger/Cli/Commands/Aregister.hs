@@ -131,8 +131,8 @@ accountTransactionsReportItemAsCsvRecord
   where
     idx  = T.pack $ show tindex
     date = showDate $ transactionRegisterDate reportq thisacctq t
-    amt  = wbToText $ showMixed oneLine change
-    bal  = wbToText $ showMixed oneLine balance
+    amt  = wbToText $ showMixedAmountB oneLine change
+    bal  = wbToText $ showMixedAmountB oneLine balance
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
@@ -143,7 +143,7 @@ accountTransactionsReportAsText copts reportq thisacctq items
   where
     amtwidth = maximumStrict $ 12 : map (wbWidth . showamt . itemamt) items
     balwidth = maximumStrict $ 12 : map (wbWidth . showamt . itembal) items
-    showamt = showMixed oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax}  -- color_
+    showamt = showMixedAmountB oneLine{displayMinWidth=Just 12, displayMaxWidth=mmax}  -- color_
       where mmax = if no_elide_ . rsOpts . reportspec_ $ copts then Nothing else Just 32
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
@@ -215,7 +215,7 @@ accountTransactionsReportItemAsText
             otheracctsstr
     amt = TL.toStrict . TB.toLazyText . wbBuilder $ showamt amtwidth change
     bal = TL.toStrict . TB.toLazyText . wbBuilder $ showamt balwidth balance
-    showamt w = showMixed noPrice{displayColour=color_, displayMinWidth=Just w, displayMaxWidth=Just w}
+    showamt w = showMixedAmountB noPrice{displayColour=color_, displayMinWidth=Just w, displayMaxWidth=Just w}
     -- alternate behaviour, show null amounts as 0 instead of blank
     -- amt = if null amt' then "0" else amt'
     -- bal = if null bal' then "0" else bal'

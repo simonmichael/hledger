@@ -98,7 +98,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
                             ,rsItemTransaction   = t
                             }
             where showamt = (\wb -> (wbUnpack wb, wbWidth wb))
-                          . showMixed oneLine{displayMaxWidth=Just 32}
+                          . showMixedAmountB oneLine{displayMaxWidth=Just 32}
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
     blankitems = replicate 100  -- "100 ought to be enough for anyone"

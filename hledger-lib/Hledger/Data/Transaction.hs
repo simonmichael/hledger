@@ -268,10 +268,10 @@ postingAsLines elideamount onelineamounts pstoalignwith p =
     -- currently prices are considered part of the amount string when right-aligning amounts
     shownAmounts
       | elideamount || null (amounts $ pamount p) = [mempty]
-      | otherwise = showMixedLines displayopts $ pamount p
+      | otherwise = showMixedAmountLinesB displayopts $ pamount p
       where
         displayopts = noColour{displayOneLine=onelineamounts, displayMinWidth = Just amtwidth, displayNormalised=False}
-        amtwidth = maximum $ 12 : map (wbWidth . showMixed displayopts{displayMinWidth=Nothing} . pamount) pstoalignwith  -- min. 12 for backwards compatibility
+        amtwidth = maximum $ 12 : map (wbWidth . showMixedAmountB displayopts{displayMinWidth=Nothing} . pamount) pstoalignwith  -- min. 12 for backwards compatibility
 
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
