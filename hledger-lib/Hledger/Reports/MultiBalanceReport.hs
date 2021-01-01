@@ -564,10 +564,9 @@ subtractAcct a@Account{aibalance=i1,aebalance=e1} Account{aibalance=i2,aebalance
 -- different report periods.
 changingValuation :: ReportOpts -> Bool
 changingValuation ropts = case value_ ropts of
-    Just (AtCost (Just _)) -> multiperiod
-    Just (AtEnd  _)        -> multiperiod
+    Just (AtCost (Just _)) -> True
+    Just (AtEnd  _)        -> True
     _                      -> False
-  where multiperiod = interval_ ropts /= NoInterval
 
 -- | Extract period changes from a cumulative list
 periodChanges :: Account -> Map k Account -> Map k Account
