@@ -14,7 +14,6 @@ import Data.Text (Text)
 import Data.Semigroup ((<>))
 #endif
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
 import Hledger
 
 journalCheckUniqueleafnames :: Journal -> Either String ()

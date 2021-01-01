@@ -1,8 +1,13 @@
+{-# LANGUAGE CPP #-}
+
 module Hledger.Cli.Commands.Check.Ordereddates (
   journalCheckOrdereddates
 )
 where
 
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import qualified Data.Text as T
 import Hledger
 import Hledger.Cli.CliOptions
