@@ -25,6 +25,8 @@ import qualified Data.Text as T
 import Hledger.Data.Types
 import Hledger.Utils
 
+-- Show space-containing commodity symbols quoted, as they are in a journal.
+showCommoditySymbol = quoteIfNeeded
 
 -- characters that may not be used in a non-quoted commodity symbol
 isNonsimpleCommodityChar :: Char -> Bool

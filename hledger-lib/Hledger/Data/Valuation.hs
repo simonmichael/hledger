@@ -30,7 +30,7 @@ where
 import Control.Applicative ((<|>))
 import Data.Foldable (asum)
 import Data.Function ((&), on)
-import Data.List ( (\\), sortBy )
+import Data.List (intercalate,  (\\), sortBy )
 import Data.List.Extra (nubSortBy)
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -44,6 +44,7 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
+import Hledger.Data.Commodity (showCommoditySymbol)
 
 
 ------------------------------------------------------------------------------
@@ -215,9 +216,13 @@ priceLookup makepricegraph d from mto =
       Just to            ->
         -- We have a commodity to convert to. Find the most direct price available,
         -- according to the rules described in makePriceGraph.
-        case 
-          pricesShortestPath forwardprices from to <|> 
-          pricesShortestPath allprices     from to 
+        let msg = "seeking " ++ pshowedge' "" from to ++ " price"
+        in case 
+          (traceAt 2 (msg++" using forward prices") $ 
+            pricesShortestPath forwardprices from to)
+          <|> 
+          (traceAt 2 (msg++" using forward and reverse prices") $ 
+            pricesShortestPath allprices from to)
         of
           Nothing -> Nothing
           Just [] -> Nothing
@@ -275,11 +280,18 @@ data PriceGraph = PriceGraph {
 -- USD->EUR price and one EUR->USD price.
 pricesShortestPath :: [Edge] -> CommoditySymbol -> CommoditySymbol -> Maybe Path
 pricesShortestPath edges start end =
-  dbg1 ("shortest price path for "++T.unpack start++" -> "++T.unpack end) $ 
-  asum $ map (findPath end edgesremaining) initialpaths
+  -- dbg0With ((("shortest "++pshowedge' "" start end++" price path: ")++) . pshow . fmap (pshowpath "")) $
+  dbg2 ("shortest "++pshowedge' "" start end++" price path") $
+  case quicksolution of
+    (path:_) -> Just path
+    []  -> asum $ map (findPath end edgesremaining) initialpaths
   where
-    initialpaths = dbg9 "initial price paths" $ [[p] | p <- edges, mpfrom p == start]
-    edgesremaining = dbg9 "initial edges remaining" $ edges \\ concat initialpaths
+    initialpaths = 
+      dbg2With (prefix "initial paths" . intercalate ", " . map (pshowpath "")) $ 
+      [[p] | p <- dbgedges "known prices" edges, mpfrom p == start]
+    quicksolution = [path | path@(MarketPrice{..}:_) <- initialpaths, mpfrom==start && mpto==end]
+    edgesremaining = dbgedges "initial prices remaining" $ 
+      [e | e <- edges, mpto e /= start] \\ concat initialpaths
 
 -- Helper: breadth-first search for a continuation of the given path
 -- using zero or more of the given edges, to the specified end commodity.
@@ -289,17 +301,39 @@ findPath end _ path | mpathend == Just end = Just path  -- path is complete
   where 
     mpathend = mpto <$> lastMay path
 findPath _ [] _ = Nothing   -- no more edges are available
+-- Guard against infinite loops as in #1439: 
+-- give up if path grows to an unlikely length.
+-- XXX we need to limit the number of findPath iterations also.
+findPath _ _ path | length path >= maxlength = error' err
+  where 
+    maxlength = 1000
+    err = intercalate "\n" [
+       "giving up after searching price chains up to "++show maxlength++" long;"
+      ,"please report this as a bug."
+      ]
 findPath end edgesremaining path =   -- try continuing with all the remaining edges
   asum [ 
       findPath end edgesremaining' path'
     | e <- nextedges
-    , let path' = path++[e]
-    , let edgesremaining' = filter (/=e) edgesremaining
+    , not $ mpto e `elem` map mpto path  -- avoid loops
+    , let path' = dbgpath "findPath trying" $ path++[e]
+    , let edgesremaining' = filter (/= e) edgesremaining
     ]
   where
-    nextedges = [ e | e <- edgesremaining, Just (mpfrom e) == mpathend ]
+    nextedges =
+      [ e | e <- edgesremaining, Just (mpfrom e) == mpathend ]
       where
         mpathend = mpto <$> lastMay path
+
+dbgpath  label = dbg2With (pshowpath label)
+dbgedges label = dbg2With (pshowedges label)
+_dbgedge  label = dbg2With (pshowedge label)
+
+pshowpath label = prefix label . unwords . map (pshowedge "")
+pshowedges label = prefix label . intercalate ", " . map (pshowedge "")
+pshowedge label MarketPrice{..} = pshowedge' label mpfrom mpto
+pshowedge' label from to = prefix label $ showCommoditySymbol (T.unpack from) ++ ">" ++ showCommoditySymbol (T.unpack to)
+prefix l = if null l then (""++) else ((l++": ")++)
 
 -- | A snapshot of the known exchange rates between commodity pairs at a given date.
 -- This is a home-made version, more tailored to our needs.
@@ -363,12 +397,12 @@ makePriceGraph alldeclaredprices allinferredprices d =
     }
   where
     -- prices in effect on date d, either declared or inferred
-    visibledeclaredprices = dbg2 "visibledeclaredprices" $ filter ((<=d).mpdate) alldeclaredprices
-    visibleinferredprices = dbg2 "visibleinferredprices" $ filter ((<=d).mpdate) allinferredprices
+    visibledeclaredprices = dbg9 "visibledeclaredprices" $ filter ((<=d).mpdate) alldeclaredprices
+    visibleinferredprices = dbg9 "visibleinferredprices" $ filter ((<=d).mpdate) allinferredprices
     forwardprices = effectiveMarketPrices visibledeclaredprices visibleinferredprices
 
     -- infer any additional reverse prices not already declared or inferred
-    reverseprices = dbg2 "additional reverse prices" $
+    reverseprices = dbg9 "additional reverse prices" $
       [p | p@MarketPrice{..} <- map marketPriceReverse forwardprices
          , not $ (mpfrom,mpto) `S.member` forwardpairs
       ]
@@ -380,7 +414,7 @@ makePriceGraph alldeclaredprices allinferredprices d =
     -- somewhat but not quite like effectiveMarketPrices
     defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- pricesfordefaultcomms]
       where
-        pricesfordefaultcomms = dbg2 "prices for choosing default valuation commodities, by date then parse order" $
+        pricesfordefaultcomms = dbg9 "prices for choosing default valuation commodities, by date then parse order" $
           ps
           & zip [1..]  -- label items with their parse order
           & sortBy (compare `on` (\(parseorder,MarketPrice{..})->(mpdate,parseorder)))  -- sort by increasing date then increasing parse order
@@ -403,7 +437,7 @@ effectiveMarketPrices declaredprices inferredprices =
     declaredprices' = [(1, i, p) | (i,p) <- zip [1..] declaredprices]
     inferredprices' = [(0, i, p) | (i,p) <- zip [1..] inferredprices]
   in
-    dbg2 "effective forward prices" $
+    dbg9 "effective forward prices" $
     -- combine
     declaredprices' ++ inferredprices'
     -- sort by decreasing date then decreasing precedence then decreasing parse order
