@@ -94,7 +94,7 @@ hledger -f - balance -B
                $-135  assets
                 $135  expenses:foreign currency
 --------------------
-                   0
+                   0  
 >>>=0
 
 # 8. transaction in two commodities should balance out properly
@@ -107,7 +107,7 @@ hledger -f - balance --cost
                  16$  a
                 -16$  b
 --------------------
-                   0
+                   0  
 >>>=0
 
 # 9. When commodity price is specified implicitly, transaction should
@@ -123,7 +123,7 @@ hledger -f - balance
                  16$  b
 --------------------
                  16$
-                -10£
+                -10£  
 >>>=0
 
 # 10. When commodity price is specified implicitly, transaction should
@@ -147,7 +147,7 @@ hledger -f - balance
 >>>
                   £2  a
 --------------------
-                  £2
+                  £2  
 >>>=0
 
 # 12. this should balance
@@ -188,7 +188,7 @@ hledger -f - balance --no-total
                  -1X  a
 >>>= 0
 
-# 16. 
+# 16.
 hledger -f - balance --no-total -B
 <<<
 1/1

@@ -44,8 +44,11 @@ getRegisterR = do
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
           tail $ (", "<$xs) ++ [""]
-      r@(balancelabel,items) = accountTransactionsReport rspec j m acctQuery
-      balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
+      items = accountTransactionsReport rspec j m acctQuery
+      balancelabel
+        | isJust (inAccount qopts), balancetype_ (rsOpts rspec) == HistoricalBalance = "Historical Total"
+        | isJust (inAccount qopts) = "Period Total"
+        | otherwise                = "Total"
       transactionFrag = transactionFragment j
   defaultLayout $ do
     setTitle "register - hledger-web"
@@ -96,14 +99,12 @@ decorateLinks =
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
-registerChartHtml :: [(CommoditySymbol, (String, [TransactionsReportItem]))] -> HtmlUrl AppRoute
-registerChartHtml percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
+registerChartHtml :: String -> [(CommoditySymbol, [TransactionsReportItem])] -> HtmlUrl AppRoute
+registerChartHtml title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  where
-   charttitle = case maybe "" (fst . snd) $ listToMaybe percommoditytxnreports of
-     "" -> ""
-     s  -> s <> ":"
+   charttitle = if null title then "" else title ++ ":"
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts

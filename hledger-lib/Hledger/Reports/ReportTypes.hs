@@ -32,9 +32,10 @@ module Hledger.Reports.ReportTypes
 , prrDepth
 ) where
 
-import Data.Aeson
-import Data.Decimal
+import Data.Aeson (ToJSON(..))
+import Data.Decimal (Decimal)
 import Data.Maybe (mapMaybe)
+import Data.Text (Text)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup (Semigroup(..))
 #endif
@@ -144,16 +145,16 @@ prrMapMaybeName f row = case f $ prrName row of
 -- It is used in compound balance report commands like balancesheet,
 -- cashflow and incomestatement.
 data CompoundPeriodicReport a b = CompoundPeriodicReport
-  { cbrTitle      :: String
+  { cbrTitle      :: Text
   , cbrDates      :: [DateSpan]
-  , cbrSubreports :: [(String, PeriodicReport a b, Bool)]
+  , cbrSubreports :: [(Text, PeriodicReport a b, Bool)]
   , cbrTotals     :: PeriodicReportRow () b
   } deriving (Show, Functor, Generic, ToJSON)
 
 -- | Description of one subreport within a compound balance report.
 -- Part of a "CompoundBalanceCommandSpec", but also used in hledger-lib.
 data CBCSubreportSpec a = CBCSubreportSpec
-  { cbcsubreporttitle          :: String                    -- ^ The title to use for the subreport
+  { cbcsubreporttitle          :: Text                      -- ^ The title to use for the subreport
   , cbcsubreportquery          :: Journal -> Query          -- ^ The Query to use for the subreport
   , cbcsubreportoptions        :: ReportOpts -> ReportOpts  -- ^ A function to transform the ReportOpts used to produce the subreport
   , cbcsubreporttransform      :: PeriodicReport DisplayName MixedAmount -> PeriodicReport a MixedAmount  -- ^ A function to transform the result of the subreport

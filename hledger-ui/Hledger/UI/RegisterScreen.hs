@@ -14,7 +14,6 @@ where
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-import Data.List.Split (splitOn)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
 #endif
@@ -80,7 +79,7 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
             ,Not generatedTransactionTag
           ]
 
-    (_label,items) = accountTransactionsReport rspec' j q thisacctq
+    items = accountTransactionsReport rspec' j q thisacctq
     items' = (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
@@ -89,17 +88,17 @@ rsInit d reset ui@UIState{aopts=_uopts@UIOpts{cliopts_=CliOpts{reportspec_=rspec
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate q thisacctq t
+          RegisterScreenItem{rsItemDate          = T.unpack . showDate $ transactionRegisterDate q thisacctq t
                             ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = T.unpack $ tdescription t
-                            ,rsItemOtherAccounts = case splitOn ", " otheracctsstr of
-                                                     [s] -> s
-                                                     ss  -> intercalate ", " ss
+                            ,rsItemOtherAccounts = T.unpack otheracctsstr
                                                      -- _   -> "<split>"  -- should do this if accounts field width < 30
-                            ,rsItemChangeAmount  = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) False change
-                            ,rsItemBalanceAmount = showMixedOneLine showAmountWithoutPrice Nothing (Just 32) False bal
+                            ,rsItemChangeAmount  = showamt change
+                            ,rsItemBalanceAmount = showamt bal
                             ,rsItemTransaction   = t
                             }
+            where showamt = (\wb -> (wbUnpack wb, wbWidth wb))
+                          . showMixedAmountB oneLine{displayMaxWidth=Just 32}
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
     blankitems = replicate 100  -- "100 ought to be enough for anyone"
@@ -204,7 +203,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec}}
           <+> togglefilters
           <+> str " transactions"
           -- <+> str (if ishistorical then " historical total" else " period total")
-          <+> borderQueryStr (unwords . map (quoteIfNeeded . T.unpack) $ querystring_ ropts)
+          <+> borderQueryStr (T.unpack . T.unwords . map textQuoteIfNeeded $ querystring_ ropts)
           -- <+> str " and subs"
           <+> borderPeriodStr "in" (period_ ropts)
           <+> str " ("

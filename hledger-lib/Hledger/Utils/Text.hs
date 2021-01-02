@@ -12,6 +12,8 @@ module Hledger.Utils.Text
  -- underline,
  -- stripbrackets,
   textUnbracket,
+  wrap,
+  textChomp,
  -- -- quoting
   quoteIfSpaced,
   textQuoteIfNeeded,
@@ -29,7 +31,7 @@ module Hledger.Utils.Text
  -- -- * single-line layout
  -- elideLeft,
   textElideRight,
- -- formatString,
+  formatText,
  -- -- * multi-line layout
   textConcatTopPadded,
  -- concatBottomPadded,
@@ -43,7 +45,12 @@ module Hledger.Utils.Text
  -- cliptopleft,
  -- fitto,
   fitText,
+  linesPrepend,
+  linesPrepend2,
  -- -- * wide-character-aware layout
+  WideBuilder(..),
+  wbToText,
+  wbUnpack,
   textWidth,
   textTakeWidth,
  -- fitString,
@@ -70,7 +77,8 @@ import qualified Data.Text as T
 -- import Hledger.Utils.Parse
 -- import Hledger.Utils.Regex
 import Hledger.Utils.Test
-import Text.WideString (charWidth, textWidth)
+import Text.WideString (WideBuilder(..), wbToText, wbUnpack, charWidth, textWidth)
+
 
 -- lowercase, uppercase :: String -> String
 -- lowercase = map toLower
@@ -87,15 +95,23 @@ textElideRight :: Int -> Text -> Text
 textElideRight width t =
     if T.length t > width then T.take (width - 2) t <> ".." else t
 
--- -- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
--- -- Works on multi-line strings too (but will rewrite non-unix line endings).
--- formatString :: Bool -> Maybe Int -> Maybe Int -> String -> String
--- formatString leftJustified minwidth maxwidth s = intercalate "\n" $ map (printf fmt) $ lines s
---     where
---       justify = if leftJustified then "-" else ""
---       minwidth' = maybe "" show minwidth
---       maxwidth' = maybe "" (("."++).show) maxwidth
---       fmt = "%" ++ justify ++ minwidth' ++ maxwidth' ++ "s"
+-- | Wrap a Text with the surrounding Text.
+wrap :: Text -> Text -> Text -> Text
+wrap start end x = start <> x <> end
+
+-- | Remove trailing newlines/carriage returns.
+textChomp :: Text -> Text
+textChomp = T.dropWhileEnd (`elem` ['\r', '\n'])
+
+-- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
+-- Works on multi-line strings too (but will rewrite non-unix line endings).
+formatText :: Bool -> Maybe Int -> Maybe Int -> Text -> Text
+formatText leftJustified minwidth maxwidth t =
+    T.intercalate "\n" . map (pad . clip) $ if T.null t then [""] else T.lines t
+  where
+    pad  = maybe id justify minwidth
+    clip = maybe id T.take maxwidth
+    justify n = if leftJustified then T.justifyLeft n ' ' else T.justifyRight n ' '
 
 -- underline :: String -> String
 -- underline s = s' ++ replicate (length s) '-' ++ "\n"
@@ -108,7 +124,7 @@ textElideRight width t =
 -- double-quoted.
 quoteIfSpaced :: T.Text -> T.Text
 quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
-                | not $ any (`elem` (T.unpack s)) whitespacechars = s
+                | not $ any (\c -> T.any (==c) s) whitespacechars = s
                 | otherwise = textQuoteIfNeeded s
 
 -- -- | Wrap a string in double quotes, and \-prefix any embedded single
@@ -122,7 +138,7 @@ quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
 -- -- | Double-quote this string if it contains whitespace, single quotes
 -- -- or double-quotes, escaping the quotes as needed.
 textQuoteIfNeeded :: T.Text -> T.Text
-textQuoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
+textQuoteIfNeeded s | any (\c -> T.any (==c) s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
                     | otherwise = s
 
 -- -- | Single-quote this string if it contains whitespace or double-quotes.
@@ -344,11 +360,22 @@ textTakeWidth w t | not (T.null t),
                 = T.cons c $ textTakeWidth (w-cw) (T.tail t)
               | otherwise = ""
 
+-- | Add a prefix to each line of a string.
+linesPrepend :: Text -> Text -> Text
+linesPrepend prefix = T.unlines . map (prefix<>) . T.lines
+
+-- | Add a prefix to the first line of a string, 
+-- and a different prefix to the remaining lines.
+linesPrepend2 :: Text -> Text -> Text -> Text
+linesPrepend2 prefix1 prefix2 s = T.unlines $ case T.lines s of
+    []   -> []
+    l:ls -> (prefix1<>l) : map (prefix2<>) ls
+
 
 -- | Read a decimal number from a Text. Assumes the input consists only of digit
 -- characters.
 readDecimal :: Text -> Integer
-readDecimal = foldl' step 0 . T.unpack
+readDecimal = T.foldl' step 0
   where step a c = a * 10 + toInteger (digitToInt c)
 
 

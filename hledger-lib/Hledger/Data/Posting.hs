@@ -161,20 +161,20 @@ originalPosting p = fromMaybe p $ poriginal p
 -- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
 showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
-    unlines $ [concatTopPadded [show (postingDate p) ++ " ", showaccountname a ++ " ", showamount amt, showComment (pcomment p)]]
+    unlines $ [concatTopPadded [show (postingDate p) ++ " ", showaccountname a ++ " ", showamount amt, T.unpack . showComment $ pcomment p]]
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
-      showaccountname = fitString (Just acctnamewidth) Nothing False False . bracket . T.unpack . elideAccountName width
+      showaccountname = T.unpack . fitText (Just acctnamewidth) Nothing False False . bracket . elideAccountName width
       (bracket,width) = case t of
-                          BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
-                          VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
-                          _ -> (id,acctnamewidth)
-      showamount = fst . showMixed showAmount (Just 12) Nothing False
+                          BalancedVirtualPosting -> (wrap "[" "]", acctnamewidth-2)
+                          VirtualPosting         -> (wrap "(" ")", acctnamewidth-2)
+                          _                      -> (id,acctnamewidth)
+      showamount = wbUnpack . showMixedAmountB noColour{displayMinWidth=Just 12}
 
 
-showComment :: Text -> String
-showComment t = if T.null t then "" else "  ;" ++ T.unpack t
+showComment :: Text -> Text
+showComment t = if T.null t then "" else "  ;" <> t
 
 isReal :: Posting -> Bool
 isReal p = ptype p == RegularPosting
@@ -274,9 +274,9 @@ accountNameWithoutPostingType a = case accountNamePostingType a of
                                     RegularPosting -> a
 
 accountNameWithPostingType :: PostingType -> AccountName -> AccountName
-accountNameWithPostingType BalancedVirtualPosting a = "["<>accountNameWithoutPostingType a<>"]"
-accountNameWithPostingType VirtualPosting a = "("<>accountNameWithoutPostingType a<>")"
-accountNameWithPostingType RegularPosting a = accountNameWithoutPostingType a
+accountNameWithPostingType BalancedVirtualPosting = wrap "[" "]" . accountNameWithoutPostingType
+accountNameWithPostingType VirtualPosting         = wrap "(" ")" . accountNameWithoutPostingType
+accountNameWithPostingType RegularPosting         = accountNameWithoutPostingType
 
 -- | Prefix one account name to another, preserving posting type
 -- indicators like concatAccountNames.

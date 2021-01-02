@@ -208,31 +208,31 @@ clipOrEllipsifyAccountName (Just 0) = const "..."
 clipOrEllipsifyAccountName n        = clipAccountName n
 
 -- | Escape an AccountName for use within a regular expression.
--- >>> putStr $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
+-- >>> putStr . T.unpack $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
 -- First\?!#\$\*\?\$\(\*\) !@\^#\*\? %\)\*!@#
-escapeName :: AccountName -> String
-escapeName = T.unpack . T.concatMap escapeChar
+escapeName :: AccountName -> Text
+escapeName = T.concatMap escapeChar
   where
     escapeChar c = if c `elem` escapedChars then T.snoc "\\" c else T.singleton c
     escapedChars = ['[', '?', '+', '|', '(', ')', '*', '$', '^', '\\']
 
 -- | Convert an account name to a regular expression matching it and its subaccounts.
 accountNameToAccountRegex :: AccountName -> Regexp
-accountNameToAccountRegex a = toRegex' $ '^' : escapeName a ++ "(:|$)"  -- PARTIAL: Is this safe after escapeName?
+accountNameToAccountRegex a = toRegex' $ "^" <> escapeName a <> "(:|$)"  -- PARTIAL: Is this safe after escapeName?
 
 -- | Convert an account name to a regular expression matching it and its subaccounts,
 -- case insensitively.
 accountNameToAccountRegexCI :: AccountName -> Regexp
-accountNameToAccountRegexCI a = toRegexCI' $ '^' : escapeName a ++ "(:|$)"  -- PARTIAL: Is this safe after escapeName?
+accountNameToAccountRegexCI a = toRegexCI' $ "^" <> escapeName a <> "(:|$)"  -- PARTIAL: Is this safe after escapeName?
 
 -- | Convert an account name to a regular expression matching it but not its subaccounts.
 accountNameToAccountOnlyRegex :: AccountName -> Regexp
-accountNameToAccountOnlyRegex a = toRegex' $ '^' : escapeName a ++ "$" -- PARTIAL: Is this safe after escapeName?
+accountNameToAccountOnlyRegex a = toRegex' $ "^" <> escapeName a <> "$" -- PARTIAL: Is this safe after escapeName?
 
 -- | Convert an account name to a regular expression matching it but not its subaccounts,
 -- case insensitively.
 accountNameToAccountOnlyRegexCI :: AccountName -> Regexp
-accountNameToAccountOnlyRegexCI a = toRegexCI' $ '^' : escapeName a ++ "$" -- PARTIAL: Is this safe after escapeName?
+accountNameToAccountOnlyRegexCI a = toRegexCI' $ "^" <> escapeName a <> "$" -- PARTIAL: Is this safe after escapeName?
 
 -- -- | Does this string look like an exact account-matching regular expression ?
 --isAccountRegex  :: String -> Bool

@@ -1,5 +1,7 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 {-|
@@ -54,6 +56,7 @@ module Hledger.Utils.Regex (
   ,RegexError
    -- * total regex operations
   ,regexMatch
+  ,regexMatchText
   ,regexReplace
   ,regexReplaceUnmemo
   ,regexReplaceAllBy
@@ -66,6 +69,10 @@ import Data.Array ((!), elems, indices)
 import Data.Char (isDigit)
 import Data.List (foldl')
 import Data.MemoUgly (memo)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
+import Data.Text (Text)
 import qualified Data.Text as T
 import Text.Regex.TDFA (
   Regex, CompOption(..), defaultCompOpt, defaultExecOpt,
@@ -78,8 +85,8 @@ import Hledger.Utils.UTF8IOCompat (error')
 
 -- | Regular expression. Extended regular expression-ish syntax ? But does not support eg (?i) syntax.
 data Regexp
-  = Regexp   { reString :: String, reCompiled :: Regex }
-  | RegexpCI { reString :: String, reCompiled :: Regex }
+  = Regexp   { reString :: Text, reCompiled :: Regex }
+  | RegexpCI { reString :: Text, reCompiled :: Regex }
 
 instance Eq Regexp where
   Regexp   s1 _ == Regexp   s2 _ = s1 == s2
@@ -93,7 +100,7 @@ instance Ord Regexp where
   RegexpCI _ _ `compare` Regexp _ _ = GT
 
 instance Show Regexp where
-  showsPrec d r = showParen (d > app_prec) $ reCons . showsPrec (app_prec+1) (reString r)
+  showsPrec d r = showParen (d > app_prec) $ reCons . showsPrec (app_prec+1) (T.unpack $ reString r)
     where app_prec = 10
           reCons = case r of Regexp   _ _ -> showString "Regexp "
                              RegexpCI _ _ -> showString "RegexpCI "
@@ -108,8 +115,8 @@ instance Read Regexp where
     where app_prec = 10
 
 instance ToJSON Regexp where
-  toJSON (Regexp   s _) = String . T.pack $ "Regexp "   ++ s
-  toJSON (RegexpCI s _) = String . T.pack $ "RegexpCI " ++ s
+  toJSON (Regexp   s _) = String $ "Regexp "   <> s
+  toJSON (RegexpCI s _) = String $ "RegexpCI " <> s
 
 instance RegexLike Regexp String where
   matchOnce = matchOnce . reCompiled
@@ -124,24 +131,24 @@ instance RegexContext Regexp String String where
   matchM = matchM . reCompiled
 
 -- Convert a Regexp string to a compiled Regex, or return an error message.
-toRegex :: String -> Either RegexError Regexp
-toRegex = memo $ \s -> mkRegexErr s (Regexp s <$> makeRegexM s)
+toRegex :: Text -> Either RegexError Regexp
+toRegex = memo $ \s -> mkRegexErr s (Regexp s <$> makeRegexM (T.unpack s))  -- Have to unpack here because Text instance in regex-tdfa only appears in 1.3.1
 
 -- Like toRegex, but make a case-insensitive Regex.
-toRegexCI :: String -> Either RegexError Regexp
-toRegexCI = memo $ \s -> mkRegexErr s (RegexpCI s <$> makeRegexOptsM defaultCompOpt{caseSensitive=False} defaultExecOpt s)
+toRegexCI :: Text -> Either RegexError Regexp
+toRegexCI = memo $ \s -> mkRegexErr s (RegexpCI s <$> makeRegexOptsM defaultCompOpt{caseSensitive=False} defaultExecOpt (T.unpack s))  -- Have to unpack here because Text instance in regex-tdfa only appears in 1.3.1
 
 -- | Make a nice error message for a regexp error.
-mkRegexErr :: String -> Maybe a -> Either RegexError a
+mkRegexErr :: Text -> Maybe a -> Either RegexError a
 mkRegexErr s = maybe (Left errmsg) Right
-  where errmsg = "this regular expression could not be compiled: " ++ s
+  where errmsg = T.unpack $ "this regular expression could not be compiled: " <> s
 
 -- Convert a Regexp string to a compiled Regex, throw an error
-toRegex' :: String -> Regexp
+toRegex' :: Text -> Regexp
 toRegex' = either error' id . toRegex
 
 -- Like toRegex', but make a case-insensitive Regex.
-toRegexCI' :: String -> Regexp
+toRegexCI' :: Text -> Regexp
 toRegexCI' = either error' id . toRegexCI
 
 -- | A replacement pattern. May include numeric backreferences (\N).
@@ -158,6 +165,13 @@ type RegexError = String
 -- naming.
 regexMatch :: Regexp -> String -> Bool
 regexMatch = matchTest
+
+-- | Tests whether a Regexp matches a Text.
+--
+-- This currently unpacks the Text to a String an works on that. This is due to
+-- a performance bug in regex-tdfa (#9), which may or may not be relevant here.
+regexMatchText :: Regexp -> Text -> Bool
+regexMatchText r = matchTest r . T.unpack
 
 --------------------------------------------------------------------------------
 -- new total functions

@@ -2,7 +2,7 @@
   #{header}
 
 <div .hidden-xs>
-  ^{registerChartHtml $ transactionsReportByCommodity r}
+  ^{registerChartHtml balancelabel $ transactionsReportByCommodity items}
 
 <div.table-responsive>
   <table .table.table-striped.table-condensed>
@@ -15,7 +15,7 @@
         <th style="text-align:left;">To/From Account(s)
         <th style="text-align:right; white-space:normal;">Amount Out/In
         <th style="text-align:right; white-space:normal;">
-          #{balancelabel'}
+          #{balancelabel}
 
     <tbody>
       $forall (torig, tacct, split, _acct, amt, bal) <- items

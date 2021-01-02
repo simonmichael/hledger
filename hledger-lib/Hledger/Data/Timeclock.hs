@@ -6,6 +6,7 @@ converted to 'Transactions' and queried like a ledger.
 
 -}
 
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Data.Timeclock (
@@ -14,14 +15,18 @@ module Hledger.Data.Timeclock (
 )
 where
 
-import Data.Maybe
+import Data.Maybe (fromMaybe)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 -- import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar
-import Data.Time.Clock
-import Data.Time.Format
-import Data.Time.LocalTime
-import Text.Printf
+import Data.Time.Calendar (addDays)
+import Data.Time.Clock (addUTCTime, getCurrentTime)
+import Data.Time.Format (defaultTimeLocale, formatTime, parseTimeM)
+import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..), getCurrentTimeZone,
+                            localTimeToUTC, midnight, utc, utcToLocalTime)
+import Text.Printf (printf)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -90,8 +95,8 @@ errorWithSourceLine line msg = error $ "line " ++ show line ++ ": " ++ msg
 entryFromTimeclockInOut :: TimeclockEntry -> TimeclockEntry -> Transaction
 entryFromTimeclockInOut i o
     | otime >= itime = t
-    | otherwise =
-        error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t  -- PARTIAL:
+    | otherwise = error' . T.unpack $
+        "clock-out time less than clock-in time in:\n" <> showTransaction t  -- PARTIAL:
     where
       t = Transaction {
             tindex       = 0,

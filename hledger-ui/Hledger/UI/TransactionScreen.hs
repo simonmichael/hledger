@@ -79,9 +79,10 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportspec_=rspec@ReportSpec{
           fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
           reportPeriodOrJournalLastDay rspec j
 
-      render $ defaultLayout toplabel bottomlabel $ str $
-        showTransactionOneLineAmounts $
-        maybe t (transactionApplyValuation prices styles periodlast (rsToday rspec) t) $ value_ ropts
+      render . defaultLayout toplabel bottomlabel . str
+        . T.unpack . showTransactionOneLineAmounts
+        . maybe t (transactionApplyValuation prices styles periodlast (rsToday rspec) t)
+        $ value_ ropts
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
       where
         toplabel =
@@ -208,7 +209,7 @@ regenerateTransactions rspec j s acct i ui =
   let
     q = filterQuery (not . queryIsDepth) $ rsQuery rspec
     thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
-    items = reverse $ snd $ accountTransactionsReport rspec j q thisacctq
+    items = reverse $ accountTransactionsReport rspec j q thisacctq
     ts = map first6 items
     numberedts = zip [1..] ts
     -- select the best current transaction from the new list

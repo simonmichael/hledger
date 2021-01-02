@@ -38,6 +38,7 @@ import Data.List
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
 #endif
+import qualified Data.Text as T
 import Graphics.Vty
   (Event(..),Key(..),Modifier(..),Vty(..),Color,Attr,currentAttr,refresh
   -- ,Output(displayBounds,mkDisplayContext),DisplayContext(..)
@@ -189,7 +190,7 @@ borderDepthStr (Just d) = str " to depth " <+> withAttr ("border" <> "query") (s
 
 borderPeriodStr :: String -> Period -> Widget Name
 borderPeriodStr _           PeriodAll = str ""
-borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr ("border" <> "query") (str $ showPeriod p)
+borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr ("border" <> "query") (str . T.unpack $ showPeriod p)
 
 borderKeysStr :: [(String,String)] -> Widget Name
 borderKeysStr = borderKeysStr' . map (\(a,b) -> (a, str b))

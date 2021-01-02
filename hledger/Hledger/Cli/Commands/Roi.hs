@@ -1,5 +1,6 @@
-{-# LANGUAGE ParallelListComp #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ParallelListComp  #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-|
 
 The @roi@ command prints internal rate of return and time-weighted rate of return for and investment.
@@ -20,6 +21,7 @@ import Data.List
 import Numeric.RootFinding
 import Data.Decimal
 import qualified Data.Text as T
+import qualified Data.Text.Lazy.IO as TL
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular as Tbl
@@ -118,22 +120,22 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec} j = do
     let smallIsZero x = if abs x < 0.01 then 0.0 else x
     return [ showDate spanBegin
            , showDate (addDays (-1) spanEnd)
-           , show valueBefore
-           , show cashFlowAmt
-           , show valueAfter
-           , show (valueAfter - (valueBefore + cashFlowAmt))
-           , printf "%0.2f%%" $ smallIsZero irr
-           , printf "%0.2f%%" $ smallIsZero twr ]
+           , T.pack $ show valueBefore
+           , T.pack $ show cashFlowAmt
+           , T.pack $ show valueAfter
+           , T.pack $ show (valueAfter - (valueBefore + cashFlowAmt))
+           , T.pack $ printf "%0.2f%%" $ smallIsZero irr
+           , T.pack $ printf "%0.2f%%" $ smallIsZero twr ]
 
   let table = Table
-              (Tbl.Group NoLine (map (Header . show) (take (length tableBody) [1..])))
+              (Tbl.Group NoLine (map (Header . T.pack . show) (take (length tableBody) [1..])))
               (Tbl.Group DoubleLine
                [ Tbl.Group SingleLine [Header "Begin", Header "End"]
                , Tbl.Group SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
                , Tbl.Group SingleLine [Header "IRR", Header "TWR"]])
               tableBody
 
-  putStrLn $ Ascii.render prettyTables id id id table
+  TL.putStrLn $ Ascii.render prettyTables id id id table
 
 timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spanBegin spanEnd valueBefore valueAfter cashFlow pnl) = do
   let initialUnitPrice = 100
@@ -196,7 +198,7 @@ timeWeightedReturn showCashFlow prettyTables investmentsQuery trans (OneSpan spa
         unitBalances = add initialUnits unitBalances'
         valuesOnDate = add 0 valuesOnDate'
 
-    putStr $ Ascii.render prettyTables id id id
+    TL.putStr $ Ascii.render prettyTables id id T.pack
       (Table
        (Tbl.Group NoLine (map (Header . showDate) dates))
        (Tbl.Group DoubleLine [ Tbl.Group SingleLine [Header "Portfolio value", Header "Unit balance"]
@@ -226,11 +228,11 @@ internalRateOfReturn showCashFlow prettyTables (OneSpan spanBegin spanEnd valueB
   when showCashFlow $ do
     printf "\nIRR cash flow for %s - %s\n" (showDate spanBegin) (showDate (addDays (-1) spanEnd))
     let (dates, amounts) = unzip totalCF
-    putStrLn $ Ascii.render prettyTables id id id
+    TL.putStrLn $ Ascii.render prettyTables id id id
       (Table
        (Tbl.Group NoLine (map (Header . showDate) dates))
        (Tbl.Group SingleLine [Header "Amount"])
-       (map ((:[]) . show) amounts))
+       (map ((:[]) . T.pack . show) amounts))
 
   -- 0% is always a solution, so require at least something here
   case totalCF of

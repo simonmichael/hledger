@@ -167,7 +167,7 @@ rawOptsToReportOpts rawopts = do
     supports_color <- hSupportsANSIColor stdout
 
     let colorflag    = stringopt "color" rawopts
-        formatstring = maybestringopt "format" rawopts
+        formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
 
     format <- case parseStringFormat <$> formatstring of

@@ -5,6 +5,8 @@ a richer abstraction than DateSpan. See also Types and Dates.
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Data.Period (
    periodAsDateSpan
   ,dateSpanAsPeriod
@@ -30,6 +32,8 @@ module Hledger.Data.Period (
 )
 where
 
+import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Calendar.MonthDay
 import Data.Time.Calendar.OrdinalDate
@@ -155,21 +159,23 @@ isStandardPeriod = isStandardPeriod' . simplifyPeriod
 --
 -- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
 -- "2016-07-25W30"
-showPeriod (DayPeriod b)       = formatTime defaultTimeLocale "%F" b              -- DATE
-showPeriod (WeekPeriod b)      = formatTime defaultTimeLocale "%FW%V" b           -- STARTDATEWYEARWEEK
-showPeriod (MonthPeriod y m)   = printf "%04d-%02d" y m                           -- YYYY-MM
-showPeriod (QuarterPeriod y q) = printf "%04dQ%d" y q                             -- YYYYQN
-showPeriod (YearPeriod y)      = printf "%04d" y                                  -- YYYY
-showPeriod (PeriodBetween b e) = formatTime defaultTimeLocale "%F" b
+showPeriod :: Period -> Text
+showPeriod (DayPeriod b)       = T.pack $ formatTime defaultTimeLocale "%F" b              -- DATE
+showPeriod (WeekPeriod b)      = T.pack $ formatTime defaultTimeLocale "%FW%V" b           -- STARTDATEWYEARWEEK
+showPeriod (MonthPeriod y m)   = T.pack $ printf "%04d-%02d" y m                           -- YYYY-MM
+showPeriod (QuarterPeriod y q) = T.pack $ printf "%04dQ%d" y q                             -- YYYYQN
+showPeriod (YearPeriod y)      = T.pack $ printf "%04d" y                                  -- YYYY
+showPeriod (PeriodBetween b e) = T.pack $ formatTime defaultTimeLocale "%F" b
                                  ++ formatTime defaultTimeLocale "..%F" (addDays (-1) e) -- STARTDATE..INCLUSIVEENDDATE
-showPeriod (PeriodFrom b)      = formatTime defaultTimeLocale "%F.." b                   -- STARTDATE..
-showPeriod (PeriodTo e)        = formatTime defaultTimeLocale "..%F" (addDays (-1) e)    -- ..INCLUSIVEENDDATE
+showPeriod (PeriodFrom b)      = T.pack $ formatTime defaultTimeLocale "%F.." b                   -- STARTDATE..
+showPeriod (PeriodTo e)        = T.pack $ formatTime defaultTimeLocale "..%F" (addDays (-1) e)    -- ..INCLUSIVEENDDATE
 showPeriod PeriodAll           = ".."
 
 -- | Like showPeriod, but if it's a month period show just
 -- the 3 letter month name abbreviation for the current locale.
+showPeriodMonthAbbrev :: Period -> Text
 showPeriodMonthAbbrev (MonthPeriod _ m)                           -- Jan
-  | m > 0 && m <= length monthnames = snd $ monthnames !! (m-1)
+  | m > 0 && m <= length monthnames = T.pack . snd $ monthnames !! (m-1)
   where monthnames = months defaultTimeLocale
 showPeriodMonthAbbrev p = showPeriod p
 

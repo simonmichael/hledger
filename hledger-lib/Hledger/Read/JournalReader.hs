@@ -42,7 +42,7 @@ module Hledger.Read.JournalReader (
   -- * Reader-finding utils
   findReader,
   splitReaderPrefix,
-  
+
   -- * Reader
   reader,
 
@@ -380,8 +380,8 @@ parseAccountTypeCode s =
     "c"         -> Right Cash
     _           -> Left err
   where
-    err = "invalid account type code "++T.unpack s++", should be one of " ++
-          (intercalate ", " $ ["A","L","E","R","X","C","Asset","Liability","Equity","Revenue","Expense","Cash"])
+    err = T.unpack $ "invalid account type code "<>s<>", should be one of " <>
+            T.intercalate ", " ["A","L","E","R","X","C","Asset","Liability","Equity","Revenue","Expense","Cash"]
 
 -- Add an account declaration to the journal, auto-numbering it.
 addAccountDeclaration :: (AccountName,Text,[Tag]) -> JournalParser m ()

@@ -4,8 +4,9 @@ A ledger-compatible @print@ command.
 
 -}
 
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Cli.Commands.Print (
   printmode
@@ -17,9 +18,14 @@ where
 
 import Data.Maybe (isJust)
 import Data.Text (Text)
-import Data.List (intercalate)
+import Data.List (intersperse)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit
 import Hledger.Read.CsvReader (CSV, printCSV)
 
@@ -53,18 +59,18 @@ print' opts j = do
     Just desc -> printMatch opts j $ T.pack desc
 
 printEntries :: CliOpts -> Journal -> IO ()
-printEntries opts@CliOpts{reportspec_=rspec} j = do
-  let fmt = outputFormatFromOpts opts
-      render = case fmt of
-        "txt"  -> entriesReportAsText opts
-        "csv"  -> (++"\n") . printCSV . entriesReportAsCsv
-        "json" -> (++"\n") . TL.unpack . toJsonText
-        "sql"  -> entriesReportAsSql
-        _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-  writeOutput opts $ render $ entriesReport rspec j
+printEntries opts@CliOpts{reportspec_=rspec} j =
+    writeOutputLazyText opts . render $ entriesReport rspec j
+  where
+    fmt = outputFormatFromOpts opts
+    render | fmt=="txt"  = entriesReportAsText opts
+           | fmt=="csv"  = printCSV . entriesReportAsCsv
+           | fmt=="json" = toJsonText
+           | fmt=="sql"  = entriesReportAsSql
+           | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
 
-entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransaction . whichtxn)
+entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
+entriesReportAsText opts = TB.toLazyText . foldMap (TB.fromText . showTransaction . whichtxn)
   where
     whichtxn
       -- With -x, use the fully-inferred txn with all amounts & txn prices explicit.
@@ -125,18 +131,17 @@ originalPostingPreservingAccount p = (originalPosting p) { paccount = paccount p
 --       ]
 --  ]
 
-entriesReportAsSql :: EntriesReport -> String
-entriesReportAsSql txns =
-  "create table if not exists postings(id serial,txnidx int,date1 date,date2 date,status text,code text,description text,comment text,account text,amount numeric,commodity text,credit numeric,debit numeric,posting_status text,posting_comment text);\n"++
-  "insert into postings(txnidx,date1,date2,status,code,description,comment,account,amount,commodity,credit,debit,posting_status,posting_comment) values\n"++
-  (intercalate "," (map values csv))
-  ++";\n"
+entriesReportAsSql :: EntriesReport -> TL.Text
+entriesReportAsSql txns = TB.toLazyText $ mconcat
+    [ TB.fromText "create table if not exists postings(id serial,txnidx int,date1 date,date2 date,status text,code text,description text,comment text,account text,amount numeric,commodity text,credit numeric,debit numeric,posting_status text,posting_comment text);\n"
+    , TB.fromText "insert into postings(txnidx,date1,date2,status,code,description,comment,account,amount,commodity,credit,debit,posting_status,posting_comment) values\n"
+    , mconcat . intersperse (TB.fromText ",") $ map values csv
+    , TB.fromText ";\n"
+    ]
   where
-    values vs = "(" ++ (intercalate "," $ map toSql vs) ++ ")\n"
-    toSql "" = "NULL"
-    toSql s  = "'" ++ (concatMap quoteChar s) ++ "'"
-    quoteChar '\'' = "''"
-    quoteChar c = [c]
+    values vs = TB.fromText "(" <> mconcat (intersperse (TB.fromText ",") $ map toSql vs) <> TB.fromText ")\n"
+    toSql "" = TB.fromText "NULL"
+    toSql s  = TB.fromText "'" <> TB.fromText (T.replace "'" "''" s) <> TB.fromText "'"
     csv = concatMap transactionToCSV txns
 
 entriesReportAsCsv :: EntriesReport -> CSV
@@ -148,16 +153,16 @@ entriesReportAsCsv txns =
 -- The txnidx field (transaction index) allows postings to be grouped back into transactions.
 transactionToCSV :: Transaction -> CSV
 transactionToCSV t =
-  map (\p -> show idx:date:date2:status:code:description:comment:p)
+  map (\p -> T.pack (show idx):date:date2:status:code:description:comment:p)
    (concatMap postingToCSV $ tpostings t)
   where
     idx = tindex t
-    description = T.unpack $ tdescription t
+    description = tdescription t
     date = showDate (tdate t)
-    date2 = maybe "" showDate (tdate2 t)
-    status = show $ tstatus t
-    code = T.unpack $ tcode t
-    comment = chomp $ strip $ T.unpack $ tcomment t
+    date2 = maybe "" showDate $ tdate2 t
+    status = T.pack . show $ tstatus t
+    code = tcode t
+    comment = T.strip $ tcomment t
 
 postingToCSV :: Posting -> CSV
 postingToCSV p =
@@ -165,17 +170,17 @@ postingToCSV p =
     -- commodity goes into separate column, so we suppress it, along with digit group
     -- separators and prices
     let a_ = a{acommodity="",astyle=(astyle a){asdigitgroups=Nothing},aprice=Nothing} in
-    let amount = showAmount a_ in
-    let commodity = T.unpack c in
-    let credit = if q < 0 then showAmount $ negate a_ else "" in
-    let debit  = if q >= 0 then showAmount a_ else "" in
-    [account, amount, commodity, credit, debit, status, comment])
+    let showamt = TL.toStrict . TB.toLazyText . wbBuilder . showAmountB noColour in
+    let amount = showamt a_ in
+    let credit = if q < 0 then showamt $ negate a_ else "" in
+    let debit  = if q >= 0 then showamt a_ else "" in
+    [account, amount, c, credit, debit, status, comment])
    amounts
   where
     Mixed amounts = pamount p
-    status = show $ pstatus p
+    status = T.pack . show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
-    comment = chomp $ strip $ T.unpack $ pcomment p
+    comment = T.strip $ pcomment p
 
 -- --match
 
@@ -185,7 +190,7 @@ printMatch :: CliOpts -> Journal -> Text -> IO ()
 printMatch CliOpts{reportspec_=rspec} j desc = do
   case similarTransaction' j (rsQuery rspec) desc of
       Nothing -> putStrLn "no matches found."
-      Just t  -> putStr $ showTransaction t
+      Just t  -> T.putStr $ showTransaction t
 
   where
     -- Identify the closest recent match for this description in past transactions.

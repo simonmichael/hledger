@@ -1,4 +1,7 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, LambdaCase #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-|
 
 Common helpers for making multi-section balance report commands
@@ -13,19 +16,23 @@ module Hledger.Cli.CompoundBalanceCommand (
 ) where
 
 import Data.List (foldl')
-import Data.Maybe
-import qualified Data.Text as TS
+import Data.Maybe (fromMaybe, mapMaybe)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
+import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import Data.Time.Calendar
+import qualified Data.Text.Lazy.Builder as TB
+import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvReader (CSV, printCSV)
 import Lucid as L hiding (value_)
-import Text.Tabular as T
+import Text.Tabular as Tab
 
 import Hledger
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutput)
+import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
@@ -89,84 +96,83 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
 compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=rspec, rawopts_=rawopts} j = do
-    let
-      ropts@ReportOpts{..} = rsOpts rspec
-      -- use the default balance type for this report, unless the user overrides
-      mBalanceTypeOverride =
-        choiceopt parse rawopts where
-          parse = \case
-            "historical" -> Just HistoricalBalance
-            "cumulative" -> Just CumulativeChange
-            "change"     -> Just PeriodChange
-            _            -> Nothing
-      balancetype = fromMaybe cbctype mBalanceTypeOverride
-      -- Set balance type in the report options.
-      ropts' = ropts{balancetype_=balancetype}
+    writeOutputLazyText opts $ render cbr
+  where
+    ropts@ReportOpts{..} = rsOpts rspec
+    -- use the default balance type for this report, unless the user overrides
+    mBalanceTypeOverride =
+      choiceopt parse rawopts where
+        parse = \case
+          "historical" -> Just HistoricalBalance
+          "cumulative" -> Just CumulativeChange
+          "change"     -> Just PeriodChange
+          _            -> Nothing
+    balancetype = fromMaybe cbctype mBalanceTypeOverride
+    -- Set balance type in the report options.
+    ropts' = ropts{balancetype_=balancetype}
 
-      title =
-        cbctitle
-        ++ " "
-        ++ titledatestr
-        ++ maybe "" (' ':) mtitleclarification
-        ++ valuationdesc
-        where
+    title =
+      T.pack cbctitle
+      <> " "
+      <> titledatestr
+      <> maybe "" (" "<>) mtitleclarification
+      <> valuationdesc
+      where
 
-          -- XXX #1078 the title of ending balance reports
-          -- (HistoricalBalance) should mention the end date(s) shown as
-          -- column heading(s) (not the date span of the transactions).
-          -- Also the dates should not be simplified (it should show
-          -- "2008/01/01-2008/12/31", not "2008").
-          titledatestr = case balancetype of
-              HistoricalBalance -> showEndDates enddates
-              _                 -> showDateSpan requestedspan
-            where
-              enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
-              requestedspan = queryDateSpan date2_ (rsQuery rspec)
-                                  `spanDefaultsFrom` journalDateSpan date2_ j
+        -- XXX #1078 the title of ending balance reports
+        -- (HistoricalBalance) should mention the end date(s) shown as
+        -- column heading(s) (not the date span of the transactions).
+        -- Also the dates should not be simplified (it should show
+        -- "2008/01/01-2008/12/31", not "2008").
+        titledatestr = case balancetype of
+            HistoricalBalance -> showEndDates enddates
+            _                 -> showDateSpan requestedspan
+          where
+            enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
+            requestedspan = queryDateSpan date2_ (rsQuery rspec)
+                                `spanDefaultsFrom` journalDateSpan date2_ j
 
-          -- when user overrides, add an indication to the report title
-          mtitleclarification = flip fmap mBalanceTypeOverride $ \case
-              PeriodChange | changingValuation -> "(Period-End Value Changes)"
-              PeriodChange                     -> "(Balance Changes)"
-              CumulativeChange                 -> "(Cumulative Ending Balances)"
-              HistoricalBalance                -> "(Historical Ending Balances)"
+        -- when user overrides, add an indication to the report title
+        mtitleclarification = flip fmap mBalanceTypeOverride $ \case
+            PeriodChange | changingValuation -> "(Period-End Value Changes)"
+            PeriodChange                     -> "(Balance Changes)"
+            CumulativeChange                 -> "(Cumulative Ending Balances)"
+            HistoricalBalance                -> "(Historical Ending Balances)"
 
-          valuationdesc = case value_ of
-            Just (AtCost _mc)       -> ", valued at cost"
-            Just (AtThen _mc)       -> error' unsupportedValueThenError  -- TODO
-            Just (AtEnd _mc) | changingValuation -> ""
-            Just (AtEnd _mc)        -> ", valued at period ends"
-            Just (AtNow _mc)        -> ", current value"
-            Just (AtDate today _mc) -> ", valued at "++showDate today
-            Nothing                 -> ""
+        valuationdesc = case value_ of
+          Just (AtCost _mc)       -> ", valued at cost"
+          Just (AtThen _mc)       -> error' unsupportedValueThenError  -- TODO
+          Just (AtEnd _mc) | changingValuation -> ""
+          Just (AtEnd _mc)        -> ", valued at period ends"
+          Just (AtNow _mc)        -> ", current value"
+          Just (AtDate today _mc) -> ", valued at " <> showDate today
+          Nothing                 -> ""
 
-          changingValuation = case (balancetype_, value_) of
-              (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
-              _                              -> False
+        changingValuation = case (balancetype_, value_) of
+            (PeriodChange, Just (AtEnd _)) -> interval_ /= NoInterval
+            _                              -> False
 
-      -- make a CompoundBalanceReport.
-      cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
-      cbr  = cbr'{cbrTitle=title}
+    -- make a CompoundBalanceReport.
+    cbr' = compoundBalanceReport rspec{rsOpts=ropts'} j cbcqueries
+    cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately
-    writeOutput opts $ case outputFormatFromOpts opts of
-        "txt"  -> compoundBalanceReportAsText ropts' cbr
-        "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
-        "html" -> (++"\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
-        "json" -> (++"\n") $ TL.unpack $ toJsonText cbr
+    render = case outputFormatFromOpts opts of
+        "txt"  -> compoundBalanceReportAsText ropts'
+        "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
+        "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
+        "json" -> toJsonText
         x      -> error' $ unsupportedOutputFormatError x
 
 -- | Summarise one or more (inclusive) end dates, in a way that's
 -- visually different from showDateSpan, suggesting discrete end dates
 -- rather than a continuous span.
-showEndDates :: [Day] -> String
+showEndDates :: [Day] -> T.Text
 showEndDates es = case es of
   -- cf showPeriod
-  (e:_:_) -> showdate e ++ ".." ++ showdate (last es)
-  [e]     -> showdate e
+  (e:_:_) -> showDate e <> ".." <> showDate (last es)
+  [e]     -> showDate e
   []      -> ""
-  where
-    showdate = show
 
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:
@@ -188,15 +194,16 @@ Balance Sheet
  Total       ||           1        1        1
 
 -}
-compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> String
+compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
 compoundBalanceReportAsText ropts
   (CompoundPeriodicReport title _colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
-    title ++ "\n\n" ++
-    balanceReportTableAsText ropts bigtable'
+    TB.toLazyText $
+      TB.fromText title <> TB.fromText "\n\n" <>
+      balanceReportTableAsText ropts bigtable'
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
-        []   -> T.empty
+        []   -> Tab.empty
         r:rs -> foldl' concatTables r rs
     bigtable'
       | no_total_ ropts || length subreports == 1 =
@@ -217,11 +224,11 @@ compoundBalanceReportAsText ropts
         -- convert to table
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts r
         -- tweak the layout
-        t = Table (T.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
+        t = Table (Tab.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
 
 -- | Add the second table below the first, discarding its column headings.
 concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
-    Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
+    Table (Tab.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
@@ -229,14 +236,14 @@ concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
 -- optional overall totals row is added.
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
 compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg)) =
-  addtotals $
-  padRow title :
-  ("Account" :
-   map showDateSpanMonthAbbrev colspans
-   ++ (if row_total_ ropts then ["Total"] else [])
-   ++ (if average_ ropts then ["Average"] else [])
-   ) :
-  concatMap (subreportAsCsv ropts) subreports
+    addtotals $
+      padRow title
+      : ( "Account"
+        : map showDateSpanMonthAbbrev colspans
+        ++ (if row_total_ ropts then ["Total"] else [])
+        ++ (if average_ ropts then ["Average"] else [])
+        )
+      : concatMap (subreportAsCsv ropts) subreports
   where
     -- | Add a subreport title row and drop the heading row.
     subreportAsCsv ropts (subreporttitle, multibalreport, _) =
@@ -256,7 +263,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
       | no_total_ ropts || length subreports == 1 = id
       | otherwise = (++
           ["Net:" :
-           map (showMixedAmountOneLineWithoutPrice False) (
+           map (wbToText . showMixedAmountB oneLine) (
              coltotals
              ++ (if row_total_ ropts then [grandtotal] else [])
              ++ (if average_ ropts   then [grandavg]   else [])
@@ -268,7 +275,7 @@ compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName 
 compoundBalanceReportAsHtml ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports (PeriodicReportRow _ coltotals grandtotal grandavg) = cbr
-    colspanattr = colspan_ $ TS.pack $ show $
+    colspanattr = colspan_ $ T.pack $ show $
       1 + length colspans + (if row_total_ ropts then 1 else 0) + (if average_ ropts then 1 else 0)
     leftattr = style_ "text-align:left"
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
@@ -282,12 +289,12 @@ compoundBalanceReportAsHtml ropts cbr =
           ++ (if average_ ropts then ["Average"] else [])
           ]
 
-    thRow :: [String] -> Html ()
+    thRow :: [T.Text] -> Html ()
     thRow = tr_ . mconcat . map (th_ . toHtml)
 
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
-    subreportrows :: (String, MultiBalanceReport, Bool) -> [Html ()]
+    subreportrows :: (T.Text, MultiBalanceReport, Bool) -> [Html ()]
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
         (_,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
@@ -300,16 +307,14 @@ compoundBalanceReportAsHtml ropts cbr =
     totalrows | no_total_ ropts || length subreports == 1 = []
               | otherwise =
                   let defstyle = style_ "text-align:right"
-                  in
-                    [tr_ $ mconcat $
-                         th_ [class_ "", style_ "text-align:left"] "Net:"
-                       : [th_ [class_ "amount coltotal", defstyle] (toHtml $ showMixedAmountOneLineWithoutPrice False a) | a <- coltotals]
-                      ++ (if row_total_ ropts then [th_ [class_ "amount coltotal", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice False grandtotal] else [])
-                      ++ (if average_ ropts   then [th_ [class_ "amount colaverage", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice False grandavg] else [])
+                      orEmpty b x = if b then x else mempty
+                  in [tr_ $ th_ [class_ "", style_ "text-align:left"] "Net:"
+                         <> foldMap (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack . showMixedAmountB oneLine) coltotals
+                         <> orEmpty (row_total_ ropts) (th_ [class_ "amount coltotal", defstyle] . toHtml . wbUnpack $ showMixedAmountB oneLine grandtotal)
+                         <> orEmpty (average_ ropts) (th_ [class_ "amount colaverage", defstyle] . toHtml . wbUnpack $ showMixedAmountB oneLine grandavg)
                     ]
-
   in do
-    style_ (TS.unlines [""
+    style_ (T.unlines [""
       ,"td { padding:0 0.5em; }"
       ,"td:nth-child(1) { white-space:nowrap; }"
       ,"tr:nth-child(even) td { background-color:#eee; }"

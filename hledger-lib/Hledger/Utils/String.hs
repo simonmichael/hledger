@@ -38,8 +38,6 @@ module Hledger.Utils.String (
  padright,
  cliptopleft,
  fitto,
- linesPrepend,
- linesPrepend2,
  -- * wide-character-aware layout
  charWidth,
  strWidth,
@@ -55,6 +53,8 @@ module Hledger.Utils.String (
 import Data.Char (isSpace, toLower, toUpper)
 import Data.Default (def)
 import Data.List (intercalate)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Text.Megaparsec ((<|>), between, many, noneOf, sepBy)
 import Text.Megaparsec.Char (char)
 import Text.Printf (printf)
@@ -62,8 +62,8 @@ import Text.Printf (printf)
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex (toRegex', regexReplace)
 import Text.Tabular (Header(..), Properties(..))
-import Text.Tabular.AsciiWide (Align(..), Cell(..), TableOpts(..), renderRow)
-import Text.WideString (strWidth, charWidth)
+import Text.Tabular.AsciiWide (Align(..), TableOpts(..), alignCell, renderRow)
+import Text.WideString (charWidth, strWidth)
 
 
 -- | Take elements from the end of a list.
@@ -184,16 +184,16 @@ unbracket s
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 -- Treats wide characters as double width.
 concatTopPadded :: [String] -> String
-concatTopPadded = renderRow def{tableBorders=False, borderSpaces=False}
+concatTopPadded = TL.unpack . renderRow def{tableBorders=False, borderSpaces=False}
                 . Group NoLine . map (Header . cell)
-  where cell = Cell BottomLeft . map (\x -> (x, strWidth x)) . lines
+  where cell = alignCell BottomLeft . T.pack
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
 -- Treats wide characters as double width.
 concatBottomPadded :: [String] -> String
-concatBottomPadded = renderRow def{tableBorders=False, borderSpaces=False}
+concatBottomPadded = TL.unpack . renderRow def{tableBorders=False, borderSpaces=False}
                    . Group NoLine . map (Header . cell)
-  where cell = Cell TopLeft . map (\x -> (x, strWidth x)) . lines
+  where cell = alignCell TopLeft . T.pack
 
 
 -- | Join multi-line strings horizontally, after compressing each of
@@ -349,15 +349,4 @@ stripAnsi :: String -> String
 stripAnsi s = either err id $ regexReplace ansire "" s
  where
    err    = error "stripAnsi: invalid replacement pattern"      -- PARTIAL, shouldn't happen
-   ansire = toRegex' "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]"  -- PARTIAL, should succeed
-
--- | Add a prefix to each line of a string.
-linesPrepend :: String -> String -> String
-linesPrepend prefix = unlines . map (prefix++) . lines
-
--- | Add a prefix to the first line of a string, 
--- and a different prefix to the remaining lines.
-linesPrepend2 :: String -> String -> String -> String
-linesPrepend2 prefix1 prefix2 s =
-  unlines $ (prefix1++l) : map (prefix2++) ls
-  where l:ls = lines s
+   ansire = toRegex' $ T.pack "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]"  -- PARTIAL, should succeed

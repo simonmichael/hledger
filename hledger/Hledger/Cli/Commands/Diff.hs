@@ -12,14 +12,14 @@ module Hledger.Cli.Commands.Diff (
  ,diff
 ) where
 
-import Data.List
-import Data.Function
-import Data.Ord
-import Data.Maybe
-import Data.Time
-import Data.Either
-import qualified Data.Text as T
-import System.Exit
+import Data.List ((\\), groupBy, nubBy, sortBy)
+import Data.Function (on)
+import Data.Ord (comparing)
+import Data.Maybe (fromJust)
+import Data.Time (diffDays)
+import Data.Either (partitionEithers)
+import qualified Data.Text.IO as T
+import System.Exit (exitFailure)
 
 import Hledger
 import Prelude hiding (putStrLn)
@@ -106,7 +106,7 @@ diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{rsQuery=Acct acctRe}} _ = do
   j1 <- readJournalFile' f1
   j2 <- readJournalFile' f2
 
-  let acct = T.pack $ reString acctRe
+  let acct = reString acctRe
   let pp1 = matchingPostings acct j1
   let pp2 = matchingPostings acct j2
 
@@ -116,10 +116,10 @@ diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{rsQuery=Acct acctRe}} _ = do
   let unmatchedtxn2 = unmatchedtxns R pp2 m
 
   putStrLn "These transactions are in the first file only:\n"
-  mapM_ (putStr . showTransaction) unmatchedtxn1
+  mapM_ (T.putStr . showTransaction) unmatchedtxn1
 
   putStrLn "These transactions are in the second file only:\n"
-  mapM_ (putStr . showTransaction) unmatchedtxn2
+  mapM_ (T.putStr . showTransaction) unmatchedtxn2
 
 diff _ _ = do
   putStrLn "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"

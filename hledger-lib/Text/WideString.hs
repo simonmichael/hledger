@@ -1,14 +1,49 @@
 -- | Calculate the width of String and Text, being aware of wide characters.
 
+{-# LANGUAGE CPP #-}
+
 module Text.WideString (
   -- * wide-character-aware layout
   strWidth,
   textWidth,
-  charWidth
+  charWidth,
+  -- * Text Builders which keep track of length
+  WideBuilder(..),
+  wbUnpack,
+  wbToText
   ) where
 
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup (Semigroup(..))
+#endif
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
+
+
+-- | Helper for constructing Builders while keeping track of text width.
+data WideBuilder = WideBuilder
+  { wbBuilder :: !TB.Builder
+  , wbWidth   :: !Int
+  }
+
+instance Semigroup WideBuilder where
+  WideBuilder x i <> WideBuilder y j = WideBuilder (x <> y) (i + j)
+
+instance Monoid WideBuilder where
+  mempty = WideBuilder mempty 0
+#if !(MIN_VERSION_base(4,11,0))
+  mappend = (<>)
+#endif
+
+-- | Convert a WideBuilder to a strict Text.
+wbToText :: WideBuilder -> Text
+wbToText = TL.toStrict . TB.toLazyText . wbBuilder
+
+-- | Convert a WideBuilder to a String.
+wbUnpack :: WideBuilder -> String
+wbUnpack = TL.unpack . TB.toLazyText . wbBuilder
 
 
 -- | Calculate the render width of a string, considering

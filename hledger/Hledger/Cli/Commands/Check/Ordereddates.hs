@@ -1,11 +1,16 @@
+{-# LANGUAGE CPP #-}
+
 module Hledger.Cli.Commands.Check.Ordereddates (
   journalCheckOrdereddates
 )
 where
 
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Semigroup ((<>))
+#endif
+import qualified Data.Text as T
 import Hledger
 import Hledger.Cli.CliOptions
-import Text.Printf
 
 journalCheckOrdereddates :: CliOpts -> Journal -> Either String ()
 journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
@@ -22,16 +27,16 @@ journalCheckOrdereddates CliOpts{reportspec_=rspec} j = do
     FoldAcc{fa_previous=Nothing} -> return ()
     FoldAcc{fa_error=Nothing}    -> return ()
     FoldAcc{fa_error=Just error, fa_previous=Just previous} -> do
-      let 
+      let
+        datestr = if date2_ ropts then "2" else ""
         uniquestr = if checkunique then " and/or not unique" else ""
         positionstr = showGenericSourcePos $ tsourcepos error
-        txn1str = linesPrepend  "  "      $ showTransaction previous
-        txn2str = linesPrepend2 "> " "  " $ showTransaction error
-      Left $ printf "transaction date%s is out of order%s\nat %s:\n\n%s"
-        (if date2_ ropts then "2" else "")
-        uniquestr
-        positionstr
-        (txn1str ++ txn2str)
+        txn1str = T.unpack . linesPrepend  (T.pack "  ")               $ showTransaction previous
+        txn2str = T.unpack . linesPrepend2 (T.pack "> ") (T.pack "  ") $ showTransaction error
+      Left $
+        "Error: transaction date" <> datestr <> " is out of order"
+        <> uniquestr <> "\nat " <> positionstr <> ":\n\n"
+        <> txn1str <> txn2str
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a

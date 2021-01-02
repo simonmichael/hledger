@@ -87,20 +87,20 @@ module Hledger.Data.Journal (
   tests_Journal,
 )
 where
-import Control.Monad
-import Control.Monad.Except
-import Control.Monad.Extra
+
+import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
+import Control.Monad.Extra (whenM)
 import Control.Monad.Reader as R
-import Control.Monad.ST
-import Data.Array.ST
+import Control.Monad.ST (ST, runST)
+import Data.Array.ST (STArray, getElems, newListArray, writeArray)
 import Data.Default (Default(..))
 import Data.Function ((&))
 import qualified Data.HashTable.Class as H (toList)
 import qualified Data.HashTable.ST.Cuckoo as H
-import Data.List
+import Data.List (find, sortOn)
 import Data.List.Extra (groupSort, nubSort)
 import qualified Data.Map as M
-import Data.Maybe
+import Data.Maybe (catMaybes, fromJust, fromMaybe, isJust, mapMaybe)
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Semigroup (Semigroup(..))
 #endif
@@ -108,10 +108,10 @@ import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (headMay, headDef)
-import Data.Time.Calendar
-import Data.Tree
+import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Data.Tree (Tree, flatten)
 import System.Time (ClockTime(TOD))
-import Text.Printf
+import Text.Printf (printf)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -895,7 +895,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
          Nothing -> "?" -- shouldn't happen
          Just t ->  printf "%s\ntransaction:\n%s"
                       (showGenericSourcePos pos)
-                      (chomp $ showTransaction t)
+                      (textChomp $ showTransaction t)
                       :: String
                       where
                         pos = baposition $ fromJust $ pbalanceassertion p
@@ -926,11 +926,11 @@ checkIllegalBalanceAssignmentB p = do
 checkBalanceAssignmentPostingDateB :: Posting -> Balancing s ()
 checkBalanceAssignmentPostingDateB p =
   when (hasBalanceAssignment p && isJust (pdate p)) $
-    throwError $ unlines $
+    throwError . T.unpack $ T.unlines
       ["postings which are balance assignments may not have a custom date."
       ,"Please write the posting amount explicitly, or remove the posting date:"
       ,""
-      ,maybe (unlines $ showPostingLines p) showTransaction $ ptransaction p
+      ,maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
       ]
 
 -- | Throw an error if this posting is trying to do a balance assignment and
@@ -940,16 +940,16 @@ checkBalanceAssignmentUnassignableAccountB :: Posting -> Balancing s ()
 checkBalanceAssignmentUnassignableAccountB p = do
   unassignable <- R.asks bsUnassignable
   when (hasBalanceAssignment p && paccount p `S.member` unassignable) $
-    throwError $ unlines $
+    throwError . T.unpack $ T.unlines
       ["balance assignments cannot be used with accounts which are"
       ,"posted to by transaction modifier rules (auto postings)."
       ,"Please write the posting amount explicitly, or remove the rule."
       ,""
-      ,"account: "++T.unpack (paccount p)
+      ,"account: " <> paccount p
       ,""
       ,"transaction:"
       ,""
-      ,maybe (unlines $ showPostingLines p) showTransaction $ ptransaction p
+      ,maybe (T.unlines $ showPostingLines p) showTransaction $ ptransaction p
       ]
 
 --

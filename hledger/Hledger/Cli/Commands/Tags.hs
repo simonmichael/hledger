@@ -29,7 +29,7 @@ tags :: CliOpts -> Journal -> IO ()
 tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   d <- getCurrentDay
   let args = listofstringopt "args" rawopts
-  mtagpat <- mapM (either Fail.fail pure . toRegexCI) $ headMay args
+  mtagpat <- mapM (either Fail.fail pure . toRegexCI . T.pack) $ headMay args
   let
     querystring = map T.pack $ drop 1 args
     values      = boolopt "values" rawopts
@@ -44,7 +44,7 @@ tags CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       (if parsed then id else nubSort)
       [ r
       | (t,v) <- concatMap transactionAllTags txns
-      , maybe True (`regexMatch` T.unpack t) mtagpat
+      , maybe True (`regexMatchText` t) mtagpat
       , let r = if values then v else t
       , not (values && T.null v && not empty)
       ]

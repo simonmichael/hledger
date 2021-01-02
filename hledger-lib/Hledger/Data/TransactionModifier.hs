@@ -26,7 +26,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Transaction
 import Hledger.Query
 import Hledger.Data.Posting (commentJoin, commentAddTag)
-import Hledger.Utils.Debug
+import Hledger.Utils
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -62,7 +62,8 @@ modifyTransactions d tmods ts = do
 -- postings when certain other postings are present.
 --
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
--- >>> test = either putStr (putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
+-- >>> import qualified Data.Text.IO as T
+-- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction nulldate
 -- >>> test $ TransactionModifier "" ["pong" `post` usd 2]
 -- 0000-01-01
 --     ping           $1.00
@@ -137,7 +138,7 @@ postingRuleMultiplier p =
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }
     where
-        dates = T.concat $ catMaybes [T.pack . showDate <$> pdate p, ("=" <>) . T.pack . showDate <$> pdate2 p]
+        dates = T.concat $ catMaybes [showDate <$> pdate p, ("=" <>) . showDate <$> pdate2 p]
         comment'
             | T.null dates = pcomment p
-            | otherwise    = ("[" <> dates <> "]") `commentJoin` pcomment p
+            | otherwise    = (wrap "[" "]" dates) `commentJoin` pcomment p

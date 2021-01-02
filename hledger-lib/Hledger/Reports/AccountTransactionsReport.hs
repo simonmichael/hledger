@@ -18,6 +18,7 @@ where
 import Data.List
 import Data.Ord
 import Data.Maybe
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 
@@ -64,26 +65,20 @@ import Hledger.Utils
 -- posts to the current account), most recent first.
 -- Reporting intervals are currently ignored.
 --
-type AccountTransactionsReport =
-  (String                          -- label for the balance column, eg "balance" or "total"
-  ,[AccountTransactionsReportItem] -- line items, one per transaction
-  )
+type AccountTransactionsReport = [AccountTransactionsReportItem] -- line items, one per transaction
 
 type AccountTransactionsReportItem =
   (
    Transaction -- the transaction, unmodified
   ,Transaction -- the transaction, as seen from the current account
   ,Bool        -- is this a split (more than one posting to other accounts) ?
-  ,String      -- a display string describing the other account(s), if any
+  ,Text        -- a display string describing the other account(s), if any
   ,MixedAmount -- the amount posted to the current account(s) (or total amount posted)
   ,MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
   )
 
-totallabel   = "Period Total"
-balancelabel = "Historical Total"
-
 accountTransactionsReport :: ReportSpec -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = (label, items)
+accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = items
   where
     -- a depth limit should not affect the account transactions report
     -- seems unnecessary for some reason XXX
@@ -129,9 +124,9 @@ accountTransactionsReport rspec@ReportSpec{rsOpts=ropts} j reportq thisacctq = (
       ptraceAtWith 5 (("ts5:\n"++).pshowTransactions) $
       sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts4
 
-    (startbal,label)
-      | balancetype_ ropts == HistoricalBalance = (sumPostings priorps, balancelabel)
-      | otherwise                               = (nullmixedamt,        totallabel)
+    startbal
+      | balancetype_ ropts == HistoricalBalance = sumPostings priorps
+      | otherwise                               = nullmixedamt
       where
         priorps = dbg5 "priorps" $
                   filter (matchesPosting
@@ -216,9 +211,9 @@ transactionRegisterDate reportq thisacctq t
 
 -- | Generate a simplified summary of some postings' accounts.
 -- To reduce noise, if there are both real and virtual postings, show only the real ones.
-summarisePostingAccounts :: [Posting] -> String
+summarisePostingAccounts :: [Posting] -> Text
 summarisePostingAccounts ps =
-  (intercalate ", " . map (T.unpack . accountSummarisedName) . nub . map paccount) displayps -- XXX pack
+    T.intercalate ", " . map accountSummarisedName . nub $ map paccount displayps
   where
     realps = filter isReal ps
     displayps | null realps = ps

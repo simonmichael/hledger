@@ -135,7 +135,7 @@ $ hledger -f- balance --alias=cc=credit-card --alias=b=bank
                   75  bank
                   15  expenses
 --------------------
-                  90
+                  90  
 
 # 9. query will search both origin and substitution in alias
 <
